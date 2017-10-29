@@ -14,7 +14,11 @@ is like a small adventure ..
 
 Hence this.
 
-Powered by node packages : (express, mysql) => { xmysql }  
+Powered by node packages : (express, mysql) => { xmysql }
+
+## Usage
+* npm install -g xmysql
+* xmysql -h localhost -u mysqlUsername -p mysqlPassword -d databaseName  
 
 ## FEATURES
 * Generates API for **ANY** MySql database 

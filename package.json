@@ -18,6 +18,7 @@
   "bin": {
     "xmysql": "bin/index.js"
   },
+  "repository": "o1lab/xmysql",
   "homepage": "https://github.com/o1lab/xmysql",
   "author": "o1lab",
   "license": "MIT",

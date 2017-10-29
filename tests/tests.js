@@ -21,7 +21,6 @@ args['password'] = ''
 args['database'] = 'classicmodels'
 
 
-
 //desribe group of tests done
 describe('xmysql : tests', function () {
 

@@ -39,6 +39,10 @@ Powered by node packages : (express, mysql) => { xmysql }
 
 Run HTTP client [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls 
 
+## ROOT
+Root URL (localhost:3000/) returns all REST API urls for each table in schema.
+
+
 ## CRUD APIs Usual Suspects
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:tableName
 * POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          /api/:tableName
@@ -138,6 +142,7 @@ xmysql identifies foreign key relations automatically and provides GET api.
 ```
 eg: Customers is parent table and payments is child table. API invocation will result in all payments with customer 103.
  
+
 
 ## When to use ?
 * You need REST APIs without much hassle for (ANY) MySql database

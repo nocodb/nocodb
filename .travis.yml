@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - '7.6.0'
+service:
+  - mysql
+install:
+  - npm install
+before_install:
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS classicmodels;'
+  - mysql -u root --default-character-set=utf8 classicmodels < tests/sample.sql
+script:
+  - npm test

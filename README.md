@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/o1lab/xmysql.svg?branch=master)](https://travis-ci.org/o1lab/xmysql)
+
 # xmysql: one command to generate REST APIs for **any** MySql database
 
 > Requires node >= 7.6.0

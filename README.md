@@ -1,12 +1,15 @@
+![npm version](https://img.shields.io/node/v/xmysql.svg)
 [![Build Status](https://travis-ci.org/o1lab/xmysql.svg?branch=master)](https://travis-ci.org/o1lab/xmysql)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/o1lab/xmysql/master/LICENSE)
+
 
 # xmysql: one command to generate REST APIs for **any** MySql database
 
-> Requires node >= 7.6.0
 
 ## Why this ?
-Deriving REST APIs for a database which do not follow conventions of frameworks such as rails, django etc
-is like a small adventure ..
+Generating REST APIs quickly for a MySql database which does not follow conventions of 
+frameworks such as rails, django etc
+is like a small adventure that one would prefer to avoid ..
 
 <p align="center">
   <img src="https://media.giphy.com/media/8gWrk3QZrjF1C/giphy.gif" alt="Rick & Morty"/>
@@ -14,13 +17,23 @@ is like a small adventure ..
 
 Hence this.
 
-Powered by node packages : (express, mysql) => { xmysql }
+Powered by node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
 
-## Usage
-* npm install -g xmysql
-* xmysql -h localhost -u mysqlUsername -p mysqlPassword -d databaseName  
 
-## FEATURES
+## Setup and Usage
+```
+npm install -g xmysql
+```
+```
+xmysql -h localhost -u mysqlUsername -p mysqlPassword -d databaseName
+```
+```
+http://localhost:3000
+```
+
+That's it!
+
+## Features
 * Generates API for **ANY** MySql database 
 * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * CRUD : Usual suspects   
@@ -31,15 +44,19 @@ Powered by node packages : (express, mysql) => { xmysql }
 * Relations
 * Run dynamic queries
 
-## Sample usage
-* npm install -g xmysql
-* xmysql -h localhost -u mysqlUsername -p mysqlPassword -d databaseName
-* [http://localhost:3000](#http://localhost:3000)
+
+Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
+
+____
+
+Download [node](https://nodejs.org/en/download/current/), 
+[mysql](https://dev.mysql.com/downloads/mysql/) 
+[(setup mysql)](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing), 
+[sample database](https://dev.mysql.com/doc/employee/en/employees-installation.html) -
+if you haven't on your system.
 
 
-Run HTTP client [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls 
-
-## ROOT
+## Root URL
 Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 
 
@@ -145,12 +162,14 @@ eg: Customers is parent table and payments is child table. API invocation will r
 
 
 ## When to use ?
-* You need REST APIs without much hassle for (ANY) MySql database
+* You need just REST APIs without much hassle for (ANY) MySql database.
 * You are learning new frontend frameworks and need REST APIs for your MySql database.
 * You are working on a demo, hacks etc
 
 ## When NOT to use ?
+* If you are in need of a full blown MVC framework, ACL, Authorisation etc - Not this.
 * Other times not mentioned in when to use section
+
 
 
 

@@ -170,6 +170,14 @@ eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY cit
 eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC, country DESC
 
 
+## Relational Tables
+xmysql identifies foreign key relations automatically and provides GET api.
+```
+/api/customers/103/payments
+```
+eg: Customers is parent table and payments is child table. API invocation will result in all payments with customer 103.
+
+
 ## Run dynamic queries
 Dynamic queries on a database can be run by POST method to URL localhost:3000/dynamic 
 
@@ -188,12 +196,6 @@ POST /dynamic
         "params": ["customers"]
     }
 ```
-## Relational Tables
-xmysql identifies foreign key relations automatically and provides GET api.
-```
-/api/customers/103/payments
-```
-eg: Customers is parent table and payments is child table. API invocation will result in all payments with customer 103.
  
 ## Upload single file
 
@@ -205,6 +207,7 @@ eg: curl --form file=@/Users/me/Desktop/a.png http://localhost:3000/upload
 returns uploaded file name else 'upload failed'
 
 (Note: POSTMAN has issues with file uploading hence examples with curl) 
+
 
 ## Upload multiple files
 ```
@@ -219,7 +222,8 @@ returns uploaded file names as string
 ## Download file
 http://localhost:3000/download?name=fileName
 
-For upload and download of files -> you can specify storage folder using -s option
+> For upload and download of files -> you can specify storage folder using -s option
+> Upload and download apis are available only with local mysql server 
 
 ## When to use ?
 * You need just REST APIs without much hassle for (ANY) MySql database.

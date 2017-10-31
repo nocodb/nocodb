@@ -17,7 +17,7 @@ var mysqlPool = {}
 
 args['host'] = 'localhost'
 args['user'] = 'root'
-args['password'] = ''
+args['password'] = 'madurga'
 args['database'] = 'classicmodels'
 
 
@@ -632,6 +632,68 @@ describe('xmysql : tests', function () {
 
         //validate response
         res.body.length.should.be.above(1)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/customers/groupby?_fields=city&_sort=city should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/customers/groupby?_fields=city&_sort=city')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['city'].should.be.equals("NYC")
+        res.body.length.should.be.equals(95)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices/groupby?_fields=country should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/groupby?_fields=country')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['country'].should.be.equals("USA")
+        res.body.length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
+
+  it('GET /api/offices/groupby?_fields=country,city&sort=city,-country should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/groupby?_fields=country,city&sort=city,-country')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['country'].should.be.equals("Australia")
+        res.body[0]['city'].should.be.equals("Sydney")
+        res.body.length.should.be.equals(7)
 
         return done();
 

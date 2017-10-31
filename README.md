@@ -39,6 +39,8 @@ That's it!
 * Pagination
 * Sorting
 * Fields
+* Group By
+* Group By, Order By
 * Relations
 * Run dynamic queries
 
@@ -134,6 +136,35 @@ eg: gets only customerNumber and checkNumber in response of each record
 /api/payments?_fields=-checkNumber
 ```
 eg: gets all fields in table row but not checkNumber
+
+## Group By
+
+```
+/api/offices/groupby?_fields=country
+```
+eg: SELECT country,count(*) FROM offices GROUP BY country
+
+```
+/api/offices/groupby?_fields=country,city
+```
+eg: SELECT country,city,count(*) FROM offices GROUP BY country,city
+
+## Group By, Order By
+
+```
+/api/offices/groupby?_fields=country,city&sort=city
+```
+eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC
+
+```
+/api/offices/groupby?_fields=country,city&sort=city,country
+```
+eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC, country ASC
+
+```
+/api/offices/groupby?_fields=country,city&sort=city,-country
+```
+eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC, country DESC
 
 
 ## Run dynamic queries

@@ -135,7 +135,7 @@ eg: gets all fields in table row but not checkNumber
 ## Run dynamic queries
 Dynamic queries on a database can be run by POST method to URL localhost:3000/dynamic 
 
-This is enabled only in local i.e -h localhost or -h 127.0.0.1 option.
+This is enabled only when using local mysql server i.e -h localhost or -h 127.0.0.1 option.
 
 Post body takes two fields : query and params.
 

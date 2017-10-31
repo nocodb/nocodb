@@ -17,7 +17,7 @@ var mysqlPool = {}
 
 args['host'] = 'localhost'
 args['user'] = 'root'
-args['password'] = 'madurga'
+args['password'] = ''
 args['database'] = 'classicmodels'
 
 

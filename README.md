@@ -41,6 +41,7 @@ That's it!
 * Fields
 * Group By
 * Group By, Order By
+* Aggregate functions :tada:
 * Relations
 * Run dynamic queries
 * Upload single file
@@ -168,6 +169,49 @@ eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY cit
 /api/offices/groupby?_fields=country,city&sort=city,-country
 ```
 eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC, country DESC
+
+
+## Aggregate functions :jack_o_lantern: :sunglasses:
+
+```
+http://localhost:3000/api/payments/aggregate?_fields=amount
+
+[
+    {
+        "min_of_amount": 615.45,
+        "max_of_amount": 120166.58,
+        "avg_of_amount": 32431.645531,
+        "sum_of_amount": 8853839.23,
+        "stddev_of_amount": 20958.625377426568,
+        "variance_of_amount": 439263977.71130896
+    }
+]
+```
+
+eg: retrieves all numeric aggregate of a column in a table
+
+```
+http://localhost:3000/api/orderDetails/aggregate?_fields=priceEach,quantityOrdered
+[
+    {
+        "min_of_priceEach": 26.55,
+        "max_of_priceEach": 214.3,
+        "avg_of_priceEach": 90.769499,
+        "sum_of_priceEach": 271945.42,
+        "stddev_of_priceEach": 36.576811252187795,
+        "variance_of_priceEach": 1337.8631213781719,
+        "min_of_quantityOrdered": 6,
+        "max_of_quantityOrdered": 97,
+        "avg_of_quantityOrdered": 35.219,
+        "sum_of_quantityOrdered": 105516,
+        "stddev_of_quantityOrdered": 9.832243813502942,
+        "variance_of_quantityOrdered": 96.67301840816688
+    }
+]
+```
+
+eg: retrieves numeric aggregate can be done for multiple columns too 
+
 
 
 ## Relational Tables

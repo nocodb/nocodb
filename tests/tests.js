@@ -700,5 +700,27 @@ describe('xmysql : tests', function () {
       });
   });
 
+  it('GET /api/orders/aggregate?_fields=orderNumber,customerNumber should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/orders/aggregate?_fields=orderNumber,customerNumber')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['min_of_orderNumber'].should.be.equals(10100)
+        res.body[0]['max_of_orderNumber'].should.be.equals(10425)
+        res.body[0]['sum_of_orderNumber'].should.be.equals(3345575)
+        Object.keys(res.body[0]).length.should.be.equals(12)
+
+        return done();
+
+      });
+  });
+
 
 });

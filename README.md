@@ -176,6 +176,7 @@ eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY cit
 ```
 http://localhost:3000/api/payments/aggregate?_fields=amount
 
+response body
 [
     {
         "min_of_amount": 615.45,
@@ -192,6 +193,8 @@ eg: retrieves all numeric aggregate of a column in a table
 
 ```
 http://localhost:3000/api/orderDetails/aggregate?_fields=priceEach,quantityOrdered
+
+response body
 [
     {
         "min_of_priceEach": 26.55,

@@ -101,19 +101,23 @@ By default 20 records and max of 100 are returned per GET request on a table.
 ```
 
 
-## Sorting
+## Order by / Sorting 
 
-#### _sort
+#### ASC
 
 ```
 /api/payments?_sort=column1
 ```
 eg: sorts ascending by column1
 
+#### DESC
+
 ```
 /api/payments?_sort=-column1
 ```
 eg: sorts descending by column1
+
+#### Multiple fields in sort 
 
 ```
 /api/payments?_sort=column1,-column2

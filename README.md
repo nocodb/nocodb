@@ -59,18 +59,18 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 
 
 ## CRUD APIs Usual Suspects
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:tableName
-* POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          /api/:tableName
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:tableName/:id
-* PUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:tableName/:id
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:tableName/count
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:tableName/exists
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:parentTable/:id/:childTable 
-* DELETE&nbsp;  /api/:tableName/:id
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName
+* POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          /api/tableName
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id
+* PUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/count
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/exists
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
+* DELETE&nbsp;  /api/tableName/:id
 * POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
 
 ## Other APIS
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/:tableName/describe
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/describe
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tables
 
 ## Support for composite primary keys

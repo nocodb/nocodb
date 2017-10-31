@@ -43,6 +43,9 @@ That's it!
 * Group By, Order By
 * Relations
 * Run dynamic queries
+* Upload single file
+* Upload multiple files
+* Download file
 
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
@@ -192,7 +195,31 @@ xmysql identifies foreign key relations automatically and provides GET api.
 ```
 eg: Customers is parent table and payments is child table. API invocation will result in all payments with customer 103.
  
+## Upload single file
 
+```
+POST /upload
+```
+eg: curl --form file=@/Users/me/Desktop/a.png http://localhost:3000/upload
+
+returns uploaded file name else 'upload failed'
+
+(Note: POSTMAN has issues with file uploading hence examples with curl) 
+
+## Upload multiple files
+```
+POST /uploads
+```
+> Notice 's' near /api/upload**s** and file**s** in below example
+
+eg: curl --form files=@/Users/me/Desktop/a.png --form files=@/Users/me/Desktop/b.png  http://localhost:3000/uploads
+
+returns uploaded file names as string
+
+## Download file
+http://localhost:3000/download?name=fileName
+
+For upload and download of files -> you can specify storage folder using -s option
 
 ## When to use ?
 * You need just REST APIs without much hassle for (ANY) MySql database.
@@ -204,6 +231,24 @@ eg: Customers is parent table and payments is child table. API invocation will r
 * Other times not mentioned in when to use section
 
 
+### Command line options
+
+```
+  Options:
+
+    -V, --version            output the version number
+    -h, --host <n>           hostname of mysql
+    -d, --database <n>       database schema name
+    -u, --user <n>           username of database / root by default
+    -p, --password <n>       password of database / empty by default
+    -n, --portNumber <n>     port number / 3000 by default
+    -s, --storageFolder <n>  storage folder / current working dir by default
+    -h, --help               output usage information
+
+  Examples:
+
+    $ xmysql -u username -p password -d databaseSchema
+```
 
 
 

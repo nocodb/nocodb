@@ -723,4 +723,29 @@ describe('xmysql : tests', function () {
   });
 
 
+  it('GET /api/orders/aggregate should FAIL', function (done) {
+
+    //post to an url with data
+    agent.get('/api/orders/aggregate')     //enter url
+      .expect(400)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+
+        done(err)
+
+      });
+  });
+
+  it('GET /api/orders/groupby should FAIL', function (done) {
+
+    //post to an url with data
+    agent.get('/api/orders/groupby')     //enter url
+      .expect(400)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        done(err)
+      });
+  });
+
+
 });

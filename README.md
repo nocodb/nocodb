@@ -251,6 +251,8 @@ POST /dynamic
 ```
 POST /upload
 ```
+Do POST operation on /upload url with multiform 'field' assigned to local file to be uploaded
+
 eg: curl --form file=@/Users/me/Desktop/a.png http://localhost:3000/upload
 
 returns uploaded file name else 'upload failed'
@@ -262,6 +264,8 @@ returns uploaded file name else 'upload failed'
 ```
 POST /uploads
 ```
+Do POST operation on /uploads url with multiform 'fields' assigned to local files to be uploaded
+
 > Notice 's' near /api/upload**s** and file**s** in below example
 
 eg: curl --form files=@/Users/me/Desktop/a.png --form files=@/Users/me/Desktop/b.png  http://localhost:3000/uploads

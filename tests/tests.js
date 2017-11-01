@@ -4,6 +4,7 @@ var bodyParser = require('body-parser')
 var express = require('express')
 var mysql = require('mysql')
 var Xapi = require('../lib/xapi.js')
+var whereClause = require('../lib/util/whereClause.helper.js')
 var should = require('should');
 
 var request = require('supertest')
@@ -746,6 +747,293 @@ describe('xmysql : tests', function () {
         done(err)
       });
   });
+
+
+  it('where clause unit ?_where=(abc,eq,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,eq,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??=?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+
+  it('where clause unit ?_where=(abc,ne,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,ne,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??!=?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+
+  it('where clause unit ?_where=(abc,lt,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,lt,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??<?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(abc,lte,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,lte,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??<=?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(abc,gt,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,gt,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??>?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(abc,gte,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,gte,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??>=?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+
+  it('where clause unit ?_where=(abc,like,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,like,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(?? like ?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+
+  it('where clause unit ?_where=(abc,nlike,1234) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,nlike,1234)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(?? not like ?)')
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=abc,eq,1234) should FAIL', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('abc,eq,1234)',query,params)
+
+    err.err.should.be.equal(1)
+    err.query.should.be.equal('')
+    err.params.length.should.be.equal(0)
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(abc,eq,1234 should FAIL', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,eq,1234',query,params)
+
+    err.err.should.be.equal(1)
+    err.query.should.be.equal('')
+    err.params.length.should.be.equal(0)
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(abc,eq1234) should FAIL', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,eq1234)',query,params)
+
+    err.err.should.be.equal(1)
+    err.query.should.be.equal('')
+    err.params.length.should.be.equal(0)
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(abceq,1234) should FAIL', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abceq,1234)',query,params)
+
+    err.err.should.be.equal(1)
+    err.query.should.be.equal('')
+    err.params.length.should.be.equal(0)
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+
+  it('where clause unit ?_where=(1,eq,1)(1,eq,2)+or should FAIL', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(1,eq,1)(1,eq,2)+or',query,params)
+
+    err.err.should.be.equal(1)
+    err.query.should.be.equal('')
+    err.params.length.should.be.equal(0)
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(1,eq,1)+or+or(1,eq,2)(1,eq,2) should FAIL', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(1,eq,1)+or+or(1,eq,2)(1,eq,2)',query,params)
+
+    err.err.should.be.equal(1)
+    err.query.should.be.equal('')
+    err.params.length.should.be.equal(0)
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+  it('where clause unit ?_where=(abc,eq,1)+or(b,eq,2) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(abc,eq,1)+or(b,eq,2)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??=?)or(??=?)')
+    err.params.length.should.be.equal(4)
+    err.params[0].should.be.equal('abc')
+    err.params[1].should.be.equal('1')
+    err.params[2].should.be.equal('b')
+    err.params[3].should.be.equal('2')
+
+    // err.params[1].should.be.equal('1234')
+
+    done()
+
+    //console.log(query,params,err);
+
+  });
+
+
+  // it('where clause unit ?_where=((a,eq,1)+and(b,eq,2))+or(c,eq,3) should PASS', function (done) {
+  //
+  //   var query = ''
+  //   var params = []
+  //   var err = whereClause.getWhereClause('((a,eq,1)+and(b,eq,2))+or(c,eq,3)',query,params)
+  //
+  //   err.err.should.be.equal(0)
+  //   err.query.should.be.equal('((??=?)and(??=?))or(??=?)')
+  //   err.params.length.should.be.equal(4)
+  //   err.params[0].should.be.equal('abc')
+  //   err.params[1].should.be.equal('1')
+  //   err.params[2].should.be.equal('b')
+  //   err.params[3].should.be.equal('2')
+  //
+  //   err.params[1].should.be.equal('1234')
+  //
+  //   done()
+  //
+  //   //console.log(query,params,err);
+  //
+  // });
+
+
+
+
 
 
 });

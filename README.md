@@ -38,7 +38,7 @@ That's it!
 * Support for composite primary keys
 * Pagination
 * Sorting
-* Fields
+* Column filtering - Fields
 * Group By
 * Group By, Order By
 * Aggregate functions :tada:
@@ -47,7 +47,7 @@ That's it!
 * Upload single file
 * Upload multiple files
 * Download file
-
+* Row filtering - Where - Work in progress :racehorse:
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
 
@@ -133,7 +133,7 @@ eg: sorts descending by column1
 eg: sorts ascending by column1 and descending by column2
 
 
-## Fields
+## Column filtering / Fields
 ```
 /api/payments?_fields=customerNumber,checkNumber
 ```
@@ -142,6 +142,9 @@ eg: gets only customerNumber and checkNumber in response of each record
 /api/payments?_fields=-checkNumber
 ```
 eg: gets all fields in table row but not checkNumber
+
+## Row filtering / Where
+> Work in progress
 
 ## Group By
 

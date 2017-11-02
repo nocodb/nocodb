@@ -36,18 +36,19 @@ That's it!
 * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * CRUD : Usual suspects   
 * Support for composite primary keys
-* Pagination
-* Sorting
-* Column filtering - Fields
-* Group By
-* Group By, Order By
+* Pagination :tada:
+* Sorting :tada:
+* Column filtering - Fields :tada:
+* Row filtering - Where :tada:
+* Group By :tada:
+* Group By, Order By :tada:
 * Aggregate functions :tada:
-* Relations
+* Relations :tada: :tada:
 * Run dynamic queries
 * Upload single file
 * Upload multiple files
 * Download file
-* Row filtering - Where - Work in progress :racehorse:
+* Group By, Having - Work in Progress - :racehorse::racehorse:
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
 
@@ -144,7 +145,48 @@ eg: gets only customerNumber and checkNumber in response of each record
 eg: gets all fields in table row but not checkNumber
 
 ## Row filtering / Where
-> Work in progress
+
+#### Comparison operators
+
+```
+eq  -   '='
+ne  -   '!='
+gt  -   '>'
+gte -   '>='
+lt  -   '<'
+lte -   '<='
+```
+#### Use of comparison operators
+```
+/api/payments?_where=(checkNumber,eq,JM555205)
+```
+
+#### Logical operators
+```
+~or     -   'or'
+~and    -   'and'
+~xor    -   'xor'
+```
+
+#### Use of logical operators
+```
+/api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)
+```
+
+eg: complex parentheses
+```
+/api/payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933))~and(amount,gt,100)
+```
+
+eg: where with sorting(_sort), pagination(_p), column filtering (_fields)
+```
+/api/payments?_where=(amount,gte,1000)&_sort=-amount&p=2&&_fields=customerNumber
+```
+
+eg: filter of rows using _where is available for relational route URLs too.
+```
+/api/offices/1/employees?_where=(jobTitle,eq,Sales%20Rep)
+```
 
 ## Group By
 

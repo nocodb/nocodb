@@ -1009,28 +1009,73 @@ describe('xmysql : tests', function () {
   });
 
 
-  // it('where clause unit ?_where=((a,eq,1)+and(b,eq,2))+or(c,eq,3) should PASS', function (done) {
-  //
-  //   var query = ''
-  //   var params = []
-  //   var err = whereClause.getWhereClause('((a,eq,1)+and(b,eq,2))+or(c,eq,3)',query,params)
-  //
-  //   err.err.should.be.equal(0)
-  //   err.query.should.be.equal('((??=?)and(??=?))or(??=?)')
-  //   err.params.length.should.be.equal(4)
-  //   err.params[0].should.be.equal('abc')
-  //   err.params[1].should.be.equal('1')
-  //   err.params[2].should.be.equal('b')
-  //   err.params[3].should.be.equal('2')
-  //
-  //   err.params[1].should.be.equal('1234')
-  //
-  //   done()
-  //
-  //   //console.log(query,params,err);
-  //
-  // });
+  it('where clause unit ?_where=((a,eq,1)+and(b,eq,2))+or(c,eq,3) should PASS', function (done) {
 
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('((abc,eq,1234)+and(b,eq,2))+or(cde,eq,3)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('((??=?)and(??=?))or(??=?)')
+    err.params.length.should.be.equal(6)
+
+    err.params[0].should.be.equal('abc')
+    err.params[2].should.be.equal('b')
+    err.params[4].should.be.equal('cde')
+
+    err.params[1].should.be.equal('1234')
+    err.params[3].should.be.equal('2')
+    err.params[5].should.be.equal('3')
+
+    done()
+
+  });
+
+
+  it('where clause unit ?_where=((a,eq,1)+and(b,eq,2))+xor(c,eq,3) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('((abc,eq,1234)+and(b,eq,2))+xor(cde,eq,3)',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('((??=?)and(??=?))xor(??=?)')
+    err.params.length.should.be.equal(6)
+
+    err.params[0].should.be.equal('abc')
+    err.params[2].should.be.equal('b')
+    err.params[4].should.be.equal('cde')
+
+    err.params[1].should.be.equal('1234')
+    err.params[3].should.be.equal('2')
+    err.params[5].should.be.equal('3')
+
+    done()
+
+  });
+
+
+  it('where clause unit ?_where=(a,eq,1)+and((b,eq,2)+or(c,eq,3)) should PASS', function (done) {
+
+    var query = ''
+    var params = []
+    var err = whereClause.getWhereClause('(a,eq,1)+and((b,eq,2)+or(c,eq,3))',query,params)
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(??=?)and((??=?)or(??=?))')
+    err.params.length.should.be.equal(6)
+
+    err.params[0].should.be.equal('a')
+    err.params[2].should.be.equal('b')
+    err.params[4].should.be.equal('c')
+
+    err.params[1].should.be.equal('1')
+    err.params[3].should.be.equal('2')
+    err.params[5].should.be.equal('3')
+
+    done()
+
+  });
 
 
 

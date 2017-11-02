@@ -36,14 +36,14 @@ That's it!
 * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * CRUD : Usual suspects   
 * Support for composite primary keys
-* Pagination :tada:
-* Sorting :tada:
-* Column filtering - Fields :tada:
-* Row filtering - Where :tada:
-* Group By :tada:
-* Group By, Order By :tada:
-* Aggregate functions :tada:
-* Relations :tada: :tada:
+* Pagination 
+* Sorting 
+* Column filtering - Fields 
+* Row filtering - Where 
+* Group By 
+* Group By, Order By 
+* Aggregate functions 
+* Relations  
 * Run dynamic queries
 * Upload single file
 * Upload multiple files

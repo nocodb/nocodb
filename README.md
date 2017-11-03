@@ -353,4 +353,28 @@ http://localhost:3000/download?name=fileName
 ```
 
 
+# Docker
 
+Simply build with `docker build -t xmysql .` and run with `docker run -p 3000:3000 -d xmysql`
+
+The best way for testing is to run mysql in a docker container too and create a docker network, so that `xmysql` can access the `mysql` container with a name from docker network.
+
+1. Create network 
+    * `docker network create mynet`
+2. Start mysql with docker name `some-mysql` and bind to docker network `mynet`
+    * `docker run --name some-mysql -p 3306:3306 --net mynet -e MYSQL_ROOT_PASSWORD=password -d mysql`
+3. build xmysql container (if not done yet)
+    * `docker build -t xmysql .`
+4. run xmysql and set env variable for `some-mysql` from step 2
+    * `docker run -p 3000:3000 -d -e DATABASE_HOST=some-mysql --net mynet xmysql`
+
+You can also pass the environment variables to a file and use them as an option with docker like `docker run --env-file ./env.list -p 3000:3000 --net mynet -d xmysql`
+
+environment variables which can be used:
+
+```
+ENV DATABASE_HOST 127.0.0.1
+ENV DATABASE_USER root
+ENV DATABASE_PASSWORD password
+ENV DATABASE_NAME sakila
+```

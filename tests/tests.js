@@ -832,7 +832,7 @@ describe('xmysql : tests', function () {
         }
 
         //validate response
-        res.body[0]['country'].should.be.equals("UK")
+        res.body[0]['_count'].should.be.equals(1)
 
         return done();
 

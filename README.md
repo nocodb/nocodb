@@ -11,7 +11,7 @@
 </p>
 
 Generating REST APIs quickly for a MySql database which does not follow conventions of 
-frameworks such as rails, django etc is a small adventure that one rather like to avoid ..
+frameworks such as rails, django etc looks like a small adventure that one rather would like to avoid ..
 
 Hence this.
 

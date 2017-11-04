@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const sqlConfig = require('commander');
 const mysql = require('mysql');
-const dataHelp = require('./lib/util/data.helper.js');
+//const dataHelp = require('./lib/util/data.helper.js');
 
 const Xapi = require('./lib/xapi.js');
 const cmdargs = require('./lib/util/cmd.helper.js');
@@ -29,11 +29,11 @@ let mysqlPool = mysql.createPool(sqlConfig);
 
 
 /**************** START : setup Xapi ****************/
-console.log('');
-console.log('');
-console.log('     Generating APIs at speed of your thoughts.. ');
-console.log('');
-console.log('');
+// console.log('');
+// console.log('');
+// console.log('     Generating APIs at speed of your thoughts.. ');
+// console.log('');
+// console.log('');
 
 let t = process.hrtime();
 let moreApis = new Xapi(sqlConfig,mysqlPool,app);
@@ -44,10 +44,10 @@ moreApis.init((err, results) => {
   var t1 = process.hrtime(t);
   var t2 = t1[0]+t1[1]/1000000000
 
-  console.log('|                                                            |');
-  console.log("|          xmysql took : %d seconds",dataHelp.round(t2,1));
-  console.log('|                                                            |');
-  console.log(' - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ');
+  // console.log('|                                                            |');
+  // console.log("|          xmysql took : %d seconds",dataHelp.round(t2,1));
+  // console.log('|                                                            |');
+  // console.log(' - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ');
 
 })
 /**************** END : setup Xapi ****************/

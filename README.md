@@ -5,6 +5,11 @@
 
 # xmysql: one command to generate REST APIs for **any** MySql database
 
+<p align="center">
+  <img src="https://media.giphy.com/media/xUOxf88tjN0AN7uUfu/source.gif" alt="xmysql gif"/>
+</p>
+
+
 ## Why this ?
 Generating REST APIs quickly for a MySql database which does not follow conventions of 
 frameworks such as rails, django etc is a small adventure that one rather like to avoid ..

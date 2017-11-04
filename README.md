@@ -12,7 +12,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 
 # Why this ?
 <p align="center">
-  <img src="https://media.giphy.com/media/8gWrk3QZrjF1C/giphy.gif" alt="xmysql gif"/>
+  <img src="./assets/rick-and-morty.gif" alt="xmysql gif"/>
 </p>
 
 Generating REST APIs for a MySql database which does not follow conventions of 

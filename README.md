@@ -39,15 +39,15 @@ That is it! Happy hackery!
 * Generates API for **ANY** MySql database 
 * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * CRUD : Usual suspects   
+* Relations
 * Support for composite primary keys
 * Pagination 
 * Sorting 
 * Column filtering - Fields 
 * Row filtering - Where
 * Group By, Having (as query params) 
-* Group By (as a separate route)
+* Group By, Having (as a separate route)
 * Aggregate functions 
-* Relations  
 * Run dynamic queries
 * Upload single file
 * Upload multiple files
@@ -85,6 +85,15 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 ## Other APIS
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/describe
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tables
+
+
+## Relational Tables
+xmysql identifies foreign key relations automatically and provides GET api.
+```
+/api/blogs/103/comments
+```
+eg: blogs is parent table and comments is child table. API invocation will result in all payments with blog primary key 103.
+
 
 ## Support for composite primary keys
 
@@ -192,7 +201,21 @@ eg: filter of rows using _where is available for relational route URLs too.
 /api/offices/1/employees?_where=(jobTitle,eq,Sales%20Rep)
 ```
 
-## Group By
+
+## Group By, Having (as query params)
+
+```
+/api/offices?_groupby=country
+```
+eg: SELECT country,count(*) FROM offices GROUP BY country
+
+```
+/api/offices?_groupby=country&_having=(_count,gt,1)
+```
+eg: SELECT country,count(1) as _count FROM offices GROUP BY country having _count > 1
+
+
+## Group By, Having (as a seperate route)
 
 ```
 /api/offices/groupby?_fields=country
@@ -203,6 +226,12 @@ eg: SELECT country,count(*) FROM offices GROUP BY country
 /api/offices/groupby?_fields=country,city
 ```
 eg: SELECT country,city,count(*) FROM offices GROUP BY country,city
+
+```
+/api/offices/groupby?_fields=country,city&_having=(_count,gt,1)
+```
+eg: SELECT country,city,count(*) as _count FROM offices GROUP BY country,city having _count > 1
+
 
 ## Group By, Order By
 
@@ -268,12 +297,6 @@ eg: retrieves numeric aggregate can be done for multiple columns too
 
 
 
-## Relational Tables
-xmysql identifies foreign key relations automatically and provides GET api.
-```
-/api/customers/103/payments
-```
-eg: Customers is parent table and payments is child table. API invocation will result in all payments with customer 103.
 
 
 ## Run dynamic queries

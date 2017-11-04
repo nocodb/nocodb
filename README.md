@@ -15,7 +15,7 @@ Generating REST APIs for a MySql database which does not follow conventions of
 frameworks such as rails, django etc is a small adventure that one like to avoid ..
 
 # Setup and Usage
-<br>
+
 ```
 npm install -g xmysql
 ```

@@ -10,10 +10,10 @@
   <i>One command to generate REST APIs for any MySql database</i>
 </p>
 
+<br>
+<br>
 
-
-
-#### Example : Generating REST APIs for [Magento](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) - popular E-commerce platform 
+#### Example : Generating REST APIs for [Magento Mysql Database](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) - popular E-commerce platform 
 
 <p align="center">
   <img src="https://media.giphy.com/media/xUOxf88tjN0AN7uUfu/source.gif" alt="xmysql gif"/>

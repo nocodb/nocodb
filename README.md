@@ -29,7 +29,7 @@ xmysql -h localhost -u mysqlUsername -p mysqlPassword -d databaseName
 http://localhost:3000
 ```
 
-That's it!
+That is it! Happy hackery! 
 
 ## Features
 * Generates API for **ANY** MySql database 
@@ -39,16 +39,16 @@ That's it!
 * Pagination 
 * Sorting 
 * Column filtering - Fields 
-* Row filtering - Where 
-* Group By 
-* Group By, Order By 
+* Row filtering - Where
+* Group By, Having (as query params) 
+* Group By (as a separate route)
 * Aggregate functions 
 * Relations  
 * Run dynamic queries
 * Upload single file
 * Upload multiple files
 * Download file
-* Group By, Having - Work in Progress - :racehorse::racehorse:
+
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
 

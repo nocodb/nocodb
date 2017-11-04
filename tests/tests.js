@@ -565,26 +565,24 @@ describe('xmysql : tests', function () {
       });
   });
 
-  http://localhost:3000/api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)
+  it('GET /api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933) should PASS', function (done) {
 
-    it('GET /api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933) should PASS', function (done) {
+    //post to an url with data
+    agent.get('/api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
 
-      //post to an url with data
-      agent.get('/api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)')     //enter url
-        .expect(200)//200 for success 4xx for failure
-        .end(function (err, res) {
-          // Handle /api/v error
-          if (err) {
-            return done(err);
-          }
+        //validate response
+        res.body.length.should.be.equals(2)
 
-          //validate response
-          res.body.length.should.be.equals(2)
+        return done();
 
-          return done();
-
-        });
-    });
+      });
+  });
 
   it('GET /api/employees/1002/employees should PASS', function (done) {
 
@@ -733,13 +731,173 @@ describe('xmysql : tests', function () {
         }
 
         //validate response
-        res.body[0]['city'].should.be.equals("NYC")
+        res.body[0]['city'].should.be.equals("Aachen")
         res.body.length.should.be.equals(95)
 
         return done();
 
       });
   });
+
+  it('GET /api/offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['_count'].should.be.equals(2)
+        res.body.length.should.be.equals(1)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices/1/employees?_groupby=jobTitle should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/1/employees?_groupby=jobTitle')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['jobTitle'].should.be.equals("President")
+        res.body.length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
+
+  it('GET /api/offices?_groupby=country should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_groupby=country')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['country'].should.be.equals("Australia")
+        res.body.length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
+
+  it('GET /api/offices?_groupby=country&_sort=country should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_groupby=country&_sort=-country')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['country'].should.be.equals("USA")
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices?_groupby=country&_sort=_count should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_groupby=country&_sort=_count')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['country'].should.be.equals("UK")
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices?_groupby=country&_sort=-_count should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_groupby=country&_sort=-_count')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['country'].should.be.equals("USA")
+
+        return done();
+
+      });
+  });
+
+
+  it('GET /api/offices/groupby?_fields=country&_having=(_count,gt,1) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/groupby?_fields=country&_having=(_count,gt,1)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['country'].should.be.equals("USA")
+
+        return done();
+
+      });
+  });
+
+
+  it('GET /api/offices?_groupby=country&_having=(_count,gt,1) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_groupby=country&_having=(_count,gt,1)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body[0]['_count'].should.be.equals(3)
+
+        return done();
+
+      });
+  });
+
 
   it('GET /api/offices/groupby?_fields=country should PASS', function (done) {
 
@@ -774,8 +932,8 @@ describe('xmysql : tests', function () {
         }
 
         //validate response
-        res.body[0]['country'].should.be.equals("Australia")
-        res.body[0]['city'].should.be.equals("Sydney")
+        res.body[0]['country'].should.be.equals("USA")
+        res.body[0]['city'].should.be.equals("NYC")
         res.body.length.should.be.equals(7)
 
         return done();
@@ -833,9 +991,7 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,eq,1234) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,eq,1234)')
+    var err = whereClause.getConditionClause('(abc,eq,1234)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(??=?)')
@@ -851,9 +1007,7 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,ne,1234) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,ne,1234)')
+    var err = whereClause.getConditionClause('(abc,ne,1234)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(??!=?)')
@@ -869,9 +1023,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,lt,1234) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,lt,1234)')
+
+    var err = whereClause.getConditionClause('(abc,lt,1234)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(??<?)')
@@ -886,9 +1039,7 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,lte,1234) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,lte,1234)')
+    var err = whereClause.getConditionClause('(abc,lte,1234)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(??<=?)')
@@ -903,9 +1054,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,gt,1234) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,gt,1234)')
+
+    var err = whereClause.getConditionClause('(abc,gt,1234)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(??>?)')
@@ -920,9 +1070,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,gte,1234) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,gte,1234)')
+
+    var err = whereClause.getConditionClause('(abc,gte,1234)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(??>=?)')
@@ -940,7 +1089,7 @@ describe('xmysql : tests', function () {
   //
   //   var query = ''
   //   var params = []
-  //   var err = whereClause.getWhereClause('(abc,like,1234)')
+  //   var err = whereClause.getConditionClause('(abc,like,1234)')
   //
   //   err.err.should.be.equal(0)
   //   err.query.should.be.equal('(?? like ?)')
@@ -958,7 +1107,7 @@ describe('xmysql : tests', function () {
   //
   //   var query = ''
   //   var params = []
-  //   var err = whereClause.getWhereClause('(abc,nlike,1234)')
+  //   var err = whereClause.getConditionClause('(abc,nlike,1234)')
   //
   //   err.err.should.be.equal(0)
   //   err.query.should.be.equal('(?? not like ?)')
@@ -973,9 +1122,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=abc,eq,1234) should FAIL', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('abc,eq,1234)')
+
+    var err = whereClause.getConditionClause('abc,eq,1234)')
 
     err.err.should.be.equal(1)
     err.query.should.be.equal('')
@@ -989,9 +1137,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,eq,1234 should FAIL', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,eq,1234')
+
+    var err = whereClause.getConditionClause('(abc,eq,1234')
 
     err.err.should.be.equal(1)
     err.query.should.be.equal('')
@@ -1005,9 +1152,7 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,eq1234) should FAIL', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,eq1234)')
+    var err = whereClause.getConditionClause('(abc,eq1234)')
 
     err.err.should.be.equal(1)
     err.query.should.be.equal('')
@@ -1021,9 +1166,7 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abceq,1234) should FAIL', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abceq,1234)')
+    var err = whereClause.getConditionClause('(abceq,1234)')
 
     err.err.should.be.equal(1)
     err.query.should.be.equal('')
@@ -1038,9 +1181,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(1,eq,1)(1,eq,2)~or should FAIL', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(1,eq,1)(1,eq,2)~or')
+
+    var err = whereClause.getConditionClause('(1,eq,1)(1,eq,2)~or')
 
     err.err.should.be.equal(1)
     err.query.should.be.equal('')
@@ -1054,9 +1196,7 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(1,eq,1)~or~or(1,eq,2)(1,eq,2) should FAIL', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(1,eq,1)~or~or(1,eq,2)(1,eq,2)')
+    var err = whereClause.getConditionClause('(1,eq,1)~or~or(1,eq,2)(1,eq,2)')
 
     err.err.should.be.equal(1)
     err.query.should.be.equal('')
@@ -1070,9 +1210,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(abc,eq,1)~or(b,eq,2) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(abc,eq,1)~or(b,eq,2)')
+
+    var err = whereClause.getConditionClause('(abc,eq,1)~or(b,eq,2)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(??=?)or(??=?)')
@@ -1093,9 +1232,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=((a,eq,1)~and(b,eq,2))~or(c,eq,3) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('((abc,eq,1234)~and(b,eq,2))~or(cde,eq,3)')
+
+    var err = whereClause.getConditionClause('((abc,eq,1234)~and(b,eq,2))~or(cde,eq,3)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('((??=?)and(??=?))or(??=?)')
@@ -1116,9 +1254,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=((a,eq,1)~and(b,eq,2))~xor(c,eq,3) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('((abc,eq,1234)~and(b,eq,2))~xor(cde,eq,3)')
+
+    var err = whereClause.getConditionClause('((abc,eq,1234)~and(b,eq,2))~xor(cde,eq,3)')
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('((??=?)and(??=?))xor(??=?)')
@@ -1139,9 +1276,8 @@ describe('xmysql : tests', function () {
 
   it('where clause unit ?_where=(a,eq,1)~and((b,eq,2)~or(c,eq,3)) should PASS', function (done) {
 
-    var query = ''
-    var params = []
-    var err = whereClause.getWhereClause('(a,eq,1)~and((b,eq,2)~or(c,eq,3))')
+
+    var err = whereClause.getConditionClause('(a,eq,1)~and((b,eq,2)~or(c,eq,3))')
 
     //console.log(query,params);
 
@@ -1160,6 +1296,25 @@ describe('xmysql : tests', function () {
     done()
 
   });
+
+
+
+  //
+  // it('GET http://localhost:3000/api/customers/groupby?_fields=city,country&_having=(customerNumber,lt,110) should PASS', function (done) {
+  //
+  //   //post to an url with data
+  //   agent.get('http://localhost:3000/api/customers/groupby?_fields=city,country&_having=(customerNumber,lt,110)')     //enter url
+  //     .expect(200)//200 for success 4xx for failure
+  //     .end(function (err, res) {
+  //       // Handle /api/v error
+  //       if (err) {
+  //         return done(err);
+  //       }
+  //
+  //       return done();
+  //
+  //     });
+  // });
 
 
 

@@ -5,6 +5,10 @@
 
 # xmysql : One command to generate REST APIs for any MySql database
 Powered by popular node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
+<p align="center">
+  <img src="https://media.giphy.com/media/xUOxf88tjN0AN7uUfu/source.gif" alt="xmysql gif"/>
+</p>
+
 
 # Why this ?
 <p align="center">
@@ -30,15 +34,6 @@ http://localhost:3000
 That is it! Happy hackery! 
 
 <br>
-<br>
-
-# Example : Generating REST APIs for [Magento DB](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) 
-[Magento](https://magento.com/) is a popular E-commerce platform 
-
-<p align="center">
-  <img src="https://media.giphy.com/media/xUOxf88tjN0AN7uUfu/source.gif" alt="xmysql gif"/>
-</p>
-
 
 # Features
 * Generates API for **ANY** MySql database 

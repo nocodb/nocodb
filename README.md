@@ -3,21 +3,16 @@
 [![GitHub stars](https://img.shields.io/github/stars/o1lab/xmysql.svg?style=plastic)](https://github.com/o1lab/xmysql/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/o1lab/xmysql/master/LICENSE)
 
-<h1 align="center">
-  <b>XMYSQL</b>
-</h1>
-<p align="center">
-  <i>One command to generate REST APIs for any MySql database</i>
-</p>
+# xmysql : One command to generate REST APIs for any MySql database
+Powered by popular node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
 
-<br>
-<br>
-
-#### Example : Generating REST APIs for [Magento Mysql Database](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) - popular E-commerce platform 
-
+# Why this ?
 <p align="center">
   <img src="https://media.giphy.com/media/xUOxf88tjN0AN7uUfu/source.gif" alt="xmysql gif"/>
 </p>
+
+Generating REST APIs for a MySql database which does not follow conventions of 
+frameworks such as rails, django etc is a small adventure that one like to avoid ..
 
 # Setup and Usage
 ```
@@ -29,11 +24,15 @@ xmysql -h localhost -u mysqlUsername -p mysqlPassword -d databaseName
 ```
 http://localhost:3000
 ```
-
 That is it! Happy hackery! 
 
 
-Powered by node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
+# Example : Generating REST APIs for [Magento DB](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) 
+[Magento](https://magento.com/) is a popular E-commerce platform 
+
+<p align="center">
+  <img src="https://media.giphy.com/media/xUOxf88tjN0AN7uUfu/source.gif" alt="xmysql gif"/>
+</p>
 
 
 # Features

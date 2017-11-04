@@ -15,6 +15,7 @@ Generating REST APIs for a MySql database which does not follow conventions of
 frameworks such as rails, django etc is a small adventure that one like to avoid ..
 
 # Setup and Usage
+<br>
 ```
 npm install -g xmysql
 ```
@@ -24,8 +25,12 @@ xmysql -h localhost -u mysqlUsername -p mysqlPassword -d databaseName
 ```
 http://localhost:3000
 ```
+<br>
+
 That is it! Happy hackery! 
 
+<br>
+<br>
 
 # Example : Generating REST APIs for [Magento DB](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) 
 [Magento](https://magento.com/) is a popular E-commerce platform 

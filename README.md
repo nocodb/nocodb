@@ -3,31 +3,15 @@
 [![GitHub stars](https://img.shields.io/github/stars/o1lab/xmysql.svg?style=plastic)](https://github.com/o1lab/xmysql/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/o1lab/xmysql/master/LICENSE)
 
-# xmysql: one command to generate REST APIs for **any** MySql database
+# xmysql: One command to generate REST APIs for **any** MySql database
 
-## Why this ?
-<p align="center">
-  <img src="https://media.giphy.com/media/8gWrk3QZrjF1C/giphy.gif" alt="Rick & Morty"/>
-</p>
-
-Generating REST APIs quickly for a MySql database which does not follow conventions of 
-frameworks such as rails, django etc looks like a small adventure that one rather would like to avoid ..
-
-Hence this.
-
-
-
-eg: Generate REST API for [Magento](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) - a [popular ecommerce platform](https://magento.com/)  
+#### Example : Generating REST APIs for [Magento](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) - popular E-commerce platform 
 
 <p align="center">
   <img src="https://media.giphy.com/media/xUOxf88tjN0AN7uUfu/source.gif" alt="xmysql gif"/>
 </p>
 
-
-Powered by node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
-
-
-## Setup and Usage
+# Setup and Usage
 ```
 npm install -g xmysql
 ```
@@ -41,7 +25,10 @@ http://localhost:3000
 That is it! Happy hackery! 
 
 
-## Features
+Powered by node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
+
+
+# Features
 * Generates API for **ANY** MySql database 
 * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * CRUD : Usual suspects   

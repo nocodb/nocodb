@@ -3,7 +3,13 @@
 [![GitHub stars](https://img.shields.io/github/stars/o1lab/xmysql.svg?style=plastic)](https://github.com/o1lab/xmysql/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/o1lab/xmysql/master/LICENSE)
 
-# xmysql: One command to generate REST APIs for **any** MySql database
+<h1 align="center">
+  XMYSQL
+</h1>
+<p align="center">
+  One command to generate REST APIs for any MySql database
+</p>
+
 
 #### Example : Generating REST APIs for [Magento](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2) - popular E-commerce platform 
 

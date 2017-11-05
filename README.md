@@ -3,7 +3,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/o1lab/xmysql.svg?style=plastic)](https://github.com/o1lab/xmysql/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/o1lab/xmysql/master/LICENSE)
 
-# xmysql : One command to generate REST APIs for any MySql database
+# Xmysql : One simple and powerful command to generate REST APIs for any MySql database
 Powered by popular node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
 <p align="center">
   <img src="./assets/out.gif" alt="xmysql gif"/>

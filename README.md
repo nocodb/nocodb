@@ -18,6 +18,8 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 Generating REST APIs for a MySql database which does not follow conventions of 
 frameworks such as rails, django etc is a small adventure that one like to avoid ..
 
+Hence this.
+
 # Setup and Usage
 
 ```

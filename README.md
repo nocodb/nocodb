@@ -92,7 +92,7 @@ xmysql identifies foreign key relations automatically and provides GET api.
 ```
 /api/blogs/103/comments
 ```
-eg: blogs is parent table and comments is child table. API invocation will result in all payments with blog primary key 103.
+eg: blogs is parent table and comments is child table. API invocation will result in all comments for blog primary key 103.
 
 
 ## Support for composite primary keys
@@ -182,16 +182,18 @@ lte -   '<='
 ```
 
 #### Use of logical operators
+
+eg: simple logical expression
 ```
 /api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)
 ```
 
-eg: complex parentheses
+eg: complex logical expression
 ```
 /api/payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933))~and(amount,gt,100)
 ```
 
-eg: where with sorting(_sort), pagination(_p), column filtering (_fields)
+eg: logical expression with sorting(_sort), pagination(_p), column filtering (_fields)
 ```
 /api/payments?_where=(amount,gte,1000)&_sort=-amount&p=2&&_fields=customerNumber
 ```
@@ -297,8 +299,6 @@ eg: retrieves numeric aggregate can be done for multiple columns too
 
 
 
-
-
 ## Run dynamic queries
 Dynamic queries on a database can be run by POST method to URL localhost:3000/dynamic 
 
@@ -356,8 +356,7 @@ http://localhost:3000/download?name=fileName
 * You are working on a demo, hacks etc
 
 ## When NOT to use ?
-* If you are in need of a full blown MVC framework, ACL, Authorisation etc - Not this.
-* Other times not mentioned in when to use section 
+* If you are in need of a full blown MVC framework, ACL, Authorisation etc - early days.
 
 
 ### Command line options

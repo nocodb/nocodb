@@ -3,7 +3,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/o1lab/xmysql.svg?style=plastic)](https://github.com/o1lab/xmysql/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/o1lab/xmysql/master/LICENSE)
 
-# Xmysql : One simple and powerful command to create REST APIs for any MySql database
+# Xmysql : One command to generate REST APIs for any MySql database
 
 # Why this ?
 <p align="center">

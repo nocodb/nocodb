@@ -4,11 +4,6 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/o1lab/xmysql/master/LICENSE)
 
 # Xmysql : One simple and powerful command to generate REST APIs for any MySql database
-Powered by popular node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
-<p align="center">
-  <img src="./assets/out.gif" alt="xmysql gif"/>
-</p>
-
 
 # Why this ?
 <p align="center">
@@ -16,7 +11,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 </p>
 
 Generating REST APIs for a MySql database which does not follow conventions of 
-frameworks such as rails, django etc is a small adventure that one like to avoid ..
+frameworks such as rails, django, laravel etc is a small adventure that one like to avoid ..
 
 Hence this.
 
@@ -35,7 +30,15 @@ http://localhost:3000
 
 That is it! Happy hackery! 
 
-<br>
+
+# Example
+
+Powered by popular node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
+<p align="center">
+  <img src="./assets/out.gif" alt="xmysql gif"/>
+</p>
+
+
 
 # Features
 * Generates API for **ANY** MySql database 

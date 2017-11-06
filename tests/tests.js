@@ -332,6 +332,30 @@ describe('xmysql : tests', function () {
 
   });
 
+
+
+  it('GET /api/customers/findOne?_where=(customerNumber,eq,119) should PASS', function (done) {
+
+    //http get an url
+    agent.get('/api/customers/findOne?_where=(customerNumber,eq,119)')      // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/offices/1/employees error
+        if (err) {
+          return done(err);
+        }
+
+        // tate is an invalid column but still it should query right number of columns
+        res.body.length.should.be.equal(1)
+        res.body[0]['customerNumber'].should.be.equal(119)
+
+        return done();
+
+      });
+
+  });
+
+
   it('GET /api/offices?_fields=-territory,-addressLine2,-state,-tate should PASS', function (done) {
 
     //http get an url
@@ -1296,6 +1320,7 @@ describe('xmysql : tests', function () {
     done()
 
   });
+
 
 
 

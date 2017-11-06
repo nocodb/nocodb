@@ -79,8 +79,9 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 * POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          /api/tableName
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id
 * PUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/findOne
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/count
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/exists
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id/exists
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
@@ -207,6 +208,26 @@ eg: filter of rows using _where is available for relational route URLs too.
 ```
 /api/offices/1/employees?_where=(jobTitle,eq,Sales%20Rep)
 ```
+
+## FindOne
+```
+/api/tableName/findOne?_where=(id,eq,1)
+```
+Works similar to list but only returns top/one result. Used in conjunction with _where
+
+## Count
+```
+/api/tableName/count
+```
+
+Returns number of rows in table
+
+## Exists
+```
+/api/tableName/1/exists
+```
+
+Returns true or false depending on whether record exists
 
 
 ## Group By, Having (as query params)

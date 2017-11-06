@@ -1,16 +1,17 @@
 {
   "name": "xmysql",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "One command to generate REST APIs for any MySql database",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha tests/*.js --exit"
   },
   "keywords": [
-    "mysql rest api generator",
-    "mysql rest api json",
-    "create rest api for sql database",
-    "node mysql rest api"
+    "mysql-rest-api-generator",
+    "node-mysql-rest-api",
+    "rest",
+    "restful",
+    "rest-apis"
   ],
   "engines": {
     "node": ">= 7.6.0"

@@ -1,4 +1,5 @@
 #! /usr/bin/env node
+
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const express = require('express');
@@ -30,9 +31,7 @@ let mysqlPool = mysql.createPool(sqlConfig);
 
 /**************** START : setup Xapi ****************/
 console.log('');
-console.log('');
-console.log('     Generating APIs at speed of your thoughts.. ');
-console.log('');
+console.log('          REST APIs at the speed of thought.. ');
 console.log('');
 
 let t = process.hrtime();
@@ -44,10 +43,12 @@ moreApis.init((err, results) => {
   var t1 = process.hrtime(t);
   var t2 = t1[0]+t1[1]/1000000000
 
-  console.log('|                                                            |');
-  console.log("|          xmysql took : %d seconds",dataHelp.round(t2,1));
-  console.log('|                                                            |');
+  console.log('                                                            ');
+  console.log("          Xmysql took           :    %d seconds",dataHelp.round(t2,1));
+  console.log('                                                            ');
   console.log(' - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ');
+
+
 
 })
 /**************** END : setup Xapi ****************/

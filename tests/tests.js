@@ -944,10 +944,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices/groupby?_fields=country,city&_sort=city,-country should PASS', function (done) {
+  it('GET /api/offices/groupby?_fields=country,city&_sort=city,country should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/groupby?_fields=country,city&_sort=city,-country')     //enter url
+    agent.get('/api/offices/groupby?_fields=country,city&_sort=city,country')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -957,7 +957,7 @@ describe('xmysql : tests', function () {
 
         //validate response
         res.body[0]['country'].should.be.equals("USA")
-        res.body[0]['city'].should.be.equals("NYC")
+        res.body[0]['city'].should.be.equals("Boston")
         res.body.length.should.be.equals(7)
 
         return done();

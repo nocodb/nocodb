@@ -31,7 +31,7 @@ http://localhost:3000
 That is it! Happy hackery! 
 
 
-# Example
+# Example : Generate REST APIs for [Magento](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2)
 
 Powered by popular node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
 <p align="center">

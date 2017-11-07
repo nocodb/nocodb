@@ -461,3 +461,18 @@ ENV DATABASE_USER root
 ENV DATABASE_PASSWORD password
 ENV DATABASE_NAME sakila
 ```
+
+
+# Tests on local machine
+
+Login to mysql shell
+
+```
+mysql> create database classicmodels
+mysql> use classicmodels
+mysql> source path_to/xmysql/tests/sample.sql
+```
+
+```
+$ mocha tests/*.js --exit
+```

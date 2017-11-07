@@ -18,9 +18,6 @@
 
 # Xmysql : One command to generate REST APIs for any MySql database
 
-
-
-
 # Why this ?
 <p align="center">
   <img src="./assets/rick-and-morty.gif" alt="xmysql gif"/>
@@ -47,7 +44,6 @@ http://localhost:3000
 That is it! Happy hackery! 
 <!-- Place this tag where you want the button to render. -->
 
-<a class="github-button" href="https://github.com/o1lab/xmysql" data-icon="octicon-star" data-size="large" aria-label="Star o1lab/xmysql on GitHub">Star</a>
 
 
 # Example : Generate REST APIs for [Magento](http://www.magereverse.com/index/magento-sql-structure/version/1-7-0-2)

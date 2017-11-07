@@ -463,7 +463,7 @@ ENV DATABASE_NAME sakila
 ```
 
 
-# Tests on local machine
+# Tests : setup on local machine
 
 Login to mysql shell
 

@@ -33,7 +33,6 @@ That is it! Happy hackery!
 # Gain hacker karma - share it  :octocat: :innocent:
 <!-- AddToAny BEGIN -->
 <div>
-
 <a href="https://www.addtoany.com/add_to/twitter?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img src="https://static.addtoany.com/buttons/twitter.svg" width="64" height="64"></a>
 <a href="https://www.addtoany.com/add_to/linkedin?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img src="https://static.addtoany.com/buttons/linkedin.svg" width="64" height="64"></a>
 <a href="https://www.addtoany.com/add_to/facebook?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img src="https://static.addtoany.com/buttons/facebook.svg" width="64" height="64"></a>

@@ -31,6 +31,7 @@ http://localhost:3000
 That is it! Happy hackery! 
 
 # Gain hacker karma - share it 
+
 <!-- AddToAny BEGIN -->
 <div>
 <a href="https://www.addtoany.com/share?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img src="https://static.addtoany.com/buttons/a2a.svg" width="32" height="32"></a>

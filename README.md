@@ -33,8 +33,7 @@ That is it! Happy hackery!
 # Gain hacker karma - share it 
 <!-- AddToAny BEGIN -->
 <div>
-<a href="https://www.addtoany.com/share?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img src="https://static.addtoany.com/buttons/a2a.svg" width="32" height="32"></a>
-<a href="https://www.addtoany.com/add_to/facebook?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="Facebook" src="https://static.addtoany.com/buttons/facebook.svg" width="32" height="32"></a>
+<a href="https://www.addtoany.com/add_to/facebook?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank">Facebook<img alt="Facebook" src="https://static.addtoany.com/buttons/facebook.svg" width="64" height="64"></a>
 <a href="https://www.addtoany.com/add_to/twitter?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="Twitter" src="https://static.addtoany.com/buttons/twitter.svg" width="32" height="32"></a>
 <a href="https://www.addtoany.com/add_to/linkedin?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="Linkedin" src="https://static.addtoany.com/buttons/linkedin.svg" width="32" height="32"></a>
 <a href="https://www.addtoany.com/add_to/pinterest?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="Pinterest" src="https://static.addtoany.com/buttons/pinterest.svg" width="32" height="32"></a>
@@ -42,7 +41,6 @@ That is it! Happy hackery!
 <a href="https://www.addtoany.com/add_to/renren?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="Renren" src="https://static.addtoany.com/buttons/renren.svg" width="32" height="32"></a>
 <a href="https://www.addtoany.com/add_to/sina_weibo?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="Weibo" src="https://static.addtoany.com/buttons/sina_weibo.svg" width="32" height="32"></a>
 <a href="https://www.addtoany.com/add_to/vk?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="VK" src="https://static.addtoany.com/buttons/vk.svg" width="32" height="32"></a>
-<a href="https://www.addtoany.com/add_to/wykop?linkurl=https%3A%2F%2Fgithub.com%2Fo1lab%2Fxmysql%2F&amp;linkname=One%20command%20to%20generate%20REST%20APIs%20for%20any%20MySql%20database." target="_blank"><img alt="Wykop" src="https://static.addtoany.com/buttons/wykop.svg" width="32" height="32"></a>
 </div>
 <!-- AddToAny END -->
 

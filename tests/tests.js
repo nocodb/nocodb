@@ -6,8 +6,9 @@ var mysql = require('mysql')
 var Xapi = require('../lib/xapi.js')
 var whereClause = require('../lib/util/whereClause.helper.js')
 var should = require('should');
-
 var request = require('supertest')
+const cmdargs = require('../lib/util/cmd.helper.js');
+
 
 var args = {}
 var app = {}
@@ -26,6 +27,8 @@ args['database'] = 'classicmodels'
 describe('xmysql : tests', function () {
 
   before(function (done) {
+
+    cmdargs.handle(args)
 
     mysqlPool = mysql.createPool(args)
 
@@ -456,6 +459,84 @@ describe('xmysql : tests', function () {
 
   });
 
+  it('POST /dynamic should PASS', function (done) {
+
+    var obj = {};
+
+    obj['query'] = 'select * from ?? limit 0,5'
+    obj['params'] = ['customers']
+
+    //post to an url with data
+    agent.post('/dynamic')     //enter url
+      .send(obj)         //postdata
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+
+        res.body.length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
+  it('POST /dynamic/abc should PASS', function (done) {
+
+    var obj = {};
+
+    obj['query'] = 'select * from ?? limit 0,5'
+    obj['params'] = ['customers']
+
+    //post to an url with data
+    agent.post('/dynamic')     //enter url
+      .send(obj)         //postdata
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+
+        res.body.length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
+  it('POST /dynamic should PASS', function (done) {
+
+    var obj = {};
+
+    obj['query'] = 'select * from customers limit 0,5'
+    obj['params'] = []
+
+    //post to an url with data
+    agent.post('/dynamic')     //enter url
+      .send(obj)         //postdata
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+
+        res.body.length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
   it('PUT /api/customers/:id should PASS', function (done) {
 
     var obj = {};
@@ -593,6 +674,25 @@ describe('xmysql : tests', function () {
 
     //post to an url with data
     agent.get('/api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equals(2)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933))')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error

@@ -72,7 +72,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
     * Group By, Having (as query params) 
     * Group By, Having (as a separate route)
     * Aggregate functions 
-    * Union of many group by statements [ AWESOME ALERT ] 
+    * Union of many group by statements :fire::fire: [ AWESOME ALERT ] 
 * Prototyping (features available with only local MySql server)
     * Run dynamic queries
     * Upload single file
@@ -108,7 +108,7 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 ## Cool features
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groups
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groups  :fire::fire: [ AWESOME ALERT ]
 
 ## Only in Prototyping
 * POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
@@ -349,9 +349,9 @@ response body
 
 eg: retrieves numeric aggregate can be done for multiple columns too 
 
-## Union of many group by statements
+## Union of many group by statements :fire::fire:[ AWESOME ALERT ]
 
-Group by multiple columns in one API call using _fields query params  
+Group by multiple columns in one API call using _fields query params - comes really handy
 
 ```
 http://localhost:3000/api/offices/ugroupby?_fields=country,city,state

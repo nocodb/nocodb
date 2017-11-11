@@ -58,22 +58,26 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 
 
 # Features
-* Generates API for **ANY** MySql database 
-* Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
-* CRUD : Usual suspects   
-* Relations
-* Support for composite primary keys
-* Pagination 
-* Sorting 
-* Column filtering - Fields 
-* Row filtering - Where
-* Group By, Having (as query params) 
-* Group By, Having (as a separate route)
-* Aggregate functions 
-* Run dynamic queries
-* Upload single file
-* Upload multiple files
-* Download file
+* Rest API Usual Suspects
+    * CRUD, List, Count, Exists   
+    * Relations
+    * Pagination 
+    * Sorting
+* Xmysql Rest API - Start of cool things
+    * Generates API for **ANY** MySql database 
+    * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
+    * Support for composite primary keys
+    * Column filtering - Fields 
+    * Row filtering - Where
+    * Group By, Having (as query params) 
+    * Group By, Having (as a separate route)
+    * Aggregate functions 
+    * Union of many group by statements [ AWESOME ALERT ] 
+* Prototyping (features available with only local MySql server)
+    * Run dynamic queries
+    * Upload single file
+    * Upload multiple files
+    * Download file
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
 
@@ -98,13 +102,19 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/findOne
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/count
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id/exists
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
 * DELETE&nbsp;  /api/tableName/:id
-* POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
 
-## Other APIS
+## Cool features
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groups
+
+## Only in Prototyping
+* POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /upload
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /uploads
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /download
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/describe
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tables
 
@@ -295,7 +305,7 @@ eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY cit
 eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC, country DESC
 
 
-## Aggregate functions :jack_o_lantern: :sunglasses:
+## Aggregate functions
 
 ```
 http://localhost:3000/api/payments/aggregate?_fields=amount
@@ -338,6 +348,21 @@ response body
 ```
 
 eg: retrieves numeric aggregate can be done for multiple columns too 
+
+## Union of many group by statements
+
+Group by multiple columns in one API call using _fields query params  
+
+```
+http://localhost:3000/api/offices/ugroupby?_fields=country,city,state
+
+response body
+{
+    "country":[{"Australia":1},{"France":1},{"Japan":1},{"UK":1},{"USA":3}],
+    "state":[{"":3},{"CA":1},{"Chiyoda-Ku":1},{"MA":1},{"NY":1}]
+}
+```
+
 
 
 

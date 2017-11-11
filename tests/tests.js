@@ -863,6 +863,91 @@ describe('xmysql : tests', function () {
       });
   });
 
+
+  it('GET /api/offices/ugroupby?_fields=country should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/ugroupby?_fields=country')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        Object.keys(res.body).length.should.be.equals(1)
+        res.body['country'].length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
+
+  it('GET /api/offices/ugroupby?_fields=country,city,state should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/ugroupby?_fields=country,city,state')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        //res.body.length.should.be.equals(3)
+        Object.keys(res.body).length.should.be.equals(3)
+        res.body['country'].length.should.be.equals(5)
+        res.body['city'].length.should.be.equals(7)
+        res.body['state'].length.should.be.equals(5)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices/ugroupby?_fields=country,city should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/ugroupby?_fields=country,city')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        Object.keys(res.body).length.should.be.equals(2)
+        res.body['country'].length.should.be.equals(5)
+        res.body['city'].length.should.be.equals(7)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices/ugroupby?_fields= should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices/ugroupby?_fields=')     //enter url
+      .expect(400)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        Object.keys(res.body).length.should.be.equals(1)
+
+        return done();
+
+      });
+  });
+
+
   it('GET /api/offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1) should PASS', function (done) {
 
     //post to an url with data

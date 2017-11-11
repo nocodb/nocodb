@@ -63,7 +63,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
     * Relations
     * Pagination 
     * Sorting
-* Xmysql Rest API - Start of cool things
+* Xmysql Rest API -  :tada: :snowboarder: :crystal_ball: :tophat: :santa: 
     * Generates API for **ANY** MySql database 
     * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
     * Support for composite primary keys

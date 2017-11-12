@@ -5,9 +5,6 @@
 
 # Xmysql : One command to generate REST APIs for any MySql database
 
-<div style="background-color:rgb(128,128,128)">
-
-
 # Why this ?
 <p align="center">
   <img src="./assets/rick-and-morty.gif" alt="xmysql gif"/>
@@ -17,8 +14,6 @@ Generating REST APIs for a MySql database which does not follow conventions of
 frameworks such as rails, django, laravel etc is a small adventure that one like to avoid ..
 
 Hence this.
-
-</div> 
 
 # Setup and Usage
 
@@ -72,10 +67,11 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Sorting
 * Column filtering - Fields 
 * Row filtering - Where
-* Group By, Having (as query params) 
-* Group By, Having (as a separate route)
-* Aggregate functions 
-* Union of many group by statements :fire::fire: **[ HOTNESS ALERT ]**
+* Aggregate functions
+* :fire::fire: Group By, Having (as query params) 
+* :fire::fire: Group By, Having (as a separate route) **[ HOTNESS ALERT ]**
+* :fire::fire: Multiple group by API :fire::fire: **[ HOTNESS ALERT ]**
+* :fire::fire: Chart API :fire::fire: **[ HOTNESS ALERT ]**
 * Prototyping (features available with ONLY local MySql server)
     * Run dynamic queries
     * Upload single file
@@ -109,9 +105,11 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 * DELETE&nbsp;  /api/tableName/:id
 
 ## HOT features
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groups  :fire::fire: **[ HOTNESS ALERT ]**
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby :fire::fire: 
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/ugroupby  :fire::fire: **[ HOTNESS ALERT ]**
+* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/chart  :fire::fire: **[ HOTNESS ALERT ]**
 
 ## Only in Prototyping :snowboarder: :tophat:
 * POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
@@ -386,9 +384,6 @@ response body
    ],
    "reportsTo":[  
       {  
-         "":1
-      },
-      {  
          "1002":2
       },
       {  
@@ -406,11 +401,129 @@ response body
       {  
          "1621":1
       }
+      {  
+         "":1
+      },
    ]
 }
 ```
 
 
+## Chart :fire::fire: **[ HOTNESS ALERT ]**
+
+Chart API returns distribution of a numeric column in a table
+
+It comes in three flavours
+
+1. Chart : With min, max, step in query params :fire::fire:
+
+This API returns the number of rows where amount is between (0,25000), (25001,50000) ...
+
+```
+/api/payments/chart?_fields=amount&min=0&max=131000&step=25000
+
+Response
+
+[
+  {
+    "amount": "0 to 25000",
+    "_count": 107
+  },
+  {
+    "amount": "25001 to 50000",
+    "_count": 124
+  },
+  {
+    "amount": "50001 to 75000",
+    "_count": 30
+  },
+  {
+    "amount": "75001 to 100000",
+    "_count": 7
+  },
+  {
+    "amount": "100001 to 125000",
+    "_count": 5
+  },
+  {
+    "amount": "125001 to 150000",
+    "_count": 0
+  }
+]
+
+```
+
+2. Chart : With step array in params :fire::fire:
+
+This API returns distribution between the step array specified
+
+```
+/api/payments/chart?_fields=amount&steparray=0,10000,20000,70000,140000
+
+Response
+
+[
+  {
+    "amount": "0 to 10000",
+    "_count": 42
+  },
+  {
+    "amount": "10001 to 20000",
+    "_count": 36
+  },
+  {
+    "amount": "20001 to 70000",
+    "_count": 183
+  },
+  {
+    "amount": "70001 to 140000",
+    "_count": 12
+  }
+]
+
+
+```
+
+3. Chart : with no params :fire::fire:
+
+This API figures out even distribution of a numeric column in table and returns the data
+
+```
+/api/payments/chart?_fields=amount
+
+Response
+[
+  {
+    "amount": "-9860 to 11100",
+    "_count": 45
+  },
+  {
+    "amount": "11101 to 32060",
+    "_count": 91
+  },
+  {
+    "amount": "32061 to 53020",
+    "_count": 109
+  },
+  {
+    "amount": "53021 to 73980",
+    "_count": 16
+  },
+  {
+    "amount": "73981 to 94940",
+    "_count": 7
+  },
+  {
+    "amount": "94941 to 115900",
+    "_count": 3
+  },
+  {
+    "amount": "115901 to 130650",
+    "_count": 2
+  }
+]
+
+```
 
 
 ## Run dynamic queries

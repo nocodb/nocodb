@@ -947,6 +947,67 @@ describe('xmysql : tests', function () {
       });
   });
 
+  it('GET /api/payments/chart?_fields=amount should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/chart?_fields=amount')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body.length.should.be.equals(7)
+        res.body[0]['_count'].should.be.equals(45)
+        res.body[2]['_count'].should.be.equals(109)
+        res.body[6]['_count'].should.be.equals(2)
+
+        return done();
+
+      });
+  })
+
+  it('GET /api/payments/chart?_fields=amount&min=0&max=131000&step=25000 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/chart?_fields=amount&min=0&max=131000&step=25000')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body.length.should.be.equals(5)
+        res.body[0]['_count'].should.be.equals(107)
+        res.body[1]['_count'].should.be.equals(124)
+
+        return done();
+
+      });
+  })
+
+  it('GET /api/payments/chart?_fields=amount&steparray=0,50000,100000,140000 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/chart?_fields=amount&steparray=0,50000,100000,140000')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body.length.should.be.equals(3)
+        res.body[0]['_count'].should.be.equals(231)
+        res.body[1]['_count'].should.be.equals(37)
+        res.body[2]['_count'].should.be.equals(5)
+
+        return done();
+
+      });
+  })
 
   it('GET /api/offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1) should PASS', function (done) {
 

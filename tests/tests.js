@@ -455,8 +455,36 @@ describe('xmysql : tests', function () {
         return done();
 
       });
+  });
 
+  it('PUT /api/productlines should PASS', function (done) {
 
+    var obj = {};
+
+    obj['productLine'] = 'Hyperloop'
+    obj['textDescription'] = 'Hyperloop is essentially a train system that ElonMusk calls \"a cross between ' +
+      'a Concorde, a railgun, and an air hockey table\". ' +
+      'It\'s based on the very high-speed transit (VHST) system proposed in 1972,' +
+      'which combines a magnetic levitation train and a low pressure transit tube.' +
+      'It evolves some of the original ideas of VHST, but it still uses tunnels' +
+      'and pods or capsules to move from place to place.'
+
+    //post to an url with data
+    agent.put('/api/productlines')     //enter url
+      .send(obj)         //postdata
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body['affectedRows'].should.be.equals(2)
+
+        return done();
+
+      });
   });
 
   it('POST /dynamic should PASS', function (done) {
@@ -477,7 +505,6 @@ describe('xmysql : tests', function () {
         }
 
         //validate response
-
         res.body.length.should.be.equals(5)
 
         return done();
@@ -537,7 +564,9 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('PUT /api/customers/:id should PASS', function (done) {
+
+
+  it('PATCH /api/productlines/Hyperloop should PASS', function (done) {
 
     var obj = {};
 
@@ -549,7 +578,7 @@ describe('xmysql : tests', function () {
       'and pods or capsules to move from place to place.'
 
     //post to an url with data
-    agent.put('/api/productlines/Hyperloop')     //enter url
+    agent.patch('/api/productlines/Hyperloop')     //enter url
       .send(obj)         //postdata
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {

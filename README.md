@@ -96,8 +96,9 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 ## CRUD APIs Usual Suspects
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName
 * POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          /api/tableName
+* PUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName ( acts as REPLACE )
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id
-* PUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id
+* PATCH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   /api/tableName/:id ( acts as UPDATE )
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/findOne
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/count
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id/exists

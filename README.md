@@ -525,6 +525,9 @@ Response
 
 ```
 
+Please Note:
+_fields in Chart API can only take on numeric column as its argument.  
+
 
 ## Run dynamic queries
 Dynamic queries on a database can be run by POST method to URL localhost:3000/dynamic 

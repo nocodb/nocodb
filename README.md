@@ -89,14 +89,11 @@ Download [node](https://nodejs.org/en/download/current/),
 if you haven't on your system.
 
 
-## Root URL
-Root URL (localhost:3000/) returns all REST API urls for each table in schema.
-
-
-## CRUD APIs Usual Suspects
+## Usual Suspects in a REST API framework 
 
 | HTTP Type | API URL                          | Comments                                               |
 |-----------|----------------------------------|--------------------------------------------------------- 
+| GET       | /                                | Gets all REST APIs                                     |
 | GET       | /api/tableName                   | Lists rows of table                                    |
 | POST      | /api/tableName                   | Create a new row                                       |
 | PUT       | /api/tableName                   | Replaces existing row with new row                     |

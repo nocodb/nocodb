@@ -105,19 +105,7 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
 * DELETE&nbsp;  /api/tableName/:id
 
-|-----------|----------------------------------|---------------------------------------------------------
-| HTTP Type |            API URL               | Comments 
-|-----------|----------------------------------|---------------------------------------------------------
-| GET       | /api/tableName                   | Lists rows of table
-| POST      | /api/tableName                   | Create a new row
-| PUT       | /api/tableName                   | Replaces existing row with new row
-| GET       | /api/tableName/:id               | Retrieves a row by primary key
-| PATCH     | /api/tableName/:id               | Updates a row by primary key
-| GET       | /api/tableName/findOne           | Works as list but gets single record matching criteria
-| GET       | /api/tableName/count             | Count number of rows in a table
-| GET       | /api/tableName/:id/exists        | True or false whether a row exists or not
-| DELETE    | /api/parentTable/:id/childTable  | Delete a row by primary key
-|-----------|----------------------------------|---------------------------------------------------------
+
 
 ## APIs with HOT features
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate

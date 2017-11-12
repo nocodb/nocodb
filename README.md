@@ -59,21 +59,21 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 
 # Features
 * Generates API for **ANY** MySql database 
-* Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
+* :fire::fire: Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * Support for composite primary keys
 * CRUD, List, FindOne, Count, Exists   
 * Relations
 * Pagination 
 * Sorting
-* Column filtering - Fields 
-* Row filtering - Where
+* :fire: Column filtering - Fields 
+* :fire: Row filtering - Where
 * Aggregate functions
 * :fire::fire: Group By, Having (as query params) 
 * :fire::fire: Group By, Having (as a separate route) 
 * :fire::fire: Multiple group by API 
 * :fire::fire: Chart API 
 * Prototyping (features available with ONLY local MySql server)
-    * Run dynamic queries
+    * Run dynamic queries :fire::fire::fire:
     * Upload single file
     * Upload multiple files
     * Download file
@@ -526,7 +526,7 @@ Response
 ```
 
 Please Note:
-_fields in Chart API can only take on numeric column as its argument.  
+_fields in Chart API can only take numeric column as its argument.  
 
 
 ## Run dynamic queries

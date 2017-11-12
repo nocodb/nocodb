@@ -69,9 +69,9 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Row filtering - Where
 * Aggregate functions
 * :fire::fire: Group By, Having (as query params) 
-* :fire::fire: Group By, Having (as a separate route) **[ HOTNESS ALERT ]**
-* :fire::fire: Multiple group by API :fire::fire: **[ HOTNESS ALERT ]**
-* :fire::fire: Chart API :fire::fire: **[ HOTNESS ALERT ]**
+* :fire::fire: Group By, Having (as a separate route) 
+* :fire::fire: Multiple group by API 
+* :fire::fire: Chart API 
 * Prototyping (features available with ONLY local MySql server)
     * Run dynamic queries
     * Upload single file

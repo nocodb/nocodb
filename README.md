@@ -354,12 +354,12 @@ eg: retrieves numeric aggregate can be done for multiple columns too
 Group by multiple columns in one API call using _fields query params - comes really handy
 
 ```
-http://localhost:3000/api/offices/ugroupby?_fields=country,city,state
+http://localhost:3000/api/employees/ugroupby?_fields=jobTitle,reportsTo
 
 response body
 {
-    "country":[{"Australia":1},{"France":1},{"Japan":1},{"UK":1},{"USA":3}],
-    "state":[{"":3},{"CA":1},{"Chiyoda-Ku":1},{"MA":1},{"NY":1}]
+    "jobTitle":[{"President":1},{"Sale Manager (EMEA)":1},{"Sales Manager (APAC)":1},{"Sales Manager (NA)":1},{"Sales Rep":17},{"VP Marketing":1},{"VP Sales":1}],
+    "reportsTo":[{"":1},{"1002":2},{"1056":4},{"1088":3},{"1102":6},{"1143":6},{"1621":1}]
 }
 ```
 

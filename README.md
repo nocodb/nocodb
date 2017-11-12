@@ -128,7 +128,7 @@ if you haven't on your system.
 
 
 
-## Relational Tables
+##Relational Tables
 xmysql identifies foreign key relations automatically and provides GET api.
 ```
 /api/blogs/103/comments

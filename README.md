@@ -104,14 +104,14 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
 * DELETE&nbsp;  /api/tableName/:id
 
-## API with HOT features
+## APIs with HOT features
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groups  :fire::fire: **[ HOTNESS ALERT ]**
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby :fire::fire: 
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/ugroupby  :fire::fire: **[ HOTNESS ALERT ]**
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/chart  :fire::fire: **[ HOTNESS ALERT ]**
 
-## API for Prototyping :snowboarder: :snowboarder: 
+## APIs for Prototyping :snowboarder: :snowboarder: 
 * POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
 * POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /upload
 * POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /uploads

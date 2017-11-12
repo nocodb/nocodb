@@ -113,8 +113,8 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 
 ## API for Prototyping :snowboarder: :snowboarder: 
 * POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /upload
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /uploads
+* POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /upload
+* POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /uploads
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /download
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/describe
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tables

@@ -103,7 +103,7 @@ if you haven't on your system.
 | GET       | /api/tableName/count             | Count number of rows in a table                        |
 | GET       | /api/tableName/:id/exists        | True or false whether a row exists or not              |
 | DELETE    | /api/tableName/:id               | Delete a row by primary key                            |
-| GET       | /api/parentTable/:id/childTable  | Get list of child table with paren table foreign key   | 
+| GET       | /api/parentTable/:id/childTable  | Get list of child table rows with parent table foreign key   | 
 
 ## APIs with HOT features
 

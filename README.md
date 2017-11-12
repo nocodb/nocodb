@@ -5,6 +5,9 @@
 
 # Xmysql : One command to generate REST APIs for any MySql database
 
+<div style="background-color:rgb(128,128,128)">
+
+
 # Why this ?
 <p align="center">
   <img src="./assets/rick-and-morty.gif" alt="xmysql gif"/>
@@ -14,6 +17,8 @@ Generating REST APIs for a MySql database which does not follow conventions of
 frameworks such as rails, django, laravel etc is a small adventure that one like to avoid ..
 
 Hence this.
+
+</div> 
 
 # Setup and Usage
 
@@ -58,22 +63,20 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 
 
 # Features
-* Rest API Usual Suspects
-    * CRUD, List, Count, Exists   
-    * Relations
-    * Pagination 
-    * Sorting
-* Xmysql Rest API -  :tada: :snowboarder: :crystal_ball: :tophat: :santa: 
-    * Generates API for **ANY** MySql database 
-    * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
-    * Support for composite primary keys
-    * Column filtering - Fields 
-    * Row filtering - Where
-    * Group By, Having (as query params) 
-    * Group By, Having (as a separate route)
-    * Aggregate functions 
-    * Union of many group by statements :fire::fire: **[ HOTNESS ALERT ]**
-* Prototyping (features available with only local MySql server)
+* Generates API for **ANY** MySql database 
+* Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
+* Support for composite primary keys
+* CRUD, List, FindOne, Count, Exists   
+* Relations
+* Pagination 
+* Sorting
+* Column filtering - Fields 
+* Row filtering - Where
+* Group By, Having (as query params) 
+* Group By, Having (as a separate route)
+* Aggregate functions 
+* Union of many group by statements :fire::fire: **[ HOTNESS ALERT ]**
+* Prototyping (features available with ONLY local MySql server)
     * Run dynamic queries
     * Upload single file
     * Upload multiple files

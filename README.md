@@ -69,9 +69,9 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * :fire: Row filtering - Where
 * Aggregate functions
 * :fire::fire: Group By, Having (as query params) 
-* :fire::fire: Group By, Having (as a separate route) 
-* :fire::fire: Multiple group by API 
-* :fire::fire: Chart API 
+* :fire::fire: Group By, Having (as a separate API) 
+* :fire::fire: Multiple group by in one API 
+* :fire::fire: Chart API for numeric column 
 * Prototyping (features available with ONLY local MySql server)
     * Run dynamic queries :fire::fire::fire:
     * Upload single file
@@ -104,14 +104,14 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
 * DELETE&nbsp;  /api/tableName/:id
 
-## HOT features
+## API with HOT features
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groups  :fire::fire: **[ HOTNESS ALERT ]**
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby :fire::fire: 
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/ugroupby  :fire::fire: **[ HOTNESS ALERT ]**
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/chart  :fire::fire: **[ HOTNESS ALERT ]**
 
-## Only in Prototyping :snowboarder: :tophat:
+## API for Prototyping :snowboarder: :snowboarder: 
 * POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /upload
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /uploads
@@ -599,7 +599,7 @@ http://localhost:3000/download?name=fileName
 * You are working on a demo, hacks etc
 
 ## When NOT to use ?
-* If you are in need of a full blown MVC framework, ACL, Authorisation etc - early days.
+* If you are in need of a full blown MVC framework, ACL, Authorisation etc - its early days please watch/star this repo. Thank you.
 
 
 ### Command line options

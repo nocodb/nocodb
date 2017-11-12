@@ -108,12 +108,12 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
 * DELETE&nbsp;  /api/tableName/:id
 
-## Cool features
+## HOT features
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groups  :fire::fire: **[ HOTNESS ALERT ]**
 
-## Only in Prototyping
+## Only in Prototyping :snowboarder: :tophat:
 * POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /upload
 * GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /uploads
@@ -360,9 +360,53 @@ Group by multiple columns in one API call using _fields query params - comes rea
 http://localhost:3000/api/employees/ugroupby?_fields=jobTitle,reportsTo
 
 response body
-{
-    "jobTitle":[{"President":1},{"Sale Manager (EMEA)":1},{"Sales Manager (APAC)":1},{"Sales Manager (NA)":1},{"Sales Rep":17},{"VP Marketing":1},{"VP Sales":1}],
-    "reportsTo":[{"":1},{"1002":2},{"1056":4},{"1088":3},{"1102":6},{"1143":6},{"1621":1}]
+{  
+   "jobTitle":[  
+      {  
+         "Sales Rep":17
+      },
+      {  
+         "President":1
+      },
+      {  
+         "Sale Manager (EMEA)":1
+      },
+      {  
+         "Sales Manager (APAC)":1
+      },
+      {  
+         "Sales Manager (NA)":1
+      },
+      {  
+         "VP Marketing":1
+      },
+      {  
+         "VP Sales":1
+      }
+   ],
+   "reportsTo":[  
+      {  
+         "":1
+      },
+      {  
+         "1002":2
+      },
+      {  
+         "1056":4
+      },
+      {  
+         "1088":3
+      },
+      {  
+         "1102":6
+      },
+      {  
+         "1143":6
+      },
+      {  
+         "1621":1
+      }
+   ]
 }
 ```
 

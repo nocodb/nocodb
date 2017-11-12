@@ -94,18 +94,8 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 
 
 ## CRUD APIs Usual Suspects
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName
-* POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          /api/tableName
-* PUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName ( acts as REPLACE )
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id
-* PATCH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   /api/tableName/:id ( acts as UPDATE )
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/findOne
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/count
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/:id/exists
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/parentTable/:id/childTable 
-* DELETE&nbsp;  /api/tableName/:id
 
-| HTTP Type |            API URL               | Comments                                               |
+| HTTP Type | API URL                          | Comments                                               |
 |-----------|----------------------------------|--------------------------------------------------------- 
 | GET       | /api/tableName                   | Lists rows of table                                    |
 | POST      | /api/tableName                   | Create a new row                                       |
@@ -115,22 +105,29 @@ Root URL (localhost:3000/) returns all REST API urls for each table in schema.
 | GET       | /api/tableName/findOne           | Works as list but gets single record matching criteria |
 | GET       | /api/tableName/count             | Count number of rows in a table                        |
 | GET       | /api/tableName/:id/exists        | True or false whether a row exists or not              |
-| DELETE    | /api/parentTable/:id/childTable  | Delete a row by primary key                            |
-
+| DELETE    | /api/tableName/:id               | Delete a row by primary key                            |
+| GET       | /api/parentTable/:id/childTable  | Get list of child table with paren table foreign key   | 
 
 ## APIs with HOT features
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/aggregate
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/groupby :fire::fire: 
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/ugroupby  :fire::fire: **[ HOTNESS ALERT ]**
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/chart  :fire::fire: **[ HOTNESS ALERT ]**
+
+| HTTP Type | API URL                          | Comments                                               |
+|-----------|----------------------------------|--------------------------------------------------------- 
+| GET       | /api/tableName/aggregate         | Aggregate results of numeric column(s)                 |
+| GET :fire:| /api/tableName/groupby           | Group by results of column(s)                          |
+| GET :fire:| /api/tableName/ugroupby          | Multiple group by results using one call               |
+| GET :fire:| /api/tableName/chart             | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
+
 
 ## APIs for Prototyping :snowboarder: :snowboarder: 
-* POST&nbsp;&nbsp;&nbsp;&nbsp;    /dynamic
-* POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /upload
-* POST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /uploads
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /download
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tableName/describe
-* GET&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     /api/tables
+| HTTP Type | API URL                          | Comments                                               |
+|-----------|----------------------------------|--------------------------------------------------------- 
+| GET :fire:| /dynamic                         | execute dynamic mysql statements with params           |
+| GET :fire:| /upload                          | upload single file                                     |
+| GET :fire:| /uploads                         | upload multiple files                                  |
+| GET :fire:| /download                        | download a file                                        |
+| GET :fire:| /api/tableName/describe          | describe each table for its columns                    |
+| GET :fire:| /api/tables                      | get all tables in database                             |
+
 
 
 ## Relational Tables

@@ -457,6 +457,115 @@ describe('xmysql : tests', function () {
       });
   });
 
+  it('POST /api/productlines/bulk should PASS', function (done) {
+
+    var objArray = []
+
+    var obj = {};
+    obj['productLine'] = 'Bulletrain'
+    obj['textDescription'] = 'Japan'
+
+    var obj1 = {};
+    obj1['productLine'] = 'Bulletrain_1'
+    obj1['textDescription'] = 'China'
+
+    objArray.push(obj)
+    objArray.push(obj1)
+
+    //post to an url with data
+    agent.post('/api/productlines/bulk')     //enter url
+      .send(objArray)         //postdata
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+
+        res.body['affectedRows'].should.be.equals(2)
+
+        return done();
+
+      });
+  });
+
+  it('POST /api/productlines/bulk should PASS', function (done) {
+
+    var objArray = []
+
+    var obj = {};
+    obj['productLine'] = 'Bulletrain_2'
+
+    var obj1 = {};
+    obj1['productLine'] = 'Bulletrain_3'
+
+
+    objArray.push(obj)
+    objArray.push(obj1)
+
+    //post to an url with data
+    agent.post('/api/productlines/bulk')     //enter url
+      .send(objArray)         //postdata
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+
+        res.body['affectedRows'].should.be.equals(2)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/productlines/bulk should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/productlines/bulk?_ids=Bulletrain,Bulletrain_1,Bulletrain_2,Bulletrain_3')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+
+        res.body.length.should.be.equals(4)
+
+        return done();
+
+      });
+  });
+
+
+  it('DELETE /api/productlines/bulk should PASS', function (done) {
+
+    //post to an url with data
+    agent.del('/api/productlines/bulk?_ids=Bulletrain,Bulletrain_1,Bulletrain_2,Bulletrain_3')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+
+        res.body['affectedRows'].should.be.equals(4)
+
+        return done();
+
+      });
+  });
+
+
   it('PUT /api/productlines should PASS', function (done) {
 
     var obj = {};

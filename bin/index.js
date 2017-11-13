@@ -30,7 +30,9 @@ let mysqlPool = mysql.createPool(sqlConfig);
 
 /**************** START : setup Xapi ****************/
 console.log('');
-console.log('          REST APIs at the speed of thought.. ');
+console.log('');
+console.log('');
+console.log('          Generating REST APIs at the speed of your thought.. ');
 console.log('');
 
 let t = process.hrtime();

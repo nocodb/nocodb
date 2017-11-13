@@ -92,29 +92,32 @@ if you haven't on your system.
 
 ## API Overview
 
-|# | HTTP Type | API URL                          | Comments                                               |
-|--|-----------|----------------------------------|--------------------------------------------------------- 
-|01| GET       | /                                | Gets all REST APIs                                     |
-|02| GET       | /api/tableName                   | Lists rows of table                                    |
-|03| POST      | /api/tableName                   | Create a new row                                       |
-|04| PUT       | /api/tableName                   | Replaces existing row with new row                     |
-|05| GET       | /api/tableName/:id               | Retrieves a row by primary key                         |
-|06| PATCH     | /api/tableName/:id               | Updates a row by primary key                           |
-|07| GET       | /api/tableName/findOne           | Works as list but gets single record matching criteria |
-|08| GET       | /api/tableName/count             | Count number of rows in a table                        |
-|09| GET       | /api/tableName/:id/exists        | True or false whether a row exists or not              |
-|10| DELETE    | /api/tableName/:id               | Delete a row by primary key                            |
-|11| GET       | [/api/parentTable/:id/childTable](#relational-tables)             | Get list of child table rows with parent table foreign key   | 
-|12| GET :fire:| [/api/tableName/aggregate](#aggregate-functions)                  | Aggregate results of numeric column(s)                 |
-|13| GET :fire:| [/api/tableName/groupby](#group-by-having-as-api)                 | Group by results of column(s)                          |
-|14| GET :fire:| [/api/tableName/ugroupby](#union-of-multiple-group-by-statements) | Multiple group by results using one call               |
-|15| GET :fire:| [/api/tableName/chart](#chart)                                    | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
-|16| GET :fire:| [/dynamic](#run-dynamic-queries)                                  | execute dynamic mysql statements with params           |
-|17| GET :fire:| [/upload](#upload-single-file)                                    | upload single file                                     |
-|18| GET :fire:| [/uploads](#upload-multiple-files)                                | upload multiple files                                  |
-|19| GET :fire:| [/download](#download-file)                                       | download a file                                        |
-|20| GET       | /api/tableName/describe| describe each table for its columns      |
-|21| GET       | /api/tables| get all tables in database                           |
+| HTTP Type | API URL                          | Comments                                               |
+|-----------|----------------------------------|--------------------------------------------------------- 
+| GET       | /                                | Gets all REST APIs                                     |
+| GET       | /api/tableName                   | Lists rows of table                                    |
+| POST      | /api/tableName                   | Create a new row                                       |
+| PUT       | /api/tableName                   | Replaces existing row with new row                     |
+| POST :fire:| /api/tableName/bulk             | Create multiple rows - send object array in request body|
+| GET  :fire:| /api/tableName/bulk             | Lists multiple rows - /api/tableName/bulk?_ids=1,2,3   |
+| DELETE :fire:| /api/tableName/bulk           | Deletes multiple rows - /api/tableName/bulk?_ids=1,2,3 |
+| GET       | /api/tableName/:id               | Retrieves a row by primary key                         |
+| PATCH     | /api/tableName/:id               | Updates row element by primary key                     |
+| DELETE    | /api/tableName/:id               | Delete a row by primary key                            |
+| GET       | /api/tableName/findOne           | Works as list but gets single record matching criteria |
+| GET       | /api/tableName/count             | Count number of rows in a table                        |
+| GET       | /api/tableName/:id/exists        | True or false whether a row exists or not              |
+| GET       | [/api/parentTable/:id/childTable](#relational-tables)             | Get list of child table rows with parent table foreign key   | 
+| GET :fire:| [/api/tableName/aggregate](#aggregate-functions)                  | Aggregate results of numeric column(s)                 |
+| GET :fire:| [/api/tableName/groupby](#group-by-having-as-api)                 | Group by results of column(s)                          |
+| GET :fire:| [/api/tableName/ugroupby](#union-of-multiple-group-by-statements) | Multiple group by results using one call               |
+| GET :fire:| [/api/tableName/chart](#chart)                                    | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
+| GET :fire:| [/dynamic](#run-dynamic-queries)                                  | execute dynamic mysql statements with params           |
+| GET :fire:| [/upload](#upload-single-file)                                    | upload single file                                     |
+| GET :fire:| [/uploads](#upload-multiple-files)                                | upload multiple files                                  |
+| GET :fire:| [/download](#download-file)                                       | download a file                                        |
+| GET       | /api/tableName/describe| describe each table for its columns      |
+| GET       | /api/tables| get all tables in database                           |
 
 
 

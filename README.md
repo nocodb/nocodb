@@ -59,21 +59,21 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 
 
 # Features
-* Generates API for **ANY** MySql database 
-* :fire::fire: Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
-* Support for composite primary keys
+* Generates API for **ANY** MySql database :fire::fire:
+* Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc :fire::fire:
+* Support for composite primary keys :fire::fire:
 * CRUD, List, FindOne, Count, Exists
-* :fire: Bulk insert, Bulk delete, Bulk read   
+* Bulk insert, Bulk delete, Bulk read :fire:   
 * Relations
 * Pagination 
 * Sorting
-* :fire: Column filtering - Fields 
-* :fire: Row filtering - Where
+* Column filtering - Fields :fire:  
+* Row filtering - Where :fire:
 * Aggregate functions
-* :fire::fire: Group By, Having (as query params) 
-* :fire::fire: Group By, Having (as a separate API) 
-* :fire::fire: Multiple group by in one API 
-* :fire::fire: Chart API for numeric column 
+* Group By, Having (as query params) :fire::fire:  
+* Group By, Having (as a separate API) :fire::fire:  
+* Multiple group by in one API :fire::fire:  
+* Chart API for numeric column :fire::fire:  
 * Prototyping (features available with ONLY local MySql server)
     * Run dynamic queries :fire::fire::fire:
     * Upload single file

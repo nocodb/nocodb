@@ -63,7 +63,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * :fire::fire: Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * Support for composite primary keys
 * CRUD, List, FindOne, Count, Exists
-* :fire: Bulk insert, delete, read   
+* :fire: Bulk insert, Bulk delete, Bulk read   
 * Relations
 * Pagination 
 * Sorting

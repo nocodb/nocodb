@@ -74,7 +74,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Group By, Having (as a separate API) :fire::fire:  
 * Multiple group by in one API :fire::fire:  
 * Chart API for numeric column :fire::fire:  
-* Prototyping (features available with ONLY local MySql server)
+* Prototyping (features available when using local MySql server only)
     * Run dynamic queries :fire::fire::fire:
     * Upload single file
     * Upload multiple files
@@ -552,7 +552,7 @@ _fields in Chart API can only take numeric column as its argument.
 
 Dynamic queries on a database can be run by POST method to URL localhost:3000/dynamic 
 
-This is enabled only when using local mysql server i.e -h localhost or -h 127.0.0.1 option.
+This is enabled **ONLY when using local mysql server** i.e -h localhost or -h 127.0.0.1 option.
 
 Post body takes two fields : query and params.
 

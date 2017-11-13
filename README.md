@@ -62,7 +62,8 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Generates API for **ANY** MySql database 
 * :fire::fire: Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
 * Support for composite primary keys
-* CRUD, List, FindOne, Count, Exists   
+* CRUD, List, FindOne, Count, Exists
+* :fire: Bulk insert, delete, read   
 * Relations
 * Pagination 
 * Sorting

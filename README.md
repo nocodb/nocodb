@@ -90,50 +90,41 @@ Download [node](https://nodejs.org/en/download/current/),
 if you haven't on your system.
 
 
-## Usual Suspects in a REST API framework 
+## API Overview
 
-| HTTP Type | API URL                          | Comments                                               |
-|-----------|----------------------------------|--------------------------------------------------------- 
-| GET       | /                                | Gets all REST APIs                                     |
-| GET       | /api/tableName                   | Lists rows of table                                    |
-| POST      | /api/tableName                   | Create a new row                                       |
-| PUT       | /api/tableName                   | Replaces existing row with new row                     |
-| GET       | /api/tableName/:id               | Retrieves a row by primary key                         |
-| PATCH     | /api/tableName/:id               | Updates a row by primary key                           |
-| GET       | /api/tableName/findOne           | Works as list but gets single record matching criteria |
-| GET       | /api/tableName/count             | Count number of rows in a table                        |
-| GET       | /api/tableName/:id/exists        | True or false whether a row exists or not              |
-| DELETE    | /api/tableName/:id               | Delete a row by primary key                            |
-| GET       | [/api/parentTable/:id/childTable](#relational-tables)  | Get list of child table rows with parent table foreign key   | 
-
-## APIs with HOT features
-
-| HTTP Type | API URL                          | Comments                                               |
-|-----------|----------------------------------|--------------------------------------------------------- 
-| GET       | /api/tableName/aggregate         | Aggregate results of numeric column(s)                 |
-| GET :fire:| /api/tableName/groupby           | Group by results of column(s)                          |
-| GET :fire:| /api/tableName/ugroupby          | Multiple group by results using one call               |
-| GET :fire:| /api/tableName/chart             | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
-
-
-## APIs for Prototyping :snowboarder: :snowboarder: 
-| HTTP Type | API URL                          | Comments                                               |
-|-----------|----------------------------------|--------------------------------------------------------- 
-| GET :fire:| /dynamic                         | execute dynamic mysql statements with params           |
-| GET :fire:| /upload                          | upload single file                                     |
-| GET :fire:| /uploads                         | upload multiple files                                  |
-| GET :fire:| /download                        | download a file                                        |
-| GET :fire:| /api/tableName/describe          | describe each table for its columns                    |
-| GET :fire:| /api/tables                      | get all tables in database                             |
+|# | HTTP Type | API URL                          | Comments                                               |
+|--|-----------|----------------------------------|--------------------------------------------------------- 
+|01| GET       | /                                | Gets all REST APIs                                     |
+|02| GET       | /api/tableName                   | Lists rows of table                                    |
+|03| POST      | /api/tableName                   | Create a new row                                       |
+|04| PUT       | /api/tableName                   | Replaces existing row with new row                     |
+|05| GET       | /api/tableName/:id               | Retrieves a row by primary key                         |
+|06| PATCH     | /api/tableName/:id               | Updates a row by primary key                           |
+|07| GET       | /api/tableName/findOne           | Works as list but gets single record matching criteria |
+|08| GET       | /api/tableName/count             | Count number of rows in a table                        |
+|09| GET       | /api/tableName/:id/exists        | True or false whether a row exists or not              |
+|10| DELETE    | /api/tableName/:id               | Delete a row by primary key                            |
+|11| GET       | [/api/parentTable/:id/childTable](#relational-tables)             | Get list of child table rows with parent table foreign key   | 
+|12| GET :fire:| [/api/tableName/aggregate](#aggregate-functions)                  | Aggregate results of numeric column(s)                 |
+|13| GET :fire:| [/api/tableName/groupby](#group-by-having-as-api)                 | Group by results of column(s)                          |
+|14| GET :fire:| [/api/tableName/ugroupby](#union-of-multiple-group-by-statements) | Multiple group by results using one call               |
+|15| GET :fire:| [/api/tableName/chart](#chart)                                    | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
+|16| GET :fire:| [/dynamic](#run-dynamic-queries)                                  | execute dynamic mysql statements with params           |
+|17| GET :fire:| [/upload](#upload-single-file)                                    | upload single file                                     |
+|18| GET :fire:| [/uploads](#upload-multiple-files)                                | upload multiple files                                  |
+|19| GET :fire:| [/download](#download-file)                                       | download a file                                        |
+|20| GET       | /api/tableName/describe| describe each table for its columns      |
+|21| GET       | /api/tables| get all tables in database                           |
 
 
 
-## Relational Tables
+## Relational Tables 
 xmysql identifies foreign key relations automatically and provides GET api.
 ```
 /api/blogs/103/comments
 ```
 eg: blogs is parent table and comments is child table. API invocation will result in all comments for blog primary key 103.
+[:arrow_heading_up:](#api-overview)
 
 
 ## Support for composite primary keys
@@ -249,6 +240,7 @@ eg: filter of rows using _where is available for relational route URLs too.
 /api/tableName/findOne?_where=(id,eq,1)
 ```
 Works similar to list but only returns top/one result. Used in conjunction with _where
+[:arrow_heading_up:](#api-overview)
 
 ## Count
 ```
@@ -256,6 +248,7 @@ Works similar to list but only returns top/one result. Used in conjunction with 
 ```
 
 Returns number of rows in table
+[:arrow_heading_up:](#api-overview)
 
 ## Exists
 ```
@@ -263,9 +256,10 @@ Returns number of rows in table
 ```
 
 Returns true or false depending on whether record exists
+[:arrow_heading_up:](#api-overview)
 
-
-## Group By, Having (as query params)
+## Group By Having as query params
+[:arrow_heading_up:](#api-overview)
 
 ```
 /api/offices?_groupby=country
@@ -278,7 +272,8 @@ eg: SELECT country,count(*) FROM offices GROUP BY country
 eg: SELECT country,count(1) as _count FROM offices GROUP BY country having _count > 1
 
 
-## Group By, Having (as a seperate route)
+## Group By Having as API
+[:arrow_heading_up:](#api-overview)
 
 ```
 /api/offices/groupby?_fields=country
@@ -296,7 +291,8 @@ eg: SELECT country,city,count(*) FROM offices GROUP BY country,city
 eg: SELECT country,city,count(*) as _count FROM offices GROUP BY country,city having _count > 1
 
 
-## Group By, Order By
+### Group By, Order By
+[:arrow_heading_up:](#api-overview)
 
 ```
 /api/offices/groupby?_fields=country,city&sort=city
@@ -315,6 +311,7 @@ eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY cit
 
 
 ## Aggregate functions
+[:arrow_heading_up:](#api-overview)
 
 ```
 http://localhost:3000/api/payments/aggregate?_fields=amount
@@ -358,7 +355,10 @@ response body
 
 eg: retrieves numeric aggregate can be done for multiple columns too 
 
-## Union of many group by statements :fire::fire:**[ HOTNESS ALERT ]**
+## Union of multiple group by statements 
+[:arrow_heading_up:](#api-overview)
+
+:fire::fire:**[ HOTNESS ALERT ]**
 
 Group by multiple columns in one API call using _fields query params - comes really handy
 
@@ -417,13 +417,17 @@ response body
 ```
 
 
-## Chart :fire::fire: **[ HOTNESS ALERT ]**
+## Chart 
+[:arrow_heading_up:](#api-overview)
+
+:fire::fire: **[ HOTNESS ALERT ]**
 
 Chart API returns distribution of a numeric column in a table
 
 It comes in three flavours
 
 1. Chart : With min, max, step in query params :fire::fire:
+[:arrow_heading_up:](#api-overview)
 
 This API returns the number of rows where amount is between (0,25000), (25001,50000) ...
 
@@ -462,6 +466,7 @@ Response
 ```
 
 2. Chart : With step array in params :fire::fire:
+[:arrow_heading_up:](#api-overview)
 
 This API returns distribution between the step array specified
 
@@ -493,6 +498,7 @@ Response
 ```
 
 3. Chart : with no params :fire::fire:
+[:arrow_heading_up:](#api-overview)
 
 This API figures out even distribution of a numeric column in table and returns the data
 
@@ -538,6 +544,8 @@ _fields in Chart API can only take numeric column as its argument.
 
 
 ## Run dynamic queries
+[:arrow_heading_up:](#api-overview)
+
 Dynamic queries on a database can be run by POST method to URL localhost:3000/dynamic 
 
 This is enabled only when using local mysql server i.e -h localhost or -h 127.0.0.1 option.
@@ -570,6 +578,7 @@ POST /dynamic/user/update
 
 
 ## Upload single file
+[:arrow_heading_up:](#api-overview)
 
 ```
 POST /upload
@@ -584,6 +593,8 @@ returns uploaded file name else 'upload failed'
 
 
 ## Upload multiple files
+[:arrow_heading_up:](#api-overview)
+
 ```
 POST /uploads
 ```
@@ -596,21 +607,28 @@ eg: curl --form files=@/Users/me/Desktop/a.png --form files=@/Users/me/Desktop/b
 returns uploaded file names as string
 
 ## Download file
+[:arrow_heading_up:](#api-overview)
+
 http://localhost:3000/download?name=fileName
 
 > For upload and download of files -> you can specify storage folder using -s option
 > Upload and download apis are available only with local mysql server 
 
 ## When to use ?
+[:arrow_heading_up:](#api-overview)
+
 * You need just REST APIs without much hassle for (ANY) MySql database.
 * You are learning new frontend frameworks and need REST APIs for your MySql database.
 * You are working on a demo, hacks etc
 
 ## When NOT to use ?
+[:arrow_heading_up:](#api-overview)
+
 * If you are in need of a full blown MVC framework, ACL, Authorisation etc - its early days please watch/star this repo. Thank you.
 
 
 ### Command line options
+[:arrow_heading_up:](#api-overview)
 
 ```
   Options:
@@ -647,6 +665,7 @@ http://localhost:3000/download?name=fileName
 
 
 # Docker
+[:arrow_heading_up:](#api-overview)
 
 Simply build with `docker build -t xmysql .` and run with `docker run -p 3000:3000 -d xmysql`
 
@@ -674,6 +693,7 @@ ENV DATABASE_NAME sakila
 
 
 # Tests : setup on local machine
+[:arrow_heading_up:](#api-overview)
 
 Login to mysql shell
 

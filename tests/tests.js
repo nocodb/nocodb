@@ -17,7 +17,6 @@ var api = {}
 var mysqlPool = {}
 
 
-
 //desribe group of tests done
 describe('xmysql : tests', function () {
 
@@ -88,7 +87,6 @@ describe('xmysql : tests', function () {
       });
 
   });
-
 
 
   it('GET /api/payments/count should PASS', function (done) {
@@ -336,11 +334,10 @@ describe('xmysql : tests', function () {
   });
 
 
-
-  it('GET /api/customers/findOne?_where=(customerNumber,eq,119) should PASS', function (done) {
+  it('GET /api/offices?_where=(((officeCode,in,1,2))~and(city,eq,boston)) should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/customers/findOne?_where=(customerNumber,eq,119)')      // api url
+    agent.get('/api/offices?_where=(((officeCode,in,1,2))~and(city,eq,boston))')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -350,7 +347,7 @@ describe('xmysql : tests', function () {
 
         // tate is an invalid column but still it should query right number of columns
         res.body.length.should.be.equal(1)
-        res.body[0]['customerNumber'].should.be.equal(119)
+        res.body[0]['city'].should.be.equal('Boston')
 
         return done();
 
@@ -674,7 +671,6 @@ describe('xmysql : tests', function () {
   });
 
 
-
   it('PATCH /api/productlines/Hyperloop should PASS', function (done) {
 
     var obj = {};
@@ -748,7 +744,6 @@ describe('xmysql : tests', function () {
   });
 
 
-
   it('GET /api/offices/1/employees?_where=(jobTitle,eq,Sales%20Rep) should PASS', function (done) {
 
     //post to an url with data
@@ -767,7 +762,6 @@ describe('xmysql : tests', function () {
 
       });
   });
-
 
 
   it('GET /api/payments?_where=(amount,gte,1000)~and(customerNumber,lte,120) should PASS', function (done) {
@@ -1705,10 +1699,17 @@ describe('xmysql : tests', function () {
 
   });
 
+  it('where clause unit ?_where=(a,in,1,2,3) should PASS', function (done) {
 
+    var err = whereClause.getConditionClause('(a,in,1,2,3)')
 
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(?? in (?,?,?))')
 
-  //
+    done()
+
+  });
+
   // it('GET http://localhost:3000/api/customers/groupby?_fields=city,country&_having=(customerNumber,lt,110) should PASS', function (done) {
   //
   //   //post to an url with data
@@ -1724,9 +1725,6 @@ describe('xmysql : tests', function () {
   //
   //     });
   // });
-
-
-
 
 
 });

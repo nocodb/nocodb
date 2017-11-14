@@ -200,13 +200,15 @@ eg: gets all fields in table row but not checkNumber
 #### Comparison operators
 
 ```
-eq  -   '='
-ne  -   '!='
-gt  -   '>'
-gte -   '>='
-lt  -   '<'
-lte -   '<='
+eq  -   '='         -  (colName,eq,colValue)
+ne  -   '!='        -  (colName,ne,colValue)
+gt  -   '>'         -  (colName,ne,colValue)
+gte -   '>='        -  (colName,ne,colValue)
+lt  -   '<'         -  (colName,ne,colValue)
+lte -   '<='        -  (colName,ne,colValue)
+in -   'in'         -  (colName,ne,val1,val2,val3,val4)
 ```
+
 #### Use of comparison operators
 ```
 /api/payments?_where=(checkNumber,eq,JM555205)

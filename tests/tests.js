@@ -783,7 +783,24 @@ describe('xmysql : tests', function () {
       });
   });
 
-  http://localhost:3000/api/offices?_where=(city,like,~on~)
+  it('GET /api/productlines?_where=(htmlDescription,is,null) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/productlines?_where=(htmlDescription,is,null)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equals(6)
+
+        return done();
+
+      });
+  });
 
   it('GET /api/offices?_where=(city,like,~on~) should PASS', function (done) {
 
@@ -1801,6 +1818,21 @@ describe('xmysql : tests', function () {
 
   });
 
+  it('where clause unit ?_where=(a,is,null)~and(b,is,true)~and(c,is,false) should PASS', function (done) {
+
+    var err = whereClause.getConditionClause('(a,is,null)~and(b,is,true)~and(c,is,false)')
+
+    //console.log(err.params[1],err);
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(?? is ?)and(?? is ?)and(?? is ?)')
+    //err.params[1].should.be.equal(null)
+    err.params[3].should.be.equal(true)
+    err.params[5].should.be.equal(false)
+
+    done()
+
+  });
 
   // it('GET http://localhost:3000/api/customers/groupby?_fields=city,country&_having=(customerNumber,lt,110) should PASS', function (done) {
   //

@@ -72,7 +72,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Aggregate functions
 * Group By, Having (as query params) :fire::fire:  
 * Group By, Having (as a separate API) :fire::fire:  
-* Multiple group by in one API :fire::fire:  
+* Multiple group by in one API :fire::fire::fire::fire:
 * Chart API for numeric column :fire::fire::fire::fire::fire::fire:
 * Supports views  
 * Prototyping (features available when using local MySql server only)

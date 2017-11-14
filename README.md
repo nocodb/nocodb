@@ -214,7 +214,7 @@ nlike   -   'not like'  -  (colName,nlike,~name)  note: use ~ in place of %
 
 #### Use of comparison operators
 ```
-/api/payments?_where=(checkNumber,eq,JM555205)
+/api/payments?_where=(checkNumber,eq,JM555205)~or((amount,gt,200)~and(amount,lt,2000))
 ```
 
 #### Logical operators

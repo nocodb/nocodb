@@ -550,12 +550,12 @@ Response
 
 ```
 
-4. Chart : With min, max, step in query params :fire::fire:
+4. Chart : range, min, max, step in query params :fire::fire:
  [:arrow_heading_up:](#api-overview)
  
  This API returns the number of rows where amount is between (0,25000), (0,50000) ... (0,maxValue)
  
- Number of records for amount is calculated everytime from min value to extended Range instead of incremental steps
+ Number of records for amount is counted from min value to extended *Range* instead of incremental steps
  
  ```
  /api/payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1
@@ -587,16 +587,49 @@ Response
  
  ```
 
-5. Range can be specified to other variations of chart operation #2 and #3 like below
+5. Range can be specified with step array like below
 
  ```
-/api/payments/chart?_fields=amount&steparray=0,10000,20000,70000,140000
+/api/payments/chart?_fields=amount&steparray=0,10000,20000,70000,140000&range=1
+
+[
+    {
+        "amount": "0 to 10000",
+        "_count": 42
+    },
+    {
+        "amount": "0 to 20000",
+        "_count": 78
+    },
+    {
+        "amount": "0 to 70000",
+        "_count": 261
+    },
+    {
+        "amount": "0 to 140000",
+        "_count": 273
+    }
+]
  ```
  
-6.
+6. Range can be specified without any step params like below
 
 ```
 /api/payments/chart?_fields=amount&range=1
+
+[
+    {
+        "amount": "-9860 to 11100",
+        "_count": 45
+    },
+    {
+        "amount": "-9860 to 32060",
+        "_count": 136
+    },
+    ...
+    
+]
+
 ```
 
 Please Note:

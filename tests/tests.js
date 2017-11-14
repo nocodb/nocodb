@@ -783,7 +783,8 @@ describe('xmysql : tests', function () {
       });
   });
 
-  // something weird going on
+  // SOMETHING WEIRD HERE
+  //        test in travis show 7 but on local machine result has 6 elements
   // it('GET /api/productlines?_where=(htmlDescription,is,null) should PASS', function (done) {
   //
   //   //post to an url with data
@@ -1203,6 +1204,28 @@ describe('xmysql : tests', function () {
       });
   })
 
+  it('GET /api/payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body.length.should.be.equals(5)
+        res.body[4]['_count'].should.be.equals(273)
+        res.body[1]['_count'].should.be.equals(231)
+        res.body[0]['_count'].should.be.equals(107)
+
+
+        return done();
+
+      });
+  })
+
   it('GET /api/payments/chart?_fields=amount&steparray=0,50000,100000,140000 should PASS', function (done) {
 
     //post to an url with data
@@ -1218,6 +1241,47 @@ describe('xmysql : tests', function () {
         res.body[0]['_count'].should.be.equals(231)
         res.body[1]['_count'].should.be.equals(37)
         res.body[2]['_count'].should.be.equals(5)
+
+        return done();
+
+      });
+  })
+
+  it('GET /api/payments/chart?_fields=amount&steparray=0,50000,100000,140000&range=1 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/chart?_fields=amount&steparray=0,50000,100000,140000&range=1')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body.length.should.be.equals(3)
+        res.body[0]['_count'].should.be.equals(231)
+        res.body[1]['_count'].should.be.equals(268)
+        res.body[2]['_count'].should.be.equals(273)
+
+        return done();
+
+      });
+  })
+
+  it('GET /api/payments/chart?_fields=amount&range=1 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/chart?_fields=amount&range=1')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body.length.should.be.equals(7)
+        res.body[0]['_count'].should.be.equals(45)
+        res.body[6]['_count'].should.be.equals(273)
 
         return done();
 
@@ -1822,8 +1886,6 @@ describe('xmysql : tests', function () {
   it('where clause unit ?_where=(a,is,null)~and(b,is,true)~and(c,is,false) should PASS', function (done) {
 
     var err = whereClause.getConditionClause('(a,is,null)~and(b,is,true)~and(c,is,false)')
-
-    //console.log(err.params[1],err);
 
     err.err.should.be.equal(0)
     err.query.should.be.equal('(?? is ?)and(?? is ?)and(?? is ?)')

@@ -73,7 +73,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Group By, Having (as query params) :fire::fire:  
 * Group By, Having (as a separate API) :fire::fire:  
 * Multiple group by in one API :fire::fire:  
-* Chart API for numeric column :fire::fire:
+* Chart API for numeric column :fire::fire::fire::fire::fire::fire:
 * Supports views  
 * Prototyping (features available when using local MySql server only)
     * Run dynamic queries :fire::fire::fire:
@@ -431,11 +431,11 @@ response body
 ## Chart 
 [:arrow_heading_up:](#api-overview)
 
-:fire::fire: **[ HOTNESS ALERT ]**
+:fire::fire::fire::fire::fire::fire: **[ HOTNESS ALERT ]**
 
 Chart API returns distribution of a numeric column in a table
 
-It comes in three flavours
+It comes in **SIX** powerful flavours
 
 1. Chart : With min, max, step in query params :fire::fire:
 [:arrow_heading_up:](#api-overview)
@@ -548,6 +548,55 @@ Response
   }
 ]
 
+```
+
+4. Chart : With min, max, step in query params :fire::fire:
+ [:arrow_heading_up:](#api-overview)
+ 
+ This API returns the number of rows where amount is between (0,25000), (0,50000) ... (0,maxValue)
+ 
+ Number of records for amount is calculated everytime from min value to extended Range instead of incremental steps
+ 
+ ```
+ /api/payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1
+ 
+ Response
+ 
+[
+    {
+        "amount": "0 to 25000",
+        "_count": 107
+    },
+    {
+        "amount": "0 to 50000",
+        "_count": 231
+    },
+    {
+        "amount": "0 to 75000",
+        "_count": 261
+    },
+    {
+        "amount": "0 to 100000",
+        "_count": 268
+    },
+    {
+        "amount": "0 to 125000",
+        "_count": 273
+    }
+]
+ 
+ ```
+
+5. Range can be specified to other variations of chart operation #2 and #3 like below
+
+ ```
+/api/payments/chart?_fields=amount&steparray=0,10000,20000,70000,140000
+ ```
+ 
+6.
+
+```
+/api/payments/chart?_fields=amount&range=1
 ```
 
 Please Note:

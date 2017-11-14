@@ -200,13 +200,15 @@ eg: gets all fields in table row but not checkNumber
 #### Comparison operators
 
 ```
-eq  -   '='         -  (colName,eq,colValue)
-ne  -   '!='        -  (colName,ne,colValue)
-gt  -   '>'         -  (colName,ne,colValue)
-gte -   '>='        -  (colName,ne,colValue)
-lt  -   '<'         -  (colName,ne,colValue)
-lte -   '<='        -  (colName,ne,colValue)
-in -   'in'         -  (colName,ne,val1,val2,val3,val4)
+eq      -   '='         -  (colName,eq,colValue)
+ne      -   '!='        -  (colName,ne,colValue)
+gt      -   '>'         -  (colName,gt,colValue)
+gte     -   '>='        -  (colName,gte,colValue)
+lt      -   '<'         -  (colName,lt,colValue)
+lte     -   '<='        -  (colName,lte,colValue)
+in      -   'in'        -  (colName,in,val1,val2,val3,val4)
+like    -   'like'      -  (colName,like,~name)   note: use ~ in place of % 
+nlike   -   'not like'  -  (colName,nlike,~name)  note: use ~ in place of %
 ```
 
 #### Use of comparison operators

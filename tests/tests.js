@@ -783,6 +783,71 @@ describe('xmysql : tests', function () {
       });
   });
 
+  http://localhost:3000/api/offices?_where=(city,like,~on~)
+
+  it('GET /api/offices?_where=(city,like,~on~) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_where=(city,like,~on~)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equals(2)
+
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices?_where=(city,like,san~) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_where=(city,like,san~)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equals(1)
+
+
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/offices?_where=(country,nlike,us~) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/offices?_where=(country,nlike,us~)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equals(4)
+
+
+
+        return done();
+
+      });
+  });
+
+
   it('GET /api/payments?_where=(amount,gte,1000)&_sort=-amount should PASS', function (done) {
 
     //post to an url with data
@@ -1709,6 +1774,33 @@ describe('xmysql : tests', function () {
     done()
 
   });
+
+  it('where clause unit ?_where=(a,like,~1234) should PASS', function (done) {
+
+    var err = whereClause.getConditionClause('(a,like,~1234)')
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(?? like ?)')
+    err.params[0].should.be.equal('a')
+    err.params[1].should.be.equal('%1234')
+
+    done()
+
+  });
+
+  it('where clause unit ?_where=(a,like,~1234~) should PASS', function (done) {
+
+    var err = whereClause.getConditionClause('(a,like,~1234~)')
+
+    err.err.should.be.equal(0)
+    err.query.should.be.equal('(?? like ?)')
+    err.params[0].should.be.equal('a')
+    err.params[1].should.be.equal('%1234%')
+
+    done()
+
+  });
+
 
   // it('GET http://localhost:3000/api/customers/groupby?_fields=city,country&_having=(customerNumber,lt,110) should PASS', function (done) {
   //

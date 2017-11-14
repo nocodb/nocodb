@@ -73,7 +73,8 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Group By, Having (as query params) :fire::fire:  
 * Group By, Having (as a separate API) :fire::fire:  
 * Multiple group by in one API :fire::fire:  
-* Chart API for numeric column :fire::fire:  
+* Chart API for numeric column :fire::fire:
+* Supports views  
 * Prototyping (features available when using local MySql server only)
     * Run dynamic queries :fire::fire::fire:
     * Upload single file
@@ -629,7 +630,7 @@ http://localhost:3000/download?name=fileName
 ## When NOT to use ?
 [:arrow_heading_up:](#api-overview)
 
-* If you are in need of a full blown MVC framework, ACL, Authorisation etc - its early days please watch/star this repo. Thank you.
+* If you are in need of a full blown MVC framework, ACL, Validations, Authorisation etc - its early days please watch/star this repo to keep a tab on progress. 
 
 
 ### Command line options

@@ -17,16 +17,16 @@ var api = {}
 var mysqlPool = {}
 
 
-args['host'] = 'localhost'
-args['user'] = 'root'
-args['password'] = ''
-args['database'] = 'classicmodels'
-
 
 //desribe group of tests done
 describe('xmysql : tests', function () {
 
   before(function (done) {
+
+    args['host'] = 'localhost'
+    args['user'] = 'root'
+    args['password'] = ''
+    args['database'] = 'classicmodels'
 
     cmdargs.handle(args)
 

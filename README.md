@@ -238,7 +238,7 @@ eg: complex logical expression
 
 eg: logical expression with sorting(_sort), pagination(_p), column filtering (_fields)
 ```
-/api/payments?_where=(amount,gte,1000)&_sort=-amount&p=2&&_fields=customerNumber
+/api/payments?_where=(amount,gte,1000)&_sort=-amount&p=2&_fields=customerNumber
 ```
 
 eg: filter of rows using _where is available for relational route URLs too.
@@ -306,17 +306,17 @@ eg: SELECT country,city,count(*) as _count FROM offices GROUP BY country,city ha
 [:arrow_heading_up:](#api-overview)
 
 ```
-/api/offices/groupby?_fields=country,city&sort=city
+/api/offices/groupby?_fields=country,city&_sort=city
 ```
 eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC
 
 ```
-/api/offices/groupby?_fields=country,city&sort=city,country
+/api/offices/groupby?_fields=country,city&_sort=city,country
 ```
 eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC, country ASC
 
 ```
-/api/offices/groupby?_fields=country,city&sort=city,-country
+/api/offices/groupby?_fields=country,city&_sort=city,-country
 ```
 eg: SELECT country,city,count(*) FROM offices GROUP BY country,city ORDER BY city ASC, country DESC
 

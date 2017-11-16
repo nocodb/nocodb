@@ -74,6 +74,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Group By, Having (as a separate API) :fire::fire:  
 * Multiple group by in one API :fire::fire::fire::fire:
 * Chart API for numeric column :fire::fire::fire::fire::fire::fire:
+* Auto Chart API - (Must see : a gift to lazy while prototyping) :fire::fire::fire::fire::fire::fire: 
 * Supports views  
 * Prototyping (features available when using local MySql server only)
     * Run dynamic queries :fire::fire::fire:
@@ -116,6 +117,7 @@ if you haven't on your system.
 | GET :fire:| [/api/tableName/groupby](#group-by-having-as-api)                 | Group by results of column(s)                          |
 | GET :fire:| [/api/tableName/ugroupby](#union-of-multiple-group-by-statements) | Multiple group by results using one call               |
 | GET :fire:| [/api/tableName/chart](#chart)                                    | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
+| GET :fire:| [/api/tableName/autochart](#autochart)                                | Same as Chart but identifies which are numeric column automatically - gift for lazy while prototyping|
 | GET :fire:| [/dynamic](#run-dynamic-queries)                                  | execute dynamic mysql statements with params           |
 | GET :fire:| [/upload](#upload-single-file)                                    | upload single file                                     |
 | GET :fire:| [/uploads](#upload-multiple-files)                                | upload multiple files                                  |
@@ -637,6 +639,50 @@ Response
 Please Note:
 _fields in Chart API can only take numeric column as its argument.  
 
+## Autochart
+
+Identifies numeric columns in a table which are not any sort of key and applies chart API as before - 
+feels like magic when there are multiple numeric columns in table while hacking/prototyping and you invoke this API.
+
+```
+http://localhost:3000/api/payments/autochart
+
+[
+    {
+        "column": "amount",
+        "chart": [
+                    {
+                        "amount": "-9860 to 11100",
+                        "_count": 45
+                    },
+                    {
+                        "amount": "11101 to 32060",
+                        "_count": 91
+                    },
+                    {
+                        "amount": "32061 to 53020",
+                        "_count": 109
+                    },
+                    {
+                        "amount": "53021 to 73980",
+                        "_count": 16
+                    },
+                    {
+                        "amount": "73981 to 94940",
+                        "_count": 7
+                    },
+                    {
+                        "amount": "94941 to 115900",
+                        "_count": 3
+                    },
+                    {
+                        "amount": "115901 to 130650",
+                        "_count": 2
+                    }
+                ]
+    }
+]
+```
 
 ## Run dynamic queries
 [:arrow_heading_up:](#api-overview)

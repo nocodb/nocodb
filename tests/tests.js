@@ -858,7 +858,6 @@ describe('xmysql : tests', function () {
         res.body.length.should.be.equals(1)
 
 
-
         return done();
 
       });
@@ -877,7 +876,6 @@ describe('xmysql : tests', function () {
 
         //validate response
         res.body.length.should.be.equals(4)
-
 
 
         return done();
@@ -1223,6 +1221,25 @@ describe('xmysql : tests', function () {
       });
   })
 
+  it('GET /api/payments/autochart should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/autochart')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body[0]['chart'].length.should.be.equals(7)
+        res.body[0]['chart'][0]['_count'].should.be.equals(45)
+        res.body[0]['chart'][6]['_count'].should.be.equals(2)
+
+        return done();
+
+      });
+  })
 
   it('GET /api/payments?_where=(amount,bw,1000,5000) should PASS', function (done) {
 

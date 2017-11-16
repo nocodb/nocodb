@@ -208,6 +208,7 @@ lt      -   '<'         -  (colName,lt,colValue)
 lte     -   '<='        -  (colName,lte,colValue)
 is      -   'is'        -  (colName,is,true/false/null)
 in      -   'in'        -  (colName,in,val1,val2,val3,val4)
+bw      -   'between'   -  (colName,bw,val1,val2) 
 like    -   'like'      -  (colName,like,~name)   note: use ~ in place of % 
 nlike   -   'not like'  -  (colName,nlike,~name)  note: use ~ in place of %
 ```

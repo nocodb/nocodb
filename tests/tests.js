@@ -1204,6 +1204,26 @@ describe('xmysql : tests', function () {
       });
   })
 
+
+  it('GET /api/payments?_where=(amount,bw,1000,5000) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments?_where=(amount,bw,1000,5000)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body.length.should.be.equals(19)
+
+        return done();
+
+      });
+  })
+
+
   it('GET /api/payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1 should PASS', function (done) {
 
     //post to an url with data
@@ -1896,22 +1916,6 @@ describe('xmysql : tests', function () {
     done()
 
   });
-
-  // it('GET http://localhost:3000/api/customers/groupby?_fields=city,country&_having=(customerNumber,lt,110) should PASS', function (done) {
-  //
-  //   //post to an url with data
-  //   agent.get('http://localhost:3000/api/customers/groupby?_fields=city,country&_having=(customerNumber,lt,110)')     //enter url
-  //     .expect(200)//200 for success 4xx for failure
-  //     .end(function (err, res) {
-  //       // Handle /api/v error
-  //       if (err) {
-  //         return done(err);
-  //       }
-  //
-  //       return done();
-  //
-  //     });
-  // });
 
 
 });

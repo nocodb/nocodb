@@ -62,7 +62,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Generates API for **ANY** MySql database :fire::fire:
 * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc :fire::fire:
 * Support for composite primary keys :fire::fire:
-* CRUD, List, FindOne, Count, Exists
+* REST API Usual suspects : CRUD, List, FindOne, Count, Exists, Distinct
 * Bulk insert, Bulk delete, Bulk read :fire:   
 * Relations
 * Pagination 
@@ -109,6 +109,7 @@ if you haven't on your system.
 | DELETE    | /api/tableName/:id               | Delete a row by primary key                            |
 | GET       | /api/tableName/findOne           | Works as list but gets single record matching criteria |
 | GET       | /api/tableName/count             | Count number of rows in a table                        |
+| GET       | /api/tableName/distinct          | Distinct row(s) in table - /api/tableName/distinct?_fields=col1|
 | GET       | /api/tableName/:id/exists        | True or false whether a row exists or not              |
 | GET       | [/api/parentTable/:id/childTable](#relational-tables)             | Get list of child table rows with parent table foreign key   | 
 | GET :fire:| [/api/tableName/aggregate](#aggregate-functions)                  | Aggregate results of numeric column(s)                 |

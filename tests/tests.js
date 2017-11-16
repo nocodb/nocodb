@@ -109,6 +109,25 @@ describe('xmysql : tests', function () {
 
   });
 
+  it('GET /api/offices/distinct?_fields=country should PASS', function (done) {
+
+    //http get an url
+    agent.get('/api/offices/distinct?_fields=country')      // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/tables error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equal(5);
+
+        return done();
+
+      });
+
+  });
 
   it('GET /api/customers/describe should PASS', function (done) {
 

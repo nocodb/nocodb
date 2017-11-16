@@ -1,6 +1,6 @@
 {
   "name": "xmysql",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "One command to generate REST APIs for any MySql database",
   "main": "index.js",
   "scripts": {

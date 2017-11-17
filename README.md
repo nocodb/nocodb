@@ -688,7 +688,7 @@ http://localhost:3000/api/payments/autochart
 
 ## XJOIN
 
-### Xjoin Syntax:
+### Xjoin query params and values:
 
 ```
 _join           :   List of tableNames alternated by type of join to be made (_j, _ij,_ lj, _rj, _fj)

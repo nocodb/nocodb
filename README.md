@@ -712,7 +712,7 @@ FROM productlines as pl
 
 Equivalent xjoin query API:
 ```
-/api/xjoin?_join=pl.productlines,j,pr.products&_on1=(pl.productline,eq,pr.productline)
+/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)
 ```
 
 #### Multiple tables join
@@ -730,7 +730,7 @@ FROM productlines as pl
 Equivalent xjoin query API:
 
 ```
-/api/xjoin?_join=pl.productlines,j,pr.products,j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)
+/api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)
 
 ```
 

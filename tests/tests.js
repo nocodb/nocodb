@@ -1593,6 +1593,108 @@ describe('xmysql : tests', function () {
       });
   });
 
+  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        Object.keys(res.body[0]).length.should.be.equals(12)
+        return done();
+
+      });
+  });
+
+
+  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        Object.keys(res.body[0]).length.should.be.equals(2)
+        res.body.length.should.be.equals(20)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        Object.keys(res.body[0]).length.should.be.equals(2)
+        res.body.length.should.be.equals(2)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        Object.keys(res.body[0]).length.should.be.equals(16)
+        res.body.length.should.be.equals(20)
+
+        return done();
+
+      });
+  });
+
+  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2&_where=(productName,like,1972~) should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2&_where=(productName,like,1972~)')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equals(1)
+
+        return done();
+
+      });
+  });
 
   it('where clause unit ?_where=(abc,eq,1234) should PASS', function (done) {
 
@@ -1608,7 +1710,6 @@ describe('xmysql : tests', function () {
     //console.log(query,params,err);
 
   });
-
 
   it('where clause unit ?_where=(abc,ne,1234) should PASS', function (done) {
 

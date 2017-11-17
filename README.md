@@ -74,7 +74,8 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Group By, Having (as a separate API) :fire::fire:  
 * Multiple group by in one API :fire::fire::fire::fire:
 * Chart API for numeric column :fire::fire::fire::fire::fire::fire:
-* Auto Chart API - (Must see : a gift to lazy while prototyping) :fire::fire::fire::fire::fire::fire: 
+* Auto Chart API - (a gift for lazy while prototyping) :fire::fire::fire::fire::fire::fire:
+* #### [XJOIN - (Supports any number of JOINS)](#xjoin) :fire::fire::fire::fire::fire::fire::fire::fire::fire::fire::fire::fire:
 * Supports views  
 * Prototyping (features available when using local MySql server only)
     * Run dynamic queries :fire::fire::fire:
@@ -118,6 +119,7 @@ if you haven't on your system.
 | GET :fire:| [/api/tableName/ugroupby](#union-of-multiple-group-by-statements) | Multiple group by results using one call               |
 | GET :fire:| [/api/tableName/chart](#chart)                                    | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
 | GET :fire:| [/api/tableName/autochart](#autochart)                                | Same as Chart but identifies which are numeric column automatically - gift for lazy while prototyping|
+| GET :fire:| [/api/xjoin](#xjoin)                                       | handles join                                        |
 | GET :fire:| [/dynamic](#run-dynamic-queries)                                  | execute dynamic mysql statements with params           |
 | GET :fire:| [/upload](#upload-single-file)                                    | upload single file                                     |
 | GET :fire:| [/uploads](#upload-multiple-files)                                | upload multiple files                                  |
@@ -684,6 +686,71 @@ http://localhost:3000/api/payments/autochart
 ]
 ```
 
+## XJOIN
+
+### Xjoin Syntax:
+
+```
+_join           :   List of tableNames alternated by type of join to be made (_j, _ij,_ lj, _rj, _fj)
+alias.tableName :   TableName as alias
+_j              :   Join [ _j => join, _ij => ij, _lj => left join , _rj => right join , _fj => full join)
+_onNumber       :   Number 'n' indicates condition to be applied for 'n'th join between (n-1) and 'n'th table in list  
+``` 
+
+#### Simple example of two table join:
+
+Sql join query:
+
+```sql
+
+SELECT *
+FROM productlines as pl
+    JOIN products as pr
+        ON pl.productline = pr.productline
+
+```
+
+Equivalent xjoin query API:
+```
+/api/xjoin?_join=pl.productlines,j,pr.products&_on1=(pl.productline,eq,pr.productline)
+```
+
+#### Multiple tables join
+
+Sql join query:
+```sql
+SELECT *
+FROM productlines as pl
+    JOIN products as pr
+        ON pl.productline = pr.productline
+    JOIN orderdetails as ord
+        ON pr.productcode = ord.productcode
+```
+
+Equivalent xjoin query API:
+
+```
+/api/xjoin?_join=pl.productlines,j,pr.products,j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)
+
+```
+
+**Explanation:**
+> pl.productlines => productlines as pl
+
+> _j => join
+
+> pr.products => products as pl
+
+> _on1 => join condition between productlines and products => (pl.productline,eq,pr.productline)
+
+> _on2 => join condition between products and orderdetails => (pr.productcode,eq,ord.productcode)
+
+Example to use : _fields, _where, _p, _size in query params  
+
+```
+/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2&_where=(productName,like,1972~)
+```
+
 ## Run dynamic queries
 [:arrow_heading_up:](#api-overview)
 
@@ -758,7 +825,7 @@ http://localhost:3000/download?name=fileName
 ## When to use ?
 [:arrow_heading_up:](#api-overview)
 
-* You need just REST APIs without much hassle for (ANY) MySql database.
+* You need just REST APIs for (ANY) MySql database at blink of an eye (literally).
 * You are learning new frontend frameworks and need REST APIs for your MySql database.
 * You are working on a demo, hacks etc
 

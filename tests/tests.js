@@ -1674,6 +1674,31 @@ describe('xmysql : tests', function () {
 
       });
   });
+
+
+  it('GET /api/payments/chart?_fields=amount&steppair=0,50000,40000,100000 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/api/payments/chart?_fields=amount&steppair=0,50000,40000,100000')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equals(2)
+        res.body[0]['_count'].should.be.equals(231)
+        res.body[1]['_count'].should.be.equals(80)
+
+        return done();
+
+      });
+  });
+
+
   // it('GET /api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode) should PASS', function (done) {
   //
   //   //post to an url with data

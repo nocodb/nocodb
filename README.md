@@ -441,7 +441,7 @@ response body
 
 Chart API returns distribution of a numeric column in a table
 
-It comes in **SIX** powerful flavours
+It comes in **SEVEN** powerful flavours
 
 1. Chart : With min, max, step in query params :fire::fire:
 [:arrow_heading_up:](#api-overview)
@@ -514,7 +514,25 @@ Response
 
 ```
 
-3. Chart : with no params :fire::fire:
+3. Chart : With step paits in params :fire::fire:
+[:arrow_heading_up:](#api-overview)
+
+This API returns distribution between each step pair
+
+```
+/api/payments/chart?_fields=amount&steppair=0,50000,40000,100000
+
+Response
+
+[
+    {"amount":"0 to 50000","_count":231},
+    {"amount":"40000 to 100000","_count":80}
+]
+
+
+```
+
+4. Chart : with no params :fire::fire:
 [:arrow_heading_up:](#api-overview)
 
 This API figures out even distribution of a numeric column in table and returns the data
@@ -556,7 +574,7 @@ Response
 
 ```
 
-4. Chart : range, min, max, step in query params :fire::fire:
+5. Chart : range, min, max, step in query params :fire::fire:
  [:arrow_heading_up:](#api-overview)
  
  This API returns the number of rows where amount is between (0,25000), (0,50000) ... (0,maxValue)
@@ -593,7 +611,7 @@ Response
  
  ```
 
-5. Range can be specified with step array like below
+6. Range can be specified with step array like below
 
  ```
 /api/payments/chart?_fields=amount&steparray=0,10000,20000,70000,140000&range=1
@@ -618,7 +636,7 @@ Response
 ]
  ```
  
-6. Range can be specified without any step params like below
+7. Range can be specified without any step params like below
 
 ```
 /api/payments/chart?_fields=amount&range=1

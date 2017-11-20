@@ -28,7 +28,10 @@ http://localhost:3000
 ```
 <br>
 
-That is it! Happy hackery! 
+That is it! Simple and minimalistic. 
+
+Happy hackery!
+ 
 <!-- Place this tag where you want the button to render. -->
 
 
@@ -709,9 +712,9 @@ http://localhost:3000/api/payments/autochart
 ### Xjoin query params and values:
 
 ```
-_join           :   List of tableNames alternated by type of join to be made (_j, _ij,_ lj, _rj, _fj)
+_join           :   List of tableNames alternated by type of join to be made (_j, _ij,_ lj, _rj)
 alias.tableName :   TableName as alias
-_j              :   Join [ _j => join, _ij => ij, _lj => left join , _rj => right join , _fj => full join)
+_j              :   Join [ _j => join, _ij => ij, _lj => left join , _rj => right join)
 _onNumber       :   Number 'n' indicates condition to be applied for 'n'th join between (n-1) and 'n'th table in list  
 ``` 
 

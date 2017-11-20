@@ -517,7 +517,7 @@ Response
 
 ```
 
-3. Chart : With step paits in params :fire::fire:
+3. Chart : With step pairs in params :fire::fire:
 [:arrow_heading_up:](#api-overview)
 
 This API returns distribution between each step pair

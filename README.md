@@ -28,7 +28,7 @@ http://localhost:3000
 ```
 <br>
 
-That is it! Simple and minimalistic. 
+That is it! Simple and minimalistic! 
 
 Happy hackery!
  
@@ -79,6 +79,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
 * Chart API for numeric column :fire::fire::fire::fire::fire::fire:
 * Auto Chart API - (a gift for lazy while prototyping) :fire::fire::fire::fire::fire::fire:
 * [XJOIN - (Supports any number of JOINS)](#xjoin) :fire::fire::fire::fire::fire::fire::fire::fire::fire:
+* XQL (Work in Progress) :racehorse: :racehorse: 
 * Supports views  
 * Prototyping (features available when using local MySql server only)
     * Run dynamic queries :fire::fire::fire:

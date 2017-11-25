@@ -14,6 +14,7 @@ var args = {}
 var app = {}
 var agent = {}
 var api = {}
+var apiPrefix = '/apj/v1/'
 var mysqlPool = {}
 
 
@@ -26,6 +27,7 @@ describe('xmysql : tests', function () {
     args['user'] = 'root'
     args['password'] = ''
     args['database'] = 'classicmodels'
+    args['apiPrefix'] = apiPrefix
 
     cmdargs.handle(args)
 
@@ -68,10 +70,10 @@ describe('xmysql : tests', function () {
     done();
   });
 
-  it('GET /api/tables should PASS', function (done) {
+  it('GET ' + apiPrefix + 'tables should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/tables')      // api url
+    agent.get(apiPrefix + 'tables')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/tables error
@@ -89,10 +91,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/payments/count should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/count should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/payments/count')      // api url
+    agent.get(apiPrefix + 'payments/count')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/tables error
@@ -109,10 +111,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/offices/distinct?_fields=country should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/distinct?_fields=country should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices/distinct?_fields=country')      // api url
+    agent.get(apiPrefix + 'offices/distinct?_fields=country')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/tables error
@@ -129,10 +131,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/customers/describe should PASS', function (done) {
+  it('GET ' + apiPrefix + 'customers/describe should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/customers/describe')      // api url
+    agent.get(apiPrefix + 'customers/describe')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/tables error
@@ -150,10 +152,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/payments/103___JM555205 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/103___JM555205 should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/payments/103___JM555205')// api url
+    agent.get(apiPrefix + 'payments/103___JM555205')// api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
 
@@ -173,11 +175,11 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/customers should PASS', function (done) {
+  it('GET ' + apiPrefix + 'customers should PASS', function (done) {
     //testcase
 
     //http get an url
-    agent.get('/api/customers') // api url
+    agent.get(apiPrefix + 'customers') // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/customers error
@@ -195,10 +197,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/customers/103 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'customers/103 should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/customers/103')      // api url
+    agent.get(apiPrefix + 'customers/103')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/customers/103 error
@@ -216,10 +218,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/payments?_p=2 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments?_p=2 should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/payments?_p=2')      // api url
+    agent.get(apiPrefix + 'payments?_p=2')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -239,10 +241,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/payments?_p=2&_size=10 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments?_p=2&_size=10 should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/payments?_p=2&_size=10')      // api url
+    agent.get(apiPrefix + 'payments?_p=2&_size=10')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -261,10 +263,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/offices?_sort=city should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_sort=city should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices?_sort=city')      // api url
+    agent.get(apiPrefix + 'offices?_sort=city')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -284,10 +286,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices?_fields=officeCode,city should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_fields=officeCode,city should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices?_fields=officeCode,city')      // api url
+    agent.get(apiPrefix + 'offices?_fields=officeCode,city')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -306,10 +308,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/offices?_fields=officeCode,ity should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_fields=officeCode,ity should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices?_fields=officeCode,ity')      // api url
+    agent.get(apiPrefix + 'offices?_fields=officeCode,ity')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -330,10 +332,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/offices?_fields=-territory,-addressLine2,-state should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_fields=-territory,-addressLine2,-state should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices?_fields=-territory,-addressLine2,-state')      // api url
+    agent.get(apiPrefix + 'offices?_fields=-territory,-addressLine2,-state')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -353,10 +355,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices?_where=(((officeCode,in,1,2))~and(city,eq,boston)) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_where=(((officeCode,in,1,2))~and(city,eq,boston)) should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices?_where=(((officeCode,in,1,2))~and(city,eq,boston))')      // api url
+    agent.get(apiPrefix + 'offices?_where=(((officeCode,in,1,2))~and(city,eq,boston))')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -375,10 +377,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices?_fields=-territory,-addressLine2,-state,-tate should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_fields=-territory,-addressLine2,-state,-tate should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices?_fields=-territory,-addressLine2,-state')      // api url
+    agent.get(apiPrefix + 'offices?_fields=-territory,-addressLine2,-state')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -399,10 +401,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  it('GET /api/offices?_sort=-city should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_sort=-city should PASS', function (done) {
 
     //http get an url
-    agent.get('/api/offices?_sort=-city')      // api url
+    agent.get(apiPrefix + 'offices?_sort=-city')      // api url
       .expect(200) // 2xx for success and 4xx for failure
       .end(function (err, res) {
         // Handle /api/offices/1/employees error
@@ -419,10 +421,10 @@ describe('xmysql : tests', function () {
 
   });
 
-  // it('GET /api/offices?_sort=-city,ity,-ity should PASS', function (done) {
+  // it('GET ' + apiPrefix + 'offices?_sort=-city,ity,-ity should PASS', function (done) {
   //
   //   //http get an url
-  //   agent.get('/api/offices?_sort=-city,ity,-ity')      // api url
+  //   agent.get(apiPrefix + 'offices?_sort=-city,ity,-ity')      // api url
   //     .expect(200) // 2xx for success and 4xx for failure
   //     .end(function (err, res) {
   //       // Handle /api/offices/1/employees error
@@ -455,7 +457,7 @@ describe('xmysql : tests', function () {
       'and pods or capsules to move from place to place.'
 
     //post to an url with data
-    agent.post('/api/productlines')     //enter url
+    agent.post(apiPrefix + 'productlines')     //enter url
       .send(obj)         //postdata
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
@@ -489,7 +491,7 @@ describe('xmysql : tests', function () {
     objArray.push(obj1)
 
     //post to an url with data
-    agent.post('/api/productlines/bulk')     //enter url
+    agent.post(apiPrefix + 'productlines/bulk')     //enter url
       .send(objArray)         //postdata
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
@@ -522,7 +524,7 @@ describe('xmysql : tests', function () {
     objArray.push(obj1)
 
     //post to an url with data
-    agent.post('/api/productlines/bulk')     //enter url
+    agent.post(apiPrefix + 'productlines/bulk')     //enter url
       .send(objArray)         //postdata
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
@@ -540,10 +542,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/productlines/bulk should PASS', function (done) {
+  it('GET ' + apiPrefix + 'productlines/bulk should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/productlines/bulk?_ids=Bulletrain,Bulletrain_1,Bulletrain_2,Bulletrain_3')     //enter url
+    agent.get(apiPrefix + 'productlines/bulk?_ids=Bulletrain,Bulletrain_1,Bulletrain_2,Bulletrain_3')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -564,7 +566,7 @@ describe('xmysql : tests', function () {
   it('DELETE /api/productlines/bulk should PASS', function (done) {
 
     //post to an url with data
-    agent.del('/api/productlines/bulk?_ids=Bulletrain,Bulletrain_1,Bulletrain_2,Bulletrain_3')     //enter url
+    agent.del(apiPrefix + 'productlines/bulk?_ids=Bulletrain,Bulletrain_1,Bulletrain_2,Bulletrain_3')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -595,7 +597,7 @@ describe('xmysql : tests', function () {
       'and pods or capsules to move from place to place.'
 
     //post to an url with data
-    agent.put('/api/productlines')     //enter url
+    agent.put(apiPrefix + 'productlines')     //enter url
       .send(obj)         //postdata
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
@@ -702,7 +704,7 @@ describe('xmysql : tests', function () {
       'and pods or capsules to move from place to place.'
 
     //post to an url with data
-    agent.patch('/api/productlines/Hyperloop')     //enter url
+    agent.patch(apiPrefix + 'productlines/Hyperloop')     //enter url
       .send(obj)         //postdata
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
@@ -726,7 +728,7 @@ describe('xmysql : tests', function () {
     var obj = {};
 
     //post to an url with data
-    agent.del('/api/productlines/Hyperloop')     //enter url
+    agent.del(apiPrefix + 'productlines/Hyperloop')     //enter url
       .send(obj)         //postdata
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
@@ -743,10 +745,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices/1/employees should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/1/employees should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/1/employees')     //enter url
+    agent.get(apiPrefix + 'offices/1/employees')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -763,10 +765,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices/1/employees?_where=(jobTitle,eq,Sales%20Rep) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/1/employees?_where=(jobTitle,eq,Sales%20Rep) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/1/employees?_where=(jobTitle,eq,Sales%20Rep)')     //enter url
+    agent.get(apiPrefix + 'offices/1/employees?_where=(jobTitle,eq,Sales%20Rep)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -783,10 +785,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/payments?_where=(amount,gte,1000)~and(customerNumber,lte,120) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments?_where=(amount,gte,1000)~and(customerNumber,lte,120) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments?_where=(amount,gte,1000)~and(customerNumber,lte,120)')     //enter url
+    agent.get(apiPrefix + 'payments?_where=(amount,gte,1000)~and(customerNumber,lte,120)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -804,10 +806,10 @@ describe('xmysql : tests', function () {
 
   // SOMETHING WEIRD HERE
   //        test in travis show 7 but on local machine result has 6 elements
-  // it('GET /api/productlines?_where=(htmlDescription,is,null) should PASS', function (done) {
+  // it('GET ' + apiPrefix + 'productlines?_where=(htmlDescription,is,null) should PASS', function (done) {
   //
   //   //post to an url with data
-  //   agent.get('/api/productlines?_where=(htmlDescription,is,null)')     //enter url
+  //   agent.get(apiPrefix + 'productlines?_where=(htmlDescription,is,null)')     //enter url
   //     .expect(200)//200 for success 4xx for failure
   //     .end(function (err, res) {
   //       // Handle /api/v error
@@ -823,10 +825,10 @@ describe('xmysql : tests', function () {
   //     });
   // });
 
-  it('GET /api/offices?_where=(city,like,~on~) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_where=(city,like,~on~) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_where=(city,like,~on~)')     //enter url
+    agent.get(apiPrefix + 'offices?_where=(city,like,~on~)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -843,10 +845,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices?_where=(city,like,san~) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_where=(city,like,san~) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_where=(city,like,san~)')     //enter url
+    agent.get(apiPrefix + 'offices?_where=(city,like,san~)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -863,10 +865,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices?_where=(country,nlike,us~) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_where=(country,nlike,us~) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_where=(country,nlike,us~)')     //enter url
+    agent.get(apiPrefix + 'offices?_where=(country,nlike,us~)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -884,10 +886,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/payments?_where=(amount,gte,1000)&_sort=-amount should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments?_where=(amount,gte,1000)&_sort=-amount should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments?_where=(amount,gte,1000)&_sort=-amount')     //enter url
+    agent.get(apiPrefix + 'payments?_where=(amount,gte,1000)&_sort=-amount')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -903,10 +905,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)')     //enter url
+    agent.get(apiPrefix + 'payments?_where=(checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -922,10 +924,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933)) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933))')     //enter url
+    agent.get(apiPrefix + 'payments?_where=((checkNumber,eq,JM555205)~or(checkNumber,eq,OM314933))')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -941,10 +943,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/employees/1002/employees should PASS', function (done) {
+  it('GET ' + apiPrefix + 'employees/1002/employees should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/employees/1002/employees')     //enter url
+    agent.get(apiPrefix + 'employees/1002/employees')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -961,10 +963,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/productlines/trains/products should PASS', function (done) {
+  it('GET ' + apiPrefix + 'productlines/trains/products should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/productlines/trains/products')     //enter url
+    agent.get(apiPrefix + 'productlines/trains/products')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -981,10 +983,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/productlines/trains/products should PASS', function (done) {
+  it('GET ' + apiPrefix + 'productlines/trains/products should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/productlines/trains/products')     //enter url
+    agent.get(apiPrefix + 'productlines/trains/products')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1000,10 +1002,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/employees/1165/customers should PASS', function (done) {
+  it('GET ' + apiPrefix + 'employees/1165/customers should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/employees/1165/customers')     //enter url
+    agent.get(apiPrefix + 'employees/1165/customers')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1019,10 +1021,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/customers/103/orders should PASS', function (done) {
+  it('GET ' + apiPrefix + 'customers/103/orders should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/customers/103/orders')     //enter url
+    agent.get(apiPrefix + 'customers/103/orders')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1038,10 +1040,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/products/S10_1678/orderdetails should PASS', function (done) {
+  it('GET ' + apiPrefix + 'products/S10_1678/orderdetails should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/products/S10_1678/orderdetails')     //enter url
+    agent.get(apiPrefix + 'products/S10_1678/orderdetails')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1057,10 +1059,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/customers/103/payments should PASS', function (done) {
+  it('GET ' + apiPrefix + 'customers/103/payments should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/customers/103/payments')     //enter url
+    agent.get(apiPrefix + 'customers/103/payments')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1076,10 +1078,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/customers/groupby?_fields=city&_sort=city should PASS', function (done) {
+  it('GET ' + apiPrefix + 'customers/groupby?_fields=city&_sort=city should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/customers/groupby?_fields=city&_sort=city')     //enter url
+    agent.get(apiPrefix + 'customers/groupby?_fields=city&_sort=city')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1097,10 +1099,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices/ugroupby?_fields=country should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/ugroupby?_fields=country should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/ugroupby?_fields=country')     //enter url
+    agent.get(apiPrefix + 'offices/ugroupby?_fields=country')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1118,10 +1120,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices/ugroupby?_fields=country,city,state should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/ugroupby?_fields=country,city,state should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/ugroupby?_fields=country,city,state')     //enter url
+    agent.get(apiPrefix + 'offices/ugroupby?_fields=country,city,state')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1141,10 +1143,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices/ugroupby?_fields=country,city should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/ugroupby?_fields=country,city should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/ugroupby?_fields=country,city')     //enter url
+    agent.get(apiPrefix + 'offices/ugroupby?_fields=country,city')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1162,10 +1164,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices/ugroupby?_fields= should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/ugroupby?_fields= should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/ugroupby?_fields=')     //enter url
+    agent.get(apiPrefix + 'offices/ugroupby?_fields=')     //enter url
       .expect(400)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1180,10 +1182,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/payments/chart?_fields=amount should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/chart?_fields=amount should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/chart?_fields=amount')     //enter url
+    agent.get(apiPrefix + 'payments/chart?_fields=amount')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1201,10 +1203,10 @@ describe('xmysql : tests', function () {
       });
   })
 
-  it('GET /api/payments/chart?_fields=amount&min=0&max=131000&step=25000 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/chart?_fields=amount&min=0&max=131000&step=25000 should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/chart?_fields=amount&min=0&max=131000&step=25000')     //enter url
+    agent.get(apiPrefix + 'payments/chart?_fields=amount&min=0&max=131000&step=25000')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1221,10 +1223,10 @@ describe('xmysql : tests', function () {
       });
   })
 
-  it('GET /api/payments/autochart should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/autochart should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/autochart')     //enter url
+    agent.get(apiPrefix + 'payments/autochart')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1241,10 +1243,10 @@ describe('xmysql : tests', function () {
       });
   })
 
-  it('GET /api/payments?_where=(amount,bw,1000,5000) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments?_where=(amount,bw,1000,5000) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments?_where=(amount,bw,1000,5000)')     //enter url
+    agent.get(apiPrefix + 'payments?_where=(amount,bw,1000,5000)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1260,10 +1262,10 @@ describe('xmysql : tests', function () {
   })
 
 
-  it('GET /api/payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1 should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1')     //enter url
+    agent.get(apiPrefix + 'payments/chart?_fields=amount&min=0&max=131000&step=25000&range=1')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1282,10 +1284,10 @@ describe('xmysql : tests', function () {
       });
   })
 
-  it('GET /api/payments/chart?_fields=amount&steparray=0,50000,100000,140000 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/chart?_fields=amount&steparray=0,50000,100000,140000 should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/chart?_fields=amount&steparray=0,50000,100000,140000')     //enter url
+    agent.get(apiPrefix + 'payments/chart?_fields=amount&steparray=0,50000,100000,140000')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1303,10 +1305,10 @@ describe('xmysql : tests', function () {
       });
   })
 
-  it('GET /api/payments/chart?_fields=amount&steparray=0,50000,100000,140000&range=1 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/chart?_fields=amount&steparray=0,50000,100000,140000&range=1 should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/chart?_fields=amount&steparray=0,50000,100000,140000&range=1')     //enter url
+    agent.get(apiPrefix + 'payments/chart?_fields=amount&steparray=0,50000,100000,140000&range=1')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1324,10 +1326,10 @@ describe('xmysql : tests', function () {
       });
   })
 
-  it('GET /api/payments/chart?_fields=amount&range=1 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/chart?_fields=amount&range=1 should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/chart?_fields=amount&range=1')     //enter url
+    agent.get(apiPrefix + 'payments/chart?_fields=amount&range=1')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1344,10 +1346,10 @@ describe('xmysql : tests', function () {
       });
   })
 
-  it('GET /api/offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1)')     //enter url
+    agent.get(apiPrefix + 'offices/1/employees?_groupby=jobTitle&_having=(_count,gt,1)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1364,10 +1366,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices/1/employees?_groupby=jobTitle should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/1/employees?_groupby=jobTitle should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/1/employees?_groupby=jobTitle')     //enter url
+    agent.get(apiPrefix + 'offices/1/employees?_groupby=jobTitle')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1385,10 +1387,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices?_groupby=country should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_groupby=country should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_groupby=country')     //enter url
+    agent.get(apiPrefix + 'offices?_groupby=country')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1406,10 +1408,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices?_groupby=country&_sort=country should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_groupby=country&_sort=country should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_groupby=country&_sort=-country')     //enter url
+    agent.get(apiPrefix + 'offices?_groupby=country&_sort=-country')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1425,10 +1427,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices?_groupby=country&_sort=_count should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_groupby=country&_sort=_count should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_groupby=country&_sort=_count')     //enter url
+    agent.get(apiPrefix + 'offices?_groupby=country&_sort=_count')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1444,10 +1446,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/offices?_groupby=country&_sort=-_count should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_groupby=country&_sort=-_count should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_groupby=country&_sort=-_count')     //enter url
+    agent.get(apiPrefix + 'offices?_groupby=country&_sort=-_count')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1464,10 +1466,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices/groupby?_fields=country&_having=(_count,gt,1) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/groupby?_fields=country&_having=(_count,gt,1) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/groupby?_fields=country&_having=(_count,gt,1)')     //enter url
+    agent.get(apiPrefix + 'offices/groupby?_fields=country&_having=(_count,gt,1)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1484,10 +1486,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices?_groupby=country&_having=(_count,gt,1) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices?_groupby=country&_having=(_count,gt,1) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices?_groupby=country&_having=(_count,gt,1)')     //enter url
+    agent.get(apiPrefix + 'offices?_groupby=country&_having=(_count,gt,1)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1504,10 +1506,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices/groupby?_fields=country should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/groupby?_fields=country should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/groupby?_fields=country')     //enter url
+    agent.get(apiPrefix + 'offices/groupby?_fields=country')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1525,10 +1527,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/offices/groupby?_fields=country,city&_sort=city,country should PASS', function (done) {
+  it('GET ' + apiPrefix + 'offices/groupby?_fields=country,city&_sort=city,country should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/offices/groupby?_fields=country,city&_sort=city,country')     //enter url
+    agent.get(apiPrefix + 'offices/groupby?_fields=country,city&_sort=city,country')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1546,10 +1548,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/orders/aggregate?_fields=orderNumber,customerNumber should PASS', function (done) {
+  it('GET ' + apiPrefix + 'orders/aggregate?_fields=orderNumber,customerNumber should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/orders/aggregate?_fields=orderNumber,customerNumber')     //enter url
+    agent.get(apiPrefix + 'orders/aggregate?_fields=orderNumber,customerNumber')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1569,10 +1571,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/orders/aggregate should FAIL', function (done) {
+  it('GET ' + apiPrefix + 'orders/aggregate should FAIL', function (done) {
 
     //post to an url with data
-    agent.get('/api/orders/aggregate')     //enter url
+    agent.get(apiPrefix + 'orders/aggregate')     //enter url
       .expect(400)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1582,10 +1584,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/orders/groupby should FAIL', function (done) {
+  it('GET ' + apiPrefix + 'orders/groupby should FAIL', function (done) {
 
     //post to an url with data
-    agent.get('/api/orders/groupby')     //enter url
+    agent.get(apiPrefix + 'orders/groupby')     //enter url
       .expect(400)//200 for success 4xx for failure
       .end(function (err, res) {
         // Handle /api/v error
@@ -1593,10 +1595,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)')     //enter url
+    agent.get(apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
 
@@ -1613,10 +1615,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName should PASS', function (done) {
+  it('GET ' + apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName')     //enter url
+    agent.get(apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
 
@@ -1634,10 +1636,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2 should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2')     //enter url
+    agent.get(apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
 
@@ -1655,10 +1657,10 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('GET /api/payments/count?_where=(amount,gt,19000) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/count?_where=(amount,gt,19000) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/count?_where=(amount,gt,19000)')     //enter url
+    agent.get(apiPrefix + 'payments/count?_where=(amount,gt,19000)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
 
@@ -1676,10 +1678,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  it('GET /api/payments/chart?_fields=amount&steppair=0,50000,40000,100000 should PASS', function (done) {
+  it('GET ' + apiPrefix + 'payments/chart?_fields=amount&steppair=0,50000,40000,100000 should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/payments/chart?_fields=amount&steppair=0,50000,40000,100000')     //enter url
+    agent.get(apiPrefix + 'payments/chart?_fields=amount&steppair=0,50000,40000,100000')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
 
@@ -1699,10 +1701,10 @@ describe('xmysql : tests', function () {
   });
 
 
-  // it('GET /api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode) should PASS', function (done) {
+  // it('GET ' + apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode) should PASS', function (done) {
   //
   //   //post to an url with data
-  //   agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)')     //enter url
+  //   agent.get(apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)')     //enter url
   //     .expect(200)//200 for success 4xx for failure
   //     .end(function (err, res) {
   //
@@ -1720,10 +1722,10 @@ describe('xmysql : tests', function () {
   //     });
   // });
 
-  it('GET /api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2&_where=(productName,like,1972~) should PASS', function (done) {
+  it('GET ' + apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2&_where=(productName,like,1972~) should PASS', function (done) {
 
     //post to an url with data
-    agent.get('/api/xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2&_where=(productName,like,1972~)')     //enter url
+    agent.get(apiPrefix + 'xjoin?_join=pl.productlines,_j,pr.products&_on1=(pl.productline,eq,pr.productline)&_fields=pl.productline,pr.productName&_size=2&_where=(productName,like,1972~)')     //enter url
       .expect(200)//200 for success 4xx for failure
       .end(function (err, res) {
 

@@ -864,12 +864,13 @@ http://localhost:3000/download?name=fileName
   Options:
 
     -V, --version            output the version number
-    -h, --host <n>           hostname / localhost by default
-    -u, --user <n>           username of database / root by default
-    -p, --password <n>       password of database / empty by default
+    -h, --host <n>           hostname -> localhost by default
+    -u, --user <n>           username of database -> root by default
+    -p, --password <n>       password of database -> empty by default
     -d, --database <n>       database schema name
-    -n, --portNumber <n>     port number for app / 3000 by default
-    -s, --storageFolder <n>  storage folder / current working dir by default / available only with local
+    -n, --portNumber <n>     port number for app -> 3000 by default
+    -a, --apiPrefix <n>,     api url prefix -> /api/ by default
+    -s, --storageFolder <n>  storage folder -> current working dir by default (available only with local)
     -i, --ignoreTables <n>   comma separated table names to ignore
     -h, --help               output usage information
 

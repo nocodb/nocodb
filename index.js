@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const sqlConfig = require('commander');
 const mysql = require('mysql');
+const cors = require('cors');
 const dataHelp = require('./lib/util/data.helper.js');
 
 const Xapi = require('./lib/xapi.js');
@@ -17,6 +18,7 @@ cmdargs.handle(sqlConfig)
 /**************** START : setup express ****************/
 let app = express();
 app.use(morgan('tiny'))
+app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
   extended: true

@@ -28,6 +28,7 @@
     "body-parser": "^1.18.2",
     "colors": "^1.1.2",
     "commander": "^2.11.0",
+    "cors": "^2.8.4",
     "express": "^4.16.1",
     "mocha": "^4.0.1",
     "morgan": "^1.9.0",

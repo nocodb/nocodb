@@ -42,9 +42,9 @@ let moreApis = new Xapi(sqlConfig,mysqlPool,app);
 
 moreApis.init((err, results) => {
 
-  app.listen(sqlConfig.portNumber)
+  app.listen(sqlConfig.portNumber,sqlConfig.ipAddress)
   var t1 = process.hrtime(t);
-  var t2 = t1[0]+t1[1]/1000000000
+  var t2 = t1[0]+t1[1]/1000000000;
 
   console.log('                                                            ');
   console.log("          Xmysql took           :    %d seconds",dataHelp.round(t2,1));

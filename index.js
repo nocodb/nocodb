@@ -43,8 +43,8 @@ let moreApis = new Xapi(sqlConfig,mysqlPool,app);
 
 moreApis.init((err, results) => {
 
-  app.listen(sqlConfig.portNumber)
-  var t1 = process.hrtime(t);
+  app.listen(sqlConfig.portNumber,sqlConfig.ipAddress)
+  var t1 = process.hrtime(t)
   var t2 = t1[0]+t1[1]/1000000000
 
 

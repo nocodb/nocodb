@@ -85,7 +85,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
     * Upload single file
     * Upload multiple files
     * Download file
-
+* Health and version apis
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
 
@@ -121,15 +121,16 @@ if you haven't on your system.
 | GET :fire:| [/api/tableName/groupby](#group-by-having-as-api)                 | Group by results of column(s)                          |
 | GET :fire:| [/api/tableName/ugroupby](#union-of-multiple-group-by-statements) | Multiple group by results using one call               |
 | GET :fire:| [/api/tableName/chart](#chart)                                    | Numeric column distribution based on (min,max,step) or(step array) or (automagic)|
-| GET :fire:| [/api/tableName/autochart](#autochart)                                | Same as Chart but identifies which are numeric column automatically - gift for lazy while prototyping|
-| GET :fire:| [/api/xjoin](#xjoin)                                       | handles join                                        |
+| GET :fire:| [/api/tableName/autochart](#autochart)                            | Same as Chart but identifies which are numeric column automatically - gift for lazy while prototyping|
+| GET :fire:| [/api/xjoin](#xjoin)                                              | handles join                                        |
 | GET :fire:| [/dynamic](#run-dynamic-queries)                                  | execute dynamic mysql statements with params           |
 | GET :fire:| [/upload](#upload-single-file)                                    | upload single file                                     |
 | GET :fire:| [/uploads](#upload-multiple-files)                                | upload multiple files                                  |
 | GET :fire:| [/download](#download-file)                                       | download a file                                        |
-| GET       | /api/tableName/describe| describe each table for its columns      |
-| GET       | /api/tables| get all tables in database                           |
-
+| GET       | /api/tableName/describe                                           | describe each table for its columns      |
+| GET       | /api/tables                                                       | get all tables in database                           |
+| GET       | [/_health](#health)                                               | gets health of process and mysql -- details query params for more details |
+| GET       | [/_version](#version)                                             | gets version of Xmysql, mysql, node|
 
 
 ## Relational Tables 
@@ -841,7 +842,55 @@ returns uploaded file names as string
 http://localhost:3000/download?name=fileName
 
 > For upload and download of files -> you can specify storage folder using -s option
-> Upload and download apis are available only with local mysql server 
+> Upload and download apis are available only with local mysql server
+
+## Health 
+[:arrow_heading_up:](#api-overview)
+
+http://localhost:3000/_health
+
+```
+{"process_uptime":3.858,"mysql_uptime":"2595"}
+```
+
+Shows up time of Xmysql process and mysql server
+
+
+http://localhost:3000/_health?details=1
+
+```
+{"process_uptime":1.151,"mysql_uptime":"2798",
+"os_total_memory":17179869184,
+"os_free_memory":2516357120,
+"os_load_average":[2.29931640625,2.1845703125,2.13818359375],
+"v8_heap_statistics":{"total_heap_size":24735744,
+"total_heap_size_executable":5242880,
+"total_physical_size":23521048,
+"total_available_size":1475503064,
+"used_heap_size":18149064,
+"heap_size_limit":1501560832,
+"malloced_memory":8192,
+"peak_malloced_memory":11065664,
+"does_zap_garbage":0}}
+```
+
+Provides more details on process.
+
+Infact passing any query param gives detailed health output: example below  
+
+http://localhost:3000/_health?voila
+```
+{"process_uptime":107.793,"mysql_uptime":"2905","os_total_memory":17179869184,"os_free_memory":2573848576,"os_load_average":[2.052734375,2.12890625,2.11767578125],"v8_heap_statistics":{"total_heap_size":24735744,"total_heap_size_executable":5242880,"total_physical_size":23735016,"total_available_size":1475411128,"used_heap_size":18454968,"heap_size_limit":1501560832,"malloced_memory":8192,"peak_malloced_memory":11065664,"does_zap_garbage":0}}
+```
+
+## Version
+[:arrow_heading_up:](#api-overview)
+
+http://localhost:3000/_version
+
+```
+{"Xmysql":"0.4.1","mysql":"5.7.15","node":"8.2.1"}
+```
 
 ## When to use ?
 [:arrow_heading_up:](#api-overview)

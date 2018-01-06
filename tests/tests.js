@@ -8,7 +8,7 @@ var whereClause = require('../lib/util/whereClause.helper.js')
 var should = require('should');
 var request = require('supertest')
 const cmdargs = require('../lib/util/cmd.helper.js');
-
+const pkginfo = require('pkginfo')(module);
 
 var args = {}
 var app = {}
@@ -1741,6 +1741,70 @@ describe('xmysql : tests', function () {
 
       });
   });
+
+  it('/_health should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/_health')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body['process_uptime'].should.be.greaterThanOrEqual(0);
+        res.body['mysql_uptime'].should.be.greaterThanOrEqual(0);
+
+        return done();
+
+      });
+  });
+
+  it('/_health?details=1 should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/_health?details=1')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body['process_uptime'].should.be.greaterThanOrEqual(0);
+        res.body['mysql_uptime'].should.be.greaterThanOrEqual(0);
+        res.body['os_total_memory'].should.be.greaterThanOrEqual(0);
+
+
+        return done();
+
+      });
+  });
+
+  it('/_version should PASS', function (done) {
+
+    //post to an url with data
+    agent.get('/_version')     //enter url
+      .expect(200)//200 for success 4xx for failure
+      .end(function (err, res) {
+
+        // Handle /api/v error
+        if (err) {
+          return done(err);
+        }
+
+        res.body['Xmysql'].should.equals(pkginfo.version);
+        res.body['mysql'].should.not.equals("");
+        res.body['node'].should.not.equals("");
+
+        return done();
+
+      });
+  });
+
 
   it('where clause unit ?_where=(abc,eq,1234) should PASS', function (done) {
 

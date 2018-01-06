@@ -1,6 +1,6 @@
 {
   "name": "xmysql",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "One command to generate REST APIs for any MySql database",
   "main": "index.js",
   "scripts": {
@@ -34,6 +34,7 @@
     "morgan": "^1.9.0",
     "multer": "^1.3.0",
     "mysql": "^2.15.0",
+    "pkginfo": "^0.4.1",
     "serve-favicon": "^2.4.5"
   },
   "devDependencies": {

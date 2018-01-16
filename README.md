@@ -948,7 +948,7 @@ http://localhost:3000/_version
 # Docker
 [:arrow_heading_up:](#api-overview)
 
-Simply run with `docker run -p 3000:3000 -d markuman/xmysql`
+Simply run with `docker run -p 3000:80 -d markuman/xmysql:0.4.2`
 
 The best way for testing is to run mysql in a docker container too and create a docker network, so that `xmysql` can access the `mysql` container with a name from docker network.
 
@@ -957,9 +957,9 @@ The best way for testing is to run mysql in a docker container too and create a 
 2. Start mysql with docker name `some-mysql` and bind to docker network `mynet`
     * `docker run --name some-mysql -p 3306:3306 --net mynet -e MYSQL_ROOT_PASSWORD=password -d markuman/mysql`
 3. run xmysql and set env variable for `some-mysql` from step 2
-    * `docker run -p 3000:3000 -d -e DATABASE_HOST=some-mysql --net mynet markuman/xmysql`
+    * `docker run -p 3000:80 -d -e DATABASE_HOST=some-mysql --net mynet markuman/xmysql`
 
-You can also pass the environment variables to a file and use them as an option with docker like `docker run --env-file ./env.list -p 3000:3000 --net mynet -d markuman/xmysql`
+You can also pass the environment variables to a file and use them as an option with docker like `docker run --env-file ./env.list -p 3000:80 --net mynet -d markuman/xmysql`
 
 environment variables which can be used:
 
@@ -969,6 +969,40 @@ ENV DATABASE_USER root
 ENV DATABASE_PASSWORD password
 ENV DATABASE_NAME sakila
 ```
+
+Furthermore, the docker container of xmysql is listen on port 80. You can than request it just with `http://xmysql/api/` in other services running in the same docker network.
+
+## Debugging xmysql in docker.
+
+Given you've deployed your xmysql docker container like 
+
+```shell
+docker run -d \
+--network local_dev \
+--name xmysql \
+-p 3000:80 \
+-e DATABASE_HOST=mysql_host \
+-e DATABASE_USER=root \
+-e DATABASE_PASSWORD=password \
+-e DATABASE_NAME=sys \
+markuman/xmysql:0.4.2
+```
+
+but the response is just
+
+```json
+["http://127.0.0.1:3000/api/tables","http://127.0.0.1:3000/api/xjoin"]
+```
+
+then obviously the connection to your mysql database failed.  
+
+1. attache to the xmysql image
+    * `docker exec -ti xmysql`
+2. install mysql cli client
+    * `apk --update --no-cache add mysql-client`
+3. try to access your mysql database
+   * `mysql-client -h mysql_host`
+4. profit from the `mysql-client` error output and improve the environment variables for mysql
 
 
 # Tests : setup on local machine

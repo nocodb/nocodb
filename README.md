@@ -86,6 +86,7 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
     * Upload multiple files
     * Download file
 * Health and version apis
+* [Docker support](#docker) and [Nginx reverse proxy config](#nginx-reverse-proxy-config-with-docker) :fire::fire::fire: - Thanks to [@markuman](https://github.com/markuman)  
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
 
@@ -946,7 +947,7 @@ http://localhost:3000/_version
 
 
 # Docker
-[:arrow_heading_up:](#api-overview)
+[:arrow_heading_up:](#features)
 
 Simply run with `docker run -p 3000:80 -d markuman/xmysql:0.4.2`
 
@@ -1004,23 +1005,8 @@ then obviously the connection to your mysql database failed.
    * `mysql-client -h mysql_host`
 4. profit from the `mysql-client` error output and improve the environment variables for mysql
 
-
-# Tests : setup on local machine
-[:arrow_heading_up:](#api-overview)
-
-Login to mysql shell
-
-```
-mysql> create database classicmodels
-mysql> use classicmodels
-mysql> source path_to/xmysql/tests/sample.sql
-```
-
-```
-$ mocha tests/*.js --exit
-```
-
-# Reverse Proxy
+# Nginx Reverse Proxy Config with Docker
+[:arrow_heading_up:](#features)
 
 This is a config example when you use nginx as reverse proxy
 
@@ -1053,3 +1039,20 @@ e.g.
 4. profit `curl http://127.0.0.1/api/host_summary_by_file_io_type/describe`
 
 When you start your nginx proxy in a docker container too, use as `proxy_pass` the `--name` value of xmysql. E.g. `proxy_pass http://xmysql` (remember, xmysql runs in it's docker container already on port 80).
+
+
+# Tests : setup on local machine
+[:arrow_heading_up:](#api-overview)
+
+Login to mysql shell
+
+```
+mysql> create database classicmodels
+mysql> use classicmodels
+mysql> source path_to/xmysql/tests/sample.sql
+```
+
+```
+$ mocha tests/*.js --exit
+```
+

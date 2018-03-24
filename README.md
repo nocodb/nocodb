@@ -17,6 +17,8 @@ Hence this.
 
 # Setup and Usage
 
+xmysql requires node >= 7.6.0
+
 ```
 npm install -g xmysql
 ```

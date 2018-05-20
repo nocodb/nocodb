@@ -241,6 +241,89 @@ describe('xmysql : tests', function () {
   });
 
 
+
+  it('GET ' + apiPrefix + 'customers should PASS', function (done) {
+
+    //http get an url
+    agent.get(apiPrefix + 'customers')      // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/tables error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equal(20);
+
+        return done();
+
+      });
+
+  });
+
+  it('GET ' + apiPrefix + 'customers?_size=100 should PASS', function (done) {
+
+    //http get an url
+    agent.get(apiPrefix + 'customers?_size=100')      // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/tables error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equal(100);
+
+        return done();
+
+      });
+
+  });
+
+  it('GET ' + apiPrefix + 'customers?_size=1000 should PASS', function (done) {
+
+    //http get an url
+    agent.get(apiPrefix + 'customers?_size=1000')      // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/tables error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equal(100);
+
+        return done();
+
+      });
+
+  });
+
+  it('GET ' + apiPrefix + 'customers?_size=-1 should PASS', function (done) {
+
+    //http get an url
+    agent.get(apiPrefix + 'customers?_size=-1')      // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function (err, res) {
+        // Handle /api/tables error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equal(20);
+
+        return done();
+
+      });
+
+  });
+
+
+
   it('GET ' + apiPrefix + 'payments?_p=2&_size=10 should PASS', function (done) {
 
     //http get an url

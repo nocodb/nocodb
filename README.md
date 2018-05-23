@@ -17,6 +17,8 @@ Hence this.
 
 # Setup and Usage
 
+xmysql requires node >= 7.6.0
+
 ```
 npm install -g xmysql
 ```
@@ -170,6 +172,9 @@ By default 20 records and max of 100 are returned per GET request on a table.
 /api/payments?_p=2&_size=50
 ```
 
+When _size is greater than 100 - number of records defaults to 100 (i.e maximum)
+
+When _size is less than or equal to 0 - number of records defaults to 20 (i.e minimum)
 
 ## Order by / Sorting 
 

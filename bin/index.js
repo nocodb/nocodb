@@ -48,6 +48,7 @@ moreApis.init((err, results) => {
 
   console.log('                                                            ');
   console.log("          Xmysql took           :    %d seconds",dataHelp.round(t2,1));
+  console.log("          API's base URL        :    " + "localhost:"+sqlConfig.portNumber);
   console.log('                                                            ');
   console.log(' - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ');
 

@@ -935,11 +935,14 @@ http://localhost:3000/_version
     -d, --database <n>       database schema name
     -r, --ipAddress <n>      IP interface of your server / locahost by default    
     -n, --portNumber <n>     Port number for app -> 3000 by default
+    -o, --port <n>           Port number of mysql -> 3306 by default
     -a, --apiPrefix <n>      Api url prefix -> /api/ by default
     -s, --storageFolder <n>  Storage folder -> current working dir by default (available only with local)
     -i, --ignoreTables <n>   Comma separated table names to ignore
+    -y, --readOnly           readonly apis -> false by default    
     -h, --help               Output usage information
 
+    
   Examples:
 
     $ xmysql -u username -p password -d databaseSchema

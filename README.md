@@ -88,8 +88,10 @@ Powered by popular node packages : ([express](https://github.com/expressjs/expre
     * Upload multiple files
     * Download file
 * Health and version apis
+* Use more than one CPU Cores
 * [Docker support](#docker) and [Nginx reverse proxy config](#nginx-reverse-proxy-config-with-docker) :fire::fire::fire: - Thanks to [@markuman](https://github.com/markuman)  
 * AWS Lambda Example - Thanks to [@bertyhell](https://github.com/bertyhell) :fire::fire::fire:
+
 
 Use HTTP clients like [Postman](https://www.getpostman.com/) or [similar tools](https://chrome.google.com/webstore/search/http%20client?_category=apps) to invoke REST API calls
 
@@ -939,6 +941,7 @@ http://localhost:3000/_version
     -a, --apiPrefix <n>      Api url prefix -> /api/ by default
     -s, --storageFolder <n>  Storage folder -> current working dir by default (available only with local)
     -i, --ignoreTables <n>   Comma separated table names to ignore
+    -c, --useCpuCores <n>    Specify number of cpu cores to use / 1 by default / 0 to use max
     -y, --readOnly           readonly apis -> false by default    
     -h, --help               Output usage information
 

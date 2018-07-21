@@ -3,6 +3,10 @@ FROM alpine:3.7
 RUN apk --update --no-cache add \
 	nodejs \
 	nodejs-npm
+	
+# Bug fix for segfault ( Convert PT_GNU_STACK program header into PT_PAX_FLAGS )
+RUN apk --update --no-cache add paxctl \
+	&& paxctl -cm $(which node)
 
 RUN mkdir -p /usr/src/{app,bin,lib}
 WORKDIR /usr/src/app

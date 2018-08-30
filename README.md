@@ -761,7 +761,7 @@ FROM productlines as pl
 Equivalent xjoin query API:
 
 ```
-/api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)&_fields=&_fields=pl.field1,pr.field2,ord.field3
+/api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)&_fields=pl.field1,pr.field2,ord.field3
 
 ```
 

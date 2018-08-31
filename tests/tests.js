@@ -8,7 +8,6 @@ var whereClause = require('../lib/util/whereClause.helper.js')
 var should = require('should');
 var request = require('supertest')
 const cmdargs = require('../lib/util/cmd.helper.js');
-const pkginfo = require('pkginfo')(module);
 
 var args = {}
 var app = {}
@@ -1895,7 +1894,7 @@ describe('xmysql : tests', function () {
           return done(err);
         }
 
-        res.body['Xmysql'].should.equals(pkginfo.version);
+        res.body['Xmysql'].should.not.equals("");
         res.body['mysql'].should.not.equals("");
         res.body['node'].should.not.equals("");
 

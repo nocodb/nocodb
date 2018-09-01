@@ -8,6 +8,7 @@ var whereClause = require('../lib/util/whereClause.helper.js')
 var should = require('should');
 var request = require('supertest')
 const cmdargs = require('../lib/util/cmd.helper.js');
+const { version } = require('../package.json');
 
 var args = {}
 var app = {}
@@ -33,7 +34,7 @@ describe('xmysql : tests', function () {
     mysqlPool = mysql.createPool(args)
 
     app = express()
-    //app.use(morgan('tiny'))
+    app.set('version', version)
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({
       extended: true
@@ -1894,7 +1895,7 @@ describe('xmysql : tests', function () {
           return done(err);
         }
 
-        res.body['Xmysql'].should.not.equals("");
+        res.body['Xmysql'].should.equals(version);
         res.body['mysql'].should.not.equals("");
         res.body['node'].should.not.equals("");
 

@@ -1,4 +1,5 @@
 #!/bin/sh
+# https://stackoverflow.com/questions/25503412/how-do-i-know-when-my-docker-mysql-container-is-up-and-mysql-is-ready-for-taking
 
 set -e
 

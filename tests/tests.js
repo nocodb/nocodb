@@ -2303,4 +2303,24 @@ describe("xmysql : tests", function() {
 
     done();
   });
+
+  it('calls procedure set_credit_limit', function (done) {
+      const obj = {
+          customeNumber: 103,
+          creditLimit: 1e6
+      }
+      agent.post(apiPrefix + '/_proc/set_credit_limit')     //enter url
+          .send(obj)         //postdata
+          .expect(200)//200 for success 4xx for failure
+          .end(function (err, res) {
+              // Handle /api/v error
+              if (err) {
+                  return done(err);
+              }
+
+              //validate response
+
+              return done();
+          })
+  })
 });

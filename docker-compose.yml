@@ -30,14 +30,29 @@ services:
     depends_on:
       - db
 
+  db-api-dev:
+    build:
+      context: ./
+      dockerfile: ./dev.Dockerfile
+    environment:
+      DATABASE_HOST: 'db'
+      DATABASE_USER: 'root'
+      DATABASE_PASSWORD: 'pass'
+      DATABASE_NAME: 'classicmodels'
+    command: sh -c "npm run watch"
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "3000:80"
+    depends_on:
+      - db
+
   swagger-ui:
     image: swaggerapi/swagger-ui
     environment:
       API_URL: http://localhost:3000/swagger.json
     ports:
       - "3001:8080"
-    depends_on:
-      - db-api
 
   test:
     <<: *db-api

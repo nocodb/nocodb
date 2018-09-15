@@ -26,9 +26,18 @@ services:
       DATABASE_PASSWORD: 'pass'
       DATABASE_NAME: 'classicmodels'
     ports:
-      - "3002:80"
+      - "3000:80"
     depends_on:
       - db
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    environment:
+      API_URL: http://localhost:3000/swagger.json
+    ports:
+      - "3001:8080"
+    depends_on:
+      - db-api
 
   test:
     <<: *db-api

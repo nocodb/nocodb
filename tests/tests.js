@@ -23,10 +23,10 @@ describe('xmysql : tests', function () {
 
   before(function (done) {
 
-    args['host'] = 'localhost'
-    args['user'] = 'root'
-    args['password'] = ''
-    args['database'] = 'classicmodels'
+    args['host'] = process.env.DATABASE_HOST || 'localhost'
+    args['user'] = process.env.DATABASE_USER || 'root'
+    args['password'] = process.env.DATABASE_PASSWORD || ''
+    args['database'] = process.env.DATABASE_NAME || 'classicmodels'
     args['apiPrefix'] = apiPrefix
 
     cmdargs.handle(args)
@@ -697,82 +697,84 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('POST /dynamic should PASS', function (done) {
+  if(args['host'] === 'localhost') {
+    it('POST /dynamic should PASS', function (done) {
 
-    var obj = {};
+      var obj = {};
 
-    obj['query'] = 'select * from ?? limit 0,5'
-    obj['params'] = ['customers']
+      obj['query'] = 'select * from ?? limit 0,5'
+      obj['params'] = ['customers']
 
-    //post to an url with data
-    agent.post('/dynamic')     //enter url
-      .send(obj)         //postdata
-      .expect(200)//200 for success 4xx for failure
-      .end(function (err, res) {
-        // Handle /api/v error
-        if (err) {
-          return done(err);
-        }
+      //post to an url with data
+      agent.post('/dynamic')     //enter url
+        .send(obj)         //postdata
+        .expect(200)//200 for success 4xx for failure
+        .end(function (err, res) {
+          // Handle /api/v error
+          if (err) {
+            return done(err);
+          }
 
-        //validate response
-        res.body.length.should.be.equals(5)
+          //validate response
+          res.body.length.should.be.equals(5)
 
-        return done();
+          return done();
 
-      });
-  });
+        });
+    });
 
-  it('POST /dynamic/abc should PASS', function (done) {
+    it('POST /dynamic/abc should PASS', function (done) {
 
-    var obj = {};
+      var obj = {};
 
-    obj['query'] = 'select * from ?? limit 0,5'
-    obj['params'] = ['customers']
+      obj['query'] = 'select * from ?? limit 0,5'
+      obj['params'] = ['customers']
 
-    //post to an url with data
-    agent.post('/dynamic')     //enter url
-      .send(obj)         //postdata
-      .expect(200)//200 for success 4xx for failure
-      .end(function (err, res) {
-        // Handle /api/v error
-        if (err) {
-          return done(err);
-        }
+      //post to an url with data
+      agent.post('/dynamic')     //enter url
+        .send(obj)         //postdata
+        .expect(200)//200 for success 4xx for failure
+        .end(function (err, res) {
+          // Handle /api/v error
+          if (err) {
+            return done(err);
+          }
 
-        //validate response
+          //validate response
 
-        res.body.length.should.be.equals(5)
+          res.body.length.should.be.equals(5)
 
-        return done();
+          return done();
 
-      });
-  });
+        });
+    });
 
-  it('POST /dynamic should PASS', function (done) {
+    it('POST /dynamic should PASS', function (done) {
 
-    var obj = {};
+      var obj = {};
 
-    obj['query'] = 'select * from customers limit 0,5'
-    obj['params'] = []
+      obj['query'] = 'select * from customers limit 0,5'
+      obj['params'] = []
 
-    //post to an url with data
-    agent.post('/dynamic')     //enter url
-      .send(obj)         //postdata
-      .expect(200)//200 for success 4xx for failure
-      .end(function (err, res) {
-        // Handle /api/v error
-        if (err) {
-          return done(err);
-        }
+      //post to an url with data
+      agent.post('/dynamic')     //enter url
+        .send(obj)         //postdata
+        .expect(200)//200 for success 4xx for failure
+        .end(function (err, res) {
+          // Handle /api/v error
+          if (err) {
+            return done(err);
+          }
 
-        //validate response
+          //validate response
 
-        res.body.length.should.be.equals(5)
+          res.body.length.should.be.equals(5)
 
-        return done();
+          return done();
 
-      });
-  });
+        });
+    });
+  }
 
 
   it('PATCH /api/productlines/Hyperloop should PASS', function (done) {

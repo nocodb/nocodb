@@ -1065,16 +1065,7 @@ When you start your nginx proxy in a docker container too, use as `proxy_pass` t
 
 # Tests : setup on local machine
 [:arrow_heading_up:](#api-overview)
-
-Login to mysql shell
-
 ```
-mysql> create database classicmodels
-mysql> use classicmodels
-mysql> source path_to/xmysql/tests/sample.sql
+docker-compose run test
 ```
-
-```
-$ mocha tests/*.js --exit
-```
-
+* Requires `docker-compose` to be installed on your machine.

@@ -155,7 +155,7 @@ eg: blogs is parent table and comments is child table. API invocation will resul
 ```
 /api/payments/103___JM555205
 ```
-*___* : If there are multiple primary keys - seperate them by three underscores as shown
+*___* : If there are multiple primary keys - separate them by three underscores as shown
 
 ## Pagination
 
@@ -761,7 +761,7 @@ FROM productlines as pl
 Equivalent xjoin query API:
 
 ```
-/api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)&_fields=&_fields=pl.field1,pr.field2,ord.field3
+/api/xjoin?_join=pl.productlines,_j,pr.products,_j,ord.orderDetails&_on1=(pl.productline,eq,pr.productline)&_on2=(pr.productcode,eq,ord.productcode)&_fields=pl.field1,pr.field2,ord.field3
 
 ```
 
@@ -935,7 +935,7 @@ http://localhost:3000/_version
     -u, --user <n>           Username of database -> root by default
     -p, --password <n>       Password of database -> empty by default
     -d, --database <n>       database schema name
-    -r, --ipAddress <n>      IP interface of your server / locahost by default    
+    -r, --ipAddress <n>      IP interface of your server / localhost by default    
     -n, --portNumber <n>     Port number for app -> 3000 by default
     -o, --port <n>           Port number of mysql -> 3306 by default
     -a, --apiPrefix <n>      Api url prefix -> /api/ by default
@@ -1065,16 +1065,7 @@ When you start your nginx proxy in a docker container too, use as `proxy_pass` t
 
 # Tests : setup on local machine
 [:arrow_heading_up:](#api-overview)
-
-Login to mysql shell
-
 ```
-mysql> create database classicmodels
-mysql> use classicmodels
-mysql> source path_to/xmysql/tests/sample.sql
+docker-compose run test
 ```
-
-```
-$ mocha tests/*.js --exit
-```
-
+* Requires `docker-compose` to be installed on your machine.

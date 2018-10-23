@@ -7924,11 +7924,12 @@ insert  into `products`(`productCode`,`productName`,`productLine`,`productScale`
 
 ('S72_3212','Pont Yacht','Ships','1:72','Unimax Art Galleries','Measures 38 inches Long x 33 3/4 inches High. Includes a stand.\r\nMany extras including rigging, long boats, pilot house, anchors, etc. Comes with 2 masts, all square-rigged',414,'33.30','54.60');
 
-CREATE PROCEDURE set_credit_limit(customerNumber INT(11), creditLimit DECIMAL(10,2))
+DELIMITER //
+CREATE PROCEDURE Set_credit_limit(IN customerNumber INT(11) NOT NULL, IN creditLimit decimal(10,2))
 BEGIN
-  UPDATE customers c SET c.creditLimit = creditLimit WHERE c.customerNumber = customerNumber;
-END;
-
+  UPDATE `customers` c SET c.`creditLimit` = creditLimit WHERE c.`customerNumber` = customerNumber;
+END //
+DELIMITER ;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;

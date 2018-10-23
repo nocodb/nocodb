@@ -25,7 +25,7 @@ describe('xmysql : tests', function () {
 
     args['host'] = 'localhost'
     args['user'] = 'root'
-    args['password'] = ''
+    args['password'] = 'pajecka'
     args['database'] = 'classicmodels'
     args['apiPrefix'] = apiPrefix
 
@@ -2268,7 +2268,7 @@ describe('xmysql : tests', function () {
           customeNumber: 103,
           creditLimit: 23134.00
       }
-      agent.post(apiPrefix + '/_proc/set_credit_limit')     //enter url
+      agent.post(apiPrefix + '/_proc/Set_credit_limit')     //enter url
           .send(obj)         //postdata
           .expect(200)//200 for success 4xx for failure
           .end(function (err, res) {

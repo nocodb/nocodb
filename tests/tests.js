@@ -8,7 +8,7 @@ var whereClause = require('../lib/util/whereClause.helper.js')
 var should = require('should');
 var request = require('supertest')
 const cmdargs = require('../lib/util/cmd.helper.js');
-const pkginfo = require('pkginfo')(module);
+const { version } = require('../package.json');
 
 var args = {}
 var app = {}
@@ -23,10 +23,10 @@ describe('xmysql : tests', function () {
 
   before(function (done) {
 
-    args['host'] = 'localhost'
-    args['user'] = 'root'
-    args['password'] = 'pajecka'
-    args['database'] = 'classicmodels'
+    args['host'] = process.env.DATABASE_HOST || 'localhost'
+    args['user'] = process.env.DATABASE_USER || 'root'
+    args['password'] = process.env.DATABASE_PASSWORD || ''
+    args['database'] = process.env.DATABASE_NAME || 'classicmodels'
     args['apiPrefix'] = apiPrefix
 
     cmdargs.handle(args)
@@ -34,7 +34,7 @@ describe('xmysql : tests', function () {
     mysqlPool = mysql.createPool(args)
 
     app = express()
-    //app.use(morgan('tiny'))
+    app.set('version', version)
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({
       extended: true
@@ -697,82 +697,84 @@ describe('xmysql : tests', function () {
       });
   });
 
-  it('POST /dynamic should PASS', function (done) {
+  if(args['host'] === 'localhost') {
+    it('POST /dynamic should PASS', function (done) {
 
-    var obj = {};
+      var obj = {};
 
-    obj['query'] = 'select * from ?? limit 0,5'
-    obj['params'] = ['customers']
+      obj['query'] = 'select * from ?? limit 0,5'
+      obj['params'] = ['customers']
 
-    //post to an url with data
-    agent.post('/dynamic')     //enter url
-      .send(obj)         //postdata
-      .expect(200)//200 for success 4xx for failure
-      .end(function (err, res) {
-        // Handle /api/v error
-        if (err) {
-          return done(err);
-        }
+      //post to an url with data
+      agent.post('/dynamic')     //enter url
+        .send(obj)         //postdata
+        .expect(200)//200 for success 4xx for failure
+        .end(function (err, res) {
+          // Handle /api/v error
+          if (err) {
+            return done(err);
+          }
 
-        //validate response
-        res.body.length.should.be.equals(5)
+          //validate response
+          res.body.length.should.be.equals(5)
 
-        return done();
+          return done();
 
-      });
-  });
+        });
+    });
 
-  it('POST /dynamic/abc should PASS', function (done) {
+    it('POST /dynamic/abc should PASS', function (done) {
 
-    var obj = {};
+      var obj = {};
 
-    obj['query'] = 'select * from ?? limit 0,5'
-    obj['params'] = ['customers']
+      obj['query'] = 'select * from ?? limit 0,5'
+      obj['params'] = ['customers']
 
-    //post to an url with data
-    agent.post('/dynamic')     //enter url
-      .send(obj)         //postdata
-      .expect(200)//200 for success 4xx for failure
-      .end(function (err, res) {
-        // Handle /api/v error
-        if (err) {
-          return done(err);
-        }
+      //post to an url with data
+      agent.post('/dynamic')     //enter url
+        .send(obj)         //postdata
+        .expect(200)//200 for success 4xx for failure
+        .end(function (err, res) {
+          // Handle /api/v error
+          if (err) {
+            return done(err);
+          }
 
-        //validate response
+          //validate response
 
-        res.body.length.should.be.equals(5)
+          res.body.length.should.be.equals(5)
 
-        return done();
+          return done();
 
-      });
-  });
+        });
+    });
 
-  it('POST /dynamic should PASS', function (done) {
+    it('POST /dynamic should PASS', function (done) {
 
-    var obj = {};
+      var obj = {};
 
-    obj['query'] = 'select * from customers limit 0,5'
-    obj['params'] = []
+      obj['query'] = 'select * from customers limit 0,5'
+      obj['params'] = []
 
-    //post to an url with data
-    agent.post('/dynamic')     //enter url
-      .send(obj)         //postdata
-      .expect(200)//200 for success 4xx for failure
-      .end(function (err, res) {
-        // Handle /api/v error
-        if (err) {
-          return done(err);
-        }
+      //post to an url with data
+      agent.post('/dynamic')     //enter url
+        .send(obj)         //postdata
+        .expect(200)//200 for success 4xx for failure
+        .end(function (err, res) {
+          // Handle /api/v error
+          if (err) {
+            return done(err);
+          }
 
-        //validate response
+          //validate response
 
-        res.body.length.should.be.equals(5)
+          res.body.length.should.be.equals(5)
 
-        return done();
+          return done();
 
-      });
-  });
+        });
+    });
+  }
 
 
   it('PATCH /api/productlines/Hyperloop should PASS', function (done) {
@@ -1895,7 +1897,7 @@ describe('xmysql : tests', function () {
           return done(err);
         }
 
-        res.body['Xmysql'].should.equals(pkginfo.version);
+        res.body['Xmysql'].should.equals(version);
         res.body['mysql'].should.not.equals("");
         res.body['node'].should.not.equals("");
 

@@ -11,12 +11,14 @@ const Xapi = require('./lib/xapi.js');
 const cmdargs = require('./lib/util/cmd.helper.js');
 const cluster = require('cluster');
 const numCPUs = require('os').cpus().length;
+const { version } = require('./package.json');
 
 
 
 function startXmysql(sqlConfig) {
   /**************** START : setup express ****************/
   let app = express();
+  app.set('version', version);
   app.use(morgan('tiny'));
   app.use(cors());
   app.use(bodyParser.json());

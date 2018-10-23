@@ -1,0 +1,38 @@
+version: '3.5'
+
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    command: --init-file /docker-entrypoint-initdb.d/sample.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'pass'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'pass'
+      MYSQL_DATABASE: 'classicmodels'
+    volumes:
+      - ./tests/docker-sample.sql:/docker-entrypoint-initdb.d/sample.sql
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  db-api: &db-api
+    build:
+      context: ./
+      dockerfile: ./dev.Dockerfile
+    environment:
+      DATABASE_HOST: 'db'
+      DATABASE_USER: 'root'
+      DATABASE_PASSWORD: 'pass'
+      DATABASE_NAME: 'classicmodels'
+    ports:
+      - "3002:80"
+    depends_on:
+      - db
+
+  test:
+    <<: *db-api
+    command: sh -c "npm test"
+
+volumes:
+  db-data:

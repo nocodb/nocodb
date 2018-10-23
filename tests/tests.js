@@ -2266,7 +2266,7 @@ describe('xmysql : tests', function () {
   it('call procedure set_credit_limit', function (done) {
       const obj = {
           customeNumber: 103,
-          creditLimit: 1e6
+          creditLimit: 23134.00
       }
       agent.post(apiPrefix + '/_proc/set_credit_limit')     //enter url
           .send(obj)         //postdata

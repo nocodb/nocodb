@@ -942,7 +942,8 @@ http://localhost:3000/_version
     -s, --storageFolder <n>  Storage folder -> current working dir by default (available only with local)
     -i, --ignoreTables <n>   Comma separated table names to ignore
     -c, --useCpuCores <n>    Specify number of cpu cores to use / 1 by default / 0 to use max
-    -y, --readOnly           readonly apis -> false by default    
+    -y, --readOnly           readonly apis -> false by default   
+    -b, --bitToBool          bit to boolean conversion -> false by default    
     -h, --help               Output usage information
 
     

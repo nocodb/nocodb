@@ -41,7 +41,7 @@ Happy hackery!
 
 Powered by popular node packages : ([express](https://github.com/expressjs/express), [mysql](https://github.com/mysqljs/mysql)) => { [xmysql](https://github.com/o1lab/xmysql) }
 <p align="center">
-  <img src="./assets/log.gif" alt="xmysql gif"  height="400" width="750"/>
+  <img src="./assets/log.gif" alt="xmysql gif" width="750"/>
 </p>
 
  

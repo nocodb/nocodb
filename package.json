@@ -42,7 +42,7 @@
     "eslint-plugin-prettier": "^3.0.1",
     "mocha": "^5.2.0",
     "should": "^13.1.2",
-    "sleep": "^5.1.1",
+    "sleep": "^6.1.0",
     "supertest": "^3.0.0"
   }
 }

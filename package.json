@@ -1,7 +1,7 @@
 {
-  "name": "xmysql",
-  "version": "0.5.0",
-  "description": "One command to generate REST APIs for any MySql database",
+  "name": "xmysql2",
+  "version": "0.5.1",
+  "description": "One command to generate REST APIs for any MySql database, modified to support owner permissions",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha tests/*.js --exit"
@@ -17,11 +17,11 @@
     "node": ">= 7.6.0"
   },
   "bin": {
-    "xmysql": "bin/index.js"
+    "xmysql2": "bin/index.js"
   },
-  "repository": "o1lab/xmysql",
-  "homepage": "https://github.com/o1lab/xmysql",
-  "author": "o1lab",
+  "repository": "mixuala/xmysql",
+  "homepage": "https://github.com/mixuala/xmysql",
+  "author": "o1lab, mixuala",
   "license": "MIT",
   "dependencies": {
     "assert": "^1.4.1",

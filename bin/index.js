@@ -35,6 +35,7 @@ function startXmysql(sqlConfig) {
   console.log("");
   console.log("          Generating REST APIs at the speed of your thought.. ");
   console.log("");
+  console.log("          modified to support owner privileges");
 
   let t = process.hrtime();
   let moreApis = new Xapi(sqlConfig, mysqlPool, app);

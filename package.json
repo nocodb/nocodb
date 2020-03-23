@@ -4,7 +4,8 @@
   "description": "One command to generate REST APIs for any MySql database, modified to support owner permissions",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha tests/*.js --exit"
+    "test": "./node_modules/.bin/mocha tests/tests.js --exit",
+    "test_auth": "./node_modules/.bin/mocha tests/test-authorized.js --exit"
   },
   "keywords": [
     "mysql-rest-api-generator",

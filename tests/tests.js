@@ -14,17 +14,18 @@ var args = {};
 var app = {};
 var agent = {};
 var api = {};
-var apiPrefix = "/apj/v1/";
+var apiPrefix = "/api/";
 var mysqlPool = {};
 
 //desribe group of tests done
 describe("xmysql : tests", function() {
   before(function(done) {
     args["host"] = process.env.DATABASE_HOST || "localhost";
-    args["user"] = process.env.DATABASE_USER || "root";
-    args["password"] = process.env.DATABASE_PASSWORD || "";
+    args["user"] = process.env.DATABASE_USER || "test";
+    args["password"] = process.env.DATABASE_PASSWORD || "test_passwd";
     args["database"] = process.env.DATABASE_NAME || "classicmodels";
     args["apiPrefix"] = apiPrefix;
+    args["DEV"] = process.env.DATABASE_NAME || true;
 
     cmdargs.handle(args);
 
@@ -45,6 +46,10 @@ describe("xmysql : tests", function() {
     api.init(function(err, results) {
       if (err) {
         process.exit(1);
+      }
+      if (!!args.DEV) { 
+        // all original tests should pass with args.DEV=true
+        api.mysql.setOwner(null)
       }
       app.listen(3000);
       done();
@@ -370,7 +375,7 @@ describe("xmysql : tests", function() {
           //validate resonse
           res.body.should.be.instanceOf(Array);
 
-          // ity in _fields is an in valid column and it should be ignored
+          // ity in _fields is an invalid column and it should be ignored
           Object.keys(res.body[0]).length.should.be.equal(1);
 
           return done();
@@ -1526,7 +1531,10 @@ describe("xmysql : tests", function() {
         }
 
         //validate response
-        res.body[0]["country"].should.be.equals("Australia");
+        // sort order is indeterminate
+        let found = res.body.find( o=>o["country"]=="Australia") 
+        found.country.should.be.equals("Australia");
+        found._count.should.be.equals(1);
         res.body.length.should.be.equals(5);
 
         return done();

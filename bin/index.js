@@ -35,7 +35,8 @@ function startXmysql(sqlConfig) {
   console.log("");
   console.log("          Generating REST APIs at the speed of your thought.. ");
   console.log("");
-  console.log("          modified to support owner privileges");
+  console.log("          > modified to support JWT and owner privileges");
+  console.log("");
 
   let t = process.hrtime();
   let moreApis = new Xapi(sqlConfig, mysqlPool, app);
@@ -55,6 +56,12 @@ function startXmysql(sqlConfig) {
         sqlConfig.portNumber
     );
     console.log("                                                            ");
+    if (!!sqlConfig.DEV){
+      console.log("");
+      let dev_status_msg = `          (!) running in DEV mode, JWT authorization is disabled.`
+      console.log(`${dev_status_msg}`.green.bold);
+      console.log("");
+    }    
     console.log(
       " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
     );

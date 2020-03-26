@@ -1,5 +1,6 @@
 "use strict";
 
+require('dotenv').config({path:"./tests/.env"});
 var bodyParser = require("body-parser");
 var express = require("express");
 var mysql = require("mysql");
@@ -21,11 +22,19 @@ var mysqlPool = {};
 describe("xmysql : tests", function() {
   before(function(done) {
     args["host"] = process.env.DATABASE_HOST || "localhost";
-    args["user"] = process.env.DATABASE_USER || "test";
-    args["password"] = process.env.DATABASE_PASSWORD || "test_passwd";
+    args["user"] = process.env.DATABASE_USER || "root";
+    args["password"] = process.env.DATABASE_PASSWORD || "";
     args["database"] = process.env.DATABASE_NAME || "classicmodels";
     args["apiPrefix"] = apiPrefix;
     args["DEV"] = false;
+
+    args['userSchema_tableName'] = process.env.USER_SCHEMA_TABLE_NAME,
+    args['userSchema_alias'] = process.env.USER_SCHEMA_ALIAS,
+    args['userSchema_key'] = process.env.USER_SCHEMA_KEY_COLUMN,
+    args['userSchema_username'] = process.env.USER_SCHEMA_USERNAME_COLUMN,
+    args['userSchema_password'] = process.env.USER_SCHEMA_PASSWORD_COLUMN,
+    args['belongsToSchema_alias'] = process.env.BELONGSTO_SCHEMA_ALIAS,
+    args['belongsToSchema_foreign_key'] = process.env.BELONGSTO_SCHEMA_FOREIGN_KEY_COLUMN,
 
     cmdargs.handle(args);
 
@@ -50,17 +59,18 @@ describe("xmysql : tests", function() {
 
       // setup "userSchema" for authorization
       api.mysql.userSchema = {
-        tableName: 'offices',
-        alias: 'u',
-        key: 'officeCode',
-        username: 'postalCode',
-        password: 'country',
+        tableName: args['userSchema_tableName'],
+        alias: args['userSchema_alias'],
+        key: args['userSchema_key'],
+        username: args['userSchema_username'],
+        password: args['userSchema_password'],
       }    
       api.mysql.belongsToSchema = {
-        alias: 'fk',
-        foreign_key: 'officeCode',
+        alias: args['belongsToSchema_alias'],
+        foreign_key: args['belongsToSchema_foreign_key'],
       }
 
+      console.log(api.mysql.userSchema, api.mysql.belongsToSchema)
       app.listen(3000);
       done();
     });

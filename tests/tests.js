@@ -1,5 +1,7 @@
 "use strict";
 
+require('dotenv').config({path:"./tests/.env"});
+
 var bodyParser = require("body-parser");
 var express = require("express");
 var mysql = require("mysql");
@@ -21,11 +23,11 @@ var mysqlPool = {};
 describe("xmysql : tests", function() {
   before(function(done) {
     args["host"] = process.env.DATABASE_HOST || "localhost";
-    args["user"] = process.env.DATABASE_USER || "test";
-    args["password"] = process.env.DATABASE_PASSWORD || "test_passwd";
+    args["user"] = process.env.DATABASE_USER || "root";
+    args["password"] = process.env.DATABASE_PASSWORD || "";
     args["database"] = process.env.DATABASE_NAME || "classicmodels";
     args["apiPrefix"] = apiPrefix;
-    args["DEV"] = process.env.DATABASE_NAME || true;
+    args["DEV"] = true;  // standard tests should pass as before with args.DEV==true
 
     cmdargs.handle(args);
 

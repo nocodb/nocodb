@@ -31,6 +31,7 @@
     "colors": "^1.1.2",
     "commander": "^2.11.0",
     "cors": "^2.8.4",
+    "dotenv": "^8.2.0",
     "express": "^4.16.1",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.9.0",

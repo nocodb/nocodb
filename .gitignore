@@ -75,3 +75,4 @@ mongod
 *.ntvs*
 *.njsproj
 *.sln
+bin/.env

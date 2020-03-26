@@ -53,7 +53,7 @@ function startXmysql(sqlConfig) {
     );
     console.log(
       "          API's base URL        :    " +
-        sqlConfig.host + ":" + sqlConfig.portNumber
+        sqlConfig.ipAddress + ":" + sqlConfig.portNumber
     );
     console.log("                                                            ");
     if (!!sqlConfig.DEV){

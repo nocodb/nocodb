@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-require('dotenv').config()
+require('dotenv').config();
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const express = require("express");

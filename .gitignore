@@ -76,3 +76,4 @@ mongod
 *.njsproj
 *.sln
 bin/.env
+.env

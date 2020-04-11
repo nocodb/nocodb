@@ -13,6 +13,7 @@ const cmdargs = require("../lib/util/cmd.helper.js");
 const cluster = require("cluster");
 const numCPUs = require("os").cpus().length;
 
+const fs = require('fs');
 const https = require('https');
 
 function startXmysql(sqlConfig) {
@@ -45,7 +46,7 @@ function startXmysql(sqlConfig) {
   let moreApis = new Xapi(sqlConfig, mysqlPool, app);
 
   moreApis.init((err, results) => {
-    if (process.env.USE_HTTPS===true){
+    if (process.env.USE_HTTPS==='true'){
       console.log("launching https server on port=".bold.green, sqlConfig.portNumber)
 
       const privateKey  = fs.readFileSync(process.env.PRIVATE_KEY, 'utf8');
@@ -56,6 +57,7 @@ function startXmysql(sqlConfig) {
       httpsServer.listen(sqlConfig.portNumber);
     }
     else {
+      console.log("launching http server on port=".bold.red, sqlConfig.portNumber)
       app.listen(sqlConfig.portNumber, sqlConfig.ipAddress);
     }
 

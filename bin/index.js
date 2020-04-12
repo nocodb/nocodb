@@ -13,13 +13,16 @@ const cmdargs = require("../lib/util/cmd.helper.js");
 const cluster = require("cluster");
 const numCPUs = require("os").cpus().length;
 
+// # security best practices
 const fs = require('fs');
 const https = require('https');
+const helmet = require('helmet');
 
 function startXmysql(sqlConfig) {
   /**************** START : setup express ****************/
   let app = express();
   app.use(morgan("tiny"));
+  app.use(helmet());
   app.use(cors());
   app.use(bodyParser.json());
   app.use(

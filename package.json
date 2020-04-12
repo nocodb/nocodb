@@ -26,14 +26,17 @@
   "license": "MIT",
   "dependencies": {
     "assert": "^1.4.1",
+    "bcrypt": "^4.0.1",
     "body-parser": "^1.18.2",
     "cluster": "^0.7.7",
     "colors": "^1.1.2",
     "commander": "^2.11.0",
     "cors": "^2.8.4",
+    "csurf": "^1.11.0",
     "dotenv": "^8.2.0",
     "express": "^4.16.1",
     "fs": "0.0.1-security",
+    "helmet": "^3.22.0",
     "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.9.0",
@@ -43,11 +46,13 @@
     "passport-jwt": "^4.0.0"
   },
   "devDependencies": {
+    "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-prettier": "^3.0.1",
     "mocha": "^5.2.0",
+    "prettier": "^2.0.4",
     "should": "^13.1.2",
     "sleep": "^6.1.0",
     "supertest": "^3.0.0"

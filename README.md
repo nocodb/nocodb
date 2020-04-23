@@ -112,6 +112,7 @@ if you haven't on your system.
 | GET       | /api/tableName                   | Lists rows of table                                    |
 | POST      | /api/tableName                   | Create a new row                                       |
 | PUT       | /api/tableName                   | Replaces existing row with new row                     |
+| GET  :fire:| /api/tableName/dump             | Lists all rows of table (ignores limits imposed by [pagination](#pagination)) |
 | POST :fire:| /api/tableName/bulk             | Create multiple rows - send object array in request body|
 | GET  :fire:| /api/tableName/bulk             | Lists multiple rows - /api/tableName/bulk?_ids=1,2,3   |
 | DELETE :fire:| /api/tableName/bulk           | Deletes multiple rows - /api/tableName/bulk?_ids=1,2,3 |
@@ -178,6 +179,8 @@ By default 20 records and max of 100 are returned per GET request on a table.
 When _size is greater than 100 - number of records defaults to 100 (i.e maximum)
 
 When _size is less than or equal to 0 - number of records defaults to 20 (i.e minimum)
+
+**NOTE**: if you want to retrieve ALL records for a given resource without these limits, you can use the [/api/tableName/dump](#dump) endpoint.
 
 ## Order by / Sorting 
 
@@ -264,6 +267,14 @@ eg: filter of rows using _where is available for relational route URLs too.
 ```
 /api/offices/1/employees?_where=(jobTitle,eq,Sales%20Rep)
 ```
+
+## Dump
+```
+/api/tableName/dump
+```
+
+Works similar to list but ignores _q and _size query parameters.
+[:arrow_heading_up:](#api-overview)
 
 ## FindOne
 ```

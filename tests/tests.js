@@ -103,6 +103,42 @@ describe("xmysql : tests", function() {
       });
   });
 
+  it("GET " + apiPrefix + "payments/dump should PASS", function(done) {
+    //http get an url
+    agent
+      .get(apiPrefix + "payments/dump") // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function(err, res) {
+        // Handle /api/tables error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equal(273);
+
+        return done();
+      });
+  });
+
+  it("GET " + apiPrefix + "payments/dump?_where=(amount,gte,1000)~and(customerNumber,lte,120) should PASS", function(done) {
+    //http get an url
+    agent
+      .get(apiPrefix + "payments/dump?_where=(amount,gte,1000)~and(customerNumber,lte,120)") // api url
+      .expect(200) // 2xx for success and 4xx for failure
+      .end(function(err, res) {
+        // Handle /api/tables error
+        if (err) {
+          return done(err);
+        }
+
+        //validate response
+        res.body.length.should.be.equal(13);
+
+        return done();
+      });
+  });
+
   it(
     "GET " + apiPrefix + "offices/distinct?_fields=country should PASS",
     function(done) {

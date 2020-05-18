@@ -28,7 +28,7 @@
     "body-parser": "^1.18.2",
     "cluster": "^0.7.7",
     "colors": "^1.1.2",
-    "commander": "^2.11.0",
+    "commander": "^2.20.3",
     "cors": "^2.8.4",
     "express": "^4.16.1",
     "morgan": "^1.9.0",

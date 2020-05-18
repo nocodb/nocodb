@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "assert": "^1.4.1",
-    "body-parser": "^1.18.2",
+    "body-parser": "^1.19.0",
     "cluster": "^0.7.7",
     "colors": "^1.1.2",
     "commander": "^2.11.0",

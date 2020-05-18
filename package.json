@@ -27,7 +27,7 @@
     "assert": "^1.4.1",
     "body-parser": "^1.18.2",
     "cluster": "^0.7.7",
-    "colors": "^1.1.2",
+    "colors": "^1.4.0",
     "commander": "^2.11.0",
     "cors": "^2.8.4",
     "express": "^4.16.1",

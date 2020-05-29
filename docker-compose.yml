@@ -33,6 +33,9 @@ services:
   test:
     <<: *db-api
     command: sh -c "npm test"
+    volumes:
+    - ./tests:/usr/src/app/tests
+    - ./lib:/usr/src/app/lib
 
 volumes:
   db-data:

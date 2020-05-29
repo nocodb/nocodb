@@ -1179,6 +1179,30 @@ describe("xmysql : tests", function() {
   );
 
   it(
+    "GET " +
+      apiPrefix +
+      "customers/groupby?_fields=city&_sort=city&_groupbyfields=country should PASS",
+    function(done) {
+      //post to an url with data
+      agent
+        .get(apiPrefix + "customers/groupby?_fields=avg(creditLimit),country,city&_sort=city&_groupbyfields=country,city") //enter url
+        .expect(200) //200 for success 4xx for failure
+        .end(function(err, res) {
+          // Handle /api/v error
+          if (err) {
+            return done(err);
+          }
+
+          //validate response
+          res.body[0]["city"].should.be.equals("Aachen");
+          res.body.length.should.be.equals(95);
+
+          return done();
+        });
+    }
+  );
+
+  it(
     "GET " + apiPrefix + "offices/ugroupby?_fields=country should PASS",
     function(done) {
       //post to an url with data

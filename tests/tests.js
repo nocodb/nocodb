@@ -2330,18 +2330,26 @@ describe("xmysql : tests", function() {
           customeNumber: 103,
           creditLimit: 23134.00
       }
-      agent.post('/_proc/set_credit_limit')     //enter url
-          .send(obj)         //postdata
-          .expect(200)//200 for success 4xx for failure
+      agent.post('/_proc/set_credit_limit')
+          .send(obj)
+          .expect(200)
           .end(function (err, res) {
-              // Handle /api/v error
               if (err) {
                   return done(err);
               }
 
-              //validate response
+              res.body.should.be.deepEqual({
+                fieldCount: 0,
+                affectedRows: 0,
+                insertId: 0,
+                serverStatus: 2,
+                warningCount: 0,
+                message: '',
+                protocol41: true,
+                changedRows: 0
+              })
 
               return done();
-          })
-  })
+          });
+  });
 });

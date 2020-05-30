@@ -1178,23 +1178,20 @@ describe("xmysql : tests", function() {
     }
   );
 
-  it(
-    "GET " +
-      apiPrefix +
-      "customers/groupby?_fields=city&_sort=city&_groupbyfields=country should PASS",
+  it(`GET ${apiPrefix}customers/groupby?_fields=city&_sort=city&_groupbyfields=country should PASS`,
     function(done) {
-      //post to an url with data
       agent
-        .get(apiPrefix + "customers/groupby?_fields=avg(creditLimit),country,city&_sort=city&_groupbyfields=country,city") //enter url
-        .expect(200) //200 for success 4xx for failure
+        .get(apiPrefix + "customers/groupby?_fields=avg(creditLimit),country,city&_sort=-avg(creditLimit),city&_groupbyfields=country,city")
+        .expect(200)
         .end(function(err, res) {
-          // Handle /api/v error
           if (err) {
             return done(err);
           }
 
-          //validate response
-          res.body[0]["city"].should.be.equals("Aachen");
+          res.body[0]['avg(`creditLimit`)'].should.be.equals(210500);
+          res.body[0]["country"].should.be.equals("USA");
+          res.body[0]["city"].should.be.equals("San Rafael");
+          res.body[0]["_count"].should.be.equals(1);
           res.body.length.should.be.equals(95);
 
           return done();

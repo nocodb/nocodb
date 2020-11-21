@@ -18,7 +18,9 @@ function startXmysql(sqlConfig) {
   app.use(morgan("tiny"));
   app.use(cors());
   app.use(bodyParser.json({limit: '50mb', extended: true, parameterLimit:50000}));
+  app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit:50000}));
   app.use(express.json({limit: '50mb', extended: true, parameterLimit:50000}));
+  app.use(express.urlencoded({limit: '50mb', extended: true, parameterLimit:50000}));
   /**************** END : setup express ****************/
 
   /**************** START : setup mysql ****************/

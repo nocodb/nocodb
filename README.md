@@ -797,7 +797,8 @@ eg: pl.productline in _fields query params - returns as pl_productline in respon
 
 Dynamic queries on a database can be run by POST method to URL localhost:3000/dynamic 
 
-This is enabled **ONLY when using local mysql server** i.e -h localhost or -h 127.0.0.1 option.
+This is enabled when using local mysql server i.e -h localhost or -h 127.0.0.1 option, or when
+the `--dynamic` flag is provided.
 
 Post body takes two fields : query and params.
 
@@ -943,6 +944,7 @@ http://localhost:3000/_version
     -i, --ignoreTables <n>   Comma separated table names to ignore
     -c, --useCpuCores <n>    Specify number of cpu cores to use / 1 by default / 0 to use max
     -y, --readOnly           readonly apis -> false by default    
+    -D, --dynamic            allow dynamic queries
     -h, --help               Output usage information
 
     

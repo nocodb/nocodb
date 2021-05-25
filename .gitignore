@@ -75,3 +75,5 @@ mongod
 *.ntvs*
 *.njsproj
 *.sln
+
+.history

@@ -1178,6 +1178,27 @@ describe("xmysql : tests", function() {
     }
   );
 
+  it(`GET ${apiPrefix}customers/groupby?_fields=city&_sort=city&_groupbyfields=country should PASS`,
+    function(done) {
+      agent
+        .get(apiPrefix + "customers/groupby?_fields=avg(creditLimit),country,city&_sort=-avg(creditLimit),city&_groupbyfields=country,city")
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          res.body[0]['avg(`creditLimit`)'].should.be.equals(210500);
+          res.body[0]["country"].should.be.equals("USA");
+          res.body[0]["city"].should.be.equals("San Rafael");
+          res.body[0]["_count"].should.be.equals(1);
+          res.body.length.should.be.equals(95);
+
+          return done();
+        });
+    }
+  );
+
   it(
     "GET " + apiPrefix + "offices/ugroupby?_fields=country should PASS",
     function(done) {
@@ -2302,5 +2323,33 @@ describe("xmysql : tests", function() {
     err.params[5].should.be.equal(false);
 
     done();
+  });
+
+  it('calls procedure set_credit_limit', function (done) {
+      const obj = {
+          customeNumber: 103,
+          creditLimit: 23134.00
+      }
+      agent.post('/_proc/set_credit_limit')
+          .send(obj)
+          .expect(200)
+          .end(function (err, res) {
+              if (err) {
+                  return done(err);
+              }
+
+              res.body.should.be.deepEqual({
+                fieldCount: 0,
+                affectedRows: 0,
+                insertId: 0,
+                serverStatus: 2,
+                warningCount: 0,
+                message: '',
+                protocol41: true,
+                changedRows: 0
+              })
+
+              return done();
+          });
   });
 });

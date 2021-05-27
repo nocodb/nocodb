@@ -56,6 +56,11 @@ npm install
 npm start
 ```
 
+### GUI
+
+Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+
+
 # Join Our Community
 <a href="https://discord.gg/5RgZmkW">
     <img 

@@ -90,7 +90,7 @@ npm run dev
 
 # Production Setup 
 NocoDB requires a database to store metadata of spreadsheets views and external databases. 
-And environment `NC_DB` decides 
+And connection params for this database can be specified in `NC_DB` environment variable. 
 
 ## Docker 
 

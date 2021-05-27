@@ -56,8 +56,16 @@ npm install
 npm start
 ```
 
-# Screenshots
+# Join Our Community
+<a href="https://discord.gg/5RgZmkW">
+    <img 
+    src="https://invidget.switchblade.xyz/5RgZmkW" 
+    alt="Join NocoDB : Free & Open Source Airtable Alternative"
+    >
+</a>
+<br>
 
+# Screenshots
 <img src="static/nocodb/2.png"/>
 <br>
 <img src="static/nocodb/1.png"/>
@@ -83,14 +91,7 @@ npm start
 
 
 
-# Join Community
-<a href="https://discord.gg/5RgZmkW">
-    <img 
-    src="https://invidget.switchblade.xyz/5RgZmkW" 
-    alt="Join NocoDB : Free & Open Source Airtable Alternative"
-    >
-</a>
-<br>
+
 
 # Features
 ### Rich Spreadsheet Interface

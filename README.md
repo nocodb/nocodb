@@ -53,7 +53,7 @@ npx create-nocodb-app
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
 npm install
-npm run dev
+npm start
 ```
 
 

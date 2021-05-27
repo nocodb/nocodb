@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  xcdb:
+    image: postgres
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: xcdb
+    healthcheck:
+      test: pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 2s
+      retries: 10
+  xc:
+    depends_on:
+      xcdb:
+        condition: service_healthy
+    image: nocodb/nocodb:latest
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    restart: always
+    environment:
+      NC_DB: "pg://xcdb:5432?u=postgres&p=password&d=xcdb"
+volumes:
+  db_data: {}

@@ -1,0 +1,100 @@
+<template>
+  <div class="d-flex align-center">
+
+    <div>
+      <div class="" v-for="(val,i) of setValues" :key="val">
+        <input type="checkbox" :id="`key-check-box-${val}`" class="orange--text" v-model="localState" :value="val">
+        <label class="py-1 px-3 d-inline-block my-1 label" :for="`key-check-box-${val}`"
+               :style="{
+          background:colors[i % colors.length ]
+          }"
+        >{{ val }}</label>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import colors from "@/components/project/spreadsheet/helpers/colors";
+
+export default {
+  name: "set-list-checkbox-cell",
+  props: {
+    value: String,
+    column: Object
+  },
+  data() {
+  },
+  mounted() {
+    this.$el.focus();
+    let event;
+    event = document.createEvent('MouseEvents');
+    event.initMouseEvent('mousedown', true, true, window);
+    this.$el.dispatchEvent(event);
+  },
+  computed: {
+    colors() {
+      return this.$store.state.windows.darkTheme ? colors.dark : colors.light;
+    },
+    localState: {
+      get() {
+        return this.value && this.value.split(',')
+      },
+      set(val) {
+        this.$emit('input', val.join(','));
+        this.$emit('update');
+      }
+    },
+    setValues() {
+      if (this.column && this.column.dtxp) {
+        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
+      }
+      return [];
+    },
+    parentListeners() {
+      const $listeners = {};
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur;
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus;
+      }
+
+      return $listeners;
+    },
+  }
+}
+</script>
+
+<style scoped>
+
+.label {
+  border-radius: 25px;
+}
+
+</style>
+<!--
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Naveen MR <oof1lab@gmail.com>
+ * @author Pranav C Balan <pranavxc@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+-->

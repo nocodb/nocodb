@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+  xcdb:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    restart: always
+    volumes:
+      - db_data:/var/opt/mssql
+    environment:
+      SA_PASSWORD: Password123.
+      ACCEPT_EULA: Y
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$SA_PASSWORD" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  xc:
+    depends_on:
+      xcdb:
+          condition: service_healthy
+    image: nocodb/nocodb:latest
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    restart: always
+    environment:
+      NC_DB: "mssql://xcdb:1433?u=sa&p=Password123.&d=xcdb"
+volumes:
+  db_data: {}

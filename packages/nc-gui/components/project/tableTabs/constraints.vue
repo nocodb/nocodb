@@ -1,0 +1,153 @@
+<template>
+  <div class="">
+    <v-toolbar flat height="42" class="toolbar-border-bottom">
+      <v-toolbar-title>
+        <v-breadcrumbs :items="[{
+          text: this.nodes.env,
+          disabled: true,
+          href: '#'
+        },{
+          text: this.nodes.dbAlias,
+          disabled: true,
+          href: '#'
+        },
+        {
+          text: this.nodes.tn + ' (table)',
+          disabled: true,
+          href: '#'
+        }]" divider=">" small >
+          <template v-slot:divider>
+            <v-icon small color="grey lighten-2">forward</v-icon>
+          </template>
+        </v-breadcrumbs>
+
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn
+        small
+        color="primary"
+        class="primary"
+        @click="loadConstraintList"
+      >
+        <v-icon left>refresh</v-icon>
+        Refresh
+      </v-btn
+      >
+      <v-btn
+        small
+        color="error "
+        @click="deleteTable('showDialog')"
+        class="error text-right"
+      >Delete Table
+      </v-btn
+      >
+      <v-btn
+        icon
+        class="text-right">
+        <v-icon>mdi-help-circle-outline</v-icon>
+      </v-btn>
+
+
+    </v-toolbar>
+
+    <v-data-table
+      dense
+      :headers="headers"
+      :items="constraints"
+      footer-props.items-per-page-options="30"
+    >
+      <template v-slot:item="props">
+        <td>{{ props.item.cstn }}</td>
+        <td>{{ props.item.cst }}</td>
+        <td>{{ props.item.cn }}</td>
+        <td>{{ props.item.op }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+
+<script>
+  import {mapGetters, mapActions} from "vuex";
+
+  export default {
+    data() {
+      return {
+        constraints: [],
+        headers: [
+          {
+            text: "Constraint",
+            sortable: false
+          },
+          {text: "Constraint Type", sortable: false},
+          {text: "Column Name", sortable: false},
+          {text: "Constraint Ordinal Position", sortable: false}
+        ]
+      };
+    },
+    methods: {
+      async loadConstraintList() {
+        if (this.newTable) return;
+        // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
+        const client = await this.sqlMgr.projectGetSqlClient({
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        });
+        const result = await client.constraintList({
+          tn: this.nodes.tn
+        });
+        // console.log("cons", result.data.list);
+        this.constraints = result.data.list;
+      }
+    },
+    computed: {...mapGetters({sqlMgr: "sqlMgr/sqlMgr"})},
+
+    beforeCreated() {
+    },
+    created() {
+      this.loadConstraintList();
+    },
+    mounted() {
+    },
+    beforeDestroy() {
+    },
+    destroy() {
+    },
+    validate({params}) {
+      return true;
+    },
+    head() {
+      return {};
+    },
+    props: ["nodes", "newTable", "deleteTable"],
+    watch: {},
+    directives: {},
+    components: {}
+  };
+</script>
+
+<style scoped>
+</style>
+<!--
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Naveen MR <oof1lab@gmail.com>
+ * @author Pranav C Balan <pranavxc@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+-->

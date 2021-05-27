@@ -1,0 +1,5 @@
+{
+  "language": "English",
+  "symbol": "en",
+  "text": "Enter database host name || Choose SQL Database type || Enter database username || Enter database password || Enter database port number || Enter database/schema name || Enter API type to generate || How do you want to run it"
+}

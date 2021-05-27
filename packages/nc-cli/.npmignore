@@ -1,0 +1,16 @@
+/node_modules/
+help
+src
+.idea/*
+coverage
+.nyc_output
+*.log
+yarn.lock
+webpack.config.js
+tsconfig.json
+tsconfig.module.json
+tslint.json
+package-lock.json
+dist/*.db-shm
+dist/*.db-wal
+/buildScript/

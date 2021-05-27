@@ -1,0 +1,139 @@
+{
+  "name": "create-nocodb-app",
+  "version": "0.1.21",
+  "description": "nc-cli",
+  "main": "dist/bundle.js",
+  "module": "dist/bundle.js",
+  "repository": "https://github.com/pranavxc/nc-cli",
+  "license": "AGPL-3.0-or-later",
+  "keywords": [],
+  "bin": {
+    "nc": "./dist/bundle.js",
+    "create-nocodb-app": "./dist/bundle.js",
+    "nc-cli": "./dist/bundle.js"
+  },
+  "scripts": {
+    "describe": "npm-scripts-info",
+    "build": "run-s clean && run-p build:*",
+    "build:main": "tsc -p tsconfig.json",
+    "build:module": "tsc -p tsconfig.module.json",
+    "build:obfuscate": "webpack  --config webpack.config.js",
+    "build:obfuscate:publish": "rm -rf dist && npm run build:obfuscate && npm publish .",
+    "fix": "run-s fix:*",
+    "fix:prettier": "prettier \"src/**/*.ts\" --write",
+    "fix:tslint": "tslint --fix --project .",
+    "test": "run-s build test:*",
+    "test:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different",
+    "test:unit": "nyc --silent ava",
+    "watch": "run-s clean build:main && run-p \"build:main -- -w\" \"test:unit -- --watch\"",
+    "cov": "run-s build test:unit cov:html && open-cli coverage/index.html",
+    "cov:html": "nyc report --reporter=html",
+    "cov:send": "nyc report --reporter=lcov && codecov",
+    "cov:check": "nyc report && nyc check-coverage --lines 100 --functions 100 --branches 100",
+    "doc": "run-s doc:html && open-cli build/docs/index.html",
+    "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
+    "doc:json": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --json build/docs/typedoc.json",
+    "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
+    "version": "standard-version",
+    "reset": "git clean -dfx && git reset --hard && npm i",
+    "clean": "trash build test",
+    "prepare-release": "run-s reset test cov:check doc:html version doc:publish",
+    "test:new": "./dist/bundle.js new "
+  },
+  "scripts-info": {
+    "info": "Display information about the package scripts",
+    "build": "Clean and rebuild the project",
+    "fix": "Try to automatically fix any linting problems",
+    "test": "Lint and unit test the project",
+    "watch": "Watch and rebuild the project on save, then rerun relevant tests",
+    "cov": "Rebuild, run tests, then create and open the coverage report",
+    "doc": "Generate HTML API documentation and open it in a browser",
+    "doc:json": "Generate API documentation in typedoc JSON format",
+    "version": "Bump package.json version, update CHANGELOG.md, tag release",
+    "reset": "Delete all untracked files and reset the repo to the last commit",
+    "prepare-release": "One-step: clean, build, test, publish docs, and prep a release"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "boxen": "^4.2.0",
+    "chalk-pipe": "^4.0.0",
+    "cli-table3": "^0.6.0",
+    "colors": "^1.4.0",
+    "download": "^8.0.0",
+    "download-git-repo": "^3.0.2",
+    "express": "^4.17.1",
+    "fs-extra": "^9.0.1",
+    "glob": "^7.1.6",
+    "inquirer": "^7.3.3",
+    "jsonfile": "^6.0.1",
+    "knex": "^0.21.5",
+    "linux-os-info": "^2.0.0",
+    "mkdirp": "^1.0.4",
+    "mssql": "^6.2.1",
+    "mysql": "^2.18.1",
+    "open": "^7.1.0",
+    "ora": "^4.0.5",
+    "os-locale": "^5.0.0",
+    "pg": "^8.3.2",
+    "sha.js": "^2.4.11",
+    "shelljs": "^0.8.4",
+    "tcp-port-used": "^1.0.1",
+    "unique-names-generator": "^4.5.0",
+    "update-notifier": "^4.1.0",
+    "uuid": "^8.3.1",
+    "yargs": "^15.4.1"
+  },
+  "devDependencies": {
+    "@bitjson/npm-scripts-info": "^1.0.0",
+    "@bitjson/typedoc": "^0.15.0-0",
+    "@istanbuljs/nyc-config-typescript": "^0.1.3",
+    "ava": "2.2.0",
+    "codecov": "^3.5.0",
+    "copy-webpack-plugin": "^7.0.0",
+    "cz-conventional-changelog": "^2.1.0",
+    "gh-pages": "^2.0.1",
+    "javascript-obfuscator": "^2.6.0",
+    "npm-run-all": "^4.1.5",
+    "nyc": "^14.1.1",
+    "open-cli": "^5.0.0",
+    "prettier": "^1.18.2",
+    "standard-version": "^6.0.1",
+    "trash-cli": "^3.0.0",
+    "ts-loader": "^8.0.5",
+    "ts-node": "^8.10.2",
+    "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-immutable": "^6.0.1",
+    "typescript": "^3.5.3",
+    "webpack": "^5.1.0",
+    "webpack-cli": "^4.0.0",
+    "webpack-node-externals": "^2.5.2",
+    "webpack-obfuscator": "^2.6.0"
+  },
+  "ava": {
+    "failFast": true,
+    "files": [
+      "build/main/**/*.spec.js"
+    ],
+    "sources": [
+      "build/main/**/*.js"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "exclude": [
+      "**/*.spec.js"
+    ]
+  }
+}

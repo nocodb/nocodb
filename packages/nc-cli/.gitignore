@@ -1,0 +1,10 @@
+/node_modules/
+#build
+src/**.js
+.idea/*
+dist
+coverage
+.nyc_output
+*.log
+help
+yarn.lock

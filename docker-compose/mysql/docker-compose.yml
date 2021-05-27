@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+  xcdb:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: xcdb
+      MYSQL_USER: xc
+      MYSQL_PASSWORD: password
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+  xc:
+    depends_on:
+      xcdb:
+        condition: service_healthy
+    image: nocodb/nocodb:latest
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    restart: always
+    environment:
+      NC_DB: "mysql2://xcdb:3306?u=xc&p=password&d=xcdb"
+volumes:
+  db_data: {}

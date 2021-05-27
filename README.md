@@ -136,26 +136,3 @@ Our mission is to provide the most powerful no-code tool as open source to every
 
 - - - - - - -
 
-Website
-Github
-
-PH : Images
-HN
-Blog
-Readme
-License
-Roadmap
-Links 
-FAQ
-1-Click
-Template
-
-
-```js
-(async () => {
-    const app = require('express')();
-    const {Noco} = require("nocodb");
-    app.use(await Noco.init({}));
-    app.listen(process.env.PORT);
-})()
-```

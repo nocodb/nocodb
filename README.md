@@ -132,7 +132,23 @@ Our mission is to provide the most powerful no-code tool as open source to every
 [//]: contributor-faces
 <a href="https://github.com/o1lab"><img src="https://avatars.githubusercontent.com/u/5435402?v=4" title="Naveen MR" width="50" height="50"></a>
 <a href="https://github.com/pranavxc"><img src="https://avatars.githubusercontent.com/u/61551451?v=4" title="Pranav C Balan" width="50" height="50"></a>
-
+<a hrer="https://github.com/bvkatwijk"><img src="https://avatars.githubusercontent.com/u/18490578?s=60&v=4" title="bvkatwijk" width="50" height="50"></a>
+<a hrer="https://github.com/markuman"><img src="https://avatars.githubusercontent.com/u/3920157?s=60&v=4" title="markuman" width="50" height="50"></a>
+<a hrer="https://github.com/DanielRuf"><img src="https://avatars.githubusercontent.com/u/827205?s=60&v=4" title="DanielRuf" width="50" height="50"></a>
+<a hrer="https://github.com/bertyhell"><img src="https://avatars.githubusercontent.com/u/1710840?s=60&v=4" title="bertyhell" width="50" height="50"></a>
+<a hrer="https://github.com/chocholand"><img src="https://avatars.githubusercontent.com/u/6572227?s=60&v=4" title="chocholand" width="50" height="50"></a>
+<a hrer="https://github.com/0xflotus"><img src="https://avatars.githubusercontent.com/u/26602940?s=60&v=4" title="0xflotus" width="50" height="50"></a>
+<a hrer="https://github.com/sguionni"><img src="https://avatars.githubusercontent.com/u/3633017?s=60&v=4" title="sguionni" width="50" height="50"></a>
+<a hrer="https://github.com/extremeshok"><img src="https://avatars.githubusercontent.com/u/5957328?s=60&v=4" title="extremeshok" width="50" height="50"></a>
+<a hrer="https://github.com/v2io"><img src="https://avatars.githubusercontent.com/u/48987429?s=60&v=4" title="v2io" width="50" height="50"></a>
+<a hrer="https://github.com/soaserele"><img src="https://avatars.githubusercontent.com/u/1093368?s=60&v=4" title="soaserele" width="50" height="50"></a>
+<a hrer="https://github.com/ans-4175"><img src="https://avatars.githubusercontent.com/u/3961872?s=60&v=4" title="ans-4175" width="50" height="50"></a>
+<a hrer="https://github.com/lotas"><img src="https://avatars.githubusercontent.com/u/83861?s=60&v=4" title="lotas" width="50" height="50"></a>
+<a hrer="https://github.com/ferrybig"><img src="https://avatars.githubusercontent.com/u/1576684?s=60&v=4" title="ferrybig" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/1001585?v=4" title="" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/508624?v=4" title="" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/8931?v=4" title="" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/26602940?v=4" title="" width="50" height="50"></a>
 
 - - - - - - -
 

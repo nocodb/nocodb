@@ -129,7 +129,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 
 #### Example MySQL
 ```
-docker run -p 8080:8080 -e NC_DB="mysql://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -p 8080:8080 -e NC_DB="mysql2://host:port?u=user&p=password&d=database" nocodb/nocodb
 ```
 
 #### Example Postgres

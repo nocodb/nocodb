@@ -59,6 +59,7 @@
     "@nuxtjs/vuetify": "^1.11.2",
     "cypress": "^7.3.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
-    "webpack-obfuscator": "^1.9.0"
+    "webpack-obfuscator": "^1.9.0",
+    "sass": "~1.32.12"
   }
 }

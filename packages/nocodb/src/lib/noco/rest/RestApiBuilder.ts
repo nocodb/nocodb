@@ -1503,12 +1503,12 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }));
     });
 
-    this.router.get(`/${this.getDbAlias()}/swagger.json`, async (_req, res) => {
+    this.router.get(`/${this.getDbAlias()}/swagger.json`, async (req, res) => {
       // todo: optimize
       let swaggerBaseDocument: any = JSON.parse(JSON.stringify(await import('./ui/auth/swagger-base.xc.json')));
 
       if (this.config?.auth?.jwt?.dbAlias !== this.connectionConfig.meta.dbAlias) {
-        swaggerBaseDocument = {...swaggerBaseDocument, tags: [], definitions: {}, paths: {}};
+        swaggerBaseDocument = {...swaggerBaseDocument, tags: [], definitions: {}, paths: {}, host: req.get('host')};
       }
 
       glob.sync(path.join(this.config.toolDir, 'nc', this.projectId, this.getDbAlias(), 'swagger', 'swagger.json')).forEach(jsonFile => {

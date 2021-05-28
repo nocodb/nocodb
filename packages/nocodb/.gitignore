@@ -15,3 +15,4 @@ projects/test/config.xc.json
 xc.db*
 noco.db*
 /nc/
+/docker/main.js

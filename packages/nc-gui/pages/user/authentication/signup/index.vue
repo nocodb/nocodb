@@ -237,7 +237,8 @@ export default {
       formRules: {
         email: [
           v => !!v || 'E-mail is required',
-          v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid'
+          // ref : https://stackoverflow.com/a/46181
+          v => /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(v) || 'E-mail must be valid'
         ],
         password: [
           v => (this.PasswordValidate(v)) || this.passwordValidateMsg

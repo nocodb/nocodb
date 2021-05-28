@@ -1714,7 +1714,7 @@ export class PgUi {
         colProp.dt = 'bool';
         break;
       case 'MultiSelect':
-        colProp.dt = 'set';
+        colProp.dt = 'text';
         break;
       case 'SingleSelect':
         colProp.dt = 'enum';
@@ -1841,7 +1841,7 @@ export class PgUi {
         break;
       case 'MultiSelect':
         return [
-          'set', "text",
+          "text",
         ];
         break;
       case 'SingleSelect':

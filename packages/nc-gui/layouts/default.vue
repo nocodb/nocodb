@@ -971,8 +971,8 @@ export default {
               'xc-auth': this.$store.state.users.token
             }
           })).data;
-          const obj = Object.values(info).find(v => this.isRest ? v.swaggerUrl : v.gqlApiUrl);
-          this.swaggerOrGraphiqlUrl = this.isRest ? obj.swaggerUrl : obj.gqlApiUrl
+          const obj = Object.values(info).find(v =>  v.apiType === 'rest' ? v.swaggerUrl : v.gqlApiUrl);
+          this.swaggerOrGraphiqlUrl = obj.apiType === 'rest' ? obj.swaggerUrl : obj.gqlApiUrl
         } catch (e) {
         }
     },

@@ -58,7 +58,7 @@ export default {
     "~/plugins/xutils.js",
     {src: '~plugins/localStorage.js', ssr: false},
     {src: '~plugins/axiosInterceptor.js', ssr: false},
-    {src: '~plugins/hotjar.js', ssr: false},
+    // {src: '~plugins/hotjar.js', ssr: false},
     // "@/plugins/vuetify",
     "@/plugins/veeValidate",
     "@/plugins/vueTour",

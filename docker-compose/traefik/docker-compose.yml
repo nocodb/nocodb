@@ -72,7 +72,7 @@ services:
         networks:
           - traefik_proxy
         environment:
-          - DATABASE_URL="postgresql://nocodb-db:5432/${DATABASE_NAME}?user=${DATABASE_USER}&password=${DATABASE_PW}"
+          - NC_DB=pg://nocodb-db:5432?u=${DATABASE_USER}&p=${DATABASE_PW}&d=${DATABASE_NAME}          
           - NC_PUBLIC_URL=https://nocodb.${DOMAINNAME}
           - NC_DISABLE_TELE=true
         labels:

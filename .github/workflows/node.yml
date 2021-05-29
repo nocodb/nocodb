@@ -38,10 +38,10 @@ jobs:
 #    - name: Test MSSQL GraphQL APIs
 #      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mssql
 #
-#    - name: Test PostgreSQL REST APIs
-#      run: cd ./packages/nocodb/  && docker-compose run xc-test-pg
-#    - name: Test PostgreSQL GraphQL APIs
-#      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-pg
+    - name: Test PostgreSQL REST APIs
+      run: cd ./packages/nocodb/  && docker-compose run xc-test-pg
+    - name: Test PostgreSQL GraphQL APIs
+      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-pg
 #
 #    - name: Test SQLite3 REST APIs
 #      run: cd ./packages/nocodb/  && docker-compose run xc-test-sqlite

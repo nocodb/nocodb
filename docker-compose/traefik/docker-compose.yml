@@ -82,8 +82,7 @@ services:
             - "traefik.http.routers.nocodb.entrypoints=https" 
             - "com.centurylinklabs.watchtower.enable=true"
         depends_on:
-          nocodb-db:
-            condition: service_healthy
+          - nocodb-db
             
     nocodb-db:
         image: postgres:12.1-alpine

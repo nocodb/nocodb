@@ -215,6 +215,7 @@ export default class Noco {
     this.metaMgr.setListener(runTimeHandler);
     await this.metaMgr.initHandler(this.router);
     this.router.use(this.config.dashboardPath, await this.ncToolApi.expressMiddleware());
+    this.router.get('/', (_req, res) => res.redirect(this.config.dashboardPath));
 
     this.initSentryErrorHandler();
 

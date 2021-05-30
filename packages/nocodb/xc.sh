@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # Ask the user for their name
 

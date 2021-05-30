@@ -1717,7 +1717,7 @@ export class PgUi {
         colProp.dt = 'text';
         break;
       case 'SingleSelect':
-        colProp.dt = 'enum';
+        colProp.dt = 'text';
         break;
       case 'Collaborator':
         colProp.dt = 'character varying';

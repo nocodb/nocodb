@@ -13,13 +13,6 @@
       v-model="localState"></editable-attachment-cell>
 
 
-    <text-cell v-else-if="isString" v-on="parentListeners" v-model="localState"></text-cell>
-
-    <text-area-cell
-      :is-form="isForm"
-      v-else-if="isTextArea" @input="$emit('save')" v-model="localState"
-      v-on="parentListeners"
-    ></text-area-cell>
 
     <boolean-cell :isForm="isForm" v-else-if="isBoolean" v-on="parentListeners"
                   v-model="localState" @input="$emit('change');"></boolean-cell>
@@ -58,6 +51,15 @@
                             v-on="parentListeners"></set-list-editable-cell>
     <set-list-cell :column="column" v-else-if="isSet" v-model="localState"
                    v-on="parentListeners"></set-list-cell>
+
+
+    <text-cell v-else-if="isString" v-on="parentListeners" v-model="localState"></text-cell>
+
+    <text-area-cell
+      :is-form="isForm"
+      v-else-if="isTextArea" @input="$emit('save')" v-model="localState"
+      v-on="parentListeners"
+    ></text-area-cell>
     <!--<set-list-checkbox-cell :column="column" v-else-if="isSet" v-model="localState"
                             v-on="parentListeners"></set-list-checkbox-cell>-->
 

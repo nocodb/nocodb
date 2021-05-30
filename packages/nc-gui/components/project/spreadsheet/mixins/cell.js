@@ -26,7 +26,7 @@ export default {
       return this.abstractType === 'string';
     },
     isTextArea() {
-      return this.abstractType === 'text';
+      return this.column.uidt === 'LongText';
     }, isInt() {
       return this.abstractType === 'integer';
     }, isFloat() {
@@ -40,9 +40,9 @@ export default {
     }, isJSON() {
       return this.abstractType === 'json';
     }, isEnum() {
-      return this.abstractType === 'enum';
+      return this.column.uidt === 'SingleSelect';
     }, isSet() {
-      return this.abstractType === 'set';
+      return this.column.uidt === 'MultiSelect';
     }, isAttachment() {
       return this.column.uidt === 'Attachment';
     }

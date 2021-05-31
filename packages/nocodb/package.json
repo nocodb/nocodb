@@ -93,7 +93,7 @@
     "archiver": "^5.0.2",
     "auto-bind": "^4.0.0",
     "aws-sdk": "^2.829.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "boxen": "^5.0.0",

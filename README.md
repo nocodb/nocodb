@@ -42,8 +42,13 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 ### Using Docker
 ```bash
-docker run -p 8080:8080 nocodb/nocodb
+docker run --name nocodb -p 8080:8080 nocodb/nocodb
 ```
+### Using Docker as daemon with named docker process as nocodb and access to databases on the host and automatic restart 
+```bash
+docker run -d --name nocodb -p 8080:8080  --restart always --network=host  nocodb/nocodb
+```
+
 ### Using Npm
 ```
 npx create-nocodb-app

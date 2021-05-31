@@ -1,77 +1,80 @@
 <template>
   <v-container fluid class="textColor--text">
-    <template v-if="formDetails">
-      <div class="title  d-flex align-center justify-center mb-4">
-        <div :style="{ background : plugin.title === 'SES' ? '#242f3e' : '' }"
-             class="mr-1 d-flex align-center justify-center"
-             :class="{ 'pa-2' : plugin.title === 'SES'}" v-if="plugin.logo">
-          <img
-            :src="plugin.logo" height="25">
+    <v-form v-model="valid">
+      <template v-if="formDetails">
+        <div class="title  d-flex align-center justify-center mb-4">
+          <div :style="{ background : plugin.title === 'SES' ? '#242f3e' : '' }"
+               class="mr-1 d-flex align-center justify-center"
+               :class="{ 'pa-2' : plugin.title === 'SES'}" v-if="plugin.logo">
+            <img
+              :src="plugin.logo" height="25">
+          </div>
+          <v-icon
+            color="#242f3e" size="30" v-else-if="plugin.icon" class="mr-1">{{ plugin.icon }}
+          </v-icon>
+
+          <span @dblclick="copyDefault">{{ formDetails.title }}</span>
         </div>
-        <v-icon
-          color="#242f3e" size="30" v-else-if="plugin.icon" class="mr-1">{{ plugin.icon }}
-        </v-icon>
 
-        <span @dblclick="copyDefault">{{ formDetails.title }}</span>
-      </div>
+        <v-divider class="mb-7"></v-divider>
+        <div v-if="formDetails.array">
 
-      <v-divider class="mb-7"></v-divider>
-      <div v-if="formDetails.array">
+          <table class="form-table mx-auto" >
+            <thead>
+            <tr>
+              <th v-for="(item,i) in formDetails.items" :key="i">
+                <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
+              </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(set,j) in settings" :key="j">
+              <td v-for="(item,i) in formDetails.items" :key="i">
+                <form-input :input-details="item" v-model="set[item.key]"></form-input>
+              </td>
+              <td v-if="j">
+                <x-icon small iconClass="pointer" color="error" @click="settings.splice(j,1)">mdi-delete-outline
+                </x-icon>
+              </td>
 
-        <table class="form-table mx-auto">
-          <thead>
-          <tr>
-            <th v-for="(item,i) in formDetails.items" :key="i">
+            </tr>
+
+            <tr>
+              <td :colspan="formDetails.items.length" class="text-center">
+                <x-icon iconClass="pointer" @click="settings.push({})">mdi-plus</x-icon>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+
+        </div>
+
+
+        <div class="form-grid" v-else>
+          <template v-for="(item,i) in formDetails.items">
+            <div :key="i" class="text-right form-input-label">
               <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
-            </th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="(set,j) in settings" :key="j">
-            <td v-for="(item,i) in formDetails.items" :key="i">
-              <form-input :input-details="item" v-model="set[item.key]"></form-input>
-            </td>
-            <td v-if="j">
-              <x-icon small iconClass="pointer" color="error" @click="settings.splice(j,1)">mdi-delete-outline</x-icon>
-            </td>
-
-          </tr>
-
-          <tr>
-            <td :colspan="formDetails.items.length" class="text-center">
-              <x-icon iconClass="pointer" @click="settings.push({})">mdi-plus</x-icon>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+            </div>
+            <div :key="i">
+              <form-input :input-details="item" v-model="settings[item.key]"></form-input>
+            </div>
+          </template>
+        </div>
 
 
-      </div>
-
-
-      <div class="form-grid" v-else>
-        <template v-for="(item,i) in formDetails.items">
-          <div :key="i" class="text-right">
-            <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
-          </div>
-          <div :key="i">
-            <form-input :input-details="item" v-model="settings[item.key]"></form-input>
-          </div>
-        </template>
-      </div>
-
-
-      <div class="d-flex mb-4 mt-7 justify-center">
-
-        <v-btn small
-               :outlined="action.key !== 'save'"
-               v-for="action in formDetails.actions" @click="doAction(action)"
-               :key="action.key"
-               :color="action.key === 'save' ? 'primary' : '' "
-        >{{ action.label }}
-        </v-btn>
-      </div>
-    </template>
+        <div class="d-flex mb-4 mt-7 justify-center">
+          <v-btn small
+                 :outlined="action.key !== 'save'"
+                 v-for="action in formDetails.actions" @click="doAction(action)"
+                 :key="action.key"
+                 :color="action.key === 'save' ? 'primary' : '' "
+                 :disabled="action.key === 'save'  && !valid"
+          >{{ action.label }}
+          </v-btn>
+        </div>
+      </template>
+    </v-form>
   </v-container>
 </template>
 
@@ -81,13 +84,14 @@ import FormInput from "@/components/project/appStore/FormInput";
 export default {
   name: "appInstall",
   components: {FormInput},
-  props: ['title','defaultConfig'],
+  props: ['title', 'defaultConfig'],
   data: () => ({
     plugin: null,
     formDetails: null,
     settings: null,
     pluginId: null,
-    title: null
+    title: null,
+    valid: null
   }),
   methods: {
     simpleAnim() {
@@ -201,42 +205,48 @@ export default {
 <style scoped lang="scss">
 
 ::v-deep {
-  input,
-  select,
-  textarea {
-    border: 1px solid #7f828b33;
-    padding: 1px 5px;
-    font-size: .8rem;
-    border-radius: 4px;
-
-    &:focus {
-      border: 1px solid var(--v-primary-base);
-    }
-
-    &:hover:not(:focus) {
-      box-shadow: 0 0 2px dimgrey;
-    }
-  }
-
-
-  input, textarea {
-    min-width: 300px;
-  }
+  //input,
+  //select,
+  //textarea {
+  //  border: 1px solid #7f828b33;
+  //  padding: 1px 5px;
+  //  font-size: .8rem;
+  //  border-radius: 4px;
+  //
+  //  &:focus {
+  //    border: 1px solid var(--v-primary-base);
+  //  }
+  //
+  //  &:hover:not(:focus) {
+  //    box-shadow: 0 0 2px dimgrey;
+  //  }
+  //}
+  //
+  //
+  //input, textarea {
+  //  min-width: 300px;
+  //}
 }
 
 .form-grid {
   display: grid;
   grid-template-columns:auto auto;
   column-gap: 10px;
-  row-gap: 20px
+  row-gap: 20px;
+  align-items: center;
 }
 
 
 .form-table {
   border: none;
+  min-width: 400px;
 }
 
 tbody tr:nth-of-type(odd) {
   background-color: transparent;
+}
+
+.form-input-label{
+  padding-bottom: 16px;
 }
 </style>

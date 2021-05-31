@@ -1,14 +1,16 @@
 <template>
-  <div class="wrapper">
-    <input
-      :placeholder="inputDetails.placeholder || ''"
-      :type="show ? 'text' : 'password'"
-      v-on="parentListeners" v-model="localState" class="caption">
-    <v-icon small class="toggle-icon" @click="show = !show">
-
-      {{ show ? 'visibility_off' : 'visibility' }}
-    </v-icon>
-  </div>
+  <!--
+  todo : add toggle button
+  -->
+  <v-text-field
+    type="password"
+    dense
+    outlined
+    :rules="[v => !!v || !inputDetails.required  || 'Required']"
+    :name="inputDetails.key"
+    :required="inputDetails.valid"
+    :placeholder="inputDetails.placeholder || ''"
+    v-on="parentListeners" v-model="localState" class="caption"/>
 </template>
 
 <script>

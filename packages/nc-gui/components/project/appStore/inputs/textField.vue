@@ -1,7 +1,12 @@
 <template>
-  <input
+  <v-text-field
+    dense
+    outlined
+    :rules="[v => !!v || !inputDetails.required  || 'Required']"
+    :name="inputDetails.key"
+    :required="inputDetails.valid"
     :placeholder="inputDetails.placeholder || ''"
-    v-on="parentListeners" v-model="localState" class="caption">
+    v-on="parentListeners" v-model="localState" class="caption"/>
 </template>
 
 <script>

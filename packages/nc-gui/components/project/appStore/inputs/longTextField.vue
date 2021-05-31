@@ -1,8 +1,13 @@
 <template>
-    <textarea
-      :placeholder="inputDetails.placeholder || ''"
-      v-on="parentListeners" v-model="localState" class="caption" rows="3"
-             ></textarea>
+  <v-textarea
+    dense
+    outlined
+    :rules="[v => !!v || !inputDetails.required  || 'Required']"
+    :name="inputDetails.key"
+    :placeholder="inputDetails.placeholder || ''"
+    v-on="parentListeners" v-model="localState" class="caption" rows="3"
+    :required="inputDetails.valid"
+  ></v-textarea>
 
 </template>
 

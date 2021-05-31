@@ -243,7 +243,7 @@
         "tags": [
           "Authentication"
         ],
-        "summary": "USer details",
+        "summary": "User details",
         "description": "",
         "operationId": "userDetails",
         "produces": [

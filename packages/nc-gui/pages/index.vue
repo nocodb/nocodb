@@ -104,7 +104,7 @@ a revolutionary tech comes
       </p>
 
 
-      <v-carousel class="mt-14" v-if="typed" hide-delimiters height="50" :show-arrows="false" cycle interval="1500">
+      <v-carousel class="mt-14" v-show="typed" hide-delimiters height="50" :show-arrows="false" cycle interval="1500">
         <v-carousel-item
           v-for="(item,i) in carItems"
           :key="i"
@@ -501,7 +501,7 @@ export default {
         this.simpleAnim();
         // const int = setInterval(() => {
         //   if (++this.showAnimText === 3) clearInterval(int)
-        // },2000)
+        // },2000) f
       }
     };
     document.addEventListener('mousemove', handler)

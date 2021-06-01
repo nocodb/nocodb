@@ -67,7 +67,7 @@
 
 
       <v-spacer></v-spacer>
-      <div style="position: absolute; top:0;left:0;width:100%; pointer-events: none">
+      <div style="position: absolute; top:0;left:0;width:100%; pointer-events: none" class="d-flex align-center">
         <h5 class="text-center mx-auto mb-0 mt-1 title font-weight-bold text-capitalize"
             v-if="isDashboard && $store.getters['project/GtrProjectName'] !== '__project__'">
           <v-icon small class="mr-2\1" color="grey lighten-2">
@@ -1296,28 +1296,8 @@ export default {
     },
     changeTheme() {
       this.$store.dispatch('windows/ActToggleDarkMode', !this.$store.state.windows.darkTheme);
-    },
-    // async loadRoles() {
-    //   if (this.$store.getters['users/GtrIsAdmin']) {
-    //     const roles = (await this.$axios.get('/admin/roles', {
-    //       headers: {
-    //         'xc-auth': this.$store.state.users.token
-    //       }
-    //     })).data;
-    //     this.rolesList = roles.filter(role => !['owner', 'creator', 'guest'].includes(role.title))
-    //   } else {
-    //     this.rolesList = null;
-    //     this.previewAs = null;
-    //   }
-    // }
+    }
   },
-  // async created() {
-  // await this.loadRoles();
-  //   this.$store.watch(
-  //     state => state.users && state.users.user,
-  //     async (user) => await this.loadRoles()
-  //   );
-  // },
 
 };
 </script>
@@ -1363,6 +1343,11 @@ a {
   animation-duration: 4.5s;
   animation-iteration-count: infinite;
 }
+
+/deep/ .v-toolbar__items{
+  align-items: center;
+}
+
 
 </style>
 

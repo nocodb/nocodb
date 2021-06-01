@@ -19,7 +19,7 @@
           </template>
           <v-list dense>
             <v-list-item v-for="col in availableColumns" :key="col.cn"
-                         @click="searchField = col.cn">
+                         @click="searchField = col._cn">
               <span class="caption">{{ col._cn }}</span>
             </v-list-item>
           </v-list>

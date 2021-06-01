@@ -85,7 +85,7 @@ export default {
     concatenatedXWhere() {
       let where = '';
       if (this.searchField && this.searchQuery.trim()) {
-        if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.availableColumns.find(({_cn}) => _cn === this.searchField)))) {
+        if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.availableColumns.find(({_cn}) => _cn === this.searchField) || this.availableColumns[0]))) {
           where = `(${this.searchField},like,%${this.searchQuery.trim()}%)`
         } else {
           where = `(${this.searchField},eq,${this.searchQuery.trim()})`

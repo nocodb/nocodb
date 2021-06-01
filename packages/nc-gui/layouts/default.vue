@@ -47,7 +47,7 @@
               </x-icon>
             </a>
 
-            <a href="https://calendly.com/xgenecloud/demo" target="_blank">
+            <a href="https://calendso.com/NocoDB" target="_blank">
               <x-icon iconClass="ml-4" tooltip="Book a demo">
                 mdi-video-outline
               </x-icon>
@@ -55,7 +55,7 @@
 
       <!--      <x-btn btn.class=" mr-4" small text-->
       <!--             tooltip="We'll help you get started over a video call"-->
-      <!--             @click="openUrl('https://calendly.com/xgenecloud/demo')">-->
+      <!--             @click="openUrl('https://calendso.com/NocoDB')">-->
       <!--        <v-icon-->
 
       <!--          color="">-->

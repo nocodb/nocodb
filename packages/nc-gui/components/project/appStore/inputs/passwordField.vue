@@ -3,14 +3,18 @@
   todo : add toggle button
   -->
   <v-text-field
-    type="password"
+    :type="show ? 'text' : 'password'"
     dense
     outlined
     :rules="[v => !!v || !inputDetails.required  || 'Required']"
     :name="inputDetails.key"
     :required="inputDetails.valid"
     :placeholder="inputDetails.placeholder || ''"
-    v-on="parentListeners" v-model="localState" class="caption"/>
+    v-on="parentListeners" v-model="localState" class="caption">
+    <template v-slot:append>
+      <v-icon @click="show = !show">{{show ? 'visibility_off' : 'visibility'}}</v-icon>
+    </template>
+  </v-text-field>
 </template>
 
 <script>

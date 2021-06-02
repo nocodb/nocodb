@@ -24,7 +24,7 @@
             </v-tooltip>
           </td>
         </tr>
-        <tr>
+        <!--<tr>
           <td>Show metatables</td>
           <td>
             <v-tooltip bottom>
@@ -37,7 +37,7 @@
               Show/hide metatables
             </v-tooltip>
           </td>
-        </tr>
+        </tr>-->
         <tr>
           <td>Show Screensaver</td>
           <td>

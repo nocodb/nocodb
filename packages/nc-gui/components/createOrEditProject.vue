@@ -9,8 +9,6 @@
         v-model="valid">
         <v-card class="elevation-5"
                 ref="mainCard">
-
-
           <div
             v-if="!edit"
             style="position: absolute;top:-30px;
@@ -440,30 +438,34 @@
                                                     </v-select>
 
                                                     <v-row class="pa-0 ma-0">
+                                                      <input type="file" ref="certFilePath" class="d-none"/>
                                                       <x-btn tooltip="Select .cert file"
                                                              small
                                                              color="primary"
                                                              outlined
-                                                             @click="selectFile(db,'ssl', 'certFilePath')"
+                                                             @click="selectFile(db,'ssl', 'certFilePath',dbIndex)"
                                                              class="elevation-5"
                                                              v-ge="['project','env-db-cert']"
                                                       >{{ db.ui.ssl.cert }}
                                                       </x-btn>
+
+                                                      <input type="file" ref="keyFilePath" class="d-none"/>
                                                       <x-btn tooltip="Select .key file"
                                                              small
                                                              color="primary"
                                                              outlined
-                                                             @click="selectFile(db,'ssl', 'keyFilePath')"
+                                                             @click="selectFile(db,'ssl', 'keyFilePath',dbIndex)"
                                                              v-ge="['project','env-db-key']"
                                                              class="elevation-5"
                                                       >{{ db.ui.ssl.key }}
                                                       </x-btn>
 
+                                                      <input type="file" ref="caFilePath" class="d-none"/>
                                                       <x-btn tooltip="Select CA file"
                                                              small
                                                              color="primary"
                                                              outlined
-                                                             @click="selectFile(db,'ssl', 'caFilePath')"
+                                                             @click="selectFile(db,'ssl', 'caFilePath',dbIndex)"
                                                              v-ge="['project','env-db-ca']"
                                                       >{{ db.ui.ssl.ca }}
                                                       </x-btn>
@@ -1208,19 +1210,21 @@ export default {
       // shell.openItem(path.join(this.project.folder, 'config.xc.json'));
     },
 
-    selectFile(db, obj, key) {
+    selectFile(db, obj, key, index) {
+      // this.$refs[key][index].click()
+
       // console.log(obj, key);
-      const file = dialog.showOpenDialog({
-        properties: ["openFile"]
-      });
-      console.log(typeof file, file, typeof file[0]);
-      if (file && file[0]) {
-        let fileName = path.basename(file[0]);
-        db.ui[obj][key] = fileName;
-        Vue.set(db.ui[obj], key, fileName)
-        //db.connection[obj][key] = file[0].toString();
-        Vue.set(db.connection[obj], key, file[0].toString())
-      }
+      // const file = dialog.showOpenDialog({
+      //   properties: ["openFile"]
+      // });
+      // console.log(typeof file, file, typeof file[0]);
+      // if (file && file[0]) {
+      //   let fileName = path.basename(file[0]);
+      //   db.ui[obj][key] = fileName;
+      //   Vue.set(db.ui[obj], key, fileName)
+      //   //db.connection[obj][key] = file[0].toString();
+      //   Vue.set(db.connection[obj], key, file[0].toString())
+      // }
     },
     onPanelToggle(panelIndex, envKey) {
       this.$nextTick(() => {

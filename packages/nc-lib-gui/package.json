@@ -1,6 +1,6 @@
 {
   "name": "nc-lib-gui",
-  "version": "0.1.211",
+  "version": "0.1.213",
   "description": "> TODO: description",
   "author": "“pranavxc” <pranavxc@gmail.com>",
   "homepage": "https://gitlab.com/xgenecloud-ts/xgenecloud-ts#readme",
@@ -27,11 +27,7 @@
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "dayjs": "^1.10.4",
-    "emittery": "^0.7.1",
     "express": "^4.17.1",
-    "multer": "^1.4.2",
-    "node-pty-prebuilt-multiarch": "^0.9.0",
-    "socket.io": "^2.3.0",
     "vuedraggable": "^2.24.3"
   }
 }

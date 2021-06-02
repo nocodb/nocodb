@@ -39,6 +39,20 @@
           </td>
         </tr>
         <tr>
+          <td>Show Screensaver</td>
+          <td>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on }">
+                <v-checkbox v-model="showScreensaver" v-on="on" x-large
+                            color="primary">
+                  mdi-bat
+                </v-checkbox>
+              </template>
+              Show/hide metatables
+            </v-tooltip>
+          </td>
+        </tr>
+        <tr>
           <td>Language</td>
           <td>
             <v-radio-group v-model="language" row>
@@ -179,6 +193,14 @@ export default {
       },
       set(show) {
         this.$store.commit('windows/MutMetatables', show)
+      }
+    },
+    showScreensaver: {
+      get() {
+        return this.$store.state.windows.screensaver;
+      },
+      set(show) {
+        this.$store.commit('windows/MutScreensaver', show)
       }
     }
   },

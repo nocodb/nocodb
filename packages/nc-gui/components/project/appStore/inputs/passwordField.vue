@@ -1,7 +1,4 @@
 <template>
-  <!--
-  todo : add toggle button
-  -->
   <v-text-field
     :type="show ? 'text' : 'password'"
     dense

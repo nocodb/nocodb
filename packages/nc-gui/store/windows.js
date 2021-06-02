@@ -43,12 +43,15 @@ export const state = () => ({
   isComp: false,
   metatables: false,
   nc: true,
-  miniSponsorCard: 0
+  miniSponsorCard: 0,
+  screensaver: true
 });
 
 export const mutations = {
   MutToggleLogWindow(state, show) {
     state.logWindow = !state.logWindow;
+  }, MutScreensaver(state, show) {
+    state.screensaver = show;
   }, MutToggleDarkMode(state, status) {
     if (typeof status !== 'boolean') status = !state.darkTheme;
     state.darkTheme = status;

@@ -278,7 +278,7 @@ export default {
       let position = 0;
       let idleTime = 0;
       //Increment the idle time counter every minute.
-      let idleInterval = setInterval(timerIncrement, 1000); // 1 minute
+      let idleInterval = setInterval(timerIncrement, 1000);
 
       const self = this;
       //Zero the idle timer on mouse movement.
@@ -311,7 +311,7 @@ export default {
             }
           }
 
-          self.showScreensaver = true;
+          self.showScreensaver = self.$store.state.windows.screensaver;
           scrolltitle();
           clearInterval(idleInterval)
         }

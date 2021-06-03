@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.9.22",
+  "version": "0.9.23",
   "description": "xc-cli",
   "main": "dist/bundle.js",
   "repository": "https://github.com/nocodb/nocodb/nc-cli",
@@ -54,8 +54,8 @@
     "postbuild": "npm run copy-files",
     "copy-files": "copyfiles -u 1 \"src/**/*.ejs\" build/main && copyfiles -u 1 \"src/**/*.ejs\" build/module && copyfiles -u 1 \"src/**/*.ejs\" docker",
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js",
-    "docker:image:build": "docker build . -t nocodb/nocodb:latest -t nocodb/nocodb:0.9.22 --no-cache",
-    "docker:image:deploy": "docker push nocodb/nocodb:latest && docker push  nocodb/nocodb:0.9.22",
+    "docker:image:build": "docker build . -t nocodb/nocodb:latest -t nocodb/nocodb:0.9.23 --no-cache",
+    "docker:image:deploy": "docker push nocodb/nocodb:latest && docker push  nocodb/nocodb:0.9.23",
     "docker:build:publish:image": "npm run build && npm run docker:build && npm run docker:image:build  && npm run docker:image:deploy",
     "docker:s3:image:build": "docker build . --file litestream/Dockerfile -t xgenecloud/xc-s3:latest -t xgenecloud/xc-s3:0.0.1 --no-cache",
     "docker:s3:image:deploy": "docker push xgenecloud/xc-s3:latest && docker push  xgenecloud/xc-s3:0.0.1",

@@ -2,7 +2,8 @@ import {
   // ModelXcMetaFactory,
   MysqlClient, PgClient, SqlClient,
   // ExpressXcPolicy,
-  SqlClientFactory} from 'nc-help';
+  SqlClientFactory
+} from 'nc-help';
 import Noco from "../Noco";
 import {Acls, DbConfig, NcConfig} from "../../../interface/config";
 import XcDynamicChanges from "../../../interface/XcDynamicChanges";
@@ -319,6 +320,9 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`onTableUpdate : '%s'`, tn);
     this.baseLog(`onTableUpdate : Getting old model meta for '%s'`, tn)
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
+
+    const relationTableMetas:Set<any> = new Set();
+
     const oldModelRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
       title: tn
     });
@@ -362,9 +366,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
     /* get ACL row  */
-    const aclRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {
-      tn
-    });
+    const aclRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {tn});
 
     const acl = JSON.parse(aclRow.acl);
     const oldMeta = JSON.parse(oldModelRow.meta);
@@ -392,13 +394,16 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
             cn: column.cn
           }, {
-            cn: column.cno
+            cn: column.cno,
+            tn
           })
           await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
             rcn: column.cn
           }, {
-            rcn: column.cno
+            rcn: column.cno,
+            rtn: tn
           })
+
           aclOper.push(async () => this.modifyColumnNameInACL(tn, column.cno, column.cn));
 
           // virtual views param update
@@ -418,6 +423,45 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             /* update filters */
             if (JSON.stringify(filters).includes(`"${column.cno}"`)) {
               filters.splice(0, filters.length);
+            }
+          }
+
+          // update relation column name in meta data
+          // update column name in belongs to
+          if (newMeta.belongsTo?.length) {
+            for (const bt of newMeta.belongsTo) {
+              if (bt.cn === column.cno) {
+                bt.cn = column.cn;
+                bt._cn = column._cn;
+
+                // update column name in parent table metadata
+                relationTableMetas.add(this.metas[bt.rtn])
+                for(const pHm of this.metas[bt.rtn]?.hasMany){
+                  if(pHm.cn  === column.cno && pHm.tn === tn){
+                    pHm.cn = column.cn;
+                    pHm._cn = column._cn;
+                  }
+                }
+              }
+            }
+          }
+
+          // update column name in has many
+          if (newMeta.hasMany?.length) {
+            for (const hm of newMeta.hasMany) {
+              if (hm.rcn === column.cno) {
+                hm.rcn = column.cn;
+                hm._rcn = column._cn;
+
+                // update column name in child table metadata
+                relationTableMetas.add(this.metas[hm.tn])
+                for(const cBt of this.metas[hm.tn]?.belongsTo){
+                  if(cBt.rcn  === column.cno && cBt.rtn === tn){
+                    cBt.rcn = column.cn;
+                    cBt._rcn = column._cn;
+                  }
+                }
+              }
             }
           }
         }
@@ -468,8 +512,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             filters.splice(0, filters.length);
           }
         }
-
-
       } else if (column.altered === 1) {
         // handle new col -- no change
         for (const permObj of Object.values(acl)) {
@@ -524,12 +566,20 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
+
+    // update relation tables metadata
+    for(const relMeta of relationTableMetas){
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        meta: JSON.stringify(relMeta)
+      }, {
+        title: relMeta.tn
+      });
+    }
   }
 
 
   public async onViewUpdate(viewName: string, beforeMetaUpdate?: (args: any) => Promise<void>): Promise<void> {
     this.baseLog(`onViewUpdate : '%s'`, viewName);
-
     this.baseLog(`onViewUpdate : Getting old model meta of '%s' view`, viewName)
 
     const oldModelRow = this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {

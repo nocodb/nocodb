@@ -438,7 +438,10 @@
                                                     </v-select>
 
                                                     <v-row class="pa-0 ma-0">
-                                                      <input type="file" ref="certFilePath" class="d-none"/>
+
+                                                      <input type="file" ref="certFilePath" class="d-none"
+                                                             @change="readFileContent(db,'ssl','cert',dbIndex)"
+                                                      />
                                                       <x-btn tooltip="Select .cert file"
                                                              small
                                                              color="primary"
@@ -449,7 +452,8 @@
                                                       >{{ db.ui.ssl.cert }}
                                                       </x-btn>
 
-                                                      <input type="file" ref="keyFilePath" class="d-none"/>
+                                                      <input type="file" ref="keyFilePath" class="d-none"
+                                                             @change="readFileContent(db,'ssl','key',dbIndex)"/>
                                                       <x-btn tooltip="Select .key file"
                                                              small
                                                              color="primary"
@@ -460,7 +464,8 @@
                                                       >{{ db.ui.ssl.key }}
                                                       </x-btn>
 
-                                                      <input type="file" ref="caFilePath" class="d-none"/>
+                                                      <input type="file" ref="caFilePath" class="d-none"
+                                                             @change="readFileContent(db,'ssl','ca',dbIndex)"/>
                                                       <x-btn tooltip="Select CA file"
                                                              small
                                                              color="primary"
@@ -769,7 +774,7 @@ import MonacoJsonEditor from "@/components/monaco/MonacoJsonEditor";
 import JSON5 from 'json5';
 
 const {uniqueNamesGenerator, starWars, adjectives, animals} = require('unique-names-generator');
-
+import readFile from "@/helpers/fileReader";
 
 import {mapGetters, mapActions, mapState, mapMutations} from "vuex";
 import Vue from 'vue';
@@ -1209,9 +1214,13 @@ export default {
     openJsonInSystemEditor() {
       // shell.openItem(path.join(this.project.folder, 'config.xc.json'));
     },
-
+    readFileContent(db, obj, key, index) {
+      readFile(this.$refs[`${key}FilePath`][index], (data) => {
+        Vue.set(db.connection[obj], key, data)
+      })
+    },
     selectFile(db, obj, key, index) {
-      // this.$refs[key][index].click()
+      this.$refs[key][index].click()
 
       // console.log(obj, key);
       // const file = dialog.showOpenDialog({
@@ -1428,7 +1437,7 @@ export default {
       let i = 0;
       const toast = this.$toast.info(this.loaderMessages[0]);
       const interv = setInterval(() => {
-        if(this.edit) return
+        if (this.edit) return
         if (i < this.loaderMessages.length - 1) i++;
         if (toast) {
           if (!this.allSchemas) {

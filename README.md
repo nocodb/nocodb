@@ -23,7 +23,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 </p>  
 
 <p align="center">
-    <img src="/static/open-source-airtable-alternative/OpenSourceAirtableAlternative.png" width="100%">
+    <img src="static/open-source-airtable-alternative/OpenSourceAirtableAlternative.png" width="100%">
     <br/><br/>
 </p>
 

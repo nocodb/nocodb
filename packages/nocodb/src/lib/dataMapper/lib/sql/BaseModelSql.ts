@@ -1107,13 +1107,14 @@ class BaseModelSql extends BaseModel {
   async _getChildListInParent({parent, child}, rest = {}, index) {
     let {fields, where, limit, offset, sort} = this._getChildListArgs(rest, index);
     const {cn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
+    const _cn = this.dbModels[child].columnToAlias?.[cn];
 
     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
       fields += ',' + cn;
     }
 
 
-    let childs = await this._run(this.dbDriver.union(
+    const childs = await this._run(this.dbDriver.union(
       parent.map(p => {
         const query =
           this
@@ -1122,15 +1123,14 @@ class BaseModelSql extends BaseModel {
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select(this.dbModels[child].selectQuery(fields)) // ...fields.split(','));
 
-
-        this._paginateAndSort(query, {sort, limit, offset}, null, true);
+        this._paginateAndSort(query, {sort, limit, offset}, null,true);
         return this.isSqlite() ? this.dbDriver.select().from(query) : query;
       }), !this.isSqlite()
     ));
 
-    let gs = _.groupBy(childs, cn);
+    let gs = _.groupBy(childs, _cn);
     parent.forEach(row => {
-      row[this.dbModels?.[child]?._tn || child] = gs[row[this.pks[0].cn]] || [];
+      row[this.dbModels?.[child]?._tn || child] = gs[row[this.pks[0]._cn]] || [];
     })
   }
 
@@ -1390,7 +1390,7 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} query appended with paginate and sort params
    * @private
    */
-  _paginateAndSort(query, {limit = 20, offset = 0, sort = ''}: XcFilter, table?: string, isUnion?: boolean) {
+  _paginateAndSort(query, {limit = 20, offset = 0, sort = ''}: XcFilter, table?: string, isUnion?:boolean) {
     query.offset(offset)
       .limit(limit);
 

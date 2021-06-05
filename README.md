@@ -143,9 +143,6 @@ docker run -p 8080:8080 -e NC_DB="pg://host:port?u=user&p=password&d=database" n
 docker run -p 8080:8080 -e NC_DB="mssql://host:port?u=user&p=password&d=database" nocodb/nocodb
 ```
 
-
-
-
 ## Environment variables 
 | Variable                | Mandatory | Comments                                                                         | If absent                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
@@ -156,6 +153,32 @@ docker run -p 8080:8080 -e NC_DB="mssql://host:port?u=user&p=password&d=database
 | NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
+
+# Running locally 
+```
+git clone https://github.com/nocodb/nocodb
+cd nocodb
+
+# run backend
+cd packages/nocodb
+npm install
+npm run watch:run
+
+# open localhost:8080/dashboard in browser
+
+# run frontend 
+cd packages/nc-gui
+npm install
+npm run dev
+
+# open localhost:3000/dashboard in browser
+```
+
+Changes made to code automatically restart.
+
+# Contributing
+- Please take a look at ./contribute/HowToApplyLicense.md 
+- Ignore adding headers for .json or .md or .yml   
 
 # 🎯  Why are we building this ?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
@@ -184,6 +207,11 @@ Our mission is to provide the most powerful no-code interface for databases whic
 <a hrer=""><img src="https://avatars.githubusercontent.com/u/508624?v=4" title="" width="50" height="50"></a>
 <a hrer=""><img src="https://avatars.githubusercontent.com/u/8931?v=4" title="" width="50" height="50"></a>
 <a hrer=""><img src="https://avatars.githubusercontent.com/u/26602940?v=4" title="" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/35857179?v=4" title="" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/6248560?v=4" title="" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/4980165?v=4" title="" width="50" height="50"></a>
+<a hrer=""><img src="https://avatars.githubusercontent.com/u/1503577?v=4" title="" width="50" height="50"></a>
 
 - - - - - - -
+
 

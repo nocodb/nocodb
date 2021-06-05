@@ -20,7 +20,7 @@ class ModelXcMetaMysql extends BaseRender {
    */
   prepare() {
 
-    const data:any = {};
+    const data: any = {};
 
     /* example of simple variable */
     data.tn = this.ctx.tn;
@@ -181,7 +181,53 @@ class ModelXcMetaMysql extends BaseRender {
       columnsArr.push(columnObj)
     }
 
+    // pk can be at the end
 
+    //
+
+
+    /*
+
+      if PK is at the end of table
+         if (there is a column for PV)
+              make that PV
+         else
+              lets think
+      else if (pk is not at the end of table)
+         if (there is a column for PV)
+              make that PV
+         else
+              lets think
+      else if ( no pk at all)
+          let's think
+        */
+
+    if (!columnsArr.some(column => column.pv)) {
+      let len = columnsArr.length;
+      let pkIndex = -1;
+
+      while (len--) {
+        if (columnsArr[len].pk) {
+          pkIndex = len;
+          break;
+        }
+      }
+
+      // if PK is at the end of table
+      if (pkIndex === columnsArr.length - 1) {
+        if (pkIndex > 0) {
+          columnsArr[pkIndex - 1].pv = true;
+        }
+      }
+      // pk is not at the end of table
+      else if (pkIndex > -1) {
+        columnsArr[pkIndex + 1].pv = true;
+      }
+      //  no pk at all
+      else {
+        // todo:
+      }
+    }
     return columnsArr;
 
   }
@@ -319,7 +365,7 @@ class ModelXcMetaMysql extends BaseRender {
   }
 
 
-  _getUIDataType(col):any {
+  _getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';
@@ -356,7 +402,7 @@ class ModelXcMetaMysql extends BaseRender {
   }
 
 
-  getAbstractType(col):any {
+  getAbstractType(col): any {
     switch ((col.dt || col.dt).toLowerCase()) {
       case "int":
       case "smallint":

@@ -2,8 +2,6 @@
   <div class="d-flex align-center">
 
 
-
-
     <v-icon v-if="column.pk" color="warning" x-small class="mr-1">mdi-key-variant</v-icon>
     <v-icon v-else-if="uiDatatypeIcon" small class="mr-1">{{ uiDatatypeIcon }}</v-icon>
 
@@ -31,12 +29,21 @@
         <v-icon v-on="on" small v-if="!isVirtual">mdi-menu-down</v-icon>
       </template>
       <v-list dense>
-        <v-list-item @click="editColumnMenu = true">
-          <v-icon small class="mr-1">mdi-pencil</v-icon>
+        <v-list-item dense @click="editColumnMenu = true">
+          <x-icon small class="mr-1" color="primary">mdi-pencil</x-icon>
           <span class="caption">Edit</span>
         </v-list-item>
+        <v-list-item dense @click="setAsPrimaryValue">
+          <x-icon small class="mr-1" color="primary">mdi-key-star</x-icon>
+          <v-tooltip bottom>
+            <template v-slot:activator="{on}">
+              <span class="caption" v-on="on">Set as Primary value</span>
+            </template>
+            <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
+          </v-tooltip>
+        </v-list-item>
         <v-list-item @click="columnDeleteDialog = true">
-          <v-icon small class="mr-1">mdi-delete-outline</v-icon>
+          <x-icon small class="mr-1" color="error">mdi-delete-outline</x-icon>
           <span class="caption">Delete</span>
         </v-list-item>
       </v-list>
@@ -89,7 +96,7 @@ import EditColumn from "@/components/project/spreadsheet/editColumn/editColumn";
 
 export default {
   components: {EditColumn},
-  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView','isVirtual'],
+  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView', 'isVirtual'],
   name: "headerCell",
   mixins: [cell],
   data: () => ({
@@ -116,6 +123,34 @@ export default {
       } catch (e) {
         console.log(e)
       }
+    }, async setAsPrimaryValue() {
+      try {
+        const meta = JSON.parse(JSON.stringify(this.meta));
+        for (const col of meta.columns) {
+          if (col.pv) {
+            delete col.pv;
+          }
+          if (col.cn === this.column.cn) {
+            col.pv = true;
+          }
+        }
+
+
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcModelSet', {
+          tn: this.nodes.tn,
+          meta
+        }]);
+        this.$toast.success('Successfully updated as primary column').goAway(3000);
+      } catch (e) {
+        console.log(e)
+        this.$toast.error('Failed to update primary column').goAway(3000);
+      }
+      this.$emit('saved');
+      this.columnDeleteDialog = false;
+
     }
   }
 }

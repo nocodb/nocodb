@@ -146,8 +146,8 @@ export default {
       return this.nodes.tn || this.nodes.view_name
     },
     primaryValueColumn() {
-      if (!this.meta || !this.availableColumns) return '';
-      return this.availableColumns.length ? this.availableColumns[0]._cn : '';
+      if (!this.meta || !this.availableColumns || !this.availableColumns.length) return '';
+      return (this.availableColumns.find(col => col.pv) || {_cn: ''})._cn;
     },
   },
   watch: {

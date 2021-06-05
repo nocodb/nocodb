@@ -102,7 +102,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
               })
               break;
             case 'URL':
-              this.handleHttpWebHook(hook.notification?.payload)
+              this.handleHttpWebHook(hook.notification?.payload, req, data,)
               break;
             default:
               if (this.webhookNotificationAdapters && hook.notification?.type && hook.notification?.type in this.webhookNotificationAdapters) {
@@ -121,26 +121,30 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     }
   }
 
-  private async handleHttpWebHook(apiMeta) {
+  private async handleHttpWebHook(apiMeta, reqObj, data) {
     try {
-      const req = this.axiosRequestMake(apiMeta);
+      const req = this.axiosRequestMake(apiMeta, reqObj, data);
       await require('axios')(req);
     } catch (e) {
       console.log(e)
     }
   }
 
-  private axiosRequestMake(apiMeta) {
+  private axiosRequestMake(apiMeta, reqObj, data) {
     if (apiMeta.body) {
       try {
-        apiMeta.body = JSON.parse(apiMeta.body);
+        apiMeta.body = JSON.parse(apiMeta.body, (_key, value) => {
+          return typeof value === 'string' ? this.parseBody(value, reqObj, data, {}) : value;
+        });
       } catch (e) {
         console.log(e);
       }
     }
     if (apiMeta.auth) {
       try {
-        apiMeta.auth = JSON.parse(apiMeta.auth);
+        apiMeta.auth = JSON.parse(apiMeta.auth, (_key, value) => {
+          return typeof value === 'string' ? this.parseBody(value, reqObj, data, {}) : value;
+        });
       } catch (e) {
         console.log(e);
       }
@@ -149,16 +153,16 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     const req = {
       params: apiMeta.parameters ? apiMeta.parameters.reduce((paramsObj, param) => {
         if (param.name && param.enabled) {
-          paramsObj[param.name] = param.value;
+          paramsObj[param.name] = this.parseBody(param.value, reqObj, data, {});
         }
         return paramsObj;
       }, {}) : {},
-      url: apiMeta.path,
+      url: this.parseBody(apiMeta.path, reqObj, data, {}),
       method: apiMeta.method,
       data: apiMeta.body,
       headers: apiMeta.headers ? apiMeta.headers.reduce((headersObj, header) => {
         if (header.name && header.enabled) {
-          headersObj[header.name] = header.value;
+          headersObj[header.name] = this.parseBody(header.value, reqObj, data, {});
         }
         return headersObj;
       }, {}) : {},

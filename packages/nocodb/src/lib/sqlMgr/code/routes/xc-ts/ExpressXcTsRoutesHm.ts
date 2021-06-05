@@ -34,7 +34,7 @@ class ExpressXcTsRoutesHm extends BaseRender {
     const ejsData: any = this.prepare();
     return [
       {
-        path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/has/${ejsData._ctn}`,
+        path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/has/:childs`, //  ${ejsData._ctn}
         type: 'get',
         handler: ['hasManyList'],
         acl: {

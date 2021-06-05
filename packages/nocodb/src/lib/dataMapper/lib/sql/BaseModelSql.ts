@@ -253,7 +253,7 @@ class BaseModelSql extends BaseModel {
       const query = driver(this.tn).insert(insertObj);
 
       if (this.dbDriver.clientType() === 'pg' || this.dbDriver.clientType() === 'mssql') {
-        query.returning(Object.entries(this.aliasToColumn).map(([val,key]) => `${key} as ${val}`));
+        query.returning(Object.entries(this.aliasToColumn).map(([val, key]) => `${key} as ${val}`));
         response = await this._run(query);
       }
 
@@ -1085,7 +1085,7 @@ class BaseModelSql extends BaseModel {
    * @private
    */
   async _getChildListInParent({parent, child}, rest = {}, index) {
-    let {fields, where, limit, offset, sort} = this._getChildListArgs(rest, index);
+    let {fields, where, limit, offset, sort} = this._getChildListArgs(rest, index, child);
     const {cn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
     const _cn = this.dbModels[child].columnToAlias?.[cn];
 
@@ -1103,7 +1103,7 @@ class BaseModelSql extends BaseModel {
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select(this.dbModels[child].selectQuery(fields)) // ...fields.split(','));
 
-        this._paginateAndSort(query, {sort, limit, offset}, null,true);
+        this._paginateAndSort(query, {sort, limit, offset}, null, true);
         return this.isSqlite() ? this.dbDriver.select().from(query) : query;
       }), !this.isSqlite()
     ));
@@ -1247,7 +1247,7 @@ class BaseModelSql extends BaseModel {
    * @private
    */
   async _belongsTo({parent, rcn, parentIds, childs, cn, ...rest}, index) {
-    let {fields} = this._getChildListArgs(rest, index);
+    let {fields} = this._getChildListArgs(rest, index, parent);
     if (fields !== '*' && fields.split(',').indexOf(rcn) === -1) {
       fields += ',' + rcn;
     }
@@ -1370,7 +1370,7 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} query appended with paginate and sort params
    * @private
    */
-  _paginateAndSort(query, {limit = 20, offset = 0, sort = ''}: XcFilter, table?: string, isUnion?:boolean) {
+  _paginateAndSort(query, {limit = 20, offset = 0, sort = ''}: XcFilter, table?: string, isUnion?: boolean) {
     query.offset(offset)
       .limit(limit);
 
@@ -1443,18 +1443,24 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} consisting of fields*,where*,limit*,offset*,sort*
    * @private
    */
-  _getChildListArgs(args: any, index?: number) {
+  _getChildListArgs(args: any, index?: number, child?: string) {
     index++;
     let obj: XcFilter = {};
     obj.where = args[`where${index}`] || args[`w${index}`] || '';
     obj.limit = Math.max(Math.min(args[`limit${index}`] || args[`l${index}`] || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
     obj.offset = args[`offset${index}`] || args[`o${index}`] || 0;
-    obj.fields = args[`fields${index}`] || args[`f${index}`] || '*';
+    obj.fields = args[`fields${index}`] || args[`f${index}`] || this.getPKandPV(child);
     obj.sort = args[`sort${index}`] || args[`s${index}`];
     return obj;
   }
 
-  // @ts-ignore
+  private getPKandPV(child: string) {
+    return child ?
+      (this.dbModels[child]?.columns?.filter(col => col.pk || col.pv).map(col => col.cn) || ['*']).join(',')
+      : '*';
+  }
+
+// @ts-ignore
   public selectQuery(fields) {
     const fieldsArr = fields.split(',');
     return this.columns?.reduce((selectObj, col) => {
@@ -1462,8 +1468,8 @@ class BaseModelSql extends BaseModel {
         !fields
         || fieldsArr.includes('*')
         || fieldsArr.includes(`${this.tn}.*`)
-        || fields.includes(col._cn)
-        || fields.includes(col.cn)
+        || fieldsArr.includes(col._cn)
+        || fieldsArr.includes(col.cn)
       ) {
         selectObj[col._cn] = `${this.tn}.${col.cn}`;
       }

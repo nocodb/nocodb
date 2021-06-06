@@ -42,7 +42,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 ### Using Docker
 ```bash
-docker run --name nocodb -p 8080:8080 nocodb/nocodb
+docker run -d --name nocodb -p 8080:8080 nocodb/nocodb
 ```
 
 ### Using Npm
@@ -130,17 +130,17 @@ And connection params for this database can be specified in `NC_DB` environment 
 
 #### Example MySQL
 ```
-docker run -p 8080:8080 -e NC_DB="mysql2://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 -e NC_DB="mysql2://host:port?u=user&p=password&d=database" nocodb/nocodb
 ```
 
 #### Example Postgres
 ```
-docker run -p 8080:8080 -e NC_DB="pg://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 -e NC_DB="pg://host:port?u=user&p=password&d=database" nocodb/nocodb
 ```
 
 #### Example SQL Server
 ```
-docker run -p 8080:8080 -e NC_DB="mssql://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 -e NC_DB="mssql://host:port?u=user&p=password&d=database" nocodb/nocodb
 ```
 
 ## Environment variables 

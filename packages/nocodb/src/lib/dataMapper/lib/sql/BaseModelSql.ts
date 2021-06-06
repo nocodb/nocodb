@@ -39,6 +39,7 @@ class BaseModelSql extends BaseModel {
       columns,
       hasMany = [],
       belongsTo = [],
+      manyToMany = [],
       type,
       dbModels
     }: {
@@ -63,6 +64,7 @@ class BaseModelSql extends BaseModel {
     this.pks = columns.filter(c => c.pk === true);
     this.hasManyRelations = hasMany;
     this.belongsToRelations = belongsTo;
+    this.manyToManyRelations = manyToMany;
     this.config = {
       limitDefault: process.env.DB_QUERY_LIMIT_DEFAULT || 10,
       limitMax: process.env.DB_QUERY_LIMIT_MAX || 500,

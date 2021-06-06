@@ -60,6 +60,7 @@ abstract class BaseModel {
   protected pks: any[];
   protected hasManyRelations: any;
   protected belongsToRelations: any;
+  protected manyToManyRelations: any;
   protected config: any;
   protected clientType: string;
   public readonly type: string;

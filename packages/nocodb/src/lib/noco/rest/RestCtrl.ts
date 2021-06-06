@@ -135,7 +135,15 @@ export class RestCtrl extends RestBaseCtrl {
     const data = await req.model.delb(req.body)
     res.json(data);
   }
-
+  public async nestedList(req: Request | any, res): Promise<void> {
+    const startTime = process.hrtime();
+    const data = await req.model.nestedList({
+      ...req.query
+    } as any);
+    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    res.setHeader('xc-db-response', elapsedSeconds);
+    res.xcJson(data);
+  }
 
   protected async middleware(req: Request | any, res: Response, next: NextFunction): Promise<any> {
 

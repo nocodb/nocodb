@@ -40,6 +40,29 @@
           <!--{{ col.cn }}-->
         </th>
 
+
+        <th v-for="bt in meta.belongsTo"
+            class="grey-border caption font-wight-regular"
+            :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
+        >
+          {{ bt._rtn }} (Belongs To)
+        </th>
+
+        <th v-for="hm in meta.hasMany"
+            class="grey-border caption font-wight-regular"
+            :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
+        >
+          {{ hm._tn }} (Has Many)
+        </th>
+
+        <th v-for="mm in meta.manyToMany"
+            class="grey-border caption font-wight-regular"
+            :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
+        >
+          {{ mm.rtn }} (Many To Many)
+        </th>
+
+
         <th
           v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')"
           @click="addNewColMenu = true"
@@ -62,6 +85,7 @@
             ></edit-column>
           </v-menu>
         </th>
+
 
       </tr>
       </thead>
@@ -261,6 +285,25 @@
                       :sql-ui="sqlUi"
           ></table-cell>
         </td>
+
+
+        <td v-for="(bt,i) in meta.belongsTo" class="caption">
+          <v-chip x-small v-if="rowObj[bt._rtn]" :color="colors[i%colors.length]">{{ Object.values(rowObj[bt._rtn])[1] }}</v-chip>
+        </td>
+
+        <td v-for="hm in meta.hasMany" class="caption">
+          <v-chip v-if="Array.isArray(rowObj[hm._tn])" x-small v-for="(v,i) in rowObj[hm._tn].map(v=>Object.values(v)[1])" :color="colors[i%colors.length]">
+            {{ v }}
+          </v-chip>
+        </td>
+        <td v-for="mm in meta.manyToMany" class="caption">
+          <v-chip v-if="rowObj[mm._rtn]" x-small v-for="(v,i) in rowObj[mm._rtn].map(v=>Object.values(v)[2])" :color="colors[i%colors.length]">{{
+              v
+            }}
+          </v-chip>
+        </td>
+
+
       </tr>
       <tr v-if="!isLocked && !isPublicView && isEditable && relationType !== 'bt'">
         <td :colspan="visibleColLength + 1" class="text-left pointer" @click="insertNewRow(true)">

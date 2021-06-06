@@ -620,11 +620,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             await NcHelp.executeOperations(insertResolvers, this.connectionConfig.client);
           }
         }
-
       });
 
       await NcHelp.executeOperations(tableResolvers, this.connectionConfig.client);
-
 
       await Promise.all(Object.entries(this.metas).map(async ([tn, schema]) => {
 
@@ -757,6 +755,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         }
 
       }));
+
+      await this.getManyToManyRelations();
     }
 
   }

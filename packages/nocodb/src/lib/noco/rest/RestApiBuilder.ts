@@ -53,14 +53,10 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   constructor(app: Noco, projectBuilder: NcProjectBuilder, config: NcConfig, connectionConfig: DbConfig, xcMeta?: NcMetaIO) {
     super(app, projectBuilder, config, connectionConfig);
     autoBind(this)
-
-    this.models = {};
     this.controllers = {};
     this.routers = {};
     this.hooks = {};
     this.xcMeta = xcMeta;
-
-
   }
 
 
@@ -291,7 +287,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log(`xcTablesPopulate : tables - %o , type - %s`, args?.tableNames, args?.type);
     let tables;
     const swaggerRefs: { [table: string]: any[] } = {};
-
 
     /* Get all relations */
     const relations = await this.relationsSyncAndGet();
@@ -545,16 +540,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             this.controllers[name].mapRoutes(router, this.customRoutes);
           }
         });
-
-
       }
-
-
     });
 
     /* handle xc_tables update in parallel */
     await NcHelp.executeOperations(tableRoutes, this.connectionConfig.client);
     await NcHelp.executeOperations(relationRoutes, this.connectionConfig.client);
+
+
+    await this.getManyToManyRelations();
 
 
     const swaggerDoc = {

@@ -12,7 +12,7 @@ class ExpressXcTsRoutes extends BaseRender {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}:any) {
+  constructor({dir, filename, ctx}: any) {
     super({dir, filename, ctx});
   }
 
@@ -21,7 +21,7 @@ class ExpressXcTsRoutes extends BaseRender {
    */
   prepare() {
 
-    let data:any = {};
+    let data: any = {};
 
     /* example of simple variable */
     data = this.ctx;
@@ -31,9 +31,8 @@ class ExpressXcTsRoutes extends BaseRender {
   }
 
 
-
   getObject() {
-    const ejsData:any = this.prepare();
+    const ejsData: any = this.prepare();
     const routes = [
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}`,
@@ -65,6 +64,23 @@ async function(req, res){
     res.json(data);
 }
         `]
+      }, {
+        path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/nestedList`,
+        type: 'get',
+        handler: ['nestedList'],
+        acl: {
+          admin: true,
+          user: true,
+          guest: true
+        },
+        functions: [`
+async function(req, res){
+    const data = await req.parentModel.hasManyList({
+      ...req.query
+    });
+    res.json(data);
+}
+                `]
       }, {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/groupby/:column_name`,
         type: 'get',
@@ -290,7 +306,7 @@ async function(req, res){
     res.json(data);
 }
         `]
-      },
+      }
     ];
 
     if (this.ctx.type === 'view') {

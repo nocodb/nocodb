@@ -103,7 +103,10 @@ export default {
         limit: this.size,
         offset: this.size * (this.page - 1),
         where: this.concatenatedXWhere,
-        sort: this.sort
+        sort: this.sort,
+        childs: (this.meta && this.meta.hasMany && this.meta.hasMany.map(hm => hm.tn).join())||'',
+        parents: (this.meta && this.meta.belongsTo && this.meta.belongsTo.map(hm => hm.rtn).join())||'',
+        many: (this.meta && this.meta.manyToMany && this.meta.manyToMany.map(mm => mm.rtn).join())||''
       }
     }, colLength() {
       return (this.availableColumns && this.availableColumns.length) || 0

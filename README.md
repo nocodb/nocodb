@@ -238,3 +238,25 @@ Our mission is to provide the most powerful no-code interface for databases whic
 - - - - - - -
 
 
+### Has Many - Schema
+
+- Create
+    * Create a new relation
+        - Create foreign key in child table
+        - Update metadata
+    * Existing
+        - We need to show existing relation
+        - Update metadata
+- Delete
+    * Delete virtual field
+    * Delete virtual field and relation 
+    
+- HasMany Lookup column
+    * Rendering
+    * Adding new child
+        - Associate an existing child
+        - Create and add 
+    * Pagination
+    * Remove child
+    
+

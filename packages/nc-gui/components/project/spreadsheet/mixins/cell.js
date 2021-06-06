@@ -32,7 +32,7 @@ export default {
     }, isFloat() {
       return this.abstractType === 'float';
     }, isDate() {
-      return this.abstractType === 'date';
+      return ( this.abstractType === 'date' || this.column.uidt === 'Date');
     }, isTime() {
       return this.abstractType === 'time';
     }, isDateTime() {
@@ -54,6 +54,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Bhanu P Chaudhary <bhanu423@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

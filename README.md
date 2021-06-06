@@ -130,18 +130,35 @@ And connection params for this database can be specified in `NC_DB` environment 
 
 #### Example MySQL
 ```
-docker run -d -p 8080:8080 -e NC_DB="mysql2://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 \
+    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
 ```
 
 #### Example Postgres
 ```
-docker run -d -p 8080:8080 -e NC_DB="pg://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 \
+    -e NC_DB="pg://host:port?u=user&p=password&d=database" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
 ```
 
 #### Example SQL Server
 ```
-docker run -d -p 8080:8080 -e NC_DB="mssql://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 \
+    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
 ```
+
+## Docker Compose
+```
+cd docker-compose
+cd mysql or pg or mssql
+docker-compose up
+```
+
 
 ## Environment variables 
 | Variable                | Mandatory | Comments                                                                         | If absent                                  |

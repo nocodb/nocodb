@@ -1,3 +1,27 @@
 {
-  "create-new-project": "New Project"
+  "home.my_projects": "My Projects",
+  "home.reload_projects_tooltip": "Refresh projects",
+  "home.create_new_project_button.text": "New Project",
+  "home.create_new_project_button.subtext_1": "Create",
+  "home.create_new_project_button.subtext_1_tooltip": "Create a new project",
+  "home.create_new_project_button.subtext_2": "Create By Connecting <br>To An External Database",
+  "home.create_new_project_button.subtext_2_tooltip": "Supports MySQL, PostgreSQL, SQL Server & SQLite",
+  "home.search_project": "Search Project",
+  "home.project_verticial_option_1": "Import Metadata",
+  "home.project_verticial_option_2": "Export Metadata",
+  "home.project_verticial_option_3": "Clear Metadata",
+  "home.project_horizontal_option_1": "Stop Project",
+  "home.project_horizontal_option_2": "Start Project",
+  "home.project_horizontal_option_3": "Restart Project",
+  "home.project_horizontal_option_4": "Delete Project",
+  "home.project_api_type_tooltip_graphql": "Accessible via GraphQL APIs",
+  "home.project_api_type_tooltip_rest": "Accessible via REST APIs",
+  "home.project_empty_message": "Get started by creating a new project",
+  "home.import_button.text": "Import NocoDB Project by uploading metadata zip file",
+  "home.show_community_message_1_1": "Star",
+  "home.show_community_message_1_2": "us on Github",
+  "home.show_community_message_2": "Book a Free DEMO",
+  "home.show_community_message_3": "Get your questions answered",
+  "home.show_community_message_4": "Follow NocoDB",
+  "home.search.no_result": "Your search for {search} found no results"
 }

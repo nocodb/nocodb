@@ -12,7 +12,7 @@
                 <!--                <p v-if="screenSize" class="caption">Screen resolution : {{screenSize}}</p>-->
 
                 <!--                <v-icon large>mdi-folder-multiple-outline</v-icon>&nbsp;-->
-                <b>My Projects</b>
+                <b>{{ $t('home.my_projects') }}</b> <!-- My Projects -->
 
                 <!--                <x-btn-->
                 <!--                  large-->
@@ -22,7 +22,7 @@
                   small
                   color="primary grey"
                   @click="projectsLoad"
-                  tooltip="Refresh projects">
+                  v-bind:tooltip="$t('home.reload_projects_tooltip')"> <!-- Refresh projects -->
                   mdi-refresh
                 </x-icon>&nbsp;
                 <!--                </x-btn>-->
@@ -34,20 +34,20 @@
                 ref="search1"
                 v-model="search"
                 class="caption pt-0 mt-0"
-                placeholder="Search Project"
+                v-bind:placeholder="$t('home.search_project')"
                 single-line
                 hide-details
                 v-ge="['home','project-search']"
                 style="max-width:200px"
-              >
+              > <!-- Search Project -->
                 <template v-slot:prepend-inner>
                   <v-icon color="grey" class="mt-1" small>search</v-icon>
                 </template>
               </v-text-field>
               <v-spacer></v-spacer>
-
+              <!-- Import NocoDB Project by uploading metadata zip file -->
               <x-btn
-                tooltip="Import NocoDB Project by uploading metadata zip file."
+                vbind:tooltip="$t('home.import_button.text')"
                 outlined
                 color="grey"
                 @click="$refs.importFile.click();project_id = null">
@@ -74,7 +74,7 @@
                               v-ge="['home','project-new']"
                               @click="onCreateProject()">
                               <v-icon class="mr-1" small>mdi-plus</v-icon>
-                              {{ $t('create-new-project') }}
+                              {{ $t('home.create_new_project_button.text') }}
                             </x-btn>-->
 
 
@@ -91,7 +91,7 @@
                         v-ge="['home','project-new']"
                         v-on="on"
                       >
-                        {{ $t('create-new-project') }}
+                        {{ $t('home.create_new_project_button.text') }} <!-- New Project -->
                         <v-icon class="mr-1" small>mdi-menu-down</v-icon>
                       </x-btn>
                     </div>
@@ -103,14 +103,14 @@
                         <v-icon small>mdi-plus</v-icon>
                       </v-list-item-icon>
                       <v-list-item-title>
-                        <span class="caption font-weight-regular">Create</span>
+                        <span class="caption font-weight-regular">{{ $t('home.create_new_project_button.subtext_1') }}</span> <!-- Create -->
                       </v-list-item-title>
                       <v-spacer></v-spacer>
                       <v-tooltip right>
                         <template v-slot:activator="{on}">
                           <v-icon v-on="on" x-small color="grey" class="ml-4">mdi-information-outline</v-icon>
                         </template>
-                        <span class="caption">Create a new project</span>
+                        <span class="caption">{{ $t('home.create_new_project_button.subtext_1_tooltip') }}</span>  <!-- Create a new project -->
                       </v-tooltip>
                     </v-list-item>
                     <v-divider></v-divider>
@@ -119,7 +119,7 @@
                         <v-icon small class="">mdi-power-plug-outline</v-icon>
                       </v-list-item-icon>
                       <v-list-item-title><span
-                        class="caption font-weight-regular">Create By Connecting <br>To An External Database</span>
+                        class="caption font-weight-regular" v-html="$t('home.create_new_project_button.subtext_2')"></span> <!-- Create By Connecting <br>To An External Database -->
 
                       </v-list-item-title>
                       <v-spacer></v-spacer>
@@ -127,7 +127,7 @@
                         <template v-slot:activator="{on}">
                           <v-icon v-on="on" x-small color="grey" class="ml-4">mdi-information-outline</v-icon>
                         </template>
-                        <span class="caption">Supports MySQL, PostgreSQL, SQL Server & SQLite</span>
+                        <span class="caption">{{ $t('home.create_new_project_button.subtext_2_tooltip') }}</span> <!-- Supports MySQL, PostgreSQL, SQL Server & SQLite -->
                       </v-tooltip>
                     </v-list-item>
                   </v-list>
@@ -141,7 +141,7 @@
                 color="primary"
                 v-ge="['home','project-new']"
               >
-                {{ $t('create-new-project') }}
+                {{ $t('home.create_new_project_button.text') }} <!-- New Project -->
               </x-btn>
             </v-row>
 
@@ -170,9 +170,9 @@
                               :color="props.item.status === 'started' ? 'green' : (props.item.status === 'stopped' ? 'orange'  : 'orange') ">
                         mdi-moon-full
                       </v-icon>
-
+                      <!-- Accessible via GraphQL APIs / Accessible via REST APIs -->
                       <x-icon small
-                              :tooltip="props.item.projectType === 'graphql' ? 'Accessible via GraphQL APIs' : 'Accessible via REST APIs'"
+                              :tooltip="props.item.projectType === 'graphql' ? $t('home.project_api_type_tooltip_graphql') : $t('home.project_api_type_tooltip_rest')"
                               icon.class="mr-2"
                               :color="props.item.projectType === 'graphql' ? 'pink' : 'green'"
                       >
@@ -186,32 +186,32 @@
                       <div
                         v-if="_isUIAllowed('project.actions')"
                         :class="{'action-icons' :  !(projectStatusUpdating &&  props.item.id === statusUpdatingProjectId) }">
+                        <!-- Stop Project -->
                         <x-icon
-                          tooltip="Stop project"
+                          v-bind:tooltip="$t('home.project_horizontal_option_1')"
                           class="pointer mr-2" color="orange grey" v-if="props.item.status === 'started'"
                           @click.stop="stopProject(props.item)">mdi-stop-circle-outline
                         </x-icon>
+                        <!-- Start Project -->
                         <x-icon
-                          tooltip="Start project"
+                          v-bind:tooltip="$t('home.project_horizontal_option_2')"
                           class="pointer mr-2" color="green grey" v-else-if=" props.item.status === 'stopped'"
                           @click.stop="startProject(props.item)">
                           mdi-play-circle-outline
                         </x-icon>
-
-
                         <x-icon class="mr-1"
                                 v-if="projectStatusUpdating &&  props.item.id === statusUpdatingProjectId">mdi-loading
                           mdi-spin
                         </x-icon>
-
+                        <!-- Restart Project -->
                         <x-icon
-                          tooltip="Restart project" class="pointer mr-2" color="primary grey"
+                          v-bind:tooltip="$t('home.project_horizontal_option_3')" class="pointer mr-2" color="primary grey"
                           @click.stop="restartProject(props.item)">
                           mdi-restart
                         </x-icon>
-
+                        <!-- Delete Project -->
                         <x-icon
-                          tooltip="Delete project" class="pointer mr-2" color="red grey"
+                          v-bind:tooltip="$t('home.project_horizontal_option_4')" class="pointer mr-2" color="red grey"
                           @click.stop="deleteProject(props.item)">
                           mdi-delete-circle-outline
                         </x-icon>
@@ -225,21 +225,21 @@
                               <v-list-item-icon class="mr-1">
                                 <v-icon small>mdi-import</v-icon>
                               </v-list-item-icon>
-                              <v-list-item-title><span class="caption font-weight-regular">Import Metadata</span>
+                              <v-list-item-title><span class="caption font-weight-regular">{{ $t('home.project_verticial_option_1') }}</span> <!-- Import Metadata -->
                               </v-list-item-title>
                             </v-list-item>
                             <v-list-item dense @click="exportMetaZip(props.item.id)">
                               <v-list-item-icon class="mr-1">
                                 <v-icon small>mdi-export</v-icon>
                               </v-list-item-icon>
-                              <v-list-item-title><span class="caption font-weight-regular">Export Metadata</span>
+                              <v-list-item-title><span class="caption font-weight-regular">{{ $t('home.project_verticial_option_2') }}</span> <!-- Export Metadata -->
                               </v-list-item-title>
                             </v-list-item>
                             <v-list-item dense @click="resetMeta(props.item.id)">
                               <v-list-item-icon class="mr-1">
                                 <v-icon small>mdi-delete-variant</v-icon>
                               </v-list-item-icon>
-                              <v-list-item-title><span class="caption font-weight-regular">Clear Metadata</span>
+                              <v-list-item-title><span class="caption font-weight-regular">{{ $t('home.project_verticial_option_3') }}</span> <!-- Clear Metadata -->
                               </v-list-item-title>
                             </v-list-item>
                           </v-list>
@@ -255,7 +255,7 @@
                   :value="true"
                   color="error"
                   icon="warning"
-                >Your search for "{{ search }}" found no results.
+                >{{ $t('home.search.no_result', { search }) }}  <!-- Your search for "{{ search }}" found no results. -->
                 </v-alert>
                 <!--                <template v-slot:no-data>-->
                 <!--                  <v-alert :value="true" outlined color="success" icon="mdi-information-outline">Create a new project-->
@@ -264,7 +264,8 @@
               </v-data-table>
               <v-col style="height:500px" v-else-if="!loadingProjects" class="d-flex align-center justify-center">
                 <v-alert border="left" dense text :value="true" outlined color="success" icon="mdi-information-outline">
-                  Get started by creating a new project.
+                  <!-- Get started by creating a new project -->
+                  {{ $t('home.project_empty_message') }}
                 </v-alert>
               </v-col>
             </v-row>
@@ -281,8 +282,8 @@
           <v-col cols="" class="d-flex justify-center">
             <v-card height="500px" width="500px" class="elevation-20 pt-4 mt-4 d-flex flex-column">
               <p class="display-1 flex-grow-1 pt-5 d-flex align-center justify-center">
-                <span>
-                Create new project <br> by connecting to your<br> existing or new database</span>
+                <span v-html="$t('home.create_new_project_button.subtext_2')">
+                </span> <!-- Create By Connecting <br>To An External Database --> 
               </p>
               <v-card-actions class="justify-center pb-10">
                 <x-btn tooltip="Create New Project"
@@ -293,7 +294,8 @@
                   <v-icon color="white" class="blink_me">
                     mdi-lightbulb-on
                   </v-icon>&nbsp;
-                  New Project
+                  <!-- New Project -->
+                  {{ $t('home.create_new_project_button.text') }}
                 </x-btn>
 
 
@@ -330,9 +332,11 @@
           <v-list-item-icon>
             <v-icon class="ml-2 mt-n2">mdi-github</v-icon>
           </v-list-item-icon>
-          <v-list-item-title>Star
+          <!-- Star -->
+          <v-list-item-title>{{ $t('home.show_community_message_1_1') }}
             <v-icon small>mdi-star-outline</v-icon>
-            us on Github
+            <!-- us on Github -->
+            {{ $t('home.show_community_message_1_2') }}
           </v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
@@ -340,21 +344,24 @@
           <v-list-item-icon>
             <v-icon class="ml-2" :color="textColors[3]">mdi-calendar-month</v-icon>
           </v-list-item-icon>
-          <v-list-item-title>Book a Free DEMO</v-list-item-title>
+          <!-- Book a Free DEMO -->
+          <v-list-item-title>{{ $t('home.show_community_message_2') }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
         <v-list-item dense href="https://discord.gg/5RgZmkW" target="_blank">
           <v-list-item-icon>
             <v-icon class="ml-2" :color="textColors[0]">mdi-discord</v-icon>
           </v-list-item-icon>
-          <v-list-item-title>Get your questions answered</v-list-item-title>
+          <!-- Get your questions answered -->
+          <v-list-item-title>{{ $t('home.show_community_message_3') }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
         <v-list-item dense href="https://twitter.com/NocoDB" target="_blank">
           <v-list-item-icon>
             <v-icon class="ml-2" :color="textColors[1]">mdi-twitter</v-icon>
           </v-list-item-icon>
-          <v-list-item-title>Follow NocoDB</v-list-item-title>
+          <!-- Follow NocoDB -->
+          <v-list-item-title>{{ $t('home.show_community_message_4') }}</v-list-item-title>
         </v-list-item>
 
       </v-list>

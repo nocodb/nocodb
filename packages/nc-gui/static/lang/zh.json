@@ -23,6 +23,20 @@
     "home.show_community_message_2": "Book a Free DEMO",
     "home.show_community_message_3": "Get your questions answered",
     "home.show_community_message_4": "Follow NocoDB",
-    "home.search.no_result": "Your search for {search} found no results"
+    "home.search.no_result": "Your search for {search} found no results",
+    "signin.title": "SIGN IN",
+    "signin.input_1": "Enter your work email",
+    "signin.input_2": "Enter your password",
+    "signin.forget_password": "Forgot your password ?",
+    "signin.footer_text_1": "Don't have an account ?",
+    "signin.footer_text_2": "Sign Up",
+    "signin.form.rules.email_1": "E-mail is required",
+    "signin.form.rules.email_2": "E-mail must be valid",
+    "signin.form.rules.password_1": "Password is required",
+    "signin.form.rules.password_2": "You password must be atleast 8 characters",
+    "signin.head.title": "Log In | Noco",
+    "signin.head.meta.hid": "Log In To Noco",
+    "signin.head.meta.name": "Log In To Noco",
+    "signin.head.meta.content": "Log In To Noco"
   }
   

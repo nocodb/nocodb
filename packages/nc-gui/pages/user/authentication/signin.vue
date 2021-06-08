@@ -26,7 +26,8 @@
                 </v-img>
 
               </div>
-              <h1 class="mt-4">SIGN IN</h1>
+			  <!-- SIGN IN -->
+              <h1 class="mt-4">{{ $t('signin.title') }}</h1>
 
               <div>
                 <v-alert type="error" dismissible v-model="formUtil.formErr">
@@ -37,17 +38,18 @@
 
               <v-form v-if=" type === 'jwt'" v-model="valid" ref="formType" lazy-validation>
 
-
+				<!-- Enter your work email -->
                 <v-text-field
-                  label="Enter your work email"
+                  v-bind:label="$t('signin.input_1')"
                   v-model="form.email"
                   :rules="formRules.email"
                   required>
                 </v-text-field>
-
+				
+				<!-- Enter your password -->
                 <v-text-field
                   name="input-10-2"
-                  label="Enter your password"
+                  v-bind:label="$t('signin.input_2')"
                   min="8"
                   :append-icon="e3 ? 'visibility' : 'visibility_off'"
                   @click:append="() => (e3 = !e3)"
@@ -55,9 +57,9 @@
                   :rules="formRules.password"
                   :type="e3 ? 'password' : 'text'">
                 </v-text-field>
-
+				<!-- Forgot your password -->
                 <p class="accent--text text-right caption font-weight-light">
-                  <router-link to="/user/password/forgot">Forgot your password ?</router-link>
+                  <router-link to="/user/password/forgot">{{ $t('signin.forget_password') }}</router-link>
                 </p>
 
                 <!--                <vue-recaptcha @verify="onNormalVerify" sitekey="6LfbcqMUAAAAAAb_2319UdF8m68JHSYVy_m4wPBx"-->
@@ -77,9 +79,10 @@
                 <br>
                 <br>
                 <br>
-
-                <p class="caption font-weight-light">Don't have an account ?
-                  <router-link to="/user/authentication/signup" v-ge="['Don\'t have an account ?','']">Sign Up
+				<!-- Don't have an account ? -->
+                <p class="caption font-weight-light"> {{ $t('signin.footer_text_1') }} 
+				  <!-- Sign Up -->
+                  <router-link to="/user/authentication/signup" v-ge="['Don\'t have an account ?','']"> {{ $t('signin.footer_text_2') }} 
                   </router-link>
                 </p>
                 <div>
@@ -208,12 +211,16 @@ export default {
 
       formRules: {
         email: [
-          v => !!v || 'E-mail is required',
-          v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid'
+		  // E-mail is required
+          v => !!v || this.$t('signin.form.rules.email_1'),
+		  // E-mail must be valid
+          v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || this.$t('signin.form.rules.email_2')
         ],
         password: [
-          v => !!v || 'Password is required',
-          v => (v && v.length >= 8) || 'You password must be atleast 8 characters'
+		  // Password is required
+          v => !!v || this.$t('signin.form.rules.password_1'),
+		  // You password must be atleast 8 characters
+          v => (v && v.length >= 8) || this.$t('signin.form.rules.password_2')
         ],
       },
       formUtil: {
@@ -341,9 +348,9 @@ export default {
   },
   head() {
     return {
-      title: 'Log In | Noco',
+      title: this.$t('signin.head.title'),
       meta: [
-        {hid: 'Log In To Noco', name: 'Log In To Noco', content: 'Log In To Noco'}
+        {hid: this.$t('signin.head.meta.hid'), name: this.$t('signin.head.meta.name'), content: this.$t('signin.head.meta.content')}
       ]
     }
 
@@ -364,6 +371,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

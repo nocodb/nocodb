@@ -1,8 +1,8 @@
 <template>
-  <v-container fluid style="height: 100%" class="py-0">
+  <v-container fluid style="height: 100%" class="px-0">
     <v-row style="height: 100%">
       <v-col cols="12" class="py-1">
-        <div>
+        <div class="px-2">
           <v-text-field
             class=""
             outlined

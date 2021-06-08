@@ -42,7 +42,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 ### Using Docker
 ```bash
-docker run --name nocodb -p 8080:8080 nocodb/nocodb
+docker run -d --name nocodb -p 8080:8080 nocodb/nocodb
 ```
 
 ### Using Npm
@@ -130,20 +130,34 @@ And connection params for this database can be specified in `NC_DB` environment 
 
 #### Example MySQL
 ```
-docker run -p 8080:8080 -e NC_DB="mysql2://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 \
+    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
 ```
 
 #### Example Postgres
 ```
-docker run -p 8080:8080 -e NC_DB="pg://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 \
+    -e NC_DB="pg://host:port?u=user&p=password&d=database" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
 ```
 
 #### Example SQL Server
 ```
-docker run -p 8080:8080 -e NC_DB="mssql://host:port?u=user&p=password&d=database" nocodb/nocodb
+docker run -d -p 8080:8080 \
+    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
 ```
 
-
+## Docker Compose
+```
+cd docker-compose
+cd mysql or pg or mssql
+docker-compose up
+```
 
 
 ## Environment variables 
@@ -157,6 +171,32 @@ docker run -p 8080:8080 -e NC_DB="mssql://host:port?u=user&p=password&d=database
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
 
+# Running locally 
+```
+git clone https://github.com/nocodb/nocodb
+cd nocodb
+
+# run backend
+cd packages/nocodb
+npm install
+npm run watch:run
+
+# open localhost:8080/dashboard in browser
+
+# run frontend 
+cd packages/nc-gui
+npm install
+npm run dev
+
+# open localhost:3000/dashboard in browser
+```
+
+Changes made to code automatically restart.
+
+# Contributing
+- Please take a look at ./contribute/HowToApplyLicense.md 
+- Ignore adding headers for .json or .md or .yml   
+
 # 🎯  Why are we building this ?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
@@ -167,23 +207,28 @@ Our mission is to provide the most powerful no-code interface for databases whic
 [//]: contributor-faces
 <a href="https://github.com/o1lab"><img src="https://avatars.githubusercontent.com/u/5435402?v=4" title="Naveen MR" width="50" height="50"></a>
 <a href="https://github.com/pranavxc"><img src="https://avatars.githubusercontent.com/u/61551451?v=4" title="Pranav C Balan" width="50" height="50"></a>
-<a hrer="https://github.com/bvkatwijk"><img src="https://avatars.githubusercontent.com/u/18490578?s=60&v=4" title="bvkatwijk" width="50" height="50"></a>
-<a hrer="https://github.com/markuman"><img src="https://avatars.githubusercontent.com/u/3920157?s=60&v=4" title="markuman" width="50" height="50"></a>
-<a hrer="https://github.com/DanielRuf"><img src="https://avatars.githubusercontent.com/u/827205?s=60&v=4" title="DanielRuf" width="50" height="50"></a>
-<a hrer="https://github.com/bertyhell"><img src="https://avatars.githubusercontent.com/u/1710840?s=60&v=4" title="bertyhell" width="50" height="50"></a>
-<a hrer="https://github.com/chocholand"><img src="https://avatars.githubusercontent.com/u/6572227?s=60&v=4" title="chocholand" width="50" height="50"></a>
-<a hrer="https://github.com/0xflotus"><img src="https://avatars.githubusercontent.com/u/26602940?s=60&v=4" title="0xflotus" width="50" height="50"></a>
-<a hrer="https://github.com/sguionni"><img src="https://avatars.githubusercontent.com/u/3633017?s=60&v=4" title="sguionni" width="50" height="50"></a>
-<a hrer="https://github.com/extremeshok"><img src="https://avatars.githubusercontent.com/u/5957328?s=60&v=4" title="extremeshok" width="50" height="50"></a>
-<a hrer="https://github.com/v2io"><img src="https://avatars.githubusercontent.com/u/48987429?s=60&v=4" title="v2io" width="50" height="50"></a>
-<a hrer="https://github.com/soaserele"><img src="https://avatars.githubusercontent.com/u/1093368?s=60&v=4" title="soaserele" width="50" height="50"></a>
-<a hrer="https://github.com/ans-4175"><img src="https://avatars.githubusercontent.com/u/3961872?s=60&v=4" title="ans-4175" width="50" height="50"></a>
-<a hrer="https://github.com/lotas"><img src="https://avatars.githubusercontent.com/u/83861?s=60&v=4" title="lotas" width="50" height="50"></a>
-<a hrer="https://github.com/ferrybig"><img src="https://avatars.githubusercontent.com/u/1576684?s=60&v=4" title="ferrybig" width="50" height="50"></a>
-<a hrer=""><img src="https://avatars.githubusercontent.com/u/1001585?v=4" title="" width="50" height="50"></a>
-<a hrer=""><img src="https://avatars.githubusercontent.com/u/508624?v=4" title="" width="50" height="50"></a>
-<a hrer=""><img src="https://avatars.githubusercontent.com/u/8931?v=4" title="" width="50" height="50"></a>
-<a hrer=""><img src="https://avatars.githubusercontent.com/u/26602940?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/bvkatwijk"><img src="https://avatars.githubusercontent.com/u/18490578?s=60&v=4" title="bvkatwijk" width="50" height="50"></a>
+<a href="https://github.com/markuman"><img src="https://avatars.githubusercontent.com/u/3920157?s=60&v=4" title="markuman" width="50" height="50"></a>
+<a href="https://github.com/DanielRuf"><img src="https://avatars.githubusercontent.com/u/827205?s=60&v=4" title="DanielRuf" width="50" height="50"></a>
+<a href="https://github.com/bertyhell"><img src="https://avatars.githubusercontent.com/u/1710840?s=60&v=4" title="bertyhell" width="50" height="50"></a>
+<a href="https://github.com/chocholand"><img src="https://avatars.githubusercontent.com/u/6572227?s=60&v=4" title="chocholand" width="50" height="50"></a>
+<a href="https://github.com/0xflotus"><img src="https://avatars.githubusercontent.com/u/26602940?s=60&v=4" title="0xflotus" width="50" height="50"></a>
+<a href="https://github.com/sguionni"><img src="https://avatars.githubusercontent.com/u/3633017?s=60&v=4" title="sguionni" width="50" height="50"></a>
+<a href="https://github.com/extremeshok"><img src="https://avatars.githubusercontent.com/u/5957328?s=60&v=4" title="extremeshok" width="50" height="50"></a>
+<a href="https://github.com/v2io"><img src="https://avatars.githubusercontent.com/u/48987429?s=60&v=4" title="v2io" width="50" height="50"></a>
+<a href="https://github.com/soaserele"><img src="https://avatars.githubusercontent.com/u/1093368?s=60&v=4" title="soaserele" width="50" height="50"></a>
+<a href="https://github.com/ans-4175"><img src="https://avatars.githubusercontent.com/u/3961872?s=60&v=4" title="ans-4175" width="50" height="50"></a>
+<a href="https://github.com/lotas"><img src="https://avatars.githubusercontent.com/u/83861?s=60&v=4" title="lotas" width="50" height="50"></a>
+<a href="https://github.com/ferrybig"><img src="https://avatars.githubusercontent.com/u/1576684?s=60&v=4" title="ferrybig" width="50" height="50"></a>
+<a href="https://github.com/jrevault"><img src="https://avatars.githubusercontent.com/u/1001585?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/atilacamurca"><img src="https://avatars.githubusercontent.com/u/508624?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/simonbowen"><img src="https://avatars.githubusercontent.com/u/8931?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/0xflotus"><img src="https://avatars.githubusercontent.com/u/26602940?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/wingkwong"><img src="https://avatars.githubusercontent.com/u/35857179?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/ferdiga"><img src="https://avatars.githubusercontent.com/u/6248560?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/Flatroy"><img src="https://avatars.githubusercontent.com/u/4980165?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/jwillmer"><img src="https://avatars.githubusercontent.com/u/1503577?v=4" title="" width="50" height="50"></a>
 
 - - - - - - -
+
 

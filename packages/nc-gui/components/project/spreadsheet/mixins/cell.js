@@ -32,7 +32,7 @@ export default {
     }, isFloat() {
       return this.abstractType === 'float';
     }, isDate() {
-      return this.abstractType === 'date';
+      return this.abstractType === 'date' || this.column.uidt === 'Date';
     }, isTime() {
       return this.abstractType === 'time';
     }, isDateTime() {

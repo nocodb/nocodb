@@ -95,8 +95,11 @@ class NcPluginMgr {
           pluginConfig.input = JSON.parse(pluginConfig.input);
         }
 
-        await tempPlugin.init(pluginConfig?.input);
-
+        try {
+          await tempPlugin.init(pluginConfig?.input);
+        }catch (e){
+          console.log(`Plugin(${plugin?.title}) initialization failed : ${e.message}`)
+        }
       }
 
     }

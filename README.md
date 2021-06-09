@@ -228,6 +228,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
 <a href="https://github.com/ferdiga"><img src="https://avatars.githubusercontent.com/u/6248560?v=4" title="" width="50" height="50"></a>
 <a href="https://github.com/Flatroy"><img src="https://avatars.githubusercontent.com/u/4980165?v=4" title="" width="50" height="50"></a>
 <a href="https://github.com/jwillmer"><img src="https://avatars.githubusercontent.com/u/1503577?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/bhanuc"><img src="https://avatars.githubusercontent.com/u/2958857?v=4" title="" width="50" height="50"></a>
 
 - - - - - - -
 

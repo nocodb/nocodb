@@ -36,20 +36,20 @@
           >
             <v-toolbar-title class="title">
               <!-- Edit Project -->
-              <span v-if="edit">{{ $t('project.ext_db.title.edit') }}</span>
+              <span v-if="edit">{{ $t('projects.ext_db.title.edit') }}</span>
               <!-- Create Project -->
-              <span v-else>{{ $t('project.ext_db.title.create') }}</span>
+              <span v-else>{{ $t('projects.ext_db.title.create') }}</span>
             </v-toolbar-title>
             <v-spacer></v-spacer>
             <!-- Cancel and Return -->
             <x-btn
-              v-bind:tooltip="$t('project.ext_db.button.cancel_tooltip')"
+              v-bind:tooltip="$t('projects.ext_db.button.cancel_tooltip')"
               to="/"
               v-ge="['project', 'cancel']"
               class="elevation-20"
             >
               <!-- Cancel -->
-              {{ $t('project.ext_db.button.cancel') }}
+              {{ $t('projects.ext_db.button.cancel') }}
             </x-btn>
             <x-btn
               :disabled="!valid || !envStatusValid"
@@ -58,9 +58,9 @@
               @click="createOrUpdateProject()"
             >
               <!-- Update & Restart -->
-              <span v-if="edit">{{ $t('project.ext_db.button.update_and_restart') }}</span>
+              <span v-if="edit">{{ $t('projects.ext_db.button.update_and_restart') }}</span>
               <!-- Save Project -->
-              <span v-else>{{ $t('project.ext_db.button.save_project') }}</span>
+              <span v-else>{{ $t('projects.ext_db.button.save_project') }}</span>
             </x-btn>
             <v-progress-linear
               v-if="projectReloading"
@@ -161,7 +161,7 @@
                       :rules="form.titleRequiredRule"
                       :height="20"
                       v-model="project.title"
-                      v-bind:label="$t('project.ext_db.project_name')"
+                      v-bind:label="$t('projects.ext_db.project_name')"
                       autofocus
                     >
                       <!--                      <v-icon color="info" class="blink_me mt-n1" slot="prepend">-->
@@ -170,7 +170,7 @@
                     </v-text-field>
 
                     <!-- Access Project via -->
-                    <label class="caption"> {{ $t('project.ext_db.project_name') }}</label>
+                    <label class="caption"> {{ $t('projects.ext_db.project_name') }}</label>
                     <v-radio-group
                       row
                       hide-details
@@ -226,7 +226,7 @@
                       'text-center mb-2 mt-3 grey--text': edit,
                     }"
                   >
-                    {{ $t('project.ext_db.credentials') }}
+                    {{ $t('projects.ext_db.credentials') }}
                   </p>
                   <v-expansion-panels
                     v-model="panel"
@@ -378,7 +378,7 @@
                                             class="body-2 db-select"
                                             :items="Object.keys(databaseNames)"
                                             v-model="client[dbIndex]"
-                                            v-bind:label="$t('project.ext_db.credentials.label_1')"
+                                            v-bind:label="$t('projects.ext_db.credentials.label_1')"
                                             @change="
                                               onDatabaseTypeChanged(
                                                 client[dbIndex],
@@ -429,7 +429,7 @@
                                           <v-text-field
                                             :rules="form.folderRequiredRule"
                                             v-model="db.connection.connection.filename"
-                                            v-bind:label="$t('project.ext_db.credentials.label_2')"
+                                            v-bind:label="$t('projects.ext_db.credentials.label_2')"
                                             v-ge="['project', 'env-db-file']"
                                             @click="selectSqliteFile(db)"
                                           >
@@ -445,7 +445,7 @@
                                             class="body-2"
                                             :rules="form.requiredRule"
                                             v-model="db.connection.host"
-                                            v-bind:label="$t('project.ext_db.credentials.label_3')"
+                                            v-bind:label="$t('projects.ext_db.credentials.label_3')"
                                           ></v-text-field>
                                         </v-col>
                                         <!-- Port Number -->
@@ -454,7 +454,7 @@
                                             class="body-2"
                                             v-ge="['project', 'env-db-port']"
                                             v-model="db.connection.port"
-                                            v-bind:label="$t('project.ext_db.credentials.label_4')"
+                                            v-bind:label="$t('projects.ext_db.credentials.label_4')"
                                             :rules="form.portValidationRule"
                                           ></v-text-field>
                                         </v-col>
@@ -465,7 +465,7 @@
                                             v-ge="['project', 'env-db-user']"
                                             :rules="form.requiredRule"
                                             v-model="db.connection.user"
-                                            v-bind:label="$t('project.ext_db.credentials.label_5')"
+                                            v-bind:label="$t('projects.ext_db.credentials.label_5')"
                                           ></v-text-field>
                                         </v-col>
                                         <!-- Password -->
@@ -480,7 +480,7 @@
                                             :ref="`password${envKey}`"
                                             v-ge="['project', 'env-db-password']"
                                             v-model="db.connection.password"
-                                            v-bind:label="$t('project.ext_db.credentials.label_6')"
+                                            v-bind:label="$t('projects.ext_db.credentials.label_6')"
                                           >
                                             <template v-slot:append>
                                               <v-icon
@@ -508,7 +508,7 @@
                                             :rules="form.requiredRule"
                                             v-model="db.connection.database"
                                             v-ge="['project', 'env-db-name']"
-                                            v-bind:label="$t('project.ext_db.credentials.label_7')"
+                                            v-bind:label="$t('projects.ext_db.credentials.label_7')"
                                           ></v-text-field>
                                         </v-col>
                                         <v-col class="" v-if="db.client !== 'sqlite3'">
@@ -517,7 +517,7 @@
                                               <v-expansion-panel-header>
                                                 <!-- SSL & Advanced parameters -->
                                                 <span class="grey--text caption">{{
-                                                  $t('project.ext_db.credentials.advanced')
+                                                  $t('projects.ext_db.credentials.advanced')
                                                 }}</span>
                                               </v-expansion-panel-header>
                                               <v-expansion-panel-content>
@@ -551,7 +551,7 @@
                                                       <x-btn
                                                         v-bind:tooltip="
                                                           $t(
-                                                            'project.ext_db.credentials.advanced.ssl.option2.toolip'
+                                                            'projects.ext_db.credentials.advanced.ssl.option2.toolip'
                                                           )
                                                         "
                                                         small
@@ -581,7 +581,7 @@
                                                       <x-btn
                                                         v-bind:tooltip="
                                                           $t(
-                                                            'project.ext_db.credentials.advanced.ssl.option1.toolip'
+                                                            'projects.ext_db.credentials.advanced.ssl.option1.toolip'
                                                           )
                                                         "
                                                         small
@@ -611,7 +611,7 @@
                                                       <x-btn
                                                         v-bind:tooltip="
                                                           $t(
-                                                            'project.ext_db.credentials.advanced.ssl.option3.toolip'
+                                                            'projects.ext_db.credentials.advanced.ssl.option3.toolip'
                                                           )
                                                         "
                                                         small
@@ -637,7 +637,7 @@
                                                           class="caption"
                                                           v-bind:label="
                                                             $t(
-                                                              'project.ext_db.credentials.advanced.inflection.table_name'
+                                                              'projects.ext_db.credentials.advanced.inflection.table_name'
                                                             )
                                                           "
                                                           multiple
@@ -655,7 +655,7 @@
                                                           class="caption"
                                                           v-bind:label="
                                                             $t(
-                                                              'project.ext_db.credentials.advanced.inflection.column_name'
+                                                              'projects.ext_db.credentials.advanced.inflection.column_name'
                                                             )
                                                           "
                                                           multiple
@@ -679,7 +679,7 @@
                                                           btn.class="text-capitalize"
                                                           v-bind:tooltip="
                                                             $t(
-                                                              'project.ext_db.credentials.advanced.button.edit_conn_json'
+                                                              'projects.ext_db.credentials.advanced.button.edit_conn_json'
                                                             )
                                                           "
                                                           outlined
@@ -697,7 +697,7 @@
                                                           <!-- Edit connection JSON -->
                                                           {{
                                                             $t(
-                                                              'project.ext_db.credentials.advanced.button.edit_conn_json'
+                                                              'projects.ext_db.credentials.advanced.button.edit_conn_json'
                                                             )
                                                           }}
                                                         </x-btn>
@@ -715,7 +715,7 @@
                                         <!-- Test Database Connection -->
                                         <x-btn
                                           v-bind:tooltip="
-                                            $t('project.ext_db.credentials.button.test_db_conn')
+                                            $t('projects.ext_db.credentials.button.test_db_conn')
                                           "
                                           outlined
                                           small
@@ -723,13 +723,13 @@
                                           @click="testConnection(db, envKey, panelIndex)"
                                         >
                                           <!-- Test Database Connection -->
-                                          {{ $t('project.ext_db.credentials.button.test_db_conn') }}
+                                          {{ $t('projects.ext_db.credentials.button.test_db_conn') }}
                                         </x-btn>
                                         <!-- Remove Database from environment -->
                                         <x-btn
                                           v-bind:tooltip="
                                             $t(
-                                              'project.ext_db.credentials.button.remove_db_from_env'
+                                              'projects.ext_db.credentials.button.remove_db_from_env'
                                             )
                                           "
                                           text
@@ -1120,9 +1120,9 @@ export default {
                 ui: {
                   setup: -1,
                   ssl: {
-                    key: this.$t('project.ext_db.credentials.advanced.ssl.option1'), // Client Key
-                    cert: this.$t('project.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-                    ca: this.$t('project.ext_db.credentials.advanced.ssl.option3'), // Server CA
+                    key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
+                    cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
+                    ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
                   },
                   sslUse: 'Preferred',
                 },
@@ -1297,7 +1297,7 @@ export default {
         type: 'primary',
       },
       // TODO: apply i18n for sslUsage
-      // See project.ext_db.credentials.advanced.ssl.usage.option1 - 5 in en.json
+      // See projects.ext_db.credentials.advanced.ssl.usage.option1 - 5 in en.json
       sslUsage: {
         No: 'No',
         Preferred: 'Preferred',
@@ -1305,11 +1305,11 @@ export default {
         'Required-CA': 'Required-CA',
         'Required-IDENTITY': 'Required-IDENTITY',
       },
-      sslUse: this.$t('project.ext_db.credentials.advanced.ssl.preferred'), // Preferred
+      sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
       ssl: {
-        key: this.$t('project.ext_db.credentials.advanced.ssl.option1'), // Client Key
-        cert: this.$t('project.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-        ca: this.$t('project.ext_db.credentials.advanced.ssl.option3'), // Server CA
+        key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
+        cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
+        ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
       },
       databaseNames: {
         MySQL: 'mysql2',
@@ -1349,10 +1349,10 @@ export default {
       },
 
       compErrorMessages: [
-        this.$t('project.ext_db.error.message_1'), // Invalid character in folder path
-        this.$t('project.ext_db.error.message_2'), // Invalid database credentials
-        this.$t('project.ext_db.error.message_3'), // Unable to connect to database, please check your database is up
-        this.$t('project.ext_db.error.message_4'), // User does not exist or have sufficient permission to create schema
+        this.$t('projects.ext_db.error.message_1'), // Invalid character in folder path
+        this.$t('projects.ext_db.error.message_2'), // Invalid database credentials
+        this.$t('projects.ext_db.error.message_3'), // Unable to connect to database, please check your database is up
+        this.$t('projects.ext_db.error.message_4'), // User does not exist or have sufficient permission to create schema
       ],
       compErrorMessage: '',
     };
@@ -1583,11 +1583,11 @@ export default {
           Vue.set(db, 'ui', {
             setup: 0,
             ssl: {
-              key: this.$t('project.ext_db.credentials.advanced.ssl.option1'), // Client Key
-              cert: this.$t('project.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-              ca: this.$t('project.ext_db.credentials.advanced.ssl.option3'), // Server CA
+              key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
+              cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
+              ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
             },
-            sslUse: this.$t('project.ext_db.credentials.advanced.ssl.preferred'), // Preferred
+            sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
           });
         }
       }
@@ -1714,11 +1714,11 @@ export default {
               ui: {
                 setup: 0,
                 ssl: {
-                  key: this.$t('project.ext_db.credentials.advanced.ssl.option1'), // Client Key
-                  cert: this.$t('project.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-                  ca: this.$t('project.ext_db.credentials.advanced.ssl.option3'), // Server CA
+                  key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
+                  cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
+                  ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
                 },
-                sslUse: this.$t('project.ext_db.credentials.advanced.ssl.preferred'), // Preferred
+                sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
               },
             },
           ],
@@ -1762,11 +1762,11 @@ export default {
         },
         ui: {
           setup: 0,
-          sslUse: this.$t('project.ext_db.credentials.advanced.ssl.preferred'), // Preferred
+          sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
           ssl: {
-            key: this.$t('project.ext_db.credentials.advanced.ssl.option1'), // Client Key
-            cert: this.$t('project.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-            ca: this.$t('project.ext_db.credentials.advanced.ssl.option3'), // Server CA
+            key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
+            cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
+            ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
           },
         },
       });
@@ -1900,14 +1900,14 @@ export default {
               this.panel = null;
             } else {
               // Connection was successful
-              this.dialog.heading = this.$t('project.ext_db.dialog.success');
+              this.dialog.heading = this.$t('projects.ext_db.dialog.success');
               this.dialog.type = 'success';
               this.dialog.show = true;
             }
           } else {
             db.ui.setup = -1;
             // Connection Failure:
-            this.dialog.heading = this.$t('project.ext_db.dialog.failure') + result.message;
+            this.dialog.heading = this.$t('projects.ext_db.dialog.failure') + result.message;
             this.dialog.type = 'error';
             this.dialog.show = true;
           }
@@ -1994,7 +1994,7 @@ export default {
             } else {
               db.ui.setup = -1;
               // this.activeDbNode.testConnectionStatus = false;
-              this.dialog.heading = this.$t('project.ext_db.dialog.failure') + result.message;
+              this.dialog.heading = this.$t('projects.ext_db.dialog.failure') + result.message;
               this.dialog.type = 'error';
               this.dialog.show = true;
             }
@@ -2171,7 +2171,7 @@ export default {
   },
   head() {
     return {
-      title: this.$t('project.ext_db.head.title'),
+      title: this.$t('projects.ext_db.head.title'),
     };
   },
   props: {

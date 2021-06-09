@@ -71,18 +71,9 @@
 
                 <!--                </vue-recaptcha>-->
 
-                <v-btn @click="MtdOnSignup" color="primary" class="btn--large"
+                <v-btn @click="MtdOnSignup" color="primary" class="btn--large" :loading="signUpButtonLoading"
                        :disabled="!formUtil.recpatcha || !formUtil.valid" v-ge="['Sign Up ','']">
                   &nbsp; Sign Up &nbsp;
-                  <v-progress-circular
-                    class="pb-3 pt-0 mt-0"
-                    :value="formUtil.passwordProgress"
-                    width="2"
-                    size="18"
-                    small
-                    color="success">
-                  </v-progress-circular>
-
                 </v-btn>
 
 
@@ -261,6 +252,8 @@ export default {
 
       googleAuthUrl: "/api/auth/google",
       facebookAuthUrl: "/api/auth/facebook",
+
+      signUpButtonLoading: false
     }
   },
   methods: {
@@ -347,6 +340,9 @@ export default {
 
     async MtdOnSignup(e) {
       e.preventDefault();
+      
+      this.signUpButtonLoading = true;
+
       if (this.type === 'jwt') {
         if (this.$refs.formType.validate()) {
           //this.$nuxt.$loading.start()
@@ -368,6 +364,7 @@ export default {
             this.formUtil.formErr = true;
             this.formUtil.formErrMsg = err.data.msg;
             console.log(err.data.msg);
+            this.signUpButtonLoading = false;
             return
           }
 
@@ -379,6 +376,7 @@ export default {
         if (!valid) {
           this.formUtil.formErr = true;
           this.formUtil.formErrMsg = 'Invalid admin secret';
+          this.signUpButtonLoading = false;
           return
         }
         this.$store.commit('users/MutMasterKey', this.form.secret);
@@ -390,6 +388,7 @@ export default {
       } else {
         this.$router.push('/projects?toast');
       }
+      this.signUpButtonLoading = false;
     },
 
 

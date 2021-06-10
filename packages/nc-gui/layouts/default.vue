@@ -25,7 +25,10 @@
             </v-btn>
           </template>
           Home
-          <span class="caption ml-1 font-weight-light">(v{{$store.state.project.projectInfo && $store.state.project.projectInfo.version}})</span>
+          <span
+            class="caption ml-1 font-weight-light">(v{{
+              $store.state.project.projectInfo && $store.state.project.projectInfo.version
+            }})</span>
         </v-tooltip>
         <template><span class="title"> {{ brandName }}</span>
         </template>
@@ -235,7 +238,7 @@
           <v-tooltip bottom>
             <template v-slot:activator="{ on }">
               <v-icon @dblclick="showAppStore=true" @click="changeTheme" v-on="on" size="20"
-                      class="ml-3"> {{$vuetify.theme.dark ? 'mdi-weather-sunny':'mdi-weather-night'}}
+                      class="ml-3"> {{ $vuetify.theme.dark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
               </v-icon>
             </template>
             <span class="caption">
@@ -645,6 +648,13 @@
               </v-list-item>
 
 
+              <v-list-item v-if="isDashboard" dense @click="copyProjectInfo" v-ge="['Sign Out','']">
+                <v-list-item-title>
+
+                  <v-icon small>info</v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
+                </v-list-item-title>
+              </v-list-item>
+
               <v-list-item dense @click="MtdSignOut" v-ge="['Sign Out','']">
                 <v-list-item-title>
 
@@ -824,6 +834,7 @@ import 'splitpanes/dist/splitpanes.css'
 import XBtn from "../components/global/xBtn";
 import ChangeEnv from "../components/changeEnv";
 import Discord from "@/components/discord";
+import {copyTextToClipboard} from "@/helpers/xutils";
 
 export default {
   components: {
@@ -971,7 +982,7 @@ export default {
               'xc-auth': this.$store.state.users.token
             }
           })).data;
-          const obj = Object.values(info).find(v =>  v.apiType === 'rest' ? v.swaggerUrl : v.gqlApiUrl);
+          const obj = Object.values(info).find(v => v.apiType === 'rest' ? v.swaggerUrl : v.gqlApiUrl);
           this.swaggerOrGraphiqlUrl = obj.apiType === 'rest' ? obj.swaggerUrl : obj.gqlApiUrl
         } catch (e) {
         }
@@ -1296,6 +1307,15 @@ export default {
     },
     changeTheme() {
       this.$store.dispatch('windows/ActToggleDarkMode', !this.$store.state.windows.darkTheme);
+    },
+    async copyProjectInfo() {
+      try {
+        const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'ncProjectInfo'])
+        copyTextToClipboard(Object.entries(data).map(([k, v]) => `${k}: **${v}**`).join('\n'));
+        this.$toast.info('Copied project info to clipboard').goAway(3000);
+      } catch (e) {
+        this.$toast.error(e.message).goAway(3000);
+      }
     }
   },
 
@@ -1344,7 +1364,7 @@ a {
   animation-iteration-count: infinite;
 }
 
-/deep/ .v-toolbar__items{
+/deep/ .v-toolbar__items {
   align-items: center;
 }
 

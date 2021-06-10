@@ -38,17 +38,18 @@ import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoute
 import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
 import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
 import NcPluginMgr from "../plugins/NcPluginMgr";
-
+import isDocker from 'is-docker';
 // import packageInfo from '../../../../package.json'
 // require('pkginfo')(module, 'version');
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
 
-let packageInfo:any = {};
-try{
-  packageInfo = JSON.parse(fs.readFileSync('package.json','utf8'));
-}catch (_e) {}
+let packageInfo: any = {};
+try {
+  packageInfo = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+} catch (_e) {
+}
 
 export default class NcMetaMgr {
   public projectConfigs = {};
@@ -1082,6 +1083,9 @@ export default class NcMetaMgr {
           break;
         case 'xcVirtualTableUpdate':
           result = await this.xcVirtualTableUpdate(args);
+          break;
+        case 'ncProjectInfo':
+          result = await this.ncProjectInfo(args);
           break;
         case 'xcVirtualTableDelete':
           result = await this.xcVirtualTableDelete(args, req);
@@ -3105,6 +3109,19 @@ export default class NcMetaMgr {
     }, args.args.id);
   }
 
+
+  protected async ncProjectInfo(args) {
+
+    const config = this.projectConfigs[this.getProjectId(args)];
+    return {
+      node: process.version,
+      arch: process.arch,
+      platform: process.platform,
+      docker: isDocker(),
+      database: config.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]?.client,
+      packageVersion: packageInfo?.version
+    }
+  }
 
   protected async xcVirtualTableList(args): Promise<any> {
     return (await this.xcMeta.metaList(this.getProjectId(args), this.getDbAlias(args), 'nc_models', {

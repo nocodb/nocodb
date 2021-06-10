@@ -36,7 +36,8 @@
                   @click="projectsLoad"
                   v-bind:tooltip="$t('projects.reload_projects_tooltip')"
                 >
-                  mdi-refresh </x-icon
+                  mdi-refresh
+                </x-icon
                 >&nbsp;
                 <!--                </x-btn>-->
               </h1>
@@ -125,19 +126,20 @@
                       <v-list-item-title>
                         <!-- Create -->
                         <span class="caption font-weight-regular">{{
-                          $t('projects.create_new_project_button.subtext_1')
+                        $t('projects.create_new_project_button.subtext_1')
                         }}</span>
                       </v-list-item-title>
                       <v-spacer></v-spacer>
                       <v-tooltip right>
                         <template v-slot:activator="{ on }">
                           <v-icon v-on="on" x-small color="grey" class="ml-4"
-                            >mdi-information-outline</v-icon
+                          >mdi-information-outline
+                          </v-icon
                           >
                         </template>
                         <!-- Create a new project -->
                         <span class="caption">{{
-                          $t('projects.create_new_project_button.subtext_1_tooltip')
+                        $t('projects.create_new_project_button.subtext_1_tooltip')
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
@@ -163,12 +165,13 @@
                       <v-tooltip right>
                         <template v-slot:activator="{ on }">
                           <v-icon v-on="on" x-small color="grey" class="ml-4"
-                            >mdi-information-outline</v-icon
+                          >mdi-information-outline
+                          </v-icon
                           >
                         </template>
                         <!-- Supports MySQL, PostgreSQL, SQL Server & SQLite -->
                         <span class="caption">{{
-                          $t('projects.create_new_project_button.subtext_2_tooltip')
+                        $t('projects.create_new_project_button.subtext_2_tooltip')
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
@@ -243,8 +246,8 @@
                       </x-icon>
 
                       <span class="title font-weight-regular">{{
-                        props.item.title
-                      }}</span>
+                          props.item.title
+                        }}</span>
                     </td>
                     <td>
                       <div
@@ -265,7 +268,7 @@
                           color="orange grey"
                           v-if="props.item.status === 'started'"
                           @click.stop="stopProject(props.item)"
-                          >mdi-stop-circle-outline
+                        >mdi-stop-circle-outline
                         </x-icon>
                         <!-- Start Project -->
                         <x-icon
@@ -285,7 +288,7 @@
                             projectStatusUpdating &&
                             props.item.id === statusUpdatingProjectId
                           "
-                          >mdi-loading mdi-spin
+                        >mdi-loading mdi-spin
                         </x-icon>
                         <!-- Restart Project -->
                         <x-icon
@@ -313,7 +316,8 @@
                         <v-menu offset-y>
                           <template v-slot:activator="{ on }">
                             <x-icon v-on="on" color="grey"
-                              >mdi-dots-vertical</x-icon
+                            >mdi-dots-vertical
+                            </x-icon
                             >
                           </template>
                           <v-list dense>
@@ -330,7 +334,7 @@
                               <v-list-item-title>
                                 <!-- Import Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                  $t('projects.verticial_option_1')
+                                $t('projects.verticial_option_1')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -344,8 +348,8 @@
                               <v-list-item-title>
                                 <!-- Export Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                  $t('projects.verticial_option_2')
-                                }}</span>
+                                 $t('home.project_verticial_option_2')
+                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
                             <v-list-item
@@ -358,7 +362,7 @@
                               <v-list-item-title>
                                 <!-- Clear Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                  $t('projects.verticial_option_3')
+                                $t('projects.verticial_option_3')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -374,7 +378,7 @@
                   :value="true"
                   color="error"
                   icon="warning"
-                  >{{ $t('projects.search.no_result', { search }) }}
+                >{{ $t('projects.search.no_result', { search }) }}
                 </v-alert>
                 <!--                <template v-slot:no-data>-->
                 <!--                  <v-alert :value="true" outlined color="success" icon="mdi-information-outline">Create a new project-->
@@ -435,7 +439,8 @@
                   @click="onCreateProject"
                 >
                   <v-icon color="white" class="blink_me">
-                    mdi-lightbulb-on </v-icon
+                    mdi-lightbulb-on
+                  </v-icon
                   >&nbsp;
                   <!-- New Project -->
                   {{ $t('projects.create_new_project_button.text') }}
@@ -454,7 +459,7 @@
           align-start
         "
       >
-        <sponsor-mini />
+        <sponsor-mini/>
       </v-col>
     </v-row>
     <!--        <dlgLabelSubmitCancel-->
@@ -507,12 +512,13 @@
         >
           <v-list-item-icon>
             <v-icon class="ml-2" :color="textColors[3]"
-              >mdi-calendar-month</v-icon
+            >mdi-calendar-month
+            </v-icon
             >
           </v-list-item-icon>
           <!-- Book a Free DEMO -->
           <v-list-item-title>{{
-            $t('projects.show_community_message_2')
+          $t('projects.show_community_message_2')
           }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
@@ -522,7 +528,7 @@
           </v-list-item-icon>
           <!-- Get your questions answered -->
           <v-list-item-title>{{
-            $t('projects.show_community_message_3')
+          $t('projects.show_community_message_3')
           }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
@@ -532,7 +538,7 @@
           </v-list-item-icon>
           <!-- Follow NocoDB -->
           <v-list-item-title>{{
-            $t('projects.show_community_message_4')
+          $t('projects.show_community_message_4')
           }}</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -558,479 +564,505 @@
 </template>
 
 <script>
-  import dlgLabelSubmitCancel from '../../components/utils/dlgLabelSubmitCancel.vue';
-  import DlgProjectCreate from '@/components/utils/dlgProjectCreate';
-  import colors from '~/mixins/colors';
+import dlgLabelSubmitCancel from '../../components/utils/dlgLabelSubmitCancel.vue';
+import DlgProjectCreate from '@/components/utils/dlgProjectCreate';
+import colors from '~/mixins/colors';
 
-  import { mapState } from 'vuex';
-  import SponsorOverlay from '@/components/sponsorOverlay';
-  import SponsorMini from '@/components/sponsorMini';
+import {mapState} from 'vuex';
+import SponsorOverlay from '@/components/sponsorOverlay';
+import SponsorMini from '@/components/sponsorMini';
 
-  export default {
-    components: {
-      SponsorMini,
-      SponsorOverlay,
-      DlgProjectCreate,
-      dlgLabelSubmitCancel,
-      // howItWorks,
-    },
-    mixins: [colors],
-    $_veeValidate: {
-      validator: 'new',
-    },
-    data() {
-      return {
-        overlayVisible: true,
-        showCommunity: false,
-        project_id: null,
-        loading: null,
-        dialogShow: false,
-        confirmAction: null,
-        confirmMessage: '',
+export default {
+  components: {
+    SponsorMini,
+    SponsorOverlay,
+    DlgProjectCreate,
+    dlgLabelSubmitCancel,
+    // howItWorks,
+  },
+  mixins: [colors],
+  $_veeValidate: {
+    validator: 'new',
+  },
+  data() {
+    return {
+      overlayVisible: true,
+      showCommunity: false,
+      project_id: null,
+      loading: null,
+      dialogShow: false,
+      confirmAction: null,
+      confirmMessage: '',
 
-        createProjectDialog: false,
-        projectStatusUpdating: false,
-        statusUpdatingProjectId: null,
-        screenSize: null,
-        trialAlert: true,
-        dialog1: true,
-        steps: [
-          {
-            target: '[data-v-step="1"]',
-            content: 'Click here to create new Project.',
-            params: {
-              placement: 'top',
-            },
+      createProjectDialog: false,
+      projectStatusUpdating: false,
+      statusUpdatingProjectId: null,
+      screenSize: null,
+      trialAlert: true,
+      dialog1: true,
+      steps: [
+        {
+          target: '[data-v-step="1"]',
+          content: 'Click here to create new Project.',
+          params: {
+            placement: 'top',
           },
-          {
-            target: '[data-v-step="2"]',
-            content: 'Click here to open existing project.',
-          },
-          {
-            target: '[data-v-step="3"]',
-            content: 'Click here to filter projects.',
-          },
-          {
-            target: '[data-v-step="4"]',
-            content: 'Click here to open project folder.',
-          },
-          {
-            target: '[data-v-step="5"]',
-            content: 'Click here to edit project.',
-          },
-          {
-            target: '[data-v-step="6"]',
-            content: 'Click here to delete project.',
-          },
-        ],
-        loaded: false,
-        dialog: {
-          show: false,
-          title: 'Confirm Deleting project',
-          heading: '',
-          // mtdOk: this.projectRemove,
-          type: 'error',
         },
-        loadingProjects: true,
-        newProjectDialog: false,
-        name: '',
-        type: 'MySQL',
-        userSelectedDir: false,
-        dialogTitle: 'New',
-        databases: {
-          Oracle: 'oracledb',
-          Postgres: 'pg',
-          MySQL: 'mysql',
-          MSSQL: 'mssql',
-          Sqlite: 'sqlite',
+        {
+          target: '[data-v-step="2"]',
+          content: 'Click here to open existing project.',
         },
-        headers: [
-          {
-            text: 'Title',
-            value: 'title',
-            class: 'caption',
-          },
-          {
-            text: '',
-            value: 'name',
-            sortable: false,
-            class: 'caption',
-          },
-        ],
-        projects: [],
-        search: '',
-        deleteBtnClicked: false,
-      };
-    },
-    methods: {
-      async stopProject(project) {
-        this.$set(project, 'status', 'stopping');
-        const project_id = project.id;
-        this.statusUpdatingProjectId = project_id;
-        this.projectStatusUpdating = true;
-        try {
-          await this.$store.dispatch('sqlMgr/ActSqlOp', [
-            { project_id },
-            'projectStop',
-          ]);
-          this.$toast
-            .success(`Project '${project.title}' stopped successfully`)
-            .goAway(3000);
-        } catch (e) {
-          this.$toast
-            .error(`Project '${project.title}' stopping failed`)
-            .goAway(3000);
-        }
-        await this.projectsLoad();
-        this.projectStatusUpdating = false;
+        {
+          target: '[data-v-step="3"]',
+          content: 'Click here to filter projects.',
+        },
+        {
+          target: '[data-v-step="4"]',
+          content: 'Click here to open project folder.',
+        },
+        {
+          target: '[data-v-step="5"]',
+          content: 'Click here to edit project.',
+        },
+        {
+          target: '[data-v-step="6"]',
+          content: 'Click here to delete project.',
+        },
+      ],
+      loaded: false,
+      dialog: {
+        show: false,
+        title: 'Confirm Deleting project',
+        heading: '',
+        // mtdOk: this.projectRemove,
+        type: 'error',
       },
-      async startProject(project) {
-        this.$set(project, 'status', 'starting');
-        const project_id = project.id;
-        this.statusUpdatingProjectId = project_id;
-        this.projectStatusUpdating = true;
-        try {
-          await this.$store.dispatch('sqlMgr/ActSqlOp', [
-            { project_id },
-            'projectStart',
-          ]);
-          this.$toast
-            .success(`Project '${project.title}' started successfully`)
-            .goAway(3000);
-        } catch (e) {
-          this.$toast
-            .error(`Project '${project.title}' starting failed`)
-            .goAway(3000);
-        }
-        await this.projectsLoad();
-        this.projectStatusUpdating = false;
+      loadingProjects: true,
+      newProjectDialog: false,
+      name: '',
+      type: 'MySQL',
+      userSelectedDir: false,
+      dialogTitle: 'New',
+      databases: {
+        Oracle: 'oracledb',
+        Postgres: 'pg',
+        MySQL: 'mysql',
+        MSSQL: 'mssql',
+        Sqlite: 'sqlite',
       },
-      async restartProject(project) {
-        this.$set(project, 'status', 'restarting');
-        const project_id = project.id;
-        this.statusUpdatingProjectId = project_id;
-        this.projectStatusUpdating = true;
-        try {
-          await this.$store.dispatch('sqlMgr/ActSqlOp', [
-            { project_id },
-            'projectRestart',
-          ]);
-          this.$toast
-            .success(`Project '${project.title}' restarted successfully`)
-            .goAway(3000);
-        } catch (e) {
-          this.$toast
-            .error(`Project '${project.title}' restarting failed`)
-            .goAway(3000);
-        }
-        await this.projectsLoad();
-        this.projectStatusUpdating = false;
-      },
-      async deleteProject(project) {
-        this.$set(project, 'status', 'deleting');
-        const project_id = project.id;
-        this.statusUpdatingProjectId = project_id;
-        this.projectStatusUpdating = true;
-        try {
-          await this.$store.dispatch('sqlMgr/ActSqlOp', [
-            { project_id },
-            'projectDelete',
-          ]);
-          this.$toast
-            .success(`Project '${project.title}' deleted successfully`)
-            .goAway(3000);
-        } catch (e) {
-          this.$toast
-            .error(`Project '${project.title}' restarting failed`)
-            .goAway(3000);
-        }
-        await this.projectsLoad();
-        this.projectStatusUpdating = false;
-      },
-      onCreateProject(xcdb) {
-        if (xcdb === 'xcdb') {
-          this.$router.push('/project/xcdb');
+      headers: [
+        {
+          text: 'Title',
+          value: 'title',
+          class: 'caption',
+        },
+        {
+          text: '',
+          value: 'name',
+          sortable: false,
+          class: 'caption',
+        },
+      ],
+      projects: [],
+      search: '',
+      deleteBtnClicked: false,
+    };
+  },
+  methods: {
+    async stopProject(project) {
+      this.dialogShow = true;
+      this.confirmMessage =
+        'Do you want to stop the project?';
+      this.confirmAction = async act => {
+        if (act === 'hideDialog') {
+          this.dialogShow = false;
         } else {
-          this.$router.push('/project/0');
-        }
-      },
-      async importProjectFromJSON() {},
-      onTourCompletion() {
-        // this.$store.commit('windows/MutShowTour', {page: 'home'})
-      },
-      getDir(filePath) {
-        // return path.dirname(filePath);
-      },
-      async projectsLoad() {
-        try {
-          this.loadingProjects = true;
-          // console.log('projects', projects)
-          // this.projects = projectsData.data.list.reverse();
-          this.projects = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-            {
-              query: {
-                skipProjectHasDb: 1,
-              },
-            },
-            'projectList',
-          ]);
 
-          // todo: multiplex
-          const user = this.$store.state.users.user;
-          if (
-            !(this.projects && this.projects.length) &&
-            user &&
-            user.roles &&
-            user.roles.owner
-          ) {
-            if (
-              this.$store.state.project.projectInfo &&
-              this.$store.state.project.projectInfo.oneClick
-            ) {
-              // this.$router.push({
-              //   path: `/project/xcdb`
-              // });
-            }
-            // else {
-            // this.$router.push({
-            //   path: `/project/0`
-            // });
-            // }
-          }
-
-          this.loadingProjects = false;
-        } catch (error) {
-          console.log('Project fetch err', error);
-        }
-        this.loaded = true;
-      },
-      projectRouteHandler(project) {
-        if (project.status !== 'started') {
-          this.$toast
-            .info(
-              `Project '${project.title}' is not running, please start to open it`
-            )
-            .goAway(5000);
-          return;
-        }
-
-        if (!this.deleteBtnClicked) {
-          this.$router.push({
-            path: `/nc/${project.id}`,
-          });
-        }
-      },
-      async projectRemove(project) {
-        this._project = project;
-        this.deleteBtnClicked = true;
-        this.dialog.title =
-          'Project will drop all databases and remove all migrations files in your local directory. Click submit to delete';
-        this.dialog.show = true;
-      },
-      async projectEdit(project) {
-        console.log('projectEdit');
-        this.$router.push({
-          path: `project/0?edit=true&projectId=${project.id}`,
-        });
-      },
-      async projectOpenFolder(project) {
-        console.log('projectEdit');
-      },
-      async _projectRemove(action) {
-        if (action === 'hideDialog') {
-          this.deleteBtnClicked = false;
-          this.dialog.show = false;
-        } else {
-          this.deleteBtnClicked = true;
-          await this.sqlMgr.projectRemove(this._project);
-          this.deleteBtnClicked = false;
-          this.projectsLoad();
-          this.dialog.show = false;
-        }
-      },
-
-      async exportMetaZip(project_id) {
-        this.dialogShow = true;
-        this.confirmMessage =
-          'Do you want to export metadata from meta tables?';
-        this.confirmAction = async act => {
-          if (act === 'hideDialog') {
-            this.dialogShow = false;
-          } else {
-            this.loading = 'export-zip';
-            let data;
-            try {
-              data = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-                {
-                  // dbAlias: 'db',
-                  project_id,
-                  env: 'dev',
-                },
-                'xcMetaTablesExportDbToZip',
-                null,
-                null,
-                {
-                  responseType: 'blob',
-                },
-              ]);
-              const url = window.URL.createObjectURL(
-                new Blob([data], { type: 'application/zip' })
-              );
-              const link = document.createElement('a');
-              link.href = url;
-              link.setAttribute('download', 'meta.zip'); //or any other extension
-              document.body.appendChild(link);
-              link.click();
-              this.$toast
-                .success('Successfully exported metadata')
-                .goAway(3000);
-            } catch (e) {
-              this.$toast.error('Some internal error occurred').goAway(3000);
-            }
-            this.dialogShow = false;
-            this.loading = null;
-          }
-        };
-      },
-      async resetMeta(project_id) {
-        this.dialogShow = true;
-        this.confirmMessage = 'Do you want to clear metadata from meta tables?';
-        this.confirmAction = async act => {
-          if (act === 'hideDialog') {
-            this.dialogShow = false;
-          } else {
-            this.loading = 'reset-metadata';
-            try {
-              await this.$store.dispatch('sqlMgr/ActSqlOp', [
-                {
-                  // dbAlias: 'db',
-                  env: 'dev',
-                  project_id,
-                },
-                'xcMetaTablesReset',
-              ]);
-              this.$toast.success('Metadata cleared successfully').goAway(3000);
-            } catch (e) {
-              this.$toast.error('Some internal error occurred').goAway(3000);
-            }
-            this.dialogShow = false;
-            this.loading = null;
-          }
-        };
-      },
-      async importMetaZip() {
-        const project_id = this.project_id;
-        if (
-          this.$refs.importFile &&
-          this.$refs.importFile.files &&
-          this.$refs.importFile.files[0]
-        ) {
-          const zipFile = this.$refs.importFile.files[0];
-          this.loading = 'import-zip';
+          this.$set(project, 'status', 'stopping');
+          const project_id = project.id;
+          this.statusUpdatingProjectId = project_id;
+          this.projectStatusUpdating = true;
           try {
-            this.$refs.importFile.value = '';
-            await this.$store.dispatch('sqlMgr/ActUpload', [
+            await this.$store.dispatch('sqlMgr/ActSqlOp', [
+              {project_id},
+              'projectStop',
+            ]);
+            this.$toast
+              .success(`Project '${project.title}' stopped successfully`)
+              .goAway(3000);
+          } catch (e) {
+            this.$toast
+              .error(`Project '${project.title}' stopping failed`)
+              .goAway(3000);
+          }
+          await this.projectsLoad();
+          this.projectStatusUpdating = false;
+          this.dialogShow = false;
+        }
+      }
+    },
+    async startProject(project) {
+      this.dialogShow = true;
+      this.confirmMessage =
+        'Do you want to start the project?';
+      this.confirmAction = async act => {
+        if (act === 'hideDialog') {
+          this.dialogShow = false;
+        } else {
+
+          this.$set(project, 'status', 'starting');
+          const project_id = project.id;
+          this.statusUpdatingProjectId = project_id;
+          this.projectStatusUpdating = true;
+          try {
+            await this.$store.dispatch('sqlMgr/ActSqlOp', [
+              {project_id},
+              'projectStart',
+            ]);
+            this.$toast
+              .success(`Project '${project.title}' started successfully`)
+              .goAway(3000);
+          } catch (e) {
+            this.$toast
+              .error(`Project '${project.title}' starting failed`)
+              .goAway(3000);
+          }
+          await this.projectsLoad();
+          this.projectStatusUpdating = false;
+          this.dialogShow = false;
+        }
+      }
+    },
+    async restartProject(project) {
+      this.dialogShow = true;
+      this.confirmMessage =
+        'Do you want to restart the project?';
+      this.confirmAction = async act => {
+        if (act === 'hideDialog') {
+          this.dialogShow = false;
+        } else {
+          this.$set(project, 'status', 'restarting');
+          const project_id = project.id;
+          this.statusUpdatingProjectId = project_id;
+          this.projectStatusUpdating = true;
+          try {
+            await this.$store.dispatch('sqlMgr/ActSqlOp', [
+              {project_id},
+              'projectRestart',
+            ]);
+            this.$toast
+              .success(`Project '${project.title}' restarted successfully`)
+              .goAway(3000);
+          } catch (e) {
+            this.$toast
+              .error(`Project '${project.title}' restarting failed`)
+              .goAway(3000);
+          }
+          await this.projectsLoad();
+          this.projectStatusUpdating = false;
+          this.dialogShow = false
+        }
+      }
+    },
+    async deleteProject(project) {
+      this.dialogShow = true;
+      this.confirmMessage =
+        'Do you want to delete the project?';
+      this.confirmAction = async act => {
+        if (act === 'hideDialog') {
+          this.dialogShow = false;
+        } else {
+          this.$set(project, 'status', 'deleting');
+          const project_id = project.id;
+          this.statusUpdatingProjectId = project_id;
+          this.projectStatusUpdating = true;
+          try {
+            await this.$store.dispatch('sqlMgr/ActSqlOp', [
+              {project_id},
+              'projectDelete',
+            ]);
+            this.$toast
+              .success(`Project '${project.title}' deleted successfully`)
+              .goAway(3000);
+          } catch (e) {
+            this.$toast
+              .error(`Project '${project.title}' restarting failed`)
+              .goAway(3000);
+          }
+          await this.projectsLoad();
+          this.projectStatusUpdating = false;
+
+          this.dialogShow = false;
+        }
+      }
+    },
+    onCreateProject(xcdb) {
+      if (xcdb === 'xcdb') {
+        this.$router.push('/project/xcdb');
+      } else {
+        this.$router.push('/project/0');
+      }
+    },
+    async importProjectFromJSON() {
+    },
+    onTourCompletion() {
+      // this.$store.commit('windows/MutShowTour', {page: 'home'})
+    },
+    getDir(filePath) {
+      // return path.dirname(filePath);
+    },
+    async projectsLoad() {
+      try {
+        this.loadingProjects = true;
+        // console.log('projects', projects)
+        // this.projects = projectsData.data.list.reverse();
+        this.projects = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            query: {
+              skipProjectHasDb: 1,
+            },
+          },
+          'projectList',
+        ]);
+
+        // todo: multiplex
+        const user = this.$store.state.users.user;
+        if (
+          !(this.projects && this.projects.length) &&
+          user &&
+          user.roles &&
+          user.roles.owner
+        ) {
+          if (
+            this.$store.state.project.projectInfo &&
+            this.$store.state.project.projectInfo.oneClick
+          ) {
+            // this.$router.push({
+            //   path: `/project/xcdb`
+            // });
+          }
+          // else {
+          // this.$router.push({
+          //   path: `/project/0`
+          // });
+          // }
+        }
+
+        this.loadingProjects = false;
+      } catch (error) {
+        console.log('Project fetch err', error);
+      }
+      this.loaded = true;
+    },
+    projectRouteHandler(project) {
+      if (project.status !== 'started') {
+        this.$toast
+          .info(
+            `Project '${project.title}' is not running, please start to open it`
+          )
+          .goAway(5000);
+        return;
+      }
+
+      if (!this.deleteBtnClicked) {
+        this.$router.push({
+          path: `/nc/${project.id}`,
+        });
+      }
+    },
+    async projectEdit(project) {
+      console.log('projectEdit');
+      this.$router.push({
+        path: `project/0?edit=true&projectId=${project.id}`,
+      });
+    },
+    async projectOpenFolder(project) {
+      console.log('projectEdit');
+    },
+
+
+    async exportMetaZip(project_id) {
+      this.dialogShow = true;
+      this.confirmMessage =
+        'Do you want to export metadata from meta tables?';
+      this.confirmAction = async act => {
+        if (act === 'hideDialog') {
+          this.dialogShow = false;
+        } else {
+          this.loading = 'export-zip';
+          let data;
+          try {
+            data = await this.$store.dispatch('sqlMgr/ActSqlOp', [
               {
                 // dbAlias: 'db',
                 project_id,
                 env: 'dev',
               },
-              'xcMetaTablesImportZipToLocalFsAndDb',
-              {},
-              zipFile,
+              'xcMetaTablesExportDbToZip',
+              null,
+              null,
+              {
+                responseType: 'blob',
+              },
             ]);
-            this.$toast.success('Successfully imported metadata').goAway(3000);
-            await this.projectsLoad();
+            const url = window.URL.createObjectURL(
+              new Blob([data], {type: 'application/zip'})
+            );
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'meta.zip'); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+            this.$toast
+              .success('Successfully exported metadata')
+              .goAway(3000);
           } catch (e) {
             this.$toast.error('Some internal error occurred').goAway(3000);
           }
           this.dialogShow = false;
           this.loading = null;
         }
-      },
+      };
     },
-    watch: {
-      name() {
-        if (!this.userSelectedDir)
-          this.folder = `${this.baseFolder}/${this.name}`;
-      },
+    async resetMeta(project_id) {
+      this.dialogShow = true;
+      this.confirmMessage = 'Do you want to clear metadata from meta tables?';
+      this.confirmAction = async act => {
+        if (act === 'hideDialog') {
+          this.dialogShow = false;
+        } else {
+          this.loading = 'reset-metadata';
+          try {
+            await this.$store.dispatch('sqlMgr/ActSqlOp', [
+              {
+                // dbAlias: 'db',
+                env: 'dev',
+                project_id,
+              },
+              'xcMetaTablesReset',
+            ]);
+            this.$toast.success('Metadata cleared successfully').goAway(3000);
+          } catch (e) {
+            this.$toast.error('Some internal error occurred').goAway(3000);
+          }
+          this.dialogShow = false;
+          this.loading = null;
+        }
+      };
     },
-    async created() {
-      this.$store.commit('windows/MutToggleGaEnabled', true);
-      this.$store.commit('windows/MutToggleTelemetryEnabled', true);
-
-      //console.log(JSON.stringify(size))
-
-      await this.$store.dispatch('users/ActGetUserDetails');
-      // this.$store.commit('windows/MutIsComp', await isComp());
-
-      // new GCP
-      // let user = await this.$axios.get('/api/v1/user/me');
-      // console.log('================ user', user)
-      // if (user.data && user.data.email) {
-      //   this.$store.commit('users/MutSetUser', user.data);
-      //   await this.$store.dispatch('users/ActGetUserUiAbility');
-      // } else {
-      //   this.$store.commit('users/MutSetUser', null);
-      // }
+    async importMetaZip() {
+      const project_id = this.project_id;
+      if (
+        this.$refs.importFile &&
+        this.$refs.importFile.files &&
+        this.$refs.importFile.files[0]
+      ) {
+        const zipFile = this.$refs.importFile.files[0];
+        this.loading = 'import-zip';
+        try {
+          this.$refs.importFile.value = '';
+          await this.$store.dispatch('sqlMgr/ActUpload', [
+            {
+              // dbAlias: 'db',
+              project_id,
+              env: 'dev',
+            },
+            'xcMetaTablesImportZipToLocalFsAndDb',
+            {},
+            zipFile,
+          ]);
+          this.$toast.success('Successfully imported metadata').goAway(3000);
+          await this.projectsLoad();
+        } catch (e) {
+          this.$toast.error('Some internal error occurred').goAway(3000);
+        }
+        this.dialogShow = false;
+        this.loading = null;
+      }
     },
-    computed: {
-      connectToExternalDB() {
-        return this.$store.state.project.projectInfo.connectToExternalDB;
-      },
+  },
+  watch: {
+    name() {
+      if (!this.userSelectedDir)
+        this.folder = `${this.baseFolder}/${this.name}`;
     },
-    async mounted() {
-      setTimeout(() => (this.showCommunity = true), 2000);
-      // setTimeout(() => {
-      //   if (this.$store.state.windows.showTour.home)
-      //     this.$tours['myTour'].start();
-      // }, 2000)
+  },
+  async created() {
+    this.$store.commit('windows/MutToggleGaEnabled', true);
+    this.$store.commit('windows/MutToggleTelemetryEnabled', true);
 
-      // setTimeout(() => this.trialAlert = false, (30 - this.$store.getters['windows/GtrNoOfDaysLeft']) * 15000);
+    //console.log(JSON.stringify(size))
 
-      console.log('=======mounted index');
-      // setTimeout(() => {
-      //   this.$refs.search1.$el.querySelector('input').focus()
-      //   console.log(this.$refs.search1.$el.querySelector('input'))
-      //   console.log('======= within nexttick')
-      // }, 200)
-      await this.projectsLoad();
-      // await this.openProjectIfQueryParamFound()
+    await this.$store.dispatch('users/ActGetUserDetails');
+    // this.$store.commit('windows/MutIsComp', await isComp());
+
+    // new GCP
+    // let user = await this.$axios.get('/api/v1/user/me');
+    // console.log('================ user', user)
+    // if (user.data && user.data.email) {
+    //   this.$store.commit('users/MutSetUser', user.data);
+    //   await this.$store.dispatch('users/ActGetUserUiAbility');
+    // } else {
+    //   this.$store.commit('users/MutSetUser', null);
+    // }
+  },
+  computed: {
+    connectToExternalDB() {
+      return this.$store.state.project.projectInfo.connectToExternalDB;
     },
-  };
+  },
+  async mounted() {
+    setTimeout(() => (this.showCommunity = true), 2000);
+    // setTimeout(() => {
+    //   if (this.$store.state.windows.showTour.home)
+    //     this.$tours['myTour'].start();
+    // }, 2000)
+
+    // setTimeout(() => this.trialAlert = false, (30 - this.$store.getters['windows/GtrNoOfDaysLeft']) * 15000);
+
+    console.log('=======mounted index');
+    // setTimeout(() => {
+    //   this.$refs.search1.$el.querySelector('input').focus()
+    //   console.log(this.$refs.search1.$el.querySelector('input'))
+    //   console.log('======= within nexttick')
+    // }, 200)
+    await this.projectsLoad();
+    // await this.openProjectIfQueryParamFound()
+  },
+};
 </script>
 <style scoped>
-  .action-icons {
-    opacity: 0;
-    transition: 0.2s opacity;
-  }
+.action-icons {
+  opacity: 0;
+  transition: 0.2s opacity;
+}
 
-  tr:hover .action-icons {
-    opacity: 1;
-  }
+tr:hover .action-icons {
+  opacity: 1;
+}
 
-  @media screen and (max-width: 1240px) {
-    .community-card {
-      display: none;
-    }
-  }
-
+@media screen and (max-width: 1240px) {
   .community-card {
-    position: absolute;
-    right: -300px;
-    bottom: 60px;
-    opacity: 0;
-    transition: 2s right, 2s opacity;
+    display: none;
   }
+}
 
-  .community-card.active {
-    right: 0px;
-    opacity: 1;
-  }
+.community-card {
+  position: absolute;
+  right: -300px;
+  bottom: 60px;
+  opacity: 0;
+  transition: 2s right, 2s opacity;
+}
 
-  .nc-container {
-    position: relative;
-  }
+.community-card.active {
+  right: 0px;
+  opacity: 1;
+}
+
+.nc-container {
+  position: relative;
+}
 </style>
 
 <!--

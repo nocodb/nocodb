@@ -820,7 +820,7 @@ export default class SqlMgr {
         migrationSteps: 9999,
         folder: this.currentProjectFolder
       };
-      console.log(`Migration up args for '${op}'`, migrationArgs);
+      // console.log(`Migration up args for '${op}'`, migrationArgs);
       await this.migrator().migrationsUp(migrationArgs);
     }
 

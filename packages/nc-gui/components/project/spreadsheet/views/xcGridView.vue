@@ -312,19 +312,23 @@ export default {
     columnsWidth: {type: Object}
   },
   mounted() {
-    setTimeout(() => {
-      const obj = {};
-      this.meta && this.meta.columns && this.meta.columns.forEach(c => {
-        obj[c._cn] = columnStyling[c.uidt] && columnStyling[c.uidt].w || undefined;
-      })
-      Array.from(this.$el.querySelectorAll('th')).forEach(el => {
-        const width = el.getBoundingClientRect().width;
-        obj[el.dataset.col] = obj[el.dataset.col] || ((width < 100 ? 100 : width) + 'px');
-      });
-      this.$emit('update:columnsWidth', {...obj, ...(this.columnWidth || {})})
-    }, 500)
+    this.calculateColumnWidth();
   },
   methods: {
+    calculateColumnWidth() {
+      setTimeout(() => {
+        const obj = {};
+        this.meta && this.meta.columns && this.meta.columns.forEach(c => {
+          debugger
+          obj[c._cn] = columnStyling[c.uidt] && columnStyling[c.uidt].w || undefined;
+        })
+        Array.from(this.$el.querySelectorAll('th')).forEach(el => {
+          const width = el.getBoundingClientRect().width;
+          obj[el.dataset.col] = obj[el.dataset.col] || ((width < 100 ? 100 : width) + 'px');
+        });
+        this.$emit('update:columnsWidth', {...obj, ...(this.columnWidth || {})})
+      }, 500)
+    },
     isCentrallyAligned(col) {
       return !['SingleLineText',
         'LongText',
@@ -794,6 +798,10 @@ th:first-child, td:first-child {
 
 .has-many-icon {
   transform: rotate(90deg);
+}
+
+th{
+  min-width:100px;
 }
 
 

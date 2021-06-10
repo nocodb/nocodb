@@ -1,5 +1,5 @@
 <template>
-  <v-select v-on="parentListeners" v-model="localState" dense flat :items="enumValues" hide-details class="mt-0">
+  <v-select v-on="parentListeners" v-model="localState" dense flat :items="enumValues" hide-details class="mt-0" :clearable="!column.rqd">
     <!--    <option v-for="eVal of enumValues" :key="eVal" :value="eVal">{{ eVal }}</option>-->
     <template v-slot:selection="{item}">
       <div class="d-100  pl-4" :class="{
@@ -69,17 +69,9 @@ export default {
 </script>
 
 <style scoped>
-select {
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-  -webkit-appearance: menulist;
-  /*webkit browsers */
-  -moz-appearance: menulist;
-  /*Firefox */
-  appearance: menulist;
+/deep/ .v-select{
+  min-width: 150px;
 }
-
 </style>
 <!--
 /**

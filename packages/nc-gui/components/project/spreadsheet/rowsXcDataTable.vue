@@ -696,6 +696,7 @@ export default {
       if (!this.data[row]) return;
       const {row: rowObj, rowMeta, oldRow} = this.data[row];
       if (rowMeta.new) {
+        await this.save()
       } else {
         try {
           if (!this.api) return;

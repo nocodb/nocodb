@@ -21,9 +21,8 @@
             dense outlined></v-text-field>
 
         </v-col>
-
         <div :class="{
-          editDisabled : !isEditable
+          editDisabled :isEditDisabled
         }">
           <v-col cols="12" v-if="relation">
             <div class="caption">
@@ -270,7 +269,8 @@
               </v-col>
             </template>
           </template>
-          <div class="disabled-info" :class="{'d-none':isEditable}">
+
+          <div class="disabled-info" :class="{'d-none':!isEditDisabled}">
             <v-alert dense type="warning" icon="info" class="caption mx-2" outlined>
               This spreadsheet is connected to an SQLite DB.<br>
               For production please see <a href="https://github.com/nocodb/nocodb#production-setup"
@@ -488,8 +488,8 @@ export default {
     this.focusInput()
   },
   computed: {
-    isEditable() {
-      return !this.editColumn && this.sqlUi === SqliteUi;
+    isEditDisabled() {
+      return this.editColumn &&  this.sqlUi === SqliteUi;
     },
     dataTypes() {
       return this.sqlUi.getDataTypeListForUiType(this.newColumn)

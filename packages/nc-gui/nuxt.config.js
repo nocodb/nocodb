@@ -37,11 +37,6 @@ export default {
       {rel: 'icon', type: 'image/x-icon', href: './favicon-32.png'}
     ],
     script: [
-      // {
-      //   // src: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ace.js'
-      //   // }  ,{
-      //   //   src: 'https://unpkg.com/ace-diff@3.0.3/dist/ace-diff.min.js'
-      // },
       {
         src: 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.3.2/dist/confetti.browser.min.js'
       }
@@ -58,8 +53,6 @@ export default {
     "~/plugins/xutils.js",
     {src: '~plugins/localStorage.js', ssr: false},
     {src: '~plugins/axiosInterceptor.js', ssr: false},
-    // {src: '~plugins/hotjar.js', ssr: false},
-    // "@/plugins/vuetify",
     "@/plugins/veeValidate",
     "@/plugins/vueTour",
     {src: "@/plugins/vueShortkey", ssr: false},
@@ -67,9 +60,7 @@ export default {
     "@/plugins/globalComponentLoader",
     "@/plugins/globalMixin",
     "~/plugins/i18n.js",
-    {src: '~plugins/projectLoader.js', ssr: false},
-    // {src: '~plugins/recaptchav3.js', ssr: false},
-    // {src: '~plugins/tawk.js', ssr: false},
+    {src: '~plugins/projectLoader.js', ssr: false}
   ],
   /*
   ** Auto import components
@@ -112,25 +103,7 @@ export default {
     // base: '/xc/',
     middleware: ['auth']
   },
-  // vuetify: {
-  //   customVariables: ['~/assets/variables.scss'],
-  //   theme: {
-  //     dark: true,
-  //     themes: {
-  //       dark: {
-  //         primary: colors.blue.darken2,
-  //         accent: colors.grey.darken3,
-  //         secondary: colors.amber.darken3,
-  //         info: colors.teal.lighten1,
-  //         warning: colors.amber.base,
-  //         error: colors.deepOrange.accent4,
-  //         success: colors.green.accent3
-  //       }
-  //     }
-  //   }
-  // },
   vuetify: {
-    // theme: {dark: true},
     optionsPath: '@/config/vuetify.options.js',
     treeShake: true,
     customVariables: ['./config/variables.scss']
@@ -141,17 +114,7 @@ export default {
   */
   build: {
     cache: true,
-    // parallel: true,
-    // hardSource: true,
-    // filenames: {
-    //   app: ({isDev}) => isDev ? '[name].js' : '[name].js',
-    //   chunk: ({isDev}) => isDev ? '[name].js' : '[name].js',
-    // },
-    // splitChunks: {
-    //   commons: false
-    // },
     plugins: [
-      // new VuetifyLoaderPlugin(),
       new MonacoEditorWebpackPlugin({
         // https://github.com/Microsoft/monaco-editor-webpack-plugin#options
         // Include a subset of languages support

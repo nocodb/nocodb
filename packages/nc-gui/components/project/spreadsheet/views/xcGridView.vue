@@ -319,7 +319,6 @@ export default {
       setTimeout(() => {
         const obj = {};
         this.meta && this.meta.columns && this.meta.columns.forEach(c => {
-          debugger
           obj[c._cn] = columnStyling[c.uidt] && columnStyling[c.uidt].w || undefined;
         })
         Array.from(this.$el.querySelectorAll('th')).forEach(el => {

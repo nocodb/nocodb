@@ -27,7 +27,6 @@ export default {
         return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : this.value;
       },
       set(val) {
-        // debugger
         this.$emit('input', (new Date(val).toJSON() || '').slice(0, 10) || val);
       }
     },

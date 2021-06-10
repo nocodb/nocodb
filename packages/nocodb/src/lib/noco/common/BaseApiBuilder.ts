@@ -321,7 +321,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`onTableUpdate : Getting old model meta for '%s'`, tn)
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
 
-    const relationTableMetas:Set<any> = new Set();
+    const relationTableMetas: Set<any> = new Set();
 
     const oldModelRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
       title: tn
@@ -436,8 +436,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
                 // update column name in parent table metadata
                 relationTableMetas.add(this.metas[bt.rtn])
-                for(const pHm of this.metas[bt.rtn]?.hasMany){
-                  if(pHm.cn  === column.cno && pHm.tn === tn){
+                for (const pHm of this.metas[bt.rtn]?.hasMany) {
+                  if (pHm.cn === column.cno && pHm.tn === tn) {
                     pHm.cn = column.cn;
                     pHm._cn = column._cn;
                   }
@@ -455,8 +455,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
                 // update column name in child table metadata
                 relationTableMetas.add(this.metas[hm.tn])
-                for(const cBt of this.metas[hm.tn]?.belongsTo){
-                  if(cBt.rcn  === column.cno && cBt.rtn === tn){
+                for (const cBt of this.metas[hm.tn]?.belongsTo) {
+                  if (cBt.rcn === column.cno && cBt.rtn === tn) {
                     cBt.rcn = column.cn;
                     cBt._rcn = column._cn;
                   }
@@ -568,7 +568,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
 
     // update relation tables metadata
-    for(const relMeta of relationTableMetas){
+    for (const relMeta of relationTableMetas) {
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         meta: JSON.stringify(relMeta)
       }, {
@@ -749,15 +749,21 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
       if (this.connectionConfig?.connection?.ssl && typeof this.connectionConfig?.connection?.ssl === 'object') {
-        this.connectionConfig.connection.ssl.ca = fs
-          .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
-          .toString();
-        this.connectionConfig.connection.ssl.key = fs
-          .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
-          .toString();
-        this.connectionConfig.connection.ssl.cert = fs
-          .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
-          .toString();
+        if (this.connectionConfig.connection.ssl.caFilePath) {
+          this.connectionConfig.connection.ssl.ca = fs
+            .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
+            .toString();
+        }
+        if (this.connectionConfig.connection.ssl.keyFilePath) {
+          this.connectionConfig.connection.ssl.key = fs
+            .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
+            .toString();
+        }
+        if (this.connectionConfig.connection.ssl.certFilePath) {
+          this.connectionConfig.connection.ssl.cert = fs
+            .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
+            .toString();
+        }
       }
 
       const isSqlite = this.connectionConfig.client === 'sqlite3';

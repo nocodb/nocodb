@@ -78,5 +78,14 @@
   "signin.head.title": "Log In | Noco",
   "signin.head.meta.hid": "Log In To Noco",
   "signin.head.meta.name": "Log In To Noco",
-  "signin.head.meta.content": "Log In To Noco"
+  "signin.head.meta.content": "Log In To Noco",
+  "treeview.settings": "Settings",
+  "treeview.settings.tooltip": "Only visible to Creator",
+  "treeview.app_store": "App Store",
+  "treeview.team_n_auth": "Team & Auth",
+  "treeview.team_n_auth.tooltip": "Roles & Users Management",
+  "treeview.project_metadata": "Project Metadata",
+  "treeview.project_metadata.tooltip": "Meta Management",
+  "treeview.preview_as": "Preview as",
+  "treeview.reset_review": "Reset Preview"
 }

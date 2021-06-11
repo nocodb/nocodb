@@ -325,8 +325,8 @@
 
             <v-list-item>
               <v-list-item-title>
-
-                <span class="body-2 grey--text">Settings</span>
+                <!-- Settings -->
+                <span class="body-2 grey--text">{{ $t('treeview.settings') }}</span>
                 <v-tooltip top>
 
                   <template v-slot:activator="{on}">
@@ -336,7 +336,8 @@
                             icon-class="ml-2" small>mdi-shield-lock-outline
                     </x-icon>
                   </template>
-                  <span class="caption">Only visible to Creator</span>
+                  <!-- Only visible to Creator -->
+                  <span class="caption">{{ $t('treeview.settings.tooltip') }}</span>
                 </v-tooltip>
               </v-list-item-title>
             </v-list-item>
@@ -350,12 +351,14 @@
                     <v-list-item-icon>
                       <v-icon x-small> mdi-storefront-outline</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular caption">App Store</span>
+                    <!-- App Store -->
+                    <v-list-item-title><span class="font-weight-regular caption">{{ $t('treeview.app_store') }}</span>
                     </v-list-item-title>
 
                   </v-list-item>
                 </template>
-                App Store
+                <!-- App Store -->
+                {{ $t('treeview.app_store') }}
               </v-tooltip>
 
               <v-tooltip bottom>
@@ -364,11 +367,13 @@
                     <v-list-item-icon>
                       <v-icon x-small> mdi-account-group</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular caption">Team & Auth</span></v-list-item-title>
+                    <!-- Team & Auth -->
+                    <v-list-item-title><span class="font-weight-regular caption">{{ $t('treeview.team_n_auth') }}</span></v-list-item-title>
 
                   </v-list-item>
                 </template>
-                Roles & Users Management
+                <!-- Roles & Users Management -->
+                {{ $t('treeview.team_n_auth.tooltip') }}
               </v-tooltip>
               <v-tooltip bottom>
                 <template v-slot:activator="{on}">
@@ -377,12 +382,14 @@
                     <v-list-item-icon>
                       <v-icon x-small>mdi-table-multiple</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular caption">Project Metadata</span>
+                    <!-- Project Metadata -->
+                    <v-list-item-title><span class="font-weight-regular caption">{{ $t('treeview.project_metadata') }}</span>
                     </v-list-item-title>
                   </v-list-item>
 
                 </template>
-                Meta Management
+                <!-- Meta Management -->
+                {{ $t('treeview.project_metadata.tooltip') }}
               </v-tooltip>
             </template>
           </v-list>
@@ -442,7 +449,8 @@
 
           <v-list dense>
             <v-list-item>
-              <span class="body-2 grey--text">Preview as</span>
+              <!-- Preview as -->
+              <span class="body-2 grey--text">{{ $t('treeview.preview_as') }}</span>
               <v-icon small class="ml-1">mdi-drama-masks</v-icon>
               <!--                <v-icon small>mdi-menu-down</v-icon>-->
             </v-list-item>
@@ -471,7 +479,8 @@
                 <!--                <v-divider></v-divider>-->
                 <v-list-item @click="setPreviewUSer(null)">
                   <v-icon small class="mr-1">mdi-close</v-icon>
-                  <span class="caption">Reset Preview</span>
+                  <!-- Reset Preview -->
+                  <span class="caption">{{ $t('treeview.reset_review') }}</span>
                 </v-list-item>
               </template>
             </v-list>
@@ -1651,6 +1660,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

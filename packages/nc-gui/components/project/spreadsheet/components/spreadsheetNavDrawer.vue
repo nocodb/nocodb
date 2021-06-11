@@ -13,7 +13,8 @@
 
 
             <v-list-item dense>
-              <span class="body-2 grey--text">Views</span>
+              <!-- Views -->
+              <span class="body-2 grey--text">{{ $t('nav_drawer.title') }}</span>
             </v-list-item>
             <v-list-item-group
               v-model="selectedViewIdLocal"
@@ -52,22 +53,25 @@
                 </v-list-item-title>
                 <v-spacer></v-spacer>
                 <template v-if="_isUIAllowed('virtualViewsCreateOrEdit')">
+                  <!-- Copy view -->
                   <x-icon v-if="view.type === 'vtable' && !view.edit"
-                          tooltip="Copy view"
+                          v-bind:tooltip="$t('nav_drawer.virtual_views.action.copy')"
                           x-small color="primary"
                           @click.stop="copyView(view,i)"
                           iconClass="view-icon">
                     mdi-content-copy
                   </x-icon>
+                  <!-- Rename view -->
                   <x-icon v-if="view.type === 'vtable' && !view.edit"
-                          tooltip="Rename view"
+                          v-bind:tooltip="$t('nav_drawer.virtual_views.action.rename')"
                           x-small color="primary"
                           @click.stop="showRenameTextBox(view,i)"
                           iconClass="view-icon">
                     mdi-pencil
                   </x-icon>
+                  <!-- Delete view" -->
                   <x-icon v-if="view.type === 'vtable'"
-                          tooltip="Delete view"
+                          v-bind:tooltip="$t('nav_drawer.virtual_views.action.delete')"
                           small color="error" @click.stop="deleteView(view)"
                           iconClass="view-icon">
                     mdi-delete-outline
@@ -88,7 +92,10 @@
                   'advanced-border' : overShieldIcon
                 }">
               <v-list-item dense>
-                <span class="body-2 grey--text" @dblclick="enableDummyFeat = true">Create a View</span>
+                <!-- Create a View -->
+                <span class="body-2 grey--text" @dblclick="enableDummyFeat = true">
+                  {{ $t('nav_drawer.virtual_views.title')}}
+                </span>
                 <v-tooltip top>
 
                   <template v-slot:activator="{on}">
@@ -98,7 +105,10 @@
                             icon-class="ml-2" small>mdi-shield-lock-outline
                     </x-icon>
                   </template>
-                  <span class="caption">Only visible to Creator</span>
+                  <!-- Only visible to Creator -->
+                  <span class="caption">
+                    {{ $t('nav_drawer.virtual_views.caption')}}
+                  </span>
                 </v-tooltip>
               </v-list-item>
               <v-tooltip bottom>
@@ -108,13 +118,17 @@
                     <v-list-item-icon class="mr-n1">
                       <v-icon color="blue" x-small>mdi-grid-large</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular">Grid</span></v-list-item-title>
+                    <v-list-item-title><span class="font-weight-regular">
+                      <!-- Grid -->
+                      {{ $t('nav_drawer.virtual_views.grid')}}
+                      </span></v-list-item-title>
                     <v-spacer></v-spacer>
                     <v-icon class="mr-1" small>mdi-plus</v-icon>
 
                   </v-list-item>
                 </template>
-                Add Grid View
+                <!-- Add Grid View -->
+                {{ $t('nav_drawer.virtual_views.grid.create')}}
               </v-tooltip>
               <v-tooltip bottom>
                 <template v-slot:activator="{on}">
@@ -123,13 +137,18 @@
                     <v-list-item-icon class="mr-n1">
                       <v-icon color="orange" x-small>mdi-camera-image</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular">Gallery</span></v-list-item-title>
+                    <v-list-item-title><span class="font-weight-regular">
+                      <!-- Gallery -->
+                      
+                {{ $t('nav_drawer.virtual_views.gallery')}}
+                      </span></v-list-item-title>
 
                     <v-spacer></v-spacer>
                     <v-icon class="mr-1" small>mdi-plus</v-icon>
                   </v-list-item>
                 </template>
-                Add Gallery View
+                <!-- Add Gallery View -->
+                {{ $t('nav_drawer.virtual_views.gallery.create')}}
               </v-tooltip>
 
               <v-tooltip bottom>
@@ -139,14 +158,18 @@
                     <v-list-item-icon class="mr-n1">
                       <v-icon x-small>mdi-calendar</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular">Calendar</span></v-list-item-title>
+                    <v-list-item-title><span class="font-weight-regular">
+                      <!-- Calendar -->
+                      {{ $t('nav_drawer.virtual_views.calendar')}}
+                      </span></v-list-item-title>
 
                     <v-spacer></v-spacer>
                     <v-icon class="mr-1" small>mdi-plus</v-icon>
 
                   </v-list-item>
                 </template>
-                Add Calendar View
+                <!-- Add Calendar View -->
+                {{ $t('nav_drawer.virtual_views.calendar.create')}}
               </v-tooltip>
               <v-tooltip bottom>
                 <template v-slot:activator="{on}">
@@ -155,14 +178,18 @@
                     <v-list-item-icon class="mr-n1">
                       <v-icon x-small>mdi-tablet-dashboard</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular">Kanban</span></v-list-item-title>
+                    <v-list-item-title><span class="font-weight-regular">
+                      <!-- Kanban -->
+                      {{ $t('nav_drawer.virtual_views.kanban')}}
+                      </span></v-list-item-title>
 
                     <v-spacer></v-spacer>
                     <v-icon class="mr-1" small>mdi-plus</v-icon>
 
                   </v-list-item>
                 </template>
-                Add Kanban View
+                <!-- Add Kanban View -->
+                {{ $t('nav_drawer.virtual_views.kanban.create')}}
               </v-tooltip>
               <v-tooltip bottom>
                 <template v-slot:activator="{on}">
@@ -171,14 +198,19 @@
                     <v-list-item-icon class="mr-n1">
                       <v-icon x-small class="mt-n1">mdi-form-select</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title><span class="font-weight-regular">Form</span></v-list-item-title>
+                    <v-list-item-title><span class="font-weight-regular">
+                      <!-- Form -->
+
+                      {{ $t('nav_drawer.virtual_views.form')}}
+                      </span></v-list-item-title>
 
                     <v-spacer></v-spacer>
                     <v-icon class="mr-1" small>mdi-plus</v-icon>
 
                   </v-list-item>
                 </template>
-                Add Form View
+                <!-- Add Form View -->
+                {{ $t('nav_drawer.virtual_views.form.create')}}
               </v-tooltip>
             </v-list>
           </template>
@@ -218,7 +250,10 @@
                           icon-class="ml-2" small>mdi-shield-lock-outline
                   </x-icon>
                 </template>
-                <span class="caption">Only visible to Creator</span>
+                <span class="caption">
+                  <!-- Only visible to Creator -->
+                  {{$t('nav_drawer.virtual_views.caption')}}
+                  </span>
               </v-tooltip>
             </v-list-item>
             <!--            <v-tooltip bottom>-->
@@ -231,7 +266,10 @@
               @click="genShareLink"
             >
               <v-icon x-small class="mr-2">mdi-open-in-new</v-icon>
-              <span class="caption"> Share View</span>
+              <span class="caption"> 
+                <!-- Share View -->
+                {{ $t('nav_drawer.advanced.title1') }}
+              </span>
               <v-spacer></v-spacer>
               <v-menu offset-y>
                 <template v-slot:activator="{on}">
@@ -240,7 +278,10 @@
                 <v-list dense>
                   <v-list-item dense @click="$emit('showAdditionalFeatOverlay','shared-views')">
                     <v-list-item-title>
-                      <span class="font-weight-regular">Views List</span>
+                      <span class="font-weight-regular">
+                        <!-- Views List -->
+                        {{ $t('nav_drawer.advanced.option1') }}
+                      </span>
                     </v-list-item-title>
                   </v-list-item>
                 </v-list>
@@ -274,10 +315,12 @@
                 <v-list-item v-on="on"
                              @click="copyapiUrlToClipboard">
                   <v-icon x-small class="mr-2">mdi-content-copy</v-icon>
-                  <span class="caption"> Copy API URL</span>
+                  <!-- Copy API URL -->
+                  <span class="caption">{{ $t('nav_drawer.advanced.option1') }}</span>
                 </v-list-item>
               </template>
-              Copy API URL
+              <!-- Copy API URL -->
+              {{ $t('nav_drawer.advanced.option1') }}
             </v-tooltip>
             <template
               v-if="_isUIAllowed('model')">
@@ -313,8 +356,13 @@
     >
       <v-card class="pa-3 backgroundColor">
         <v-container @click.stop>
-          <h3 class="title mb-3">This view is shared via a private link</h3>
-          <p class="grey&#45;&#45;text body-2">People with private link can only see cells visible in this view</p>
+          <h3 class="title mb-3">
+            <!-- This view is shared via a private link -->
+            {{ $t('nav_drawer.share_view.title')}}
+          </h3>
+          <p class="grey&#45;&#45;text body-2">
+            <!-- People with private link can only see cells visible in this view -->
+          </p>
           <div style="border-radius: 4px"
                class="share-link-box body-2  pa-2 d-flex align-center">
             {{ shareLink.url }}
@@ -332,8 +380,14 @@
 
           <v-switch dense v-model="passwordProtect" @change="onPasswordProtectChange">
             <template v-slot:label>
-              <span class="caption" v-show="!passwordProtect">Restrict access with a password</span>
-              <span class="caption" v-show="passwordProtect">Access is password restricted</span>
+              <!-- Restrict access with a password -->
+              <span class="caption" v-show="!passwordProtect">
+                {{ $t('nav_drawer.share_view.toggle.option1')}}
+              </span>
+              <!-- Access is password restricted -->
+              <span class="caption" v-show="passwordProtect">
+                {{ $t('nav_drawer.share_view.toggle.option2')}}
+              </span>
             </template>
           </v-switch>
 
@@ -343,7 +397,7 @@
               class="password-field mr-2 caption"
               style="max-width: 230px"
               :type="showShareLinkPassword ?  'text' : 'password'"
-              hint="Enter the password"
+              v-bind:hint="$t('nav_drawer.share_view.password.caption')"
               persistent-hint
               dense
               v-model="shareLink.password"
@@ -356,7 +410,10 @@
               </template>
 
             </v-text-field>
-            <v-btn color="primary" class="caption" small @click="saveShareLinkPassword">Save password</v-btn>
+            <v-btn color="primary" class="caption" small @click="saveShareLinkPassword">
+              <!-- Save password -->
+                {{ $t('nav_drawer.share_view.password.button')}}
+            </v-btn>
           </div>
         </v-container>
 

@@ -28,7 +28,6 @@ export default class RestApi {
     return this.$axios({
       url,
       params,
-      baseURL: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080/'
     })
   }
 
@@ -45,7 +44,6 @@ export default class RestApi {
       method: 'put',
       url: `/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/${id}`,
       data,
-      baseURL: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080/'
     });
     const colName = Object.keys(data)[0];
     this.$ctx.$store.dispatch('sqlMgr/ActSqlOp', [{dbAlias: this.$ctx.nodes.dbAlias}, 'xcAuditCreate', {
@@ -64,7 +62,6 @@ export default class RestApi {
       method: 'post',
       url: `/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`,
       data,
-      baseURL: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080/'
     })).data;
   }
 
@@ -72,7 +69,6 @@ export default class RestApi {
     return this.$axios({
       method: 'delete',
       url: `/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/${id}`,
-      baseURL: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080/'
     })
   }
 

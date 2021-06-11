@@ -32,7 +32,6 @@ export default class GqlApi {
       url,
       method: 'post',
       data: params,
-      baseURL: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080/'
     })
   }
 

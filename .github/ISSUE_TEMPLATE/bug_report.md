@@ -17,7 +17,6 @@ Database version :
 OS on which NocoDB is running : 
 Node.js version if running as node : 
 
-
 **Steps To Reproduce**
 1. Go to '...'
 2. Click on '....'
@@ -29,6 +28,4 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-
-**Additional context**
-Add any other context about the problem here.
+Join our discord : https://discord.gg/5RgZmkW for realtime help.

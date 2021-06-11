@@ -1,0 +1,34 @@
+---
+name: Bug report
+about: Please create a clear error report to help us improve
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+**Please enter the following details**
+NocoDB was started as a : Docker or node.js 
+NocoDB version : 
+Database used in NC_DB URL  : mysql | pg | mssql | sqlite3 / (defaults to sqlite3 if empty)
+Project was created  by clicking : New Project | New Project by connecting to external database
+Database on which spreadsheet is created : mysql | pg | mssql | sqlite3 / (defaults to sqlite3 if empty)
+Database version : 
+OS on which NocoDB is running : 
+Node.js version if running as node : 
+
+
+**Steps To Reproduce**
+1. Go to '...'
+2. Click on '....'
+3. See error
+
+**Expected behavior**
+A clear and concise description of what you expected to happen.
+
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
+
+
+**Additional context**
+Add any other context about the problem here.

@@ -10,9 +10,6 @@ import archiver from 'archiver';
 import multer from 'multer';
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
 import {
-  // ExpressXcTsRoutesHm,
-  // ExpressXcTsRoutes,
-  // ExpressXcTsRoutesBt,
   SqlClientFactory, Tele
 } from 'nc-help'
 import NcHelp from "../../utils/NcHelp";
@@ -24,13 +21,15 @@ import ProjectMgr from '../../sqlMgr/ProjectMgr';
 import {nanoid} from 'nanoid';
 import mimetypes, {mimeIcons} from "../../utils/mimeTypes";
 import IStorageAdapter from "../../../interface/IStorageAdapter";
-// import StorageFactory from "../plugins/adapters/storage/StorageFactory";
 import IEmailAdapter from "../../../interface/IEmailAdapter";
 import EmailFactory from "../plugins/adapters/email/EmailFactory";
 import Twilio from "../plugins/adapters/twilio/Twilio";
 import {NcConfigFactory} from "../../index";
 import XcCache from "../plugins/adapters/cache/XcCache";
 import axios from 'axios';
+import isDocker from 'is-docker';
+import slash from 'slash';
+
 
 
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
@@ -38,10 +37,6 @@ import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoute
 import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
 import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
 import NcPluginMgr from "../plugins/NcPluginMgr";
-import isDocker from 'is-docker';
-// import packageInfo from '../../../../package.json'
-// require('pkginfo')(module, 'version');
-
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
 
@@ -56,8 +51,6 @@ export default class NcMetaMgr {
 
   public readonly pluginMgr: NcPluginMgr;
 
-  // public storageAdapter: IStorageAdapter;
-  // public emailAdapter: IEmailAdapter;
   public twilioInstance: Twilio;
 
   protected app: Noco;
@@ -103,7 +96,7 @@ export default class NcMetaMgr {
     router.get('/dl/:projectId/:dbAlias/:fileName', async (req, res) => {
       try {
         const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
-        const img = await this.storageAdapter.fileRead(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName));
+        const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
         res.writeHead(200, {'Content-Type': type});
         res.end(img, 'binary');
       } catch (e) {
@@ -925,7 +918,7 @@ export default class NcMetaMgr {
       const fileName = `${nanoid(6)}${path.extname(file.originalname)}`
       const destPath = path.join('nc', this.getProjectId(args), this.getDbAlias(args), 'uploads');
 
-      await this.storageAdapter.fileCreate(path.join(destPath, fileName), file);
+      await this.storageAdapter.fileCreate(slash(path.join(destPath, fileName)), file);
 
       return {
         url: `${req.ncSiteUrl}/dl/${this.getProjectId(args)}/${this.getDbAlias(args)}/${fileName}`,
@@ -949,7 +942,7 @@ export default class NcMetaMgr {
       } else {
         destPath = path.join('nc', this.getProjectId(args), this.getDbAlias(args), 'uploads');
       }
-      let url = await this.storageAdapter.fileCreate(path.join(destPath, fileName), file);
+      let url = await this.storageAdapter.fileCreate(slash(path.join(destPath, fileName)), file);
       if (!url) {
         if (args?.args?.public) {
           url = `${req.ncSiteUrl}/dl/public/files/${fileName}`;

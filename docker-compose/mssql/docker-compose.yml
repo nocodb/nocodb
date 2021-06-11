@@ -1,7 +1,7 @@
 version: '3.3'
 
 services:
-  xcdb:
+  root_db:
     image: mcr.microsoft.com/mssql/server:2017-latest
     restart: always
     volumes:
@@ -16,9 +16,9 @@ services:
       retries: 10
       start_period: 10s
 
-  xc:
+  nocodb:
     depends_on:
-      xcdb:
+      root_db:
           condition: service_healthy
     image: nocodb/nocodb:latest
     ports:
@@ -28,6 +28,6 @@ services:
       - "8083:8083"
     restart: always
     environment:
-      NC_DB: "mssql://xcdb:1433?u=sa&p=Password123.&d=xcdb"
+      NC_DB: "mssql://root_db:1433?u=sa&p=Password123.&d=root_db"
 volumes:
   db_data: {}

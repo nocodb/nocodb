@@ -3114,12 +3114,14 @@ export default class NcMetaMgr {
 
     const config = this.projectConfigs[this.getProjectId(args)];
     return {
-      node: process.version,
-      arch: process.arch,
-      platform: process.platform,
-      docker: isDocker(),
-      database: config.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]?.client,
-      packageVersion: packageInfo?.version
+      Node: process.version,
+      Arch: process.arch,
+      Platform: process.platform,
+      Docker: isDocker(),
+      Database: config.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]?.client,
+      'ProjectOnRootDB': !!config?.prefix,
+      'RootDB': this.config?.meta?.db?.client,
+      'PackageVersion': packageInfo?.version
     }
   }
 

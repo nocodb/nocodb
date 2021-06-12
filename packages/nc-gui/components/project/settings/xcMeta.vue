@@ -1,7 +1,10 @@
 <template>
   <div>
 
-    <h3 class="text-center mb-5 grey--text text--darken-2">Metadata Operations</h3>
+    <h3 class="text-center mb-5 grey--text text--darken-2">
+      <!-- Metadata Operations -->
+      {{ $t('management.meta.title') }}
+    </h3>
 
 
     <v-simple-table class="ma-2 meta-table text-center mx-auto">
@@ -13,25 +16,33 @@
       <tbody>
 
       <tr>
-        <td>Export all metadata from the meta tables to meta directory.</td>
+        <td>
+          <!-- Export all metadata from the meta tables to meta directory. -->
+          {{ $t('management.meta.operation_1.desc') }}
+        </td>
         <td>
           <v-btn min-width="150" color="primary" small outlined @click="exportMeta"
                  :loading="loading === 'export-file'">
             <v-icon small>mdi-export</v-icon>&nbsp;
-            Export to file
+            <!-- Export to file -->
+          {{ $t('management.meta.operation_1') }}
           </v-btn>
         </td>
       </tr>
 
       <tr>
-        <td>Import all metadata from the meta directory to meta tables.</td>
+        <td>
+          <!-- Import all metadata from the meta directory to meta tables. -->
+          {{ $t('management.meta.operation_2.desc') }}
+        </td>
         <td>
           <v-btn
             :loading="loading === 'import-file'"
             min-width="150" color="info" small outlined @click="importMeta">
             <v-icon small>mdi-import</v-icon>&nbsp;
 
-            Import
+            <!-- Import -->
+          {{ $t('management.meta.operation_2') }}
           </v-btn>
 
 
@@ -39,7 +50,10 @@
       </tr>
 
       <tr>
-        <td>Export project meta to zip file and download.</td>
+        <td>
+          <!-- Export project meta to zip file and download. -->
+          {{ $t('management.meta.operation_3.desc') }}
+        </td>
         <td>
           <v-btn min-width="150"
                  color="primary"
@@ -48,19 +62,24 @@
                  :loading="loading === 'export-zip'"
                  @click="exportMetaZip();">
             <v-icon small>mdi-export</v-icon>&nbsp;
-            Export zip
+            <!-- Export zip -->
+          {{ $t('management.meta.operation_3') }}
           </v-btn>
         </td>
       </tr>
       <tr>
-        <td>Import project meta zip file and restart.</td>
+        <td>
+          <!-- Import project meta zip file and restart. -->
+          {{ $t('management.meta.operation_4.desc') }}
+        </td>
         <td>
           <v-btn min-width="150"
                  :loading="loading === 'import-zip'"
                  color="info" small outlined @click="$refs.importFile.click()">
             <v-icon small>mdi-import</v-icon>&nbsp;
 
-            Import Zip
+            <!-- Import Zip -->
+          {{ $t('management.meta.operation_4') }}
           </v-btn>
 
           <input type="file" accept=".zip" @change="importMetaZip" v-show="false" ref="importFile">
@@ -68,12 +87,16 @@
         </td>
       </tr>
       <tr>
-        <td>Clear all metadata from meta tables.</td>
+        <td>
+          <!-- Clear all metadata from meta tables. -->
+          {{ $t('management.meta.operation_5.desc') }}
+        </td>
         <td>
           <v-btn
             :loading="loading === 'reset-metadata'" min-width="150" color="error" small outlined @click="resetMeta">
             <v-icon small>mdi-delete-variant</v-icon>&nbsp;
-            Reset
+            <!-- Reset -->
+          {{ $t('management.meta.operation_5') }}
           </v-btn>
         </td>
 
@@ -248,6 +271,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

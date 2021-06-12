@@ -115,6 +115,17 @@
     "nav_drawer.share_view.password.button": "Save password",
     "management.tabs.user": "Users Management",
     "management.tabs.api": "API Tokens Management",
-    "management.tabs.roles": "Roles Management"
+    "management.tabs.roles": "Roles Management",
+    "management.meta.title": "Metadata Operations",
+    "management.meta.operation_1": "Export to file",
+    "management.meta.operation_2": "Import",
+    "management.meta.operation_3": "Export zip",
+    "management.meta.operation_4": "Import zip",
+    "management.meta.operation_5": "Reset",
+    "management.meta.operation_1.desc": "Export all metadata from the meta tables to meta directory.",
+    "management.meta.operation_2.desc": "Import all metadata from the meta directory to meta tables.",
+    "management.meta.operation_3.desc": "Export project meta to zip file and download.",
+    "management.meta.operation_4.desc": "Import project meta zip file and restart.",
+    "management.meta.operation_5.desc": "Clear all metadata from meta tables."
   }
   

@@ -1,11 +1,5 @@
-# `xc-tool-web`
+# nc-lib-gui
 
-> TODO: description
+This package is the build version of ``nc-gui`` which will be used in ``packages/nocodb``. The built files should be located in ``packages/nc-lib-gui/lib/dist/``. 
 
-## Usage
-
-```
-const xcToolWeb = require('xc-tool-web');
-
-// TODO: DEMONSTRATE API
-```
+To build the frontend and copy the built files to dist directory, run ``npm run build:copy`` under ``packages/nc-gui/``.

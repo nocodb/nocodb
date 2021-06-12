@@ -1,4 +1,4 @@
-# xc-electron-web
+# nc-gui
 
 ## Build Setup
 

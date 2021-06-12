@@ -643,55 +643,16 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
           /* has many relation list loader with middleware */
           const mw = new GqlMiddleware(this.acls, hm.tn, '', this.models);
-          const listLoader = new DataLoader(
-            BaseType.applyMiddlewareForLoader(
-              [mw.middleware],
-              async ids => {
-                const data = await this.models[tn].hasManyListGQL({
-                  ids,
-                  child: hm.tn
-                })
-                return ids.map(id => data[id] ? data[id].map(c => new self.types[hm.tn](c)) : []);
-              },
-              [mw.postLoaderMiddleware]
-            ));
-
-          /* defining HasMany list method within GQL Type class */
-          Object.defineProperty(this.types[tn].prototype, `${listPropName}`, {
-            async value(args, context, info): Promise<any> {
-              return listLoader.load([this[colNameAlias], args, context, info]);
-            },
-            configurable: true
-          })
-
-
+          /* has many relation list loader with middleware */
+          this.addHmListResolverMethodToType(tn, hm, mw, {}, listPropName, colNameAlias);
           if (countPropName in this.types[tn].prototype) {
             continue;
           }
-
-          // create count loader with middleware
           {
-            const mw = new GqlMiddleware(this.acls, hm.tn, '', this.models);
-            const countLoader = new DataLoader(
-              BaseType.applyMiddlewareForLoader(
-                [mw.middleware],
-                async ids => {
-                  const data = await this.models[tn].hasManyListCount({
-                    ids,
-                    child: hm.tn
-                  })
-                  return data;
-                },
-                [mw.postLoaderMiddleware]
-              ));
+            const mw = new GqlMiddleware(this.acls, hm.tn, null, this.models);
 
-            // defining HasMany count method within GQL Type class
-            Object.defineProperty(this.types[tn].prototype, `${countPropName}`, {
-              async value(args, context, info): Promise<any> {
-                return countLoader.load([this[colNameAlias], args, context, info]);
-              },
-              configurable: true
-            })
+            // create count loader with middleware
+            this.addHmCountResolverMethodToType(hm, mw, tn, {}, countPropName, colNameAlias);
           }
 
           this.log(`xcTablesPopulate : Inserting loader metadata of '%s' and '%s' loaders`, listPropName, countPropName);
@@ -716,33 +677,21 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         for (const bt of schema.belongsTo) {
           const colNameAlias = self.models[bt.tn]?.columnToAlias[bt.cn];
           const propName = `${inflection.camelize(bt._rtn, false)}Read`;
+
+
           if (propName in this.types[tn].prototype) {
             continue;
           }
-          this.log(`xcTablesPopulate : Populating '%s' loader`, propName);
-          // create read loader with middleware
-          const mw = new GqlMiddleware(this.acls, bt.rtn, '', this.models);
-          const readLoader = new DataLoader(
-            BaseType.applyMiddlewareForLoader(
-              [mw.middleware],
-              async ids => {
-                const data = await self.models[bt.rtn].list({
-                  where: `(${bt.rcn},in,${ids.join(',')})`,
-                  limit: ids.length
-                })
-                const gs = _.groupBy(data, bt.rcn);
-                return ids.map(async id => gs?.[id]?.[0] && new self.types[bt.rtn](gs[id][0]))
-              },
-              [mw.postLoaderMiddleware]
-            ));
 
-          // defining BelongsTo read method within GQL Type class
-          Object.defineProperty(this.types[tn].prototype, `${propName}`, {
-            async value(args, context, info): Promise<any> {
-              return readLoader.load([this[colNameAlias], args, context, info]);
-            },
-            configurable: true
-          });
+          // create read loader with middleware
+          {
+            const mw = new GqlMiddleware(this.acls, bt.rtn, null, this.models);
+            this.log(`xcTablesRead : Creating loader for '%s'`, `${tn}Bt${bt.rtn}`);
+            this.adBtResolverMethodToType(propName, mw,
+              tn, bt, colNameAlias, colNameAlias, null);
+          }
+
+
           this.log(`xcTablesPopulate : Inserting loader metadata of '%s' loader`, propName);
 
           await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {

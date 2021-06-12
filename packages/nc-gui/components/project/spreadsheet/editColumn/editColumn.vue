@@ -319,7 +319,6 @@ export default {
     value: Boolean
   },
   data: () => ({
-    valid: false,
     relationDeleteDlg: false,
     newColumn: {},
     uiTypes,
@@ -495,10 +494,7 @@ export default {
   },
   computed: {
     isEditDisabled() {
-      return this.editColumn && this.isSQLite && !this.relation;
-    },
-    isSQLite() {
-      return this.sqlUi === SqliteUi
+      return this.editColumn &&  this.sqlUi === SqliteUi;
     },
     dataTypes() {
       return this.sqlUi.getDataTypeListForUiType(this.newColumn)

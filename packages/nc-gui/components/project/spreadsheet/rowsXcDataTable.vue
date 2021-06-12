@@ -174,6 +174,7 @@
               @addNewRelationTab="addNewRelationTab"
               @expandRow="expandRow"
               @onRelationDelete="loadMeta"
+              @loadTableData="loadTableData"
             ></xc-grid-view>
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">

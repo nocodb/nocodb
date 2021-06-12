@@ -1499,14 +1499,19 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   protected async getManyToManyRelations() {
     const metas = new Set<any>();
+    const assocMetas = new Set<any>();
 
     for (const meta of Object.values(this.metas)) {
 
       // check if table is a Bridge table(or Associative Table) by checking
       // number of foreign keys and columns
-      if (meta.belongsTo?.length === 2 && meta.columns.length < 4) {
+      if (meta.belongsTo?.length === 2 && meta.columns.length < 5) {
         const tableMetaA = this.metas[meta.belongsTo[0].rtn];
         const tableMetaB = this.metas[meta.belongsTo[1].rtn];
+
+/*        // remove hasmany relation with associate table from tables
+        tableMetaA.hasMany.splice(tableMetaA.hasMany.findIndex(hm => hm.tn === meta.tn), 1)
+        tableMetaB.hasMany.splice(tableMetaB.hasMany.findIndex(hm => hm.tn === meta.tn), 1)*/
 
         // add manytomany data under metadata of both related columns
         tableMetaA.manyToMany = tableMetaA.manyToMany || [];
@@ -1539,6 +1544,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         })
         metas.add(tableMetaA)
         metas.add(tableMetaB)
+        assocMetas.add(meta)
       }
     }
 
@@ -1547,6 +1553,15 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     for (const meta of metas) {
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         meta: JSON.stringify(meta)
+      }, {title: meta.tn})
+      XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
+      this.models[meta.tn] = this.getBaseModel(meta)
+    }
+
+    // Update metadata of associative table
+    for (const meta of assocMetas) {
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        mm: 1,
       }, {title: meta.tn})
       XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
       this.models[meta.tn] = this.getBaseModel(meta)

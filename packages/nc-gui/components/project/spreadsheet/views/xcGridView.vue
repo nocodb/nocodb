@@ -41,23 +41,26 @@
         </th>
 
 
-        <th v-for="bt in meta.belongsTo"
+        <th v-for="(bt,i) in meta.belongsTo"
             class="grey-border caption font-wight-regular"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
+            :key="i"
         >
           {{ bt._rtn }} (Belongs To)
         </th>
 
-        <th v-for="hm in meta.hasMany"
+        <th v-for="(hm,i) in meta.hasMany"
             class="grey-border caption font-wight-regular"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
+            :key="i"
         >
           {{ hm._tn }} (Has Many)
         </th>
 
-        <th v-for="mm in meta.manyToMany"
+        <th v-for="(mm,i) in meta.manyToMany"
             class="grey-border caption font-wight-regular"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
+            :key="i"
         >
           {{ mm.rtn }} (Many To Many)
         </th>
@@ -287,17 +290,32 @@
         </td>
 
 
-        <td v-for="(bt,i) in meta.belongsTo" class="caption">
-          <v-chip x-small v-if="rowObj[bt._rtn]" :color="colors[i%colors.length]">{{ Object.values(rowObj[bt._rtn])[1] }}</v-chip>
-        </td>
-
-        <td v-for="hm in meta.hasMany" class="caption">
-          <v-chip v-if="Array.isArray(rowObj[hm._tn])" x-small v-for="(v,i) in rowObj[hm._tn].map(v=>Object.values(v)[1])" :color="colors[i%colors.length]">
-            {{ v }}
+        <td v-for="(bt,i) in meta.belongsTo" class="caption" :key="i">
+          <v-chip x-small v-if="rowObj[bt._rtn]" :color="colors[i%colors.length]">{{
+              Object.values(rowObj[bt._rtn])[1]
+            }}
           </v-chip>
         </td>
-        <td v-for="mm in meta.manyToMany" class="caption">
-          <v-chip v-if="rowObj[mm._rtn]" x-small v-for="(v,i) in rowObj[mm._rtn].map(v=>Object.values(v)[2])" :color="colors[i%colors.length]">{{
+
+        <td v-for="(hm,i) in meta.hasMany" class="caption" :key="i">
+          <template v-if="rowObj[hm._tn]">
+
+
+            <has-many-cell
+              :row="rowObj"
+              :value="rowObj[hm._tn]"
+              :meta="meta"
+              :hm="hm"
+              :nodes="nodes"
+              @loadTableData="$emit('loadTableData')"
+            />
+
+
+          </template>
+        </td>
+        <td v-for="(mm,i) in meta.manyToMany" class="caption" :key="i">
+          <v-chip v-if="rowObj[mm._rtn]" x-small v-for="(v,j) in rowObj[mm._rtn].map(v=>Object.values(v)[2])"
+                  :color="colors[i%colors.length]" :key="`${i}-${j}`">{{
               v
             }}
           </v-chip>
@@ -331,9 +349,10 @@ import EditColumn from "@/components/project/spreadsheet/editColumn/editColumn";
 import TableCell from "@/components/project/spreadsheet/editableCell/tableCell";
 import colors from "@/mixins/colors";
 import columnStyling from "@/components/project/spreadsheet/helpers/columnStyling";
+import HasManyCell from "@/components/project/spreadsheet/editableCell/hasManyCell";
 
 export default {
-  components: {TableCell, EditColumn, EditableCell, HeaderCell},
+  components: {HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell},
   mixins: [colors],
   props: {
     relationType: String,
@@ -842,8 +861,8 @@ th:first-child, td:first-child {
   transform: rotate(90deg);
 }
 
-th{
-  min-width:100px;
+th {
+  min-width: 100px;
 }
 
 

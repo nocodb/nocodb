@@ -8,7 +8,8 @@ export default class Local implements IStorageAdapter {
   constructor() {
   }
 
-  public async fileCreate(destPath: string, file: XcFile): Promise<any> {
+  public async fileCreate(key: string, file: XcFile): Promise<any> {
+    const destPath = path.join(...key.split('/'));
     try {
       mkdirp.sync(path.dirname(destPath));
       await fs.promises.rename(file.path, destPath);

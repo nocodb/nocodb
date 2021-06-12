@@ -4,18 +4,27 @@
     <div class="h-100" style="width: 100%">
 
       <v-tabs height="30" color="x-active">
-        <v-tab><span class="caption text-capitalize">Users Management</span></v-tab>
+        <v-tab><span class="caption text-capitalize">
+          <!-- Users Management -->
+          {{ $t('management.tabs.user')}}
+          </span></v-tab>
         <v-tab-item class="h-100">
           <user-management :nodes="nodes"></user-management>
         </v-tab-item>
 
         <template v-if="_isUIAllowed('apiTokenTab')">
-          <v-tab><span class="caption text-capitalize">API Tokens Management</span></v-tab>
+          <v-tab><span class="caption text-capitalize">
+            <!-- API Tokens Management -->
+          {{ $t('management.tabs.api')}}
+            </span></v-tab>
           <v-tab-item>
             <api-tokens :nodes="nodes"></api-tokens>
           </v-tab-item>
         </template>
-        <v-tab><span class="caption text-capitalize">Roles Management</span></v-tab>
+        <v-tab><span class="caption text-capitalize">
+          <!-- Roles Management -->
+          {{ $t('management.tabs.roles')}}
+          </span></v-tab>
         <v-tab-item>
           <roles :nodes="nodes"></roles>
         </v-tab-item>
@@ -81,6 +90,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

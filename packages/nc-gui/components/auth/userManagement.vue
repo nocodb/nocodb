@@ -453,6 +453,7 @@
 import SetListCheckboxCell from "@/components/project/spreadsheet/editableCell/setListCheckboxCell";
 import {enumColor as colors, enumColor} from "@/components/project/spreadsheet/helpers/colors";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
+import {isEmail} from "@/helpers";
 
 export default {
   name: "user-management",
@@ -475,7 +476,7 @@ export default {
     valid: null,
     emailRules: [
       v => !!v || 'E-mail is required',
-      v => /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(v) || 'E-mail must be valid'
+      v => isEmail(v) || 'E-mail must be valid'
     ],
     userList: []
   }),

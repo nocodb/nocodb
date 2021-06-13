@@ -63,8 +63,9 @@
                 <!-- Forgot your password -->
                 <p class="accent--text text-right caption font-weight-light">
                   <router-link to="/user/password/forgot">{{
-                    $t('signin.forget_password')
-                  }}</router-link>
+                      $t('signin.forget_password')
+                    }}
+                  </router-link>
                 </p>
 
                 <!--                <vue-recaptcha @verify="onNormalVerify" sitekey="6LfbcqMUAAAAAAb_2319UdF8m68JHSYVy_m4wPBx"-->
@@ -87,9 +88,9 @@
                   <b>Sign In</b>
                 </v-btn>
 
-                <br />
-                <br />
-                <br />
+                <br/>
+                <br/>
+                <br/>
                 <!-- Don't have an account ? -->
                 <p class="caption font-weight-light">
                   {{ $t('signin.footer_text_1') }}
@@ -199,7 +200,7 @@
               </v-form>
 
               <template v-else>
-                <br />
+                <br/>
                 <v-alert type="warning" outlined icon="mdi-alert">
                   <!--                <v-icon color="warning">mdi-alert</v-icon>-->
                   Authentication not configured in configuration
@@ -209,7 +210,7 @@
           </v-col>
         </v-row>
 
-        <br />
+        <br/>
       </v-col>
     </v-row>
   </v-container>
@@ -221,8 +222,9 @@ import Vue from 'vue';
 // const {shell} = require("electron").remote.require(
 //   "./libs"
 // );
-import { mapGetters, mapActions } from 'vuex';
-import { VueReCaptcha } from 'vue-recaptcha-v3';
+import {mapGetters, mapActions} from 'vuex';
+import {VueReCaptcha} from 'vue-recaptcha-v3';
+import {isEmail} from "@/helpers";
 // import VueRecaptcha from 'vue-recaptcha';
 
 export default {
@@ -243,8 +245,7 @@ export default {
           // E-mail is required
           (v) => !!v || this.$t('signin.form.rules.email_1'),
           // E-mail must be valid
-          (v) =>
-            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) ||
+          (v) => isEmail(v) ||
             this.$t('signin.form.rules.email_2'),
         ],
         password: [
@@ -301,7 +302,7 @@ export default {
           // await this.$recaptchaLoaded()
           // const recaptchaToken = await this.$recaptcha('login')
 
-          err = await this.$store.dispatch('users/ActSignIn', { ...this.form }); //, recaptchaToken});
+          err = await this.$store.dispatch('users/ActSignIn', {...this.form}); //, recaptchaToken});
           if (err) {
             this.formUtil.formErr = true;
             this.formUtil.formErrMsg = err.data.msg;
@@ -364,20 +365,24 @@ export default {
       );
     },
   },
-  beforeCreated() {},
+  beforeCreated() {
+  },
   async created() {
     // this.type = (await this.$store.dispatch('users/ActGetAuthType')).type;
     if (this.$route.query && this.$route.query.error) {
       this.$nextTick(() =>
         this.$toast.error(this.$route.query.error).goAway(5000)
       );
-      this.$router.replace({ path: '/user/authentication/signin' });
+      this.$router.replace({path: '/user/authentication/signin'});
     }
   },
-  mounted() {},
-  beforeDestroy() {},
-  destroy() {},
-  validate({ params }) {
+  mounted() {
+  },
+  beforeDestroy() {
+  },
+  destroy() {
+  },
+  validate({params}) {
     return true;
   },
   head() {

@@ -205,6 +205,7 @@
 //   "./libs"
 // );
 import {mapGetters, mapActions} from 'vuex'
+import {isEmail} from "@/helpers";
 // import VueRecaptcha from 'vue-recaptcha';
 
 export default {
@@ -229,7 +230,7 @@ export default {
         email: [
           v => !!v || 'E-mail is required',
           // ref : https://stackoverflow.com/a/46181
-          v => /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(v) || 'E-mail must be valid'
+          v => isEmail(v) || 'E-mail must be valid'
         ],
         password: [
           v => (this.PasswordValidate(v)) || this.passwordValidateMsg
@@ -340,7 +341,7 @@ export default {
 
     async MtdOnSignup(e) {
       e.preventDefault();
-      
+
       this.signUpButtonLoading = true;
 
       if (this.type === 'jwt') {

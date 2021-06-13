@@ -4,7 +4,8 @@
       <div class="d-100 d-flex ">
         <h5 class="title text-center">
           <v-icon :color="iconColor">mdi-table-arrow-right</v-icon>
-          {{ table }} : {{ localState[primaryValueColumn] }}</h5>
+          {{ table }} : {{ localState[primaryValueColumn] }}
+        </h5>
         <v-spacer>
         </v-spacer>
         <v-btn small text @click="reload">
@@ -46,9 +47,11 @@
                    :key="i" class="row-col  my-4">
                 <div>
                   <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
-                    <!--              {{ col.cn }}-->
-
+                    <span v-if="col.virtual">
+                      {{ col._cn }}
+                    </span>
                     <header-cell
+                      v-else
                       :is-form="true"
                       :is-foreign-key="col.cn in belongsTo || col.cn in hasMany"
                       :value="col._cn"
@@ -56,6 +59,17 @@
                       :sql-ui="sqlUi"></header-cell>
 
                   </label>
+                  <virtual-cell
+                    v-if="col.virtual"
+                    :column="col"
+                    :row="localState"
+                    :nodes="nodes"
+                    :meta="meta"
+                    :api="api"
+                    :active="true"
+                    :sql-ui="sqlUi"
+                    @loadTableData="reload"
+                  ></virtual-cell>
 
                   <div
                     style="height:100%; width:100%"
@@ -168,13 +182,14 @@ import HeaderCell from "@/components/project/spreadsheet/components/headerCell";
 import EditableCell from "@/components/project/spreadsheet/components/editableCell";
 import dayjs from 'dayjs';
 import colors from "@/mixins/colors";
+import VirtualCell from "@/components/project/spreadsheet/components/virtualCell";
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 export default {
-  components: {EditableCell, HeaderCell},
+  components: {VirtualCell, EditableCell, HeaderCell},
   mixins: [colors],
   props: {
     dbAlias: String,
@@ -189,10 +204,13 @@ export default {
     belongsTo: Object,
     isNew: Boolean,
     oldRow: Object,
-    iconColor:{
-      type:String,
+    iconColor: {
+      type: String,
       default: 'primary'
-    }
+    },
+    availableColumns: [Object, Array],
+    nodes: [Object],
+    queryParams: Object
   },
   name: "expanded-form",
   data: () => ({
@@ -286,9 +304,11 @@ export default {
       }
     },
     async reload() {
-      const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
+      // const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
+      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('');
       this.$set(this, 'changedColumns', {});
-      this.localState = await this.api.read(id);
+      // this.localState = await this.api.read(id);
+      this.localState = (await this.api.list({...(this.queryParams || {}), where}) || [{}])[0];
       if (!this.isNew && this.toggleDrawer) {
         this.getAuditsAndComments()
       }
@@ -320,6 +340,7 @@ export default {
       return !!Object.keys(this.changedColumns).length;
     },
     fields() {
+      if (this.availableColumns) return this.availableColumns;
 
       const hideCols = ['created_at', 'updated_at'];
 

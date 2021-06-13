@@ -112,8 +112,9 @@
       max-width="100%"
       class=" mx-auto"
       v-model="showExpandModal">
-      <expanded-form
+      <component
         v-if="selectedChild"
+        :is="form"
         :db-alias="nodes.dbAlias"
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
@@ -127,7 +128,7 @@
         :primary-value-column="childPrimaryCol"
         :api="childApi"
         icon-color="warning"
-      ></expanded-form>
+      ></component>
     </v-dialog>
 
   </div>
@@ -136,14 +137,12 @@
 <script>
 import colors from "@/mixins/colors";
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
-import expandedForm from "@/components/project/spreadsheet/components/expandedForm";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 
 export default {
   name: "has-many-cell",
   components: {
-    DlgLabelSubmitCancel,
-    expandedForm
+    DlgLabelSubmitCancel
   },
   mixins: [colors],
   props: {
@@ -165,7 +164,7 @@ export default {
     confirmAction: null,
     confirmMessage: '',
     selectedChild: null,
-    showExpandModal: false
+    showExpandModal: false,
   }),
 
   methods: {
@@ -225,7 +224,7 @@ export default {
 
       this.$emit('loadTableData')
     },
-    editChild(child) {
+   async editChild(child) {
       this.selectedChild = child;
       this.showExpandModal = true;
     }
@@ -241,7 +240,12 @@ export default {
     },
     childPrimaryKey() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
+    },
+    // todo:
+    form(){
+      return () => import("@/components/project/spreadsheet/components/expandedForm")
     }
+
   }
 }
 </script>

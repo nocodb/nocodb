@@ -409,6 +409,9 @@
         :primary-value-column="primaryValueColumn"
         :api="api"
         @commented="reloadComments"
+        :availableColumns="availableColumns"
+        :nodes="nodes"
+        :queryParams="queryParams"
       ></expanded-form>
 
     </v-dialog>

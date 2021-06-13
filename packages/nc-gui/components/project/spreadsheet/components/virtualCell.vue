@@ -38,13 +38,17 @@
 </template>
 
 <script>
-import HasManyCell from "@/components/project/spreadsheet/components/virtualCell/hasManyCell";
-import ManyToManyCell from "@/components/project/spreadsheet/components/virtualCell/manyToManyCell";
-import BelongsToCell from "@/components/project/spreadsheet/components/virtualCell/belogsToCell";
+import hasManyCell from "@/components/project/spreadsheet/components/virtualCell/hasManyCell";
+import manyToManyCell from "@/components/project/spreadsheet/components/virtualCell/manyToManyCell";
+import belongsToCell from "@/components/project/spreadsheet/components/virtualCell/belogsToCell";
 
 export default {
   name: "virtual-cell",
-  components: {BelongsToCell, ManyToManyCell, HasManyCell},
+  components: {
+    belongsToCell,
+    manyToManyCell,
+    hasManyCell
+  },
   props: {
     column: [Object],
     row: [Object],

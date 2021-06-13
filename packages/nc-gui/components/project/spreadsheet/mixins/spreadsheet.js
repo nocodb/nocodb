@@ -71,7 +71,6 @@ export default {
         columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
       }
 
-
       if (this.fieldsOrder.length) {
         return [...columns].sort((c1, c2) => {
           const i1 = this.fieldsOrder.indexOf(c1._cn);

@@ -291,10 +291,15 @@
 
 
         <td v-for="(bt,i) in meta.belongsTo" class="caption" :key="i">
-          <v-chip x-small v-if="rowObj[bt._rtn]" :color="colors[i%colors.length]">{{
-              Object.values(rowObj[bt._rtn])[1]
-            }}
-          </v-chip>
+          <belongs-to-cell
+            :row="rowObj"
+            :value="rowObj[bt._rtn]"
+            :meta="meta"
+            :bt="bt"
+            :nodes="nodes"
+            @loadTableData="$emit('loadTableData')"
+            :api="api"
+          />
         </td>
 
         <td v-for="(hm,i) in meta.hasMany" class="caption" :key="i">
@@ -314,11 +319,16 @@
           </template>
         </td>
         <td v-for="(mm,i) in meta.manyToMany" class="caption" :key="i">
-          <v-chip v-if="rowObj[mm._rtn]" x-small v-for="(v,j) in rowObj[mm._rtn].map(v=>Object.values(v)[2])"
-                  :color="colors[i%colors.length]" :key="`${i}-${j}`">{{
-              v
-            }}
-          </v-chip>
+
+          <many-to-many
+            :row="rowObj"
+            :value="rowObj[mm._rtn]"
+            :meta="meta"
+            :mm="mm"
+            :nodes="nodes"
+            @loadTableData="$emit('loadTableData')"
+          />
+
         </td>
 
 
@@ -345,20 +355,23 @@
 <script>
 import HeaderCell from "@/components/project/spreadsheet/components/headerCell";
 import EditableCell from "@/components/project/spreadsheet/components/editableCell";
-import EditColumn from "@/components/project/spreadsheet/editColumn/editColumn";
-import TableCell from "@/components/project/spreadsheet/editableCell/tableCell";
+import EditColumn from "@/components/project/spreadsheet/components/editColumn";
+import TableCell from "@/components/project/spreadsheet/components/tableCell";
 import colors from "@/mixins/colors";
 import columnStyling from "@/components/project/spreadsheet/helpers/columnStyling";
-import HasManyCell from "@/components/project/spreadsheet/editableCell/hasManyCell";
+import HasManyCell from "@/components/project/spreadsheet/components/editableCell/hasManyCell";
+import BelongsToCell from "@/components/project/spreadsheet/components/editableCell/belogsToCell";
+import ManyToMany from "@/components/project/spreadsheet/components/editableCell/manyToMany";
 
 export default {
-  components: {HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell},
+  components: {ManyToMany, BelongsToCell, HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell},
   mixins: [colors],
   props: {
     relationType: String,
     availableColumns: [Object, Array],
     showFields: Object,
     sqlUi: [Object, Function],
+    api: [Object, Function],
     isEditable: Boolean,
     nodes: Object,
     primaryValueColumn: String,

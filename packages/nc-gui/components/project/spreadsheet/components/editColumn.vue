@@ -300,10 +300,10 @@
 
 <script>
 import {uiTypes} from "@/components/project/spreadsheet/helpers/uiTypes";
-import CustomSelectOptions from "@/components/project/spreadsheet/editColumn/customSelectOptions";
-import RelationOptions from "@/components/project/spreadsheet/editColumn/relationOptions";
+import CustomSelectOptions from "@/components/project/spreadsheet/components/editColumn/customSelectOptions";
+import RelationOptions from "@/components/project/spreadsheet/components/editColumn/relationOptions";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
-import LinkedToAnotherOptions from "@/components/project/spreadsheet/editColumn/linkedToAnotherOptions";
+import LinkedToAnotherOptions from "@/components/project/spreadsheet/components/editColumn/linkedToAnotherOptions";
 import {SqliteUi} from "@/helpers/SqliteUi";
 
 export default {

@@ -615,6 +615,17 @@ class ModelXcMetaMysql extends BaseRender {
       belongsTo: this.ctx.belongsTo,
       db_type: this.ctx.db_type,
       type: this.ctx.type,
+
+      v: [
+        ...(this.ctx.hasMany || []).map(hm => ({
+          hm,
+          _cn:`${hm._rtn} => ${hm._tn}`
+        })),
+        ...(this.ctx.belongsTo || []).map(bt => ({
+          bt,
+          _cn:`${bt._rtn} <= ${bt._tn}`
+        })),
+      ]
     }
 
   }

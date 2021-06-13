@@ -1,18 +1,19 @@
 <template>
   <div class="d-flex">
+
+
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
       <template v-if="value">
-        <v-chip
-          small
-          v-for="(v,i) in value.map(v=>Object.values(v)[1])"
-          :color="colors[i%colors.length]" :key="j">
-          {{ v }}
+        <v-chip small v-for="(v,j) in value.map(v=>Object.values(v)[2])"
+                :color="colors[j%colors.length]" :key="j">{{
+            v
+          }}
         </v-chip>
       </template>
     </div>
-    <div class="d-flex align-center justify-center px-1 flex-shrink-1">
+    <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
       <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
-      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
+<!--      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>-->
     </div>
 
 
@@ -31,16 +32,16 @@
           <div class="items-container">
             <template v-if="list">
               <v-card
-                v-for="(ch,i) in list.list"
+                v-for="(p,i) in list.list"
                 class="ma-2  child-card"
                 outlined
                 v-ripple
-                @click="addChildToParent(ch)"
+                @click="addChildToParent(p)"
                 :key="i"
               >
-                <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[childPrimaryCol] }}
+                <v-card-title class="primary-value textColor--text text--lighten-2">{{ p[childPrimaryCol] }}
                   <span class="grey--text caption primary-key"
-                        v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
+                        v-if="childPrimaryKey">(Primary Key : {{ p[childPrimaryKey] }})</span>
                 </v-card-title>
               </v-card>
             </template>
@@ -68,12 +69,13 @@
                 class="ma-2 child-list-modal child-card"
                 outlined
                 :key="i"
+                @click="editChild(ch)"
               >
                 <x-icon
                   class="remove-child-icon"
                   :color="['error','grey']"
                   small
-                  @click="removeChild(ch,i)"
+                  @click.stop="removeChild(ch,i)"
                 >mdi-delete-outline
                 </x-icon>
 
@@ -95,6 +97,31 @@
     </v-dialog>
 
 
+    <v-dialog
+      :overlay-opacity="0.8"
+      v-if="selectedChild"
+      width="1000px"
+      max-width="100%"
+      class=" mx-auto"
+      v-model="showExpandModal">
+      <expanded-form
+        v-if="selectedChild"
+        :db-alias="nodes.dbAlias"
+        :has-many="childMeta.hasMany"
+        :belongs-to="childMeta.belongsTo"
+        @cancel="selectedChild = null"
+        @input="$emit('loadTableData');showChildListModal();"
+        :table="childMeta.tn"
+        v-model="selectedChild"
+        :old-row="{...selectedChild}"
+        :meta="childMeta"
+        :sql-ui="sqlUi"
+        :primary-value-column="childPrimaryCol"
+        :api="childApi"
+      ></expanded-form>
+    </v-dialog>
+
+
     <dlg-label-submit-cancel
       type="primary"
       v-if="dialogShow"
@@ -103,7 +130,6 @@
       :heading="confirmMessage"
     >
     </dlg-label-submit-cancel>
-
   </div>
 </template>
 
@@ -113,20 +139,24 @@ import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 
 export default {
-  name: "has-many-cell",
-  components: {DlgLabelSubmitCancel},
+  name: "many-to-many-cell",
   mixins: [colors],
+  components: {DlgLabelSubmitCancel},
   props: {
     value: [Object, Array],
     meta: [Object],
-    hm: Object,
+    mm: Object,
     nodes: [Object],
-    row: [Object]
+    row: [Object],
+    api: [Object, Function],
+    sqlUi: [Object, Function],
+    active: Boolean
   },
   data: () => ({
     newRecordModal: false,
     childListModal: false,
     childMeta: null,
+    assocMeta: null,
     list: null,
     childList: null,
     dialogShow: false,
@@ -138,7 +168,7 @@ export default {
     async showChildListModal() {
       this.childListModal = true;
       await this.getChildMeta();
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join(',');
+      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
       this.childList = await this.childApi.paginatedList({
         where: `(${_cn},eq,${pid})`
@@ -152,7 +182,7 @@ export default {
         if (act === 'hideDialog') {
           this.dialogShow = false;
         } else {
-          const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join(',');
+          const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
           await this.childApi.delete(id)
           this.showChildListModal();
           this.dialogShow = false;
@@ -163,31 +193,44 @@ export default {
     async getChildMeta() {
       // todo: optimize
       if (!this.childMeta) {
-        const childTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        const parentTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'tableXcModelGet', {
-          tn: this.hm.tn
+          tn: this.mm.rtn
         }]);
-        this.childMeta = JSON.parse(childTableData.meta)
+        this.childMeta = JSON.parse(parentTableData.meta)
+      }
+    },
+    async getAssociateTableMeta() {
+      // todo: optimize
+      if (!this.childMeta) {
+        const assocTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'tableXcModelGet', {
+          tn: this.mm.vtn
+        }]);
+        this.assocMeta = JSON.parse(assocTableData.meta)
       }
     },
     async showNewRecordModal() {
       this.newRecordModal = true;
-      await this.getChildMeta();
+      await Promise.all([this.getChildMeta(), this.getAssociateTableMeta()]);
       this.list = await this.childApi.paginatedList({})
     },
     async addChildToParent(child) {
-      const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join(',');
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join(',');
-      const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
-      this.newRecordModal = false;
+      const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
+      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
 
-      await this.childApi.update(id, {
-        [_cn]: pid
-      }, {
-        [_cn]: child[this.childPrimaryKey]
+      const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn;
+      const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn;
+
+      await this.assocApi.insert({
+        [vcidCol]: cid,
+        [vpidCol]: pid
       });
+      this.newRecordModal = false;
 
       this.$emit('loadTableData')
     }
@@ -195,14 +238,30 @@ export default {
   computed: {
     childApi() {
       return this.childMeta && this.childMeta._tn ?
-        ApiFactory.create(this.$store.getters['project/GtrProjectType'],
-          this.childMeta && this.childMeta._tn, this.childMeta && this.childMeta.columns, this) : null;
+        ApiFactory.create(
+          this.$store.getters['project/GtrProjectType'],
+          this.childMeta._tn,
+          this.childMeta.columns,
+          this
+        ) : null;
+    },
+    assocApi() {
+      return this.assocMeta && this.assocMeta._tn ?
+        ApiFactory.create(
+          this.$store.getters['project/GtrProjectType'],
+          this.assocMeta._tn,
+          this.assocMeta.columns,
+          this
+        ) : null;
     },
     childPrimaryCol() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
     },
     childPrimaryKey() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
+    },
+    parentPrimaryKey() {
+      return this.meta && (this.meta.columns.find(c => c.pk) || {})._cn
     }
   }
 }
@@ -253,11 +312,11 @@ export default {
 }
 
 .hm-items {
-  min-width: 200px;
-  max-width: 400px;
+  //min-width: 200px;
+  //max-width: 400px;
   flex-wrap: wrap;
   row-gap: 3px;
-  gap:3px;
+  gap: 3px;
   margin: 3px auto;
 }
 

@@ -67,12 +67,15 @@
       </x-btn>
 
 
-      <fields v-model="showFields" :field-list="fieldList"
+      <fields
+        v-model="showFields"
+        :field-list="fieldList"
               :meta="meta"
               :is-locked="isLocked"
               :fieldsOrder.sync="fieldsOrder"
               :sqlUi="sqlUi"
-              :showSystemFields.sync="showSystemFields"></fields>
+              :showSystemFields.sync="showSystemFields"
+      />
 
       <sort-list
         :is-locked="isLocked"
@@ -576,7 +579,6 @@ export default {
       console.log(e)
     }
     this.searchField = this.primaryValueColumn;
-
     this.dataLoaded = true;
 
     // await this.loadViews();

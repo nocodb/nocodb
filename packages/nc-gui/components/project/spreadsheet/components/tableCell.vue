@@ -11,11 +11,11 @@
 
 <script>
 import cell from "@/components/project/spreadsheet/mixins/cell";
-import SetListCell from "@/components/project/spreadsheet/cell/setListCell";
-import EnumCell from "@/components/project/spreadsheet/cell/enumCell";
-import AttachmentCell from "@/components/project/spreadsheet/cell/attachmentCell";
-import EditableAttachmentCell from "@/components/project/spreadsheet/editableCell/editableAttachmentCell";
-import EnumListEditableCell from "@/components/project/spreadsheet/editableCell/enumListEditableCell";
+import SetListCell from "@/components/project/spreadsheet/components/cell/setListCell";
+import EnumCell from "@/components/project/spreadsheet/components/cell/enumCell";
+import AttachmentCell from "@/components/project/spreadsheet/components/cell/attachmentCell";
+import EditableAttachmentCell from "@/components/project/spreadsheet/components/editableCell/editableAttachmentCell";
+import EnumListEditableCell from "@/components/project/spreadsheet/components/editableCell/enumListEditableCell";
 
 export default {
   name: "tableCell",

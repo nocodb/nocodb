@@ -68,23 +68,23 @@
 </template>
 
 <script>
-import DatePickerCell from "@/components/project/spreadsheet/editableCell/datePickerCell";
-import TextCell from "@/components/project/spreadsheet/editableCell/textCell";
-import DateTimePickerCell from "@/components/project/spreadsheet/editableCell/dateTimePickerCell";
-import TextAreaCell from "@/components/project/spreadsheet/editableCell/textAreaCell";
-import EnumListCell from "@/components/project/spreadsheet/editableCell/enumListEditableCell";
-import JsonCell from "@/components/project/spreadsheet/editableCell/jsonCell";
-import IntegerCell from "@/components/project/spreadsheet/editableCell/integerCell";
-import FloatCell from "@/components/project/spreadsheet/editableCell/floatCell";
-import TimePickerCell from "@/components/project/spreadsheet/editableCell/timePickerCell";
-import BooleanCell from "@/components/project/spreadsheet/editableCell/booleanCell";
-import SetListCheckboxCell from "@/components/project/spreadsheet/editableCell/setListCheckboxCell";
+import DatePickerCell from "@/components/project/spreadsheet/components/editableCell/datePickerCell";
+import TextCell from "@/components/project/spreadsheet/components/editableCell/textCell";
+import DateTimePickerCell from "@/components/project/spreadsheet/components/editableCell/dateTimePickerCell";
+import TextAreaCell from "@/components/project/spreadsheet/components/editableCell/textAreaCell";
+import EnumListCell from "@/components/project/spreadsheet/components/editableCell/enumListEditableCell";
+import JsonCell from "@/components/project/spreadsheet/components/editableCell/jsonCell";
+import IntegerCell from "@/components/project/spreadsheet/components/editableCell/integerCell";
+import FloatCell from "@/components/project/spreadsheet/components/editableCell/floatCell";
+import TimePickerCell from "@/components/project/spreadsheet/components/editableCell/timePickerCell";
+import BooleanCell from "@/components/project/spreadsheet/components/editableCell/booleanCell";
+import SetListCheckboxCell from "@/components/project/spreadsheet/components/editableCell/setListCheckboxCell";
 import cell from "@/components/project/spreadsheet/mixins/cell";
-import EnumRadioEditableCell from "@/components/project/spreadsheet/editableCell/enumRadioEditableCell";
-import EditableAttachmentCell from "@/components/project/spreadsheet/editableCell/editableAttachmentCell";
-import EnumCell from "@/components/project/spreadsheet/cell/enumCell";
-import SetListEditableCell from "@/components/project/spreadsheet/editableCell/setListEditableCell";
-import SetListCell from "@/components/project/spreadsheet/cell/setListCell";
+import EnumRadioEditableCell from "@/components/project/spreadsheet/components/editableCell/enumRadioEditableCell";
+import EditableAttachmentCell from "@/components/project/spreadsheet/components/editableCell/editableAttachmentCell";
+import EnumCell from "@/components/project/spreadsheet/components/cell/enumCell";
+import SetListEditableCell from "@/components/project/spreadsheet/components/editableCell/setListEditableCell";
+import SetListCell from "@/components/project/spreadsheet/components/cell/setListCell";
 
 export default {
   name: "editable-cell",

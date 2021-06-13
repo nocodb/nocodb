@@ -450,7 +450,7 @@
 </template>
 
 <script>
-import SetListCheckboxCell from "@/components/project/spreadsheet/editableCell/setListCheckboxCell";
+import SetListCheckboxCell from "@/components/project/spreadsheet/components/editableCell/setListCheckboxCell";
 import {enumColor as colors, enumColor} from "@/components/project/spreadsheet/helpers/colors";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import {isEmail} from "@/helpers";

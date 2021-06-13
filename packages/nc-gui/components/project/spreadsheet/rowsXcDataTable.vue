@@ -167,6 +167,7 @@
               :visibleColLength="visibleColLength"
               :meta="meta"
               :isVirtual="selectedView.type === 'vtable'"
+              :api="api"
               @onNewColCreation="onNewColCreation"
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
@@ -429,7 +430,7 @@ import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import Table from "@/components/project/table";
 import {SqlUI} from "@/helpers/SqlUiFactory";
 
-import NewColumn from "@/components/project/spreadsheet/editColumn/editColumn";
+import NewColumn from "@/components/project/spreadsheet/components/editColumn";
 import {mapActions} from "vuex";
 import AdditionalFeatures from "@/components/project/spreadsheet/overlay/additinalFeatures";
 import ColumnFilter from "~/components/project/spreadsheet/components/columnFilterMenu";

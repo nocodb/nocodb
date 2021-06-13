@@ -92,7 +92,7 @@
 
 <script>
 import cell from "@/components/project/spreadsheet/mixins/cell";
-import EditColumn from "@/components/project/spreadsheet/editColumn/editColumn";
+import EditColumn from "@/components/project/spreadsheet/components/editColumn";
 
 export default {
   components: {EditColumn},

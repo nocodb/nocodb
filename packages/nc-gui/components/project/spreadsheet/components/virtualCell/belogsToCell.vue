@@ -2,14 +2,17 @@
   <div class="d-flex">
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
       <template v-if="value">
-        <v-chip small  :color="colors[0]">{{
+        <v-chip small :color="colors[0]">{{
             Object.values(value)[1]
           }}
         </v-chip>
       </template>
     </div>
-    <div class="d-flex align-center justify-center px-1 flex-shrink-1">
-      <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
+    <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+      <x-icon small :color="['primary','grey']" @click="showNewRecordModal">{{
+          value ? 'mdi-pencil' : 'mdi-plus'
+        }}
+      </x-icon>
     </div>
 
 
@@ -53,8 +56,6 @@
     </v-dialog>
 
 
-
-
   </div>
 </template>
 
@@ -73,6 +74,8 @@ export default {
     nodes: [Object],
     row: [Object],
     api: [Object, Function],
+    sqlUi: [Object, Function],
+    active: Boolean
   },
   data: () => ({
     newRecordModal: false,
@@ -89,7 +92,7 @@ export default {
     async showParentListModal() {
       this.parentListModal = true;
       await this.getParentMeta();
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join(',');
+      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       const _cn = this.parentMeta.columns.find(c => c.cn === this.hm.cn)._cn;
       this.childList = await this.parentApi.paginatedList({
         where: `(${_cn},eq,${pid})`
@@ -103,7 +106,7 @@ export default {
         if (act === 'hideDialog') {
           this.dialogShow = false;
         } else {
-          const id = this.parentMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join(',');
+          const id = this.parentMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
           await this.parentApi.delete(id)
           this.showParentListModal();
           this.dialogShow = false;
@@ -129,8 +132,8 @@ export default {
       this.list = await this.parentApi.paginatedList({})
     },
     async addParentToChild(parent) {
-      const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join(',');
-      const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join(',');
+      const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join('___');
+      const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn;
 
       await this.api.update(id, {
@@ -204,11 +207,11 @@ export default {
 }
 
 .hm-items {
-  min-width: 200px;
-  max-width: 400px;
+  //min-width: 200px;
+  //max-width: 400px;
   flex-wrap: wrap;
   row-gap: 3px;
-  gap:3px;
+  gap: 3px;
   margin: 3px auto;
 }
 

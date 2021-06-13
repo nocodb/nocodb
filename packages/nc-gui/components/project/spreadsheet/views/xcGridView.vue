@@ -23,7 +23,11 @@
         >
           <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
           -->
+
+          <template v-if="col.virtual">{{ col._cn }}</template>
+
           <header-cell
+            v-else
             :isPublicView="isPublicView"
             @onRelationDelete="$emit('onRelationDelete')"
             :nodes="nodes"
@@ -37,34 +41,7 @@
             @saved="onNewColCreation"
           ></header-cell>
 
-          <!--{{ col.cn }}-->
         </th>
-
-
-        <th v-for="(bt,i) in meta.belongsTo"
-            class="grey-border caption font-wight-regular"
-            :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
-            :key="i"
-        >
-          {{ bt._rtn }} (Belongs To)
-        </th>
-
-        <th v-for="(hm,i) in meta.hasMany"
-            class="grey-border caption font-wight-regular"
-            :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
-            :key="i"
-        >
-          {{ hm._tn }} (Has Many)
-        </th>
-
-        <th v-for="(mm,i) in meta.manyToMany"
-            class="grey-border caption font-wight-regular"
-            :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
-            :key="i"
-        >
-          {{ mm.rtn }} (Many To Many)
-        </th>
-
 
         <th
           v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')"
@@ -142,17 +119,29 @@
           v-show="showFields[columnObj._cn]"
           :data-col="columnObj._cn"
         >
+
+          <virtual-cell
+            v-if="columnObj.virtual"
+            :column="columnObj"
+            :row="rowObj"
+            :nodes="nodes"
+            :meta="meta"
+            :api="api"
+            :active="selected.col === col && selected.row === row"
+            :sql-ui="sqlUi"
+            v-on="$listeners"
+          ></virtual-cell>
+
           <editable-cell
-            v-if="!isLocked
-            && !isPublicView
-             && (
-               editEnabled.col === col
-               && editEnabled.row === row
-               )
-             || enableEditable(columnObj)"
+            v-else-if="
+            !isLocked
+              && !isPublicView
+              && (editEnabled.col === col && editEnabled.row === row)
+              || enableEditable(columnObj)
+            "
             :column="columnObj"
             :meta="meta"
-            :active="(selected.col === col && selected.row === row)"
+            :active="selected.col === col && selected.row === row"
             v-model="rowObj[columnObj._cn]"
             @save="editEnabled = {}"
             @cancel="editEnabled = {}"
@@ -288,50 +277,6 @@
                       :sql-ui="sqlUi"
           ></table-cell>
         </td>
-
-
-        <td v-for="(bt,i) in meta.belongsTo" class="caption" :key="i">
-          <belongs-to-cell
-            :row="rowObj"
-            :value="rowObj[bt._rtn]"
-            :meta="meta"
-            :bt="bt"
-            :nodes="nodes"
-            @loadTableData="$emit('loadTableData')"
-            :api="api"
-          />
-        </td>
-
-        <td v-for="(hm,i) in meta.hasMany" class="caption" :key="i">
-          <template v-if="rowObj[hm._tn]">
-
-
-            <has-many-cell
-              :row="rowObj"
-              :value="rowObj[hm._tn]"
-              :meta="meta"
-              :hm="hm"
-              :nodes="nodes"
-              @loadTableData="$emit('loadTableData')"
-            />
-
-
-          </template>
-        </td>
-        <td v-for="(mm,i) in meta.manyToMany" class="caption" :key="i">
-
-          <many-to-many
-            :row="rowObj"
-            :value="rowObj[mm._rtn]"
-            :meta="meta"
-            :mm="mm"
-            :nodes="nodes"
-            @loadTableData="$emit('loadTableData')"
-          />
-
-        </td>
-
-
       </tr>
       <tr v-if="!isLocked && !isPublicView && isEditable && relationType !== 'bt'">
         <td :colspan="visibleColLength + 1" class="text-left pointer" @click="insertNewRow(true)">
@@ -359,12 +304,13 @@ import EditColumn from "@/components/project/spreadsheet/components/editColumn";
 import TableCell from "@/components/project/spreadsheet/components/tableCell";
 import colors from "@/mixins/colors";
 import columnStyling from "@/components/project/spreadsheet/helpers/columnStyling";
-import HasManyCell from "@/components/project/spreadsheet/components/editableCell/hasManyCell";
-import BelongsToCell from "@/components/project/spreadsheet/components/editableCell/belogsToCell";
-import ManyToMany from "@/components/project/spreadsheet/components/editableCell/manyToMany";
+import HasManyCell from "@/components/project/spreadsheet/components/virtualCell/hasManyCell";
+import BelongsToCell from "@/components/project/spreadsheet/components/virtualCell/belogsToCell";
+import ManyToMany from "@/components/project/spreadsheet/components/virtualCell/manyToManyCell";
+import VirtualCell from "@/components/project/spreadsheet/components/virtualCell";
 
 export default {
-  components: {ManyToMany, BelongsToCell, HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell},
+  components: {VirtualCell, ManyToMany, BelongsToCell, HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell},
   mixins: [colors],
   props: {
     relationType: String,

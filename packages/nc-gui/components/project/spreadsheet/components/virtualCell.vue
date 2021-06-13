@@ -1,0 +1,73 @@
+<template>
+  <div>
+    <has-many-cell
+      v-if="hm"
+      :row="row"
+      :value="row[hm._tn]"
+      :meta="meta"
+      :hm="hm"
+      :nodes="nodes"
+      :active="active"
+      :sql-ui="sqlUi"
+      v-on="$listeners"
+    />
+    <many-to-many-cell
+      v-else-if="mm"
+      :row="row"
+      :value="row[mm._rtn]"
+      :meta="meta"
+      :mm="mm"
+      :nodes="nodes"
+      :sql-ui="sqlUi"
+      :active="active"
+      v-on="$listeners"
+    />
+    <belongs-to-cell
+      v-else-if="bt"
+      :active="active"
+      :row="row"
+      :value="row[bt._rtn]"
+      :meta="meta"
+      :bt="bt"
+      :nodes="nodes"
+      :api="api"
+      :sql-ui="sqlUi"
+      v-on="$listeners"
+    />
+  </div>
+</template>
+
+<script>
+import HasManyCell from "@/components/project/spreadsheet/components/virtualCell/hasManyCell";
+import ManyToManyCell from "@/components/project/spreadsheet/components/virtualCell/manyToManyCell";
+import BelongsToCell from "@/components/project/spreadsheet/components/virtualCell/belogsToCell";
+
+export default {
+  name: "virtual-cell",
+  components: {BelongsToCell, ManyToManyCell, HasManyCell},
+  props: {
+    column: [Object],
+    row: [Object],
+    nodes: [Object],
+    meta: [Object],
+    api: [Object, Function],
+    active: Boolean,
+    sqlUi: [Object, Function],
+  },
+  computed: {
+    hm() {
+      return this.column && this.column.hm;
+    },
+    bt() {
+      return this.column && this.column.bt;
+    },
+    mm() {
+      return this.column && this.column.mm;
+    }
+  }
+}
+</script>
+
+<style scoped>
+
+</style>

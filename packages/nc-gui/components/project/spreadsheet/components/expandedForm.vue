@@ -2,7 +2,9 @@
   <v-card width="1000" max-width="100%">
     <v-toolbar height="55" class="elevation-1">
       <div class="d-100 d-flex ">
-        <h5 class="title text-center">{{ table }} : {{ localState[primaryValueColumn] }}</h5>
+        <h5 class="title text-center">
+          <v-icon :color="iconColor">mdi-table-arrow-right</v-icon>
+          {{ table }} : {{ localState[primaryValueColumn] }}</h5>
         <v-spacer>
         </v-spacer>
         <v-btn small text @click="reload">
@@ -186,9 +188,13 @@ export default {
     hasMany: Object,
     belongsTo: Object,
     isNew: Boolean,
-    oldRow: Object
+    oldRow: Object,
+    iconColor:{
+      type:String,
+      default: 'primary'
+    }
   },
-  name: "expandedForm",
+  name: "expanded-form",
   data: () => ({
     showborder: false,
     loadingLogs: true,

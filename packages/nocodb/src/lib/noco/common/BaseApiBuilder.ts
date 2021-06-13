@@ -1509,9 +1509,9 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         const tableMetaA = this.metas[meta.belongsTo[0].rtn];
         const tableMetaB = this.metas[meta.belongsTo[1].rtn];
 
-/*        // remove hasmany relation with associate table from tables
-        tableMetaA.hasMany.splice(tableMetaA.hasMany.findIndex(hm => hm.tn === meta.tn), 1)
-        tableMetaB.hasMany.splice(tableMetaB.hasMany.findIndex(hm => hm.tn === meta.tn), 1)*/
+        /*        // remove hasmany relation with associate table from tables
+                tableMetaA.hasMany.splice(tableMetaA.hasMany.findIndex(hm => hm.tn === meta.tn), 1)
+                tableMetaB.hasMany.splice(tableMetaB.hasMany.findIndex(hm => hm.tn === meta.tn), 1)*/
 
         // add manytomany data under metadata of both related columns
         tableMetaA.manyToMany = tableMetaA.manyToMany || [];
@@ -1551,6 +1551,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // Update metadata of tables which have manytomany relation
     // and recreate basemodel with new meta information
     for (const meta of metas) {
+      meta.v = [...meta.v, ...meta.manyToMany.map(mm => ({mm, _cn:`${mm._tn} <=> ${mm._rtn}`}))]
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         meta: JSON.stringify(meta)
       }, {title: meta.tn})

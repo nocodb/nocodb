@@ -130,7 +130,7 @@ export default {
     },
     belongsTo() {
       return this.meta && this.meta.belongsTo ? this.meta.belongsTo.reduce((bt, o) => {
-        const _cn = this.meta.columns.find(c => c.cn === o.cn)._cn
+        const _cn = (this.meta.columns.find(c => c.cn === o.cn)||{})._cn
         bt[_cn] = o;
         return bt;
       }, {}) : {};

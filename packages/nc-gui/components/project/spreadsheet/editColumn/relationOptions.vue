@@ -3,6 +3,7 @@
     <v-row>
       <v-col cols="6">
         <v-autocomplete
+          :rules="[v=>!!v || 'Reference Table required']"
           outlined
           class="caption"
           hide-details
@@ -21,6 +22,7 @@
       >
       <v-col cols="6">
         <v-autocomplete
+          :rules="[v=>!!v || 'Reference Column required']"
           outlined
           class="caption"
           hide-details
@@ -76,6 +78,7 @@
 
       <v-col>
         <v-checkbox
+          :disabled="isSQLite"
           false-value="real"
           true-value="virtual"
           label="Virtual Relation"
@@ -94,7 +97,7 @@
 <script>
 export default {
   name: "relationOptions",
-  props: ['nodes', 'column'],
+  props: ['nodes', 'column', 'isSQLite'],
   data: () => ({
     refTables: [],
     refColumns: [],
@@ -119,7 +122,7 @@ export default {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
       updateRelation: this.column.rtn ? true : false,
-      type: 'real'
+      type: this.isSQLite ? 'virtual' : 'real'
     }
   },
   methods: {
@@ -160,7 +163,7 @@ export default {
       }, 'tableList']);
 
 
-      this.refTables = result.data.list.map(({tn,_tn}) => ({tn,_tn}))
+      this.refTables = result.data.list.map(({tn, _tn}) => ({tn, _tn}))
       this.isRefTablesLoading = false;
     },
     async saveRelation() {
@@ -170,7 +173,7 @@ export default {
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias
           },
-          this.relation.type === 'real' ? "relationCreate" : 'xcVirtualRelationCreate',
+          this.relation.type === 'real' && !this.isSQLite ? "relationCreate" : 'xcVirtualRelationCreate',
           this.relation
         ]);
       } catch (e) {
@@ -183,9 +186,15 @@ export default {
     }
   },
   watch: {
-    'column.cn': (c) => {
+    'column.cn': function (c) {
       this.$set(this.relation, 'childColumn', c);
+    },
+    isSQLite(v) {
+      this.$set(this.relation, 'type', v ? 'virtual' : 'real');
     }
+  },
+  mounted() {
+    this.$set(this.relation, 'type', this.isSqlite ? 'virtual' : 'real');
   }
 }
 </script>

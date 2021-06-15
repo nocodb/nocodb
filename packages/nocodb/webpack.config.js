@@ -2,8 +2,8 @@ const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 // // const CopyPlugin = require('copy-webpack-plugin');
 //
-// const TerserPlugin = require('terser-webpack-plugin');
-const JavaScriptObfuscator = require('webpack-obfuscator');
+const TerserPlugin = require('terser-webpack-plugin');
+// const JavaScriptObfuscator = require('webpack-obfuscator');
 const path = require('path');
 module.exports = {
   entry: './src/lib/index.ts',
@@ -24,8 +24,8 @@ module.exports = {
   },
 
   optimization: {
-    minimize: false, //Update this to true or false
-    // minimizer: [new TerserPlugin()],
+    minimize: true, //Update this to true or false
+    minimizer: [new TerserPlugin()],
     nodeEnv:false
   },
   externals: [nodeExternals()],
@@ -46,11 +46,11 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'EE'
     ]),
-    new JavaScriptObfuscator({
-      rotateStringArray: true,
-      splitStrings: true,
-      splitStringsChunkLength: 6
-    }, []),
+    // new JavaScriptObfuscator({
+    //   rotateStringArray: true,
+    //   splitStrings: true,
+    //   splitStringsChunkLength: 6
+    // }, []),
   ],
 
   target: 'node',

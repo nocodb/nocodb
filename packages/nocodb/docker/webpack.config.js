@@ -2,7 +2,7 @@ const nodeExternals = require('webpack-node-externals');
 // const CopyPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack')
 const TerserPlugin = require('terser-webpack-plugin');
-const JavaScriptObfuscator = require('webpack-obfuscator');
+// const JavaScriptObfuscator = require('webpack-obfuscator');
 
 module.exports = {
   entry: './docker/index.js',
@@ -44,11 +44,11 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'EE'
     ]),
-    new JavaScriptObfuscator({
-      rotateStringArray: true,
-      splitStrings: true,
-      splitStringsChunkLength: 6
-    }, []),
+    // new JavaScriptObfuscator({
+    //   rotateStringArray: true,
+    //   splitStrings: true,
+    //   splitStringsChunkLength: 6
+    // }, []),
     // new CopyPlugin({
     //   patterns: [
     //    "src/**/*.ejs"

@@ -77,3 +77,4 @@ mongod
 *.sln
 
 .history
+/packages/nocodb/docker/main.js.LICENSE.txt

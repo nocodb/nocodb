@@ -47,7 +47,7 @@ export default {
       this.$router.replace({query: {}})
     }
     try {
-      hj('stateChange', 'http://localhost:8080/dashboard/#/nc/');
+      hj('stateChange', `${this.$axios.defaults.baseURL}/dashboard/#/nc/`);
     } catch (e) {
     }
   },
@@ -112,6 +112,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

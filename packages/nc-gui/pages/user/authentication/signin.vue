@@ -105,11 +105,7 @@
                 <div>
                   <v-btn
                     v-if="googleAuthEnabled"
-                    :href="
-                      _isDev
-                        ? 'http://localhost:8080/auth/google'
-                        : '../auth/google'
-                    "
+                    :href="`${this.$axios.defaults.baseURL}/auth/google`"
                     outlined
                     large
                     elevation-10
@@ -126,11 +122,7 @@
                   </v-btn>
                   <v-btn
                     v-if="githubAuthEnabled"
-                    :href="
-                      _isDev
-                        ? 'http://localhost:8080/auth/github'
-                        : '../auth/github'
-                    "
+                    :href="`${this.$axios.defaults.baseURL}/auth/google`"
                     outlined
                     large
                     elevation-10

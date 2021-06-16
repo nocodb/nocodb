@@ -98,7 +98,7 @@
                 <v-btn
 
                   v-if="googleAuthEnabled"
-                  :href="(_isDev ?'http://localhost:8080/auth/google':'../auth/google') + `?state=${token}`" outlined
+                  :href="`${this.$axios.defaults.baseURL}/auth/google?state=${token}`" outlined
                   large elevation-10
                   block
                   color="blue">
@@ -154,7 +154,7 @@
 <!--                <v-btn
 
                   v-if="googleAuthEnabled"
-                  :href="(_isDev ?'http://localhost:8080/auth/google':'../auth/google') + `?state=${token}`" outlined
+                  :href="`${this.$axios.defaults.baseURL}/auth/google?state=${token}`" outlined
                   large elevation-10
                   block
                   color="blue">
@@ -500,6 +500,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

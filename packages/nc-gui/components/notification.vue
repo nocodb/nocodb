@@ -5,19 +5,19 @@
     <!--        notification button -->
 
     <template v-slot:activator="{on}">
-      <div class="d-flex align-center">
-        <v-badge v-if="GetHasErrors && !GetPendingStatus" color="red" overlap bottom class="ml-4">
+      <div class="d-flex align-center ml-4 justify-center">
+        <v-badge v-if="GetHasErrors && !GetPendingStatus" color="red" overlap bottom >
           <template v-slot:badge>
             <v-icon v-on="on" size="10">mdi-exclamation</v-icon>
           </template>
           <v-icon v-on="on" size="20">mdi-bell-ring</v-icon>
         </v-badge>
-        <v-icon v-on="on" size="20" v-else class="ml-4">mdi-bell-ring</v-icon>
+        <v-icon v-on="on" size="20" v-else >mdi-bell-ring</v-icon>
         <v-progress-circular
           v-if="GetPendingStatus"
           style="position: absolute"
           :width="3"
-          size="40"
+          size="30"
           color="orange"
           indeterminate
         ></v-progress-circular>

@@ -198,7 +198,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       if (!rootPath) {
         continue;
       }
-      this.router.use(rootPath, router);
+      this.router.use(encodeURI(rootPath), router);
 
       this.apiCount += routes.length;
       this.controllers[meta.title] = new RestCtrl(this.app, this.models, meta.title, routes, rootPath, this.acls, middlewareBody);
@@ -439,7 +439,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         /* create table controllers and map the routes */
         this.controllers[table.tn] = new RestCtrl(this.app, this.models, table.tn, routes, rootPath, this.acls, null);
         this.controllers[table.tn].mapRoutes(router, this.customRoutes);
-        this.router.use(rootPath, router);
+        this.router.use(encodeURI(rootPath), router);
 
         /* handle relational routes  */
         relationRoutes.push(async () => {

@@ -32,7 +32,7 @@ export abstract class RestBaseCtrl {
 
       handlers.push(this.postMiddleware);
 
-      router[addRoute.method](addRoute.path.slice(this.rootPath.length), ...handlers);
+      router[addRoute.method](encodeURI(addRoute.path.slice(this.rootPath.length)), ...handlers);
 
     })
 
@@ -55,7 +55,7 @@ export abstract class RestBaseCtrl {
 
       handlers.push(this.postMiddleware);
 
-      router[route.type](route.path.slice(this.rootPath.length), ...handlers);
+      router[route.type](encodeURI(route.path.slice(this.rootPath.length)), ...handlers);
     })
   }
 

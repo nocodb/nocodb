@@ -57,7 +57,8 @@
       <x-btn tooltip="Reload view data" outlined small text @click="loadTableData">
         <v-icon small class="mr-1" color="grey  darken-3">mdi-reload</v-icon>
       </x-btn>
-      <x-btn tooltip="Add new row" v-if="relationType !== 'bt'" :disabled="isLocked" outlined small text @click="insertNewRow(true,true)">
+      <x-btn tooltip="Add new row" v-if="relationType !== 'bt'" :disabled="isLocked" outlined small text
+             @click="insertNewRow(true,true)">
         <v-icon small class="mr-1" color="grey  darken-3">mdi-plus</v-icon>
       </x-btn>
       <x-btn small text outlined tooltip="Save new rows" :disabled="!edited || isLocked" @click="save">
@@ -214,7 +215,7 @@
 
         </div>
         <v-pagination
-          v-if="data"
+          v-if="data && count !== Infinity"
           style="max-width: 100%"
           v-model="page"
           :length="Math.ceil(count / size)"
@@ -222,6 +223,23 @@
           @input="loadTableData"
           color="primary lighten-2"
         ></v-pagination>
+        <div class="mx-auto d-flex align-center mt-n1 " style="max-width:250px">
+          <span class="caption" style="white-space: nowrap"> Change page:</span>
+          <v-text-field
+            class="ml-1 caption"
+            :full-width="false"
+            outlined
+            dense
+            hide-details
+            v-model="page"
+            @keydown.enter="loadTableData"
+            type="number"
+          >
+            <template #append>
+              <x-icon tooltip="Change page" small icon.class="mt-1" @click="loadTableData">mdi-keyboard-return</x-icon>
+            </template>
+          </v-text-field>
+        </div>
         <!--      <div v-else class="d-flex justify-center py-4">-->
         <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
         <!--      </div>-->
@@ -655,7 +673,7 @@ export default {
         const {row: rowObj, rowMeta} = this.data[row];
         if (rowMeta.new) {
           try {
-            const pks =this.availableColumns.filter((col) => {
+            const pks = this.availableColumns.filter((col) => {
               return col.pk;
             });
             if (this.availableColumns.every((col) => {

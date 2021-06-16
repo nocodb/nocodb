@@ -33,14 +33,14 @@ export default ({store, $axios, redirect, $toast}) => {
     }
 
     // Return any error which is not due to authentication back to the calling service
-    if (error.response && error.response.status !== 401) {
+    if (!error.response || error.response.status !== 401) {
       return new Promise((resolve, reject) => {
         reject(error);
       });
     }
 
     // Logout user if token refresh didn't work or user is disabled
-    if (error.config.url == '/api/v1/auth/refresh-token') {
+    if (error.config.url == '/api/v1/auth/refresh-token' ) {
       store.dispatch('users/ActSignOut')
 
 

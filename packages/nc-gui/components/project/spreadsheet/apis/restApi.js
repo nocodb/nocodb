@@ -19,15 +19,29 @@ export default class RestApi {
   }
 
   async count(params) {
-    const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/count`, params);
-    return data.data;
+    if (this.timeout) {
+      return this.timeout;
+    }
+    try {
+      const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/count`, params, {
+        timeout: 10000,
+      });
+      return data && data.data;
+    } catch (e) {
+      if (e.code === "ECONNABORTED") {
+        return this.timeout = {count: Infinity};
+      } else {
+        throw e;
+      }
+    }
   }
 
 
-  get(url, params) {
+  get(url, params, extras = {}) {
     return this.$axios({
       url,
       params,
+      ...extras
     })
   }
 

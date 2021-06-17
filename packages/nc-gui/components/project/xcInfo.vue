@@ -252,7 +252,7 @@ export default {
   }, methods: {
     async loadProjectApiInfo() {
       try {
-        const {info, aggregatedInfo} = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
+        const {info, aggregatedInfo} = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
           headers: {
             'xc-auth': this.$store.state.users.token
           }

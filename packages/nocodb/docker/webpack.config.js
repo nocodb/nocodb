@@ -35,8 +35,8 @@ module.exports = {
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
   optimization: {
-    minimize: false, //Update this to true or false
-    // minimizer: [new TerserPlugin()],
+    minimize: true, //Update this to true or false
+    minimizer: [new TerserPlugin()],
     nodeEnv:false
   },
   externals: [nodeExternals()],

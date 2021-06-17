@@ -1,5 +1,12 @@
 <template>
   <div class="h-100" style="overflow: auto">
+    <v-toolbar height="30">
+      <v-spacer/>
+      <v-btn x-small outlined @click="loadAudits">
+        <v-icon small class="mr-2">refresh</v-icon>
+        Reload
+      </v-btn>
+    </v-toolbar>
     <v-container class="h-100 d-flex flex-column">
       <v-simple-table dense v-if="audits" style="max-width: 1000px; overflow: auto" class="mx-auto flex-grow-1"
                       v-slot:default>
@@ -13,7 +20,7 @@
           </th>
           <th class="caption">Description</th>
           <th class="caption">User</th>
-<!--          <th class="caption">Ip</th>-->
+          <!--          <th class="caption">Ip</th>-->
           <th class="caption">Created</th>
         </tr>
         </thead>
@@ -32,9 +39,9 @@
           <td class="caption">
             {{ audit.user }}
           </td>
-<!--          <td class="caption">-->
-<!--            {{ audit.ip }}-->
-<!--          </td>-->
+          <!--          <td class="caption">-->
+          <!--            {{ audit.ip }}-->
+          <!--          </td>-->
           <td class="caption">
             <v-tooltip bottom>
               <template v-slot:activator="{on}">

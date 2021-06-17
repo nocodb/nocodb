@@ -305,10 +305,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     const metaObj = JSON.parse(modelRow.meta);
     this.metas[tn] = metaObj;
     this.baseLog(`onValidationUpdate : Generating model instance for '%s' table`, tn)
-    this.models[modelRow.title] = new BaseModelSql({
-      dbDriver: this.dbDriver,
-      ...metaObj
-    });
+    this.models[modelRow.title] = this.getBaseModel(metaObj);
 
     // todo: check tableAlias changed or not
     await this.onTableRename(tn, tn)
@@ -559,10 +556,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
     this.baseLog(`onTableUpdate : Generating model instance for '%s' table`, tn)
 
-    this.models[tn] = new BaseModelSql({
-      dbDriver: this.dbDriver,
-      ...newMeta
-    });
+    this.models[tn] = this.getBaseModel(newMeta);
 
 
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
@@ -617,10 +611,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
     this.baseLog(`onViewUpdate : Generating model instance for '%s' table`, viewName)
 
-    this.models[viewName] = new BaseModelSql({
-      dbDriver: this.dbDriver,
-      ...newMeta
-    });
+    this.models[viewName] = this.getBaseModel(newMeta);
 
 
   }

@@ -541,12 +541,13 @@ export default class RestAuthCtrl {
 
         res.json({
           token: jwt.sign({
-            email: user.email,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            id: user.id,
-            roles: user.roles
-          }, this.config.auth.jwt.secret, this.config.auth.jwt.options)
+              email: user.email,
+              firstname: user.firstname,
+              lastname: user.lastname,
+              id: user.id,
+              roles: user.roles
+            }, this.config.auth.jwt.secret,
+            this.config.auth.jwt.options)
         } as any);
       } catch (e) {
         console.log(e);
@@ -1168,6 +1169,7 @@ export default class RestAuthCtrl {
         return next(new Error(`User with id '${req.params.id}' not found`));
       }
 
+      req.body.roles = user.roles;
       const invite_token = uuidv4();
 
       await this.users.update({
@@ -1197,13 +1199,13 @@ export default class RestAuthCtrl {
       const template = (await import('./ui/emailTemplates/invite')).default;
 
       if (this.emailClient) {
-
         await this.emailClient.mailSend({
           to: email,
           subject: "Verify email",
           html: ejs.render(template, {
             signupLink: `${req.ncSiteUrl}${this.config?.dashboardPath}#/user/authentication/signup/${token}`,
-            projectName: req.body.projectName,
+            projectName: req.body?.projectName,
+            roles: (req.body?.roles || '').split(',').map(r => r.replace(/^./, m => m.toUpperCase())).join(', '),
             adminEmail: req.session?.passport?.user?.email
           })
         })

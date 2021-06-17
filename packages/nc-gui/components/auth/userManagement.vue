@@ -536,9 +536,14 @@ export default {
     },
     async rensendInvite(id) {
       try {
-        await this.$axios.post('/admin/resendInvite/' + id, null, {
+        await this.$axios.post('/admin/resendInvite/' + id, {
+          projectName: this.$store.getters['project/GtrProjectName'],
+        }, {
           headers: {
             'xc-auth': this.$store.state.users.token
+          },
+          params: {
+            project_id: this.$route.params.project_id
           }
         });
         this.$toast.success('Invite email sent successfully').goAway(3000);
@@ -620,7 +625,11 @@ export default {
     },
     async inviteUser(email) {
       try {
-        await this.$axios.post('/admin', {email, project_id: this.$route.params.project_id}, {
+        await this.$axios.post('/admin', {
+          email,
+          project_id: this.$route.params.project_id,
+          projectName: this.$store.getters['project/GtrProjectName']
+        }, {
           headers: {
             'xc-auth': this.$store.state.users.token
           }
@@ -646,7 +655,8 @@ export default {
           await this.$axios.put('/admin/' + this.selectedUser.id, {
             roles: this.selectedUser.roles,
             email: this.selectedUser.email,
-            project_id: this.$route.params.project_id
+            project_id: this.$route.params.project_id,
+            projectName: this.$store.getters['project/GtrProjectName']
           }, {
             headers: {
               'xc-auth': this.$store.state.users.token
@@ -655,7 +665,8 @@ export default {
         } else {
           data = await this.$axios.post('/admin', {
             ...this.selectedUser,
-            project_id: this.$route.params.project_id
+            project_id: this.$route.params.project_id,
+            projectName: this.$store.getters['project/GtrProjectName']
           }, {
             headers: {
               'xc-auth': this.$store.state.users.token

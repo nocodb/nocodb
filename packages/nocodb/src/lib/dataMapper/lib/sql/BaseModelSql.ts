@@ -252,8 +252,8 @@ class BaseModelSql extends BaseModel {
 
       const query = driver(this.tn).insert(insertObj);
 
-      if (this.dbDriver.clientType() === 'pg' || this.dbDriver.clientType() === 'mssql') {
-        query.returning(Object.entries(this.aliasToColumn).map(([val,key]) => `${key} as ${val}`));
+      if (this.isPg() || this.dbDriver.clientType() === 'mssql') {
+        query.returning(Object.entries(this.aliasToColumn).map(([val, key]) => `${key} as ${val}`));
         response = await this._run(query);
       }
 
@@ -281,6 +281,10 @@ class BaseModelSql extends BaseModel {
     }
   }
 
+
+  private isPg() {
+    return this.dbDriver.clientType() === 'pg';
+  }
 
   /**
    * Update table row data by primary key
@@ -800,6 +804,16 @@ class BaseModelSql extends BaseModel {
    */
   async countByPk({where = '', conditionGraph = null}) {
     try {
+      if (this.isPg() && !conditionGraph && !where) {
+        return (await this._run(
+          this.dbDriver.raw(`SELECT c.reltuples::bigint AS count
+                  FROM   pg_class c
+                  JOIN   pg_namespace n ON n.oid = c.relnamespace
+                  WHERE  c.relname = ?
+                  AND    n.nspname = ?`, [this.tn,this.config?.searchPath?.[0] || 'public'])
+        ))?.rows?.[0];
+      }
+
       return await this._run(this.$db
         .conditionGraph(conditionGraph)
         .count(`${this.tn}.${(this.pks[0] || this.columns[0]).cn} as count`)
@@ -1103,7 +1117,7 @@ class BaseModelSql extends BaseModel {
             .select(this.dbModels[child].selectQuery(fields)) // ...fields.split(','));
 
 
-        this._paginateAndSort(query, {sort, limit, offset}, null,true);
+        this._paginateAndSort(query, {sort, limit, offset}, null, true);
         return this.isSqlite() ? this.dbDriver.select().from(query) : query;
       }), !this.isSqlite()
     ));
@@ -1370,7 +1384,7 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} query appended with paginate and sort params
    * @private
    */
-  _paginateAndSort(query, {limit = 20, offset = 0, sort = ''}: XcFilter, table?: string, isUnion?:boolean) {
+  _paginateAndSort(query, {limit = 20, offset = 0, sort = ''}: XcFilter, table?: string, isUnion?: boolean) {
     query.offset(offset)
       .limit(limit);
 

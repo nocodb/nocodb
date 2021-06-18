@@ -62,7 +62,7 @@ export default {
       await new Promise(resolve => {
         const interv = setInterval(() => {
           axios.create({
-            baseURL: `${$axios.defaults.baseURL}/dashboard`
+            baseURL: `${this.$axios.defaults.baseURL}/dashboard`
           }).get('').then(() => {
             this.projectReloading = false;
             clearInterval(interv);

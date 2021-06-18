@@ -1113,7 +1113,7 @@ export default {
           }
 
           axios.create({
-            baseURL: `${$axios.defaults.baseURL}/dashboard`,
+            baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
           }).get('').then(() => {
             toast.goAway(100);
             this.projectReloading = false;

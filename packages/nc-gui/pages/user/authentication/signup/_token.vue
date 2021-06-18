@@ -98,7 +98,7 @@
                 <v-btn
 
                   v-if="googleAuthEnabled"
-                  :href="`${this.$axios.defaults.baseURL}/auth/google?state=${token}`" outlined
+                  :href="`${$axios.defaults.baseURL}/auth/google?state=${token}`" outlined
                   large elevation-10
                   block
                   color="blue">
@@ -154,7 +154,7 @@
 <!--                <v-btn
 
                   v-if="googleAuthEnabled"
-                  :href="`${this.$axios.defaults.baseURL}/auth/google?state=${token}`" outlined
+                  :href="`${$axios.defaults.baseURL}/auth/google?state=${token}`" outlined
                   large elevation-10
                   block
                   color="blue">

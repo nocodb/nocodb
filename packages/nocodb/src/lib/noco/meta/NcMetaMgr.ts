@@ -31,12 +31,12 @@ import isDocker from 'is-docker';
 import slash from 'slash';
 
 
-
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
 import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesHm";
 import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
 import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
 import NcPluginMgr from "../plugins/NcPluginMgr";
+
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
 
@@ -3072,7 +3072,9 @@ export default class NcMetaMgr {
 
   protected async xcApiTokenDelete(args): Promise<any> {
     Tele.emit('evt', {evt_type: 'apiToken:deleted'});
-    return this.xcMeta.metaDelete(null, null, 'nc_api_tokens', args.args.id);
+    const res = await this.xcMeta.metaDelete(null, null, 'nc_api_tokens', args.args.id);
+    await RestAuthCtrl.instance.loadLatestApiTokens();
+    return res;
   }
 
 

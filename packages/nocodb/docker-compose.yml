@@ -452,5 +452,5 @@ services:
         - -c
         - |
           echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-          cd /home/app/ && npm i && npm run watch:run
+          cd /home/app/ && npm i && npm run run
 

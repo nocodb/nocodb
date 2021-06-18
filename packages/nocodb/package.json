@@ -68,6 +68,7 @@
     "watch:build": "nodemon -e ts,js -w ./src -x npm run build",
     "watch:serve": "nodemon -e ts -w ./build -x npm run debug-local ",
     "watch:run": "nodemon -e ts,js -w ./src -x \"ts-node src/example/docker --log-error --project tsconfig.json\"",
+    "run": "ts-node src/example/docker",
     "watch:try": "nodemon -e ts,js -w ./src -x \"ts-node src/example/try --log-error --project tsconfig.json\"",
     "example:docker": "ts-node ./src/example/docker.ts"
   },

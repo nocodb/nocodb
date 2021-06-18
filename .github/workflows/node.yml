@@ -18,7 +18,7 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          start: docker run -p 8080:8080 -d --name xc-instant nocodb/nocodb:latest ; sleep 10
+          start: cd ./packages/nocodb/ && docker-compose run -d xc-cypress-test ; sleep 20
           wait-on: 'http://localhost:8080/dashboard'
   docker:
 

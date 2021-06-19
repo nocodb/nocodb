@@ -90,7 +90,7 @@ export default {
   ** See https://axios.nuxtjs.org/options
   */
   axios: {
-    baseURL: baseURL: process.env.NC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? '../' : 'http://localhost:8080/'),
+    baseURL: process.env.NC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? '../' : 'http://localhost:8080/'),
   },
   /*
   ** vuetify module configuration

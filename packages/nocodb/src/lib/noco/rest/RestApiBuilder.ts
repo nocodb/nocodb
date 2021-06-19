@@ -1020,6 +1020,13 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           hasMany: meta.hasMany,
         });
 
+        /* Add new has many relation to virtual columns */
+        oldMeta.v = oldMeta.v || [];
+        oldMeta.v.push({
+          hm: meta.hasMany.find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
+        })
+
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnp,
           meta: JSON.stringify(oldMeta),
@@ -1093,6 +1100,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
         });
+
+        /* Add new belongs to relation to virtual columns */
+        oldMeta.v = oldMeta.v || [];
+        oldMeta.v.push({
+          bt: meta.belongsTo.find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
+        })
+
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnc,
           meta: JSON.stringify(oldMeta)
@@ -1661,4 +1676,3 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-

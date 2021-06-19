@@ -88,6 +88,7 @@
                     ref="relation"
                     :column="newColumn"
                     :nodes="nodes"
+                    :meta="meta"
                     @onColumnSelect="onRelColumnSelect"
                   ></linked-to-another-options>
                 </v-col>
@@ -319,6 +320,7 @@ export default {
     value: Boolean
   },
   data: () => ({
+    valid: false,
     relationDeleteDlg: false,
     newColumn: {},
     uiTypes,
@@ -366,6 +368,11 @@ export default {
 
         if (this.newColumn.uidt === 'Formula') {
           return this.$toast.info('Coming Soon...').goAway(3000)
+        }
+
+        if (this.isLinkToAnotherRecord && this.$refs.relation) {
+          await this.$refs.relation.saveRelation();
+          return this.$emit('saved');
         }
 
         this.newColumn.tn = this.nodes.tn;
@@ -494,7 +501,10 @@ export default {
   },
   computed: {
     isEditDisabled() {
-      return this.editColumn &&  this.sqlUi === SqliteUi;
+      return this.editColumn && this.sqlUi === SqliteUi;
+    },
+    isSQLite() {
+      return this.sqlUi === SqliteUi;
     },
     dataTypes() {
       return this.sqlUi.getDataTypeListForUiType(this.newColumn)

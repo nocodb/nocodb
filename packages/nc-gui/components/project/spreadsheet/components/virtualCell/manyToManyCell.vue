@@ -13,7 +13,7 @@
     </div>
     <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
       <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
-<!--      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>-->
+      <!--      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>-->
     </div>
 
 
@@ -150,7 +150,8 @@ export default {
     row: [Object],
     api: [Object, Function],
     sqlUi: [Object, Function],
-    active: Boolean
+    active: Boolean,
+    isNew: Boolean
   },
   data: () => ({
     newRecordModal: false,
@@ -161,7 +162,8 @@ export default {
     childList: null,
     dialogShow: false,
     confirmAction: null,
-    confirmMessage: ''
+    confirmMessage: '',
+    selectedChild:null
   }),
 
   methods: {

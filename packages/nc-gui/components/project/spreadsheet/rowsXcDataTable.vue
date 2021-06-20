@@ -699,6 +699,11 @@ export default {
             }) && pks.length && pks.every(col => !rowObj[col._cn])) {
               return this.$toast.info('Primary column is empty please provide some value').goAway(3000);
             }
+            if (this.availableColumns.some((col) => {
+              return col.rqd && (rowObj[col._cn] === undefined || rowObj[col._cn] === null) && !col.default
+            })) {
+              return;
+            }
 
             const insertObj = this.availableColumns.reduce((o, col) => {
               if (!col.ai && (rowObj && rowObj[col._cn]) !== null) {
@@ -728,7 +733,15 @@ export default {
         }
       }
     },
-    async onCellValueChange(col, row, column) {
+
+
+    onCellValueChangeDebounce: debounce(async function (col, row, column, self) {
+      await self.onCellValueChangeFn(col, row, column)
+    }, 300),
+    onCellValueChange(col, row, column) {
+      this.onCellValueChangeDebounce(col, row, column, this)
+    },
+    async onCellValueChangeFn(col, row, column) {
       if (!this.data[row]) return;
       const {row: rowObj, rowMeta, oldRow} = this.data[row];
       if (rowMeta.new) {
@@ -806,6 +819,7 @@ export default {
         const {rowMeta} = this.data[this.data.length - 1];
         this.expandRow(this.data.length - 1, rowMeta)
       }
+      this.save()
     },
 
 

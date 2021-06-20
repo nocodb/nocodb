@@ -4,9 +4,22 @@
       <template v-if="value">
         <v-chip
           small
-          v-for="(v,i) in value.map(v=>Object.values(v)[1])"
-          :color="colors[i%colors.length]" :key="i">
-          {{ v }}
+          v-for="(ch,i) in value"
+          :key="i"
+          :color="colors[i%colors.length]"
+          @click="editChild(ch)"
+        >
+          {{ Object.values(ch)[1] }}
+          <div v-show="active" class="mr-n1 ml-2 mt-n1">
+            <x-icon
+              :color="['text' , 'textLight']"
+              x-small
+              icon.class="unlink-icon"
+              @click.stop="unlinkChild(ch)"
+            >mdi-close-thick
+            </x-icon>
+          </div>
+
         </v-chip>
       </template>
     </div>
@@ -15,36 +28,40 @@
       <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
     </div>
 
- <!--   <list-items
-      :count="10"
-      :meta="childMeta"
-      :primary-col="childPrimaryCol"
-      :primary-key="childPrimaryKey"
-      v-model="newRecordModal"
-      :api="childApi"
-    ></list-items>-->
+    <!--   <list-items
+         :count="10"
+         :meta="childMeta"
+         :primary-col="childPrimaryCol"
+         :primary-key="childPrimaryKey"
+         v-model="newRecordModal"
+         :api="childApi"
+       ></list-items>-->
     <v-dialog v-if="newRecordModal" v-model="newRecordModal" width="600">
       <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor--text mx-2">Add Record
-          <v-spacer>
-          </v-spacer>
+        <v-card-title class="textColor--text mx-2 justify-center">Link Record
 
-          <v-btn small class="caption" color="primary">
-            <v-icon small>mdi-plus</v-icon>&nbsp;
-            Add New Record
-          </v-btn>
         </v-card-title>
-        <v-card-text>
+
+        <v-card-title>
           <v-text-field
             hide-details
             dense
             outlined
-            placeholder="Search record"
-            class="mb-2 mx-2 caption"
+            placeholder="Search records"
+            class=" caption search-field ml-2"
           />
+          <v-spacer></v-spacer>
+          <v-btn small class="caption mr-2" color="primary" @click="insertAndAddNewChildRecord">
+            <v-icon small>mdi-plus</v-icon>&nbsp;
+            New Record
+          </v-btn>
+
+        </v-card-title>
+
+        <v-card-text>
 
           <div class="items-container">
-            <template v-if="list">
+            <template v-if="list && list.list && list.list.length">
               <v-card
                 v-for="(ch,i) in list.list"
                 class="ma-2  child-card"
@@ -53,20 +70,29 @@
                 @click="addChildToParent(ch)"
                 :key="i"
               >
-                <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[childPrimaryCol] }}
-                  <span class="grey--text caption primary-key"
+                <v-card-text class="primary-value textColor--text text--lighten-2 d-flex">
+                  <span class="font-weight-bold"> {{ ch[childPrimaryCol] }}</span>
+                  <span class="grey--text caption primary-key "
                         v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
-                </v-card-title>
+                  <v-spacer/>
+                  <v-chip v-if="ch[meta._tn]" x-small>
+                    {{ ch[meta._tn][primaryCol] }}
+                  </v-chip>
+                </v-card-text>
               </v-card>
 
 
             </template>
+
+            <div v-else class="text-center py-15 textLight--text">
+              No items found
+            </div>
           </div>
         </v-card-text>
         <v-card-actions class="justify-center py-2  flex-column">
 
           <pagination
-            v-if="list"
+            v-if="list && list.list && list.list.length"
             :size="listPagination.size"
             :count="list.count"
             v-model="listPagination.page"
@@ -164,7 +190,7 @@
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
         @cancel="selectedChild = null"
-        @input="$emit('loadTableData');showChildListModal();"
+        @input="$emit('loadTableData');loadChildList();"
         :table="childMeta.tn"
         v-model="selectedChild"
         :old-row="{...selectedChild}"
@@ -176,8 +202,11 @@
         icon-color="warning"
         :nodes="nodes"
         :query-params="childQueryParams"
+        ref="expandedForm"
+        :is-new="isNewChild"
+        :disabled-columns="disabledChildColumns"
       ></component>
-      {{childQueryParams}}
+      {{ childQueryParams }}
 
     </v-dialog>
 
@@ -204,7 +233,8 @@ export default {
     nodes: [Object],
     row: [Object],
     sqlUi: [Object, Function],
-    active: Boolean
+    active: Boolean,
+    isNew: Boolean
   },
   data: () => ({
     newRecordModal: false,
@@ -224,13 +254,17 @@ export default {
     childListPagination: {
       page: 1,
       size: 10
-    }
+    },
+    isNewChild: false
   }),
 
   methods: {
     async showChildListModal() {
       this.childListModal = true;
-      await this.getChildMeta();
+      await this.loadChildMeta();
+      await this.loadChildList();
+    },
+    async loadChildList() {
       const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
       this.childList = await this.childApi.paginatedList({
@@ -239,6 +273,7 @@ export default {
         offset: this.childListPagination.size * (this.childListPagination.page - 1),
         ...this.childQueryParams
       })
+
     },
     async deleteChild(child) {
       this.dialogShow = true;
@@ -257,23 +292,30 @@ export default {
       }
     },
     async unlinkChild(child) {
-      // todo:
       // this.dialogShow = true;
       // this.confirmMessage =
-      //   'Do you want to delete the record?';
+      //   'Do you want to unlink the record?';
       // this.confirmAction = async act => {
       //   if (act === 'hideDialog') {
       //     this.dialogShow = false;
       //   } else {
-      //     const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
-      //     await this.childApi.delete(id)
-      //     this.showChildListModal();
-      //     this.dialogShow = false;
-      //     this.$emit('loadTableData')
-      //   }
+      await this.loadChildMeta();
+      const column = this.childMeta.columns.find(c => c.cn === this.hm.cn);
+      if (column.rqd) {
+        this.$toast.info('Unlink is not possible, add to another record.').goAway(3000)
+        return
+      }
+      const _cn = column._cn;
+      const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
+      await this.childApi.update(id, {[_cn]: null}, child)
+      this.$emit('loadTableData')
+      if (this.childListModal) {
+        this.showChildListModal()
+      }
+      // }
       // }
     },
-    async getChildMeta() {
+    async loadChildMeta() {
       // todo: optimize
       if (!this.childMeta) {
         const childTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -288,32 +330,51 @@ export default {
     },
     async showNewRecordModal() {
       this.newRecordModal = true;
-      await this.getChildMeta();
+      await this.loadChildMeta();
+      const _cn = this.childForeignKey;
       this.list = await this.childApi.paginatedList({
+        ...this.childQueryParams,
         limit: this.listPagination.size,
-        offset: this.listPagination.size * (this.listPagination.page - 1)
+        offset: this.listPagination.size * (this.listPagination.page - 1),
+        where: `~not(${_cn},eq,${this.parentId})~or(${_cn},is,null)`
       })
     },
     async addChildToParent(child) {
       const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
-      const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
+      const _cn = this.childForeignKey;
       this.newRecordModal = false;
 
       await this.childApi.update(id, {
-        [_cn]: pid
+        [_cn]: this.parentId
       }, {
         [_cn]: child[this.childPrimaryKey]
       });
 
       this.$emit('loadTableData')
-      if(this.childListModal){
+      if (this.childListModal) {
         await this.showChildListModal()
       }
     },
     async editChild(child) {
+      await this.loadChildMeta();
+      this.isNewChild = false;
       this.selectedChild = child;
       this.showExpandModal = true;
+      setTimeout(() => {
+        this.$refs.expandedForm && this.$refs.expandedForm.reload()
+      }, 500)
+    },
+    async insertAndAddNewChildRecord() {
+      this.newRecordModal = false;
+      await this.loadChildMeta();
+      this.isNewChild = true;
+      this.selectedChild = {
+        [this.childForeignKey]: this.parentId
+      };
+      this.showExpandModal = true;
+      setTimeout(() => {
+        this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
+      }, 500)
     }
   },
   computed: {
@@ -325,8 +386,17 @@ export default {
     childPrimaryCol() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
     },
+    primaryCol() {
+      return this.meta && (this.meta.columns.find(c => c.pv) || {})._cn
+    },
     childPrimaryKey() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
+    },
+    childForeignKey() {
+      return this.childMeta && this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn
+    },
+    disabledChildColumns() {
+      return {[this.childForeignKey]: true}
     },
     // todo:
     form() {
@@ -352,6 +422,9 @@ export default {
         parents: (this.childMeta && this.childMeta.belongsTo && this.childMeta.belongsTo.map(hm => hm.rtn).join()) || '',
         many: (this.childMeta && this.childMeta.manyToMany && this.childMeta.manyToMany.map(mm => mm.rtn).join()) || ''
       }
+    },
+    parentId() {
+      return this.meta && this.meta.columns ? this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___') : '';
     }
   }
 }
@@ -408,6 +481,24 @@ export default {
   row-gap: 3px;
   gap: 3px;
   margin: 3px auto;
+}
+
+::v-deep {
+  .unlink-icon {
+    padding: 0px 1px 2px 1px;
+    margin-top: 2px;
+    margin-right: -2px;
+  }
+
+  .search-field {
+    input {
+      max-height: 28px !important;
+    }
+
+    .v-input__slot {
+      min-height: auto !important;
+    }
+  }
 }
 
 </style>

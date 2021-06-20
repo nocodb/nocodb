@@ -20,6 +20,8 @@
 
     {{ value }}
 
+    <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
+
     <v-spacer>
     </v-spacer>
 

@@ -61,6 +61,7 @@
                   </label>
                   <virtual-cell
                     v-if="col.virtual"
+                    :disabledColumns="disabledColumns"
                     :column="col"
                     :row="localState"
                     :nodes="nodes"
@@ -69,12 +70,13 @@
                     :active="true"
                     :sql-ui="sqlUi"
                     @loadTableData="reload"
+                    :is-new="isNew"
                   ></virtual-cell>
 
                   <div
                     style="height:100%; width:100%"
                     class="caption xc-input"
-                    v-if="col.ai || (col.pk && !selectedRowMeta.new)"
+                    v-if="col.ai || (col.pk && !selectedRowMeta.new) || disabledColumns[col._cn]"
                     @click="col.ai  && $toast.info('Auto Increment field is not editable').goAway(3000)"
                   >
                     <input
@@ -158,6 +160,8 @@
                 </v-text-field>
               </div>
             </v-col>
+
+
           </v-row>
         </v-container>
       </v-card-text>
@@ -210,7 +214,13 @@ export default {
     },
     availableColumns: [Object, Array],
     nodes: [Object],
-    queryParams: Object
+    queryParams: Object,
+    disabledColumns:{
+      type:Object,
+      default(){
+        return {}
+      }
+    }
   },
   name: "expanded-form",
   data: () => ({
@@ -376,6 +386,7 @@ export default {
 
   .row-col {
     & > div > input,
+    & > div  div >input,
     & > div > .xc-input > input,
     & > div > select,
     & > div > .xc-input > select,
@@ -406,6 +417,7 @@ export default {
       background: #363636;
 
       .row-col {
+        & > div  div > input,
         & > div > input,
         & > div > .xc-input > input,
         & > div > select,
@@ -421,6 +433,7 @@ export default {
 
       .row-col {
         & > div > input,
+        & > div  div >input,
         & > div > .xc-input > input,
         & > div > select,
         & > div > .xc-input > select,

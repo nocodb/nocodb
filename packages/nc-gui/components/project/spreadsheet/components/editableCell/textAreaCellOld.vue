@@ -1,8 +1,15 @@
 <template>
-    <textarea v-on="parentListeners" ref="textarea" v-model="localState" rows="3"
-              @keydown.alt.enter.stop
-              @keydown.shift.enter.stop
-    ></textarea>
+  <div>
+    <div class="d-flex ma-1" v-if="!isForm">
+      <v-spacer>
+      </v-spacer>
+      <v-btn v-if="!isForm" outlined x-small class="mr-1" @click="$emit('cancel')">Cancel</v-btn>
+      <v-btn v-if="!isForm" x-small color="primary" @click="save">Save</v-btn>
+    </div>
+    <textarea v-on="parentListeners"  ref="textarea" v-model="localState" rows="3"
+              @input="isForm && save()"
+              @keydown.stop.enter></textarea>
+  </div>
 
 </template>
 
@@ -10,31 +17,41 @@
 export default {
   name: "textAreaCell",
   props: {
-    value: String
+    value: String,
+    isForm: Boolean
   },
+  data: () => ({
+    localState: ''
+  }),
   created() {
     this.localState = this.value;
   },
   mounted() {
     this.$refs.textarea && this.$refs.textarea.focus();
-  },
-  computed: {
-
-    localState: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        this.$emit('input', val);
-      }
+  }, watch: {
+    value(val) {
+      this.localState = val;
     },
-    parentListeners() {
+    localState(val) {
+      if (this.isForm) {
+        this.$emit('input', val)
+      }
+    }
+  },
+  methods: {
+    save() {
+      this.$emit('input', this.localState)
+    }
+  },
+  computed:{
+
+    parentListeners(){
       const $listeners = {};
 
-      if (this.$listeners.blur) {
+      if(this.$listeners.blur){
         $listeners.blur = this.$listeners.blur;
       }
-      if (this.$listeners.focus) {
+      if(this.$listeners.focus){
         $listeners.focus = this.$listeners.focus;
       }
 
@@ -47,7 +64,7 @@ export default {
 <style scoped>
 input, textarea {
   width: 100%;
-  min-height: 60px;
+  min-height:60px;
   height: calc(100% - 28px);
   color: var(--v-textColor-base);
 }

@@ -1551,7 +1551,12 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // Update metadata of tables which have manytomany relation
     // and recreate basemodel with new meta information
     for (const meta of metas) {
-      meta.v = [...meta.v, ...meta.manyToMany.map(mm => ({mm, _cn:`${mm._tn} <=> ${mm._rtn}`}))]
+      meta.v = [
+        ...meta.v.filter(vc => vc.bt && meta.manyToMany.some(mm => vc.bt.rtn === mm.vtn)),
+        ...meta.manyToMany.map(mm => ({
+          mm,
+          _cn: `${mm._tn} <=> ${mm._rtn}`
+        }))]
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         meta: JSON.stringify(meta)
       }, {title: meta.tn})

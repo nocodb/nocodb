@@ -1,12 +1,14 @@
 <template>
-  <editable-attachment-cell
-    :isLocked="isLocked"
-    :db-alias="dbAlias"
-    @click.stop="$emit('enableedit')" v-if="isAttachment" :value="value" :column="column"></editable-attachment-cell>
-  <set-list-cell @click.stop="$emit('enableedit')" v-else-if="isSet" :value="value" :column="column"></set-list-cell>
-<!--  <enum-list-editable-cell @click.stop="$emit('enableedit')" v-else-if="isEnum && selected" :value="value" :column="column"></enum-list-editable-cell>-->
-  <enum-cell @click.stop="$emit('enableedit')" v-else-if="isEnum" :value="value" :column="column"></enum-cell>
-  <span v-else>{{ value }}</span>
+  <v-lazy>
+    <editable-attachment-cell
+      :isLocked="isLocked"
+      :db-alias="dbAlias"
+      @click.stop="$emit('enableedit')" v-if="isAttachment" :value="value" :column="column"></editable-attachment-cell>
+    <set-list-cell @click.stop="$emit('enableedit')" v-else-if="isSet" :value="value" :column="column"></set-list-cell>
+    <!--  <enum-list-editable-cell @click.stop="$emit('enableedit')" v-else-if="isEnum && selected" :value="value" :column="column"></enum-list-editable-cell>-->
+    <enum-cell @click.stop="$emit('enableedit')" v-else-if="isEnum" :value="value" :column="column"></enum-cell>
+    <span v-else>{{ value }}</span>
+  </v-lazy>
 </template>
 
 <script>
@@ -20,7 +22,7 @@ import EnumListEditableCell from "@/components/project/spreadsheet/components/ed
 export default {
   name: "tableCell",
   components: {EnumListEditableCell, EditableAttachmentCell, AttachmentCell, EnumCell, SetListCell},
-  props: ['value','dbAlias','isLocked','selected'],
+  props: ['value', 'dbAlias', 'isLocked', 'selected'],
   mixins: [cell],
   computed: {}
 }

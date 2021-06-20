@@ -1,5 +1,6 @@
 <template>
   <div>
+    <v-lazy>
     <has-many-cell
       v-if="hm"
       :row="row"
@@ -9,6 +10,7 @@
       :nodes="nodes"
       :active="active"
       :sql-ui="sqlUi"
+      :is-new="isNew"
       v-on="$listeners"
     />
     <many-to-many-cell
@@ -20,9 +22,11 @@
       :nodes="nodes"
       :sql-ui="sqlUi"
       :active="active"
+      :is-new="isNew"
       v-on="$listeners"
     />
     <belongs-to-cell
+      :disabled-columns="disabledColumns"
       v-else-if="bt"
       :active="active"
       :row="row"
@@ -32,8 +36,10 @@
       :nodes="nodes"
       :api="api"
       :sql-ui="sqlUi"
+      :is-new="isNew"
       v-on="$listeners"
     />
+    </v-lazy>
   </div>
 </template>
 
@@ -57,6 +63,11 @@ export default {
     api: [Object, Function],
     active: Boolean,
     sqlUi: [Object, Function],
+    isNew: {
+      type: Boolean,
+      default: false
+    },
+    disabledColumns:Object
   },
   computed: {
     hm() {

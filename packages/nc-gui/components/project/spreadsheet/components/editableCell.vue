@@ -1,4 +1,5 @@
 <template>
+  <v-lazy>
   <div
     @keydown.stop.left
     @keydown.stop.right
@@ -11,7 +12,6 @@
       :db-alias="dbAlias"
       v-if="isAttachment"
       v-model="localState"></editable-attachment-cell>
-
 
 
     <boolean-cell :isForm="isForm" v-else-if="isBoolean" v-on="parentListeners"
@@ -57,7 +57,8 @@
 
     <text-area-cell
       :is-form="isForm"
-      v-else-if="isTextArea" @input="$emit('save')" v-model="localState"
+      v-else-if="isTextArea"
+      v-model="localState"
       v-on="parentListeners"
     ></text-area-cell>
     <!--<set-list-checkbox-cell :column="column" v-else-if="isSet" v-model="localState"
@@ -65,6 +66,7 @@
 
     <text-cell v-else v-model="localState" v-on="$listeners"></text-cell>
   </div>
+  </v-lazy>
 </template>
 
 <script>
@@ -85,6 +87,7 @@ import EditableAttachmentCell from "@/components/project/spreadsheet/components/
 import EnumCell from "@/components/project/spreadsheet/components/cell/enumCell";
 import SetListEditableCell from "@/components/project/spreadsheet/components/editableCell/setListEditableCell";
 import SetListCell from "@/components/project/spreadsheet/components/cell/setListCell";
+import debounce from "debounce";
 
 export default {
   name: "editable-cell",
@@ -107,17 +110,30 @@ export default {
     meta: Object,
     ignoreFocus: Boolean,
     isForm: Boolean,
-    active: Boolean,
+    active: Boolean
   },
   data: () => ({
     changed: false,
+    destroyed: false
   }),
+
   mounted() {
     // this.$refs.input.focus();
   },
   beforeDestroy() {
     if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime)) {
       this.$emit('change');
+    }
+    this.destroyed = true;
+  },
+  methods: {
+    syncDataDebounce: debounce(async function (self) {
+      await self.syncData()
+    }, 1000),
+    syncData() {
+      if (!this.destroyed) {
+        this.$emit('update')
+      }
     }
   },
   computed: {
@@ -128,6 +144,7 @@ export default {
       set(val) {
         this.changed = true;
         this.$emit('input', val);
+        this.syncDataDebounce(this);
       }
     },
     parentListeners() {

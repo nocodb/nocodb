@@ -14,7 +14,7 @@
           :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
           v-xc-ver-resize
           v-for="(col,i) in availableColumns"
-          :key="col.cn"
+          :key="i + '_' + col._cn"
           v-show="showFields[col._cn]"
           @xcresize="onresize(col._cn,$event)"
           @xcresizing="resizingCol = col._cn"
@@ -69,7 +69,7 @@
 
       </tr>
       </thead>
-      <tbody>
+      <tbody v-click-outside="() => {this.selected.col=null;this.selected.row=null}">
       <tr
         v-for="({row:rowObj, rowMeta, oldRow},row) in data"
         :key="row"
@@ -105,23 +105,22 @@
           </div>
         </td>
         <td
-
           class="cell pointer"
           v-for="(columnObj,col) in availableColumns"
-          :key="columnObj._cn"
+          :key="row + '_' +  col + columnObj._cn"
           :class="{
-              active : !isPublicView && selected.col === col && selected.row === row && isEditable ,
+              'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,
-              'text-center': isCentrallyAligned(columnObj)
+              'text-center': isCentrallyAligned(columnObj),
+              'required':columnObj.rqd && (rowObj[columnObj._cn]===undefined || rowObj[columnObj._cn]===null) && !columnObj.default
             }"
           @dblclick="makeEditable(col,row,columnObj.ai)"
           @click="makeSelected(col,row);"
           v-show="showFields[columnObj._cn]"
           :data-col="columnObj._cn"
         >
-
           <virtual-cell
-            v-if="columnObj.virtual"
+            v-if="columnObj.virtual "
             :column="columnObj"
             :row="rowObj"
             :nodes="nodes"
@@ -131,6 +130,12 @@
             :sql-ui="sqlUi"
             v-on="$listeners"
           ></virtual-cell>
+
+          <!--
+                    <span
+                      v-if="columnObj.virtual "
+                    ></span>
+          -->
 
           <editable-cell
             v-else-if="
@@ -146,12 +151,11 @@
             @save="editEnabled = {}"
             @cancel="editEnabled = {}"
             @update="onCellValueChange(col, row, columnObj)"
+            @blur="onCellValueChange(col, row, columnObj,'blur')"
             @change="onCellValueChange(col, row, columnObj)"
             :sql-ui="sqlUi"
             :db-alias="nodes.dbAlias"
           />
-          <!--                  @change="changed(col,row)"-->
-          <!--                />-->
 
           <div v-else-if="columnObj.cn in hasMany" class="hasmany-col d-flex ">
             {{ rowObj[columnObj._cn] }}
@@ -227,7 +231,7 @@
 
 
                       <v-divider
-                        :key="i + idCol + '_div'"></v-divider>
+                        :key="i + '_' +  idCol + '_div'"></v-divider>
                       <v-list-item
                         class="py-1"
                         @click="addNewRelationTab(
@@ -241,7 +245,7 @@
                                      rowObj,
                                      rowObj[primaryValueColumn]
                                      )"
-                        :key="i + idCol"
+                        :key="i + '_' + idCol"
                         dense
                       >
                         <v-list-item-icon class="mx-1">
@@ -301,7 +305,7 @@
 import HeaderCell from "@/components/project/spreadsheet/components/headerCell";
 import EditableCell from "@/components/project/spreadsheet/components/editableCell";
 import EditColumn from "@/components/project/spreadsheet/components/editColumn";
-import TableCell from "@/components/project/spreadsheet/components/tableCell";
+import TableCell from "@/components/project/spreadsheet/components/cell";
 import colors from "@/mixins/colors";
 import columnStyling from "@/components/project/spreadsheet/helpers/columnStyling";
 import HasManyCell from "@/components/project/spreadsheet/components/virtualCell/hasManyCell";
@@ -398,6 +402,15 @@ export default {
         case 13:
           this.makeEditable(this.selected.col, this.selected.row)
           break;
+        default: {
+          if (this.editEnabled.col != null && this.editEnabled.row != null) {
+            return;
+          }
+          console.log(this.selected, this.data[this.selected.row], this.availableColumns[this.selected.col], '')
+          this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, '')
+          this.editEnabled = {...this.selected}
+        }
+
       }
     },
     onNewColCreation() {
@@ -411,8 +424,8 @@ export default {
     showRowContextMenu($event, rowObj, rowMeta, row) {
       this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row)
     },
-    onCellValueChange(col, row, column) {
-      this.$emit('onCellValueChange', col, row, column)
+    onCellValueChange(col, row, column, ev) {
+      this.$emit('onCellValueChange', col, row, column, ev);
     },
     addNewRelationTab(...args) {
       this.$emit('addNewRelationTab', ...args)
@@ -743,6 +756,10 @@ tbody tr:hover {
 
 .cell {
   font-size: 13px;
+
+  &.required {
+    box-shadow: inset 0 0 0 1px red;
+  }
 }
 
 th::before {

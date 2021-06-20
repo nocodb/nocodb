@@ -8,7 +8,7 @@
         </v-chip>
       </template>
     </div>
-    <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+    <div v-if="!isNew" class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active  }">
       <x-icon small :color="['primary','grey']" @click="showNewRecordModal">{{
           value ? 'mdi-pencil' : 'mdi-plus'
         }}
@@ -75,7 +75,9 @@ export default {
     row: [Object],
     api: [Object, Function],
     sqlUi: [Object, Function],
-    active: Boolean
+    active: Boolean,
+    isNew:Boolean,
+    disabledColumns:Object
   },
   data: () => ({
     newRecordModal: false,

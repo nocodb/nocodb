@@ -7,7 +7,7 @@
           v-for="(ch,i) in value"
           :key="i"
           :color="colors[i%colors.length]"
-          @click="editChild(ch)"
+          @click="active && editChild(ch)"
         >
           {{ Object.values(ch)[1] }}
           <div v-show="active" class="mr-n1 ml-2 mt-n1">
@@ -28,17 +28,26 @@
       <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
     </div>
 
-    <!--   <list-items
-         :count="10"
-         :meta="childMeta"
-         :primary-col="childPrimaryCol"
-         :primary-key="childPrimaryKey"
-         v-model="newRecordModal"
-         :api="childApi"
-       ></list-items>-->
-    <v-dialog v-if="newRecordModal" v-model="newRecordModal" width="600">
+    <list-items
+      v-if="newRecordModal"
+      :hm="true"
+      :size="10"
+      :meta="childMeta"
+      :primary-col="childPrimaryCol"
+      :primary-key="childPrimaryKey"
+      v-model="newRecordModal"
+      :api="childApi"
+      @add-new-record="insertAndAddNewChildRecord"
+      @add="addChildToParent"
+      :query-params="{
+        ...childQueryParams,
+        where: `~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
+      }"/>
+
+
+  <!--  <v-dialog v-if="newRecordModal && false" v-model="newRecordModal" width="600">
       <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor--text mx-2 justify-center">Link Record
+        <v-card-title class="textColor&#45;&#45;text mx-2 justify-center">Link Record
 
         </v-card-title>
 
@@ -70,9 +79,9 @@
                 @click="addChildToParent(ch)"
                 :key="i"
               >
-                <v-card-text class="primary-value textColor--text text--lighten-2 d-flex">
+                <v-card-text class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2 d-flex">
                   <span class="font-weight-bold"> {{ ch[childPrimaryCol] }}</span>
-                  <span class="grey--text caption primary-key "
+                  <span class="grey&#45;&#45;text caption primary-key "
                         v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
                   <v-spacer/>
                   <v-chip v-if="ch[meta._tn]" x-small>
@@ -84,7 +93,7 @@
 
             </template>
 
-            <div v-else class="text-center py-15 textLight--text">
+            <div v-else class="text-center py-15 textLight&#45;&#45;text">
               No items found
             </div>
           </div>
@@ -102,7 +111,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
+-->
 
     <v-dialog v-if="childListModal" v-model="childListModal" width="600">
       <v-card width="600" color="backgroundColor">
@@ -182,7 +191,7 @@
       width="1000px"
       max-width="100%"
       class=" mx-auto"
-      v-model="showExpandModal">
+      v-model="expandFormModal">
       <component
         v-if="selectedChild"
         :is="form"
@@ -206,7 +215,6 @@
         :is-new="isNewChild"
         :disabled-columns="disabledChildColumns"
       ></component>
-      {{ childQueryParams }}
 
     </v-dialog>
 
@@ -218,10 +226,12 @@ import colors from "@/mixins/colors";
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import Pagination from "@/components/project/spreadsheet/components/pagination";
+import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 
 export default {
   name: "has-many-cell",
   components: {
+    ListItems,
     Pagination,
     DlgLabelSubmitCancel
   },
@@ -240,17 +250,17 @@ export default {
     newRecordModal: false,
     childListModal: false,
     childMeta: null,
-    list: null,
+    // list: null,
     childList: null,
     dialogShow: false,
     confirmAction: null,
     confirmMessage: '',
     selectedChild: null,
-    showExpandModal: false,
-    listPagination: {
-      page: 1,
-      size: 10
-    },
+    expandFormModal: false,
+    // listPagination: {
+    //   page: 1,
+    //   size: 10
+    // },
     childListPagination: {
       page: 1,
       size: 10
@@ -302,7 +312,7 @@ export default {
       await this.loadChildMeta();
       const column = this.childMeta.columns.find(c => c.cn === this.hm.cn);
       if (column.rqd) {
-        this.$toast.info('Unlink is not possible, add to another record.').goAway(3000)
+        this.$toast.info('Unlink is not possible, instead add to another record.').goAway(3000)
         return
       }
       const _cn = column._cn;
@@ -329,15 +339,15 @@ export default {
       }
     },
     async showNewRecordModal() {
-      this.newRecordModal = true;
       await this.loadChildMeta();
-      const _cn = this.childForeignKey;
-      this.list = await this.childApi.paginatedList({
-        ...this.childQueryParams,
-        limit: this.listPagination.size,
-        offset: this.listPagination.size * (this.listPagination.page - 1),
-        where: `~not(${_cn},eq,${this.parentId})~or(${_cn},is,null)`
-      })
+      this.newRecordModal = true;
+      // const _cn = this.childForeignKey;
+      // this.list = await this.childApi.paginatedList({
+      //   ...this.childQueryParams,
+      //   limit: this.listPagination.size,
+      //   offset: this.listPagination.size * (this.listPagination.page - 1),
+      //   where: `~not(${_cn},eq,${this.parentId})~or(${_cn},is,null)`
+      // })
     },
     async addChildToParent(child) {
       const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
@@ -359,7 +369,7 @@ export default {
       await this.loadChildMeta();
       this.isNewChild = false;
       this.selectedChild = child;
-      this.showExpandModal = true;
+      this.expandFormModal = true;
       setTimeout(() => {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
@@ -371,7 +381,7 @@ export default {
       this.selectedChild = {
         [this.childForeignKey]: this.parentId
       };
-      this.showExpandModal = true;
+      this.expandFormModal = true;
       setTimeout(() => {
         this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
       }, 500)
@@ -400,7 +410,7 @@ export default {
     },
     // todo:
     form() {
-      return () => import("@/components/project/spreadsheet/components/expandedForm")
+      return this.selectedChild ? () => import("@/components/project/spreadsheet/components/expandedForm") : 'span';
     },
     childAvailableColumns() {
       const hideCols = ['created_at', 'updated_at'];

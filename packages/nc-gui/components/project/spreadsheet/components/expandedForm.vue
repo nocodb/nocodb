@@ -76,7 +76,7 @@
                   <div
                     style="height:100%; width:100%"
                     class="caption xc-input"
-                    v-if="col.ai || (col.pk && !selectedRowMeta.new) || disabledColumns[col._cn]"
+                    v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
                     @click="col.ai  && $toast.info('Auto Increment field is not editable').goAway(3000)"
                   >
                     <input
@@ -204,8 +204,8 @@ export default {
     table: String,
     primaryValueColumn: String,
     api: [Object],
-    hasMany: Object,
-    belongsTo: Object,
+    hasMany: [Object, Array],
+    belongsTo: [Object, Array],
     isNew: Boolean,
     oldRow: Object,
     iconColor: {
@@ -215,9 +215,9 @@ export default {
     availableColumns: [Object, Array],
     nodes: [Object],
     queryParams: Object,
-    disabledColumns:{
-      type:Object,
-      default(){
+    disabledColumns: {
+      type: Object,
+      default() {
         return {}
       }
     }
@@ -386,7 +386,7 @@ export default {
 
   .row-col {
     & > div > input,
-    & > div  div >input,
+    & > div div > input,
     & > div > .xc-input > input,
     & > div > select,
     & > div > .xc-input > select,
@@ -417,7 +417,7 @@ export default {
       background: #363636;
 
       .row-col {
-        & > div  div > input,
+        & > div div > input,
         & > div > input,
         & > div > .xc-input > input,
         & > div > select,
@@ -433,7 +433,7 @@ export default {
 
       .row-col {
         & > div > input,
-        & > div  div >input,
+        & > div div > input,
         & > div > .xc-input > input,
         & > div > select,
         & > div > .xc-input > select,

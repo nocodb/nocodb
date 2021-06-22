@@ -707,7 +707,7 @@ class BaseModelSql extends BaseModel {
 
     try {
 
-      let {fields, where, limit, offset, sort, condition, conditionGraph = null} = this._getListArgs(args);
+      let {fields, where, limit, offset, sort, condition,  conditionGraph = null} = this._getListArgs(args);
 
       // if (fields === '*') {
       //   fields = `${this.tn}.*`;

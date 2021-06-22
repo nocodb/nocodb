@@ -135,8 +135,14 @@ export class RestCtrl extends RestBaseCtrl {
     const data = await req.model.delb(req.body)
     res.json(data);
   }
+
   public async nestedList(req: Request | any, res): Promise<void> {
     const startTime = process.hrtime();
+
+    if (req.query.conditionGraph && typeof req.query.conditionGraph === 'string') {
+      req.query.conditionGraph = {models: this.models, condition: JSON.parse(req.query.conditionGraph)}
+    }
+
     const data = await req.model.nestedList({
       ...req.query
     } as any);

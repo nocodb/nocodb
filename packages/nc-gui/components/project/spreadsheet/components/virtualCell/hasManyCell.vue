@@ -2,25 +2,16 @@
   <div class="d-flex">
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
       <template v-if="value">
-        <v-chip
-          small
+        <item-chip
           v-for="(ch,i) in value"
-          :key="i"
-          :color="colors[i%colors.length]"
-          @click="active && editChild(ch)"
-        >
-          {{ Object.values(ch)[1] }}
-          <div v-show="active" class="mr-n1 ml-2 mt-n1">
-            <x-icon
-              :color="['text' , 'textLight']"
-              x-small
-              icon.class="unlink-icon"
-              @click.stop="unlinkChild(ch)"
-            >mdi-close-thick
-            </x-icon>
-          </div>
-
-        </v-chip>
+                   :active="active"
+                   :item="ch"
+                   :color="colors[i%colors.length]"
+                   :value="Object.values(ch)[1]"
+                   :key="i"
+                   @edit="editChild"
+                   @unlink="unlinkChild"
+        ></item-chip>
       </template>
     </div>
     <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
@@ -44,74 +35,6 @@
         where: `~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
       }"/>
 
-
-  <!--  <v-dialog v-if="newRecordModal && false" v-model="newRecordModal" width="600">
-      <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor&#45;&#45;text mx-2 justify-center">Link Record
-
-        </v-card-title>
-
-        <v-card-title>
-          <v-text-field
-            hide-details
-            dense
-            outlined
-            placeholder="Search records"
-            class=" caption search-field ml-2"
-          />
-          <v-spacer></v-spacer>
-          <v-btn small class="caption mr-2" color="primary" @click="insertAndAddNewChildRecord">
-            <v-icon small>mdi-plus</v-icon>&nbsp;
-            New Record
-          </v-btn>
-
-        </v-card-title>
-
-        <v-card-text>
-
-          <div class="items-container">
-            <template v-if="list && list.list && list.list.length">
-              <v-card
-                v-for="(ch,i) in list.list"
-                class="ma-2  child-card"
-                outlined
-                v-ripple
-                @click="addChildToParent(ch)"
-                :key="i"
-              >
-                <v-card-text class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2 d-flex">
-                  <span class="font-weight-bold"> {{ ch[childPrimaryCol] }}</span>
-                  <span class="grey&#45;&#45;text caption primary-key "
-                        v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
-                  <v-spacer/>
-                  <v-chip v-if="ch[meta._tn]" x-small>
-                    {{ ch[meta._tn][primaryCol] }}
-                  </v-chip>
-                </v-card-text>
-              </v-card>
-
-
-            </template>
-
-            <div v-else class="text-center py-15 textLight&#45;&#45;text">
-              No items found
-            </div>
-          </div>
-        </v-card-text>
-        <v-card-actions class="justify-center py-2  flex-column">
-
-          <pagination
-            v-if="list && list.list && list.list.length"
-            :size="listPagination.size"
-            :count="list.count"
-            v-model="listPagination.page"
-            @input="showNewRecordModal"
-            class="mb-3"
-          ></pagination>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
--->
 
     <v-dialog v-if="childListModal" v-model="childListModal" width="600">
       <v-card width="600" color="backgroundColor">
@@ -227,10 +150,12 @@ import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import Pagination from "@/components/project/spreadsheet/components/pagination";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
+import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
 
 export default {
   name: "has-many-cell",
   components: {
+    ItemChip,
     ListItems,
     Pagination,
     DlgLabelSubmitCancel

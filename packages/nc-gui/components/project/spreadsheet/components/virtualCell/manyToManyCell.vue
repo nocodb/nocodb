@@ -4,11 +4,16 @@
 
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
       <template v-if="value">
-        <v-chip small v-for="(v,j) in value.map(v=>Object.values(v)[2])"
-                :color="colors[j%colors.length]" :key="j">{{
-            v
-          }}
-        </v-chip>
+        <item-chip v-for="(v,j) in value"
+                   :active="active"
+                   :item="v"
+                   :color="colors[j%colors.length]"
+                   :value="Object.values(v)[2]"
+                   :key="j"
+                   @edit="editChild"
+                   @unlink="unlinkChild"
+        ></item-chip>
+
       </template>
     </div>
     <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
@@ -17,45 +22,18 @@
     </div>
 
 
-    <v-dialog v-if="newRecordModal" v-model="newRecordModal" width="600">
-      <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor--text mx-2">Add Record</v-card-title>
-        <v-card-text>
-          <v-text-field
-            hide-details
-            dense
-            outlined
-            placeholder="Search record"
-            class="mb-2 mx-2 caption"
-          />
-
-          <div class="items-container">
-            <template v-if="list">
-              <v-card
-                v-for="(p,i) in list.list"
-                class="ma-2  child-card"
-                outlined
-                v-ripple
-                @click="addChildToParent(p)"
-                :key="i"
-              >
-                <v-card-title class="primary-value textColor--text text--lighten-2">{{ p[childPrimaryCol] }}
-                  <span class="grey--text caption primary-key"
-                        v-if="childPrimaryKey">(Primary Key : {{ p[childPrimaryKey] }})</span>
-                </v-card-title>
-              </v-card>
-            </template>
-          </div>
-        </v-card-text>
-        <v-card-actions class="justify-center pb-6  ">
-          <v-btn small outlined class="caption" color="primary">
-            <v-icon>mdi-plus</v-icon>
-            Add New Record
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
+    <list-items
+      v-if="newRecordModal"
+      :hm="true"
+      :size="10"
+      :meta="childMeta"
+      :primary-col="childPrimaryCol"
+      :primary-key="childPrimaryKey"
+      v-model="newRecordModal"
+      :api="childApi"
+      @add-new-record="insertAndAddNewChildRecord"
+      @add="addChildToParent"
+      :query-params="{...childQueryParams, conditionGraph }"/>
 
     <v-dialog v-if="childListModal" v-model="childListModal" width="600">
       <v-card width="600" color="backgroundColor">
@@ -130,6 +108,41 @@
       :heading="confirmMessage"
     >
     </dlg-label-submit-cancel>
+
+    <!-- todo : move to listitem component -->
+    <v-dialog
+      :overlay-opacity="0.8"
+      v-if="selectedChild"
+      width="1000px"
+      max-width="100%"
+      class=" mx-auto"
+      v-model="expandFormModal">
+      <component
+        v-if="selectedChild"
+        :is="form"
+        :db-alias="nodes.dbAlias"
+        :has-many="childMeta.hasMany"
+        :belongs-to="childMeta.belongsTo"
+        :table="childMeta.tn"
+        v-model="selectedChild"
+        :old-row="{...selectedChild}"
+        :meta="childMeta"
+        :sql-ui="sqlUi"
+        :primary-value-column="childPrimaryCol"
+        :api="childApi"
+        :available-columns="childAvailableColumns"
+        icon-color="warning"
+        :nodes="nodes"
+        :query-params="childQueryParams"
+        ref="expandedForm"
+        :is-new="isNewChild"
+        @cancel="selectedChild = null"
+        @input="onChildSave"
+      ></component>
+
+    </v-dialog>
+
+
   </div>
 </template>
 
@@ -137,11 +150,13 @@
 import colors from "@/mixins/colors";
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
+import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
+import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
 
 export default {
   name: "many-to-many-cell",
   mixins: [colors],
-  components: {DlgLabelSubmitCancel},
+  components: {ItemChip, ListItems, DlgLabelSubmitCancel},
   props: {
     value: [Object, Array],
     meta: [Object],
@@ -151,30 +166,51 @@ export default {
     api: [Object, Function],
     sqlUi: [Object, Function],
     active: Boolean,
-    isNew: Boolean
+    isNew: Boolean,
   },
   data: () => ({
+    isNewChild: false,
     newRecordModal: false,
     childListModal: false,
     childMeta: null,
     assocMeta: null,
-    list: null,
+    // list: null,
     childList: null,
     dialogShow: false,
     confirmAction: null,
     confirmMessage: '',
-    selectedChild:null
+    selectedChild: null,
+    expandFormModal: false
   }),
 
   methods: {
+    async onChildSave(child) {
+      if (this.isNewChild) {
+        await this.addChildToParent(child)
+      } else {
+        this.$emit('loadTableData')
+      }
+    },
     async showChildListModal() {
       this.childListModal = true;
-      await this.getChildMeta();
+      await this.loadChildMeta();
       const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
       this.childList = await this.childApi.paginatedList({
         where: `(${_cn},eq,${pid})`
       })
+    }, async unlinkChild(child) {
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
+
+      const _pcn = this.meta.columns.find(c => c.cn === this.mm.cn)._cn;
+      const _ccn = this.childMeta.columns.find(c => c.cn === this.mm.rcn)._cn;
+
+      const apcn = this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn;
+      const accn = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn).cn;
+
+      const id = this.assocMeta.columns.filter((c) => c.cn === apcn || c.cn === accn).map(c => c.cn === apcn ? this.row[_pcn] : child[_ccn]).join('___');
+      await this.assocApi.delete(id)
+      this.$emit('loadTableData')
     },
     async removeChild(child) {
       this.dialogShow = true;
@@ -192,7 +228,7 @@ export default {
         }
       }
     },
-    async getChildMeta() {
+    async loadChildMeta() {
       // todo: optimize
       if (!this.childMeta) {
         const parentTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -204,7 +240,7 @@ export default {
         this.childMeta = JSON.parse(parentTableData.meta)
       }
     },
-    async getAssociateTableMeta() {
+    async loadAssociateTableMeta() {
       // todo: optimize
       if (!this.childMeta) {
         const assocTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -217,9 +253,9 @@ export default {
       }
     },
     async showNewRecordModal() {
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
       this.newRecordModal = true;
-      await Promise.all([this.getChildMeta(), this.getAssociateTableMeta()]);
-      this.list = await this.childApi.paginatedList({})
+      // this.list = await this.childApi.paginatedList({})
     },
     async addChildToParent(child) {
       const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
@@ -227,15 +263,42 @@ export default {
 
       const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn;
       const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn;
+      try {
+        await this.assocApi.insert({
+          [vcidCol]: cid,
+          [vpidCol]: pid
+        });
 
-      await this.assocApi.insert({
-        [vcidCol]: cid,
-        [vpidCol]: pid
-      });
+        this.$emit('loadTableData')
+      } catch (e) {
+        // todo: handle
+        console.log(e)
+      }
       this.newRecordModal = false;
 
-      this.$emit('loadTableData')
-    }
+    },
+
+
+    async insertAndAddNewChildRecord() {
+      this.newRecordModal = false;
+      await this.loadChildMeta();
+      this.isNewChild = true;
+      this.selectedChild = {
+        [this.childForeignKey]: this.parentId
+      };
+      this.expandFormModal = true;
+      setTimeout(() => {
+        this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
+      }, 500)
+    }, async editChild(child) {
+      await this.loadChildMeta();
+      this.isNewChild = false;
+      this.selectedChild = child;
+      this.expandFormModal = true;
+      setTimeout(() => {
+        this.$refs.expandedForm && this.$refs.expandedForm.reload()
+      }, 500)
+    },
   },
   computed: {
     childApi() {
@@ -264,7 +327,43 @@ export default {
     },
     parentPrimaryKey() {
       return this.meta && (this.meta.columns.find(c => c.pk) || {})._cn
-    }
+    },
+    childQueryParams() {
+      if (!this.childMeta) return {}
+      return {
+        childs: (this.childMeta && this.childMeta.hasMany && this.childMeta.hasMany.map(hm => hm.tn).join()) || '',
+        parents: (this.childMeta && this.childMeta.belongsTo && this.childMeta.belongsTo.map(hm => hm.rtn).join()) || '',
+        many: (this.childMeta && this.childMeta.manyToMany && this.childMeta.manyToMany.map(mm => mm.rtn).join()) || ''
+      }
+    },
+    conditionGraph() {
+      // if (!this.childMeta || !this.assocMeta) return null;
+      // return {
+      //     [this.assocMeta.tn]: {
+      //       "relationType": "hm",
+      //       [this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn]: {
+      //         "eq": this.row[this.parentPrimaryKey]
+      //       }
+      //   }
+      // }
+    },
+    childAvailableColumns() {
+      const hideCols = ['created_at', 'updated_at'];
+      if (!this.childMeta) return [];
+
+      const columns = [];
+      if (this.childMeta.columns) {
+        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)))
+      }
+      if (this.childMeta.v) {
+        columns.push(...this.childMeta.v.map(v => ({...v, virtual: 1})));
+      }
+      return columns;
+    },
+    // todo:
+    form() {
+      return this.selectedChild ? () => import("@/components/project/spreadsheet/components/expandedForm") : 'span';
+    },
   }
 }
 </script>

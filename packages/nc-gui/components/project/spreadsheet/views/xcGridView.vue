@@ -69,7 +69,7 @@
 
       </tr>
       </thead>
-      <tbody v-click-outside="() => {this.selected.col=null;this.selected.row=null}">
+      <tbody v-click-outside="onClickOutside">
       <tr
         v-for="({row:rowObj, rowMeta, oldRow},row) in data"
         :key="row"
@@ -412,6 +412,11 @@ export default {
         }
 
       }
+    },
+    onClickOutside() {
+      if (this.meta.columns[this.selected.col].virtual) return
+      this.selected.col = null;
+      this.selected.row = null
     },
     onNewColCreation() {
       this.addNewColMenu = false;

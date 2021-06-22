@@ -2,21 +2,15 @@
   <div class="d-flex">
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
       <template v-if="value">
-        <v-chip small :color="colors[0]"
-        @click="active && editParent(value)"
-        >{{
-            Object.values(value)[1]
-          }}
-          <div v-show="active" class="mr-n1 ml-2 mt-n1">
-            <x-icon
-              :color="['text' , 'textLight']"
-              x-small
-              icon.class="unlink-icon"
-              @click.stop="unlink(ch)"
-            >mdi-close-thick
-            </x-icon>
-          </div>
-        </v-chip>
+        <item-chip
+          :active="active"
+          :item="value"
+          :color="colors[i%colors.length]"
+          :value="Object.values(value)[1]"
+          :key="i"
+          @edit="editParent"
+          @unlink="unlink"
+        ></item-chip>
       </template>
     </div>
     <div v-if="!isNew" class=" align-center justify-center px-1 flex-shrink-1"
@@ -39,46 +33,6 @@
       @add="addParentToChild"
       :query-params="parentQueryParams"
     />
-
-
-    <!--    <v-dialog v-if="newRecordModal" v-model="newRecordModal" width="600">-->
-    <!--      <v-card width="600" color="backgroundColor">-->
-    <!--        <v-card-title class="textColor&#45;&#45;text mx-2">Add Record</v-card-title>-->
-    <!--        <v-card-text>-->
-    <!--          <v-text-field-->
-    <!--            hide-details-->
-    <!--            dense-->
-    <!--            outlined-->
-    <!--            placeholder="Search record"-->
-    <!--            class="mb-2 mx-2 caption"-->
-    <!--          />-->
-
-    <!--          <div class="items-container">-->
-    <!--            <template v-if="list">-->
-    <!--              <v-card-->
-    <!--                v-for="(p,i) in list.list"-->
-    <!--                class="ma-2  child-card"-->
-    <!--                outlined-->
-    <!--                v-ripple-->
-    <!--                @click="addParentToChild(p)"-->
-    <!--                :key="i"-->
-    <!--              >-->
-    <!--                <v-card-title class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2">{{ p[parentPrimaryCol] }}-->
-    <!--                  <span class="grey&#45;&#45;text caption primary-key"-->
-    <!--                        v-if="parentPrimaryKey">(Primary Key : {{ p[parentPrimaryKey] }})</span>-->
-    <!--                </v-card-title>-->
-    <!--              </v-card>-->
-    <!--            </template>-->
-    <!--          </div>-->
-    <!--        </v-card-text>-->
-    <!--        <v-card-actions class="justify-center pb-6  ">-->
-    <!--          <v-btn small outlined class="caption" color="primary">-->
-    <!--            <v-icon>mdi-plus</v-icon>-->
-    <!--            Add New Record-->
-    <!--          </v-btn>-->
-    <!--        </v-card-actions>-->
-    <!--      </v-card>-->
-    <!--    </v-dialog>-->
 
 
     <v-dialog
@@ -121,10 +75,11 @@
 import colors from "@/mixins/colors";
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
+import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
 
 export default {
   name: "belongs-to-cell",
-  components: {ListItems},
+  components: {ItemChip, ListItems},
   mixins: [colors],
   props: {
     value: [Object, Array],

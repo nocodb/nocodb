@@ -391,7 +391,7 @@
         :db-alias="nodes.dbAlias"
         :has-many="hasMany"
         :belongs-to="belongsTo"
-        v-if="selectedExpandRowIndex != null"
+        v-if="selectedExpandRowIndex != null && data[selectedExpandRowIndex]"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new)"
         :table="table"
@@ -721,7 +721,7 @@ export default {
       } else {
         try {
           if (!this.api) return;
-          const id = this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join(',');
+          const id = this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join('___');
           await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
           }, {[column._cn]: oldRow[column._cn]})
@@ -742,7 +742,7 @@ export default {
       try {
         const rowObj = this.rowContextMenu.row;
         if (!this.rowContextMenu.rowMeta.new) {
-          const id = this.meta && this.meta.columns && this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join(',');
+          const id = this.meta && this.meta.columns && this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join('___');
           await this.api.delete(id);
         }
         this.data.splice(this.rowContextMenu.index, 1);
@@ -760,7 +760,7 @@ export default {
             continue;
           }
           if (!rowMeta.new) {
-            const id = this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join(',');
+            const id = this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join('___');
             await this.api.delete(id);
           }
           this.data.splice(row, 1);

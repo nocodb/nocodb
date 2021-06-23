@@ -58,7 +58,7 @@
                   <div
                     style="height:100%; width:100%"
                     class="caption xc-input"
-                    v-if="col.ai || (col.pk && selectedRowMeta.new)"
+                    v-if="col.ai || (col.pk && !selectedRowMeta.new)"
                     @click="col.ai  && $toast.info('Auto Increment field is not editable').goAway(3000)"
                   >
                     <input
@@ -236,7 +236,7 @@ export default {
     async getAuditsAndComments() {
       this.loadingLogs = true;
       const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{dbAlias: this.dbAlias}, 'xcModelRowAuditAndCommentList', {
-        model_id: this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join(','),
+        model_id: this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___'),
         model_name: this.meta._tn
       }])
       this.logs = data.list;
@@ -251,7 +251,7 @@ export default {
     },
     async save() {
       try {
-        const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join(',');
+        const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
 
         const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
           obj[col] = this.localState[col];
@@ -280,7 +280,7 @@ export default {
       }
     },
     async reload() {
-      const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join(',');
+      const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
       this.$set(this, 'changedColumns', {});
       this.localState = await this.api.read(id);
       if (!this.isNew && this.toggleDrawer) {
@@ -295,7 +295,7 @@ export default {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [
           {dbAlias: this.dbAlias},
           'xcAuditCommentInsert', {
-            model_id: this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join(','),
+            model_id: this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___'),
             model_name: this.meta._tn,
             description: this.comment
           }

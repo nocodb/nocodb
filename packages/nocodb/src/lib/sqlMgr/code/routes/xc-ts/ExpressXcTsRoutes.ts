@@ -81,6 +81,17 @@ async function(req, res){
     res.json(data);
 }
                 `]
+      },, {
+        path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/m2mNotChildren/:assoc/:pid`,
+        type: 'get',
+        handler: ['m2mNotChildren'],
+        acl: {
+          admin: true,
+          user: true,
+          guest: true
+        },
+        functions: [`
+                `]
       }, {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/groupby/:column_name`,
         type: 'get',

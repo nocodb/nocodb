@@ -707,7 +707,7 @@ class BaseModelSql extends BaseModel {
 
     try {
 
-      let {fields, where, limit, offset, sort, condition,  conditionGraph = null} = this._getListArgs(args);
+      let {fields, where, limit, offset, sort, condition, conditionGraph = null} = this._getListArgs(args);
 
       // if (fields === '*') {
       //   fields = `${this.tn}.*`;
@@ -1325,6 +1325,62 @@ class BaseModelSql extends BaseModel {
       throw e;
     }
   }
+
+  // todo: naming
+  public m2mNotChildren({pid = null, assoc = null, ...args}): Promise<any> {
+    if (pid === null || assoc === null) {
+      return null;
+    }
+    // @ts-ignore
+    const {tn, cn, vtn, vcn, vrcn, rtn, rcn} = this.manyToManyRelations.find(({vtn}) => assoc === vtn) || {};
+    const childModel = this.dbModels[rtn];
+
+    const {fields, where, limit, offset, sort, condition, conditionGraph = null} = childModel._getListArgs(args);
+
+    const query = childModel.$db
+      .select(childModel.selectQuery(fields))
+      .xwhere(where, childModel.selectQuery(''))
+      .condition(condition, childModel.selectQuery(''))
+      .conditionGraph(conditionGraph)
+      .whereNotIn(rcn,
+        childModel.dbDriver(rtn)
+          .select(`${rtn}.${rcn}`)
+          .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
+          .where(`${vtn}.${vcn}`, pid)
+      );
+    childModel._paginateAndSort(query, {limit, offset, sort});
+
+    return this._run(query);
+  }
+
+
+  // todo: naming
+  public m2mNotChildrenCount({pid = null, assoc = null, ...args}): Promise<any> {
+
+    if (pid === null || assoc === null) {
+      return null;
+    }
+    // @ts-ignore
+    const {tn, cn, vtn, vcn, vrcn, rtn, rcn} = this.manyToManyRelations.find(({vtn}) => assoc === vtn) || {};
+    const childModel = this.dbModels[rtn];
+
+    const {where, condition, conditionGraph = null} = childModel._getListArgs(args);
+
+    const query = childModel.$db
+      .count(`${rcn} as count`)
+      .xwhere(where, childModel.selectQuery(''))
+      .condition(condition, childModel.selectQuery(''))
+      .conditionGraph(conditionGraph)
+      .whereNotIn(rcn,
+        childModel.dbDriver(rtn)
+          .select(`${rtn}.${rcn}`)
+          .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
+          .where(`${vtn}.${vcn}`, pid)
+      ).first();
+
+    return this._run(query);
+  }
+
 
   /**
    * Gets child list along with its parent

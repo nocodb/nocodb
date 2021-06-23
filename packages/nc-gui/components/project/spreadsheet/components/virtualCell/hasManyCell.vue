@@ -4,13 +4,13 @@
       <template v-if="value">
         <item-chip
           v-for="(ch,i) in value"
-                   :active="active"
-                   :item="ch"
-                   :color="colors[i%colors.length]"
-                   :value="Object.values(ch)[1]"
-                   :key="i"
-                   @edit="editChild"
-                   @unlink="unlinkChild"
+          :active="active"
+          :item="ch"
+          :color="colors[i%colors.length]"
+          :value="Object.values(ch)[1]"
+          :key="i"
+          @edit="editChild"
+          @unlink="unlinkChild"
         ></item-chip>
       </template>
     </div>
@@ -35,10 +35,25 @@
         where: `~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
       }"/>
 
+    <!--    <list-child-items
+          v-if="childListModal"
+          v-model="childListModal"
+          :size="10"
+          :meta="childMeta"
+          :parent-meta="meta"
+          :primary-col="childPrimaryCol"
+          :primary-key="childPrimaryKey"
+          :api="childApi"
+          :query-params="childQueryParams"
+          @new-record="showNewRecordModal"
+          @edit="editChild"
+          @unlink="unlinkChild"
+        />-->
+
 
     <v-dialog v-if="childListModal" v-model="childListModal" width="600">
       <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor--text mx-2">{{ childMeta ? childMeta._tn : 'Children' }}
+        <v-card-title class="textColor&#45;&#45;text mx-2">{{ childMeta ? childMeta._tn : 'Children' }}
           <v-spacer>
           </v-spacer>
 
@@ -77,8 +92,9 @@
                   </x-icon>
                 </div>
 
-                <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[childPrimaryCol] }}
-                  <span class="grey--text caption primary-key"
+                <v-card-title class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2">
+                  {{ ch[childPrimaryCol] }}
+                  <span class="grey&#45;&#45;text caption primary-key"
                         v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
                 </v-card-title>
               </v-card>
@@ -151,10 +167,12 @@ import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import Pagination from "@/components/project/spreadsheet/components/pagination";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
+import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
 
 export default {
   name: "has-many-cell",
   components: {
+    ListChildItems,
     ItemChip,
     ListItems,
     Pagination,
@@ -266,13 +284,6 @@ export default {
     async showNewRecordModal() {
       await this.loadChildMeta();
       this.newRecordModal = true;
-      // const _cn = this.childForeignKey;
-      // this.list = await this.childApi.paginatedList({
-      //   ...this.childQueryParams,
-      //   limit: this.listPagination.size,
-      //   offset: this.listPagination.size * (this.listPagination.page - 1),
-      //   where: `~not(${_cn},eq,${this.parentId})~or(${_cn},is,null)`
-      // })
     },
     async addChildToParent(child) {
       const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
@@ -383,6 +394,7 @@ export default {
   }
 }
 
+/*
 
 .child-list-modal {
   position: relative;
@@ -400,6 +412,7 @@ export default {
   }
 
 }
+*/
 
 .child-card {
   cursor: pointer;
@@ -408,6 +421,7 @@ export default {
     box-shadow: 0 0 .2em var(--v-textColor-lighten5)
   }
 }
+
 
 .hm-items {
   //min-width: 200px;

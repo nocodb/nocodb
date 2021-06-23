@@ -82,8 +82,9 @@
             <span class="caption font-weight-regular">{{ item }}</span>
           </template>
         </v-select>
-
-        <v-text-field solo flat :key="i + '_7'" @click.stop hide-details dense class="caption" v-model="filter.value"
+        <span v-if="['is null', 'is not null'].includes(filter.op)"></span>
+        <v-text-field v-else solo flat :key="i + '_7'" @click.stop hide-details dense class="caption"
+                      v-model="filter.value"
                       :disabled="filter.readOnly"></v-text-field>
 
       </template>
@@ -109,7 +110,10 @@ export default {
   props: ['fieldList', 'value'],
   data: () => ({
     filters: [],
-    opList: ['is equal', 'is not equal', 'is like', 'is not like', 'is empty', 'is not empty', 'is null', 'is not null',
+    opList: [
+      'is equal', 'is not equal', 'is like', 'is not like',
+      // 'is empty', 'is not empty',
+      'is null', 'is not null',
       '>',
       '<',
       '>=',

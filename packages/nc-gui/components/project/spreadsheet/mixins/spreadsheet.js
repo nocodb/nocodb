@@ -204,6 +204,8 @@ export default {
               return condition + `~not(${filt.field},in,)`;
             case 'is null':
               return condition + `(${filt.field},is,null)`;
+            case 'is not null':
+              return condition + `~not(${filt.field},is,null)`;
             case '<':
               return condition + `(${filt.field},lt,${filt.value})`;
             case '<=':

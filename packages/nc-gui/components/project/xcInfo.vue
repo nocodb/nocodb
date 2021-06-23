@@ -241,7 +241,7 @@ export default {
   async created() {
     await this.loadProjectApiInfo();
     try {
-      this.iframeUrl = this._isDev ? 'http://localhost:8080/dashboard/status' : './status';
+      this.iframeUrl = `${this.$axios.defaults.baseURL}/dashboard/status`;
       const res = await this.$axios.get(this.iframeUrl);
       this.showinfoIFrame = true;
     } catch (e) {
@@ -252,7 +252,7 @@ export default {
   }, methods: {
     async loadProjectApiInfo() {
       try {
-        const {info, aggregatedInfo} = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
+        const {info, aggregatedInfo} = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
           headers: {
             'xc-auth': this.$store.state.users.token
           }
@@ -322,6 +322,7 @@ iframe {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

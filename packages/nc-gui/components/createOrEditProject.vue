@@ -1388,7 +1388,7 @@ export default {
       this.allSchemas = true;
       await this.$axios({
         url: 'demo',
-        baseURL: process.env.NODE_ENV === 'production' ? './' : 'http://localhost:8080/dashboard',
+        baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
       });
     },
 

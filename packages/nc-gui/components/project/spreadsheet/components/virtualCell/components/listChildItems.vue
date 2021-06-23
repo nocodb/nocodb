@@ -1,59 +1,56 @@
 <template>
-  <v-dialog v-model="show" width="600">
+  <v-dialog v-model="value" width="600">
     <v-card width="600" color="backgroundColor">
-      <v-card-title class="textColor--text mx-2 justify-center">{{ title }}
+      <v-card-title class="textColor--text mx-2">{{ meta ? meta._tn : 'Children' }}
+        <v-spacer>
+        </v-spacer>
 
-      </v-card-title>
-
-      <v-card-title>
-        <v-text-field
-          hide-details
-          dense
-          outlined
-          placeholder="Search records"
-          class=" caption search-field ml-2"
-        />
-        <v-spacer></v-spacer>
-        <v-btn small class="caption mr-2" color="primary" @click="$emit('add-new-record')">
+        <v-btn small class="caption" color="primary" @click="emit('new-record')">
           <v-icon small>mdi-plus</v-icon>&nbsp;
-          New Record
+          Add Record
         </v-btn>
 
       </v-card-title>
-
       <v-card-text>
+
         <div class="items-container">
-          <template v-if="data && data.list && data.list.length">
+          <template v-if="data && data.list">
             <v-card
               v-for="(ch,i) in data.list"
-              class="ma-2  child-card"
+              class="ma-2 child-list-modal child-card"
               outlined
-              v-ripple
-              @click="$emit('add',ch)"
               :key="i"
+              @click="$emit('edit',ch)"
             >
-              <v-card-text class="primary-value textColor--text text--lighten-2 d-flex">
-                <span class="font-weight-bold"> {{ ch[primaryCol] }}&nbsp;</span>
-                <span class="grey--text caption primary-key "
+              <div class="remove-child-icon d-flex align-center">
+                <x-icon
+                  :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
+                  :color="['error','grey']"
+                  small
+                  @click.stop="$emit('unlink',ch,i)"
+                  icon.class="mr-1 mt-n1"
+                >mdi-link-variant-remove
+                </x-icon>
+                <x-icon
+                  :tooltip="`Delete row in '${meta._tn}'`"
+                  :color="['error','grey']"
+                  small
+                  @click.stop="$emit('delete',ch,i)"
+                >mdi-delete-outline
+                </x-icon>
+              </div>
+
+              <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[primaryCol] }}
+                <span class="grey--text caption primary-key"
                       v-if="primaryKey">(Primary Key : {{ ch[primaryKey] }})</span>
-                <v-spacer/>
-                <v-chip v-if="hm && ch[meta._tn]" x-small>
-                  {{ ch[primaryCol] }}
-                </v-chip>
-              </v-card-text>
+              </v-card-title>
             </v-card>
-
-
           </template>
-
-          <div v-else class="text-center py-15 textLight--text">
-            No items found
-          </div>
         </div>
       </v-card-text>
-      <v-card-actions class="justify-center py-2  flex-column">
+      <v-card-actions class="justify-center py-2 flex-column">
         <pagination
-          v-if="data && data.list && data.list.length"
+          v-if="data && data.list"
           :size="size"
           :count="data.count"
           v-model="page"
@@ -70,11 +67,10 @@
 import Pagination from "@/components/project/spreadsheet/components/pagination";
 
 export default {
-  name: "listItems",
+  name: "listChildItems",
   components: {Pagination},
   props: {
     value: Boolean,
-    hm: Boolean,
     title: {
       type: String,
       default: 'Link Record'
@@ -88,10 +84,9 @@ export default {
     primaryKey: String,
     primaryCol: String,
     meta: Object,
+    parentMeta: Object,
     size: Number,
     api: [Object, Function],
-    mm: [Object, Function],
-    parentId: [String, Number]
   },
   data: () => ({
     data: null,
@@ -104,20 +99,11 @@ export default {
     async loadData() {
       if (!this.api) return;
 
-      if (this.mm) {
-        this.data = await this.api.paginatedM2mNotChildrenList({
-          limit: this.size,
-          offset: this.size * (this.page - 1),
-          ...this.queryParams
-        }, this.mm.vtn,this.parentId)
-
-      } else {
-        this.data = await this.api.paginatedList({
-          limit: this.size,
-          offset: this.size * (this.page - 1),
-          ...this.queryParams
-        })
-      }
+      this.data = await this.api.paginatedList({
+        limit: this.size,
+        offset: this.size * (this.page - 1),
+        ...this.queryParams
+      })
     }
   },
   computed: {
@@ -133,6 +119,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
 .child-list-modal {
   position: relative;
 
@@ -150,33 +137,8 @@ export default {
 
 }
 
-.child-card {
-  cursor: pointer;
-
-  &:hover {
-    box-shadow: 0 0 .2em var(--v-textColor-lighten5)
-  }
-}
-
-
-.primary-value {
-  .primary-key {
-    display: none;
-    margin-left: .5em;
-  }
-
-  &:hover .primary-key {
-    display: inline;
-  }
-}
-
-.items-container {
-  overflow-x: visible;
-  max-height: min(500px, 60vh);
-  overflow-y: auto;
-}
-
 </style>
+
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

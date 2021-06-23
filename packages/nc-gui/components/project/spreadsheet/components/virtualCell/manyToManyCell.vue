@@ -18,7 +18,7 @@
     </div>
     <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
       <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
-      <!--      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>-->
+      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
     </div>
 
 
@@ -30,14 +30,33 @@
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
       v-model="newRecordModal"
-      :api="childApi"
+      :api="api"
+      :mm="mm"
+      :parent-id="row && row[parentPrimaryKey]"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
-      :query-params="{...childQueryParams, conditionGraph }"/>
+      :query-params="childQueryParams"/>
 
-    <v-dialog v-if="childListModal" v-model="childListModal" width="600">
+    <list-child-items
+      v-if="childListModal"
+      v-model="childListModal"
+      :size="10"
+      :meta="childMeta"
+      :parent-meta="meta"
+      :primary-col="childPrimaryCol"
+      :primary-key="childPrimaryKey"
+      :api="childApi"
+      :mm="mm"
+      :parent-id="row && row[parentPrimaryKey]"
+      :query-params="{...childQueryParams, conditionGraph }"
+      @new-record="showNewRecordModal"
+      @edit="editChild"
+      @unlink="unlinkChild"
+    />
+
+    <!--<v-dialog v-if="childListModal" v-model="childListModal" width="600">
       <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor--text mx-2">{{ childMeta ? childMeta._tn : 'Children' }}</v-card-title>
+        <v-card-title class="textColor&#45;&#45;text mx-2">{{ childMeta ? childMeta._tn : 'Children' }}</v-card-title>
         <v-card-text>
 
           <div class="items-container">
@@ -57,8 +76,8 @@
                 >mdi-delete-outline
                 </x-icon>
 
-                <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[childPrimaryCol] }}
-                  <span class="grey--text caption primary-key"
+                <v-card-title class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2">{{ ch[childPrimaryCol] }}
+                  <span class="grey&#45;&#45;text caption primary-key"
                         v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
                 </v-card-title>
               </v-card>
@@ -73,7 +92,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
+-->
 
     <v-dialog
       :overlay-opacity="0.8"
@@ -152,11 +171,12 @@ import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
+import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
 
 export default {
   name: "many-to-many-cell",
   mixins: [colors],
-  components: {ItemChip, ListItems, DlgLabelSubmitCancel},
+  components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel},
   props: {
     value: [Object, Array],
     meta: [Object],
@@ -192,13 +212,8 @@ export default {
       }
     },
     async showChildListModal() {
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
       this.childListModal = true;
-      await this.loadChildMeta();
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
-      const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
-      this.childList = await this.childApi.paginatedList({
-        where: `(${_cn},eq,${pid})`
-      })
     }, async unlinkChild(child) {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
 
@@ -337,15 +352,15 @@ export default {
       }
     },
     conditionGraph() {
-      // if (!this.childMeta || !this.assocMeta) return null;
-      // return {
-      //     [this.assocMeta.tn]: {
-      //       "relationType": "hm",
-      //       [this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn]: {
-      //         "eq": this.row[this.parentPrimaryKey]
-      //       }
-      //   }
-      // }
+      if (!this.childMeta || !this.assocMeta) return null;
+      return {
+        [this.assocMeta.tn]: {
+          "relationType": "hm",
+          [this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn]: {
+            "eq": this.row[this.parentPrimaryKey]
+          }
+        }
+      }
     },
     childAvailableColumns() {
       const hideCols = ['created_at', 'updated_at'];

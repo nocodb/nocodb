@@ -35,11 +35,6 @@ export default {
     ],
     link: [
       {rel: 'icon', type: 'image/x-icon', href: './favicon-32.png'}
-    ],
-    script: [
-      {
-        src: 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.3.2/dist/confetti.browser.min.js'
-      }
     ]
   },
   /*
@@ -52,6 +47,7 @@ export default {
   plugins: [
     "~/plugins/xutils.js",
     {src: '~plugins/localStorage.js', ssr: false},
+    {src: '~plugins/confetti.js', ssr: false},
     {src: '~plugins/axiosInterceptor.js', ssr: false},
     "@/plugins/veeValidate",
     "@/plugins/vueTour",
@@ -104,6 +100,10 @@ export default {
     middleware: ['auth']
   },
   vuetify: {
+    defaultAssets: {
+      // font: false,
+      icons: false,
+    },
     optionsPath: '@/config/vuetify.options.js',
     treeShake: true,
     customVariables: ['./config/variables.scss']
@@ -201,6 +201,7 @@ export default {
     duration: 3000
   },
   css: [
+    // '@/assets/style/fonts.css',
     '@/assets/css/global.css',
     // "~/assets/style/app.styl",
     "@mdi/font/css/materialdesignicons.css",

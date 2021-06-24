@@ -624,7 +624,7 @@
 
                               </v-list-item-title>
                             </v-list-item>-->
-              <v-list-item v-if="swaggerOrGraphiqlUrl" dense @click.stop="openUrl(swaggerOrGraphiqlUrl)">
+              <v-list-item v-if="swaggerOrGraphiqlUrl" dense @click.stop="openUrl(`${$axios.defaults.baseURL}${swaggerOrGraphiqlUrl}`)">
                 <v-list-item-title>
 
                   <v-icon small key="terminal-dash">
@@ -977,7 +977,7 @@ export default {
     async loadProjectInfo() {
       if (this.$route.params.project_id)
         try {
-          const {info} = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
+          const {info} = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
             headers: {
               'xc-auth': this.$store.state.users.token
             }

@@ -154,6 +154,7 @@ docker run -d -p 8080:8080 \
 
 ## Docker Compose
 ```
+git clone https://github.com/nocodb/nocodb
 cd docker-compose
 cd mysql or pg or mssql
 docker-compose up
@@ -170,6 +171,7 @@ docker-compose up
 | NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
+| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
 
 # Running locally 
 ```

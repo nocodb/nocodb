@@ -1113,8 +1113,7 @@ export default {
           }
 
           axios.create({
-            baseURL: process.env.NODE_ENV === 'production' ? './' : 'http://localhost:8080/dashboard',
-            // baseURL: 'http://localhost:8080/dashboard',
+            baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
           }).get('').then(() => {
             toast.goAway(100);
             this.projectReloading = false;
@@ -1692,6 +1691,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

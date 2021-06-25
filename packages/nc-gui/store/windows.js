@@ -44,10 +44,14 @@ export const state = () => ({
   metatables: false,
   nc: true,
   miniSponsorCard: 0,
-  screensaver: true
+  screensaver: true,
+  autoApplyFilter: true
 });
 
 export const mutations = {
+  MutAutoApplyFilter(state, v) {
+    state.autoApplyFilter = v;
+  },
   MutToggleLogWindow(state, show) {
     state.logWindow = !state.logWindow;
   }, MutScreensaver(state, show) {

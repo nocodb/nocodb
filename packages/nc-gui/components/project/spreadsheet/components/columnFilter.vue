@@ -101,6 +101,7 @@
       <v-icon small color="grey">mdi-plus</v-icon>
       Add Filter
     </v-btn>
+    <slot></slot>
   </div>
 </template>
 

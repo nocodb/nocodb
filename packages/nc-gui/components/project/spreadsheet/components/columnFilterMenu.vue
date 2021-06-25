@@ -17,7 +17,25 @@
       </v-badge>
     </template>
     <column-filter v-model="filters" :field-list="fieldList">
+      <div class="d-flex align-center mx-2" @click.stop>
+        <v-checkbox
+          hide-details
+          dense
+          id="col-filter-checkbox"
+          type="checkbox"
+          color="grey"
+          v-model="autosave">
+          <template v-slot:label>
+            <span class="grey--text caption">Auto apply</span>
+          </template>
 
+        </v-checkbox>
+
+        <v-spacer></v-spacer>
+        <v-btn v-show="!autosave" color="primary" @click="$emit('input', filters)" small class="caption ml-2">Apply
+          changes
+        </v-btn>
+      </div>
     </column-filter>
   </v-menu>
 </template>
@@ -32,19 +50,35 @@ export default {
   data: () => ({
     filters: [],
   }),
+  computed: {
+    autosave: {
+      set(v) {
+        this.$store.commit('windows/MutAutoApplyFilter', v)
+      }, get() {
+        return this.$store.state.windows.autoApplyFilter;
+      }
+    }
+  },
   methods: {},
   created() {
-    this.filters = this.value || [];
+    this.filters = this.autosave ? this.value || [] : JSON.parse(JSON.stringify(this.value || []));
   },
   watch: {
     filters: {
       handler(v) {
-        this.$emit('input', v)
+        if (this.autosave) {
+          this.$emit('input', v)
+        }
       },
       deep: true
     },
+    autosave(v) {
+      if (!v) {
+        this.filters = JSON.parse(JSON.stringify(this.value || []));
+      }
+    },
     value(v) {
-      this.filters = v || [];
+      this.filters = this.autosave ? v || [] : JSON.parse(JSON.stringify(v || []));
     }
   }
 }

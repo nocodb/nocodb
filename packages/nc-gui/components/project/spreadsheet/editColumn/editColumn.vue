@@ -210,7 +210,9 @@
                             label="Type in Database"
                             dense
                             outlined
-                            :items="dataTypes">
+                            :items="dataTypes"
+                            @change="onDataTypeChange"
+                          >
                           </v-autocomplete>
                         </v-col>
 

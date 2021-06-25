@@ -10,17 +10,17 @@ on:
     branches: [ master ]
 
 jobs:
-#  cypress-run:
-#    runs-on: ubuntu-20.04
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#      - name: Cypress run
-#        uses: cypress-io/github-action@v2
-#        with:
-#          start: cd ./packages/nocodb/ && docker-compose run --service-ports -d xc-cypress-test ; sleep 60 ; ../..;
-#          wait-on: 'http://localhost:8080/dashboard'
-#          wait-on-timeout: 1200
+  cypress-run:
+   runs-on: ubuntu-20.04
+   steps:
+     - name: Checkout
+       uses: actions/checkout@v2
+     - name: Cypress run
+       uses: cypress-io/github-action@v2
+       with:
+         start: docker-compose -f ./docker-compose-cypress.yml up
+         wait-on: 'http://localhost:8080/dashboard'
+         wait-on-timeout: 240      
   docker:
 
     runs-on: ubuntu-latest

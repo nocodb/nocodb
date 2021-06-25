@@ -17,7 +17,7 @@
   "projects.project_api_type_tooltip_graphql": "可通过 GraphQL API 访问",
   "projects.project_api_type_tooltip_rest": "可通过 REST API 访问",
   "projects.project_empty_message": "通过创建一个新项目开始",
-  "projects.import_button.text": "通过上传元数据zip文件导入NocoDB项目",
+  "projects.import_button.text": "通过上传元数据zip文件导入 NocoDB 项目",
   "projects.show_community_message_1_1": "Star",
   "projects.show_community_message_1_2": "Github",
   "projects.show_community_message_2": "预订免费演示",

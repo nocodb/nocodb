@@ -334,7 +334,7 @@
                               <v-list-item-title>
                                 <!-- Import Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                $t('projects.verticial_option_1')
+                                $t('projects.vertical_option_1')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -348,7 +348,7 @@
                               <v-list-item-title>
                                 <!-- Export Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                 $t('home.project_verticial_option_2')
+                                 $t('projects.vertical_option_2')
                                  }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -362,7 +362,7 @@
                               <v-list-item-title>
                                 <!-- Clear Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                $t('projects.verticial_option_3')
+                                $t('projects.vertical_option_3')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>

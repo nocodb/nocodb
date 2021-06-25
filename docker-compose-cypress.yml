@@ -1,0 +1,15 @@
+version: "3.5"
+
+services:
+    xc-cypress-test:
+      image: node:12.22.1-slim
+      ports:
+        - 8080:8080
+      volumes:
+        - ./packages/nocodb:/home/app
+      command:
+        - /bin/bash
+        - -c
+        - |
+          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+          cd /home/app/ && npm i && npm run run

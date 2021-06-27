@@ -253,6 +253,7 @@ function translateUiToLibCall(args, op, opArgs) {
       break;
 
     case 'relationCreate':
+    case 'xcM2MRelationCreate':
     case 'xcVirtualRelationCreate':
       data.type = "Relation create";
       data.title = '';

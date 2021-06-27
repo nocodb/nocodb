@@ -1,6 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseModelXcMeta from "./BaseModelXcMeta";
 
-class ModelXcMetaMssql extends BaseRender {
+class ModelXcMetaMssql extends BaseModelXcMeta{
 
   /**
    * @param dir
@@ -570,9 +570,13 @@ class ModelXcMetaMssql extends BaseRender {
 
       columnsArr.push(columnObj)
     }
+
+    this.mapDefaultPrimaryValue(columnsArr);
+
     return columnsArr;
   }
 
+/*
   getObject() {
     return {
       tn: this.ctx.tn,
@@ -586,6 +590,7 @@ class ModelXcMetaMssql extends BaseRender {
     }
 
   }
+*/
 
 
   _getUIDataType(col):any {

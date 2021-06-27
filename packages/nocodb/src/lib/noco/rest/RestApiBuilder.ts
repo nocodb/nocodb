@@ -1007,6 +1007,13 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       // update old model meta with new details
       const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnp});
+
+      let queryParams;
+      try {
+        queryParams = JSON.parse(existingModel.query_params);
+      } catch (e) { /* */
+      }
+
       swaggerArr.push(JSON.parse(existingModel.schema));
       if (existingModel) {
         this.log(`onRelationCreate : Updating model metadata for parent table '%s'`, tnp);
@@ -1020,6 +1027,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           hasMany: meta.hasMany,
         });
 
+
+
         /* Add new has many relation to virtual columns */
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
@@ -1027,9 +1036,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
         })
 
+
+        if (queryParams?.showFields) {
+          queryParams.showFields[`${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`] = true;
+        }
+
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          title: tnp,
           meta: JSON.stringify(oldMeta),
+          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
         }, {'title': tnp})
 
       }
@@ -1089,6 +1103,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       // update old model meta with new details
       const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnc});
+
+      let queryParams;
+      try {
+        queryParams = JSON.parse(existingModel.query_params);
+      } catch (e) { /* */
+      }
+
+
       swaggerArr.push(JSON.parse(existingModel.schema))
       if (existingModel) {
         meta.belongsTo.forEach(hm => {
@@ -1108,9 +1130,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
         })
 
+
+        if (queryParams?.showFields) {
+          queryParams.showFields[`${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`] = true;
+        }
+
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          title: tnc,
-          meta: JSON.stringify(oldMeta)
+          meta: JSON.stringify(oldMeta),
+          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
         }, {'title': tnc})
       }
 

@@ -1,6 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseModelXcMeta from "./BaseModelXcMeta";
 
-class ModelXcMetaMysql extends BaseRender {
+class ModelXcMetaMysql extends BaseModelXcMeta {
 
   /**
    * @param dir
@@ -180,58 +180,10 @@ class ModelXcMetaMysql extends BaseRender {
 
       columnsArr.push(columnObj)
     }
-
-    // pk can be at the end
-
-    //
-
-
-    /*
-
-      if PK is at the end of table
-         if (there is a column for PV)
-              make that PV
-         else
-              lets think
-      else if (pk is not at the end of table)
-         if (there is a column for PV)
-              make that PV
-         else
-              lets think
-      else if ( no pk at all)
-          let's think
-        */
-
-    if (!columnsArr.some(column => column.pv)) {
-      let len = columnsArr.length;
-      let pkIndex = -1;
-
-      while (len--) {
-        if (columnsArr[len].pk) {
-          pkIndex = len;
-          break;
-        }
-      }
-
-      // if PK is at the end of table
-      if (pkIndex === columnsArr.length - 1) {
-        if (pkIndex > 0) {
-          columnsArr[pkIndex - 1].pv = true;
-        }
-      }
-      // pk is not at the end of table
-      else if (pkIndex > -1) {
-        columnsArr[pkIndex + 1].pv = true;
-      }
-      //  no pk at all
-      else {
-        // todo:
-      }
-    }
+    this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
 
   }
-
 
   _getAbstractType(column) {
 
@@ -605,30 +557,7 @@ class ModelXcMetaMysql extends BaseRender {
   }
 
 
-  getObject() {
-    return {
-      tn: this.ctx.tn,
-      _tn: this.ctx._tn,
-      columns: this.getXcColumnsObject(this.ctx),
-      pks: [],
-      hasMany: this.ctx.hasMany,
-      belongsTo: this.ctx.belongsTo,
-      db_type: this.ctx.db_type,
-      type: this.ctx.type,
 
-      v: [
-        ...(this.ctx.hasMany || []).map(hm => ({
-          hm,
-          _cn:`${hm._rtn} => ${hm._tn}`
-        })),
-        ...(this.ctx.belongsTo || []).map(bt => ({
-          bt,
-          _cn:`${bt._rtn} <= ${bt._tn}`
-        })),
-      ]
-    }
-
-  }
 
 }
 

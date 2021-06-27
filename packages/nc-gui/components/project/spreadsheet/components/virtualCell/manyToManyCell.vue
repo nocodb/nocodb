@@ -38,6 +38,7 @@
       :query-params="childQueryParams"/>
 
     <list-child-items
+      ref="childList"
       v-if="childListModal"
       v-model="childListModal"
       :size="10"
@@ -226,6 +227,10 @@ export default {
       const id = this.assocMeta.columns.filter((c) => c.cn === apcn || c.cn === accn).map(c => c.cn === apcn ? this.row[_pcn] : child[_ccn]).join('___');
       await this.assocApi.delete(id)
       this.$emit('loadTableData')
+      if (this.childListModal && this.$refs.childList) {
+        this.$refs.childList.loadData();
+        // this.showChildListModal()
+      }
     },
     async removeChild(child) {
       this.dialogShow = true;

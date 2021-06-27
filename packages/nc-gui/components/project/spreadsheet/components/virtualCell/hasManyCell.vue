@@ -35,23 +35,28 @@
         where: `~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
       }"/>
 
-    <!--    <list-child-items
-          v-if="childListModal"
-          v-model="childListModal"
-          :size="10"
-          :meta="childMeta"
-          :parent-meta="meta"
-          :primary-col="childPrimaryCol"
-          :primary-key="childPrimaryKey"
-          :api="childApi"
-          :query-params="childQueryParams"
-          @new-record="showNewRecordModal"
-          @edit="editChild"
-          @unlink="unlinkChild"
-        />-->
+    <list-child-items
+      ref="childList"
+      v-if="childListModal"
+      v-model="childListModal"
+      :size="10"
+      :meta="childMeta"
+      :parent-meta="meta"
+      :primary-col="childPrimaryCol"
+      :primary-key="childPrimaryKey"
+      :api="childApi"
+      :query-params="{
+        ...childQueryParams,
+        where: `(${childForeignKey},eq,${parentId})`
+      }"
+      @new-record="showNewRecordModal"
+      @edit="editChild"
+      @unlink="unlinkChild"
+      @delete="deleteChild"
+    />
 
 
-    <v-dialog v-if="childListModal" v-model="childListModal" width="600">
+    <!--<v-dialog v-if="childListModal" v-model="childListModal" width="600">
       <v-card width="600" color="backgroundColor">
         <v-card-title class="textColor&#45;&#45;text mx-2">{{ childMeta ? childMeta._tn : 'Children' }}
           <v-spacer>
@@ -113,7 +118,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
+-->
 
     <dlg-label-submit-cancel
       type="primary"
@@ -194,7 +199,7 @@ export default {
     childListModal: false,
     childMeta: null,
     // list: null,
-    childList: null,
+    // childList: null,
     dialogShow: false,
     confirmAction: null,
     confirmMessage: '',
@@ -204,30 +209,30 @@ export default {
     //   page: 1,
     //   size: 10
     // },
-    childListPagination: {
-      page: 1,
-      size: 10
-    },
+    // childListPagination: {
+    //   page: 1,
+    //   size: 10
+    // },
     isNewChild: false
   }),
 
   methods: {
     async showChildListModal() {
-      this.childListModal = true;
       await this.loadChildMeta();
-      await this.loadChildList();
+      // await this.loadChildList();
+      this.childListModal = true;
     },
-    async loadChildList() {
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
-      const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
-      this.childList = await this.childApi.paginatedList({
-        where: `(${_cn},eq,${pid})`,
-        limit: this.childListPagination.size,
-        offset: this.childListPagination.size * (this.childListPagination.page - 1),
-        ...this.childQueryParams
-      })
-
-    },
+    // async loadChildList() {
+    //   const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
+    //   const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
+    //   this.childList = await this.childApi.paginatedList({
+    //     where: `(${_cn},eq,${pid})`,
+    //     limit: this.childListPagination.size,
+    //     offset: this.childListPagination.size * (this.childListPagination.page - 1),
+    //     ...this.childQueryParams
+    //   })
+    //
+    // },
     async deleteChild(child) {
       this.dialogShow = true;
       this.confirmMessage =
@@ -237,10 +242,16 @@ export default {
           this.dialogShow = false;
         } else {
           const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
-          await this.childApi.delete(id)
-          this.showChildListModal();
-          this.dialogShow = false;
-          this.$emit('loadTableData')
+          try {
+            await this.childApi.delete(id)
+            this.dialogShow = false;
+            this.$emit('loadTableData')
+            if (this.childListModal && this.$refs.childList) {
+              this.$refs.childList.loadData();
+            }
+          }catch (e) {
+            this.$toast.error(e.message)
+          }
         }
       }
     },
@@ -262,8 +273,8 @@ export default {
       const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
       await this.childApi.update(id, {[_cn]: null}, child)
       this.$emit('loadTableData')
-      if (this.childListModal) {
-        this.showChildListModal()
+      if (this.childListModal && this.$refs.childList) {
+        this.$refs.childList.loadData();
       }
       // }
       // }

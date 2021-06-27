@@ -1,5 +1,6 @@
 <template>
   <div>
+
     <table v-if="data" class="xc-row-table"
            style=" ">
       <thead>
@@ -414,7 +415,11 @@ export default {
       }
     },
     onClickOutside() {
-      if (this.meta.columns[this.selected.col].virtual) return
+      if (
+        this.meta.columns
+        && this.meta.columns[this.selected.col]
+        && this.meta.columns[this.selected.col].virtual
+      ) return
       this.selected.col = null;
       this.selected.row = null
     },

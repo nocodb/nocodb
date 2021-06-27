@@ -1466,6 +1466,10 @@ export default class NcMetaMgr {
           result = await this.xcVirtualRelationCreate(args, req);
           break;
 
+        case 'xcM2MRelationCreate':
+          result = await this.xcM2MRelationCreate(args, req);
+          break;
+
         case 'xcVirtualRelationDelete':
           result = await this.xcVirtualRelationDelete(args, req);
           break;
@@ -2275,6 +2279,175 @@ export default class NcMetaMgr {
     });
 
     return res;
+  }
+
+
+  protected async xcM2MRelationCreate(args: any, req): Promise<any> {
+    const dbAlias = this.getDbAlias(args);
+    const projectId = this.getProjectId(args);
+
+    try {
+
+      const parent = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+        title: args.args.parentTable
+      });
+      const child = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+        title: args.args.childTable
+      });
+      const parentMeta = JSON.parse(parent.meta);
+      const childMeta = JSON.parse(child.meta);
+
+
+      const parentPK = parentMeta.columns.find(c => c.pk);
+      const childPK = childMeta.columns.find(c => c.pk);
+
+      const associateTableCols = [];
+
+      associateTableCols.push({
+        cn: `${childMeta.tn}_id`,
+        _cn: `${childMeta.tn}_id`,
+        rqd: true,
+        pk: true,
+        ai: false,
+        cdf: null,
+        dt: childPK.dt,
+        dtxp: childPK.dtxp,
+        dtxs: childPK.dtxs,
+        un: childPK.un,
+        altered: 1
+      }, {
+        cn: `${parentMeta.tn}_id`,
+        _cn: `${parentMeta.tn}_id`,
+        rqd: true,
+        pk: true,
+        ai: false,
+        cdf: null,
+        dt: parentPK.dt,
+        dtxp: parentPK.dtxp,
+        dtxs: parentPK.dtxs,
+        un: parentPK.un,
+        altered: 1
+      });
+
+      const aTn = `nc_m2m_${parentMeta.tn}_${childMeta.tn}_${Math.floor(Math.random() * 1000)}`;
+
+      const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableCreate', {
+        ...args,
+        args: {
+          tn: aTn,
+          _tn: aTn,
+          columns: associateTableCols
+        }
+      });
+
+      if (this.listener) {
+        await this.listener({
+          req: {
+            ...args,
+            args: {
+              tn: aTn,
+              _tn: aTn,
+              columns: associateTableCols
+            }, api: 'tableCreate'
+          },
+          res: out,
+          user: req.user,
+          ctx: {
+            req
+          }
+        });
+      }
+
+
+      const rel1Args = {
+        ...args.args,
+        childTable: aTn,
+        childColumn: `${parentMeta.tn}_id`,
+        parentTable: parentMeta.tn,
+        parentColumn: parentPK.cn,
+        type: 'real'
+      };
+      const rel2Args = {
+        ...args.args,
+        childTable: aTn,
+        childColumn: `${childMeta.tn}_id`,
+        parentTable: childMeta.tn,
+        parentColumn: childPK.cn,
+        type: 'real'
+      };
+      if (args.args.type === 'real') {
+        const outrel = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationCreate', {
+          ...args,
+          args: rel1Args
+        });
+        if (this.listener) {
+          await this.listener({
+            req: {
+              ...args,
+              args: rel1Args,
+              api: 'relationCreate'
+            },
+            res: outrel,
+            user: req.user,
+            ctx: {
+              req
+            }
+          });
+        }
+        const outrel1 = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationCreate', {
+          ...args,
+          args: rel2Args
+        });
+        if (this.listener) {
+          await this.listener({
+            req: {
+              ...args,
+              args: rel2Args,
+              api: 'relationCreate'
+            },
+            res: outrel1,
+            user: req.user,
+            ctx: {
+              req
+            }
+          });
+        }
+      } else {
+        const outrel = await this.xcVirtualRelationCreate({...args, args: rel1Args}, req);
+        if (this.listener) {
+          await this.listener({
+            req: {
+              ...args,
+              args: rel1Args,
+              api: 'xcVirtualRelationCreate'
+            },
+            res: outrel,
+            user: req.user,
+            ctx: {
+              req
+            }
+          });
+        }
+        const outrel1 = await this.xcVirtualRelationCreate({...args, args: rel2Args}, req);
+        await this.listener({
+          req: {
+            ...args,
+            args: rel2Args,
+            api: 'xcVirtualRelationCreate'
+          },
+          res: outrel1,
+          user: req.user,
+          ctx: {
+            req
+          }
+        });
+      }
+
+    } catch (e) {
+      console.log(e.message)
+    }
+
+
   }
 
   protected async xcVirtualRelationDelete(args: any, req): Promise<any> {

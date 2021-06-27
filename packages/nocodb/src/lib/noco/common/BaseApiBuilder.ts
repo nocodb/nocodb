@@ -322,7 +322,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
     const oldModelRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
       title: tn
-    });
+    })
+
+    let queryParams;
+    try {
+      queryParams = JSON.parse(oldModelRow.query_params);
+    } catch (e) {
+    }
+
 
     if (!oldModelRow) {
       return;
@@ -359,7 +366,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`onTableUpdate : Generating new model meta for '%s' table`, tn)
 
     /* create models from table */
-    const newMeta = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
+    const newMeta:any = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
 
 
     /* get ACL row  */
@@ -367,6 +374,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
     const acl = JSON.parse(aclRow.acl);
     const oldMeta = JSON.parse(oldModelRow.meta);
+
+    // copy virtual columns and many to many relations from old meta to new
+    newMeta.v = oldMeta.v;
+    newMeta.manyToMany = oldMeta.manyToMany;
+
     const aclOper = [];
 
     this.baseLog(`onTableUpdate : Comparing and updating new metadata of '%s' table`, tn)
@@ -519,6 +531,12 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             aclObj.columns[column.cn] = true;
           }
         }
+
+        if (queryParams?.showFields) {
+          queryParams.showFields[column.cno] = true;
+        }
+
+
       } else {
         oldCol = oldMeta.columns.find(c => c.cn === column.cn);
         newCol = newMeta.columns.find(c => c.cn === column.cn);
@@ -535,7 +553,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
 
     await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-      meta: JSON.stringify(newMeta)
+      meta: JSON.stringify(newMeta),
+      ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
     }, {
       title: tn
     });
@@ -724,6 +743,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
       parent_model_title: tn
     });
+  }
+
+
+  public async onManyToManyRelationCreate(parent: string, child: string, _args?: any) {
+    return this.getManyToManyRelations({parent, child})
   }
 
 
@@ -1497,7 +1521,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
 
-  protected async getManyToManyRelations() {
+  protected async getManyToManyRelations({parent = null, child = null} = {}) {
     const metas = new Set<any>();
     const assocMetas = new Set<any>();
 
@@ -1506,6 +1530,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       // check if table is a Bridge table(or Associative Table) by checking
       // number of foreign keys and columns
       if (meta.belongsTo?.length === 2 && meta.columns.length < 5) {
+
+        if (parent && child && !([parent, child].includes(meta.belongsTo[0].rtn) && [parent, child].includes(meta.belongsTo[1].rtn))) {
+          continue;
+        }
+
         const tableMetaA = this.metas[meta.belongsTo[0].rtn];
         const tableMetaB = this.metas[meta.belongsTo[1].rtn];
 
@@ -1515,35 +1544,39 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
         // add manytomany data under metadata of both related columns
         tableMetaA.manyToMany = tableMetaA.manyToMany || [];
-        tableMetaA.manyToMany.push({
-          "tn": tableMetaA.tn,
-          "cn": meta.belongsTo[0].rcn,
-          "vtn": meta.tn,
-          "vcn": meta.belongsTo[0].cn,
-          "vrcn": meta.belongsTo[1].cn,
-          "rtn": meta.belongsTo[1].rtn,
-          "rcn": meta.belongsTo[1].rcn,
-          "_tn": tableMetaA._tn,
-          "_cn": meta.belongsTo[0]._rcn,
-          "_rtn": meta.belongsTo[1]._rtn,
-          "_rcn": meta.belongsTo[1]._rcn
-        })
+        if (tableMetaA.manyToMany.every(mm => mm.vtn === meta.vtn)) {
+          tableMetaA.manyToMany.push({
+            "tn": tableMetaA.tn,
+            "cn": meta.belongsTo[0].rcn,
+            "vtn": meta.tn,
+            "vcn": meta.belongsTo[0].cn,
+            "vrcn": meta.belongsTo[1].cn,
+            "rtn": meta.belongsTo[1].rtn,
+            "rcn": meta.belongsTo[1].rcn,
+            "_tn": tableMetaA._tn,
+            "_cn": meta.belongsTo[0]._rcn,
+            "_rtn": meta.belongsTo[1]._rtn,
+            "_rcn": meta.belongsTo[1]._rcn
+          })
+          metas.add(tableMetaA)
+        }
         tableMetaB.manyToMany = tableMetaB.manyToMany || [];
-        tableMetaB.manyToMany.push({
-          "tn": tableMetaB.tn,
-          "cn": meta.belongsTo[1].rcn,
-          "vtn": meta.tn,
-          "vcn": meta.belongsTo[1].cn,
-          "vrcn": meta.belongsTo[0].cn,
-          "rtn": meta.belongsTo[0].rtn,
-          "rcn": meta.belongsTo[0].rcn,
-          "_tn": tableMetaB._tn,
-          "_cn": meta.belongsTo[1]._rcn,
-          "_rtn": meta.belongsTo[0]._rtn,
-          "_rcn": meta.belongsTo[0]._rcn
-        })
-        metas.add(tableMetaA)
-        metas.add(tableMetaB)
+        if (tableMetaB.manyToMany.every(mm => mm.vtn === meta.vtn)) {
+          tableMetaB.manyToMany.push({
+            "tn": tableMetaB.tn,
+            "cn": meta.belongsTo[1].rcn,
+            "vtn": meta.tn,
+            "vcn": meta.belongsTo[1].cn,
+            "vrcn": meta.belongsTo[0].cn,
+            "rtn": meta.belongsTo[0].rtn,
+            "rcn": meta.belongsTo[0].rcn,
+            "_tn": tableMetaB._tn,
+            "_cn": meta.belongsTo[1]._rcn,
+            "_rtn": meta.belongsTo[0]._rtn,
+            "_rcn": meta.belongsTo[0]._rcn
+          })
+          metas.add(tableMetaB)
+        }
         assocMetas.add(meta)
       }
     }
@@ -1551,14 +1584,36 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // Update metadata of tables which have manytomany relation
     // and recreate basemodel with new meta information
     for (const meta of metas) {
+
+      let queryParams;
+
+      // update showfields on new many to many relation create
+      if (parent && child) {
+        try {
+          queryParams = JSON.parse((await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {title: meta.tn})).query_params)
+        } catch (e) {
+          //  ignore
+        }
+      }
+
       meta.v = [
-        ...meta.v.filter(vc => vc.bt && meta.manyToMany.some(mm => vc.bt.rtn === mm.vtn)),
-        ...meta.manyToMany.map(mm => ({
-          mm,
-          _cn: `${mm._tn} <=> ${mm._rtn}`
-        }))]
+        ...meta.v.filter(vc => (vc.bt && meta.manyToMany.some(mm => vc.bt.rtn === mm.vtn)) || vc.mm),
+        // todo: ignore existing m2m relations
+        ...meta.manyToMany.map(mm => {
+
+          if (queryParams?.showFields && !(`${mm._tn} <=> ${mm._rtn}` in queryParams.showFields)) {
+            queryParams.showFields[`${mm._tn} <=> ${mm._rtn}`] = true;
+          }
+
+          return {
+            mm,
+            _cn: `${mm._tn} <=> ${mm._rtn}`
+          }
+
+        })]
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        meta: JSON.stringify(meta)
+        meta: JSON.stringify(meta),
+        ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
       }, {title: meta.tn})
       XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
       this.models[meta.tn] = this.getBaseModel(meta)

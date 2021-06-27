@@ -89,6 +89,7 @@
                     :column="newColumn"
                     :nodes="nodes"
                     :meta="meta"
+                    :isSQLite="isSQLite"
                     @onColumnSelect="onRelColumnSelect"
                   ></linked-to-another-options>
                 </v-col>

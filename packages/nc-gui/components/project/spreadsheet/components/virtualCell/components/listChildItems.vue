@@ -1,18 +1,17 @@
 <template>
-  <v-dialog v-model="value" width="600">
+  <v-dialog v-model="show" width="600">
     <v-card width="600" color="backgroundColor">
       <v-card-title class="textColor--text mx-2">{{ meta ? meta._tn : 'Children' }}
         <v-spacer>
         </v-spacer>
 
-        <v-btn small class="caption" color="primary" @click="emit('new-record')">
+        <v-btn small class="caption" color="primary" @click="$emit('new-record')">
           <v-icon small>mdi-plus</v-icon>&nbsp;
           Add Record
         </v-btn>
 
       </v-card-title>
       <v-card-text>
-
         <div class="items-container">
           <template v-if="data && data.list">
             <v-card
@@ -32,6 +31,7 @@
                 >mdi-link-variant-remove
                 </x-icon>
                 <x-icon
+                  v-if="!mm"
                   :tooltip="`Delete row in '${meta._tn}'`"
                   :color="['error','grey']"
                   small
@@ -87,6 +87,7 @@ export default {
     parentMeta: Object,
     size: Number,
     api: [Object, Function],
+    mm:[Object, Boolean]
   },
   data: () => ({
     data: null,
@@ -99,7 +100,7 @@ export default {
     async loadData() {
       if (!this.api) return;
 
-      this.data = await this.api.paginatedList({
+     this.data = await this.api.paginatedList({
         limit: this.size,
         offset: this.size * (this.page - 1),
         ...this.queryParams

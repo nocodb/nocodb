@@ -67,7 +67,7 @@ export default {
         columns = this.meta.columns || [];
       } else if (this.data && this.data.length) {
         columns = (this.meta.columns.filter(c => !(c.pk && c.ai)
-          && !(this.meta.v.some(v => v.bt && v.bt.cn === c.cn))
+          && !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
           && !hideCols.includes(c.cn))) || [];
       } else {
         columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
@@ -111,9 +111,9 @@ export default {
         offset: this.size * (this.page - 1),
         where: this.concatenatedXWhere,
         sort: this.sort,
-        childs: (this.meta && this.meta.hasMany && this.meta.hasMany.map(hm => hm.tn).join()) || '',
-        parents: (this.meta && this.meta.belongsTo && this.meta.belongsTo.map(hm => hm.rtn).join()) || '',
-        many: (this.meta && this.meta.manyToMany && this.meta.manyToMany.map(mm => mm.rtn).join()) || ''
+        childs: (this.meta && this.meta.v && this.meta.v.filter(v=>v.hm).map(({hm}) => hm.tn).join()) || '',
+        parents: (this.meta && this.meta.v && this.meta.v.filter(v=>v.bt).map(({bt}) => bt.rtn).join()) || '',
+        many: (this.meta && this.meta.v && this.meta.v.filter(v=>v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     }, colLength() {
       return (this.availableColumns && this.availableColumns.length) || 0
@@ -140,7 +140,7 @@ export default {
     },
     belongsTo() {
       return this.meta && this.meta.belongsTo ? this.meta.belongsTo.reduce((bt, o) => {
-        const _cn = (this.meta.columns.find(c => c.cn === o.cn)||{})._cn
+        const _cn = (this.meta.columns.find(c => c.cn === o.cn) || {})._cn
         bt[_cn] = o;
         return bt;
       }, {}) : {};

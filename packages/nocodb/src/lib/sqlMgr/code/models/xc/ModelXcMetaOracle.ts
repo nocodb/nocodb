@@ -1,6 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseModelXcMeta from "./BaseModelXcMeta";
 
-class ModelXcMetaOracle extends BaseRender {
+class ModelXcMetaOracle extends BaseModelXcMeta {
 
   /**
    * @param dir
@@ -182,6 +182,7 @@ class ModelXcMetaOracle extends BaseRender {
     }
 
 
+    this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
 
   }
@@ -527,7 +528,7 @@ class ModelXcMetaOracle extends BaseRender {
     return str;
   }
 
-
+/*
   getObject() {
     return {
       tn: this.ctx.tn,
@@ -540,7 +541,7 @@ class ModelXcMetaOracle extends BaseRender {
       type: this.ctx.type,
     }
 
-  }
+  }*/
 
 }
 

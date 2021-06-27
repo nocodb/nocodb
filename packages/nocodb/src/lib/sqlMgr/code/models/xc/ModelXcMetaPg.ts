@@ -1,6 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseModelXcMeta from "./BaseModelXcMeta";
 
-class ModelXcMetaPg extends BaseRender {
+class ModelXcMetaPg extends BaseModelXcMeta {
 
   /**
    * @param dir
@@ -984,10 +984,12 @@ class ModelXcMetaPg extends BaseRender {
 
       columnsArr.push(columnObj)
     }
+
+    this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
   }
 
-  getObject() {
+/*  getObject() {
     return {
       tn: this.ctx.tn,
       _tn: this.ctx._tn,
@@ -999,7 +1001,7 @@ class ModelXcMetaPg extends BaseRender {
       type: this.ctx.type,
     }
 
-  }
+  }*/
 
 }
 

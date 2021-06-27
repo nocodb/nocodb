@@ -5,7 +5,7 @@
         <v-col>
           <v-radio-group row hide-details dense v-model="type" class="pt-0 mt-0">
             <v-radio value="hm" label="Has Many"></v-radio>
-            <v-radio disabled value="mm" label="Many To Many"></v-radio>
+            <v-radio value="mm" label="Many To Many"></v-radio>
             <v-radio disabled value="oo" label="One To One"></v-radio>
           </v-radio-group>
         </v-col>
@@ -47,55 +47,55 @@
         </v-col
         >
       </v-row>
+      <template v-if="!isSQLite">
+        <v-row>
+          <v-col cols="6">
+            <v-autocomplete
+              outlined
+              class="caption"
+              hide-details
+              label="On Update"
+              :full-width="false"
+              v-model="relation.onUpdate"
+              :items="onUpdateDeleteOptions"
+              required
+              dense
+              :disabled="relation.type !== 'real'"
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="6">
+            <v-autocomplete
+              outlined
+              class="caption"
+              hide-details
+              label="On Delete"
+              :full-width="false"
+              v-model="relation.onDelete"
+              :items="onUpdateDeleteOptions"
+              required
+              dense
+              :disabled="relation.type !== 'real'"
+            ></v-autocomplete>
+          </v-col>
+        </v-row>
 
-      <v-row>
-        <v-col cols="6">
-          <v-autocomplete
-            outlined
-            class="caption"
-            hide-details
-            label="On Update"
-            :full-width="false"
-            v-model="relation.onUpdate"
-            :items="onUpdateDeleteOptions"
-            required
-            dense
-            :disabled="relation.type !== 'real'"
-          ></v-autocomplete>
-        </v-col>
-        <v-col cols="6">
-          <v-autocomplete
-            outlined
-            class="caption"
-            hide-details
-            label="On Delete"
-            :full-width="false"
-            v-model="relation.onDelete"
-            :items="onUpdateDeleteOptions"
-            required
-            dense
-            :disabled="relation.type !== 'real'"
-          ></v-autocomplete>
-        </v-col>
-      </v-row>
 
+        <v-row>
 
-      <v-row>
-
-        <v-col>
-          <v-checkbox
-            false-value="real"
-            true-value="virtual"
-            label="Virtual Relation"
-            :full-width="false"
-            v-model="relation.type"
-            required
-            class="mt-0"
-            dense
-          ></v-checkbox>
-        </v-col>
-      </v-row>
-
+          <v-col>
+            <v-checkbox
+              false-value="real"
+              true-value="virtual"
+              label="Virtual Relation"
+              :full-width="false"
+              v-model="relation.type"
+              required
+              class="mt-0"
+              dense
+            ></v-checkbox>
+          </v-col>
+        </v-row>
+      </template>
     </v-container>
   </div>
 </template>
@@ -103,7 +103,7 @@
 <script>
 export default {
   name: "linked-to-another-options",
-  props: ['nodes', 'column', 'meta'],
+  props: ['nodes', 'column', 'meta', 'isSQLite'],
   data: () => ({
     type: 'hm',
     refTables: [],
@@ -170,8 +170,30 @@ export default {
       this.refTables = result.data.list.map(({tn, _tn}) => ({tn, _tn}))
       this.isRefTablesLoading = false;
     },
+    async saveManyToMany() {
+      try {
+        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias
+          },
+          'xcM2MRelationCreate',
+          {
+            ...this.relation,
+            type: this.isSQLite || this.relation.type === 'virtual' ? 'virtual' : 'real',
+            parentTable: this.meta.tn,
+            updateRelation: this.column.rtn ? true : false
+          }
+        ]);
+      } catch (e) {
+        throw e
+      }
+    },
     async saveRelation() {
-
+      if (this.type === 'mm') {
+        await this.saveManyToMany();
+        return;
+      }
       try {
         const parentPK = this.meta.columns.find(c => c.pk);
 
@@ -220,7 +242,7 @@ export default {
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias
           },
-          this.relation.type === 'real' ? "relationCreate" : 'xcVirtualRelationCreate',
+          this.relation.type === 'real' && !this.isSQLite ? "relationCreate" : 'xcVirtualRelationCreate',
           {
             ...this.relation,
             parentTable: this.meta.tn,
@@ -230,7 +252,7 @@ export default {
           }
         ]);
       } catch (e) {
-        console.log(e.message)
+        throw e
       }
     },
     onColumnSelect() {

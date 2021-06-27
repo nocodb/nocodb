@@ -91,6 +91,9 @@ export default class NcProjectBuilder {
           type: 'AUTH_MIDDLEWARE'
         });
         break;
+      case 'xcM2MRelationCreate':
+        curBuilder.onManyToManyRelationCreate(data.req.args.parentTable, data.req.args.childTable, data.req.args);
+        break;
 
       case 'relationCreate':
         await curBuilder.onRelationCreate(data.req.args.parentTable, data.req.args.childTable, data.req.args);

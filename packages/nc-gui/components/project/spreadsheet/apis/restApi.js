@@ -60,7 +60,6 @@ export default class RestApi {
     // const list = await this.list(params);
     // const count = (await this.count({where: params.where || ''})).count;
     const {list, info: {count}} = (await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
-    debugger
     return {list, count};
   }
 

@@ -838,7 +838,7 @@ export default {
           break;
       }
     },
-    async loadMeta() {
+    async loadMeta(updateShowFields = true) {
       this.loadingMeta = true;
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
@@ -848,6 +848,13 @@ export default {
       }]);
       this.meta = JSON.parse(tableMeta.meta);
       this.loadingMeta = false;
+      if (updateShowFields) {
+        try {
+          const qp = JSON.parse(tableMeta.query_params)
+          this.showFields = qp.showFields ? qp.showFields : this.showFields;
+        } catch (e) {
+        }
+      }
     },
     loadTableDataDeb: debounce(async function (self) {
       await self.loadTableDataFn()
@@ -889,10 +896,10 @@ export default {
       this.selectedExpandRowMeta = rowMeta;
     },
     async onNewColCreation() {
-      await this.loadMeta();
+      await this.loadMeta(true);
       this.$nextTick(async () => {
         await this.loadTableData();
-        this.mapFieldsAndShowFields();
+        // this.mapFieldsAndShowFields();
       });
     }
   },

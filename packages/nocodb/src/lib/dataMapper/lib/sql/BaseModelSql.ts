@@ -1150,7 +1150,8 @@ class BaseModelSql extends BaseModel {
 
     let {fields, where, limit, offset, sort} = this._getChildListArgs(rest, index, child);
     const {tn, cn, vtn, vcn, vrcn, rtn, rcn} = this.manyToManyRelations.find(({rtn}) => rtn === child) || {};
-    const _cn = this.dbModels[tn].columnToAlias?.[cn];
+    // @ts-ignore
+    // const _cn = this.dbModels[tn].columnToAlias?.[cn];
 
     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
       fields += ',' + cn;
@@ -1165,14 +1166,14 @@ class BaseModelSql extends BaseModel {
             .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
             .where(`${vtn}.${vcn}`, p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
             .xwhere(where, this.dbModels[child].selectQuery(''))
-            .select({[_cn]: `${vtn}.${cn}`, ...this.dbModels[child].selectQuery(fields)}) // ...fields.split(','));
+            .select({[`${tn}_${vcn}`]: `${vtn}.${vcn}`, ...this.dbModels[child].selectQuery(fields)}) // ...fields.split(','));
 
         this._paginateAndSort(query, {sort, limit, offset}, null, true);
         return this.isSqlite() ? this.dbDriver.select().from(query) : query;
       }), !this.isSqlite()
     ));
 
-    let gs = _.groupBy(childs, _cn);
+    let gs = _.groupBy(childs, `${tn}_${vcn}`);
     parent.forEach(row => {
       row[this.dbModels?.[child]?._tn || child] = gs[row[this.pks[0]._cn]] || [];
     })

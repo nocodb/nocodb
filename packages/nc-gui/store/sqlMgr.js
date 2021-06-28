@@ -421,7 +421,7 @@ export const actions = {
 
       return (await this.$axios({
         url: '?q=sqlOp_' + op,
-        baseURL: `${$this.axios.defaults.baseURL}/dashboard`,
+        baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
         data: formData, //{api: op, ...args, args: opArgs},
         headers,
         method: 'post',
@@ -429,7 +429,10 @@ export const actions = {
         ...(cusAxiosOptions || {})
       })).data;
     } catch (e) {
-      throw new Error(e.response.data.msg);
+      if (e.response && e.response.data) {
+        throw new Error(e.response.data.msg);
+      }
+      throw e;
     }
 
   },

@@ -272,6 +272,11 @@ class BaseModelSql extends BaseModel {
           response = data;
         }
       }
+
+      if (Array.isArray(response)) {
+        response = response[0];
+      }
+
       await this.afterInsert(response, trx, cookie);
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {

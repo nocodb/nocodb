@@ -137,6 +137,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           return typeof value === 'string' ? this.parseBody(value, apiReq, data, apiMeta) : value;
         });
       } catch (e) {
+        apiMeta.body = this.parseBody(apiMeta.body, apiReq, data, apiMeta)
         console.log(e);
       }
     }
@@ -146,6 +147,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           return typeof value === 'string' ? this.parseBody(value, apiReq, data, apiMeta) : value;
         });
       } catch (e) {
+        apiMeta.auth = this.parseBody(apiMeta.auth, apiReq, data, apiMeta)
         console.log(e);
       }
     }
@@ -157,7 +159,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
         }
         return paramsObj;
       }, {}) : {},
-      url: apiMeta.path,
+      url: this.parseBody(apiMeta.path, apiReq, data, apiMeta),
       method: apiMeta.method,
       data: apiMeta.body,
       headers: apiMeta.headers ? apiMeta.headers.reduce((headersObj, header) => {

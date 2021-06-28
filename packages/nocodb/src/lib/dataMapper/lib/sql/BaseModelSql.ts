@@ -805,13 +805,14 @@ class BaseModelSql extends BaseModel {
   async countByPk({where = '', conditionGraph = null}) {
     try {
       if (this.isPg() && !conditionGraph && !where) {
-        return (await this._run(
-          this.dbDriver.raw(`SELECT c.reltuples::bigint AS count
-                  FROM   pg_class c
-                  JOIN   pg_namespace n ON n.oid = c.relnamespace
-                  WHERE  c.relname = ?
-                  AND    n.nspname = ?`, [this.tn,this.config?.searchPath?.[0] || 'public'])
+        const res = (await this._run(
+          this.dbDriver.raw(`select reltuples::int8 as count 
+        from pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+        where nspname=? AND relname=?`, [this.config?.searchPath?.[0] || 'public', this.tn])
         ))?.rows?.[0];
+        if (res?.count > 1000) {
+          return res;
+        }
       }
 
       return await this._run(this.$db

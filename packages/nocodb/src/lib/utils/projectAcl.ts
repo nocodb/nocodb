@@ -3,6 +3,8 @@ export default {
   creator: '*',
   guest: {},
   editor: {
+    xcAuditCreate: true,
+    xcAttachmentUpload:true,
     xcVirtualTableList: true,
     xcMetaTablesImportZipToLocalFsAndDb: false,
     // testConnection:true,

@@ -172,7 +172,7 @@
                       <column-filter v-if="enableCondition && _isEE"
                                      :field-list="fieldList"
                                      v-model="hook.condition"
-                                     dense class="pt-0" style="max-width: 100%">
+                                     dense style="max-width: 100%">
                       </column-filter>
                     </v-card-text>
                   </v-card>

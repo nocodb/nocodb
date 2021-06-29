@@ -5,6 +5,7 @@
     :rules="[v => !!v || !inputDetails.required  || 'Required']"
     :name="inputDetails.key"
     :placeholder="inputDetails.placeholder || ''"
+    hide-details="auto"
     v-on="parentListeners" v-model="localState" class="caption" rows="3"
     :required="inputDetails.valid"
   ></v-textarea>

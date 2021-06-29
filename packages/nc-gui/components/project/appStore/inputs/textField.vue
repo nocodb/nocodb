@@ -6,6 +6,7 @@
     :name="inputDetails.key"
     :required="inputDetails.valid"
     :placeholder="inputDetails.placeholder || ''"
+    hide-details="auto"
     v-on="parentListeners" v-model="localState" class="caption"/>
 </template>
 

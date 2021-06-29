@@ -19,7 +19,7 @@
         <v-divider class="mb-7"></v-divider>
         <div v-if="formDetails.array">
 
-          <table class="form-table mx-auto" >
+          <table class="form-table mx-auto">
             <thead>
             <tr>
               <th v-for="(item,i) in formDetails.items" :key="i">
@@ -50,19 +50,19 @@
 
         </div>
 
+        <div v-else class="d-flex justify-center">
+          <div class="form-grid">
+            <template v-for="(item,i) in formDetails.items">
+              <div :key="i" class="text-right form-input-label">
+                <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
+              </div>
+              <div :key="i">
+                <form-input :input-details="item" v-model="settings[item.key]"></form-input>
+              </div>
+            </template>
+          </div>
 
-        <div class="form-grid" v-else>
-          <template v-for="(item,i) in formDetails.items">
-            <div :key="i" class="text-right form-input-label">
-              <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
-            </div>
-            <div :key="i">
-              <form-input :input-details="item" v-model="settings[item.key]"></form-input>
-            </div>
-          </template>
         </div>
-
-
         <div class="d-flex mb-4 mt-7 justify-center">
           <v-btn small
                  :outlined="action.key !== 'save'"
@@ -246,7 +246,7 @@ tbody tr:nth-of-type(odd) {
   background-color: transparent;
 }
 
-.form-input-label{
+.form-input-label {
   padding-bottom: 16px;
 }
 </style>

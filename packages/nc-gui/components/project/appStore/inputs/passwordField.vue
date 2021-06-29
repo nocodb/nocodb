@@ -6,6 +6,7 @@
     :rules="[v => !!v || !inputDetails.required  || 'Required']"
     :name="inputDetails.key"
     :required="inputDetails.valid"
+    hide-details="auto"
     :placeholder="inputDetails.placeholder || ''"
     v-on="parentListeners" v-model="localState" class="caption">
     <template v-slot:append>

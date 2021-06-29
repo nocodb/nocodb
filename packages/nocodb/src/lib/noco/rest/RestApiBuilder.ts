@@ -1510,11 +1510,11 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       if (this.config?.auth?.jwt?.dbAlias !== this.connectionConfig.meta.dbAlias) {
         swaggerBaseDocument = {...swaggerBaseDocument, tags: [], definitions: {}, paths: {}};
       }
-      
+
       const host = process.env.NC_PUBLIC_URL ? new URL(process.env.NC_PUBLIC_URL)?.host : req.get('host');
       const scheme = process.env.NC_PUBLIC_URL ? new URL(process.env.NC_PUBLIC_URL)?.protocol.slice(0, -1) : req.protocol;
       swaggerBaseDocument.host = host;
-      swaggerBaseDocument.schemes = [scheme];
+      swaggerBaseDocument.schemes = [scheme, scheme === 'http' ? 'https' : 'http'];
       glob.sync(path.join(this.config.toolDir, 'nc', this.projectId, this.getDbAlias(), 'swagger', 'swagger.json')).forEach(jsonFile => {
         const swaggerJson = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
         swaggerBaseDocument.tags.push(...swaggerJson.tags);

@@ -2854,17 +2854,13 @@ export default class NcMetaMgr {
   protected async xcPluginTest(req, args): Promise<any> {
     try {
       switch (args.args.category) {
-        // case 'Storage':
-        //   const storageIns = StorageFactory.createNewInstance(args.args, args.args.input);
-        //   await storageIns.init();
-        //   await storageIns?.test();
-        //   break;
         case 'Email':
           const emailIns = EmailFactory.createNewInstance(args.args, args.args.input)
           await emailIns.init();
           await emailIns?.test(req.user?.email)
           break;
         default:
+          return this.pluginMgr.test(args.args)
           break;
       }
       return true;

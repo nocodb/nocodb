@@ -66,10 +66,12 @@
         <div class="d-flex mb-4 mt-7 justify-center">
           <v-btn small
                  :outlined="action.key !== 'save'"
-                 v-for="action in formDetails.actions" @click="doAction(action)"
+                 v-for="action in formDetails.actions"
+                 @click="doAction(action)"
                  :key="action.key"
                  :color="action.key === 'save' ? 'primary' : '' "
-                 :disabled="action.key === 'save'  && !valid"
+                 :disabled="(action.key === 'save'  && !valid) || (action.key === 'test' && testing)"
+                 :loading="action.key === 'test' && testing"
           >{{ action.label }}
           </v-btn>
         </div>
@@ -91,7 +93,8 @@ export default {
     settings: null,
     pluginId: null,
     title: null,
-    valid: null
+    valid: null,
+    testing: false
   }),
   methods: {
     simpleAnim() {
@@ -146,17 +149,23 @@ export default {
 
     },
     async testSettings() {
+      this.testing = true;
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginTest', {
+        const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginTest', {
           input: this.settings,
           id: this.pluginId,
           category: this.plugin.category,
           title: this.plugin.title
         }]);
-        this.$toast.success('Successfully tested plugin settings').goAway(3000)
+        if (res) {
+          this.$toast.success('Successfully tested plugin settings').goAway(3000)
+        } else {
+          this.$toast.info('Invalid credentials').goAway(3000)
+        }
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast[e.message === 'Not implemented' ? 'info' : 'error'](e.message).goAway(3000);
       }
+      this.testing = false;
     },
     async doAction(action) {
       switch (action.key) {
@@ -246,7 +255,5 @@ tbody tr:nth-of-type(odd) {
   background-color: transparent;
 }
 
-.form-input-label {
-  padding-bottom: 16px;
-}
+
 </style>

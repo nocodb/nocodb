@@ -99,7 +99,7 @@ class NcPluginMgr {
 
         try {
           await tempPlugin.init(pluginConfig?.input);
-        }catch (e){
+        } catch (e) {
           console.log(`Plugin(${plugin?.title}) initialization failed : ${e.message}`)
         }
       }
@@ -130,6 +130,19 @@ class NcPluginMgr {
       return obj;
     }, {});
 
+  }
+
+  public async test(args: any): Promise<boolean> {
+    switch (args.category) {
+      case 'Storage':
+        const plugin = defaultPlugins.find(pluginConfig => pluginConfig?.title === args.title);
+        const tempPlugin = new plugin.builder(this.app, plugin);
+        await tempPlugin.init(args?.input);
+        return tempPlugin?.getAdapter()?.test?.();
+        break;
+      default:
+        throw new Error('Not implemented');
+    }
   }
 
 }

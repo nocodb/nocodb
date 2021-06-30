@@ -249,7 +249,8 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     return Handlebars.compile(template, {noEscape: true})({
       data,
       user: req?.user,
-      payload
+      payload,
+      env: process.env
     })
   }
 }

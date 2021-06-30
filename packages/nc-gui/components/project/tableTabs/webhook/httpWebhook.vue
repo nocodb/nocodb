@@ -57,9 +57,15 @@
 
       </v-tab-item>
       <v-tab-item>
-        <!--                <monaco-editor-->
-        <!--                  :code.sync="api.auth"-->
-        <!--                  cssStyle="height:250px"></monaco-editor>-->
+        <monaco-json-editor
+          style="height: 250px"
+          class="editor card text-left"
+          theme="vs-dark"
+          v-model="api.auth"
+          language="json"
+          :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
+        >
+        </monaco-json-editor>
       </v-tab-item>
 
 

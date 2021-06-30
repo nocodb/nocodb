@@ -27,7 +27,7 @@
               <v-combobox
                 v-ge="['api-client-headers','enable']"
                 class="body-2 caption"
-                :items="headerListAutoWithEnv"
+                :items="headerListAuto"
                 v-model="item.name"
                 :disabled="!item.enabled"
                 hide-details
@@ -90,11 +90,6 @@
           this.$emit('input', value)
         }
       },
-      // populating autocomplete list along with env variables
-      headerListAutoWithEnv() {
-        const envObj = this.isDashboard ? this.$store.getters['project/GtrApiEnvironment'] : this.$store.getters['project/GtrDefaultApiEnvironment'];
-        return [...this.headerListAuto, ...(envObj ? Object.keys(envObj[this.env]).map(e => `{{${e}}}`) : [])];
-      }
     },
 
     beforeCreated() {

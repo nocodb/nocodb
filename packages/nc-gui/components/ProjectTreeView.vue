@@ -461,7 +461,7 @@
           <!--          </v-list>-->
           <!--          <v-divider></v-divider>-->
 
-          <v-list dense>
+          <v-list dense v-if="_isUIAllowed('previewAs') || previewAs">
             <v-list-item>
               <!-- Preview as -->
               <span class="body-2 grey--text">{{ $t('treeview.preview_as') }}</span>

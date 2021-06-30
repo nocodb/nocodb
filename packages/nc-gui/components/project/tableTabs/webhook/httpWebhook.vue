@@ -66,6 +66,7 @@
           :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
         >
         </monaco-json-editor>
+        <span class="caption grey--text">For more about auth option refer <a href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.</span>
       </v-tab-item>
 
 

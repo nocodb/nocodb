@@ -204,7 +204,7 @@
 
 
                   <template v-if="hook.notification.type === 'URL'">
-                    <http-webhook  v-model="notification"></http-webhook>
+                    <http-webhook v-model="notification"></http-webhook>
                   </template>
 
                   <template v-if="hook.notification.type === 'Slack'">
@@ -287,6 +287,29 @@
                   </template>
 
                 </v-card-text>
+
+
+                <v-card-text>
+                  <span class="caption grey--text">
+                    <em>Available context variables are <strong>data, user, payload and env</strong></em>
+                    <v-tooltip top>
+                      <template #activator="{on}">
+                    <v-icon small
+                            v-on="on"
+                            color="grey"
+                            class="ml-2">mdi-information</v-icon>
+                        </template>
+                    <span class="caption">
+                      <strong>data</strong> : Row data <br>
+                      <strong>user</strong> : User information<br>
+                      <strong>payload</strong> : Plugin settings payload<br>
+                      <strong>env</strong> : Environment values (process.env)
+
+                    </span>
+                    </v-tooltip>
+                  </span>
+                </v-card-text>
+
               </v-card>
 
             </v-col>
@@ -430,7 +453,7 @@ export default {
         this.enableCondition = false;
         this.$toast.info('For webhook condition : Upgrade to Enterprise Edition').goAway(3000)
       }
-      this.hook.condition= []
+      this.hook.condition = []
     },
     async onNotTypeChange() {
       this.notification = {};

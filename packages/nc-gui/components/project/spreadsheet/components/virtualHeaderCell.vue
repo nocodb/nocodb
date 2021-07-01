@@ -1,15 +1,18 @@
 <template>
   <div class="d-flex align-center">
 
+    <v-tooltip bottom>
+      <template #activator="{on}">
+        <v-icon v-if="column.hm" color="warning" x-small class="mr-1" v-on="on">mdi-table-arrow-right</v-icon>
+        <v-icon v-else-if="column.bt" color="info" x-small class="mr-1" v-on="on">mdi-table-arrow-left</v-icon>
+        <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">mdi-table-network</v-icon>
 
-    <v-icon v-if="column.hm" color="warning" x-small class="mr-1">mdi-table-arrow-right</v-icon>
-    <v-icon v-else-if="column.bt" color="info" x-small class="mr-1">mdi-table-arrow-left</v-icon>
-    <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1">mdi-table-network</v-icon>
+        <span v-on="on">{{ column._cn }}</span>
 
-    {{ column._cn }}
-
-    <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
-
+        <span v-if="column.rqd" v-on="on" class="error--text text--lighten-1">&nbsp;*</span>
+      </template>
+      <span class="caption" v-html="tooltipMsg"></span>
+    </v-tooltip>
     <v-spacer>
     </v-spacer>
 
@@ -18,27 +21,25 @@
         <v-icon v-on="on" small>mdi-menu-down</v-icon>
       </template>
       <v-list dense>
-        <v-list-item dense @click="editColumnMenu = true">
-          <x-icon small class="mr-1" color="primary">mdi-pencil</x-icon>
-          <span class="caption">Edit</span>
-        </v-list-item>
-        <v-list-item dense @click="setAsPrimaryValue">
-          <x-icon small class="mr-1" color="primary">mdi-key-star</x-icon>
-          <v-tooltip bottom>
-            <template v-slot:activator="{on}">
-              <span class="caption" v-on="on">Set as Primary value</span>
-            </template>
-            <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
-          </v-tooltip>
-        </v-list-item>
-        <v-list-item @click="columnDeleteDialog = true">
-          <x-icon small class="mr-1" color="error">mdi-delete-outline</x-icon>
-          <span class="caption">Delete</span>
-        </v-list-item>
+        <!--  <v-list-item dense @click="editColumnMenu = true">
+            <x-icon small class="mr-1" color="primary">mdi-pencil</x-icon>
+            <span class="caption">Edit</span>
+          </v-list-item>
+          <v-list-item dense @click="setAsPrimaryValue">
+            <x-icon small class="mr-1" color="primary">mdi-key-star</x-icon>
+            <v-tooltip bottom>
+              <template v-slot:activator="{on}">
+                <span class="caption" v-on="on">Set as Primary value</span>
+              </template>
+              <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
+            </v-tooltip>
+          </v-list-item>
+          <v-list-item @click="columnDeleteDialog = true">
+            <x-icon small class="mr-1" color="error">mdi-delete-outline</x-icon>
+            <span class="caption">Delete</span>
+          </v-list-item>-->
       </v-list>
     </v-menu>
-
-
 
 
   </div>
@@ -47,8 +48,19 @@
 export default {
   props: ['column'],
   name: "virtualHeaderCell",
-  data: () => ({
-  }),
+  data: () => ({}),
+  computed: {
+    tooltipMsg() {
+      if (!this.column) return '';
+      if (this.column.hm) {
+        return `'${this.column.hm._rtn}' has many '${this.column.hm._tn}'`
+      } else if (this.column.mm) {
+        return `'${this.column.mm._tn}' & '${this.column.mm._rtn}' have <br>many to many relation`
+      } else if (this.column.bt) {
+        return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
+      }
+    }
+  }
 }
 </script>
 

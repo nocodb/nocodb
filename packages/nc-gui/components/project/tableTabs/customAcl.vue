@@ -1,6 +1,6 @@
 <template>
   <v-skeleton-loader v-if="loading" type="text@3"></v-skeleton-loader>
-  <div class="caption" v-else>{{ Array.isArray(value) ? '[' : '{' }}
+  <div class="caption text-left" v-else>{{ Array.isArray(value) ? '[' : '{' }}
 
     <ul>
       <template v-if="Array.isArray(value)">

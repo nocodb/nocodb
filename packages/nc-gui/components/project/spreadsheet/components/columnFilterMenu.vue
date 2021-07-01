@@ -19,6 +19,7 @@
     <column-filter v-model="filters" :field-list="fieldList">
       <div class="d-flex align-center mx-2" @click.stop>
         <v-checkbox
+          class="col-filter-checkbox"
           hide-details
           dense
           id="col-filter-checkbox"
@@ -85,4 +86,7 @@ export default {
 </script>
 
 <style scoped>
+/deep/ .col-filter-checkbox .v-input--selection-controls__input {
+  transform: scale(.7);
+}
 </style>

@@ -1,8 +1,8 @@
 <template>
-  <v-chip small :color="color"
+  <v-chip small text-color="textColor" :color="isDark ? '' : 'primary lighten-5'"
           @click="active && $emit('edit',item)"
-  >{{value}}
-    <div v-show="active" class="mr-n1 ml-2 mt-n1">
+  >{{ value }}
+    <div v-show="active" class="mr-n1 ml-2">
       <x-icon
         :color="['text' , 'textLight']"
         x-small
@@ -16,11 +16,10 @@
 
 <script>
 export default {
-  props:{
-    color:String,
-    value:String,
-    active:Boolean,
-    item:Object
+  props: {
+    value: String,
+    active: Boolean,
+    item: Object
   },
   name: "item-chip"
 }

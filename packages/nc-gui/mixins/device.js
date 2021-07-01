@@ -11,6 +11,12 @@ export default {
     }
   },
   computed: {
+    isDark() {
+      return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.dark;
+    },
+    isLight() {
+      return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.light;
+    },
     language() {
 
       // const dummy = new Date();
@@ -33,6 +39,7 @@ export default {
         && this.$route.path
         && (this.$route.path === '/nc' || this.$route.path === '/nc/' || this.$route.path.startsWith('/nc/'));
     },
+
     _meta() {
       return this._isMac ? '⌘' : '^';
     },

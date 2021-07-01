@@ -1,12 +1,11 @@
 <template>
   <div class="d-flex">
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
-      <template v-if="value">
+      <template v-if="value||localState">
         <item-chip
-          v-for="(ch,i) in value"
+          v-for="(ch,i) in (value|| localState)"
           :active="active"
           :item="ch"
-          :color="colors[i%colors.length]"
           :value="Object.values(ch)[1]"
           :key="i"
           @edit="editChild"
@@ -32,7 +31,7 @@
       @add="addChildToParent"
       :query-params="{
         ...childQueryParams,
-        where: `~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
+        where: isNew ? null :`~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
       }"/>
 
     <list-child-items
@@ -47,78 +46,13 @@
       :api="childApi"
       :query-params="{
         ...childQueryParams,
-        where: `(${childForeignKey},eq,${parentId})`
+        where:  `(${childForeignKey},eq,${parentId})`
       }"
       @new-record="showNewRecordModal"
       @edit="editChild"
       @unlink="unlinkChild"
       @delete="deleteChild"
     />
-
-
-    <!--<v-dialog v-if="childListModal" v-model="childListModal" width="600">
-      <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor&#45;&#45;text mx-2">{{ childMeta ? childMeta._tn : 'Children' }}
-          <v-spacer>
-          </v-spacer>
-
-          <v-btn small class="caption" color="primary" @click="showNewRecordModal">
-            <v-icon small>mdi-plus</v-icon>&nbsp;
-            Add Record
-          </v-btn>
-
-        </v-card-title>
-        <v-card-text>
-
-          <div class="items-container">
-            <template v-if="childList">
-              <v-card
-                v-for="(ch,i) in childList.list"
-                class="ma-2 child-list-modal child-card"
-                outlined
-                :key="i"
-                @click="editChild(ch)"
-              >
-                <div class="remove-child-icon d-flex align-center">
-                  <x-icon
-                    :tooltip="`Unlink this '${childMeta._tn}' from '${meta._tn}'`"
-                    :color="['error','grey']"
-                    small
-                    @click.stop="unlinkChild(ch,i)"
-                    icon.class="mr-1 mt-n1"
-                  >mdi-link-variant-remove
-                  </x-icon>
-                  <x-icon
-                    :tooltip="`Delete row in '${childMeta._tn}'`"
-                    :color="['error','grey']"
-                    small
-                    @click.stop="deleteChild(ch,i)"
-                  >mdi-delete-outline
-                  </x-icon>
-                </div>
-
-                <v-card-title class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2">
-                  {{ ch[childPrimaryCol] }}
-                  <span class="grey&#45;&#45;text caption primary-key"
-                        v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
-                </v-card-title>
-              </v-card>
-            </template>
-          </div>
-        </v-card-text>
-        <v-card-actions class="justify-center py-2 flex-column">
-          <pagination
-            v-if="childList"
-            :size="childListPagination.size"
-            :count="childList.count"
-            v-model="childListPagination.page"
-            @input="showChildListModal"
-            class="mb-3"
-          ></pagination>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
--->
 
     <dlg-label-submit-cancel
       type="primary"
@@ -143,7 +77,7 @@
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
         @cancel="selectedChild = null"
-        @input="$emit('loadTableData');loadChildList();"
+        @input="$emit('loadTableData')"
         :table="childMeta.tn"
         v-model="selectedChild"
         :old-row="{...selectedChild}"
@@ -166,7 +100,6 @@
 </template>
 
 <script>
-import colors from "@/mixins/colors";
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import Pagination from "@/components/project/spreadsheet/components/pagination";
@@ -183,7 +116,6 @@ export default {
     Pagination,
     DlgLabelSubmitCancel
   },
-  mixins: [colors],
   props: {
     value: [Object, Array],
     meta: [Object],
@@ -198,41 +130,20 @@ export default {
     newRecordModal: false,
     childListModal: false,
     childMeta: null,
-    // list: null,
-    // childList: null,
     dialogShow: false,
     confirmAction: null,
     confirmMessage: '',
     selectedChild: null,
     expandFormModal: false,
-    // listPagination: {
-    //   page: 1,
-    //   size: 10
-    // },
-    // childListPagination: {
-    //   page: 1,
-    //   size: 10
-    // },
-    isNewChild: false
+    isNewChild: false,
+    localState: []
   }),
 
   methods: {
     async showChildListModal() {
       await this.loadChildMeta();
-      // await this.loadChildList();
       this.childListModal = true;
     },
-    // async loadChildList() {
-    //   const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
-    //   const _cn = this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn;
-    //   this.childList = await this.childApi.paginatedList({
-    //     where: `(${_cn},eq,${pid})`,
-    //     limit: this.childListPagination.size,
-    //     offset: this.childListPagination.size * (this.childListPagination.page - 1),
-    //     ...this.childQueryParams
-    //   })
-    //
-    // },
     async deleteChild(child) {
       this.dialogShow = true;
       this.confirmMessage =
@@ -249,20 +160,13 @@ export default {
             if (this.childListModal && this.$refs.childList) {
               this.$refs.childList.loadData();
             }
-          }catch (e) {
+          } catch (e) {
             this.$toast.error(e.message)
           }
         }
       }
     },
     async unlinkChild(child) {
-      // this.dialogShow = true;
-      // this.confirmMessage =
-      //   'Do you want to unlink the record?';
-      // this.confirmAction = async act => {
-      //   if (act === 'hideDialog') {
-      //     this.dialogShow = false;
-      //   } else {
       await this.loadChildMeta();
       const column = this.childMeta.columns.find(c => c.cn === this.hm.cn);
       if (column.rqd) {
@@ -297,6 +201,12 @@ export default {
       this.newRecordModal = true;
     },
     async addChildToParent(child) {
+      if (this.isNew) {
+        this.localState.push(child);
+        this.newRecordModal = false;
+        return;
+      }
+
       const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
       const _cn = this.childForeignKey;
       this.newRecordModal = false;
@@ -383,6 +293,16 @@ export default {
     parentId() {
       return this.meta && this.meta.columns ? this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___') : '';
     }
+  },
+  watch: {
+    isNew(n, o) {
+      if (!n && o) {
+        let child;
+        while (child = this.localState.pop()) {
+          this.addChildToParent(child)
+        }
+      }
+    }
   }
 }
 </script>
@@ -405,25 +325,6 @@ export default {
   }
 }
 
-/*
-
-.child-list-modal {
-  position: relative;
-
-  .remove-child-icon {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    bottom: 10px;
-    opacity: 0;
-  }
-
-  &:hover .remove-child-icon {
-    opacity: 1;
-  }
-
-}
-*/
 
 .child-card {
   cursor: pointer;

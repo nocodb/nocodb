@@ -687,25 +687,26 @@ export default {
       }
     },
     async save() {
+
       for (let row = 0; row < this.rowLength; row++) {
         const {row: rowObj, rowMeta} = this.data[row];
         if (rowMeta.new) {
           try {
-            const pks = this.availableColumns.filter((col) => {
+            const pks = this.meta.columns.filter((col) => {
               return col.pk;
             });
-            if (this.availableColumns.every((col) => {
+            if (this.meta.columns.every((col) => {
               return !col.ai;
             }) && pks.length && pks.every(col => !rowObj[col._cn])) {
               return this.$toast.info('Primary column is empty please provide some value').goAway(3000);
             }
-            if (this.availableColumns.some((col) => {
-              return col.rqd && (rowObj[col._cn] === undefined || rowObj[col._cn] === null) && !col.default
+            if (this.meta.columns.some((col) => {
+              return !col.ai && col.rqd && (rowObj[col._cn] === undefined || rowObj[col._cn] === null) && !col.default
             })) {
               return;
             }
 
-            const insertObj = this.availableColumns.reduce((o, col) => {
+            const insertObj = this.meta.columns.reduce((o, col) => {
               if (!col.ai && (rowObj && rowObj[col._cn]) !== null) {
                 o[col._cn] = rowObj && rowObj[col._cn];
               }

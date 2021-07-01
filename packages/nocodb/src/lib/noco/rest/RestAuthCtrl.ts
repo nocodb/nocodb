@@ -84,7 +84,7 @@ export default class RestAuthCtrl {
     autoBind(this);
     // todo: default secret generation
     this.config.auth.jwt.secret = this.config?.auth?.jwt?.secret ?? 'secret';
-    this.jwtOptions = {secretOrKey: this.config.auth.jwt.secret}
+    this.jwtOptions = {secretOrKey: this.config.auth.jwt.secret, expiresIn: process.env.NC_JWT_EXPIRES_IN ?? '10h'}
     this.jwtOptions.jwtFromRequest = ExtractJwt.fromHeader('xc-auth');
     if (this.config?.auth?.jwt?.options) {
       Object.assign(this.jwtOptions, this.config?.auth?.jwt?.options);

@@ -109,11 +109,12 @@ export default {
       return {
         limit: this.size,
         offset: this.size * (this.page - 1),
+        // condition: this.condition,
         where: this.concatenatedXWhere,
         sort: this.sort,
-        childs: (this.meta && this.meta.v && this.meta.v.filter(v=>v.hm).map(({hm}) => hm.tn).join()) || '',
-        parents: (this.meta && this.meta.v && this.meta.v.filter(v=>v.bt).map(({bt}) => bt.rtn).join()) || '',
-        many: (this.meta && this.meta.v && this.meta.v.filter(v=>v.mm).map(({mm}) => mm.rtn).join()) || ''
+        childs: (this.meta && this.meta.v && this.meta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
+        parents: (this.meta && this.meta.v && this.meta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
+        many: (this.meta && this.meta.v && this.meta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     }, colLength() {
       return (this.availableColumns && this.availableColumns.length) || 0

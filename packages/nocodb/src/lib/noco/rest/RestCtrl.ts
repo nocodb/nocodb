@@ -142,8 +142,15 @@ export class RestCtrl extends RestBaseCtrl {
   public async nestedList(req: Request | any, res): Promise<void> {
     const startTime = process.hrtime();
 
-    if (req.query.conditionGraph && typeof req.query.conditionGraph === 'string') {
-      req.query.conditionGraph = {models: this.models, condition: JSON.parse(req.query.conditionGraph)}
+    try {
+      if (req.query.conditionGraph && typeof req.query.conditionGraph === 'string') {
+        req.query.conditionGraph = {models: this.models, condition: JSON.parse(req.query.conditionGraph)}
+      }
+      if (req.query.condition && typeof req.query.condition === 'string') {
+        req.query.condition = JSON.parse(req.query.condition)
+      }
+    }catch (e){
+      /* ignore parse error */
     }
 
     const data = await req.model.nestedList({

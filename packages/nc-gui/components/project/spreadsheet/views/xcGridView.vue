@@ -25,7 +25,10 @@
           <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
           -->
 
-          <template v-if="col.virtual">{{ col._cn }}</template>
+          <virtual-header-cell v-if="col.virtual"
+                               :column="col"
+          />
+
 
           <header-cell
             v-else
@@ -113,7 +116,7 @@
               'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,
               'text-center': isCentrallyAligned(columnObj),
-              'required':columnObj.rqd && (rowObj[columnObj._cn]===undefined || rowObj[columnObj._cn]===null) && !columnObj.default
+              'required': isRequired(columnObj,rowObj)
             }"
           @dblclick="makeEditable(col,row,columnObj.ai)"
           @click="makeSelected(col,row);"
@@ -130,6 +133,8 @@
             :active="selected.col === col && selected.row === row"
             :sql-ui="sqlUi"
             v-on="$listeners"
+            :is-new="rowMeta.new"
+            @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.cn === columnObj.bt.cn), col, row)"
           ></virtual-cell>
 
           <!--
@@ -313,9 +318,13 @@ import HasManyCell from "@/components/project/spreadsheet/components/virtualCell
 import BelongsToCell from "@/components/project/spreadsheet/components/virtualCell/belogsToCell";
 import ManyToMany from "@/components/project/spreadsheet/components/virtualCell/manyToManyCell";
 import VirtualCell from "@/components/project/spreadsheet/components/virtualCell";
+import VirtualHeaderCell from "@/components/project/spreadsheet/components/virtualHeaderCell";
 
 export default {
-  components: {VirtualCell, ManyToMany, BelongsToCell, HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell},
+  components: {
+    VirtualHeaderCell,
+    VirtualCell, ManyToMany, BelongsToCell, HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell
+  },
   mixins: [colors],
   props: {
     relationType: String,
@@ -341,6 +350,20 @@ export default {
     this.calculateColumnWidth();
   },
   methods: {
+    isRequired(_columnObj, rowObj) {
+      let columnObj = _columnObj;
+      if (columnObj.bt) {
+        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn);
+      }
+
+      return (columnObj.rqd
+        && (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null)
+        && !columnObj.default);
+    },
+    updateCol(row, column, value, columnObj, colIndex, rowIndex) {
+      this.$set(row, column, value);
+      this.onCellValueChange(colIndex, rowIndex, columnObj)
+    },
     calculateColumnWidth() {
       setTimeout(() => {
         const obj = {};

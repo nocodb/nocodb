@@ -35,7 +35,7 @@ export default {
         }
 
 
-        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : this.value;
+        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : new Date(this.value);
       },
       set(val) {
         // if(/^\d{6,}$/.test(this.value)){

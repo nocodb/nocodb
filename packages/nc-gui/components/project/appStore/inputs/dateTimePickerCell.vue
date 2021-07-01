@@ -30,7 +30,6 @@ export default {
           return new Date(+this.value);
         }
 
-
         return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : this.value;
       },
       set(val) {

@@ -1597,7 +1597,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       }
 
       meta.v = [
-        ...meta.v.filter(vc => (vc.bt && meta.manyToMany.some(mm => vc.bt.rtn === mm.vtn)) || vc.mm),
+        ...meta.v.filter(vc => !(vc.hm && meta.manyToMany.some(mm => vc.hm.tn === mm.vtn))),
         // todo: ignore existing m2m relations
         ...meta.manyToMany.map(mm => {
 

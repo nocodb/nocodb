@@ -1,19 +1,18 @@
 <template>
   <div class="d-flex">
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
-      <template v-if="value">
+      <template v-if="value || localState">
         <item-chip
           :active="active"
           :item="value"
-          :color="colors[i%colors.length]"
-          :value="Object.values(value)[1]"
+          :value="Object.values(value || localState)[1]"
           :key="i"
           @edit="editParent"
           @unlink="unlink"
         ></item-chip>
       </template>
     </div>
-    <div v-if="!isNew" class=" align-center justify-center px-1 flex-shrink-1"
+    <div class=" align-center justify-center px-1 flex-shrink-1"
          :class="{'d-none': !active, 'd-flex':active  }">
       <x-icon small :color="['primary','grey']" @click="showNewRecordModal">{{
           value ? 'mdi-arrow-expand' : 'mdi-plus'
@@ -72,7 +71,6 @@
 </template>
 
 <script>
-import colors from "@/mixins/colors";
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
@@ -80,7 +78,6 @@ import ItemChip from "@/components/project/spreadsheet/components/virtualCell/co
 export default {
   name: "belongs-to-cell",
   components: {ItemChip, ListItems},
-  mixins: [colors],
   props: {
     value: [Object, Array],
     meta: [Object],
@@ -105,6 +102,7 @@ export default {
     selectedParent: null,
     isNewParent: false,
     expandFormModal: false,
+    localState: null,
   }),
 
   methods: {
@@ -125,11 +123,16 @@ export default {
 
     async unlink() {
       const column = this.meta.columns.find(c => c.cn === this.bt.cn);
+      const _cn = column._cn;
+      if (this.isNew) {
+        this.$emit('updateCol', this.row, _cn, null);
+        this.localState = null;
+        return
+      }
       if (column.rqd) {
         this.$toast.info('Unlink is not possible, instead map to another parent.').goAway(3000)
         return
       }
-      const _cn = column._cn;
       const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       await this.api.update(id, {[_cn]: null}, this.row)
       this.$emit('loadTableData')
@@ -177,9 +180,16 @@ export default {
       // this.list = await this.parentApi.paginatedList({})
     },
     async addParentToChild(parent) {
+
       const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join('___');
       const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn;
+      if (this.isNew) {
+        this.localState = parent;
+        this.$emit('updateCol', this.row, _cn, pid)
+        this.newRecordModal = false;
+        return
+      }
 
       await this.api.update(id, {
         [_cn]: pid
@@ -237,6 +247,13 @@ export default {
     form() {
       return this.selectedParent ? () => import("@/components/project/spreadsheet/components/expandedForm") : 'span';
     },
+  },
+  watch: {
+    isNew(n, o) {
+      if (!n && o) {
+        this.localState = null
+      }
+    }
   }
 }
 </script>

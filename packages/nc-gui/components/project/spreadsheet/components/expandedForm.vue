@@ -41,10 +41,13 @@
 
           <v-row class="h-100">
             <v-col class="h-100 px-10" style="overflow-y: auto" cols="8" :offset="isNew || !toggleDrawer ? 2 : 0">
-              <div :class="{
-                 'active-row' : active === col._cn
-                }" v-for="(col,i) in fields"
-                   :key="i" class="row-col  my-4">
+              <div
+                v-for="(col,i) in fields"
+                :class="{
+                 'active-row' : active === col._cn,
+                 required: isRequired(col, localState)
+                }"
+                :key="i" class="row-col  my-4">
                 <div>
                   <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
                     <span v-if="col.virtual">
@@ -71,6 +74,7 @@
                     :sql-ui="sqlUi"
                     @loadTableData="reload"
                     :is-new="isNew"
+                    @updateCol="updateCol"
                   ></virtual-cell>
 
                   <div
@@ -264,6 +268,20 @@ export default {
     },
   },
   methods: {
+    isRequired(_columnObj, rowObj) {
+      let columnObj = _columnObj;
+      if (columnObj.bt) {
+        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn);
+      }
+
+      return (columnObj.rqd
+        && (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null)
+        && !columnObj.default);
+    },
+    updateCol(row, _cn, pid) {
+      this.$set(row, _cn, pid)
+      this.$set(this.changedColumns, _cn, true)
+    },
     isYou(email) {
       return this.$store.state.users.user && this.$store.state.users.user.email === email;
     },
@@ -274,13 +292,6 @@ export default {
         model_name: this.meta._tn
       }])
       this.logs = data.list;
-      // this.$nextTick(() => {
-      //   const objDiv = this.$refs.commentsList.$el;
-      //   if (objDiv) {
-      //     objDiv.scrollTop = objDiv.scrollHeight;
-      //   }
-      // })
-
       this.loadingLogs = false;
     },
     async save() {
@@ -294,6 +305,7 @@ export default {
         if (this.isNew) {
           const data = await this.api.insert(updatedObj);
           Object.assign(this.localState, data)
+          await this.reload();
         } else {
           if (Object.keys(updatedObj).length) {
             await this.api.update(id, updatedObj, this.oldRow);
@@ -301,6 +313,7 @@ export default {
             return this.$toast.info('No columns to update').goAway(3000)
           }
         }
+
 
         this.$emit('update:oldRow', {...this.localState})
         this.changedColumns = {};
@@ -315,7 +328,7 @@ export default {
     },
     async reload() {
       // const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
-      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('');
+      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and');
       this.$set(this, 'changedColumns', {});
       // this.localState = await this.api.read(id);
       this.localState = (await this.api.list({...(this.queryParams || {}), where}) || [{}])[0];
@@ -359,7 +372,7 @@ export default {
       } else {
         return (this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
       }
-    }
+    },
   }
 }
 </script>
@@ -468,6 +481,15 @@ h5 {
 
 .comment-box.focus {
   border: 1px solid #4185f4;
+}
+.required > div > label + *{
+  border:1px solid red;
+  border-radius: 4px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: var(--v-backgroundColorDefault-base);
 }
 </style>
 <!--

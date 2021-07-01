@@ -3,11 +3,10 @@
 
 
     <div class="d-flex align-center img-container flex-grow-1 hm-items">
-      <template v-if="value">
-        <item-chip v-for="(v,j) in value"
+      <template v-if="(value || localState)">
+        <item-chip v-for="(v,j) in (value || localState)"
                    :active="active"
                    :item="v"
-                   :color="colors[j%colors.length]"
                    :value="Object.values(v)[2]"
                    :key="j"
                    @edit="editChild"
@@ -54,47 +53,6 @@
       @edit="editChild"
       @unlink="unlinkChild"
     />
-
-    <!--<v-dialog v-if="childListModal" v-model="childListModal" width="600">
-      <v-card width="600" color="backgroundColor">
-        <v-card-title class="textColor&#45;&#45;text mx-2">{{ childMeta ? childMeta._tn : 'Children' }}</v-card-title>
-        <v-card-text>
-
-          <div class="items-container">
-            <template v-if="childList">
-              <v-card
-                v-for="(ch,i) in childList.list"
-                class="ma-2 child-list-modal child-card"
-                outlined
-                :key="i"
-                @click="editChild(ch)"
-              >
-                <x-icon
-                  class="remove-child-icon"
-                  :color="['error','grey']"
-                  small
-                  @click.stop="removeChild(ch,i)"
-                >mdi-delete-outline
-                </x-icon>
-
-                <v-card-title class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2">{{ ch[childPrimaryCol] }}
-                  <span class="grey&#45;&#45;text caption primary-key"
-                        v-if="childPrimaryKey">(Primary Key : {{ ch[childPrimaryKey] }})</span>
-                </v-card-title>
-              </v-card>
-            </template>
-          </div>
-        </v-card-text>
-        <v-card-actions class="justify-center pb-6">
-          <v-btn small outlined class="caption" color="primary" @click="showNewRecordModal">
-            <v-icon>mdi-plus</v-icon>
-            Add Record
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
--->
-
     <v-dialog
       :overlay-opacity="0.8"
       v-if="selectedChild"
@@ -167,7 +125,6 @@
 </template>
 
 <script>
-import colors from "@/mixins/colors";
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
@@ -176,7 +133,6 @@ import ListChildItems from "@/components/project/spreadsheet/components/virtualC
 
 export default {
   name: "many-to-many-cell",
-  mixins: [colors],
   components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel},
   props: {
     value: [Object, Array],
@@ -195,13 +151,13 @@ export default {
     childListModal: false,
     childMeta: null,
     assocMeta: null,
-    // list: null,
     childList: null,
     dialogShow: false,
     confirmAction: null,
     confirmMessage: '',
     selectedChild: null,
-    expandFormModal: false
+    expandFormModal: false,
+    localState: []
   }),
 
   methods: {
@@ -262,7 +218,7 @@ export default {
     },
     async loadAssociateTableMeta() {
       // todo: optimize
-      if (!this.childMeta) {
+      if (!this.assocMeta) {
         const assocTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
@@ -278,6 +234,12 @@ export default {
       // this.list = await this.childApi.paginatedList({})
     },
     async addChildToParent(child) {
+      if (this.isNew) {
+        this.localState.push(child)
+        this.newRecordModal = false;
+        return
+      }
+
       const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
       const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
 
@@ -384,6 +346,16 @@ export default {
     form() {
       return this.selectedChild ? () => import("@/components/project/spreadsheet/components/expandedForm") : 'span';
     },
+  },
+  watch: {
+    isNew(n, o) {
+      if (!n && o) {
+        let child;
+        while (child = this.localState.pop()) {
+          this.addChildToParent(child)
+        }
+      }
+    }
   }
 }
 </script>

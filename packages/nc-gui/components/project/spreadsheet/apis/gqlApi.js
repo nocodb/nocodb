@@ -29,7 +29,7 @@ export default class GqlApi {
 
   post(url, params) {
     return this.$axios({
-      url: `${this.$axios.defaults.baseURL}/${url}`,
+      url: `${this.$axios.defaults.baseURL}${url}`,
       method: 'post',
       data: params,
     })

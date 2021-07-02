@@ -366,7 +366,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`onTableUpdate : Generating new model meta for '%s' table`, tn)
 
     /* create models from table */
-    const newMeta:any = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
+    const newMeta: any = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
 
 
     /* get ACL row  */
@@ -748,6 +748,27 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   public async onManyToManyRelationCreate(parent: string, child: string, _args?: any) {
     return this.getManyToManyRelations({parent, child})
+  }
+
+  public async  onManyToManyRelationDelete(parent: string, child: string, _args?: any) {
+
+    const parentMeta = this.metas[parent];
+    const childMeta = this.metas[child];
+
+    parentMeta.manyToMany = parentMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
+    childMeta.manyToMany = childMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
+
+    parentMeta.v = parentMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
+    childMeta.v = childMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
+
+    for (const meta of [parentMeta, childMeta]) {
+
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        mm: 1,
+      }, {title: meta.tn})
+      XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
+      this.models[meta.tn] = this.getBaseModel(meta)
+    }
   }
 
 

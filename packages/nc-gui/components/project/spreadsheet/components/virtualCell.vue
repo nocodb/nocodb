@@ -11,6 +11,7 @@
         :active="active"
         :sql-ui="sqlUi"
         :is-new="isNew"
+        :is-form="isForm"
         v-on="$listeners"
       />
       <many-to-many-cell
@@ -23,8 +24,9 @@
         :sql-ui="sqlUi"
         :active="active"
         :is-new="isNew"
-        v-on="$listeners"
         :api="api"
+        :is-form="isForm"
+        v-on="$listeners"
       />
       <belongs-to-cell
         :disabled-columns="disabledColumns"
@@ -38,6 +40,7 @@
         :api="api"
         :sql-ui="sqlUi"
         :is-new="isNew"
+        :is-form="isForm"
         v-on="$listeners"
       />
     </v-lazy>
@@ -67,6 +70,10 @@ export default {
     active: Boolean,
     sqlUi: [Object, Function],
     isNew: {
+      type: Boolean,
+      default: false
+    },
+    isForm: {
       type: Boolean,
       default: false
     },

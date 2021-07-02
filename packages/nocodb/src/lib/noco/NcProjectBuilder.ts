@@ -128,13 +128,23 @@ export default class NcProjectBuilder {
         });
         console.log(`Added new relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`)
         break;
-
-      case 'xcVirtualRelationDelete':
-        await curBuilder.onRelationDelete(data.req.args.parentTable, data.req.args.childTable, {
+      case 'xcRelationColumnDelete':
+        await curBuilder.onRelationCreate(data.req.args.parentTable, data.req.args.childTable, {
           ...data.req.args,
           virtual: true
         });
-        console.log(`Deleted relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`)
+        console.log(`Added new relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`)
+        break;
+
+      case 'xcVirtualRelationDelete':
+        if(data.req.args?.type === 'mm'){
+          curBuilder.onManyToManyRelationDelete(data.req.args.parentTable, data.req.args.childTable)
+        }
+        // await curBuilder.onRelationDelete(data.req.args.parentTable, data.req.args.childTable, {
+        //   ...data.req.args,
+        //   virtual: true
+        // });
+        // console.log(`Deleted relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`)
         break;
 
 

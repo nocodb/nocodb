@@ -399,12 +399,11 @@
       v-model="showExpandModal">
 
       <expanded-form
+        :key="selectedExpandRowIndex"
         :db-alias="nodes.dbAlias"
         :has-many="hasMany"
         :belongs-to="belongsTo"
         v-if="selectedExpandRowIndex != null && data[selectedExpandRowIndex]"
-        @cancel="showExpandModal = false;"
-        @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new)"
         :table="table"
         v-model="data[selectedExpandRowIndex].row"
         :oldRow.sync="data[selectedExpandRowIndex].oldRow"
@@ -414,10 +413,13 @@
         :sql-ui="sqlUi"
         :primary-value-column="primaryValueColumn"
         :api="api"
-        @commented="reloadComments"
         :availableColumns="availableColumns"
         :nodes="nodes"
         :query-params="queryParams"
+        @cancel="showExpandModal = false;"
+        @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
+        @commented="reloadComments"
+        @loadTableData="loadTableData"
       ></expanded-form>
 
     </v-dialog>
@@ -820,7 +822,7 @@ export default {
         const {rowMeta} = this.data[this.data.length - 1];
         this.expandRow(this.data.length - 1, rowMeta)
       }
-      this.save()
+      // this.save()
     },
 
 
@@ -859,7 +861,7 @@ export default {
     },
     loadTableDataDeb: debounce(async function (self) {
       await self.loadTableDataFn()
-    }, 100),
+    }, 200),
     loadTableData() {
       this.loadTableDataDeb(this)
     },
@@ -918,7 +920,6 @@ export default {
       return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this) : null;
     }
   },
-
 }
 </script>
 

@@ -1470,6 +1470,10 @@ export default class NcMetaMgr {
           result = await this.xcM2MRelationCreate(args, req);
           break;
 
+        case 'xcRelationColumnDelete':
+          result = await this.xcRelationColumnDelete(args, req);
+          break;
+
         case 'xcVirtualRelationDelete':
           result = await this.xcVirtualRelationDelete(args, req);
           break;
@@ -2446,6 +2450,128 @@ export default class NcMetaMgr {
     } catch (e) {
       console.log(e.message)
     }
+
+
+  }
+
+
+
+  // todo : transaction
+  protected async xcRelationColumnDelete(args: any, req): Promise<any> {
+    const dbAlias = this.getDbAlias(args);
+    const projectId = this.getProjectId(args);
+
+    // const parent = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+    //   title: args.args.parentTable
+    // });
+    // // @ts-ignore
+    // const parentMeta = JSON.parse(parent.meta);
+    // @ts-ignore
+    // todo: compare column
+    switch (args.args.type) {
+      case 'bt':
+      case 'hm':
+        const child = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+          title: args.args.childTable
+        });
+        const childMeta = JSON.parse(child.meta);
+        const relation = childMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable);
+      {
+        const opArgs = {
+          ...args,
+          args: {
+            childColumn: relation.cn,
+            childTable: relation.tn,
+            parentTable: relation.rtn,
+            parentColumn: relation.rcn
+          },
+          api: 'relationDelete'
+        };
+        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationDelete', opArgs);
+
+        if (this.listener) {
+          await this.listener({
+            req: opArgs,
+            res: out,
+            user: req.user,
+            ctx: {req}
+          });
+        }
+      }
+      {
+        const originalColumns = childMeta.columns;
+        const columns = childMeta.columns.map(c => ({...c, ...(relation.cn === c.cn ? {altered: 4} : {})}))
+
+        const opArgs = {
+          ...args,
+          args: {
+            columns,
+            originalColumns,
+            tn: childMeta.tn,
+            sqlOpPlus: true
+          },
+          api: 'tableUpdate'
+        }
+
+        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableUpdate', opArgs);
+
+        if (this.listener) {
+          await this.listener({
+            req: opArgs,
+            res: out,
+            user: req.user,
+            ctx: {req}
+          });
+        }
+      }
+        break;
+      case 'mm': {
+        const assoc = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+          title: args.args.assocTable
+        });
+        const assocMeta = JSON.parse(assoc.meta);
+        const rel1 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
+        const rel2 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
+        await this.xcRelationColumnDelete({
+          ...args,
+          args: {
+            parentTable: rel1.rtn,
+            parentColumn: rel1.rcn,
+            childTable: rel1.tn,
+            childColumn: rel1.cn,
+          }
+        },req)
+       await this.xcRelationColumnDelete({
+          ...args,
+          args: {
+            parentTable: rel2.rtn,
+            parentColumn: rel2.rcn,
+            childTable: rel2.tn,
+            childColumn: rel2.cn,
+          }
+        },req);
+
+
+        const opArgs = {
+          ...args,
+          args: assocMeta,
+          api: 'tableDelete'
+        };
+        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
+
+        if (this.listener) {
+          await this.listener({
+            req: opArgs,
+            res: out,
+            user: req.user,
+            ctx: {req}
+          });
+        }
+
+      }
+        break;
+    }
+
 
 
   }

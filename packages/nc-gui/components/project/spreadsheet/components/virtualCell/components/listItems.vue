@@ -46,7 +46,7 @@
 
           </template>
 
-          <div v-else class="text-center py-15 textLight--text">
+          <div v-else-if="data" class="text-center py-15 textLight--text">
             No items found
           </div>
         </div>

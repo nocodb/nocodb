@@ -263,6 +263,7 @@ function translateUiToLibCall(args, op, opArgs) {
 
     case 'relationDelete':
     case 'xcVirtualRelationDelete':
+    case 'xcRelationColumnDelete':
       data.type = "Relation delete";
       data.title = '';
       data.module = "";

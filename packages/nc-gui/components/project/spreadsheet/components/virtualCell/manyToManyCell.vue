@@ -1,24 +1,24 @@
 <template>
   <div class="d-flex">
+    <template v-if="!isForm">
+      <div class="d-flex align-center img-container flex-grow-1 hm-items">
+        <template v-if="(value || localState)">
+          <item-chip v-for="(v,j) in (value || localState)"
+                     :active="active"
+                     :item="v"
+                     :value="Object.values(v)[2]"
+                     :key="j"
+                     @edit="editChild"
+                     @unlink="unlinkChild"
+          ></item-chip>
 
-
-    <div class="d-flex align-center img-container flex-grow-1 hm-items">
-      <template v-if="(value || localState)">
-        <item-chip v-for="(v,j) in (value || localState)"
-                   :active="active"
-                   :item="v"
-                   :value="Object.values(v)[2]"
-                   :key="j"
-                   @edit="editChild"
-                   @unlink="unlinkChild"
-        ></item-chip>
-
-      </template>
-    </div>
-    <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
-      <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
-      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
-    </div>
+        </template>
+      </div>
+      <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
+        <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
+      </div>
+    </template>
 
 
     <list-items
@@ -37,9 +37,11 @@
       :query-params="childQueryParams"/>
 
     <list-child-items
+      :is="isForm ? 'list-child-items' : 'list-child-items-modal'"
       ref="childList"
-      v-if="childListModal"
+      v-if="childMeta && assocMeta && (isForm || childListModal)"
       v-model="childListModal"
+      :is-new="isNew"
       :size="10"
       :meta="childMeta"
       :parent-meta="meta"
@@ -49,6 +51,7 @@
       :mm="mm"
       :parent-id="row && row[parentPrimaryKey]"
       :query-params="{...childQueryParams, conditionGraph }"
+      :local-state="localState"
       @new-record="showNewRecordModal"
       @edit="editChild"
       @unlink="unlinkChild"
@@ -144,6 +147,7 @@ export default {
     sqlUi: [Object, Function],
     active: Boolean,
     isNew: Boolean,
+    isForm: Boolean,
   },
   data: () => ({
     isNewChild: false,
@@ -159,7 +163,11 @@ export default {
     expandFormModal: false,
     localState: []
   }),
-
+  async mounted() {
+    if (this.isForm) {
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
+    }
+  },
   methods: {
     async onChildSave(child) {
       if (this.isNewChild) {
@@ -172,6 +180,10 @@ export default {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
       this.childListModal = true;
     }, async unlinkChild(child) {
+      if (this.isNew) {
+        this.localState.splice(this.localState.indexOf(child), 1)
+        return;
+      }
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
 
       const _pcn = this.meta.columns.find(c => c.cn === this.mm.cn)._cn;
@@ -183,9 +195,8 @@ export default {
       const id = this.assocMeta.columns.filter((c) => c.cn === apcn || c.cn === accn).map(c => c.cn === apcn ? this.row[_pcn] : child[_ccn]).join('___');
       await this.assocApi.delete(id)
       this.$emit('loadTableData')
-      if (this.childListModal && this.$refs.childList) {
+      if ((this.childListModal || this.isForm) && this.$refs.childList) {
         this.$refs.childList.loadData();
-        // this.showChildListModal()
       }
     },
     async removeChild(child) {
@@ -198,9 +209,11 @@ export default {
         } else {
           const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
           await this.childApi.delete(id)
-          this.showChildListModal();
           this.dialogShow = false;
           this.$emit('loadTableData')
+          if ((this.childListModal || this.isForm) && this.$refs.childList) {
+            this.$refs.childList.loadData();
+          }
         }
       }
     },
@@ -231,7 +244,7 @@ export default {
     async showNewRecordModal() {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
       this.newRecordModal = true;
-      // this.list = await this.childApi.paginatedList({})
+      // this.list = await this.c hildApi.paginatedList({})
     },
     async addChildToParent(child) {
       if (this.isNew) {
@@ -257,6 +270,9 @@ export default {
         console.log(e)
       }
       this.newRecordModal = false;
+      if ((this.childListModal || this.isForm) && this.$refs.childList) {
+        this.$refs.childList.loadData();
+      }
 
     },
 
@@ -348,12 +364,13 @@ export default {
     },
   },
   watch: {
-    isNew(n, o) {
+    async isNew(n, o) {
       if (!n && o) {
         let child;
         while (child = this.localState.pop()) {
-          this.addChildToParent(child)
+          await this.addChildToParent(child)
         }
+        this.$emit('newRecordsSaved')
       }
     }
   }

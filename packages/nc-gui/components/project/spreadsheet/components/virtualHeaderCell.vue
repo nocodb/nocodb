@@ -33,23 +33,66 @@
               </template>
               <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
             </v-tooltip>
-          </v-list-item>
-          <v-list-item @click="columnDeleteDialog = true">
-            <x-icon small class="mr-1" color="error">mdi-delete-outline</x-icon>
-            <span class="caption">Delete</span>
-          </v-list-item>-->
+          </v-list-item> -->
+        <v-list-item @click="columnDeleteDialog = true">
+          <x-icon small class="mr-1" color="error">mdi-delete-outline</x-icon>
+          <span class="caption">Delete</span>
+        </v-list-item>
       </v-list>
     </v-menu>
 
-
+    <v-dialog v-model="columnDeleteDialog" max-width="500"
+              persistent>
+      <v-card>
+        <v-card-title class="grey darken-2 subheading white--text">Confirm</v-card-title>
+        <v-divider></v-divider>
+        <v-card-text class="mt-4 title">Do you want to delete <span class="font-weight-bold">'{{
+            column.cn
+          }}'</span> column ?
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions class="d-flex pa-4">
+          <v-spacer></v-spacer>
+          <v-btn small @click="columnDeleteDialog = false">Cancel</v-btn>
+          <v-btn small color="error" @click="deleteColumn">Confirm</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 <script>
 export default {
-  props: ['column'],
+  props: ['column', 'nodes'],
   name: "virtualHeaderCell",
-  data: () => ({}),
+  data: () => ({
+    columnDeleteDialog: false
+  }),
   computed: {
+    type() {
+      if (this.column.bt) return 'bt'
+      if (this.column.hm) return 'hm'
+      if (this.column.mm) return 'mm'
+    },
+    childColumn() {
+      if (this.column.bt) return this.column.bt.cn
+      if (this.column.hm) return this.column.hm.cn
+      if (this.column.mm) return this.column.mm.rcn
+    },
+    childTable() {
+      if (this.column.bt) return this.column.bt.tn
+      if (this.column.hm) return this.column.hm.tn
+      if (this.column.mm) return this.column.mm.rtn
+    },
+    parentTable() {
+      if (this.column.bt) return this.column.bt.rtn
+      if (this.column.hm) return this.column.hm.rtn
+      if (this.column.mm) return this.column.mm.tn
+    },
+    parentColumn() {
+      if (this.column.bt) return this.column.bt.rcn
+      if (this.column.hm) return this.column.hm.rcn
+      if (this.column.mm) return this.column.mm.cn
+    },
     tooltipMsg() {
       if (!this.column) return '';
       if (this.column.hm) {
@@ -58,6 +101,27 @@ export default {
         return `'${this.column.mm._tn}' & '${this.column.mm._rtn}' have <br>many to many relation`
       } else if (this.column.bt) {
         return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
+      }
+    }
+  }, methods: {
+    async deleteColumn() {
+      try {
+        const column = {...this.column, cno: this.column.cn};
+        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, "xcRelationColumnDelete", {
+          type: this.type,
+          childColumn: this.childColumn,
+          childTable: this.childTable,
+          parentTable: this.parentTable,
+          parentColumn: this.parentColumn,
+          assocTable: this.column.mm && this.column.mm.vtn
+        }]);
+        this.$emit('saved');
+        this.columnDeleteDialog = false;
+      } catch (e) {
+        console.log(e)
       }
     }
   }

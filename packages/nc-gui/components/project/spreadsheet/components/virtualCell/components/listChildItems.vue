@@ -1,65 +1,69 @@
 <template>
-  <v-dialog v-model="show" width="600">
-    <v-card width="600" color="backgroundColor">
-      <v-card-title class="textColor--text mx-2">{{ meta ? meta._tn : 'Children' }}
-        <v-spacer>
-        </v-spacer>
+  <!--  <v-dialog v-model="show" width="600">-->
+  <v-card width="600" color="backgroundColor">
+    <v-card-title class="textColor--text mx-2">{{ meta ? meta._tn : 'Children' }}
+      <v-spacer>
+      </v-spacer>
 
-        <v-btn small class="caption" color="primary" @click="$emit('new-record')">
-          <v-icon small>mdi-plus</v-icon>&nbsp;
-          Add Record
-        </v-btn>
+      <v-btn small class="caption" color="primary" @click="$emit('new-record')">
+        <v-icon small>{{ bt ? 'mdi-pencil' : 'mdi-plus' }}</v-icon>&nbsp;
+        {{ bt ? 'Select' : 'Add' }} Record
+      </v-btn>
 
-      </v-card-title>
-      <v-card-text>
-        <div class="items-container">
-          <template v-if="data && data.list">
-            <v-card
-              v-for="(ch,i) in data.list"
-              class="ma-2 child-list-modal child-card"
-              outlined
-              :key="i"
-              @click="$emit('edit',ch)"
-            >
-              <div class="remove-child-icon d-flex align-center">
-                <x-icon
-                  :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
-                  :color="['error','grey']"
-                  small
-                  @click.stop="$emit('unlink',ch,i)"
-                  icon.class="mr-1 mt-n1"
-                >mdi-link-variant-remove
-                </x-icon>
-                <x-icon
-                  v-if="!mm"
-                  :tooltip="`Delete row in '${meta._tn}'`"
-                  :color="['error','grey']"
-                  small
-                  @click.stop="$emit('delete',ch,i)"
-                >mdi-delete-outline
-                </x-icon>
-              </div>
+    </v-card-title>
+    <v-card-text>
+      <div class="items-container pt-2">
+        <template v-if="(data && data.list  && data.list.length) || (localState && localState.length)">
+          <v-card
+            v-for="(ch,i) in ((data && data.list) || localState)"
+            class="ma-2 child-list-modal child-card"
+            outlined
+            :key="i"
+            @click="$emit('edit',ch)"
+          >
+            <div class="remove-child-icon d-flex align-center">
+              <x-icon
+                :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
+                :color="['error','grey']"
+                small
+                @click.stop="$emit('unlink',ch,i)"
+                icon.class="mr-1 mt-n1"
+              >mdi-link-variant-remove
+              </x-icon>
+              <x-icon
+                v-if="!mm && !bt"
+                :tooltip="`Delete row in '${meta._tn}'`"
+                :color="['error','grey']"
+                small
+                @click.stop="$emit('delete',ch,i)"
+              >mdi-delete-outline
+              </x-icon>
+            </div>
 
-              <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[primaryCol] }}
-                <span class="grey--text caption primary-key"
-                      v-if="primaryKey">(Primary Key : {{ ch[primaryKey] }})</span>
-              </v-card-title>
-            </v-card>
-          </template>
+            <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[primaryCol] }}
+              <span class="grey--text caption primary-key"
+                    v-if="primaryKey">(Primary Key : {{ ch[primaryKey] }})</span>
+            </v-card-title>
+          </v-card>
+        </template>
+
+        <div v-else-if="data" class="text-center pt-6 pb-4 textLight--text">
+          No item{{ bt ? '' : 's' }} found
         </div>
-      </v-card-text>
-      <v-card-actions class="justify-center py-2 flex-column">
-        <pagination
-          v-if="data && data.list"
-          :size="size"
-          :count="data.count"
-          v-model="page"
-          @input="loadData"
-          class="mb-3"
-        ></pagination>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+      </div>
+    </v-card-text>
+    <v-card-actions class="justify-center py-2 flex-column">
+      <pagination
+        v-if="!bt && data && data.list"
+        :size="size"
+        :count="data.count"
+        v-model="page"
+        @input="loadData"
+        class="mb-3"
+      ></pagination>
+    </v-card-actions>
+  </v-card>
+  <!--  </v-dialog>-->
 
 </template>
 
@@ -70,6 +74,9 @@ export default {
   name: "listChildItems",
   components: {Pagination},
   props: {
+    bt: Boolean,
+    localState: [Array],
+    isNew: Boolean,
     value: Boolean,
     title: {
       type: String,
@@ -87,20 +94,19 @@ export default {
     parentMeta: Object,
     size: Number,
     api: [Object, Function],
-    mm:[Object, Boolean]
+    mm: [Object, Boolean]
   },
   data: () => ({
     data: null,
     page: 1
   }),
   mounted() {
-    this.loadData();
+      this.loadData();
   },
   methods: {
     async loadData() {
-      if (!this.api) return;
-
-     this.data = await this.api.paginatedList({
+      if (!this.api || this.isNew) return;
+      this.data = await this.api.paginatedList({
         limit: this.size,
         offset: this.size * (this.page - 1),
         ...this.queryParams
@@ -114,6 +120,11 @@ export default {
       }, get() {
         return this.value;
       }
+    }
+  },
+  watch: {
+    queryParams() {
+      this.loadData();
     }
   }
 }

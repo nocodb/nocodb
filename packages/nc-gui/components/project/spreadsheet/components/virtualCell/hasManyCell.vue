@@ -1,22 +1,24 @@
 <template>
   <div class="d-flex">
-    <div class="d-flex align-center img-container flex-grow-1 hm-items">
-      <template v-if="value||localState">
-        <item-chip
-          v-for="(ch,i) in (value|| localState)"
-          :active="active"
-          :item="ch"
-          :value="Object.values(ch)[1]"
-          :key="i"
-          @edit="editChild"
-          @unlink="unlinkChild"
-        ></item-chip>
-      </template>
-    </div>
-    <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
-      <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
-      <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
-    </div>
+    <template v-if="!isForm">
+      <div class="d-flex align-center img-container flex-grow-1 hm-items">
+        <template v-if="value||localState">
+          <item-chip
+            v-for="(ch,i) in (value|| localState)"
+            :active="active"
+            :item="ch"
+            :value="Object.values(ch)[1]"
+            :key="i"
+            @edit="editChild"
+            @unlink="unlinkChild"
+          ></item-chip>
+        </template>
+      </div>
+      <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
+        <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
+      </div>
+    </template>
 
     <list-items
       v-if="newRecordModal"
@@ -35,9 +37,12 @@
       }"/>
 
     <list-child-items
+      :is="isForm ? 'list-child-items' : 'list-child-items-modal'"
       ref="childList"
-      v-if="childListModal"
+      v-if="childMeta && (childListModal || isForm)"
       v-model="childListModal"
+      :local-state.sync="localState"
+      :is-new="isNew"
       :size="10"
       :meta="childMeta"
       :parent-meta="meta"
@@ -106,6 +111,8 @@ import Pagination from "@/components/project/spreadsheet/components/pagination";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
 import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
+import listChildItemsModal
+  from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
 
 export default {
   name: "has-many-cell",
@@ -114,7 +121,8 @@ export default {
     ItemChip,
     ListItems,
     Pagination,
-    DlgLabelSubmitCancel
+    DlgLabelSubmitCancel,
+    listChildItemsModal
   },
   props: {
     value: [Object, Array],
@@ -124,7 +132,8 @@ export default {
     row: [Object],
     sqlUi: [Object, Function],
     active: Boolean,
-    isNew: Boolean
+    isNew: Boolean,
+    isForm: Boolean,
   },
   data: () => ({
     newRecordModal: false,
@@ -138,7 +147,11 @@ export default {
     isNewChild: false,
     localState: []
   }),
-
+  async mounted() {
+    if (this.isForm) {
+      await this.loadChildMeta()
+    }
+  },
   methods: {
     async showChildListModal() {
       await this.loadChildMeta();
@@ -157,7 +170,7 @@ export default {
             await this.childApi.delete(id)
             this.dialogShow = false;
             this.$emit('loadTableData')
-            if (this.childListModal && this.$refs.childList) {
+            if ((this.childListModal || this.isForm) && this.$refs.childList) {
               this.$refs.childList.loadData();
             }
           } catch (e) {
@@ -167,6 +180,11 @@ export default {
       }
     },
     async unlinkChild(child) {
+      if (this.isNew) {
+        this.localState.splice(this.localState.indexOf(child), 1)
+        return;
+      }
+
       await this.loadChildMeta();
       const column = this.childMeta.columns.find(c => c.cn === this.hm.cn);
       if (column.rqd) {
@@ -177,7 +195,7 @@ export default {
       const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
       await this.childApi.update(id, {[_cn]: null}, child)
       this.$emit('loadTableData')
-      if (this.childListModal && this.$refs.childList) {
+      if ((this.childListModal || this.isForm) && this.$refs.childList) {
         this.$refs.childList.loadData();
       }
       // }
@@ -214,12 +232,12 @@ export default {
       await this.childApi.update(id, {
         [_cn]: this.parentId
       }, {
-        [_cn]: child[this.childPrimaryKey]
+        [_cn]: child[this.childForeignKey]
       });
 
       this.$emit('loadTableData')
-      if (this.childListModal) {
-        await this.showChildListModal()
+      if ((this.childListModal || this.isForm) && this.$refs.childList) {
+        this.$refs.childList.loadData();
       }
     },
     async editChild(child) {
@@ -295,12 +313,16 @@ export default {
     }
   },
   watch: {
-    isNew(n, o) {
+     isNew(n, o) {
+      debugger
       if (!n && o) {
+        debugger
         let child;
+        debugger
         while (child = this.localState.pop()) {
-          this.addChildToParent(child)
+           this.addChildToParent(child)
         }
+        this.$emit('newRecordsSaved')
       }
     }
   }

@@ -1,25 +1,26 @@
 <template>
   <div class="d-flex">
-    <div class="d-flex align-center img-container flex-grow-1 hm-items">
-      <template v-if="value || localState">
-        <item-chip
-          :active="active"
-          :item="value"
-          :value="Object.values(value || localState)[1]"
-          :key="i"
-          @edit="editParent"
-          @unlink="unlink"
-        ></item-chip>
-      </template>
-    </div>
-    <div class=" align-center justify-center px-1 flex-shrink-1"
-         :class="{'d-none': !active, 'd-flex':active  }">
-      <x-icon small :color="['primary','grey']" @click="showNewRecordModal">{{
-          value ? 'mdi-arrow-expand' : 'mdi-plus'
-        }}
-      </x-icon>
-    </div>
-
+    <template v-if="!isForm">
+      <div class="d-flex align-center img-container flex-grow-1 hm-items">
+        <template v-if="value || localState">
+          <item-chip
+            :active="active"
+            :item="value"
+            :value="Object.values(value || localState)[1]"
+            :key="i"
+            @edit="editParent"
+            @unlink="unlink"
+          ></item-chip>
+        </template>
+      </div>
+      <div class=" align-center justify-center px-1 flex-shrink-1"
+           :class="{'d-none': !active, 'd-flex':active  }">
+        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">{{
+            value ? 'mdi-arrow-expand' : 'mdi-plus'
+          }}
+        </x-icon>
+      </div>
+    </template>
     <list-items
       v-if="newRecordModal"
       :size="10"
@@ -33,6 +34,26 @@
       :query-params="parentQueryParams"
     />
 
+    <list-child-items
+      ref="childList"
+      v-if="parentMeta &&  isForm"
+      :local-state="localState? [localState] : []"
+      :is-new="isNew"
+      :size="10"
+      :parent-meta="parentMeta"
+      :meta="parentMeta"
+      :primary-col="parentPrimaryCol"
+      :primary-key="parentPrimaryKey"
+      :api="parentApi"
+      :query-params="{
+        ...parentQueryParams,
+        where:  `(${parentPrimaryKey},eq,${parentId})`
+      }"
+      @new-record="showNewRecordModal"
+      @edit="editParent"
+      @unlink="unlink"
+      :bt="true"
+    />
 
     <v-dialog
       :overlay-opacity="0.8"
@@ -74,11 +95,13 @@
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
+import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
 
 export default {
   name: "belongs-to-cell",
-  components: {ItemChip, ListItems},
+  components: {ListChildItems, ItemChip, ListItems},
   props: {
+    isForm: Boolean,
     value: [Object, Array],
     meta: [Object],
     bt: Object,
@@ -104,7 +127,11 @@ export default {
     expandFormModal: false,
     localState: null,
   }),
-
+  async mounted() {
+    if (this.isForm) {
+      await this.loadParentMeta()
+    }
+  },
   methods: {
     async onParentSave(parent) {
       if (this.isNewParent) {
@@ -136,6 +163,9 @@ export default {
       const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       await this.api.update(id, {[_cn]: null}, this.row)
       this.$emit('loadTableData')
+      if (this.isForm && this.$refs.childList) {
+        this.$refs.childList.loadData();
+      }
     },
     async showParentListModal() {
       this.parentListModal = true;
@@ -156,9 +186,11 @@ export default {
         } else {
           const id = this.parentMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
           await this.parentApi.delete(id)
-          this.showParentListModal();
           this.dialogShow = false;
           this.$emit('loadTableData')
+          if (this.isForm && this.$refs.childList) {
+            this.$refs.childList.loadData();
+          }
         }
       }
     },
@@ -177,9 +209,8 @@ export default {
     async showNewRecordModal() {
       await this.loadParentMeta();
       this.newRecordModal = true;
-      // this.list = await this.parentApi.paginatedList({})
     },
-    async addParentToChild(parent) {
+    async  addParentToChild(parent) {
 
       const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join('___');
       const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
@@ -196,9 +227,13 @@ export default {
       }, {
         [_cn]: parent[this.parentPrimaryKey]
       });
+
       this.newRecordModal = false;
 
       this.$emit('loadTableData')
+      if (this.isForm && this.$refs.childList) {
+        this.$refs.childList.loadData();
+      }
     },
     async editParent(parent) {
       await this.loadParentMeta();
@@ -215,6 +250,9 @@ export default {
       return this.parentMeta && this.parentMeta._tn ?
         ApiFactory.create(this.$store.getters['project/GtrProjectType'],
           this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this) : null;
+    },
+    parentId() {
+      return this.value && this.parentMeta && this.parentMeta.columns.filter((c) => c.pk).map(c => this.value[c._cn]).join('___')
     },
     parentPrimaryCol() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
@@ -285,8 +323,6 @@ export default {
 }
 
 .hm-items {
-  //min-width: 200px;
-  //max-width: 400px;
   flex-wrap: wrap;
   row-gap: 3px;
   gap: 3px;

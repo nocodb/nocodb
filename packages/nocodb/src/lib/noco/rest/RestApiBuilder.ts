@@ -1028,7 +1028,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         });
 
 
-
         /* Add new has many relation to virtual columns */
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
@@ -1211,8 +1210,10 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
+          v: oldMeta.v.filter(({hm}) => !hm || hm.rtn !== tnp || hm.tn !== tnc)
         });
 
+        // todo: delete from query_params
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnp,
           meta: JSON.stringify(oldMeta),
@@ -1244,8 +1245,9 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
+          v: oldMeta.v.filter(({bt}) => !bt || bt.rtn !== tnp || bt.tn !== tnc)
         });
-
+        // todo: delete from query_params
         await this.xcMeta.metaUpdate(this.projectId,
           this.dbAlias,
           'nc_models', {

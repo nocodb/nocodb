@@ -51,7 +51,6 @@
                 <div>
                   <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
                     <span v-if="col.virtual">
-                      {{ col._cn }}
                     </span>
                     <header-cell
                       v-else
@@ -66,15 +65,16 @@
                     v-if="col.virtual"
                     :disabledColumns="disabledColumns"
                     :column="col"
-                    :row="localState"
+                    :row="value"
                     :nodes="nodes"
                     :meta="meta"
                     :api="api"
                     :active="true"
                     :sql-ui="sqlUi"
-                    @loadTableData="reload"
                     :is-new="isNew"
+                    :is-form="true"
                     @updateCol="updateCol"
+                    @newRecordsSaved="$listeners.loadTableData"
                   ></virtual-cell>
 
                   <div
@@ -204,7 +204,6 @@ export default {
     value: Object,
     meta: Object,
     sqlUi: [Object, Function],
-    selectedRowMeta: Object,
     table: String,
     primaryValueColumn: String,
     api: [Object],
@@ -236,7 +235,7 @@ export default {
     localState: {},
     changedColumns: {},
     comment: null,
-    showSystemFields: false
+    showSystemFields: false,
   }),
   created() {
     this.localState = {...this.value}
@@ -278,8 +277,8 @@ export default {
         && (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null)
         && !columnObj.default);
     },
-    updateCol(row, _cn, pid) {
-      this.$set(row, _cn, pid)
+    updateCol(_row, _cn, pid) {
+      this.$set(this.localState, _cn, pid)
       this.$set(this.changedColumns, _cn, true)
     },
     isYou(email) {
@@ -331,7 +330,7 @@ export default {
       const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and');
       this.$set(this, 'changedColumns', {});
       // this.localState = await this.api.read(id);
-      this.localState = (await this.api.list({...(this.queryParams || {}), where}) || [{}])[0];
+      this.localState = (await this.api.list({...(this.queryParams || {}), where}) || [{}])[0] || this.localState;
       if (!this.isNew && this.toggleDrawer) {
         this.getAuditsAndComments()
       }
@@ -359,6 +358,9 @@ export default {
     }
   },
   computed: {
+    primaryKey() {
+      return this.isNew ? '' : this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
+    },
     edited() {
       return !!Object.keys(this.changedColumns).length;
     },
@@ -373,6 +375,9 @@ export default {
         return (this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
       }
     },
+    isChanged() {
+      return Object.values(this.changedColumns).some(Boolean)
+    }
   }
 }
 </script>
@@ -482,13 +487,14 @@ h5 {
 .comment-box.focus {
   border: 1px solid #4185f4;
 }
-.required > div > label + *{
-  border:1px solid red;
+
+.required > div > label + * {
+  border: 1px solid red;
   border-radius: 4px;
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  //min-height: 42px;
+  //display: flex;
+  //align-items: center;
+  //justify-content: flex-end;
   background: var(--v-backgroundColorDefault-base);
 }
 </style>

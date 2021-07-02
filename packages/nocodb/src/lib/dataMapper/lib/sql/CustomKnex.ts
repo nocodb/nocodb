@@ -108,7 +108,7 @@ const appendWhereCondition = function (conditions, columnAliases: {
           break;
       }
     } else if (typeof condition === 'string') {
-      let matches = condition.match(/^(?:~(\w+))?\((\w+),(\w+),(.+?)\)(?:~(?:or|and|not))?$/)
+      let matches = condition.match(/^(?:~(\w+))?\((\w+),(\w+),(.*?)\)(?:~(?:or|and|not))?$/)
 
       if (!matches) throw new Error(`${condition} : not a valid syntax`)
       switch (matches[3]) {

@@ -430,11 +430,11 @@ export default {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {
             return;
           }
-          console.log(this.selected, this.data[this.selected.row], this.availableColumns[this.selected.col], '')
-          this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, '')
-          this.editEnabled = {...this.selected}
+          if(e.key && e.key.length === 1) {
+            this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, e.key)
+            this.editEnabled = {...this.selected}
+          }
         }
-
       }
     },
     onClickOutside() {

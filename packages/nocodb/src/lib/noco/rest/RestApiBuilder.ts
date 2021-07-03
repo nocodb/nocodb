@@ -1202,7 +1202,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const tagName = `${tnp}HasMany${tnc}`;
       const swaggerObj = this.deleteTagFromSwaggerObj(existingModel.schema, tagName);
 
-
       if (existingModel) {
         this.log(`Updating model metadata for parent table '%s'`, tnp);
 
@@ -1243,6 +1242,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         this.log(`Updating model metadata for child table '%s'`, tnc);
         // todo: persisting old table_alias and columnAlias
         const oldMeta = JSON.parse(existingModel.meta);
+
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
           v: oldMeta.v.filter(({bt}) => !bt || bt.rtn !== tnp || bt.tn !== tnc)

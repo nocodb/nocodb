@@ -31,7 +31,7 @@ export default class NcHelp {
         }
       }
     }
-
+ 
     debug.enable(enabledKeys.join(','))
   }
 

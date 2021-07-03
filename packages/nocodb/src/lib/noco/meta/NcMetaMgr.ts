@@ -2455,7 +2455,6 @@ export default class NcMetaMgr {
   }
 
 
-
   // todo : transaction
   protected async xcRelationColumnDelete(args: any, req): Promise<any> {
     const dbAlias = this.getDbAlias(args);
@@ -2500,7 +2499,12 @@ export default class NcMetaMgr {
       }
       {
         const originalColumns = childMeta.columns;
-        const columns = childMeta.columns.map(c => ({...c, ...(relation.cn === c.cn ? {altered: 4} : {})}))
+        const columns = childMeta.columns.map(c => ({
+          ...c, ...(relation.cn === c.cn ? {
+            altered: 4,
+            cno: c.cn
+          } : {cno: c.cn})
+        }))
 
         const opArgs = {
           ...args,
@@ -2508,11 +2512,257 @@ export default class NcMetaMgr {
             columns,
             originalColumns,
             tn: childMeta.tn,
-            sqlOpPlus: true
           },
+          sqlOpPlus: true,
           api: 'tableUpdate'
         }
-
+        /*
+        *
+        * {
+          "tn": "sdhsdjhs",
+          "originalColumns": [
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "id",
+              "_cn": "Id",
+              "type": "integer",
+              "dt": "int",
+              "uidt": "ID",
+              "uip": "",
+              "uicn": "",
+              "dtx": "integer",
+              "ct": "int(11)",
+              "nrqd": false,
+              "rqd": true,
+              "ck": false,
+              "pk": true,
+              "un": true,
+              "ai": true,
+              "cdf": null,
+              "clen": null,
+              "np": 11,
+              "ns": 0,
+              "dtxp": "11",
+              "dtxs": ""
+            },
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "title",
+              "_cn": "Title",
+              "type": "string",
+              "dt": "varchar",
+              "uidt": "SingleLineText",
+              "uip": "",
+              "uicn": "",
+              "dtx": "specificType",
+              "ct": "varchar(45)",
+              "nrqd": true,
+              "rqd": false,
+              "ck": false,
+              "pk": false,
+              "un": false,
+              "ai": false,
+              "cdf": null,
+              "clen": 45,
+              "np": null,
+              "ns": null,
+              "dtxp": "45",
+              "dtxs": "",
+              "pv": true
+            },
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "created_at",
+              "_cn": "CreatedAt",
+              "type": "timestamp",
+              "dt": "timestamp",
+              "uidt": "CreateTime",
+              "uip": "",
+              "uicn": "",
+              "dtx": "specificType",
+              "ct": "varchar(45)",
+              "nrqd": true,
+              "rqd": false,
+              "ck": false,
+              "pk": false,
+              "un": false,
+              "ai": false,
+              "cdf": "CURRENT_TIMESTAMP",
+              "clen": 45,
+              "np": null,
+              "ns": null,
+              "dtxp": "",
+              "dtxs": "",
+              "default": "CURRENT_TIMESTAMP",
+              "columnDefault": "CURRENT_TIMESTAMP"
+            },
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "updated_at",
+              "_cn": "UpdatedAt",
+              "type": "timestamp",
+              "dt": "timestamp",
+              "uidt": "LastModifiedTime",
+              "uip": "",
+              "uicn": "",
+              "dtx": "specificType",
+              "ct": "varchar(45)",
+              "nrqd": true,
+              "rqd": false,
+              "ck": false,
+              "pk": false,
+              "un": false,
+              "ai": false,
+              "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+              "clen": 45,
+              "np": null,
+              "ns": null,
+              "dtxp": "",
+              "dtxs": "",
+              "default": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+              "columnDefault": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"
+            }
+          ],
+          "columns": [
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "id",
+              "_cn": "Id",
+              "type": "integer",
+              "dt": "int",
+              "uidt": "ID",
+              "uip": "",
+              "uicn": "",
+              "dtx": "integer",
+              "ct": "int(11)",
+              "nrqd": false,
+              "rqd": true,
+              "ck": false,
+              "pk": true,
+              "un": true,
+              "ai": true,
+              "cdf": null,
+              "clen": null,
+              "np": 11,
+              "ns": 0,
+              "dtxp": "11",
+              "dtxs": ""
+            },
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "title",
+              "_cn": "Title",
+              "type": "string",
+              "dt": "varchar",
+              "uidt": "SingleLineText",
+              "uip": "",
+              "uicn": "",
+              "dtx": "specificType",
+              "ct": "varchar(45)",
+              "nrqd": true,
+              "rqd": false,
+              "ck": false,
+              "pk": false,
+              "un": false,
+              "ai": false,
+              "cdf": null,
+              "clen": 45,
+              "np": null,
+              "ns": null,
+              "dtxp": "45",
+              "dtxs": "",
+              "pv": true,
+              "cno": "title",
+              "altered": 4
+            },
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "created_at",
+              "_cn": "CreatedAt",
+              "type": "timestamp",
+              "dt": "timestamp",
+              "uidt": "CreateTime",
+              "uip": "",
+              "uicn": "",
+              "dtx": "specificType",
+              "ct": "varchar(45)",
+              "nrqd": true,
+              "rqd": false,
+              "ck": false,
+              "pk": false,
+              "un": false,
+              "ai": false,
+              "cdf": "CURRENT_TIMESTAMP",
+              "clen": 45,
+              "np": null,
+              "ns": null,
+              "dtxp": "",
+              "dtxs": "",
+              "default": "CURRENT_TIMESTAMP",
+              "columnDefault": "CURRENT_TIMESTAMP"
+            },
+            {
+              "validate": {
+                "func": [],
+                "args": [],
+                "msg": []
+              },
+              "cn": "updated_at",
+              "_cn": "UpdatedAt",
+              "type": "timestamp",
+              "dt": "timestamp",
+              "uidt": "LastModifiedTime",
+              "uip": "",
+              "uicn": "",
+              "dtx": "specificType",
+              "ct": "varchar(45)",
+              "nrqd": true,
+              "rqd": false,
+              "ck": false,
+              "pk": false,
+              "un": false,
+              "ai": false,
+              "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+              "clen": 45,
+              "np": null,
+              "ns": null,
+              "dtxp": "",
+              "dtxs": "",
+              "default": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+              "columnDefault": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"
+            }
+          ]
+        }
+        *
+        * */
         const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableUpdate', opArgs);
 
         if (this.listener) {
@@ -2540,8 +2790,8 @@ export default class NcMetaMgr {
             childTable: rel1.tn,
             childColumn: rel1.cn,
           }
-        },req)
-       await this.xcRelationColumnDelete({
+        }, req)
+        await this.xcRelationColumnDelete({
           ...args,
           args: {
             parentTable: rel2.rtn,
@@ -2549,7 +2799,7 @@ export default class NcMetaMgr {
             childTable: rel2.tn,
             childColumn: rel2.cn,
           }
-        },req);
+        }, req);
 
 
         const opArgs = {
@@ -2571,7 +2821,6 @@ export default class NcMetaMgr {
       }
         break;
     }
-
 
 
   }

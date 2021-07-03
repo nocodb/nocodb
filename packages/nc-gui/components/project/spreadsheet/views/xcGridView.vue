@@ -28,6 +28,7 @@
           <virtual-header-cell v-if="col.virtual"
                                :column="col"
                                :nodes="nodes"
+                               @saved="onNewColCreation"
           />
 
 

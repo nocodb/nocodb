@@ -68,6 +68,8 @@
 </template>
 
 <script>
+  import {isEmail} from "@/helpers";
+
   export default {
     data() {
       return {
@@ -80,7 +82,7 @@
         formRules: {
           email: [
             v => !!v || 'E-mail is required',
-            v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid'
+            v => isEmail(v) || 'E-mail must be valid'
           ],
         },
 

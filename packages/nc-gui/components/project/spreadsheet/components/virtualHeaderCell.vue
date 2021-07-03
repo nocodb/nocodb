@@ -21,11 +21,11 @@
         <v-icon v-on="on" small>mdi-menu-down</v-icon>
       </template>
       <v-list dense>
-        <!--  <v-list-item dense @click="editColumnMenu = true">
-            <x-icon small class="mr-1" color="primary">mdi-pencil</x-icon>
-            <span class="caption">Edit</span>
-          </v-list-item>
-          <v-list-item dense @click="setAsPrimaryValue">
+        <v-list-item dense @click="editColumnMenu = true">
+          <x-icon small class="mr-1" color="primary">mdi-pencil</x-icon>
+          <span class="caption">Edit</span>
+        </v-list-item>
+        <!--  <v-list-item dense @click="setAsPrimaryValue">
             <x-icon small class="mr-1" color="primary">mdi-key-star</x-icon>
             <v-tooltip bottom>
               <template v-slot:activator="{on}">
@@ -58,14 +58,31 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+
+    <v-menu offset-y v-model="editColumnMenu" content-class="elevation-0" left>
+      <template v-slot:activator="{on}">
+        <span v-on="on"></span>
+      </template>
+      <edit-virtual-column
+        v-if="editColumnMenu"
+        :nodes="nodes"
+        :edit-column="true"
+        :column="column"
+        :meta="meta"
+      ></edit-virtual-column>
+    </v-menu>
   </div>
 </template>
 <script>
+import EditVirtualColumn from "@/components/project/spreadsheet/components/editVirtualColumn";
 export default {
-  props: ['column', 'nodes'],
+    components: {EditVirtualColumn},
+  props: ['column', 'nodes', 'meta'],
   name: "virtualHeaderCell",
   data: () => ({
-    columnDeleteDialog: false
+    columnDeleteDialog: false,
+    editColumnMenu: false
   }),
   computed: {
     type() {

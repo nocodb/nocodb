@@ -750,21 +750,20 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return this.getManyToManyRelations({parent, child})
   }
 
-  public async  onManyToManyRelationDelete(parent: string, child: string, _args?: any) {
+  public async onManyToManyRelationDelete(parent: string, child: string, _args?: any) {
 
     const parentMeta = this.metas[parent];
     const childMeta = this.metas[child];
 
-    parentMeta.manyToMany = parentMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
-    childMeta.manyToMany = childMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
+    parentMeta.manyToMany = parentMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    childMeta.manyToMany = childMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
 
-    parentMeta.v = parentMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
-    childMeta.v = childMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === child))
+    parentMeta.v = parentMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    childMeta.v = childMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
 
     for (const meta of [parentMeta, childMeta]) {
-
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        mm: 1,
+        meta: JSON.stringify(meta)
       }, {title: meta.tn})
       XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
       this.models[meta.tn] = this.getBaseModel(meta)
@@ -979,6 +978,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   protected getBaseModel(meta): BaseModelSql {
     this.baseLog(`getBaseModel : '%s'`);
+    this.metas[meta.tn] = meta;
     return new BaseModel({
       dbDriver: this.dbDriver,
       ...meta,

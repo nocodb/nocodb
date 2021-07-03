@@ -2333,7 +2333,7 @@ export default class NcMetaMgr {
         altered: 1
       });
 
-      const aTn = `nc_m2m_${parentMeta.tn}_${childMeta.tn}_${Math.floor(Math.random() * 1000)}`;
+      const aTn = `${this.projectConfigs[projectId]?.prefix ?? ''}_nc_m2m_${parentMeta.tn}_${childMeta.tn}_${Math.floor(Math.random() * 1000)}`;
 
       const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableCreate', {
         ...args,
@@ -2456,7 +2456,7 @@ export default class NcMetaMgr {
 
 
   // todo : transaction
-  protected async xcRelationColumnDelete(args: any, req): Promise<any> {
+  protected async xcRelationColumnDelete(args: any, req, deleteColumn = true): Promise<any> {
     const dbAlias = this.getDbAlias(args);
     const projectId = this.getProjectId(args);
 
@@ -2475,7 +2475,8 @@ export default class NcMetaMgr {
         });
         const childMeta = JSON.parse(child.meta);
         const relation = childMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable);
-      {
+        // todo: virtual relation delete
+      if(relation){
         const opArgs = {
           ...args,
           args: {
@@ -2484,287 +2485,16 @@ export default class NcMetaMgr {
             parentTable: relation.rtn,
             parentColumn: relation.rcn
           },
-          api: 'relationDelete'
-        };
-        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationDelete', opArgs);
-
-        if (this.listener) {
-          await this.listener({
-            req: opArgs,
-            res: out,
-            user: req.user,
-            ctx: {req}
-          });
-        }
-      }
-      {
-        const originalColumns = childMeta.columns;
-        const columns = childMeta.columns.map(c => ({
-          ...c, ...(relation.cn === c.cn ? {
-            altered: 4,
-            cno: c.cn
-          } : {cno: c.cn})
-        }))
-
-        const opArgs = {
-          ...args,
-          args: {
-            columns,
-            originalColumns,
-            tn: childMeta.tn,
-          },
+          api: 'relationDelete',
           sqlOpPlus: true,
-          api: 'tableUpdate'
+        };
+        let out;
+        if (relation?.type === 'virtual') {
+          opArgs.api = 'xcVirtualRelationDelete';
+          out = await this.xcVirtualRelationDelete(opArgs, req);
+        } else {
+          out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationDelete', opArgs);
         }
-        /*
-        *
-        * {
-          "tn": "sdhsdjhs",
-          "originalColumns": [
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "id",
-              "_cn": "Id",
-              "type": "integer",
-              "dt": "int",
-              "uidt": "ID",
-              "uip": "",
-              "uicn": "",
-              "dtx": "integer",
-              "ct": "int(11)",
-              "nrqd": false,
-              "rqd": true,
-              "ck": false,
-              "pk": true,
-              "un": true,
-              "ai": true,
-              "cdf": null,
-              "clen": null,
-              "np": 11,
-              "ns": 0,
-              "dtxp": "11",
-              "dtxs": ""
-            },
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "title",
-              "_cn": "Title",
-              "type": "string",
-              "dt": "varchar",
-              "uidt": "SingleLineText",
-              "uip": "",
-              "uicn": "",
-              "dtx": "specificType",
-              "ct": "varchar(45)",
-              "nrqd": true,
-              "rqd": false,
-              "ck": false,
-              "pk": false,
-              "un": false,
-              "ai": false,
-              "cdf": null,
-              "clen": 45,
-              "np": null,
-              "ns": null,
-              "dtxp": "45",
-              "dtxs": "",
-              "pv": true
-            },
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "created_at",
-              "_cn": "CreatedAt",
-              "type": "timestamp",
-              "dt": "timestamp",
-              "uidt": "CreateTime",
-              "uip": "",
-              "uicn": "",
-              "dtx": "specificType",
-              "ct": "varchar(45)",
-              "nrqd": true,
-              "rqd": false,
-              "ck": false,
-              "pk": false,
-              "un": false,
-              "ai": false,
-              "cdf": "CURRENT_TIMESTAMP",
-              "clen": 45,
-              "np": null,
-              "ns": null,
-              "dtxp": "",
-              "dtxs": "",
-              "default": "CURRENT_TIMESTAMP",
-              "columnDefault": "CURRENT_TIMESTAMP"
-            },
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "updated_at",
-              "_cn": "UpdatedAt",
-              "type": "timestamp",
-              "dt": "timestamp",
-              "uidt": "LastModifiedTime",
-              "uip": "",
-              "uicn": "",
-              "dtx": "specificType",
-              "ct": "varchar(45)",
-              "nrqd": true,
-              "rqd": false,
-              "ck": false,
-              "pk": false,
-              "un": false,
-              "ai": false,
-              "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-              "clen": 45,
-              "np": null,
-              "ns": null,
-              "dtxp": "",
-              "dtxs": "",
-              "default": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-              "columnDefault": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"
-            }
-          ],
-          "columns": [
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "id",
-              "_cn": "Id",
-              "type": "integer",
-              "dt": "int",
-              "uidt": "ID",
-              "uip": "",
-              "uicn": "",
-              "dtx": "integer",
-              "ct": "int(11)",
-              "nrqd": false,
-              "rqd": true,
-              "ck": false,
-              "pk": true,
-              "un": true,
-              "ai": true,
-              "cdf": null,
-              "clen": null,
-              "np": 11,
-              "ns": 0,
-              "dtxp": "11",
-              "dtxs": ""
-            },
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "title",
-              "_cn": "Title",
-              "type": "string",
-              "dt": "varchar",
-              "uidt": "SingleLineText",
-              "uip": "",
-              "uicn": "",
-              "dtx": "specificType",
-              "ct": "varchar(45)",
-              "nrqd": true,
-              "rqd": false,
-              "ck": false,
-              "pk": false,
-              "un": false,
-              "ai": false,
-              "cdf": null,
-              "clen": 45,
-              "np": null,
-              "ns": null,
-              "dtxp": "45",
-              "dtxs": "",
-              "pv": true,
-              "cno": "title",
-              "altered": 4
-            },
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "created_at",
-              "_cn": "CreatedAt",
-              "type": "timestamp",
-              "dt": "timestamp",
-              "uidt": "CreateTime",
-              "uip": "",
-              "uicn": "",
-              "dtx": "specificType",
-              "ct": "varchar(45)",
-              "nrqd": true,
-              "rqd": false,
-              "ck": false,
-              "pk": false,
-              "un": false,
-              "ai": false,
-              "cdf": "CURRENT_TIMESTAMP",
-              "clen": 45,
-              "np": null,
-              "ns": null,
-              "dtxp": "",
-              "dtxs": "",
-              "default": "CURRENT_TIMESTAMP",
-              "columnDefault": "CURRENT_TIMESTAMP"
-            },
-            {
-              "validate": {
-                "func": [],
-                "args": [],
-                "msg": []
-              },
-              "cn": "updated_at",
-              "_cn": "UpdatedAt",
-              "type": "timestamp",
-              "dt": "timestamp",
-              "uidt": "LastModifiedTime",
-              "uip": "",
-              "uicn": "",
-              "dtx": "specificType",
-              "ct": "varchar(45)",
-              "nrqd": true,
-              "rqd": false,
-              "ck": false,
-              "pk": false,
-              "un": false,
-              "ai": false,
-              "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-              "clen": 45,
-              "np": null,
-              "ns": null,
-              "dtxp": "",
-              "dtxs": "",
-              "default": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-              "columnDefault": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"
-            }
-          ]
-        }
-        *
-        * */
-        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableUpdate', opArgs);
-
         if (this.listener) {
           await this.listener({
             req: opArgs,
@@ -2774,6 +2504,36 @@ export default class NcMetaMgr {
           });
         }
       }
+        if (deleteColumn) {
+          const originalColumns = childMeta.columns;
+          const columns = childMeta.columns.map(c => ({
+            ...c, ...(relation.cn === c.cn ? {
+              altered: 4,
+              cno: c.cn
+            } : {cno: c.cn})
+          }))
+
+          const opArgs = {
+            ...args,
+            args: {
+              columns,
+              originalColumns,
+              tn: childMeta.tn,
+            },
+            sqlOpPlus: true,
+            api: 'tableUpdate'
+          }
+          const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableUpdate', opArgs);
+
+          if (this.listener) {
+            await this.listener({
+              req: opArgs,
+              res: out,
+              user: req.user,
+              ctx: {req}
+            });
+          }
+        }
         break;
       case 'mm': {
         const assoc = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
@@ -2781,7 +2541,7 @@ export default class NcMetaMgr {
         });
         const assocMeta = JSON.parse(assoc.meta);
         const rel1 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
-        const rel2 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
+        const rel2 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.childTable)
         await this.xcRelationColumnDelete({
           ...args,
           args: {
@@ -2789,8 +2549,9 @@ export default class NcMetaMgr {
             parentColumn: rel1.rcn,
             childTable: rel1.tn,
             childColumn: rel1.cn,
+            type: 'bt',
           }
-        }, req)
+        }, req, false)
         await this.xcRelationColumnDelete({
           ...args,
           args: {
@@ -2798,14 +2559,16 @@ export default class NcMetaMgr {
             parentColumn: rel2.rcn,
             childTable: rel2.tn,
             childColumn: rel2.cn,
+            type: 'bt',
           }
-        }, req);
+        }, req, false);
 
 
         const opArgs = {
           ...args,
           args: assocMeta,
-          api: 'tableDelete'
+          api: 'tableDelete',
+          sqlOpPlus: true,
         };
         const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
 

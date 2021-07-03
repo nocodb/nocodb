@@ -484,7 +484,7 @@ export default class KnexMigrator extends SqlMigrator {
         filesDown = files = await this.metaDb('nc_migrations').where({
           project_id: this.project_id,
           db_alias: args.dbAlias
-        }).orderBy('title', 'asc')
+        }).orderBy('id', 'asc')
       } else {
         files = await promisify(glob)(args.upFilesPattern);
         filesDown = await promisify(glob)(args.downFilesPattern);

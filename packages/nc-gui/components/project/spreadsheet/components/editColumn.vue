@@ -13,10 +13,14 @@
           <v-col cols="12">
             <v-text-field
               ref="column"
-              hide-details
+              hide-details="auto"
               color="primary"
               v-model="newColumn.cn"
               @input="newColumn.altered = newColumn.altered || 8"
+              :rules="[
+                    v => !!v  || 'Required',
+                    v => !meta || !meta.columns || !column || meta.columns.every(c => column && c.cn === column.cn || v !== c.cn ) && meta.v.every(c => v !== c._cn ) || 'Duplicate column name'
+              ]"
               class="caption"
               label="Column name"
               dense outlined></v-text-field>

@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <table v-if="data" class="xc-row-table"
            style=" ">
       <thead>
@@ -28,6 +27,7 @@
           <virtual-header-cell v-if="col.virtual"
                                :column="col"
                                :nodes="nodes"
+                               :meta="meta"
                                @saved="onNewColCreation"
           />
 
@@ -432,7 +432,7 @@ export default {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {
             return;
           }
-          if(e.key && e.key.length === 1) {
+          if (e.key && e.key.length === 1) {
             this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, e.key)
             this.editEnabled = {...this.selected}
           }

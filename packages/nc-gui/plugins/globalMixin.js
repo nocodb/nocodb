@@ -49,6 +49,8 @@ export default async ({store}) => {
       el.appendChild(resizer);
       resizer.addEventListener('mousedown', initDrag, false);
 
+      el.style.transition = '20ms width0';
+
       let startX, startY, startWidth;
 
       function initDrag(e) {
@@ -75,7 +77,7 @@ export default async ({store}) => {
       function doDrag(e) {
         width = (startWidth + e.clientX - startX) + 'px';
         el.style.maxWidth = el.style.minWidth = el.style.width = width;
-        emit(vnode, 'xcresizing');
+        emit(vnode, 'xcresizing', width);
         //
         // p.style.height = (startHeight + e.clientY - startY) + 'px';
       }

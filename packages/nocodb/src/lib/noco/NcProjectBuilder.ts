@@ -92,7 +92,7 @@ export default class NcProjectBuilder {
         });
         break;
       case 'xcM2MRelationCreate':
-        curBuilder.onManyToManyRelationCreate(data.req.args.parentTable, data.req.args.childTable, data.req.args);
+        await curBuilder.onManyToManyRelationCreate(data.req.args.parentTable, data.req.args.childTable, data.req.args);
         break;
 
       case 'relationCreate':

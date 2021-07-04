@@ -50,8 +50,14 @@
                 :key="i" class="row-col  my-4">
                 <div>
                   <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
-                    <span v-if="col.virtual">
-                    </span>
+                    <virtual-header-cell
+                      v-if="col.virtual"
+                      :column="col"
+                      :nodes="nodes"
+                      :is-form="true"
+                      :meta="meta"
+                    >
+                    </virtual-header-cell>
                     <header-cell
                       v-else
                       :is-form="true"
@@ -191,13 +197,14 @@ import EditableCell from "@/components/project/spreadsheet/components/editableCe
 import dayjs from 'dayjs';
 import colors from "@/mixins/colors";
 import VirtualCell from "@/components/project/spreadsheet/components/virtualCell";
+import VirtualHeaderCell from "@/components/project/spreadsheet/components/virtualHeaderCell";
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 export default {
-  components: {VirtualCell, EditableCell, HeaderCell},
+  components: {VirtualHeaderCell, VirtualCell, EditableCell, HeaderCell},
   mixins: [colors],
   props: {
     dbAlias: String,

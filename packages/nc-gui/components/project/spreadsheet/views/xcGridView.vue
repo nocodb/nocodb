@@ -17,7 +17,7 @@
           :key="i + '_' + col._cn"
           v-show="showFields[col._cn]"
           @xcresize="onresize(col._cn,$event)"
-          @xcresizing="resizingCol = col._cn"
+          @xcresizing="onXcResizing(col._cn,$event)"
           @xcresized="resizingCol = null"
           :data-col="col._cn"
         >
@@ -372,6 +372,9 @@ export default {
         this.meta && this.meta.columns && this.meta.columns.forEach(c => {
           obj[c._cn] = columnStyling[c.uidt] && columnStyling[c.uidt].w || undefined;
         })
+        this.meta && this.meta.v && this.meta.v.forEach(v => {
+          obj[v._cn] = v.bt ? '100px' : '200px';
+        })
         Array.from(this.$el.querySelectorAll('th')).forEach(el => {
           const width = el.getBoundingClientRect().width;
           obj[el.dataset.col] = obj[el.dataset.col] || ((width < 100 ? 100 : width) + 'px');
@@ -497,6 +500,10 @@ export default {
     },
     onresize(col, size) {
       this.$emit('update:columnsWidth', {...this.columnsWidth, [col]: size});
+    },
+    onXcResizing(_cn, width) {
+      this.resizingCol = _cn;
+      this.resizingColWidth = width;
     }
   },
   computed: {
@@ -524,7 +531,7 @@ export default {
     style() {
       let style = '';
       for (const [key, val] of Object.entries(this.columnsWidth || {})) {
-        if (val && key !== this.resizingCol)
+        if (val && key !== this.resizingCol) {
           style += `
             [data-col="${key}"]{
               min-width: ${val};
@@ -532,13 +539,23 @@ export default {
               width: ${val};
             }
         `;
+        } else if (key === this.resizingCol) {
+          style += `
+            [data-col="${key}"]{
+              min-width: ${this.resizingColWidth};
+              max-width: ${this.resizingColWidth};
+              width: ${this.resizingColWidth};
+            }
+        `;
+        }
       }
 
       return style;
-    }
+    },
   },
   data: () => ({
     resizingCol: null,
+    resizingColWidth: null,
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
     addNewColMenu: false,

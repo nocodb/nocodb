@@ -20,7 +20,7 @@ export default function ({app}) {
           textColor: '#ffffff',
           text: '#ffffff',
           textLight: '#b3b3b3',
-          backgroundColor: '#969696',
+          backgroundColor: '#565656',
           backgroundColorDefault: '#1f1f1f'
         },
         light: {

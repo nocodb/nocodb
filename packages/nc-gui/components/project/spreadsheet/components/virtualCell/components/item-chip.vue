@@ -1,7 +1,13 @@
 <template>
-  <v-chip small text-color="textColor" :color="isDark ? '' : 'primary lighten-5'"
-          @click="active && $emit('edit',item)"
-  >{{ value }}
+  <v-chip
+    class="chip"
+    :class="{active}"
+    small
+    text-color="textColor"
+    :color="isDark ? '' : 'primary lighten-5'"
+    @click="active && $emit('edit',item)"
+  >
+    <span class="name">{{ value }}</span>
     <div v-show="active" class="mr-n1 ml-2">
       <x-icon
         :color="['text' , 'textLight']"
@@ -25,6 +31,13 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.chip {
+  max-width: max(100%, 60px);
 
+  .name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
 </style>

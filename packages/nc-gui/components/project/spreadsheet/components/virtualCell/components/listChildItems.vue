@@ -1,22 +1,44 @@
 <template>
   <!--  <v-dialog v-model="show" width="600">-->
-  <v-card width="600" color="backgroundColor">
-    <v-card-title class="textColor--text mx-2">{{ meta ? meta._tn : 'Children' }}
+  <v-card width="600" color="">
+    <v-card-title v-if="!isForm" class="textColor--text mx-2" :class="{'py-2':isForm}">
+      <span v-if="!isForm">{{ meta ? meta._tn : 'Children' }}</span>
       <v-spacer>
       </v-spacer>
 
-      <v-btn small class="caption" color="primary" @click="$emit('new-record')">
-        <v-icon small>{{ bt ? 'mdi-pencil' : 'mdi-plus' }}</v-icon>&nbsp;
-        {{ bt ? 'Select' : 'Add' }} Record
+      <v-btn
+        small
+        class="caption"
+        color="primary"
+        @click="$emit('new-record')"
+      >
+        <v-icon
+          small>mdi-link
+        </v-icon>&nbsp;
+        Link to '{{ meta._tn }}'
       </v-btn>
-
     </v-card-title>
     <v-card-text>
-      <div class="items-container pt-2">
-        <template v-if="(data && data.list  && data.list.length) || (localState && localState.length)">
+      <div class="items-container pt-2 mb-n4">
+        <div class="text-right mb-2 mt-n4 mx-2">
+          <v-btn
+            v-if="isForm"
+            x-small
+            class="caption"
+            color="primary"
+            outlined
+            @click="$emit('new-record')"
+          >
+            <v-icon
+              x-small>mdi-link
+            </v-icon>&nbsp;
+            Link to '{{ meta._tn }}'
+          </v-btn>
+        </div>
+        <template v-if="isDataAvail">
           <v-card
             v-for="(ch,i) in ((data && data.list) || localState)"
-            class="ma-2 child-list-modal child-card"
+            class="mx-2 mb-2 child-list-modal child-card"
             outlined
             :key="i"
             @click="$emit('edit',ch)"
@@ -47,16 +69,27 @@
           </v-card>
         </template>
 
-        <div v-else-if="data" class="text-center pt-6 pb-4 textLight--text">
+        <div v-else-if="data || localState" class="text-center  textLight--text"
+             :class="{'pt-6 pb-4' : !isForm , 'pt-1':isForm}">
           No item{{ bt ? '' : 's' }} found
+        </div>
+
+        <div v-if="isForm" class="mb-2 d-flex align-center justify-center">
+          <pagination
+            v-if="!bt && isDataAvail && data && data.count > 1"
+            :size="size"
+            :count="data && data.count"
+            v-model="page"
+            @input="loadData"
+          ></pagination>
         </div>
       </div>
     </v-card-text>
-    <v-card-actions class="justify-center py-2 flex-column">
+    <v-card-actions v-if="!isForm" class="justify-center flex-column" :class="{'py-0':isForm}">
       <pagination
-        v-if="!bt && data && data.list"
+        v-if="!bt && isDataAvail && data && data.count > 1"
         :size="size"
-        :count="data.count"
+        :count="data && data.count"
         v-model="page"
         @input="loadData"
         class="mb-3"
@@ -74,6 +107,7 @@ export default {
   name: "listChildItems",
   components: {Pagination},
   props: {
+    isForm: Boolean,
     bt: Boolean,
     localState: [Array],
     isNew: Boolean,
@@ -101,7 +135,7 @@ export default {
     page: 1
   }),
   mounted() {
-      this.loadData();
+    this.loadData();
   },
   methods: {
     async loadData() {
@@ -114,6 +148,9 @@ export default {
     }
   },
   computed: {
+    isDataAvail() {
+      return (this.data && this.data.list && this.data.list.length) || (this.localState && this.localState.length);
+    },
     show: {
       set(v) {
         this.$emit('input', v)

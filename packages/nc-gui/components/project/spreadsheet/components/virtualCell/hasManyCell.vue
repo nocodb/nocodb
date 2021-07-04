@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex">
+  <div class="d-flex d-100 chips-wrapper" :class="{active}">
     <template v-if="!isForm">
-      <div class="d-flex align-center img-container flex-grow-1 hm-items">
+      <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
         <template v-if="value||localState">
           <item-chip
             v-for="(ch,i) in (value|| localState)"
@@ -14,7 +14,7 @@
           ></item-chip>
         </template>
       </div>
-      <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+      <div class="actions align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
         <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
         <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
       </div>
@@ -38,6 +38,7 @@
 
     <list-child-items
       :is="isForm ? 'list-child-items' : 'list-child-items-modal'"
+      :isForm="isForm"
       ref="childList"
       v-if="childMeta && (childListModal || isForm)"
       v-model="childListModal"
@@ -314,11 +315,8 @@ export default {
   },
   watch: {
      isNew(n, o) {
-      debugger
       if (!n && o) {
-        debugger
         let child;
-        debugger
         while (child = this.localState.pop()) {
            this.addChildToParent(child)
         }
@@ -383,7 +381,16 @@ export default {
     }
   }
 }
-
+.chips-wrapper{
+  .chips{
+    max-width: 100%;
+  }
+  &.active{
+    .chips{
+      max-width: calc(100% - 60px);
+    }
+  }
+}
 </style>
 <!--
 /**

@@ -1065,7 +1065,7 @@ export default class KnexMigrator extends SqlMigrator {
    *                  and only filenames are migrated to _evolution table
    * @memberof KnexMigrator
    */
-  async migrationsUp(args: any = {}) {
+  async  migrationsUp(args: any = {}) {
 
     const func = this.migrationsUp.name;
     // const result = new Result();
@@ -1077,7 +1077,6 @@ export default class KnexMigrator extends SqlMigrator {
     // if (NcConfigFactory.hasDbUrl()) {
     //   this.project = NcConfigFactory.make();
     // }
-
     // console.log(this.project);
 
     return await this._migrationsUp({

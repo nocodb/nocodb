@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex">
+  <div class="d-flex d-100 chips-wrapper" :class="{active}">
     <template v-if="!isForm">
-      <div class="d-flex align-center img-container flex-grow-1 hm-items">
+      <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
         <template v-if="(value || localState)">
           <item-chip v-for="(v,j) in (value || localState)"
                      :active="active"
@@ -14,7 +14,7 @@
 
         </template>
       </div>
-      <div class=" align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+      <div class="actions align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
         <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
         <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
       </div>
@@ -38,6 +38,7 @@
 
     <list-child-items
       :is="isForm ? 'list-child-items' : 'list-child-items-modal'"
+      :isForm="isForm"
       ref="childList"
       v-if="childMeta && assocMeta && (isForm || childListModal)"
       v-model="childListModal"
@@ -133,10 +134,11 @@ import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
 import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
+import listChildItemsModal from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
 
 export default {
   name: "many-to-many-cell",
-  components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel},
+  components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel, listChildItemsModal },
   props: {
     value: [Object, Array],
     meta: [Object],
@@ -428,6 +430,17 @@ export default {
   row-gap: 3px;
   gap: 3px;
   margin: 3px auto;
+}
+
+.chips-wrapper{
+  .chips{
+    max-width: 100%;
+  }
+  &.active{
+    .chips{
+      max-width: calc(100% - 60px);
+    }
+  }
 }
 
 </style>

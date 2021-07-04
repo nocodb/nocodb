@@ -1453,7 +1453,7 @@ class BaseModelSql extends BaseModel {
     const gs = _.groupBy(parents, this.dbModels[parent]?.columnToAlias?.[rcn] || rcn);
 
     childs.forEach(row => {
-      row[this.dbModels?.[parent]?._tn || parent] = gs[row[this.dbModels[parent]?.columnToAlias?.[cn] || cn]]?.[0] || gs[row[cn || gs[row[this.dbModels[parent]?.columnToAlias?.[cn] || cn]]?.[0]]]?.[0];
+      row[this.dbModels?.[parent]?._tn || parent] = gs[row[this?.columnToAlias?.[cn] || cn]]?.[0];
     })
   }
 

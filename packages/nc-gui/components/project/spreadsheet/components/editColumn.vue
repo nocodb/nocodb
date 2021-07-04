@@ -19,7 +19,7 @@
               @input="newColumn.altered = newColumn.altered || 8"
               :rules="[
                     v => !!v  || 'Required',
-                    v => !meta || !meta.columns || !column || meta.columns.every(c => column && c.cn === column.cn || v !== c.cn ) && meta.v.every(c => v !== c._cn ) || 'Duplicate column name'
+                    v => !meta || !meta.columns || meta.columns.every(c => column && c.cn === column.cn || v !== c.cn ) && meta.v.every(c => v !== c._cn ) || 'Duplicate column name'
               ]"
               class="caption"
               label="Column name"
@@ -94,6 +94,7 @@
                     :nodes="nodes"
                     :meta="meta"
                     :isSQLite="isSQLite"
+                    :alias="newColumn.cn"
                     @onColumnSelect="onRelColumnSelect"
                   ></linked-to-another-options>
                 </v-col>

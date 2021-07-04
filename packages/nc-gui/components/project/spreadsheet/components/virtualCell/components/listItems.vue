@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="show" width="600">
-    <v-card width="600" color="backgroundColor">
+    <v-card width="600" >
       <v-card-title class="textColor--text mx-2 justify-center">{{ title }}
 
       </v-card-title>

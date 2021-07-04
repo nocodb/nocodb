@@ -1190,7 +1190,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log('Within relation delete event - \'%s\' ==> \'%s\'', tnp, tnc)
     this.deleteRoutesForTables([tnp, tnc])
 
-    const relations = await this.getRelationList();
+    const relations = await this.getXcRelationList();
 
     {
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);

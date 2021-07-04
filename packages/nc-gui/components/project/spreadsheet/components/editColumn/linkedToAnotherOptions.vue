@@ -103,7 +103,7 @@
 <script>
 export default {
   name: "linked-to-another-options",
-  props: ['nodes', 'column', 'meta', 'isSQLite'],
+  props: ['nodes', 'column', 'meta', 'isSQLite','alias'],
   data: () => ({
     type: 'hm',
     refTables: [],
@@ -179,6 +179,7 @@ export default {
           },
           'xcM2MRelationCreate',
           {
+            _cn:this.alias,
             ...this.relation,
             type: this.isSQLite || this.relation.type === 'virtual' ? 'virtual' : 'real',
             parentTable: this.meta.tn,

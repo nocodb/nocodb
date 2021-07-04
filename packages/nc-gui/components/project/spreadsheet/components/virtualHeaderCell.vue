@@ -18,7 +18,7 @@
 
     <v-menu offset-y open-on-hover left>
       <template v-slot:activator="{on}">
-        <v-icon v-on="on" small>mdi-menu-down</v-icon>
+        <v-icon v-if="!isForm" v-on="on" small>mdi-menu-down</v-icon>
       </template>
       <v-list dense>
         <v-list-item dense @click="editColumnMenu = true">
@@ -78,7 +78,7 @@
 import EditVirtualColumn from "@/components/project/spreadsheet/components/editVirtualColumn";
 export default {
     components: {EditVirtualColumn},
-  props: ['column', 'nodes', 'meta'],
+  props: ['column', 'nodes', 'meta', 'isForm'],
   name: "virtualHeaderCell",
   data: () => ({
     columnDeleteDialog: false,

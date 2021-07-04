@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex">
+  <div class="d-flex d-100 chips-wrapper" :class="{active}">
     <template v-if="!isForm">
-      <div class="d-flex align-center img-container flex-grow-1 hm-items">
+      <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
         <template v-if="value || localState">
           <item-chip
             :active="active"
@@ -13,7 +13,7 @@
           ></item-chip>
         </template>
       </div>
-      <div class=" align-center justify-center px-1 flex-shrink-1"
+      <div class="action align-center justify-center px-1 flex-shrink-1"
            :class="{'d-none': !active, 'd-flex':active  }">
         <x-icon small :color="['primary','grey']" @click="showNewRecordModal">{{
             value ? 'mdi-arrow-expand' : 'mdi-plus'
@@ -37,6 +37,7 @@
     <list-child-items
       ref="childList"
       v-if="parentMeta &&  isForm"
+      :isForm="isForm"
       :local-state="localState? [localState] : []"
       :is-new="isNew"
       :size="10"
@@ -327,6 +328,17 @@ export default {
   row-gap: 3px;
   gap: 3px;
   margin: 3px auto;
+}
+
+.chips-wrapper{
+  .chips{
+    max-width: 100%;
+  }
+  &.active{
+    .chips{
+      max-width: calc(100% - 30px);
+    }
+  }
 }
 
 </style>

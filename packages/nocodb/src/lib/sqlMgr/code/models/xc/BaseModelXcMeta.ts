@@ -2,7 +2,7 @@ import BaseRender from "../../BaseRender";
 
 abstract class BaseModelXcMeta extends BaseRender {
 
-  public abstract getXcColumnsObject(context:any):any[];
+  public abstract getXcColumnsObject(context: any): any[];
 
   public getObject() {
     return {
@@ -15,21 +15,25 @@ abstract class BaseModelXcMeta extends BaseRender {
       db_type: this.ctx.db_type,
       type: this.ctx.type,
 
-      v: [
-        ...(this.ctx.hasMany || []).map(hm => ({
-          hm,
-          _cn:`${hm._rtn} => ${hm._tn}`
-        })),
-        ...(this.ctx.belongsTo || []).map(bt => ({
-          bt,
-          _cn:`${bt._rtn} <= ${bt._tn}`
-        })),
-      ]
+      v: this.getVitualColumns()
     }
 
   }
 
-  protected mapDefaultPrimaryValue(columnsArr: any[]):void {
+  public getVitualColumns(): any[] {
+    return [
+      ...(this.ctx.hasMany || []).map(hm => ({
+        hm,
+        _cn: `${hm._rtn} => ${hm._tn}`
+      })),
+      ...(this.ctx.belongsTo || []).map(bt => ({
+        bt,
+        _cn: `${bt._rtn} <= ${bt._tn}`
+      })),
+    ];
+  }
+
+  protected mapDefaultPrimaryValue(columnsArr: any[]): void {
     // pk can be at the end
 
     //

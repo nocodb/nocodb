@@ -59,6 +59,10 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.xcMeta = xcMeta;
   }
 
+  public async init():Promise<void>{
+    await super.init();
+    await this.loadRoutes(null);
+  }
 
   public async loadRoutes(customRoutes: any): Promise<any> {
     this.customRoutes = customRoutes;

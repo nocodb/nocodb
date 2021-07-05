@@ -94,6 +94,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return this.models;
   }
 
+  public get client() {
+    return this.connectionConfig?.client;
+  }
+
   public readonly app: T;
 
   public hooks: {
@@ -663,40 +667,45 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
     const NC_VERSIONS = [
-      // {name: '0.6', handler: null},
-      // {name: '0.7', handler: this.xcUpZeroPointSeven},
-      // {name: '0.8', handler: this.xcUpZeroPointEight},
-      // {name: '0.9', handler: this.xcUpZeroPointNine},
+      {name: '0009000', handler: null},
+      {name: '0009044', handler: this.xcUpManyToMany}
     ]
-    const knex = this.getDbDriver();
-    if (!await knex.schema.hasTable('nc_store')) {
+    if (!await this.xcMeta?.knex?.schema?.hasTable?.('nc_store')) {
       return;
     }
     this.baseLog(`xcUpgrade : Getting configuration from meta database`,)
 
-    const config = await knex('nc_store').where({key: 'NC_CONFIG'}).first();
+    const config = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_store', {key: 'NC_CONFIG'});
+
     if (config) {
       const configObj: NcConfig = JSON.parse(config.value);
       if (configObj.version !== process.env.NC_VERSION) {
-        let start = false;
         for (const version of NC_VERSIONS) {
-          if (start) {
-            await version.handler()
-          } else if (version.name === configObj.version) {
-            start = true;
-            // todo: take backup of current version
+          // compare current version and old version
+          if (version.name > configObj.version) {
+            this.baseLog(`xcUpgrade : Upgrading '%s' => '%s'`, configObj.version, version.name)
+            await version?.handler?.();
+
+            // update version in meta after each upgrade
+            configObj.version = version.name;
+            await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
+              key: 'NC_CONFIG',
+              value: JSON.stringify(config)
+            });
+
+            // todo: backup data
+
           }
           if (version.name === process.env.NC_VERSION) {
             break;
-            // todo:
           }
         }
       }
     } else {
-
       this.baseLog(`xcUpgrade : Inserting config to meta database`,)
       const configObj: NcConfig = JSON.parse(JSON.stringify(this.config));
       delete configObj.envs;
+      configObj.version = process.env.NC_VERSION;
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
         key: 'NC_CONFIG',
         value: JSON.stringify(configObj)
@@ -770,6 +779,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
   }
 
+  public getProjectId(): string {
+    return this.projectId;
+  }
+
+  public async init(): Promise<void> {
+    await this.xcUpgrade();
+  }
+
 
   protected async loadCommon(): Promise<any> {
     this.baseLog(`loadCommon :`);
@@ -841,7 +858,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   protected async getColumnList(tn: string): Promise<any[]> {
     this.baseLog(`getColumnList : '%s'`, tn);
-    let columns = await this.sqlClient.columnList({tn: tn});
+    let columns = await this.sqlClient.columnList({tn});
     columns = columns.data.list;
     return columns;
   }
@@ -903,11 +920,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return ctx;
   }
 
-
-  private getColumnNameAlias(col, tableName?: string) {
-    return this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?._cn || col._cn || this.getInflectedName(col.cn, this.connectionConfig?.meta?.inflection?.cn);
-  }
-
   protected getTableNameAlias(tn: string) {
     if (this.metas?.[tn]?._tn) {
       return this.metas?.[tn]?._tn;
@@ -922,7 +934,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       ...ctx,
       _tn: this.metas[ctx.tn]._tn,
       _ctn: this.metas[tnc]._tn,
-      tnc: tnc,
+      tnc,
       project_id: this.projectId
     };
   }
@@ -1149,6 +1161,120 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
       rtn: newTableName
     }, {rtn: oldTableName});
+  }
+
+
+  protected async getManyToManyRelations({parent = null, child = null} = {}) {
+    const metas = new Set<any>();
+    const assocMetas = new Set<any>();
+
+    for (const meta of Object.values(this.metas)) {
+
+      // check if table is a Bridge table(or Associative Table) by checking
+      // number of foreign keys and columns
+      if (meta.belongsTo?.length === 2 && meta.columns.length < 5) {
+
+        if (parent && child && !([parent, child].includes(meta.belongsTo[0].rtn) && [parent, child].includes(meta.belongsTo[1].rtn))) {
+          continue;
+        }
+
+        const tableMetaA = this.metas[meta.belongsTo[0].rtn];
+        const tableMetaB = this.metas[meta.belongsTo[1].rtn];
+
+        /*        // remove hasmany relation with associate table from tables
+                tableMetaA.hasMany.splice(tableMetaA.hasMany.findIndex(hm => hm.tn === meta.tn), 1)
+                tableMetaB.hasMany.splice(tableMetaB.hasMany.findIndex(hm => hm.tn === meta.tn), 1)*/
+
+        // add manytomany data under metadata of both related columns
+        tableMetaA.manyToMany = tableMetaA.manyToMany || [];
+        if (tableMetaA.manyToMany.every(mm => mm.vtn === meta.vtn)) {
+          tableMetaA.manyToMany.push({
+            "tn": tableMetaA.tn,
+            "cn": meta.belongsTo[0].rcn,
+            "vtn": meta.tn,
+            "vcn": meta.belongsTo[0].cn,
+            "vrcn": meta.belongsTo[1].cn,
+            "rtn": meta.belongsTo[1].rtn,
+            "rcn": meta.belongsTo[1].rcn,
+            "_tn": tableMetaA._tn,
+            "_cn": meta.belongsTo[0]._rcn,
+            "_rtn": meta.belongsTo[1]._rtn,
+            "_rcn": meta.belongsTo[1]._rcn
+          })
+          metas.add(tableMetaA)
+        }
+        tableMetaB.manyToMany = tableMetaB.manyToMany || [];
+        if (tableMetaB.manyToMany.every(mm => mm.vtn === meta.vtn)) {
+          tableMetaB.manyToMany.push({
+            "tn": tableMetaB.tn,
+            "cn": meta.belongsTo[1].rcn,
+            "vtn": meta.tn,
+            "vcn": meta.belongsTo[1].cn,
+            "vrcn": meta.belongsTo[0].cn,
+            "rtn": meta.belongsTo[0].rtn,
+            "rcn": meta.belongsTo[0].rcn,
+            "_tn": tableMetaB._tn,
+            "_cn": meta.belongsTo[1]._rcn,
+            "_rtn": meta.belongsTo[0]._rtn,
+            "_rcn": meta.belongsTo[0]._rcn
+          })
+          metas.add(tableMetaB)
+        }
+        assocMetas.add(meta)
+      }
+    }
+
+    // Update metadata of tables which have manytomany relation
+    // and recreate basemodel with new meta information
+    for (const meta of metas) {
+
+      let queryParams;
+
+      // update showfields on new many to many relation create
+      if (parent && child) {
+        try {
+          queryParams = JSON.parse((await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {title: meta.tn})).query_params)
+        } catch (e) {
+          //  ignore
+        }
+      }
+
+      meta.v = [
+        ...meta.v.filter(vc => !(vc.hm && meta.manyToMany.some(mm => vc.hm.tn === mm.vtn))),
+        // todo: ignore existing m2m relations
+        ...meta.manyToMany.map(mm => {
+
+          if (queryParams?.showFields && !(`${mm._tn} <=> ${mm._rtn}` in queryParams.showFields)) {
+            queryParams.showFields[`${mm._tn} <=> ${mm._rtn}`] = true;
+          }
+
+          return {
+            mm,
+            _cn: `${mm._tn} <=> ${mm._rtn}`
+          }
+
+        })]
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        meta: JSON.stringify(meta),
+        ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
+      }, {title: meta.tn})
+      XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
+      this.models[meta.tn] = this.getBaseModel(meta)
+    }
+
+    // Update metadata of associative table
+    for (const meta of assocMetas) {
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        mm: 1,
+      }, {title: meta.tn})
+      XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
+      this.models[meta.tn] = this.getBaseModel(meta)
+    }
+  }
+
+
+  private getColumnNameAlias(col, tableName?: string) {
+    return this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?._cn || col._cn || this.getInflectedName(col.cn, this.connectionConfig?.meta?.inflection?.cn);
   }
 
   private baseLog(str, ...args): void {
@@ -1533,123 +1659,24 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     await this.loadXcAcl()
   }
 
-  public get client() {
-    return this.connectionConfig?.client;
-  }
 
-  public getProjectId() {
-    return this.projectId;
-  }
-
-
-  protected async getManyToManyRelations({parent = null, child = null} = {}) {
-    const metas = new Set<any>();
-    const assocMetas = new Set<any>();
-
-    for (const meta of Object.values(this.metas)) {
-
-      // check if table is a Bridge table(or Associative Table) by checking
-      // number of foreign keys and columns
-      if (meta.belongsTo?.length === 2 && meta.columns.length < 5) {
-
-        if (parent && child && !([parent, child].includes(meta.belongsTo[0].rtn) && [parent, child].includes(meta.belongsTo[1].rtn))) {
-          continue;
-        }
-
-        const tableMetaA = this.metas[meta.belongsTo[0].rtn];
-        const tableMetaB = this.metas[meta.belongsTo[1].rtn];
-
-        /*        // remove hasmany relation with associate table from tables
-                tableMetaA.hasMany.splice(tableMetaA.hasMany.findIndex(hm => hm.tn === meta.tn), 1)
-                tableMetaB.hasMany.splice(tableMetaB.hasMany.findIndex(hm => hm.tn === meta.tn), 1)*/
-
-        // add manytomany data under metadata of both related columns
-        tableMetaA.manyToMany = tableMetaA.manyToMany || [];
-        if (tableMetaA.manyToMany.every(mm => mm.vtn === meta.vtn)) {
-          tableMetaA.manyToMany.push({
-            "tn": tableMetaA.tn,
-            "cn": meta.belongsTo[0].rcn,
-            "vtn": meta.tn,
-            "vcn": meta.belongsTo[0].cn,
-            "vrcn": meta.belongsTo[1].cn,
-            "rtn": meta.belongsTo[1].rtn,
-            "rcn": meta.belongsTo[1].rcn,
-            "_tn": tableMetaA._tn,
-            "_cn": meta.belongsTo[0]._rcn,
-            "_rtn": meta.belongsTo[1]._rtn,
-            "_rcn": meta.belongsTo[1]._rcn
-          })
-          metas.add(tableMetaA)
-        }
-        tableMetaB.manyToMany = tableMetaB.manyToMany || [];
-        if (tableMetaB.manyToMany.every(mm => mm.vtn === meta.vtn)) {
-          tableMetaB.manyToMany.push({
-            "tn": tableMetaB.tn,
-            "cn": meta.belongsTo[1].rcn,
-            "vtn": meta.tn,
-            "vcn": meta.belongsTo[1].cn,
-            "vrcn": meta.belongsTo[0].cn,
-            "rtn": meta.belongsTo[0].rtn,
-            "rcn": meta.belongsTo[0].rcn,
-            "_tn": tableMetaB._tn,
-            "_cn": meta.belongsTo[1]._rcn,
-            "_rtn": meta.belongsTo[0]._rtn,
-            "_rcn": meta.belongsTo[0]._rcn
-          })
-          metas.add(tableMetaB)
-        }
-        assocMetas.add(meta)
-      }
-    }
-
-    // Update metadata of tables which have manytomany relation
-    // and recreate basemodel with new meta information
-    for (const meta of metas) {
-
-      let queryParams;
-
-      // update showfields on new many to many relation create
-      if (parent && child) {
-        try {
-          queryParams = JSON.parse((await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {title: meta.tn})).query_params)
-        } catch (e) {
-          //  ignore
-        }
-      }
-
-      meta.v = [
-        ...meta.v.filter(vc => !(vc.hm && meta.manyToMany.some(mm => vc.hm.tn === mm.vtn))),
-        // todo: ignore existing m2m relations
-        ...meta.manyToMany.map(mm => {
-
-          if (queryParams?.showFields && !(`${mm._tn} <=> ${mm._rtn}` in queryParams.showFields)) {
-            queryParams.showFields[`${mm._tn} <=> ${mm._rtn}`] = true;
-          }
-
-          return {
-            mm,
-            _cn: `${mm._tn} <=> ${mm._rtn}`
-          }
-
-        })]
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        meta: JSON.stringify(meta),
-        ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
+  private async xcUpManyToMany(): Promise<any> {
+    const metas = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'xc_models', {
+      fields: ['meta']
+    });
+    // add virtual columns for relations
+    for (const {meta: metaJson} of metas) {
+      const meta = JSON.parse(metaJson.meta);
+      const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
+      meta.v = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getVitualColumns();
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'xc_models', {
+        meta: JSON.stringify(meta)
       }, {title: meta.tn})
-      XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
-      this.models[meta.tn] = this.getBaseModel(meta)
     }
 
-    // Update metadata of associative table
-    for (const meta of assocMetas) {
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        mm: 1,
-      }, {title: meta.tn})
-      XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
-      this.models[meta.tn] = this.getBaseModel(meta)
-    }
+    // generate many to many relations an columns
+    await this.getManyToManyRelations();
   }
-
 }
 
 export {IGNORE_TABLES};

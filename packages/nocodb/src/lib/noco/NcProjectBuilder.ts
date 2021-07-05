@@ -60,10 +60,10 @@ export default class NcProjectBuilder {
         let routeInfo;
         if (meta instanceof RestApiBuilder) {
           console.log(`Creating REST APIs ${meta.getDbType()} - > ${meta.getDbName()}`);
-          routeInfo = await (meta as RestApiBuilder).loadRoutes(null);
+          routeInfo = await (meta as RestApiBuilder).init();
         } else if (meta instanceof GqlApiBuilder) {
           console.log(`Creating GraphQL APIs ${meta.getDbType()} - > ${meta.getDbName()}`);
-          routeInfo = await (meta as GqlApiBuilder).loadResolvers(null);
+          routeInfo = await (meta as GqlApiBuilder).init();
         }
         allRoutesInfo.push(routeInfo);
         this.progress(routeInfo, allRoutesInfo, isFirstTime);

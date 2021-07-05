@@ -1173,7 +1173,13 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     const metas = new Set<any>();
     const assocMetas = new Set<any>();
 
-    for (const meta of localMetas || Object.values(this.metas)) {
+    if (localMetas) {
+      for (const meta of localMetas) {
+        this.metas[meta.tn] = meta;
+      }
+    }
+
+    for (const meta of Object.values(this.metas)) {
 
       // check if table is a Bridge table(or Associative Table) by checking
       // number of foreign keys and columns
@@ -1264,7 +1270,9 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
       }, {title: meta.tn})
       XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
-      this.models[meta.tn] = this.getBaseModel(meta)
+      if (!localMetas) {
+        this.models[meta.tn] = this.getBaseModel(meta)
+      }
     }
 
     // Update metadata of associative table

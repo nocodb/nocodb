@@ -119,6 +119,7 @@ export default class NcProjectBuilder {
 
 
       case 'xcVirtualRelationCreate':
+        await curBuilder.onVirtualRelationCreate(data.req.args.parentTable, data.req.args.childTable);
         await curBuilder.onRelationCreate(data.req.args.parentTable, data.req.args.childTable, {
           ...data.req.args,
           virtual: true

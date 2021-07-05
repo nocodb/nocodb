@@ -726,6 +726,16 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     });
   }
 
+  public async onVirtualRelationCreate(parentTable: string, childTable: string): Promise<any> {
+    return this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
+      _tn: this.getTableNameAlias(childTable),
+      _rtn: this.getTableNameAlias(parentTable),
+    }, {
+      tn: childTable,
+      rtn: parentTable,
+    });
+  }
+
 
   protected async loadCommon(): Promise<any> {
     this.baseLog(`loadCommon :`);

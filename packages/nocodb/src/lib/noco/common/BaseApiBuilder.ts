@@ -1169,11 +1169,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
 
-  protected async getManyToManyRelations({parent = null, child = null} = {}) {
+  protected async getManyToManyRelations({parent = null, child = null, localMetas = null} = {}) {
     const metas = new Set<any>();
     const assocMetas = new Set<any>();
 
-    for (const meta of Object.values(this.metas)) {
+    for (const meta of localMetas || Object.values(this.metas)) {
 
       // check if table is a Bridge table(or Associative Table) by checking
       // number of foreign keys and columns
@@ -1272,8 +1272,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         mm: 1,
       }, {title: meta.tn})
-      XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
-      this.models[meta.tn] = this.getBaseModel(meta)
+      if (!localMetas) {
+        XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
+        this.models[meta.tn] = this.getBaseModel(meta)
+      }
     }
   }
 
@@ -1686,7 +1688,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
 
     // generate many to many relations an columns
-    await this.getManyToManyRelations();
+    await this.getManyToManyRelations({localMetas: metas});
     return metas;
   }
 }

@@ -327,7 +327,7 @@ async function(req, res){
   }
 
 
-  getObjectWithoutFunctions() {
+      getObjectWithoutFunctions() {
     return this.getObject().map(({functions, ...rest}) => rest)
   }
 }

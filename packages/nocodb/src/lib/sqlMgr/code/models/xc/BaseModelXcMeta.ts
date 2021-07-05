@@ -33,7 +33,7 @@ abstract class BaseModelXcMeta extends BaseRender {
     ];
   }
 
-  protected mapDefaultPrimaryValue(columnsArr: any[]): void {
+  public mapDefaultPrimaryValue(columnsArr: any[]): void {
     // pk can be at the end
 
     //

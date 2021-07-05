@@ -668,7 +668,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
     const NC_VERSIONS = [
       {name: '0009000', handler: null},
-      {name: '0009044', handler: this.xcUpManyToMany}
+      {name: '0009044', handler: this.ncUpManyToMany}
     ]
     if (!await this.xcMeta?.knex?.schema?.hasTable?.('nc_store')) {
       return;
@@ -1660,22 +1660,29 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
 
-  private async xcUpManyToMany(): Promise<any> {
-    const metas = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'xc_models', {
+  protected async ncUpManyToMany(): Promise<any> {
+    const models = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models', {
       fields: ['meta']
     });
+    if (!models.length) {
+      return
+    }
+    const metas = [];
     // add virtual columns for relations
-    for (const {meta: metaJson} of metas) {
-      const meta = JSON.parse(metaJson.meta);
+    for (const metaObj of models) {
+      const meta = JSON.parse(metaObj.meta);
+      metas.push(meta);
       const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
       meta.v = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getVitualColumns();
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'xc_models', {
+      ModelXcMetaFactory.create(this.connectionConfig, {}).mapDefaultPrimaryValue(meta.columns);
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         meta: JSON.stringify(meta)
       }, {title: meta.tn})
     }
 
     // generate many to many relations an columns
     await this.getManyToManyRelations();
+    return metas;
   }
 }
 

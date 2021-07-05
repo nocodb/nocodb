@@ -1,13 +1,3 @@
-// import {
-//     ExpressXcTsRoutes,
-//     ExpressXcTsRoutesBt,
-//     ExpressXcTsRoutesHm,
-//     ModelXcMetaFactory,
-//     SwaggerXc,
-//     SwaggerXcHm,
-//     SwaggerXcBt
-// } from 'nc-help';
-
 import {RestCtrl} from "./RestCtrl";
 import {RestCtrlBelongsTo} from "./RestCtrlBelongsTo";
 import {RestCtrlHasMany} from "./RestCtrlHasMany";
@@ -59,7 +49,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.xcMeta = xcMeta;
   }
 
-  public async init():Promise<void>{
+  public async init(): Promise<void> {
     await super.init();
     await this.loadRoutes(null);
   }
@@ -1684,6 +1674,56 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     })
   }
 
+
+  protected async ncUpManyToMany(): Promise<any> {
+    const metas = await super.ncUpManyToMany();
+    if (!metas) {
+      return;
+    }
+    for (const meta of metas) {
+      const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
+
+      /* create routes for table */
+      const routes = new ExpressXcTsRoutes({dir: '', ctx, filename: ''}).getObjectWithoutFunctions();
+
+      /* create nc_routes, add new routes or update order */
+      const routesInsertion = routes.map((route, i) => {
+        return async () => {
+          if (!await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_routes', {
+            path: route.path,
+            tn: meta.tn,
+            title: meta.tn,
+            type: route.type
+          })) {
+            await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
+              acl: JSON.stringify(route.acl),
+              handler: JSON.stringify(route.handler),
+              order: i,
+              path: route.path,
+              tn: meta.tn,
+              title: meta.tn,
+              type: route.type,
+            })
+          } else {
+            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
+              order: i,
+            }, {
+              path: route.path,
+              tn: meta.tn,
+              title: meta.tn,
+              type: route.type
+            })
+          }
+        }
+      });
+
+      await NcHelp.executeOperations(routesInsertion, this.connectionConfig.client);
+
+    }
+
+    // add new routes
+
+  }
 }
 
 

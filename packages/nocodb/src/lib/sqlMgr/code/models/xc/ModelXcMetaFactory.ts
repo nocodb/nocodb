@@ -3,9 +3,10 @@ import ModelXcMetaSqlite from "./ModelXcMetaSqlite";
 import ModelXcMetaPg from "./ModelXcMetaPg";
 import ModelXcMetaMssql from "./ModelXcMetaMssql";
 import ModelXcMetaOracle from "./ModelXcMetaOracle";
+import BaseModelXcMeta from "./BaseModelXcMeta";
 
 class ModelXcMetaFactory {
-  public static create(connectionConfig, args) {
+  public static create(connectionConfig, args):BaseModelXcMeta {
     if (connectionConfig.client === "mysql2" || connectionConfig.client === "mysql") {
       return new ModelXcMetaMysql(args)
     } else if (connectionConfig.client === "sqlite3") {

@@ -1,5 +1,5 @@
 import Noco from "../lib/noco/Noco";
-
+process.env.NC_VERSION = '0009044';
 import express from 'express';
 import cors from 'cors';
 

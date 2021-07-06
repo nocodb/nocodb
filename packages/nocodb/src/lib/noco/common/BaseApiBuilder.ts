@@ -688,9 +688,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
             // update version in meta after each upgrade
             config.version = version.name;
-            await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
-              key: 'NC_CONFIG',
+            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_store', {
               value: JSON.stringify(config)
+            }, {
+              key: 'NC_CONFIG',
             });
 
             // todo: backup data
@@ -710,11 +711,15 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       this.baseLog(`xcUpgrade : Inserting config to meta database`,)
       const configObj: NcConfig = JSON.parse(JSON.stringify(this.config));
       delete configObj.envs;
-      configObj.version = process.env.NC_VERSION;
+      const isOld = (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models'))?.length;
+      configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
         key: 'NC_CONFIG',
         value: JSON.stringify(configObj)
       });
+      if (isOld) {
+        await this.xcUpgrade();
+      }
     }
   }
 

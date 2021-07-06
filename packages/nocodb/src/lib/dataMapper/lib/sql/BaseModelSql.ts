@@ -1132,7 +1132,7 @@ class BaseModelSql extends BaseModel {
 
     let gs = _.groupBy(childs, _cn);
     parent.forEach(row => {
-      row[this.dbModels?.[child]?._tn || child] = gs[row[this.pks[0]._cn]] || [];
+      row[`${this.dbModels?.[child]?._tn || child}List`] = gs[row[this.pks[0]._cn]] || [];
     })
   }
 
@@ -1147,7 +1147,19 @@ class BaseModelSql extends BaseModel {
    * @private
    */
   async _getManyToManyList({parent, child}, rest = {}, index) {
+    const gs = await this._getGroupedManyToManyList({
+      rest,
+      index,
+      child,
+      parentIds: parent.map(p => p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
+    });
+    parent.forEach((row, i) => {
+      row[`${this.dbModels?.[child]?._tn || child}MMList`] = gs[i] || [];
+    })
 
+  }
+
+  public async _getGroupedManyToManyList({rest = {}, index = 0, child, parentIds}) {
     let {fields, where, limit, offset, sort} = this._getChildListArgs(rest, index, child);
     const {tn, cn, vtn, vcn, vrcn, rtn, rcn} = this.manyToManyRelations.find(({rtn}) => rtn === child) || {};
     // @ts-ignore
@@ -1159,12 +1171,12 @@ class BaseModelSql extends BaseModel {
 
 
     const childs = await this._run(this.dbDriver.union(
-      parent.map(p => {
+      parentIds.map(id => {
         const query =
           this
             .dbDriver(child)
             .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
-            .where(`${vtn}.${vcn}`, p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
+            .where(`${vtn}.${vcn}`, id)//p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select({[`${tn}_${vcn}`]: `${vtn}.${vcn}`, ...this.dbModels[child].selectQuery(fields)}) // ...fields.split(','));
 
@@ -1173,11 +1185,8 @@ class BaseModelSql extends BaseModel {
       }), !this.isSqlite()
     ));
 
-    let gs = _.groupBy(childs, `${tn}_${vcn}`);
-    parent.forEach(row => {
-      row[this.dbModels?.[child]?._tn || child] = gs[row[this.pks[0]._cn]] || [];
-    })
-
+    const gs = _.groupBy(childs, `${tn}_${vcn}`);
+    return parentIds.map(id => gs[id] || [])
   }
 
   /**
@@ -1453,7 +1462,7 @@ class BaseModelSql extends BaseModel {
     const gs = _.groupBy(parents, this.dbModels[parent]?.columnToAlias?.[rcn] || rcn);
 
     childs.forEach(row => {
-      row[this.dbModels?.[parent]?._tn || parent] = gs[row[this?.columnToAlias?.[cn] || cn]]?.[0];
+      row[`${this.dbModels?.[parent]?._tn || parent}Read`] = gs[row[this?.columnToAlias?.[cn] || cn]]?.[0];
     })
   }
 

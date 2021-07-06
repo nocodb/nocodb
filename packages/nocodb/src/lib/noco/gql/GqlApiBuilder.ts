@@ -31,6 +31,9 @@ import GqlXcSchemaFactory from "../../sqlMgr/code/gql-schema/xc-ts/GqlXcSchemaFa
 import ModelXcMetaFactory from "../../sqlMgr/code/models/xc/ModelXcMetaFactory";
 import ExpressXcTsPolicyGql from "../../sqlMgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql";
 
+import {GraphQLJSON} from 'graphql-type-json';
+import {m2mNotChildren, m2mNotChildrenCount} from "./GqlCommonResolvers";
+
 const log = debug('nc:api:gql');
 
 
@@ -341,6 +344,39 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.addHmCountResolverMethodToType(hm, mw, tn, loaderFunctionsObj, countPropName, colNameAlias);
         }
       }
+      for (const mm of schema.manyToMany || []) {
+
+        if (!enabledModels.includes(mm.rtn)) {
+          continue;
+        }
+
+        // todo: handle enable/disable
+        // if (!mm.enabled) {
+        //   continue;
+        // }
+
+        const middlewareBody = middlewaresArr.find(({title}) => title === mm.rtn)?.functions?.[0];
+        // const countPropName = `${mm._rtn}Count`;
+        const listPropName = `${mm._rtn}MMList`;
+
+        if (listPropName in this.types[tn].prototype) {
+          continue;
+        }
+
+        const mw = new GqlMiddleware(this.acls, mm.tn, middlewareBody, this.models);
+        /* has many relation list loader with middleware */
+        this.addMMListResolverMethodToType(tn, mm, mw, {}, listPropName, this.metas[mm.tn].columns.find(c => c.pk)._cn);
+        // todo: count
+        // if (countPropName in this.types[tn].prototype) {
+        //   continue;
+        // }
+        // {
+        //   const mw = new GqlMiddleware(this.acls, hm.tn, middlewareBody, this.models);
+        //
+        //   // create count loader with middleware
+        //   this.addHmCountResolverMethodToType(hm, mw, tn, loaderFunctionsObj, countPropName, colNameAlias);
+        // }
+      }
 
       for (const bt of schema.belongsTo) {
 
@@ -393,6 +429,35 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       /* defining HasMany list method within GQL Type class */
       Object.defineProperty(this.types[tn].prototype, `${listPropName}`, {
+        async value(args: any, context: any, info: any): Promise<any> {
+          return listLoader.load([this[colNameAlias], args, context, info]);
+        },
+        configurable: true
+      })
+    }
+  }
+
+  private addMMListResolverMethodToType(tn: string, mm, mw: GqlMiddleware, _loaderFunctionsObj, listPropName: string, colNameAlias) {
+    {
+      const self = this;
+      this.log(`xcTablesRead : Creating loader for '%s'`, `${tn}Mm${mm.rtn}List`)
+      const listLoader = new DataLoader(
+        BaseType.applyMiddlewareForLoader(
+          [mw.middleware],
+          async parentIds => {
+            return (await this.models[tn]._getGroupedManyToManyList({
+              parentIds,
+              child: mm.rtn,
+              rest: {
+                fields1: '*'
+              }
+            }))?.map(child => child.map(c => new self.types[mm.rtn](c)));
+          },
+          [mw.postLoaderMiddleware]
+        ));
+
+      /* defining HasMany list method within GQL Type class */
+      Object.defineProperty(this.types[tn].prototype, listPropName, {
         async value(args: any, context: any, info: any): Promise<any> {
           return listLoader.load([this[colNameAlias], args, context, info]);
         },
@@ -577,7 +642,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.log(`xcTablesPopulate : Generating schema of '%s' %s`, table.tn, table.type);
 
           /**************** prepare GQL: schemas, types, resolvers ****************/
-          this.schemas[table.tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
+          // this.schemas[table.tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
 
           // tslint:disable-next-line:max-classes-per-file
           this.types[table.tn] = class extends XCType {
@@ -600,7 +665,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               title: table.tn,
               type: table.type || 'table',
               meta: JSON.stringify(this.metas[table.tn]),
-              schema: this.schemas[table.tn],
+              // schema: this.schemas[table.tn],
               alias: this.metas[table.tn]._tn,
             })
           }
@@ -712,6 +777,84 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       }));
 
       await this.getManyToManyRelations();
+
+
+      // generate schema of models
+      for (const meta of Object.values(this.metas)) {
+        /**************** prepare GQL: schemas, types, resolvers ****************/
+        this.schemas[meta.tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(
+          {
+            ...this.generateContextForTable(
+              meta.tn,
+              meta.columns,
+              relations,
+              meta.hasMany,
+              meta.belongsTo,
+              meta.type,
+              meta._tn,
+            ),
+            manyToMany: meta.manyToMany
+          })).getString();
+
+        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+          schema: this.schemas[meta.tn],
+        }, {
+          title: meta.tn
+        })
+      }
+
+
+      // add property in type class for many to many relations
+      await Promise.all(Object.entries(this.metas).map(async ([tn, meta]) => {
+        if (!meta.manyToMany) {
+          return;
+        }
+        for (const mm of meta.manyToMany) {
+          const countPropName = `${mm._rtn}Count`;
+          const listPropName = `${mm._rtn}MMList`;
+
+
+          this.log(`xcTablesPopulate : Populating  '%s' and '%s' many to many loaders`, listPropName, countPropName);
+
+          if (listPropName in this.types[tn].prototype) {
+            continue;
+          }
+
+          /* has many relation list loader with middleware */
+          const mw = new GqlMiddleware(this.acls, mm.rtn, '', this.models);
+          /* has many relation list loader with middleware */
+          this.addMMListResolverMethodToType(tn, mm, mw, {}, listPropName, meta.columns.find(c => c.pk)._cn);
+          // if (countPropName in this.types[tn].prototype) {
+          //   continue;
+          // }
+          // {
+          //   const mw = new GqlMiddleware(this.acls, hm.tn, null, this.models);
+          //
+          //   // create count loader with middleware
+          //   this.addHmCountResolverMethodToType(hm, mw, tn, {}, countPropName, colNameAlias);
+          // }
+          //
+          // this.log(`xcTablesPopulate : Inserting loader metadata of '%s' and '%s' loaders`, listPropName, countPropName);
+          //
+          await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
+            title: `${tn}Mm${mm.rtn}List`,
+            parent: tn,
+            child: mm.rtn,
+            relation: 'mm',
+            resolver: 'mmlist',
+          });
+
+          // await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
+          //   title: `${tn}Mm${hm.tn}Count`,
+          //   parent: mm.tn,
+          //   child: mm.rtn,
+          //   relation: 'hm',
+          //   resolver: 'list',
+          // });
+        }
+      }));
+
+
     }
 
   }
@@ -1545,7 +1688,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const rootValue = mergeResolvers([{
         nocodb_health() {
           return 'Coming soon'
-        }
+        },
+        m2mNotChildren: m2mNotChildren({models: this.models}),
+        m2mNotChildrenCount: m2mNotChildrenCount({models: this.models}),
+        JSON: GraphQLJSON,
       }, ...Object.values(this.resolvers).map(r => r.mapResolvers(this.customResolver))]);
 
       this.log(`initGraphqlRoute : Building graphql schema`);
@@ -1568,7 +1714,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           },
           rootValue,
           schema,
-          validationRules: [depthLimit(this.connectionConfig?.meta?.api?.graphqlDepthLimit ?? 10),
+          validationRules: [
+            depthLimit(this.connectionConfig?.meta?.api?.graphqlDepthLimit ?? 10),
           ],
           customExecuteFn: async (args) => {
             const data = await execute(args);

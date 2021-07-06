@@ -1693,8 +1693,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       const meta = JSON.parse(metaObj.meta);
       metas.push(meta);
       const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
+      // generate virtual columns
       meta.v = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getVitualColumns();
+      // set default primary values
       ModelXcMetaFactory.create(this.connectionConfig, {}).mapDefaultPrimaryValue(meta.columns);
+      // update meta 
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         meta: JSON.stringify(meta)
       }, {title: meta.tn})

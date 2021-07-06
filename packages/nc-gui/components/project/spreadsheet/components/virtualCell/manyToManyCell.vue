@@ -6,7 +6,7 @@
           <item-chip v-for="(v,j) in (value || localState)"
                      :active="active"
                      :item="v"
-                     :value="Object.values(v)[2]"
+                     :value="getCellValue(v)"
                      :key="j"
                      @edit="editChild"
                      @unlink="unlinkChild"
@@ -14,7 +14,8 @@
 
         </template>
       </div>
-      <div class="actions align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+      <div class="actions align-center justify-center px-1 flex-shrink-1"
+           :class="{'d-none': !active, 'd-flex':active }">
         <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
         <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
       </div>
@@ -134,11 +135,12 @@ import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
 import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
 import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
-import listChildItemsModal from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
+import listChildItemsModal
+  from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
 
 export default {
   name: "many-to-many-cell",
-  components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel, listChildItemsModal },
+  components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel, listChildItemsModal},
   props: {
     value: [Object, Array],
     meta: [Object],
@@ -155,8 +157,8 @@ export default {
     isNewChild: false,
     newRecordModal: false,
     childListModal: false,
-    childMeta: null,
-    assocMeta: null,
+    // childMeta: null,
+    // assocMeta: null,
     childList: null,
     dialogShow: false,
     confirmAction: null,
@@ -222,25 +224,35 @@ export default {
     async loadChildMeta() {
       // todo: optimize
       if (!this.childMeta) {
-        const parentTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'tableXcModelGet', {
+          dbAlias: this.nodes.dbAlias,
           tn: this.mm.rtn
-        }]);
-        this.childMeta = JSON.parse(parentTableData.meta)
+        })
+        // const parentTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        //   env: this.nodes.env,
+        //   dbAlias: this.nodes.dbAlias
+        // }, 'tableXcModelGet', {
+        //   tn: this.mm.rtn
+        // }]);
+        // this.childMeta = JSON.parse(parentTableData.meta)
       }
     },
     async loadAssociateTableMeta() {
       // todo: optimize
       if (!this.assocMeta) {
-        const assocTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'tableXcModelGet', {
+          dbAlias: this.nodes.dbAlias,
           tn: this.mm.vtn
-        }]);
-        this.assocMeta = JSON.parse(assocTableData.meta)
+        })
+        // const assocTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        //   env: this.nodes.env,
+        //   dbAlias: this.nodes.dbAlias
+        // }, 'tableXcModelGet', {
+        //   tn: this.mm.vtn
+        // }]);
+        // this.assocMeta = JSON.parse(assocTableData.meta)
       }
     },
     async showNewRecordModal() {
@@ -254,16 +266,15 @@ export default {
         this.newRecordModal = false;
         return
       }
-
-      const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
+      const cid = this.childMeta.columns. filter((c) => c.pk).map(c => child[c._cn]).join('___');
       const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
 
       const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn;
       const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn;
       try {
         await this.assocApi.insert({
-          [vcidCol]: cid,
-          [vpidCol]: pid
+          [vcidCol]: +cid,
+          [vpidCol]: +pid
         });
 
         this.$emit('loadTableData')
@@ -299,15 +310,30 @@ export default {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
     },
+    getCellValue(cellObj) {
+      if (cellObj) {
+        if (this.parentMeta && this.childPrimaryCol) {
+          return cellObj[this.childPrimaryCol]
+        }
+        return Object.values(cellObj)[1]
+      }
+    }
   },
   computed: {
+    childMeta() {
+      return this.$store.state.meta.metas[this.mm.rtn]
+    },
+    assocMeta() {
+      return this.$store.state.meta.metas[this.mm.vtn]
+    },
     childApi() {
       return this.childMeta && this.childMeta._tn ?
         ApiFactory.create(
           this.$store.getters['project/GtrProjectType'],
           this.childMeta._tn,
           this.childMeta.columns,
-          this
+          this,
+          this.childMeta
         ) : null;
     },
     assocApi() {
@@ -316,7 +342,8 @@ export default {
           this.$store.getters['project/GtrProjectType'],
           this.assocMeta._tn,
           this.assocMeta.columns,
-          this
+          this,
+          this.assocMeta
         ) : null;
     },
     childPrimaryCol() {
@@ -375,6 +402,10 @@ export default {
         this.$emit('newRecordsSaved')
       }
     }
+  },
+  created() {
+    this.loadChildMeta();
+    this.loadAssociateTableMeta()
   }
 }
 </script>
@@ -432,13 +463,14 @@ export default {
   margin: 3px auto;
 }
 
-.chips-wrapper{
-  .chips{
+.chips-wrapper {
+  .chips {
     max-width: 100%;
   }
-  &.active{
-    .chips{
-      max-width: calc(100% - 60px);
+
+  &.active {
+    .chips {
+      max-width: calc(100% - 44px);
     }
   }
 }

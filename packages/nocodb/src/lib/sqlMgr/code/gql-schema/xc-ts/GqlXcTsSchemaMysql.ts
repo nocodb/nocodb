@@ -1,10 +1,10 @@
-import BaseRender from "../../BaseRender";
 import inflection from "inflection";
 import lodash from "lodash";
 import {AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS} from "./schemaHelp";
+import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
 
 
-class GqlXcTsSchemaMysql extends BaseRender {
+class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
 
   /**
    *
@@ -58,7 +58,6 @@ class GqlXcTsSchemaMysql extends BaseRender {
     ${this._getMutation(args)}\r\n
     ${this._getType(args)}\r\n
     `
-
     str += '';
 
     return str;
@@ -81,11 +80,11 @@ class GqlXcTsSchemaMysql extends BaseRender {
 
   _getQuery(args) {
     let str = `type Query { \r\n`
-    str += `\t\t${args.tn_camelize}List(where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String): [${args.tn_camelize}]\r\n`
+    str += `\t\t${args.tn_camelize}List(where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String, conditionGraph: String): [${args.tn_camelize}]\r\n`
     str += `\t\t${args.tn_camelize}Read(id:String!): ${args.tn_camelize}\r\n`
     str += `\t\t${args.tn_camelize}Exists(id: String!): Boolean\r\n`
     str += `\t\t${args.tn_camelize}FindOne(where: String!,condition:Condition${args.tn_camelize}): ${args.tn_camelize}\r\n`
-    str += `\t\t${args.tn_camelize}Count(where: String!,condition:Condition${args.tn_camelize}): Int\r\n`
+    str += `\t\t${args.tn_camelize}Count(where: String!,condition:Condition${args.tn_camelize},conditionGraph: String): Int\r\n`
     str += `\t\t${args.tn_camelize}Distinct(column_name: String, where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String): [${args.tn_camelize}]\r\n`
     str += `\t\t${args.tn_camelize}GroupBy(fields: String, having: String, limit: Int, offset: Int, sort: String): [${args.tn_camelize}GroupBy]\r\n`
     str += `\t\t${args.tn_camelize}Aggregate(column_name: String!, having: String, limit: Int, offset: Int, sort: String, func: String!): [${args.tn_camelize}Aggregate]\r\n`
@@ -137,6 +136,9 @@ class GqlXcTsSchemaMysql extends BaseRender {
       str += `\t\t${childTable}Count: Int\r\n`;
     }
 
+
+    str+= this.generateManyToManyTypeProps(args);
+
     let belongsToRelations = args.relations.filter(r => r.tn === args.tn);
     if (belongsToRelations.length > 1)
       belongsToRelations = lodash.uniqBy(belongsToRelations, function (e) {
@@ -150,6 +152,7 @@ class GqlXcTsSchemaMysql extends BaseRender {
       str += `\t\t${parentTable}Read(id:String): ${parentTable}\r\n`;
       strWhere += `\t\t${parentTable}Read: Condition${parentTable}\r\n`;
     }
+
 
     str += `\t}\r\n`
 

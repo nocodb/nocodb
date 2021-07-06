@@ -40,9 +40,18 @@ export default class GqlResolver extends GqlBaseResolver {
     return this.models?.[this.table];
   }
 
-  public async list(args, {req,res}): Promise<any> {
+  public async list(args, {req, res}): Promise<any> {
     const startTime = process.hrtime();
-
+    try {
+      if (args.conditionGraph && typeof args.conditionGraph === 'string') {
+        args.conditionGraph = {models: this.models, condition: JSON.parse(args.conditionGraph)}
+      }
+      if (args.condition && typeof args.condition === 'string') {
+        args.condition = JSON.parse(args.condition)
+      }
+    } catch (e) {
+      /* ignore parse error */
+    }
     const data = await req.model.list(args);
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -98,6 +107,16 @@ export default class GqlResolver extends GqlBaseResolver {
   }
 
   public async count(args, {req}): Promise<any> {
+    try {
+      if (args.conditionGraph && typeof args.conditionGraph === 'string') {
+        args.conditionGraph = {models: this.models, condition: JSON.parse(args.conditionGraph)}
+      }
+      if (args.condition && typeof args.condition === 'string') {
+        args.condition = JSON.parse(args.condition)
+      }
+    } catch (e) {
+      /* ignore parse error */
+    }
     const data = await req.model.countByPk(args);
     return data.count;
   }

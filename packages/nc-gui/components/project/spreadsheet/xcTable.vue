@@ -468,7 +468,7 @@ export default {
       }
     },
     api() {
-      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.table, this.meta && this.meta.columns, this);
+      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.table, this.meta && this.meta.columns, this, this.meta);
     },
     colLength() {
       return (this.meta && this.meta.columns && this.meta.columns.length) || 0

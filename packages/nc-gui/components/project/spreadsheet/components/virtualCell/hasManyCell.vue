@@ -7,14 +7,15 @@
             v-for="(ch,i) in (value|| localState)"
             :active="active"
             :item="ch"
-            :value="Object.values(ch)[1]"
+            :value="getCellValue(ch)"
             :key="i"
             @edit="editChild"
             @unlink="unlinkChild"
           ></item-chip>
         </template>
       </div>
-      <div class="actions align-center justify-center px-1 flex-shrink-1" :class="{'d-none': !active, 'd-flex':active }">
+      <div class="actions align-center justify-center px-1 flex-shrink-1"
+           :class="{'d-none': !active, 'd-flex':active }">
         <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
         <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
       </div>
@@ -139,7 +140,7 @@ export default {
   data: () => ({
     newRecordModal: false,
     childListModal: false,
-    childMeta: null,
+    // childMeta: null,
     dialogShow: false,
     confirmAction: null,
     confirmMessage: '',
@@ -205,13 +206,19 @@ export default {
     async loadChildMeta() {
       // todo: optimize
       if (!this.childMeta) {
-        const childTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+
+        await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'tableXcModelGet', {
+          dbAlias: this.nodes.dbAlias,
           tn: this.hm.tn
-        }]);
-        this.childMeta = JSON.parse(childTableData.meta);
+        })
+        // const childTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        //   env: this.nodes.env,
+        //   dbAlias: this.nodes.dbAlias
+        // }, 'tableXcModelGet', {
+        //   tn: this.hm.tn
+        // }]);
+        // this.childMeta = JSON.parse(childTableData.meta);
         // this.childQueryParams = JSON.parse(childTableData.query_params);
       }
     },
@@ -231,7 +238,7 @@ export default {
       this.newRecordModal = false;
 
       await this.childApi.update(id, {
-        [_cn]: this.parentId
+        [_cn]: +this.parentId
       }, {
         [_cn]: child[this.childForeignKey]
       });
@@ -261,13 +268,24 @@ export default {
       setTimeout(() => {
         this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
       }, 500)
+    },
+    getCellValue(cellObj) {
+      if (cellObj) {
+        if (this.parentMeta && this.childPrimaryCol) {
+          return cellObj[this.childPrimaryCol]
+        }
+        return Object.values(cellObj)[1]
+      }
     }
   },
   computed: {
+    childMeta() {
+      return this.$store.state.meta.metas[this.hm.tn]
+    },
     childApi() {
       return this.childMeta && this.childMeta._tn ?
         ApiFactory.create(this.$store.getters['project/GtrProjectType'],
-          this.childMeta && this.childMeta._tn, this.childMeta && this.childMeta.columns, this) : null;
+          this.childMeta && this.childMeta._tn, this.childMeta && this.childMeta.columns, this,this.childMeta) : null;
     },
     childPrimaryCol() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
@@ -314,15 +332,18 @@ export default {
     }
   },
   watch: {
-     isNew(n, o) {
+    isNew(n, o) {
       if (!n && o) {
         let child;
         while (child = this.localState.pop()) {
-           this.addChildToParent(child)
+          this.addChildToParent(child)
         }
         this.$emit('newRecordsSaved')
       }
     }
+  },
+  created() {
+    this.loadChildMeta();
   }
 }
 </script>
@@ -381,13 +402,15 @@ export default {
     }
   }
 }
-.chips-wrapper{
-  .chips{
+
+.chips-wrapper {
+  .chips {
     max-width: 100%;
   }
-  &.active{
-    .chips{
-      max-width: calc(100% - 60px);
+
+  &.active {
+    .chips {
+      max-width: calc(100% - 44px);
     }
   }
 }

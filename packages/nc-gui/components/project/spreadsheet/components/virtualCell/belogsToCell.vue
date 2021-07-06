@@ -6,7 +6,7 @@
           <item-chip
             :active="active"
             :item="value"
-            :value="Object.values(value || localState)[1]"
+            :value="cellValue"
             :key="i"
             @edit="editParent"
             @unlink="unlink"
@@ -117,7 +117,7 @@ export default {
   data: () => ({
     newRecordModal: false,
     parentListModal: false,
-    parentMeta: null,
+    // parentMeta: null,
     list: null,
     childList: null,
     dialogShow: false,
@@ -198,20 +198,25 @@ export default {
     async loadParentMeta() {
       // todo: optimize
       if (!this.parentMeta) {
-        const parentTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'tableXcModelGet', {
+          dbAlias: this.nodes.dbAlias,
           tn: this.bt.rtn
-        }]);
-        this.parentMeta = JSON.parse(parentTableData.meta)
+        })
+        // const parentTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        //   env: this.nodes.env,
+        //   dbAlias: this.nodes.dbAlias
+        // }, 'tableXcModelGet', {
+        //   tn: this.bt.rtn
+        // }]);
+        // this.parentMeta = JSON.parse(parentTableData.meta)
       }
     },
     async showNewRecordModal() {
       await this.loadParentMeta();
       this.newRecordModal = true;
     },
-    async  addParentToChild(parent) {
+    async addParentToChild(parent) {
 
       const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join('___');
       const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
@@ -224,7 +229,7 @@ export default {
       }
 
       await this.api.update(id, {
-        [_cn]: pid
+        [_cn]: +pid
       }, {
         [_cn]: parent[this.parentPrimaryKey]
       });
@@ -247,10 +252,13 @@ export default {
     },
   },
   computed: {
+    parentMeta() {
+      return this.$store.state.meta.metas[this.bt.rtn];
+    },
     parentApi() {
       return this.parentMeta && this.parentMeta._tn ?
         ApiFactory.create(this.$store.getters['project/GtrProjectType'],
-          this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this) : null;
+          this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this, this.parentMeta) : null;
     },
     parentId() {
       return this.value && this.parentMeta && this.parentMeta.columns.filter((c) => c.pk).map(c => this.value[c._cn]).join('___')
@@ -286,6 +294,14 @@ export default {
     form() {
       return this.selectedParent ? () => import("@/components/project/spreadsheet/components/expandedForm") : 'span';
     },
+    cellValue() {
+      if (this.value || this.localState) {
+        if (this.parentMeta && this.parentPrimaryCol) {
+          return (this.value || this.localState)[this.parentPrimaryCol]
+        }
+        return Object.values(this.value || this.localState)[1]
+      }
+    }
   },
   watch: {
     isNew(n, o) {
@@ -293,6 +309,9 @@ export default {
         this.localState = null
       }
     }
+  },
+  created() {
+    this.loadParentMeta();
   }
 }
 </script>
@@ -330,13 +349,14 @@ export default {
   margin: 3px auto;
 }
 
-.chips-wrapper{
-  .chips{
+.chips-wrapper {
+  .chips {
     max-width: 100%;
   }
-  &.active{
-    .chips{
-      max-width: calc(100% - 30px);
+
+  &.active {
+    .chips {
+      max-width: calc(100% - 22px);
     }
   }
 }

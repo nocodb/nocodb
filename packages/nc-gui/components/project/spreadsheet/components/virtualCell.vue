@@ -4,7 +4,7 @@
       <has-many-cell
         v-if="hm"
         :row="row"
-        :value="row[hm._tn]"
+        :value="row[`${hm._tn}List`]"
         :meta="meta"
         :hm="hm"
         :nodes="nodes"
@@ -17,7 +17,7 @@
       <many-to-many-cell
         v-else-if="mm"
         :row="row"
-        :value="row[mm._rtn]"
+        :value="row[`${mm._rtn}MMList`]"
         :meta="meta"
         :mm="mm"
         :nodes="nodes"
@@ -33,7 +33,7 @@
         v-else-if="bt"
         :active="active"
         :row="row"
-        :value="row[bt._rtn]"
+        :value="row[`${bt._rtn}Read`]"
         :meta="meta"
         :bt="bt"
         :nodes="nodes"

@@ -336,7 +336,7 @@ html {
   min-height: 40px !important;
 }
 .api-treeview .vtl-node-content{
-  max-width: calc(100% - 60px);
+  max-width: calc(100% - 44px);
 }
 /* for expansion panel content wrapper */
 .expansion-wrap-0 .v-expansion-panel-content__wrap{

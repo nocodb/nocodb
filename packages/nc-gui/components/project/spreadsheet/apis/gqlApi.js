@@ -3,16 +3,17 @@ import inflection from 'inflection';
 
 export default class GqlApi {
 
-  constructor(table, columns, $ctx) {
+  constructor(table, columns, meta, $ctx) {
     // this.table = table;
     this.columns = columns;
+    this.meta = meta;
     this.$ctx = $ctx;
   }
 
   // todo:  - get version letter and use table alias
   async list(params) {
     const data = await this.post(`/nc/${this.$ctx.$route.params.project_id}/v1/graphql`, {
-      query: this.gqlQuery(params),
+      query: await this.gqlQuery(params),
       variables: null
     });
     return data.data.data[this.gqlQueryListName];
@@ -51,15 +52,21 @@ export default class GqlApi {
     if ('sort' in params) {
       res.push(`sort: ${JSON.stringify(params.sort)}`)
     }
+    if (params.condition) {
+      res.push(`condition: ${JSON.stringify(params.condition)}`)
+    }
+    if (params.conditionGraph) {
+      res.push(`conditionGraph: ${JSON.stringify(JSON.stringify(params.conditionGraph))}`)
+    }
     return `(${res.join(',')})`;
   }
 
-  gqlQuery(params) {
-    return `{${this.gqlQueryListName}${this.generateQueryParams(params)}${this.gqlReqBody}}`
+  async gqlQuery(params) {
+    return `{${this.gqlQueryListName}${this.generateQueryParams(params)}{${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}}`
   }
 
   gqlReadQuery(id) {
-    return `{${this.gqlQueryReadName}(id:"${id}")${this.gqlReqBody}}`
+    return `{${this.gqlQueryReadName}(id:"${id}"){${this.gqlReqBody}}}`
   }
 
   gqlCountQuery(params) {
@@ -79,7 +86,52 @@ export default class GqlApi {
   }
 
   get gqlReqBody() {
-    return `{\n${this.columns.map(c => c._cn).join('\n')}\n}`
+    return `\n${this.columns.map(c => c._cn).join('\n')}\n`
+  }
+
+  async gqlRelationReqBody(params) {
+
+    let str = '';
+    if (params.childs) {
+      for (const child of params.childs.split(',')) {
+        await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.$ctx.nodes.dbAlias,
+          env: this.$ctx.nodes.env,
+          tn: child
+        })
+        const meta = this.$ctx.$store.state.meta.metas[child];
+        if (meta) {
+          str += `\n${meta._tn}List{\n${meta.columns.map(c => c._cn).join('\n')}\n}`
+        }
+      }
+    }
+    if (params.parents) {
+      for (const parent of params.parents.split(',')) {
+        await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.$ctx.nodes.dbAlias,
+          env: this.$ctx.nodes.env,
+          tn: parent
+        })
+        const meta = this.$ctx.$store.state.meta.metas[parent];
+        if (meta) {
+          str += `\n${meta._tn}Read{\n${meta.columns.map(c => c._cn).join('\n')}\n}`
+        }
+      }
+    }
+    if (params.many) {
+      for (const mm of params.many.split(',')) {
+        await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.$ctx.nodes.dbAlias,
+          env: this.$ctx.nodes.env,
+          tn: mm
+        })
+        const meta = this.$ctx.$store.state.meta.metas[mm];
+        if (meta) {
+          str += `\n${meta._tn}MMList{\n${meta.columns.map(c => c._cn).join('\n')}\n}`
+        }
+      }
+    }
+    return str;
   }
 
   get gqlQueryCountName() {
@@ -102,18 +154,24 @@ export default class GqlApi {
   async paginatedList(params) {
     // const list = await this.list(params);
     // const count = (await this.count({where: params.where || ''}));
-    const [list, count] = await Promise.all([this.list(params), this.count({where: params.where || ''})]);
+    const [list, count] = await Promise.all([
+      this.list(params), this.count({
+        where: params.where || '',
+        conditionGraph: params.conditionGraph,
+        condition: params.condition
+      })
+    ]);
     return {list, count};
   }
 
 
-  async update(id, data,oldData) {
+  async update(id, data, oldData) {
     const data1 = await this.post(`/nc/${this.$ctx.$route.params.project_id}/v1/graphql`, {
       query: `mutation update($id:String!, $data:${this.tableCamelized}Input){
          ${this.gqlMutationUpdateName}(id: $id, data: $data)
       }`,
       variables: {
-        id, data
+        id: id, data
       }
     });
 
@@ -130,10 +188,9 @@ export default class GqlApi {
   }
 
   async insert(data) {
-
     const data1 = await this.post(`/nc/${this.$ctx.$route.params.project_id}/v1/graphql`, {
       query: `mutation create($data:${this.tableCamelized}Input){
-         ${this.gqlMutationCreateName}(data: $data)${this.gqlReqBody}
+         ${this.gqlMutationCreateName}(data: $data){${this.gqlReqBody}}
       }`,
       variables: {
         data
@@ -170,8 +227,31 @@ export default class GqlApi {
   }
 
   get table() {
-    return this.$ctx && this.$ctx.meta && this.$ctx.meta._tn && inflection.camelize(this.$ctx.meta._tn);
+    return this.meta && this.meta._tn && inflection.camelize(this.meta._tn);
   }
+
+
+  async paginatedM2mNotChildrenList(params, assoc, pid) {
+
+    const list = await this.post(`/nc/${this.$ctx.$route.params.project_id}/v1/graphql`, {
+      query: `query m2mNotChildren($pid: String!,$assoc:String!,$parent:String!, $limit:Int, $offset:Int){
+           m2mNotChildren(pid: $pid,assoc:$assoc,parent:$parent,limit:$limit, offset:$offset)
+      }`,
+      variables: {
+        parent: this.meta.tn, assoc, pid: pid + '', ...params
+      }
+    });
+    const count = await this.post(`/nc/${this.$ctx.$route.params.project_id}/v1/graphql`, {
+      query: `query m2mNotChildrenCount($pid: String!,$assoc:String!,$parent:String!){
+           m2mNotChildrenCount(pid: $pid,assoc:$assoc,parent:$parent)
+      }`,
+      variables: {
+        parent: this.meta.tn, assoc, pid: pid + ''
+      }
+    });
+    return {list: list.data.data.m2mNotChildren, count: count.data.data.m2mNotChildrenCount.count};
+  }
+
 
 }
 /**

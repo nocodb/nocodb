@@ -274,8 +274,12 @@ tbody tr:nth-of-type(odd) {
   overflow: auto;
 }
 
-.table-tabs > .v-tabs-items {
+.table-tabs:not(.hidden-tab) > .v-tabs-items {
   height: calc(100% - 30px);
+  overflow: auto;
+}
+.table-tabs.hidden-tab > .v-tabs-items {
+  height: 100%;
   overflow: auto;
 }
 

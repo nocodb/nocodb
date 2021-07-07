@@ -1,6 +1,3 @@
-import inflection from "inflection";
-import lodash from "lodash";
-import {AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS} from "./schemaHelp";
 import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
 
 
@@ -19,35 +16,14 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
     super({dir, filename, ctx});
   }
 
-  /**
-   *  Prepare variables used in code template
-   */
-  prepare() {
-
-    const data:any = {};
-
-    /* example of simple variable */
-    data.tn = this.ctx.tn_camelize;
-
-    data.columns = {
-      func: this._renderColumns.bind(this),
-      args: this.ctx
-    };
-
-    return data;
-
-  }
-
-
-
-  /**
+  /*/!**
    *
    * @param args
    * @param args.columns
    * @param args.relations
    * @returns {string}
    * @private
-   */
+   *!/
   _renderColumns(args) {
 
     let str = '';
@@ -204,9 +180,9 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
 
     return `${str}\r\n\r\n${strWhere}`;
   }
+*/
 
-
-  _getGraphqlType(columnObj) {
+  protected _getGraphqlType(columnObj): string {
 
     switch (columnObj.dt) {
 
@@ -251,14 +227,15 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
       case "tinyblob":
       case "mediumblob":
       case "longblob":
+      case "enum":
+      case "time":
         return "String"
         break;
 
       case "set":
         return "[String]";
         break;
-      case "enum":
-      case "time":
+
       case "geometry":
       case "point":
       case "linestring":
@@ -268,14 +245,14 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
       case "multipolygon":
       case "json":
       default:
-        return "String"
+        return "JSON"
         break;
 
     }
 
   }
 
-  _getGraphqlConditionType(columnObj) {
+  protected _getGraphqlConditionType(columnObj): any {
 
     switch (this._getGraphqlType(columnObj.dt)) {
 
@@ -286,6 +263,7 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
       case  "Boolean":
         return 'ConditionBoolean'
       case  "String":
+      case  "JSON":
         return 'ConditionString'
       case "[String]":
         return 'ConditionString'
@@ -294,9 +272,9 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
   }
 
 
-  getString() {
+  /*getString() {
     return this._renderColumns(this.ctx);
-  }
+  }*/
 
 
 }

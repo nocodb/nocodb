@@ -4,7 +4,6 @@ import GqlMiddleware from "./GqlMiddleware";
 import {Acls} from "../../../interface/config";
 import GqlBaseResolver from "./GqlBaseResolver";
 import Noco from "../Noco";
-import inflection from 'inflection';
 
 function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + (hrtime[1] / 1e6)).toFixed(3);
@@ -41,7 +40,7 @@ export default class GqlResolver extends GqlBaseResolver {
   }
 
   public async list(args, {req, res}): Promise<any> {
-    const startTime = process.hrtime();
+    const startTime =   process.hrtime();
     try {
       if (args.conditionGraph && typeof args.conditionGraph === 'string') {
         args.conditionGraph = {models: this.models, condition: JSON.parse(args.conditionGraph)}
@@ -150,7 +149,7 @@ export default class GqlResolver extends GqlBaseResolver {
   public mapResolvers(customResolver: any): any {
     const mw = new GqlMiddleware(this.acls, this.table, this.middlewareStringBody, this.models);
     // todo: replace with inflection
-    const name = inflection.camelize(this.model._tn);
+    const name = this.model._tn;
     return GqlResolver.applyMiddlewares([(_, {req}) => {
       req.models = this.models;
       req.model = this.model;

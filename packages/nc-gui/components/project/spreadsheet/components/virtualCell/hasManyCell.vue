@@ -12,6 +12,10 @@
             @edit="editChild"
             @unlink="unlinkChild"
           ></item-chip>
+
+          <v-chip v-if="value && value.length === 10" class="caption pointer ml-1 grey--text"
+                  @click="showChildListModal">more...
+          </v-chip>
         </template>
       </div>
       <div class="actions align-center justify-center px-1 flex-shrink-1"
@@ -285,7 +289,7 @@ export default {
     childApi() {
       return this.childMeta && this.childMeta._tn ?
         ApiFactory.create(this.$store.getters['project/GtrProjectType'],
-          this.childMeta && this.childMeta._tn, this.childMeta && this.childMeta.columns, this,this.childMeta) : null;
+          this.childMeta && this.childMeta._tn, this.childMeta && this.childMeta.columns, this, this.childMeta) : null;
     },
     childPrimaryCol() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
@@ -297,7 +301,7 @@ export default {
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
     },
     childForeignKey() {
-      return this.childMeta && this.childMeta.columns.find(c => c.cn === this.hm.cn)._cn
+      return this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn
     },
     disabledChildColumns() {
       return {[this.childForeignKey]: true}

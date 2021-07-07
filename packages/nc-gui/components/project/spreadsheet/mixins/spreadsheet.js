@@ -57,6 +57,14 @@ export default {
         return c._cn;
       })
     },
+    realFieldList() {
+      return this.availableRealColumns.map(c => {
+        return c._cn;
+      })
+    },
+    availableRealColumns() {
+      return this.availableColumns && this.availableColumns.filter(c => !c.virtual)
+    },
     availableColumns() {
       let columns = [];
 

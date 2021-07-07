@@ -74,15 +74,15 @@ export default class GqlApi {
   }
 
   get gqlQueryListName() {
-    return `${this.table.replace(/(?:^|_)(.)/g, (_, m) => m.toUpperCase())}List`;
+    return `${this.meta._tn}List`;
   }
 
   get gqlQueryReadName() {
-    return `${this.table.replace(/(?:^|_)(.)/g, (_, m) => m.toUpperCase())}Read`;
+    return `${this.meta._tn}Read`;
   }
 
   get tableCamelized() {
-    return `${this.table.replace(/(?:^|_)(.)/g, (_, m) => m.toUpperCase())}`;
+    return `${this.meta._tn}`;
   }
 
   get gqlReqBody() {

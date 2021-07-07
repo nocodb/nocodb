@@ -192,12 +192,14 @@ export default {
       return config;
     }
   },
-  loading: {
-    color: '#13f4ef',
-    height: '2px',
-    continuous: true,
-    duration: 3000
-  },
+  loading: false
+  //   {
+  //   color: '#13f4ef',
+  //   height: '0px',
+  //   continuous: true,
+  //   duration: 3000
+  // }
+  ,
   css: [
     // '@/assets/style/fonts.css',
     '@/assets/css/global.css',

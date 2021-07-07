@@ -376,7 +376,7 @@ export const actions = {
       if (cusHeaders) {
         Object.assign(headers, cusHeaders)
       }
-      return (await this.$axios({
+      const data = (await this.$axios({
         url: '?q=sqlOp_' + op,
         baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
         data: {api: op, ...args, ...params, args: opArgs},
@@ -386,6 +386,20 @@ export const actions = {
         ...(cusAxiosOptions || {}),
 
       })).data;
+
+      if (op === 'tableXcModelGet') {
+        try {
+          const meta = JSON.parse(model.meta);
+          commit('meta/MutMeta', {
+            key: meta.tn,
+            value: meta
+          }, {root: true})
+        } catch (e) {
+          //  ignore
+        }
+      }
+
+      return data;
     } catch (e) {
       const err = new Error(e.response.data.msg);
       err.response = e.response;

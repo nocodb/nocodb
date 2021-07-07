@@ -1130,7 +1130,7 @@ class BaseModelSql extends BaseModel {
       }), !this.isSqlite()
     ));
 
-    let gs = _.groupBy(childs, _cn);
+    const gs = _.groupBy(childs, _cn);
     parent.forEach(row => {
       row[`${this.dbModels?.[child]?._tn || child}List`] = gs[row[this.pks[0]._cn]] || [];
     })
@@ -1176,7 +1176,7 @@ class BaseModelSql extends BaseModel {
           this
             .dbDriver(child)
             .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
-            .where(`${vtn}.${vcn}`, id)//p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
+            .where(`${vtn}.${vcn}`, id) // p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select({[`${tn}_${vcn}`]: `${vtn}.${vcn}`, ...this.dbModels[child].selectQuery(fields)}) // ...fields.split(','));
 
@@ -1503,7 +1503,7 @@ class BaseModelSql extends BaseModel {
           this._paginateAndSort(query, {limit, offset}, child);
           return this.isSqlite() ? this.dbDriver.select().from(query) : query;
         }), !this.isSqlite()
-      ), {sort} as any, child));
+      ), {sort,limit:1000} as any, child));
 
 
       // return _.groupBy(childs, cn);

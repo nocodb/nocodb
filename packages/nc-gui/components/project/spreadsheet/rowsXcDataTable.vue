@@ -18,7 +18,7 @@
             </div>
           </template>
           <v-list dense>
-            <v-list-item v-for="col in availableColumns" :key="col.cn"
+            <v-list-item v-for="col in availableRealColumns" :key="col.cn"
                          @click="searchField = col._cn">
               <span class="caption">{{ col._cn }}</span>
             </v-list-item>
@@ -53,8 +53,10 @@
 
 
       <v-spacer></v-spacer>
+
+
       <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type"></lock-menu>
-      <x-btn tooltip="Reload view data" outlined small text @click="loadTableData">
+      <x-btn tooltip="Reload view data" outlined small text @click="reload">
         <v-icon small class="mr-1" color="grey  darken-3">mdi-reload</v-icon>
       </x-btn>
       <x-btn tooltip="Add new row" v-if="relationType !== 'bt'" :disabled="isLocked" outlined small text
@@ -79,12 +81,12 @@
 
       <sort-list
         :is-locked="isLocked"
-        :field-list="fieldList"
+        :field-list="realFieldList"
         v-model="sortList"
       ></sort-list>
       <column-filter
         :is-locked="isLocked"
-        :field-list="fieldList"
+        :field-list="realFieldList"
         v-model="filters"
         dense>
       </column-filter>
@@ -153,6 +155,7 @@
           <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingMeta)" type="table"></v-skeleton-loader>
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
+              :key="key"
               ref="ncgridview"
               :relationType="relationType"
               :columns-width.sync="columnsWidth"
@@ -495,6 +498,7 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    key:1,
     dataLoaded: false,
     searchQueryVal: '',
     columnsWidth: null,
@@ -600,6 +604,11 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: "project/loadTablesFromChildTreeNode"
     }),
+    async reload(){
+      this.$store.commit('meta/MutClear');
+      await this.loadTableData();
+      this.key=Math.random();
+    },
     reloadComments() {
       if (this.$refs.ncgridview) {
         this.$refs.ncgridview.xcAuditModelCommentsCount();

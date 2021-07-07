@@ -982,7 +982,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     this.deleteRoutesForTables([tnp, tnc])
     const relations = await this.getXcRelationList();
-
     {
       const swaggerArr = [];
       const columns = await this.getColumnList(tnp);
@@ -1001,12 +1000,12 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       // update old model meta with new details
       const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnp});
-
       let queryParams;
       try {
         queryParams = JSON.parse(existingModel.query_params);
       } catch (e) { /* */
       }
+
 
       swaggerArr.push(JSON.parse(existingModel.schema));
       if (existingModel) {

@@ -12,7 +12,7 @@
                      @unlink="unlinkChild"
           ></item-chip>
 
-        </template>
+        </template> <v-chip v-if="value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</v-chip>
       </div>
       <div class="actions align-center justify-center px-1 flex-shrink-1"
            :class="{'d-none': !active, 'd-flex':active }">
@@ -266,7 +266,7 @@ export default {
         this.newRecordModal = false;
         return
       }
-      const cid = this.childMeta.columns. filter((c) => c.pk).map(c => child[c._cn]).join('___');
+      const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
       const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
 
       const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn;
@@ -310,16 +310,18 @@ export default {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
     },
-    getCellValue(cellObj) {
-      if (cellObj) {
-        if (this.parentMeta && this.childPrimaryCol) {
-          return cellObj[this.childPrimaryCol]
-        }
-        return Object.values(cellObj)[1]
-      }
-    }
   },
   computed: {
+    getCellValue() {
+      return cellObj => {
+        if (cellObj) {
+          if (this.childPrimaryCol) {
+            return cellObj[this.childPrimaryCol]
+          }
+          return Object.values(cellObj)[1]
+        }
+      }
+    },
     childMeta() {
       return this.$store.state.meta.metas[this.mm.rtn]
     },

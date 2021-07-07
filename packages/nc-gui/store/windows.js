@@ -45,10 +45,14 @@ export const state = () => ({
   nc: true,
   miniSponsorCard: 0,
   screensaver: true,
-  autoApplyFilter: true
+  autoApplyFilter: true,
+  apiLoading: false
 });
 
 export const mutations = {
+  MutApiLoading(state, status) {
+    state.apiLoading = status
+  },
   MutAutoApplyFilter(state, v) {
     state.autoApplyFilter = v;
   },

@@ -232,6 +232,16 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         dr: onDelete,
         ur: onUpdate,
       })
+    }else {
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
+        _tn: this.getTableNameAlias(tnc),
+        _rtn: this.getTableNameAlias(tnp),
+      },{
+        tn: tnc,
+        cn: childColumn,
+        rtn: tnp,
+        rcn: parentColumn,
+      })
     }
 
   }

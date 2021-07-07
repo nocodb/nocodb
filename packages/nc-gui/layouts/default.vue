@@ -34,6 +34,7 @@
         </template>
       </v-toolbar-title>
 
+      <span class="caption grey--text ml-3" v-show="$nuxt.$loading.show">Loading <v-icon small color="grey">mdi-spin mdi-loading</v-icon></span>
 
       <!--      <gh-btns-star-->
       <!--        @click.native="githubClickHandler"-->
@@ -624,7 +625,8 @@
 
                               </v-list-item-title>
                             </v-list-item>-->
-              <v-list-item v-if="swaggerOrGraphiqlUrl" dense @click.stop="openUrl(`${$axios.defaults.baseURL}${swaggerOrGraphiqlUrl}`)">
+              <v-list-item v-if="swaggerOrGraphiqlUrl" dense
+                           @click.stop="openUrl(`${$axios.defaults.baseURL}${swaggerOrGraphiqlUrl}`)">
                 <v-list-item-title>
 
                   <v-icon small key="terminal-dash">

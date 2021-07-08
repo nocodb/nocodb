@@ -172,6 +172,7 @@ export default class SqlMgr {
     args.folder = slash(this.currentProjectFolder);
     const projectJson = {...this.currentProjectJson, envs: {...this.currentProjectJson.envs}};
 
+    // delete db credentials
     for (const env of Object.keys(projectJson.envs)) {
       projectJson.envs[env] = {...projectJson.envs[env], db: [...projectJson.envs[env].db]}
       for (let i = 0; i < projectJson.envs[env].db.length; i++) {
@@ -181,9 +182,15 @@ export default class SqlMgr {
             database: projectJson.envs[env].db[i].connection.database
           }
         }
-
       }
     }
+
+
+    // remove meta db credentials
+    if (projectJson.meta?.db) delete projectJson.meta.db;
+
+    // remove auth credentials
+    delete projectJson.auth;
 
     args.projectJson = projectJson;
     data.data.list[0] = args;
@@ -1063,7 +1070,6 @@ export default class SqlMgr {
     const client = await this.projectGetSqlClient(args);
     return client.raw(query);
   }
-
 
 
   public async projectChangeEnv(args) {

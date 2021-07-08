@@ -221,9 +221,10 @@ export default {
       const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join('___');
       const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
       const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn;
+
       if (this.isNew) {
         this.localState = parent;
-        this.$emit('updateCol', this.row, _cn, pid)
+        this.$emit('updateCol', this.row, _cn, +pid || pid)
         this.newRecordModal = false;
         return
       }
@@ -272,9 +273,9 @@ export default {
     parentQueryParams() {
       if (!this.parentMeta) return {}
       return {
-        childs: (this.parentMeta && this.parentMeta.hasMany && this.parentMeta.hasMany.map(hm => hm.tn).join()) || '',
-        parents: (this.parentMeta && this.parentMeta.belongsTo && this.parentMeta.belongsTo.map(hm => hm.rtn).join()) || '',
-        many: (this.parentMeta && this.parentMeta.manyToMany && this.parentMeta.manyToMany.map(mm => mm.rtn).join()) || ''
+        childs: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
+        parents: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
+        many: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     },
     parentAvailableColumns() {

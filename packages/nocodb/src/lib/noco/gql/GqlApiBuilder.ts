@@ -525,7 +525,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     }>;
     type?: 'table' | 'view',
     columns?: {
-      [tn: string]: any
+      [key: string]: any
     }
   }): Promise<any> {
     this.log('xcTablesPopulate : names - %o , type - %s', args?.tableNames, args?.type)
@@ -535,8 +535,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     // set table name alias
     relations.forEach(r => {
-      r._rtn = this.getTableNameAlias(r.rtn);
-      r._tn = this.getTableNameAlias(r.tn);
+      r._rtn = args?.tableNames?.find(t => t.tn === r.rtn)?._tn || this.getTableNameAlias(r.rtn);
+      r._tn = args?.tableNames?.find(t => t.tn === r.tn)?._tn || this.getTableNameAlias(r.tn);
       r.enabled = true;
     })
 
@@ -777,7 +777,6 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       }));
 
       await this.getManyToManyRelations();
-
 
       // generate schema of models
       for (const meta of Object.values(this.metas)) {
@@ -1131,7 +1130,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* update parent table meta and resolvers */
     {
-      const columns = await this.getColumnList(tnp);
+      const columns = this.metas[tnp]?.columns;
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnp);
       const ctx = this.generateContextForTable(tnp, columns, relations, hasMany, belongsTo);
@@ -1175,7 +1174,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnp,
           meta: JSON.stringify(oldMeta),
-          schema: this.schemas[tnp]
+          schema: this.schemas[tnp],
+          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
         }, {'title': tnp})
       }
 
@@ -1259,7 +1259,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* update child table meta and resolvers */
     {
-      const columns = await this.getColumnList(tnc);
+      const columns = this.metas[tnc]?.columns;
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnc);
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnc);
       const ctx = this.generateContextForTable(tnc, columns, relations, hasMany, belongsTo);
@@ -1299,7 +1299,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnc,
           meta: JSON.stringify(oldMeta),
-          schema: this.schemas[tnc]
+          schema: this.schemas[tnc],
+          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
         }, {'title': tnc})
       }
 
@@ -1831,8 +1832,6 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         title: tn
       })
     }
-
-
     {
       const listPropName = `${this.metas[child]._tn}MMList`;
       this.log(`onRelationCreate : Generating and inserting '%s'  loaders`, listPropName);

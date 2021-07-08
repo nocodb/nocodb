@@ -2308,8 +2308,8 @@ export default class NcMetaMgr {
       const associateTableCols = [];
 
       associateTableCols.push({
-        cn: `${childMeta.tn}_id`,
-        _cn: `${childMeta.tn}_id`,
+        cn: `${childMeta.tn}_c_id`,
+        _cn: `${childMeta._tn}CId`,
         rqd: true,
         pk: true,
         ai: false,
@@ -2320,8 +2320,8 @@ export default class NcMetaMgr {
         un: childPK.un,
         altered: 1
       }, {
-        cn: `${parentMeta.tn}_id`,
-        _cn: `${parentMeta.tn}_id`,
+        cn: `${parentMeta.tn}_p_id`,
+        _cn: `${parentMeta._tn}PId`,
         rqd: true,
         pk: true,
         ai: false,
@@ -2333,13 +2333,15 @@ export default class NcMetaMgr {
         altered: 1
       });
 
+      // todo: associative table naming
       const aTn = `${this.projectConfigs[projectId]?.prefix ?? ''}_nc_m2m_${parentMeta.tn}_${childMeta.tn}_${Math.floor(Math.random() * 1000)}`;
+      const aTnAlias = `m2m${parentMeta._tn}_${childMeta._tn}`;
 
       const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableCreate', {
         ...args,
         args: {
           tn: aTn,
-          _tn: aTn,
+          _tn: aTnAlias,
           columns: associateTableCols
         }
       });
@@ -2350,7 +2352,7 @@ export default class NcMetaMgr {
             ...args,
             args: {
               tn: aTn,
-              _tn: aTn,
+              _tn: aTnAlias,
               columns: associateTableCols
             }, api: 'tableCreate'
           },
@@ -2366,7 +2368,7 @@ export default class NcMetaMgr {
       const rel1Args = {
         ...args.args,
         childTable: aTn,
-        childColumn: `${parentMeta.tn}_id`,
+        childColumn: `${parentMeta.tn}_p_id`,
         parentTable: parentMeta.tn,
         parentColumn: parentPK.cn,
         type: 'real'
@@ -2374,7 +2376,7 @@ export default class NcMetaMgr {
       const rel2Args = {
         ...args.args,
         childTable: aTn,
-        childColumn: `${childMeta.tn}_id`,
+        childColumn: `${childMeta.tn}_c_id`,
         parentTable: childMeta.tn,
         parentColumn: childPK.cn,
         type: 'real'

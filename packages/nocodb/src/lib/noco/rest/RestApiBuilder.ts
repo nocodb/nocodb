@@ -284,6 +284,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     /* Get all relations */
     const relations = await this.relationsSyncAndGet();
+
+    // set table name alias
+    relations.forEach(r => {
+      r._rtn = args?.tableNames?.find(t => t.tn === r.rtn)?._tn || this.getTableNameAlias(r.rtn);
+      r._tn = args?.tableNames?.find(t => t.tn === r.tn)?._tn || this.getTableNameAlias(r.tn);
+      r.enabled = true;
+    })
+
+
     this.relationsCount = relations.length;
 
     if (args?.tableNames?.length) {
@@ -984,7 +993,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     const relations = await this.getXcRelationList();
     {
       const swaggerArr = [];
-      const columns = await this.getColumnList(tnp);
+      const columns = this.metas[tnp]?.columns;
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);
 
       // set table name alias
@@ -1080,7 +1089,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     }
     {
       const swaggerArr = [];
-      const columns = await this.getColumnList(tnp);
+      const columns = this.metas[tnc]?.columns;
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnc);
       const ctx = this.generateContextForTable(tnc, columns, relations, [], belongsTo);
       const meta = ModelXcMetaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getObject();

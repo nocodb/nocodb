@@ -90,7 +90,6 @@ export default class GqlApi {
   }
 
   async gqlRelationReqBody(params) {
-
     let str = '';
     if (params.childs) {
       for (const child of params.childs.split(',')) {

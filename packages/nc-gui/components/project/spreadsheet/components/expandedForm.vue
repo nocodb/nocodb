@@ -1,5 +1,6 @@
 <template>
   <v-card width="1000" max-width="100%">
+
     <v-toolbar height="55" class="elevation-1">
       <div class="d-100 d-flex ">
         <h5 class="title text-center">
@@ -308,6 +309,7 @@ export default {
           obj[col] = this.localState[col];
           return obj;
         }, {});
+
         if (this.isNew) {
           const data = await this.api.insert(updatedObj);
           Object.assign(this.localState, data)
@@ -379,7 +381,9 @@ export default {
       if (this.showSystemFields) {
         return this.meta.columns || [];
       } else {
-        return (this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
+        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)
+          && !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        ) || [];
       }
     },
     isChanged() {

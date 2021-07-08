@@ -1,6 +1,3 @@
-import inflection from "inflection";
-import lodash from "lodash";
-import {AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS} from "./schemaHelp";
 import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
 
 
@@ -19,15 +16,16 @@ class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
     super({dir, filename, ctx});
   }
 
+/*
 
-  /**
+  /!**
    *
    * @param args
    * @param args.columns
    * @param args.relations
    * @returns {string}
    * @private
-   */
+   *!/
   _renderColumns(args) {
 
     let str = '';
@@ -168,6 +166,7 @@ class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
 
     return `${str}\r\n\r\n${strWhere}`;
   }
+*/
 
 
   _getGraphqlType(columnObj): any {
@@ -249,9 +248,9 @@ class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
 
   }
 
-  getString() {
+/*  getString() {
     return this._renderColumns(this.ctx);
-  }
+  }*/
 
 }
 

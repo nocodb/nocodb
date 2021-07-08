@@ -14,11 +14,12 @@
 
     <v-container fluid class="wrapper">
       <v-row>
-        <v-col cols="6">
+        <v-col cols="12">
           <v-autocomplete
+            validate-on-blur
             outlined
             class="caption"
-            hide-details
+            hide-details="auto"
             :loading="isRefTablesLoading"
             label="Child Table"
             :full-width="false"
@@ -28,24 +29,25 @@
             item-value="tn"
             required
             dense
+            :rules="tableRules"
           ></v-autocomplete>
         </v-col
         >
-        <v-col cols="6">
-          <v-text-field
-            outlined
-            class="caption"
-            hide-details
-            label="Child Column"
-            :full-width="false"
-            v-model="relation.childColumn"
-            required
-            dense
-            ref="childColumnRef"
-            @change="onColumnSelect"
-          ></v-text-field>
-        </v-col
-        >
+        <!--    <v-col cols="6">
+              <v-text-field
+                outlined
+                class="caption"
+                hide-details
+                label="Child Column"
+                :full-width="false"
+                v-model="relation.childColumn"
+                required
+                dense
+                ref="childColumnRef"
+                @change="onColumnSelect"
+              ></v-text-field>
+            </v-col
+            >-->
       </v-row>
       <template v-if="!isSQLite">
         <v-row>
@@ -103,7 +105,7 @@
 <script>
 export default {
   name: "linked-to-another-options",
-  props: ['nodes', 'column', 'meta', 'isSQLite','alias'],
+  props: ['nodes', 'column', 'meta', 'isSQLite', 'alias'],
   data: () => ({
     type: 'hm',
     refTables: [],
@@ -130,6 +132,15 @@ export default {
       onUpdate: "CASCADE",
       updateRelation: this.column.rtn ? true : false,
       type: 'real'
+    }
+  },
+  computed: {
+    tableRules() {
+      return []
+      // this.meta ? [
+      //   v => this.type !== 'mm' || !this.meta.manyToMany.some(mm => mm.tn === v && mm.rtn === this.meta.tn || mm.rtn === v && mm.tn === this.meta.tn) || 'Duplicate relation is not allowed at the moment',
+      //   v => this.type !== 'hm' || !this.meta.hasMany.some(hm => hm.tn === v) || 'Duplicate relation is not allowed at the moment'
+      // ] : []
     }
   },
   methods: {
@@ -179,7 +190,7 @@ export default {
           },
           'xcM2MRelationCreate',
           {
-            _cn:this.alias,
+            _cn: this.alias,
             ...this.relation,
             type: this.isSQLite || this.relation.type === 'virtual' ? 'virtual' : 'real',
             parentTable: this.meta.tn,

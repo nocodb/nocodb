@@ -232,11 +232,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         dr: onDelete,
         ur: onUpdate,
       })
-    }else {
+    } else {
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
         _tn: this.getTableNameAlias(tnc),
         _rtn: this.getTableNameAlias(tnp),
-      },{
+      }, {
         tn: tnc,
         cn: childColumn,
         rtn: tnp,
@@ -914,20 +914,22 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
 
-  protected generateContextForTable(tn: string, columns: any[], relations, hasMany: any[], belongsTo: any[], type = 'table', table_name_alias?: string): any {
+  protected generateContextForTable(tn: string, columns: any[], relations, hasMany: any[], belongsTo: any[], type = 'table', tableNameAlias?: string): any {
     this.baseLog(`generateContextForTable : '%s' %s`, tn, type);
 
     for (const col of columns) {
-      col._cn = this.getColumnNameAlias(col);
+      col._cn = col._cn || this.getColumnNameAlias(col);
     }
 
-    const tableNameAlias = table_name_alias || this.getTableNameAlias(tn);
+    // tslint:disable-next-line:variable-name
+    const _tn = tableNameAlias || this.getTableNameAlias(tn)
+
     const ctx = {
       dbType: this.connectionConfig.client,
       tn,
-      _tn: tableNameAlias,
-      tn_camelize: inflection.camelize(tableNameAlias),
-      tn_camelize_low: inflection.camelize(tableNameAlias, true),
+      _tn,
+      tn_camelize: inflection.camelize(_tn),
+      tn_camelize_low: inflection.camelize(_tn, true),
       columns,
       relations,
       hasMany,

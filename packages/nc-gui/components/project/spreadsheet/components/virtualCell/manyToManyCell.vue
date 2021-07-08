@@ -12,7 +12,7 @@
                      @unlink="unlinkChild"
           ></item-chip>
 
-        </template> <v-chip v-if="value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</v-chip>
+        </template> <span v-if="value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</span>
       </div>
       <div class="actions align-center justify-center px-1 flex-shrink-1"
            :class="{'d-none': !active, 'd-flex':active }">
@@ -360,9 +360,9 @@ export default {
     childQueryParams() {
       if (!this.childMeta) return {}
       return {
-        childs: (this.childMeta && this.childMeta.hasMany && this.childMeta.hasMany.map(hm => hm.tn).join()) || '',
-        parents: (this.childMeta && this.childMeta.belongsTo && this.childMeta.belongsTo.map(hm => hm.rtn).join()) || '',
-        many: (this.childMeta && this.childMeta.manyToMany && this.childMeta.manyToMany.map(mm => mm.rtn).join()) || ''
+        childs: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
+        parents: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v=>v.bt).map(({bt}) => bt.rtn).join()) || '',
+        many: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v=>v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     },
     conditionGraph() {

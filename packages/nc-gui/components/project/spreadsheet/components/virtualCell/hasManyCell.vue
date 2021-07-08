@@ -242,7 +242,7 @@ export default {
       this.newRecordModal = false;
 
       await this.childApi.update(id, {
-        [_cn]: +this.parentId
+        [_cn]: +this.parentId || this.parentId
       }, {
         [_cn]: child[this.childForeignKey]
       });
@@ -266,7 +266,7 @@ export default {
       await this.loadChildMeta();
       this.isNewChild = true;
       this.selectedChild = {
-        [this.childForeignKey]: this.parentId
+        [this.childForeignKey]: +this.parentId || this.parentId
       };
       this.expandFormModal = true;
       setTimeout(() => {
@@ -316,7 +316,7 @@ export default {
 
       const columns = [];
       if (this.childMeta.columns) {
-        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)))
+        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.childMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
       }
       if (this.childMeta.v) {
         columns.push(...this.childMeta.v.map(v => ({...v, virtual: 1})));
@@ -326,9 +326,9 @@ export default {
     childQueryParams() {
       if (!this.childMeta) return {}
       return {
-        childs: (this.childMeta && this.childMeta.hasMany && this.childMeta.hasMany.map(hm => hm.tn).join()) || '',
-        parents: (this.childMeta && this.childMeta.belongsTo && this.childMeta.belongsTo.map(hm => hm.rtn).join()) || '',
-        many: (this.childMeta && this.childMeta.manyToMany && this.childMeta.manyToMany.map(mm => mm.rtn).join()) || ''
+        childs: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
+        parents: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
+        many: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     },
     parentId() {

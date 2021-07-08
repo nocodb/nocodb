@@ -1,7 +1,7 @@
 <template>
   <v-card min-width="300px" max-width="400px" max-height="95vh" style="overflow: auto"
           class="elevation-0 card">
-    <v-form v-model="valid">
+    <v-form ref="form" v-model="valid">
       <v-container fluid @click.stop.prevent>
         <v-row>
           <v-col cols="12" class="d-flex pb-0">
@@ -370,6 +370,9 @@ export default {
       this.newColumn = {};
     },
     async save() {
+      if (!this.$refs.form.validate()) {
+        return;
+      }
       try {
 
         if (this.newColumn.uidt === 'Formula') {

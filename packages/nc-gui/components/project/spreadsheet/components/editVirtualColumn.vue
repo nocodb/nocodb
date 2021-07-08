@@ -8,7 +8,7 @@
 
             <v-spacer></v-spacer>
             <v-btn x-small outlined @click="close">Cancel</v-btn>
-            <v-btn x-small color="primary" @click="save" :disabled="!valid">Save</v-btn>
+            <v-btn x-small color="primary" @click="comingSoon" :disabled="!valid">Save</v-btn>
           </v-col>
           <v-col cols="12">
             <v-text-field
@@ -52,7 +52,7 @@ export default {
   },
   methods: {
     close() {
-      this.$emit('close');
+      this.$emit('input', false);
       this.newColumn = {};
     },
     async save() {

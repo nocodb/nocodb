@@ -12,7 +12,8 @@
                      @unlink="unlinkChild"
           ></item-chip>
 
-        </template> <span v-if="value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</span>
+        </template>
+        <span v-if="value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</span>
       </div>
       <div class="actions align-center justify-center px-1 flex-shrink-1"
            :class="{'d-none': !active, 'd-flex':active }">
@@ -58,31 +59,6 @@
       @edit="editChild"
       @unlink="unlinkChild"
     />
-    <v-dialog
-      :overlay-opacity="0.8"
-      v-if="selectedChild"
-      width="1000px"
-      max-width="100%"
-      class=" mx-auto"
-      v-model="showExpandModal">
-      <expanded-form
-        v-if="selectedChild"
-        :db-alias="nodes.dbAlias"
-        :has-many="childMeta.hasMany"
-        :belongs-to="childMeta.belongsTo"
-        @cancel="selectedChild = null"
-        @input="$emit('loadTableData');showChildListModal();"
-        :table="childMeta.tn"
-        v-model="selectedChild"
-        :old-row="{...selectedChild}"
-        :meta="childMeta"
-        :sql-ui="sqlUi"
-        :primary-value-column="childPrimaryCol"
-        :api="childApi"
-      ></expanded-form>
-    </v-dialog>
-
-
     <dlg-label-submit-cancel
       type="primary"
       v-if="dialogShow"
@@ -107,7 +83,6 @@
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
         :table="childMeta.tn"
-        v-model="selectedChild"
         :old-row="{...selectedChild}"
         :meta="childMeta"
         :sql-ui="sqlUi"
@@ -118,7 +93,8 @@
         :nodes="nodes"
         :query-params="childQueryParams"
         ref="expandedForm"
-        :is-new="isNewChild"
+        :is-new.sync="isNewChild"
+        v-model="selectedChild"
         @cancel="selectedChild = null"
         @input="onChildSave"
       ></component>
@@ -137,6 +113,7 @@ import ItemChip from "@/components/project/spreadsheet/components/virtualCell/co
 import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
 import listChildItemsModal
   from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
+import {parseIfInteger} from "@/helpers";
 
 export default {
   name: "many-to-many-cell",
@@ -175,7 +152,8 @@ export default {
   methods: {
     async onChildSave(child) {
       if (this.isNewChild) {
-        await this.addChildToParent(child)
+        this.isNewChild = false;
+        await this.addChildToParent(child);
       } else {
         this.$emit('loadTableData')
       }
@@ -273,8 +251,8 @@ export default {
       const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn;
       try {
         await this.assocApi.insert({
-          [vcidCol]: +cid,
-          [vpidCol]: +pid
+          [vcidCol]: parseIfInteger(cid),
+          [vpidCol]: parseIfInteger(pid)
         });
 
         this.$emit('loadTableData')
@@ -310,6 +288,26 @@ export default {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
     },
+    async saveLocalState(row) {
+      let child;
+      while (child = this.localState.pop()) {
+        if (row) {
+          // todo: use common method
+          const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
+          const pid = this.meta.columns.filter((c) => c.pk).map(c => row[c._cn]).join('___');
+
+          const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn;
+          const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn;
+          await this.assocApi.insert({
+            [vcidCol]: parseIfInteger(cid),
+            [vpidCol]: parseIfInteger(pid)
+          });
+        } else {
+          await this.addChildToParent(child)
+        }
+      }
+      this.$emit('newRecordsSaved');
+    }
   },
   computed: {
     getCellValue() {
@@ -361,8 +359,8 @@ export default {
       if (!this.childMeta) return {}
       return {
         childs: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
-        parents: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v=>v.bt).map(({bt}) => bt.rtn).join()) || '',
-        many: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v=>v.mm).map(({mm}) => mm.rtn).join()) || ''
+        parents: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
+        many: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     },
     conditionGraph() {
@@ -382,7 +380,7 @@ export default {
 
       const columns = [];
       if (this.childMeta.columns) {
-        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)))
+        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.childMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
       }
       if (this.childMeta.v) {
         columns.push(...this.childMeta.v.map(v => ({...v, virtual: 1})));
@@ -397,11 +395,7 @@ export default {
   watch: {
     async isNew(n, o) {
       if (!n && o) {
-        let child;
-        while (child = this.localState.pop()) {
-          await this.addChildToParent(child)
-        }
-        this.$emit('newRecordsSaved')
+        await this.saveLocalState();
       }
     }
   },

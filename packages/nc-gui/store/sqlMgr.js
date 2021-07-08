@@ -387,6 +387,20 @@ export const actions = {
 
       })).data;
 
+
+      // clear meta cache on relation create/delete
+      // todo: clear only necessary metas
+      // todo: include missing operations
+      if (['relationCreate',
+        'xcM2MRelationCreate',
+        'xcVirtualRelationCreate',
+        'relationDelete',
+        'xcVirtualRelationDelete',
+        'xcRelationColumnDelete'].includes(op)) {
+        commit('meta/MutClear', null, {root: true})
+      }
+
+
       if (op === 'tableXcModelGet') {
         try {
           const meta = JSON.parse(model.meta);

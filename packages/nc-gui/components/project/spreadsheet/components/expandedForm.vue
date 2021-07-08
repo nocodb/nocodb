@@ -1,6 +1,5 @@
 <template>
   <v-card width="1000" max-width="100%">
-
     <v-toolbar height="55" class="elevation-1">
       <div class="d-100 d-flex ">
         <h5 class="title text-center">
@@ -69,6 +68,7 @@
 
                   </label>
                   <virtual-cell
+                    ref="virtual"
                     v-if="col.virtual"
                     :disabledColumns="disabledColumns"
                     :column="col"
@@ -81,7 +81,7 @@
                     :is-new="isNew"
                     :is-form="true"
                     @updateCol="updateCol"
-                    @newRecordsSaved="$listeners.loadTableData"
+                    @newRecordsSaved="$listeners.loadTableData || (() => {})"
                   ></virtual-cell>
 
                   <div
@@ -312,7 +312,15 @@ export default {
 
         if (this.isNew) {
           const data = await this.api.insert(updatedObj);
-          Object.assign(this.localState, data)
+          this.localState = {...this.localState, ...data};
+
+          // save hasmany and manytomany relations from local state
+          if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
+            for (const vcell of this.$refs.virtual) {
+              if (vcell.save) await vcell.save(this.localState);
+            }
+          }
+
           await this.reload();
         } else {
           if (Object.keys(updatedObj).length) {
@@ -326,6 +334,7 @@ export default {
         this.$emit('update:oldRow', {...this.localState})
         this.changedColumns = {};
         this.$emit('input', this.localState);
+        this.$emit('update:isNew', false);
 
         this.$toast.success(`${this.localState[this.primaryValueColumn]} updated successfully.`, {
           position: 'bottom-right'
@@ -339,7 +348,8 @@ export default {
       const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and');
       this.$set(this, 'changedColumns', {});
       // this.localState = await this.api.read(id);
-      this.localState = (await this.api.list({...(this.queryParams || {}), where}) || [{}])[0] || this.localState;
+      const data = await this.api.list({...(this.queryParams || {}), where}) || [{}];
+      this.localState = data[0] || this.localState;
       if (!this.isNew && this.toggleDrawer) {
         this.getAuditsAndComments()
       }

@@ -7,7 +7,7 @@
     :color="isDark ? '' : 'primary lighten-5'"
     @click="active && $emit('edit',item)"
   >
-    <span class="name">{{ value }}</span>
+    <span class="name" :title="value">{{ value }}</span>
     <div v-show="active" class="mr-n1 ml-2">
       <x-icon
         :color="['text' , 'textLight']"

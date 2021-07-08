@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-center">
+  <div class="d-flex align-center d-100">
 
 
     <v-icon v-if="column.pk" color="warning" x-small class="mr-1">mdi-key-variant</v-icon>
@@ -18,7 +18,7 @@
     <v-icon color="grey" class="" v-else-if="isString">mdi-alpha-a</v-icon>
     <v-icon color="grey" small class="mr-1" v-else-if="isTextArea">mdi-card-text-outline</v-icon>
 
-    {{ value }}
+    <span class="name" :title="value">{{ value }}</span>
 
     <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
 
@@ -159,7 +159,11 @@ export default {
 </script>
 
 <style scoped>
-
+.name{
+  max-width: calc(100% - 40px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>
 <!--
 /**

@@ -1,13 +1,4 @@
 import GqlResolver from "./GqlResolver";
-
-import inflection from 'inflection';
-
-// import {
-//   ExpressXcTsPolicyGql,
-//   GqlXcSchemaFactory,
-//   ModelXcMetaFactory
-// } from "nc-help";
-
 import {BaseType} from 'xc-core-ts';
 import {DbConfig, NcConfig} from "../../../interface/config";
 import Noco from "../Noco";
@@ -391,7 +382,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const colNameAlias = self.models[bt.tn]?.columnToAlias[bt.cn];
         const rcolNameAlias = self.models[bt.rtn]?.columnToAlias[bt.rcn];
         const middlewareBody = middlewaresArr.find(({title}) => title === bt.rtn)?.functions?.[0];
-        const propName = `${inflection.camelize(bt._rtn, false)}Read`;
+        const propName = `${bt._rtn}Read`;
         if (propName in this.types[tn].prototype) {
           continue;
         }
@@ -702,8 +693,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
           const colNameAlias = self.models[hm.rtn]?.columnToAlias[hm.rcn];
 
-          const countPropName = `${inflection.camelize(hm._tn, false)}Count`;
-          const listPropName = `${inflection.camelize(hm._tn, false)}List`;
+          const countPropName = `${hm._tn}Count`;
+          const listPropName = `${hm._tn}List`;
 
 
           this.log(`xcTablesPopulate : Populating '%s' and '%s' loaders`, listPropName, countPropName);
@@ -747,7 +738,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
         for (const bt of schema.belongsTo) {
           const colNameAlias = self.models[bt.tn]?.columnToAlias[bt.cn];
-          const propName = `${inflection.camelize(bt._rtn, false)}Read`;
+          const propName = `${bt._rtn}Read`;
 
 
           if (propName in this.types[tn].prototype) {
@@ -1369,7 +1360,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* update parent table meta and resolvers */
     {
-      const columns = await this.getColumnList(tnp);
+      const columns = this.metas[tnp]?.columns;//await this.getColumnList(tnp);
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnp);
       const ctx = this.generateContextForTable(tnp, columns, relations, hasMany, belongsTo);
@@ -1385,18 +1376,20 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
-          schema: this.schemas[tnp]
+          v: oldMeta.v.filter(({hm}) => !hm || hm.rtn !== tnp || hm.tn !== tnc)
         });
+        // todo: backup schema
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnp,
-          meta: JSON.stringify(oldMeta)
+          meta: JSON.stringify(oldMeta),
+          schema: this.schemas[tnp]
         }, {'title': tnp})
-        this.metas[tnp] = oldMeta;
+        this.models[tnp] = this.getBaseModel(oldMeta);
 
       }
 
-      const countPropName = `${inflection.camelize(this.getTableNameAlias(tnc), false)}Count`;
-      const listPropName = `${inflection.camelize(this.getTableNameAlias(tnc), false)}List`;
+      const countPropName = `${this.getTableNameAlias(tnc)}Count`;
+      const listPropName = `${this.getTableNameAlias(tnc)}List`;
 
       this.log(`onRelationDelete : Deleting '%s' and '%s' loaders`, countPropName, listPropName);
       /* defining HasMany list method within GQL Type class */
@@ -1432,15 +1425,17 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
+          v: oldMeta.v.filter(({bt}) => !bt || bt.rtn !== tnp || bt.tn !== tnc)
         });
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnc,
-          meta: JSON.stringify(oldMeta)
+          meta: JSON.stringify(oldMeta),
+          schema: this.schemas[tnc]
         }, {'title': tnc});
-        this.metas[tnc] = oldMeta;
+        this.models[tnc] = this.getBaseModel(oldMeta);
       }
 
-      const propName = `${inflection.camelize(this.getTableNameAlias(tnp), false)}Read`;
+      const propName = `${this.getTableNameAlias(tnp)}Read`;
       this.log(`onRelationDelete : Deleting '%s' loader`, propName);
 
 

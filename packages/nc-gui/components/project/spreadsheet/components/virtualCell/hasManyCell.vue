@@ -13,9 +13,9 @@
             @unlink="unlinkChild"
           ></item-chip>
 
-          <v-chip v-if="value && value.length === 10" class="caption pointer ml-1 grey--text"
-                  @click="showChildListModal">more...
-          </v-chip>
+          <span v-if="value && value.length === 10" class="caption pointer ml-1 grey--text"
+                @click="showChildListModal">more...
+          </span>
         </template>
       </div>
       <div class="actions align-center justify-center px-1 flex-shrink-1"
@@ -101,7 +101,7 @@
         :nodes="nodes"
         :query-params="childQueryParams"
         ref="expandedForm"
-        :is-new="isNewChild"
+        :is-new.sync="isNewChild"
         :disabled-columns="disabledChildColumns"
       ></component>
 
@@ -119,6 +119,7 @@ import ItemChip from "@/components/project/spreadsheet/components/virtualCell/co
 import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
 import listChildItemsModal
   from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
+import {parseIfInteger} from "@/helpers";
 
 export default {
   name: "has-many-cell",
@@ -242,7 +243,7 @@ export default {
       this.newRecordModal = false;
 
       await this.childApi.update(id, {
-        [_cn]: +this.parentId || this.parentId
+        [_cn]: parseIfInteger(this.parentId)
       }, {
         [_cn]: child[this.childForeignKey]
       });
@@ -266,7 +267,7 @@ export default {
       await this.loadChildMeta();
       this.isNewChild = true;
       this.selectedChild = {
-        [this.childForeignKey]: +this.parentId || this.parentId
+        [this.childForeignKey]: parseIfInteger(this.parentId)
       };
       this.expandFormModal = true;
       setTimeout(() => {
@@ -280,6 +281,25 @@ export default {
         }
         return Object.values(cellObj)[1]
       }
+    },
+    async saveLocalState(row) {
+      let child;
+      while (child = this.localState.pop()) {
+        if (row) {
+          // todo: use common method
+          const pid = this.meta.columns.filter((c) => c.pk).map(c => row[c._cn]).join('___')
+          const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
+          const _cn = this.childForeignKey;
+          await this.childApi.update(id, {
+            [_cn]: parseIfInteger(pid)
+          }, {
+            [_cn]: child[this.childForeignKey]
+          });
+        } else {
+          await this.addChildToParent(child)
+        }
+      }
+      this.$emit('newRecordsSaved');
     }
   },
   computed: {
@@ -338,11 +358,7 @@ export default {
   watch: {
     isNew(n, o) {
       if (!n && o) {
-        let child;
-        while (child = this.localState.pop()) {
-          this.addChildToParent(child)
-        }
-        this.$emit('newRecordsSaved')
+        this.saveLocalState();
       }
     }
   },

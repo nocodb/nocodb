@@ -3,7 +3,7 @@
     <v-container fluid class="wrapper mb-3">
       <v-row>
         <v-col>
-          <v-radio-group row hide-details dense v-model="type" class="pt-0 mt-0">
+          <v-radio-group row hide-details dense v-model="type" @change="$refs.input.validate()" class="pt-0 mt-0">
             <v-radio value="hm" label="Has Many"></v-radio>
             <v-radio value="mm" label="Many To Many"></v-radio>
             <v-radio disabled value="oo" label="One To One"></v-radio>
@@ -16,7 +16,7 @@
       <v-row>
         <v-col cols="12">
           <v-autocomplete
-            validate-on-blur
+            ref="input"
             outlined
             class="caption"
             hide-details="auto"
@@ -136,11 +136,19 @@ export default {
   },
   computed: {
     tableRules() {
-      return []
-      // this.meta ? [
-      //   v => this.type !== 'mm' || !this.meta.manyToMany.some(mm => mm.tn === v && mm.rtn === this.meta.tn || mm.rtn === v && mm.tn === this.meta.tn) || 'Duplicate relation is not allowed at the moment',
-      //   v => this.type !== 'hm' || !this.meta.hasMany.some(hm => hm.tn === v) || 'Duplicate relation is not allowed at the moment'
-      // ] : []
+      return [
+        v => !!v || 'Required',
+        v => {
+          if (this.type === 'mm')
+            return !(this.meta.manyToMany || [])
+                .some(mm => mm.tn === v && mm.rtn === this.meta.tn || mm.rtn === v && mm.tn === this.meta.tn)
+              || 'Duplicate relation is not allowed at the moment';
+          if (this.type === 'hm')
+            return !(this.meta.hasMany || [])
+                .some(hm => hm.tn === v)
+              || 'Duplicate relation is not allowed at the moment';
+        },
+      ]
     }
   },
   methods: {

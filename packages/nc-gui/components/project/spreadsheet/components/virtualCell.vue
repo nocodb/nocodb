@@ -2,6 +2,7 @@
   <div>
     <v-lazy>
       <has-many-cell
+        ref="cell"
         v-if="hm"
         :row="row"
         :value="row[`${hm._tn}List`]"
@@ -15,6 +16,7 @@
         v-on="$listeners"
       />
       <many-to-many-cell
+        ref="cell"
         v-else-if="mm"
         :row="row"
         :value="row[`${mm._rtn}MMList`]"
@@ -29,6 +31,7 @@
         v-on="$listeners"
       />
       <belongs-to-cell
+        ref="cell"
         :disabled-columns="disabledColumns"
         v-else-if="bt"
         :active="active"
@@ -88,6 +91,16 @@ export default {
     },
     mm() {
       return this.column && this.column.mm;
+    }
+  },
+  methods: {
+    async save(row) {
+      if (row && this.$refs.cell && this.$refs.cell.saveLocalState) {
+        try {
+          await this.$refs.cell.saveLocalState(row);
+        } catch (e) {
+        }
+      }
     }
   }
 }

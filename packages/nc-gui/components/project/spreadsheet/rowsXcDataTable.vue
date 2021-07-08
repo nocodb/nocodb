@@ -92,7 +92,7 @@
       </column-filter>
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
-          <v-btn :disabled="isLocked" v-on="on" small @click="deleteTable('showDialog')" outlined text>
+          <v-btn :disabled="isLocked" v-on="on" small @click="checkAndDeleteTable" outlined text>
             <x-icon small color="red grey">mdi-delete-outline</x-icon>
           </v-btn>
         </template>
@@ -134,19 +134,12 @@
                 color="grey  darken-3"
         >{{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
         </v-icon>
-
-
       </x-btn>
-
-
-      <!--      <v-spacer></v-spacer>-->
-
-      <!--      <v-text-field outlined dense hide-details class="elevation-0" append-icon="mdi-magnify"></v-text-field>-->
     </v-toolbar>
 
 
     <div :class="`cell-height-${cellHeight}`"
-         style=" height:calc(100% - 32px);overflow:auto;transition: width 500ms "
+         style=" height:calc(100% - 32px);overflow:auto;transition: width 100ms "
          class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
@@ -498,7 +491,7 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
-    key:1,
+    key: 1,
     dataLoaded: false,
     searchQueryVal: '',
     columnsWidth: null,
@@ -604,10 +597,21 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: "project/loadTablesFromChildTreeNode"
     }),
-    async reload(){
+    checkAndDeleteTable() {
+      if (
+        !this.meta &&
+        this.meta.hasMany && this.meta.hasMany.length ||
+        this.meta.manyToMany && this.meta.manyToMany.length ||
+        this.meta.belongsTo && this.meta.belongsTo.length
+      ) {
+        return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
+      }
+      this.deleteTable('showDialog')
+    },
+    async reload() {
       this.$store.commit('meta/MutClear');
       await this.loadTableData();
-      this.key=Math.random();
+      this.key = Math.random();
     },
     reloadComments() {
       if (this.$refs.ncgridview) {

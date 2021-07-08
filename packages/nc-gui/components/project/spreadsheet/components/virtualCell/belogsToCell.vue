@@ -7,7 +7,6 @@
             :active="active"
             :item="value"
             :value="cellValue"
-            :key="i"
             @edit="editParent"
             @unlink="unlink"
           ></item-chip>
@@ -78,7 +77,7 @@
         :available-columns="parentAvailableColumns"
         :nodes="nodes"
         :query-params="parentQueryParams"
-        :is-new="isNewParent"
+        :is-new.sync="isNewParent"
         icon-color="warning"
         ref="expandedForm"
         v-model="selectedParent"
@@ -284,7 +283,7 @@ export default {
 
       const columns = [];
       if (this.parentMeta.columns) {
-        columns.push(...this.parentMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)))
+        columns.push(...this.parentMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)&& !((this.parentMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
       }
       if (this.parentMeta.v) {
         columns.push(...this.parentMeta.v.map(v => ({...v, virtual: 1})));

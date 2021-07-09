@@ -5,7 +5,7 @@
       <span v-if="!isForm">{{ meta ? meta._tn : 'Children' }}</span>
       <v-spacer>
       </v-spacer>
-
+      <v-icon small class="mr-1" @click="loadData()">mdi-reload</v-icon>
       <v-btn
         small
         class="caption"

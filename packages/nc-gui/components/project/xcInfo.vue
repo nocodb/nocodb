@@ -187,7 +187,7 @@
                 <v-card-text class="pb-0 font-weight-bold" v-else-if="item.type==='graphql'">Graphql Endpoint
                 </v-card-text>
                 <v-card-text class="title white--text ">
-                  <v-icon color="success" class=" mr-1">mdi-json</v-icon>
+                  <v-icon color="success" class=" mr-1">mdi-code-json</v-icon>
                   <a :href="`${origin}${item.apiEndpoint}`" target="_blank">{{ `${origin}${item.apiEndpoint}` }}</a>
                 </v-card-text>
 
@@ -224,7 +224,7 @@ export default {
     info: null,
     aggregatedInfo: null,
     apiTypeIcon: {
-      'rest': {icon: 'mdi-json', iconColor: 'green'},
+      'rest': {icon: 'mdi-code-json', iconColor: 'green'},
       'graphql': {icon: 'mdi-graphql', iconColor: 'pink'},
       'grpc': {src: 'grpc-icon-color.png', type: 'img'},
     },

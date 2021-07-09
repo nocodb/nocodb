@@ -233,7 +233,7 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
         break;
 
       case "set":
-        return "[String]";
+        return "JSON";
         break;
 
       case "geometry":

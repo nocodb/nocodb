@@ -27,13 +27,14 @@
 
     <list-items
       v-if="newRecordModal"
-      :hm="true"
+      :hm="hm"
       :size="10"
       :meta="childMeta"
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
       v-model="newRecordModal"
       :api="childApi"
+      :parent-meta="meta"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
       :query-params="{
@@ -103,6 +104,7 @@
         ref="expandedForm"
         :is-new.sync="isNewChild"
         :disabled-columns="disabledChildColumns"
+        :breadcrumbs="breadcrumbs"
       ></component>
 
     </v-dialog>
@@ -132,6 +134,12 @@ export default {
     listChildItemsModal
   },
   props: {
+    breadcrumbs: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
     value: [Object, Array],
     meta: [Object],
     hm: Object,

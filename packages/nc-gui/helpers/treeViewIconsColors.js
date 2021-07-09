@@ -56,10 +56,10 @@ export default {
     openIcon: "mdi-alpha-a-circle-outline"
   },
   apiClientDir: {
-    icon: "mdi-json",
+    icon: "mdi-code-json",
     color: "",
     openColor: "green",
-    openIcon: "mdi-json"
+    openIcon: "mdi-code-json"
   },
   sqlClientDir: {
     icon: "mdi-alpha-s-circle-outline",

@@ -1,5 +1,8 @@
 <template>
-    <textarea v-on="parentListeners" ref="textarea" v-model="localState" rows="3"
+    <textarea v-on="parentListeners"
+              rows="4"
+              ref="textarea"
+              v-model="localState"
               @keydown.alt.enter.stop
               @keydown.shift.enter.stop
     ></textarea>
@@ -48,7 +51,7 @@ export default {
 input, textarea {
   width: 100%;
   min-height: 60px;
-  height: calc(100% - 28px);
+  height: 100%;
   color: var(--v-textColor-base);
 }
 </style>

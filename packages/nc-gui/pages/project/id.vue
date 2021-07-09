@@ -590,7 +590,7 @@ export default {
         {text: "Disabled", value: "none"},
       ],
       projectTypes: [
-        {text: 'Automatic REST APIs on database', value: 'rest', icon: 'mdi-json', iconColor: 'green'},
+        {text: 'Automatic REST APIs on database', value: 'rest', icon: 'mdi-code-json', iconColor: 'green'},
         {text: 'Automatic GRAPHQL APIs on database', value: 'graphql', icon: 'mdi-graphql', iconColor: 'pink'},
         {text: 'Automatic gRPC APIs on database', value: 'grpc', icon: 'grpc-icon-color.png', type: 'img'},
         // {

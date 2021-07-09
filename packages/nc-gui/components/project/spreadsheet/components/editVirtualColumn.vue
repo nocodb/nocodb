@@ -8,7 +8,7 @@
 
             <v-spacer></v-spacer>
             <v-btn x-small outlined @click="close">Cancel</v-btn>
-            <v-btn x-small color="primary" @click="comingSoon" :disabled="!valid">Save</v-btn>
+            <v-btn x-small color="primary" @click="save" :disabled="!valid">Save</v-btn>
           </v-col>
           <v-col cols="12">
             <v-text-field
@@ -57,12 +57,22 @@ export default {
     },
     async save() {
       try {
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcUpdateVirtualKeyAlias', {
+          tn: this.nodes.tn,
+          oldAlias: this.column._cn,
+          newAlias: this.newColumn._cn,
+        }]);
 
+        this.$toast.success('Successfully updated alias').goAway(3000);
       } catch (e) {
         console.log(e)
+        this.$toast.error('Failed to update column alias').goAway(3000);
       }
-
-      this.$emit('close');
+      this.$emit('saved');
+      this.$emit('input', false);
     },
 
     focusInput() {

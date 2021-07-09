@@ -83,6 +83,7 @@
         v-model="selectedParent"
         @cancel="selectedParent = null"
         @input="onParentSave"
+        :breadcrumbs="breadcrumbs"
       ></component>
 
     </v-dialog>
@@ -101,6 +102,12 @@ export default {
   name: "belongs-to-cell",
   components: {ListChildItems, ItemChip, ListItems},
   props: {
+    breadcrumbs: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
     isForm: Boolean,
     value: [Object, Array],
     meta: [Object],
@@ -283,7 +290,7 @@ export default {
 
       const columns = [];
       if (this.parentMeta.columns) {
-        columns.push(...this.parentMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)&& !((this.parentMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
+        columns.push(...this.parentMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.parentMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
       }
       if (this.parentMeta.v) {
         columns.push(...this.parentMeta.v.map(v => ({...v, virtual: 1})));

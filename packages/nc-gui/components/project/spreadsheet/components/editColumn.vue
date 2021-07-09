@@ -95,6 +95,7 @@
                     :meta="meta"
                     :isSQLite="isSQLite"
                     :alias="newColumn.cn"
+                    :isMSSQL="isMSSQL"
                     @onColumnSelect="onRelColumnSelect"
                   ></linked-to-another-options>
                 </v-col>
@@ -104,6 +105,7 @@
                     ref="relation"
                     :column="newColumn"
                     :nodes="nodes"
+                    :isMSSQL="isMSSQL"
                     @onColumnSelect="onRelColumnSelect"
                     :isSQLite="isSQLite"
                   ></relation-options>
@@ -312,6 +314,7 @@ import RelationOptions from "@/components/project/spreadsheet/components/editCol
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import LinkedToAnotherOptions from "@/components/project/spreadsheet/components/editColumn/linkedToAnotherOptions";
 import {SqliteUi} from "@/helpers/SqliteUi";
+import {MssqlUi} from "@/helpers/MssqlUi";
 
 export default {
   name: "editColumn",
@@ -514,6 +517,9 @@ export default {
     },
     isSQLite() {
       return this.sqlUi === SqliteUi;
+    },
+    isMSSQL() {
+      return this.sqlUi === MssqlUi;
     },
     dataTypes() {
       return this.sqlUi.getDataTypeListForUiType(this.newColumn)

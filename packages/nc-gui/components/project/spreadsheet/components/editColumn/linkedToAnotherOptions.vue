@@ -113,13 +113,6 @@ export default {
     relation: {},
     isRefTablesLoading: false,
     isRefColumnsLoading: false,
-    onUpdateDeleteOptions: [
-      "NO ACTION",
-      "CASCADE",
-      "RESTRICT",
-      "SET NULL",
-      "SET DEFAULT"
-    ],
   }),
   async created() {
     await this.loadTablesList();
@@ -128,13 +121,25 @@ export default {
       childTable: this.nodes.tn,
       parentTable: this.column.rtn || "",
       parentColumn: this.column.rcn || "",
-      onDelete: "CASCADE",
-      onUpdate: "CASCADE",
+      onDelete: "NO ACTION",
+      onUpdate: "NO ACTION",
       updateRelation: this.column.rtn ? true : false,
       type: 'real'
     }
   },
   computed: {
+    onUpdateDeleteOptions() {
+      if (this.isMSSQL) {
+        return ["NO ACTION"]
+      }
+      return [
+        "NO ACTION",
+        "CASCADE",
+        "RESTRICT",
+        "SET NULL",
+        "SET DEFAULT"
+      ];
+    },
     tableRules() {
       return [
         v => !!v || 'Required',

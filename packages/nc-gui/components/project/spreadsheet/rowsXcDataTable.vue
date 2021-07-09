@@ -68,7 +68,6 @@
         Save
       </x-btn>
 
-
       <fields
         v-model="showFields"
         :field-list="fieldList"
@@ -136,8 +135,6 @@
         </v-icon>
       </x-btn>
     </v-toolbar>
-
-
     <div :class="`cell-height-${cellHeight}`"
          style=" height:calc(100% - 32px);overflow:auto;transition: width 100ms "
          class="d-flex"
@@ -175,6 +172,7 @@
               @expandRow="expandRow"
               @onRelationDelete="loadMeta"
               @loadTableData="loadTableData"
+              @loadMeta="loadMeta"
             ></xc-grid-view>
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">
@@ -728,7 +726,22 @@ export default {
               return o;
             }, {});
 
-            const insertedData = await this.api.insert(insertObj);
+            let insertedData = await this.api.insert(insertObj);
+
+            // todo: optimize
+            if (this.meta.v && this.meta.v.length) {
+              try {
+                const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${insertedData[c._cn]})`).join('~and');
+                if (where) {
+                  const {childs, parents, many} = this.queryParams;
+                  const data = (await this.api.list({where, childs, parents, many}) || [insertedData]);
+                  insertedData = data.length ? data[0] : insertedData;
+                }
+              } catch (e) {
+                // ignore
+              }
+            }
+
             this.data.splice(row, 1, {
               row: insertedData,
               rowMeta: {},

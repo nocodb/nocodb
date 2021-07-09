@@ -241,7 +241,7 @@
                         {{
                           props.item.projectType === 'graphql'
                             ? 'mdi-graphql'
-                            : 'mdi-json'
+                            : 'mdi-code-json'
                         }}
                       </x-icon>
 

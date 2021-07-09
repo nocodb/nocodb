@@ -13,6 +13,7 @@
         :sql-ui="sqlUi"
         :is-new="isNew"
         :is-form="isForm"
+        :breadcrumbs="breadcrumbs"
         v-on="$listeners"
       />
       <many-to-many-cell
@@ -28,6 +29,7 @@
         :is-new="isNew"
         :api="api"
         :is-form="isForm"
+        :breadcrumbs="breadcrumbs"
         v-on="$listeners"
       />
       <belongs-to-cell
@@ -44,6 +46,7 @@
         :sql-ui="sqlUi"
         :is-new="isNew"
         :is-form="isForm"
+        :breadcrumbs="breadcrumbs"
         v-on="$listeners"
       />
     </v-lazy>
@@ -65,6 +68,12 @@ export default {
     hasManyCell
   },
   props: {
+    breadcrumbs: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
     column: [Object],
     row: [Object],
     nodes: [Object],

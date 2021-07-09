@@ -23,10 +23,10 @@ export default {
   computed: {
     localState: {
       get() {
-        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : this.value;
+        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : (this.value && new Date(this.value));
       },
       set(val) {
-        this.$emit('input', new Date(val).toJSON().slice(0, 10));
+        this.$emit('input', val && new Date(val).toJSON().slice(0, 10));
       }
     },
     parentListeners() {
@@ -48,7 +48,7 @@ export default {
 <style scoped>
 .value {
   width: 100%;
-  min-height:20px;
+  min-height: 20px;
 
 }
 </style>

@@ -1,11 +1,11 @@
 <template>
-  <v-select v-on="parentListeners" v-model="localState" dense flat :items="enumValues" hide-details class="mt-0" :clearable="!column.rqd">
+  <v-select solo v-on="parentListeners" v-model="localState" dense flat :items="enumValues" hide-details class="mt-0" :clearable="!column.rqd">
     <!--    <option v-for="eVal of enumValues" :key="eVal" :value="eVal">{{ eVal }}</option>-->
     <template v-slot:selection="{item}">
-      <div class="d-100  pl-4" :class="{
+      <div class="d-100" :class="{
         'text-center' : !isForm
       }">
-        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">{{ item }}</v-chip>
+        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">{{ item }}</v-chip>
       </div>
     </template>
     <template v-slot:item="{item}">

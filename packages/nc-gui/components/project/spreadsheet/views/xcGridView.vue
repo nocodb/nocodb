@@ -14,7 +14,7 @@
           :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
           v-xc-ver-resize
           v-for="(col,i) in availableColumns"
-          :key="i + '_' + col._cn"
+          :key="   col._cn"
           v-show="showFields[col._cn]"
           @xcresize="onresize(col._cn,$event)"
           @xcresizing="onXcResizing(col._cn,$event)"
@@ -113,7 +113,7 @@
         <td
           class="cell pointer"
           v-for="(columnObj,col) in availableColumns"
-          :key="row + '_' +  col + columnObj._cn"
+          :key="row + columnObj._cn"
           :class="{
               'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,
@@ -126,7 +126,7 @@
           :data-col="columnObj._cn"
         >
           <virtual-cell
-            v-if="columnObj.virtual "
+            v-if="columnObj.virtual"
             :column="columnObj"
             :row="rowObj"
             :nodes="nodes"
@@ -139,15 +139,9 @@
             @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.cn === columnObj.bt.cn), col, row)"
           ></virtual-cell>
 
-          <!--
-                    <span
-                      v-if="columnObj.virtual "
-                    ></span>
-          -->
-
           <editable-cell
             v-else-if="
-            !isLocked
+              !isLocked
               && !isPublicView
               && (editEnabled.col === col && editEnabled.row === row)
               || enableEditable(columnObj)

@@ -39,8 +39,8 @@ export default class GqlResolver extends GqlBaseResolver {
     return this.models?.[this.table];
   }
 
-  public async list(args, {req, res}): Promise<any> {
-    const startTime =   process.hrtime();
+  public async list(args, {req, res}: { req: any & { model: BaseModelSql }, res: any }): Promise<any> {
+    const startTime = process.hrtime();
     try {
       if (args.conditionGraph && typeof args.conditionGraph === 'string') {
         args.conditionGraph = {models: this.models, condition: JSON.parse(args.conditionGraph)}

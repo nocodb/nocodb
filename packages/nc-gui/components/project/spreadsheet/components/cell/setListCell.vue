@@ -1,38 +1,43 @@
 <template>
   <div>
-    <span v-for="v in (value || '').split(',')" :key="v" :style="{
-         background:colors[v]
-      }" class="set-item ma-1 py-1 px-3">{{ v }}</span>
+    <v-chip
+      small
+      v-for="v in (value || '').split(',')"
+      :key="v"
+      :color="colors[setValues.indexOf(v) % colors.length]"
+      class="set-item ma-1 py-1 px-3"
+    >
+      {{ v }}
+    </v-chip>
   </div>
 </template>
 
 <script>
-import colors from "@/components/project/spreadsheet/helpers/colors";
+import colors from "@/mixins/colors";
+
 export default {
   props: ['value', 'column'],
   name: "setListCell",
+  mixins: [colors],
   computed: {
-    colors() {
-      const col = this.$store.state.windows.darkTheme ? colors.dark : colors.light;
+
+    setValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, '')).reduce((obj, v, i) => ({
-          ...obj,
-          [v]: col[i]
-        }), {})
+        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
-      return {};
-    }
+      return [];
+    },
   }
 }
 </script>
 
 <style scoped>
-
+/*
 .set-item {
   display: inline-block;
   border-radius: 25px;
   white-space: nowrap;
-}
+}*/
 </style>
 <!--
 /**

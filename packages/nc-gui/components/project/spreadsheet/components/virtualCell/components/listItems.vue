@@ -14,6 +14,8 @@
           class=" caption search-field ml-2"
         />
         <v-spacer></v-spacer>
+
+        <v-icon small class="mr-1" @click="loadData()">mdi-reload</v-icon>
         <v-btn small class="caption mr-2" color="primary" @click="$emit('add-new-record')">
           <v-icon small>mdi-plus</v-icon>&nbsp;
           New Record
@@ -37,8 +39,8 @@
                 <span class="grey--text caption primary-key "
                       v-if="primaryKey">(Primary Key : {{ ch[primaryKey] }})</span>
                 <v-spacer/>
-                <v-chip v-if="hm && ch[meta._tn]" x-small>
-                  {{ ch[primaryCol] }}
+                <v-chip v-if="hm && ch[`${hm._rtn}Read`] && ch[`${hm._rtn}Read`][hmParentPrimaryValCol]" x-small>
+                  {{ ch[`${hm._rtn}Read`][hmParentPrimaryValCol] }}
                 </v-chip>
               </v-card-text>
             </v-card>
@@ -74,7 +76,7 @@ export default {
   components: {Pagination},
   props: {
     value: Boolean,
-    hm: Boolean,
+    hm: [Object, Function],
     title: {
       type: String,
       default: 'Link Record'
@@ -91,7 +93,8 @@ export default {
     size: Number,
     api: [Object, Function],
     mm: [Object, Function],
-    parentId: [String, Number]
+    parentId: [String, Number],
+    parentMeta:[Object]
   },
   data: () => ({
     data: null,
@@ -127,6 +130,11 @@ export default {
       }, get() {
         return this.value;
       }
+    },
+    hmParentPrimaryValCol(){
+      return this.hm &&
+        this.parentMeta &&
+        this.parentMeta.columns.find(v => v.pv)._cn
     }
   }
 }

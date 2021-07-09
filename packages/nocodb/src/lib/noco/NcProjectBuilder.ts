@@ -224,6 +224,10 @@ export default class NcProjectBuilder {
         await curBuilder.onValidationUpdate(data.req.args.tn);
         console.log(`Updated validations for table : ${data.req.args.tn}`)
         break;
+      case 'xcUpdateVirtualKeyAlias':
+        await curBuilder.onVirtualColumnAliasUpdate(data.req.args.tn);
+        console.log(`Updated validations for table : ${data.req.args.tn}`)
+        break;
 
       case 'xcModelSchemaSet':
         await curBuilder.onGqlSchemaUpdate(data.req.args.tn, data.req.args.schema);

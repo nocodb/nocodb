@@ -122,7 +122,7 @@
 
                   v-ge="['columns','save-and-scaffold']">
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Save & Scaffold Module
 
                   </v-list-item-title>
@@ -132,7 +132,7 @@
                   v-ge="['columns','save-and-scaffold']"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Save & Scaffold GQL Model
 
                   </v-list-item-title>
@@ -144,7 +144,7 @@
                   v-ge="['columns','scaffold']"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold GQL Model
 
                   </v-list-item-title>
@@ -154,7 +154,7 @@
                   v-ge="['columns','scaffold']"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold GQL Resolver
 
                   </v-list-item-title>
@@ -164,7 +164,7 @@
                   v-ge="['columns','scaffold']"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold GQL Service
 
                   </v-list-item-title>
@@ -174,7 +174,7 @@
                   v-ge="['columns','scaffold']"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold GQL Relations
 
                   </v-list-item-title>
@@ -191,7 +191,7 @@
                   v-ge="['columns','save-and-scaffold']"
                   @click="saveAndScaffold()">
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Save & Scaffold Module
 
                   </v-list-item-title>
@@ -201,7 +201,7 @@
                   v-ge="['columns','save-and-scaffold']"
                   @click="saveAndScaffoldModel()">
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Save & Scaffold Model
 
                   </v-list-item-title>
@@ -211,7 +211,7 @@
                   v-ge="['columns','json-to-column']"
                   @click="scaffold({model:true})">
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold Model
 
                   </v-list-item-title>
@@ -221,7 +221,7 @@
                   @click="scaffold({router:true})"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold Router
 
                   </v-list-item-title>
@@ -231,7 +231,7 @@
                   @click="scaffold({service:true})"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold Service
 
                   </v-list-item-title>
@@ -241,7 +241,7 @@
                   @click="scaffold({relations:true})"
                 >
                   <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                    <v-icon color="primary" small>mdi-json</v-icon>
+                    <v-icon color="primary" small>mdi-code-json</v-icon>
                     &nbsp;Scaffold Relations
 
                   </v-list-item-title>
@@ -255,7 +255,7 @@
               @click="showJsonToColumDlg = true"
             >
               <v-list-item-title class="font-weight-bold pa-1" v-ge="['columns','json-to-columns']">
-                <v-icon color="primary" small>mdi-json</v-icon>
+                <v-icon color="primary" small>mdi-code-json</v-icon>
                 &nbsp;
                 JSON To Columns
               </v-list-item-title>

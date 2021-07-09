@@ -11,13 +11,14 @@
       chips
       flat
       dense
+      solo
       hide-details
       deletable-chips
-      class="text-center mt-0"
+      class="text-center mt-0 "
     >
       <template v-slot:selection="data">
         <v-chip
-          small
+          small class="ma-1 "
           :key="data"
           :color="colors[setValues.indexOf(data.item) % colors.length]"
           @click:close="data.parent.selectItem(data.item)"

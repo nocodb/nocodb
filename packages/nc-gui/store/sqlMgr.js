@@ -391,12 +391,15 @@ export const actions = {
       // clear meta cache on relation create/delete
       // todo: clear only necessary metas
       // todo: include missing operations
-      if (['relationCreate',
+      if ([
+        'xcModelSet',
+        'relationCreate',
         'xcM2MRelationCreate',
         'xcVirtualRelationCreate',
         'relationDelete',
         'xcVirtualRelationDelete',
-        'xcRelationColumnDelete'].includes(op)) {
+        'xcRelationColumnDelete'
+      ].includes(op)) {
         commit('meta/MutClear', null, {root: true})
       }
 

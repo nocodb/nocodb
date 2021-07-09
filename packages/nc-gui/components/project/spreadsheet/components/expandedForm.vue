@@ -33,9 +33,14 @@
       </div>
     </v-toolbar>
     <div class="form-container ">
+
       <v-card-text class=" py-0 px-0 " :class="{
         'px-10' : isNew || !toggleDrawer,
       }">
+
+        <v-breadcrumbs class="caption pt-0 pb-2 justify-center d-100"
+                       v-if="localBreadcrumbs && localBreadcrumbs.length"
+                       :items="localBreadcrumbs.map(text => ({text}))"/>
 
         <v-container fluid style="height:70vh" class="py-0">
 
@@ -80,6 +85,7 @@
                     :sql-ui="sqlUi"
                     :is-new="isNew"
                     :is-form="true"
+                    :breadcrumbs="localBreadcrumbs"
                     @updateCol="updateCol"
                     @newRecordsSaved="$listeners.loadTableData || (() => {})"
                   ></virtual-cell>
@@ -208,6 +214,12 @@ export default {
   components: {VirtualHeaderCell, VirtualCell, EditableCell, HeaderCell},
   mixins: [colors],
   props: {
+    breadcrumbs: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
     dbAlias: String,
     value: Object,
     meta: Object,
@@ -398,6 +410,9 @@ export default {
     },
     isChanged() {
       return Object.values(this.changedColumns).some(Boolean)
+    },
+    localBreadcrumbs() {
+      return [...this.breadcrumbs, `${this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
     }
   }
 }
@@ -415,6 +430,17 @@ export default {
 
 ::v-deep {
 
+  .v-breadcrumbs__item:nth-child(odd) {
+    font-size: .72rem;
+    color: grey;
+  }
+
+  .v-breadcrumbs li:nth-child(even) {
+    padding: 0 6px;
+    font-size: .72rem;
+    color: var(--v-textColor-base);
+  }
+
   position: relative;
 
   .comment-icon {
@@ -423,10 +449,12 @@ export default {
     bottom: 60px;
   }
 
+  /* todo: refactor */
   .row-col {
     & > div > input,
-    & > div div > input,
+    //& > div div > input,
     & > div > .xc-input > input,
+    & > div > .xc-input >div > input,
     & > div > select,
     & > div > .xc-input > select,
     & > div textarea {
@@ -456,9 +484,10 @@ export default {
       background: #363636;
 
       .row-col {
-        & > div div > input,
+        //& > div div > input,
         & > div > input,
         & > div > .xc-input > input,
+        & > div > .xc-input >div > input,
         & > div > select,
         & > div > .xc-input > select,
         & > div textarea {
@@ -472,8 +501,9 @@ export default {
 
       .row-col {
         & > div > input,
-        & > div div > input,
+        //& > div div > input,
         & > div > .xc-input > input,
+        & > div > .xc-input >div > input,
         & > div > select,
         & > div > .xc-input > select,
         & > div textarea {

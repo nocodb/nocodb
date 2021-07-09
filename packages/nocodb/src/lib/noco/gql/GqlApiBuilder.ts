@@ -147,7 +147,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   public async onTableCreate(tn: string, args): Promise<void> {
     this.log(`onTableCreate : '%s' `, tn)
     const columns = {
-      [tn]: args.columns.map(({altered: _al, ...rest}) => rest)
+      [tn]: args?.columns?.map(({altered: _al, ...rest}) => rest)
     }
 
 
@@ -176,6 +176,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await this.reInitializeGraphqlEndpoint();
   }
 
+  // todo: m2m
   public async onTableRename(oldTableName: string, newTableName: string): Promise<void> {
 
     this.log(`onTableRename : '%s' => '%s' `, oldTableName, newTableName)

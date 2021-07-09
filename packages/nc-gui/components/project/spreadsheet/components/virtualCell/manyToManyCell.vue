@@ -95,6 +95,7 @@
         ref="expandedForm"
         :is-new.sync="isNewChild"
         v-model="selectedChild"
+        :breadcrumbs="breadcrumbs"
         @cancel="selectedChild = null"
         @input="onChildSave"
       ></component>
@@ -119,6 +120,12 @@ export default {
   name: "many-to-many-cell",
   components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel, listChildItemsModal},
   props: {
+    breadcrumbs: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
     value: [Object, Array],
     meta: [Object],
     mm: Object,

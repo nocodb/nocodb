@@ -1364,6 +1364,10 @@ export default class NcMetaMgr {
           result = await this.xcModelSet(args);
           break;
 
+        case 'xcUpdateVirtualKeyAlias':
+          result = await this.xcUpdateVirtualKeyAlias(args);
+          break;
+
         case 'xcRelationsGet':
           result = await this.xcRelationsGet(args);
           break;
@@ -1855,6 +1859,42 @@ export default class NcMetaMgr {
     }, {
       title: args.args.tn
     });
+  }
+
+  protected async xcUpdateVirtualKeyAlias(args): Promise<any> {
+    const dbAlias = await this.getDbAlias(args);
+    const model = await this.xcMeta.metaGet(args.project_id, dbAlias, 'nc_models', {
+      title: args.args.tn
+    });
+    const meta = JSON.parse(model.meta);
+    const vColumn = meta.v.find(v => v._cn === args.args.oldAlias);
+    if (!vColumn) {
+      return
+    }
+    vColumn._cn = args.args.newAlias;
+
+
+    const queryParams = JSON.parse(model.query_params);
+    if (queryParams?.showFields && args.args.oldAlias in queryParams.showFields) {
+      queryParams.showFields[args.args.newAlias] = queryParams.showFields[args.args.oldAlias];
+    }
+    if (queryParams?.columnsWidth && args.args.oldAlias in queryParams.columnsWidth) {
+      queryParams.columnsWidth[args.args.newAlias] = queryParams.columnsWidth[args.args.oldAlias];
+    }
+
+    if (queryParams?.fieldsOrder) {
+      queryParams.fieldsOrder.map(v => v === args.args.oldAlias ? args.args.newAlias : v)
+    }
+
+
+    await this.xcMeta.metaUpdate(args.project_id, dbAlias, 'nc_models', {
+      meta: JSON.stringify(meta),
+      query_params: JSON.stringify(queryParams),
+    }, {
+      title: args.args.tn
+    });
+
+    this.cacheModelDel(args.project_id, dbAlias, 'table', args.args.tn);
   }
 
   // NOTE: updated
@@ -2461,120 +2501,73 @@ export default class NcMetaMgr {
   protected async xcRelationColumnDelete(args: any, req, deleteColumn = true): Promise<any> {
     // this.xcMeta.startTransaction();
     // try {
-      const dbAlias = this.getDbAlias(args);
-      const projectId = this.getProjectId(args);
+    const dbAlias = this.getDbAlias(args);
+    const projectId = this.getProjectId(args);
 
-      // const parent = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
-      //   title: args.args.parentTable
-      // });
-      // // @ts-ignore
-      // const parentMeta = JSON.parse(parent.meta);
-      // @ts-ignore
-      // todo: compare column
-      switch (args.args.type) {
-        case 'bt':
-        case 'hm':
-          const child = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
-            title: args.args.childTable
-          });
-          const childMeta = JSON.parse(child.meta);
-          const relation = childMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable);
-          // todo: virtual relation delete
-          if (relation) {
-            const opArgs = {
-              ...args,
-              args: {
-                childColumn: relation.cn,
-                childTable: relation.tn,
-                parentTable: relation.rtn,
-                parentColumn: relation.rcn
-              },
-              api: 'relationDelete',
-              sqlOpPlus: true,
-            };
-            let out;
-            if (relation?.type === 'virtual') {
-              opArgs.api = 'xcVirtualRelationDelete';
-              out = await this.xcVirtualRelationDelete(opArgs, req);
-            } else {
-              out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationDelete', opArgs);
-            }
-            if (this.listener) {
-              await this.listener({
-                req: opArgs,
-                res: out,
-                user: req.user,
-                ctx: {req}
-              });
-            }
-          }
-          if (deleteColumn) {
-            const originalColumns = childMeta.columns;
-            const columns = childMeta.columns.map(c => ({
-              ...c, ...(relation.cn === c.cn ? {
-                altered: 4,
-                cno: c.cn
-              } : {cno: c.cn})
-            }))
-
-            const opArgs = {
-              ...args,
-              args: {
-                columns,
-                originalColumns,
-                tn: childMeta.tn,
-              },
-              sqlOpPlus: true,
-              api: 'tableUpdate'
-            }
-            const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableUpdate', opArgs);
-
-            if (this.listener) {
-              await this.listener({
-                req: opArgs,
-                res: out,
-                user: req.user,
-                ctx: {req}
-              });
-            }
-          }
-          break;
-        case 'mm': {
-          const assoc = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
-            title: args.args.assocTable
-          });
-          const assocMeta = JSON.parse(assoc.meta);
-          const rel1 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
-          const rel2 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.childTable)
-          await this.xcRelationColumnDelete({
+    // const parent = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+    //   title: args.args.parentTable
+    // });
+    // // @ts-ignore
+    // const parentMeta = JSON.parse(parent.meta);
+    // @ts-ignore
+    // todo: compare column
+    switch (args.args.type) {
+      case 'bt':
+      case 'hm':
+        const child = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+          title: args.args.childTable
+        });
+        const childMeta = JSON.parse(child.meta);
+        const relation = childMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable);
+        // todo: virtual relation delete
+        if (relation) {
+          const opArgs = {
             ...args,
             args: {
-              parentTable: rel1.rtn,
-              parentColumn: rel1.rcn,
-              childTable: rel1.tn,
-              childColumn: rel1.cn,
-              type: 'bt',
-            }
-          }, req, false)
-          await this.xcRelationColumnDelete({
-            ...args,
-            args: {
-              parentTable: rel2.rtn,
-              parentColumn: rel2.rcn,
-              childTable: rel2.tn,
-              childColumn: rel2.cn,
-              type: 'bt',
-            }
-          }, req, false);
-
+              childColumn: relation.cn,
+              childTable: relation.tn,
+              parentTable: relation.rtn,
+              parentColumn: relation.rcn
+            },
+            api: 'relationDelete',
+            sqlOpPlus: true,
+          };
+          let out;
+          if (relation?.type === 'virtual') {
+            opArgs.api = 'xcVirtualRelationDelete';
+            out = await this.xcVirtualRelationDelete(opArgs, req);
+          } else {
+            out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationDelete', opArgs);
+          }
+          if (this.listener) {
+            await this.listener({
+              req: opArgs,
+              res: out,
+              user: req.user,
+              ctx: {req}
+            });
+          }
+        }
+        if (deleteColumn) {
+          const originalColumns = childMeta.columns;
+          const columns = childMeta.columns.map(c => ({
+            ...c, ...(relation.cn === c.cn ? {
+              altered: 4,
+              cno: c.cn
+            } : {cno: c.cn})
+          }))
 
           const opArgs = {
             ...args,
-            args: assocMeta,
-            api: 'tableDelete',
+            args: {
+              columns,
+              originalColumns,
+              tn: childMeta.tn,
+            },
             sqlOpPlus: true,
-          };
-          const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
+            api: 'tableUpdate'
+          }
+          const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableUpdate', opArgs);
 
           if (this.listener) {
             await this.listener({
@@ -2584,10 +2577,57 @@ export default class NcMetaMgr {
               ctx: {req}
             });
           }
-
         }
-          break;
+        break;
+      case 'mm': {
+        const assoc = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+          title: args.args.assocTable
+        });
+        const assocMeta = JSON.parse(assoc.meta);
+        const rel1 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
+        const rel2 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.childTable)
+        await this.xcRelationColumnDelete({
+          ...args,
+          args: {
+            parentTable: rel1.rtn,
+            parentColumn: rel1.rcn,
+            childTable: rel1.tn,
+            childColumn: rel1.cn,
+            type: 'bt',
+          }
+        }, req, false)
+        await this.xcRelationColumnDelete({
+          ...args,
+          args: {
+            parentTable: rel2.rtn,
+            parentColumn: rel2.rcn,
+            childTable: rel2.tn,
+            childColumn: rel2.cn,
+            type: 'bt',
+          }
+        }, req, false);
+
+
+        const opArgs = {
+          ...args,
+          args: assocMeta,
+          api: 'tableDelete',
+          sqlOpPlus: true,
+        };
+        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
+
+        if (this.listener) {
+          await this.listener({
+            req: opArgs,
+            res: out,
+            user: req.user,
+            ctx: {req}
+          });
+        }
+
       }
+        break;
+    }
     //   this.xcMeta.commit()
     // } catch (e) {
     //   this.xcMeta.rollback(e)

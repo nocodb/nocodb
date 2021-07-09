@@ -322,7 +322,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.models[modelRow.title] = this.getBaseModel(metaObj);
 
     // todo: check tableAlias changed or not
-    await this.onTableRename(tn, tn)
+    // todo:
+    // await this.onTableRename(tn, tn)
   }
 
 
@@ -1213,9 +1214,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 tableMetaA.hasMany.splice(tableMetaA.hasMany.findIndex(hm => hm.tn === meta.tn), 1)
                 tableMetaB.hasMany.splice(tableMetaB.hasMany.findIndex(hm => hm.tn === meta.tn), 1)*/
 
-        // add manytomany data under metadata of both related columns
+
+        // add manytomany data under metadata of both linked tables
         tableMetaA.manyToMany = tableMetaA.manyToMany || [];
-        if (tableMetaA.manyToMany.every(mm => mm.vtn === meta.vtn)) {
+        if (tableMetaA.manyToMany.every(mm => mm.vtn !== meta.vtn)) {
           tableMetaA.manyToMany.push({
             "tn": tableMetaA.tn,
             "cn": meta.belongsTo[0].rcn,
@@ -1232,7 +1234,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           metas.add(tableMetaA)
         }
         tableMetaB.manyToMany = tableMetaB.manyToMany || [];
-        if (tableMetaB.manyToMany.every(mm => mm.vtn === meta.vtn)) {
+        if (tableMetaB.manyToMany.every(mm => mm.vtn !== meta.vtn)) {
           tableMetaB.manyToMany.push({
             "tn": tableMetaB.tn,
             "cn": meta.belongsTo[1].rcn,
@@ -1718,6 +1720,12 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // generate many to many relations an columns
     await this.getManyToManyRelations({localMetas: metas});
     return metas;
+  }
+
+  public async onVirtualColumnAliasUpdate(tableName: string): Promise<void> {
+    const model = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {title: tableName});
+    const meta = JSON.parse(model.meta);
+    this.models[tableName] = this.getBaseModel(meta);
   }
 }
 

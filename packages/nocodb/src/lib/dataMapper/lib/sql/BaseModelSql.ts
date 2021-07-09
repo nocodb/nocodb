@@ -1271,7 +1271,7 @@ class BaseModelSql extends BaseModel {
    * Gets parent list along with children list and parent
    *
    * @param {Object} args
-   * @param {String} args.childs - comma separated child table names
+   * @param {String} args.childs - comma separated child table naes
    * @param {String} [args.fields=*] - commas separated column names of this table
    * @param {String} [args.fields*=*] - commas separated column names of child table(* is a natural number 'i' where i is index of child table in comma separated list)
    * @param {String} [args.where]  - where clause with conditions within ()
@@ -1286,6 +1286,7 @@ class BaseModelSql extends BaseModel {
    */
 
   // todo : add conditionGraph
+  // todo : implement nestedread
   async nestedList({childs = '', parents = '', many = '', where, fields: fields1, f, ...rest}) {
     let fields = fields1 || f || '*';
     try {

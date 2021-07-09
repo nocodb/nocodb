@@ -126,6 +126,7 @@ export default {
         console.log(e)
       }
     }, async setAsPrimaryValue() {
+      // todo: pass only updated fields
       try {
         const meta = JSON.parse(JSON.stringify(this.meta));
         for (const col of meta.columns) {

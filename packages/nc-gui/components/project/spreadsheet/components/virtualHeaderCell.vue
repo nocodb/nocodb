@@ -7,7 +7,7 @@
         <v-icon v-else-if="column.bt" color="info" x-small class="mr-1" v-on="on">mdi-table-arrow-left</v-icon>
         <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">mdi-table-network</v-icon>
 
-        <span v-on="on" class="name" :title="column._cn">{{ column._cn }}</span>
+        <span v-on="on" class="name  flex-grow-1" :title="column._cn">{{ column._cn }}</span>
 
         <span v-if="column.rqd" v-on="on" class="error--text text--lighten-1">&nbsp;*</span>
       </template>
@@ -71,6 +71,7 @@
         :edit-column="true"
         :column="column"
         :meta="meta"
+        v-on="$listeners"
       ></edit-virtual-column>
     </v-menu>
   </div>
@@ -149,7 +150,6 @@ export default {
 
 <style scoped>
 .name {
-  max-width: calc(100px - 40px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

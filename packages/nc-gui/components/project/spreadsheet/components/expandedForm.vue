@@ -357,7 +357,7 @@ export default {
     },
     async reload() {
       // const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
-      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.value[c._cn]})`).join('~and');
+      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and');
       this.$set(this, 'changedColumns', {});
       // this.localState = await this.api.read(id);
       const data = await this.api.list({...(this.queryParams || {}), where}) || [{}];
@@ -452,12 +452,12 @@ export default {
   /* todo: refactor */
   .row-col {
     & > div > input,
-    //& > div div > input,
+      //& > div div > input,
     & > div > .xc-input > input,
-    & > div > .xc-input >div > input,
+    & > div > .xc-input > div > input,
     & > div > select,
     & > div > .xc-input > select,
-    & > div textarea {
+    & > div textarea:not(.inputarea) {
       border: 1px solid #7f828b33;
       padding: 1px 5px;
       font-size: .8rem;
@@ -487,10 +487,10 @@ export default {
         //& > div div > input,
         & > div > input,
         & > div > .xc-input > input,
-        & > div > .xc-input >div > input,
+        & > div > .xc-input > div > input,
         & > div > select,
         & > div > .xc-input > select,
-        & > div textarea {
+        & > div textarea:not(.inputarea) {
           background: #1e1e1e;
         }
       }
@@ -501,12 +501,12 @@ export default {
 
       .row-col {
         & > div > input,
-        //& > div div > input,
+          //& > div div > input,
         & > div > .xc-input > input,
-        & > div > .xc-input >div > input,
+        & > div > .xc-input > div > input,
         & > div > select,
         & > div > .xc-input > select,
-        & > div textarea {
+        & > div textarea:not(.inputarea) {
           background: white;
         }
       }

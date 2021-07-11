@@ -388,7 +388,7 @@ export const actions = {
       })).data;
 
 
-      // clear meta cache on relation create/delete
+    /*  // clear meta cache on relation create/delete
       // todo: clear only necessary metas
       // todo: include missing operations
       if ([
@@ -406,7 +406,7 @@ export const actions = {
 
       if (op === 'tableXcModelGet') {
         try {
-          const meta = JSON.parse(model.meta);
+          const meta = JSON.parse(data.meta);
           commit('meta/MutMeta', {
             key: meta.tn,
             value: meta
@@ -414,7 +414,7 @@ export const actions = {
         } catch (e) {
           //  ignore
         }
-      }
+      }*/
 
       return data;
     } catch (e) {

@@ -869,13 +869,19 @@ export default {
     },
     async loadMeta(updateShowFields = true) {
       this.loadingMeta = true;
-      const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // }, 'tableXcModelGet', {
+      //   tn: this.table
+      // }]);
+      // this.meta = JSON.parse(tableMeta.meta);
+      const tableMeta = await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableXcModelGet', {
-        tn: this.table
-      }]);
-      this.meta = JSON.parse(tableMeta.meta);
+        dbAlias: this.nodes.dbAlias,
+        tn: this.table,
+        force: true
+      });
       this.loadingMeta = false;
       if (updateShowFields) {
         try {
@@ -933,6 +939,9 @@ export default {
     }
   },
   computed: {
+    meta() {
+      return this.$store.state.meta.metas[this.table];
+    },
     currentApiUrl() {
       return this.api && `${this.api.apiUrl}?` + Object.entries(this.queryParams).filter(p => p[1]).map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`).join('&')
     },

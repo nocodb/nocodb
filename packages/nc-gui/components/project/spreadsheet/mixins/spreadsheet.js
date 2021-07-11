@@ -8,7 +8,7 @@ export default {
     sortList: [],
     showFields: {},
     // fieldList: [],
-    meta: {},
+    // meta: {},
     data: [],
   }),
   methods: {

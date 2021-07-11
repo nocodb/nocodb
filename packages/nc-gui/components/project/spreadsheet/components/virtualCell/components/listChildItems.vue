@@ -19,8 +19,8 @@
       </v-btn>
     </v-card-title>
     <v-card-text>
-      <div class="items-container pt-2 mb-n4">
-        <div class="text-right mb-2 mt-n4 mx-2">
+      <div class="items-container pt-2 mb-n4" :class="{'mx-n2' : isForm}">
+        <div class="text-right mb-2 mt-n2 mx-2">
           <v-btn
             v-if="isForm"
             x-small
@@ -63,20 +63,20 @@
             </div>
 
             <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[primaryCol] }}
-              <span class="grey--text caption primary-key"
-                    v-if="primaryKey">(Primary Key : {{ ch[primaryKey] }})</span>
+              <span class="grey--text caption primary-key ml-1"
+                    v-if="primaryKey"> (Primary Key : {{ ch[primaryKey] }})</span>
             </v-card-title>
           </v-card>
         </template>
 
         <div v-else-if="data || localState" class="text-center  textLight--text"
-             :class="{'pt-6 pb-4' : !isForm , 'pt-1':isForm}">
+             :class="{'pt-6 pb-4' : !isForm , 'pt-4 pb-3':isForm}">
           No item{{ bt ? '' : 's' }} found
         </div>
 
         <div v-if="isForm" class="mb-2 d-flex align-center justify-center">
           <pagination
-            v-if="!bt && isDataAvail && data && data.count > 1"
+            v-if="!bt && data && data.count > 1"
             :size="size"
             :count="data && data.count"
             v-model="page"
@@ -87,7 +87,7 @@
     </v-card-text>
     <v-card-actions v-if="!isForm" class="justify-center flex-column" :class="{'py-0':isForm}">
       <pagination
-        v-if="!bt && isDataAvail && data && data.count > 1"
+        v-if="!bt && data && data.count > 1"
         :size="size"
         :count="data && data.count"
         v-model="page"
@@ -184,6 +184,12 @@ export default {
     opacity: 1;
   }
 
+}
+
+.items-container {
+  overflow-x: visible;
+  max-height: min(500px, 60vh);
+  overflow-y: auto;
 }
 
 </style>

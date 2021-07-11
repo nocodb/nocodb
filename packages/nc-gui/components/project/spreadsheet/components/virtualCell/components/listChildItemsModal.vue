@@ -1,5 +1,6 @@
 <template>
-  <v-dialog v-model="show" width="600">
+  <v-dialog v-model="show" width="600" content-class="dialog">
+    <v-icon small class="close-icon" @click="$emit('input',false)">mdi-close</v-icon>
     <list-child-items
       v-if="show"
       ref="child"
@@ -75,22 +76,18 @@ export default {
 </script>
 
 <style scoped lang="scss">
+::v-deep {
+  .dialog {
+    position: relative;
 
-.child-list-modal {
-  position: relative;
-
-  .remove-child-icon {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    bottom: 10px;
-    opacity: 0;
+    .close-icon {
+      width: auto;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      z-index: 9;
+    }
   }
-
-  &:hover .remove-child-icon {
-    opacity: 1;
-  }
-
 }
 
 </style>

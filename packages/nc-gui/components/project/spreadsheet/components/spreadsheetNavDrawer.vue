@@ -264,7 +264,7 @@
           <v-hover >
             <template v-slot:default="{hover}">
             <v-btn
-              :color="hover ?'primary' :  'grey'" class="mb-2" small outlined href="https://github.com/sponsors/xgenecloud"
+              :color="hover ?'primary' :  'grey'" class="mb-2" small outlined href="https://github.com/sponsors/nocodb"
               target="_blank">
               <v-icon small color="red" class="mr-2">mdi-heart-outline</v-icon>
               Sponsor Us

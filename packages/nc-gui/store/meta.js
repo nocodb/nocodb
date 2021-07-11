@@ -16,8 +16,8 @@ export const mutations = {
 };
 
 export const actions = {
-  async ActLoadMeta({state, commit, dispatch}, {tn, env, dbAlias}) {
-    if (state.loading[tn]) {
+  async ActLoadMeta({state, commit, dispatch}, {tn, env, dbAlias, force}) {
+    if (!force && state.loading[tn]) {
       return await new Promise(resolve => {
         const unsubscribe = this.app.store.subscribe(s => {
           if (s.type === 'meta/MutLoading' && s.payload.key === tn && !s.payload.value) {
@@ -27,7 +27,7 @@ export const actions = {
         })
       })
     }
-    if (state.metas[tn]) {
+    if (!force && state.metas[tn]) {
       return state.metas[tn];
     }
     commit('MutLoading', {
@@ -35,14 +35,16 @@ export const actions = {
       value: true
     })
     const model = await dispatch('sqlMgr/ActSqlOp', [{env, dbAlias}, 'tableXcModelGet', {tn}], {root: true});
+    const meta = JSON.parse(model.meta);
     commit('MutMeta', {
       key: tn,
-      value: JSON.parse(model.meta)
+      value: meta
     })
     commit('MutLoading', {
       key: tn,
       value: undefined
     })
+    return force ? model : meta;
   }
 }
 

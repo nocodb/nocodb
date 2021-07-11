@@ -1,5 +1,6 @@
 <template>
-  <v-dialog v-model="show" width="600">
+  <v-dialog v-model="show" width="600" content-class="dialog">
+    <v-icon small class="close-icon" @click="$emit('input',false)">mdi-close</v-icon>
     <v-card width="600" >
       <v-card-title class="textColor--text mx-2 justify-center">{{ title }}
 
@@ -184,6 +185,19 @@ export default {
   overflow-y: auto;
 }
 
+::v-deep {
+  .dialog {
+    position: relative;
+
+    .close-icon {
+      width: auto;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      z-index: 9;
+    }
+  }
+}
 </style>
 <!--
 /**

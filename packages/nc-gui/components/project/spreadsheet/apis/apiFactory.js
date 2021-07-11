@@ -3,9 +3,9 @@ import GqlApi from "@/components/project/spreadsheet/apis/gqlApi";
 import GrpcApi from "@/components/project/spreadsheet/apis/grpcApi";
 
 export default class ApiFactory {
-  static create(type, table, columns, ctx) {
+  static create(type, table, columns, ctx, meta) {
     if (type === 'graphql') {
-      return new GqlApi(table, columns, ctx);
+      return new GqlApi(table, columns, meta, ctx,);
     } else if (type === 'grpc') {
       return new GrpcApi(table, ctx)
     } else if (type === 'rest') {

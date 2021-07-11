@@ -1,49 +1,17 @@
-<template>
-  <input v-on="parentListeners" v-model="localState" type="number">
-</template>
+import {BaseModelSql} from "../../dataMapper";
 
-<script>
-export default {
-  name: "floatCell",
-  props: {
-    value: [String,Number]
-  },
-  mounted() {
-    this.$el.focus();
-  },
-  computed: {
-    localState: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        this.$emit('input', val);
-      }
-    },
-    parentListeners(){
-      const $listeners = {};
-
-      if(this.$listeners.blur){
-        $listeners.blur = this.$listeners.blur;
-      }
-      if(this.$listeners.focus){
-        $listeners.focus = this.$listeners.focus;
-      }
-
-      return $listeners;
-    },
+export const m2mNotChildren = ({models = {}}: { models: { [key: string]: BaseModelSql } }) => {
+  return async (args) => {
+    return models[args?.parent]?.m2mNotChildren(args);
   }
 }
-</script>
-
-<style scoped>
-input {
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
+export const m2mNotChildrenCount = ({models = {}}: { models: { [key: string]: BaseModelSql } }) => {
+  return async (args) => {
+    return models[args?.parent]?.m2mNotChildrenCount(args);
+  }
 }
-</style>
-<!--
+
+
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
@@ -66,4 +34,3 @@ input {
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
--->

@@ -253,6 +253,7 @@ function translateUiToLibCall(args, op, opArgs) {
       break;
 
     case 'relationCreate':
+    case 'xcM2MRelationCreate':
     case 'xcVirtualRelationCreate':
       data.type = "Relation create";
       data.title = '';
@@ -262,6 +263,7 @@ function translateUiToLibCall(args, op, opArgs) {
 
     case 'relationDelete':
     case 'xcVirtualRelationDelete':
+    case 'xcRelationColumnDelete':
       data.type = "Relation delete";
       data.title = '';
       data.module = "";
@@ -374,7 +376,7 @@ export const actions = {
       if (cusHeaders) {
         Object.assign(headers, cusHeaders)
       }
-      return (await this.$axios({
+      const data = (await this.$axios({
         url: '?q=sqlOp_' + op,
         baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
         data: {api: op, ...args, ...params, args: opArgs},
@@ -384,6 +386,37 @@ export const actions = {
         ...(cusAxiosOptions || {}),
 
       })).data;
+
+
+    /*  // clear meta cache on relation create/delete
+      // todo: clear only necessary metas
+      // todo: include missing operations
+      if ([
+        'xcModelSet',
+        'relationCreate',
+        'xcM2MRelationCreate',
+        'xcVirtualRelationCreate',
+        'relationDelete',
+        'xcVirtualRelationDelete',
+        'xcRelationColumnDelete'
+      ].includes(op)) {
+        commit('meta/MutClear', null, {root: true})
+      }
+
+
+      if (op === 'tableXcModelGet') {
+        try {
+          const meta = JSON.parse(data.meta);
+          commit('meta/MutMeta', {
+            key: meta.tn,
+            value: meta
+          }, {root: true})
+        } catch (e) {
+          //  ignore
+        }
+      }*/
+
+      return data;
     } catch (e) {
       const err = new Error(e.response.data.msg);
       err.response = e.response;

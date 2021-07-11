@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 
 const getUniqFilenamePrefix = function () {
 
-  return dayjs().format('YYYYMMDD_HHmmss')
+  return dayjs().format('YYYYMMDD_HHmmssSSS')
 
 };
 

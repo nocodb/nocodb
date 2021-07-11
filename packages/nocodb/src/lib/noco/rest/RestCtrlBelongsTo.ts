@@ -51,7 +51,7 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
   public async list(req: Request | any, res): Promise<void> {
     const data = await req.childModel.belongsTo({
       parents: req.parentModel.tn,
-      ...req.queryF
+      ...req.query
     } as any);
     res.xcJson(data);
   }

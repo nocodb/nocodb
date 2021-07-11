@@ -4,7 +4,6 @@ import GqlMiddleware from "./GqlMiddleware";
 import {Acls} from "../../../interface/config";
 import GqlBaseResolver from "./GqlBaseResolver";
 import Noco from "../Noco";
-import inflection from 'inflection';
 
 function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + (hrtime[1] / 1e6)).toFixed(3);
@@ -40,9 +39,18 @@ export default class GqlResolver extends GqlBaseResolver {
     return this.models?.[this.table];
   }
 
-  public async list(args, {req,res}): Promise<any> {
+  public async list(args, {req, res}: { req: any & { model: BaseModelSql }, res: any }): Promise<any> {
     const startTime = process.hrtime();
-
+    try {
+      if (args.conditionGraph && typeof args.conditionGraph === 'string') {
+        args.conditionGraph = {models: this.models, condition: JSON.parse(args.conditionGraph)}
+      }
+      if (args.condition && typeof args.condition === 'string') {
+        args.condition = JSON.parse(args.condition)
+      }
+    } catch (e) {
+      /* ignore parse error */
+    }
     const data = await req.model.list(args);
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -98,6 +106,16 @@ export default class GqlResolver extends GqlBaseResolver {
   }
 
   public async count(args, {req}): Promise<any> {
+    try {
+      if (args.conditionGraph && typeof args.conditionGraph === 'string') {
+        args.conditionGraph = {models: this.models, condition: JSON.parse(args.conditionGraph)}
+      }
+      if (args.condition && typeof args.condition === 'string') {
+        args.condition = JSON.parse(args.condition)
+      }
+    } catch (e) {
+      /* ignore parse error */
+    }
     const data = await req.model.countByPk(args);
     return data.count;
   }
@@ -131,7 +149,7 @@ export default class GqlResolver extends GqlBaseResolver {
   public mapResolvers(customResolver: any): any {
     const mw = new GqlMiddleware(this.acls, this.table, this.middlewareStringBody, this.models);
     // todo: replace with inflection
-    const name = inflection.camelize(this.model._tn);
+    const name = this.model._tn;
     return GqlResolver.applyMiddlewares([(_, {req}) => {
       req.models = this.models;
       req.model = this.model;

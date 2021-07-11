@@ -1,37 +1,46 @@
 <template>
-  <div>
-    <span v-for="v in (value || '').split(',')" :key="v" :style="{
-         background:colors[v]
-      }" class="set-item ma-1 py-1 px-3">{{ v }}</span>
-  </div>
+  <input v-on="parentListeners" v-model="localState" type="number">
 </template>
 
 <script>
-import colors from "@/components/project/spreadsheet/helpers/colors";
 export default {
-  props: ['value', 'column'],
-  name: "setListCell",
+  name: "floatCell",
+  props: {
+    value: [String,Number]
+  },
+  mounted() {
+    this.$el.focus();
+  },
   computed: {
-    colors() {
-      const col = this.$store.state.windows.darkTheme ? colors.dark : colors.light;
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, '')).reduce((obj, v, i) => ({
-          ...obj,
-          [v]: col[i]
-        }), {})
+    localState: {
+      get() {
+        return this.value
+      },
+      set(val) {
+        this.$emit('input', +val);
       }
-      return {};
-    }
+    },
+    parentListeners(){
+      const $listeners = {};
+
+      if(this.$listeners.blur){
+        $listeners.blur = this.$listeners.blur;
+      }
+      if(this.$listeners.focus){
+        $listeners.focus = this.$listeners.focus;
+      }
+
+      return $listeners;
+    },
   }
 }
 </script>
 
 <style scoped>
-
-.set-item {
-  display: inline-block;
-  border-radius: 25px;
-  white-space: nowrap;
+input {
+  width: 100%;
+  height: 100%;
+  color: var(--v-textColor-base);
 }
 </style>
 <!--

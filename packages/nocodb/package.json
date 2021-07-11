@@ -122,6 +122,7 @@
     "glob": "^7.1.6",
     "graphql": "^15.3.0",
     "graphql-depth-limit": "^1.1.0",
+    "graphql-type-json": "^0.3.2",
     "handlebars": "^4.7.6",
     "import-fresh": "^3.2.1",
     "inflection": "^1.12.0",

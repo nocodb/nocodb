@@ -1,67 +1,43 @@
 <template>
-  <select v-on="parentListeners"   v-model="localState">
-    <option v-for="eVal of enumValues" :key="eVal" :value="eVal">{{ eVal }}</option>
-  </select>
+  <div>
+    <v-chip
+      small
+      v-for="v in (value || '').split(',')"
+      :key="v"
+      :color="colors[setValues.indexOf(v) % colors.length]"
+      class="set-item ma-1 py-1 px-3"
+    >
+      {{ v }}
+    </v-chip>
+  </div>
 </template>
 
 <script>
+import colors from "@/mixins/colors";
+
 export default {
-  name: "enum-list-cell",
-  props: {
-    value: String,
-    column: Object
-  },
-  mounted() {
-    this.$el.focus();
-    let event;
-    event = document.createEvent('MouseEvents');
-    event.initMouseEvent('mousedown', true, true, window);
-    this.$el.dispatchEvent(event);
-  },
+  props: ['value', 'column'],
+  name: "setListCell",
+  mixins: [colors],
   computed: {
-    localState: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        this.$emit('input', val);
-        this.$emit('update');
-      }
-    },
-    enumValues() {
+
+    setValues() {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
       return [];
-    },
-    parentListeners(){
-      const $listeners = {};
-
-      if(this.$listeners.blur){
-        $listeners.blur = this.$listeners.blur;
-      }
-      if(this.$listeners.focus){
-        $listeners.focus = this.$listeners.focus;
-      }
-
-      return $listeners;
     },
   }
 }
 </script>
 
 <style scoped>
-select {
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-  -webkit-appearance: menulist;
-  /*webkit browsers */
-  -moz-appearance: menulist;
-  /*Firefox */
-  appearance: menulist;
-}
-
+/*
+.set-item {
+  display: inline-block;
+  border-radius: 25px;
+  white-space: nowrap;
+}*/
 </style>
 <!--
 /**

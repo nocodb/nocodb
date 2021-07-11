@@ -18,7 +18,7 @@
             </div>
           </template>
           <v-list dense>
-            <v-list-item v-for="col in availableColumns" :key="col.cn"
+            <v-list-item v-for="col in availableRealColumns" :key="col.cn"
                          @click="searchField = col._cn">
               <span class="caption">{{ col._cn }}</span>
             </v-list-item>
@@ -53,8 +53,10 @@
 
 
       <v-spacer></v-spacer>
+
+
       <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type"></lock-menu>
-      <x-btn tooltip="Reload view data" outlined small text @click="loadTableData">
+      <x-btn tooltip="Reload view data" outlined small text @click="reload">
         <v-icon small class="mr-1" color="grey  darken-3">mdi-reload</v-icon>
       </x-btn>
       <x-btn tooltip="Add new row" v-if="relationType !== 'bt'" :disabled="isLocked" outlined small text
@@ -66,28 +68,30 @@
         Save
       </x-btn>
 
-
-      <fields v-model="showFields" :field-list="fieldList"
-              :meta="meta"
-              :is-locked="isLocked"
-              :fieldsOrder.sync="fieldsOrder"
-              :sqlUi="sqlUi"
-              :showSystemFields.sync="showSystemFields"></fields>
+      <fields
+        v-model="showFields"
+        :field-list="fieldList"
+        :meta="meta"
+        :is-locked="isLocked"
+        :fieldsOrder.sync="fieldsOrder"
+        :sqlUi="sqlUi"
+        :showSystemFields.sync="showSystemFields"
+      />
 
       <sort-list
         :is-locked="isLocked"
-        :field-list="fieldList"
+        :field-list="realFieldList"
         v-model="sortList"
       ></sort-list>
       <column-filter
         :is-locked="isLocked"
-        :field-list="fieldList"
+        :field-list="realFieldList"
         v-model="filters"
         dense>
       </column-filter>
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
-          <v-btn :disabled="isLocked" v-on="on" small @click="deleteTable('showDialog')" outlined text>
+          <v-btn :disabled="isLocked" v-on="on" small @click="checkAndDeleteTable" outlined text>
             <x-icon small color="red grey">mdi-delete-outline</x-icon>
           </v-btn>
         </template>
@@ -129,19 +133,10 @@
                 color="grey  darken-3"
         >{{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
         </v-icon>
-
-
       </x-btn>
-
-
-      <!--      <v-spacer></v-spacer>-->
-
-      <!--      <v-text-field outlined dense hide-details class="elevation-0" append-icon="mdi-magnify"></v-text-field>-->
     </v-toolbar>
-
-
     <div :class="`cell-height-${cellHeight}`"
-         style=" height:calc(100% - 32px);overflow:auto;transition: width 500ms "
+         style=" height:calc(100% - 32px);overflow:auto;transition: width 100ms "
          class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
@@ -150,6 +145,7 @@
           <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingMeta)" type="table"></v-skeleton-loader>
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
+              :key="key"
               ref="ncgridview"
               :relationType="relationType"
               :columns-width.sync="columnsWidth"
@@ -167,6 +163,7 @@
               :visibleColLength="visibleColLength"
               :meta="meta"
               :isVirtual="selectedView.type === 'vtable'"
+              :api="api"
               @onNewColCreation="onNewColCreation"
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
@@ -174,6 +171,8 @@
               @addNewRelationTab="addNewRelationTab"
               @expandRow="expandRow"
               @onRelationDelete="loadMeta"
+              @loadTableData="loadTableData"
+              @loadMeta="loadMeta"
             ></xc-grid-view>
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">
@@ -215,33 +214,39 @@
 
         </div>
         <template v-if="data">
-          <v-pagination
-            v-if="count !== Infinity"
-            style="max-width: 100%"
+          <pagination
+            :count="count"
+            :size="size"
             v-model="page"
-            :length="Math.ceil(count / size)"
-            :total-visible="8"
             @input="loadTableData"
-            color="primary lighten-2"
-          ></v-pagination>
-          <div v-else class="mx-auto d-flex align-center mt-n1 " style="max-width:250px">
-            <span class="caption" style="white-space: nowrap"> Change page:</span>
-            <v-text-field
-              class="ml-1 caption"
-              :full-width="false"
-              outlined
-              dense
-              hide-details
+          />
+          <!--  <v-pagination
+              v-if="count !== Infinity"
+              style="max-width: 100%"
               v-model="page"
-              @keydown.enter="loadTableData"
-              type="number"
-            >
-              <template #append>
-                <x-icon tooltip="Change page" small icon.class="mt-1" @click="loadTableData">mdi-keyboard-return
-                </x-icon>
-              </template>
-            </v-text-field>
-          </div>
+              :length="Math.ceil(count / size)"
+              :total-visible="8"
+              @input="loadTableData"
+              color="primary lighten-2"
+            ></v-pagination>
+            <div v-else class="mx-auto d-flex align-center mt-n1 " style="max-width:250px">
+              <span class="caption" style="white-space: nowrap"> Change page:</span>
+              <v-text-field
+                class="ml-1 caption"
+                :full-width="false"
+                outlined
+                dense
+                hide-details
+                v-model="page"
+                @keydown.enter="loadTableData"
+                type="number"
+              >
+                <template #append>
+                  <x-icon tooltip="Change page" small icon.class="mt-1" @click="loadTableData">mdi-keyboard-return
+                  </x-icon>
+                </template>
+              </v-text-field>
+            </div>-->
         </template>
         <!--      <div v-else class="d-flex justify-center py-4">-->
         <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
@@ -388,12 +393,11 @@
       v-model="showExpandModal">
 
       <expanded-form
+        :key="selectedExpandRowIndex"
         :db-alias="nodes.dbAlias"
         :has-many="hasMany"
         :belongs-to="belongsTo"
         v-if="selectedExpandRowIndex != null && data[selectedExpandRowIndex]"
-        @cancel="showExpandModal = false;"
-        @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new)"
         :table="table"
         v-model="data[selectedExpandRowIndex].row"
         :oldRow.sync="data[selectedExpandRowIndex].oldRow"
@@ -403,7 +407,13 @@
         :sql-ui="sqlUi"
         :primary-value-column="primaryValueColumn"
         :api="api"
+        :availableColumns="availableColumns"
+        :nodes="nodes"
+        :query-params="queryParams"
+        @cancel="showExpandModal = false;"
+        @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"
+        @loadTableData="loadTableData"
       ></expanded-form>
 
     </v-dialog>
@@ -428,7 +438,7 @@ import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import Table from "@/components/project/table";
 import {SqlUI} from "@/helpers/SqlUiFactory";
 
-import NewColumn from "@/components/project/spreadsheet/editColumn/editColumn";
+import NewColumn from "@/components/project/spreadsheet/components/editColumn";
 import {mapActions} from "vuex";
 import AdditionalFeatures from "@/components/project/spreadsheet/overlay/additinalFeatures";
 import ColumnFilter from "~/components/project/spreadsheet/components/columnFilterMenu";
@@ -444,11 +454,13 @@ import SpreadsheetNavDrawer from "@/components/project/spreadsheet/components/sp
 import spreadsheet from "@/components/project/spreadsheet/mixins/spreadsheet";
 import LockMenu from "@/components/project/spreadsheet/components/lockMenu";
 import ExpandedForm from "@/components/project/spreadsheet/components/expandedForm";
+import Pagination from "@/components/project/spreadsheet/components/pagination";
 
 export default {
   mixins: [spreadsheet],
   name: "rows-xc-data-table",
   components: {
+    Pagination,
     ExpandedForm,
     LockMenu,
     SpreadsheetNavDrawer,
@@ -477,6 +489,7 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    key: 1,
     dataLoaded: false,
     searchQueryVal: '',
     columnsWidth: null,
@@ -574,7 +587,6 @@ export default {
       console.log(e)
     }
     this.searchField = this.primaryValueColumn;
-
     this.dataLoaded = true;
 
     // await this.loadViews();
@@ -583,6 +595,22 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: "project/loadTablesFromChildTreeNode"
     }),
+    checkAndDeleteTable() {
+      if (
+        !this.meta &&
+        this.meta.hasMany && this.meta.hasMany.length ||
+        this.meta.manyToMany && this.meta.manyToMany.length ||
+        this.meta.belongsTo && this.meta.belongsTo.length
+      ) {
+        return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
+      }
+      this.deleteTable('showDialog')
+    },
+    async reload() {
+      this.$store.commit('meta/MutClear');
+      await this.loadTableData();
+      this.key = Math.random();
+    },
     reloadComments() {
       if (this.$refs.ncgridview) {
         this.$refs.ncgridview.xcAuditModelCommentsCount();
@@ -672,27 +700,48 @@ export default {
       }
     },
     async save() {
+
       for (let row = 0; row < this.rowLength; row++) {
         const {row: rowObj, rowMeta} = this.data[row];
         if (rowMeta.new) {
           try {
-            const pks = this.availableColumns.filter((col) => {
+            const pks = this.meta.columns.filter((col) => {
               return col.pk;
             });
-            if (this.availableColumns.every((col) => {
+            if (this.meta.columns.every((col) => {
               return !col.ai;
             }) && pks.length && pks.every(col => !rowObj[col._cn])) {
               return this.$toast.info('Primary column is empty please provide some value').goAway(3000);
             }
+            if (this.meta.columns.some((col) => {
+              return !col.ai && col.rqd && (rowObj[col._cn] === undefined || rowObj[col._cn] === null) && !col.default
+            })) {
+              return;
+            }
 
-            const insertObj = this.availableColumns.reduce((o, col) => {
+            const insertObj = this.meta.columns.reduce((o, col) => {
               if (!col.ai && (rowObj && rowObj[col._cn]) !== null) {
                 o[col._cn] = rowObj && rowObj[col._cn];
               }
               return o;
             }, {});
 
-            const insertedData = await this.api.insert(insertObj);
+            let insertedData = await this.api.insert(insertObj);
+
+            // todo: optimize
+            if (this.meta.v && this.meta.v.length) {
+              try {
+                const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${insertedData[c._cn]})`).join('~and');
+                if (where) {
+                  const {childs, parents, many} = this.queryParams;
+                  const data = (await this.api.list({where, childs, parents, many}) || [insertedData]);
+                  insertedData = data.length ? data[0] : insertedData;
+                }
+              } catch (e) {
+                // ignore
+              }
+            }
+
             this.data.splice(row, 1, {
               row: insertedData,
               rowMeta: {},
@@ -713,7 +762,15 @@ export default {
         }
       }
     },
-    async onCellValueChange(col, row, column) {
+
+
+    onCellValueChangeDebounce: debounce(async function (col, row, column, self) {
+      await self.onCellValueChangeFn(col, row, column)
+    }, 300),
+    onCellValueChange(col, row, column) {
+      this.onCellValueChangeDebounce(col, row, column, this)
+    },
+    async onCellValueChangeFn(col, row, column) {
       if (!this.data[row]) return;
       const {row: rowObj, rowMeta, oldRow} = this.data[row];
       if (rowMeta.new) {
@@ -791,6 +848,7 @@ export default {
         const {rowMeta} = this.data[this.data.length - 1];
         this.expandRow(this.data.length - 1, rowMeta)
       }
+      // this.save()
     },
 
 
@@ -809,20 +867,33 @@ export default {
           break;
       }
     },
-    async loadMeta() {
+    async loadMeta(updateShowFields = true) {
       this.loadingMeta = true;
-      const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // }, 'tableXcModelGet', {
+      //   tn: this.table
+      // }]);
+      // this.meta = JSON.parse(tableMeta.meta);
+      const tableMeta = await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableXcModelGet', {
-        tn: this.table
-      }]);
-      this.meta = JSON.parse(tableMeta.meta);
+        dbAlias: this.nodes.dbAlias,
+        tn: this.table,
+        force: true
+      });
       this.loadingMeta = false;
+      if (updateShowFields) {
+        try {
+          const qp = JSON.parse(tableMeta.query_params)
+          this.showFields = qp.showFields ? qp.showFields : this.showFields;
+        } catch (e) {
+        }
+      }
     },
     loadTableDataDeb: debounce(async function (self) {
       await self.loadTableDataFn()
-    }, 100),
+    }, 200),
     loadTableData() {
       this.loadTableDataDeb(this)
     },
@@ -860,14 +931,17 @@ export default {
       this.selectedExpandRowMeta = rowMeta;
     },
     async onNewColCreation() {
-      await this.loadMeta();
+      await this.loadMeta(true);
       this.$nextTick(async () => {
         await this.loadTableData();
-        this.mapFieldsAndShowFields();
+        // this.mapFieldsAndShowFields();
       });
     }
   },
   computed: {
+    meta() {
+      return this.$store.state.meta.metas[this.table];
+    },
     currentApiUrl() {
       return this.api && `${this.api.apiUrl}?` + Object.entries(this.queryParams).filter(p => p[1]).map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`).join('&')
     },
@@ -878,10 +952,9 @@ export default {
       return SqlUI.create(this.nodes.dbConnection);
     },
     api() {
-      return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this) : null;
+      return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null;
     }
   },
-
 }
 </script>
 

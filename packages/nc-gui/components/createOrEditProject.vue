@@ -1043,7 +1043,7 @@ export default {
         { text: 'Disabled', value: 'none' },
       ],
       projectTypes: [
-        { text: 'REST APIs', value: 'rest', icon: 'mdi-json', iconColor: 'green' },
+        { text: 'REST APIs', value: 'rest', icon: 'mdi-code-json', iconColor: 'green' },
         { text: 'GRAPHQL APIs', value: 'graphql', icon: 'mdi-graphql', iconColor: 'pink' },
         // {
         //   text: 'Automatic gRPC APIs on database',

@@ -43,10 +43,10 @@ const uiTypes = [
     name: 'ForeignKey',
     icon: 'mdi-link-variant',
   },
-  // {
-  //   name: 'LinkToAnotherRecord',
-  //   icon: 'mdi-link-variant',
-  // },
+  {
+    name: 'LinkToAnotherRecord',
+    icon: 'mdi-link-variant',
+  },
   {
     name: 'SingleLineText',
     icon: 'mdi-format-color-text',

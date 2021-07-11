@@ -101,7 +101,7 @@ export default class SqlMgr {
   private project_id: any;
   private _project: any;
   // @ts-ignore
-  private _migrator: any;
+  private _migrator: KnexMigrator;
   // @ts-ignore
   private logsRef: any;
   private currentProjectJson: any;

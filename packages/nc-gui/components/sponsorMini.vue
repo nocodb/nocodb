@@ -1,5 +1,5 @@
 <template>
-  <v-card  max-width="300" min-height="" class=" pb-3" href="https://github.com/sponsors/xgenecloud"
+  <v-card  max-width="300" min-height="" class=" pb-3" href="https://github.com/sponsors/nocodb"
           target="_blank">
 
 

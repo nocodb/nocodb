@@ -8,7 +8,7 @@ export default {
     sortList: [],
     showFields: {},
     // fieldList: [],
-    meta: {},
+    // meta: {},
     data: [],
   }),
   methods: {
@@ -57,18 +57,33 @@ export default {
         return c._cn;
       })
     },
+    realFieldList() {
+      return this.availableRealColumns.map(c => {
+        return c._cn;
+      })
+    },
+    availableRealColumns() {
+      return this.availableColumns && this.availableColumns.filter(c => !c.virtual)
+    },
     availableColumns() {
       let columns = [];
+
       // todo: generate hideCols based on default values
       const hideCols = ['created_at', 'updated_at'];
 
       if (this.showSystemFields) {
         columns = this.meta.columns || [];
       } else if (this.data && this.data.length) {
-        // c._cn in this.data[0].row &&
-        columns = (this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
+        columns = (this.meta.columns.filter(c => !(c.pk && c.ai)
+          && !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+          && !hideCols.includes(c.cn))) || [];
       } else {
         columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
+      }
+
+
+      if (this.meta && this.meta.v) {
+        columns = [...columns, ...this.meta.v.map(v => ({...v, virtual: 1}))];
       }
 
 
@@ -102,8 +117,12 @@ export default {
       return {
         limit: this.size,
         offset: this.size * (this.page - 1),
+        // condition: this.condition,
         where: this.concatenatedXWhere,
-        sort: this.sort
+        sort: this.sort,
+        childs: (this.meta && this.meta.v && this.meta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
+        parents: (this.meta && this.meta.v && this.meta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
+        many: (this.meta && this.meta.v && this.meta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     }, colLength() {
       return (this.availableColumns && this.availableColumns.length) || 0
@@ -130,7 +149,7 @@ export default {
     },
     belongsTo() {
       return this.meta && this.meta.belongsTo ? this.meta.belongsTo.reduce((bt, o) => {
-        const _cn = (this.meta.columns.find(c => c.cn === o.cn)||{})._cn
+        const _cn = (this.meta.columns.find(c => c.cn === o.cn) || {})._cn
         bt[_cn] = o;
         return bt;
       }, {}) : {};
@@ -146,8 +165,8 @@ export default {
       return this.nodes.tn || this.nodes.view_name
     },
     primaryValueColumn() {
-      if (!this.meta || !this.availableColumns) return '';
-      return this.availableColumns.length ? this.availableColumns[0]._cn : '';
+      if (!this.meta || !this.availableColumns || !this.availableColumns.length) return '';
+      return (this.availableColumns.find(col => col.pv) || {_cn: ''})._cn;
     },
   },
   watch: {

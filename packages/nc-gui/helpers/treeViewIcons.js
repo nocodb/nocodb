@@ -73,17 +73,17 @@ export default {
   },
   apiClientDir: {
     class: '',
-    icon: "mdi-json",
+    icon: "mdi-code-json",
     color: "warning",
     openColor: "",
-    openIcon: "mdi-json"
+    openIcon: "mdi-code-json"
   },
   apiClientSwaggerDir: {
     class: '',
-    icon: "mdi-json",
+    icon: "mdi-code-json",
     color: "warning",
     openColor: "",
-    openIcon: "mdi-json"
+    openIcon: "mdi-code-json"
   },
   sqlClientDir: {
     class: '',
@@ -199,10 +199,10 @@ export default {
   },
   projectSettings: {
     class: '',
-    icon: "mdi-settings",
+    icon: "mdi-cog",
     color: "",
     openColor: "",
-    openIcon: "mdi-settings"
+    openIcon: "mdi-cog"
   },
   cronJobs: {
     class: '',

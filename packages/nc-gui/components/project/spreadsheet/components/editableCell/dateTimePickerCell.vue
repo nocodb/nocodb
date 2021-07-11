@@ -1,55 +1,48 @@
 <template>
-  <div class="d-flex align-center">
-
-    <div>
-      <div class="" v-for="(val,i) of setValues" :key="val">
-        <input type="checkbox" :id="`key-check-box-${val}`" class="orange--text" v-model="localState" :value="val">
-        <label class="py-1 px-3 d-inline-block my-1 label" :for="`key-check-box-${val}`"
-               :style="{
-          background:colors[i % colors.length ]
-          }"
-        >{{ val }}</label>
-      </div>
-    </div>
-  </div>
+  <v-datetime-picker
+    v-on="parentListeners"
+    class="caption xc-date-time-picker"
+    ref="picker"
+    :text-field-props="{
+      class:'caption mt-0 pt-0',
+      flat:true,
+      solo:true,
+      dense:true,
+      hideDetails:true
+    }"
+    :time-picker-props="{
+      format:'24hr'
+    }"
+    v-model="localState"
+  ></v-datetime-picker>
 </template>
 
 <script>
-import colors from "@/components/project/spreadsheet/helpers/colors";
 
 export default {
-  name: "set-list-checkbox-cell",
-  props: {
-    value: String,
-    column: Object
-  },
-  data() {
-  },
+  name: "date-time-picker-cell",
+  props: ['value', 'ignoreFocus'],
   mounted() {
-    this.$el.focus();
-    let event;
-    event = document.createEvent('MouseEvents');
-    event.initMouseEvent('mousedown', true, true, window);
-    this.$el.dispatchEvent(event);
+    if (!this.ignoreFocus) {
+      this.$refs.picker.display = true;
+    }
   },
   computed: {
-    colors() {
-      return this.$store.state.windows.darkTheme ? colors.dark : colors.light;
-    },
     localState: {
       get() {
-        return this.value && this.value.split(',')
+        // todo : time value correction
+
+        if (/^\d{6,}$/.test(this.value)) {
+          return new Date(+this.value);
+        }
+
+
+        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : (this.value && new Date(this.value));
       },
       set(val) {
-        this.$emit('input', val.join(','));
-        this.$emit('update');
+        const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1');
+        this.$emit('input', uVal);
       }
-    },
-    setValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
-      }
-      return [];
     },
     parentListeners() {
       const $listeners = {};
@@ -68,11 +61,11 @@ export default {
 </script>
 
 <style scoped>
-
-.label {
-  border-radius: 25px;
+/deep/ .v-input, /deep/ .v-text-field {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  font-size: inherit !important;
 }
-
 </style>
 <!--
 /**

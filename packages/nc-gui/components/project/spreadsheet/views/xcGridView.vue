@@ -14,16 +14,26 @@
           :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
           v-xc-ver-resize
           v-for="(col,i) in availableColumns"
-          :key="col.cn"
+          :key="   col._cn"
           v-show="showFields[col._cn]"
           @xcresize="onresize(col._cn,$event)"
-          @xcresizing="resizingCol = col._cn"
+          @xcresizing="onXcResizing(col._cn,$event)"
           @xcresized="resizingCol = null"
           :data-col="col._cn"
         >
           <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
           -->
+
+          <virtual-header-cell v-if="col.virtual"
+                               :column="col"
+                               :nodes="nodes"
+                               :meta="meta"
+                               @saved="onNewColCreation"
+          />
+
+
           <header-cell
+            v-else
             :isPublicView="isPublicView"
             @onRelationDelete="$emit('onRelationDelete')"
             :nodes="nodes"
@@ -37,7 +47,6 @@
             @saved="onNewColCreation"
           ></header-cell>
 
-          <!--{{ col.cn }}-->
         </th>
 
         <th
@@ -63,9 +72,10 @@
           </v-menu>
         </th>
 
+
       </tr>
       </thead>
-      <tbody>
+      <tbody v-click-outside="onClickOutside">
       <tr
         v-for="({row:rowObj, rowMeta, oldRow},row) in data"
         :key="row"
@@ -101,156 +111,171 @@
           </div>
         </td>
         <td
-
           class="cell pointer"
           v-for="(columnObj,col) in availableColumns"
-          :key="columnObj._cn"
+          :key="row + columnObj._cn"
           :class="{
-              active : !isPublicView && selected.col === col && selected.row === row && isEditable ,
+              'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,
-              'text-center': isCentrallyAligned(columnObj)
+              'text-center': isCentrallyAligned(columnObj),
+              'required': isRequired(columnObj,rowObj)
             }"
           @dblclick="makeEditable(col,row,columnObj.ai)"
           @click="makeSelected(col,row);"
           v-show="showFields[columnObj._cn]"
           :data-col="columnObj._cn"
         >
+          <virtual-cell
+            v-if="columnObj.virtual"
+            :column="columnObj"
+            :row="rowObj"
+            :nodes="nodes"
+            :meta="meta"
+            :api="api"
+            :active="selected.col === col && selected.row === row"
+            :sql-ui="sqlUi"
+            :is-new="rowMeta.new"
+            v-on="$listeners"
+            @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.cn === columnObj.bt.cn), col, row)"
+          ></virtual-cell>
+
           <editable-cell
-            v-if="!isLocked
-            && !isPublicView
-             && (
-               editEnabled.col === col
-               && editEnabled.row === row
-               )
-             || enableEditable(columnObj)"
+            v-else-if="
+              !isLocked
+              && !isPublicView
+              && (editEnabled.col === col && editEnabled.row === row)
+              || enableEditable(columnObj)
+            "
             :column="columnObj"
             :meta="meta"
-            :active="(selected.col === col && selected.row === row)"
+            :active="selected.col === col && selected.row === row"
             v-model="rowObj[columnObj._cn]"
             @save="editEnabled = {}"
             @cancel="editEnabled = {}"
             @update="onCellValueChange(col, row, columnObj)"
+            @blur="onCellValueChange(col, row, columnObj,'blur')"
             @change="onCellValueChange(col, row, columnObj)"
             :sql-ui="sqlUi"
             :db-alias="nodes.dbAlias"
           />
-          <!--                  @change="changed(col,row)"-->
-          <!--                />-->
 
-          <div v-else-if="columnObj.cn in hasMany" class="hasmany-col d-flex ">
-            {{ rowObj[columnObj._cn] }}
-            <v-spacer></v-spacer>
-            <v-menu open-on-hover>
-              <template v-slot:activator="{on}">
-                <v-icon v-on="on" class=" hasmany-col-menu-icon">mdi-menu-down</v-icon>
-              </template>
-
-              <v-list dense>
-                <v-list-item v-for="(rel,i) in hasMany[columnObj.cn]"
-                             @click="addNewRelationTab(
-                                     rel,
-                                     table,
-                                     meta._tn,
-                                     rel.tn,
-                                     rel._tn,
-                                     rowObj[columnObj._cn],
-                                     'hm',
-                                     rowObj,
-                                     rowObj[primaryValueColumn]
-                                     )"
-                             :key="i"
-                >
-                  <v-chip small :color="colors[i % colors.length]">
-                    <span class="caption text-capitalize"> {{ rel._tn }}</span>
-                  </v-chip>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-
-          </div>
-          <span v-else-if="columnObj._cn in belongsTo"
-                @click="addNewRelationTab(
-                        belongsTo[columnObj._cn],
-                        table,
-                        meta._tn,
-                        belongsTo[columnObj._cn].rtn,
-                        belongsTo[columnObj._cn]._rtn,
-                        rowObj[columnObj._cn],
-                        'bt',
-                        rowObj,
-                        rowObj[primaryValueColumn]
-                        )"
-                class="belongsto-col">{{ rowObj[columnObj._cn] }}</span>
-
-          <template v-else-if="primaryValueColumn === columnObj._cn">
-            <v-menu open-on-hover offset-y bottom>
-              <template v-slot:activator="{on}">
-                <!--                    <v-chip v-on="on"
-                                            small
-                                            class="caption xc-bt-chip"
-                                            outlined
-                                            color="success">
-                                      {{ rowObj[columnObj.cn] }}
-                                      <v-icon v-on="on" class="hasmany-col-menu-icon pv">mdi-menu-down</v-icon>
-                                    </v-chip>  -->
-
-                <span v-on="on"
-                      class="caption xc-bt-chip primary--text">
+          <!--
+                    <div v-else-if="columnObj.cn in hasMany" class="hasmany-col d-flex ">
                       {{ rowObj[columnObj._cn] }}
-                      <v-icon v-on="on" class="hasmany-col-menu-icon pv">mdi-menu-down</v-icon>
-                    </span>
+                      <v-spacer></v-spacer>
+                      <v-menu open-on-hover>
+                        <template v-slot:activator="{on}">
+                          <v-icon v-on="on" class=" hasmany-col-menu-icon">mdi-menu-down</v-icon>
+                        </template>
 
-              </template>
+                        <v-list dense>
+                          <v-list-item v-for="(rel,i) in hasMany[columnObj.cn]"
+                                       @click="addNewRelationTab(
+                                               rel,
+                                               table,
+                                               meta._tn,
+                                               rel.tn,
+                                               rel._tn,
+                                               rowObj[columnObj._cn],
+                                               'hm',
+                                               rowObj,
+                                               rowObj[primaryValueColumn]
+                                               )"
+                                       :key="i"
+                          >
+                            <v-chip small :color="colors[i % colors.length]">
+                              <span class="caption text-capitalize"> {{ rel._tn }}</span>
+                            </v-chip>
+                          </v-list-item>
+                        </v-list>
+                      </v-menu>
 
-              <v-list dense>
-                <v-list-item dense v-if="haveHasManyrelation"><span class="grey--text caption text-center mt-n2">Has Many</span>
-                </v-list-item>
-                <template v-if="haveHasManyrelation">
-                  <template v-for="(hm,idCol) in hasMany">
-                    <template v-for="(rel,i) in hm">
+                    </div>
+                    <span v-else-if="columnObj._cn in belongsTo"
+                          @click="addNewRelationTab(
+                                  belongsTo[columnObj._cn],
+                                  table,
+                                  meta._tn,
+                                  belongsTo[columnObj._cn].rtn,
+                                  belongsTo[columnObj._cn]._rtn,
+                                  rowObj[columnObj._cn],
+                                  'bt',
+                                  rowObj,
+                                  rowObj[primaryValueColumn]
+                                  )"
+                          class="belongsto-col">{{ rowObj[columnObj._cn] }}</span>
+
+                    <template v-else-if="primaryValueColumn === columnObj._cn">
+                      <v-menu open-on-hover offset-y bottom>
+                        <template v-slot:activator="{on}">
+                          &lt;!&ndash;                    <v-chip v-on="on"
+                                                      small
+                                                      class="caption xc-bt-chip"
+                                                      outlined
+                                                      color="success">
+                                                {{ rowObj[columnObj.cn] }}
+                                                <v-icon v-on="on" class="hasmany-col-menu-icon pv">mdi-menu-down</v-icon>
+                                              </v-chip>  &ndash;&gt;
+
+                          <span v-on="on"
+                                class="caption xc-bt-chip primary&#45;&#45;text">
+                                {{ rowObj[columnObj._cn] }}
+                                <v-icon v-on="on" class="hasmany-col-menu-icon pv">mdi-menu-down</v-icon>
+                              </span>
+
+                        </template>
+
+                        <v-list dense>
+                          <v-list-item dense v-if="haveHasManyrelation"><span class="grey&#45;&#45;text caption text-center mt-n2">Has Many</span>
+                          </v-list-item>
+                          <template v-if="haveHasManyrelation">
+                            <template v-for="(hm,idCol) in hasMany">
+                              <template v-for="(rel,i) in hm">
 
 
-                      <v-divider
-                        :key="i + idCol + '_div'"></v-divider>
-                      <v-list-item
-                        class="py-1"
-                        @click="addNewRelationTab(
-                                     rel,
-                                     table,
-                                     meta._tn,
-                                     rel.tn,
-                                     rel._tn,
-                                     rowObj[idCol],
-                                     'hm',
-                                     rowObj,
-                                     rowObj[primaryValueColumn]
-                                     )"
-                        :key="i + idCol"
-                        dense
-                      >
-                        <v-list-item-icon class="mx-1">
-                          <v-icon class="has-many-icon mr-1" small :color="textColors[i % colors.length]">
-                            mdi-source-fork
-                          </v-icon>
-                        </v-list-item-icon>
-                        <!--                        <v-chip small  >-->
-                        <!--                         <v-list-item-title> -->
-                        <span class="caption text-capitalize"> {{ rel._tn }}</span>
-                        <!--                        </v-list-item-title>-->
-                        <!--                        </v-chip>-->
-                      </v-list-item>
+                                <v-divider
+                                  :key="i + '_' +  idCol + '_div'"></v-divider>
+                                <v-list-item
+                                  class="py-1"
+                                  @click="addNewRelationTab(
+                                               rel,
+                                               table,
+                                               meta._tn,
+                                               rel.tn,
+                                               rel._tn,
+                                               rowObj[idCol],
+                                               'hm',
+                                               rowObj,
+                                               rowObj[primaryValueColumn]
+                                               )"
+                                  :key="i + '_' + idCol"
+                                  dense
+                                >
+                                  <v-list-item-icon class="mx-1">
+                                    <v-icon class="has-many-icon mr-1" small :color="textColors[i % colors.length]">
+                                      mdi-source-fork
+                                    </v-icon>
+                                  </v-list-item-icon>
+                                  &lt;!&ndash;                        <v-chip small  >&ndash;&gt;
+                                  &lt;!&ndash;                         <v-list-item-title> &ndash;&gt;
+                                  <span class="caption text-capitalize"> {{ rel._tn }}</span>
+                                  &lt;!&ndash;                        </v-list-item-title>&ndash;&gt;
+                                  &lt;!&ndash;                        </v-chip>&ndash;&gt;
+                                </v-list-item>
+                              </template>
+                            </template>
+                          </template>
+                          <v-list-item v-else>
+                            <span class="caption text-capitalize grey&#45;&#45;text font-weight-light"> No relation found</span>
+                          </v-list-item>
+                        </v-list>
+                      </v-menu>
                     </template>
-                  </template>
-                </template>
-                <v-list-item v-else>
-                  <span class="caption text-capitalize grey--text font-weight-light"> No relation found</span>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </template>
+          -->
 
 
           <table-cell v-else
+                      :class="{'primary--text' : primaryValueColumn === columnObj._cn}"
                       :selected="selected.col === col && selected.row === row"
                       :isLocked="isLocked"
                       @enableedit="makeSelected(col,row);makeEditable(col,row,columnObj.ai)"
@@ -284,19 +309,28 @@
 <script>
 import HeaderCell from "@/components/project/spreadsheet/components/headerCell";
 import EditableCell from "@/components/project/spreadsheet/components/editableCell";
-import EditColumn from "@/components/project/spreadsheet/editColumn/editColumn";
-import TableCell from "@/components/project/spreadsheet/editableCell/tableCell";
+import EditColumn from "@/components/project/spreadsheet/components/editColumn";
+import TableCell from "@/components/project/spreadsheet/components/cell";
 import colors from "@/mixins/colors";
 import columnStyling from "@/components/project/spreadsheet/helpers/columnStyling";
+import HasManyCell from "@/components/project/spreadsheet/components/virtualCell/hasManyCell";
+import BelongsToCell from "@/components/project/spreadsheet/components/virtualCell/belogsToCell";
+import ManyToMany from "@/components/project/spreadsheet/components/virtualCell/manyToManyCell";
+import VirtualCell from "@/components/project/spreadsheet/components/virtualCell";
+import VirtualHeaderCell from "@/components/project/spreadsheet/components/virtualHeaderCell";
 
 export default {
-  components: {TableCell, EditColumn, EditableCell, HeaderCell},
+  components: {
+    VirtualHeaderCell,
+    VirtualCell, ManyToMany, BelongsToCell, HasManyCell, TableCell, EditColumn, EditableCell, HeaderCell
+  },
   mixins: [colors],
   props: {
     relationType: String,
     availableColumns: [Object, Array],
     showFields: Object,
     sqlUi: [Object, Function],
+    api: [Object, Function],
     isEditable: Boolean,
     nodes: Object,
     primaryValueColumn: String,
@@ -315,11 +349,28 @@ export default {
     this.calculateColumnWidth();
   },
   methods: {
+    isRequired(_columnObj, rowObj) {
+      let columnObj = _columnObj;
+      if (columnObj.bt) {
+        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn);
+      }
+
+      return columnObj && (columnObj.rqd
+        && (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null)
+        && !columnObj.default);
+    },
+    updateCol(row, column, value, columnObj, colIndex, rowIndex) {
+      this.$set(row, column, value);
+      this.onCellValueChange(colIndex, rowIndex, columnObj)
+    },
     calculateColumnWidth() {
       setTimeout(() => {
         const obj = {};
         this.meta && this.meta.columns && this.meta.columns.forEach(c => {
           obj[c._cn] = columnStyling[c.uidt] && columnStyling[c.uidt].w || undefined;
+        })
+        this.meta && this.meta.v && this.meta.v.forEach(v => {
+          obj[v._cn] = v.bt ? '100px' : '200px';
         })
         Array.from(this.$el.querySelectorAll('th')).forEach(el => {
           const width = el.getBoundingClientRect().width;
@@ -377,7 +428,25 @@ export default {
         case 13:
           this.makeEditable(this.selected.col, this.selected.row)
           break;
+        default: {
+          if (this.editEnabled.col != null && this.editEnabled.row != null) {
+            return;
+          }
+          if (e.key && e.key.length === 1) {
+            this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, e.key)
+            this.editEnabled = {...this.selected}
+          }
+        }
       }
+    },
+    onClickOutside() {
+      if (
+        this.meta.columns
+        && this.meta.columns[this.selected.col]
+        && this.meta.columns[this.selected.col].virtual
+      ) return
+      this.selected.col = null;
+      this.selected.row = null
     },
     onNewColCreation() {
       this.addNewColMenu = false;
@@ -390,8 +459,8 @@ export default {
     showRowContextMenu($event, rowObj, rowMeta, row) {
       this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row)
     },
-    onCellValueChange(col, row, column) {
-      this.$emit('onCellValueChange', col, row, column)
+    onCellValueChange(col, row, column, ev) {
+      this.$emit('onCellValueChange', col, row, column, ev);
     },
     addNewRelationTab(...args) {
       this.$emit('addNewRelationTab', ...args)
@@ -428,6 +497,10 @@ export default {
     },
     onresize(col, size) {
       this.$emit('update:columnsWidth', {...this.columnsWidth, [col]: size});
+    },
+    onXcResizing(_cn, width) {
+      this.resizingCol = _cn;
+      this.resizingColWidth = width;
     }
   },
   computed: {
@@ -455,7 +528,7 @@ export default {
     style() {
       let style = '';
       for (const [key, val] of Object.entries(this.columnsWidth || {})) {
-        if (val && key !== this.resizingCol)
+        if (val && key !== this.resizingCol) {
           style += `
             [data-col="${key}"]{
               min-width: ${val};
@@ -463,13 +536,23 @@ export default {
               width: ${val};
             }
         `;
+        } else if (key === this.resizingCol) {
+          style += `
+            [data-col="${key}"]{
+              min-width: ${this.resizingColWidth};
+              max-width: ${this.resizingColWidth};
+              width: ${this.resizingColWidth};
+            }
+        `;
+        }
       }
 
       return style;
-    }
+    },
   },
   data: () => ({
     resizingCol: null,
+    resizingColWidth: null,
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
     addNewColMenu: false,
@@ -722,6 +805,10 @@ tbody tr:hover {
 
 .cell {
   font-size: 13px;
+
+  &.required {
+    box-shadow: inset 0 0 0 1px red;
+  }
 }
 
 th::before {
@@ -799,8 +886,8 @@ th:first-child, td:first-child {
   transform: rotate(90deg);
 }
 
-th{
-  min-width:100px;
+th {
+  min-width: 100px;
 }
 
 

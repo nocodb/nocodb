@@ -1,32 +1,41 @@
 <template>
-  <input v-on="parentListeners" v-model="localState" type="number">
+  <v-menu>
+    <template v-slot:activator="{on}">
+      <input class="value" v-on="on" v-model="localState">
+    </template>
+    <v-date-picker
+      flat
+      @click.native.stop
+      v-on="parentListeners" v-model="localState"></v-date-picker>
+  </v-menu>
 </template>
 
 <script>
 export default {
-  name: "floatCell",
-  props: {
-    value: [String,Number]
+  name: "date-picker-cell", props: {
+    value: [String, Date]
   },
   mounted() {
-    this.$el.focus();
+    if (this.$el && this.$el.$el) {
+      this.$el.$el.focus();
+    }
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : (this.value && new Date(this.value));
       },
       set(val) {
-        this.$emit('input', val);
+        this.$emit('input', val && new Date(val).toJSON().slice(0, 10));
       }
     },
-    parentListeners(){
+    parentListeners() {
       const $listeners = {};
 
-      if(this.$listeners.blur){
+      if (this.$listeners.blur) {
         $listeners.blur = this.$listeners.blur;
       }
-      if(this.$listeners.focus){
+      if (this.$listeners.focus) {
         $listeners.focus = this.$listeners.focus;
       }
 
@@ -37,10 +46,10 @@ export default {
 </script>
 
 <style scoped>
-input {
+.value {
   width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
+  min-height: 20px;
+
 }
 </style>
 <!--

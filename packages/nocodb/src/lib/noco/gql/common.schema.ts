@@ -38,9 +38,16 @@ input ConditionFloat{
   ge: Float
 }
 
+
+scalar JSON
+
 type Query{
    nocodb_health:String
+   m2mNotChildren(pid:String!, assoc:String!, parent:String!, limit:Int, offset:Int):[JSON]
+   m2mNotChildrenCount(pid:String!, assoc:String!, parent:String!):JSON
 }
+
+
 
 `/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

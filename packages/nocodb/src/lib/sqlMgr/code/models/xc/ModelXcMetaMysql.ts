@@ -1,6 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseModelXcMeta from "./BaseModelXcMeta";
 
-class ModelXcMetaMysql extends BaseRender {
+class ModelXcMetaMysql extends BaseModelXcMeta {
 
   /**
    * @param dir
@@ -20,7 +20,7 @@ class ModelXcMetaMysql extends BaseRender {
    */
   prepare() {
 
-    const data:any = {};
+    const data: any = {};
 
     /* example of simple variable */
     data.tn = this.ctx.tn;
@@ -180,12 +180,10 @@ class ModelXcMetaMysql extends BaseRender {
 
       columnsArr.push(columnObj)
     }
-
-
+    this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
 
   }
-
 
   _getAbstractType(column) {
 
@@ -319,7 +317,7 @@ class ModelXcMetaMysql extends BaseRender {
   }
 
 
-  _getUIDataType(col):any {
+  _getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';
@@ -356,7 +354,7 @@ class ModelXcMetaMysql extends BaseRender {
   }
 
 
-  getAbstractType(col):any {
+  getAbstractType(col): any {
     switch ((col.dt || col.dt).toLowerCase()) {
       case "int":
       case "smallint":
@@ -559,19 +557,7 @@ class ModelXcMetaMysql extends BaseRender {
   }
 
 
-  getObject() {
-    return {
-      tn: this.ctx.tn,
-      _tn: this.ctx._tn,
-      columns: this.getXcColumnsObject(this.ctx),
-      pks: [],
-      hasMany: this.ctx.hasMany,
-      belongsTo: this.ctx.belongsTo,
-      db_type: this.ctx.db_type,
-      type: this.ctx.type,
-    }
 
-  }
 
 }
 

@@ -1,5 +1,6 @@
 export const isEmail = v => /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(v)
 
+export const parseIfInteger = v => /^\d+$/.test(v) ? +v : v;
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

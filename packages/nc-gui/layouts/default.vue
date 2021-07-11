@@ -34,6 +34,7 @@
         </template>
       </v-toolbar-title>
 
+      <span class="caption grey--text ml-3" v-show="$nuxt.$loading.show">Loading <v-icon small color="grey">mdi-spin mdi-loading</v-icon></span>
 
       <!--      <gh-btns-star-->
       <!--        @click.native="githubClickHandler"-->
@@ -345,7 +346,7 @@
           <!--          <v-icon tooltip="GraphQL Client (^⇧G)"-->
           <!--                  v-if="isRest"-->
           <!--                  @click="swaggerClientTabAdd()" class="ml-3 " size="20">-->
-          <!--            mdi-json-->
+          <!--            mdi-code-json-->
           <!--          </v-icon>-->
           <!--            &nbsp;-->
           <!--            GraphiQL-->
@@ -376,7 +377,7 @@
 
           <v-icon class="ml-3 "
                   v-if="!$store.state.windows.nc" size="20" @click="apiClientSwaggerTabAdd()"
-                  tooltip="API Client (^⇧A)">mdi-json
+                  tooltip="API Client (^⇧A)">mdi-code-json
           </v-icon>
           <!--            &nbsp; REST Client-->
           <!--          </x-btn>-->
@@ -471,16 +472,16 @@
         <template v-else>
 
           <!--          <x-icon iconClass="mr-4" @click="apiClientSwaggerOpen()" v-if="!$store.state.windows.isComp"-->
-          <!--                  tooltip="API Client (^⇧A)">mdi-json-->
+          <!--                  tooltip="API Client (^⇧A)">mdi-code-json-->
           <!--          </x-icon>-->
 
 
           <!--          <x-icon iconClass="mr-4" tooltip="Feed (^⇧F)" @click="feedDialog = true">mdi-glasses</x-icon>-->
           <!--          <span v-shortkey="['ctrl','shift','f']" @shortkey="feedDialog = true"></span>-->
 
-          <!--          <x-icon iconClass="mr-4" @click="settingsTabAdd" size="20" tooltip="Tool Settings (^⇧C)">mdi-settings-->
+          <!--          <x-icon iconClass="mr-4" @click="settingsTabAdd" size="20" tooltip="Tool Settings (^⇧C)">mdi-cog-->
           <!--          </x-icon>-->
-          <!--          <x-icon iconClass="mr-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">mdi-settings-->
+          <!--          <x-icon iconClass="mr-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">mdi-cog-->
           <!--          </x-icon>-->
           <!--          <span v-shortkey="[ 'ctrl','shift', 'c']"-->
           <!--                @shortkey="settingsDialog = true"></span>   -->
@@ -545,10 +546,10 @@
               @shortkey="terminalTabAdd()" tooltip="Terminal"></span>
 
         <!--        <x-icon key="settings-dash" iconClass="mr-1 ml-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">-->
-        <!--          mdi-settings-->
+        <!--          mdi-cog-->
         <!--        </x-icon>-->
         <!--        <x-icon key="settings-dash" iconClass="mr-1 ml-4"  size="20" @click="settingsTabAdd" tooltip="Tool Settings (^⇧C)">-->
-        <!--          mdi-settings-->
+        <!--          mdi-cog-->
         <!--        </x-icon>-->
 
         <notification class="mx-2"></notification>
@@ -569,7 +570,7 @@
           <v-list dense>
             <v-list-item dense to="/user/settings" v-if="userAuthIsEmail">
               <v-list-item-title v-ge="['Settings','']">
-                <v-icon small>mdi-settings</v-icon> &nbsp; <span class="font-weight-regular">Settings</span>
+                <v-icon small>mdi-cog</v-icon> &nbsp; <span class="font-weight-regular">Settings</span>
               </v-list-item-title>
             </v-list-item>
             <v-divider v-if="userAuthIsEmail"></v-divider>
@@ -624,11 +625,12 @@
 
                               </v-list-item-title>
                             </v-list-item>-->
-              <v-list-item v-if="swaggerOrGraphiqlUrl" dense @click.stop="openUrl(`${$axios.defaults.baseURL}${swaggerOrGraphiqlUrl}`)">
+              <v-list-item v-if="swaggerOrGraphiqlUrl" dense
+                           @click.stop="openUrl(`${$axios.defaults.baseURL}${swaggerOrGraphiqlUrl}`)">
                 <v-list-item-title>
 
                   <v-icon small key="terminal-dash">
-                    {{ isGql ? 'mdi-graphql' : 'mdi-json' }}
+                    {{ isGql ? 'mdi-graphql' : 'mdi-code-json' }}
                   </v-icon>&nbsp;
                   <span class="font-weight-regular">
                     {{ isGql ? 'GraphQL APIs' : 'Swagger APIs Doc' }}</span>
@@ -640,7 +642,7 @@
                 <v-list-item-title>
 
                   <v-icon small key="terminal-dash">
-                    mdi-settings
+                    mdi-cog
                   </v-icon>&nbsp;
                   <span class="font-weight-regular">Themes</span>
 
@@ -746,7 +748,7 @@
       <!--            to="/client"-->
       <!--          >-->
       <!--            <v-list-item-icon>-->
-      <!--              <v-icon>mdi-json</v-icon>-->
+      <!--              <v-icon>mdi-code-json</v-icon>-->
       <!--            </v-list-item-icon>-->
 
       <!--            <v-list-item-content>-->

@@ -448,7 +448,7 @@
 
           <!--            <v-tooltip bottom>-->
           <!--              <template v-slot:activator="{on}">-->
-          <!--                <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/xgenecloud')" class="body-2">-->
+          <!--                <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">-->
           <!--                  <v-list-item-icon>-->
           <!--                    <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>-->
           <!--                  </v-list-item-icon>-->
@@ -515,21 +515,21 @@
                   <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>
                 </v-list-item-title>
               </v-list-item>
-              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/xgenecloud')" class="body-2">
+              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">
                 <v-list-item-icon>
 
                 </v-list-item-icon>
                 <v-list-item-title><span class="font-weight-regular caption">Sponsor Us</span></v-list-item-title>
 
               </v-list-item>
-              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/xgenecloud')" class="body-2">
+              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">
                 <v-list-item-icon>
                   <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title><span class="font-weight-regular caption">Sponsor Us</span></v-list-item-title>
 
               </v-list-item>
-              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/xgenecloud')" class="body-2">
+              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">
                 <v-list-item-icon>
                   <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>
                 </v-list-item-icon>

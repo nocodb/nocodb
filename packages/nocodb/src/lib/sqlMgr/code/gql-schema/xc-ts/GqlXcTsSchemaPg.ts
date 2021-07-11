@@ -1,11 +1,7 @@
-import BaseRender from "../../BaseRender";
-import inflection from "inflection";
-import lodash from "lodash";
-import {AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS} from "./schemaHelp";
+import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
 
 
-class GqlXcSchemaPg extends BaseRender {
-
+class GqlXcSchemaPg extends BaseGqlXcTsSchema {
   /**
    *
    * @param dir
@@ -19,33 +15,16 @@ class GqlXcSchemaPg extends BaseRender {
     super({dir, filename, ctx});
   }
 
-  /**
-   *  Prepare variables used in code template
-   */
-  prepare() {
-
-    const data:any = {};
-
-    /* example of simple variable */
-    data.tn = this.ctx.tn_camelize;
-    data.columns = {
-      func: this._renderColumns.bind(this),
-      args: this.ctx
-    };
-
-    return data;
-
-  }
 
 
-  /**
+/*  /!**
    *
    * @param args
    * @param args.columns
    * @param args.relations
    * @returns {string}
    * @private
-   */
+   *!/
   _renderColumns(args) {
 
     let str = '';
@@ -61,9 +40,9 @@ class GqlXcSchemaPg extends BaseRender {
 
     return str;
 
-  }
+  }*/
 
-  _getInputType(args) {
+/*  _getInputType(args) {
     let str = `input ${args.tn_camelize}Input { \r\n`
     for (let i = 0; i < args.columns.length; ++i) {
       if (args.columns[i]._cn.split(' ').length > 1) {
@@ -75,9 +54,9 @@ class GqlXcSchemaPg extends BaseRender {
     }
     str += `\t}`;
     return str;
-  }
+  }*/
 
-  _getQuery(args) {
+/*  _getQuery(args) {
     let str = `type Query { \r\n`
     str += `\t\t${args.tn_camelize}List(where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String): [${args.tn_camelize}]\r\n`
     str += `\t\t${args.tn_camelize}Read(id:String!): ${args.tn_camelize}\r\n`
@@ -90,9 +69,9 @@ class GqlXcSchemaPg extends BaseRender {
     str += `\t\t${args.tn_camelize}Distribution(min: Int, max: Int, step: Int, steps: String, column_name: String!): [distribution]\r\n`
     str += `\t}\r\n`
     return str;
-  }
+  }*/
 
-  _getMutation(args) {
+/*  _getMutation(args) {
     let str = `type Mutation { \r\n`
     str += `\t\t${args.tn_camelize}Create(data:${args.tn_camelize}Input): ${args.tn_camelize}\r\n`
  str += `\t\t${args.tn_camelize}Update(id:String,data:${args.tn_camelize}Input):  Int\r\n` //${args.tn_camelize}\r\n`
@@ -102,9 +81,9 @@ class GqlXcSchemaPg extends BaseRender {
     str += `\t\t${args.tn_camelize}DeleteBulk(data: [${args.tn_camelize}Input]): [Int]\r\n`
     str += `\t},\r\n`
     return str;
-  }
+  }*/
 
-  _getType(args) {
+/*  _getType(args) {
 
     let str = `type ${args.tn_camelize} { \r\n`
     let strWhere = `input Condition${args.tn_camelize} { \r\n`
@@ -133,6 +112,9 @@ class GqlXcSchemaPg extends BaseRender {
       strWhere += `\t\t${childTable}List: Condition${childTable}\r\n`;
       str += `\t\t${childTable}Count: Int\r\n`;
     }
+
+
+    str+= this.generateManyToManyTypeProps(args);
 
     let belongsToRelations = args.relations.filter(r => r.tn === args.tn);
     if (belongsToRelations.length > 1)
@@ -185,7 +167,7 @@ class GqlXcSchemaPg extends BaseRender {
 
 
     return `${str}\r\n\r\n${strWhere}`;
-  }
+  }*/
 
   _getGraphqlType(columnObj) {
 
@@ -231,6 +213,19 @@ class GqlXcSchemaPg extends BaseRender {
         return "Float";
         break;
 
+
+      case "json":
+      case "jsonb":
+      case "anyenum":
+      case "anynonarray":
+      case "path":
+      case "point":
+      case "polygon":
+        if (columnObj.dtx === 'ARRAY') {
+          return "[JSON]"
+        }
+        return 'JSON';
+
       case "character":
       case "uuid":
       case "date":
@@ -248,12 +243,8 @@ class GqlXcSchemaPg extends BaseRender {
       case "timetz":
       case "time with time zone":
       case "daterange":
-      case "json":
-      case "jsonb":
       case "gtsvector":
       case "index_am_handler":
-      case "anyenum":
-      case "anynonarray":
       case "anyrange":
       case "box":
       case "bpchar":
@@ -274,12 +265,9 @@ class GqlXcSchemaPg extends BaseRender {
       case "numrange":
       case "oid":
       case "opaque":
-      case "path":
       case "pg_ddl_command":
       case "pg_lsn":
       case "pg_node_tree":
-      case "point":
-      case "polygon":
       case "record":
       case "refcursor":
       case "regclass":
@@ -319,7 +307,7 @@ class GqlXcSchemaPg extends BaseRender {
 
   }
 
-  _getGraphqlConditionType(columnObj):any {
+  protected _getGraphqlConditionType(columnObj):any {
 
     switch (this._getGraphqlType(columnObj.dt)) {
 
@@ -333,13 +321,17 @@ class GqlXcSchemaPg extends BaseRender {
         return 'ConditionString'
       case "[String]":
         return 'ConditionString'
+      case "[JSON]":
+        return 'ConditionString'
+      case "JSON":
+        return 'ConditionString'
     }
 
   }
 
-  getString(){
+ /* getString(){
     return this._renderColumns(this.ctx);
-  }
+  }*/
 
 }
 

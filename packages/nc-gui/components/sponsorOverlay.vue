@@ -1,6 +1,6 @@
 <template>
   <v-overlay opacity=".98">
-    <v-card light width="450" min-height="500" class="" href="https://github.com/sponsors/xgenecloud"
+    <v-card light width="450" min-height="500" class="" href="https://github.com/sponsors/nocodb"
             target="_blank">
 
 

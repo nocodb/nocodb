@@ -1,13 +1,4 @@
 import GqlResolver from "./GqlResolver";
-
-import inflection from 'inflection';
-
-// import {
-//   ExpressXcTsPolicyGql,
-//   GqlXcSchemaFactory,
-//   ModelXcMetaFactory
-// } from "nc-help";
-
 import {BaseType} from 'xc-core-ts';
 import {DbConfig, NcConfig} from "../../../interface/config";
 import Noco from "../Noco";
@@ -30,6 +21,9 @@ import NcProjectBuilder from "../NcProjectBuilder";
 import GqlXcSchemaFactory from "../../sqlMgr/code/gql-schema/xc-ts/GqlXcSchemaFactory";
 import ModelXcMetaFactory from "../../sqlMgr/code/models/xc/ModelXcMetaFactory";
 import ExpressXcTsPolicyGql from "../../sqlMgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql";
+
+import {GraphQLJSON} from 'graphql-type-json';
+import {m2mNotChildren, m2mNotChildrenCount} from "./GqlCommonResolvers";
 
 const log = debug('nc:api:gql');
 
@@ -94,6 +88,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     this.xcMeta = xcMeta;
   }
 
+
+  public async init(): Promise<void> {
+    await super.init();
+    await this.loadResolvers(null);
+  }
+
   public async onToggleModelRelation(relationInModels: any): Promise<void> {
     this.log(`onToggleModelRelation: Within ToggleModelRelation event handler`)
 
@@ -147,7 +147,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   public async onTableCreate(tn: string, args): Promise<void> {
     this.log(`onTableCreate : '%s' `, tn)
     const columns = {
-      [tn]: args.columns.map(({altered: _al, ...rest}) => rest)
+      [tn]: args?.columns?.map(({altered: _al, ...rest}) => rest)
     }
 
 
@@ -176,6 +176,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await this.reInitializeGraphqlEndpoint();
   }
 
+  // todo: m2m
   public async onTableRename(oldTableName: string, newTableName: string): Promise<void> {
 
     this.log(`onTableRename : '%s' => '%s' `, oldTableName, newTableName)
@@ -315,8 +316,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const colNameAlias = self.models[hm.rtn]?.columnToAlias[hm.rcn];
 
         const middlewareBody = middlewaresArr.find(({title}) => title === hm.tn)?.functions?.[0];
-        const countPropName = `${inflection.camelize(hm._tn, false)}Count`;
-        const listPropName = `${inflection.camelize(hm._tn, false)}List`;
+        const countPropName = `${hm._tn}Count`;
+        const listPropName = `${hm._tn}List`;
 
         if (listPropName in this.types[tn].prototype) {
           continue;
@@ -335,6 +336,39 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.addHmCountResolverMethodToType(hm, mw, tn, loaderFunctionsObj, countPropName, colNameAlias);
         }
       }
+      for (const mm of schema.manyToMany || []) {
+
+        if (!enabledModels.includes(mm.rtn)) {
+          continue;
+        }
+
+        // todo: handle enable/disable
+        // if (!mm.enabled) {
+        //   continue;
+        // }
+
+        const middlewareBody = middlewaresArr.find(({title}) => title === mm.rtn)?.functions?.[0];
+        // const countPropName = `${mm._rtn}Count`;
+        const listPropName = `${mm._rtn}MMList`;
+
+        if (listPropName in this.types[tn].prototype) {
+          continue;
+        }
+
+        const mw = new GqlMiddleware(this.acls, mm.tn, middlewareBody, this.models);
+        /* has many relation list loader with middleware */
+        this.addMMListResolverMethodToType(tn, mm, mw, {}, listPropName, this.metas[mm.tn].columns.find(c => c.pk)._cn);
+        // todo: count
+        // if (countPropName in this.types[tn].prototype) {
+        //   continue;
+        // }
+        // {
+        //   const mw = new GqlMiddleware(this.acls, hm.tn, middlewareBody, this.models);
+        //
+        //   // create count loader with middleware
+        //   this.addHmCountResolverMethodToType(hm, mw, tn, loaderFunctionsObj, countPropName, colNameAlias);
+        // }
+      }
 
       for (const bt of schema.belongsTo) {
 
@@ -349,7 +383,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const colNameAlias = self.models[bt.tn]?.columnToAlias[bt.cn];
         const rcolNameAlias = self.models[bt.rtn]?.columnToAlias[bt.rcn];
         const middlewareBody = middlewaresArr.find(({title}) => title === bt.rtn)?.functions?.[0];
-        const propName = `${inflection.camelize(bt._rtn, false)}Read`;
+        const propName = `${bt._rtn}Read`;
         if (propName in this.types[tn].prototype) {
           continue;
         }
@@ -387,6 +421,35 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       /* defining HasMany list method within GQL Type class */
       Object.defineProperty(this.types[tn].prototype, `${listPropName}`, {
+        async value(args: any, context: any, info: any): Promise<any> {
+          return listLoader.load([this[colNameAlias], args, context, info]);
+        },
+        configurable: true
+      })
+    }
+  }
+
+  private addMMListResolverMethodToType(tn: string, mm, mw: GqlMiddleware, _loaderFunctionsObj, listPropName: string, colNameAlias) {
+    {
+      const self = this;
+      this.log(`xcTablesRead : Creating loader for '%s'`, `${tn}Mm${mm.rtn}List`)
+      const listLoader = new DataLoader(
+        BaseType.applyMiddlewareForLoader(
+          [mw.middleware],
+          async parentIds => {
+            return (await this.models[tn]._getGroupedManyToManyList({
+              parentIds,
+              child: mm.rtn,
+              rest: {
+                fields1: '*'
+              }
+            }))?.map(child => child.map(c => new self.types[mm.rtn](c)));
+          },
+          [mw.postLoaderMiddleware]
+        ));
+
+      /* defining HasMany list method within GQL Type class */
+      Object.defineProperty(this.types[tn].prototype, listPropName, {
         async value(args: any, context: any, info: any): Promise<any> {
           return listLoader.load([this[colNameAlias], args, context, info]);
         },
@@ -454,7 +517,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     }>;
     type?: 'table' | 'view',
     columns?: {
-      [tn: string]: any
+      [key: string]: any
     }
   }): Promise<any> {
     this.log('xcTablesPopulate : names - %o , type - %s', args?.tableNames, args?.type)
@@ -464,8 +527,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     // set table name alias
     relations.forEach(r => {
-      r._rtn = this.getTableNameAlias(r.rtn);
-      r._tn = this.getTableNameAlias(r.tn);
+      r._rtn = args?.tableNames?.find(t => t.tn === r.rtn)?._tn || this.getTableNameAlias(r.rtn);
+      r._tn = args?.tableNames?.find(t => t.tn === r.tn)?._tn || this.getTableNameAlias(r.tn);
       r.enabled = true;
     })
 
@@ -571,7 +634,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.log(`xcTablesPopulate : Generating schema of '%s' %s`, table.tn, table.type);
 
           /**************** prepare GQL: schemas, types, resolvers ****************/
-          this.schemas[table.tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
+          // this.schemas[table.tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
 
           // tslint:disable-next-line:max-classes-per-file
           this.types[table.tn] = class extends XCType {
@@ -594,7 +657,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               title: table.tn,
               type: table.type || 'table',
               meta: JSON.stringify(this.metas[table.tn]),
-              schema: this.schemas[table.tn],
+              // schema: this.schemas[table.tn],
               alias: this.metas[table.tn]._tn,
             })
           }
@@ -620,11 +683,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             await NcHelp.executeOperations(insertResolvers, this.connectionConfig.client);
           }
         }
-
       });
 
       await NcHelp.executeOperations(tableResolvers, this.connectionConfig.client);
-
 
       await Promise.all(Object.entries(this.metas).map(async ([tn, schema]) => {
 
@@ -633,8 +694,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
           const colNameAlias = self.models[hm.rtn]?.columnToAlias[hm.rcn];
 
-          const countPropName = `${inflection.camelize(hm._tn, false)}Count`;
-          const listPropName = `${inflection.camelize(hm._tn, false)}List`;
+          const countPropName = `${hm._tn}Count`;
+          const listPropName = `${hm._tn}List`;
 
 
           this.log(`xcTablesPopulate : Populating '%s' and '%s' loaders`, listPropName, countPropName);
@@ -645,55 +706,16 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
           /* has many relation list loader with middleware */
           const mw = new GqlMiddleware(this.acls, hm.tn, '', this.models);
-          const listLoader = new DataLoader(
-            BaseType.applyMiddlewareForLoader(
-              [mw.middleware],
-              async ids => {
-                const data = await this.models[tn].hasManyListGQL({
-                  ids,
-                  child: hm.tn
-                })
-                return ids.map(id => data[id] ? data[id].map(c => new self.types[hm.tn](c)) : []);
-              },
-              [mw.postLoaderMiddleware]
-            ));
-
-          /* defining HasMany list method within GQL Type class */
-          Object.defineProperty(this.types[tn].prototype, `${listPropName}`, {
-            async value(args, context, info): Promise<any> {
-              return listLoader.load([this[colNameAlias], args, context, info]);
-            },
-            configurable: true
-          })
-
-
+          /* has many relation list loader with middleware */
+          this.addHmListResolverMethodToType(tn, hm, mw, {}, listPropName, colNameAlias);
           if (countPropName in this.types[tn].prototype) {
             continue;
           }
-
-          // create count loader with middleware
           {
-            const mw = new GqlMiddleware(this.acls, hm.tn, '', this.models);
-            const countLoader = new DataLoader(
-              BaseType.applyMiddlewareForLoader(
-                [mw.middleware],
-                async ids => {
-                  const data = await this.models[tn].hasManyListCount({
-                    ids,
-                    child: hm.tn
-                  })
-                  return data;
-                },
-                [mw.postLoaderMiddleware]
-              ));
+            const mw = new GqlMiddleware(this.acls, hm.tn, null, this.models);
 
-            // defining HasMany count method within GQL Type class
-            Object.defineProperty(this.types[tn].prototype, `${countPropName}`, {
-              async value(args, context, info): Promise<any> {
-                return countLoader.load([this[colNameAlias], args, context, info]);
-              },
-              configurable: true
-            })
+            // create count loader with middleware
+            this.addHmCountResolverMethodToType(hm, mw, tn, {}, countPropName, colNameAlias);
           }
 
           this.log(`xcTablesPopulate : Inserting loader metadata of '%s' and '%s' loaders`, listPropName, countPropName);
@@ -717,34 +739,22 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
         for (const bt of schema.belongsTo) {
           const colNameAlias = self.models[bt.tn]?.columnToAlias[bt.cn];
-          const propName = `${inflection.camelize(bt._rtn, false)}Read`;
+          const propName = `${bt._rtn}Read`;
+
+
           if (propName in this.types[tn].prototype) {
             continue;
           }
-          this.log(`xcTablesPopulate : Populating '%s' loader`, propName);
-          // create read loader with middleware
-          const mw = new GqlMiddleware(this.acls, bt.rtn, '', this.models);
-          const readLoader = new DataLoader(
-            BaseType.applyMiddlewareForLoader(
-              [mw.middleware],
-              async ids => {
-                const data = await self.models[bt.rtn].list({
-                  where: `(${bt.rcn},in,${ids.join(',')})`,
-                  limit: ids.length
-                })
-                const gs = _.groupBy(data, bt.rcn);
-                return ids.map(async id => gs?.[id]?.[0] && new self.types[bt.rtn](gs[id][0]))
-              },
-              [mw.postLoaderMiddleware]
-            ));
 
-          // defining BelongsTo read method within GQL Type class
-          Object.defineProperty(this.types[tn].prototype, `${propName}`, {
-            async value(args, context, info): Promise<any> {
-              return readLoader.load([this[colNameAlias], args, context, info]);
-            },
-            configurable: true
-          });
+          // create read loader with middleware
+          {
+            const mw = new GqlMiddleware(this.acls, bt.rtn, null, this.models);
+            this.log(`xcTablesRead : Creating loader for '%s'`, `${tn}Bt${bt.rtn}`);
+            this.adBtResolverMethodToType(propName, mw,
+              tn, bt, colNameAlias, colNameAlias, null);
+          }
+
+
           this.log(`xcTablesPopulate : Inserting loader metadata of '%s' loader`, propName);
 
           await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
@@ -757,6 +767,85 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         }
 
       }));
+
+      await this.getManyToManyRelations();
+
+      // generate schema of models
+      for (const meta of Object.values(this.metas)) {
+        /**************** prepare GQL: schemas, types, resolvers ****************/
+        this.schemas[meta.tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(
+          {
+            ...this.generateContextForTable(
+              meta.tn,
+              meta.columns,
+              relations,
+              meta.hasMany,
+              meta.belongsTo,
+              meta.type,
+              meta._tn,
+            ),
+            manyToMany: meta.manyToMany
+          })).getString();
+
+        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+          schema: this.schemas[meta.tn],
+        }, {
+          title: meta.tn
+        })
+      }
+
+
+      // add property in type class for many to many relations
+      await Promise.all(Object.entries(this.metas).map(async ([tn, meta]) => {
+        if (!meta.manyToMany) {
+          return;
+        }
+        for (const mm of meta.manyToMany) {
+          const countPropName = `${mm._rtn}Count`;
+          const listPropName = `${mm._rtn}MMList`;
+
+
+          this.log(`xcTablesPopulate : Populating  '%s' and '%s' many to many loaders`, listPropName, countPropName);
+
+          if (listPropName in this.types[tn].prototype) {
+            continue;
+          }
+
+          /* has many relation list loader with middleware */
+          const mw = new GqlMiddleware(this.acls, mm.rtn, '', this.models);
+          /* has many relation list loader with middleware */
+          this.addMMListResolverMethodToType(tn, mm, mw, {}, listPropName, meta.columns.find(c => c.pk)._cn);
+          // if (countPropName in this.types[tn].prototype) {
+          //   continue;
+          // }
+          // {
+          //   const mw = new GqlMiddleware(this.acls, hm.tn, null, this.models);
+          //
+          //   // create count loader with middleware
+          //   this.addHmCountResolverMethodToType(hm, mw, tn, {}, countPropName, colNameAlias);
+          // }
+          //
+          // this.log(`xcTablesPopulate : Inserting loader metadata of '%s' and '%s' loaders`, listPropName, countPropName);
+          //
+          await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
+            title: `${tn}Mm${mm.rtn}List`,
+            parent: tn,
+            child: mm.rtn,
+            relation: 'mm',
+            resolver: 'mmlist',
+          });
+
+          // await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
+          //   title: `${tn}Mm${hm.tn}Count`,
+          //   parent: mm.tn,
+          //   child: mm.rtn,
+          //   relation: 'hm',
+          //   resolver: 'list',
+          // });
+        }
+      }));
+
+
     }
 
   }
@@ -795,6 +884,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   public async xcTableRename(oldTablename: string, newTablename: string): Promise<any> {
 
     this.log(`xcTableRename : '%s'  => '%s'`, oldTablename, newTablename);
+
     //todo: verify the update queries
 
     // const metaArr = await (this.sqlClient.knex as XKnex)('nc_models').select();
@@ -1020,7 +1110,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   public async onRelationCreate(tnp: string, tnc: string, args): Promise<void> {
     await super.onRelationCreate(tnp, tnc, args)
     this.log(`onRelationCreate : Within relation create event handler`);
-    const self = this;
+    // const self = this;
     const relations = await this.getXcRelationList();
 
     // set table name alias
@@ -1032,65 +1122,95 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* update parent table meta and resolvers */
     {
-      const columns = await this.getColumnList(tnp);
+      const columns = this.metas[tnp]?.columns;
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnp);
       const ctx = this.generateContextForTable(tnp, columns, relations, hasMany, belongsTo);
+      ctx.manyToMany = this.metas?.[tnp]?.manyToMany;
       const meta = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
-      this.metas[tnp] = meta;
+      // this.metas[tnp] = meta;
       this.schemas[tnp] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
 
 
       // update old model meta with new details
       this.log(`onRelationCreate : Generating and updating model meta for parent table '%s'`, tnp);
       const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnp});
+      let queryParams;
+      try {
+        queryParams = JSON.parse(existingModel.query_params);
+      } catch (e) { /* */
+      }
       if (existingModel) {
         // todo: persisting old table_alias and columnAlias
+        // todo: get enable state of other relations
         const oldMeta = JSON.parse(existingModel.meta);
+        meta.hasMany.forEach(hm => {
+          hm.enabled = true;
+        })
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
         });
+
+        /* Add new has many relation to virtual columns */
+        oldMeta.v = oldMeta.v || [];
+        oldMeta.v.push({
+          hm: meta.hasMany.find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
+        })
+        if (queryParams?.showFields) {
+          queryParams.showFields[`${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`] = true;
+        }
+
+        this.models[tnp] = this.getBaseModel(oldMeta);
+
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnp,
-          meta: JSON.stringify(meta),
-          schema: this.schemas[tnp]
+          meta: JSON.stringify(oldMeta),
+          schema: this.schemas[tnp],
+          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
         }, {'title': tnp})
       }
 
-      const countPropName = `${inflection.camelize(this.getTableNameAlias(tnc), false)}Count`;
-      const listPropName = `${inflection.camelize(this.getTableNameAlias(tnc), false)}List`;
+      const countPropName = `${this.getTableNameAlias(tnc)}Count`;
+      const listPropName = `${this.getTableNameAlias(tnc)}List`;
 
       this.log(`onRelationCreate : Generating and inserting '%s' and '%s' loaders`, countPropName, listPropName);
 
-      /* has many relation list loader with middleware */
-      const mw = new GqlMiddleware(this.acls, tnc, '', this.models);
-      const listLoader = new DataLoader(
-        BaseType.applyMiddlewareForLoader(
-          [mw.middleware],
-          async ids => {
-            const data = await this.models[tnp].hasManyListGQL({
-              ids,
-              child: tnc
-            })
-            return ids.map(id => data[id] ? data[id].map(c => new self.types[tnc](c)) : []);
-          },
-          [mw.postLoaderMiddleware]
-        ));
+      const hm = hasMany.find(rel => rel.tn === tnc)
+      {
+        /* has many relation list loader with middleware */
+        const mw = new GqlMiddleware(this.acls, tnc, '', this.models);
+        this.addHmListResolverMethodToType(tnp, hm, mw, {}, listPropName, this.models[hm.rtn]?.columnToAlias[hm.rcn]);
+      }
+      /*      const listLoader = new DataLoader(
+              BaseType.applyMiddlewareForLoader(
+                [mw.middleware],
+                async ids => {
+                  const data = await this.models[tnp].hasManyListGQL({
+                    ids,
+                    child: tnc
+                  })
+                  return ids.map(id => data[id] ? data[id].map(c => new self.types[tnc](c)) : []);
+                },
+                [mw.postLoaderMiddleware]
+              ));
 
-      const currentRelation = hasMany.find(rel => rel.tn === tnc)
 
-      /* defining HasMany list method within GQL Type class */
-      Object.defineProperty(this.types[tnp].prototype, `${listPropName}`, {
-        async value(args, context, info): Promise<any> {
-          return listLoader.load([this[currentRelation.rcn], args, context, info]);
-        },
-        configurable: true
-      })
+
+            /!* defining HasMany list method within GQL Type class *!/
+            Object.defineProperty(this.types[tnp].prototype, `${listPropName}`, {
+              async value(args, context, info): Promise<any> {
+                return listLoader.load([this[hm.rcn], args, context, info]);
+              },
+              configurable: true
+            })*/
 
       // create count loader with middleware
       {
         const mw = new GqlMiddleware(this.acls, tnc, '', this.models);
-        const countLoader = new DataLoader(
+        this.addHmListResolverMethodToType(tnp, hm, mw, {}, countPropName, this.models[hm.rtn]?.columnToAlias[hm.rcn]);
+
+        /*const countLoader = new DataLoader(
           BaseType.applyMiddlewareForLoader(
             [mw.middleware],
             async ids => {
@@ -1106,10 +1226,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         // defining HasMany count method within GQL Type class
         Object.defineProperty(this.types[tnp].prototype, `${countPropName}`, {
           async value(args, context, info): Promise<any> {
-            return countLoader.load([this[currentRelation.rcn], args, context, info]);
+            return countLoader.load([this[hm.rcn], args, context, info]);
           },
           configurable: true
-        })
+        })*/
       }
 
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
@@ -1131,40 +1251,67 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* update child table meta and resolvers */
     {
-      const columns = await this.getColumnList(tnc);
+      const columns = this.metas[tnc]?.columns;
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnc);
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnc);
       const ctx = this.generateContextForTable(tnc, columns, relations, hasMany, belongsTo);
+      ctx.manyToMany = this.metas?.[tnc]?.manyToMany;
       const meta = ModelXcMetaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getObject();
-      this.metas[tnc] = meta;
-
+      // this.metas[tnc] = meta;
       this.schemas[tnc] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
 
 
       this.log(`onRelationCreate : Generating and updating model meta for child table '%s'`, tnc);
       // update old model meta with new details
       const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnc});
+      let queryParams;
+      try {
+        queryParams = JSON.parse(existingModel.query_params);
+      } catch (e) { /* */
+      }
+
       if (existingModel) {
         // todo: persisting old table_alias and columnAlias
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
         });
+        /* Add new belongs to relation to virtual columns */
+        oldMeta.v = oldMeta.v || [];
+        oldMeta.v.push({
+          bt: meta.belongsTo.find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
+        })
+
+
+        if (queryParams?.showFields) {
+          queryParams.showFields[`${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`] = true;
+        }
+        this.models[tnc] = this.getBaseModel(oldMeta);
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnc,
-          meta: JSON.stringify(meta),
-          schema: this.schemas[tnc]
+          meta: JSON.stringify(oldMeta),
+          schema: this.schemas[tnc],
+          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
         }, {'title': tnc})
       }
 
-      const propName = `${inflection.camelize(this.getTableNameAlias(tnp), false)}Read`;
+      const propName = `${this.getTableNameAlias(tnp)}Read`;
       this.log(`onRelationCreate : Generating and inserting'%s' loader`, propName);
 
       const currentRelation = belongsTo.find(rel => rel.rtn === tnp)
 
       // create read loader with middleware
       const mw = new GqlMiddleware(this.acls, tnp, '', this.models);
-      const readLoader = new DataLoader(
+      this.adBtResolverMethodToType(
+        propName,
+        mw,
+        tnc,
+        currentRelation,
+        this.models[currentRelation.rtn]?.columnToAlias[currentRelation.rcn],
+        this.models[currentRelation.tn]?.columnToAlias[currentRelation?.cn]
+      );
+      /*const readLoader = new DataLoader(
         BaseType.applyMiddlewareForLoader(
           [mw.middleware],
           async ids => {
@@ -1184,7 +1331,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           return readLoader.load([this[currentRelation.cn], args, context, info]);
         },
         configurable: true
-      })
+      })*/
 
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
         title: `${tnc}Bt${tnp}`,
@@ -1195,8 +1342,6 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       });
     }
 
-    this.models[tnc] = this.getBaseModel(this.metas[tnc]);
-    this.models[tnp] = this.getBaseModel(this.metas[tnp]);
     await this.reInitializeGraphqlEndpoint();
   }
 
@@ -1216,7 +1361,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* update parent table meta and resolvers */
     {
-      const columns = await this.getColumnList(tnp);
+      const columns = this.metas[tnp]?.columns;//await this.getColumnList(tnp);
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnp);
       const ctx = this.generateContextForTable(tnp, columns, relations, hasMany, belongsTo);
@@ -1232,18 +1377,20 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
-          schema: this.schemas[tnp]
+          v: oldMeta.v.filter(({hm}) => !hm || hm.rtn !== tnp || hm.tn !== tnc)
         });
+        // todo: backup schema
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnp,
-          meta: JSON.stringify(oldMeta)
+          meta: JSON.stringify(oldMeta),
+          schema: this.schemas[tnp]
         }, {'title': tnp})
-        this.metas[tnp] = oldMeta;
+        this.models[tnp] = this.getBaseModel(oldMeta);
 
       }
 
-      const countPropName = `${inflection.camelize(this.getTableNameAlias(tnc), false)}Count`;
-      const listPropName = `${inflection.camelize(this.getTableNameAlias(tnc), false)}List`;
+      const countPropName = `${this.getTableNameAlias(tnc)}Count`;
+      const listPropName = `${this.getTableNameAlias(tnc)}List`;
 
       this.log(`onRelationDelete : Deleting '%s' and '%s' loaders`, countPropName, listPropName);
       /* defining HasMany list method within GQL Type class */
@@ -1279,15 +1426,17 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
+          v: oldMeta.v.filter(({bt}) => !bt || bt.rtn !== tnp || bt.tn !== tnc)
         });
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnc,
-          meta: JSON.stringify(oldMeta)
+          meta: JSON.stringify(oldMeta),
+          schema: this.schemas[tnc]
         }, {'title': tnc});
-        this.metas[tnc] = oldMeta;
+        this.models[tnc] = this.getBaseModel(oldMeta);
       }
 
-      const propName = `${inflection.camelize(this.getTableNameAlias(tnp), false)}Read`;
+      const propName = `${this.getTableNameAlias(tnp)}Read`;
       this.log(`onRelationDelete : Deleting '%s' loader`, propName);
 
 
@@ -1590,7 +1739,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const rootValue = mergeResolvers([{
         nocodb_health() {
           return 'Coming soon'
-        }
+        },
+        m2mNotChildren: m2mNotChildren({models: this.models}),
+        m2mNotChildrenCount: m2mNotChildrenCount({models: this.models}),
+        JSON: GraphQLJSON,
       }, ...Object.values(this.resolvers).map(r => r.mapResolvers(this.customResolver))]);
 
       this.log(`initGraphqlRoute : Building graphql schema`);
@@ -1613,7 +1765,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           },
           rootValue,
           schema,
-          validationRules: [depthLimit(this.connectionConfig?.meta?.api?.graphqlDepthLimit ?? 10),
+          validationRules: [
+            depthLimit(this.connectionConfig?.meta?.api?.graphqlDepthLimit ?? 10),
           ],
           customExecuteFn: async (args) => {
             const data = await execute(args);
@@ -1659,6 +1812,127 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   private log(str, ...args): void {
     log(`${this.dbAlias} : ${str}`, ...args);
   }
+
+  public async onManyToManyRelationCreate(parent: string, child: string, args?: any) {
+    await super.onManyToManyRelationCreate(parent, child, args);
+    for (const tn of [parent, child]) {
+      const meta = this.metas[tn];
+      const {columns, hasMany, belongsTo, manyToMany} = meta;
+      const ctx = this.generateContextForTable(tn, columns, [...hasMany, ...belongsTo], hasMany, belongsTo);
+      ctx.manyToMany = manyToMany;
+      this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
+      // todo: update schema history
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema: this.schemas[tn]
+      }, {
+        title: tn
+      })
+    }
+    {
+      const listPropName = `${this.metas[child]._tn}MMList`;
+      this.log(`onRelationCreate : Generating and inserting '%s'  loaders`, listPropName);
+      /* has many relation list loader with middleware */
+      const mw = new GqlMiddleware(this.acls, parent, '', this.models);
+      this.addMMListResolverMethodToType(parent, {rtn: child}, mw, {}, listPropName, this.metas[parent].columns.find(c => c.pk)._cn)
+    }
+
+    {
+      const listPropName = `${this.metas[parent]._tn}MMList`;
+      this.log(`onRelationCreate : Generating and inserting '%s'  loaders`, listPropName);
+      /* has many relation list loader with middleware */
+      const mw = new GqlMiddleware(this.acls, child, '', this.models);
+      this.addMMListResolverMethodToType(child, {rtn: parent}, mw, {}, listPropName, this.metas[child].columns.find(c => c.pk)._cn)
+    }
+
+
+    await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
+      title: `${parent}Mm${child}List`,
+      parent,
+      child,
+      relation: 'mm',
+      resolver: 'list',
+    });
+    await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
+      title: `${child}Mm${parent}List`,
+      parent: child,
+      child: parent,
+      relation: 'mm',
+      resolver: 'list',
+    });
+
+    await this.reInitializeGraphqlEndpoint();
+
+  }
+
+  public async onManyToManyRelationDelete(parent: string, child: string, args?: any) {
+
+    await super.onManyToManyRelationDelete(parent, child, args)
+
+    for (const tn of [parent, child]) {
+      const meta = this.metas[tn];
+      const {columns, hasMany, belongsTo, manyToMany} = meta;
+      const ctx = this.generateContextForTable(tn, columns, [...hasMany, ...belongsTo], hasMany, belongsTo);
+      this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, {
+        ...this.generateRendererArgs(ctx),
+        manyToMany
+      }).getString();
+      // todo: update schema history
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema: this.schemas[tn]
+      }, {
+        title: tn
+      })
+    }
+
+    await this.reInitializeGraphqlEndpoint();
+  }
+
+
+  protected async ncUpManyToMany(): Promise<any> {
+    const metas = await super.ncUpManyToMany();
+
+    if (!metas) {
+      return;
+    }
+    for (const meta of metas) {
+      const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
+
+      /* generate gql schema of the table */
+      const schema = GqlXcSchemaFactory.create(this.connectionConfig, {
+        dir: '',
+        ctx: {
+          ...ctx,
+          manyToMany: meta.manyToMany
+        },
+        filename: ''
+      }).getString();
+
+      /* update schema in metadb */
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema
+      }, {
+        title: meta.tn
+      })
+
+      // todo : add loaders
+
+      if (meta.manyToMany) {
+        for (const mm of meta.manyToMany) {
+          await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
+            title: `${mm.tn}Mm${mm.rtn}List`,
+            parent: mm.tn,
+            child: mm.rtn,
+            relation: 'mm',
+            resolver: 'mmlist',
+          });
+        }
+      }
+
+    }
+
+  }
+
+
 }
 
 /**

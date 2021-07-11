@@ -2,7 +2,10 @@
   <v-card width="1000" max-width="100%">
     <v-toolbar height="55" class="elevation-1">
       <div class="d-100 d-flex ">
-        <h5 class="title text-center">{{ table }} : {{ localState[primaryValueColumn] }}</h5>
+        <h5 class="title text-center">
+          <v-icon :color="iconColor">mdi-table-arrow-right</v-icon>
+          {{ table }} : {{ localState[primaryValueColumn] }}
+        </h5>
         <v-spacer>
         </v-spacer>
         <v-btn small text @click="reload">
@@ -30,23 +33,38 @@
       </div>
     </v-toolbar>
     <div class="form-container ">
+
       <v-card-text class=" py-0 px-0 " :class="{
         'px-10' : isNew || !toggleDrawer,
       }">
+
+        <v-breadcrumbs class="caption pt-0 pb-2 justify-center d-100"
+                       v-if="localBreadcrumbs && localBreadcrumbs.length"
+                       :items="localBreadcrumbs.map(text => ({text}))"/>
 
         <v-container fluid style="height:70vh" class="py-0">
 
           <v-row class="h-100">
             <v-col class="h-100 px-10" style="overflow-y: auto" cols="8" :offset="isNew || !toggleDrawer ? 2 : 0">
-              <div :class="{
-                 'active-row' : active === col._cn
-                }" v-for="(col,i) in fields"
-                   :key="i" class="row-col  my-4">
+              <div
+                v-for="(col,i) in fields"
+                :class="{
+                 'active-row' : active === col._cn,
+                 required: isRequired(col, localState)
+                }"
+                :key="i" class="row-col  my-4">
                 <div>
                   <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
-                    <!--              {{ col.cn }}-->
-
+                    <virtual-header-cell
+                      v-if="col.virtual"
+                      :column="col"
+                      :nodes="nodes"
+                      :is-form="true"
+                      :meta="meta"
+                    >
+                    </virtual-header-cell>
                     <header-cell
+                      v-else
                       :is-form="true"
                       :is-foreign-key="col.cn in belongsTo || col.cn in hasMany"
                       :value="col._cn"
@@ -54,11 +72,28 @@
                       :sql-ui="sqlUi"></header-cell>
 
                   </label>
+                  <virtual-cell
+                    ref="virtual"
+                    v-if="col.virtual"
+                    :disabledColumns="disabledColumns"
+                    :column="col"
+                    :row="localState"
+                    :nodes="nodes"
+                    :meta="meta"
+                    :api="api"
+                    :active="true"
+                    :sql-ui="sqlUi"
+                    :is-new="isNew"
+                    :is-form="true"
+                    :breadcrumbs="localBreadcrumbs"
+                    @updateCol="updateCol"
+                    @newRecordsSaved="$listeners.loadTableData|| reload"
+                  ></virtual-cell>
 
                   <div
                     style="height:100%; width:100%"
                     class="caption xc-input"
-                    v-if="col.ai || (col.pk && !selectedRowMeta.new)"
+                    v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
                     @click="col.ai  && $toast.info('Auto Increment field is not editable').goAway(3000)"
                   >
                     <input
@@ -142,6 +177,8 @@
                 </v-text-field>
               </div>
             </v-col>
+
+
           </v-row>
         </v-container>
       </v-card-text>
@@ -166,29 +203,49 @@ import HeaderCell from "@/components/project/spreadsheet/components/headerCell";
 import EditableCell from "@/components/project/spreadsheet/components/editableCell";
 import dayjs from 'dayjs';
 import colors from "@/mixins/colors";
+import VirtualCell from "@/components/project/spreadsheet/components/virtualCell";
+import VirtualHeaderCell from "@/components/project/spreadsheet/components/virtualHeaderCell";
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 export default {
-  components: {EditableCell, HeaderCell},
+  components: {VirtualHeaderCell, VirtualCell, EditableCell, HeaderCell},
   mixins: [colors],
   props: {
+    breadcrumbs: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
     dbAlias: String,
     value: Object,
     meta: Object,
     sqlUi: [Object, Function],
-    selectedRowMeta: Object,
     table: String,
     primaryValueColumn: String,
     api: [Object],
-    hasMany: Object,
-    belongsTo: Object,
+    hasMany: [Object, Array],
+    belongsTo: [Object, Array],
     isNew: Boolean,
-    oldRow: Object
+    oldRow: Object,
+    iconColor: {
+      type: String,
+      default: 'primary'
+    },
+    availableColumns: [Object, Array],
+    nodes: [Object],
+    queryParams: Object,
+    disabledColumns: {
+      type: Object,
+      default() {
+        return {}
+      }
+    }
   },
-  name: "expandedForm",
+  name: "expanded-form",
   data: () => ({
     showborder: false,
     loadingLogs: true,
@@ -198,7 +255,7 @@ export default {
     localState: {},
     changedColumns: {},
     comment: null,
-    showSystemFields: false
+    showSystemFields: false,
   }),
   created() {
     this.localState = {...this.value}
@@ -230,6 +287,20 @@ export default {
     },
   },
   methods: {
+    isRequired(_columnObj, rowObj) {
+      let columnObj = _columnObj;
+      if (columnObj.bt) {
+        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn);
+      }
+
+      return (columnObj.rqd
+        && (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null)
+        && !columnObj.default);
+    },
+    updateCol(_row, _cn, pid) {
+      this.$set(this.localState, _cn, pid)
+      this.$set(this.changedColumns, _cn, true)
+    },
     isYou(email) {
       return this.$store.state.users.user && this.$store.state.users.user.email === email;
     },
@@ -240,13 +311,6 @@ export default {
         model_name: this.meta._tn
       }])
       this.logs = data.list;
-      // this.$nextTick(() => {
-      //   const objDiv = this.$refs.commentsList.$el;
-      //   if (objDiv) {
-      //     objDiv.scrollTop = objDiv.scrollHeight;
-      //   }
-      // })
-
       this.loadingLogs = false;
     },
     async save() {
@@ -257,9 +321,19 @@ export default {
           obj[col] = this.localState[col];
           return obj;
         }, {});
+
         if (this.isNew) {
           const data = await this.api.insert(updatedObj);
-          Object.assign(this.localState, data)
+          this.localState = {...this.localState, ...data};
+
+          // save hasmany and manytomany relations from local state
+          if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
+            for (const vcell of this.$refs.virtual) {
+              if (vcell.save) await vcell.save(this.localState);
+            }
+          }
+
+          await this.reload();
         } else {
           if (Object.keys(updatedObj).length) {
             await this.api.update(id, updatedObj, this.oldRow);
@@ -268,9 +342,11 @@ export default {
           }
         }
 
+
         this.$emit('update:oldRow', {...this.localState})
         this.changedColumns = {};
         this.$emit('input', this.localState);
+        this.$emit('update:isNew', false);
 
         this.$toast.success(`${this.localState[this.primaryValueColumn]} updated successfully.`, {
           position: 'bottom-right'
@@ -280,9 +356,12 @@ export default {
       }
     },
     async reload() {
-      const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
+      // const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
+      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and');
       this.$set(this, 'changedColumns', {});
-      this.localState = await this.api.read(id);
+      // this.localState = await this.api.read(id);
+      const data = await this.api.list({...(this.queryParams || {}), where}) || [{}];
+      this.localState = data[0] || this.localState;
       if (!this.isNew && this.toggleDrawer) {
         this.getAuditsAndComments()
       }
@@ -310,18 +389,30 @@ export default {
     }
   },
   computed: {
+    primaryKey() {
+      return this.isNew ? '' : this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
+    },
     edited() {
       return !!Object.keys(this.changedColumns).length;
     },
     fields() {
+      if (this.availableColumns) return this.availableColumns;
 
       const hideCols = ['created_at', 'updated_at'];
 
       if (this.showSystemFields) {
         return this.meta.columns || [];
       } else {
-        return (this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || [];
+        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn)
+          && !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        ) || [];
       }
+    },
+    isChanged() {
+      return Object.values(this.changedColumns).some(Boolean)
+    },
+    localBreadcrumbs() {
+      return [...this.breadcrumbs, `${this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
     }
   }
 }
@@ -339,6 +430,17 @@ export default {
 
 ::v-deep {
 
+  .v-breadcrumbs__item:nth-child(odd) {
+    font-size: .72rem;
+    color: grey;
+  }
+
+  .v-breadcrumbs li:nth-child(even) {
+    padding: 0 6px;
+    font-size: .72rem;
+    color: var(--v-textColor-base);
+  }
+
   position: relative;
 
   .comment-icon {
@@ -347,12 +449,15 @@ export default {
     bottom: 60px;
   }
 
+  /* todo: refactor */
   .row-col {
     & > div > input,
+      //& > div div > input,
     & > div > .xc-input > input,
+    & > div > .xc-input > div > input,
     & > div > select,
     & > div > .xc-input > select,
-    & > div textarea {
+    & > div textarea:not(.inputarea) {
       border: 1px solid #7f828b33;
       padding: 1px 5px;
       font-size: .8rem;
@@ -379,11 +484,13 @@ export default {
       background: #363636;
 
       .row-col {
+        //& > div div > input,
         & > div > input,
         & > div > .xc-input > input,
+        & > div > .xc-input > div > input,
         & > div > select,
         & > div > .xc-input > select,
-        & > div textarea {
+        & > div textarea:not(.inputarea) {
           background: #1e1e1e;
         }
       }
@@ -394,10 +501,12 @@ export default {
 
       .row-col {
         & > div > input,
+          //& > div div > input,
         & > div > .xc-input > input,
+        & > div > .xc-input > div > input,
         & > div > select,
         & > div > .xc-input > select,
-        & > div textarea {
+        & > div textarea:not(.inputarea) {
           background: white;
         }
       }
@@ -428,6 +537,16 @@ h5 {
 
 .comment-box.focus {
   border: 1px solid #4185f4;
+}
+
+.required > div > label + * {
+  border: 1px solid red;
+  border-radius: 4px;
+  //min-height: 42px;
+  //display: flex;
+  //align-items: center;
+  //justify-content: flex-end;
+  background: var(--v-backgroundColorDefault-base);
 }
 </style>
 <!--

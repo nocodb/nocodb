@@ -7,9 +7,8 @@ export default class RestApi {
 
   // todo:  - get version letter and use table alias
   async list(params) {
-    const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`, params);
-// data.headers['xc-db-response'];
-
+    // const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`, params)
+    const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/nestedList`, params)
     return data.data;
   }
 
@@ -49,7 +48,18 @@ export default class RestApi {
   async paginatedList(params) {
     // const list = await this.list(params);
     // const count = (await this.count({where: params.where || ''})).count;
-    const [list, {count}] = await Promise.all([this.list(params), this.count({where: params.where || ''})]);
+    const [list, {count}] = await Promise.all([this.list(params), this.count({
+      where: params.where || '',
+      conditionGraph: params.conditionGraph
+    })]);
+    return {list, count};
+  }
+
+  async paginatedM2mNotChildrenList(params, assoc, pid) {
+    ///api/v1/Film/m2mNotChildren/film_actor/44
+    // const list = await this.list(params);
+    // const count = (await this.count({where: params.where || ''})).count;
+    const {list, info: {count}} = (await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
     return {list, count};
   }
 

@@ -12,9 +12,9 @@
 
 <script>
 import TextField from "@/components/project/appStore/inputs/textField";
-import EditableAttachmentCell from "@/components/project/spreadsheet/editableCell/editableAttachmentCell";
+import EditableAttachmentCell from "@/components/project/spreadsheet/components/editableCell/editableAttachmentCell";
 import Attachment from "@/components/project/appStore/inputs/attachment";
-import TextAreaCell from "~/components/project/spreadsheet/editableCell/textAreaCell";
+import TextAreaCell from "~/components/project/spreadsheet/components/editableCell/textAreaCell";
 import PasswordField from "@/components/project/appStore/inputs/passwordField";
 
 export default {

@@ -476,7 +476,7 @@ export default {
       return SqlUI.create(this.nodes.dbConnection);
     },
     api() {
-      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], (this.meta && this.meta._tn) || this.table, this.meta && this.meta.columns, this);
+      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], (this.meta && this.meta._tn) || this.table, this.meta && this.meta.columns, this, this.meta);
     }, edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },

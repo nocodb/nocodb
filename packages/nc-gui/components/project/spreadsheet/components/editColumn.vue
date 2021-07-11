@@ -1,7 +1,7 @@
 <template>
   <v-card min-width="300px" max-width="400px" max-height="95vh" style="overflow: auto"
           class="elevation-0 card">
-    <v-form v-model="valid">
+    <v-form ref="form" v-model="valid">
       <v-container fluid @click.stop.prevent>
         <v-row>
           <v-col cols="12" class="d-flex pb-0">
@@ -13,10 +13,14 @@
           <v-col cols="12">
             <v-text-field
               ref="column"
-              hide-details
+              hide-details="auto"
               color="primary"
               v-model="newColumn.cn"
               @input="newColumn.altered = newColumn.altered || 8"
+              :rules="[
+                    v => !!v  || 'Required',
+                    v => !meta || !meta.columns || meta.columns.every(c => column && c.cn === column.cn || v !== c.cn ) && meta.v.every(c => v !== c._cn ) || 'Duplicate column name'
+              ]"
               class="caption"
               label="Column name"
               dense outlined></v-text-field>
@@ -88,6 +92,10 @@
                     ref="relation"
                     :column="newColumn"
                     :nodes="nodes"
+                    :meta="meta"
+                    :isSQLite="isSQLite"
+                    :alias="newColumn.cn"
+                    :isMSSQL="isMSSQL"
                     @onColumnSelect="onRelColumnSelect"
                   ></linked-to-another-options>
                 </v-col>
@@ -97,6 +105,7 @@
                     ref="relation"
                     :column="newColumn"
                     :nodes="nodes"
+                    :isMSSQL="isMSSQL"
                     @onColumnSelect="onRelColumnSelect"
                     :isSQLite="isSQLite"
                   ></relation-options>
@@ -300,11 +309,12 @@
 
 <script>
 import {uiTypes} from "@/components/project/spreadsheet/helpers/uiTypes";
-import CustomSelectOptions from "@/components/project/spreadsheet/editColumn/customSelectOptions";
-import RelationOptions from "@/components/project/spreadsheet/editColumn/relationOptions";
+import CustomSelectOptions from "@/components/project/spreadsheet/components/editColumn/customSelectOptions";
+import RelationOptions from "@/components/project/spreadsheet/components/editColumn/relationOptions";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
-import LinkedToAnotherOptions from "@/components/project/spreadsheet/editColumn/linkedToAnotherOptions";
+import LinkedToAnotherOptions from "@/components/project/spreadsheet/components/editColumn/linkedToAnotherOptions";
 import {SqliteUi} from "@/helpers/SqliteUi";
+import {MssqlUi} from "@/helpers/MssqlUi";
 
 export default {
   name: "editColumn",
@@ -363,10 +373,18 @@ export default {
       this.newColumn = {};
     },
     async save() {
+      if (!this.$refs.form.validate()) {
+        return;
+      }
       try {
 
         if (this.newColumn.uidt === 'Formula') {
           return this.$toast.info('Coming Soon...').goAway(3000)
+        }
+
+        if (this.isLinkToAnotherRecord && this.$refs.relation) {
+          await this.$refs.relation.saveRelation();
+          return this.$emit('saved');
         }
 
         this.newColumn.tn = this.nodes.tn;
@@ -495,10 +513,13 @@ export default {
   },
   computed: {
     isEditDisabled() {
-      return this.editColumn && this.isSQLite && !this.relation;
+      return this.editColumn && this.sqlUi === SqliteUi;
     },
     isSQLite() {
-      return this.sqlUi === SqliteUi
+      return this.sqlUi === SqliteUi;
+    },
+    isMSSQL() {
+      return this.sqlUi === MssqlUi;
     },
     dataTypes() {
       return this.sqlUi.getDataTypeListForUiType(this.newColumn)

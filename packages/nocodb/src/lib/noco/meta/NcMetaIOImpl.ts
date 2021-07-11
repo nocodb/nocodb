@@ -55,6 +55,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
 
   private connection: XKnex;
+  // todo: need to fix
   private trx: Knex.Transaction;
 
 
@@ -539,7 +540,9 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   async startTransaction() {
-    this.trx = await this.connection.transaction();
+    if (!this.trx) {
+      this.trx = await this.connection.transaction();
+    }
   }
 
   async metaReset(project_id: string, dbAlias: string, apiType?: string): Promise<void> {

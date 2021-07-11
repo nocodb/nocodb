@@ -100,6 +100,9 @@ export class RestCtrl extends RestBaseCtrl {
   }
 
   public async count(req: Request | any, res: Response): Promise<void> {
+    if (req.query.conditionGraph && typeof req.query.conditionGraph === 'string') {
+      req.query.conditionGraph = {models: this.models, condition: JSON.parse(req.query.conditionGraph)}
+    }
     const data = await req.model.countByPk({
       ...req.query
     } as any);
@@ -136,6 +139,48 @@ export class RestCtrl extends RestBaseCtrl {
     res.json(data);
   }
 
+  public async nestedList(req: Request | any, res): Promise<void> {
+    const startTime = process.hrtime();
+
+    try {
+      if (req.query.conditionGraph && typeof req.query.conditionGraph === 'string') {
+        req.query.conditionGraph = {models: this.models, condition: JSON.parse(req.query.conditionGraph)}
+      }
+      if (req.query.condition && typeof req.query.condition === 'string') {
+        req.query.condition = JSON.parse(req.query.condition)
+      }
+    }catch (e){
+      /* ignore parse error */
+    }
+
+    const data = await req.model.nestedList({
+      ...req.query
+    } as any);
+    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    res.setHeader('xc-db-response', elapsedSeconds);
+    res.xcJson(data);
+  }
+
+  public async m2mNotChildren(req: Request | any, res): Promise<void> {
+    const startTime = process.hrtime();
+
+    if (req.query.conditionGraph && typeof req.query.conditionGraph === 'string') {
+      req.query.conditionGraph = {models: this.models, condition: JSON.parse(req.query.conditionGraph)}
+    }
+
+    const list = await req.model.m2mNotChildren({
+      ...req.query,
+      ...req.params
+    } as any);
+    const count = await req.model.m2mNotChildrenCount({
+      ...req.query,
+      ...req.params
+    } as any);
+
+    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    res.setHeader('xc-db-response', elapsedSeconds);
+    res.xcJson({list, info: count});
+  }
 
   protected async middleware(req: Request | any, res: Response, next: NextFunction): Promise<any> {
 

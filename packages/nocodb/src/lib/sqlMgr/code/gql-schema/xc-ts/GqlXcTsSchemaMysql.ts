@@ -1,10 +1,7 @@
-import BaseRender from "../../BaseRender";
-import inflection from "inflection";
-import lodash from "lodash";
-import {AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS} from "./schemaHelp";
+import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
 
 
-class GqlXcTsSchemaMysql extends BaseRender {
+class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
 
   /**
    *
@@ -19,35 +16,14 @@ class GqlXcTsSchemaMysql extends BaseRender {
     super({dir, filename, ctx});
   }
 
-  /**
-   *  Prepare variables used in code template
-   */
-  prepare() {
-
-    const data:any = {};
-
-    /* example of simple variable */
-    data.tn = this.ctx.tn_camelize;
-
-    data.columns = {
-      func: this._renderColumns.bind(this),
-      args: this.ctx
-    };
-
-    return data;
-
-  }
-
-
-
-  /**
+  /*/!**
    *
    * @param args
    * @param args.columns
    * @param args.relations
    * @returns {string}
    * @private
-   */
+   *!/
   _renderColumns(args) {
 
     let str = '';
@@ -58,7 +34,6 @@ class GqlXcTsSchemaMysql extends BaseRender {
     ${this._getMutation(args)}\r\n
     ${this._getType(args)}\r\n
     `
-
     str += '';
 
     return str;
@@ -81,11 +56,11 @@ class GqlXcTsSchemaMysql extends BaseRender {
 
   _getQuery(args) {
     let str = `type Query { \r\n`
-    str += `\t\t${args.tn_camelize}List(where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String): [${args.tn_camelize}]\r\n`
+    str += `\t\t${args.tn_camelize}List(where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String, conditionGraph: String): [${args.tn_camelize}]\r\n`
     str += `\t\t${args.tn_camelize}Read(id:String!): ${args.tn_camelize}\r\n`
     str += `\t\t${args.tn_camelize}Exists(id: String!): Boolean\r\n`
     str += `\t\t${args.tn_camelize}FindOne(where: String!,condition:Condition${args.tn_camelize}): ${args.tn_camelize}\r\n`
-    str += `\t\t${args.tn_camelize}Count(where: String!,condition:Condition${args.tn_camelize}): Int\r\n`
+    str += `\t\t${args.tn_camelize}Count(where: String!,condition:Condition${args.tn_camelize},conditionGraph: String): Int\r\n`
     str += `\t\t${args.tn_camelize}Distinct(column_name: String, where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String): [${args.tn_camelize}]\r\n`
     str += `\t\t${args.tn_camelize}GroupBy(fields: String, having: String, limit: Int, offset: Int, sort: String): [${args.tn_camelize}GroupBy]\r\n`
     str += `\t\t${args.tn_camelize}Aggregate(column_name: String!, having: String, limit: Int, offset: Int, sort: String, func: String!): [${args.tn_camelize}Aggregate]\r\n`
@@ -137,6 +112,9 @@ class GqlXcTsSchemaMysql extends BaseRender {
       str += `\t\t${childTable}Count: Int\r\n`;
     }
 
+
+    str+= this.generateManyToManyTypeProps(args);
+
     let belongsToRelations = args.relations.filter(r => r.tn === args.tn);
     if (belongsToRelations.length > 1)
       belongsToRelations = lodash.uniqBy(belongsToRelations, function (e) {
@@ -150,6 +128,7 @@ class GqlXcTsSchemaMysql extends BaseRender {
       str += `\t\t${parentTable}Read(id:String): ${parentTable}\r\n`;
       strWhere += `\t\t${parentTable}Read: Condition${parentTable}\r\n`;
     }
+
 
     str += `\t}\r\n`
 
@@ -201,9 +180,9 @@ class GqlXcTsSchemaMysql extends BaseRender {
 
     return `${str}\r\n\r\n${strWhere}`;
   }
+*/
 
-
-  _getGraphqlType(columnObj) {
+  protected _getGraphqlType(columnObj): string {
 
     switch (columnObj.dt) {
 
@@ -248,14 +227,15 @@ class GqlXcTsSchemaMysql extends BaseRender {
       case "tinyblob":
       case "mediumblob":
       case "longblob":
+      case "enum":
+      case "time":
         return "String"
         break;
 
       case "set":
-        return "[String]";
+        return "JSON";
         break;
-      case "enum":
-      case "time":
+
       case "geometry":
       case "point":
       case "linestring":
@@ -265,14 +245,14 @@ class GqlXcTsSchemaMysql extends BaseRender {
       case "multipolygon":
       case "json":
       default:
-        return "String"
+        return "JSON"
         break;
 
     }
 
   }
 
-  _getGraphqlConditionType(columnObj) {
+  protected _getGraphqlConditionType(columnObj): any {
 
     switch (this._getGraphqlType(columnObj.dt)) {
 
@@ -283,6 +263,7 @@ class GqlXcTsSchemaMysql extends BaseRender {
       case  "Boolean":
         return 'ConditionBoolean'
       case  "String":
+      case  "JSON":
         return 'ConditionString'
       case "[String]":
         return 'ConditionString'
@@ -291,9 +272,9 @@ class GqlXcTsSchemaMysql extends BaseRender {
   }
 
 
-  getString() {
+  /*getString() {
     return this._renderColumns(this.ctx);
-  }
+  }*/
 
 
 }

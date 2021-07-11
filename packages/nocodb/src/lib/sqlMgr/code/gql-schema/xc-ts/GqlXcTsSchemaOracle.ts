@@ -1,10 +1,7 @@
-import BaseRender from "../../BaseRender";
-import inflection from "inflection";
-import lodash from "lodash";
-import {AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS} from "./schemaHelp";
+import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
 
 
-class GqlXcSchemaOracle extends BaseRender {
+class GqlXcSchemaOracle extends BaseGqlXcTsSchema {
 
   /**
    *
@@ -19,14 +16,14 @@ class GqlXcSchemaOracle extends BaseRender {
     super({dir, filename, ctx});
   }
 
-  /**
+  /*/!**
    *  Prepare variables used in code template
-   */
+   *!/
   prepare() {
 
     const data:any = {};
 
-    /* example of simple variable */
+    /!* example of simple variable *!/
     data.tn = this.ctx.tn_camelize;
 
     data.columns = {
@@ -39,14 +36,14 @@ class GqlXcSchemaOracle extends BaseRender {
   }
 
 
-  /**
+  /!**
    *
    * @param args
    * @param args.columns
    * @param args.relations
    * @returns {string}
    * @private
-   */
+   *!/
   _renderColumns(args) {
 
     let str = '';
@@ -130,6 +127,8 @@ class GqlXcSchemaOracle extends BaseRender {
       str += `\t\t${childTable}Count: Int\r\n`;
     }
 
+    str+= this.generateManyToManyTypeProps(args);
+
     let belongsToRelations = args.relations.filter(r => r.tn === args.tn);
     if (belongsToRelations.length > 1)
       belongsToRelations = lodash.uniqBy(belongsToRelations, function (e) {
@@ -184,9 +183,9 @@ class GqlXcSchemaOracle extends BaseRender {
 
     return `${str}\r\n\r\n${strWhere}`;
   }
+*/
 
-
-  _getGraphqlType(columnObj):any {
+  protected _getGraphqlType(columnObj):any {
     switch (columnObj.dt) {
       case "char":
       case "nchar":
@@ -235,7 +234,7 @@ class GqlXcSchemaOracle extends BaseRender {
 
   }
 
-  _getGraphqlConditionType(columnObj):any {
+  protected _getGraphqlConditionType(columnObj):any {
 
     switch (this._getGraphqlType(columnObj.dt)) {
 
@@ -252,9 +251,9 @@ class GqlXcSchemaOracle extends BaseRender {
     }
 
   }
-  getString(){
+  /*getString(){
     return this._renderColumns(this.ctx);
-  }
+  }*/
 
 
 }

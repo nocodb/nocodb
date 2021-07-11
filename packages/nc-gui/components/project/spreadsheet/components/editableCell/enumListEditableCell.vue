@@ -1,18 +1,40 @@
 <template>
-  <div class="d-flex align-center " :class="{'justify-center':!isForm}">
-    <input v-on="parentListeners" type="checkbox" v-model="localState">
-  </div>
+  <v-select solo v-on="parentListeners" v-model="localState" dense flat :items="enumValues" hide-details class="mt-0" :clearable="!column.rqd">
+    <!--    <option v-for="eVal of enumValues" :key="eVal" :value="eVal">{{ eVal }}</option>-->
+    <template v-slot:selection="{item}">
+      <div class="d-100" :class="{
+        'text-center' : !isForm
+      }">
+        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">{{ item }}</v-chip>
+      </div>
+    </template>
+    <template v-slot:item="{item}">
+      <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">{{ item }}</v-chip>
+    </template>
+    <template v-slot:append>
+      <v-icon small class="mt-1">mdi-menu-down</v-icon>
+    </template>
+  </v-select>
 </template>
 
 <script>
+import colors from "@/mixins/colors";
+
 export default {
-  name: "boolean-cell",
+  name: "enum-list-editable-cell",
+
   props: {
-    value: [String,Number, Boolean],
-    isForm: Boolean
+    value: String,
+    column: Object,
+    isForm:Boolean
   },
+  mixins: [colors],
   mounted() {
-    this.$el.focus();
+    // this.$el.focus();
+    // let event;
+    // event = document.createEvent('MouseEvents');
+    // event.initMouseEvent('mousedown', true, true, window);
+    // this.$el.dispatchEvent(event);
   },
   computed: {
     localState: {
@@ -21,10 +43,15 @@ export default {
       },
       set(val) {
         this.$emit('input', val);
-        // this.$emit('update');
+        this.$emit('update');
       }
     },
-
+    enumValues() {
+      if (this.column && this.column.dtxp) {
+        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
+      }
+      return [];
+    },
     parentListeners() {
       const $listeners = {};
 
@@ -42,7 +69,9 @@ export default {
 </script>
 
 <style scoped>
-
+/deep/ .v-select{
+  min-width: 150px;
+}
 </style>
 <!--
 /**

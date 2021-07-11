@@ -1,32 +1,34 @@
 <template>
-  <v-menu>
-    <template v-slot:activator="{on}">
-      <input class="value" v-on="on" v-model="localState">
-    </template>
-    <v-date-picker
-      flat
-      @click.native.stop
-      v-on="parentListeners" v-model="localState"></v-date-picker>
-  </v-menu>
+    <textarea v-on="parentListeners"
+              rows="4"
+              ref="textarea"
+              v-model="localState"
+              @keydown.alt.enter.stop
+              @keydown.shift.enter.stop
+    ></textarea>
+
 </template>
 
 <script>
 export default {
-  name: "date-picker-cell", props: {
-    value: [String, Date]
+  name: "textAreaCell",
+  props: {
+    value: String
+  },
+  created() {
+    this.localState = this.value;
   },
   mounted() {
-    if (this.$el && this.$el.$el) {
-      this.$el.$el.focus();
-    }
+    this.$refs.textarea && this.$refs.textarea.focus();
   },
   computed: {
+
     localState: {
       get() {
-        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : this.value;
+        return this.value
       },
       set(val) {
-        this.$emit('input', new Date(val).toJSON().slice(0, 10));
+        this.$emit('input', val);
       }
     },
     parentListeners() {
@@ -46,10 +48,11 @@ export default {
 </script>
 
 <style scoped>
-.value {
+input, textarea {
   width: 100%;
-  min-height:20px;
-
+  min-height: 60px;
+  height: 100%;
+  color: var(--v-textColor-base);
 }
 </style>
 <!--

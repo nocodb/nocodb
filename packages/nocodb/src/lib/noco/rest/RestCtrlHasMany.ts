@@ -124,7 +124,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
   public async hasManyList(req: Request | any, res): Promise<void> {
     const data = await req.parentModel.hasManyList({
       ...req.query,
-      childs: req.childModel.tn
+      childs: req.params.childs // req.childModel.tn
     } as any);
     res.xcJson(data);
   }

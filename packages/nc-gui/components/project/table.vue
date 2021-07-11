@@ -9,6 +9,7 @@
         v-model="active"
         :height="relationTabs &&  relationTabs.length ?38:0"
         class="table-tabs"
+        :class="{'hidden-tab':!relationTabs ||  !relationTabs.length}"
         @change="onTabChange"
         color="pink"
       >
@@ -17,7 +18,7 @@
             <v-icon small>mdi-table-eye</v-icon>&nbsp;
             <span class="caption text-capitalize font-weight-bold"> Model</span></v-tab>
           <v-tab-item
-                      style="height:100%">
+            style="height:100%">
             <v-tabs
               color="pink"
               height="38"
@@ -32,7 +33,7 @@
 
 
               <v-tab-item
-                          style="height:100%">
+                style="height:100%">
 
                 <columnList
                   ref="tabs0"
@@ -68,7 +69,7 @@
                 <span class="caption font-weight-bold text-capitalize"> Triggers</span>
               </v-tab>
               <v-tab-item
-                          style="height:100%">
+                style="height:100%">
                 <triggerList
                   ref="tabs2"
                   v-if="loadTriggerList"
@@ -96,22 +97,22 @@
               <!--      </v-tab-item>-->
 
 
-<!--            </v-tabs>-->
+              <!--            </v-tabs>-->
 
 
-<!--          </v-tab-item>
-        </template>
-        <template v-if="_isUIAllowed('api')">
-          <v-tab class="">
-            <v-icon small>mdi-code-braces</v-icon>&nbsp;
-            <span class="caption text-capitalize  font-weight-bold"> APIs</span></v-tab>
-          <v-tab-item>-->
-<!--            <v-tabs-->
-<!--              height="38"-->
-<!--              class="table-tabs"-->
-<!--              ma-0-->
-<!--              pa-0-->
-<!--              style="height:100%">-->
+              <!--          </v-tab-item>
+                      </template>
+                      <template v-if="_isUIAllowed('api')">
+                        <v-tab class="">
+                          <v-icon small>mdi-code-braces</v-icon>&nbsp;
+                          <span class="caption text-capitalize  font-weight-bold"> APIs</span></v-tab>
+                        <v-tab-item>-->
+              <!--            <v-tabs-->
+              <!--              height="38"-->
+              <!--              class="table-tabs"-->
+              <!--              ma-0-->
+              <!--              pa-0-->
+              <!--              style="height:100%">-->
 
 
               <template v-if="!isMvc && !isMetaTable">
@@ -310,22 +311,22 @@
         </template>
 
         <template v-if="_isUIAllowed('airTable')">
-          <v-tab v-show="relationTabs &&  relationTabs.length" class="" >
+          <v-tab v-show="relationTabs &&  relationTabs.length" class="">
             <v-icon small>mdi-table-edit</v-icon>&nbsp;<span
-            class="caption text-capitalize  font-weight-bold"> {{nodes._tn}}</span></v-tab>
+            class="caption text-capitalize  font-weight-bold"> {{ nodes._tn }}</span></v-tab>
           <v-tab-item
-                      style="height:100%">
-              <rows-xc-data-table
-                ref="tabs7"
-                :show-tabs="relationTabs &&  relationTabs.length"
-                :table="nodes.tn"
-                :nodes="nodes"
-                :newTable="newTableCopy"
-                :mtdNewTableUpdate="mtdNewTableUpdate"
-                :deleteTable="deleteTable"
-                :is-meta-table="isMetaTable"
-                :addNewRelationTab="addNewRelationTab"
-              />
+            style="height:100%">
+            <rows-xc-data-table
+              ref="tabs7"
+              :show-tabs="relationTabs &&  relationTabs.length"
+              :table="nodes.tn"
+              :nodes="nodes"
+              :newTable="newTableCopy"
+              :mtdNewTableUpdate="mtdNewTableUpdate"
+              :deleteTable="deleteTable"
+              :is-meta-table="isMetaTable"
+              :addNewRelationTab="addNewRelationTab"
+            />
           </v-tab-item>
         </template>
         <!-- Closable tabs : START -->
@@ -344,11 +345,11 @@
             <v-tooltip bottom nudge-bottom="">
               <template v-slot:activator="{on}">
                 <div v-on="on">
-<!--                  <span class="rel-row-parent"> {{ refTable }} - {{ primaryValue }} </span>-->
+                  <!--                  <span class="rel-row-parent"> {{ refTable }} - {{ primaryValue }} </span>-->
                   <v-icon small>mdi-table-arrow-{{ relationType === 'hm' ? 'right' : 'left' }}</v-icon>&nbsp;
                   <span
                     class="caption font-weight-bold text-capitalize">
-                      {{ refTableAlias }} ({{ ((primaryValue || '') + '').slice(0,13) }}) ->
+                      {{ refTableAlias }} ({{ ((primaryValue || '') + '').slice(0, 13) }}) ->
                     {{ tableAlias }}
                   </span>
                   <v-icon icon @click="removeRelationTab(i)" x-small class="ml-2">mdi-close</v-icon>
@@ -469,8 +470,18 @@ export default {
     };
   },
   methods: {
-    addNewRelationTab(relation, refTable,refTableAlias, table,tableAlias, relationIdValue, relationType, relationRow, primaryValue) {
-      this.relationTabs.push({relation, refTable, table, relationIdValue, relationType, relationRow, primaryValue,refTableAlias,tableAlias});
+    addNewRelationTab(relation, refTable, refTableAlias, table, tableAlias, relationIdValue, relationType, relationRow, primaryValue) {
+      this.relationTabs.push({
+        relation,
+        refTable,
+        table,
+        relationIdValue,
+        relationType,
+        relationRow,
+        primaryValue,
+        refTableAlias,
+        tableAlias
+      });
       this.active = 'relRow' + (this.relationTabs.length - 1);
     },
     removeRelationTab(i) {
@@ -641,6 +652,7 @@ export default {
 .table-tabs, /deep/ .table-tabs > .v-windows {
   height: 100%;
 }
+
 /deep/ .v-window-item {
   height: 100%
 }

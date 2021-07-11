@@ -1,32 +1,51 @@
 <template>
-  <v-select v-on="parentListeners" v-model="localState" dense flat :items="enumValues" hide-details class="mt-0" :clearable="!column.rqd">
-    <!--    <option v-for="eVal of enumValues" :key="eVal" :value="eVal">{{ eVal }}</option>-->
-    <template v-slot:selection="{item}">
-      <div class="d-100  pl-4" :class="{
-        'text-center' : !isForm
-      }">
-        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">{{ item }}</v-chip>
-      </div>
-    </template>
-    <template v-slot:item="{item}">
-      <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">{{ item }}</v-chip>
-    </template>
-    <template v-slot:append>
-      <v-icon small class="mt-1">mdi-menu-down</v-icon>
-    </template>
-  </v-select>
+  <div>
+    <!--    <select v-on="parentListeners"  v-model="localState" multiple>
+          <option v-for="val of setValues" :key="val" :value="val">{{ val }}</option>
+        </select>-->
+
+    <v-combobox
+      v-model="localState"
+      :items="setValues"
+      multiple
+      chips
+      flat
+      dense
+      solo
+      hide-details
+      deletable-chips
+      class="text-center mt-0 "
+    >
+      <template v-slot:selection="data">
+        <v-chip
+          small class="ma-1 "
+          :key="data"
+          :color="colors[setValues.indexOf(data.item) % colors.length]"
+          @click:close="data.parent.selectItem(data.item)"
+        >
+          {{ data.item }}
+        </v-chip>
+      </template>
+
+
+      <template v-slot:item="{item}">
+        <v-chip small :color="colors[setValues.indexOf(item) % colors.length]">{{ item }}</v-chip>
+      </template>
+      <template v-slot:append>
+        <v-icon small class="mt-2">mdi-menu-down</v-icon>
+      </template>
+    </v-combobox>
+  </div>
 </template>
 
 <script>
 import colors from "@/mixins/colors";
 
 export default {
-  name: "enum-list-editable-cell",
-
+  name: "set-list-editable-cell",
   props: {
     value: String,
-    column: Object,
-    isForm:Boolean
+    column: Object
   },
   mixins: [colors],
   mounted() {
@@ -39,14 +58,14 @@ export default {
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value && this.value.split(',')
       },
       set(val) {
-        this.$emit('input', val);
+        this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','));
         this.$emit('update');
       }
     },
-    enumValues() {
+    setValues() {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
@@ -69,9 +88,17 @@ export default {
 </script>
 
 <style scoped>
-/deep/ .v-select{
-  min-width: 150px;
+select {
+  width: 100%;
+  height: 100%;
+  color: var(--v-textColor-base);
+  -webkit-appearance: menulist;
+  /*webkit browsers */
+  -moz-appearance: menulist;
+  /*Firefox */
+  appearance: menulist;
 }
+
 </style>
 <!--
 /**

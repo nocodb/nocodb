@@ -60,10 +60,10 @@ export default class NcProjectBuilder {
         let routeInfo;
         if (meta instanceof RestApiBuilder) {
           console.log(`Creating REST APIs ${meta.getDbType()} - > ${meta.getDbName()}`);
-          routeInfo = await (meta as RestApiBuilder).loadRoutes(null);
+          routeInfo = await (meta as RestApiBuilder).init();
         } else if (meta instanceof GqlApiBuilder) {
           console.log(`Creating GraphQL APIs ${meta.getDbType()} - > ${meta.getDbName()}`);
-          routeInfo = await (meta as GqlApiBuilder).loadResolvers(null);
+          routeInfo = await (meta as GqlApiBuilder).init();
         }
         allRoutesInfo.push(routeInfo);
         this.progress(routeInfo, allRoutesInfo, isFirstTime);
@@ -90,6 +90,9 @@ export default class NcProjectBuilder {
         this.authHook = await this.app.ncMeta.metaGet(this.id, 'db', 'nc_hooks', {
           type: 'AUTH_MIDDLEWARE'
         });
+        break;
+      case 'xcM2MRelationCreate':
+        await curBuilder.onManyToManyRelationCreate(data.req.args.parentTable, data.req.args.childTable, data.req.args);
         break;
 
       case 'relationCreate':
@@ -126,13 +129,19 @@ export default class NcProjectBuilder {
         });
         console.log(`Added new relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`)
         break;
-
       case 'xcVirtualRelationDelete':
         await curBuilder.onRelationDelete(data.req.args.parentTable, data.req.args.childTable, {
           ...data.req.args,
           virtual: true
         });
-        console.log(`Deleted relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`)
+        console.log(`Added new relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`)
+        break;
+
+      case 'xcRelationColumnDelete':
+        if (data.req.args?.type === 'mm') {
+          await curBuilder.onManyToManyRelationDelete(data.req.args.parentTable, data.req.args.childTable)
+        }
+
         break;
 
 
@@ -214,6 +223,10 @@ export default class NcProjectBuilder {
 
       case 'xcModelSet':
         await curBuilder.onValidationUpdate(data.req.args.tn);
+        console.log(`Updated validations for table : ${data.req.args.tn}`)
+        break;
+      case 'xcUpdateVirtualKeyAlias':
+        await curBuilder.onVirtualColumnAliasUpdate(data.req.args.tn);
         console.log(`Updated validations for table : ${data.req.args.tn}`)
         break;
 

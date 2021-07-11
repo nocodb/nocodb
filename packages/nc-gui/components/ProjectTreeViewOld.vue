@@ -153,7 +153,7 @@
               <v-tooltip bottom>
                 <template v-slot:activator="{on}">
                   <div class="d-100 d-flex" v-on="on">
-                    <v-icon color="orange" class="mr-1" small>mdi-settings</v-icon>
+                    <v-icon color="orange" class="mr-1" small>mdi-cog</v-icon>
                     <span>Settings</span>
                   </div>
                 </template>

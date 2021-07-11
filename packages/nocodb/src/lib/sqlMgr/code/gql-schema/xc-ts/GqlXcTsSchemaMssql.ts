@@ -1,10 +1,7 @@
-import BaseRender from "../../BaseRender";
-import inflection from "inflection";
-import lodash from "lodash";
-import {AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS} from "./schemaHelp";
+import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
 
 
-class GqlXcTsSchemaMssql extends BaseRender {
+class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
 
   /**
    *
@@ -19,35 +16,16 @@ class GqlXcTsSchemaMssql extends BaseRender {
     super({dir, filename, ctx});
   }
 
-  /**
-   *  Prepare variables used in code template
-   */
-  prepare() {
+/*
 
-    let data:any = {};
-
-    /* example of simple variable */
-    data.tn = this.ctx.tn_camelize;
-
-    data.columns = {
-      func: this._renderColumns.bind(this),
-      args: this.ctx
-    };
-
-    return data;
-
-  }
-
-
-
-  /**
+  /!**
    *
    * @param args
    * @param args.columns
    * @param args.relations
    * @returns {string}
    * @private
-   */
+   *!/
   _renderColumns(args) {
 
     let str = '';
@@ -97,7 +75,7 @@ class GqlXcTsSchemaMssql extends BaseRender {
   _getMutation(args) {
     let str = `type Mutation { \r\n`
     str += `\t\t${args.tn_camelize}Create(data:${args.tn_camelize}Input): ${args.tn_camelize}\r\n`
- str += `\t\t${args.tn_camelize}Update(id:String,data:${args.tn_camelize}Input):  Int\r\n` //${args.tn_camelize}\r\n`
+    str += `\t\t${args.tn_camelize}Update(id:String,data:${args.tn_camelize}Input):  Int\r\n` //${args.tn_camelize}\r\n`
     str += `\t\t${args.tn_camelize}Delete(id:String): Int\r\n`//${args.tn_camelize}\r\n`
     str += `\t\t${args.tn_camelize}CreateBulk(data: [${args.tn_camelize}Input]): [Int]\r\n`
     str += `\t\t${args.tn_camelize}UpdateBulk(data: [${args.tn_camelize}Input]): [Int]\r\n`
@@ -130,6 +108,8 @@ class GqlXcTsSchemaMssql extends BaseRender {
       strWhere += `\t\t${childTable}List: Condition${childTable}\r\n`;
       str += `\t\t${childTable}Count: Int\r\n`;
     }
+
+    str += this.generateManyToManyTypeProps(args);
 
     let belongsToRelations = args.relations.filter(r => r.tn === args.tn);
     if (belongsToRelations.length > 1)
@@ -186,9 +166,10 @@ class GqlXcTsSchemaMssql extends BaseRender {
 
     return `${str}\r\n\r\n${strWhere}`;
   }
+*/
 
 
-  _getGraphqlType(columnObj):any {
+  _getGraphqlType(columnObj): any {
 
     switch (columnObj.dt) {
 
@@ -217,14 +198,11 @@ class GqlXcTsSchemaMssql extends BaseRender {
       case 'datetime':
       case 'datetime2':
       case 'datetimeoffset':
-      case 'geography':
-      case 'geometry':
       case 'heirarchyid':
       case 'image':
       case 'nchar':
       case 'ntext':
       case 'nvarchar':
-      case 'json':
       case 'smalldatetime':
       case 'smallmoney':
       case 'sql_variant':
@@ -240,11 +218,17 @@ class GqlXcTsSchemaMssql extends BaseRender {
         return "String";
         break;
 
+
+      case 'geography':
+      case 'geometry':
+      case 'json':
+        return 'JSON';
+
     }
 
   }
 
-  _getGraphqlConditionType(columnObj):any {
+  _getGraphqlConditionType(columnObj): any {
 
     switch (this._getGraphqlType(columnObj.dt)) {
 
@@ -258,13 +242,15 @@ class GqlXcTsSchemaMssql extends BaseRender {
         return 'ConditionString'
       case "[String]":
         return 'ConditionString'
+      case "JSON":
+        return 'ConditionString'
     }
 
   }
 
-  getString() {
+/*  getString() {
     return this._renderColumns(this.ctx);
-  }
+  }*/
 
 }
 

@@ -510,27 +510,27 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             })
         });
     })
-    /**** Country : START ****/
-    describe('Country', function () {
+    /**** country : START ****/
+    describe('country', function () {
 
       /**** Query : START ****/
-      it('CountryList', function (done) {
+      it('countryList', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
           .set('xc-auth', token)
           .send({
-            query: `{ CountryList(limit:5){ country_id country } }`
+            query: `{ countryList(limit:5){ country_id country } }`
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const list = res.body.data.CountryList;
+            const list = res.body.data.countryList;
             expect(list).length.to.be.most(5)
             expect(list[0]).to.have.all.keys(['country_id', 'country'])
             done()
           })
       });
 
-      it('CountryList - with sort', function (done) {
+      it('countryList - with sort', function (done) {
         // todo: order -> sort
 
         request(app)
@@ -538,11 +538,11 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryList(sort:"-country_id"){ country_id country } }`
+            query: `{ countryList(sort:"-country_id"){ country_id country } }`
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const list = res.body.data.CountryList;
+            const list = res.body.data.countryList;
             expect(list[0]).to.have.all.keys(['country_id', 'country'])
 
             expect(list).satisfy(array => {
@@ -557,45 +557,45 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           })
       });
 
-      it('CountryList - with limit', function (done) {
+      it('countryList - with limit', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryList(limit:6){ country_id country } }`
+            query: `{ countryList(limit:6){ country_id country } }`
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const list = res.body.data.CountryList;
+            const list = res.body.data.countryList;
             expect(list[0]).to.have.all.keys(['country_id', 'country'])
             expect(list).to.have.length.most(6)
             done()
           })
       });
 
-      it('CountryList - with offset', function (done) {
+      it('countryList - with offset', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryList(offset:0,limit:6){ country_id country } }`
+            query: `{ countryList(offset:0,limit:6){ country_id country } }`
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const list1 = res.body.data.CountryList;
+            const list1 = res.body.data.countryList;
             expect(list1[0]).to.have.all.keys(['country_id', 'country'])
             request(app)
               .post(`/nc/${projectId}/v1/graphql`)
 
               .set('xc-auth', token)
               .send({
-                query: `{ CountryList(offset:1,limit:5){ country_id country } }`
+                query: `{ countryList(offset:1,limit:5){ country_id country } }`
               })
               .expect(200, function (err, res1) {
                 if (err) done(err);
-                const list2 = res1.body.data.CountryList;
+                const list2 = res1.body.data.countryList;
                 expect(list2[0]).to.have.all.keys(['country_id', 'country'])
                 expect(list2).satisfy(arr => arr.every(({country, country_id}, i) =>
                   country === list1[i + 1].country && country_id === list1[i + 1].country_id
@@ -606,58 +606,58 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           })
       });
 
-      it('CountryList - nested count', function (done) {
+      it('countryList - nested count', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryList{ country_id country CityCount} }`
+            query: `{ countryList{ country_id country cityCount} }`
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const list = res.body.data.CountryList;
-            expect(list[0]).to.have.all.keys(['country_id', 'country', 'CityCount'])
-            expect(list[0].CityCount).to.be.a('number')
-            expect(list[0].CityCount % 1).to.be.equal(0);
+            const list = res.body.data.countryList;
+            expect(list[0]).to.have.all.keys(['country_id', 'country', 'cityCount'])
+            expect(list[0].cityCount).to.be.a('number')
+            expect(list[0].cityCount % 1).to.be.equal(0);
             done()
           })
       });
 
-      it('CountryList - nested CityList', function (done) {
+      it('countryList - nested cityList', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryList{ country_id country CityList { city country_id }} }`
+            query: `{ countryList{ country_id country cityList { city country_id }} }`
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const list = res.body.data.CountryList;
-            expect(list[0]).to.have.all.keys(['country_id', 'country', 'CityList'])
-            expect(list[0].CityList).to.be.a('Array')
+            const list = res.body.data.countryList;
+            expect(list[0]).to.have.all.keys(['country_id', 'country', 'cityList'])
+            expect(list[0].cityList).to.be.a('Array')
             if (dbConfig.client !== 'mssql') {
-              expect(list[0].CityList[0]).to.be.a('object');
-              expect(list[0].CityList[0]).to.have.all.keys(['country_id', 'city'])
-              expect(Object.keys(list[0].CityList[0])).to.have.length(2)
-              expect(list[0].CityList[0].country_id).to.be.equal(list[0].country_id)
+              expect(list[0].cityList[0]).to.be.a('object');
+              expect(list[0].cityList[0]).to.have.all.keys(['country_id', 'city'])
+              expect(Object.keys(list[0].cityList[0])).to.have.length(2)
+              expect(list[0].cityList[0].country_id).to.be.equal(list[0].country_id)
             }
             done()
           })
       });
 
-      it('CountryRead', function (done) {
+      it('countryRead', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryRead(id: "1"){ country_id country } } `
+            query: `{ countryRead(id: "1"){ country_id country } } `
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const data = res.body.data.CountryRead;
+            const data = res.body.data.countryRead;
             expect(data).to.be.a('object')
             expect(data).to.have.all.keys(['country_id', 'country'])
 
@@ -665,51 +665,51 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           })
       });
 
-      it('CountryExists', function (done) {
+      it('countryExists', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryExists(id: "1") } `
+            query: `{ countryExists(id: "1") } `
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const data = res.body.data.CountryExists;
+            const data = res.body.data.countryExists;
             expect(data).to.be.a('boolean')
             expect(data).to.be.equal(true)
             done()
           })
       });
 
-      it('CountryExists - with non-existing id', function (done) {
+      it('countryExists - with non-existing id', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryExists(id: "30000") } `
+            query: `{ countryExists(id: "30000") } `
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const data = res.body.data.CountryExists;
+            const data = res.body.data.countryExists;
             expect(data).to.be.a('boolean')
             expect(data).to.be.equal(false)
             done()
           })
       });
 
-      it('CountryFindOne', function (done) {
+      it('countryFindOne', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryFindOne (where: "(country_id,eq,1)"){ country country_id } } `
+            query: `{ countryFindOne (where: "(country_id,eq,1)"){ country country_id } } `
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const data = res.body.data.CountryFindOne;
+            const data = res.body.data.countryFindOne;
             expect(data).to.be.a('object')
             expect(data).to.have.all.keys(['country', 'country_id'])
             expect(data.country_id).to.be.equal(1);
@@ -717,34 +717,34 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           })
       });
 
-      it('CountryCount - filter by id', function (done) {
+      it('countryCount - filter by id', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryCount (where: "(country_id,eq,1)") } `
+            query: `{ countryCount (where: "(country_id,eq,1)") } `
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const data = res.body.data.CountryCount;
+            const data = res.body.data.countryCount;
             expect(data).to.be.a('number')
             expect(data).to.be.equal(1);
             done()
           })
       });
 
-      it('CountryDistinct', function (done) {
+      it('countryDistinct', function (done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
           .set('xc-auth', token)
           .send({
-            query: `{ CountryDistinct(column_name: "last_update") { last_update } } `
+            query: `{ countryDistinct(column_name: "last_update") { last_update } } `
           })
           .expect(200, function (err, res) {
             if (err) done(err);
-            const data = res.body.data.CountryDistinct;
+            const data = res.body.data.countryDistinct;
             expect(data).to.be.a('array')
             expect(data[0]).to.be.a('object')
             expect(data[0]).to.have.all.keys(['last_update'])
@@ -754,17 +754,17 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       });
 
       if (dbConfig.client !== 'mssql') {
-        it('CountryGroupBy', function (done) {
+        it('countryGroupBy', function (done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
             .set('xc-auth', token)
             .send({
-              query: `{ CountryGroupBy(fields: "last_update",limit:5) { last_update count  } } `
+              query: `{ countryGroupBy(fields: "last_update",limit:5) { last_update count  } } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
-              const data = res.body.data.CountryGroupBy;
+              const data = res.body.data.countryGroupBy;
               expect(data.length).to.be.most(5);
               expect(data[0].count).to.be.greaterThan(0);
               expect(data[0].last_update).to.be.a('string');
@@ -773,17 +773,17 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             })
         });
 
-        it('CountryGroupBy - Multiple', function (done) {
+        it('countryGroupBy - Multiple', function (done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
             .set('xc-auth', token)
             .send({
-              query: `{ CountryGroupBy(fields: "last_update,country",limit:5) { last_update country count  } } `
+              query: `{ countryGroupBy(fields: "last_update,country",limit:5) { last_update country count  } } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
-              const data = res.body.data.CountryGroupBy;
+              const data = res.body.data.countryGroupBy;
               expect(data.length).to.be.most(5);
               expect(data[0].count).to.be.greaterThan(0);
               expect(data[0].last_update).to.be.a('string');
@@ -793,17 +793,17 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             })
         });
 
-        it('CountryAggregate', function (done) {
+        it('countryAggregate', function (done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
             .set('xc-auth', token)
             .send({
-              query: `{ CountryAggregate(func: "sum,avg,min,max,count", column_name : "country_id") { sum avg min max count  } } `
+              query: `{ countryAggregate(func: "sum,avg,min,max,count", column_name : "country_id") { sum avg min max count  } } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
-              const data = res.body.data.CountryAggregate;
+              const data = res.body.data.countryAggregate;
               expect(data).to.be.a('array');
               if (data.length) {
                 expect(data[0].min).to.be.a('number');
@@ -817,17 +817,17 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             })
         });
 
-        it('CountryDistribution', function (done) {
+        it('countryDistribution', function (done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
             .set('xc-auth', token)
             .send({
-              query: `{ CountryDistribution(column_name : "country_id") { range count  } } `
+              query: `{ countryDistribution(column_name : "country_id") { range count  } } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
-              const data = res.body.data.CountryDistribution;
+              const data = res.body.data.countryDistribution;
               expect(data).to.be.a('array');
               expect(data[0].count).to.be.a('number');
               expect(data[0].count).satisfies(num => num === parseInt(num) && num >= 0, 'should be a positive integer');
@@ -867,16 +867,16 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           done()
         })
 
-        it('CountryCreate', function (done) {
+        it('countryCreate', function (done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
             .set('xc-auth', token)
             .send({
-              query: `mutation{ CountryCreate( data : { country: "abcd" ${dbConfig.client === 'sqlite3' ? ' country_id : 999 ' : ''} }) { country_id country } } `
+              query: `mutation{ countryCreate( data : { country: "abcd" ${dbConfig.client === 'sqlite3' ? ' country_id : 999 ' : ''} }) { country_id country } } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
-              const data = res.body.data.CountryCreate;
+              const data = res.body.data.countryCreate;
               expect(data).to.be.a('object');
               expect(data.country_id).to.be.a('number');
               expect(data.country).to.be.equal('abcd');
@@ -885,34 +885,34 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
         });
 
 
-        it('CountryUpdate', function (done) {
+        it('countryUpdate', function (done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
             .set('xc-auth', token)
             .send({
-              query: `mutation{ CountryUpdate( id : "${COUNTRY_ID}", data : { country: "abcd" })  } `
+              query: `mutation{ countryUpdate( id : "${COUNTRY_ID}", data : { country: "abcd" })  } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
-              const data = res.body.data.CountryUpdate;
+              const data = res.body.data.countryUpdate;
               expect(data).to.be.a('number');
               // todo:
               done();
             })
         });
 
-        it('CountryDelete', function (done) {
+        it('countryDelete', function (done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
             .set('xc-auth', token)
             .send({
-              query: `mutation{ CountryDelete( id : "${COUNTRY_ID}") }  `
+              query: `mutation{ countryDelete( id : "${COUNTRY_ID}") }  `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
-              const data = res.body.data.CountryDelete;
+              const data = res.body.data.countryDelete;
               expect(data).to.be.a('number')
               // todo:
               done();
@@ -922,12 +922,12 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
 
 
       /**** Mutation : END ****/
-      // 		CountryCreateBulk(data: [CountryInput]): [Int]
-      // 		CountryUpdateBulk(data: [CountryInput]): [Int]
-      // 		CountryDeleteBulk(data: [CountryInput]): [Int]
+      // 		countryCreateBulk(data: [countryInput]): [Int]
+      // 		countryUpdateBulk(data: [countryInput]): [Int]
+      // 		countryDeleteBulk(data: [countryInput]): [Int]
       // 	},
     });
-    /**** Country : END ****/
+    /**** country : END ****/
   });
 });/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -77,7 +77,7 @@
                     v-if="col.virtual"
                     :disabledColumns="disabledColumns"
                     :column="col"
-                    :row="value"
+                    :row="localState"
                     :nodes="nodes"
                     :meta="meta"
                     :api="api"
@@ -87,7 +87,7 @@
                     :is-form="true"
                     :breadcrumbs="localBreadcrumbs"
                     @updateCol="updateCol"
-                    @newRecordsSaved="$listeners.loadTableData || (() => {})"
+                    @newRecordsSaved="$listeners.loadTableData|| reload"
                   ></virtual-cell>
 
                   <div
@@ -357,7 +357,7 @@ export default {
     },
     async reload() {
       // const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
-      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and');
+      const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${this.value[c._cn]})`).join('~and');
       this.$set(this, 'changedColumns', {});
       // this.localState = await this.api.read(id);
       const data = await this.api.list({...(this.queryParams || {}), where}) || [{}];

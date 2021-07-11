@@ -163,9 +163,7 @@ export default {
     localState: []
   }),
   async mounted() {
-    if (this.isForm) {
-      await this.loadChildMeta()
-    }
+    await this.loadChildMeta()
   },
   methods: {
     async showChildListModal() {

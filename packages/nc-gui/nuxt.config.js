@@ -127,6 +127,9 @@ export default {
     publicPath: process.env.NODE_ENV === 'production' ? `./_nuxt/` : undefined,
     extend(config, {isDev, isClient}) {
 
+      if (isDev) {
+        config.devtool = isClient ? 'source-map' : 'inline-source-map'
+      }
 
       config.externals = config.externals || {};
       config.externals ['@microsoft/typescript-etw'] = 'FakeModule';

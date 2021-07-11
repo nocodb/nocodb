@@ -147,11 +147,11 @@ export default {
           if (this.type === 'mm')
             return !(this.meta.manyToMany || [])
                 .some(mm => mm.tn === v && mm.rtn === this.meta.tn || mm.rtn === v && mm.tn === this.meta.tn)
-              || 'Duplicate relation is not allowed at the moment';
+              || 'Duplicate many to many relation is not allowed at the moment';
           if (this.type === 'hm')
             return !(this.meta.hasMany || [])
                 .some(hm => hm.tn === v)
-              || 'Duplicate relation is not allowed at the moment';
+              || 'Duplicate has many relation is not allowed at the moment';
         },
       ]
     }

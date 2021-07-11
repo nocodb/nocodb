@@ -108,7 +108,7 @@ export default {
   components: {Pagination},
   props: {
     isForm: Boolean,
-    bt: Boolean,
+    bt: Object,
     localState: [Array],
     isNew: Boolean,
     value: Boolean,

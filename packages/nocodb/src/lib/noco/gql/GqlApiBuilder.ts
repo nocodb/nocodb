@@ -1886,6 +1886,38 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     await this.reInitializeGraphqlEndpoint();
   }
+
+
+  protected async ncUpManyToMany(): Promise<any> {
+    const metas = await super.ncUpManyToMany();
+
+    if (!metas) {
+      return;
+    }
+    for (const meta of metas) {
+      const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
+
+      /* generate gql schema of the table */
+      const schema = GqlXcSchemaFactory.create(this.connectionConfig, {
+        dir: '',
+        ctx,
+        filename: ''
+      }).getString();
+
+      /* update schema in metadb */
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema
+      }, {
+        title: meta.tn
+      })
+
+      // todo : add loaders
+
+    }
+
+  }
+
+
 }
 
 /**

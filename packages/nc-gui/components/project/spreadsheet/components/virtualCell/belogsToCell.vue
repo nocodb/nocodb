@@ -21,6 +21,7 @@
       </div>
     </template>
     <list-items
+      :key="parentId"
       v-if="newRecordModal"
       :size="10"
       :meta="parentMeta"
@@ -29,7 +30,7 @@
       v-model="newRecordModal"
       :api="parentApi"
       @add-new-record="insertAndMapNewParentRecord"
-      @add="addParentToChild"
+      @add="addChildToParent"
       :query-params="parentQueryParams"
     />
 
@@ -52,7 +53,7 @@
       @new-record="showNewRecordModal"
       @edit="editParent"
       @unlink="unlink"
-      :bt="true"
+      :bt="value"
     />
 
     <v-dialog
@@ -133,6 +134,7 @@ export default {
     isNewParent: false,
     expandFormModal: false,
     localState: null,
+    pid: null
   }),
   async mounted() {
     if (this.isForm) {
@@ -142,7 +144,7 @@ export default {
   methods: {
     async onParentSave(parent) {
       if (this.isNewParent) {
-        await this.addParentToChild(parent)
+        await this.addChildToParent(parent)
       } else {
         this.$emit('loadTableData')
       }
@@ -193,6 +195,7 @@ export default {
         } else {
           const id = this.parentMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
           await this.parentApi.delete(id)
+          this.pid = null;
           this.dialogShow = false;
           this.$emit('loadTableData')
           if (this.isForm && this.$refs.childList) {
@@ -222,7 +225,7 @@ export default {
       await this.loadParentMeta();
       this.newRecordModal = true;
     },
-    async addParentToChild(parent) {
+    async addChildToParent(parent) {
 
       const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join('___');
       const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
@@ -238,8 +241,9 @@ export default {
       await this.api.update(id, {
         [_cn]: +pid
       }, {
-        [_cn]: parent[this.parentPrimaryKey]
+        [_cn]: this.value && this.value[this.parentPrimaryKey]
       });
+      this.pid = pid;
 
       this.newRecordModal = false;
 
@@ -268,7 +272,7 @@ export default {
           this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this, this.parentMeta) : null;
     },
     parentId() {
-      return this.value && this.parentMeta && this.parentMeta.columns.filter((c) => c.pk).map(c => this.value[c._cn]).join('___')
+      return this.pid ?? (this.value && this.parentMeta && this.parentMeta.columns.filter((c) => c.pk).map(c => this.value[c._cn]).join('___'))
     },
     parentPrimaryCol() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn

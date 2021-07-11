@@ -1900,7 +1900,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       /* generate gql schema of the table */
       const schema = GqlXcSchemaFactory.create(this.connectionConfig, {
         dir: '',
-        ctx,
+        ctx: {
+          ...ctx,
+          manyToMany: meta.manyToMany
+        },
         filename: ''
       }).getString();
 

@@ -1325,7 +1325,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   protected async ncUpManyToMany(): Promise<any> {
     const models = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models', {
-      fields: ['meta']
+      fields: ['meta'],
+      condition: {
+        type: 'table'
+      }
     });
     if (!models.length) {
       return

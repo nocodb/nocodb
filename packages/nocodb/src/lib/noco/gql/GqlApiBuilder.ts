@@ -1911,7 +1911,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         schema
       }, {
-        title: meta.tn
+        title: meta.tn,
+        type: 'table'
       })
 
       // todo : add loaders

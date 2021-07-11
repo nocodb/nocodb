@@ -786,9 +786,9 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             expect(res.body).to.be.a('array');
             expect(res.body[0]).to.be.a('object');
             expect(res.body[0].country).to.be.a('string');
-            expect(res.body[0].city).to.be.a('array');
-            expect(res.body[0].city[0]).to.be.a('object');
-            expect(res.body[0].city[0].city).to.be.a('string');
+            expect(res.body[0].cityList).to.be.a('array');
+            expect(res.body[0].cityList[0]).to.be.a('object');
+            expect(res.body[0].cityList[0].city).to.be.a('string');
             done();
           })
         })
@@ -914,7 +914,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       /**************** START : belongsTo ****************/
       describe('City BelngsTo Country Api', function () {
 
-        it('has city - GET - /api/v1/country/has/city(:childs)?', function (done) {
+        it('city belongs to country - GET - /api/v1/city/belongs/country', function (done) {
           // get last inserted 5 entry by sorting db data in reverse order based on id
           request(app)
             .get(`/nc/${projectId}/api/v1/city/belongs/country?limit=10`)
@@ -924,7 +924,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
               expect(res.body).to.be.a('array');
               expect(res.body[0]).to.be.a('object');
               expect(res.body[0].city).to.be.a('string');
-              expect(res.body[0].country).to.be.a('object');
+              expect(res.body[0].countryRead).to.be.a('object');
               expect(res.body.length).to.be.most(10)
               done();
             })

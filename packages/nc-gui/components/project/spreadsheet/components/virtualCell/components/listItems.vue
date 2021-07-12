@@ -11,13 +11,13 @@
           hide-details
           dense
           outlined
-          placeholder="Search records"
+          placeholder="Filter query"
           v-model="query"
           class=" caption search-field ml-2"
           @keydown.enter="loadData"
         >
           <template #append>
-            <x-icon tooltip="Change page" small icon.class="mt-1" @click="loadData">mdi-keyboard-return
+            <x-icon tooltip="Apply filter" small icon.class="mt-1" @click="loadData">mdi-keyboard-return
             </x-icon>
           </template>
         </v-text-field>
@@ -84,7 +84,7 @@ export default {
   components: {Pagination},
   props: {
     value: Boolean,
-    hm: [Object, Function],
+    hm: [Object, Function, Boolean],
     title: {
       type: String,
       default: 'Link Record'
@@ -117,7 +117,7 @@ export default {
       if (!this.api) return;
 
       let where = this.queryParams.where || '';
-      if (this.query){
+      if (this.query) {
         where += (where ? '~and' : '') + `(${this.primaryCol},like,%${this.query}%)`;
       }
 

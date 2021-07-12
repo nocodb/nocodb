@@ -437,7 +437,7 @@ export default {
 
       this.newColumn.dtx = 'specificType';
 
-      this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
+      // this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
 
       this.newColumn.altered = this.newColumn.altered || 2;
     },

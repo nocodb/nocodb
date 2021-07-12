@@ -1,5 +1,4 @@
 <template>
-  <v-lazy>
   <div
     @keydown.stop.left
     @keydown.stop.right
@@ -66,7 +65,6 @@
 
     <text-cell v-else v-model="localState" v-on="$listeners"></text-cell>
   </div>
-  </v-lazy>
 </template>
 
 <script>
@@ -106,7 +104,7 @@ export default {
   },
   props: {
     dbAlias: String,
-    value: [String, Number, Object, Boolean],
+    value: [String, Number, Object, Boolean,Array,Object],
     meta: Object,
     ignoreFocus: Boolean,
     isForm: Boolean,

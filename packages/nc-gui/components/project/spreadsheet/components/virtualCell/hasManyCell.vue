@@ -123,6 +123,9 @@ import listChildItemsModal
   from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
 import {parseIfInteger} from "@/helpers";
 
+
+// todo: handling add new record for new row
+
 export default {
   name: "has-many-cell",
   components: {
@@ -276,9 +279,11 @@ export default {
         [this.childForeignKey]: parseIfInteger(this.parentId)
       };
       this.expandFormModal = true;
-      setTimeout(() => {
-        this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
-      }, 500)
+      if (!this.isNew) {
+        setTimeout(() => {
+          this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
+        }, 500)
+      }
     },
     getCellValue(cellObj) {
       if (cellObj) {

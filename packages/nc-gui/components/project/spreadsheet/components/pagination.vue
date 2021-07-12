@@ -31,9 +31,9 @@
 <script>
 export default {
   props: {
-    count: Number,
-    value: Number,
-    size: Number,
+    count: [Number, String],
+    value: [Number, String],
+    size: [Number, String],
   },
   data: () => ({
     page: 1

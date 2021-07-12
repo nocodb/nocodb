@@ -1,5 +1,4 @@
 <template>
-  <v-lazy>
     <editable-attachment-cell
       :isLocked="isLocked"
       :db-alias="dbAlias"
@@ -8,7 +7,6 @@
     <!--  <enum-list-editable-cell @click.stop="$emit('enableedit')" v-else-if="isEnum && selected" :value="value" :column="column"></enum-list-editable-cell>-->
     <enum-cell @click.stop="$emit('enableedit')" v-else-if="isEnum" :value="value" :column="column"></enum-cell>
     <span v-else>{{ value }}</span>
-  </v-lazy>
 </template>
 
 <script>

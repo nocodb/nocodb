@@ -350,6 +350,26 @@ export const actions = {
 
       }
 
+      // clear meta cache on relation create/delete
+      // todo: clear only necessary metas
+      // todo: include missing operations
+      if ([
+        // 'xcModelSet',
+        'xcM2MRelationCreate',
+        'xcVirtualRelationCreate',
+        'relationCreate',
+        'relationDelete',
+        'xcVirtualRelationDelete',
+        'xcRelationColumnDelete'
+      ].includes(op)) {
+        if (opArgs.parentTable) {
+          dispatch('meta/ActLoadMeta', {...args, ...params, tn: opArgs.parentTable, force: true}, {root: true})
+        }
+        if (opArgs.childTable) {
+          dispatch('meta/ActLoadMeta', {...args, ...params, tn: opArgs.childTable, force: true}, {root: true})
+        }
+      }
+
       commit('notification/MutListRemove', {status: 'success', ...data}, {root: true});
       return result;
     } catch (e) {
@@ -360,7 +380,7 @@ export const actions = {
   },
 
 
-  async ActSqlOp({commit, state, rootState}, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams]) {
+  async ActSqlOp({commit, state, rootState, dispatch}, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams]) {
     const params = {};
     if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
       params.project_id = this.$router.currentRoute.params.project_id;
@@ -388,33 +408,25 @@ export const actions = {
       })).data;
 
 
-    /*  // clear meta cache on relation create/delete
+      // clear meta cache on relation create/delete
       // todo: clear only necessary metas
       // todo: include missing operations
       if ([
-        'xcModelSet',
-        'relationCreate',
+        // 'xcModelSet',
         'xcM2MRelationCreate',
         'xcVirtualRelationCreate',
+        'relationCreate',
         'relationDelete',
         'xcVirtualRelationDelete',
         'xcRelationColumnDelete'
       ].includes(op)) {
-        commit('meta/MutClear', null, {root: true})
-      }
-
-
-      if (op === 'tableXcModelGet') {
-        try {
-          const meta = JSON.parse(data.meta);
-          commit('meta/MutMeta', {
-            key: meta.tn,
-            value: meta
-          }, {root: true})
-        } catch (e) {
-          //  ignore
+        if (opArgs.parentTable) {
+          dispatch('meta/ActLoadMeta', {...args, ...params, tn: opArgs.parentTable, force: true}, {root: true})
         }
-      }*/
+        if (opArgs.childTable) {
+          dispatch('meta/ActLoadMeta', {...args, ...params, tn: opArgs.childTable, force: true}, {root: true})
+        }
+      }
 
       return data;
     } catch (e) {

@@ -16,7 +16,7 @@ export default {
       type: String,
       default: "vs"
     },
-    language: String,
+    lang: String,
     options: Object,
     readOnly: Boolean,
     amdRequire: {

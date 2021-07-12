@@ -386,7 +386,7 @@
                   class="editor card"
                   theme="vs-dark"
                   v-model="api.body"
-                  language="json"
+                  lang="json"
                   :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
                 >
                 </monaco-json-editor>

@@ -1,4 +1,3 @@
-import settings from "@/components/settings";
 
 export const state = () => ({});
 
@@ -41,7 +40,7 @@ export const actions = {
         settings
       })
     } catch (e) {
-      console.log(e)
+      //  ignore
     }
   }
 }

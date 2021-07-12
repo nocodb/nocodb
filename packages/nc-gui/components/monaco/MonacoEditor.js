@@ -1,7 +1,6 @@
 /* eslint-disable  */
 import assign from "nano-assign";
 import sqlAutoCompletions from "./sqlAutoCompletions";
-// import {ext} from "vee-validate/dist/rules.esm";
 
 
 export default {
@@ -13,7 +12,7 @@ export default {
       type: String,
       default: "vs"
     },
-    language: String,
+    lang: String,
     options: Object,
     readOnly: Boolean,
     amdRequire: {
@@ -59,7 +58,7 @@ export default {
       }
     },
 
-    language(newVal) {
+    lang(newVal) {
       if (this.editor) {
         window.monaco.editor.setModelLanguage(this.editor.getModel(), newVal);
       }
@@ -110,7 +109,7 @@ export default {
         {
           value: this.value,
           theme: this.theme,
-          language: this.language,
+          language: this.lang,
           // quickSuggestions: { other: true, comments: true, strings: true },
           automaticLayout: true,
           readOnly: false

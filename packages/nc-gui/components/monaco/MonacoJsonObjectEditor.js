@@ -15,7 +15,7 @@ export default {
       type: String,
       default: "vs-dark"
     },
-    language: String,
+    lang: String,
     options: Object,
     readOnly: Boolean,
     amdRequire: {

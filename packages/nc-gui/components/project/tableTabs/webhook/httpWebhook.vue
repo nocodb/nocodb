@@ -50,7 +50,7 @@
           class="editor card text-left"
           theme="vs-dark"
           v-model="api.body"
-          language="json"
+          lang="json"
           :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
         >
         </monaco-json-editor>
@@ -62,7 +62,7 @@
           class="editor card text-left"
           theme="vs-dark"
           v-model="api.auth"
-          language="json"
+          lang="json"
           :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
         >
         </monaco-json-editor>

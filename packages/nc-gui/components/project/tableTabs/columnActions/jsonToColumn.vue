@@ -23,7 +23,7 @@
           <monaco-json-editor
             :validate="false"
             v-model="jsonContent"
-            language="json" style="height: 500px;width: 100%;min-width: 250px"
+            lang="json" style="height: 500px;width: 100%;min-width: 250px"
           ></monaco-json-editor>
         </div>
       </div>

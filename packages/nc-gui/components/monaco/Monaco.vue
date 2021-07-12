@@ -15,7 +15,7 @@
         @selection="selectionFn"
         theme="vs-dark"
         v-model="codeLocal"
-        language="sql"
+        lang="sql"
         :minimap="minimap"
         :readOnly="readOnly"
       >

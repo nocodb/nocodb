@@ -607,7 +607,12 @@ export default {
       this.deleteTable('showDialog')
     },
     async reload() {
-      this.$store.commit('meta/MutClear');
+      this.$store.dispatch('meta/ActLoadMeta', {
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        tn: this.table,
+        force: true
+      });
       await this.loadTableData();
       this.key = Math.random();
     },

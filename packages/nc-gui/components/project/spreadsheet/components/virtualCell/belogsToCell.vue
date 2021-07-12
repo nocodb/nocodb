@@ -96,7 +96,7 @@
 <script>
 import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
-import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
+import ItemChip from "~/components/project/spreadsheet/components/virtualCell/components/itemChip";
 import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
 
 export default {

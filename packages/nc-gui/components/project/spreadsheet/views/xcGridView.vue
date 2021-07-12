@@ -14,7 +14,7 @@
           :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
           v-xc-ver-resize
           v-for="(col,i) in availableColumns"
-          :key="   col._cn"
+          :key="col._cn"
           v-show="showFields[col._cn]"
           @xcresize="onresize(col._cn,$event)"
           @xcresizing="onXcResizing(col._cn,$event)"
@@ -113,7 +113,7 @@
         <td
           class="cell pointer"
           v-for="(columnObj,col) in availableColumns"
-          :key="row + columnObj._cn"
+          :key="row + columnObj._cn + col"
           :class="{
               'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,

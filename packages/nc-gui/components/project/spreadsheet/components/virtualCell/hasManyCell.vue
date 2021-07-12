@@ -117,7 +117,7 @@ import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
 import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
 import Pagination from "@/components/project/spreadsheet/components/pagination";
 import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
-import ItemChip from "@/components/project/spreadsheet/components/virtualCell/components/item-chip";
+import ItemChip from "~/components/project/spreadsheet/components/virtualCell/components/itemChip";
 import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
 import listChildItemsModal
   from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";

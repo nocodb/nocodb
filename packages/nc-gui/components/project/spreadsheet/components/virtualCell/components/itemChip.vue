@@ -23,7 +23,7 @@
 <script>
 export default {
   props: {
-    value: String,
+    value: [String, Number, Boolean],
     active: Boolean,
     item: Object
   },

@@ -1107,9 +1107,20 @@ export class MysqlUi {
         break;
       case 'SingleLineText':
       case 'LongText':
-      case 'Attachment':
       case 'Collaborator':
         return [
+          "char",
+          "varchar",
+          "nchar",
+          "text",
+          "tinytext",
+          "mediumtext",
+          "longtext",
+        ];
+        break;
+      case 'Attachment':
+        return [
+          'json',
           "char",
           "varchar",
           "nchar",

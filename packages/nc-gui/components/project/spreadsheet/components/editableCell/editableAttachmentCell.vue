@@ -59,6 +59,7 @@
 
 
     <v-dialog
+      v-if="dialog"
       v-model="dialog"
       width="800"
     >
@@ -74,21 +75,6 @@
 
 
           <div class="d-flex flex-wrap h-100">
-            <!--
-                        <div v-for="(item,i) in localState" class="modal-thumbnail align-center justify-center d-flex">
-                          <v-icon small class="remove-icon" @click="removeItem(i)">
-                            mdi-close-circle
-
-                          </v-icon>
-                          <img v-if="isImage(item.title)" alt="#" :src="item.url" @click="selectImage(item.url,i)">
-
-                          <v-icon v-else-if="item.icon" v-on="on" size="33" @click="openUrl(item.url,'_blank')">{{
-                              item.icon
-                            }}
-                          </v-icon>
-                          <v-icon v-else v-on="on" size="33" @click="openUrl(item.url,'_blank')">mdi-file</v-icon>
-                        </div>
-            -->
             <v-container fluid style="max-height:calc(90vh - 80px);overflow-y: auto">
 
               <v-row>
@@ -123,29 +109,30 @@
     </v-dialog>
 
 
-    <v-overlay v-model="showImage" z-index="99999" opacity=".93">
+    <v-overlay v-if="showImage" v-model="showImage" z-index="99999" opacity=".93">
       <div class="image-overlay-container" v-click-outside="hideIfVisible">
+        <template v-if="showImage && selectedImage">
+          <v-carousel v-model="carousel" height="calc(100vh - 100px)" hide-delimiters>
+            <v-carousel-item
+              v-for="(item,i) in localState"
+              :key="i"
+            >
+                    <div class="mx-auto d-flex flex-column justify-center align-center" style="min-height:100px">
+                      <p class="title text-center">{{ item.title }}</p>
 
-        <v-carousel v-model="carousel" height="calc(100vh - 100px)" hide-delimiters v-if="showImage && selectedImage">
-          <v-carousel-item
+                      <div style="width:90vh;height:calc(100vh - 150px)" class="d-flex align-center justify-center">
+                        <img v-if="isImage(item.title)" style="max-width:90vh;max-height:calc(100vh - 100px)"
+                             :src="item.url">
+                        <v-icon v-else-if="item.icon" size="55">{{ item.icon }}</v-icon>
+                        <v-icon v-else size="55">mdi-file</v-icon>
 
-            v-for="(item,i) in localState"
-            :key="i"
-          >
-            <div class="mx-auto d-flex flex-column justify-center align-center">
-              <p class="title text-center">{{ item.title }}</p>
-
-              <div style="width:90vh;height:calc(100vh - 150px)" class="d-flex align-center justify-center">
-                <img v-if="isImage(item.title)" style="max-width:90vh;max-height:calc(100vh - 100px)"
-                     :src="item.url">
-                <v-icon v-else-if="item.icon" size="55">{{ item.icon }}</v-icon>
-                <v-icon v-else size="55">mdi-file</v-icon>
-
-              </div>
-            </div>
-          </v-carousel-item>
-        </v-carousel>
+                      </div>
+                    </div>
+            </v-carousel-item>
+          </v-carousel>
+        </template>
         <v-sheet
+          v-if="showImage"
           class="mx-auto align-center justify-center"
           max-width="90vw"
           height="80px"
@@ -206,9 +193,9 @@ export default {
       }
     },
     selectImage(selectedImage, i) {
-      this.showImage = true;
       this.carousel = i;
       this.selectedImage = selectedImage;
+      this.showImage = true;
     },
     addFile() {
       if (!this.isLocked)
@@ -279,7 +266,7 @@ export default {
   }, watch: {
     value(val, prev) {
       try {
-        this.localState = (typeof val === 'string'  && val !== prev ? JSON.parse(val) : val) || [];
+        this.localState = (typeof val === 'string' && val !== prev ? JSON.parse(val) : val) || [];
       } catch (e) {
         this.localState = [];
       }

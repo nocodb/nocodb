@@ -1809,7 +1809,6 @@ export class PgUi {
         break;
       case 'SingleLineText':
       case 'LongText':
-      case 'Attachment':
       case 'Collaborator':
         return [
           "char",
@@ -1818,6 +1817,14 @@ export class PgUi {
           "text",
         ];
         break;
+      case 'Attachment':
+        return [
+          'json',
+          "char",
+          "character",
+          "character varying",
+          "text",
+        ];
       case 'Checkbox':
         return [
           "bit",

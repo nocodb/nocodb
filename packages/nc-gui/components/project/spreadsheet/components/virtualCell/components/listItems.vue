@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" width="600" content-class="dialog">
     <v-icon small class="close-icon" @click="$emit('input',false)">mdi-close</v-icon>
-    <v-card width="600" >
+    <v-card width="600">
       <v-card-title class="textColor--text mx-2 justify-center">{{ title }}
 
       </v-card-title>
@@ -12,8 +12,15 @@
           dense
           outlined
           placeholder="Search records"
+          v-model="query"
           class=" caption search-field ml-2"
-        />
+          @keydown.enter="loadData"
+        >
+          <template #append>
+            <x-icon tooltip="Change page" small icon.class="mt-1" @click="loadData">mdi-keyboard-return
+            </x-icon>
+          </template>
+        </v-text-field>
         <v-spacer></v-spacer>
 
         <v-icon small class="mr-1" @click="loadData()">mdi-reload</v-icon>
@@ -95,11 +102,12 @@ export default {
     api: [Object, Function],
     mm: [Object, Function],
     parentId: [String, Number],
-    parentMeta:[Object]
+    parentMeta: [Object]
   },
   data: () => ({
     data: null,
-    page: 1
+    page: 1,
+    query: ''
   }),
   mounted() {
     this.loadData();
@@ -108,18 +116,25 @@ export default {
     async loadData() {
       if (!this.api) return;
 
+      let where = this.queryParams.where || '';
+      if (this.query){
+        where += (where ? '~and' : '') + `(${this.primaryCol},like,%${this.query}%)`;
+      }
+
       if (this.mm) {
         this.data = await this.api.paginatedM2mNotChildrenList({
           limit: this.size,
           offset: this.size * (this.page - 1),
-          ...this.queryParams
-        }, this.mm.vtn,this.parentId)
+          ...this.queryParams,
+          where
+        }, this.mm.vtn, this.parentId)
 
       } else {
         this.data = await this.api.paginatedList({
           limit: this.size,
           offset: this.size * (this.page - 1),
-          ...this.queryParams
+          ...this.queryParams,
+          where
         })
       }
     }
@@ -132,7 +147,7 @@ export default {
         return this.value;
       }
     },
-    hmParentPrimaryValCol(){
+    hmParentPrimaryValCol() {
       return this.hm &&
         this.parentMeta &&
         this.parentMeta.columns.find(v => v.pv)._cn

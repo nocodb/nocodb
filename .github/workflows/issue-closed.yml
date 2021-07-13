@@ -14,5 +14,5 @@ jobs:
         uses: rjstone/discord-webhook-notify@v1
         with:
           severity: info
-          details: 'Closed : ${{ github.event.issue.title }}(#${{ github.event.issue.number }}) :  ${{ github.event.issue.url }}'
+          details: 'Closed : ${{ github.event.issue.title }}(#${{ github.event.issue.number }}) :  ${{ github.event.issue.html_url }}'
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}

@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "description": "xc-cli",
   "main": "dist/bundle.js",
   "repository": "https://github.com/nocodb/nocodb",

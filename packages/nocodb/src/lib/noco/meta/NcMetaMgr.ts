@@ -2374,7 +2374,7 @@ export default class NcMetaMgr {
       });
 
       // todo: associative table naming
-      const aTn = `${this.projectConfigs[projectId]?.prefix ?? ''}_nc_m2m_${parentMeta.tn}_${childMeta.tn}_${Math.floor(Math.random() * 1000)}`;
+      const aTn = `${this.projectConfigs[projectId]?.prefix ?? ''}_nc_m2m_${parentMeta.tn}_${childMeta.tn}}`;
       const aTnAlias = `m2m${parentMeta._tn}_${childMeta._tn}`;
 
       const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableCreate', {
@@ -2965,7 +2965,8 @@ export default class NcMetaMgr {
         case 'table': {
           let tables = await this.xcMeta.metaList(this.getProjectId(args), this.getDbAlias(args), 'nc_models', {
             condition: {
-              type: 'table'
+              type: 'table',
+              mm: null
             }
           });
 

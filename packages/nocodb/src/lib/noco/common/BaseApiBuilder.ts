@@ -1233,7 +1233,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
         // add manytomany data under metadata of both linked tables
         tableMetaA.manyToMany = tableMetaA.manyToMany || [];
-        if (tableMetaA.manyToMany.every(mm => mm.vtn !== meta.vtn)) {
+        if (tableMetaA.manyToMany.every(mm => mm.vtn !== meta.tn)) {
           tableMetaA.manyToMany.push({
             "tn": tableMetaA.tn,
             "cn": meta.belongsTo[0].rcn,
@@ -1249,22 +1249,25 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           })
           metas.add(tableMetaA)
         }
-        tableMetaB.manyToMany = tableMetaB.manyToMany || [];
-        if (tableMetaB.manyToMany.every(mm => mm.vtn !== meta.vtn)) {
-          tableMetaB.manyToMany.push({
-            "tn": tableMetaB.tn,
-            "cn": meta.belongsTo[1].rcn,
-            "vtn": meta.tn,
-            "vcn": meta.belongsTo[1].cn,
-            "vrcn": meta.belongsTo[0].cn,
-            "rtn": meta.belongsTo[0].rtn,
-            "rcn": meta.belongsTo[0].rcn,
-            "_tn": tableMetaB._tn,
-            "_cn": meta.belongsTo[1]._rcn,
-            "_rtn": meta.belongsTo[0]._rtn,
-            "_rcn": meta.belongsTo[0]._rcn
-          })
-          metas.add(tableMetaB)
+        // ignore if A & B are same table
+        if (tableMetaB !== tableMetaA) {
+          tableMetaB.manyToMany = tableMetaB.manyToMany || [];
+          if (tableMetaB.manyToMany.every(mm => mm.vtn !== meta.tn)) {
+            tableMetaB.manyToMany.push({
+              "tn": tableMetaB.tn,
+              "cn": meta.belongsTo[1].rcn,
+              "vtn": meta.tn,
+              "vcn": meta.belongsTo[1].cn,
+              "vrcn": meta.belongsTo[0].cn,
+              "rtn": meta.belongsTo[0].rtn,
+              "rcn": meta.belongsTo[0].rcn,
+              "_tn": tableMetaB._tn,
+              "_cn": meta.belongsTo[1]._rcn,
+              "_rtn": meta.belongsTo[0]._rtn,
+              "_rcn": meta.belongsTo[0]._rcn
+            })
+            metas.add(tableMetaB)
+          }
         }
         assocMetas.add(meta)
       }
@@ -1288,11 +1291,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       meta.v = [
         ...meta.v.filter(vc => !(vc.hm && meta.manyToMany.some(mm => vc.hm.tn === mm.vtn))),
         // todo: ignore duplicate m2m relations
-        ...meta.manyToMany.filter(v => !meta.v.some(v1 => v1.mm
+        // todo: optimize, just compare associative table(Vtn)
+        ...meta.manyToMany.filter((v, i) => !meta.v.some(v1 => v1.mm
           && (
             v1.mm.tn === v.tn && v.rtn === v1.mm.rtn
             || v1.mm.rtn === v.tn && v.tn === v1.mm.rtn
           ) && v.vtn === v1.mm.vtn)
+          // ignore duplicate
+          && !meta.manyToMany.some((v1, i1) => i1 !== i && v1.tn === v.tn && v.rtn === v1.rtn && v.vtn === v1.vtn)
         ).map(mm => {
           if (queryParams?.showFields && !(`${mm._tn} <=> ${mm._rtn}` in queryParams.showFields)) {
             queryParams.showFields[`${mm._tn} <=> ${mm._rtn}`] = true;

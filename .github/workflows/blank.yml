@@ -1,0 +1,32 @@
+
+name: Release Draft Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag"
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create tag
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{ github.event.inputs.tag }}",
+              sha: context.sha
+            })
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: "npx github-release-notes  release --token ${{ secrets.GH_TOKEN }}  --draft --tags ${{ github.event.inputs.tag }}"

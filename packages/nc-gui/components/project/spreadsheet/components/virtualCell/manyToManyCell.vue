@@ -246,7 +246,7 @@ export default {
       // this.list = await this.c hildApi.paginatedList({})
     },
     async addChildToParent(child) {
-      if (this.isNew) {
+      if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
         this.newRecordModal = false;
         return

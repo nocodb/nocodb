@@ -89,7 +89,7 @@
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
         @cancel="selectedChild = null"
-        @input="$emit('loadTableData')"
+        @input="onChildSave"
         :table="childMeta.tn"
         v-model="selectedChild"
         :old-row="{...selectedChild}"
@@ -169,6 +169,13 @@ export default {
     await this.loadChildMeta()
   },
   methods: {
+    onChildSave() {
+      if (this.isNew) {
+        this.addChildToParent(this.selectedChild)
+      } else {
+        this.$emit('loadTableData')
+      }
+    },
     async showChildListModal() {
       await this.loadChildMeta();
       this.childListModal = true;
@@ -241,7 +248,7 @@ export default {
       this.newRecordModal = true;
     },
     async addChildToParent(child) {
-      if (this.isNew) {
+      if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child);
         this.newRecordModal = false;
         return;

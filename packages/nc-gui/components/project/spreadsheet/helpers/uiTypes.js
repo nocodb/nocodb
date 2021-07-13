@@ -1,37 +1,3 @@
-export default [
-  'ID',
-  'ForeignKey',
-  'SingleLineText',
-  'LongText',
-  'Attachment',
-  'Checkbox',
-  'MultiSelect',
-  'SingleSelect',
-  'Collaborator',
-  'Date',
-  'Year',
-  'Time',
-  'PhoneNumber',
-  'Email',
-  'URL',
-  'Number',
-  'Decimal',
-  'Currency',
-  'Percent',
-  'Duration',
-  'Rating',
-  'Formula',
-  'Rollup',
-  'Count',
-  'Lookup',
-  'DateTime',
-  'CreateTime',
-  'LastModifiedTime',
-  'AutoNumber',
-  'Barcode',
-  'Button',
-  'SpecificDBType',
-]
 
 
 const uiTypes = [
@@ -40,11 +6,11 @@ const uiTypes = [
     icon: 'mdi-identifier',
   },
   {
-    name: 'ForeignKey',
+    name: 'LinkToAnotherRecord',
     icon: 'mdi-link-variant',
   },
   {
-    name: 'LinkToAnotherRecord',
+    name: 'ForeignKey',
     icon: 'mdi-link-variant',
   },
   {
@@ -177,6 +143,40 @@ const uiTypes = [
 export {
   uiTypes
 }
+export default [
+  'ID',
+  'ForeignKey',
+  'SingleLineText',
+  'LongText',
+  'Attachment',
+  'Checkbox',
+  'MultiSelect',
+  'SingleSelect',
+  'Collaborator',
+  'Date',
+  'Year',
+  'Time',
+  'PhoneNumber',
+  'Email',
+  'URL',
+  'Number',
+  'Decimal',
+  'Currency',
+  'Percent',
+  'Duration',
+  'Rating',
+  'Formula',
+  'Rollup',
+  'Count',
+  'Lookup',
+  'DateTime',
+  'CreateTime',
+  'LastModifiedTime',
+  'AutoNumber',
+  'Barcode',
+  'Button',
+  'SpecificDBType',
+]
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

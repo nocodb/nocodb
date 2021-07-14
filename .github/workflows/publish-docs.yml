@@ -30,4 +30,4 @@ jobs:
           destination_folder: 'docs'
           user_email: 'pranavxc@gmail.com'
           user_name: 'pranavxc'
-          commit_message: 'Autorelease from github.com/nocodb/nocodb'
+          commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-doc'

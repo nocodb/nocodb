@@ -1,7 +1,7 @@
 ---
 title: 'Setup and Usage'
 description: 'Simple installation - takes about three minutes!'
-position: 0
+position: 1
 category: 'Getting started'
 fullscreen: true
 menuTitle: 'Install'

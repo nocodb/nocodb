@@ -214,7 +214,7 @@ GET  /api/v1/country?where=(country,like,United%)&sort=-country
 ```
 
 </code-block>
-<code-block label="Response" active> 
+<code-block label="Response"> 
 
 ```
 [
@@ -242,10 +242,16 @@ GET  /api/v1/country?where=(country,like,United%)&sort=-country
 
 #### List + where + sort + offset
 
-##### Request
-``` GET  /api/v1/country?where=(country,like,United%)&sort=-country&offset=1```
+<code-group>
+  <code-block label="Request" active> 
+  
+``` 
+GET  /api/v1/country?where=(country,like,United%)&sort=-country&offset=1
+```
 
-##### Response
+</code-block>
+<code-block label="Response"> 
+
 ```json
 [
     {
@@ -260,12 +266,23 @@ GET  /api/v1/country?where=(country,like,United%)&sort=-country
     }
 ]
 ```
+  </code-block>
+</code-group>
+
+
 #### List + limit
 
-##### Request
-``` GET  /api/v1/country?limit=6```
 
-##### Response
+<code-group>
+  <code-block label="Request" active> 
+  
+``` 
+GET  /api/v1/country?limit=6
+```
+
+</code-block>
+<code-block label="Response"> 
+
 ```json
 [
     {
@@ -300,91 +317,139 @@ GET  /api/v1/country?where=(country,like,United%)&sort=-country
     }
 ]
 ```
+  </code-block>
+</code-group>
     
 [⤴️](#api-overview)
 
   
 ### Get By Primary Key
 
-##### Request  
-`GET  /api/v1/country/1`
 
-##### Response
-```json
-    {
-        "country_id": 1,
-        "country": "Afghanistan",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    }
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/country/1
+```
+
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+{
+    "country_id": 1,
+    "country": "Afghanistan",
+    "last_update": "2006-02-14T23:14:00.000Z"
+}
+```
+  </code-block>
+</code-group>
+
 [⤴️](#api-overview)
 
 
 ### Create
 
-##### Request
+
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
 POST  /api/v1/country
-    {
-        "country": "Afghanistan"
-    }
 ```
 
-##### Response
 ```json
-    {
-        "country_id": 1,
-        "country": "Afghanistan",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    }
+{
+    "country": "Afghanistan"
+}
 ```
+
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+{
+    "country_id": 1,
+    "country": "Afghanistan",
+    "last_update": "2006-02-14T23:14:00.000Z"
+}
+```
+
+  </code-block>
+</code-group>
+
 [⤴️](#api-overview)
 
 
 ### Update
 
-##### Request
+<code-group>
+  <code-block label="Request" active> 
+  
+```PUT  /api/v1/country/1```
 ```
-PUT  /api/v1/country/1
-
-    {
-        "country": "Afghanistan1"
-    }
+{
+    "country": "Afghanistan1"
+}
 ```
 
-##### Response
+</code-block>
+<code-block label="Response"> 
+
 ```json
-    {
-        "country_id": 1,
-        "country": "Afghanistan1",
-        "last_update": "20020-02-14T23:14:00.000Z"
-    }
+{
+    "country_id": 1,
+    "country": "Afghanistan1",
+    "last_update": "20020-02-14T23:14:00.000Z"
+}
 ```
+  </code-block>
+</code-group>
 
 [⤴️](#api-overview)
 
 
 ### Exists
 
-##### Request
-```DELETE  /api/v1/country/1/exists```
-
-#### Response
-```json
-    true
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+DELETE  /api/v1/country/1/exists
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+true
+```
+  </code-block>
+</code-group>
 [⤴️](#api-overview)
 
 
 ### Delete
 
-##### Request
-```DELETE  /api/v1/country/1```
 
-##### Response
-```json
-    1
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+DELETE  /api/v1/country/1
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+1
+```
+  </code-block>
+</code-group>
 
 
 
@@ -393,141 +458,187 @@ PUT  /api/v1/country/1
   
 ### Find One
 
-##### Request
-```GET  /api/v1/country/findOne?where=(country_id,eq,1)```
-
-##### Response
-```json
-
-    {
-        "country_id": 1,
-        "country": "Afghanistan",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    }
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/country/findOne?where=(country_id,eq,1)
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+{
+    "country_id": 1,
+    "country": "Afghanistan",
+    "last_update": "2006-02-14T23:14:00.000Z"
+}
+```
+  </code-block>
+</code-group>
 
 [⤴️](#api-overview)
 
   
 ### Group By
 
-##### Request  
-```GET  /api/v1/country/groupby/last_update```
+<code-group>
+  <code-block label="Request" active> 
+    
+```
+GET  /api/v1/country/groupby/last_update
+```
 
-##### Response
+</code-block>
+<code-block label="Response">
+ 
 ```json
-
-    [
-        {
-            "count": 109,
-            "last_update": "2006-02-14T23:14:00.000Z"
-        },
-        {
-            "count": 1,
-            "last_update": "2020-01-06T15:18:13.000Z"
-        },
-        {
-            "count": 1,
-            "last_update": "2020-01-06T14:33:21.000Z"
-        }
-    ]
- ```   
+[
+    {
+        "count": 109,
+        "last_update": "2006-02-14T23:14:00.000Z"
+    },
+    {
+        "count": 1,
+        "last_update": "2020-01-06T15:18:13.000Z"
+    },
+    {
+        "count": 1,
+        "last_update": "2020-01-06T14:33:21.000Z"
+    }
+]
+ ``` 
+  </code-block>
+</code-group>  
 
 [⤴️](#api-overview)
 
   
 ### Distribution
 
-##### Request  
-```GET  /api/v1/payment/distribution/amount```
-
-##### Response
-```json
-    [
-        {
-            "count": 8302,
-            "range": "0-4"
-        },
-        {
-            "count": 3100,
-            "range": "5-8"
-        },
-        {
-            "count": 371,
-            "range": "9-11.99"
-        }
-    ]
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/payment/distribution/amount
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    {
+        "count": 8302,
+        "range": "0-4"
+    },
+    {
+        "count": 3100,
+        "range": "5-8"
+    },
+    {
+        "count": 371,
+        "range": "9-11.99"
+    }
+]
+```
+  </code-block>
+</code-group>
+
 [⤴️](#api-overview)
 
   
 ### Distinct
 
-##### Request  
-```GET  /api/v1/country/distinct/last_update```
-
-##### Response
-```json
-    [
-        {
-            "last_update": "2006-02-14T23:14:00.000Z"
-        },
-        {
-            "last_update": "2020-01-06T15:18:13.000Z"
-        },
-        {
-            "last_update": "2020-01-06T14:33:21.000Z"
-        },
-        {
-            "last_update": "2020-01-07T13:42:01.000Z"
-        }
-    ]
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/country/distinct/last_update
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    {
+        "last_update": "2006-02-14T23:14:00.000Z"
+    },
+    {
+        "last_update": "2020-01-06T15:18:13.000Z"
+    },
+    {
+        "last_update": "2020-01-06T14:33:21.000Z"
+    },
+    {
+        "last_update": "2020-01-07T13:42:01.000Z"
+    }
+]
+```
+  </code-block>
+</code-group>
 
 [⤴️](#api-overview)
 
   
 ### Aggregate
 
-##### Request  
-```GET  /api/v1/payment/aggregate/amount?func=min,max,avg,sum,count```
-
-##### Response
-```json
-    [
-        {
-            "min": 0,
-            "max": 11.99,
-            "avg": 4.200743,
-            "sum": 67413.52,
-            "count": 16048
-        }
-    ]
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/payment/aggregate/amount?func=min,max,avg,sum,count
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    {
+        "min": 0,
+        "max": 11.99,
+        "avg": 4.200743,
+        "sum": 67413.52,
+        "count": 16048
+    }
+]
+```
+  </code-block>
+</code-group>
 
 [⤴️](#api-overview)
 
   
 ### Count
 
-##### Request  
-```GET  /api/v1/country/count```
+<code-group>
+  <code-block label="Request" active> 
+  
+```
+GET  /api/v1/country/count
+```
 
-##### Response
+</code-block>
+<code-block label="Response"> 
+
 ```json
-
-    {
-        "count": 161
-    }
+{
+    "count": 161
+}
 ```
 [⤴️](#api-overview)
 
   
 ### Bulk Insert
 
-##### Request  
-```POST  /api/v1/country/bulk
-    
+<code-group>
+  <code-block label="Request" active> 
+  
+```POST  /api/v1/country/bulk```
+```json
     [
         {
             "country": "test 1"
@@ -538,238 +649,313 @@ PUT  /api/v1/country/1
     ]
 ```
 
-##### Response
+</code-block>
+<code-block label="Response"> 
+
 ```json
-    [
-        10262
-    ]
+[
+    10262
+]
 ```
+  </code-block>
+</code-group>
 [⤴️](#api-overview)
 
   
 ### Bulk Update
-##### Request  
-```PUT  /api/v1/country/bulk
-
-    [
-        {
-            "country_id" : 10261,
-            "country": "test 3"
-        },
-        {
-            "country_id" : 10262,
-            "country": "test 4"
-        }
-    ]
-
-```
-##### Response
+<code-group>
+  <code-block label="Request" active> 
+  
+```PUT  /api/v1/country/bulk```
 ```json
-    [
-        1,
-        1
-    ]
+[
+    {
+        "country_id" : 10261,
+        "country": "test 3"
+    },
+    {
+        "country_id" : 10262,
+        "country": "test 4"
+    }
+]
 ```
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    1,
+    1
+]
+```
+  </code-block>
+</code-group>
 [⤴️](#api-overview)
 
   
 ### Bulk Delete
 
-##### Request  
-```DELETE  /api/v1/country/bulk
-    [
-        {
-            "country_id" : 10261
-        },
-        {
-            "country_id" : 10262
-        }
-    ]
-
-```
-##### Response
+<code-group>
+  <code-block label="Request" active> 
+  
+```DELETE  /api/v1/country/bulk```
 ```json
-    [
-        1,
-        1
-    ]
+[
+    {
+        "country_id" : 10261
+    },
+    {
+        "country_id" : 10262
+    }
+]
 ```
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    1,
+    1
+]
+```
+  </code-block>
+</code-group>
 [⤴️](#api-overview)
 
   
 ### With Children
 
-##### Request  
-```GET  /api/v1/country/has/city```
-
-##### Response
-```json
-    [
-        {
-            "country_id": 1,
-            "country": "Afghanistan",
-            "last_update": "2006-02-14T23:14:00.000Z",
-            "city": [
-                {
-                    "city_id": 251,
-                    "city": "Kabul",
-                    "country_id": 1,
-                    "last_update": "2006-02-14T23:15:25.000Z"
-                },
-                ...
-            ]
-        }
-    ]
-
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/country/has/city
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    {
+        "country_id": 1,
+        "country": "Afghanistan",
+        "last_update": "2006-02-14T23:14:00.000Z",
+        "city": [
+            {
+                "city_id": 251,
+                "city": "Kabul",
+                "country_id": 1,
+                "last_update": "2006-02-14T23:15:25.000Z"
+            },
+            ...
+        ]
+    }
+]
+```
+  </code-block>
+</code-group>
 
 [⤴️](#hasmany-apis)
 
 ### Children of parent
 
-##### Request  
-```GET  /api/v1/country/1/city```
+<code-group>
+  <code-block label="Request" active> 
+  
+```
+GET  /api/v1/country/1/city
+```
 
-##### Response
+</code-block>
+<code-block label="Response"> 
+
 ```json
-    
-    [
-        {
-            "city_id": 251,
-            "city": "Kabul",
-            "country_id": 1,
-            "last_update": "2006-02-14T23:15:25.000Z"
-        }
-    ]
-  ```  
+[
+    {
+        "city_id": 251,
+        "city": "Kabul",
+        "country_id": 1,
+        "last_update": "2006-02-14T23:15:25.000Z"
+    }
+]
+```  
+  </code-block>
+</code-group>
 
 [⤴️](#hasmany-apis)
     
 ### Insert to child table
 
-##### Request  
-```POST  /api/v1/country/1/city
-
+<code-group>
+  <code-block label="Request" active> 
+  
+```POST  /api/v1/country/1/city```
+```json
     {
         "city": "test"
     }
 ```
 
-##### Response
+</code-block>
+<code-block label="Response"> 
+
 ```json
-    
-    {
-        "city": "test",
-        "country_id": "1",
-        "city_id": 10000
-    }
+{
+    "city": "test",
+    "country_id": "1",
+    "city_id": 10000
+}
 ```
+  </code-block>
+</code-group>
 
 [⤴️](#hasmany-apis)
 
 ### Findone under parent
 
-##### Request
+<code-group>
+  <code-block label="Request" active> 
+
 ```GET  /api/v1/country/1/city/findOne?where=(city,like,ka%)```
 
-##### Response
-```json
-    
-    {
-        "city": "test",
-        "country_id": "1",
-        "city_id": 10000
-    }
+</code-block>
+<code-block label="Response"> 
+
+```json   
+{
+    "city": "test",
+    "country_id": "1",
+    "city_id": 10000
+}
 ```
+  </code-block>
+</code-group>
 
 
 [⤴️](#hasmany-apis)
 
 ### Child count
 
-##### Request
-```GET  /api/v1/country/1/city/count```
-
-##### Response
-```json
-    {
-        "count": 37
-    }
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/country/1/city/count
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+{
+    "count": 37
+}
+```
+  </code-block>
+</code-group>
 
 
 [⤴️](#hasmany-apis)
 
 ### Get Child By Primary key
 
-##### Request
-```GET  /api/v1/country/1/city/251```
-
-##### Response
-```json
-    [
-        {
-            "city_id": 251,
-            "city": "Kabul",
-            "country_id": 1,
-            "last_update": "2006-02-14T23:15:25.000Z"
-        }
-    ]
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/country/1/city/251
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    {
+        "city_id": 251,
+        "city": "Kabul",
+        "country_id": 1,
+        "last_update": "2006-02-14T23:15:25.000Z"
+    }
+]
+```
+  </code-block>
+</code-group>
 
 
 [⤴️](#hasmany-apis)
 
 ### Update Child By Primary key
 
-##### Request
-```POST  /api/v1/country/1/city/251
-    {
-        "city": "Kabul-1"
-    }
+<code-group>
+  <code-block label="Request" active> 
+  
+```POST  /api/v1/country/1/city/251```
+```
+{
+    "city": "Kabul-1"
+}
 ```
 
-##### Response
+</code-block>
+<code-block label="Response"> 
+
 ```json
-    1
+1
 ```
+  </code-block>
+</code-group>
 
 
 [⤴️](#hasmany-apis)
 
 ### Get parent and chlidren within
 
-##### Request
-```GET  /api/v1/country/has/city```
-
-##### Response
-```json
-    [
-        {
-            "city_id": 1,
-            "city": "sdsdsdsd",
-            "country_id": 87,
-            "last_update": "2020-01-02T14:50:49.000Z",
-            "country": {
-                "country_id": 87,
-                "country": "Spain",
-                "last_update": "2006-02-14T23:14:00.000Z"
-            }
-        }
-        ...
-    ]
+<code-group>
+  <code-block label="Request" active> 
+  
 ```
+GET  /api/v1/country/has/city
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+    {
+        "city_id": 1,
+        "city": "sdsdsdsd",
+        "country_id": 87,
+        "last_update": "2020-01-02T14:50:49.000Z",
+        "country": {
+            "country_id": 87,
+            "country": "Spain",
+            "last_update": "2006-02-14T23:14:00.000Z"
+        }
+    },
+    ...
+]
+```
+  </code-block>
+</code-group>
 
 
 [⤴️](#belongsto-apis)
 ### Get table and parent class within
 
-##### Request
-```GET  /api/v1/city/belongs/country```
+<code-group>
+  <code-block label="Request" active> 
+  
+```
+GET  /api/v1/city/belongs/country
+```
 
-##### Response
-```json
+</code-block>
+<code-block label="Response"> 
 
+```json5
 [
     {
         city_id: 1,
@@ -781,5 +967,7 @@ PUT  /api/v1/country/1
         country: "Spain",
         last_update: "2006-02-15T04:44:00.000Z"
     }
-},
+]
 ```
+  </code-block>
+</code-group>

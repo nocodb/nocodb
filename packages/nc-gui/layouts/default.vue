@@ -124,12 +124,6 @@
 
         <v-toolbar-items class="hidden-sm-and-down">
 
-          <div>
-            <x-btn v-if="_isUIAllowed('add-user')" @click="rolesTabAdd" small color="white" btn-class="primary--text">
-              <v-icon small class="mr-1">mdi-account-supervisor-outline</v-icon>
-              Share
-            </x-btn>
-          </div>
 
 
           <!--        <x-icon iconClass="mr-4" v-if="isDashboard"-->
@@ -160,6 +154,12 @@
 
           <template v-if="isDashboard">
 
+            <div>
+              <x-btn v-if="_isUIAllowed('add-user')" @click="rolesTabAdd" small color="white" btn-class="primary--text">
+                <v-icon small class="mr-1">mdi-account-supervisor-outline</v-icon>
+                Share
+              </x-btn>
+            </div>
             <!--      <github-button v-show="$store.state.isLoaded" class="mt-2 mr-md-2" href="https://github.com/nocodb/nocodb"-->
             <!--                     data-color-scheme="no-preference: light; light: light; dark: light;" data-size="large"-->
             <!--                     data-show-count="true" aria-label="Star nocodb/nocodb on GitHub">Star-->

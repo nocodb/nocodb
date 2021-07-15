@@ -44,14 +44,14 @@ export class RestCtrl extends RestBaseCtrl {
     return this.acls?.[this.table];
   }
 
-  public async list(req: Request | any, res): Promise<void> {
-    const startTime = process.hrtime();
-
-    const data = await req.model.list(req.query);
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
-    res.setHeader('xc-db-response', elapsedSeconds);
-    res.xcJson(data);
-  }
+  // public async list(req: Request | any, res): Promise<void> {
+  //   const startTime = process.hrtime();
+  //
+  //   const data = await req.model.list(req.query);
+  //   const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+  //   res.setHeader('xc-db-response', elapsedSeconds);
+  //   res.xcJson(data);
+  // }
 
   public async create(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.insert(req.body, null, req);
@@ -139,6 +139,28 @@ export class RestCtrl extends RestBaseCtrl {
     res.json(data);
   }
 
+  public async list(req: Request | any, res): Promise<void> {
+    const startTime = process.hrtime();
+
+    try {
+      if (req.query.conditionGraph && typeof req.query.conditionGraph === 'string') {
+        req.query.conditionGraph = {models: this.models, condition: JSON.parse(req.query.conditionGraph)}
+      }
+      if (req.query.condition && typeof req.query.condition === 'string') {
+        req.query.condition = JSON.parse(req.query.condition)
+      }
+    }catch (e){
+      /* ignore parse error */
+    }
+
+    const data = await req.model.nestedList({
+      ...req.query
+    } as any);
+    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+    res.setHeader('xc-db-response', elapsedSeconds);
+    res.xcJson(data);
+  }
+
   public async nestedList(req: Request | any, res): Promise<void> {
     const startTime = process.hrtime();
 
@@ -160,6 +182,7 @@ export class RestCtrl extends RestBaseCtrl {
     res.setHeader('xc-db-response', elapsedSeconds);
     res.xcJson(data);
   }
+
 
   public async m2mNotChildren(req: Request | any, res): Promise<void> {
     const startTime = process.hrtime();

@@ -65,23 +65,6 @@ async function(req, res){
 }
         `]
       }, {
-        path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/nestedList`,
-        type: 'get',
-        handler: ['nestedList'],
-        acl: {
-          admin: true,
-          user: true,
-          guest: true
-        },
-        functions: [`
-async function(req, res){
-    const data = await req.parentModel.hasManyList({
-      ...req.query
-    });
-    res.json(data);
-}
-                `]
-      },, {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/m2mNotChildren/:assoc/:pid`,
         type: 'get',
         handler: ['m2mNotChildren'],
@@ -327,7 +310,7 @@ async function(req, res){
   }
 
 
-      getObjectWithoutFunctions() {
+  getObjectWithoutFunctions() {
     return this.getObject().map(({functions, ...rest}) => rest)
   }
 }

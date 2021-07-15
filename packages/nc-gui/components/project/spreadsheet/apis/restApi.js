@@ -8,7 +8,7 @@ export default class RestApi {
   // todo:  - get version letter and use table alias
   async list(params) {
     // const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`, params)
-    const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/nestedList`, params)
+    const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`, params)
     return data.data;
   }
 

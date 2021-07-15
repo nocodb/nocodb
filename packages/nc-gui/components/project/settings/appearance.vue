@@ -184,7 +184,7 @@ export default {
       get() {
         return this.$store.state.windows.language;
       }, set(val) {
-        this.$store.commit('windows/MutSetLanguage', val);
+        this.$store.commit('windows/MutLanguage', val);
       }
     },
     showMetatable: {

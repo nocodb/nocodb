@@ -437,7 +437,7 @@ export default {
   },
   computed: {
     text() {
-      const text = this.lang.find(it => it.symbol === this.language);
+      const text = this.lang.find(it => it.symbol === this.$store.state.windows.language);
       return text ? text.text : 'default';
     },
     projectInfo() {

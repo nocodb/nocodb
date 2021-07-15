@@ -1,6 +1,4 @@
-import rolePermissions from "@/helpers/rolePermissions";
 import {mapGetters} from "vuex";
-import browserLang from 'browser-lang';
 
 export default {
   data() {
@@ -16,16 +14,6 @@ export default {
     },
     isLight() {
       return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.light;
-    },
-    language() {
-
-      // const dummy = new Date();
-      // const offset = -dummy.getTimezoneOffset();
-
-      return browserLang({
-        languages: ["en", "ar", "nl", "fr", "de", "it", "ja", "ru", "es", "ca", "cs", "et", "lt", "no", "te", "ur", "zh-cn", "da", "tl", "el", "ms", "pl", "sr", "sv", "th", "bn", "zh-tw", "fi", "ko", "iw", "ml", "pt", "sk", "tg", "tr", "vi", "bg", "hr", "eo", "id", "lv", "mr", "ro", "sl", "ta", "uk", "kn", "hi"],
-        fallback: 'en',
-      });
     },
     isThisMobile() { // just an example, could be one specific value if that's all you need
       return this.isHydrated ? this.$vuetify && this.$vuetify.breakpoint && this.$vuetify.breakpoint.smAndDown : false;

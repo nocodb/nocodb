@@ -91,8 +91,8 @@ export default class GqlApi {
 
   async gqlRelationReqBody(params) {
     let str = '';
-    if (params.childs) {
-      for (const child of params.childs.split(',')) {
+    if (params.hm) {
+      for (const child of params.hm.split(',')) {
         await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
           dbAlias: this.$ctx.nodes.dbAlias,
           env: this.$ctx.nodes.env,
@@ -104,8 +104,8 @@ export default class GqlApi {
         }
       }
     }
-    if (params.parents) {
-      for (const parent of params.parents.split(',')) {
+    if (params.bt) {
+      for (const parent of params.bt.split(',')) {
         await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
           dbAlias: this.$ctx.nodes.dbAlias,
           env: this.$ctx.nodes.env,
@@ -117,8 +117,8 @@ export default class GqlApi {
         }
       }
     }
-    if (params.many) {
-      for (const mm of params.many.split(',')) {
+    if (params.mm) {
+      for (const mm of params.mm.split(',')) {
         await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
           dbAlias: this.$ctx.nodes.dbAlias,
           env: this.$ctx.nodes.env,

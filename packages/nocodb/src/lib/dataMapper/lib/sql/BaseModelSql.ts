@@ -1287,7 +1287,7 @@ class BaseModelSql extends BaseModel {
 
   // todo : add conditionGraph
   // todo : implement nestedread
-  async nestedList({childs = '', parents = '', many = '', where, fields: fields1, f, ...rest}) {
+  async nestedList({hm: childs = '', bt: parents = '', mm: many = '', where, fields: fields1, f, ...rest}) {
     let fields = fields1 || f || '*';
     try {
 
@@ -1504,7 +1504,7 @@ class BaseModelSql extends BaseModel {
           this._paginateAndSort(query, {limit, offset}, child);
           return this.isSqlite() ? this.dbDriver.select().from(query) : query;
         }), !this.isSqlite()
-      ), {sort,limit:1000} as any, child));
+      ), {sort, limit: 1000} as any, child));
 
 
       // return _.groupBy(childs, cn);

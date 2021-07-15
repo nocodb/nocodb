@@ -282,10 +282,11 @@ export default {
     },
     parentQueryParams() {
       if (!this.parentMeta) return {}
+      // todo: use reduce
       return {
-        childs: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
-        parents: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
-        many: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
+        hm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
+        bt: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
+        mm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     },
     parentAvailableColumns() {

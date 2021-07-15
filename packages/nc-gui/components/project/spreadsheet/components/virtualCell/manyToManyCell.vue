@@ -364,10 +364,11 @@ export default {
     },
     childQueryParams() {
       if (!this.childMeta) return {}
+      // todo: use reduce
       return {
-        childs: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
-        parents: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
-        many: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
+        hm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
+        bt: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
+        mm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
       }
     },
     conditionGraph() {

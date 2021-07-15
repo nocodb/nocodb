@@ -973,7 +973,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       ...ctx,
       _tn: this.metas[ctx.tn]._tn,
       _ctn: this.metas[tnc]._tn,
-      tnc,
+      ctn:tnc,
       project_id: this.projectId
     };
   }

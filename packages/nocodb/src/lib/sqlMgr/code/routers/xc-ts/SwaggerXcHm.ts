@@ -62,7 +62,7 @@ class SwaggerXcHm extends BaseRender {
     return {
       "tags": [
         {
-          "name": `${this.ctx._tn}HasMany${this.ctx.ctn}`,
+          "name": `${this.ctx._tn}HasMany${this.ctx._ctn}`,
           "description": "Everything about has many relation"
         }
       ],
@@ -70,11 +70,11 @@ class SwaggerXcHm extends BaseRender {
         [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/has/${this.ctx._ctn}`]: {
           "get": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Get ${this.ctx._tn} list with ${this.ctx.ctn} children`,
+            "summary": `Get ${this.ctx._tn} list with ${this.ctx._ctn} children`,
             "description": "",
-            "operationId": `${this.ctx._tn}HasMany${this.ctx.ctn}List`,
+            "operationId": `${this.ctx._tn}HasMany${this.ctx._ctn}List`,
             "produces": [
               "application/json"
             ],
@@ -128,11 +128,11 @@ class SwaggerXcHm extends BaseRender {
         [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}`]: {
           "get": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Find ${this.ctx.ctn} list by parent ${this.ctx._tn} id`,
+            "summary": `Find ${this.ctx._ctn} list by parent ${this.ctx._tn} id`,
             "description": `Returns a single ${this.ctx._tn}`,
-            "operationId": `get${this.ctx.ctn}By${this.ctx._tn}Id`,
+            "operationId": `get${this.ctx._ctn}By${this.ctx._tn}Id`,
             "produces": [
               "application/json"
             ],
@@ -196,11 +196,11 @@ class SwaggerXcHm extends BaseRender {
           },
           "post": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Insert ${this.ctx.ctn} under a parent ${this.ctx._tn}`,
+            "summary": `Insert ${this.ctx._ctn} under a parent ${this.ctx._tn}`,
             "description": `Returns a single ${this.ctx._tn}`,
-            "operationId": `insert${this.ctx.ctn}By${this.ctx._tn}Id`,
+            "operationId": `insert${this.ctx._ctn}By${this.ctx._tn}Id`,
             "consumes": [
               "application/json"
             ],
@@ -211,7 +211,7 @@ class SwaggerXcHm extends BaseRender {
               {
                 "in": "body",
                 "name": "body",
-                "description": `${this.ctx.ctn} object to insert`,
+                "description": `${this.ctx._ctn} object to insert`,
                 "required": true,
                 "schema": {
                   "type": "object"
@@ -236,14 +236,14 @@ class SwaggerXcHm extends BaseRender {
             }
           }
         },
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx.ctn}Id}`]: {
+        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx._ctn}Id}`]: {
           "get": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Get by ${this.ctx.ctn} id parent ${this.ctx._tn} id`,
+            "summary": `Get by ${this.ctx._ctn} id parent ${this.ctx._tn} id`,
             "description": `Returns a single ${this.ctx._tn}`,
-            "operationId": `get${this.ctx.ctn}ByIdAnd${this.ctx._tn}Id`,
+            "operationId": `get${this.ctx._ctn}ByIdAnd${this.ctx._tn}Id`,
             "produces": [
               "application/json"
             ],
@@ -257,9 +257,9 @@ class SwaggerXcHm extends BaseRender {
                 "format": "int64"
               },
               {
-                "name": `${this.ctx.ctn}Id`,
+                "name": `${this.ctx._ctn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx.ctn}`,
+                "description": `ID of ${this.ctx._ctn}`,
                 "required": true,
                 "type": "integer",
                 "format": "int64"
@@ -277,11 +277,11 @@ class SwaggerXcHm extends BaseRender {
           },
           "delete": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Delete by ${this.ctx.ctn} id parent ${this.ctx._tn} id`,
+            "summary": `Delete by ${this.ctx._ctn} id parent ${this.ctx._tn} id`,
             "description": `Returns a single ${this.ctx._tn}`,
-            "operationId": `delete${this.ctx.ctn}ByIdAnd${this.ctx._tn}Id`,
+            "operationId": `delete${this.ctx._ctn}ByIdAnd${this.ctx._tn}Id`,
             "produces": [
               "application/json"
             ],
@@ -295,9 +295,9 @@ class SwaggerXcHm extends BaseRender {
                 "format": "int64"
               },
               {
-                "name": `${this.ctx.ctn}Id`,
+                "name": `${this.ctx._ctn}Id`,
                 "in": "path",
-                "description": `ID of c${this.ctx.ctn}`,
+                "description": `ID of c${this.ctx._ctn}`,
                 "required": true,
                 "type": "integer",
                 "format": "int64"
@@ -311,11 +311,11 @@ class SwaggerXcHm extends BaseRender {
           },
           "put": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Update ${this.ctx.ctn} under a parent ${this.ctx._tn}`,
+            "summary": `Update ${this.ctx._ctn} under a parent ${this.ctx._tn}`,
             "description": `Returns a single ${this.ctx._tn}`,
-            "operationId": `update${this.ctx.ctn}ByIdAnd${this.ctx._tn}Id`,
+            "operationId": `update${this.ctx._ctn}ByIdAnd${this.ctx._tn}Id`,
             "consumes": [
               "application/json"
             ],
@@ -326,7 +326,7 @@ class SwaggerXcHm extends BaseRender {
               {
                 "in": "body",
                 "name": "body",
-                "description": `${this.ctx.ctn} object to insert`,
+                "description": `${this.ctx._ctn} object to insert`,
                 "required": true,
                 "schema": {
                   "type": "object"
@@ -341,9 +341,9 @@ class SwaggerXcHm extends BaseRender {
                 "format": "int64"
               },
               {
-                "name": `${this.ctx.ctn}Id`,
+                "name": `${this.ctx._ctn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx.ctn}`,
+                "description": `ID of ${this.ctx._ctn}`,
                 "required": true,
                 "type": "integer",
                 "format": "int64"
@@ -359,14 +359,14 @@ class SwaggerXcHm extends BaseRender {
             }
           }
         },
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx.ctn}Id}/exists`]: {
+        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/{${this.ctx._ctn}Id}/exists`]: {
           "get": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Check row exists by ${this.ctx.ctn} id and parent ${this.ctx._tn} id`,
+            "summary": `Check row exists by ${this.ctx._ctn} id and parent ${this.ctx._tn} id`,
             "description": "",
-            "operationId": `exists${this.ctx.ctn}ByIdAnd${this.ctx._tn}Id`,
+            "operationId": `exists${this.ctx._ctn}ByIdAnd${this.ctx._tn}Id`,
             "produces": [
               "application/json"
             ],
@@ -380,9 +380,9 @@ class SwaggerXcHm extends BaseRender {
                 "format": "int64"
               },
               {
-                "name": `${this.ctx.ctn}Id`,
+                "name": `${this.ctx._ctn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx.ctn}`,
+                "description": `ID of ${this.ctx._ctn}`,
                 "required": true,
                 "type": "integer",
                 "format": "int64"
@@ -401,11 +401,11 @@ class SwaggerXcHm extends BaseRender {
         [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/findOne`]: {
           "get": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Find one ${this.ctx.ctn} by parent ${this.ctx._tn} id and filters`,
+            "summary": `Find one ${this.ctx._ctn} by parent ${this.ctx._tn} id and filters`,
             "description": "",
-            "operationId": `findOne${this.ctx.ctn}By${this.ctx._tn}Id`,
+            "operationId": `findOne${this.ctx._ctn}By${this.ctx._tn}Id`,
             "produces": [
               "application/json"
             ],
@@ -464,9 +464,9 @@ class SwaggerXcHm extends BaseRender {
         [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/{${this.ctx._tn}Id}/${this.ctx._ctn}/count`]: {
           "get": {
             "tags": [
-              `${this.ctx._tn}HasMany${this.ctx.ctn}`
+              `${this.ctx._tn}HasMany${this.ctx._ctn}`
             ],
-            "summary": `Get ${this.ctx.ctn} count by parent id and filter`,
+            "summary": `Get ${this.ctx._ctn} count by parent id and filter`,
             "description": "",
             "operationId": `getCountWithin${this.ctx._tn}Id`,
             "produces": [

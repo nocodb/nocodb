@@ -508,7 +508,7 @@
         <v-list-item
           dense
           target="_blank"
-          href="https://calendly.com/xgenecloud/demo"
+          href="https://calendly.com/nocodb"
         >
           <v-list-item-icon>
             <v-icon class="ml-2" :color="textColors[3]"

@@ -29,7 +29,7 @@
                     x-small
                     v-if="viewIcons[view.show_as]"
                     :color="viewIcons[view.show_as].color"
-                    >{{ viewIcons[view.show_as].icon }}
+                  >{{ viewIcons[view.show_as].icon }}
                   </v-icon>
                   <v-icon color="primary" small v-else>mdi-table</v-icon>
                 </v-list-item-icon>
@@ -49,7 +49,7 @@
                           @blur="updateViewName(view)"
                         />
                         <template v-else
-                          ><span v-on="on">{{ view.alias || view.title }}</span></template
+                        ><span v-on="on">{{ view.alias || view.title }}</span></template
                         >
                       </div>
                     </template>
@@ -93,13 +93,14 @@
                   </x-icon>
                 </template>
                 <v-icon v-if="view.id === selectedViewId" small class="check-icon"
-                  >mdi-check-bold</v-icon
+                >mdi-check-bold
+                </v-icon
                 >
               </v-list-item>
             </v-list-item-group>
           </v-list>
           <template v-if="hideViews && _isUIAllowed('virtualViewsCreateOrEdit')">
-            <v-divider class="advance-menu-divider"> </v-divider>
+            <v-divider class="advance-menu-divider"></v-divider>
 
             <v-list
               dense
@@ -121,7 +122,7 @@
                       @mouseleave="overShieldIcon = false"
                       icon-class="ml-2"
                       small
-                      >mdi-shield-lock-outline
+                    >mdi-shield-lock-outline
                     </x-icon>
                   </template>
                   <!-- Only visible to Creator -->
@@ -137,7 +138,7 @@
                       <v-icon color="blue" x-small>mdi-grid-large</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title
-                      ><span class="font-weight-regular">
+                    ><span class="font-weight-regular">
                         <!-- Grid -->
                         {{ $t('nav_drawer.virtual_views.grid') }}
                       </span></v-list-item-title
@@ -156,7 +157,7 @@
                       <v-icon color="orange" x-small>mdi-camera-image</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title
-                      ><span class="font-weight-regular">
+                    ><span class="font-weight-regular">
                         <!-- Gallery -->
 
                         {{ $t('nav_drawer.virtual_views.gallery') }}
@@ -183,7 +184,7 @@
                       <v-icon x-small>mdi-calendar</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title
-                      ><span class="font-weight-regular">
+                    ><span class="font-weight-regular">
                         <!-- Calendar -->
                         {{ $t('nav_drawer.virtual_views.calendar') }}
                       </span></v-list-item-title
@@ -208,7 +209,7 @@
                       <v-icon x-small>mdi-tablet-dashboard</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title
-                      ><span class="font-weight-regular">
+                    ><span class="font-weight-regular">
                         <!-- Kanban -->
                         {{ $t('nav_drawer.virtual_views.kanban') }}
                       </span></v-list-item-title
@@ -233,7 +234,7 @@
                       <v-icon x-small class="mt-n1">mdi-form-select</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title
-                      ><span class="font-weight-regular">
+                    ><span class="font-weight-regular">
                         <!-- Form -->
 
                         {{ $t('nav_drawer.virtual_views.form') }}
@@ -256,9 +257,13 @@
           v-if="time - $store.state.windows.miniSponsorCard > 15 * 60 * 1000"
         >
           <v-icon small class="close-icon" @click="hideMiniSponsorCard"
-            >mdi-close-circle-outline</v-icon
+          >mdi-close-circle-outline
+          </v-icon
           >
-          <sponsor-mini :nav="true"></sponsor-mini>
+
+
+          <extras></extras>
+
         </div>
         <!--<div class="text-center">
           <v-hover >
@@ -285,7 +290,7 @@
               <span
                 class="body-2 grey--text"
                 @dblclick="$emit('update:showAdvanceOptions', !showAdvanceOptions)"
-                >Advanced</span
+              >Advanced</span
               >
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
@@ -296,7 +301,7 @@
                     @mouseleave="overAdvShieldIcon = false"
                     icon-class="ml-2"
                     small
-                    >mdi-shield-lock-outline
+                  >mdi-shield-lock-outline
                   </x-icon>
                 </template>
                 <span class="caption">
@@ -338,28 +343,6 @@
                 </v-list>
               </v-menu>
             </v-list-item>
-            <!--              </template>-->
-            <!--              <v-card dense class="backgroundColor">-->
-            <!--                <v-container fluid @click.stop>-->
-
-            <!--                  <v-text-field-->
-            <!--                    label="Password"-->
-            <!--                    hint="Enter shared view password"-->
-            <!--                    flat-->
-            <!--                    solo-->
-            <!--                    dense-->
-            <!--                    v-model="sharedViewPassword"-->
-            <!--                  ></v-text-field>-->
-            <!--                  <div class="text-right">-->
-            <!--                    <v-btn small color="primary" @click="genShareLink()">Create</v-btn>-->
-            <!--                  </div>-->
-            <!--                </v-container>-->
-            <!--              </v-card>-->
-
-            <!--            </v-menu>-->
-            <!--              </template>-->
-            <!--              Generate shared view url-->
-            <!--            </v-tooltip>-->
 
             <v-tooltip bottom>
               <template v-slot:activator="{ on }">
@@ -407,12 +390,12 @@
           </p>
           <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
             {{ shareLink.url }}
-            <v-spacer> </v-spacer>
+            <v-spacer></v-spacer>
             <a :href="shareLink.url" style="text-decoration: none" target="_blank">
               <v-icon small class="mx-2">mdi-open-in-new</v-icon>
             </a>
             <v-icon small class="pointer" @click="copyShareUrlToClipboard"
-              >mdi-content-copy
+            >mdi-content-copy
             </v-icon>
           </div>
 
@@ -461,11 +444,11 @@
 
 <script>
 import CreateViewDialog from '@/components/project/spreadsheet/dialog/createViewDialog';
-import SponsorMini from '@/components/sponsorMini';
+import Extras from "~/components/project/spreadsheet/components/extras";
 
 export default {
   name: 'spreadsheetNavDrawer',
-  components: { SponsorMini, CreateViewDialog },
+  components: {Extras, CreateViewDialog},
   props: {
     showAdvanceOptions: Boolean,
     hideViews: Boolean,
@@ -505,11 +488,11 @@ export default {
     overShieldIcon: false,
     viewsList: [],
     viewIcons: {
-      grid: { icon: 'mdi-grid-large', color: 'blue' },
-      form: { icon: 'mdi-form-select', color: 'pink' },
-      calendar: { icon: 'mdi-calendar', color: 'purple' },
-      gallery: { icon: 'mdi-camera-image', color: 'orange' },
-      kanban: { icon: 'mdi-tablet-dashboard', color: 'green' },
+      grid: {icon: 'mdi-grid-large', color: 'blue'},
+      form: {icon: 'mdi-form-select', color: 'pink'},
+      calendar: {icon: 'mdi-calendar', color: 'purple'},
+      gallery: {icon: 'mdi-camera-image', color: 'orange'},
+      kanban: {icon: 'mdi-tablet-dashboard', color: 'green'},
     },
     copyViewRef: null,
     shareLink: {},
@@ -592,7 +575,7 @@ export default {
     async saveShareLinkPassword() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [
-          { dbAlias: this.nodes.dbAlias },
+          {dbAlias: this.nodes.dbAlias},
           'updateSharedViewLinkPassword',
           {
             id: this.shareLink.id,
@@ -639,7 +622,7 @@ export default {
     },
     async updateViewName(view) {
       try {
-        await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
+        await this.sqlOp({dbAlias: this.nodes.dbAlias}, 'xcVirtualTableRename', {
           id: view.id,
           title: view.title,
           alias: view.alias,
@@ -661,7 +644,7 @@ export default {
     },
     async deleteView(view) {
       try {
-        await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableDelete', {
+        await this.sqlOp({dbAlias: this.nodes.dbAlias}, 'xcVirtualTableDelete', {
           id: view.id,
           title: view.alias || view.title,
           parent_model_title: this.table,
@@ -675,7 +658,7 @@ export default {
     async genShareLink() {
       this.showShareModel = true;
       const sharedViewUrl = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-        { dbAlias: this.nodes.dbAlias },
+        {dbAlias: this.nodes.dbAlias},
         'createSharedViewLink',
         {
           model_name: this.table,

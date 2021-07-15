@@ -55,6 +55,7 @@ export default {
     "@/plugins/vueClipboard",
     "@/plugins/globalComponentLoader",
     "@/plugins/globalMixin",
+    "@/plugins/globalEventBus",
     "~/plugins/i18n.js",
     {src: '~plugins/projectLoader.js', ssr: false}
   ],

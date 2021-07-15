@@ -34,675 +34,674 @@
         </template>
       </v-toolbar-title>
 
-      <span class="caption grey--text ml-3" v-show="$nuxt.$loading.show">Loading <v-icon small color="grey">mdi-spin mdi-loading</v-icon></span>
+      <v-toolbar-items class="ml-3">
 
-      <!--      <gh-btns-star-->
-      <!--        @click.native="githubClickHandler"-->
-      <!--        class="black&#45;&#45;text"-->
-      <!--        icon="mark-github" slug="nocodb/nocodb" show-count></gh-btns-star>-->
-      <!--
+        <gh-btns-star
+          icon="mark-github" slug="nocodb/nocodb" show-count class="mr-3 align-self-center"></gh-btns-star>
+      </v-toolbar-items>
+        <!-- <template v-if="!isThisMobile ">
 
-            <x-icon key="discord-dash" iconClass="ml-4" @click="openDiscord" tooltip="Discord Chat (^⇧D)">mdi-discord
-            </x-icon>
 
-            <a href="https://twitter.com/xgenecloud" target="_blank">
-              <x-icon key="twitter-dash" iconClass="ml-4" tooltip="Twitter">
-                mdi-twitter
+                  <a class="align-self-center" style="" target="_blank" href="https://calendly.com/nocodb">
+
+                    <x-icon size="20" tooltip="Book a free demo" color="white" icon.class="mr-3">mdi-calendar-month</x-icon>
+
+                  </a>
+
+                  <a href="https://twitter.com/NocoDB" target="_blank" class="align-self-center" style="">
+                    <v-icon size="20" color="white" class="mr-3">mdi-twitter</v-icon>
+                  </a>
+                  &lt;!&ndash;            <v-menu offset-y>&ndash;&gt;
+                  &lt;!&ndash;              <template v-slot:activator="{on}">&ndash;&gt;
+                  &lt;!&ndash;                href="https://discord.gg/5RgZmkW"&ndash;&gt;
+                  <a target="_blank" class="align-self-center" style="" href="https://discord.gg/5RgZmkW">
+                    <v-icon size="20" color="white" class="mr-3">mdi-discord</v-icon>
+                  </a>
+                  &lt;!&ndash;              </template>&ndash;&gt;
+                  &lt;!&ndash;              <discord></discord>&ndash;&gt;
+                  &lt;!&ndash;            </v-menu>&ndash;&gt;
+                </template>
+
+              </v-toolbar-items>-->
+        <span class="caption grey--text ml-3" v-show="$nuxt.$loading.show">Loading <v-icon small color="grey">mdi-spin mdi-loading</v-icon></span>
+
+        <!--      <gh-btns-star-->
+        <!--        @click.native="githubClickHandler"-->
+        <!--        class="black&#45;&#45;text"-->
+        <!--        icon="mark-github" slug="nocodb/nocodb" show-count></gh-btns-star>-->
+        <!--
+
+              <x-icon key="discord-dash" iconClass="ml-4" @click="openDiscord" tooltip="Discord Chat (^⇧D)">mdi-discord
               </x-icon>
-            </a>
 
-            <a href="https://calendly.com/xgenecloud/demo" target="_blank">
-              <x-icon iconClass="ml-4" tooltip="Book a demo">
-                mdi-video-outline
-              </x-icon>
-            </a>-->
+              <a href="https://twitter.com/xgenecloud" target="_blank">
+                <x-icon key="twitter-dash" iconClass="ml-4" tooltip="Twitter">
+                  mdi-twitter
+                </x-icon>
+              </a>
 
-      <!--      <x-btn btn.class=" mr-4" small text-->
-      <!--             tooltip="We'll help you get started over a video call"-->
-      <!--             @click="openUrl('https://calendly.com/xgenecloud/demo')">-->
-      <!--        <v-icon-->
+              <a href="https://calendly.com/nocodb" target="_blank">
+                <x-icon iconClass="ml-4" tooltip="Book a demo">
+                  mdi-video-outline
+                </x-icon>
+              </a>-->
 
-      <!--          color="">-->
-      <!--          mdi-video-outline-->
-      <!--        </v-icon> &nbsp; Free Demo-->
-      <!--      </x-btn>-->
-      <span v-shortkey="[ 'ctrl','shift', 'd']"
-            @shortkey="openDiscord"></span>
+        <!--      <x-btn btn.class=" mr-4" small text-->
+        <!--             tooltip="We'll help you get started over a video call"-->
+        <!--             @click="openUrl('https://calendly.com/nocodb')">-->
+        <!--        <v-icon-->
 
-
-      <v-spacer></v-spacer>
-      <div style="position: absolute; top:0;left:0;width:100%; pointer-events: none" class="d-flex align-center">
-        <h5 class="text-center mx-auto mb-0 mt-1 title font-weight-bold text-capitalize"
-            v-if="isDashboard && $store.getters['project/GtrProjectName'] !== '__project__'">
-          <v-icon small class="mr-2\1" color="grey lighten-2">
-            mdi-folder-outline
-          </v-icon>
-          {{ $store.getters['project/GtrProjectName'] }}
-          <!--     <v-icon small color="grey lighten-2">
-                 mdi-menu-down
-               </v-icon>-->
-          <v-tooltip bottom>
-            <template v-slot:activator="{on}">
-              <v-icon style="pointer-events:all" x-small v-on="on" color="grey lighten-2">
-                mdi-information-outline
-              </v-icon>
-            </template>
-            Project name
-          </v-tooltip>
-        </h5>
-      </div>
-      <v-spacer></v-spacer>
+        <!--          color="">-->
+        <!--          mdi-video-outline-->
+        <!--        </v-icon> &nbsp; Free Demo-->
+        <!--      </x-btn>-->
+        <span v-shortkey="[ 'ctrl','shift', 'd']"
+              @shortkey="openDiscord"></span>
 
 
-      <v-toolbar-items class="hidden-sm-and-down">
+        <v-spacer></v-spacer>
+        <div style="position: absolute; top:0;left:0;width:100%; pointer-events: none" class="d-flex align-center">
+          <h5 class="text-center mx-auto mb-0 mt-1 title font-weight-bold text-capitalize"
+              v-if="isDashboard && $store.getters['project/GtrProjectName'] !== '__project__'">
+            <v-icon small class="mr-2\1" color="grey lighten-2">
+              mdi-folder-outline
+            </v-icon>
+            {{ $store.getters['project/GtrProjectName'] }}
+            <v-tooltip bottom>
+              <template v-slot:activator="{on}">
+                <v-icon style="pointer-events:all" x-small v-on="on" color="grey lighten-2">
+                  mdi-information-outline
+                </v-icon>
+              </template>
+              Project name
+            </v-tooltip>
+          </h5>
+        </div>
 
 
-        <!--        <x-icon-->
-        <!--          :iconClass="isDashboard ? 'mr-4 mt-n1':'mr-4 mt-n1 '" @click="loadChat" color="#2196f3 #2196f3"-->
-        <!--          v-if="!$store.state.windows.isComp"-->
-        <!--          tooltip="Facing any issues ? Chat with us<br>We can help you right away">-->
-        <!--          mdi-account-tie-voice-->
-        <!--        </x-icon>-->
+        <v-spacer></v-spacer>
 
 
-        <!--        <x-icon iconClass="mr-4" v-if="$store.getters['project/GtrProjectJson']" @click="environmentDialog = true" tooltip="Environments">-->
-        <!--          mdi-eye-outline-->
-        <!--        </x-icon>-->
+        <v-toolbar-items class="hidden-sm-and-down">
 
-        <!--        <x-icon iconClass="mr-4" v-if="isDashboard"-->
-        <!--                @click="codeGenerateMvc()"-->
-        <!--                tooltip="Generate REST Code (^⇧G)"-->
-        <!--                color="success success">-->
-        <!--          mdi-language-javascript-->
-        <!--        </x-icon>-->
-        <!--        <span v-shortkey="['ctrl','shift','m']" v-if="isDashboard"  @shortkey="codeGenerateMvc()"></span>-->
-
-        <!--        <x-icon iconClass="mr-4"-->
-        <!--                v-if="isDashboard"-->
-        <!--                @click="codeGenerateMvcGql()"-->
-        <!--                color="accent accent"-->
-        <!--                tooltip="Generate GraphQL Code (^⇧G)">-->
-        <!--          mdi-language-javascript-->
-        <!--        </x-icon>-->
-        <!--        <span v-shortkey="['ctrl','shift','q']" v-if="isDashboard"  @shortkey="codeGenerateMvcGql()"></span>-->
-
-        <!--        <x-icon iconClass="mr-4"-->
-        <!--                v-if="isDashboard"-->
-        <!--                @click="codeClear()"-->
-        <!--                color="error error"-->
-        <!--                tooltip="Delete all code (^⇧G)">-->
-        <!--          mdi-delete-variant-->
-        <!--        </x-icon>-->
-        <!--        <span v-shortkey="['ctrl','shift','c']" v-if="isDashboard"  @shortkey="codeClear()"></span>-->
-
-        <template v-if="isDashboard">
-
-          <template v-if="!isThisMobile ">
+          <div>
+            <x-btn v-if="_isUIAllowed('add-user')" @click="rolesTabAdd" small color="white" btn-class="primary--text">
+              <v-icon small class="mr-1">mdi-account-supervisor-outline</v-icon>
+              Share
+            </x-btn>
+          </div>
 
 
-            <a class="align-self-center" style="" target="_blank" href="https://calendly.com/xgenecloud/demo">
+          <!--        <x-icon iconClass="mr-4" v-if="isDashboard"-->
+          <!--                @click="codeGenerateMvc()"-->
+          <!--                tooltip="Generate REST Code (^⇧G)"-->
+          <!--                color="success success">-->
+          <!--          mdi-language-javascript-->
+          <!--        </x-icon>-->
+          <!--        <span v-shortkey="['ctrl','shift','m']" v-if="isDashboard"  @shortkey="codeGenerateMvc()"></span>-->
 
-              <x-icon size="20" tooltip="Book a free demo" color="white" icon.class="mr-3">mdi-calendar-month</x-icon>
+          <!--        <x-icon iconClass="mr-4"-->
+          <!--                v-if="isDashboard"-->
+          <!--                @click="codeGenerateMvcGql()"-->
+          <!--                color="accent accent"-->
+          <!--                tooltip="Generate GraphQL Code (^⇧G)">-->
+          <!--          mdi-language-javascript-->
+          <!--        </x-icon>-->
+          <!--        <span v-shortkey="['ctrl','shift','q']" v-if="isDashboard"  @shortkey="codeGenerateMvcGql()"></span>-->
 
-            </a>
+          <!--        <x-icon iconClass="mr-4"-->
+          <!--                v-if="isDashboard"-->
+          <!--                @click="codeClear()"-->
+          <!--                color="error error"-->
+          <!--                tooltip="Delete all code (^⇧G)">-->
+          <!--          mdi-delete-variant-->
+          <!--        </x-icon>-->
+          <!--        <span v-shortkey="['ctrl','shift','c']" v-if="isDashboard"  @shortkey="codeClear()"></span>-->
 
-            <a href="https://twitter.com/NocoDB" target="_blank" class="align-self-center" style="">
-              <v-icon size="20" color="white" class="mr-3">mdi-twitter</v-icon>
-            </a>
-            <!--            <v-menu offset-y>-->
-            <!--              <template v-slot:activator="{on}">-->
-            <!--                href="https://discord.gg/5RgZmkW"-->
-            <a target="_blank" class="align-self-center" style="" href="https://discord.gg/5RgZmkW">
-              <v-icon size="20" color="white" class="mr-3">mdi-discord</v-icon>
-            </a>
-            <!--              </template>-->
-            <!--              <discord></discord>-->
-            <!--            </v-menu>-->
-          </template>
+          <template v-if="isDashboard">
 
-          <gh-btns-star
-            icon="mark-github" slug="nocodb/nocodb" show-count class="mr-1 align-self-center"></gh-btns-star>
-          <!--      <github-button v-show="$store.state.isLoaded" class="mt-2 mr-md-2" href="https://github.com/nocodb/nocodb"-->
-          <!--                     data-color-scheme="no-preference: light; light: light; dark: light;" data-size="large"-->
-          <!--                     data-show-count="true" aria-label="Star nocodb/nocodb on GitHub">Star-->
-          <!--      </github-button>-->
-
-
-          <!-- <v-menu offset-y>
-             <template v-slot:activator="{on}">
-               <div class="align-self-center" v-on="on">
-                 <v-icon small color="" class="mr-1 heart-anim">mdi-heart</v-icon>
-                 <span class="body-2">Community</span>
-                 <v-icon small>mdi-menu-down</v-icon>
-               </div>
-             </template>
+            <!--      <github-button v-show="$store.state.isLoaded" class="mt-2 mr-md-2" href="https://github.com/nocodb/nocodb"-->
+            <!--                     data-color-scheme="no-preference: light; light: light; dark: light;" data-size="large"-->
+            <!--                     data-show-count="true" aria-label="Star nocodb/nocodb on GitHub">Star-->
+            <!--      </github-button>-->
 
 
-             <v-list dense>
-               <v-list-item>
-                 <v-icon small class="mr-1">mdi-github</v-icon>
-                 <span class="caption text-capitalize">Github</span>
-               </v-list-item>
-               <v-list-item>
-                 <v-icon small class="mr-1">mdi-discord</v-icon>
-                 <span class="caption text-capitalize">Discord</span>
-               </v-list-item>
-
-               <v-list-item>
-                 <v-icon small class="mr-1">mdi-discord</v-icon>
-                 <span class="caption text-capitalize">Discord</span>
-               </v-list-item>
-             </v-list>
-           </v-menu>
- -->
-          <!--
-           <v-menu offset-y v-if="rolesList">
-                      <template v-slot:activator="{on}">
-                        <div class="d-flex align-center">
-                          <v-btn small outlined v-on="on">
-                            <v-icon small class="mr-1">mdi-drama-masks</v-icon>
-                            <span>Preview as</span>
-                            <v-icon small>mdi-menu-down</v-icon>
-                          </v-btn>
-                        </div>
-                      </template>
+            <!-- <v-menu offset-y>
+               <template v-slot:activator="{on}">
+                 <div class="align-self-center" v-on="on">
+                   <v-icon small color="" class="mr-1 heart-anim">mdi-heart</v-icon>
+                   <span class="body-2">Community</span>
+                   <v-icon small>mdi-menu-down</v-icon>
+                 </div>
+               </template>
 
 
-                      <v-list dense>
-                        <v-list-item v-for="role in rolesList" @click="setPreviewUSer(role.title)" :key="role.title">
-                          <v-icon small class="mr-1">{{ roleIcon[role.title] }}</v-icon>
-                          <span class="caption text-capitalize">{{ role.title }}</span>
-                        </v-list-item>
-                        <template v-if="previewAs">
-                          <v-divider></v-divider>
-                          <v-list-item @click="setPreviewUSer(null)">
-                            <v-icon small class="mr-1">mdi-close</v-icon>
-                            <span class="caption">Reset Preview</span>
-                          </v-list-item>
+               <v-list dense>
+                 <v-list-item>
+                   <v-icon small class="mr-1">mdi-github</v-icon>
+                   <span class="caption text-capitalize">Github</span>
+                 </v-list-item>
+                 <v-list-item>
+                   <v-icon small class="mr-1">mdi-discord</v-icon>
+                   <span class="caption text-capitalize">Discord</span>
+                 </v-list-item>
+
+                 <v-list-item>
+                   <v-icon small class="mr-1">mdi-discord</v-icon>
+                   <span class="caption text-capitalize">Discord</span>
+                 </v-list-item>
+               </v-list>
+             </v-menu>
+   -->
+            <!--
+             <v-menu offset-y v-if="rolesList">
+                        <template v-slot:activator="{on}">
+                          <div class="d-flex align-center">
+                            <v-btn small outlined v-on="on">
+                              <v-icon small class="mr-1">mdi-drama-masks</v-icon>
+                              <span>Preview as</span>
+                              <v-icon small>mdi-menu-down</v-icon>
+                            </v-btn>
+                          </div>
                         </template>
-                      </v-list>
-                    </v-menu>
 
-          -->
 
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on }">
-              <v-icon v-on="on" class="mt-1 ml-3" size="22" @click="$store.commit('windows/MutToggleTheme')">
-                mdi-format-color-fill
-              </v-icon>
-            </template>
-            Change theme (^⇧M)
-          </v-tooltip>
+                        <v-list dense>
+                          <v-list-item v-for="role in rolesList" @click="setPreviewUSer(role.title)" :key="role.title">
+                            <v-icon small class="mr-1">{{ roleIcon[role.title] }}</v-icon>
+                            <span class="caption text-capitalize">{{ role.title }}</span>
+                          </v-list-item>
+                          <template v-if="previewAs">
+                            <v-divider></v-divider>
+                            <v-list-item @click="setPreviewUSer(null)">
+                              <v-icon small class="mr-1">mdi-close</v-icon>
+                              <span class="caption">Reset Preview</span>
+                            </v-list-item>
+                          </template>
+                        </v-list>
+                      </v-menu>
 
-          <span v-shortkey="[ 'ctrl','shift', 'b']"
-                @shortkey="changeTheme"></span>
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on }">
-              <v-icon @dblclick="showAppStore=true" @click="changeTheme" v-on="on" size="20"
-                      class="ml-3"> {{ $vuetify.theme.dark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
-              </v-icon>
-            </template>
-            <span class="caption">
+            -->
+
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on }">
+                <v-icon v-on="on" class="mt-1 ml-3" size="22" @click="$store.commit('windows/MutToggleTheme')">
+                  mdi-format-color-fill
+                </v-icon>
+              </template>
+              Change theme (^⇧M)
+            </v-tooltip>
+
+            <span v-shortkey="[ 'ctrl','shift', 'b']"
+                  @shortkey="changeTheme"></span>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on }">
+                <v-icon @dblclick="showAppStore=true" @click="changeTheme" v-on="on" size="20"
+                        class="ml-3"> {{ $vuetify.theme.dark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
+                </v-icon>
+              </template>
+              <span class="caption">
               {{ $vuetify.theme.dark ? 'Click for light theme' : 'Click for dark theme' }}
               <i></i>
             </span>
-          </v-tooltip>
-
-
-          <!--          <template v-if="isDocker">-->
-          <!--            <x-btn text btn.class="caption font-weight-bold px-2" tooltip="Metadata Operations"-->
-          <!--                   @click="xcMetaTabAdd">-->
-
-          <!--              <v-icon class="mt-n1">-->
-          <!--                mdi-file-table-box-multiple-outline-->
-          <!--              </v-icon> &nbsp;-->
-          <!--              Meta-->
-          <!--            </x-btn>-->
-
-
-          <!--            <x-btn text btn.class="caption font-weight-bold px-2" tooltip="Change Environment"-->
-          <!--                   @click="showChangeEnv = true">-->
-
-          <!--              <v-icon>-->
-          <!--                mdi-test-tube-->
-          <!--              </v-icon> &nbsp;-->
-          <!--              Change Env-->
-          <!--            </x-btn>-->
-          <!--          </template>-->
-
-
-          <span v-shortkey="[ 'ctrl','shift', 'd']"
-                @shortkey="$router.push('/')"></span>
-
-          <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize" v-if="showAirtabLikeLink > 2"
-                 tooltip="Data (^⇧D)"
-                 to="/datatable">
-
-            <v-icon size="20">
-              mdi-table
-            </v-icon> &nbsp;
-            Data
-          </x-btn>
-
-          <!--          v-if="showAppStore"-->
-
-          <!--       <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize"
-                        tooltip="App store"
-                        @click="appsTabAdd()">
+            </v-tooltip>
+
+
+            <!--          <template v-if="isDocker">-->
+            <!--            <x-btn text btn.class="caption font-weight-bold px-2" tooltip="Metadata Operations"-->
+            <!--                   @click="xcMetaTabAdd">-->
+
+            <!--              <v-icon class="mt-n1">-->
+            <!--                mdi-file-table-box-multiple-outline-->
+            <!--              </v-icon> &nbsp;-->
+            <!--              Meta-->
+            <!--            </x-btn>-->
+
+
+            <!--            <x-btn text btn.class="caption font-weight-bold px-2" tooltip="Change Environment"-->
+            <!--                   @click="showChangeEnv = true">-->
+
+            <!--              <v-icon>-->
+            <!--                mdi-test-tube-->
+            <!--              </v-icon> &nbsp;-->
+            <!--              Change Env-->
+            <!--            </x-btn>-->
+            <!--          </template>-->
+
+
+            <span v-shortkey="[ 'ctrl','shift', 'd']"
+                  @shortkey="$router.push('/')"></span>
+
+            <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize" v-if="showAirtabLikeLink > 2"
+                   tooltip="Data (^⇧D)"
+                   to="/datatable">
+
+              <v-icon size="20">
+                mdi-table
+              </v-icon> &nbsp;
+              Data
+            </x-btn>
+
+            <!--          v-if="showAppStore"-->
+
+            <!--       <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize"
+                          tooltip="App store"
+                          @click="appsTabAdd()">
 
-                   <v-icon size="16" class="mt-n1">
-                     mdi-storefront-outline
-                   </v-icon> &nbsp;
-                   App Store
-                 </x-btn>-->
-
-          <!--          <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize" tooltip="Meta Management"-->
-          <!--                 @dblclick="showAppStoreIcon"-->
-          <!--                 @click="disableOrEnableModelTabAdd()">-->
-
-          <!--            <v-icon size="20">mdi-table-multiple-->
-          <!--            </v-icon> &nbsp;-->
-          <!--            Meta-->
-          <!--          </x-btn>-->
+                     <v-icon size="16" class="mt-n1">
+                       mdi-storefront-outline
+                     </v-icon> &nbsp;
+                     App Store
+                   </x-btn>-->
+
+            <!--          <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize" tooltip="Meta Management"-->
+            <!--                 @dblclick="showAppStoreIcon"-->
+            <!--                 @click="disableOrEnableModelTabAdd()">-->
+
+            <!--            <v-icon size="20">mdi-table-multiple-->
+            <!--            </v-icon> &nbsp;-->
+            <!--            Meta-->
+            <!--          </x-btn>-->
 
-          <!--          <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize" tooltip="Roles & Users Management"-->
-          <!--                 @click="rolesTabAdd()">-->
+            <!--          <x-btn text btn.class="caption font-weight-bold px-2 text-capitalize" tooltip="Roles & Users Management"-->
+            <!--                 @click="rolesTabAdd()">-->
 
-          <!--            <v-icon size="20">-->
-          <!--              mdi-account-group-->
-          <!--            </v-icon> &nbsp;-->
-          <!--            Team-->
-          <!--          </x-btn>-->
+            <!--            <v-icon size="20">-->
+            <!--              mdi-account-group-->
+            <!--            </v-icon> &nbsp;-->
+            <!--            Team-->
+            <!--          </x-btn>-->
 
-          <x-btn
-            v-if="!$store.state.windows.nc"
-            text btn.class="caption font-weight-bold px-2 text-capitalize" tooltip="Enable/Disable Models"
-            @click="cronTabAdd()">
+            <x-btn
+              v-if="!$store.state.windows.nc"
+              text btn.class="caption font-weight-bold px-2 text-capitalize" tooltip="Enable/Disable Models"
+              @click="cronTabAdd()">
 
-            <v-icon size="20">mdi-timetable
-            </v-icon> &nbsp;
-            Crons
-          </x-btn>
-          <!--          <x-btn text btn.class="caption font-weight-bold px-2" tooltip="ACL Management"-->
-          <!--                 @click="aclTabAdd()">-->
+              <v-icon size="20">mdi-timetable
+              </v-icon> &nbsp;
+              Crons
+            </x-btn>
+            <!--          <x-btn text btn.class="caption font-weight-bold px-2" tooltip="ACL Management"-->
+            <!--                 @click="aclTabAdd()">-->
 
-          <!--            <v-icon>-->
-          <!--              mdi-shield-edit-outline-->
-          <!--            </v-icon> &nbsp;-->
-          <!--            ACL-->
-          <!--          </x-btn>-->
-
-          <!--          <span v-shortkey="['ctrl','shift','g']" @shortkey="graphqlClientTabAdd()"></span>-->
-
-
-          <!--          <x-btn v-if="isGql" text btn.class="caption font-weight-bold px-2" tooltip="GraphQL Client (^⇧G)"-->
-          <!--                 @click="graphqlClientTabAdd()">-->
-
-          <!--          <v-icon tooltip="GraphQL Client (^⇧G)"-->
-          <!--                  v-if="!$store.state.windows.nc && isGql"-->
-          <!--                  @click="graphqlClientTabAdd()" class="ml-3 " size="20">-->
-          <!--            mdi-graphql-->
-          <!--          </v-icon>-->
-          <!--          <v-icon tooltip="GraphQL Client (^⇧G)"-->
-          <!--                  v-if="isRest"-->
-          <!--                  @click="swaggerClientTabAdd()" class="ml-3 " size="20">-->
-          <!--            mdi-code-json-->
-          <!--          </v-icon>-->
-          <!--            &nbsp;-->
-          <!--            GraphiQL-->
-          <!--          </x-btn>-->
-          <span v-shortkey="['ctrl','shift','g']" @shortkey="graphqlClientTabAdd()"></span>
-
-
-          <!--          <x-btn v-if="isGrpc" text btn.class="caption font-weight-bold px-2" tooltip="GraphQL Client (^⇧G)"-->
-          <!--                 @click="grpcTabAdd()">-->
-
-          <v-icon
-            v-if="!$store.state.windows.nc && isGrpc"
-            size="20" class="ml-3 " tooltip="GraphQL Client (^⇧G)"
-            @click="grpcTabAdd()">
-            mdi-alpha-g-circle-outline
-          </v-icon>
-          <!--            &nbsp;-->
-          <!--            gRPC-->
-          <!--          </x-btn>-->
-
-
-          <!--          <x-icon iconClass="mr-4" @click="apiClientTabAdd()" tooltip="API Client (^⇧A)">mdi-send-->
-          <!--          </x-icon>-->
-
-          <!--          <x-btn text @click="apiClientSwaggerTabAdd()" tooltip="API Client (^⇧A)"-->
-          <!--                 btn.class="caption font-weight-bold px-2">-->
-
-
-          <v-icon class="ml-3 "
-                  v-if="!$store.state.windows.nc" size="20" @click="apiClientSwaggerTabAdd()"
-                  tooltip="API Client (^⇧A)">mdi-code-json
-          </v-icon>
-          <!--            &nbsp; REST Client-->
-          <!--          </x-btn>-->
-
-          <!--          <x-icon iconClass="mr-4" tooltip="Feed (^⇧F)" @click="feedDialog = true">mdi-glasses</x-icon>-->
-          <!--          <span v-shortkey="['ctrl','shift','f']" @shortkey="feedDialog = true"></span>-->
-
-
-          <span v-shortkey="['ctrl','shift','a']" @shortkey="apiClientTabAdd()"></span>
-
-          <!--          <x-btn text btn.class="caption font-weight-bold px-2" @click="terminalTabAdd()"-->
-          <!--                 tooltip="API Generator Console (^⇧T)">-->
-
-          <!--            <v-icon key="terminal-dash">-->
-          <!--              mdi-console-->
-          <!--            </v-icon>&nbsp;-->
-          <!--            {{ isDocker ? 'Docker Console' : 'API Generator' }}-->
-          <!--          </x-btn>-->
-
-          <span v-shortkey="[ 'ctrl','shift', 'c']"
-                @shortkey="settingsDialog = true"></span>
-
-
-          <!--          <span v-shortkey="[ 'ctrl','shift', 'd']"-->
-          <!--                @shortkey="openDiscord"></span>-->
-
-
-          <!--          <x-icon key="discord-dash" iconClass="mr-4" @click="openDiscord" tooltip="Discord Chat (^⇧D)">mdi-discord-->
-          <!--          </x-icon>-->
-
-
-          <!--          <x-icon key="github-dash" iconClass="mr-4" @click="openGithub" tooltip="Github">mdi-github-circle-->
-          <!--          </x-icon>-->
-          <!--          <span v-shortkey="[ 'ctrl','shift', 'm']"
-                          @shortkey="$store.commit('windows/MutToggleTheme')"></span>
-
-                    <v-tooltip bottom>
-                      <template v-slot:activator="{ on }">
-                        <v-icon v-on="on" class="mt-1 ml-3" size="22" @click="$store.commit('windows/MutToggleTheme')">
-                          mdi-format-color-fill
-                        </v-icon>
-                      </template>
-                      Change theme (^⇧M)
-                    </v-tooltip>
-
-                    <span v-shortkey="[ 'ctrl','shift', 'b']"
-                          @shortkey="changeTheme"></span>
-                    <v-tooltip bottom>
-                      <template v-slot:activator="{ on }">
-                        <v-icon @dblclick="showAppStore=true" @click="changeTheme" v-on="on" size="23"
-                                :style="$vuetify.theme.dark ? {}:{color:'lightgrey'}"
-                                class="ml-3">mdi-bat
-                        </v-icon>
-                      </template>
-                      <h3 class="pa-3">
-                        {{ $vuetify.theme.dark ? 'It does come in Black (^⇧B)' : 'Does it come in Black ? (^⇧B)' }}
-                        <i></i>
-                      </h3>
-                    </v-tooltip>-->
-
-          <!--          <v-tooltip bottom>-->
-          <!--            <template v-slot:activator="{ on }">-->
-          <!--              <v-icon @click="toggleOutputWindow" class=" ml-3"-->
-          <!--                      v-on="on"-->
-          <!--                      :style="$store.state.windows.outputWindow ? {}:{color:'lightgrey'}">-->
-          <!--                mdi-page-layout-body-->
-          <!--              </v-icon>-->
-          <!--            </template>-->
-          <!--            <span>Toggle output window  (^⇧O)</span>-->
-          <!--          </v-tooltip>-->
-
-          <span v-shortkey="[ 'ctrl','shift', 'o']"
-                @shortkey="toggleOutputWindow"></span>
-
-
-          <!--          <v-tooltip bottom>-->
-          <!--            <template v-slot:activator="{ on }">-->
-          <!--              <v-icon @click="toggleLogWindow" class="ml-4 "-->
-          <!--                      v-on="on"-->
-          <!--                      :style="$store.state.windows.logWindow ? {}:{color:'lightgrey'}">-->
-          <!--                mdi-page-layout-footer-->
-          <!--              </v-icon>-->
-          <!--            </template>-->
-          <!--            <span>Toggle log window  (^⇧L)</span>-->
-          <!--          </v-tooltip>-->
-          <span v-shortkey="[ 'ctrl','shift', 'l']"
-                @shortkey="toggleLogWindow"></span>
-
-
-          <!--          <v-icon v-if="_isDev" @click="dialogDebugShow">mdi-view-headline</v-icon>-->
-        </template>
-        <template v-else>
-
-          <!--          <x-icon iconClass="mr-4" @click="apiClientSwaggerOpen()" v-if="!$store.state.windows.isComp"-->
-          <!--                  tooltip="API Client (^⇧A)">mdi-code-json-->
-          <!--          </x-icon>-->
-
-
-          <!--          <x-icon iconClass="mr-4" tooltip="Feed (^⇧F)" @click="feedDialog = true">mdi-glasses</x-icon>-->
-          <!--          <span v-shortkey="['ctrl','shift','f']" @shortkey="feedDialog = true"></span>-->
-
-          <!--          <x-icon iconClass="mr-4" @click="settingsTabAdd" size="20" tooltip="Tool Settings (^⇧C)">mdi-cog-->
-          <!--          </x-icon>-->
-          <!--          <x-icon iconClass="mr-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">mdi-cog-->
-          <!--          </x-icon>-->
-          <!--          <span v-shortkey="[ 'ctrl','shift', 'c']"-->
-          <!--                @shortkey="settingsDialog = true"></span>   -->
-          <span v-shortkey="[ 'ctrl','shift', 'c']"
-                @shortkey="settingsTabAdd"></span>
-
-          <span v-shortkey="[ 'ctrl','shift', 'b']"
-                @shortkey="changeTheme"></span>
-
-          <!--          <span v-shortkey="[ 'ctrl','shift', 'd']"-->
-          <!--                @shortkey="openDiscord"></span>-->
-
-
-          <!--          <x-icon key="discord" iconClass="mr-4" @click="openDiscord" tooltip="Discord Chat (^⇧D)">mdi-discord-->
-          <!--          </x-icon>-->
-          <!--          <x-icon key="github" iconClass="mr-4" @click="openGithub" tooltip="Github">mdi-github-circle-->
-          <!--          </x-icon>-->
-
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on }">
-              <v-icon @click="changeTheme" v-on="on" size="23" :style="$vuetify.theme.dark ? {}:{color:'lightgrey'}">
-                mdi-bat
-              </v-icon>
-            </template>
-            <h3 class="pa-3">
-              {{ $vuetify.theme.dark ? 'It does come in Black (^⇧B)' : 'Does it come in Black ? (^⇧B)' }}
-              <i></i>
-            </h3>
-          </v-tooltip>
-          <!--          <notification></notification>-->
-
-          <!--          <v-icon v-if="_isDev" @click="dialogDebugShow">mdi-view-headline</v-icon>-->
-        </template>
-
-        <!--        <v-btn text active-class to="/how-it-works" v-if="!user && !isThisMobile">-->
-        <!--          <b>How it works</b>-->
-        <!--        </v-btn>-->
-
-        <!--        <v-btn text class="ml-1" to="/pricing" v-if="!isThisMobile">-->
-        <!--          <b>Pricing</b>-->
-        <!--        </v-btn>-->
-
-
-        <!--        <v-btn text class="ml-1" to="/user/authentication/signin" v-if="!user && !isThisMobile">-->
-        <!--          <b>Log in</b>-->
-        <!--        </v-btn>-->
-        <!--        <v-btn text class="ml-3  elevation-0 "-->
-        <!--               to="/user/authentication/signup" v-if="!user && !isThisMobile">-->
-        <!--          <b>SIGN UP</b>-->
-        <!--        </v-btn>-->
-
-        <!--        <v-btn text class=""-->
-        <!--               to="/referral" v-if="user && !isThisMobile">-->
-        <!--          <b>Refer</b>-->
-        <!--        </v-btn>-->
-
-        <!--        <v-btn text class=""-->
-        <!--               to="/visits" v-if="user && !isThisMobile">-->
-        <!--          <b>Your Rewards</b>-->
-        <!--        </v-btn>-->
-        <span v-shortkey="['ctrl', 'shift', 't']"
-              @shortkey="terminalTabAdd()" tooltip="Terminal"></span>
-
-        <!--        <x-icon key="settings-dash" iconClass="mr-1 ml-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">-->
-        <!--          mdi-cog-->
-        <!--        </x-icon>-->
-        <!--        <x-icon key="settings-dash" iconClass="mr-1 ml-4"  size="20" @click="settingsTabAdd" tooltip="Tool Settings (^⇧C)">-->
-        <!--          mdi-cog-->
-        <!--        </x-icon>-->
-
-        <notification class="mx-2"></notification>
-
-
-        <v-menu offset-y open-on-hover
-                v-if="isAuthenticated">
-
-          <template v-slot:activator="{ on }">
-            <v-btn text v-on="on" class="font-weight-bold" v-ge="['Profile','']">
-
-              <v-icon v-if="role && roleIcon[role]" size="20">{{ roleIcon[role] }}</v-icon>
-              <v-icon v-else size="20">mdi-account-circle</v-icon>
-              <v-icon small>arrow_drop_down</v-icon>
-            </v-btn>
-
+            <!--            <v-icon>-->
+            <!--              mdi-shield-edit-outline-->
+            <!--            </v-icon> &nbsp;-->
+            <!--            ACL-->
+            <!--          </x-btn>-->
+
+            <!--          <span v-shortkey="['ctrl','shift','g']" @shortkey="graphqlClientTabAdd()"></span>-->
+
+
+            <!--          <x-btn v-if="isGql" text btn.class="caption font-weight-bold px-2" tooltip="GraphQL Client (^⇧G)"-->
+            <!--                 @click="graphqlClientTabAdd()">-->
+
+            <!--          <v-icon tooltip="GraphQL Client (^⇧G)"-->
+            <!--                  v-if="!$store.state.windows.nc && isGql"-->
+            <!--                  @click="graphqlClientTabAdd()" class="ml-3 " size="20">-->
+            <!--            mdi-graphql-->
+            <!--          </v-icon>-->
+            <!--          <v-icon tooltip="GraphQL Client (^⇧G)"-->
+            <!--                  v-if="isRest"-->
+            <!--                  @click="swaggerClientTabAdd()" class="ml-3 " size="20">-->
+            <!--            mdi-code-json-->
+            <!--          </v-icon>-->
+            <!--            &nbsp;-->
+            <!--            GraphiQL-->
+            <!--          </x-btn>-->
+            <span v-shortkey="['ctrl','shift','g']" @shortkey="graphqlClientTabAdd()"></span>
+
+
+            <!--          <x-btn v-if="isGrpc" text btn.class="caption font-weight-bold px-2" tooltip="GraphQL Client (^⇧G)"-->
+            <!--                 @click="grpcTabAdd()">-->
+
+            <v-icon
+              v-if="!$store.state.windows.nc && isGrpc"
+              size="20" class="ml-3 " tooltip="GraphQL Client (^⇧G)"
+              @click="grpcTabAdd()">
+              mdi-alpha-g-circle-outline
+            </v-icon>
+            <!--            &nbsp;-->
+            <!--            gRPC-->
+            <!--          </x-btn>-->
+
+
+            <!--          <x-icon iconClass="mr-4" @click="apiClientTabAdd()" tooltip="API Client (^⇧A)">mdi-send-->
+            <!--          </x-icon>-->
+
+            <!--          <x-btn text @click="apiClientSwaggerTabAdd()" tooltip="API Client (^⇧A)"-->
+            <!--                 btn.class="caption font-weight-bold px-2">-->
+
+
+            <v-icon class="ml-3 "
+                    v-if="!$store.state.windows.nc" size="20" @click="apiClientSwaggerTabAdd()"
+                    tooltip="API Client (^⇧A)">mdi-code-json
+            </v-icon>
+            <!--            &nbsp; REST Client-->
+            <!--          </x-btn>-->
+
+            <!--          <x-icon iconClass="mr-4" tooltip="Feed (^⇧F)" @click="feedDialog = true">mdi-glasses</x-icon>-->
+            <!--          <span v-shortkey="['ctrl','shift','f']" @shortkey="feedDialog = true"></span>-->
+
+
+            <span v-shortkey="['ctrl','shift','a']" @shortkey="apiClientTabAdd()"></span>
+
+            <!--          <x-btn text btn.class="caption font-weight-bold px-2" @click="terminalTabAdd()"-->
+            <!--                 tooltip="API Generator Console (^⇧T)">-->
+
+            <!--            <v-icon key="terminal-dash">-->
+            <!--              mdi-console-->
+            <!--            </v-icon>&nbsp;-->
+            <!--            {{ isDocker ? 'Docker Console' : 'API Generator' }}-->
+            <!--          </x-btn>-->
+
+            <span v-shortkey="[ 'ctrl','shift', 'c']"
+                  @shortkey="settingsDialog = true"></span>
+
+
+            <!--          <span v-shortkey="[ 'ctrl','shift', 'd']"-->
+            <!--                @shortkey="openDiscord"></span>-->
+
+
+            <!--          <x-icon key="discord-dash" iconClass="mr-4" @click="openDiscord" tooltip="Discord Chat (^⇧D)">mdi-discord-->
+            <!--          </x-icon>-->
+
+
+            <!--          <x-icon key="github-dash" iconClass="mr-4" @click="openGithub" tooltip="Github">mdi-github-circle-->
+            <!--          </x-icon>-->
+            <!--          <span v-shortkey="[ 'ctrl','shift', 'm']"
+                            @shortkey="$store.commit('windows/MutToggleTheme')"></span>
+
+                      <v-tooltip bottom>
+                        <template v-slot:activator="{ on }">
+                          <v-icon v-on="on" class="mt-1 ml-3" size="22" @click="$store.commit('windows/MutToggleTheme')">
+                            mdi-format-color-fill
+                          </v-icon>
+                        </template>
+                        Change theme (^⇧M)
+                      </v-tooltip>
+
+                      <span v-shortkey="[ 'ctrl','shift', 'b']"
+                            @shortkey="changeTheme"></span>
+                      <v-tooltip bottom>
+                        <template v-slot:activator="{ on }">
+                          <v-icon @dblclick="showAppStore=true" @click="changeTheme" v-on="on" size="23"
+                                  :style="$vuetify.theme.dark ? {}:{color:'lightgrey'}"
+                                  class="ml-3">mdi-bat
+                          </v-icon>
+                        </template>
+                        <h3 class="pa-3">
+                          {{ $vuetify.theme.dark ? 'It does come in Black (^⇧B)' : 'Does it come in Black ? (^⇧B)' }}
+                          <i></i>
+                        </h3>
+                      </v-tooltip>-->
+
+            <!--          <v-tooltip bottom>-->
+            <!--            <template v-slot:activator="{ on }">-->
+            <!--              <v-icon @click="toggleOutputWindow" class=" ml-3"-->
+            <!--                      v-on="on"-->
+            <!--                      :style="$store.state.windows.outputWindow ? {}:{color:'lightgrey'}">-->
+            <!--                mdi-page-layout-body-->
+            <!--              </v-icon>-->
+            <!--            </template>-->
+            <!--            <span>Toggle output window  (^⇧O)</span>-->
+            <!--          </v-tooltip>-->
+
+            <span v-shortkey="[ 'ctrl','shift', 'o']"
+                  @shortkey="toggleOutputWindow"></span>
+
+
+            <!--          <v-tooltip bottom>-->
+            <!--            <template v-slot:activator="{ on }">-->
+            <!--              <v-icon @click="toggleLogWindow" class="ml-4 "-->
+            <!--                      v-on="on"-->
+            <!--                      :style="$store.state.windows.logWindow ? {}:{color:'lightgrey'}">-->
+            <!--                mdi-page-layout-footer-->
+            <!--              </v-icon>-->
+            <!--            </template>-->
+            <!--            <span>Toggle log window  (^⇧L)</span>-->
+            <!--          </v-tooltip>-->
+            <span v-shortkey="[ 'ctrl','shift', 'l']"
+                  @shortkey="toggleLogWindow"></span>
+
+
+            <!--          <v-icon v-if="_isDev" @click="dialogDebugShow">mdi-view-headline</v-icon>-->
           </template>
-          <v-list dense>
-            <v-list-item dense to="/user/settings" v-if="userAuthIsEmail">
-              <v-list-item-title v-ge="['Settings','']">
-                <v-icon small>mdi-cog</v-icon> &nbsp; <span class="font-weight-regular">Settings</span>
-              </v-list-item-title>
-            </v-list-item>
-            <v-divider v-if="userAuthIsEmail"></v-divider>
+          <template v-else>
 
-            <template v-if="isDocker">
-
-              <!--              <v-list-item @click="xcMetaTabAdd" v-ge="['Meta add','']">-->
-              <!--                <v-list-item-title>-->
-
-              <!--                  <v-icon small>mdi-file-table-box-multiple-outline</v-icon>&nbsp; Export/Import Metadata-->
-              <!--                </v-list-item-title>-->
-              <!--              </v-list-item>-->
-              <!--              <v-list-item @click="showChangeEnv = true" v-ge="['Change env','']">-->
-              <!--                <v-list-item-title>-->
-
-              <!--                  <v-icon small>mdi-test-tube</v-icon>&nbsp; Change Environment-->
-              <!--                </v-list-item-title>-->
-              <!--              </v-list-item>-->
-              <!--              <v-list-item @click="terminalTabAdd()" v-ge="[isDocker ? 'Docker Console' : 'API Generator','']">
-                              <v-list-item-title>
+            <!--          <x-icon iconClass="mr-4" @click="apiClientSwaggerOpen()" v-if="!$store.state.windows.isComp"-->
+            <!--                  tooltip="API Client (^⇧A)">mdi-code-json-->
+            <!--          </x-icon>-->
 
 
-                                <v-icon small key="terminal-dash">
-                                  mdi-console
-                                </v-icon>&nbsp;
-                                {{ isDocker ? 'Docker Console' : 'API Generator' }}
+            <!--          <x-icon iconClass="mr-4" tooltip="Feed (^⇧F)" @click="feedDialog = true">mdi-glasses</x-icon>-->
+            <!--          <span v-shortkey="['ctrl','shift','f']" @shortkey="feedDialog = true"></span>-->
 
-                              </v-list-item-title>
-                            </v-list-item>-->
+            <!--          <x-icon iconClass="mr-4" @click="settingsTabAdd" size="20" tooltip="Tool Settings (^⇧C)">mdi-cog-->
+            <!--          </x-icon>-->
+            <!--          <x-icon iconClass="mr-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">mdi-cog-->
+            <!--          </x-icon>-->
+            <!--          <span v-shortkey="[ 'ctrl','shift', 'c']"-->
+            <!--                @shortkey="settingsDialog = true"></span>   -->
+            <span v-shortkey="[ 'ctrl','shift', 'c']"
+                  @shortkey="settingsTabAdd"></span>
+
+            <span v-shortkey="[ 'ctrl','shift', 'b']"
+                  @shortkey="changeTheme"></span>
+
+            <!--          <span v-shortkey="[ 'ctrl','shift', 'd']"-->
+            <!--                @shortkey="openDiscord"></span>-->
 
 
-              <v-list-item dense @click.stop="$toast.success('Auth token copied to clipboard').goAway(3000)"
-                           v-clipboard="this.$store.state.users.token">
-                <v-list-item-title>
+            <!--          <x-icon key="discord" iconClass="mr-4" @click="openDiscord" tooltip="Discord Chat (^⇧D)">mdi-discord-->
+            <!--          </x-icon>-->
+            <!--          <x-icon key="github" iconClass="mr-4" @click="openGithub" tooltip="Github">mdi-github-circle-->
+            <!--          </x-icon>-->
+
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on }">
+                <v-icon @click="changeTheme" v-on="on" size="23" :style="$vuetify.theme.dark ? {}:{color:'lightgrey'}">
+                  mdi-bat
+                </v-icon>
+              </template>
+              <h3 class="pa-3">
+                {{ $vuetify.theme.dark ? 'It does come in Black (^⇧B)' : 'Does it come in Black ? (^⇧B)' }}
+                <i></i>
+              </h3>
+            </v-tooltip>
+            <!--          <notification></notification>-->
+
+            <!--          <v-icon v-if="_isDev" @click="dialogDebugShow">mdi-view-headline</v-icon>-->
+          </template>
+
+          <!--        <v-btn text active-class to="/how-it-works" v-if="!user && !isThisMobile">-->
+          <!--          <b>How it works</b>-->
+          <!--        </v-btn>-->
+
+          <!--        <v-btn text class="ml-1" to="/pricing" v-if="!isThisMobile">-->
+          <!--          <b>Pricing</b>-->
+          <!--        </v-btn>-->
 
 
-                  <v-icon small key="terminal-dash">
-                    mdi-console
-                  </v-icon>&nbsp;
-                  <span class="font-weight-regular">Copy auth token</span>
+          <!--        <v-btn text class="ml-1" to="/user/authentication/signin" v-if="!user && !isThisMobile">-->
+          <!--          <b>Log in</b>-->
+          <!--        </v-btn>-->
+          <!--        <v-btn text class="ml-3  elevation-0 "-->
+          <!--               to="/user/authentication/signup" v-if="!user && !isThisMobile">-->
+          <!--          <b>SIGN UP</b>-->
+          <!--        </v-btn>-->
 
+          <!--        <v-btn text class=""-->
+          <!--               to="/referral" v-if="user && !isThisMobile">-->
+          <!--          <b>Refer</b>-->
+          <!--        </v-btn>-->
+
+          <!--        <v-btn text class=""-->
+          <!--               to="/visits" v-if="user && !isThisMobile">-->
+          <!--          <b>Your Rewards</b>-->
+          <!--        </v-btn>-->
+          <span v-shortkey="['ctrl', 'shift', 't']"
+                @shortkey="terminalTabAdd()" tooltip="Terminal"></span>
+
+          <!--        <x-icon key="settings-dash" iconClass="mr-1 ml-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">-->
+          <!--          mdi-cog-->
+          <!--        </x-icon>-->
+          <!--        <x-icon key="settings-dash" iconClass="mr-1 ml-4"  size="20" @click="settingsTabAdd" tooltip="Tool Settings (^⇧C)">-->
+          <!--          mdi-cog-->
+          <!--        </x-icon>-->
+
+          <notification class="mx-2"></notification>
+
+
+          <v-menu offset-y open-on-hover
+                  v-if="isAuthenticated">
+
+            <template v-slot:activator="{ on }">
+              <v-btn text v-on="on" class="font-weight-bold" v-ge="['Profile','']">
+
+                <v-icon v-if="role && roleIcon[role]" size="20">{{ roleIcon[role] }}</v-icon>
+                <v-icon v-else size="20">mdi-account-circle</v-icon>
+                <v-icon small>arrow_drop_down</v-icon>
+              </v-btn>
+
+            </template>
+            <v-list dense>
+              <v-list-item dense to="/user/settings" v-if="userAuthIsEmail">
+                <v-list-item-title v-ge="['Settings','']">
+                  <v-icon small>mdi-cog</v-icon> &nbsp; <span class="font-weight-regular">Settings</span>
                 </v-list-item-title>
               </v-list-item>
-              <!--
-                            <v-list-item dense @click.stop="projectInfoTabAdd">
-                              <v-list-item-title>
+              <v-divider v-if="userAuthIsEmail"></v-divider>
 
-                                <v-icon small key="terminal-dash">
-                                  mdi-information-outline
-                                </v-icon>&nbsp;
-                                <span class="font-weight-regular">Project Info</span>
+              <template v-if="isDocker">
 
-                              </v-list-item-title>
-                            </v-list-item>-->
-              <v-list-item v-if="swaggerOrGraphiqlUrl" dense
-                           @click.stop="openUrl(`${$axios.defaults.baseURL}${swaggerOrGraphiqlUrl}`)">
-                <v-list-item-title>
+                <!--              <v-list-item @click="xcMetaTabAdd" v-ge="['Meta add','']">-->
+                <!--                <v-list-item-title>-->
 
-                  <v-icon small key="terminal-dash">
-                    {{ isGql ? 'mdi-graphql' : 'mdi-code-json' }}
-                  </v-icon>&nbsp;
-                  <span class="font-weight-regular">
+                <!--                  <v-icon small>mdi-file-table-box-multiple-outline</v-icon>&nbsp; Export/Import Metadata-->
+                <!--                </v-list-item-title>-->
+                <!--              </v-list-item>-->
+                <!--              <v-list-item @click="showChangeEnv = true" v-ge="['Change env','']">-->
+                <!--                <v-list-item-title>-->
+
+                <!--                  <v-icon small>mdi-test-tube</v-icon>&nbsp; Change Environment-->
+                <!--                </v-list-item-title>-->
+                <!--              </v-list-item>-->
+                <!--              <v-list-item @click="terminalTabAdd()" v-ge="[isDocker ? 'Docker Console' : 'API Generator','']">
+                                <v-list-item-title>
+
+
+                                  <v-icon small key="terminal-dash">
+                                    mdi-console
+                                  </v-icon>&nbsp;
+                                  {{ isDocker ? 'Docker Console' : 'API Generator' }}
+
+                                </v-list-item-title>
+                              </v-list-item>-->
+
+
+                <v-list-item dense @click.stop="$toast.success('Auth token copied to clipboard').goAway(3000)"
+                             v-clipboard="this.$store.state.users.token">
+                  <v-list-item-title>
+
+
+                    <v-icon small key="terminal-dash">
+                      mdi-console
+                    </v-icon>&nbsp;
+                    <span class="font-weight-regular">Copy auth token</span>
+
+                  </v-list-item-title>
+                </v-list-item>
+                <!--
+                              <v-list-item dense @click.stop="projectInfoTabAdd">
+                                <v-list-item-title>
+
+                                  <v-icon small key="terminal-dash">
+                                    mdi-information-outline
+                                  </v-icon>&nbsp;
+                                  <span class="font-weight-regular">Project Info</span>
+
+                                </v-list-item-title>
+                              </v-list-item>-->
+                <v-list-item v-if="swaggerOrGraphiqlUrl" dense
+                             @click.stop="openUrl(`${$axios.defaults.baseURL}${swaggerOrGraphiqlUrl}`)">
+                  <v-list-item-title>
+
+                    <v-icon small key="terminal-dash">
+                      {{ isGql ? 'mdi-graphql' : 'mdi-code-json' }}
+                    </v-icon>&nbsp;
+                    <span class="font-weight-regular">
                     {{ isGql ? 'GraphQL APIs' : 'Swagger APIs Doc' }}</span>
 
-                </v-list-item-title>
-              </v-list-item>
+                  </v-list-item-title>
+                </v-list-item>
 
-              <v-list-item dense @click.stop="settingsTabAdd">
-                <v-list-item-title>
+                <v-list-item dense @click.stop="settingsTabAdd">
+                  <v-list-item-title>
 
-                  <v-icon small key="terminal-dash">
-                    mdi-cog
-                  </v-icon>&nbsp;
-                  <span class="font-weight-regular">Themes</span>
+                    <v-icon small key="terminal-dash">
+                      mdi-cog
+                    </v-icon>&nbsp;
+                    <span class="font-weight-regular">Themes</span>
 
-                </v-list-item-title>
-              </v-list-item>
+                  </v-list-item-title>
+                </v-list-item>
 
 
-              <v-list-item v-if="isDashboard" dense @click="copyProjectInfo" v-ge="['Sign Out','']">
-                <v-list-item-title>
+                <v-list-item v-if="isDashboard" dense @click="copyProjectInfo" v-ge="['Sign Out','']">
+                  <v-list-item-title>
 
-                  <v-icon small>info</v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
-                </v-list-item-title>
-              </v-list-item>
+                    <v-icon small>info</v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
+                  </v-list-item-title>
+                </v-list-item>
 
-              <v-list-item dense @click="MtdSignOut" v-ge="['Sign Out','']">
-                <v-list-item-title>
+                <v-list-item dense @click="MtdSignOut" v-ge="['Sign Out','']">
+                  <v-list-item-title>
 
-                  <v-icon small>mdi-logout</v-icon>&nbsp; <span class="font-weight-regular">Sign Out</span>
-                </v-list-item-title>
-              </v-list-item>
+                    <v-icon small>mdi-logout</v-icon>&nbsp; <span class="font-weight-regular">Sign Out</span>
+                  </v-list-item-title>
+                </v-list-item>
+              </template>
+            </v-list>
+          </v-menu>
+          <v-menu offset-y v-else open-on-hover>
+
+            <template v-slot:activator="{ on }">
+              <v-btn text v-on="on" class=" font-weight-bold" v-ge="['Profile','']">
+                <!--              Menu-->
+                <v-icon>mdi-account</v-icon>
+                <v-icon>arrow_drop_down</v-icon>
+              </v-btn>
+
             </template>
-          </v-list>
-        </v-menu>
-        <v-menu offset-y v-else open-on-hover>
+            <v-list dense>
+              <v-list-item dense v-if="!user && !isThisMobile" to="/user/authentication/signup">
+                <v-list-item-title>
+                  <v-icon small>mdi-account-plus-outline</v-icon> &nbsp; <span
+                  class="font-weight-regular">Sign Up</span>
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item dense v-if="!user && !isThisMobile" to="/user/authentication/signin">
+                <v-list-item-title>
+                  <v-icon small>mdi-login</v-icon> &nbsp; <span class="font-weight-regular">Login</span>
+                </v-list-item-title>
+              </v-list-item>
+              <!--            <v-list-item @click="openPricingPage">-->
+              <!--              <v-list-item-title>-->
 
-          <template v-slot:activator="{ on }">
-            <v-btn text v-on="on" class=" font-weight-bold" v-ge="['Profile','']">
-              <!--              Menu-->
-              <v-icon>mdi-account</v-icon>
-              <v-icon>arrow_drop_down</v-icon>
-            </v-btn>
-
-          </template>
-          <v-list dense>
-            <v-list-item dense v-if="!user && !isThisMobile" to="/user/authentication/signup">
-              <v-list-item-title>
-                <v-icon small>mdi-account-plus-outline</v-icon> &nbsp; <span class="font-weight-regular">Sign Up</span>
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item dense v-if="!user && !isThisMobile" to="/user/authentication/signin">
-              <v-list-item-title>
-                <v-icon small>mdi-login</v-icon> &nbsp; <span class="font-weight-regular">Login</span>
-              </v-list-item-title>
-            </v-list-item>
-            <!--            <v-list-item @click="openPricingPage">-->
-            <!--              <v-list-item-title>-->
-
-            <!--                <v-icon small>mdi-currency-usd</v-icon>&nbsp; Pricing-->
-            <!--              </v-list-item-title>-->
-            <!--            </v-list-item>-->
-            <!--            <v-list-item @click="openHowItWorks">-->
-            <!--              <v-list-item-title>-->
-            <!--                <v-icon small>mdi-help-circle</v-icon> &nbsp; How it works-->
-            <!--              </v-list-item-title>-->
-            <!--            </v-list-item>-->
-          </v-list>
-        </v-menu>
+              <!--                <v-icon small>mdi-currency-usd</v-icon>&nbsp; Pricing-->
+              <!--              </v-list-item-title>-->
+              <!--            </v-list-item>-->
+              <!--            <v-list-item @click="openHowItWorks">-->
+              <!--              <v-list-item-title>-->
+              <!--                <v-icon small>mdi-help-circle</v-icon> &nbsp; How it works-->
+              <!--              </v-list-item-title>-->
+              <!--            </v-list-item>-->
+            </v-list>
+          </v-menu>
 
 
-      </v-toolbar-items>
+        </v-toolbar-items>
     </v-app-bar>
 
     <v-main class="pb-0 mb-0">
@@ -885,7 +884,8 @@ export default {
     snackbar: false,
     timeout: 10000,
     text: 'contact@senseprofit.com',
-    rolesList: null
+    rolesList: null,
+
   }),
   computed: {
     ...mapGetters({
@@ -1193,7 +1193,9 @@ export default {
         item._nodes.type = 'roles';
         this.$store.dispatch("tabs/ActAddTab", item);
       }
-
+      setTimeout(() => {
+        this.$eventBus.$emit('show-add-user');
+      }, 200)
     },
     settingsTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === `projectSettings`);

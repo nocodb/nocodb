@@ -11,15 +11,17 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
 
   protected async addAdmin(req, res, next): Promise<any> {
 
-    // if (!this.config?.mailer || !this.emailClient) {
-    //   return next(new Error('SMTP config is not found'));
-    // }
+    const emails = (req.body.email || '').split(/\s*,\s*/).map(v => v.trim());
 
-    const email = req.body.email;
-
-    if (!email || !validator.isEmail(email)) {
+    // check for invalid emails
+    const invalidEmails = emails.filter(v => !validator.isEmail(v))
+    if (!emails.length) {
       return next(new Error('Invalid email address'));
     }
+    if (invalidEmails.length) {
+      return next(new Error('Invalid email address : ' + invalidEmails.join(', ')));
+    }
+
 
     // todo: handle roles which contains super
     if (!req.session?.passport?.user?.roles?.owner && req.body.roles.indexOf('owner') > -1) {
@@ -27,45 +29,68 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
     }
 
     const invite_token = uuidv4();
+    const error = [];
 
-    const user = await this.users.where({email}).first();
-    if (user) {
-      if (!await this.xcMeta.isUserHaveAccessToProject(req.body.project_id, user.id)) {
-        await this.xcMeta.projectAddUser(req.body.project_id, user.id, 'editor');
-      }
-    } else {
-      try {
-        await this.users.insert({
-          invite_token,
-          invite_token_expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
-          email,
-          roles: 'user'
-        });
+    for (const email of emails) {
 
-        const {id} = await this.users.where({email}).first();
-        await this.xcMeta.projectAddUser(req.body.project_id, id, req.body.roles);
-
-
-        if (!await this.sendInviteEmail(email, invite_token, req)) {
-          res.json({invite_token, email})
+      // add user to project if user already exist
+      const user = await this.users.where({email}).first();
+      if (user) {
+        if (!await this.xcMeta.isUserHaveAccessToProject(req.body.project_id, user.id)) {
+          await this.xcMeta.projectAddUser(req.body.project_id, user.id, 'editor');
         }
-      } catch (e) {
-        return next(e);
+        this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
+          op_type: 'AUTHENTICATION',
+          op_sub_type: 'INVITE',
+          user: req.user.email,
+          description: `invited ${email} to ${req.body.project_id} project `, ip: req.clientIp
+        })
+      } else {
+        try {
+          // create new user with invite token
+          await this.users.insert({
+            invite_token,
+            invite_token_expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
+            email,
+            roles: 'user'
+          });
+
+          const {id} = await this.users.where({email}).first();
+          // add user to project
+          await this.xcMeta.projectAddUser(req.body.project_id, id, req.body.roles);
+
+          Tele.emit('evt', {evt_type: 'project:invite'})
+          this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
+            op_type: 'AUTHENTICATION',
+            op_sub_type: 'INVITE',
+            user: req.user.email,
+            description: `invited ${email} to ${req.body.project_id} project `, ip: req.clientIp
+          })
+          // in case of single user check for smtp failure
+          // and send back token if failed
+          if (emails.length === 1 && !await this.sendInviteEmail(email, invite_token, req)) {
+            return res.json({invite_token, email});
+          } else {
+            this.sendInviteEmail(email, invite_token, req)
+          }
+        } catch (e) {
+          if (emails.length === 1) {
+            return next(e);
+          } else {
+            error.push({email, error: e.message})
+          }
+        }
       }
+
     }
 
-
-    Tele.emit('evt', {evt_type: 'project:invite'})
-    this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'INVITE',
-      user: req.user.email,
-      description: `invited ${email} to ${req.body.project_id} project `, ip: req.clientIp
-    })
-
-    res.json({
-      msg: 'success'
-    })
+    if (emails.length === 1) {
+      res.json({
+        msg: 'success'
+      })
+    } else {
+      return res.json({invite_token, emails, error});
+    }
   }
 
   protected async updateAdmin(req, res, next): Promise<any> {

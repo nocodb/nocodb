@@ -22,6 +22,7 @@
     "projects.show_community_message_1_2": "us on Github",
     "projects.show_community_message_2": "Book a Free DEMO",
     "projects.show_community_message_3": "Get your questions answered",
+    "projects.show_community_message_3_short": "Join Discord",
     "projects.show_community_message_4": "Follow NocoDB",
     "projects.search.no_result": "Your search for {search} found no results",
     "projects.ext_db.title.edit": "Edit Project",
@@ -128,4 +129,3 @@
     "management.meta.operation_4.desc": "Import project meta zip file and restart.",
     "management.meta.operation_5.desc": "Clear all metadata from meta tables."
   }
-  

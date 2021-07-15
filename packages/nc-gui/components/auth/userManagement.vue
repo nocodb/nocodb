@@ -346,7 +346,7 @@
     ></dlg-label-submit-cancel>
 
 
-    <v-dialog v-model="userEditDialog" :width="invite_token ? 700 :480" @close="invite_token = null">
+    <v-dialog v-model="userEditDialog" :width="invite_token ? 700 :700" @close="invite_token = null">
       <v-card v-if="selectedUser" class="px-15 py-5 " style="min-height: 100%">
         <h4 class="text-center text-capitalize mt-2 d-100 display-1">
           <template v-if="invite_token">Copy Invite Token</template>
@@ -388,7 +388,10 @@
 
           <p class="caption grey--text mt-3"> Looks like you have not configured mailer yet! <br>Please copy above
             invite
-            link and send it to {{ invite_token && invite_token.email }}.</p>
+            link and send it to {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.</p>
+
+          <!--          todo: show error message if failed-->
+
         </div>
         <template v-else>
           <v-form v-model="valid" @submit.prevent="saveUser">
@@ -403,6 +406,8 @@
                   v-model="selectedUser.email"
                   :rules="emailRules"
                   @input="edited=true"
+                  validate-on-blur
+                  hint="You can add multiple comma(,) separated emails"
                   label="Email"></v-text-field>
               </v-col>
               <v-col cols="12">
@@ -476,13 +481,20 @@ export default {
     valid: null,
     emailRules: [
       v => !!v || 'E-mail is required',
-      v => isEmail(v) || 'E-mail must be valid'
+      v => {
+        const invalidEmails = (v||'').split(/\s*,\s*/).filter(e => !isEmail(e));
+        return !invalidEmails.length || `"${invalidEmails.join(', ')}" - invalid email`
+      }
     ],
     userList: []
   }),
   async created() {
+    this.$eventBus.$on('show-add-user', this.addUser);
     await this.loadUsers();
     await this.loadRoles();
+  },
+  beforeDestroy() {
+    this.$eventBus.$off('show-add-user', this.addUser);
   },
   methods: {
     simpleAnim() {
@@ -619,7 +631,7 @@ export default {
     addUser() {
       this.invite_token = null;
       this.selectedUser = {
-        roles: 'creator,editor'
+        roles: 'editor'
       }
       this.userEditDialog = true
     },
@@ -733,7 +745,7 @@ export default {
         this.selectedUser = this.users[i];
       }
     }
-  }
+  },
 }
 </script>
 

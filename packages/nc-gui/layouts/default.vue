@@ -106,7 +106,7 @@
 
           <v-tooltip bottom>
             <template v-slot:activator="{ on }">
-              <v-icon v-on="on" class="mt-1 ml-3" size="22" @click="$store.commit('windows/MutToggleTheme')">
+              <v-icon v-ripple="{class : 'nc-ripple'}"  v-on="on" class="mt-1 ml-3" size="22" @click="$store.commit('windows/MutToggleTheme')">
                 mdi-format-color-fill
               </v-icon>
             </template>
@@ -117,7 +117,7 @@
                 @shortkey="changeTheme"></span>
           <v-tooltip bottom>
             <template v-slot:activator="{ on }">
-              <v-icon @dblclick="showAppStore=true" @click="changeTheme" v-on="on" size="20"
+              <v-icon v-ripple="{class : 'nc-ripple'}" @click="changeTheme" v-on="on" size="20"
                       class="ml-3"> {{ $vuetify.theme.dark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
               </v-icon>
             </template>
@@ -152,22 +152,6 @@
             Crons
           </x-btn>
 
-
-          <v-icon
-            v-if="!$store.state.windows.nc && isGrpc"
-            size="20" class="ml-3 " tooltip="GraphQL Client (^⇧G)"
-            @click="grpcTabAdd()">
-            mdi-alpha-g-circle-outline
-          </v-icon>
-
-
-          <v-icon class="ml-3 "
-                  v-if="!$store.state.windows.nc" size="20" @click="apiClientSwaggerTabAdd()"
-                  tooltip="API Client (^⇧A)">mdi-code-json
-          </v-icon>
-
-
-          <span v-shortkey="['ctrl','shift','a']" @shortkey="apiClientTabAdd()"></span>
 
 
           <span v-shortkey="[ 'ctrl','shift', 'c']"
@@ -1014,8 +998,9 @@ export default {
 };
 </script>
 <style scoped>
-/deep/ .gh-button-container.black--text a {
-  color: black !important;
+/deep/ .gh-button-container > a{
+  background: transparent !important;
+  color: white !important;
 }
 
 a {
@@ -1060,6 +1045,9 @@ a {
   align-items: center;
 }
 
+/deep/ .nc-ripple{
+  border-radius: 50%;
+}
 
 
 </style>

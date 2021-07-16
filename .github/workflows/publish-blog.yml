@@ -14,7 +14,7 @@ jobs:
           fetch-depth: 2
       - name: Check for update
         run: |
-          echo "CHANGED=$([[ $(git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna ls --since) = noco-blog ]] && echo 'OK')" >> $GITHUB_ENV
+          echo "CHANGED=$([[ $(git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna ls --since | grep noco-book) = noco-blog ]] && echo 'OK')" >> $GITHUB_ENV
 
       - uses: actions/setup-node@v2
         if: ${{ env.CHANGED == 'OK' }}

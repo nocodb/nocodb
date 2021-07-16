@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import SMTPPlugin from "./SMTPPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import SMTPPlugin from "./SMTPPlugin";
 
 const config: XcPluginConfig ={
   builder: SMTPPlugin,

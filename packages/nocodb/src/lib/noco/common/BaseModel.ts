@@ -1,9 +1,11 @@
-import {BaseModelSql} from "../../dataMapper";
-// import axios from "axios";
-import BaseApiBuilder from "./BaseApiBuilder";
-import IEmailAdapter from "../../../interface/IEmailAdapter";
 import Handlebars from "handlebars";
 import {IWebhookNotificationAdapter} from "nc-plugin";
+
+import IEmailAdapter from "../../../interface/IEmailAdapter";
+import {BaseModelSql} from "../../dataMapper";
+
+// import axios from "axios";
+import BaseApiBuilder from "./BaseApiBuilder";
 
 class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
 

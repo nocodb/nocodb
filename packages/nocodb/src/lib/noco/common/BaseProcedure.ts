@@ -1,6 +1,7 @@
 import {GqlApiBuilder} from "../gql/GqlApiBuilder";
-import XcProcedure from "./XcProcedure";
 import {RestApiBuilder} from "../rest/RestApiBuilder";
+
+import XcProcedure from "./XcProcedure";
 
 export default class BaseProcedure {
 

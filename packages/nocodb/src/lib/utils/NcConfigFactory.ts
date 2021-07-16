@@ -1,10 +1,7 @@
-import {AuthConfig, DbConfig, MailerConfig, NcConfig} from "../../interface/config";
 import {SqlClientFactory} from 'nc-help';
-
-// import {v4 as uuidv4} from 'uuid';
-// import fs from 'fs';
-// import path from 'path';
 import parseDbUrl from "parse-database-url";
+
+import {AuthConfig, DbConfig, MailerConfig, NcConfig} from "../../interface/config";
 
 const {uniqueNamesGenerator, starWars, adjectives, animals} = require('unique-names-generator');
 
@@ -537,7 +534,7 @@ export default class NcConfigFactory implements NcConfig {
         }*/
   }
 
-  public version: string = '0.6';
+  public version = '0.6';
   public port: number;
   public auth?: AuthConfig;
   public env: "production" | "dev" | "test" | string;

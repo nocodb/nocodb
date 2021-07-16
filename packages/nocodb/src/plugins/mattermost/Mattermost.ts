@@ -1,5 +1,5 @@
-import {IWebhookNotificationAdapter} from "nc-plugin";
 import axios from "axios";
+import {IWebhookNotificationAdapter} from "nc-plugin";
 
 
 export default class Mattermost implements IWebhookNotificationAdapter {

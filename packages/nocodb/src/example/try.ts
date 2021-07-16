@@ -1,6 +1,7 @@
-import {NcConfigFactory, Noco} from "../lib";
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
+
+import {NcConfigFactory, Noco} from "../lib";
 
 
 process.env.DATABASE_URL = 'mysql://root:password@localhost:3306/sakila'

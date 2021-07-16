@@ -1,4 +1,5 @@
 import osLocale from 'os-locale';
+
 import english from './english.json';
 import translated from './translated.json';
 

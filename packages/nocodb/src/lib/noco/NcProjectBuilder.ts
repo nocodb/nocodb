@@ -1,15 +1,17 @@
-import {NcConfig} from "../../interface/config";
-import Noco from "./Noco";
-import {Router} from "express";
-import {RestApiBuilder} from "./rest/RestApiBuilder";
-import {GqlApiBuilder} from "./gql/GqlApiBuilder";
-
-import {SqlClientFactory, Tele} from 'nc-help';
-import path from "path";
 import fs from "fs";
-import Migrator from '../migrator/SqlMigrator/lib/KnexMigrator';
+import path from "path";
+
 import axios from "axios";
+import {Router} from "express";
+import {SqlClientFactory, Tele} from 'nc-help';
+
+import {NcConfig} from "../../interface/config";
+import Migrator from '../migrator/SqlMigrator/lib/KnexMigrator';
+
+import Noco from "./Noco";
+import {GqlApiBuilder} from "./gql/GqlApiBuilder";
 import {XCEeError} from "./meta/NcMetaMgr";
+import {RestApiBuilder} from "./rest/RestApiBuilder";
 
 export default class NcProjectBuilder {
 
@@ -764,7 +766,7 @@ export default class NcProjectBuilder {
   }
 
 
-  public get prefix(): String {
+  public get prefix(): string {
     return this.config?.prefix;
   }
 

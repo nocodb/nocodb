@@ -1,6 +1,7 @@
 import {IEmailAdapter} from "nc-plugin";
-import Mail from "nodemailer/lib/mailer";
 import nodemailer from "nodemailer";
+import Mail from "nodemailer/lib/mailer";
+
 import {XcEmail} from "../../interface/IEmailAdapter";
 
 export default class SMTP implements IEmailAdapter {

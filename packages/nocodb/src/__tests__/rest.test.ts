@@ -1,89 +1,14 @@
-/* tslint:disable */
 import {expect} from 'chai';
 import 'mocha';
-import {Noco} from "../lib";
-
-import request from 'supertest';
 import express from 'express';
+import request from 'supertest';
+
+import {Noco} from "../lib";
 import NcConfigFactory from "../lib/utils/NcConfigFactory";
-// import knex from 'knex';
-// import {XcConfig} from "../interface/config";
-// import JWT from "../lib/xgene/grpc/helpers/jwt";
 process.env.TEST = 'test';
-// process.env[`DATABASE_URL`] = 'mysql://root:password@localhost:3306/sakila';
 
 let projectId;
 let token;
-/*
-const config: XcConfig = {
-  // mailer: {
-  //   "from": "From",
-  //   "options": {
-  //     "host": "host",
-  //     "port": 465,
-  //     "secure": true,
-  //     "auth": {
-  //       "user": "user",
-  //       "pass": "pass"
-  //     }
-  //   }
-  // },
-  auth: {
-    jwt: {
-      secret: "shgdhsgdhgsgdgswyeyey28378732qgwhqg233232hjhasha",
-      dbAlias: 'db'
-    }
-  },
-  envs: {
-    dev: {
-      db: [
-        {
-          "client": "mysql",
-          "connection": {
-            "host": "localhost",
-            "port": 3306,
-            "user": "root",
-            "password": "password",
-            database: "sakila"
-          },
-          meta: {
-            "dbAlias": "db",
-            api: {
-              type: "rest",
-              prefix: ""
-            },
-            metaTables: "db"
-          }
-        },
-      ],
-    },
-    test: {
-      db: [
-        {
-          "client": "mysql",
-          "connection": {
-            "host": "localhost",
-            "port": 3306,
-            "user": "root",
-            "password": "",
-            database: "sakila"
-          },
-          meta: {
-            "dbAlias": "db",
-            api: {
-              type: "rest",
-              prefix: ""
-            },
-            metaTables: "db"
-          }
-        },
-      ],
-    },
-  },
-  toolDir: process.cwd()
-};
-*/
-
 const dbConfig = NcConfigFactory.urlToDbConfig(NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`]));
 const projectCreateReqBody = {
   "api": "projectCreateByWeb",

@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import DiscordPlugin from "./DiscordPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import DiscordPlugin from "./DiscordPlugin";
 
 const config: XcPluginConfig ={
   builder: DiscordPlugin,

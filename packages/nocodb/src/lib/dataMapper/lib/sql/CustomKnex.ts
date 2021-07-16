@@ -1,4 +1,5 @@
 import Knex from 'knex';
+
 import {BaseModelSql} from "./BaseModelSql";
 
 const opMapping = {
@@ -47,9 +48,9 @@ function toArrayOfConditions(str) {
     throw new Error(`${str.substring(0, openIndex + 1).slice(-10)} : Closing bracket not found`)
 
   // getting operand starting index
-  let operandStartIndex = str.lastIndexOf('~', openIndex);
-  let operator = operandStartIndex != -1 ? str.substring(operandStartIndex + 1, openIndex) : '';
-  let lhsOfNestedQuery = str.substring(0, openIndex);
+  const operandStartIndex = str.lastIndexOf('~', openIndex);
+  const operator = operandStartIndex != -1 ? str.substring(operandStartIndex + 1, openIndex) : '';
+  const lhsOfNestedQuery = str.substring(0, openIndex);
 
   nestedArrayConditions.push(
     ...toArrayOfConditions(lhsOfNestedQuery),
@@ -108,7 +109,7 @@ const appendWhereCondition = function (conditions, columnAliases: {
           break;
       }
     } else if (typeof condition === 'string') {
-      let matches = condition.match(/^(?:~(\w+))?\((\w+),(\w+),(.*?)\)(?:~(?:or|and|not))?$/)
+      const matches = condition.match(/^(?:~(\w+))?\((\w+),(\w+),(.*?)\)(?:~(?:or|and|not))?$/)
 
       if (!matches) throw new Error(`${condition} : not a valid syntax`)
       switch (matches[3]) {

@@ -1,6 +1,8 @@
 import {CronJob} from 'cron';
-import Noco from "../Noco";
+
 import {NcConfig} from "../../../interface/config";
+import Noco from "../Noco";
+
 import BaseApiBuilder from "./BaseApiBuilder";
 
 // import * as tsc from "typescript";

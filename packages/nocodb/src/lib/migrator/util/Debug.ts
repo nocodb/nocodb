@@ -1,5 +1,6 @@
-import debug from "debug";
 import boxen from "boxen";
+import debug from "debug";
+
 import("colors");
 import DebugMgr from "./DebugMgr";
 

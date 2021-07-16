@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import S3Plugin from "./MinioPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import S3Plugin from "./MinioPlugin";
 
 const config: XcPluginConfig ={
   builder: S3Plugin,

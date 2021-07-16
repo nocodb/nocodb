@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import OvhCloud from "./OvhCloudPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import OvhCloud from "./OvhCloudPlugin";
 
 const config: XcPluginConfig = {
   builder: OvhCloud,

@@ -1,7 +1,9 @@
-import IStorageAdapter, {XcFile} from "../../../../../interface/IStorageAdapter";
-import mkdirp from "mkdirp";
-import path from "path";
 import fs from "fs";
+import path from "path";
+
+import mkdirp from "mkdirp";
+
+import IStorageAdapter, {XcFile} from "../../../../../interface/IStorageAdapter";
 
 export default class Local implements IStorageAdapter {
 

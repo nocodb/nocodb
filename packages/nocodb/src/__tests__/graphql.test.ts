@@ -1,78 +1,15 @@
-/* tslint:disable */
 import {expect} from 'chai';
 import 'mocha';
-import {Noco} from "../lib";
-
-import request from 'supertest';
 import express from 'express';
+import request from 'supertest';
+
+import {Noco} from "../lib";
 import NcConfigFactory from "../lib/utils/NcConfigFactory";
 
 process.env.TEST = 'test';
 
-// import knex from 'knex';
-// import {XcConfig} from "../interface/config";
-// import JWT from "../lib/xgene/grpc/helpers/jwt";
-// import JWT from "../lib/instant/grpc/helpers/jwt";
-
-// const config: XcConfig = {
-//   auth: {
-//     jwt: {
-//       secret: "shgdhsgdhgsgdgswyeyey28378732qgwhqg233232hjhasha",
-//       dbAlias:'db'
-//     }
-//   },
-//   envs: {
-//     dev: {
-//       db: [
-//         {
-//           "client": "mysql",
-//           "connection": {
-//             "host": "localhost",
-//             "port": 3306,
-//             "user": "root",
-//             "password": "password",
-//             database: "sakila"
-//           },
-//           meta: {
-//             "dbAlias": "db",
-//             api: {
-//               type: "graphql",
-//               prefix: ""
-//             },
-//             metaTables: "db"
-//           }
-//         },
-//       ],
-//     }, test: {
-//       db: [
-//         {
-//           "client": "mysql",
-//           "connection": {
-//             "host": "localhost",
-//             "port": 3306,
-//             "user": "root",
-//             "password": "",
-//             database: "sakila"
-//           },
-//           meta: {
-//             "dbAlias": "db",
-//             api: {
-//               type: "graphql",
-//               prefix: ""
-//             },
-//             metaTables: "db"
-//           }
-//         },
-//       ],
-//     },
-//   },
-//   toolDir: process.cwd()
-// };
-
-// process.env[`DATABASE_URL`] = 'mysql://root:password@localhost:3306/sakila';
 
 const dbConfig = NcConfigFactory.urlToDbConfig(NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`]), null, null, 'graphql');
-// @ts-ignore
 const projectCreateReqBody = {
   "api": "projectCreateByWeb",
   "query": {"skipProjectHasDb": 1},
@@ -85,23 +22,6 @@ const projectCreateReqBody = {
         "dev": {
           "db": [
             dbConfig
-            //   {
-            //   "client": "mysql2",
-            //   "connection": {
-            //     "host": "localhost",
-            //     "port": "3306",
-            //     "user": "root",
-            //     "password": "password",
-            //     "database": "sakila",
-            //     "multipleStatements": true
-            //   },
-            //   "meta": {
-            //     "tn": "nc_evolutions",
-            //     "dbAlias": "db",
-            //     "api": {"type": "graphql", "prefix": "", "graphqlDepthLimit": 10},
-            //     "inflection": {"tn": "none", "cn": "none"}
-            //   }
-            // }
           ], "apiClient": {"data": []}
         }
       },

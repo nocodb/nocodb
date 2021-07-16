@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
-import {IStorageAdapter, XcFile} from "nc-plugin";
+
 import {Storage, StorageOptions} from '@google-cloud/storage';
+import {IStorageAdapter, XcFile} from "nc-plugin";
 
 export default class Gcs implements IStorageAdapter {
 

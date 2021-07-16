@@ -1,7 +1,10 @@
-import {BaseModelSql} from "../../dataMapper";
-import {NextFunction, Request, Response} from "express";
-import {Acl, Acls, Route} from "../../../interface/config";
 import autoBind from 'auto-bind';
+import {NextFunction, Request, Response} from "express";
+
+import {Acl, Acls, Route} from "../../../interface/config";
+import {BaseModelSql} from "../../dataMapper";
+
+
 import {RestBaseCtrl} from "./RestBaseCtrl";
 
 export class RestCtrlBelongsTo extends RestBaseCtrl {

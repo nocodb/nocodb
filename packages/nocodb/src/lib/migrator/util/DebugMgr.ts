@@ -1,7 +1,3 @@
-/* eslint-disable guard-for-in */
-/* eslint-disable no-undef */
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable no-unused-vars */
 import debug from "debug";
 
 const namespaces = {};

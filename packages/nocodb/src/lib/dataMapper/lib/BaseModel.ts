@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-types,prefer-const */
 import Knex from "knex";
 
-const Validator = require('validator');
-const _ = require('lodash');
 const autoBind = require('auto-bind');
+const _ = require('lodash');
+const Validator = require('validator');
 
 
 // interface BaseModel {
@@ -129,7 +130,7 @@ abstract class BaseModel {
   async validate(columns) {
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.columns.length; ++i) {
-      let {validate: {func, msg}, cn} = this.columns[i];
+      const {validate: {func, msg}, cn} = this.columns[i];
       for (let j = 0; j < func.length; ++j) {
         const fn = typeof func[j] === 'string' ? Validator[func[j]] : func[j];
         const arg = typeof func[j] === 'string' ? columns[cn] + "" : columns[cn];
@@ -156,8 +157,8 @@ abstract class BaseModel {
    * @private
    */
   _wherePk(id) {
-    let ids = (id + '').split('___');
-    let where = {};
+    const ids = (id + '').split('___');
+    const where = {};
     for (let i = 0; i < this.pks.length; ++i) {
       where[this.pks[i].cn] = ids[i];
     }
@@ -174,8 +175,8 @@ abstract class BaseModel {
    * @private
    */
   _whereFk({tnp, parentId}) {
-    let {rcn} = this.belongsToRelations.find(({rtn}) => rtn === tnp)
-    let where = {[rcn]: parentId};
+    const {rcn} = this.belongsToRelations.find(({rtn}) => rtn === tnp)
+    const where = {[rcn]: parentId};
     return where;
   }
 
@@ -186,8 +187,8 @@ abstract class BaseModel {
    * @private
    */
   _extractPks(obj) {
-    let objCopy = JSON.parse(JSON.stringify(obj));
-    for (let key in obj) {
+    const objCopy = JSON.parse(JSON.stringify(obj));
+    for (const key in obj) {
       if (this.pks.filter(pk => pk.cn === key).length === 0) {
         delete objCopy[key];
       }
@@ -295,13 +296,12 @@ abstract class BaseModel {
 
       await this.beforeInsertb(data)
 
-      let response;
 
-      for (let d of data) {
+      for (const d of data) {
         await this.validate(d);
       }
 
-      response = await this.dbDriver.batchInsert(this.tn, data, 50)
+      const response = await this.dbDriver.batchInsert(this.tn, data, 50)
         .returning(this.pks[0].cn);
 
       await this.afterInsertb(data);
@@ -372,7 +372,7 @@ abstract class BaseModel {
 
       const {fields, where, limit, offset, sort, condition} = this._getListArgs(args);
 
-      let query = this.$db.select(...fields.split(','))
+      const query = this.$db.select(...fields.split(','))
         .xwhere(where)
         .condition(condition);
 
@@ -402,7 +402,7 @@ abstract class BaseModel {
   async findOne(args) {
     try {
       const {fields, where, condition} = this._getListArgs(args);
-      let query = this.$db.select(fields)
+      const query = this.$db.select(fields)
         .xwhere(where).condition(condition).first();
       this._paginateAndSort(query, args)
       return await this._run(query);
@@ -430,7 +430,7 @@ abstract class BaseModel {
   async findOneByFk({parentId, tnp, ...args}) {
     try {
       const {fields, where, condition} = this._getListArgs(args);
-      let query = this.$db.select(fields)
+      const query = this.$db.select(fields)
         .where(this._whereFk({parentId, tnp}))
         .xwhere(where).condition(condition).first();
       this._paginateAndSort(query, args)
@@ -617,10 +617,10 @@ abstract class BaseModel {
 
       trx = await this.dbDriver.transaction();
 
-      let res = [];
-      for (let d of data) {
+      const res = [];
+      for (const d of data) {
         // this.validate(d);
-        let response = await this._run(trx(this.tn).update(d).where(this._extractPks(d)));
+        const response = await this._run(trx(this.tn).update(d).where(this._extractPks(d)));
         res.push(response);
       }
 
@@ -651,9 +651,9 @@ abstract class BaseModel {
       await this.beforeDeleteb(ids);
       trx = await this.dbDriver.transaction();
 
-      let res = [];
-      for (let d of ids) {
-        let response = await this._run(trx(this.tn).del().where(this._extractPks(d)));
+      const res = [];
+      for (const d of ids) {
+        const response = await this._run(trx(this.tn).del().where(this._extractPks(d)));
         res.push(response);
       }
       trx.commit();
@@ -678,7 +678,7 @@ abstract class BaseModel {
    * @param {String} id - ___ separated primary key string
    * @returns {Promise<boolean>} - true for exits and false for none
    */
-  async exists(id, {}) {
+  async exists(id, _) {
     try {
       return Object.keys((await this.readByPk(id, {conditionGraph: null}))).length !== 0;
     } catch (e) {
@@ -719,7 +719,7 @@ abstract class BaseModel {
   async groupBy({having, fields = '', column_name, limit, offset, sort}) {
     try {
       const columns = [...(column_name ? [column_name] : []), ...fields.split(',').filter(Boolean)];
-      let query = this.$db
+      const query = this.$db
         .groupBy(columns)
         .count(`${(this.pks[0] || this.columns[0]).cn} as count`)
         .select(columns)
@@ -750,9 +750,9 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async aggregate({having, fields = '', func,  column_name, limit, offset, sort}) {
+  async aggregate({having, fields = '', func, column_name, limit, offset, sort}) {
     try {
-      let query = this.$db
+      const query = this.$db
         .select(...fields.split(','))
         .xhaving(having);
 
@@ -871,7 +871,7 @@ abstract class BaseModel {
    */
   async distinct({cn, fields = '', where, limit, offset, sort, condition}) {
     try {
-      let query = this.$db;
+      const query = this.$db;
       query.distinct(cn, ...fields.split(',').filter(Boolean));
       query.xwhere(where).condition(condition);
       this._paginateAndSort(query, {limit, offset, sort});
@@ -891,7 +891,7 @@ abstract class BaseModel {
    */
   async raw(queryString, params = []) {
     try {
-      let query = this.dbDriver.raw(queryString, params);
+      const query = this.dbDriver.raw(queryString, params);
       return await this._run(query);
     } catch (e) {
       console.log(e);
@@ -919,7 +919,7 @@ abstract class BaseModel {
     }
 
 
-    let childs = await this._run(this.dbDriver.union(
+    const childs = await this._run(this.dbDriver.union(
       parent.map(p => {
         const query = this
           .dbDriver(child)
@@ -932,7 +932,7 @@ abstract class BaseModel {
       }), !this.isSqlite()
     ));
 
-    let gs = _.groupBy(childs, cn);
+    const gs = _.groupBy(childs, cn);
     parent.forEach(row => {
       row[child] = gs[row[this.pks[0].cn]] || [];
     })
@@ -956,7 +956,7 @@ abstract class BaseModel {
       const {fields, where, limit, offset, sort, condition} = this._getListArgs(args);
       const {rcn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
 
-      let query = this.dbDriver(child).select(...fields.split(','))
+      const query = this.dbDriver(child).select(...fields.split(','))
         .where(rcn, parentId)
         .xwhere(where).condition(condition);
 
@@ -1023,7 +1023,7 @@ abstract class BaseModel {
     fields = fields || f || '*';
     try {
 
-      for (let parent of parents.split('~')) {
+      for (const parent of parents.split('~')) {
         const {cn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
         if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
           fields += ',' + cn;
@@ -1066,7 +1066,7 @@ abstract class BaseModel {
 
     const parents = await this._run(this.dbDriver(parent).select(...fields.split(',')).whereIn(rcn, parentIds));
 
-    let gs = _.groupBy(parents, rcn);
+    const gs = _.groupBy(parents, rcn);
 
     childs.forEach(row => {
       row[parent] = gs[row[cn]] && gs[row[cn]][0];
@@ -1095,7 +1095,7 @@ abstract class BaseModel {
         fields += ',' + cn;
       }
 
-      let childs = await this._run(this.dbDriver.union(
+      const childs = await this._run(this.dbDriver.union(
         ids.map(p => {
           const query = this
             .dbDriver(child)
@@ -1135,11 +1135,11 @@ abstract class BaseModel {
    */
   async hasManyListCount({child, ids, ...rest}) {
     try {
-      let {where, condition} = this._getChildListArgs(rest);
+      const {where, condition} = this._getChildListArgs(rest);
 
       const {cn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
 
-      let childs = await this._run(this.dbDriver.unionAll(
+      const childs = await this._run(this.dbDriver.unionAll(
         ids.map(p => {
           const query = this
             .dbDriver(child)
@@ -1219,7 +1219,7 @@ abstract class BaseModel {
    * @private
    */
   _getListArgs(args) {
-    let obj: XcFilter = {};
+    const obj: XcFilter = {};
     obj.where = args.where || args.w || '';
     obj.limit = Math.max(Math.min(args.limit || args.l || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
     obj.offset = args.offset || args.o || 0;
@@ -1238,7 +1238,7 @@ abstract class BaseModel {
    */
   _getChildListArgs(args: any, index?: number) {
     index++;
-    let obj: XcFilter = {};
+    const obj: XcFilter = {};
     obj.where = args[`where${index}`] || args[`w${index}`] || '';
     obj.limit = Math.max(Math.min(args[`limit${index}`] || args[`l${index}`] || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
     obj.offset = args[`offset${index}`] || args[`o${index}`] || 0;

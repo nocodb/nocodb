@@ -1,29 +1,30 @@
-import GqlResolver from "./GqlResolver";
-import {BaseType} from 'xc-core-ts';
-import {DbConfig, NcConfig} from "../../../interface/config";
-import Noco from "../Noco";
-import GqlMiddleware from "./GqlMiddleware";
-
 import DataLoader from "dataloader";
-
-import _ from 'lodash';
-import NcHelp from "../../utils/NcHelp";
-import {Router} from "express";
-import XcMetaMgr from "../../../interface/XcMetaMgr";
-import BaseApiBuilder from "../common/BaseApiBuilder";
-import {execute} from "graphql";
-import commonSchema from './common.schema';
-import {GqlProcedureResolver} from "./GqlProcedureResolver";
-import NcMetaIO from "../meta/NcMetaIO";
-
 import debug from 'debug';
-import NcProjectBuilder from "../NcProjectBuilder";
+import {Router} from "express";
+import {execute} from "graphql";
+import {GraphQLJSON} from 'graphql-type-json';
+import _ from 'lodash';
+import {BaseType} from 'xc-core-ts';
+
+import XcMetaMgr from "../../../interface/XcMetaMgr";
+import {DbConfig, NcConfig} from "../../../interface/config";
+import ExpressXcTsPolicyGql from "../../sqlMgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql";
 import GqlXcSchemaFactory from "../../sqlMgr/code/gql-schema/xc-ts/GqlXcSchemaFactory";
 import ModelXcMetaFactory from "../../sqlMgr/code/models/xc/ModelXcMetaFactory";
-import ExpressXcTsPolicyGql from "../../sqlMgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql";
+import NcHelp from "../../utils/NcHelp";
+import NcProjectBuilder from "../NcProjectBuilder";
+import Noco from "../Noco";
+import BaseApiBuilder from "../common/BaseApiBuilder";
+import NcMetaIO from "../meta/NcMetaIO";
 
-import {GraphQLJSON} from 'graphql-type-json';
 import {m2mNotChildren, m2mNotChildrenCount} from "./GqlCommonResolvers";
+import GqlMiddleware from "./GqlMiddleware";
+import {GqlProcedureResolver} from "./GqlProcedureResolver";
+import GqlResolver from "./GqlResolver";
+import commonSchema from './common.schema';
+
+
+
 
 const log = debug('nc:api:gql');
 

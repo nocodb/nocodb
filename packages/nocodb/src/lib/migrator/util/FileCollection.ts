@@ -1,6 +1,7 @@
-import { promisify } from "util";
-import jsonfile from 'jsonfile';
 import fs from 'fs';
+import { promisify } from "util";
+
+import jsonfile from 'jsonfile';
 
 export default class FileCollection {
 public args;

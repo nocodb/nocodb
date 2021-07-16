@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import GcsPlugin from "./GcsPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import GcsPlugin from "./GcsPlugin";
 
 const config: XcPluginConfig ={
   builder: GcsPlugin,

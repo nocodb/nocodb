@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import VultrPlugin from "./VultrPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import VultrPlugin from "./VultrPlugin";
 
 const config: XcPluginConfig = {
   builder: VultrPlugin,

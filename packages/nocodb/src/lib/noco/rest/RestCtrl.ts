@@ -1,7 +1,8 @@
-import {NextFunction, Request, Response, Router} from "express";
-import {BaseModelSql} from "../../dataMapper";
-import {Acl, Acls, Route} from "../../../interface/config";
 import autoBind from 'auto-bind';
+import {NextFunction, Request, Response, Router} from "express";
+
+import {Acl, Acls, Route} from "../../../interface/config";
+import {BaseModelSql} from "../../dataMapper";
 
 import {RestBaseCtrl} from "./RestBaseCtrl";
 

@@ -1,7 +1,8 @@
-import {Request, Response, Router} from "express";
-import {BaseModelSql} from "../../dataMapper";
-import {Acls} from "../../../interface/config";
 import autoBind from 'auto-bind';
+import {Request, Response, Router} from "express";
+
+import {Acls} from "../../../interface/config";
+import {BaseModelSql} from "../../dataMapper";
 
 
 function parseHrtimeToSeconds(hrtime) {

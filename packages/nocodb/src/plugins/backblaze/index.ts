@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import BackblazePlugin from "./BackblazePlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import BackblazePlugin from "./BackblazePlugin";
 
 const config: XcPluginConfig ={
   builder: BackblazePlugin,

@@ -1,41 +1,41 @@
-import Noco from "../Noco";
-import {Result, NcConfig} from "../../../interface/config";
-import {RestApiBuilder} from "../rest/RestApiBuilder";
-import {GqlApiBuilder} from "../gql/GqlApiBuilder";
-import {Handler, Router} from "express";
 import fs from 'fs';
 import path from 'path';
-import extract from 'extract-zip';
+
 import archiver from 'archiver';
+import axios from 'axios';
+import bodyParser from "body-parser";
+import {Handler, Router} from "express";
+import extract from 'extract-zip';
+import isDocker from 'is-docker';
 import multer from 'multer';
-import NcMetaIO, {META_TABLES} from "./NcMetaIO";
+import {nanoid} from 'nanoid';
 import {
   SqlClientFactory, Tele
 } from 'nc-help'
-import NcHelp from "../../utils/NcHelp";
-import bodyParser from "body-parser";
-import projectAcl from "../../utils/projectAcl";
+import slash from 'slash';
 import {v4 as uuidv4} from 'uuid';
-import ProjectMgr from '../../sqlMgr/ProjectMgr';
 
-import {nanoid} from 'nanoid';
-import mimetypes, {mimeIcons} from "../../utils/mimeTypes";
-import IStorageAdapter from "../../../interface/IStorageAdapter";
 import IEmailAdapter from "../../../interface/IEmailAdapter";
+import IStorageAdapter from "../../../interface/IStorageAdapter";
+import {NcConfig, Result} from "../../../interface/config";
+import {NcConfigFactory} from "../../index";
+import ProjectMgr from '../../sqlMgr/ProjectMgr';
+import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
+import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
+import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesHm";
+import NcHelp from "../../utils/NcHelp";
+import mimetypes, {mimeIcons} from "../../utils/mimeTypes";
+import projectAcl from "../../utils/projectAcl";
+import Noco from "../Noco";
+import {GqlApiBuilder} from "../gql/GqlApiBuilder";
+import NcPluginMgr from "../plugins/NcPluginMgr";
+import XcCache from "../plugins/adapters/cache/XcCache";
 import EmailFactory from "../plugins/adapters/email/EmailFactory";
 import Twilio from "../plugins/adapters/twilio/Twilio";
-import {NcConfigFactory} from "../../index";
-import XcCache from "../plugins/adapters/cache/XcCache";
-import axios from 'axios';
-import isDocker from 'is-docker';
-import slash from 'slash';
-
-
+import {RestApiBuilder} from "../rest/RestApiBuilder";
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
-import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesHm";
-import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
-import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
-import NcPluginMgr from "../plugins/NcPluginMgr";
+
+import NcMetaIO, {META_TABLES} from "./NcMetaIO";
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -59,7 +59,7 @@ export default class NcMetaMgr {
   protected xcMeta: NcMetaIO;
   protected projectMgr: any;
   // @ts-ignore
-  protected isEe: boolean = false;
+  protected isEe = false;
 
 
   constructor(app: Noco, config: NcConfig, xcMeta: NcMetaIO) {
@@ -207,8 +207,7 @@ export default class NcMetaMgr {
         if (this.config.auth) {
           if (this.config.auth.jwt) {
 
-            let knex;
-            knex = this.xcMeta.knex;
+            const knex = this.xcMeta.knex;
 
             let projectHasAdmin = false;
             projectHasAdmin = !!(await knex('xc_users').first())
@@ -2513,7 +2512,7 @@ export default class NcMetaMgr {
     // todo: compare column
     switch (args.args.type) {
       case 'bt':
-      case 'hm':
+      case 'hm': {
         const child = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
           title: args.args.childTable
         });
@@ -2578,6 +2577,7 @@ export default class NcMetaMgr {
             });
           }
         }
+      }
         break;
       case 'mm': {
         const assoc = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
@@ -3079,7 +3079,7 @@ export default class NcMetaMgr {
           return Object.values(result);
         }
           break;
-        case 'relation':
+        case 'relation': {
 
           const relations = await this.xcRelationsGet(args);
 
@@ -3116,6 +3116,7 @@ export default class NcMetaMgr {
             }
           }
           return Object.values(result);
+        }
           break;
       }
     } catch (e) {
@@ -3215,10 +3216,11 @@ export default class NcMetaMgr {
   protected async xcPluginTest(req, args): Promise<any> {
     try {
       switch (args.args.category) {
-        case 'Email':
+        case 'Email': {
           const emailIns = EmailFactory.createNewInstance(args.args, args.args.input)
           await emailIns.init();
           await emailIns?.test(req.user?.email)
+        }
           break;
         default:
           return this.pluginMgr.test(args.args)

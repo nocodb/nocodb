@@ -770,9 +770,6 @@ class ModelXcMetaPg extends BaseModelXcMeta {
       case "set":
         str += `"SET(${column.dtxp})"`;
         break;
-      case "time":
-        str += `DataTypes.TIME`;
-        break;
       case "geometry":
         str += `DataTypes.GEOMETRY`;
         break;
@@ -934,9 +931,9 @@ class ModelXcMetaPg extends BaseModelXcMeta {
 
   getXcColumnsObject(args) {
 
-    let columnsArr = [];
+    const columnsArr = [];
 
-    for (let column of args.columns) {
+    for (const column of args.columns) {
       const columnObj = {
         validate: {
           func: [],

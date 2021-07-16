@@ -316,9 +316,6 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
       case "set":
         str += `"SET(${column.dtxp})"`;
         break;
-      case "time":
-        str += `DataTypes.TIME`;
-        break;
       case "geometry":
         str += `DataTypes.GEOMETRY`;
         break;

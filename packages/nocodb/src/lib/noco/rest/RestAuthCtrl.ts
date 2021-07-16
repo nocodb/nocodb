@@ -1,34 +1,34 @@
-import passport from 'passport';
-import {Strategy, ExtractJwt} from 'passport-jwt';
-import * as jwt from 'jsonwebtoken';
-import {Knex} from '../../dataMapper';
 import {promisify} from 'util';
-import bcrypt from 'bcryptjs';
-import {DbConfig, NcConfig} from "../../../interface/config";
-import validator from "validator";
-import {Tele} from 'nc-help';
 
-const {v4: uuidv4} = require('uuid');
-const PassportLocalStrategy = require('passport-local').Strategy;
+import bcrypt from 'bcryptjs';
+import * as ejs from 'ejs';
+import * as jwt from 'jsonwebtoken';
+import {Tele} from 'nc-help';
+import passport from 'passport';
+import {Strategy as AuthTokenStrategy} from 'passport-auth-token';
+import {Strategy as GithubStrategy} from 'passport-github'
+import {Strategy as GoogleStrategy} from 'passport-google-oauth20';
+import {ExtractJwt, Strategy} from 'passport-jwt';
+import validator from "validator";
+
+import {DbConfig, NcConfig} from "../../../interface/config";
+import {Knex} from '../../dataMapper';
+import Noco from "../Noco";
+
 const autoBind = require('auto-bind');
+const PassportLocalStrategy = require('passport-local').Strategy;
+const {v4: uuidv4} = require('uuid');
 
 import * as crypto from "crypto";
-import * as ejs from 'ejs';
 
-import Noco from "../Noco";
 import NcMetaIO from "../meta/NcMetaIO";
 
 const {isEmail} = require('validator');
+
 import axios from 'axios';
 
-
-import {Strategy as GoogleStrategy} from 'passport-google-oauth20';
-import {Strategy as GithubStrategy} from 'passport-github'
-import {Strategy as AuthTokenStrategy} from 'passport-auth-token';
-// import {Strategy as AzureAdOAuth2Strategy} from 'passport-azure-ad-oauth2';
 import IEmailAdapter from "../../../interface/IEmailAdapter";
 import XcCache from "../plugins/adapters/cache/XcCache";
-// import {Router} from "express";
 
 passport.serializeUser(function ({id, email, email_verified, roles, provider, firstname, lastname, isAuthorized}, done) {
   done(null, {

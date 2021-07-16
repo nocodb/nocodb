@@ -1,4 +1,3 @@
-import NcMetaIO from "../meta/NcMetaIO";
 import {
   IEmailAdapter,
   IStorageAdapter,
@@ -8,25 +7,26 @@ import {
   XcStoragePlugin, XcWebhookNotificationPlugin
 } from "nc-plugin";
 
-import S3PluginConfig from "../../../plugins/s3";
+import BackblazePluginConfig from "../../../plugins/backblaze";
+import DiscordPluginConfig from "../../../plugins/discord";
 import GcsPluginConfig from "../../../plugins/gcs";
 import LinodePluginConfig from "../../../plugins/linode";
-import BackblazePluginConfig from "../../../plugins/backblaze";
-import VultrPluginConfig from "../../../plugins/vultr";
-import OvhCloudPluginConfig from "../../../plugins/ovhCloud";
-import MinioPluginConfig from "../../../plugins/mino";
-import SpacesPluginConfig from "../../../plugins/spaces";
-import UpcloudPluginConfig from "../../../plugins/upcloud";
-import SMTPPluginConfig from "../../../plugins/smtp";
-import SlackPluginConfig from "../../../plugins/slack";
-import TeamsPluginConfig from "../../../plugins/teams";
 import MattermostPluginConfig from "../../../plugins/mattermost";
-import DiscordPluginConfig from "../../../plugins/discord";
-import TwilioWhatsappPluginConfig from "../../../plugins/twilioWhatsapp";
-import TwilioPluginConfig from "../../../plugins/twilio";
+import MinioPluginConfig from "../../../plugins/mino";
+import OvhCloudPluginConfig from "../../../plugins/ovhCloud";
+import S3PluginConfig from "../../../plugins/s3";
 import ScalewayPluginConfig from "../../../plugins/scaleway";
-
+import SlackPluginConfig from "../../../plugins/slack";
+import SMTPPluginConfig from "../../../plugins/smtp";
+import SpacesPluginConfig from "../../../plugins/spaces";
+import TeamsPluginConfig from "../../../plugins/teams";
+import TwilioPluginConfig from "../../../plugins/twilio";
+import TwilioWhatsappPluginConfig from "../../../plugins/twilioWhatsapp";
+import UpcloudPluginConfig from "../../../plugins/upcloud";
+import VultrPluginConfig from "../../../plugins/vultr";
 import Noco from "../Noco";
+import NcMetaIO from "../meta/NcMetaIO";
+
 import Local from "./adapters/storage/Local";
 
 const defaultPlugins = [
@@ -134,11 +134,12 @@ class NcPluginMgr {
 
   public async test(args: any): Promise<boolean> {
     switch (args.category) {
-      case 'Storage':
+      case 'Storage': {
         const plugin = defaultPlugins.find(pluginConfig => pluginConfig?.title === args.title);
         const tempPlugin = new plugin.builder(this.app, plugin);
         await tempPlugin.init(args?.input);
         return tempPlugin?.getAdapter()?.test?.();
+      }
         break;
       default:
         throw new Error('Not implemented');

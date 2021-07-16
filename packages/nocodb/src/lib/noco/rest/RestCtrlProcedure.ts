@@ -1,8 +1,10 @@
 import autoBind from 'auto-bind';
-import {RestApiBuilder} from "./RestApiBuilder";
 import {Handler, NextFunction, Request, Response, Router} from "express";
-import XcProcedure from "../common/XcProcedure";
+
 import BaseProcedure from "../common/BaseProcedure";
+import XcProcedure from "../common/XcProcedure";
+
+import {RestApiBuilder} from "./RestApiBuilder";
 
 export class RestCtrlProcedure
   extends BaseProcedure {

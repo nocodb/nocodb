@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import SlackPlugin from "./SlackPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import SlackPlugin from "./SlackPlugin";
 
 const config: XcPluginConfig ={
   builder: SlackPlugin,

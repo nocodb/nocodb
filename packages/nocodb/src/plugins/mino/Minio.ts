@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
-import {IStorageAdapter, XcFile} from "nc-plugin";
+
 import {Client as MinioClient} from "minio";
+import {IStorageAdapter, XcFile} from "nc-plugin";
 
 export default class Minio implements IStorageAdapter {
 

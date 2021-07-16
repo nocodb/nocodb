@@ -1,6 +1,7 @@
-import BaseRender from "../../BaseRender";
 import lodash from "lodash";
+
 import {Acl} from "../../../../../interface/config";
+import BaseRender from "../../BaseRender";
 
 
 class ExpressXcMiddleware extends BaseRender {

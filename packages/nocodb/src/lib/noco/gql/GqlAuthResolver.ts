@@ -1,19 +1,21 @@
-import passport from 'passport';
-import {Strategy, ExtractJwt} from 'passport-jwt';
-import * as jwt from 'jsonwebtoken';
 import {promisify} from 'util';
+
 import bcrypt from 'bcryptjs';
+import * as ejs from 'ejs';
+import * as jwt from 'jsonwebtoken';
+import passport from 'passport';
+import {ExtractJwt, Strategy} from 'passport-jwt';
+
+import IEmailAdapter from "../../../interface/IEmailAdapter";
 import {DbConfig, NcConfig} from "../../../interface/config";
+import {Knex, XKnex} from "../../dataMapper";
+import Noco from "../Noco";
+
 import authSchema from './auth/schema';
 
 const {v4: uuidv4} = require('uuid');
 const PassportLocalStrategy = require('passport-local').Strategy;
 const autoBind = require('auto-bind');
-import * as ejs from 'ejs';
-import {Knex, XKnex} from "../../dataMapper";
-import Noco from "../Noco";
-import IEmailAdapter from "../../../interface/IEmailAdapter";
-
 const {isEmail} = require('validator');
 // import swaggerUi from 'swagger-ui-express';
 
@@ -225,7 +227,8 @@ export default class GqlAuthResolver {
   public async signup(args, {req}) {
 
 
-    let {email, password, firstname, lastname} = args.data;
+    const {email, firstname, lastname} = args.data;
+    let {password} = args.data;
 
     if (!isEmail(email)) {
       throw new Error(`Not a valid email`);
@@ -450,6 +453,7 @@ export default class GqlAuthResolver {
       })
     }
   }
+
   private get emailClient(): IEmailAdapter {
     return this.app?.metaMgr?.emailAdapter;
   }

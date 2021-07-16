@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import TwilioPlugin from "./TwilioPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import TwilioPlugin from "./TwilioPlugin";
 
 const config: XcPluginConfig ={
   builder: TwilioPlugin,

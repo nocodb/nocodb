@@ -1,13 +1,12 @@
 import fs from "fs";
-import fsExtra from 'fs-extra';
 import path from "path";
-
-import {Debug, SqlClientFactory, Result} from "nc-help";
-import inflection from 'inflection';
 import url from 'url'
-import slash from 'slash';
 
+import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
+import inflection from 'inflection';
+import {Debug, Result, SqlClientFactory} from "nc-help";
+import slash from 'slash';
 // import debug from 'debug';
 
 const log = new Debug("SqlMgr");
@@ -399,7 +398,7 @@ export default class SqlMgr {
       args.type = args.type || args.project.type;
 
       if (this.isDbConnectionProject(args.projectJson)) {
-
+        // ignore
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);

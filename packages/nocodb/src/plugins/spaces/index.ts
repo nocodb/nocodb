@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import SpacesPlugin from "./SpacesPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import SpacesPlugin from "./SpacesPlugin";
 
 const config: XcPluginConfig ={
   builder: SpacesPlugin,

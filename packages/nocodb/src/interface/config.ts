@@ -1,4 +1,5 @@
 import {Handler} from "express";
+import * as e from 'express';
 import Knex from "knex";
 
 export interface Route {
@@ -278,7 +279,6 @@ export class Result {
 }
 
 
-import * as e from 'express';
 
 
 enum HTTPType {

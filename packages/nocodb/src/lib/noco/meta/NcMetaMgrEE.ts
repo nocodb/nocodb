@@ -1,6 +1,7 @@
-import NcMetaMgr from "./NcMetaMgr";
 import {Tele} from 'nc-help';
 import {v4 as uuidv4} from 'uuid';
+
+import NcMetaMgr from "./NcMetaMgr";
 
 export default class NcMetaMgrEE extends NcMetaMgr {
 

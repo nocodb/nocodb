@@ -1,11 +1,10 @@
 {
   "title": "NocoDB",
-  "url": "https://nocodb.com",
+  "url": "https://book.nocodb.com",
   "logo": {
     "light": "/favicon-128.png",
     "dark": "/favicon-128.png"
   },
-  "github": "nocodb/nocodb",
-  "defaultDir": "packages/noco-doc",
+  "github": "nocodb/nocodb/packages/noco-book",
   "twitter": "@nocodb"
 }

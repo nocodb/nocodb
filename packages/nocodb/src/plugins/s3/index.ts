@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import S3Plugin from "./S3Plugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import S3Plugin from "./S3Plugin";
 
 const config: XcPluginConfig = {
   builder: S3Plugin,

@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import TwilioWhatsappPlugin from "./TwilioWhatsappPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import TwilioWhatsappPlugin from "./TwilioWhatsappPlugin";
 
 const config: XcPluginConfig = {
   builder: TwilioWhatsappPlugin,

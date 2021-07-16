@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import ScalewayObjectStoragePlugin from "./ScalewayObjectStoragePlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import ScalewayObjectStoragePlugin from "./ScalewayObjectStoragePlugin";
 
 const config: XcPluginConfig = {
   builder: ScalewayObjectStoragePlugin,

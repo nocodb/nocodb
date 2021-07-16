@@ -1,7 +1,8 @@
 // @ts-ignore
-import IEmailAdapter, {XcEmail} from "../../../../../interface/IEmailAdapter";
 import nodemailer from 'nodemailer';
 import Mail from "nodemailer/lib/mailer";
+
+import IEmailAdapter, {XcEmail} from "../../../../../interface/IEmailAdapter";
 
 export default // @ts-ignore
 class SMTP implements IEmailAdapter {

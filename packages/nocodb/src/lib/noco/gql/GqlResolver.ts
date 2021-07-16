@@ -1,9 +1,11 @@
-import {BaseModelSql} from "../../dataMapper";
 import autoBind from 'auto-bind';
-import GqlMiddleware from "./GqlMiddleware";
+
 import {Acls} from "../../../interface/config";
-import GqlBaseResolver from "./GqlBaseResolver";
+import {BaseModelSql} from "../../dataMapper";
 import Noco from "../Noco";
+
+import GqlBaseResolver from "./GqlBaseResolver";
+import GqlMiddleware from "./GqlMiddleware";
 
 function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + (hrtime[1] / 1e6)).toFixed(3);

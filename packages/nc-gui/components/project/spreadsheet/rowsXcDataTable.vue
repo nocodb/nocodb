@@ -715,7 +715,7 @@ export default {
             });
             if (this.meta.columns.every((col) => {
               return !col.ai;
-            }) && pks.length && pks.every(col => !rowObj[col._cn])) {
+            }) && pks.length && pks.every(col => !rowObj[col._cn] && !(col.columnDefault || col.default))) {
               return this.$toast.info('Primary column is empty please provide some value').goAway(3000);
             }
             if (this.meta.columns.some((col) => {

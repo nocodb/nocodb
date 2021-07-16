@@ -1,8 +1,7 @@
 import autoBind from 'auto-bind';
-// import * as tsc from "typescript";
-import {Acls} from "../../../interface/config";
 import Handlebars from "handlebars";
-// import {NextFunction, Request, Response} from "express";
+
+import {Acls} from "../../../interface/config";
 
 export default class GqlMiddleware {
   private tn: any;

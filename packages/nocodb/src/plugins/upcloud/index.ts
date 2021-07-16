@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import UpCloudPlugin from "./UpCloudPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import UpCloudPlugin from "./UpCloudPlugin";
 
 const config: XcPluginConfig = {
   builder: UpCloudPlugin,

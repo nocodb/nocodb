@@ -2,7 +2,8 @@ export default class GqlBaseResolver {
   constructor() {
   }
 
-  public static applyMiddlewares(handlers: Function[] = [], resolvers = {}, postHandlers: Function[] = []): any {
+  // todo: type correction
+  public static applyMiddlewares(handlers: any[] = [], resolvers = {}, postHandlers: any[] = []): any {
     if (!handlers) {
       return resolvers;
     }
@@ -12,7 +13,7 @@ export default class GqlBaseResolver {
           for (const handler of handlers) {
             await handler(...args)
           }
-          const result = await (resolver as Function)(...args);
+          const result = await (resolver as any)(...args);
           if (postHandlers) {
             for (const handler of postHandlers) {
               await handler(result, ...args)

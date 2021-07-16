@@ -1,9 +1,9 @@
-import ModelXcMetaMysql from "./ModelXcMetaMysql";
-import ModelXcMetaSqlite from "./ModelXcMetaSqlite";
-import ModelXcMetaPg from "./ModelXcMetaPg";
-import ModelXcMetaMssql from "./ModelXcMetaMssql";
-import ModelXcMetaOracle from "./ModelXcMetaOracle";
 import BaseModelXcMeta from "./BaseModelXcMeta";
+import ModelXcMetaMssql from "./ModelXcMetaMssql";
+import ModelXcMetaMysql from "./ModelXcMetaMysql";
+import ModelXcMetaOracle from "./ModelXcMetaOracle";
+import ModelXcMetaPg from "./ModelXcMetaPg";
+import ModelXcMetaSqlite from "./ModelXcMetaSqlite";
 
 class ModelXcMetaFactory {
   public static create(connectionConfig, args):BaseModelXcMeta {

@@ -1,4 +1,3 @@
-/* eslint-disable no-unreachable */
 import KnexMigrator from "./KnexMigrator";
 
 export default class SqlMigratorFactory {

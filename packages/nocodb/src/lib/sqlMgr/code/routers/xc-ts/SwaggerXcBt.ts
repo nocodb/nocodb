@@ -49,7 +49,7 @@ class SwaggerXcBt extends BaseRender {
    */
   _renderDefinitions(_args) {
 
-    let obj = {};
+    const obj = {};
 
     return JSON.stringify(obj);
 

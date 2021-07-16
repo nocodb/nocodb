@@ -1,31 +1,33 @@
-import {RestCtrl} from "./RestCtrl";
-import {RestCtrlBelongsTo} from "./RestCtrlBelongsTo";
-import {RestCtrlHasMany} from "./RestCtrlHasMany";
 
-import {DbConfig, NcConfig} from "../../../interface/config";
-import Noco from "../Noco";
-import NcHelp from "../../utils/NcHelp";
-import {Router} from "express";
-import autoBind from "auto-bind";
 import fs from 'fs';
 import path from 'path';
-import mkdirp from 'mkdirp';
-import * as ejs from 'ejs';
-import debug from 'debug';
 
-import BaseApiBuilder, {IGNORE_TABLES} from "../common/BaseApiBuilder";
+import autoBind from "auto-bind";
+import debug from 'debug';
+import * as ejs from 'ejs';
+import {Router} from "express";
 import {glob} from "glob";
-import {RestCtrlProcedure} from "./RestCtrlProcedure";
-import NcMetaIO from "../meta/NcMetaIO";
-import {RestCtrlCustom} from "./RestCtrlCustom";
-import NcProjectBuilder from "../NcProjectBuilder";
+import mkdirp from 'mkdirp';
+
+import {DbConfig, NcConfig} from "../../../interface/config";
 import ModelXcMetaFactory from "../../sqlMgr/code/models/xc/ModelXcMetaFactory";
-import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
 import SwaggerXc from "../../sqlMgr/code/routers/xc-ts/SwaggerXc";
-import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesHm";
-import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
-import SwaggerXcHm from "../../sqlMgr/code/routers/xc-ts/SwaggerXcHm";
 import SwaggerXcBt from "../../sqlMgr/code/routers/xc-ts/SwaggerXcBt";
+import SwaggerXcHm from "../../sqlMgr/code/routers/xc-ts/SwaggerXcHm";
+import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
+import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
+import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesHm";
+import NcHelp from "../../utils/NcHelp";
+import NcProjectBuilder from "../NcProjectBuilder";
+import Noco from "../Noco";
+import BaseApiBuilder, {IGNORE_TABLES} from "../common/BaseApiBuilder";
+import NcMetaIO from "../meta/NcMetaIO";
+
+import {RestCtrl} from "./RestCtrl";
+import {RestCtrlBelongsTo} from "./RestCtrlBelongsTo";
+import {RestCtrlCustom} from "./RestCtrlCustom";
+import {RestCtrlHasMany} from "./RestCtrlHasMany";
+import {RestCtrlProcedure} from "./RestCtrlProcedure";
 
 
 const log = debug('nc:api:rest');
@@ -922,7 +924,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
           for (const [i, newHmRoute] of Object.entries(hmRoutes)) {
             const oldHmRoute: any = oldHmRoutes[i];
-            this.log(`xcTableRename : Updating routes for ${relationTable}Hm${newTablename} on behalf of '%table rename'  - \'%s\' => \'%s\' (HasMany relation)`, relationTable, oldTablename, newTablename)
+            this.log(`xcTableRename : Updating routes for ${relationTable}Hm${newTablename} on behalf of '%table rename'  - '%s' => '%s' (HasMany relation)`, relationTable, oldTablename, newTablename)
 
 
             await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
@@ -952,7 +954,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
           for (const [i, newBtRoute] of Object.entries(newBtRoutes)) {
             const oldBtRoute: any = oldBtRoutes[i];
-            this.log(`xcTableRename : Updating routes for ${relationTable}Bt${oldTablename} on behalf of '%table rename'  - \'%s\' => \'%s\' (BelongsTo relation)`, relationTable, oldTablename, newTablename)
+            this.log(`xcTableRename : Updating routes for ${relationTable}Bt${oldTablename} on behalf of '%table rename'  - '%s' => '%s' (BelongsTo relation)`, relationTable, oldTablename, newTablename)
             await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
               title: `${relationTable}Bt${newTablename}`,
               path: newBtRoute.path,
@@ -1482,8 +1484,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log('populteProcedureAndFunctionRoutes');
     const router = this.routers.___procedure = Router();
 
-    let functions = [];
-    let procedures = [];
+    const functions = [];
+    const procedures = [];
     // enable extra
     // try {
     //     functions = (await this.sqlClient.functionList())?.data?.list;

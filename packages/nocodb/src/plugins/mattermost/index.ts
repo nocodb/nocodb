@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import MattermostPlugin from "./MattermostPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import MattermostPlugin from "./MattermostPlugin";
 
 const config: XcPluginConfig ={
   builder: MattermostPlugin,

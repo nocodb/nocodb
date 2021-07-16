@@ -1,4 +1,5 @@
 import BaseRender from "../../BaseRender";
+
 import SwaggerTypes from "./SwaggerTypes";
 
 class SwaggerXc extends BaseRender {
@@ -51,14 +52,14 @@ class SwaggerXc extends BaseRender {
    * @private
    */
   _renderDefinitions(args) {
-    let obj = this.getDefenitions(args);
+    const obj = this.getDefenitions(args);
 
     return JSON.stringify(obj);
 
   }
 
   getDefenitions(args) {
-    let obj = {
+    const obj = {
       [args._tn]: {
         type: 'object',
         properties: {}
@@ -68,7 +69,7 @@ class SwaggerXc extends BaseRender {
 
     const properties = obj[args._tn].properties;
 
-    for (let column of args.columns) {
+    for (const column of args.columns) {
       const field: any = {};
 
       SwaggerTypes.setSwaggerType(column, field, args.dbType)

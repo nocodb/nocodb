@@ -1,7 +1,9 @@
 import autoBind from 'auto-bind';
-import {GqlApiBuilder} from "./GqlApiBuilder";
-import XcProcedure from "../common/XcProcedure";
+
 import BaseProcedure from "../common/BaseProcedure";
+import XcProcedure from "../common/XcProcedure";
+
+import {GqlApiBuilder} from "./GqlApiBuilder";
 import GqlBaseResolver from "./GqlBaseResolver";
 
 export class GqlProcedureResolver

@@ -1,4 +1,5 @@
 import {IEmailAdapter, XcEmailPlugin} from "nc-plugin";
+
 import SMTP from "./SMTP";
 
 

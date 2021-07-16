@@ -130,9 +130,9 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
 
   getXcColumnsObject(args) {
 
-    let columnsArr = [];
+    const columnsArr = [];
 
-    for (let column of args.columns) {
+    for (const column of args.columns) {
       const columnObj = {
         validate: {
           func: [],
@@ -330,8 +330,6 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
       case 'nclob':
         return 'string'
       case 'nvarchar2':
-
-      case 'octet':
       case 'oid':
       case 'pointer':
       case 'raw':

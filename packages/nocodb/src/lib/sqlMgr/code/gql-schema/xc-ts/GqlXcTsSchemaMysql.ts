@@ -228,7 +228,6 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
       case "mediumblob":
       case "longblob":
       case "enum":
-      case "time":
         return "String"
         break;
 

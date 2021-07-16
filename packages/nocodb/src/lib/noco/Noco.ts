@@ -1,41 +1,36 @@
-import * as express from 'express'
-import bodyParser from "body-parser";
-import morgan from "morgan";
-// import Table from "cli-table3";
-import cookieParser from 'cookie-parser';
-import clear from 'clear';
-
-// const colors = require("colors/safe");
-import debug from 'debug';
-import {v4 as uuidv4} from 'uuid';
-import path from 'path';
+/* eslint-disable @typescript-eslint/ban-types */
 import fs from "fs";
+import path from 'path';
+
+import * as Sentry from '@sentry/node';
+import bodyParser from "body-parser";
+import clear from 'clear';
+import cookieParser from 'cookie-parser';
+import debug from 'debug';
+import * as express from 'express'
+import {Router} from "express";
 import importFresh from "import-fresh";
-
+import morgan from "morgan";
 import {Tele} from "nc-help";
-import {NcConfig} from "../../interface/config";
-import {RestApiBuilder} from "./rest/RestApiBuilder";
-import {GqlApiBuilder} from "./gql/GqlApiBuilder";
-import Migrator from '../migrator/SqlMigrator/lib/KnexMigrator';
 import NcToolGui from "nc-lib-gui";
+import requestIp from 'request-ip';
+import {v4 as uuidv4} from 'uuid';
 
+import {NcConfig} from "../../interface/config";
+import Migrator from '../migrator/SqlMigrator/lib/KnexMigrator';
 import NcConfigFactory from "../utils/NcConfigFactory";
-import NcMetaIO from "./meta/NcMetaIO";
 
 import NcProjectBuilderCE from "./NcProjectBuilder";
 import NcProjectBuilderEE from "./NcProjectBuilderEE";
-import {Router} from "express";
-import requestIp from 'request-ip';
-
+import {GqlApiBuilder} from "./gql/GqlApiBuilder";
+import NcMetaIO from "./meta/NcMetaIO";
 import NcMetaImplCE from "./meta/NcMetaIOImpl";
-import RestAuthCtrlCE from "./rest/RestAuthCtrl";
-import NcMetaMgrCE from "./meta/NcMetaMgr";
-
 import NcMetaImplEE from "./meta/NcMetaIOImplEE";
-import RestAuthCtrlEE from "./rest/RestAuthCtrlEE";
+import NcMetaMgrCE from "./meta/NcMetaMgr";
 import NcMetaMgrEE from "./meta/NcMetaMgrEE";
-
-import * as Sentry from '@sentry/node';
+import {RestApiBuilder} from "./rest/RestApiBuilder";
+import RestAuthCtrlCE from "./rest/RestAuthCtrl";
+import RestAuthCtrlEE from "./rest/RestAuthCtrlEE";
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -326,9 +321,10 @@ export default class Noco {
           }
           break;
 
-        default:
+        default: {
           const projectBuilder = this.projectBuilders.find(pb => pb.id == data.req?.project_id);
           return projectBuilder?.handleRunTimeChanges(data);
+        }
       }
 
     };

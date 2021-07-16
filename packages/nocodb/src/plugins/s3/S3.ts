@@ -1,6 +1,7 @@
-import AWS from "aws-sdk";
 import fs from "fs";
 import path from "path";
+
+import AWS from "aws-sdk";
 import {IStorageAdapter, XcFile} from "nc-plugin";
 
 export default class S3 implements IStorageAdapter {

@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import TeamsPlugin from "./TeamsPlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import TeamsPlugin from "./TeamsPlugin";
 
 const config: XcPluginConfig ={
   builder: TeamsPlugin,

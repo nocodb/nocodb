@@ -1,7 +1,7 @@
+import GqlXcSchemaMssql from "./GqlXcTsSchemaMssql";
 import GqlXcTsSchemaMysql from "./GqlXcTsSchemaMysql";
 import GqlXcSchemaOracle from "./GqlXcTsSchemaOracle";
 import GqlXcSchemaPg from "./GqlXcTsSchemaPg";
-import GqlXcSchemaMssql from "./GqlXcTsSchemaMssql";
 import GqlXcSchemaSqlite from "./GqlXcTsSchemaSqlite";
 
 class GqlXcSchemaFactory {

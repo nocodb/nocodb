@@ -8,11 +8,11 @@
       <div class="d-flex align-center ml-4 justify-center">
         <v-badge v-if="GetHasErrors && !GetPendingStatus" color="red" overlap bottom >
           <template v-slot:badge>
-            <v-icon v-on="on" size="10">mdi-exclamation</v-icon>
+            <v-icon  v-ripple="{class : 'nc-ripple'}" v-on="on" size="10">mdi-exclamation</v-icon>
           </template>
-          <v-icon v-on="on" size="20">mdi-bell-ring</v-icon>
+          <v-icon   v-ripple="{class : 'nc-ripple'}" v-on="on" size="20">mdi-bell-ring</v-icon>
         </v-badge>
-        <v-icon v-on="on" size="20" v-else >mdi-bell-ring</v-icon>
+        <v-icon   v-ripple="{class : 'nc-ripple'}" v-on="on" size="20" v-else >mdi-bell-ring</v-icon>
         <v-progress-circular
           v-if="GetPendingStatus"
           style="position: absolute"
@@ -37,6 +37,7 @@
               indeterminate
             ></v-progress-circular>
             <v-icon
+              v-ripple="{class : 'nc-ripple'}"
               v-else
               size="20"
               :class="notificationIcons[item.status].class"
@@ -50,16 +51,6 @@
             </v-list-item-title>
             <v-list-item-subtitle>{{ timeDifference(item.time) }}</v-list-item-subtitle>
           </v-list-item-content>
-
-
-          <!--        <v-list-item-content>-->
-          <!--          <v-list-item-title>-->
-          <!--            {{ item.message }}-->
-          <!--          </v-list-item-title>-->
-          <!--          <v-list-item-subtitle>-->
-          <!--            {{ new Date(item.time).toTimeString() }}-->
-          <!--          </v-list-item-subtitle>-->
-          <!--        </v-list-item-content>-->
         </v-list-item>
         <v-divider></v-divider>
 

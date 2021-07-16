@@ -1,6 +1,7 @@
-import {XcPluginConfig} from "nc-plugin";
-import LinodeObjectStoragePlugin from "./LinodeObjectStoragePlugin";
 import {XcActionType, XcType} from "nc-common";
+import {XcPluginConfig} from "nc-plugin";
+
+import LinodeObjectStoragePlugin from "./LinodeObjectStoragePlugin";
 
 const config: XcPluginConfig = {
   builder: LinodeObjectStoragePlugin,

@@ -1,6 +1,7 @@
 import {Handler, NextFunction, Request, Response, Router} from "express";
-import {Route} from "../../../interface/config";
 import Handlebars from "handlebars";
+
+import {Route} from "../../../interface/config";
 
 export abstract class RestBaseCtrl {
 

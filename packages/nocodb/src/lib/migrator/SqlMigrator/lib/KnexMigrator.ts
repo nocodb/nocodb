@@ -1,20 +1,22 @@
 import fs from "fs";
-import mkdirp from "mkdirp";
-import {promisify} from "util";
-import glob from "glob";
-import rmdir from "rmdir";
 import path from "path";
+import {promisify} from "util";
 
-import SqlMigrator from "./SqlMigrator";
-
+import glob from "glob";
+import Handlebars from "handlebars";
+import mkdirp from "mkdirp";
 import {SqlClientFactory} from 'nc-help';
-import * as fileHelp from "../../util/file.help";
+import rmdir from "rmdir";
+
+
 import Debug from "../../util/Debug";
 import Result from "../../util/Result";
 import Emit from "../../util/emit";
+import * as fileHelp from "../../util/file.help";
 
-import Handlebars from "handlebars";
+
 import NcConfigFactory from './NcConfigFactory';
+import SqlMigrator from "./SqlMigrator";
 
 const evt = new Emit();
 const log = new Debug("KnexMigrator");
@@ -502,7 +504,7 @@ export default class KnexMigrator extends SqlMigrator {
 
       if (files.length === migrations.length) {
         this.emit(`Evolutions are upto date for ' ${args.env} : ${args.dbAlias} '`);
-        for (var i = 0; i < migrations.length; ++i) {
+        for (let i = 0; i < migrations.length; ++i) {
           result.data.object.list.push({
             title: migrations[i].title,
             titleDown: migrations[i].titleDown,
@@ -523,9 +525,9 @@ export default class KnexMigrator extends SqlMigrator {
         if (migrations.length !== 0) {
           // get last evolution that was made
           const lastEvolution = migrations[migrations.length - 1];
-
+          let i = 0
           // find the index of the last evolution in evolution list of files
-          for (var i = 0; i < files.length; ++i) {
+          for (; i < files.length; ++i) {
             if (this.metaDb) {
               if (files[i].title.indexOf(lastEvolution.title) !== -1) {
                 i++;
@@ -548,7 +550,7 @@ export default class KnexMigrator extends SqlMigrator {
           /** ************** START : calculate migration steps from filename *************** */
           if (!migrationSteps) {
             let fileFound = 0;
-            for (var i = fileIndex; i < files.length; ++i) {
+            for (let i = fileIndex; i < files.length; ++i) {
               migrationSteps++;
               if (this.metaDb) {
                 if (files[i].title.includes(args.file)) {
@@ -573,7 +575,7 @@ export default class KnexMigrator extends SqlMigrator {
 
           if (onlyList) {
             if (this.metaDb) {
-              for (var i = 0; i < fileIndex; ++i) {
+              for (let i = 0; i < fileIndex; ++i) {
                 result.data.object.list.push({
                   title: files[i].title,
                   titleDown: filesDown[i].title_down,
@@ -581,7 +583,7 @@ export default class KnexMigrator extends SqlMigrator {
                 });
               }
             } else {
-              for (var i = 0; i < fileIndex; ++i) {
+              for (let i = 0; i < fileIndex; ++i) {
                 const fileParts = files[i].split("/");
                 const downFileParts = filesDown[i].split("/");
                 result.data.object.list.push({
@@ -598,7 +600,7 @@ export default class KnexMigrator extends SqlMigrator {
 
           /** ************** START : Apply migrations *************** */
           for (
-            var i = fileIndex;
+            let i = fileIndex;
             i < files.length && i < fileIndex + migrationSteps;
             ++i
           ) {
@@ -658,11 +660,11 @@ export default class KnexMigrator extends SqlMigrator {
             const trx = await sqlClient.knex.transaction();
             try {
 
-              for (let query of upStatements) {
+              for (const query of upStatements) {
                 await trx.raw(query);
                 vm.emit(`'${query}' : Executed SQL query`);
               }
-              for (let data of metaTableInserts) {
+              for (const data of metaTableInserts) {
                 await trx(connection.meta.tn).insert(data);
                 vm.emit(`'${data.title}' : Updating bookkeeping of SQL UP migration - done`);
               }
@@ -746,7 +748,7 @@ export default class KnexMigrator extends SqlMigrator {
 
           if (!migrationSteps) {
             let fileFound = 0;
-            for (var i = migrations.length - 1; i >= 0; --i) {
+            for (let i = migrations.length - 1; i >= 0; --i) {
               migrationSteps++;
               if (this.metaDb) {
                 if (files[i].title_down.includes(args.file)) {
@@ -771,7 +773,7 @@ export default class KnexMigrator extends SqlMigrator {
           const downStatements = [];
           const metaDownDeletes = [];
           for (
-            var i = migrations.length - 1, j = 0;
+            let i = migrations.length - 1, j = 0;
             i >= 0 && j < migrationSteps;
             --i, ++j
           ) {
@@ -810,11 +812,11 @@ export default class KnexMigrator extends SqlMigrator {
           const trx = await sqlClient.knex.transaction();
           try {
 
-            for (let query of downStatements) {
+            for (const query of downStatements) {
               await trx.raw(query).transacting(trx);
               vm.emit(`'${query}' : Executed SQL query`);
             }
-            for (let condition of metaDownDeletes) {
+            for (const condition of metaDownDeletes) {
               vm.emit(`'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`);
               await trx(connection.meta.tn).where(condition).del();
             }
@@ -1530,8 +1532,8 @@ export default class KnexMigrator extends SqlMigrator {
       if (args.env in this.project.envs) {
         let found = 0;
         // find if dbAlias exists in sent environment
-        for (var i = 0; i < this.project.envs[args.env].db.length; ++i) {
-          let db = this.project.envs[args.env].db[i];
+        for (let i = 0; i < this.project.envs[args.env].db.length; ++i) {
+          const db = this.project.envs[args.env].db[i];
 
           if (db.meta.dbAlas === args.db.meta.dbAlias) {
             found = 1;
@@ -1548,10 +1550,10 @@ export default class KnexMigrator extends SqlMigrator {
           } else {
 
             let foundInWorkingEnv = 0;
+            let i = 0
+            for (; i < this.project.envs[this.project.workingEnv].db.length; ++i) {
 
-            for (var i = 0; i < this.project.envs[this.project.workingEnv].db.length; ++i) {
-
-              let db = this.project.envs[this.project.workingEnv].db[i];
+              const db = this.project.envs[this.project.workingEnv].db[i];
 
               if (db.meta.alias === args.db.meta.alias) {
                 foundInWorkingEnv = 1;

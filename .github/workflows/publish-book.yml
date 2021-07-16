@@ -1,4 +1,4 @@
-name: Publish Docs
+name: Publish Book
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Check for change
         run: |
-          echo "CHANGED=$([[ $(git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna ls --since | grep noco-docs) = noco-docs ]] && echo 'OK')" >> $GITHUB_ENV
+          echo "CHANGED=$([[ $(git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna ls --since | grep noco-book) = noco-book ]] && echo 'OK')" >> $GITHUB_ENV
 
       - uses: actions/setup-node@v2
         if: ${{ env.CHANGED == 'OK' }}
@@ -32,9 +32,9 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
-          source_file: 'packages/noco-docs/dist/'
-          destination_repo: 'nocodb/noco-docs'
+          source_file: 'packages/noco-book/dist/'
+          destination_repo: 'nocodb/noco-book'
           destination_folder: 'docs'
           user_email: 'pranavxc@gmail.com'
           user_name: 'pranavxc'
-          commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-docs'
+          commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-book'

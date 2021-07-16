@@ -1003,7 +1003,7 @@ export default class RestAuthCtrl {
     }
 
     const invite_token = uuidv4();
-
+    let count;
     const user = await this.users.where({email}).first();
     if (user) {
       if (!await this.xcMeta.isUserHaveAccessToProject(req.body.project_id, user.id)) {
@@ -1016,6 +1016,7 @@ export default class RestAuthCtrl {
           invite_token_expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
           email
         });
+        count = await this.users.count('id').first();
 
         const {id} = await this.users.where({email}).first();
         await this.xcMeta.projectAddUser(req.body.project_id, id, 'creator');
@@ -1029,7 +1030,7 @@ export default class RestAuthCtrl {
     }
 
 
-    Tele.emit('evt', {evt_type: 'project:invite'})
+    Tele.emit('evt', {evt_type: 'project:invite', count:count?.count})
     this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
       op_type: 'AUTHENTICATION',
       op_sub_type: 'INVITE',

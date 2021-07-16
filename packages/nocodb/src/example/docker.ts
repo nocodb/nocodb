@@ -12,7 +12,7 @@ server.set('view engine', 'ejs');
 
 // process.env[`NC_DB`] = `mysql2://localhost:3306?u=root&p=password&d=mar_21`;
 // process.env[`NC_DB`] = `pg://localhost:3306?u=root&p=password&d=mar_24`;
-// process.env[`NC_DB`] = `pg://localhost:32768?u=postgres&p=xgene&d=abcde&search_path=nc_schema`;
+process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=xgene&d=abcde`;
 // process.env[`NC_TRY`] = 'true';
 // process.env[`NC_DASHBOARD_URL`] = '/test';
 

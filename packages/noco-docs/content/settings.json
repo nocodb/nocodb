@@ -1,0 +1,11 @@
+{
+  "title": "NocoDB",
+  "url": "https://nocodb.com",
+  "logo": {
+    "light": "/favicon-128.png",
+    "dark": "/favicon-128.png"
+  },
+  "github": "nocodb/nocodb",
+  "defaultDir": "packages/noco-docs",
+  "twitter": "@nocodb"
+}

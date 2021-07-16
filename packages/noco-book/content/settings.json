@@ -6,6 +6,6 @@
     "dark": "/favicon-128.png"
   },
   "github": "nocodb/nocodb",
-  "defaultDir": "packages/noco-doc",
+  "defaultDir": "packages/noco-book",
   "twitter": "@nocodb"
 }

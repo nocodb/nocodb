@@ -56,10 +56,12 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
           });
 
           const {id} = await this.users.where({email}).first();
+          const count = await this.users.count('id').first();
           // add user to project
           await this.xcMeta.projectAddUser(req.body.project_id, id, req.body.roles);
 
-          Tele.emit('evt', {evt_type: 'project:invite'})
+          Tele.emit('evt', {evt_type: 'project:invite', count: count?.count});
+
           this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
             op_type: 'AUTHENTICATION',
             op_sub_type: 'INVITE',

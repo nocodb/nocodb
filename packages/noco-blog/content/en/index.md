@@ -1,84 +1,17 @@
 ---
-title: 'Setup and Usage'
+title: 'NocoDB'
 description: 'Simple installation - takes about three minutes!'
 position: 0
-category: 'Getting started'
+category: 'NocoDB'
 fullscreen: true
-menuTitle: 'Install'
-link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark
+menuTitle: 'NocoDB'
 ---
 
 
-## Simple installation - takes about three minutes!
-
-### Prerequisites
-
-- __Must haves__
-    * [node.js >= 12](https://nodejs.org/en/download) / [Docker](https://www.docker.com/get-started)
-    * [MySql](https://dev.mysql.com/downloads/mysql/) / [Postgres](https://www.postgresql.org/download/) / [SQLserver](https://www.microsoft.com/en-gb/sql-server/sql-server-downloads) / SQLite Database
-- Nice to haves
-    - Existing schemas can help to create APIs quickly.
-    - An example database schema can be found :<a class="grey--text"
-                                                                                         href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources">
-                        <u>here</u>
-                    </a>
-    
 
 
-## Quick try
-### 1-Click Deploy
-<a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
+# 🎯  Why are we building this ?
+Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
-### Node app or docker 
-
-
-<code-group>
-  <code-block label="NPX" active> 
-
-  ```bash
-  npx create-nocodb-app
-  ```
-
-  </code-block>
-  <code-block label="Docker" >
-
-  ```bash
-  docker run -d --name nocodb -p 8080:8080 nocodb/nocodb
-  ```
-
-  </code-block>
-  <code-block label="Using Git" >
-
-  ```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-  ```
-
-  </code-block>
-</code-group>               
-                  
-          
-### Sample app        
-<code-sandbox :src="link"></code-sandbox>
-
-
-# Sample Demos
-### Docker deploying with one command
-
-<youtube id="K-UEecQyiOk"></youtube>
-
-### Using Npx
-
-<youtube id="v6Nn75P1p7I"></youtube>
-
-### Heroku Deployment
-<youtube id="v6Nn75P1p7I"></youtube>
-
+# ❤ Our Mission :  
+Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 

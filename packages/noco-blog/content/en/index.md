@@ -1,6 +1,6 @@
 ---
 title: 'NocoDB'
-description: 'Simple installation - takes about three minutes!'
+description: 'NocoDB'
 position: 0
 category: 'NocoDB'
 fullscreen: true

@@ -1,4 +1,5 @@
 import {SqlClientFactory} from 'nc-help';
+import fs from 'fs';
 import parseDbUrl from "parse-database-url";
 
 import {AuthConfig, DbConfig, MailerConfig, NcConfig} from "../../interface/config";
@@ -565,7 +566,10 @@ export default class NcConfigFactory implements NcConfig {
 
 
   public static jdbcToXcUrl() {
-    if (process.env.NC_DATABASE_URL || process.env.DATABASE_URL) {
+    if (process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE) {
+      const database_url = fs.readFileSync(process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE, 'utf-8');
+      process.env.NC_DB = this.extractXcUrlFromJdbc(database_url);
+    } else if (process.env.NC_DATABASE_URL || process.env.DATABASE_URL) {
       process.env.NC_DB = this.extractXcUrlFromJdbc(process.env.NC_DATABASE_URL || process.env.DATABASE_URL);
     }
   }

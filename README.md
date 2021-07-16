@@ -168,6 +168,7 @@ docker-compose up
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
 | NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
 | DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
+| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
 | NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
 | NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
 | NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |

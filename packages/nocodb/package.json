@@ -205,7 +205,7 @@
     "open-cli": "^5.0.0",
     "prettier": "^1.18.2",
     "raw-body": "^2.4.1",
-    "standard-version": "^6.0.1",
+    "standard-version": "^8.0.1",
     "supertest": "^4.0.2",
     "terser-webpack-plugin": "^4.1.0",
     "trash-cli": "^3.0.0",

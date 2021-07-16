@@ -20,7 +20,7 @@ jobs:
         if: ${{ env.CHANGED == 'OK' }}
         with:
           node-version: 14
-      - name: Build docs
+      - name: Build book
         if: ${{ env.CHANGED == 'OK' }}
         run: |
           cd packages/noco-book

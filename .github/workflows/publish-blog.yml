@@ -14,13 +14,13 @@ jobs:
           fetch-depth: 2
       - name: Check for update
         run: |
-          echo "CHANGED=$([[ $(git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna ls --since | grep noco-book) = noco-blog ]] && echo 'OK')" >> $GITHUB_ENV
+          echo "CHANGED=$([[ $(git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna ls --since | grep noco-blog) = noco-blog ]] && echo 'OK')" >> $GITHUB_ENV
 
       - uses: actions/setup-node@v2
         if: ${{ env.CHANGED == 'OK' }}
         with:
           node-version: 14
-      - name: Build docs
+      - name: Build blogs
         if: ${{ env.CHANGED == 'OK' }}
         run: |
           cd packages/noco-blog

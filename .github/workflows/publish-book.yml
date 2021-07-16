@@ -35,6 +35,6 @@ jobs:
           source_file: 'packages/noco-book/dist/'
           destination_repo: 'nocodb/noco-book'
           destination_folder: 'docs'
-          user_email: 'pranavxc@gmail.com'
-          user_name: 'pranavxc'
+          user_email: 'oof1lab@gmail.com'
+          user_name: 'o1lab'
           commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-book'

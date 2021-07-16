@@ -21,7 +21,7 @@ jobs:
       - name: Build docs
         if: ${{ env.CHANGED == 'OK' }}
         run: |
-          cd packages/noco-doc
+          cd packages/noco-blog
           npm install
           npm run generate
 
@@ -35,6 +35,6 @@ jobs:
           source_file: 'packages/noco-blog/dist/'
           destination_repo: 'nocodb/noco-blog'
           destination_folder: 'docs'
-          user_email: 'pranavxc@gmail.com'
-          user_name: 'pranavxc'
+          user_email: 'oof1lab@gmail.com'
+          user_name: 'o1lab'
           commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-blog'

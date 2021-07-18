@@ -15,8 +15,8 @@ import Emit from "../../util/emit";
 import * as fileHelp from "../../util/file.help";
 
 
-import NcConfigFactory from './NcConfigFactory';
 import SqlMigrator from "./SqlMigrator";
+import NcConfigFactory from "../../../utils/NcConfigFactory";
 
 const evt = new Emit();
 const log = new Debug("KnexMigrator");
@@ -33,17 +33,19 @@ export default class KnexMigrator extends SqlMigrator {
   // @ts-ignore
   private project_id: any;
   private metaDb: any;
+  private toolDir: string;
 
   /**
    * Creates an instance of KnexMigrator.
    * @memberof KnexMigrator
    */
-  constructor(projectObj?:any) {
+  constructor(projectObj?: any) {
     super();
     this.projectObj = projectObj;
-    this.project_id = projectObj && projectObj.project_id;
-    this.project = projectObj && projectObj.config;
-    this.metaDb = projectObj && projectObj.metaDb;
+    this.project_id = projectObj?.project_id;
+    this.project = projectObj?.config;
+    this.metaDb = projectObj?.metaDb;
+    this.toolDir = NcConfigFactory.getToolDir();
   }
 
   emit(data, _args?) {
@@ -78,7 +80,7 @@ export default class KnexMigrator extends SqlMigrator {
    * @memberof KnexMigrator
    */
   _getWorkingEnvDir(args) {
-    return path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations');
+    return path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations');
   }
 
   async _initAllEnvOnFilesystem() {
@@ -113,74 +115,74 @@ export default class KnexMigrator extends SqlMigrator {
   async _initDbOnFs(args) {
     this.emit(
       "Creating folder: ",
-      path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations')
+      path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
     );
 
     try {
       await promisify(mkdirp)(
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations')
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
       );
       // @ts-ignore
       const dirStat = await promisify(fs.stat)(
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations')
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
       );
 
       await promisify(mkdirp)(
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
       );
 
       this.emit(
         "Creating folder: ",
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, this.project.meta.seedsFolder)
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.seedsFolder)
       );
 
       await promisify(mkdirp)(
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, this.project.meta.seedsFolder)
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.seedsFolder)
       );
       this.emit(
         "Creating folder: ",
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, this.project.meta.queriesFolder)
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.queriesFolder)
       );
 
       await promisify(mkdirp)(
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, this.project.meta.queriesFolder)
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.queriesFolder)
       );
       this.emit(
         "Creating folder: ",
-        path.join(process.cwd(), 'nc', this.project.id, this.project.meta.apisFolder)
+        path.join(this.toolDir, 'nc', this.project.id, this.project.meta.apisFolder)
       );
 
       await promisify(mkdirp)(
-        path.join(process.cwd(), 'nc', this.project.id, this.project.meta.apisFolder)
+        path.join(this.toolDir, 'nc', this.project.id, this.project.meta.apisFolder)
       );
 
 
       await promisify(mkdirp)(
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
       );
 
       // @ts-ignore
       const metaStat = await promisify(fs.stat)(
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
       );
 
     } catch (e) {
       log.debug(
         "Error creating folders (migrations, apis, seeds, queries):",
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations')
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
       );
     }
   }
 
   async _cleanFs(args) {
-    this.emit("Removing folder: ", path.join(process.cwd(), 'nc', this.project.id, args.dbAlias));
+    this.emit("Removing folder: ", path.join(this.toolDir, 'nc', this.project.id, args.dbAlias));
 
     try {
-      await promisify(rmdir)(path.join(process.cwd(), 'nc', this.project.id, args.dbAlias));
+      await promisify(rmdir)(path.join(this.toolDir, 'nc', this.project.id, args.dbAlias));
     } catch (e) {
       log.debug(
         "Error removing folder:",
-        path.join(process.cwd(), 'nc', this.project.id, args.dbAlias),
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias),
         e
       );
     }
@@ -188,7 +190,7 @@ export default class KnexMigrator extends SqlMigrator {
 
   async _readProjectJson(projJsonFilePath = null) {
     try {
-      // projJsonFilePath = `${path.join(process.cwd(), "config.xc.json")}`;
+      // projJsonFilePath = `${path.join(this.toolDir, "config.xc.json")}`;
 
       log.debug("_readProjectJson", projJsonFilePath);
       const exists = await promisify(fs.exists)(projJsonFilePath);
@@ -202,7 +204,7 @@ export default class KnexMigrator extends SqlMigrator {
         this.project = JSON.parse(this.project, (_key, value) => {
           return typeof value === 'string' ? Handlebars.compile(value, {noEscape: true})(process.env) : value;
         });
-        this.project.folder = process.cwd() || path.dirname(projJsonFilePath)
+        this.project.folder = this.toolDir || path.dirname(projJsonFilePath)
       } else {
         throw new Error("Project file should have got created");
       }
@@ -214,7 +216,7 @@ export default class KnexMigrator extends SqlMigrator {
   async _initProjectJsonFile(args) {
     try {
       if (!args.folder) {
-        args.folder = process.cwd();
+        args.folder = this.toolDir;
       }
 
       const projJsonFilePath = `${path.join(args.folder, "config.xc.json")}`;
@@ -450,7 +452,7 @@ export default class KnexMigrator extends SqlMigrator {
     }
   }
 
-  async _migrationsUp(args):Promise<any> {
+  async _migrationsUp(args): Promise<any> {
 
 
     const result = new Result();
@@ -1067,7 +1069,7 @@ export default class KnexMigrator extends SqlMigrator {
    *                  and only filenames are migrated to _evolution table
    * @memberof KnexMigrator
    */
-  async  migrationsUp(args: any = {}) {
+  async migrationsUp(args: any = {}) {
 
     const func = this.migrationsUp.name;
     // const result = new Result();
@@ -1087,9 +1089,9 @@ export default class KnexMigrator extends SqlMigrator {
       migrationSteps: args.migrationSteps,
       file: args.file,
       onlyList: args.onlyList,
-      upFilesPattern: path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations', '*.up.sql'),
-      downFilesPattern: path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations', '*.down.sql'),
-      tn: this._getEvolutionsTablename(args),//`${process.cwd()}`,
+      upFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.up.sql'),
+      downFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.down.sql'),
+      tn: this._getEvolutionsTablename(args),//`${this.toolDir}`,
       sqlContentMigrate: args.sqlContentMigrate
     });
   }
@@ -1127,8 +1129,8 @@ export default class KnexMigrator extends SqlMigrator {
       migrationSteps: args.migrationSteps,
       onlyList: args.onlyList,
       file: args.file,
-      upFilesPattern: path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations', '*.up.sql'),
-      downFilesPattern: path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations', '*.down.sql'),
+      upFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.up.sql'),
+      downFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.down.sql'),
       tn: this._getEvolutionsTablename(args),//`_evolutions`,
       sqlContentMigrate: args.sqlContentMigrate
     });
@@ -1280,8 +1282,8 @@ export default class KnexMigrator extends SqlMigrator {
         result.data.object.up = migration.up;
         result.data.object.down = migration.down;
       } else {
-        const upFilePath = path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations', args.title);
-        const downFilePath = path.join(process.cwd(), 'nc', this.project.id, args.dbAlias, 'migrations', args.titleDown);
+        const upFilePath = path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', args.title);
+        const downFilePath = path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', args.titleDown);
 
         result.data.object.up = await promisify(fs.readFile)(upFilePath, "utf8");
         result.data.object.down = await promisify(fs.readFile)(
@@ -1348,7 +1350,7 @@ export default class KnexMigrator extends SqlMigrator {
   //   //   if (args.folder) {
   //   //     await this._readProjectJson(path.join(args.folder, "config.xc.json"));
   //   //   } else {
-  //   //     await this._readProjectJson(path.join(process.cwd(), "config.xc.json"));
+  //   //     await this._readProjectJson(path.join(this.toolDir, "config.xc.json"));
   //   //   }
   //   // }
   //   //
@@ -1361,7 +1363,7 @@ export default class KnexMigrator extends SqlMigrator {
   /**
    *
    * @param args
-   * @param {String} args.folder - defaults to process.cwd()
+   * @param {String} args.folder - defaults to this.toolDir
    * @param {String} args.key
    * @param {String} args.value
    * @returns {Result}
@@ -1369,7 +1371,7 @@ export default class KnexMigrator extends SqlMigrator {
   async migrationsRenameProjectKey(args) {
 
     const func = this.migrationsRenameProjectKey.name;
-    const result:any = new Result();
+    const result: any = new Result();
     log.api(`${func}:args:`, args);
 
     try {
@@ -1384,7 +1386,7 @@ export default class KnexMigrator extends SqlMigrator {
 
       if (args.key in this.project) {
         this.project.key = args.value;
-        await this._writeProjectJson(process.cwd(), this.project);
+        await this._writeProjectJson(this.toolDir, this.project);
       }
 
       this.emitE(`Project key('${args.key}') is set to value successfully ${args.value}`);
@@ -1438,7 +1440,7 @@ export default class KnexMigrator extends SqlMigrator {
           this.project[args.env] = [];
         }
 
-        await this._writeProjectJson(process.cwd(), this.project);
+        await this._writeProjectJson(this.toolDir, this.project);
         await this._initEnvDbsWithSql(args.env)
         this.emitE(`Environment ' ${args.env} ' created succesfully in project.`);
       }
@@ -1486,7 +1488,7 @@ export default class KnexMigrator extends SqlMigrator {
 
         await this._cleanEnvDbsWithSql(args)
         delete this.project.envs[args.env];
-        await this._writeProjectJson(process.cwd(), this.project);
+        await this._writeProjectJson(this.toolDir, this.project);
         this.emitE(`${args.env} deleted`);
 
       } else {
@@ -1572,7 +1574,7 @@ export default class KnexMigrator extends SqlMigrator {
 
           // TODO : init db for this dbAlias
 
-          await this._writeProjectJson(process.cwd(), this.project);
+          await this._writeProjectJson(this.toolDir, this.project);
 
 
         } else {

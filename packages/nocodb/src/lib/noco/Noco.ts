@@ -292,7 +292,7 @@ export default class Noco {
           break;
 
         case 'projectUpdateByWeb':
-          this.config.toolDir = process.cwd();
+          this.config.toolDir = this.config.toolDir || process.cwd();
           this.config.workingEnv = this.env;
           this.ncMeta.setConfig(this.config);
           this.metaMgr.setConfig(this.config);
@@ -307,7 +307,7 @@ export default class Noco {
         case 'projectChangeEnv':
           try {
             this.config = importFresh(path.join(process.cwd(), 'config.xc.json')) as NcConfig;
-            this.config.toolDir = process.cwd();
+            this.config.toolDir = this.config.toolDir || process.cwd();
             this.ncMeta.setConfig(this.config);
             this.metaMgr.setConfig(this.config);
             Object.assign(process.env, {NODE_ENV: this.env = this.config.workingEnv});

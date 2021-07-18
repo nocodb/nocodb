@@ -4,6 +4,7 @@ import path from "path";
 import mkdirp from "mkdirp";
 
 import IStorageAdapter, {XcFile} from "../../../../../interface/IStorageAdapter";
+import NcConfigFactory from "../../../../utils/NcConfigFactory";
 
 export default class Local implements IStorageAdapter {
 
@@ -11,7 +12,7 @@ export default class Local implements IStorageAdapter {
   }
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
-    const destPath = path.join(...key.split('/'));
+    const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     try {
       mkdirp.sync(path.dirname(destPath));
       await fs.promises.rename(file.path, destPath);
@@ -20,13 +21,14 @@ export default class Local implements IStorageAdapter {
     }
   }
 
+  // todo: implement
   fileDelete(_path: string): Promise<any> {
     return Promise.resolve(undefined);
   }
 
   public async fileRead(filePath: string): Promise<any> {
     try {
-      const fileData = await fs.promises.readFile(filePath);
+      const fileData = await fs.promises.readFile(path.join(NcConfigFactory.getToolDir(), ...filePath.split('/')));
       return fileData;
     } catch (e) {
       throw e;

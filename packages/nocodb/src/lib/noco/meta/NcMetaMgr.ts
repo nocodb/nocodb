@@ -109,7 +109,7 @@ export default class NcMetaMgr {
     }));
 
     if (!process.env.NC_SERVERLESS_TYPE && !this.config.try) {
-      const upload = multer({dest: 'uploads/'})
+      const upload = multer({dest: path.join(this.config.toolDir, 'uploads')})
       router.post(this.config.dashboardPath, upload.single('file'))
     }
 

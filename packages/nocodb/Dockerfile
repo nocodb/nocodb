@@ -4,11 +4,6 @@
 FROM node:12 as builder
 WORKDIR /usr/src/app
 
-ENV NODE_ENV production
-ENV NC_VERSION 0.6
-ENV NC_DOCKER 0.6
-ENV PORT 8080
-
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
 # Copying this separately prevents re-running npm ci on every code change.
@@ -30,6 +25,10 @@ RUN npm ci --production --quiet \
 ##########
 FROM alpine:3.12
 WORKDIR /usr/src/app
+
+ENV NC_DOCKER 0.6
+ENV PORT 8080
+ENV NC_TOOL_DIR=/usr/app/data/
 
 RUN apk --update --no-cache add \
     nodejs \

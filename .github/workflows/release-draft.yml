@@ -1,4 +1,3 @@
-
 name: Release Draft Generator
 
 on:
@@ -29,4 +28,4 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
-      - run: "npx github-release-notes@0.17.2  release --token ${{ secrets.GH_TOKEN }}  --draft --tags ${{ github.event.inputs.tag }}"
+      - run: "npx github-release-notes@0.17.2  release --token ${{ secrets.GH_TOKEN }}  --draft"

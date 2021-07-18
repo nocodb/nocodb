@@ -236,6 +236,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
 <a href="https://github.com/bhanuc"><img src="https://avatars.githubusercontent.com/u/2958857?v=4" title="" width="50" height="50"></a>
 <a href="https://github.com/jwetzell"><img src="https://avatars.githubusercontent.com/u/18341515?s=60&v=4" title="" width="50" height="50"></a>
 <a href="https://github.com/SebGTx"><img src="https://avatars.githubusercontent.com/u/8062146?v=4" title="" width="50" height="50"></a>
+<a href="https://github.com/FarazPatankar"><img src="https://avatars.githubusercontent.com/u/10681116?v=4" title="Faraz Patankar" width="50" height="50"></a>
+<a href="https://github.com/pixplix"><img src="https://avatars.githubusercontent.com/u/71349937?v=4" title="PixPlix" width="50" height="50"></a>
+<a href="https://github.com/janrito"><img src="https://avatars.githubusercontent.com/u/31504?v=4" title="Alejandro Giacometti" width="50" height="50"></a>
 
 
 - - - - - - -

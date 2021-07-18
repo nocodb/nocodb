@@ -11,8 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
       - name: Create tag
         uses: actions/github-script@v3
         with:
@@ -24,6 +22,10 @@ jobs:
               ref: "refs/tags/${{ github.event.inputs.tag }}",
               sha: context.sha
             })
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v2
         with:

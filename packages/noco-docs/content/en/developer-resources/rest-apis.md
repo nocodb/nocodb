@@ -1,7 +1,7 @@
 ---
 title: 'REST APIs'
 position: 1
-category: 'API'
+category: 'Developer Resources'
 fullscreen: true
 menuTitle: 'REST APIs'
 ---

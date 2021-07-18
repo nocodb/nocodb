@@ -1,167 +1,53 @@
 ---
-title: 'Setup and Usage'
-description: 'Simple installation - takes about three minutes!'
+title: 'NocoDB Documentation'
+description: 'NocoDB Documentation'
 position: 0
 category: 'Getting started'
 fullscreen: true
-menuTitle: 'Install'
-link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark
+menuTitle: 'Introduction'
 ---
 
+## Welcome!
 
-## Simple installation - takes about three minutes!
+NocoDB is an open source Airtable alternative.
 
-### Prerequisites
+NocoDB works by connecting to any relational database and transforming them into a smart spreadsheet interface! This allows you to build no-code applications collaboratively with teams. NocoDB currently works with MySQL, PostgreSQL, Microsoft SQL Server, SQLite, Amazon Aurora & MariaDB databases.
 
-- __Must haves__
-    * [node.js >= 12](https://nodejs.org/en/download) / [Docker](https://www.docker.com/get-started)
-    * [MySql](https://dev.mysql.com/downloads/mysql/) / [Postgres](https://www.postgresql.org/download/) / [SQLserver](https://www.microsoft.com/en-gb/sql-server/sql-server-downloads) / SQLite Database
-- Nice to haves
-    - Existing schemas can help to create APIs quickly.
-    - An example database schema can be found :<a class="grey--text"
-                                                                                         href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources">
-                        <u>here</u>
-                    </a>
-    
+Also NocoDB's app store allows you to build business workflows on views with combination of Slack, Microsoft Teams, Discord, Twilio, Whatsapp, Email & any 3rd party APIs too. Plus NocoDB provides programmatic access to APIs so that you can build integrations with Zapier / Integromat and custom applications too.
 
+## Features
 
-## Quick try
-### 1-Click Deploy
-<a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
+### Rich Spreadsheet Interface
+- ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
+- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Gantt, Form
+- ⚡ &nbsp;Share Views : public & password protected
+- ⚡ &nbsp;Personal & locked Views 
+- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)!!
+- ⚡ &nbsp;Roles : Owner, Creator, Editor, Commenter, Viewer, Commenter, Custom Roles.
+- ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level.
 
-### Node app or docker 
+### App Store for workflow automations :
+- ⚡ &nbsp;Chat : Microsoft Teams, Slack, Discord, Mattermost
+- ⚡ &nbsp;Email : SMTP, SES, Mailchimp
+- ⚡ &nbsp;SMS : Twilio
+- ⚡ &nbsp;Whatsapp
+- ⚡ &nbsp;Any 3rd Party APIs
 
-
-<code-group>
-  <code-block label="NPX" active> 
-
-  ```bash
-  npx create-nocodb-app
-  ```
-
-  </code-block>
-  <code-block label="Docker" >
-
-  ```bash
-  docker run -d --name nocodb -p 8080:8080 nocodb/nocodb
-  ```
-
-  </code-block>
-  <code-block label="Using Git" >
-
-  ```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-  ```
-
-  </code-block>
-</code-group>          
+### Programmatic API access via :
+- ⚡ &nbsp;REST APIs (Swagger) 
+- ⚡ &nbsp;GraphQL APIs.
+- ⚡ &nbsp;Includes JWT Authentication & Social Auth
+- ⚡ &nbsp;API tokens to integrate with Zapier, Integromat.
 
 
+## Architecture
+
+<img src="architecture.png" style="background: white;border-radius:4px;padding :10px">
 
 <br>
 <br>
 
-# Production Setup 
-NocoDB requires a database to store metadata of spreadsheets views and external databases. 
-And connection params for this database can be specified in `NC_DB` environment variable. 
-
-
-## Docker 
-
-<code-group>
-  <code-block label="MySQL" active> 
-
-```shell script
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb
-```
-  </code-block> 
-  <code-block label="Postgres"> 
-
-```shell script
-docker run -d -p 8080:8080 \
-    -e NC_DB="pg://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb
-```
-
-  </code-block> 
-  <code-block label="SQL Server"> 
-  
-```shell script
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb
-```
-  </code-block> 
-</code-group> 
-
-## Docker Compose
-
-
-<code-group>
-  <code-block label="MySQL" active> 
-
-```shell script
-git clone https://github.com/nocodb/nocodb
-cd docker-compose
-cd mysql
-docker-compose up
-```
-  </code-block> 
-  <code-block label="Postgres"> 
-
-```shell script
-git clone https://github.com/nocodb/nocodb
-cd docker-compose
-cd pg
-docker-compose up
-```
-
-  </code-block> 
-  <code-block label="SQL Server"> 
-  
-```shell script
-git clone https://github.com/nocodb/nocodb
-cd docker-compose
-cd mssql
-docker-compose up
-```
-  </code-block> 
-</code-group> 
-
-
-
-
-
-     
-                  
-          
-### Sample app        
-<code-sandbox :src="link"></code-sandbox>
-
-
-# Sample Demos
-### Docker deploying with one command
-
-<youtube id="K-UEecQyiOk"></youtube>
-
-### Using Npx
-
-<youtube id="v6Nn75P1p7I"></youtube>
-
-### Heroku Deployment
-<youtube id="v6Nn75P1p7I"></youtube>
-
+| Project Type | Metadata stored in | Data stored in |
+|---------|-----------|--------|
+| Create new project | NC_DB | NC_DB |
+| Create new project with external DB | NC_DB | External database |

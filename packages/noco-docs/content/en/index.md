@@ -63,7 +63,90 @@ npm start
   ```
 
   </code-block>
-</code-group>               
+</code-group>          
+
+
+
+<br>
+<br>
+
+# Production Setup 
+NocoDB requires a database to store metadata of spreadsheets views and external databases. 
+And connection params for this database can be specified in `NC_DB` environment variable. 
+
+
+## Docker 
+
+<code-group>
+  <code-block label="MySQL" active> 
+
+```shell script
+docker run -d -p 8080:8080 \
+    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
+```
+  </code-block> 
+  <code-block label="Postgres"> 
+
+```shell script
+docker run -d -p 8080:8080 \
+    -e NC_DB="pg://host:port?u=user&p=password&d=database" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
+```
+
+  </code-block> 
+  <code-block label="SQL Server"> 
+  
+```shell script
+docker run -d -p 8080:8080 \
+    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
+    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+    nocodb/nocodb
+```
+  </code-block> 
+</code-group> 
+
+## Docker Compose
+
+
+<code-group>
+  <code-block label="MySQL" active> 
+
+```shell script
+git clone https://github.com/nocodb/nocodb
+cd docker-compose
+cd mysql
+docker-compose up
+```
+  </code-block> 
+  <code-block label="Postgres"> 
+
+```shell script
+git clone https://github.com/nocodb/nocodb
+cd docker-compose
+cd pg
+docker-compose up
+```
+
+  </code-block> 
+  <code-block label="SQL Server"> 
+  
+```shell script
+git clone https://github.com/nocodb/nocodb
+cd docker-compose
+cd mssql
+docker-compose up
+```
+  </code-block> 
+</code-group> 
+
+
+
+
+
+     
                   
           
 ### Sample app        

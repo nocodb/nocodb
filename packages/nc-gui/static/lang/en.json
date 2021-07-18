@@ -66,6 +66,8 @@
   "projects.ext_db.head.title": "Create Project | Noco",
   "projects.ext_db.dialog.success": "Connection was successful",
   "projects.ext_db.dialog.failure": "Connection Failure:",
+  "projects.notifications.no_new": "No new notifications",
+  "projects.notifications.clear": "Clear",
   "signin.title": "SIGN IN",
   "signin.input_1": "Enter your work email",
   "signin.input_2": "Enter your password",

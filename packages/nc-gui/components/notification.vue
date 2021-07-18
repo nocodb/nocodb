@@ -60,11 +60,11 @@
     <v-list>
       <v-list-item v-if="notificationList.length" style="min-height:30px"><a class="text-center mb-0"
                                                                              style="width: 100%;min-width:200px"
-                                                                             @click.prevent="clearNotification">Clear</a>
+                                                                             @click.prevent="clearNotification">{{ $t('projects.notifications.clear') }}</a>
       </v-list-item>
       <v-list-item v-else>
         <v-list-item-content>
-          <v-list-item-subtitle class="px-3">No new notifications</v-list-item-subtitle>
+          <v-list-item-subtitle class="px-3">{{ $t('projects.notifications.no_new') }}</v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
     </v-list>
@@ -156,6 +156,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Alejandro Moreno <info@pixplix.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

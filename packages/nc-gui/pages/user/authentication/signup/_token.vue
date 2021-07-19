@@ -27,7 +27,7 @@
 
               </div>
 
-              <h1 class="mt-4">SIGN UP
+              <h1 class="mt-4">{{ $t('signup.title') }}
                 {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
                 {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
               </h1>
@@ -40,12 +40,12 @@
 
 
                 <p v-if="firstUser" class="success--text">
-                  You will be the 'Super Admin'
+                  {{ $t('signup.message_1') }}
                 </p>
 
 
                 <v-text-field
-                  label="E-mail"
+                  label="$t('signin.input_1')"
                   v-model="form.email"
                   :rules="formRules.email"
                   required>
@@ -53,7 +53,7 @@
 
                 <v-text-field
                   name="input-10-2"
-                  label="Enter your password"
+                  label="$t('signin.input_2')"
                   min="8"
                   :append-icon="formUtil.e3 ? 'visibility' : 'visibility_off'"
                   @click:append="() => (formUtil.e3 = !formUtil.e3)"
@@ -73,7 +73,7 @@
 
                 <v-btn @click="MtdOnSignup" color="primary" class="btn--large"
                        :disabled="!formUtil.recpatcha || !formUtil.valid" v-ge="['Sign Up ','']">
-                  &nbsp; Sign Up &nbsp;
+                  &nbsp; {{ $t('signup.title') }} &nbsp;
                   <v-progress-circular
                     class="pb-3 pt-0 mt-0"
                     :value="formUtil.passwordProgress"
@@ -89,8 +89,8 @@
                 <br>
                 <br>
                 <br>
-                <p class="font-weight-light caption" v-ge="['Already have an account ?','']">Already have an account ?
-                  <router-link to="/user/authentication/signin">Sign In</router-link>
+                <p class="font-weight-light caption" v-ge="['Already have an account ?','']">{{ $t('signup.message_2') }}
+                  <router-link to="/user/authentication/signin">{{ $t('signin.title') }}</router-link>
                 </p>
 
 
@@ -502,6 +502,7 @@ export default {
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Wing-Kam Wong <wingkwong.code@gmail.com>
+ * @author Alejandro Moreno <info@pixplix.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

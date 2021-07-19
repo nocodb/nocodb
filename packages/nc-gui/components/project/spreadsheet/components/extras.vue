@@ -25,8 +25,8 @@
           <v-list-item-title>
             <v-icon class="mr-1" small :color="textColors[3]">mdi-calendar-month
             </v-icon>
-            <span class="caption" :title="$t('projects.show_community_message_2')">{{
-                $t('projects.show_community_message_2')
+            <span class="caption" :title="$t('projects.show_community_book_a_free_demo')">{{
+                $t('projects.show_community_book_a_free_demo')
               }}</span></v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
@@ -34,8 +34,8 @@
           <!-- Get your questions answered -->
           <v-list-item-title>
             <v-icon class="mr-1" small :color="textColors[0]">mdi-discord</v-icon>
-            <span class="caption" :title="$t('projects.show_community_message_3_short')">{{
-                $t('projects.show_community_message_3_short')
+            <span class="caption" :title="$t('projects.show_community_join_discord')">{{
+                $t('projects.show_community_join_discord')
               }}</span>
           </v-list-item-title>
         </v-list-item>
@@ -44,8 +44,8 @@
           <!-- Follow NocoDB -->
           <v-list-item-title>
             <v-icon class="mr-1" small :color="textColors[1]">mdi-twitter</v-icon>
-            <span class="caption" title="$t('projects.show_community_message_4')"> {{
-                $t('projects.show_community_message_4')
+            <span class="caption" title="$t('projects.show_community_follow_nocodb')"> {{
+                $t('projects.show_community_follow_nocodb')
               }}</span></v-list-item-title>
         </v-list-item>
       </v-list>

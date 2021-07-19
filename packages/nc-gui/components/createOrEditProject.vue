@@ -551,7 +551,7 @@
                                                       <x-btn
                                                         v-bind:tooltip="
                                                           $t(
-                                                            'projects.ext_db.credentials.advanced.ssl.option2.toolip'
+                                                            'projects.ext_db.credentials.advanced.ssl.client_cert.toolip'
                                                           )
                                                         "
                                                         small
@@ -581,7 +581,7 @@
                                                       <x-btn
                                                         v-bind:tooltip="
                                                           $t(
-                                                            'projects.ext_db.credentials.advanced.ssl.option1.toolip'
+                                                            'projects.ext_db.credentials.advanced.ssl.client_key.toolip'
                                                           )
                                                         "
                                                         small
@@ -611,7 +611,7 @@
                                                       <x-btn
                                                         v-bind:tooltip="
                                                           $t(
-                                                            'projects.ext_db.credentials.advanced.ssl.option3.toolip'
+                                                            'projects.ext_db.credentials.advanced.ssl.server_ca.toolip'
                                                           )
                                                         "
                                                         small
@@ -1120,9 +1120,9 @@ export default {
                 ui: {
                   setup: -1,
                   ssl: {
-                    key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
-                    cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-                    ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
+                    key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
+                    cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
+                    ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca'), // Server CA
                   },
                   sslUse: 'Preferred',
                 },
@@ -1297,7 +1297,7 @@ export default {
         type: 'primary',
       },
       // TODO: apply i18n for sslUsage
-      // See projects.ext_db.credentials.advanced.ssl.usage.option1 - 5 in en.json
+      // See projects.ext_db.credentials.advanced.ssl.usage.no - 5 in en.json
       sslUsage: {
         No: 'No',
         Preferred: 'Preferred',
@@ -1307,9 +1307,9 @@ export default {
       },
       sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
       ssl: {
-        key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
-        cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-        ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
+        key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
+        cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
+        ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca'), // Server CA
       },
       databaseNames: {
         MySQL: 'mysql2',
@@ -1349,10 +1349,10 @@ export default {
       },
 
       compErrorMessages: [
-        this.$t('projects.ext_db.error.message_1'), // Invalid character in folder path
-        this.$t('projects.ext_db.error.message_2'), // Invalid database credentials
-        this.$t('projects.ext_db.error.message_3'), // Unable to connect to database, please check your database is up
-        this.$t('projects.ext_db.error.message_4'), // User does not exist or have sufficient permission to create schema
+        this.$t('projects.ext_db.error.invalid_char_in_folder_path'), // Invalid character in folder path
+        this.$t('projects.ext_db.error.invalid_db_credentials'), // Invalid database credentials
+        this.$t('projects.ext_db.error.unable_to_connect_to_db'), // Unable to connect to database, please check your database is up
+        this.$t('projects.ext_db.error.user_doesnt_ve_sufficient_permission'), // User does not exist or have sufficient permission to create schema
       ],
       compErrorMessage: '',
     };
@@ -1583,9 +1583,9 @@ export default {
           Vue.set(db, 'ui', {
             setup: 0,
             ssl: {
-              key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
-              cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-              ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
+              key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
+              cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
+              ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca'), // Server CA
             },
             sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
           });
@@ -1714,9 +1714,9 @@ export default {
               ui: {
                 setup: 0,
                 ssl: {
-                  key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
-                  cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-                  ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
+                  key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
+                  cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
+                  ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca'), // Server CA
                 },
                 sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
               },
@@ -1764,9 +1764,9 @@ export default {
           setup: 0,
           sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
           ssl: {
-            key: this.$t('projects.ext_db.credentials.advanced.ssl.option1'), // Client Key
-            cert: this.$t('projects.ext_db.credentials.advanced.ssl.option2'), // Client Cert
-            ca: this.$t('projects.ext_db.credentials.advanced.ssl.option3'), // Server CA
+            key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
+            cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
+            ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca'), // Server CA
           },
         },
       });

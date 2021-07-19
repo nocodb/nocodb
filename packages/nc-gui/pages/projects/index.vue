@@ -262,7 +262,7 @@
                         <!-- Stop Project -->
                         <x-icon
                           v-bind:tooltip="
-                            $t('projects.horizontal_option_1')
+                            $t('projects.stop_project')
                           "
                           class="pointer mr-2"
                           color="orange grey"
@@ -273,7 +273,7 @@
                         <!-- Start Project -->
                         <x-icon
                           v-bind:tooltip="
-                            $t('projects.horizontal_option_2')
+                            $t('projects.start_project')
                           "
                           class="pointer mr-2"
                           color="green grey"
@@ -293,7 +293,7 @@
                         <!-- Restart Project -->
                         <x-icon
                           v-bind:tooltip="
-                            $t('projects.horizontal_option_3')
+                            $t('projects.restart_project')
                           "
                           class="pointer mr-2"
                           color="primary grey"
@@ -304,7 +304,7 @@
                         <!-- Delete Project -->
                         <x-icon
                           v-bind:tooltip="
-                            $t('projects.horizontal_option_4')
+                            $t('projects.delete_project')
                           "
                           class="pointer mr-2"
                           color="red grey"
@@ -334,7 +334,7 @@
                               <v-list-item-title>
                                 <!-- Import Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                $t('projects.vertical_option_1')
+                                $t('projects.import_metadata')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -348,7 +348,7 @@
                               <v-list-item-title>
                                 <!-- Export Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                 $t('projects.vertical_option_2')
+                                 $t('projects.export_metadata')
                                  }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -362,7 +362,7 @@
                               <v-list-item-title>
                                 <!-- Clear Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                $t('projects.vertical_option_3')
+                                $t('projects.clear_metadata')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -378,7 +378,7 @@
                   :value="true"
                   color="error"
                   icon="warning"
-                >{{ $t('projects.search.no_result', { search }) }}
+                >{{ $t('projects.search.your_search_found_no_results', { search }) }}
                 </v-alert>
                 <!--                <template v-slot:no-data>-->
                 <!--                  <v-alert :value="true" outlined color="success" icon="mdi-information-outline">Create a new project-->
@@ -498,10 +498,10 @@
           </v-list-item-icon>
           <v-list-item-title>
             <!-- Star -->
-            {{ $t('projects.show_community_message_1_1') }}
+            {{ $t('projects.show_community_star') }}
             <v-icon small>mdi-star-outline</v-icon>
             <!-- us on Github -->
-            {{ $t('projects.show_community_message_1_2') }}
+            {{ $t('projects.show_community_us_on_Github') }}
           </v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
@@ -518,7 +518,7 @@
           </v-list-item-icon>
           <!-- Book a Free DEMO -->
           <v-list-item-title>{{
-          $t('projects.show_community_message_2')
+          $t('projects.show_community_book_a_free_demo')
           }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
@@ -528,7 +528,7 @@
           </v-list-item-icon>
           <!-- Get your questions answered -->
           <v-list-item-title>{{
-          $t('projects.show_community_message_3')
+          $t('projects.show_community_get_your_questions_answered')
           }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
@@ -538,7 +538,7 @@
           </v-list-item-icon>
           <!-- Follow NocoDB -->
           <v-list-item-title>{{
-          $t('projects.show_community_message_4')
+          $t('projects.show_community_follow_nocodb')
           }}</v-list-item-title>
         </v-list-item>
       </v-list>

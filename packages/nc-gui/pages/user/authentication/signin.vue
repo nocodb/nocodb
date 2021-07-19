@@ -41,7 +41,7 @@
               >
                 <!-- Enter your work email -->
                 <v-text-field
-                  v-bind:label="$t('signin.input_1')"
+                  v-bind:label="$t('signin.enter_your_work_email')"
                   v-model="form.email"
                   :rules="formRules.email"
                   required
@@ -51,7 +51,7 @@
                 <!-- Enter your password -->
                 <v-text-field
                   name="input-10-2"
-                  v-bind:label="$t('signin.input_2')"
+                  v-bind:label="$t('signin.enter_your_password')"
                   min="8"
                   :append-icon="e3 ? 'visibility' : 'visibility_off'"
                   @click:append="() => (e3 = !e3)"
@@ -93,13 +93,13 @@
                 <br/>
                 <!-- Don't have an account ? -->
                 <p class="caption font-weight-light">
-                  {{ $t('signin.footer_text_1') }}
+                  {{ $t('signin.dont_ve_an_account') }}
                   <!-- Sign Up -->
                   <router-link
                     to="/user/authentication/signup"
                     v-ge="['Don\'t have an account ?', '']"
                   >
-                    {{ $t('signin.footer_text_2') }}
+                    {{ $t('signin.sign_up') }}
                   </router-link>
                 </p>
                 <div>
@@ -235,17 +235,17 @@ export default {
       formRules: {
         email: [
           // E-mail is required
-          (v) => !!v || this.$t('signin.form.rules.email_1'),
+          (v) => !!v || this.$t('signin.form.rules.email_is_reqd'),
           // E-mail must be valid
           (v) => isEmail(v) ||
-            this.$t('signin.form.rules.email_2'),
+            this.$t('signin.form.rules.email_must_be_valid'),
         ],
         password: [
           // Password is required
-          (v) => !!v || this.$t('signin.form.rules.password_1'),
+          (v) => !!v || this.$t('signin.form.rules.passwd_required'),
           // You password must be atleast 8 characters
           (v) =>
-            (v && v.length >= 8) || this.$t('signin.form.rules.password_2'),
+            (v && v.length >= 8) || this.$t('signin.form.rules.passwd_must_be_8_chars'),
         ],
       },
       formUtil: {

@@ -2,31 +2,31 @@
 title: 'GraphQL APIs'
 position: 2
 category: 'Developer Resources'
-fullscreen: true
 menuTitle: 'GraphQL APIs'
 ---
-# Features
-* APIs 
-    * Generates GraphQL APIs for **ANY** MySql, Postgres, MSSQL, Sqlite database :fire:
-    * Serves GraphQL queries irrespective of naming conventions of primary keys, foreign keys, tables etc :fire:
-    * Support for composite primary keys :fire:
-    * Usual suspects : CRUD, List, FindOne, Count, Exists, Distinct
-    * Pagination 
-    * Sorting
-    * Column filtering - Fields :fire:  
-    * Row filtering - Where :fire:
-    * Bulk insert, Bulk delete, Bulk read :fire:   
-    * Relations - automatically detected
-    * Aggregate functions
-    * More
-        * Upload single file
-        * Upload multiple files
-        * Download file
+
+## Features
+
+* Generates GraphQL APIs for **ANY** MySql, Postgres, MSSQL, Sqlite database :fire:
+* Serves GraphQL queries irrespective of naming conventions of primary keys, foreign keys, tables etc :fire:
+* Support for composite primary keys :fire:
+* Usual suspects : CRUD, List, FindOne, Count, Exists, Distinct
+* Pagination 
+* Sorting
+* Column filtering - Fields :fire:  
+* Row filtering - Where :fire:
+* Bulk insert, Bulk delete, Bulk read :fire:   
+* Relations - automatically detected
+* Aggregate functions
+* More
+    * Upload single file
+    * Upload multiple files
+    * Download file
 * Authentication
 * Access Control
 
 
-# GraphQL API Overview
+## API Overview
 
 ### Query
 
@@ -54,7 +54,7 @@ menuTitle: 'GraphQL APIs'
 | [TableName**UpdateBulk**](#tablenamebulk) | data: [TableNameInput] | [Int] | Bulk row update |
 | [TableName**DeleteBulk**](#tablenamedeletebulk) | data: [TableNameInput] | [Int] | Bulk row delete  |
 
-## Query Arguments
+### Query params
 
 |  **Param**  | **Description** | **Default value**  |**Example Value**|
 |---|---|---|---|
@@ -86,13 +86,14 @@ like    -   'like'      -  (colName,like,%name)
 PaymentList(where:"(checkNumber,eq,JM555205)~or((amount,gt,200)~and(amount,lt,2000))") 
 ```
 
-
 #### Logical operators
 ```
 ~or     -   'or'
 ~and    -   'and'
 ~not    -   'not'
 ```
+
+## Examples
 
 ### TableNameList
 
@@ -241,13 +242,6 @@ CountryList {
 ```
   </code-block> 
 </code-group>
-
-
-
-
-
-
-
 
 
 #### List + where + sort + offset

@@ -2,39 +2,33 @@
 title: 'REST APIs'
 position: 1
 category: 'Developer Resources'
-fullscreen: true
 menuTitle: 'REST APIs'
 ---
-# Table of Content
-* [Features](#features)
-* [APIs overview](#api-overview)
-* [Authentication](#authentication)
-* [Access Control](#acess-control)
-* [Migrations](#migrations) 
 
-# Features
+## Features
+
 * **Automatic REST APIs for any SQL database** 
-    * Generates REST APIs for **ANY** MySql, Postgres, MSSQL, Sqlite database :fire:
-    * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc :fire:
-    * Support for composite primary keys :fire:
-    * REST APIs : 
-        * CRUD, List, FindOne, Count, Exists, Distinct (Usual suspects)
-            * Pagination 
-            * Sorting
-            * Column filtering - Fields :fire:  
-            * Row filtering - Where :fire:
-        * Bulk insert, Bulk delete, Bulk read :fire:   
-        * Relations - automatically detected
-        * Aggregate functions
-    * More
-        * Upload single file
-        * Upload multiple files
-        * Download file
-* **Authentication**
-* **Access Control**
+  * Generates REST APIs for **ANY** MySql, Postgres, MSSQL, Sqlite database
+  * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
+  * Support for composite primary keys
+  * REST APIs : 
+      * CRUD, List, FindOne, Count, Exists, Distinct (Usual suspects)
+          * Pagination 
+          * Sorting
+          * Column filtering - Fields
+          * Row filtering - Where
+      * Bulk insert, Bulk delete, Bulk read
+      * Relations - automatically detected
+      * Aggregate functions
+  * More
+      * Upload single file
+      * Upload multiple files
+      * Download file
+  * Authentication
+  * Access Control
 
 
-# API Overview
+## API Overview
 
 |  **Method**  |  **Path**  | **Query Params** | **Description**  |
 |---|---|---|---|
@@ -61,7 +55,6 @@ menuTitle: 'REST APIs'
         * <strong>columnName</strong> - Alias of the column in table
     </em>
 </alert>
-
 
 ### HasMany APIs
 
@@ -98,7 +91,7 @@ menuTitle: 'REST APIs'
     </em>
 </alert>
 
-## Query params
+### Query params
 
 
 |  **Name**    | **Alias** | **Use case** | **Default value**  |**Example value**  |
@@ -140,9 +133,9 @@ like    -   'like'      -  (colName,like,%name)
 ```
 
 
-### Examples
+## Examples
 
-#### List
+### List
 
 
 <code-group>
@@ -169,7 +162,7 @@ like    -   'like'      -  (colName,like,%name)
 
 
 
-#### List + where
+### List + where
 
 <code-group>
   <code-block label="Request" active> 
@@ -240,7 +233,7 @@ GET  /api/v1/country?where=(country,like,United%)&sort=-country
 </code-group>
 
 
-#### List + where + sort + offset
+### List + where + sort + offset
 
 <code-group>
   <code-block label="Request" active> 
@@ -270,7 +263,7 @@ GET  /api/v1/country?where=(country,like,United%)&sort=-country&offset=1
 </code-group>
 
 
-#### List + limit
+### List + limit
 
 
 <code-group>
@@ -389,7 +382,10 @@ POST  /api/v1/country
 <code-group>
   <code-block label="Request" active> 
   
-```PUT  /api/v1/country/1```
+```
+PUT  /api/v1/country/1
+```
+
 ```
 {
     "country": "Afghanistan1"
@@ -397,7 +393,7 @@ POST  /api/v1/country
 ```
 
 </code-block>
-<code-block label="Response"> 
+<code-block label="Response">
 
 ```json
 {
@@ -429,6 +425,7 @@ true
 ```
   </code-block>
 </code-group>
+
 [⤴️](#api-overview)
 
 
@@ -629,24 +626,29 @@ GET  /api/v1/country/count
     "count": 161
 }
 ```
-[⤴️](#api-overview)
+  </code-block>
+</code-group>
 
+[⤴️](#api-overview)
   
 ### Bulk Insert
 
 <code-group>
   <code-block label="Request" active> 
   
-```POST  /api/v1/country/bulk```
+```
+POST  /api/v1/country/bulk
+```
+
 ```json
-    [
-        {
-            "country": "test 1"
-        },
-        {
-            "country": "test 2"
-        }
-    ]
+[
+    {
+        "country": "test 1"
+    },
+    {
+        "country": "test 2"
+    }
+]
 ```
 
 </code-block>
@@ -659,6 +661,7 @@ GET  /api/v1/country/count
 ```
   </code-block>
 </code-group>
+
 [⤴️](#api-overview)
 
   
@@ -666,7 +669,10 @@ GET  /api/v1/country/count
 <code-group>
   <code-block label="Request" active> 
   
-```PUT  /api/v1/country/bulk```
+```
+PUT  /api/v1/country/bulk
+```
+
 ```json
 [
     {
@@ -690,6 +696,7 @@ GET  /api/v1/country/count
 ```
   </code-block>
 </code-group>
+
 [⤴️](#api-overview)
 
   
@@ -698,7 +705,10 @@ GET  /api/v1/country/count
 <code-group>
   <code-block label="Request" active> 
   
-```DELETE  /api/v1/country/bulk```
+```
+DELETE  /api/v1/country/bulk
+```
+
 ```json
 [
     {
@@ -720,6 +730,7 @@ GET  /api/v1/country/count
 ```
   </code-block>
 </code-group>
+
 [⤴️](#api-overview)
 
   
@@ -790,7 +801,10 @@ GET  /api/v1/country/1/city
 <code-group>
   <code-block label="Request" active> 
   
-```POST  /api/v1/country/1/city```
+```
+POST  /api/v1/country/1/city
+```
+
 ```json
     {
         "city": "test"
@@ -817,7 +831,9 @@ GET  /api/v1/country/1/city
 <code-group>
   <code-block label="Request" active> 
 
-```GET  /api/v1/country/1/city/findOne?where=(city,like,ka%)```
+```
+GET  /api/v1/country/1/city/findOne?where=(city,like,ka%)
+```
 
 </code-block>
 <code-block label="Response"> 
@@ -891,7 +907,10 @@ GET  /api/v1/country/1/city/251
 <code-group>
   <code-block label="Request" active> 
   
-```POST  /api/v1/country/1/city/251```
+```
+POST  /api/v1/country/1/city/251
+```
+
 ```
 {
     "city": "Kabul-1"
@@ -943,6 +962,7 @@ GET  /api/v1/country/has/city
 
 
 [⤴️](#belongsto-apis)
+
 ### Get table and parent class within
 
 <code-group>

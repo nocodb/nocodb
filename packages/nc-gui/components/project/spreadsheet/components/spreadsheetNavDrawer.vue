@@ -336,7 +336,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Views List -->
-                        {{ $t('nav_drawer.advanced.option1') }}
+                        {{ $t('nav_drawer.advanced.views_list') }}
                       </span>
                     </v-list-item-title>
                   </v-list-item>
@@ -349,11 +349,11 @@
                 <v-list-item v-on="on" @click="copyapiUrlToClipboard">
                   <v-icon x-small class="mr-2">mdi-content-copy</v-icon>
                   <!-- Copy API URL -->
-                  <span class="caption">{{ $t('nav_drawer.advanced.option1') }}</span>
+                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>
                 </v-list-item>
               </template>
               <!-- Copy API URL -->
-              {{ $t('nav_drawer.advanced.option1') }}
+              {{ $t('nav_drawer.advanced.views_list') }}
             </v-tooltip>
             <template v-if="_isUIAllowed('model')">
               <v-divider class="advance-menu-divider"></v-divider>

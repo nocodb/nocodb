@@ -15,7 +15,7 @@
         <tr>
           <td>
             <!-- Export all metadata from the meta tables to meta directory. -->
-            {{ $t('management.meta.operation_1.desc') }}
+            {{ $t('management.meta.export_to_file.desc') }}
           </td>
           <td>
             <v-btn
@@ -28,7 +28,7 @@
             >
               <v-icon small>mdi-export</v-icon>&nbsp;
               <!-- Export to file -->
-              {{ $t('management.meta.operation_1') }}
+              {{ $t('management.meta.export_to_file') }}
             </v-btn>
           </td>
         </tr>
@@ -36,7 +36,7 @@
         <tr>
           <td>
             <!-- Import all metadata from the meta directory to meta tables. -->
-            {{ $t('management.meta.operation_2.desc') }}
+            {{ $t('management.meta.import.desc') }}
           </td>
           <td>
             <v-btn
@@ -50,7 +50,7 @@
               <v-icon small>mdi-import</v-icon>&nbsp;
 
               <!-- Import -->
-              {{ $t('management.meta.operation_2') }}
+              {{ $t('management.meta.import') }}
             </v-btn>
           </td>
         </tr>
@@ -58,7 +58,7 @@
         <tr>
           <td>
             <!-- Export project meta to zip file and download. -->
-            {{ $t('management.meta.operation_3.desc') }}
+            {{ $t('management.meta.export_to_zip.desc') }}
           </td>
           <td>
             <v-btn
@@ -71,14 +71,14 @@
             >
               <v-icon small>mdi-export</v-icon>&nbsp;
               <!-- Export zip -->
-              {{ $t('management.meta.operation_3') }}
+              {{ $t('management.meta.export_to_zip') }}
             </v-btn>
           </td>
         </tr>
         <tr>
           <td>
             <!-- Import project meta zip file and restart. -->
-            {{ $t('management.meta.operation_4.desc') }}
+            {{ $t('management.meta.import_zip.desc') }}
           </td>
           <td>
             <v-btn
@@ -92,7 +92,7 @@
               <v-icon small>mdi-import</v-icon>&nbsp;
 
               <!-- Import Zip -->
-              {{ $t('management.meta.operation_4') }}
+              {{ $t('management.meta.import_zip') }}
             </v-btn>
 
             <input
@@ -107,7 +107,7 @@
         <tr>
           <td>
             <!-- Clear all metadata from meta tables. -->
-            {{ $t('management.meta.operation_5.desc') }}
+            {{ $t('management.meta.reset.desc') }}
           </td>
           <td>
             <v-btn
@@ -120,7 +120,7 @@
             >
               <v-icon small>mdi-delete-variant</v-icon>&nbsp;
               <!-- Reset -->
-              {{ $t('management.meta.operation_5') }}
+              {{ $t('management.meta.reset') }}
             </v-btn>
           </td>
         </tr>

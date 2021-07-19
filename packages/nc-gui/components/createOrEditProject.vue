@@ -378,7 +378,7 @@
                                             class="body-2 db-select"
                                             :items="Object.keys(databaseNames)"
                                             v-model="client[dbIndex]"
-                                            v-bind:label="$t('projects.ext_db.credentials.label_1')"
+                                            v-bind:label="$t('projects.ext_db.credentials.db_type')"
                                             @change="
                                               onDatabaseTypeChanged(
                                                 client[dbIndex],
@@ -429,7 +429,7 @@
                                           <v-text-field
                                             :rules="form.folderRequiredRule"
                                             v-model="db.connection.connection.filename"
-                                            v-bind:label="$t('projects.ext_db.credentials.label_2')"
+                                            v-bind:label="$t('projects.ext_db.credentials.sqlite_file')"
                                             v-ge="['project', 'env-db-file']"
                                             @click="selectSqliteFile(db)"
                                           >
@@ -445,7 +445,7 @@
                                             class="body-2"
                                             :rules="form.requiredRule"
                                             v-model="db.connection.host"
-                                            v-bind:label="$t('projects.ext_db.credentials.label_3')"
+                                            v-bind:label="$t('projects.ext_db.credentials.host_address')"
                                           ></v-text-field>
                                         </v-col>
                                         <!-- Port Number -->
@@ -454,7 +454,7 @@
                                             class="body-2"
                                             v-ge="['project', 'env-db-port']"
                                             v-model="db.connection.port"
-                                            v-bind:label="$t('projects.ext_db.credentials.label_4')"
+                                            v-bind:label="$t('projects.ext_db.credentials.port')"
                                             :rules="form.portValidationRule"
                                           ></v-text-field>
                                         </v-col>
@@ -465,7 +465,7 @@
                                             v-ge="['project', 'env-db-user']"
                                             :rules="form.requiredRule"
                                             v-model="db.connection.user"
-                                            v-bind:label="$t('projects.ext_db.credentials.label_5')"
+                                            v-bind:label="$t('projects.ext_db.credentials.username')"
                                           ></v-text-field>
                                         </v-col>
                                         <!-- Password -->
@@ -480,7 +480,7 @@
                                             :ref="`password${envKey}`"
                                             v-ge="['project', 'env-db-password']"
                                             v-model="db.connection.password"
-                                            v-bind:label="$t('projects.ext_db.credentials.label_6')"
+                                            v-bind:label="$t('projects.ext_db.credentials.password')"
                                           >
                                             <template v-slot:append>
                                               <v-icon
@@ -508,7 +508,7 @@
                                             :rules="form.requiredRule"
                                             v-model="db.connection.database"
                                             v-ge="['project', 'env-db-name']"
-                                            v-bind:label="$t('projects.ext_db.credentials.label_7')"
+                                            v-bind:label="$t('projects.ext_db.credentials.db_create_if_not_exists')"
                                           ></v-text-field>
                                         </v-col>
                                         <v-col class="" v-if="db.client !== 'sqlite3'">

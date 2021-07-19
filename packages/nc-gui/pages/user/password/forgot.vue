@@ -7,19 +7,19 @@
 
           <v-alert type="success" :value="true" outline>
             <p class="display-1">
-              Please check your email to reset the password
+              {{ $t('signin.password.recovery.success') }}
             </p>
           </v-alert>
         </v-card>
 
         <v-card class="pa-5 elevation-10" color="" v-else>
 
-          <h1>Reset your password</h1>
+          <h1>{{ $t('signin.password.recovery.title') }}</h1>
 
 
           <br>
-          <p>Please provide the email address you used when you signed up.</p>
-          <p>We will send you an email with a link to reset your password.</p>
+          <p>{{ $t('signin.password.recovery.message_1') }}</p>
+          <p>{{ $t('signin.password.recovery.message_2') }}</p>
 
 
           <div>
@@ -50,7 +50,7 @@
               large
               :disabled="!valid"
             >
-              SEND EMAIL
+              {{ $t('signin.password.recovery.button') }}
             </v-btn>
 
           </v-form>
@@ -78,8 +78,8 @@
 
         formRules: {
           email: [
-            v => !!v || 'E-mail is required',
-            v => isEmail(v) || 'E-mail must be valid'
+            v => !!v || this.$t('signin.form.rules.email_1'),
+            v => isEmail(v) || this.$t('signin.form.rules.email_2')
           ],
         },
         formUtil: {
@@ -149,6 +149,7 @@
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Alejandro Moreno <info@pixplix.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

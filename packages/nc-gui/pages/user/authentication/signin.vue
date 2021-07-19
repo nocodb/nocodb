@@ -85,7 +85,7 @@
                   :disabled="false"
                   v-ge="['Sign In', '']"
                 >
-                  <b>Sign In</b>
+                  <b>{{ $t('signin.title') }}</b>
                 </v-btn>
 
                 <br/>
@@ -403,6 +403,7 @@ export default {
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Wing-Kam Wong <wingkwong.code@gmail.com>
+ * @author Alejandro Moreno <info@pixplix.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

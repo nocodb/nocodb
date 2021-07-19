@@ -18,7 +18,7 @@ export default {
   name: 'EnumCell',
   props: ['value', 'column'],
   computed: {
-    colors () {
+    colors() {
       const col = this.$store.state.windows.darkTheme ? colors.dark : colors.light
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, '')).reduce((obj, v, i) => ({

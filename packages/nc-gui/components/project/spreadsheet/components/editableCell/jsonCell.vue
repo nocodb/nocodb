@@ -31,7 +31,7 @@ export default {
   }),
   computed: {
 
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -45,22 +45,22 @@ export default {
     }
   },
   watch: {
-    value (val) {
+    value(val) {
       this.localState = typeof val === 'string' ? JSON.parse(val) : val
     },
-    localState (val) {
+    localState(val) {
       if (this.isForm) {
         this.$emit('input', JSON.stringify(val))
       }
     }
   },
-  created () {
+  created() {
     this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value
   },
-  mounted () {
+  mounted() {
   },
   methods: {
-    save () {
+    save() {
       this.$emit('input', JSON.stringify(this.localState))
     }
   }

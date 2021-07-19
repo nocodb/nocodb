@@ -358,7 +358,7 @@ import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel.vue'
 
 export default {
   components: { addRelationDlg, dlgLabelSubmitCancel },
-  data () {
+  data() {
     return {
       progress: {
         save: false,
@@ -407,18 +407,18 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
-    async onCheckboxChange () {
+    async onCheckboxChange() {
       this.edited = true
     },
 
-    async onCheckboxChangePk (col) {
+    async onCheckboxChangePk(col) {
       this.edited = true
       col.altered = col.altered || 2
 
       col.cdf = null
       col.rqd = true
     },
-    colPropAIDisabled (col) {
+    colPropAIDisabled(col) {
       // console.log(col);
       if (col.dtx === 'integer' ||
           col.dtx === 'bigInteger' ||
@@ -434,7 +434,7 @@ export default {
       }
     },
 
-    colPropUNDisabled (col) {
+    colPropUNDisabled(col) {
       // console.log(col);
       if (col.dtx === 'integer' ||
           col.dtx === 'bigInteger' ||
@@ -445,7 +445,7 @@ export default {
       }
     },
 
-    onCheckboxChangeAI (col) {
+    onCheckboxChangeAI(col) {
       console.log(col)
       if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
         col.altered = col.altered || 2
@@ -460,17 +460,17 @@ export default {
       this.edited = true
     },
 
-    onCheckboxChangeNN (col) {
+    onCheckboxChangeNN(col) {
       col.altered = col.altered || 2
       this.edited = true
     },
 
-    onCheckboxChangeUN (col) {
+    onCheckboxChangeUN(col) {
       col.altered = col.altered || 2
       this.edited = true
     },
 
-    async onDataTypeChange (column, index) {
+    async onDataTypeChange(column, index) {
       this.edited = true
       column.altered = column.altered || 2
       column.rqd = false
@@ -484,7 +484,7 @@ export default {
 
       console.log('data type changed', index, column)
     },
-    async loadColumnList () {
+    async loadColumnList() {
       this.edited = false
       if (this.newTable) {
         this.columns = [
@@ -581,7 +581,7 @@ export default {
       this.originalColumns = [...columns]
       console.log(this.columns)
     },
-    async loadDataTypes () {
+    async loadDataTypes() {
       const client = await this.sqlMgr.projectGetSqlClient({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
@@ -589,7 +589,7 @@ export default {
       const result = client.getKnexDataTypes()
       this.dataTypes = result.data.list
     },
-    saveColumnName (col) {
+    saveColumnName(col) {
       this.edited = true
       col.altered = col.altered || 8
 
@@ -597,7 +597,7 @@ export default {
       this.snackColor = 'success'
       this.snackText = 'Data saved'
     },
-    save (col) {
+    save(col) {
       this.edited = true
       col.altered = col.altered || 2
 
@@ -605,21 +605,21 @@ export default {
       this.snackColor = 'success'
       this.snackText = 'Data saved'
     },
-    cancel () {
+    cancel() {
       this.snack = true
       this.snackColor = 'error'
       this.snackText = 'Canceled'
     },
-    open () {
+    open() {
       this.snack = true
       this.snackColor = 'info'
       this.snackText = 'Dialog opened'
     },
-    close () {
+    close() {
       console.log('Dialog closed')
     },
 
-    saveDefaultValue (col) {
+    saveDefaultValue(col) {
       this.edited = true
       col.altered = col.altered || 2
       // col.rqd = false;
@@ -629,7 +629,7 @@ export default {
       this.snackText = 'Data saved'
     },
 
-    savePrecision (col) {
+    savePrecision(col) {
       console.log(col)
       col.altered = col.altered || 2
       this.edited = true
@@ -637,21 +637,21 @@ export default {
       this.snackColor = 'success'
       this.snackText = 'Data saved'
     },
-    cancelPrecision () {
+    cancelPrecision() {
       this.snack = true
       this.snackColor = 'error'
       this.snackText = 'Canceled'
     },
-    openPrecision () {
+    openPrecision() {
       this.snack = true
       this.snackColor = 'info'
       this.snackText = 'Dialog opened'
     },
-    closePrecision () {
+    closePrecision() {
       console.log('Dialog closed')
     },
 
-    saveScale (col) {
+    saveScale(col) {
       if (col.dtx === 'float' || col.dtx === 'decimal' || col.dtx === 'specifcType') {
         col.altered = col.altered || 2
         this.edited = true
@@ -660,21 +660,21 @@ export default {
         this.snackText = 'Data saved'
       }
     },
-    cancelScale () {
+    cancelScale() {
       this.snack = true
       this.snackColor = 'error'
       this.snackText = 'Canceled'
     },
-    openScale () {
+    openScale() {
       this.snack = true
       this.snackColor = 'info'
       this.snackText = 'Dialog opened'
     },
-    closeScale () {
+    closeScale() {
       console.log('Dialog closed')
     },
 
-    removeUnsigned (columns) {
+    removeUnsigned(columns) {
       for (let i = 0; i < columns.length; ++i) {
         if (columns[i].altered === 1 && (!(columns[i].dt === 'int' || columns[i].dt === 'bigint'))) {
           columns[i].un = false
@@ -683,7 +683,7 @@ export default {
         console.log(columns[i].cn)
       }
     },
-    addColumn () {
+    addColumn() {
       this.edited = true
       this.columns.push({
         cn: 'title' + this.columns.length,
@@ -706,7 +706,7 @@ export default {
         altered: 1
       })
     },
-    async deleteColumn (action = '', index, column) {
+    async deleteColumn(action = '', index, column) {
       if (action === 'showDialog') {
         this.columnDeleteDlg = true
         this.selectedColForDelete = { index, column }
@@ -737,7 +737,7 @@ export default {
         this.selectedColForDelete = null
       }
     },
-    async applyChanges () {
+    async applyChanges() {
       this.progress.save = true
       await this.sqlMgr.projectGetSqlClient({
         env: this.nodes.env,
@@ -813,12 +813,12 @@ export default {
       this.progress.save = false
       await this.loadColumnList()
     },
-    createNewOrEditRelation (column) {
+    createNewOrEditRelation(column) {
       console.log(column)
       this.selectedColForNewRelation = { ...column }
       this.dialogShow = true
     },
-    async mtdNewRelationDlgSubmit (relationObject) {
+    async mtdNewRelationDlgSubmit(relationObject) {
       try {
         await this.sqlMgr.projectGetSqlClient({
           env: this.nodes.env,
@@ -849,11 +849,11 @@ export default {
         console.error('relationCreate error: ', error)
       }
     },
-    mtdNewRelationDlgCancel () {
+    mtdNewRelationDlgCancel() {
       this.dialogShow = false
       this.selectedColNameForNewRelation = ''
     },
-    async deleteRelation (action = '', column) {
+    async deleteRelation(action = '', column) {
       if (action === 'showDialog') {
         this.relationDeleteDlg = true
         this.selectedColForRelationDelete = column
@@ -898,24 +898,24 @@ export default {
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  async created () {
+  async created() {
     await this.loadColumnList()
     this.loadDataTypes()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable']

@@ -79,7 +79,7 @@ export default {
     ]
   }),
   computed: {
-    typeIcon () {
+    typeIcon() {
       if (this.projectType) {
         return this.projectTypes.find(({ value }) => value === this.projectType)
       } else {
@@ -87,13 +87,13 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     setTimeout(() => {
       this.$refs.input.$el.querySelector('input').focus()
     }, 100)
   },
   methods: {
-    async createProject () {
+    async createProject() {
       if (this.$refs.form.validate()) {
         this.loading = true
         try {

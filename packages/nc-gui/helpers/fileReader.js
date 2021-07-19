@@ -1,7 +1,7 @@
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
-function ReadFileAllBrowsers (FileElement, CallBackFunction) {
+function ReadFileAllBrowsers(FileElement, CallBackFunction) {
   try {
     if (!FileElement.files || !FileElement.files.length) { return CallBackFunction() }
 
@@ -10,10 +10,10 @@ function ReadFileAllBrowsers (FileElement, CallBackFunction) {
     if (file) {
       const reader = new FileReader()
       reader.readAsText(file, 'UTF-8')
-      reader.onload = function (evt) {
+      reader.onload = function(evt) {
         CallBackFunction(evt.target.result)
       }
-      reader.onerror = function (evt) {
+      reader.onerror = function(evt) {
         CallBackFunction()
       }
     }
@@ -27,7 +27,7 @@ function ReadFileAllBrowsers (FileElement, CallBackFunction) {
 }
 
 /// Reading files with Internet Explorer
-function ieReadFile (filename) {
+function ieReadFile(filename) {
   try {
     // eslint-disable-next-line no-undef
     const fso = new ActiveXObject('Scripting.FileSystemObject')

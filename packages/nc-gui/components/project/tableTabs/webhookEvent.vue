@@ -29,10 +29,10 @@ export default {
   }),
   computed: {
     hookEvent: {
-      get () {
+      get() {
         return `${this.event} ${this.operation}`
       },
-      set (v) {
+      set(v) {
         const [event, operation] = v.split(' ')
         this.$emit('update:event', event)
         this.$emit('update:operation', operation)

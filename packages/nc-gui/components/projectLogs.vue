@@ -75,11 +75,11 @@
 export default {
   components: {},
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
-  data () {
+  data() {
     return {
       showMenu: false,
       x: 0,
@@ -126,14 +126,14 @@ export default {
       maxLogs: 100
     }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
     // emittery.on("UI", data => {
     //   //const logs = JSON.parse(JSON.stringify(this.logs));
     //   if (this.logs.length > this.maxLogs) {
@@ -149,10 +149,10 @@ export default {
     //   //this.logs = logs;
     // });
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    showMenuFn (e) {
+    showMenuFn(e) {
       // console.log("showMenuFn", e);
       e.preventDefault()
       this.showMenu = false
@@ -162,14 +162,14 @@ export default {
         this.showMenu = true
       })
     },
-    clearLogs () {
+    clearLogs() {
       this.logs = []
     }
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

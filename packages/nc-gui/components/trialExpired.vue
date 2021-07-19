@@ -20,7 +20,7 @@
 export default {
   name: 'TrialExpired',
   methods: {
-    openPricingPage () {
+    openPricingPage() {
       // shell.openExternal('https://nocodb.com/pricing');
     }
   }

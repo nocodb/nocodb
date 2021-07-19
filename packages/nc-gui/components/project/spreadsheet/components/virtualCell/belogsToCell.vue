@@ -106,7 +106,7 @@ export default {
   props: {
     breadcrumbs: {
       type: Array,
-      default () {
+      default() {
         return []
       }
     },
@@ -138,25 +138,25 @@ export default {
     pid: null
   }),
   computed: {
-    parentMeta () {
+    parentMeta() {
       return this.$store.state.meta.metas[this.bt.rtn]
     },
-    parentApi () {
+    parentApi() {
       return this.parentMeta && this.parentMeta._tn
         ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],
           this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this, this.parentMeta)
         : null
     },
-    parentId () {
+    parentId() {
       return this.pid ?? (this.value && this.parentMeta && this.parentMeta.columns.filter(c => c.pk).map(c => this.value[c._cn]).join('___'))
     },
-    parentPrimaryCol () {
+    parentPrimaryCol() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
     },
-    parentPrimaryKey () {
+    parentPrimaryKey() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
     },
-    parentQueryParams () {
+    parentQueryParams() {
       if (!this.parentMeta) { return {} }
       // todo: use reduce
       return {
@@ -165,7 +165,7 @@ export default {
         mm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
       }
     },
-    parentAvailableColumns () {
+    parentAvailableColumns() {
       const hideCols = ['created_at', 'updated_at']
       if (!this.parentMeta) { return [] }
 
@@ -179,10 +179,10 @@ export default {
       return columns
     },
     // todo:
-    form () {
+    form() {
       return this.selectedParent ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
     },
-    cellValue () {
+    cellValue() {
       if (this.value || this.localState) {
         if (this.parentMeta && this.parentPrimaryCol) {
           return (this.value || this.localState)[this.parentPrimaryCol]
@@ -193,29 +193,29 @@ export default {
     }
   },
   watch: {
-    isNew (n, o) {
+    isNew(n, o) {
       if (!n && o) {
         this.localState = null
       }
     }
   },
-  async mounted () {
+  async mounted() {
     if (this.isForm) {
       await this.loadParentMeta()
     }
   },
-  created () {
+  created() {
     this.loadParentMeta()
   },
   methods: {
-    async onParentSave (parent) {
+    async onParentSave(parent) {
       if (this.isNewParent) {
         await this.addChildToParent(parent)
       } else {
         this.$emit('loadTableData')
       }
     },
-    async insertAndMapNewParentRecord () {
+    async insertAndMapNewParentRecord() {
       await this.loadParentMeta()
       this.newRecordModal = false
       this.isNewParent = true
@@ -223,7 +223,7 @@ export default {
       this.expandFormModal = true
     },
 
-    async unlink () {
+    async unlink() {
       const column = this.meta.columns.find(c => c.cn === this.bt.cn)
       const _cn = column._cn
       if (this.isNew) {
@@ -242,7 +242,7 @@ export default {
         this.$refs.childList.loadData()
       }
     },
-    async showParentListModal () {
+    async showParentListModal() {
       this.parentListModal = true
       await this.loadParentMeta()
       const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
@@ -251,11 +251,11 @@ export default {
         where: `(${_cn},eq,${pid})`
       })
     },
-    async removeChild (child) {
+    async removeChild(child) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to delete the record?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -270,7 +270,7 @@ export default {
         }
       }
     },
-    async loadParentMeta () {
+    async loadParentMeta() {
       // todo: optimize
       if (!this.parentMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -287,11 +287,11 @@ export default {
         // this.parentMeta = JSON.parse(parentTableData.meta)
       }
     },
-    async showNewRecordModal () {
+    async showNewRecordModal() {
       await this.loadParentMeta()
       this.newRecordModal = true
     },
-    async addChildToParent (parent) {
+    async addChildToParent(parent) {
       const pid = this.parentMeta.columns.filter(c => c.pk).map(c => parent[c._cn]).join('___')
       const id = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
       const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn
@@ -317,7 +317,7 @@ export default {
         this.$refs.childList.loadData()
       }
     },
-    async editParent (parent) {
+    async editParent(parent) {
       await this.loadParentMeta()
       this.isNewParent = false
       this.selectedParent = parent

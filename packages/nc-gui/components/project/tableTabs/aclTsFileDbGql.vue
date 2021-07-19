@@ -198,7 +198,7 @@ export default {
   name: 'AclTsFileDbGql',
 
   props: ['nodes'],
-  data () {
+  data() {
     return {
       disableSaveButton: true,
       search: '',
@@ -215,22 +215,22 @@ export default {
     }
   },
   methods: {
-    openFolder () {
+    openFolder() {
       //  shell.openItem(path.dirname(this.policyPath));
     },
-    toggleColumn (role, checked) {
+    toggleColumn(role, checked) {
       for (const [resolver, roles] of Object.entries(this.data1)) {
         this.$set(roles, role, checked)
         this.toggleCell(resolver, role, checked)
       }
     },
-    toggleRow (resolver, checked) {
+    toggleRow(resolver, checked) {
       for (const role in this.data1[resolver]) {
         this.$set(this.data1[resolver], role, checked)
         this.toggleCell(resolver, role, checked)
       }
     },
-    toggleAll (checked) {
+    toggleAll(checked) {
       this.disableSaveButton = false
       for (const path in this.data1) {
         this.rowToggle[path] = checked
@@ -245,17 +245,17 @@ export default {
         }
       }
     },
-    toggleCell (resolver, role, checked) {
+    toggleCell(resolver, role, checked) {
       this.disableSaveButton = false
       this.$set(this.columnToggle, role, Object.values(this.data1).some(roles => roles[role]))
       this.$set(this.rowToggle, resolver, Object.values(this.data1[resolver]).some(enabled => enabled))
     },
-    initColumnCheckBox () {
+    initColumnCheckBox() {
       for (const role of this.roles) {
         this.columnToggle[role] = Object.values(this.data1).some(roles => roles[role])
       }
     },
-    initRowCheckBox () {
+    initRowCheckBox() {
       for (const path in this.data1) {
         this.rowToggle[path] = Object.entries(this.data1[path]).filter(([role, v]) => {
           if (!this.roles.includes(role)) { this.roles = [...this.roles, role] }
@@ -263,7 +263,7 @@ export default {
         }).length
       }
     },
-    async aclInit () {
+    async aclInit() {
       try {
         console.log(this.sqlMgr)
         this.disableSaveButton = true
@@ -293,7 +293,7 @@ export default {
         console.log(e)
       }
     },
-    async save () {
+    async save() {
       try {
         // await this.sqlMgr.xcResolverPolicyUpdate({
         //   env: this.nodes.env,
@@ -320,16 +320,16 @@ export default {
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
     allToggle: {
-      get () {
+      get() {
         return this.data1 && Object.values(this.data1).some(roles => Object.values(roles).some(v => v))
       },
-      set (checked) {
+      set(checked) {
         this.toggleAll(checked)
       }
     }
   },
   watch: {},
-  async mounted () {
+  async mounted() {
     await this.aclInit()
   }
 }

@@ -57,11 +57,11 @@
 export default {
   components: {},
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
-  data () {
+  data() {
     return {
       loading: false,
       showMenu: false,
@@ -74,14 +74,14 @@ export default {
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    showMenuFn (e) {
+    showMenuFn(e) {
       e.preventDefault()
       this.showMenu = false
       this.x = e.clientX
@@ -92,9 +92,9 @@ export default {
     }
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

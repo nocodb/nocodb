@@ -20,7 +20,7 @@ export default {
     loading: false
   }),
   methods: {
-    async download () {
+    async download() {
       this.loading = true
       let data
       try {

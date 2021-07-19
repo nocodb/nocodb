@@ -49,12 +49,12 @@ export default {
     iconClass: String
   },
   computed: {
-    colors () {
+    colors() {
       return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : []
     }
   },
   methods: {
-    triggerClick (...args) {
+    triggerClick(...args) {
       this.$emit('click', ...args)
     }
   }

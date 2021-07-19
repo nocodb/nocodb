@@ -303,14 +303,14 @@ export default {
     filter: '',
     selectedItem: null
   }),
-  async mounted () {
+  async mounted() {
     await this.loadCrons()
   },
   methods: {
-    async editCronHandler (cron) {
+    async editCronHandler(cron) {
       this.selectedItem = cron
     },
-    async deleteCron (cron) {
+    async deleteCron(cron) {
       if (cron.id) {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
@@ -326,7 +326,7 @@ export default {
         this.selectedItem = null
       }
     },
-    async addNewCron () {
+    async addNewCron() {
       this.crons = this.crons || []
       this.crons.push(this.selectedItem = {
         title: 'cron_job' + this.crons.length,
@@ -336,7 +336,7 @@ export default {
         cron_handler: ''
       })
     },
-    async loadCrons () {
+    async loadCrons() {
       this.crons = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
@@ -346,7 +346,7 @@ export default {
       }
       this.edited = false
     },
-    async saveCron () {
+    async saveCron() {
       this.updating = true
       const errorCrons = []
       try {
@@ -392,14 +392,14 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
-    enableCountText () {
+    enableCountText() {
       return ''
     },
     selectedItemIndex: {
-      get () {
+      get() {
         return this.crons ? this.crons.indexOf(this.selectedItem) : -1
       },
-      set (i) {
+      set(i) {
         this.selectedItem = this.crons[i]
       }
     }

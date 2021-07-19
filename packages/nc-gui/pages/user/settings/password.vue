@@ -94,9 +94,9 @@ import { isEmail } from '@/helpers'
 export default {
   directives: { },
   components: { },
-  validate ({ params }) { return true },
+  validate({ params }) { return true },
   props: { },
-  data () {
+  data() {
     return {
       passwordDetails: {
         newPassword: null,
@@ -120,24 +120,24 @@ export default {
 
     }
   },
-  head () { return {} },
+  head() { return {} },
   computed: {
   },
   watch: { },
-  created () { },
-  mounted () {},
-  beforeDestroy () {},
+  created() { },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
 
-    async resetUserPassword (e) {
+    async resetUserPassword(e) {
       e.preventDefault()
       // console.log('passworDetails',this.passwordDetails);
       await this.$store.dispatch('ActPostPasswordChange', this.passwordDetails)
     }
 
   },
-  beforeCreated () {},
-  destroy () {}
+  beforeCreated() {},
+  destroy() {}
 }
 </script>
 

@@ -113,18 +113,18 @@ export default {
     search: ''
   }),
   computed: {
-    selectedCount () {
+    selectedCount() {
       return `${this.relations.filter(({ enabled }) => enabled).length}/${this.relations.length}`
     },
-    edited () {
+    edited() {
       return this.relations.some(({ edited }) => edited)
     }
   },
-  async created () {
+  async created() {
     await this.loadRelations()
   },
   methods: {
-    async loadRelations () {
+    async loadRelations() {
       this.loading = true
       try {
         this.relations = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -136,14 +136,14 @@ export default {
       }
       this.loading = false
     },
-    toggleAll (toggle) {
+    toggleAll(toggle) {
       this.toggle = !toggle
       for (const rel of this.relations) {
         this.$set(rel, 'edited', rel.edited || rel.enabled !== toggle)
         this.$set(rel, 'enabled', toggle)
       }
     },
-    async save () {
+    async save() {
       const editedRelations = this.relations.filter(({ edited }) => edited)
       this.updating = true
       try {

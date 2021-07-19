@@ -55,12 +55,12 @@ export default {
     'primaryValueColumn'
   ],
   computed: {
-    attachmentColumn () {
+    attachmentColumn() {
       return this.meta && this.meta.columns && this.meta.columns.find(c => c.uidt === 'Attachment')
     }
   },
   methods: {
-    getCovers (row) {
+    getCovers(row) {
       if (this.attachmentColumn &&
         row[this.attachmentColumn.cn] && row[this.attachmentColumn.cn][0] &&
         row[this.attachmentColumn.cn]) {

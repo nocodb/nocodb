@@ -135,26 +135,26 @@ export default {
   }),
   computed: {
 
-    paramsCount () {
+    paramsCount() {
       return this.api.parameters && this.api.parameters.filter(p => p.name && p.enabled).length
     },
-    headersCount () {
+    headersCount() {
       return this.api.headers && this.api.headers.filter(h => h.name && h.enabled).length
     }
   },
   watch: {
-    value () {
+    value() {
       if (this.api !== this.value) {
         this.api = this.value || this.api
       }
     },
     api: {
-      handler () {
+      handler() {
         this.$emit('input', this.api)
       }
     }
   },
-  created () {
+  created() {
     this.api = this.value || this.api
   }
 }

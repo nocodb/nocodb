@@ -85,20 +85,20 @@ export default {
   }),
   watch: {
     sortList: {
-      handler (v) {
+      handler(v) {
         this.$emit('input', v)
       },
       deep: true
     },
-    value (v) {
+    value(v) {
       this.sortList = v || []
     }
   },
-  created () {
+  created() {
     this.filters = this.value || []
   },
   methods: {
-    addSort () {
+    addSort() {
       this.sortList.push({
         field: '',
         order: ''

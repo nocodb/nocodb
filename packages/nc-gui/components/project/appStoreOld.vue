@@ -308,17 +308,17 @@ export default {
     ]
   }),
   computed: {
-    filters () {
+    filters() {
       return this.apps.reduce((arr, app) => arr.concat(app.tags || []), []).filter((f, i, arr) => i === arr.indexOf(f)).sort()
     },
-    filteredApps () {
+    filteredApps() {
       return this.apps.filter(app => (!this.query.trim() || app.name.toLowerCase().includes(this.query.trim().toLowerCase())) &&
         (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
       )
     }
   },
   methods: {
-    installApp () {
+    installApp() {
       this.$toast.info('Coming soon after seed funding.').goAway(5000)
     }
   }

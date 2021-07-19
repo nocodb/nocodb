@@ -70,7 +70,7 @@ export default {
   props: {
     breadcrumbs: {
       type: Array,
-      default () {
+      default() {
         return []
       }
     },
@@ -92,18 +92,18 @@ export default {
     disabledColumns: Object
   },
   computed: {
-    hm () {
+    hm() {
       return this.column && this.column.hm
     },
-    bt () {
+    bt() {
       return this.column && this.column.bt
     },
-    mm () {
+    mm() {
       return this.column && this.column.mm
     }
   },
   methods: {
-    async save (row) {
+    async save(row) {
       if (row && this.$refs.cell && this.$refs.cell.saveLocalState) {
         try {
           await this.$refs.cell.saveLocalState(row)

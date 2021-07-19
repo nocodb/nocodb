@@ -74,27 +74,27 @@ export const state = () => ({
 })
 
 export const mutations = {
-  add (state, tempProject) {
+  add(state, tempProject) {
     console.log('data from form', tempProject)
     state.list.push(tempProject)
   },
-  update (state, { tempProject }) {},
-  remove (state, { tempProject }) {
+  update(state, { tempProject }) {},
+  remove(state, { tempProject }) {
     state.list.splice(state.list.indexOf(tempProject), 1)
   },
-  list (state, tempProjects) {
+  list(state, tempProjects) {
     state.list = tempProjects
   }
 }
 
 export const getters = {
-  list (state) {
+  list(state) {
     return state.list
   }
 }
 
 export const actions = {
-  createProject ({ commit, state }, data) {
+  createProject({ commit, state }, data) {
     // async ops
     commit('add', data)
   }

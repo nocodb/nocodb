@@ -1,7 +1,7 @@
 // import colors from 'vuetify/es5/util/colors'
 import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loader
 
-export default function ({ app }) {
+export default function({ app }) {
   return {
     icons: {
       iconfont: 'mdi' // default - only for display purposes

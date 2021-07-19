@@ -48,7 +48,7 @@ export default {
     dragOver: false
   }),
   computed: {
-    localState () {
+    localState() {
       try {
         return JSON.parse(this.value) || []
       } catch (e) {

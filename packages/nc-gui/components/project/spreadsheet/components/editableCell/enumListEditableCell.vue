@@ -50,21 +50,21 @@ export default {
   },
   computed: {
     localState: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val)
         this.$emit('update')
       }
     },
-    enumValues () {
+    enumValues() {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
       return []
     },
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -77,7 +77,7 @@ export default {
       return $listeners
     }
   },
-  mounted () {
+  mounted() {
     // this.$el.focus();
     // let event;
     // event = document.createEvent('MouseEvents');

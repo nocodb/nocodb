@@ -1,4 +1,4 @@
-function translateUiToLibCall (args, op, opArgs) {
+function translateUiToLibCall(args, op, opArgs) {
   const data = {
     type: null,
     module: null,
@@ -261,7 +261,7 @@ export const state = () => ({
 })
 
 export const mutations = {
-  set (state, sqlMgrSingleton) {
+  set(state, sqlMgrSingleton) {
     state.sqlMgr = sqlMgrSingleton
   }
 
@@ -291,7 +291,7 @@ export const actions = {
   //   return state.sqlMgr;
   // },
 
-  async ActSqlOpPlus ({ commit, state, dispatch, rootState }, [args, op, opArgs]) {
+  async ActSqlOpPlus({ commit, state, dispatch, rootState }, [args, op, opArgs]) {
     const params = {}
     if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
       params.project_id = this.$router.currentRoute.params.project_id
@@ -354,7 +354,7 @@ export const actions = {
     }
   },
 
-  async ActSqlOp ({ commit, state, rootState, dispatch }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams]) {
+  async ActSqlOp({ commit, state, rootState, dispatch }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams]) {
     const params = {}
     if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
       params.project_id = this.$router.currentRoute.params.project_id
@@ -409,7 +409,7 @@ export const actions = {
     }
   },
 
-  async ActUpload ({ commit, state, rootState }, [args, op, opArgs, file, cusHeaders, cusAxiosOptions]) {
+  async ActUpload({ commit, state, rootState }, [args, op, opArgs, file, cusHeaders, cusAxiosOptions]) {
     try {
       const params = {}
       if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {

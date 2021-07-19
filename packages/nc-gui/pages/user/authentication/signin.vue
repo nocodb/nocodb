@@ -221,12 +221,12 @@ export default {
   },
   directives: {},
   layout: 'empty',
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
 
-  data () {
+  data() {
     return {
       form: {
         email: null,
@@ -264,7 +264,7 @@ export default {
       recpatcha: false
     }
   },
-  head () {
+  head() {
     return {
       title: this.$t('signin.head.title'),
       meta: [
@@ -277,25 +277,25 @@ export default {
     }
   },
   computed: {
-    counter () {
+    counter() {
       return this.$store.getters['users/GtrCounter']
     },
-    displayName () {
+    displayName() {
       return this.$store.getters['users/GtrUser']
     },
-    type () {
+    type() {
       return (
         this.$store.state.project.projectInfo &&
         this.$store.state.project.projectInfo.authType
       )
     },
-    googleAuthEnabled () {
+    googleAuthEnabled() {
       return (
         this.$store.state.project.projectInfo &&
         this.$store.state.project.projectInfo.googleAuthEnabled
       )
     },
-    githubAuthEnabled () {
+    githubAuthEnabled() {
       return (
         this.$store.state.project.projectInfo &&
         this.$store.state.project.projectInfo.githubAuthEnabled
@@ -303,7 +303,7 @@ export default {
     }
   },
   watch: {},
-  async created () {
+  async created() {
     // this.type = (await this.$store.dispatch('users/ActGetAuthType')).type;
     if (this.$route.query && this.$route.query.error) {
       this.$nextTick(() =>
@@ -312,29 +312,29 @@ export default {
       this.$router.replace({ path: '/user/authentication/signin' })
     }
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    openGoogleSiginInBrowser (e) {
+    openGoogleSiginInBrowser(e) {
       e.preventDefault()
       // shell.openExternal(process.env.auth.google.url)
     },
-    openGithubSiginInBrowser (e) {
+    openGithubSiginInBrowser(e) {
       e.preventDefault()
       // shell.openExternal(process.env.auth.github.url)
     },
 
-    onNormalVerify () {
+    onNormalVerify() {
       this.recpatcha = true
     },
 
-    PlusCounter () {
+    PlusCounter() {
       this.$store.dispatch('ActPlusCounter')
     },
 
-    async MtdOnSignin (e) {
+    async MtdOnSignin(e) {
       e.preventDefault()
       if (this.type === 'jwt') {
         if (this.$refs.formType.validate()) {
@@ -375,18 +375,18 @@ export default {
       }
     },
 
-    MtdOnSigninGoogle (e) {
+    MtdOnSigninGoogle(e) {
       // e.preventDefault();
       this.$store.dispatch('users/ActAuthGoogle')
     },
 
-    MtdOnReset () {
+    MtdOnReset() {
       // console.log('in method reset');
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

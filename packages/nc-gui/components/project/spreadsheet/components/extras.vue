@@ -75,7 +75,7 @@ export default {
   data: () => ({
     showCommunity: true
   }),
-  mounted () {
+  mounted() {
     setInterval(() => {
       this.showCommunity = !this.showCommunity
     }, 60000)

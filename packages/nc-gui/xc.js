@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-function initApp (config) {
+function initApp(config) {
   const nuxtApp = document.createElement('div')
   nuxtApp.id = '__nuxt'
 

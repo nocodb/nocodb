@@ -117,7 +117,7 @@ import { mapGetters } from 'vuex'
 
 export default {
   components: {},
-  data () {
+  data() {
     return {
       columns: [],
       dataTypes: [],
@@ -135,7 +135,7 @@ export default {
     }
   },
   methods: {
-    getColumnIcon (column) {
+    getColumnIcon(column) {
       if (column.pk) {
         return 'mdi-key'
       } else if (column.rcn) {
@@ -145,7 +145,7 @@ export default {
       }
     },
 
-    async loadColumnList () {
+    async loadColumnList() {
       this.$store.commit('notification/MutToggleProgressBar', true)
       try {
         this.edited = false
@@ -174,7 +174,7 @@ export default {
         this.$store.commit('notification/MutToggleProgressBar', false)
       }
     },
-    async loadDataTypes () {
+    async loadDataTypes() {
       try {
         const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -199,10 +199,10 @@ export default {
     })
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  async created () {
+  async created() {
     // try {
     await this.loadColumnList()
     // } catch (e) {
@@ -211,18 +211,18 @@ export default {
     //
     // }
   },
-  mounted () {
+  mounted() {
 
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable', 'isMetaTable']

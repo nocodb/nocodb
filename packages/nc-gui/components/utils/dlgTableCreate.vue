@@ -122,7 +122,7 @@ import inflection from 'inflection'
 export default {
   name: 'DlgTableCreate',
   props: ['value'],
-  data () {
+  data() {
     return {
       table: {
         name: '',
@@ -135,23 +135,23 @@ export default {
   },
   computed: {
     dialogShow: {
-      get () {
+      get() {
         return this.value
       },
-      set (v) {
+      set(v) {
         this.$emit('input', v)
       }
     },
-    projectPrefix () {
+    projectPrefix() {
       return this.$store.getters['project/GtrProjectPrefix']
     }
   },
   watch: {
-    'table.alias' (v) {
+    'table.alias'(v) {
       this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
     }
   },
-  mounted () {
+  mounted() {
     setTimeout(() => {
       this.$refs.input.$el.querySelector('input').focus()
     }, 100)

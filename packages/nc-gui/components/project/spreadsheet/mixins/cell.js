@@ -6,53 +6,53 @@ export default {
     column: Object
   },
   computed: {
-    uiDatatype () {
+    uiDatatype() {
       return this.column && this.column.uidt
     },
-    uiDatatypeIcon () {
+    uiDatatypeIcon() {
       const ui = this.uiDatatype && uiTypes.find(ui => ui.name === this.uiDatatype)
       return ui && ui.icon
     },
-    abstractType () {
+    abstractType() {
       return this.sqlUi && this.sqlUi.getAbstractType(this.column)
     },
-    dataTypeLow () {
+    dataTypeLow() {
       return this.column && this.column.dt && this.column.dt.toLowerCase()
     },
-    isBoolean () {
+    isBoolean() {
       return this.abstractType === 'boolean'
     },
-    isString () {
+    isString() {
       return this.abstractType === 'string'
     },
-    isTextArea () {
+    isTextArea() {
       return this.column.uidt === 'LongText'
     },
-    isInt () {
+    isInt() {
       return this.abstractType === 'integer'
     },
-    isFloat () {
+    isFloat() {
       return this.abstractType === 'float'
     },
-    isDate () {
+    isDate() {
       return this.abstractType === 'date' || this.column.uidt === 'Date'
     },
-    isTime () {
+    isTime() {
       return this.abstractType === 'time'
     },
-    isDateTime () {
+    isDateTime() {
       return this.abstractType === 'datetime'
     },
-    isJSON () {
+    isJSON() {
       return this.abstractType === 'json'
     },
-    isEnum () {
+    isEnum() {
       return this.column.uidt === 'SingleSelect'
     },
-    isSet () {
+    isSet() {
       return this.column.uidt === 'MultiSelect'
     },
-    isAttachment () {
+    isAttachment() {
       return this.column.uidt === 'Attachment'
     }
 

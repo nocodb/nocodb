@@ -9,7 +9,7 @@ import { SqliteUi } from './SqliteUi'
 // import {VitessUi} from "./VitessUi";
 
 export class SqlUI {
-  static create (connectionConfig) {
+  static create(connectionConfig) {
     // connectionConfig.meta = connectionConfig.meta || {};
     // connectionConfig.meta.dbtype = connectionConfig.meta.dbtype || "";
     if (connectionConfig.client === 'mysql' || connectionConfig.client === 'mysql2') {

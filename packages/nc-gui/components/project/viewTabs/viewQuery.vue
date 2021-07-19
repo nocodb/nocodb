@@ -86,7 +86,7 @@ import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },
-  data () {
+  data() {
     return {
       view: {},
       oldViewDefination: '',
@@ -102,7 +102,7 @@ export default {
       removeViewTab: 'tabs/removeViewTab'
     }),
 
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -126,7 +126,7 @@ export default {
       }
     },
 
-    async loadEnv () {
+    async loadEnv() {
       try {
         this.$store.commit('notification/MutToggleProgressBar', true)
         if (this.newView) {
@@ -160,7 +160,7 @@ export default {
         this.$store.commit('notification/MutToggleProgressBar', false)
       }
     },
-    async applyChanges () {
+    async applyChanges() {
       try {
         if (this.newView) {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
@@ -209,7 +209,7 @@ export default {
         throw e
       }
     },
-    async deleteView (action = '') {
+    async deleteView(action = '') {
       try {
         if (action === 'showDialog') {
           this.dialogShow = true
@@ -248,23 +248,23 @@ export default {
     }
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  async created () {
+  async created() {
     await this.loadEnv()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

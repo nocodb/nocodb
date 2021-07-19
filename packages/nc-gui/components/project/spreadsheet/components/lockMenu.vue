@@ -85,7 +85,7 @@ export default {
 
   }),
   methods: {
-    changeLockType (type) {
+    changeLockType(type) {
       if (type === 'personal') {
         return this.$toast.info('Coming soon').goAway(3000)
       }

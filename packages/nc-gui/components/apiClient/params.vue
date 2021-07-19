@@ -1,3 +1,5 @@
+<!-- eslint-disable -->
+<!-- todo: update prop mutation with emit -->
 <template>
   <v-container fluid>
     <v-simple-table class="ignore-height-style params-table" style="" dense>
@@ -79,36 +81,36 @@ import draggable from 'vuedraggable'
 export default {
   directives: {},
   components: { draggable },
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: { value: Array, env: String },
-  data () {
+  data() {
     return {}
   },
-  head () {
+  head() {
     return {}
   },
   computed: {
     paramList: {
       // two way binding(v-model)
-      get () {
+      get() {
         return this.value
       },
-      set (value) {
+      set(value) {
         this.$emit('input', value)
       }
     }
   },
   watch: {
     value: {
-      handler (val) {
+      handler(val) {
         // keeps at least one param row
         if (!val || !val.length) { this.$emit('input', [{ name: '', value: '', enabled: true }]) }
       }
     }
   },
-  created () {
+  created() {
     // creating value if not exist
     if (!this.value || !this.value.length) {
       this.$emit('input', [{
@@ -118,15 +120,15 @@ export default {
       }])
     }
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {},
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

@@ -197,11 +197,11 @@ export default {
       isNoApis: 'project/GtrProjectIsNoApis',
       isDocker: 'project/GtrIsDocker'
     }),
-    isTsEnabled () {
+    isTsEnabled() {
       return false // return process.env.TS_ENABLED;
     }
   },
-  data () {
+  data() {
     return {
       tab: 0,
       terminals: [Date.now()],
@@ -212,7 +212,7 @@ export default {
       showDelete: false
     }
   },
-  async mounted () {
+  async mounted() {
     // try {
     //   const packageData = await jsonfile.readFileSync(path.join(this.currentProjectFolder, 'package.json'));
     //   this.scripts = Object.keys(packageData.scripts);
@@ -224,16 +224,16 @@ export default {
       this.initTerminal(this.$refs.term[0], 0)
     }, 200)
   },
-  destroyed () {
+  destroyed() {
     let l = this.terminals.length
     while (l--) { this.closeTerminal(l) }
   },
   methods: {
-    dblClick () {
+    dblClick() {
       // this.showDelete = true;
       // this.$set(process.env, 'TS_ENABLED', process.env.TS_ENABLED ? '' : '1')
     },
-    async setExecutionPolicy () {
+    async setExecutionPolicy() {
       // if (!this._isWindows) return
       // try {
       //   let {ptyProc} = this.termRef[this.tab];
@@ -242,7 +242,7 @@ export default {
       //   console.log(e)
       // }
     },
-    async handleKeyDown (event) {
+    async handleKeyDown(event) {
       // switch ([this._isMac ? event.metaKey : event.ctrlKey, event.key].join('_')) {
       //   case 'true_w' :
       //     event.preventDefault();
@@ -257,7 +257,7 @@ export default {
       // return false;
     },
 
-    async codeGenerateMvc () {
+    async codeGenerateMvc() {
       this.loading = true
       // try {
       //   await this.setExecutionPolicy();
@@ -274,7 +274,7 @@ export default {
       //   this.loading = false;
       // }
     },
-    async codeGenerateMvcGql () {
+    async codeGenerateMvcGql() {
       this.loading = true
       // try {
       //   await this.sqlMgr.projectGenerateBackendGql({
@@ -291,7 +291,7 @@ export default {
       //   this.loading = false;
       // }
     },
-    async codeClear () {
+    async codeClear() {
       this.loading = true
       // try {
       //   await this.setExecutionPolicy();
@@ -307,39 +307,39 @@ export default {
       // }
     },
 
-    runXcGenApisRest () {
+    runXcGenApisRest() {
       // this.setExecutionPolicy();
       // let {ptyProc} = this.termRef[this.tab];
       // ptyProc.write(`${ptyProc.process === 'node' ? '\u0003\n\r' : ''}cd ${this.currentProjectFolder};\n\rxc gen.apis.rest;\n\r`)
     },
 
-    runXcGenApisGql () {
+    runXcGenApisGql() {
       // let {ptyProc} = this.termRef[this.tab];
       // ptyProc.write(`${ptyProc.process === 'node' ? '\u0003\n\r' : ''}cd ${this.currentProjectFolder};\n\rxc gen.apis.graphql;\n\r`)
     },
 
-    runNpmInstall () {
+    runNpmInstall() {
       const { client } = this.termRef[this.tab]
       client.emit('req', '\n\rnpm install;\n\r')
     },
 
-    runScript () {
+    runScript() {
       // let {ptyProc} = this.termRef[this.tab];
       // ptyProc.write(`${ptyProc.process === 'node' ? '\u0003\n\r' : ''}cd ${this.currentProjectFolder};\n\rnpm run ${this.selectedScript || 'dev'};\n\r`)
     },
-    stopScript () {
+    stopScript() {
       // let {ptyProc} = this.termRef[this.tab];
       // ptyProc.write(`\u0003\n\r`)
     },
-    clearScript () {
+    clearScript() {
       // let {ptyProc} = this.termRef[this.tab];
       // ptyProc.write(`clear\n\r`)
     },
-    installCliTool () {
+    installCliTool() {
       // let {ptyProc} = this.termRef[this.tab];
       // ptyProc.write(`npm install -g xc-cli\n\r`)
     },
-    addTerminal () {
+    addTerminal() {
       if (this.terminals.length > 4) {
         this.$toast.info('Only 5 terminals can be opened').goAway()
         return
@@ -351,7 +351,7 @@ export default {
       })
     },
 
-    initTerminal ($el, index) {
+    initTerminal($el, index) {
       try {
         // todo: change to hostname
         const client = require('socket.io-client')('http://localhost:8081')
@@ -412,7 +412,7 @@ export default {
         this.$toast.error('Error opening the terminal\n\nPlease use your system terminal').goAway(5000)
       }
     },
-    closeTerminal (index) {
+    closeTerminal(index) {
       console.log('======= close terminal')
       try {
         const proc = this.termRef.splice(index, 1)[0]

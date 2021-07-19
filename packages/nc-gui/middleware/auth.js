@@ -1,4 +1,4 @@
-export default async function ({ store, route, redirect }) {
+export default async function({ store, route, redirect }) {
   if (
     !route.path.startsWith('/nc/view/') &&
     store.getters['project/GtrIsFirstLoad'] === false &&

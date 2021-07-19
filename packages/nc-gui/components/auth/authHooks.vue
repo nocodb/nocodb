@@ -55,16 +55,16 @@ export default {
   data: () => ({
     data: {}
   }),
-  async created () {
+  async created() {
     await this.loadHook()
   },
   methods: {
-    async loadHook () {
+    async loadHook() {
       this.data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.nodes.dbAlias
       }, 'xcAuthHookGet'])
     },
-    async save () {
+    async save() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.nodes.dbAlias

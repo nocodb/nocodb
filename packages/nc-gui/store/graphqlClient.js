@@ -15,12 +15,12 @@ export const state = () => ({
 
 export const mutations = {
 
-  MutListAdd (state, args) {
+  MutListAdd(state, args) {
     state.list.unshift(args)
     if (state.list.length > 500) { state.list.pop() }
   },
 
-  MutListRemove (state, index) {
+  MutListRemove(state, index) {
     state.list.splice(index, 1)
   }
 }

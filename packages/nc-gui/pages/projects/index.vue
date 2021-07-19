@@ -620,7 +620,7 @@ export default {
   $_veeValidate: {
     validator: 'new'
   },
-  data () {
+  data() {
     return {
       overlayVisible: true,
       showCommunity: false,
@@ -705,18 +705,18 @@ export default {
     }
   },
   computed: {
-    connectToExternalDB () {
+    connectToExternalDB() {
       return this.$store.state.project.projectInfo.connectToExternalDB
     }
   },
   watch: {
-    name () {
+    name() {
       if (!this.userSelectedDir) {
         this.folder = `${this.baseFolder}/${this.name}`
       }
     }
   },
-  async created () {
+  async created() {
     this.$store.commit('windows/MutToggleGaEnabled', true)
     this.$store.commit('windows/MutToggleTelemetryEnabled', true)
 
@@ -735,7 +735,7 @@ export default {
     //   this.$store.commit('users/MutSetUser', null);
     // }
   },
-  async mounted () {
+  async mounted() {
     setTimeout(() => (this.showCommunity = true), 2000)
     // setTimeout(() => {
     //   if (this.$store.state.windows.showTour.home)
@@ -754,11 +754,11 @@ export default {
     // await this.openProjectIfQueryParamFound()
   },
   methods: {
-    async stopProject (project) {
+    async stopProject(project) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to stop the project?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -785,11 +785,11 @@ export default {
         }
       }
     },
-    async startProject (project) {
+    async startProject(project) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to start the project?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -816,11 +816,11 @@ export default {
         }
       }
     },
-    async restartProject (project) {
+    async restartProject(project) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to restart the project?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -847,11 +847,11 @@ export default {
         }
       }
     },
-    async deleteProject (project) {
+    async deleteProject(project) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to delete the project?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -879,22 +879,22 @@ export default {
         }
       }
     },
-    onCreateProject (xcdb) {
+    onCreateProject(xcdb) {
       if (xcdb === 'xcdb') {
         this.$router.push('/project/xcdb')
       } else {
         this.$router.push('/project/0')
       }
     },
-    async importProjectFromJSON () {
+    async importProjectFromJSON() {
     },
-    onTourCompletion () {
+    onTourCompletion() {
       // this.$store.commit('windows/MutShowTour', {page: 'home'})
     },
-    getDir (filePath) {
+    getDir(filePath) {
       // return path.dirname(filePath);
     },
-    async projectsLoad () {
+    async projectsLoad() {
       try {
         this.loadingProjects = true
         // console.log('projects', projects)
@@ -937,7 +937,7 @@ export default {
       }
       this.loaded = true
     },
-    projectRouteHandler (project) {
+    projectRouteHandler(project) {
       if (project.status !== 'started') {
         this.$toast
           .info(
@@ -953,21 +953,21 @@ export default {
         })
       }
     },
-    async projectEdit (project) {
+    async projectEdit(project) {
       console.log('projectEdit')
       this.$router.push({
         path: `project/0?edit=true&projectId=${project.id}`
       })
     },
-    async projectOpenFolder (project) {
+    async projectOpenFolder(project) {
       console.log('projectEdit')
     },
 
-    async exportMetaZip (projectId) {
+    async exportMetaZip(projectId) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to export metadata from meta tables?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -1006,10 +1006,10 @@ export default {
         }
       }
     },
-    async resetMeta (projectId) {
+    async resetMeta(projectId) {
       this.dialogShow = true
       this.confirmMessage = 'Do you want to clear metadata from meta tables?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -1032,7 +1032,7 @@ export default {
         }
       }
     },
-    async importMetaZip () {
+    async importMetaZip() {
       const projectId = this.project_id
       if (
         this.$refs.importFile &&

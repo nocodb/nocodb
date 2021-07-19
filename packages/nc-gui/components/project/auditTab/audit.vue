@@ -90,11 +90,11 @@ export default {
     limit: 25,
     page: 1
   }),
-  created () {
+  created() {
     this.loadAudits()
   },
   methods: {
-    async loadAudits () {
+    async loadAudits() {
       const { list, count } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcAuditList', {
         limit: this.limit,
         offset: this.limit * (this.page - 1)
@@ -102,7 +102,7 @@ export default {
       this.audits = list
       this.count = count
     },
-    calculateDiff (date) {
+    calculateDiff(date) {
       return dayjs.utc(date).fromNow()
     }
   }

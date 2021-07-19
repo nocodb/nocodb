@@ -8,7 +8,7 @@
 
 export default ({ store, $axios, redirect, $toast }) => {
   // Add a request interceptor
-  $axios.interceptors.request.use(function (config) {
+  $axios.interceptors.request.use(function(config) {
     config.headers['xc-gui'] = 'true'
     if (store.state.users.token) {
       config.headers['xc-auth'] = store.state.users.token
@@ -66,7 +66,7 @@ export default ({ store, $axios, redirect, $toast }) => {
           })
         })
       })
-      .catch(async (error) => {
+      .catch(async(error) => {
         await store.dispatch('users/ActSignOut')
         if (store.state.project.projectInfo.firstUser) {
           redirect('/')

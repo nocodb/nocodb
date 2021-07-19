@@ -35,7 +35,7 @@ export default {
     // sqlFormatter
   },
   props: ['code', 'cssStyle', 'readOnly', 'heading', 'tables', 'columnNames', 'columnNameCbk'],
-  data () {
+  data() {
     const vm = this
     return {
       codeLocal: `${this.code || ''}`,
@@ -60,7 +60,7 @@ export default {
         contextMenuOrder: 1.5,
         // Method that will be executed when the action is triggered.
         // @param editor The editor instance is passed in as a convinience
-        run (ed) {
+        run(ed) {
           vm.pretify()
         }
       }, {
@@ -80,7 +80,7 @@ export default {
         contextMenuOrder: 1.5,
         // Method that will be executed when the action is triggered.
         // @param editor The editor instance is passed in as a convinience
-        run (ed) {
+        run(ed) {
           vm.$emit('execute', ed)
         }
       }, {
@@ -93,7 +93,7 @@ export default {
         keybindingContext: null,
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run (ed) {
+        run(ed) {
           vm.$emit('runAll', ed)
         }
       }, {
@@ -106,7 +106,7 @@ export default {
         keybindingContext: null,
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run (ed) {
+        run(ed) {
           vm.$emit('bookmark', ed)
         }
       }, {
@@ -119,7 +119,7 @@ export default {
         keybindingContext: null,
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run (ed) {
+        run(ed) {
           vm.$emit('searchHistory', ed)
         }
       }, {
@@ -132,7 +132,7 @@ export default {
         keybindingContext: null,
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run (ed) {
+        run(ed) {
           vm.$emit('toggleBookmark', ed)
         }
       }, {
@@ -145,7 +145,7 @@ export default {
         keybindingContext: null,
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run (ed) {
+        run(ed) {
           vm.$emit('openFile', ed)
         }
       }, {
@@ -158,7 +158,7 @@ export default {
         keybindingContext: null,
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run (ed) {
+        run(ed) {
           vm.$emit('saveFile', ed)
         }
       }, {
@@ -171,7 +171,7 @@ export default {
         keybindingContext: null,
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run (ed) {
+        run(ed) {
           vm.$emit('clearEditor', ed)
         }
       }]
@@ -180,23 +180,23 @@ export default {
   },
   computed: {},
   watch: {
-    codeLocal (newValue) {
+    codeLocal(newValue) {
       // INFO: for updating value of prop `code` in parent comp
       // console.log("update:code Event Emitted", newValue);
       this.$emit('update:code', newValue)
     },
-    code (newValue) {
+    code(newValue) {
       this.codeLocal = newValue
     }
   },
-  beforeCreate () {
+  beforeCreate() {
     // console.log(MonacoEditor)
   },
-  created () {
+  created() {
     //
   },
   methods: {
-    selectionFn () {
+    selectionFn() {
       const editor = this.$refs.editor.getMonaco()
       const range = editor.getSelection()
       const selectedText = editor.getModel().getValueInRange(range)
@@ -204,7 +204,7 @@ export default {
       this.selection = selectedText
       this.selectionRange = range
     },
-    pretify () {
+    pretify() {
       // console.log("this.code", this.code);
       const editor = this.$refs.editor.getMonaco()
 
@@ -229,7 +229,7 @@ export default {
         editor.executeEdits('sqlFormatter', [op])
       }
     },
-    toggleMiniMap () {
+    toggleMiniMap() {
       const editor = this.$refs.editor.getMonaco()
       this.minimap.enabled = !this.minimap.enabled
       editor.updateOptions({
@@ -238,13 +238,13 @@ export default {
         }
       })
     },
-    getCurrentQuery () {
+    getCurrentQuery() {
       return this.$refs.editor.getCurrentQuery()
     },
-    getAllContent () {
+    getAllContent() {
       return this.$refs.editor.getAllContent()
     },
-    focus () {
+    focus() {
       this.$refs.editor.focus()
     }
   }

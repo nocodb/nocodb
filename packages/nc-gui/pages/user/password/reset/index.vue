@@ -56,12 +56,12 @@ import { isEmail } from '@/helpers'
 export default {
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     // console.log('validate');
     return true
   },
   props: {},
-  data () {
+  data() {
     return {
       resetSuccess: true,
       passwordDetails: {
@@ -90,26 +90,26 @@ export default {
 
     }
   },
-  head () {
+  head() {
     // console.log('head');
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
     // console.log('created');
   },
-  async mounted () {
+  async mounted() {
     // console.log('mounted', this.$route.query);
     this.resetSuccess = await this.$store.dispatch('users/ActGetPasswordReset', this.$route.query)
     // this.resetSuccess =  true;
     // console.log('mounted', this.resetSuccess);
   },
-  beforeDestroy () {
+  beforeDestroy() {
     // console.log('beforeDestroy');
   },
   methods: {
-    async resetUserPassword (e) {
+    async resetUserPassword(e) {
       if (this.$refs.formType.validate()) {
         e.preventDefault()
         this.passwordDetails.token = this.$route.query.token
@@ -122,7 +122,7 @@ export default {
         this.$router.push('/')
       }
     },
-    PasswordValidate (p) {
+    PasswordValidate(p) {
       if (!p) {
         this.passwordProgress = 0
         this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
@@ -170,17 +170,17 @@ export default {
 
       return validation
     },
-    PasswordValidate1 (confirmPassword) {
+    PasswordValidate1(confirmPassword) {
       if (confirmPassword) {
         return this.passwordDetails.newPassword.startsWith(confirmPassword)
       }
       return false
     }
   },
-  beforeCreated () {
+  beforeCreated() {
     // console.log('beforeCreate');
   },
-  destroy () {
+  destroy() {
     // console.log('destroy');
   }
 }

@@ -1,9 +1,9 @@
-export default function isDev () {
+export default function isDev() {
   return process.env.NODE_ENV &&
     (process.env.NODE_ENV.toLowerCase() === 'development' || process.env.NODE_ENV.toLowerCase() === 'dev')
 }
 
-export function isMetaTable (tn) {
+export function isMetaTable(tn) {
   return [
     '_evolutions',
     'nc_models',
@@ -35,7 +35,7 @@ export function isMetaTable (tn) {
   ].includes(tn)
 }
 
-export function insertKey (key, value, obj, pos) {
+export function insertKey(key, value, obj, pos) {
   const keys = Object.keys(obj)
   if (!keys.length || pos > keys.length - 1) {
     obj[key] = value
@@ -48,7 +48,7 @@ export function insertKey (key, value, obj, pos) {
   }, {})
 }
 
-export function copyTextToClipboard (text) {
+export function copyTextToClipboard(text) {
   const textArea = document.createElement('textarea')
 
   //

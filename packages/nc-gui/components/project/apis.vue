@@ -166,7 +166,7 @@ import { mapGetters, mapActions } from 'vuex'
 
 export default {
   components: {},
-  data () {
+  data() {
     return {
 
       // portNumber: 3000,
@@ -179,11 +179,11 @@ export default {
       tabs: 'tabs/list'
     }),
 
-    server1 () {
+    server1() {
       return this.$store.state.apiServer.servers[this.nodes.key]
     },
 
-    portNumber () {
+    portNumber() {
       return this.server1 ? this.server1.portNumber : 3000
     }
 
@@ -194,11 +194,11 @@ export default {
       changeActiveTab: 'tabs/changeActiveTab'
     }),
 
-    openWebUrl (url) {
+    openWebUrl(url) {
       // shell.openExternal(url)
     },
 
-    openUrl (url) {
+    openUrl(url) {
       const _nodes = { ...this.nodes }
       _nodes.key = _nodes.dbKey + '.apiClient'
       _nodes.type = 'apiClientDir'
@@ -217,7 +217,7 @@ export default {
       }
     },
 
-    async startServer () {
+    async startServer() {
       try {
         const args = { ...this.nodes }
         args.portNumber = this.server1 ? this.server1.portNumber : 3000
@@ -231,7 +231,7 @@ export default {
       }
     },
 
-    async stopServer () {
+    async stopServer() {
       try {
         const args = { ...this.nodes }
         args.portNumber = parseInt(this.server1.portNumber)
@@ -245,7 +245,7 @@ export default {
       }
     },
 
-    async getCloudUrl () {
+    async getCloudUrl() {
       try {
         const args = { ...this.nodes }
         args.portNumber = parseInt(this.server1.portNumber)
@@ -259,7 +259,7 @@ export default {
       }
     },
 
-    async sendNotification () {
+    async sendNotification() {
       try {
         const args = { ...this.nodes }
         await this.$store.dispatch('apiServer/cloudSendNotification', args)
@@ -269,33 +269,33 @@ export default {
         throw e
       }
     },
-    clipboardSuccessHandler ({ value, event }) {
+    clipboardSuccessHandler({ value, event }) {
       this.$toast.info('Copied to clipboard.').goAway(1000)
     },
 
-    clipboardErrorHandler ({ value, event }) {
+    clipboardErrorHandler({ value, event }) {
       this.$toast.info('Clipboard copying failed.').goAway(1000)
     }
 
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  async created () {
+  async created() {
     // this.server.serverLive = await this.sqlMgr.projectAPIServerIsLive();
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

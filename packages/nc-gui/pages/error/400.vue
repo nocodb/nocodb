@@ -16,26 +16,26 @@
 export default {
   directives: { },
   components: { },
-  validate ({ params }) { return true },
+  validate({ params }) { return true },
   props: { },
-  data () {
+  data() {
     return {
 
     }
   },
-  head () { return {} },
+  head() { return {} },
   computed: {
 
   },
   watch: { },
-  created () { },
-  mounted () {},
-  beforeDestroy () {},
+  created() { },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
 
   },
-  beforeCreated () {},
-  destroy () {}
+  beforeCreated() {},
+  destroy() {}
 }
 </script>
 

@@ -262,7 +262,7 @@ export default {
     modelName: null
   }),
   computed: {
-    availableColumns () {
+    availableColumns() {
       let columns
       const hideCols = ['created_at', 'updated_at']
 
@@ -276,7 +276,7 @@ export default {
       }
       return columns
     },
-    concatenatedXWhere () {
+    concatenatedXWhere() {
       let where = ''
       if (this.searchField && this.searchQuery.trim()) {
         if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.meta.columns.find(({ cn }) => cn === this.searchField)))) {
@@ -292,11 +292,11 @@ export default {
 
       return this.xWhere ? where + `~and(${this.xWhere})` : where
     },
-    sqlUi () {
+    sqlUi() {
       // todo: replace with correct client
       return SqlUI.create({ client: this.client })
     },
-    queryParams () {
+    queryParams() {
       return {
         limit: this.size,
         offset: this.size * (this.page - 1),
@@ -304,22 +304,22 @@ export default {
         sort: this.sort
       }
     },
-    api () {
+    api() {
       return ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.table, this.meta && this.meta.columns, this, this.meta)
     },
-    colLength () {
+    colLength() {
       return (this.meta && this.meta.columns && this.meta.columns.length) || 0
     },
-    visibleColLength () {
+    visibleColLength() {
       return (this.meta && this.meta.columns && this.meta.columns.length) || 0
     },
-    rowLength () {
+    rowLength() {
       return (this.data && this.data.length) || 0
     },
-    edited () {
+    edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },
-    hasMany () {
+    hasMany() {
       return this.meta && this.meta.hasMany
         ? this.meta.hasMany.reduce((hm, o) => {
           hm[o.rcn] = hm[o.rcn] || []
@@ -328,7 +328,7 @@ export default {
         }, {})
         : {}
     },
-    belongsTo () {
+    belongsTo() {
       return this.meta && this.meta.belongsTo
         ? this.meta.belongsTo.reduce((bt, o) => {
           bt[o._cn] = o
@@ -336,7 +336,7 @@ export default {
         }, {})
         : {}
     },
-    table () {
+    table() {
       if (this.relationType === 'hm') {
         return this.relation.tn
       } else if (this.relationType === 'bt') {
@@ -345,7 +345,7 @@ export default {
 
       return this.nodes.tn || this.nodes.view_name
     },
-    primaryValueColumn () {
+    primaryValueColumn() {
       if (!this.meta || !this.meta.columns) {
         return ''
       }
@@ -358,7 +358,7 @@ export default {
       return this.meta.columns[0]._cn
     }
   },
-  async mounted () {
+  async mounted() {
     try {
       // await this.loadMeta();
       await this.loadTableData()
@@ -391,7 +391,7 @@ export default {
     }
     this.searchField = this.primaryValueColumn
   },
-  created () {
+  created() {
     /*    if (this.relationType === 'hm') {
       this.filters.push({
         field: this.relation.cn,
@@ -409,20 +409,20 @@ export default {
     } */
     document.addEventListener('keydown', this.onKeyDown)
   },
-  beforeDestroy () {
+  beforeDestroy() {
     document.removeEventListener('keydown', this.onKeyDown)
   },
   methods: {
-    comingSoon () {
+    comingSoon() {
       this.$toast.info('Coming soon!').goAway(3000)
     },
-    makeSelected (col, row) {
+    makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
         this.selected = { col, row }
         this.editEnabled = {}
       }
     },
-    makeEditable (col, row) {
+    makeEditable(col, row) {
       if (this.meta.columns[col].ai) {
         return this.$toast.info('Auto Increment field is not editable').goAway(3000)
       }
@@ -434,7 +434,7 @@ export default {
       }
     },
 
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // ctrl + s -> save
       // ctrl + l -> reload
@@ -454,7 +454,7 @@ export default {
       }
     },
 
-    addFilter () {
+    addFilter() {
       this.filters.push({
         field: '',
         op: '',
@@ -463,14 +463,14 @@ export default {
       })
       this.filters = this.filters.slice()
     },
-    addSort () {
+    addSort() {
       this.sortList.push({
         field: '',
         order: ''
       })
       this.filters = this.filters.slice()
     },
-    async loadTableData () {
+    async loadTableData() {
       this.loadingData = true
       try {
         // eslint-disable-next-line camelcase
@@ -505,7 +505,7 @@ export default {
 
       this.loadingData = false
     },
-    onKeyDown (e) {
+    onKeyDown(e) {
       if (this.selected.col === null || this.selected.row === null) {
         return
       }
@@ -540,7 +540,7 @@ export default {
           break
       }
     },
-    showRowContextMenu (e, row, rowMeta, index) {
+    showRowContextMenu(e, row, rowMeta, index) {
       e.preventDefault()
       this.rowContextMenu = false
       this.$nextTick(() => {
@@ -553,7 +553,7 @@ export default {
         }
       })
     },
-    expandRow (row, rowMeta) {
+    expandRow(row, rowMeta) {
       this.showExpandModal = true
       this.selectedExpandRowIndex = row
       this.selectedExpandRowMeta = rowMeta

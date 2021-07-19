@@ -118,17 +118,17 @@ export default {
     loading: false
   }),
   computed: {
-    keys () {
+    keys() {
       return Object.keys(this.value)
     }
   },
-  created () {
+  created() {
   },
-  async mounted () {
+  async mounted() {
     await this.loadTableMetaDetails()
   },
   methods: {
-    onKeyChange (i, key) {
+    onKeyChange(i, key) {
       let value = JSON.parse(JSON.stringify(this.value))
 
       const selected = this.$refs[`keySelect${i}`][0].selectedOptions
@@ -168,24 +168,24 @@ export default {
       }
       this.$emit('input', value)
     },
-    addConditionProp () {
+    addConditionProp() {
       const value = JSON.parse(JSON.stringify(this.value))
       value[''] = ''
       this.$emit('input', value)
     },
-    addConditionObj () {
+    addConditionObj() {
       const value = JSON.parse(JSON.stringify(this.value))
       value.push({
         '': ''
       })
       this.$emit('input', value)
     },
-    deleteCondition (key) {
+    deleteCondition(key) {
       const value = JSON.parse(JSON.stringify(this.value))
       delete value[key]
       this.$emit('input', value)
     },
-    async loadTableMetaDetails () {
+    async loadTableMetaDetails() {
       if (this.table) {
         this.loading = true
         try {

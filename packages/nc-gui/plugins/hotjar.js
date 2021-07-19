@@ -1,8 +1,8 @@
 // import isDev from "@/helpers/xutils";
 
 // if (!isDev()) {
-(function (h, o, t, j, a, r) {
-  h.hj = h.hj || function () {
+(function(h, o, t, j, a, r) {
+  h.hj = h.hj || function() {
     (h.hj.q = h.hj.q || []).push(arguments)
   }
   h._hjSettings = { hjid: 2297736, hjsv: 6 }

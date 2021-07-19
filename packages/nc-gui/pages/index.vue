@@ -391,14 +391,14 @@ export default {
     }]
   }),
   computed: {
-    text () {
+    text() {
       const text = this.lang.find(it => it.symbol === this.$store.state.windows.language)
       return text ? text.text : 'default'
     },
-    projectInfo () {
+    projectInfo() {
       return this.$store.state.project.projectInfo
     },
-    message () {
+    message() {
       let message = this.defaultMessage
 
       if (this.projectInfo) {
@@ -435,7 +435,7 @@ export default {
       return message// `${message} <br><span class="caption">(Current Environment : ${this.projectInfo ? this.projectInfo.env : ''})</span>`;
     }
   },
-  created () {
+  created() {
     const projectInfo = this.$store.state.project.projectInfo
     if (projectInfo) {
       if (this.$store.state.users.token || (projectInfo && projectInfo.authType === 'none')) {
@@ -448,7 +448,7 @@ export default {
     }
     this.loading = false
   },
-  mounted () {
+  mounted() {
     const handler = () => {
       this.moved = true
       if (this.typed && !/\bcode=/.test(window.location.search)) {
@@ -462,13 +462,13 @@ export default {
     document.addEventListener('mousemove', handler)
   },
   methods: {
-    simpleAnim () {
+    simpleAnim() {
       const count = 200
       const defaults = {
         origin: { y: 0.7 }
       }
 
-      function fire (particleRatio, opts) {
+      function fire(particleRatio, opts) {
         window.confetti(Object.assign({}, defaults, opts, {
           particleCount: Math.floor(count * particleRatio)
         }))
@@ -498,7 +498,7 @@ export default {
       })
     },
 
-    navigate () {
+    navigate() {
       if (this.projectInfo) {
         // if (!this.projectInfo.projectHasDb) {
         //   this.$router.push('/project/0')

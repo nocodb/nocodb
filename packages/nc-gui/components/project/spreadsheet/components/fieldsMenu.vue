@@ -126,42 +126,42 @@ export default {
     fieldsOrderLoc: []
   }),
   computed: {
-    columnMeta () {
+    columnMeta() {
       return this.meta && this.meta.columns ? this.meta.columns.reduce((o, c) => ({ ...o, [c._cn]: c }), {}) : {}
     },
 
-    isAnyFieldHidden () {
+    isAnyFieldHidden() {
       return Object.values(this.showFields).some(v => !v)
     },
     showSystemFieldsLoc: {
-      get () {
+      get() {
         return this.showSystemFields
       },
-      set (v) {
+      set(v) {
         this.$emit('update:showSystemFields', v)
       }
     }
   },
   watch: {
-    fieldList (f) {
+    fieldList(f) {
       this.fieldsOrderLoc = [...f]
     },
     showFields: {
-      handler (v) {
+      handler(v) {
         this.$emit('input', v)
       },
       deep: true
     },
-    value (v) {
+    value(v) {
       this.showFields = v || []
     },
-    fieldsOrder (n, o) {
+    fieldsOrder(n, o) {
       if ((n && n.join()) !== (o && o.join())) {
         this.fieldsOrderLoc = n
       }
     },
     fieldsOrderLoc: {
-      handler (n, o) {
+      handler(n, o) {
         if ((n && n.join()) !== (o && o.join())) {
           this.$emit('update:fieldsOrder', n)
         }
@@ -169,16 +169,16 @@ export default {
       deep: true
     }
   },
-  created () {
+  created() {
     this.showFields = this.value
     this.fieldsOrderLoc = this.fieldsOrder
   },
   methods: {
-    showAll () {
+    showAll() {
       // eslint-disable-next-line no-return-assign,no-sequences
       this.showFields = Object.keys(this.showFields).reduce((o, k) => (o[k] = true, o), {})
     },
-    hideAll () {
+    hideAll() {
       // eslint-disable-next-line no-return-assign,no-sequences
       this.showFields = Object.keys(this.showFields).reduce((o, k) => (o[k] = false, o), {})
     }

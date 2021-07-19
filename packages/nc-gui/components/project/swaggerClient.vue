@@ -47,13 +47,13 @@
 <script>
 export default {
   name: 'SwaggerClient',
-  data () {
+  data() {
     return {
       url: '',
       webViewUrl: ''
     }
   },
-  async created () {
+  async created() {
     // if (this.$store.state.graphqlClient.list && this.$store.state.graphqlClient.list[0])
     //   this.webViewUrl = this.url = this.$store.state.graphqlClient.list[0].url;
     try {
@@ -69,14 +69,14 @@ export default {
     } catch (e) {
     }
   },
-  mounted () {
+  mounted() {
 
   },
   methods: {
-    test () {
+    test() {
       console.log('triggerd')
     },
-    loadUrl () {
+    loadUrl() {
       this.webViewUrl = this.url
       // if (this.url)
       //   this.$store.commit('graphqlClient/MutListAdd', {url: this.url});

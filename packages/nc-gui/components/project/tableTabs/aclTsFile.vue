@@ -109,7 +109,7 @@ export default {
   name: 'AclTypeorm',
   components: { aclTsFileChild },
   props: ['nodes'],
-  data () {
+  data() {
     return {
       policyPaths: null,
       search: ''
@@ -117,7 +117,7 @@ export default {
   },
   methods: {
 
-    async aclInit () {
+    async aclInit() {
       // this.disableSaveButton = true;
       // this.policyPaths = await this.sqlMgr.projectGetTsPolicyPath({
       //   env: this.nodes.env,
@@ -132,17 +132,17 @@ export default {
         tn: this.nodes.tn
       }])
     },
-    reload () {
+    reload() {
       for (const $acl of this.$refs.acl) {
         $acl.aclInit()
       }
     },
-    save () {
+    save() {
       for (const $acl of this.$refs.acl) {
         $acl.save()
       }
     },
-    openFolder () {
+    openFolder() {
       // shell.openItem(path.dirname(this.policyPaths[0]));
     }
   },
@@ -150,7 +150,7 @@ export default {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
   watch: {},
-  async created () {
+  async created() {
     await this.aclInit()
   }
 }

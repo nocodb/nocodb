@@ -94,7 +94,7 @@ import MonacoEditor from '../../monaco/Monaco'
 
 export default {
   components: { MonacoEditor },
-  data () {
+  data() {
     return {
       valid: false,
       formRules: {
@@ -120,21 +120,21 @@ export default {
   methods: {},
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated () {},
+  beforeCreated() {},
   watch: {},
-  async created () {},
-  mounted () {
+  async created() {},
+  mounted() {
     requestAnimationFrame(() => {
       this.$refs.focus.focus()
     })
   },
-  beforeDestroy () {},
-  destroy () {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: [

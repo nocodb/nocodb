@@ -6,7 +6,7 @@ export const state = () => ({
 
 export const mutations = {
 
-  MutAddServer (state, args) {
+  MutAddServer(state, args) {
     args.alive = true
     state.servers[args.key] = args
     state.servers = { ...state.servers }
@@ -15,7 +15,7 @@ export const mutations = {
     console.log('MutAddServer', state.servers)
   },
 
-  MutRemoveServer (state, args) {
+  MutRemoveServer(state, args) {
     console.log('MutRemoveServer', args)
 
     if (args.key in state.servers) {
@@ -25,7 +25,7 @@ export const mutations = {
     }
   },
 
-  MutCloudUrl (state, args) {
+  MutCloudUrl(state, args) {
     if (args.key in state.servers) {
       const temp = state.servers
       state.servers[args.key].cloudUrl = args.cloudUrl
@@ -40,7 +40,7 @@ export const getters = {}
 
 export const actions = {
 
-  async start ({ commit, state, rootState }, args) {
+  async start({ commit, state, rootState }, args) {
     commit('notification/MutToggleProgressBar', true, { root: true })
 
     try {
@@ -59,7 +59,7 @@ export const actions = {
     }
   },
 
-  async stop ({ commit, state, rootState }, args) {
+  async stop({ commit, state, rootState }, args) {
     commit('notification/MutToggleProgressBar', true, { root: true })
 
     try {
@@ -77,7 +77,7 @@ export const actions = {
     }
   },
 
-  async getCloudUrl ({ commit, state, rootState }, args) {
+  async getCloudUrl({ commit, state, rootState }, args) {
     commit('notification/MutToggleProgressBar', true, { root: true })
 
     try {
@@ -94,7 +94,7 @@ export const actions = {
     }
   },
 
-  async cloudSendNotification ({ commit, state, rootState }, args) {
+  async cloudSendNotification({ commit, state, rootState }, args) {
     commit('notification/MutToggleProgressBar', true, { root: true })
 
     try {

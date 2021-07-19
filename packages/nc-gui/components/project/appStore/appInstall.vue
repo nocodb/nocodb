@@ -107,22 +107,22 @@ export default {
     testing: false
   }),
   watch: {
-    async id () {
+    async id() {
       this.settings = {}
       await this.readPluginDetails()
     }
   },
-  async created () {
+  async created() {
     await this.readPluginDetails()
   },
   methods: {
-    simpleAnim () {
+    simpleAnim() {
       const count = 200
       const defaults = {
         origin: { y: 0.7 }
       }
 
-      function fire (particleRatio, opts) {
+      function fire(particleRatio, opts) {
         window.confetti(Object.assign({}, defaults, opts, {
           particleCount: Math.floor(count * particleRatio)
         }))
@@ -151,7 +151,7 @@ export default {
         startVelocity: 45
       })
     },
-    async saveSettings () {
+    async saveSettings() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginSet', {
           input: this.settings,
@@ -166,7 +166,7 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
-    async testSettings () {
+    async testSettings() {
       this.testing = true
       try {
         const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginTest', {
@@ -185,7 +185,7 @@ export default {
       }
       this.testing = false
     },
-    async doAction (action) {
+    async doAction(action) {
       switch (action.key) {
         case 'save' :
           await this.saveSettings()
@@ -197,7 +197,7 @@ export default {
           break
       }
     },
-    async readPluginDetails () {
+    async readPluginDetails() {
       try {
         this.plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
           title: this.title
@@ -208,7 +208,7 @@ export default {
       } catch (e) {
       }
     },
-    copyDefault () {
+    copyDefault() {
       if (this.plugin.title.replace(/\s/g, '_').toLowerCase() in this.defaultConfig) {
         const data = this.defaultConfig[this.plugin.title.replace(/\s/g, '_').toLowerCase()]
         this.settings = JSON.parse(JSON.stringify(data))

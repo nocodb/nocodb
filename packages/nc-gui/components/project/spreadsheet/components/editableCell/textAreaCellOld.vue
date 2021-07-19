@@ -32,7 +32,7 @@ export default {
   }),
   computed: {
 
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -46,23 +46,23 @@ export default {
     }
   },
   watch: {
-    value (val) {
+    value(val) {
       this.localState = val
     },
-    localState (val) {
+    localState(val) {
       if (this.isForm) {
         this.$emit('input', val)
       }
     }
   },
-  created () {
+  created() {
     this.localState = this.value
   },
-  mounted () {
+  mounted() {
     this.$refs.textarea && this.$refs.textarea.focus()
   },
   methods: {
-    save () {
+    save() {
       this.$emit('input', this.localState)
     }
   }

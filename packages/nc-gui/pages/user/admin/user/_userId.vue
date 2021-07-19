@@ -52,9 +52,9 @@
 export default {
   directives: { },
   components: { },
-  validate ({ params }) { return true },
+  validate({ params }) { return true },
   props: { },
-  data () {
+  data() {
     return {
       user: {
         username: '',
@@ -70,13 +70,13 @@ export default {
 
     }
   },
-  head () { return {} },
+  head() { return {} },
   computed: {
 
   },
   watch: { },
-  created () { },
-  async mounted () {
+  created() { },
+  async mounted() {
     // console.log('routeparams',this.$route.params);
     const user = await this.$store.dispatch('users/ActGetUser', this.$route.params.userId)
 
@@ -86,18 +86,18 @@ export default {
 
     // console.log(this.user);
   },
-  beforeDestroy () {},
+  beforeDestroy() {},
   methods: {
-    removeUser () {
+    removeUser() {
       // console.log('remove user');
     },
-    editUser (args) {
+    editUser(args) {
       // console.log('edit user');
     }
 
   },
-  beforeCreated () {},
-  destroy () {}
+  beforeCreated() {},
+  destroy() {}
 }
 </script>
 

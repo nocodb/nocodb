@@ -96,7 +96,7 @@ export default {
     },
     queryParams: {
       type: Object,
-      default () {
+      default() {
         return {}
       }
     },
@@ -116,24 +116,24 @@ export default {
   }),
   computed: {
     show: {
-      set (v) {
+      set(v) {
         this.$emit('input', v)
       },
-      get () {
+      get() {
         return this.value
       }
     },
-    hmParentPrimaryValCol () {
+    hmParentPrimaryValCol() {
       return this.hm &&
         this.parentMeta &&
         this.parentMeta.columns.find(v => v.pv)._cn
     }
   },
-  mounted () {
+  mounted() {
     this.loadData()
   },
   methods: {
-    async loadData () {
+    async loadData() {
       if (!this.api) { return }
 
       let where = this.queryParams.where || ''

@@ -47,13 +47,13 @@
 <script>
 export default {
   name: 'GraphqlClient',
-  data () {
+  data() {
     return {
       url: '',
       webViewUrl: ''
     }
   },
-  async created () {
+  async created() {
     if (this.$store.state.graphqlClient.list && this.$store.state.graphqlClient.list[0]) { this.webViewUrl = this.url = this.$store.state.graphqlClient.list[0].url }
     try {
       const { info } = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
@@ -68,14 +68,14 @@ export default {
     } catch (e) {
     }
   },
-  mounted () {
+  mounted() {
 
   },
   methods: {
-    test () {
+    test() {
       console.log('triggerd')
     },
-    loadUrl () {
+    loadUrl() {
       this.webViewUrl = this.url
       if (this.url) { this.$store.commit('graphqlClient/MutListAdd', { url: this.url }) }
     }

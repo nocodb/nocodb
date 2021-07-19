@@ -55,7 +55,7 @@
 export default {
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: [
@@ -69,36 +69,36 @@ export default {
     'defaultValue',
     'submitText'
   ],
-  data () {
+  data() {
     return { fieldValue: '', valid: null }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
     if (this.defaultValue) { this.fieldValue = this.defaultValue }
     console.log('dlgTextSubmitCancel:created ', this.cookie, this.heading)
   },
-  mounted () {
+  mounted() {
     requestAnimationFrame(() => {
       this.$refs.focus.focus()
     })
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    submitForm () {
+    submitForm() {
       if (this.$refs.form.validate()) {
         this.mtdDialogSubmit(this.fieldValue, this.cookie)
       }
     }
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

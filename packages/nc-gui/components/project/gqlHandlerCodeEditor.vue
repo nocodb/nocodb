@@ -58,16 +58,16 @@ export default {
   }),
   computed: {
     dialogShow: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val)
       }
     }
   },
   watch: {
-    async resolver (val) {
+    async resolver(val) {
       try {
         console.log('=============', this.functions)
         this.code = JSON.parse(this.functions)[0]
@@ -86,7 +86,7 @@ export default {
     }
   },
   methods: {
-    async saveCode () {
+    async saveCode() {
       try {
         this.progressbar = true
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{

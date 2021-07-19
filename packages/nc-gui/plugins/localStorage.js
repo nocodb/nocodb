@@ -61,7 +61,7 @@ const ls = new SecureLS({ isCompression: false })
 //   }
 // }
 
-export default async ({ store, $vuetify: { theme } }) => {
+export default async({ store, $vuetify: { theme } }) => {
   /**
    *
    */
@@ -100,7 +100,7 @@ export default async ({ store, $vuetify: { theme } }) => {
 
   createPersistedState({
     fetchBeforeUse: true,
-    async rehydrated (store) {
+    async rehydrated(store) {
       window.rehydrated = true
       console.log(store.state.windows)
       console.log('Date difference ', await store.dispatch('windows/ActGetExpiryDate'))

@@ -52,7 +52,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-  data () {
+  data() {
     return {
       relations: [],
       columns: [],
@@ -76,10 +76,10 @@ export default {
     }
   },
   methods: {
-    throwError () {
+    throwError() {
       throw new Error('new erroror ')
     },
-    async loadRelationList () {
+    async loadRelationList() {
       if (this.newTable) { return }
 
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
@@ -106,7 +106,7 @@ export default {
       this.relations = result.data.list
       // this.loadColumnList(result.data.list[0].rtn);
     },
-    async loadColumnList (tn = '') {
+    async loadColumnList(tn = '') {
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
@@ -135,24 +135,24 @@ export default {
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  created () {
+  created() {
     this.loadRelationList()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'deleteTable']

@@ -143,20 +143,20 @@ export default {
   }),
   watch: {
     filters: {
-      handler (v) {
+      handler(v) {
         this.$emit('input', v)
       },
       deep: true
     },
-    value (v) {
+    value(v) {
       this.filters = v || []
     }
   },
-  created () {
+  created() {
     this.filters = this.value || []
   },
   methods: {
-    addFilter () {
+    addFilter() {
       this.filters.push({
         field: '',
         op: '',

@@ -60,7 +60,7 @@ import inflection from 'inflection'
 export default {
   name: 'DlgViewCreate',
   props: ['value'],
-  data () {
+  data() {
     return {
       view: {
         name: ''
@@ -69,23 +69,23 @@ export default {
   },
   computed: {
     dialogShow: {
-      get () {
+      get() {
         return this.value
       },
-      set (v) {
+      set(v) {
         this.$emit('input', v)
       }
     },
-    projectPrefix () {
+    projectPrefix() {
       return this.$store.getters['project/GtrProjectPrefix']
     }
   },
   watch: {
-    'view.alias' (v) {
+    'view.alias'(v) {
       this.$set(this.view, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
     }
   },
-  mounted () {
+  mounted() {
     setTimeout(() => {
       this.$refs.input.$el.querySelector('input').focus()
     }, 100)

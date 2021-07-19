@@ -43,30 +43,30 @@ export default {
   name: 'DlgLabelSubmitCancel',
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   // todo: 2 way binding for dialogShow
   props: ['heading', 'dialogShow', 'actionsMtd', 'title', 'type'],
-  data () {
+  data() {
     return {}
   },
-  head () {
+  head() {
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {},
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  xcCronSavented () {
+  xcCronSavented() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

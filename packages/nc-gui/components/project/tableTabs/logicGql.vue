@@ -253,29 +253,29 @@ export default {
     isMiddleware: false
   }),
   computed: {
-    filteredData () {
+    filteredData() {
       return this.resolvers.filter(({ resolver }) => !resolver || (!this.search || resolver.toLowerCase().includes(this.search.toLowerCase())))
     }
   },
-  async created () {
+  async created() {
     await this.loadResolvers()
     await this.loadSchema()
   },
   methods: {
-    showSourceCode (resolver, functions) {
+    showSourceCode(resolver, functions) {
       this.selectedFunctions = functions
       this.editResolver = resolver
       this.isMiddleware = false
       this.showCodeEditor = true
     },
-    showMiddlewareSourceCode (table, functions) {
+    showMiddlewareSourceCode(table, functions) {
       this.selectedFunctions = functions
       this.editResolver = table
       this.isMiddleware = true
       this.showCodeEditor = true
     },
 
-    async saveSchema () {
+    async saveSchema() {
       this.edited = false
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -290,7 +290,7 @@ export default {
         this.$toast.error('Failed to update validations').goAway(3000)
       }
     },
-    async loadSchema () {
+    async loadSchema() {
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
@@ -304,7 +304,7 @@ export default {
         this.schemaHistory = []
       }
     },
-    async loadResolvers () {
+    async loadResolvers() {
       this.resolvers = (await this.$store.dispatch('sqlMgr/ActSqlOp', [
         {
           env: this.nodes.env,

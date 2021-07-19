@@ -63,33 +63,33 @@ export default {
   }),
   computed: {
     autosave: {
-      set (v) {
+      set(v) {
         this.$store.commit('windows/MutAutoApplyFilter', v)
       },
-      get () {
+      get() {
         return this.$store.state.windows.autoApplyFilter
       }
     }
   },
   watch: {
     filters: {
-      handler (v) {
+      handler(v) {
         if (this.autosave) {
           this.$emit('input', v)
         }
       },
       deep: true
     },
-    autosave (v) {
+    autosave(v) {
       if (!v) {
         this.filters = JSON.parse(JSON.stringify(this.value || []))
       }
     },
-    value (v) {
+    value(v) {
       this.filters = this.autosave ? v || [] : JSON.parse(JSON.stringify(v || []))
     }
   },
-  created () {
+  created() {
     this.filters = this.autosave ? this.value || [] : JSON.parse(JSON.stringify(this.value || []))
   },
   methods: {}

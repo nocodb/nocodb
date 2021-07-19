@@ -185,7 +185,7 @@ export default {
   components: {
     dlgLabelSubmitCancel
   },
-  data () {
+  data() {
     return {
       rows: [],
       cols: [],
@@ -201,7 +201,7 @@ export default {
     }
   },
   methods: {
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -225,7 +225,7 @@ export default {
       }
     },
 
-    async refreshTable () {
+    async refreshTable() {
       try {
         await this.loadColumnList()
         await this.loadRowList()
@@ -234,7 +234,7 @@ export default {
         throw e
       }
     },
-    async loadColumnList () {
+    async loadColumnList() {
       // const columnsList = await this.client.columnList({tn: this.nodes.tn});
 
       // const columnsList = await this.sqlMgr.sqlOp({
@@ -256,7 +256,7 @@ export default {
       // column for action buttons
       if (!this.isView) { this.cols.push({ text: '', value: '' }) }
     },
-    async loadRowList () {
+    async loadRowList() {
       const { page, itemsPerPage } = this.tableOptions
 
       // const result = await this.sqlMgr.sqlOp({
@@ -293,7 +293,7 @@ export default {
         return { keys, data: { ...row }, dataCopy: { ...row } }
       })
     },
-    save (type, text, item) {
+    save(type, text, item) {
       // console.log(type, text, item)
       item.changed = true
       const { data, dataCopy } = item
@@ -303,11 +303,11 @@ export default {
         dataCopy[text] = data[text]
       }
     },
-    getType (dt) {
+    getType(dt) {
       if (dt === 'number') { return 'number' }
       return 'text'
     },
-    async deleteRow (action = '', index, row) {
+    async deleteRow(action = '', index, row) {
       try {
         if (action === 'showDialog') {
           this.rowDeleteDlg = true
@@ -348,14 +348,14 @@ export default {
         throw e
       }
     },
-    addNewRow () {
+    addNewRow() {
       this.rows.unshift({ isNewRow: true, data: {}, dataCopy: {} })
       this.totalCount++
     },
-    async saveChanges () {
+    async saveChanges() {
       try {
         const newRows = []
-        this.rows.map(async (item) => {
+        this.rows.map(async(item) => {
           const { keys, isNewRow, changed, dataCopy } = item
           if (isNewRow) {
             newRows.push(dataCopy)
@@ -402,40 +402,40 @@ export default {
   },
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
-    isView () {
+    isView() {
       return !!this.nodes.view_name
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {
     tableOptions: {
-      handler () {
+      handler() {
         this.loadRowList()
       },
       deep: true
     },
     rows: {
-      handler () {
+      handler() {
         this.disableSaveButton = !this.rows.some(row => row.isNewRow || row.changed)
       },
       deep: true
     }
   },
-  async created () {
+  async created() {
     await this.refreshTable()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable']

@@ -102,7 +102,7 @@ export default {
   }),
   computed: {
 
-    onUpdateDeleteOptions () {
+    onUpdateDeleteOptions() {
       if (this.isMSSQL) {
         return [
           'NO ACTION']
@@ -117,14 +117,14 @@ export default {
     }
   },
   watch: {
-    'column.cn' (c) {
+    'column.cn'(c) {
       this.$set(this.relation, 'childColumn', c)
     },
-    isSQLite (v) {
+    isSQLite(v) {
       this.$set(this.relation, 'type', v ? 'virtual' : 'real')
     }
   },
-  async created () {
+  async created() {
     await this.loadTablesList()
     this.relation = {
       childColumn: this.column.cn,
@@ -137,11 +137,11 @@ export default {
       type: this.isSQLite ? 'virtual' : 'real'
     }
   },
-  mounted () {
+  mounted() {
     this.$set(this.relation, 'type', this.isSqlite ? 'virtual' : 'real')
   },
   methods: {
-    async loadColumnList () {
+    async loadColumnList() {
       if (!this.relation.parentTable) { return }
       this.isRefColumnsLoading = true
 
@@ -166,7 +166,7 @@ export default {
 
       this.isRefColumnsLoading = false
     },
-    async loadTablesList () {
+    async loadTablesList() {
       this.isRefTablesLoading = true
 
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -177,7 +177,7 @@ export default {
       this.refTables = result.data.list.map(({ tn, _tn }) => ({ tn, _tn }))
       this.isRefTablesLoading = false
     },
-    async saveRelation () {
+    async saveRelation() {
       // try {
       await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
         {
@@ -191,7 +191,7 @@ export default {
       //   throw e
       // }
     },
-    onColumnSelect () {
+    onColumnSelect() {
       const col = this.refColumns.find(c => this.relation.parentColumn === c.cn)
       this.$emit('onColumnSelect', col)
     }

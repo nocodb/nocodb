@@ -41,7 +41,7 @@ const dbTypes = [
 ]
 
 export class MysqlUi {
-  static getNewTableColumns () {
+  static getNewTableColumns() {
     return [
       {
         cn: 'id',
@@ -134,7 +134,7 @@ export class MysqlUi {
     ]
   }
 
-  static getNewColumn (suffix) {
+  static getNewColumn(suffix) {
     return {
       cn: 'title' + suffix,
       dt: 'int',
@@ -160,7 +160,7 @@ export class MysqlUi {
     }
   }
 
-  static getDefaultLengthForDatatype (type) {
+  static getDefaultLengthForDatatype(type) {
     switch (type) {
       case 'int':
         return 11
@@ -272,7 +272,7 @@ export class MysqlUi {
     }
   }
 
-  static getDefaultLengthIsDisabled (type) {
+  static getDefaultLengthIsDisabled(type) {
     switch (type) {
       case 'int':
       case 'tinyint':
@@ -319,7 +319,7 @@ export class MysqlUi {
     }
   }
 
-  static getDefaultValueForDatatype (type) {
+  static getDefaultValueForDatatype(type) {
     switch (type) {
       case 'int':
         return 'eg : ' + 10
@@ -440,7 +440,7 @@ export class MysqlUi {
     }
   }
 
-  static getDefaultScaleForDatatype (type) {
+  static getDefaultScaleForDatatype(type) {
     switch (type) {
       case 'int':
         return ' '
@@ -550,7 +550,7 @@ export class MysqlUi {
     }
   }
 
-  static colPropAIDisabled (col, columns) {
+  static colPropAIDisabled(col, columns) {
     // console.log(col);
     if (col.dt === 'int' ||
       col.dt === 'tinyint' ||
@@ -567,7 +567,7 @@ export class MysqlUi {
     }
   }
 
-  static colPropUNDisabled (col) {
+  static colPropUNDisabled(col) {
     // console.log(col);
     if (col.dt === 'int' ||
       col.dt === 'tinyint' ||
@@ -580,7 +580,7 @@ export class MysqlUi {
     }
   }
 
-  static onCheckboxChangeAI (col) {
+  static onCheckboxChangeAI(col) {
     console.log(col)
     if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
       col.altered = col.altered || 2
@@ -593,7 +593,7 @@ export class MysqlUi {
     // }
   }
 
-  static onCheckboxChangeAU (col) {
+  static onCheckboxChangeAU(col) {
     console.log(col)
     // if (1) {
     col.altered = col.altered || 2
@@ -606,14 +606,14 @@ export class MysqlUi {
     // }
   }
 
-  static showScale (columnObj) {
+  static showScale(columnObj) {
     return (columnObj.dt === 'float' ||
       columnObj.dt === 'decimal' ||
       columnObj.dt === 'double' ||
       columnObj.dt === 'real')
   }
 
-  static removeUnsigned (columns) {
+  static removeUnsigned(columns) {
     for (let i = 0; i < columns.length; ++i) {
       if (columns[i].altered === 1 && (!(columns[i].dt === 'int' ||
         columns[i].dt === 'bigint' ||
@@ -627,23 +627,23 @@ export class MysqlUi {
     }
   }
 
-  static columnEditable (colObj) {
+  static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
   }
 
-  static extractFunctionName (query) {
+  static extractFunctionName(query) {
     const reg = /^\s*CREATE\s+.*?(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:`?[\w\d_]+`?\.)?`?([\w_\d]+)`?/i
     const match = query.match(reg)
     return match && match[1]
   }
 
-  static extractProcedureName (query) {
+  static extractProcedureName(query) {
     const reg = /^\s*CREATE.*?\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
     const match = query.match(reg)
     return match && match[1]
   }
 
-  static handleRawOutput (result, headers) {
+  static handleRawOutput(result, headers) {
     result = result[0] ? result[0] : []
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0])
@@ -663,7 +663,7 @@ export class MysqlUi {
     return result
   }
 
-  static splitQueries (query) {
+  static splitQueries(query) {
     /***
      * we are splitting based on semicolon
      * there are mechanism to escape semicolon within single/double quotes(string)
@@ -676,7 +676,7 @@ export class MysqlUi {
    * @param args
    * @returns {string|*}
    */
-  static sanitiseQuery (args) {
+  static sanitiseQuery(args) {
     let q = args.query.trim().split(';')
 
     if (q[0].startsWith('Select')) {
@@ -692,7 +692,7 @@ export class MysqlUi {
     return q
   }
 
-  static getColumnsFromJson (json, tn) {
+  static getColumnsFromJson(json, tn) {
     const columns = []
 
     try {
@@ -793,20 +793,20 @@ export class MysqlUi {
     return columns
   }
 
-  static isValidTimestamp (key, value) {
+  static isValidTimestamp(key, value) {
     if (typeof value !== 'number') { return false }
     return new Date(value).getTime() > 0 && /(?:_|(?=A))[aA]t$/.test(key)
   }
 
-  static isValidDate (value) {
+  static isValidDate(value) {
     return new Date(value).getTime() > 0
   }
 
-  static colPropAuDisabled (col) {
+  static colPropAuDisabled(col) {
     return true
   }
 
-  static getUIType (col) {
+  static getUIType(col) {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number'
@@ -837,7 +837,7 @@ export class MysqlUi {
     }
   }
 
-  static getAbstractType (col) {
+  static getAbstractType(col) {
     switch (col.dt.toLowerCase()) {
       case 'int':
       case 'smallint':
@@ -911,7 +911,7 @@ export class MysqlUi {
     }
   }
 
-  static getDataTypeForUiType (col) {
+  static getDataTypeForUiType(col) {
     const colProp = {}
     switch (col.uidt) {
       case 'ID':
@@ -1028,7 +1028,7 @@ export class MysqlUi {
     return colProp
   }
 
-  static getDataTypeListForUiType (col) {
+  static getDataTypeListForUiType(col) {
     switch (col.uidt) {
       case 'ID':
       case 'ForeignKey':

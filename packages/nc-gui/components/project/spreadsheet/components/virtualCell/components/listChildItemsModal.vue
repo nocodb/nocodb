@@ -37,7 +37,7 @@ export default {
     },
     queryParams: {
       type: Object,
-      default () {
+      default() {
         return {}
       }
     },
@@ -55,18 +55,18 @@ export default {
   }),
   computed: {
     show: {
-      set (v) {
+      set(v) {
         this.$emit('input', v)
       },
-      get () {
+      get() {
         return this.value
       }
     }
   },
-  mounted () {
+  mounted() {
   },
   methods: {
-    async loadData () {
+    async loadData() {
       if (this.$refs && this.$refs.child) {
         this.$refs.child.loadData()
       }

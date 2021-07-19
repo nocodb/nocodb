@@ -81,19 +81,19 @@ export default {
   }),
   computed: {
     toggleAll: {
-      get () {
+      get() {
         return this.names && Object.values(this.names).some(v => v)
       },
-      set (val) {
+      set(val) {
         this.names && Object.keys(this.names).forEach(k => this.$set(this.names, k, val))
       }
     }
   },
-  async created () {
+  async created() {
     await this.load()
   },
   methods: {
-    async load () {
+    async load() {
       this.loading = true
       try {
         const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcDebugGet'])
@@ -103,7 +103,7 @@ export default {
 
       this.loading = false
     },
-    async save () {
+    async save() {
       this.loading = true
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcDebugSet', this.names])

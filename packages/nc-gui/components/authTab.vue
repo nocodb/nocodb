@@ -53,7 +53,7 @@ export default {
   data: () => ({
     showConfirmDlg: false
   }),
-  async created () {},
+  async created() {},
   methods: {}
 }
 </script>

@@ -25,38 +25,38 @@
 export default {
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
-  data () {
+  data() {
     return {
       users: this.$store.state.users
     }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {
 
-    users1 () {
+    users1() {
       // console.log(this.$store.state);
       return this.$store.state.creator.users
     }
 
   },
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
     this.$store.dispatch('admin/ActGetUsers')
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {},
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

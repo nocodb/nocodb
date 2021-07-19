@@ -214,12 +214,12 @@ export default {
   },
   directives: {},
   layout: 'empty',
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
 
-  data () {
+  data() {
     return {
       subscribe: true,
       isDev: (process.env.NODE_ENV === 'dev'),
@@ -261,7 +261,7 @@ export default {
       signUpButtonLoading: false
     }
   },
-  head () {
+  head() {
     return {
       title: 'Sign Up | Noco',
       meta: [
@@ -270,24 +270,24 @@ export default {
     }
   },
   computed: {
-    counter () {
+    counter() {
       return this.$store.getters['users/GtrCounter']
     },
-    displayName () {
+    displayName() {
       return this.$store.getters['users/GtrUser']
     },
-    type () {
+    type() {
       return this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.authType
     },
-    firstUser () {
+    firstUser() {
       return this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.firstUser
     },
-    googleAuthEnabled () {
+    googleAuthEnabled() {
       return this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.googleAuthEnabled
     }
   },
   watch: {},
-  async created () {
+  async created() {
 
     // const type = await this.$store.dispatch('users/ActGetAuthType');
     // this.type = type.type;
@@ -296,7 +296,7 @@ export default {
     // ckeditor.setAttribute('src',"https://www.google.com/recaptcha/api.js");
     // document.head.appendChild(ckeditor);
   },
-  mounted () {
+  mounted() {
     // console.log(this.$route.query);
 
     if ('buy' in this.$route.query) {
@@ -307,13 +307,13 @@ export default {
       this.facebookAuthUrl += '?redirect_to=/'
     }
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    openUrl (url) {
+    openUrl(url) {
       window.open(url, '_blank')
     },
-    openGoogleSiginInBrowser (e) {
+    openGoogleSiginInBrowser(e) {
       e.preventDefault()
       // if(this._isMac) {
       // shell.openExternal(process.env.auth.google.url)
@@ -321,21 +321,21 @@ export default {
       //
       // }
     },
-    openGithubSiginInBrowser (e) {
+    openGithubSiginInBrowser(e) {
       e.preventDefault()
       // shell.openExternal(process.env.auth.github.url)
     },
-    onNormalVerify () {
+    onNormalVerify() {
       this.formUtil.recpatcha = true
       // this.formUtil.recpatcha = false;
     },
 
-    progressColor (num) {
+    progressColor(num) {
       this.formUtil.progressColorValue = ['error', 'warning', 'info', 'success'][Math.floor(num / 25)]
       return this.formUtil.progressColorValue
     },
 
-    PasswordValidate (p) {
+    PasswordValidate(p) {
       if (!p) {
         this.passwordProgress = 0
         this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
@@ -386,11 +386,11 @@ export default {
       return validation
     },
 
-    PlusCounter () {
+    PlusCounter() {
       this.$store.dispatch('ActPlusCounter')
     },
 
-    async MtdOnSignup (e) {
+    async MtdOnSignup(e) {
       e.preventDefault()
 
       this.signUpButtonLoading = true
@@ -440,20 +440,20 @@ export default {
       this.signUpButtonLoading = false
     },
 
-    MtdOnReset () {
+    MtdOnReset() {
       // console.log('in method reset');
     },
 
-    async MtdOnSignupGoogle (e) {
+    async MtdOnSignupGoogle(e) {
       await this.$store.dispatch('users/ActAuthGoogle')
       // console.log('MtdOnSignupGoogle', err);
     }
 
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 
 }

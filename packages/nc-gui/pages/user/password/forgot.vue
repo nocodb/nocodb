@@ -60,12 +60,12 @@ export default {
   components: {
     // VueRecaptcha
   },
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
 
-  data () {
+  data() {
     return {
       recpatcha: false,
       showMsg: false,
@@ -90,24 +90,24 @@ export default {
 
     }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
 
-    onNormalVerify () {
+    onNormalVerify() {
       this.recpatcha = true
     },
 
-    async resetPasswordHandle (e) {
+    async resetPasswordHandle(e) {
       if (this.$refs.formType.validate()) {
         e.preventDefault()
         // await this.$recaptchaLoaded()
@@ -124,9 +124,9 @@ export default {
     }
 
   },
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

@@ -1011,7 +1011,7 @@ export default {
   },
   mixins: [colors],
   layout: 'empty',
-  data () {
+  data() {
     return {
       testSuccess: false,
       projectCreated: false,
@@ -1369,23 +1369,23 @@ export default {
   },
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
-    isTitle () {
+    isTitle() {
       return this.project.title && this.project.title.trim().length
     },
-    envStatusValid () {
+    envStatusValid() {
       return (
         this.project.envs &&
         Object.values(this.project.envs).every(this.getEnvironmentStatusAggregatedNew)
       )
     },
-    typeIcon () {
+    typeIcon() {
       if (this.project.projectType) {
         return this.projectTypes.find(({ value }) => value === this.project.projectType)
       } else {
         return { icon: 'mdi-server', iconColor: 'primary' }
       }
     },
-    databaseNamesReverse () {
+    databaseNamesReverse() {
       return Object.entries(this.databaseNames).reduce((newObj, [value, key]) => {
         newObj[key] = value
         return newObj
@@ -1393,7 +1393,7 @@ export default {
     }
   },
   methods: {
-    async enableAllSchemas () {
+    async enableAllSchemas() {
       this.$toast.info('Enabled all schemas').goAway(3000)
       this.allSchemas = true
       await this.$axios({
@@ -1405,23 +1405,23 @@ export default {
     ...mapActions({
       loadProjects: 'project/loadProjects'
     }),
-    onAdvancePanelToggle () {
+    onAdvancePanelToggle() {
       if (this.$refs.monacoEditor) {
         setTimeout(() => this.$refs.monacoEditor.resizeLayout(), 400)
       }
     },
-    getProjectEditTooltip () {
+    getProjectEditTooltip() {
       // return `Opens ${path.join(this.project.folder, 'config.xc.json')} and edit - its really simple`;
     },
-    openJsonInSystemEditor () {
+    openJsonInSystemEditor() {
       // shell.openItem(path.join(this.project.folder, 'config.xc.json'));
     },
-    readFileContent (db, obj, key, index) {
+    readFileContent(db, obj, key, index) {
       readFile(this.$refs[`${key}FilePath`][index], (data) => {
         Vue.set(db.connection[obj], key, data)
       })
     },
-    selectFile (db, obj, key, index) {
+    selectFile(db, obj, key, index) {
       this.$refs[key][index].click()
 
       // console.log(obj, key);
@@ -1437,7 +1437,7 @@ export default {
       //   Vue.set(db.connection[obj], key, file[0].toString())
       // }
     },
-    onPanelToggle (panelIndex, envKey) {
+    onPanelToggle(panelIndex, envKey) {
       this.$nextTick(() => {
         if (this.panel !== undefined) {
           const panelContainer = this.$refs.panelContainer
@@ -1455,14 +1455,14 @@ export default {
         }
       })
     },
-    scrollToTop () {
+    scrollToTop() {
       document.querySelector('html').scrollTop = 0
     },
-    showDBTabInEnvPanel (panelIndex, tabIndex) {
+    showDBTabInEnvPanel(panelIndex, tabIndex) {
       this.panel = panelIndex
       Vue.set(this.databases, panelIndex, tabIndex)
     },
-    getProjectJson () {
+    getProjectJson() {
       console.log('Project json before creating', this.project)
 
       /**
@@ -1574,7 +1574,7 @@ export default {
       return xcConfig
     },
 
-    constructProjectJsonFromProject (project) {
+    constructProjectJsonFromProject(project) {
       // const {projectJson: envs, ...rest} = project;
 
       // let p = {...rest, ...envs};
@@ -1634,7 +1634,7 @@ export default {
       delete p.mailer
     },
 
-    async createOrUpdateProject () {
+    async createOrUpdateProject() {
       const projectJson = this.getProjectJson()
       delete projectJson.folder
 
@@ -1693,7 +1693,7 @@ export default {
       this.projectReloading = false
     },
 
-    mtdDialogGetEnvNameSubmit (envName, cookie) {
+    mtdDialogGetEnvNameSubmit(envName, cookie) {
       console.log(envName)
       this.dialogGetEnvName.dialogShow = false
       if (envName in this.project.envs) {
@@ -1736,15 +1736,15 @@ export default {
         })
       }
     },
-    mtdDialogGetEnvNameCancel () {
+    mtdDialogGetEnvNameCancel() {
       console.log('mtdDialogGetTableNameCancel cancelled')
       this.dialogGetEnvName.dialogShow = false
     },
 
-    addNewEnvironment () {
+    addNewEnvironment() {
       this.dialogGetEnvName.dialogShow = true
     },
-    addNewDB (envKey, panelIndex) {
+    addNewDB(envKey, panelIndex) {
       const len = this.project.envs[envKey].db.length
       // eslint-disable-next-line no-unused-vars
       const lastDbName = `${this.project.title}_${envKey}_${len}`
@@ -1785,10 +1785,10 @@ export default {
       this.databases[panelIndex] = newlyCreatedIndex
     },
 
-    testConnectionMethodSubmit () {
+    testConnectionMethodSubmit() {
       this.dialog.show = false
     },
-    selectDir (ev) {
+    selectDir(ev) {
       // console.log(ev)
       // const file = dialog.showOpenDialog({
       //   properties: ['openDirectory']
@@ -1799,7 +1799,7 @@ export default {
       //   this.userSelectedDir = true
       // }
     },
-    selectSqliteFile (db) {
+    selectSqliteFile(db) {
       // console.log(ev)
       // const file = dialog.showOpenDialog({
       //   properties: ["openFile"]
@@ -1809,7 +1809,7 @@ export default {
       // }
     },
 
-    getDbStatusColor (db) {
+    getDbStatusColor(db) {
       switch (db.ui.setup) {
         case -1:
           return 'red'
@@ -1825,7 +1825,7 @@ export default {
       }
     },
 
-    getDbStatusTooltip (db) {
+    getDbStatusTooltip(db) {
       switch (db.ui.setup) {
         case -1:
           return 'DB Connection NOT successful'
@@ -1840,7 +1840,7 @@ export default {
           break
       }
     },
-    async newTestConnection (db, env, panelIndex) {
+    async newTestConnection(db, env, panelIndex) {
       console.log(this.project.envs[env][0])
       if (
         db.connection.host === 'localhost' &&
@@ -1931,7 +1931,7 @@ export default {
       }
     },
 
-    sendAdvancedConfig (connection) {
+    sendAdvancedConfig(connection) {
       if (!connection.ssl) { return false }
       let sendAdvancedConfig = false
       const sslOptions = Object.values(connection.ssl).filter(el => !!el)
@@ -1944,7 +1944,7 @@ export default {
       return sendAdvancedConfig
     },
 
-    handleSSL (db, creating = true) {
+    handleSSL(db, creating = true) {
       console.log('handleSSL', db)
       const sendAdvancedConfig = this.sendAdvancedConfig(db.connection)
       if (!sendAdvancedConfig) {
@@ -1963,8 +1963,8 @@ export default {
         // }
       }
     },
-    getDatabaseForTestConnection (dbType) {},
-    async testConnection (db, env, panelIndex) {
+    getDatabaseForTestConnection(dbType) {},
+    async testConnection(db, env, panelIndex) {
       this.$store.commit('notification/MutToggleProgressBar', true)
       try {
         if (!(await this.newTestConnection(db, env, panelIndex))) {
@@ -2020,17 +2020,17 @@ export default {
         this.$store.commit('notification/MutToggleProgressBar', false)
       }
     },
-    getEnvironmentStatusAggregated (dbs) {
+    getEnvironmentStatusAggregated(dbs) {
       return dbs.every(db => db.ui.setup === 1)
     },
 
-    getEnvironmentStatusAggregatedNew (dbs) {
+    getEnvironmentStatusAggregatedNew(dbs) {
       return dbs.db.every(db => db.ui.setup === 1)
     },
-    openFirstPanel () {
+    openFirstPanel() {
       if (!this.edit) { this.panel = 0 }
     },
-    onDatabaseTypeChanged (client, db1, index, env) {
+    onDatabaseTypeChanged(client, db1, index, env) {
       for (const env in this.project.envs) {
         if (this.project.envs[env].db.length > index) {
           const db = this.project.envs[env].db[index]
@@ -2071,13 +2071,13 @@ export default {
         }
       }
     },
-    selectDatabaseClient (database, index = 0) {
+    selectDatabaseClient(database, index = 0) {
       if (this.client) { this.client[index] = database }
     },
-    setDBStatus (db, status) {
+    setDBStatus(db, status) {
       db.ui.setup = status
     },
-    removeDBFromEnv (db, env, panelIndex, dbIndex) {
+    removeDBFromEnv(db, env, panelIndex, dbIndex) {
       console.log(db, env, panelIndex, dbIndex)
 
       for (const env in this.project.envs) {
@@ -2086,15 +2086,15 @@ export default {
         }
       }
     },
-    removeEnv (envKey) {
+    removeEnv(envKey) {
       delete this.project.envs[envKey]
       Vue.set(this.project, 'envs', { ...this.project.envs })
     }
   },
-  fetch ({ store, params }) {},
-  beforeCreated () {},
+  fetch({ store, params }) {},
+  beforeCreated() {},
   watch: {
-    'project.title' (newValue, oldValue) {
+    'project.title'(newValue, oldValue) {
       if (!newValue) { return }
       if (!this.edit) {
         // Vue.set(this.project, 'folder', slash(path.join(this.baseFolder, newValue)))
@@ -2121,7 +2121,7 @@ export default {
     },
     'project.envs': {
       deep: true,
-      handler (envs) {
+      handler(envs) {
         if (typeof envs === 'object' && envs) {
           Object.entries(envs).forEach(([key, env]) => {
             let res = 1
@@ -2153,7 +2153,7 @@ export default {
       }
     }
   },
-  async created () {
+  async created() {
     this.compErrorMessage =
       this.compErrorMessages[Math.floor(Math.random() * this.compErrorMessages.length)]
 
@@ -2218,8 +2218,8 @@ export default {
       // }
     }
   },
-  beforeMount () {},
-  mounted () {
+  beforeMount() {},
+  mounted() {
     this.$set(
       this.project,
       'title',
@@ -2236,12 +2236,12 @@ export default {
       input.focus()
     })
   },
-  beforeDestroy () {},
-  destroy () {},
-  validate ({ params }) {
+  beforeDestroy() {},
+  destroy() {},
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {
       title: this.$t('projects.ext_db.head.title')
     }

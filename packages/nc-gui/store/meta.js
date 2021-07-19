@@ -4,19 +4,19 @@ export const state = () => ({
 })
 
 export const mutations = {
-  MutMeta (state, { key, value }) {
+  MutMeta(state, { key, value }) {
     state.metas = { ...state.metas, [key]: value }
   },
-  MutLoading (state, { key, value }) {
+  MutLoading(state, { key, value }) {
     state.loading = { ...state.loading, [key]: value }
   },
-  MutClear (state) {
+  MutClear(state) {
     state.metas = {}
   }
 }
 
 export const actions = {
-  async ActLoadMeta ({ state, commit, dispatch }, { tn, env, dbAlias, force }) {
+  async ActLoadMeta({ state, commit, dispatch }, { tn, env, dbAlias, force }) {
     if (!force && state.loading[tn]) {
       return await new Promise((resolve) => {
         const unsubscribe = this.app.store.subscribe((s) => {

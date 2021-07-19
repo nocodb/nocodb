@@ -381,46 +381,46 @@ export default {
     formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
   }),
   computed: {
-    isEditDisabled () {
+    isEditDisabled() {
       return this.editColumn && this.sqlUi === SqliteUi
     },
-    isSQLite () {
+    isSQLite() {
       return this.sqlUi === SqliteUi
     },
-    isMSSQL () {
+    isMSSQL() {
       return this.sqlUi === MssqlUi
     },
-    dataTypes () {
+    dataTypes() {
       return this.sqlUi.getDataTypeListForUiType(this.newColumn)
     },
-    isSelect () {
+    isSelect() {
       return this.newColumn && (this.newColumn.uidt === 'MultiSelect' ||
         this.newColumn.uidt === 'SingleSelect')
     },
-    isRelation () {
+    isRelation() {
       return this.newColumn && this.newColumn.uidt === 'ForeignKey'
     },
-    isLinkToAnotherRecord () {
+    isLinkToAnotherRecord() {
       return this.newColumn && this.newColumn.uidt === 'LinkToAnotherRecord'
     },
-    relation () {
+    relation() {
       return this.meta && this.column && this.meta.belongsTo && this.meta.belongsTo.find(bt => bt.cn === this.column.cn)
     }
   },
   watch: {
-    column () {
+    column() {
       this.genColumnData()
     }
   },
-  async created () {
+  async created() {
     this.genColumnData()
     // await this.loadDataTypes();
   },
-  mounted () {
+  mounted() {
     this.focusInput()
   },
   methods: {
-    onRelColumnSelect (colMeta) {
+    onRelColumnSelect(colMeta) {
       Object.assign(this.newColumn, {
         dt: colMeta.dt,
         dtxp: colMeta.dtxp,
@@ -428,7 +428,7 @@ export default {
         un: colMeta.un
       })
     },
-    genColumnData () {
+    genColumnData() {
       this.newColumn = this.column ? { ...this.column } : this.sqlUi.getNewColumn(this.meta.columns.length + 1)
       this.newColumn.cno = this.newColumn.cn
     },
@@ -447,11 +447,11 @@ export default {
           }
         },
         */
-    close () {
+    close() {
       this.$emit('close')
       this.newColumn = {}
     },
-    async save () {
+    async save() {
       if (!this.$refs.form.validate()) {
         return
       }
@@ -501,7 +501,7 @@ export default {
 
       this.$emit('close')
     },
-    onDataTypeChange () {
+    onDataTypeChange() {
       this.newColumn.rqd = false
       this.newColumn.pk = false
       this.newColumn.ai = false
@@ -516,7 +516,7 @@ export default {
 
       this.newColumn.altered = this.newColumn.altered || 2
     },
-    onUiTypeChange () {
+    onUiTypeChange() {
       const colProp = this.sqlUi.getDataTypeForUiType(this.newColumn)
       this.newColumn = {
         ...this.newColumn,
@@ -534,14 +534,14 @@ export default {
 
       this.newColumn.altered = this.newColumn.altered || 2
     },
-    focusInput () {
+    focusInput() {
       setTimeout(() => {
         if (this.$refs.column && this.$refs.column.$el) {
           this.$refs.column.$el.querySelector('input').focus()
         }
       }, 100)
     },
-    async deleteRelation (action = '', column) {
+    async deleteRelation(action = '', column) {
       try {
         if (action === 'showDialog') {
           this.relationDeleteDlg = true

@@ -58,16 +58,16 @@ export default {
   }),
   computed: {
     dialogShow: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val)
       }
     }
   },
   watch: {
-    async route (val) {
+    async route(val) {
       try {
         if (this.isMiddleware) {
           this.code = JSON.parse(val.functions)[0]
@@ -108,7 +108,7 @@ export default {
     }
   },
   methods: {
-    async saveCode () {
+    async saveCode() {
       try {
         this.progressbar = true
         if (this.isMiddleware) {

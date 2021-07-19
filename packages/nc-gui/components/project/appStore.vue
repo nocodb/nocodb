@@ -196,27 +196,27 @@ export default {
     }
   }),
   computed: {
-    filters () {
+    filters() {
       return this.apps.reduce((arr, app) => arr.concat(app.tags || []), []).filter((f, i, arr) => i === arr.indexOf(f)).sort()
     },
-    filteredApps () {
+    filteredApps() {
       return this.apps.filter(app => (!this.query.trim() || app.name.toLowerCase().includes(this.query.trim().toLowerCase())) &&
         (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
       )
     }
   },
-  async created () {
+  async created() {
     await this.loadPluginList()
     this.readPluginDefaults()
   },
   methods: {
-    async readPluginDefaults () {
+    async readPluginDefaults() {
       try {
         this.defaultConfig = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginDemoDefaults'])
       } catch (e) {
       }
     },
-    async confirmResetPlugin () {
+    async confirmResetPlugin() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginSet', {
           input: null,
@@ -231,19 +231,19 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
-    async saved () {
+    async saved() {
       this.pluginInstallOverlay = false
       await this.loadPluginList()
     },
-    async installApp (app) {
+    async installApp(app) {
       this.pluginInstallOverlay = true
       this.installPlugin = app
     },
-    async resetApp (app) {
+    async resetApp(app) {
       this.pluginUninstallModal = true
       this.resetPluginRef = app
     },
-    async loadPluginList () {
+    async loadPluginList() {
       try {
         const plugins = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginList'])
         plugins.push(...plugins.splice(0, 3))

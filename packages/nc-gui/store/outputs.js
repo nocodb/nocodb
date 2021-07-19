@@ -4,11 +4,11 @@ export const state = () => ({
 })
 
 export const mutations = {
-  MutClear (state) {
+  MutClear(state) {
     state.list = []
     state.headers = []
   },
-  MutListSet (state, args) {
+  MutListSet(state, args) {
     let list = args.result
     if (args.sqlUi) { list = args.sqlUi.handleRawOutput(args.result, args.headers) }
     state.list = [...list]

@@ -41,56 +41,56 @@ export const state = () => ({
 })
 
 export const mutations = {
-  MutApiLoading (state, status) {
+  MutApiLoading(state, status) {
     state.apiLoading = status
   },
-  MutAutoApplyFilter (state, v) {
+  MutAutoApplyFilter(state, v) {
     state.autoApplyFilter = v
   },
-  MutToggleLogWindow (state, show) {
+  MutToggleLogWindow(state, show) {
     state.logWindow = !state.logWindow
   },
-  MutScreensaver (state, show) {
+  MutScreensaver(state, show) {
     state.screensaver = show
   },
-  MutToggleDarkMode (state, status) {
+  MutToggleDarkMode(state, status) {
     if (typeof status !== 'boolean') {
       status = !state.darkTheme
     }
     state.darkTheme = status
   },
-  MutToggleGaEnabled (state, isEnabled) {
+  MutToggleGaEnabled(state, isEnabled) {
     state.isGaEnabled = isEnabled
   },
-  MutToggleErrorReportingEnabled (state, isEnabled) {
+  MutToggleErrorReportingEnabled(state, isEnabled) {
     state.isErrorReportingEnabled = isEnabled
   },
-  MutToggleTelemetryEnabled (state, isEnabled) {
+  MutToggleTelemetryEnabled(state, isEnabled) {
     state.isTelemetryEnabled = isEnabled
   },
-  MutSetTheme (state, { theme, themeName }) {
+  MutSetTheme(state, { theme, themeName }) {
     state.themeName = themeName
     state.theme = theme
   },
-  MutToggleTheme (state) {
+  MutToggleTheme(state) {
     const keys = Object.keys(themes)
     const index = keys.indexOf(state.themeName) + 1
     state.themeName = keys[index]
     state.theme = themes[state.themeName]
   },
-  MutSetCustomTheme (state, theme) {
+  MutSetCustomTheme(state, theme) {
     state.customTheme = theme
   },
-  MutLanguage (state, language) {
+  MutLanguage(state, language) {
     state.language = language
   },
-  MutToggleTreeviewWindow (state, show) {
+  MutToggleTreeviewWindow(state, show) {
     state.treeWindow = !state.treeWindow
   },
-  MutToggleOutputWindow (state, show) {
+  MutToggleOutputWindow(state, show) {
     state.outputWindow = !state.outputWindow
   },
-  MutToggleLogWindowFromTab (state, { client, status }) {
+  MutToggleLogWindowFromTab(state, { client, status }) {
     if (client) {
       state.clientDisabledLogWindow = status
       state.logWindow = false
@@ -98,86 +98,86 @@ export const mutations = {
       state.logWindow = true
     }
   },
-  MutShowTour (state, { page, status = false }) {
+  MutShowTour(state, { page, status = false }) {
     state.showTour = { ...state.showTour, [page]: status }
   },
-  MutStartedDate (state, date) {
+  MutStartedDate(state, date) {
     state.expiryDate = date
   },
-  MutPollingIncrementBy (state, val = 1) {
+  MutPollingIncrementBy(state, val = 1) {
     state.pollingFailedMaxRetry += val
   },
-  MutPollingSet (state, val = 0) {
+  MutPollingSet(state, val = 0) {
     state.pollingFailedMaxRetry = val
   },
-  MutToggleScaffoldOnSave (state, status) {
+  MutToggleScaffoldOnSave(state, status) {
     if (typeof status === 'boolean') {
       state.scaffoldOnSave = status
     } else {
       state.scaffoldOnSave = !state.scaffoldOnSave
     }
   },
-  MutStat (state, stats) {
+  MutStat(state, stats) {
     for (const key in stats) {
       stats[key] += state.stats[key] || 0
     }
     state.stats = { ...state.stats, ...stats }
   },
-  MutResetStats (state) {
+  MutResetStats(state) {
     for (const key in state.stats) {
       state.stats[key] = 0
     }
     state.stats = { ...state.stats }
   },
-  MutVersion (state, version) {
+  MutVersion(state, version) {
     state.version = version
   },
 
-  MutCheckForUpdate (state, checkForUpdate) {
+  MutCheckForUpdate(state, checkForUpdate) {
     state.checkForUpdate = checkForUpdate
   },
-  MutDownloadAndUpdateRelease (state, downloadAndUpdateRelease) {
+  MutDownloadAndUpdateRelease(state, downloadAndUpdateRelease) {
     state.downloadAndUpdateRelease = downloadAndUpdateRelease
   },
-  MutIsComp (state, isComp) {
+  MutIsComp(state, isComp) {
     state.isComp = isComp
   },
-  MutMetatables (state, show) {
+  MutMetatables(state, show) {
     state.metatables = show
   },
-  MutNc (state, nc) {
+  MutNc(state, nc) {
     state.nc = nc
   },
-  MutMiniSponsorCard (state, miniSponsorCard) {
+  MutMiniSponsorCard(state, miniSponsorCard) {
     state.miniSponsorCard = miniSponsorCard
   }
 }
 
 export const getters = {
-  GtrNoOfDaysLeft (state) {
+  GtrNoOfDaysLeft(state) {
     // const passedDays = moment().diff(state.startedDate, 'days');
     // return passedDays > 30 ? 0 : 30 - passedDays;
   },
-  GtrHasTrialPeriodExpired (state) {
+  GtrHasTrialPeriodExpired(state) {
     // const passedDays = moment().diff(state.startedDate, 'days');
     // return passedDays > 30;
   },
-  GtrMaxPollingRetryExceeded (state) {
+  GtrMaxPollingRetryExceeded(state) {
     return state.pollingFailedMaxRetry >= process.env.pollingFailedMaxRetry
   },
-  GtrShouldWork (state) {
+  GtrShouldWork(state) {
     return () => state.isComp ? Math.floor(Math.random() * 1000) % 5 === 0 : true
   }
 }
 
 export const actions = {
-  ActGetExpiryDate ({ state, commit }, args) {
+  ActGetExpiryDate({ state, commit }, args) {
     // if (!state.startedDate) {
     //   commit('MutStartedDate', moment().format())
     // }
     // return moment().diff(state.startedDate, 'days') // 1
   },
-  ActToggleDarkMode ({ state, commit, rootState }, status) {
+  ActToggleDarkMode({ state, commit, rootState }, status) {
     //
     // const prepareToastMessage = () => {
     //   if (rootState.users.user && rootState.users.user.email) {
@@ -200,7 +200,7 @@ export const actions = {
     // }
     commit('MutToggleDarkMode', status)
   },
-  ActCheckMaxTable ({ state, commit, rootState }, { tableIndex }) {
+  ActCheckMaxTable({ state, commit, rootState }, { tableIndex }) {
     const prepareToastMessage = () => {
       return `You are allowed to access only ${rootState.users.ui_ability.rules.maxTables} tables.<br/>
 You can either upgrade or <a href="#/referral" style="color: white;font-weight: bold;">refer</a> us. `
@@ -214,7 +214,7 @@ You can either upgrade or <a href="#/referral" style="color: white;font-weight: 
     }
     return true
   },
-  ActSetTheme ({ state, commit, rootState }, { theme, themeName, custom }) {
+  ActSetTheme({ state, commit, rootState }, { theme, themeName, custom }) {
     if (custom) {
       commit('MutSetCustomTheme', theme)
     } else {

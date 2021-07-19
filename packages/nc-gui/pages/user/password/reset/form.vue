@@ -79,11 +79,11 @@ import { isEmail } from '@/helpers'
 export default {
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
-  data () {
+  data() {
     return {
 
       passwordDetails: {
@@ -104,25 +104,25 @@ export default {
 
     }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    resetUserPassword () {
+    resetUserPassword() {
       // console.log('resetuserpassword');
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

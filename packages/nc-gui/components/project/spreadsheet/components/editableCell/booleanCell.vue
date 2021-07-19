@@ -13,16 +13,16 @@ export default {
   },
   computed: {
     localState: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val)
         // this.$emit('update');
       }
     },
 
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -35,7 +35,7 @@ export default {
       return $listeners
     }
   },
-  mounted () {
+  mounted() {
     this.$el.focus()
   }
 }

@@ -464,7 +464,7 @@ export default {
     // rows
     // mocks
   },
-  data () {
+  data() {
     return {
       error: false,
       active: 1, // this.nodes.newTable ? 0 : 1,
@@ -480,7 +480,7 @@ export default {
     }
   },
   methods: {
-    addNewRelationTab (relation, refTable, refTableAlias, table, tableAlias, relationIdValue, relationType, relationRow, primaryValue) {
+    addNewRelationTab(relation, refTable, refTableAlias, table, tableAlias, relationIdValue, relationType, relationRow, primaryValue) {
       this.relationTabs.push({
         relation,
         refTable,
@@ -494,11 +494,11 @@ export default {
       })
       this.active = 'relRow' + (this.relationTabs.length - 1)
     },
-    removeRelationTab (i) {
+    removeRelationTab(i) {
       this.relationTabs.splice(i, 1)
     },
 
-    async handleKeyDown (event) {
+    async handleKeyDown(event) {
       const activeTabEleKey = `tabs${this.active}`
       if (this.$refs[activeTabEleKey] &&
         this.$refs[activeTabEleKey].handleKeyDown
@@ -510,10 +510,10 @@ export default {
       removeTableTab: 'tabs/removeTableTab',
       loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode'
     }),
-    mtdNewTableUpdate (value) {
+    mtdNewTableUpdate(value) {
       this.newTableCopy = value
     },
-    async deleteTable (action = '') {
+    async deleteTable(action = '') {
       if (action === 'showDialog') {
         this.dialogShow = true
       } else if (action === 'hideDialog') {
@@ -587,7 +587,7 @@ export default {
         this.dialogShow = false
       }
     },
-    onTabChange () {
+    onTabChange() {
       this.$emit('update:hideLogWindows', this.active === 2)
     }
   },
@@ -604,38 +604,38 @@ export default {
     }),
 
     scaffoldOnSave: {
-      get () {
+      get() {
         return this.$store.state.windows.scaffoldOnSave
       },
-      set (status) {
+      set(status) {
         this.$store.commit('windows/MutToggleScaffoldOnSave', status)
         this.$toast.success(`Scaffolding of source code ${status ? 'ENABLED' : 'DISABLED'} successfully`).goAway(4000)
       }
     },
-    isTsEnabled () {
+    isTsEnabled() {
       return process.env.TS_ENABLED
     },
-    isMetaTable () {
+    isMetaTable() {
       return isMetaTable(this.nodes.tn)
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
     this.onTabChange()
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'hideLogWindows']

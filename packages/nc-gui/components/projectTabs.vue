@@ -319,7 +319,7 @@ export default {
     xTerm,
     graphqlClient
   },
-  data () {
+  data() {
     return {
       dialogCreateTableShow: false,
       test: '',
@@ -329,7 +329,7 @@ export default {
     }
   },
   methods: {
-    checkInactiveState () {
+    checkInactiveState() {
       let position = 0
       let idleTime = 0
       // Increment the idle time counter every minute.
@@ -350,12 +350,12 @@ export default {
         idleInterval = setInterval(timerIncrement, 1000)
       })
 
-      function timerIncrement () {
+      function timerIncrement() {
         idleTime = idleTime + 1
         if (idleTime > 120) {
           const title = document.title
 
-          function scrolltitle () {
+          function scrolltitle() {
             document.title = title + Array(position).fill(' .').join('')
             position = ++position % 3
             if (self.showScreensaver) {
@@ -371,7 +371,7 @@ export default {
         }
       }
     },
-    async handleKeyDown (event) {
+    async handleKeyDown(event) {
       console.log('======== project tabs key handler')
       const activeTabEleKey = `tabs${this.activeTab}`
       let isHandled = false
@@ -396,7 +396,7 @@ export default {
       removeTab: 'tabs/remove',
       updateActiveTabx: 'tabs/activeTabCtx'
     }),
-    tabActivated (tab) {
+    tabActivated(tab) {
 
       // if (tab._nodes.type === 'apiClientDir' || tab._nodes.type === 'sqlClientDir' || tab._nodes.type === 'sqlEditor') {
       //   this.$store.commit('windows/MutToggleLogWindowFromTab', {client: true, status: true});
@@ -407,7 +407,7 @@ export default {
   },
   computed: {
     ...mapGetters({ tabs: 'tabs/list', activeTabCtx: 'tabs/activeTabCtx' }),
-    pid () {
+    pid() {
       return this.$route.params.project_id
     },
     activeTab: {
@@ -419,7 +419,7 @@ export default {
       //   console.log('activateTab========== set', val)
       //   this.setActiveTab(val);
       // }
-      set (tab) {
+      set(tab) {
         if (!tab) {
           return this.$router.push({
             query: {}
@@ -435,13 +435,13 @@ export default {
           }
         })
       },
-      get () {
+      get() {
         return [this.$route.query.type, this.$route.query.dbalias, this.$route.query.name].join('||')
       }
     }
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {
     // tabs() {
@@ -454,7 +454,7 @@ export default {
     // }
     // }
   },
-  created () {
+  created() {
     document.addEventListener('keydown', this.handleKeyDown)
     /**
      * Listening for tab change so that we can hide/show projectlogs based on tab
@@ -475,18 +475,18 @@ export default {
 
     this.checkInactiveState()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroyed () {
+  destroyed() {
     document.removeEventListener('keydown', this.handleKeyDown)
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: {}

@@ -119,11 +119,11 @@ export default {
     filter: '',
     tables: null
   }),
-  async mounted () {
+  async mounted() {
     await this.loadTableList()
   },
   methods: {
-    async loadTableList () {
+    async loadTableList() {
       this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.db.meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
@@ -131,7 +131,7 @@ export default {
         type: 'table'
       }]))
     },
-    async save () {
+    async save() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -150,10 +150,10 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
-    edited () {
+    edited() {
       return this.tables && this.tables.length && this.tables.some(t => t.edited)
     },
-    roles () {
+    roles() {
       return this.tables && this.tables.length ? Object.keys(this.tables[0].disabled) : []
     }
   }

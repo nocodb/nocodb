@@ -1,4 +1,5 @@
-<template>
+<!-- eslint-disable -->
+<!-- todo: update prop mutation with emit --><template>
   <v-container fluid>
     <v-simple-table class="ignore-height-style" dense>
       <template #default>
@@ -79,38 +80,38 @@ import draggable from 'vuedraggable'
 export default {
   directives: {},
   components: { draggable },
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: { value: Array, env: String },
-  data () {
+  data() {
     return {
       headerListAuto: ['A-IM', 'Accept', 'Accept-Charset', 'Accept-Encoding', 'Accept-Language', 'Accept-Datetime', 'Access-Control-Request-Method', 'Access-Control-Request-Headers', 'Authorization', 'Cache-Control', 'Connection', 'Content-Length', 'Content-Type', 'Cookie', 'Date', 'Expect', 'Forwarded', 'From', 'Host', 'If-Match', 'If-Modified-Since', 'If-None-Match', 'If-Range', 'If-Unmodified-Since', 'Max-Forwards', 'Origin', 'Pragma', 'Proxy-Authorization', 'Range', 'Referer', 'TE', 'User-Agent', 'Upgrade', 'Via', 'Warning', 'Non-standard headers', 'Dnt', 'X-Requested-With', 'X-CSRF-Token']
     }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {
     headersList: {
       // two way binding(v-model)
-      get () {
+      get() {
         return this.value
       },
-      set (value) {
+      set(value) {
         this.$emit('input', value)
       }
     }
   },
   watch: {
     value: {
-      handler (val) {
+      handler(val) {
         // keeps at least one param row
         if (!val || !val.length) { this.$emit('input', [{ name: '', value: '', enabled: true }]) }
       }
     }
   },
-  created () {
+  created() {
     // keeps at least one param row
     if (!this.value || !this.value.length) {
       this.$emit('input', [{
@@ -120,15 +121,15 @@ export default {
       }])
     }
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {},
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

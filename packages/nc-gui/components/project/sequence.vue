@@ -150,7 +150,7 @@ import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel'
 
 export default {
   components: { dlgLabelSubmitCancel },
-  data () {
+  data() {
     return {
       edited: false,
       originalNodes: {},
@@ -171,7 +171,7 @@ export default {
           'project/loadSequencesFromParentTreeNode',
       removeSequenceTab: 'tabs/removeSequenceTab'
     }),
-    async loadSequences () {
+    async loadSequences() {
       try {
         this.$store.commit('notification/MutToggleProgressBar', true)
         if (this.newSequence) {
@@ -205,7 +205,7 @@ export default {
         this.$store.commit('notification/MutToggleProgressBar', false)
       }
     },
-    async applyChanges () {
+    async applyChanges() {
       try {
         if (this.newSequence) {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
@@ -244,7 +244,7 @@ export default {
         throw e
       }
     },
-    async deleteSequence (action = '') {
+    async deleteSequence(action = '') {
       try {
         if (action === 'showDialog') {
           this.dialogShow = true
@@ -279,12 +279,12 @@ export default {
         throw e
       }
     },
-    sequenceNameChanged () {
+    sequenceNameChanged() {
       console.log('changed', this.sequence.sequence_name.trim())
       this.edited = this.sequence.sequence_name.trim() !== ''
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {
     // 'sequence' : {
@@ -296,21 +296,21 @@ export default {
     //   }
     // }
   },
-  async created () {
+  async created() {
     this.originalNodes = { ...this.nodes }
     await this.loadSequences()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

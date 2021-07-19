@@ -127,20 +127,20 @@ export default {
     apis: 0
   }),
   computed: {
-    rowsCount () {
+    rowsCount() {
       return this.databaseList ? Math.ceil(this.databaseList.length / 5) : 0
     },
-    databaseCount () {
+    databaseCount() {
       return this.databaseList ? this.databaseList.length : 0
     },
-    cost () {
+    cost() {
       if (!this.apis) { return 0 }
 
       const cost = Math.round(this.perHourCost * (this.apis / this.apisPerHour))
 
       return (cost + '').replace(/\d(?=(?:\d{3})+$)/g, '$&,')
     },
-    hoursSaved () {
+    hoursSaved() {
       if (!this.apis) { return 0 }
 
       const hours = Math.round(this.apis / this.apisPerHour)
@@ -148,16 +148,16 @@ export default {
       return (hours + '').replace(/\d(?=(?:\d{3})+$)/g, '$&,')
     }
   },
-  created () {
+  created() {
     this.initSocketClient()
   },
-  beforeDestroy () {
+  beforeDestroy() {
     if (this.client) {
       this.client.disconnect()
     }
   },
   methods: {
-    initSocketClient () {
+    initSocketClient() {
       try {
         this.client = require('socket.io-client')(`ws://${window.location.hostname}:8083`)
         const self = this

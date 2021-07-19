@@ -15,7 +15,7 @@
 //   "./libs"
 // );
 export default {
-  data () {
+  data() {
     return {
       show: false,
       message: '',
@@ -39,13 +39,13 @@ export default {
     }
   },
   computed: {
-    notification1 () {
+    notification1() {
       console.log('')
       return this.$store.state.notification.snackbar
     }
   },
   watch: {
-    message () {
+    message() {
       this.$nextTick(() => {
         // get all links which starts with http and on click open them in external browser
         this.$refs.message && this.$refs.message.querySelectorAll('a[href^="http"]').forEach(ele =>
@@ -57,7 +57,7 @@ export default {
       })
     }
   },
-  created () {
+  created() {
     this.$store.watch(
       state => state.snackbar.snack,
       () => {

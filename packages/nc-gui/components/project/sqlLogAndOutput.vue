@@ -36,12 +36,12 @@ export default {
   props: {
     hide: Boolean
   },
-  data () {
+  data() {
     return {
       mainPanelSize: 50
     }
   },
-  created () {
+  created() {
     if (!this.$store.state.windows.outputWindow && !this.$store.state.windows.logWindow) {
       this.$nextTick(() => {
         this.mainPanelSize = 100

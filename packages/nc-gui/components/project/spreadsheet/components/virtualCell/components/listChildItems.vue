@@ -130,7 +130,7 @@ export default {
     },
     queryParams: {
       type: Object,
-      default () {
+      default() {
         return {}
       }
     },
@@ -147,28 +147,28 @@ export default {
     page: 1
   }),
   computed: {
-    isDataAvail () {
+    isDataAvail() {
       return (this.data && this.data.list && this.data.list.length) || (this.localState && this.localState.length)
     },
     show: {
-      set (v) {
+      set(v) {
         this.$emit('input', v)
       },
-      get () {
+      get() {
         return this.value
       }
     }
   },
   watch: {
-    queryParams () {
+    queryParams() {
       this.loadData()
     }
   },
-  mounted () {
+  mounted() {
     this.loadData()
   },
   methods: {
-    async loadData () {
+    async loadData() {
       if (!this.api || this.isNew) { return }
       this.data = await this.api.paginatedList({
         limit: this.size,

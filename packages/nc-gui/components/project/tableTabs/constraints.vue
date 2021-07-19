@@ -75,7 +75,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-  data () {
+  data() {
     return {
       constraints: [],
       headers: [
@@ -90,7 +90,7 @@ export default {
     }
   },
   methods: {
-    async loadConstraintList () {
+    async loadConstraintList() {
       if (this.newTable) { return }
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
       const client = await this.sqlMgr.projectGetSqlClient({
@@ -106,24 +106,24 @@ export default {
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  created () {
+  created() {
     this.loadConstraintList()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'deleteTable']

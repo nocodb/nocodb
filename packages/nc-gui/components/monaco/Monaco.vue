@@ -34,7 +34,7 @@ export default {
     // sqlFormatter
   },
   props: ['code', 'cssStyle', 'readOnly', 'heading'],
-  data () {
+  data() {
     return {
       codeLocal: `${this.code || ''}`,
       selection: null,
@@ -45,23 +45,23 @@ export default {
   },
   computed: {},
   watch: {
-    codeLocal (newValue) {
+    codeLocal(newValue) {
       // INFO: for updating value of prop `code` in parent comp
       // console.log("update:code Event Emitted", newValue);
       this.$emit('update:code', newValue)
     },
-    code (newValue) {
+    code(newValue) {
       this.codeLocal = newValue
     }
   },
-  beforeCreate () {
+  beforeCreate() {
     // console.log(MonacoEditor)
   },
-  created () {
+  created() {
     //
   },
   methods: {
-    selectionFn () {
+    selectionFn() {
       const editor = this.$refs.editor.getMonaco()
       const range = editor.getSelection()
       const selectedText = editor.getModel().getValueInRange(range)
@@ -69,7 +69,7 @@ export default {
       this.selection = selectedText
       this.selectionRange = range
     },
-    pretify () {
+    pretify() {
       // console.log("this.code", this.code);
       const editor = this.$refs.editor.getMonaco()
 
@@ -94,7 +94,7 @@ export default {
         editor.executeEdits('sqlFormatter', [op])
       }
     },
-    toggleMiniMap () {
+    toggleMiniMap() {
       const editor = this.$refs.editor.getMonaco()
       this.minimap.enabled = !this.minimap.enabled
       editor.updateOptions({

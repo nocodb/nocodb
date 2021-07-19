@@ -50,20 +50,20 @@ export default {
     viewsList: null
   }),
   computed: {
-    origin () {
+    origin() {
       return location.origin
     }
   },
-  created () {
+  created() {
     this.loadSharedViewsList()
   },
   methods: {
-    async loadSharedViewsList () {
+    async loadSharedViewsList() {
       this.viewsList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'listSharedViewLinks', {
         model_name: this.modelName
       }])
     },
-    async deleteLink (id) {
+    async deleteLink(id) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'deleteSharedViewLink', {
           id

@@ -85,7 +85,7 @@ export default {
     names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party']
   }),
   methods: {
-    getEvents ({ start, end }) {
+    getEvents({ start, end }) {
       const events = []
 
       const min = new Date(`${start.date}T00:00:00`)
@@ -111,10 +111,10 @@ export default {
 
       this.events = events
     },
-    getEventColor (event) {
+    getEventColor(event) {
       return event.color
     },
-    rnd (a, b) {
+    rnd(a, b) {
       return Math.floor((b - a + 1) * Math.random()) + a
     }
   }

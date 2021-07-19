@@ -1,8 +1,8 @@
 import Vue from 'vue'
 
 const xUtilsPlugin = {}
-xUtilsPlugin.install = function (Vue, options) {
-  Vue.prototype.$xutils = function () {
+xUtilsPlugin.install = function(Vue, options) {
+  Vue.prototype.$xutils = function() {
     return {}
   }
   // {

@@ -1,4 +1,4 @@
-export function apiPrepareForInvocation (api) {
+export function apiPrepareForInvocation(api) {
   api.meta.path = api.meta.path || api.path
   api.meta.method = api.meta.method.toUpperCase()
   api.meta.parameters = api.meta.parameters || (api.swagger.parameters && api.swagger.parameters.filter(p => p.in === 'query').map(p => ({
@@ -18,7 +18,7 @@ export function apiPrepareForInvocation (api) {
   return api
 }
 
-export function nodeHandleIfNew (node) {
+export function nodeHandleIfNew(node) {
   if (node.isLeaf && !node.meta) {
     node.swagger = {
       parameters: []
@@ -35,7 +35,7 @@ export function nodeHandleIfNew (node) {
   }
 }
 
-export function axiosRequestMake (apiMeta) {
+export function axiosRequestMake(apiMeta) {
   if (apiMeta.body) {
     try {
       apiMeta.body = JSON.parse(apiMeta.body)

@@ -82,23 +82,23 @@ export default {
     positionX: Number,
     positionY: Number
   },
-  data () {
+  data() {
     return {
       active: false
     }
   },
   watch: {
     // two way binding of v-model
-    value (v) {
+    value(v) {
       this.active = v
     },
-    active (v) {
+    active(v) {
       this.$emit('input', v)
     }
   },
   methods: {
     // event propagating to parent v-menu(click event)
-    onSubMenuClick (event) {
+    onSubMenuClick(event) {
       this.$emit('click', event)
       // hiding parent menu
       this.active = false

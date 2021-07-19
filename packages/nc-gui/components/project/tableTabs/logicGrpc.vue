@@ -232,22 +232,22 @@ export default {
     schemaDiffDialog: false
   }),
   computed: {
-    filteredData () {
+    filteredData() {
       return this.rpcServices.filter(({ service }) => service && (!this.search || service.toLowerCase().includes(this.search.toLowerCase())))
     }
   },
-  async created () {
+  async created() {
     await this.loadRpcs()
     await this.loadSchema()
   },
   methods: {
 
-    showSourceCode (service, serviceData) {
+    showSourceCode(service, serviceData) {
       this.editService = service
       this.showCodeEditor = true
       this.editServiceData = serviceData
     },
-    async loadSchema () {
+    async loadSchema() {
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
@@ -262,7 +262,7 @@ export default {
         this.schemaHistory = []
       }
     },
-    async loadRpcs () {
+    async loadRpcs() {
       this.rpcServices = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
@@ -270,7 +270,7 @@ export default {
         tn: this.nodes.tn || this.nodes.view_name
       }])).data.list
     },
-    async saveMessageAndRpc () {
+    async saveMessageAndRpc() {
       this.edited = false
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{

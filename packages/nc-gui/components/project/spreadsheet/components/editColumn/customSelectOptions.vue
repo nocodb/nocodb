@@ -37,26 +37,26 @@ export default {
     localState: []
   }),
   computed: {
-    colors () {
+    colors() {
       return this.$store.state.windows.darkTheme ? colors.dark : colors.light
     }
   },
   watch: {
     localState: {
-      handler (v) {
+      handler(v) {
         this.$emit('input', v.map(v => `'${v}'`).join(','))
       },
       deep: true
     },
-    value () {
+    value() {
       this.syncState()
     }
   },
-  mounted () {
+  mounted() {
     this.syncState()
   },
   methods: {
-    syncState () {
+    syncState() {
       this.localState = (this.value || '').split(',').map(v => v.replace(/^'|'$/g, ''))
     }
   }

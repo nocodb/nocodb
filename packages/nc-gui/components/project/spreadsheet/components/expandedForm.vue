@@ -251,7 +251,7 @@ export default {
   props: {
     breadcrumbs: {
       type: Array,
-      default () {
+      default() {
         return []
       }
     },
@@ -275,7 +275,7 @@ export default {
     queryParams: Object,
     disabledColumns: {
       type: Object,
-      default () {
+      default() {
         return {}
       }
     }
@@ -292,13 +292,13 @@ export default {
     showSystemFields: false
   }),
   computed: {
-    primaryKey () {
+    primaryKey() {
       return this.isNew ? '' : this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
     },
-    edited () {
+    edited() {
       return !!Object.keys(this.changedColumns).length
     },
-    fields () {
+    fields() {
       if (this.availableColumns) { return this.availableColumns }
 
       const hideCols = ['created_at', 'updated_at']
@@ -311,44 +311,44 @@ export default {
         ) || []
       }
     },
-    isChanged () {
+    isChanged() {
       return Object.values(this.changedColumns).some(Boolean)
     },
-    localBreadcrumbs () {
+    localBreadcrumbs() {
       return [...this.breadcrumbs, `${this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
     }
   },
   watch: {
-    value (obj) {
+    value(obj) {
       this.localState = { ...obj }
       if (!this.isNew && this.toggleDrawer) {
         this.getAuditsAndComments()
       }
     },
-    isNew (n) {
+    isNew(n) {
       if (!n && this.toggleDrawer) {
         this.getAuditsAndComments()
       }
     },
-    meta () {
+    meta() {
       if (!this.isNew && this.toggleDrawer) {
         this.getAuditsAndComments()
       }
     },
-    toggleDrawer (td) {
+    toggleDrawer(td) {
       if (td) {
         this.getAuditsAndComments()
       }
     }
   },
-  created () {
+  created() {
     this.localState = { ...this.value }
     if (!this.isNew && this.toggleDrawer) {
       this.getAuditsAndComments()
     }
   },
   methods: {
-    isRequired (_columnObj, rowObj) {
+    isRequired(_columnObj, rowObj) {
       let columnObj = _columnObj
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
@@ -358,14 +358,14 @@ export default {
         (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
         !columnObj.default)
     },
-    updateCol (_row, _cn, pid) {
+    updateCol(_row, _cn, pid) {
       this.$set(this.localState, _cn, pid)
       this.$set(this.changedColumns, _cn, true)
     },
-    isYou (email) {
+    isYou(email) {
       return this.$store.state.users.user && this.$store.state.users.user.email === email
     },
-    async getAuditsAndComments () {
+    async getAuditsAndComments() {
       this.loadingLogs = true
       const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.dbAlias }, 'xcModelRowAuditAndCommentList', {
         model_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___'),
@@ -374,7 +374,7 @@ export default {
       this.logs = data.list
       this.loadingLogs = false
     },
-    async save () {
+    async save() {
       try {
         const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
 
@@ -413,7 +413,7 @@ export default {
         this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
       }
     },
-    async reload () {
+    async reload() {
       // const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
       const where = this.meta.columns.filter(c => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and')
       this.$set(this, 'changedColumns', {})
@@ -424,10 +424,10 @@ export default {
         this.getAuditsAndComments()
       }
     },
-    calculateDiff (date) {
+    calculateDiff(date) {
       return dayjs.utc(date).fromNow()
     },
-    async saveComment () {
+    async saveComment() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [
           { dbAlias: this.dbAlias },

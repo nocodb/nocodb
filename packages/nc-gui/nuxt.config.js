@@ -125,7 +125,7 @@ export default {
     ],
     // publicPath: process.env.NODE_ENV === 'production' ? `https://cdn.jsdelivr.net/npm/nc-lib-gui@${version}/lib/dist/` : undefined,
     publicPath: process.env.NODE_ENV === 'production' ? './_nuxt/' : undefined,
-    extend (config, { isDev, isClient }) {
+    extend(config, { isDev, isClient }) {
       if (isDev) {
         config.devtool = isClient ? 'source-map' : 'inline-source-map'
       }

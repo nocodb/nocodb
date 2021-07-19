@@ -1,4 +1,4 @@
-export default function (type) {
+export default function(type) {
   switch (type) {
     case 'int':
     case 'tinyint':

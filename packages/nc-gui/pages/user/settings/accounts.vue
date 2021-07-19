@@ -136,38 +136,38 @@
 export default {
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
-  data () {
+  data() {
     return {}
   },
-  head () {
+  head() {
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    hasConnectedAdditionalSocialAccounts () {
+    hasConnectedAdditionalSocialAccounts() {
 
     },
-    removeUserSocialAccount () {
+    removeUserSocialAccount() {
 
     },
-    isConnectedSocialAccount (social) {
+    isConnectedSocialAccount(social) {
       return true
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

@@ -163,7 +163,7 @@ import themes from '../../../helpers/themes'
 export default {
   components: { },
 
-  data () {
+  data() {
     return {
       rightClickCount: 0,
       tab: null,
@@ -194,35 +194,35 @@ export default {
       themes
     }
   },
-  fetch ({ store, params }) {
+  fetch({ store, params }) {
   },
   computed: {
     language: {
-      get () {
+      get() {
         return this.$store.state.windows.language
       },
-      set (val) {
+      set(val) {
         this.$store.commit('windows/MutLanguage', val)
       }
     },
     showMetatable: {
-      get () {
+      get() {
         return this.$store.state.windows.metatables
       },
-      set (show) {
+      set(show) {
         this.$store.commit('windows/MutMetatables', show)
       }
     },
     showScreensaver: {
-      get () {
+      get() {
         return this.$store.state.windows.screensaver
       },
-      set (show) {
+      set(show) {
         this.$store.commit('windows/MutScreensaver', show)
       }
     }
   },
-  created () {
+  created() {
     this.customTheme = { ...this.customTheme, ...this.$store.state.windows.customTheme }
     this.item = this.$store.state.windows.themeName
     this.$store.watch(
@@ -239,23 +239,23 @@ export default {
       })
   },
   methods: {
-    rightClick () {
+    rightClick() {
       this.rightClickCount++
       if (this.rightClickCount > 5) {
         // require('electron').remote.getCurrentWindow().toggleDevTools();
         this.rightClickCount = 0
       }
     },
-    async changeTheme (t, theme = 'Custom') {
+    async changeTheme(t, theme = 'Custom') {
       this.item = theme
       if (theme === 'Custom') { await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, custom: true }) }
       await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, themeName: theme })
     },
-    toggleDarkTheme () {
+    toggleDarkTheme() {
       this.$store.commit('windows/MutToggleDarkMode')
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   }
 }
 </script>

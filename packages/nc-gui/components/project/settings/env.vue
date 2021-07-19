@@ -48,7 +48,7 @@ export default {
       envList: 'project/GtrEnvList'
     })
   },
-  mounted () {
+  mounted() {
     const unserializedList = this.$store.state.project.unserializedList
     this.selectedEnv = (unserializedList[0] &&
       unserializedList[0].projectJson &&
@@ -61,7 +61,7 @@ export default {
     }, (value) => { this.selectedEnv = value })
   },
   methods: {
-    async changeEnv () {
+    async changeEnv() {
       this.progressbar = true
       await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectChangeEnv', { env: this.selectedEnv }])
       await new Promise((resolve) => {

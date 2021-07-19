@@ -321,7 +321,7 @@ export default {
     rowContextMenu: null,
     modelName: null
   }),
-  async mounted () {
+  async mounted() {
     try {
       await this.loadMeta()
       await this.loadTableData()
@@ -350,10 +350,10 @@ export default {
   },
 
   methods: {
-    syncDataDebounce: debounce(async function (self) {
+    syncDataDebounce: debounce(async function(self) {
       await self.syncData()
     }, 500),
-    async syncData () {
+    async syncData() {
       try {
         const queryParams = {
           filters: this.filters,
@@ -372,7 +372,7 @@ export default {
         // this.$toast.error(e.message).goAway(3000);
       }
     },
-    mapFieldsAndShowFields () {
+    mapFieldsAndShowFields() {
       this.fieldList = this.availableColumns.map(c => c._cn)
       this.showFields = this.fieldList.reduce((obj, k) => {
         obj[k] = true
@@ -380,16 +380,16 @@ export default {
       }, {})
     },
 
-    comingSoon () {
+    comingSoon() {
       this.$toast.info('Coming soon!').goAway(3000)
     },
-    makeSelected (col, row) {
+    makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
         this.selected = { col, row }
         this.editEnabled = {}
       }
     },
-    makeEditable (col, row) {
+    makeEditable(col, row) {
       if (this.meta.columns[col].ai) {
         return this.$toast.info('Auto Increment field is not editable').goAway(3000)
       }
@@ -401,7 +401,7 @@ export default {
       }
     },
 
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // ctrl + s -> save
       // ctrl + l -> reload
@@ -421,7 +421,7 @@ export default {
       }
     },
 
-    addFilter () {
+    addFilter() {
       this.filters.push({
         field: '',
         op: '',
@@ -430,18 +430,18 @@ export default {
       })
       this.filters = this.filters.slice()
     },
-    showAdditionalFeatOverlay (feat) {
+    showAdditionalFeatOverlay(feat) {
       this.showAddFeatOverlay = true
       this.featureType = feat
     },
-    addSort () {
+    addSort() {
       this.sortList.push({
         field: '',
         order: ''
       })
       this.filters = this.filters.slice()
     },
-    showRowContextMenu (e, row, rowMeta, index) {
+    showRowContextMenu(e, row, rowMeta, index) {
       e.preventDefault()
       this.rowContextMenu = false
       this.$nextTick(() => {
@@ -454,10 +454,10 @@ export default {
         }
       })
     },
-    expandRow (row, rowMeta) {
+    expandRow(row, rowMeta) {
     },
 
-    async loadMeta () {
+    async loadMeta() {
       this.loadingMeta = true
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
@@ -468,7 +468,7 @@ export default {
       this.meta = JSON.parse(tableMeta.meta)
       this.loadingMeta = false
     },
-    async loadTableData () {
+    async loadTableData() {
       this.loadingData = true
       const { list, count } = await this.api.paginatedList(this.queryParams)
       this.count = count
@@ -481,21 +481,21 @@ export default {
     }
   },
   computed: {
-    sqlUi () {
+    sqlUi() {
       // todo: replace with correct client
       return SqlUI.create(this.nodes.dbConnection)
     },
-    api () {
+    api() {
       return ApiFactory.create(this.$store.getters['project/GtrProjectType'], (this.meta && this.meta._tn) || this.table, this.meta && this.meta.columns, this, this.meta)
     },
-    edited () {
+    edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },
-    table () {
+    table() {
       return this.nodes.tn || this.nodes.view_name
     }
   },
-  created () {
+  created() {
     if (this.relationType === 'hm') {
       this.filters.push({
         field: this.relation.cn,
@@ -513,7 +513,7 @@ export default {
     }
     document.addEventListener('keydown', this.onKeyDown)
   },
-  beforeDestroy () {
+  beforeDestroy() {
     document.removeEventListener('keydown', this.onKeyDown)
   }
 }

@@ -49,59 +49,59 @@ export const state = () => ({
 
 export const mutations = {
 
-  MutSqlFilePathsAdd (state, args) {
+  MutSqlFilePathsAdd(state, args) {
     state.projectSqlFilePaths = {
       ...state.projectSqlFilePaths,
       [state.currentProjectKey]: [...state.projectSqlFilePaths[state.currentProjectKey], args]
     }
   },
 
-  MutSqlFilePathsRemove (state, index) {
+  MutSqlFilePathsRemove(state, index) {
     state.projectSqlFilePaths[state.currentProjectKey].splice(index, 1)
     state.projectSqlFilePaths[state.currentProjectKey] = [...state.projectSqlFilePaths[state.currentProjectKey]]
   },
 
-  MutList (state, list) {
+  MutList(state, list) {
     state.projectSqlFilePaths[state.currentProjectKey] = list
   },
-  MutCurrentProjectKey (state, currentProjectKey) {
+  MutCurrentProjectKey(state, currentProjectKey) {
     state.currentProjectKey = currentProjectKey
   },
-  MutListAdd (state, args) {
+  MutListAdd(state, args) {
     state.list.unshift(args)
     if (state.list.length > 500) { state.list.pop() }
   },
 
-  MutListRemove (state, index) {
+  MutListRemove(state, index) {
     // find index and set status
     state.list.splice(index, 1)
     state.list = [...state.list]
   },
-  MutListRemoveItem (state, item) {
+  MutListRemoveItem(state, item) {
     state.list = state.list.filter(query => item.query !== query.query)
   },
-  MutSetClipboardQuery (state, clipboardQuery) {
+  MutSetClipboardQuery(state, clipboardQuery) {
     state.clipboardQuery = clipboardQuery
   },
-  MutSetEditorByIndex (state, { editor, index }) {
+  MutSetEditorByIndex(state, { editor, index }) {
     state.editors[index] = editor
     state.editors = [...state.editors]
   },
-  MutSetEditors (state, editors) {
+  MutSetEditors(state, editors) {
     state.editors = editors.map(editor => ({ ...editor }))
   }
 
 }
 
 export const getters = {
-  GtrCurrentSqlFilePaths (state) {
+  GtrCurrentSqlFilePaths(state) {
     return state.projectSqlFilePaths[state.currentProjectKey]
   }
 }
 
 export const actions = {
 
-  async executeQuery ({ commit, state, rootState }, { envs, query }) {
+  async executeQuery({ commit, state, rootState }, { envs, query }) {
     // const sqlMgr = rootState.sqlMgr.sqlMgr
     let result
     // const type = SqlQueryParser.getType(query);
@@ -189,7 +189,7 @@ export const actions = {
     //   return a.response;
     // }
   },
-  async loadSqlCollectionForProject ({ commit, state }, { projectName, projectId }) {
+  async loadSqlCollectionForProject({ commit, state }, { projectName, projectId }) {
     const key = projectName + '__' + projectId
     commit('MutCurrentProjectKey', key)
     if (!(key in state.projectSqlFilePaths)) {

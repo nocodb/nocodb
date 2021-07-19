@@ -1,4 +1,4 @@
-export default function debounce (callbackFn, time) {
+export default function debounce(callbackFn, time) {
   let interval
   return (...args) => {
     clearTimeout(interval)

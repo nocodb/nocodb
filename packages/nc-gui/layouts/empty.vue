@@ -16,9 +16,9 @@ export default {
   data: () => ({}),
   computed: {},
   watch: {},
-  mounted () {
+  mounted() {
   },
-  async created () {
+  async created() {
     // this.$vuetify.theme.dark = false;
   },
 

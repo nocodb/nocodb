@@ -94,7 +94,7 @@ export default {
   components: {
     dlgLabelSubmitCancel
   },
-  data () {
+  data() {
     return {
       settings: {},
       dialogShow: false,
@@ -105,7 +105,7 @@ export default {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
   watch: {},
-  async created () {
+  async created() {
     this.seedsFolder = this.sqlMgr.projectGetFolder({
       env: this.nodes.env,
       dbAlias: this.nodes.dbAlias
@@ -126,12 +126,12 @@ export default {
       this.settings = result.data
     }
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    async dlgAction (action = '') {
+    async dlgAction(action = '') {
       console.log('dlgAction', action)
       if (action === 'hideDialog') {
         this.dialogShow = false
@@ -140,7 +140,7 @@ export default {
         await this.seedInit()
       }
     },
-    async seedInit () {
+    async seedInit() {
       try {
         const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
@@ -159,7 +159,7 @@ export default {
       }
     },
 
-    async seedTerm () {
+    async seedTerm() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
@@ -176,9 +176,9 @@ export default {
       }
     },
 
-    async seedStart () {
+    async seedStart() {
       try {
-        setTimeout(async () => {
+        setTimeout(async() => {
           await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
@@ -195,7 +195,7 @@ export default {
       }
     },
 
-    async seedStop () {
+    async seedStop() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
@@ -212,7 +212,7 @@ export default {
       }
     },
 
-    async seedSettingsUpdate () {
+    async seedSettingsUpdate() {
       try {
         this.settings.rows.value = +this.settings.rows.value > 100 ? 100 : this.settings.rows.value
 
@@ -232,15 +232,15 @@ export default {
 
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

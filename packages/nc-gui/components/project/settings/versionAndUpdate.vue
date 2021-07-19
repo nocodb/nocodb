@@ -77,7 +77,7 @@ import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 export default {
   components: { dlgLabelSubmitCancel },
 
-  data () {
+  data() {
     return {
       rightClickCount: 0,
       enableAppRefresh: false,
@@ -94,85 +94,85 @@ export default {
   },
   computed: {
     checkForUpdate: {
-      get () {
+      get() {
         return this.$store.state.windows.checkForUpdate
       },
-      set (value) {
+      set(value) {
         this.$store.commit('windows/MutCheckForUpdate', value)
       }
     },
     autoUpdate: {
-      get () {
+      get() {
         return this.$store.state.windows.downloadAndUpdateRelease
       },
-      set (value) {
+      set(value) {
         this.$store.commit('windows/MutDownloadAndUpdateRelease', value)
       }
     },
     isGaEnabled: {
-      get () {
+      get() {
         return this.$store.state.windows.isGaEnabled
       },
-      set (value) {
+      set(value) {
         this.$store.commit('windows/MutToggleGaEnabled', value)
       }
     },
     isErrorReportingEnabled: {
-      get () {
+      get() {
         return this.$store.state.windows.isErrorReportingEnabled
       },
-      set (value) {
+      set(value) {
         this.$store.commit('windows/MutToggleErrorReportingEnabled', value)
       }
     },
     isTelemetryEnabled: {
-      get () {
+      get() {
         return this.$store.state.windows.isErrorReportingEnabled
       },
-      set (value) {
+      set(value) {
         this.$store.commit('windows/MutToggleTelemetryEnabled', value)
       }
     },
     dialogShow: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val)
       }
     },
     language: {
-      get () {
+      get() {
         return this.$store.state.windows.language
       },
-      set (val) {
+      set(val) {
         this.$store.commit('windows/MutSetLanguage', val)
       }
     }
   },
   methods: {
-    rightClick () {
+    rightClick() {
       this.rightClickCount++
       if (this.rightClickCount > 5) {
         // require('electron').remote.getCurrentWindow().toggleDevTools();
         this.rightClickCount = 0
       }
     },
-    async applicationRefresh () {
+    async applicationRefresh() {
       localStorage.removeItem('vuex')
       location.reload()
     },
-    toggleGa (event) {
+    toggleGa(event) {
       if (this.isGaEnabled) {
         this.gaDialogShow = true
       } else { this.isGaEnabled = true }
     },
-    toggleLogReport (event) {
+    toggleLogReport(event) {
       if (this.isErrorReportingEnabled) {
         this.logReportDialogShow = true
       } else { this.isErrorReportingEnabled = true }
     },
-    logReportDialogFunction (action) {
+    logReportDialogFunction(action) {
       if (action !== 'hideDialog' && this.$store.state.users.user && this.$store.state.users.user.email) {
         this.isErrorReportingEnabled = false
       } else {
@@ -180,7 +180,7 @@ export default {
       }
       this.logReportDialogShow = false
     },
-    gaDialogFunction (action) {
+    gaDialogFunction(action) {
       if (action !== 'hideDialog') {
         if (this.$store.state.users.user && this.$store.state.users.user.email) {
           this.isGaEnabled = false

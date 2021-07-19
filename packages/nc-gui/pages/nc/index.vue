@@ -45,7 +45,7 @@ export default {
     //   Multipane,
     //   MultipaneResizer
   },
-  data () {
+  data() {
     return {
       paneSize: 20,
       mainPanelSize: 80
@@ -54,7 +54,7 @@ export default {
 
   computed: {},
   watch: {},
-  async created () {
+  async created() {
     // const user = await validateInit();
     // if (user) {
     //   ga('send', 'event', 'init', 'corruption', user);
@@ -74,7 +74,7 @@ export default {
     // )
   },
 
-  mounted () {
+  mounted() {
 
   },
   methods: {}

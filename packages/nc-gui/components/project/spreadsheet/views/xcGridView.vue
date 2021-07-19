@@ -382,29 +382,29 @@ export default {
     aggCount: []
   }),
   computed: {
-    ids () {
+    ids() {
       return this.data.map(({ oldRow }) => this.meta.columns.filter(c => c.pk).map(c => oldRow[c._cn]).join('___'))
     },
-    haveHasManyrelation () {
+    haveHasManyrelation() {
       return !!Object.keys(this.hasMany).length
     },
-    colLength () {
+    colLength() {
       return (this.availableColumns && this.availableColumns.length) || 0
     },
     // visibleColLength() {
     //   return (this.availableColumns && this.availableColumns.length) || 0
     // },
-    rowLength () {
+    rowLength() {
       return (this.data && this.data.length) || 0
     },
-    availColNames () {
+    availColNames() {
       return (this.availableColumns && this.availableColumns.map(c => c._cn)) || []
     },
-    groupedAggCount () {
+    groupedAggCount() {
       // eslint-disable-next-line camelcase
       return this.aggCount ? this.aggCount.reduce((o, { model_id, count }) => ({ ...o, [model_id]: count }), {}) : {}
     },
-    style () {
+    style() {
       let style = ''
       for (const [key, val] of Object.entries(this.columnsWidth || {})) {
         if (val && key !== this.resizingCol) {
@@ -430,22 +430,22 @@ export default {
     }
   },
   watch: {
-    data () {
+    data() {
       this.xcAuditModelCommentsCount()
     }
   },
-  mounted () {
+  mounted() {
     this.calculateColumnWidth()
   },
-  created () {
+  created() {
     document.addEventListener('keydown', this.onKeyDown)
     this.xcAuditModelCommentsCount()
   },
-  beforeDestroy () {
+  beforeDestroy() {
     document.removeEventListener('keydown', this.onKeyDown)
   },
   methods: {
-    isRequired (_columnObj, rowObj) {
+    isRequired(_columnObj, rowObj) {
       let columnObj = _columnObj
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
@@ -455,11 +455,11 @@ export default {
         (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
         !columnObj.default)
     },
-    updateCol (row, column, value, columnObj, colIndex, rowIndex) {
+    updateCol(row, column, value, columnObj, colIndex, rowIndex) {
       this.$set(row, column, value)
       this.onCellValueChange(colIndex, rowIndex, columnObj)
     },
-    calculateColumnWidth () {
+    calculateColumnWidth() {
       setTimeout(() => {
         const obj = {}
         this.meta && this.meta.columns && this.meta.columns.forEach((c) => {
@@ -475,7 +475,7 @@ export default {
         this.$emit('update:columnsWidth', { ...obj, ...(this.columnWidth || {}) })
       }, 500)
     },
-    isCentrallyAligned (col) {
+    isCentrallyAligned(col) {
       return !['SingleLineText',
         'LongText',
         'Attachment',
@@ -487,7 +487,7 @@ export default {
         'CreateTime',
         'LastModifiedTime'].includes(col.uidt)
     },
-    async xcAuditModelCommentsCount () {
+    async xcAuditModelCommentsCount() {
       if (this.isPublicView || !this.data || !this.data.length) { return }
       const aggCount = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.nodes.dbAlias
@@ -501,7 +501,7 @@ export default {
       this.aggCount = aggCount
     },
 
-    onKeyDown (e) {
+    onKeyDown(e) {
       if (this.selected.col === null || this.selected.row === null) { return }
       switch (e.keyCode) {
         // left
@@ -535,7 +535,7 @@ export default {
         }
       }
     },
-    onClickOutside () {
+    onClickOutside() {
       if (
         this.meta.columns &&
         this.meta.columns[this.selected.col] &&
@@ -544,30 +544,30 @@ export default {
       this.selected.col = null
       this.selected.row = null
     },
-    onNewColCreation () {
+    onNewColCreation() {
       this.addNewColMenu = false
       this.addNewColModal = false
       this.$emit('onNewColCreation')
     },
-    expandRow (...args) {
+    expandRow(...args) {
       this.$emit('expandRow', ...args)
     },
-    showRowContextMenu ($event, rowObj, rowMeta, row) {
+    showRowContextMenu($event, rowObj, rowMeta, row) {
       this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row)
     },
-    onCellValueChange (col, row, column, ev) {
+    onCellValueChange(col, row, column, ev) {
       this.$emit('onCellValueChange', col, row, column, ev)
     },
-    addNewRelationTab (...args) {
+    addNewRelationTab(...args) {
       this.$emit('addNewRelationTab', ...args)
     },
-    makeSelected (col, row) {
+    makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
         this.selected = { col, row }
         this.editEnabled = {}
       }
     },
-    makeEditable (col, row) {
+    makeEditable(col, row) {
       if (this.isPublicView || !this.isEditable) { return }
       if (this.availableColumns[col].ai) {
         return this.$toast.info('Auto Increment field is not editable').goAway(3000)
@@ -579,7 +579,7 @@ export default {
         this.editEnabled = { col, row }
       }
     },
-    enableEditable (column) {
+    enableEditable(column) {
       return (column && column.uidt === 'Attachment') ||
         (column && column.uidt === 'SingleSelect') ||
         (column && column.uidt === 'MultiSelect') ||
@@ -588,13 +588,13 @@ export default {
         (column && column.uidt === 'Time') ||
         (this.sqlUi && this.sqlUi.getAbstractType(column) === 'boolean')
     },
-    insertNewRow (atEnd = false, expand = false) {
+    insertNewRow(atEnd = false, expand = false) {
       this.$emit('insertNewRow', atEnd, expand)
     },
-    onresize (col, size) {
+    onresize(col, size) {
       this.$emit('update:columnsWidth', { ...this.columnsWidth, [col]: size })
     },
-    onXcResizing (_cn, width) {
+    onXcResizing(_cn, width) {
       this.resizingCol = _cn
       this.resizingColWidth = width
     }

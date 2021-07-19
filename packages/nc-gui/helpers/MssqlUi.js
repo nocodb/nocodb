@@ -37,7 +37,7 @@ const dbTypes = [
 ]
 
 export class MssqlUi {
-  static getNewTableColumns () {
+  static getNewTableColumns() {
     return [
       {
         cn: 'id',
@@ -130,7 +130,7 @@ export class MssqlUi {
     ]
   }
 
-  static getNewColumn (suffix) {
+  static getNewColumn(suffix) {
     return {
       cn: 'title' + suffix,
       dt: 'int',
@@ -272,7 +272,7 @@ export class MssqlUi {
   //
   // }
 
-  static getDefaultLengthForDatatype (type) {
+  static getDefaultLengthForDatatype(type) {
     switch (type) {
       case 'bigint':
         return ''
@@ -384,7 +384,7 @@ export class MssqlUi {
     }
   }
 
-  static getDefaultLengthIsDisabled (type) {
+  static getDefaultLengthIsDisabled(type) {
     switch (type) {
       case 'bigint':
       case 'binary':
@@ -430,7 +430,7 @@ export class MssqlUi {
     }
   }
 
-  static getDefaultValueForDatatype (type) {
+  static getDefaultValueForDatatype(type) {
     switch (type) {
       case 'bigint':
         return 'eg: '
@@ -542,7 +542,7 @@ export class MssqlUi {
     }
   }
 
-  static getDefaultScaleForDatatype (type) {
+  static getDefaultScaleForDatatype(type) {
     switch (type) {
       case 'bigint':
         return ''
@@ -654,7 +654,7 @@ export class MssqlUi {
     }
   }
 
-  static colPropAIDisabled (col, columns) {
+  static colPropAIDisabled(col, columns) {
     // console.log(col);
     if (col.dt === 'int4' ||
       col.dt === 'integer' ||
@@ -671,7 +671,7 @@ export class MssqlUi {
     }
   }
 
-  static colPropUNDisabled (col) {
+  static colPropUNDisabled(col) {
     // console.log(col);
     return true
     // if (col.dt === 'int' ||
@@ -685,7 +685,7 @@ export class MssqlUi {
     // }
   }
 
-  static onCheckboxChangeAI (col) {
+  static onCheckboxChangeAI(col) {
     console.log(col)
     if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
       col.altered = col.altered || 2
@@ -698,11 +698,11 @@ export class MssqlUi {
     // }
   }
 
-  static showScale (columnObj) {
+  static showScale(columnObj) {
     return false
   }
 
-  static removeUnsigned (columns) {
+  static removeUnsigned(columns) {
     for (let i = 0; i < columns.length; ++i) {
       if (columns[i].altered === 1 && (!(columns[i].dt === 'int' ||
         columns[i].dt === 'bigint' ||
@@ -716,23 +716,23 @@ export class MssqlUi {
     }
   }
 
-  static columnEditable (colObj) {
+  static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
   }
 
-  static extractFunctionName (query) {
+  static extractFunctionName(query) {
     const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
     const match = query.match(reg)
     return match && match[1]
   }
 
-  static extractProcedureName (query) {
+  static extractProcedureName(query) {
     const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
     const match = query.match(reg)
     return match && match[1]
   }
 
-  static handleRawOutput (result, headers) {
+  static handleRawOutput(result, headers) {
     console.log(result)
 
     if (Array.isArray(result) && result[0]) {
@@ -749,7 +749,7 @@ export class MssqlUi {
     return result
   }
 
-  static splitQueries (query) {
+  static splitQueries(query) {
     /***
      * we are splitting based on semicolon
      * there are mechanism to escape semicolon within single/double quotes(string)
@@ -762,7 +762,7 @@ export class MssqlUi {
    * @param args
    * @returns {string|*}
    */
-  sanitiseQuery (args) {
+  sanitiseQuery(args) {
     let q = args.query.trim().split(';')
 
     if (q[0].startsWith('Select')) {
@@ -778,7 +778,7 @@ export class MssqlUi {
     return q
   }
 
-  static getColumnsFromJson (json, tn) {
+  static getColumnsFromJson(json, tn) {
     const columns = []
 
     try {
@@ -880,16 +880,16 @@ export class MssqlUi {
     return columns
   }
 
-  static isValidTimestamp (key, value) {
+  static isValidTimestamp(key, value) {
     if (typeof value !== 'number') { return false }
     return new Date(value).getTime() > 0 && /(?:_|(?=A))[aA]t$/.test(key)
   }
 
-  static isValidDate (value) {
+  static isValidDate(value) {
     return new Date(value).getTime() > 0
   }
 
-  static onCheckboxChangeAU (col) {
+  static onCheckboxChangeAU(col) {
     console.log(col)
     // if (1) {
     col.altered = col.altered || 2
@@ -902,7 +902,7 @@ export class MssqlUi {
     // }
   }
 
-  static colPropAuDisabled (col) {
+  static colPropAuDisabled(col) {
     if (col.altered !== 1) { return true }
 
     switch (col.dt) {
@@ -919,7 +919,7 @@ export class MssqlUi {
     }
   }
 
-  static getAbstractType (col) {
+  static getAbstractType(col) {
     switch ((col.dt || col.dt).toLowerCase()) {
       case 'bigint':
       case 'smallint':
@@ -987,7 +987,7 @@ export class MssqlUi {
     }
   }
 
-  static getUIType (col) {
+  static getUIType(col) {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number'
@@ -1018,7 +1018,7 @@ export class MssqlUi {
     }
   }
 
-  static getDataTypeForUiType (col) {
+  static getDataTypeForUiType(col) {
     const colProp = {}
     switch (col.uidt) {
       case 'ID':
@@ -1131,7 +1131,7 @@ export class MssqlUi {
     return colProp
   }
 
-  static getDataTypeListForUiType (col) {
+  static getDataTypeListForUiType(col) {
     switch (col.uidt) {
       case 'ID':
       case 'ForeignKey':

@@ -12,17 +12,17 @@ export default {
     data: []
   }),
   methods: {
-    mapFieldsAndShowFields () {
+    mapFieldsAndShowFields() {
       // this.fieldList = this.availableColumns.map(c => c._cn);
       this.showFields = this.fieldList.reduce((obj, k) => {
         obj[k] = k in this.showFields ? this.showFields[k] : true
         return obj
       }, {})
     },
-    syncDataDebounce () {
+    syncDataDebounce() {
       // not implemented
     },
-    onKeyDown (e) {
+    onKeyDown(e) {
       if (this.selected.col === null || this.selected.row === null) { return }
       switch (e.keyCode) {
         // left
@@ -49,23 +49,23 @@ export default {
     }
   },
   computed: {
-    isLocked () {
+    isLocked() {
       return this.viewStatus && this.viewStatus.type === 'locked'
     },
-    fieldList () {
+    fieldList() {
       return this.availableColumns.map((c) => {
         return c._cn
       })
     },
-    realFieldList () {
+    realFieldList() {
       return this.availableRealColumns.map((c) => {
         return c._cn
       })
     },
-    availableRealColumns () {
+    availableRealColumns() {
       return this.availableColumns && this.availableColumns.filter(c => !c.virtual)
     },
-    availableColumns () {
+    availableColumns() {
       let columns = []
 
       // todo: generate hideCols based on default values
@@ -95,7 +95,7 @@ export default {
 
       return columns
     },
-    concatenatedXWhere () {
+    concatenatedXWhere() {
       let where = ''
       if (this.searchField && this.searchQuery.trim()) {
         if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.availableColumns.find(({ _cn }) => _cn === this.searchField) || this.availableColumns[0]))) {
@@ -111,7 +111,7 @@ export default {
 
       return this.xWhere ? where + `~and(${this.xWhere})` : where
     },
-    queryParams () {
+    queryParams() {
       return {
         limit: this.size,
         offset: this.size * (this.page - 1),
@@ -124,19 +124,19 @@ export default {
         mm: (this.meta && this.meta.v && this.meta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
       }
     },
-    colLength () {
+    colLength() {
       return (this.availableColumns && this.availableColumns.length) || 0
     },
-    visibleColLength () {
+    visibleColLength() {
       return (this.availableColumns && this.availableColumns.length) || 0
     },
-    rowLength () {
+    rowLength() {
       return (this.data && this.data.length) || 0
     },
-    edited () {
+    edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },
-    hasMany () {
+    hasMany() {
       // todo: use cn alias
       return this.meta && this.meta.hasMany
         ? this.meta.hasMany.reduce((hm, o) => {
@@ -147,10 +147,10 @@ export default {
         }, {})
         : {}
     },
-    haveHasManyrelation () {
+    haveHasManyrelation() {
       return !!Object.keys(this.hasMany).length
     },
-    belongsTo () {
+    belongsTo() {
       return this.meta && this.meta.belongsTo
         ? this.meta.belongsTo.reduce((bt, o) => {
           const _cn = (this.meta.columns.find(c => c.cn === o.cn) || {})._cn
@@ -159,7 +159,7 @@ export default {
         }, {})
         : {}
     },
-    table () {
+    table() {
       if (this.relationType === 'hm') {
         return this.relation.tn
       } else if (this.relationType === 'bt') {
@@ -168,29 +168,29 @@ export default {
 
       return this.nodes.tn || this.nodes.view_name
     },
-    primaryValueColumn () {
+    primaryValueColumn() {
       if (!this.meta || !this.availableColumns || !this.availableColumns.length) { return '' }
       return (this.availableColumns.find(col => col.pv) || { _cn: '' })._cn
     }
   },
   watch: {
-    'viewStatus.type' () {
+    'viewStatus.type'() {
       if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
     },
     showFields: {
-      handler (v) {
+      handler(v) {
         if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
       },
       deep: true
     },
     fieldsOrder: {
-      handler (v) {
+      handler(v) {
         if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
       },
       deep: true
     },
     filters: {
-      async handler (filter) {
+      async handler(filter) {
         let defaultQuery = ''
         let j = 0
         const xWhere = filter.reduce((condition, filt, k) => {
@@ -248,7 +248,7 @@ export default {
       deep: true
     },
     sortList: {
-      async handler (sortList) {
+      async handler(sortList) {
         const sort = sortList.map((sort) => {
           return sort.field ? `${sort.order}${sort.field}` : ''
         }).filter(Boolean).join(',')
@@ -260,15 +260,15 @@ export default {
       },
       deep: true
     },
-    columnsWidth () {
+    columnsWidth() {
       if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
     },
-    sort (n, o) {
+    sort(n, o) {
       if (o !== n) {
         this.loadTableData()
       }
     },
-    concatenatedXWhere (n, o) {
+    concatenatedXWhere(n, o) {
       if (o !== n) {
         this.loadTableData()
       }

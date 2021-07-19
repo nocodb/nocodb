@@ -1,7 +1,7 @@
 // Todo : https://jasonwatmore.com/post/2018/09/10/vuejs-set-get-delete-reactive-nested-object-properties
 import Vue from 'vue'
 
-function setProp (obj, props, value) {
+function setProp(obj, props, value) {
   const prop = props.shift()
   if (!obj[prop]) {
     Vue.set(obj, prop, {})

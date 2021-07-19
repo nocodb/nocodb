@@ -1,12 +1,12 @@
 export default class GrpcApi {
-  constructor (table, ctx) {
+  constructor(table, ctx) {
     this.table = table
     this.ctx = ctx
   }
 
   // todo:  - get version letter and use table alias
 
-  async paginatedList (params) {
+  async paginatedList(params) {
     const result = await this.ctx.$store.dispatch('sqlMgr/ActSqlOp', [{
       env: this.ctx.nodes.env,
       dbAlias: this.ctx.nodes.dbAlias

@@ -157,20 +157,20 @@ export default {
     destroyed: false
   }),
 
-  mounted () {
+  mounted() {
     // this.$refs.input.focus();
   },
-  beforeDestroy () {
+  beforeDestroy() {
     if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime)) {
       this.$emit('change')
     }
     this.destroyed = true
   },
   methods: {
-    syncDataDebounce: debounce(async function (self) {
+    syncDataDebounce: debounce(async function(self) {
       await self.syncData()
     }, 1000),
-    syncData () {
+    syncData() {
       if (!this.destroyed) {
         this.$emit('update')
       }
@@ -178,16 +178,16 @@ export default {
   },
   computed: {
     localState: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.changed = true
         this.$emit('input', val)
         this.syncDataDebounce(this)
       }
     },
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {

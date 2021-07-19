@@ -84,10 +84,10 @@ export default {
   props: ['value', 'nodes', 'type', 'deleteTable', 'table'],
   computed: {
     show: {
-      set (v) {
+      set(v) {
         this.$emit('input', v)
       },
-      get () {
+      get() {
         return this.value
       }
     }

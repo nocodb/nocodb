@@ -55,21 +55,21 @@ export default {
     newColumn: {}
   }),
   watch: {
-    column (c) {
+    column(c) {
       this.newColumn = { ...c }
     }
   },
-  async created () {
+  async created() {
   },
-  mounted () {
+  mounted() {
     this.newColumn = { ...this.column }
   },
   methods: {
-    close () {
+    close() {
       this.$emit('input', false)
       this.newColumn = {}
     },
-    async save () {
+    async save() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -89,7 +89,7 @@ export default {
       this.$emit('input', false)
     },
 
-    focusInput () {
+    focusInput() {
       setTimeout(() => {
         if (this.$refs.column && this.$refs.column.$el) {
           this.$refs.column.$el.querySelector('input').focus()

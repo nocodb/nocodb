@@ -94,16 +94,16 @@ export default {
   },
   computed: {
     perf: {
-      get () {
+      get() {
         return { ...(this.value || {}) }
       },
-      set (value) {
+      set(value) {
         this.$emit('input', value)
       }
     }
   },
   methods: {
-    open (url) {
+    open(url) {
       // shell.openExternal(url)
     }
   }

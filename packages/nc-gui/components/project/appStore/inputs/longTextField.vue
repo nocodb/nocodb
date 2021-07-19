@@ -23,22 +23,22 @@ export default {
   },
   computed: {
     localState: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val)
       }
     },
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
       return $listeners
     }
   },
-  created () {
+  created() {
     this.localState = this.value
   },
-  mounted () {
+  mounted() {
     this.$refs.textarea.focus()
   }
 }

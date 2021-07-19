@@ -35,9 +35,9 @@
 export default {
   directives: { },
   components: { },
-  validate ({ params }) { return true },
+  validate({ params }) { return true },
   props: { },
-  data () {
+  data() {
     return {
 
       form: {
@@ -47,27 +47,27 @@ export default {
 
     }
   },
-  head () { return {} },
+  head() { return {} },
   computed: {
 
   },
   watch: { },
-  created () { },
-  mounted () {
+  created() { },
+  mounted() {
     if (this.$store.state.users.user) {
       // console.log('update user profile',this.$store.state);
       this.form.firstName = this.$store.state.users.user.firstName
       this.form.lastName = this.$store.state.users.user.firstName
     }
   },
-  beforeDestroy () {},
+  beforeDestroy() {},
   methods: {
-    updateUserProfile () {
+    updateUserProfile() {
       // console.log('update user profile',this.$store.user);
     }
   },
-  beforeCreated () {},
-  destroy () {}
+  beforeCreated() {},
+  destroy() {}
 }
 </script>
 

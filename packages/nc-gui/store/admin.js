@@ -11,7 +11,7 @@ const state = () => ({
 // modified state vars
 const getters = {
 
-  GtrUsers (state) {
+  GtrUsers(state) {
     return state.users
   }
 
@@ -20,7 +20,7 @@ const getters = {
 // state variables are modified here
 const mutations = {
 
-  MutSetUsers (state, users) {
+  MutSetUsers(state, users) {
     // console.log('in MutPlusCounter', users);
     state.users = users
   }
@@ -31,7 +31,7 @@ const mutations = {
 const actions = {
 
   /** ************** START : users admin ****************/
-  async ActGetUsers ({ commit }) {
+  async ActGetUsers({ commit }) {
     console.log('in action ActGetUsers')
     try {
       const usersPromise = await axios.get('/api/users')
@@ -42,7 +42,7 @@ const actions = {
     }
   },
 
-  async ActGetUser ({ commit }, data) {
+  async ActGetUser({ commit }, data) {
     try {
       const usersPromise = await axios.get('/api/users/' + data)
       console.log(usersPromise)
@@ -54,11 +54,11 @@ const actions = {
     }
   },
 
-  ActUpdateUser ({ commit }) {
+  ActUpdateUser({ commit }) {
     console.log('in action signout')
   },
 
-  ActDeleteUser ({ commit }) {
+  ActDeleteUser({ commit }) {
     console.log('in action signout')
   }
   /** ************** END : users admin ****************/

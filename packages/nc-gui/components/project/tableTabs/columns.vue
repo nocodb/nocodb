@@ -722,7 +722,7 @@ import jsonToColumn from './columnActions/jsonToColumn'
 
 export default {
   components: { addRelationDlg, dlgLabelSubmitCancel, jsonToColumn },
-  data () {
+  data() {
     return {
       showJsonToColumDlg: false,
       paginationLength: [20, 50, -1],
@@ -779,15 +779,15 @@ export default {
     }
   },
   methods: {
-    async saveAndScaffold () {
+    async saveAndScaffold() {
       await this.applyChanges()
       await this.scaffold()
     },
-    async saveAndScaffoldModel () {
+    async saveAndScaffoldModel() {
       await this.applyChanges()
       await this.scaffold({ model: true })
     },
-    async scaffold (scaffold = null) {
+    async scaffold(scaffold = null) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           null,
@@ -802,15 +802,15 @@ export default {
         console.log(e)
       }
     },
-    async saveAndScaffoldGql () {
+    async saveAndScaffoldGql() {
       await this.applyChanges()
       await this.scaffoldGql()
     },
-    async saveAndScaffoldModelGql () {
+    async saveAndScaffoldModelGql() {
       await this.applyChanges()
       await this.scaffoldGql({ model: true })
     },
-    async scaffoldGql (scaffold = null) {
+    async scaffoldGql(scaffold = null) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           null,
@@ -824,7 +824,7 @@ export default {
       } catch (e) {
       }
     },
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -847,7 +847,7 @@ export default {
           break
       }
     },
-    loadJsonColumn (jsonString) {
+    loadJsonColumn(jsonString) {
       try {
         const columns = this.sqlUi.getColumnsFromJson(JSON5.parse(jsonString), this.nodes.tn)
         const dup = columns.find(col => this.columns.some(exCol => exCol.cn === col.cn))
@@ -864,7 +864,7 @@ export default {
         this.$toast.error('Invalid JSON string').goAway(3000)
       }
     },
-    getColumnIcon (column) {
+    getColumnIcon(column) {
       if (column.pk) {
         return 'mdi-key'
       } else if (column.rcn) {
@@ -873,18 +873,18 @@ export default {
         return 'mdi-gate-or'
       }
     },
-    onFKShowWarning () {
+    onFKShowWarning() {
       this.$toast.error("COLUMN property with foreign key mapped can't be edited. Remove foreign key to edit.").goAway(3000)
     },
 
     ...mapActions({
       loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
-    onCheckboxChange () {
+    onCheckboxChange() {
       this.edited = true
     },
 
-    onCheckboxChangePk (col) {
+    onCheckboxChangePk(col) {
       this.edited = true
       col.altered = col.altered || 2
 
@@ -897,40 +897,40 @@ export default {
       col.cdf = null
       col.rqd = true
     },
-    colPropAIDisabled (col) {
+    colPropAIDisabled(col) {
       return this.sqlUi.colPropAIDisabled(col, this.columns)
     },
 
-    colPropUNDisabled (col) {
+    colPropUNDisabled(col) {
       return this.sqlUi.colPropUNDisabled(col)
     },
 
-    onCheckboxChangeAI (col) {
+    onCheckboxChangeAI(col) {
       this.sqlUi.onCheckboxChangeAI(col)
 
       this.edited = true
     },
 
-    onCheckboxChangeAU (col) {
+    onCheckboxChangeAU(col) {
       this.sqlUi.onCheckboxChangeAU(col)
       this.edited = true
     },
 
-    onCheckboxChangeNN (col) {
+    onCheckboxChangeNN(col) {
       col.altered = col.altered || 2
       this.edited = true
     },
 
-    onCheckboxChangeUN (col) {
+    onCheckboxChangeUN(col) {
       col.altered = col.altered || 2
       this.edited = true
     },
 
-    onUiDataTypeChange (column) {
+    onUiDataTypeChange(column) {
       this.edited = true
       column.altered = column.altered || 2
     },
-    onDataTypeChange (column, index) {
+    onDataTypeChange(column, index) {
       this.edited = true
       column.altered = column.altered || 2
       column.rqd = false
@@ -946,7 +946,7 @@ export default {
 
       this.$set(column, 'uidt', this.sqlUi.getUIType(column))
     },
-    async loadColumnList () {
+    async loadColumnList() {
       this.loading = true
       this.$store.commit('notification/MutToggleProgressBar', true)
       try {
@@ -993,10 +993,10 @@ export default {
         this.loading = false
       }
     },
-    async loadUiDataTypes () {
+    async loadUiDataTypes() {
       this.uiDataTypes = uiTypes
     },
-    async loadDataTypes () {
+    async loadDataTypes() {
       try {
         const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -1009,75 +1009,75 @@ export default {
         throw e
       }
     },
-    saveColumnName (col, v) {
+    saveColumnName(col, v) {
       this.edited = true
       col.altered = col.altered || 8
       this.snack = true
     },
-    save (col) {
+    save(col) {
       this.edited = true
       col.altered = col.altered || 2
       this.snack = true
     },
-    cancel () {
+    cancel() {
       this.snack = true
     },
-    open () {
+    open() {
       this.snack = true
     },
-    close () {
+    close() {
       console.log('Dialog closed')
     },
 
-    saveDefaultValue (col) {
+    saveDefaultValue(col) {
       this.edited = true
       col.altered = col.altered || 2
       this.snack = true
     },
-    savePrecision (col) {
+    savePrecision(col) {
       console.log(col)
       col.altered = col.altered || 2
       this.edited = true
       this.snack = true
     },
-    cancelPrecision () {
+    cancelPrecision() {
       this.snack = true
     },
-    openPrecision () {
+    openPrecision() {
       this.snack = true
     },
-    closePrecision () {
+    closePrecision() {
       console.log('Dialog closed')
     },
-    showScale (columnObj) {
+    showScale(columnObj) {
       return this.sqlUi.showScale(columnObj)
     },
-    saveScale (col) {
+    saveScale(col) {
       col.altered = col.altered || 2
       this.edited = true
       this.snack = true
     },
-    cancelScale () {
+    cancelScale() {
       this.snack = true
     },
-    openScale () {
+    openScale() {
       this.snack = true
     },
-    closeScale () {
+    closeScale() {
       console.log('Dialog closed')
     },
-    removeUnsigned (columns) {
+    removeUnsigned(columns) {
       this.sqlUi.removeUnsigned(columns)
     },
-    async reload () {
+    async reload() {
       await this.loadColumnList()
     },
-    addColumn () {
+    addColumn() {
       this.edited = true
       this.columns.push(this.sqlUi.getNewColumn(this.columns.length))
       this.scrollAndFocusLastRow()
     },
-    async deleteColumn (action = '', index, column) {
+    async deleteColumn(action = '', index, column) {
       try {
         if (action === 'showDialog') {
           this.columnDeleteDlg = true
@@ -1112,7 +1112,7 @@ export default {
       }
     },
 
-    async applyChangesDirect () {
+    async applyChangesDirect() {
       try {
         if (this.newTable) {
           await this.saveAndScaffold()
@@ -1125,7 +1125,7 @@ export default {
         throw e
       }
     },
-    async applyChangesDirectGql () {
+    async applyChangesDirectGql() {
       try {
         if (this.newTable) {
           await this.saveAndScaffoldGql()
@@ -1138,7 +1138,7 @@ export default {
         throw e
       }
     },
-    async applyChanges () {
+    async applyChanges() {
       try {
         this.progress.save = true
         if (this.newTable) {
@@ -1180,12 +1180,12 @@ export default {
 
       this.progress.save = false
     },
-    createNewOrEditRelation (column) {
+    createNewOrEditRelation(column) {
       console.log(column)
       this.selectedColForNewRelation = { ...column }
       this.dialogShow = true
     },
-    async mtdNewRelationDlgSubmit (relationObject) {
+    async mtdNewRelationDlgSubmit(relationObject) {
       try {
         if (relationObject.updateRelation) {
           // update existing relation
@@ -1215,11 +1215,11 @@ export default {
         throw error
       }
     },
-    mtdNewRelationDlgCancel () {
+    mtdNewRelationDlgCancel() {
       this.dialogShow = false
       this.selectedColNameForNewRelation = ''
     },
-    async deleteRelation (action = '', column) {
+    async deleteRelation(action = '', column) {
       try {
         if (action === 'showDialog') {
           this.relationDeleteDlg = true
@@ -1255,7 +1255,7 @@ export default {
         throw e
       }
     },
-    scrollAndFocusLastRow () {
+    scrollAndFocusLastRow() {
       this.$nextTick(() => {
         document.querySelector('.project-container').scrollTop = 9999
         const menuActivator = this.$refs.column && this.$refs.column.querySelector('.v-small-dialog__activator__content')
@@ -1279,10 +1279,10 @@ export default {
     })
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  async created () {
+  async created() {
     this.sqlUi = SqlUI.create(this.nodes.dbConnection)
 
     try {
@@ -1294,18 +1294,18 @@ export default {
       this.loading = false
     }
   },
-  mounted () {
+  mounted() {
 
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable', 'isMetaTable']

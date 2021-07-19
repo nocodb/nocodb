@@ -465,7 +465,7 @@ export default {
     // rows
     // mocks
   },
-  data () {
+  data() {
     return {
       error: false,
       active: 0,
@@ -481,15 +481,15 @@ export default {
     }
   },
   methods: {
-    addNewRelationTab (relation, refTable, table, relationIdValue, relationType, relationRow, primaryValue) {
+    addNewRelationTab(relation, refTable, table, relationIdValue, relationType, relationRow, primaryValue) {
       this.relationTabs.push({ relation, refTable, table, relationIdValue, relationType, relationRow, primaryValue })
       this.active = 'relRow' + (this.relationTabs.length - 1)
     },
-    removeRelationTab (i) {
+    removeRelationTab(i) {
       this.relationTabs.splice(i, 1)
     },
 
-    async handleKeyDown (event) {
+    async handleKeyDown(event) {
       const activeTabEleKey = `tabs${this.active}`
       if (this.$refs[activeTabEleKey] &&
         this.$refs[activeTabEleKey].handleKeyDown
@@ -501,10 +501,10 @@ export default {
       removeTableTab: 'tabs/removeTableTab',
       loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode'
     }),
-    mtdNewTableUpdate (value) {
+    mtdNewTableUpdate(value) {
       this.newTableCopy = value
     },
-    async deleteTable (action = '') {
+    async deleteTable(action = '') {
       if (action === 'showDialog') {
         this.dialogShow = true
       } else if (action === 'hideDialog') {
@@ -592,37 +592,37 @@ export default {
     }),
 
     scaffoldOnSave: {
-      get () {
+      get() {
         return this.$store.state.windows.scaffoldOnSave
       },
-      set (status) {
+      set(status) {
         this.$store.commit('windows/MutToggleScaffoldOnSave', status)
         this.$toast.success(`Scaffolding of source code ${status ? 'ENABLED' : 'DISABLED'} successfully`).goAway(4000)
       }
     },
-    isTsEnabled () {
+    isTsEnabled() {
       return process.env.TS_ENABLED
     },
-    isMetaTable () {
+    isMetaTable() {
       return isMetaTable(this.nodes.tn)
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

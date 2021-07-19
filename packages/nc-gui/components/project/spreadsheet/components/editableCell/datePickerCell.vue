@@ -20,14 +20,14 @@ export default {
   },
   computed: {
     localState: {
-      get () {
+      get() {
         return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : (this.value && new Date(this.value))
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val && new Date(val).toJSON().slice(0, 10))
       }
     },
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -40,7 +40,7 @@ export default {
       return $listeners
     }
   },
-  mounted () {
+  mounted() {
     if (this.$el && this.$el.$el) {
       this.$el.$el.focus()
     }

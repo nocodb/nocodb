@@ -115,7 +115,7 @@ export default {
   name: 'AclTypeormDb',
   components: { AclTypeormDbChild },
   props: ['nodes'],
-  data () {
+  data() {
     return {
       disableSaveButton: false,
       policies: [],
@@ -125,7 +125,7 @@ export default {
   },
   methods: {
 
-    async aclInit () {
+    async aclInit() {
       // // this.disableSaveButton = true;
       // this.policies = (await this.sqlMgr.xcRoutesPolicyGet({
       //   env: this.nodes.env,
@@ -139,28 +139,28 @@ export default {
         tn: this.nodes.tn
       }])).data.list
     },
-    reload () {
+    reload() {
       this.$refs.acl.aclInit()
     },
-    save () {
+    save() {
       this.$refs.acl.save()
     },
-    openFolder () {
+    openFolder() {
     }
   },
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
   watch: {},
-  mounted () {
+  mounted() {
     this.$nuxt.$loading.start()
-    setTimeout(async () => {
+    setTimeout(async() => {
       await this.aclInit()
       this.$nuxt.$loading.finish()
       this.loading = false
     }, 500)
   },
-  created () {
+  created() {
     this.loading = true
   }
 }

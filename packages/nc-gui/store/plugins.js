@@ -2,19 +2,19 @@
 export const state = () => ({})
 
 export const mutations = {
-  mutPluginDetails (state, { title, settings }) {
+  mutPluginDetails(state, { title, settings }) {
     state[title] = settings
   }
 }
 
 export const getters = {
-  brandName (state) {
+  brandName(state) {
     if (state.Branding && state.Branding.title) {
       return state.Branding.title
     }
     return 'NocoDB'
   },
-  brandLogo (state) {
+  brandLogo(state) {
     if (state.Branding && state.Branding.logo && state.Branding.logo.length) {
       const images = JSON.parse(state.Branding.logo)
       if (images && images.length) { return images[0].url }
@@ -24,7 +24,7 @@ export const getters = {
 }
 
 export const actions = {
-  async pluginPostInstall ({ commit, state }, title) {
+  async pluginPostInstall({ commit, state }, title) {
     try {
       this.plugin = await this.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         title

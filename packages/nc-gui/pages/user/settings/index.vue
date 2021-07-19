@@ -176,11 +176,11 @@ import { isEmail } from '@/helpers'
 export default {
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {},
-  data () {
+  data() {
     return {
       user: {
         provider: 'local'
@@ -226,11 +226,11 @@ export default {
 
     }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {
-    isAdmin () {
+    isAdmin() {
       if (this.$store.state.users.user) {
         // console.log(this.$store.state.users.user.roles.indexOf('creator'));
         return 'creator' in this.$store.state.users.user.roles
@@ -238,7 +238,7 @@ export default {
       return false
     },
 
-    isEmailAuth () {
+    isEmailAuth() {
       if (this.$store.state.users.user) {
         // console.log(this.$store.state.users.user.roles.indexOf('creator'));
         return (this.$store.state.users.user.provider === 'local')
@@ -248,19 +248,19 @@ export default {
 
   },
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
     this.getSubscriptions()
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
-    test () {
+    test() {
       // console.log('test method');
     },
 
-    async resetUserPassword (e) {
+    async resetUserPassword(e) {
       e.preventDefault()
       if (this.$refs.formType[0].validate()) {
         // console.log('passworDetails',this.passwordDetails);
@@ -275,15 +275,15 @@ export default {
       }
     },
 
-    async getSubscriptions (e) {
+    async getSubscriptions(e) {
       console.log('get subs')
       const data = await this.$store.dispatch('users/ActGetSubscriptionsList')
       this.subscriptions = data
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

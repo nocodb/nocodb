@@ -7,20 +7,20 @@ export const state = () => ({
 })
 
 export const mutations = {
-  add (state, tab) {
+  add(state, tab) {
     console.log('tabs:', tab)
     if (state.list.length >= 8) {
       state.list.shift()
     }
     state.list = [...state.list, tab]
   },
-  remove (state, index) {
+  remove(state, index) {
     state.list.splice(index, 1)
   },
-  clear (state, index) {
+  clear(state, index) {
     state.list = []
   },
-  active (state, index) {
+  active(state, index) {
     console.log('> > > > active', state, index)
     if (state.list[index]) {
       state.activeTabCtx = { ...state.list[index] }
@@ -34,10 +34,10 @@ export const mutations = {
       })
     }
   },
-  list (state, list) {
+  list(state, list) {
     Vue.set(state, 'list', list)
   },
-  activeTabCtx (state, activeTabCtx) {
+  activeTabCtx(state, activeTabCtx) {
     let list = [...state.list]
     console.log('> > > > activeTabCtx', state, activeTabCtx)
 
@@ -57,25 +57,25 @@ export const mutations = {
 }
 
 export const getters = {
-  list (state) {
+  list(state) {
     console.log('> > > > list', state)
     return state.list
   },
-  activeTab (state) {
+  activeTab(state) {
     console.log('> > > > gtr activeTab', state.activeTab)
     return state.activeTab
   },
-  activeTabCtx (state) {
+  activeTabCtx(state) {
     console.log('> > > > gtr activeTabCtx', state.activeTabCtx)
     return state.activeTabCtx
   }
 }
 
 export const actions = {
-  async changeActiveTab ({ commit, state }, index) {
+  async changeActiveTab({ commit, state }, index) {
     commit('active', index)
   },
-  async loadDefaultTabs ({ commit, state, rootGetters, dispatch, rootState }, load) {
+  async loadDefaultTabs({ commit, state, rootGetters, dispatch, rootState }, load) {
     const tabs = []
 
     if ('name' in this.$router.currentRoute.query &&
@@ -242,7 +242,7 @@ export const actions = {
     commit('list', tabs)
   },
 
-  removeTableTab ({ commit, state }, nodes) {
+  removeTableTab({ commit, state }, nodes) {
     const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
@@ -253,7 +253,7 @@ export const actions = {
     tabs.splice(tabIndex, 1)
     commit('list', tabs)
   },
-  removeViewTab ({ commit, state }, nodes) {
+  removeViewTab({ commit, state }, nodes) {
     const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
@@ -264,7 +264,7 @@ export const actions = {
     tabs.splice(tabIndex, 1)
     commit('list', tabs)
   },
-  removeFunctionTab ({ commit, state }, nodes) {
+  removeFunctionTab({ commit, state }, nodes) {
     const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
@@ -275,7 +275,7 @@ export const actions = {
     tabs.splice(tabIndex, 1)
     commit('list', tabs)
   },
-  removeProcedureTab ({ commit, state }, nodes) {
+  removeProcedureTab({ commit, state }, nodes) {
     const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
@@ -286,7 +286,7 @@ export const actions = {
     tabs.splice(tabIndex, 1)
     commit('list', tabs)
   },
-  removeSequenceTab ({ commit, state }, nodes) {
+  removeSequenceTab({ commit, state }, nodes) {
     const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
@@ -297,7 +297,7 @@ export const actions = {
     tabs.splice(tabIndex, 1)
     commit('list', tabs)
   },
-  removeTabsByName ({ commit, state }, item) {
+  removeTabsByName({ commit, state }, item) {
     let tabs = JSON.parse(JSON.stringify(state.list))
     tabs = tabs.filter((el) => {
       if (
@@ -313,7 +313,7 @@ export const actions = {
     commit('list', tabs)
   },
 
-  ActAddTab ({ commit, state, rootState }, item) {
+  ActAddTab({ commit, state, rootState }, item) {
     if (rootState.users.ui_ability.rules.maxTabs <= state.list.length) {
       this.commit('snackbar/setSnack', `Free plan limits to ${rootState.users.ui_ability.rules.maxTabs} tabs. Please <a href="https://nocodb.com/pricing" style="color: white;font-weight: bold;">upgrade</a> your plan for unlimited tabs.`)
       return

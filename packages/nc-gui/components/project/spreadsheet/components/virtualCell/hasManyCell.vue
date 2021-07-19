@@ -146,7 +146,7 @@ export default {
   props: {
     breadcrumbs: {
       type: Array,
-      default () {
+      default() {
         return []
       }
     },
@@ -173,35 +173,35 @@ export default {
     localState: []
   }),
   computed: {
-    childMeta () {
+    childMeta() {
       return this.$store.state.meta.metas[this.hm.tn]
     },
-    childApi () {
+    childApi() {
       return this.childMeta && this.childMeta._tn
         ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],
           this.childMeta && this.childMeta._tn, this.childMeta && this.childMeta.columns, this, this.childMeta)
         : null
     },
-    childPrimaryCol () {
+    childPrimaryCol() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
     },
-    primaryCol () {
+    primaryCol() {
       return this.meta && (this.meta.columns.find(c => c.pv) || {})._cn
     },
-    childPrimaryKey () {
+    childPrimaryKey() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
     },
-    childForeignKey () {
+    childForeignKey() {
       return this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn
     },
-    disabledChildColumns () {
+    disabledChildColumns() {
       return { [this.childForeignKey]: true }
     },
     // todo:
-    form () {
+    form() {
       return this.selectedChild ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
     },
-    childAvailableColumns () {
+    childAvailableColumns() {
       const hideCols = ['created_at', 'updated_at']
       if (!this.childMeta) { return [] }
 
@@ -214,7 +214,7 @@ export default {
       }
       return columns
     },
-    childQueryParams () {
+    childQueryParams() {
       if (!this.childMeta) { return {} }
       // todo: use reduce
       return {
@@ -223,40 +223,40 @@ export default {
         mm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
       }
     },
-    parentId () {
+    parentId() {
       return this.meta && this.meta.columns ? this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___') : ''
     }
   },
   watch: {
-    isNew (n, o) {
+    isNew(n, o) {
       if (!n && o) {
         this.saveLocalState()
       }
     }
   },
-  async mounted () {
+  async mounted() {
     await this.loadChildMeta()
   },
-  created () {
+  created() {
     this.loadChildMeta()
   },
   methods: {
-    onChildSave () {
+    onChildSave() {
       if (this.isNew) {
         this.addChildToParent(this.selectedChild)
       } else {
         this.$emit('loadTableData')
       }
     },
-    async showChildListModal () {
+    async showChildListModal() {
       await this.loadChildMeta()
       this.childListModal = true
     },
-    async deleteChild (child) {
+    async deleteChild(child) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to delete the record?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -274,7 +274,7 @@ export default {
         }
       }
     },
-    async unlinkChild (child) {
+    async unlinkChild(child) {
       if (this.isNew) {
         this.localState.splice(this.localState.indexOf(child), 1)
         return
@@ -296,7 +296,7 @@ export default {
       // }
       // }
     },
-    async loadChildMeta () {
+    async loadChildMeta() {
       // todo: optimize
       if (!this.childMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -314,11 +314,11 @@ export default {
         // this.childQueryParams = JSON.parse(childTableData.query_params);
       }
     },
-    async showNewRecordModal () {
+    async showNewRecordModal() {
       await this.loadChildMeta()
       this.newRecordModal = true
     },
-    async addChildToParent (child) {
+    async addChildToParent(child) {
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
         this.newRecordModal = false
@@ -340,7 +340,7 @@ export default {
         this.$refs.childList.loadData()
       }
     },
-    async editChild (child) {
+    async editChild(child) {
       await this.loadChildMeta()
       this.isNewChild = false
       this.selectedChild = child
@@ -349,7 +349,7 @@ export default {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
     },
-    async insertAndAddNewChildRecord () {
+    async insertAndAddNewChildRecord() {
       this.newRecordModal = false
       await this.loadChildMeta()
       this.isNewChild = true
@@ -363,7 +363,7 @@ export default {
         }, 500)
       }
     },
-    getCellValue (cellObj) {
+    getCellValue(cellObj) {
       if (cellObj) {
         if (this.parentMeta && this.childPrimaryCol) {
           return cellObj[this.childPrimaryCol]
@@ -371,7 +371,7 @@ export default {
         return Object.values(cellObj)[1]
       }
     },
-    async saveLocalState (row) {
+    async saveLocalState(row) {
       let child
       // eslint-disable-next-line no-cond-assign
       while (child = this.localState.pop()) {

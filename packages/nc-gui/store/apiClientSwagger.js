@@ -9,49 +9,49 @@ export const state = () => ({
 
 export const mutations = {
 
-  MutApiFilePathsAdd (state, args) {
+  MutApiFilePathsAdd(state, args) {
     state.projectApiFilePaths = {
       ...state.projectApiFilePaths,
       [state.currentProjectKey]: [...state.projectApiFilePaths[state.currentProjectKey], args]
     }
   },
 
-  MutApiFilePathsRemove (state, index) {
+  MutApiFilePathsRemove(state, index) {
     state.projectApiFilePaths[state.currentProjectKey].splice(index, 1)
     state.projectApiFilePaths[state.currentProjectKey] = [...state.projectApiFilePaths[state.currentProjectKey]]
   },
 
-  MutListAdd (state, args) {
+  MutListAdd(state, args) {
     state.list.unshift(args)
     if (state.list.length > 500) { state.list.pop() }
   },
 
-  MutListRemove (state, index) {
+  MutListRemove(state, index) {
     // find index and set status
     state.list.splice(index, 1)
     // state.list = [...state.list]
   },
-  MutList (state, list) {
+  MutList(state, list) {
     state.projectApiFilePaths[state.currentProjectKey] = list
   },
-  MutCurrentProjectKey (state, currentProjectKey) {
+  MutCurrentProjectKey(state, currentProjectKey) {
     state.currentProjectKey = currentProjectKey
   },
-  MutActiveEnvironment (state, { env }) {
+  MutActiveEnvironment(state, { env }) {
     Vue.set(state.activeEnvironment, state.currentProjectKey, env)
   }
 
 }
 
 export const getters = {
-  GtrCurrentApiFilePaths (state) {
+  GtrCurrentApiFilePaths(state) {
     return state.projectApiFilePaths[state.currentProjectKey]
   }
 }
 
 export const actions = {
 
-  async send ({ commit, state, rootGetters }, { apiDecoded, api }) {
+  async send({ commit, state, rootGetters }, { apiDecoded, api }) {
     const apiMeta = { ...apiDecoded }
     // let t, t1, t2
 
@@ -123,7 +123,7 @@ export const actions = {
     // };
   },
 
-  async loadApiCollectionForProject ({ commit, state }, { projectName = '__default', projectId = '__id' }) {
+  async loadApiCollectionForProject({ commit, state }, { projectName = '__default', projectId = '__id' }) {
     const key = projectName + '__' + projectId
     commit('MutCurrentProjectKey', key)
     if (!(key in state.projectApiFilePaths)) {

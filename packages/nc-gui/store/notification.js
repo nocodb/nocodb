@@ -13,13 +13,13 @@ export const state = () => ({
 
 export const mutations = {
 
-  MutListAdd (state, args) {
+  MutListAdd(state, args) {
     console.log(state)
     args.time = Date.now()
     state.list.unshift(args)
   },
 
-  MutListRemove (state, args) {
+  MutListRemove(state, args) {
     // find index and set status
     const index = state.list.findIndex(n => n.status === 'pending' &&
       n.type === args.type &&
@@ -32,14 +32,14 @@ export const mutations = {
     state.list = [...state.list]
   },
 
-  MutListClearFinished (state, args) {
+  MutListClearFinished(state, args) {
     let len = state.list.length
     while (len--) {
       if (state.list[len].status !== 'pending') { state.list.splice(len, 1) }
     }
   },
 
-  MutToggleProgressBar (state, status) {
+  MutToggleProgressBar(state, status) {
     console.log('MutToggleProgressBar', status)
     if (status) { state.showProgressBar.push(1) } else { state.showProgressBar.pop() }
   }

@@ -95,15 +95,15 @@ export default {
     data: null
   }),
   computed: {
-    roles () {
+    roles() {
       return this.data ? Object.keys(this.data) : []
     }
   },
-  async created () {
+  async created() {
     await this.loadAcl()
   },
   methods: {
-    async loadAcl () {
+    async loadAcl() {
       this.loading = true
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
@@ -115,7 +115,7 @@ export default {
 
       this.loading = false
     },
-    async save () {
+    async save() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,

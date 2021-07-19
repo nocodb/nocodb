@@ -48,15 +48,15 @@ export default {
   }),
   computed: {
     localState: {
-      get () {
+      get() {
         return this.value
       },
-      set (v) {
+      set(v) {
         this.$emit('input', v)
       }
     }
   },
-  mounted () {
+  mounted() {
     try {
       if (this.copyView && this.copyView.query_params) {
         this.queryParams = { ...JSON.parse(this.copyView.query_params) }
@@ -73,7 +73,7 @@ export default {
     })
   },
   methods: {
-    async createView () {
+    async createView() {
       let showFields = null
 
       if (this.show_as === 'gallery') {

@@ -594,7 +594,7 @@ export default {
     }],
     rowContextMenu: null
   }),
-  async mounted () {
+  async mounted() {
     try {
       await this.createTableIfNewTable()
       await this.loadMeta()
@@ -631,7 +631,7 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
-    checkAndDeleteTable () {
+    checkAndDeleteTable() {
       if (
         (!this.meta) && (
           (this.meta.hasMany && this.meta.hasMany.length) ||
@@ -642,7 +642,7 @@ export default {
       }
       this.deleteTable('showDialog')
     },
-    async reload () {
+    async reload() {
       this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
@@ -652,15 +652,15 @@ export default {
       await this.loadTableData()
       this.key = Math.random()
     },
-    reloadComments () {
+    reloadComments() {
       if (this.$refs.ncgridview) {
         this.$refs.ncgridview.xcAuditModelCommentsCount()
       }
     },
-    syncDataDebounce: debounce(async function (self) {
+    syncDataDebounce: debounce(async function(self) {
       await self.syncData()
     }, 500),
-    async syncData () {
+    async syncData() {
       if (this.relation) {
         return
       }
@@ -687,11 +687,11 @@ export default {
         // this.$toast.error(e.message).goAway(3000);
       }
     },
-    showAdditionalFeatOverlay (feat) {
+    showAdditionalFeatOverlay(feat) {
       this.showAddFeatOverlay = true
       this.featureType = feat
     },
-    async createTableIfNewTable () {
+    async createTableIfNewTable() {
       if (this.nodes.newTable) {
         const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.cn))
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
@@ -716,10 +716,10 @@ export default {
       this.loadViews = true
     },
 
-    comingSoon () {
+    comingSoon() {
       this.$toast.info('Coming soon!').goAway(3000)
     },
-    addNewRelationTabCtxMenu (obj, type) {
+    addNewRelationTabCtxMenu(obj, type) {
       const rowObj = this.rowContextMenu.row
 
       this.addNewRelationTab(
@@ -735,13 +735,13 @@ export default {
         rowObj[this.primaryValueColumn]
       )
     },
-    changed (col, row) {
+    changed(col, row) {
       this.$set(this.data[row].rowMeta, 'changed', this.data[row].rowMeta.changed || {})
       if (this.data[row].rowMeta) {
         this.$set(this.data[row].rowMeta.changed, this.availableColumns[col].cn, true)
       }
     },
-    async save () {
+    async save() {
       for (let row = 0; row < this.rowLength; row++) {
         const { row: rowObj, rowMeta } = this.data[row]
         if (rowMeta.new) {
@@ -803,13 +803,13 @@ export default {
       }
     },
 
-    onCellValueChangeDebounce: debounce(async function (col, row, column, self) {
+    onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
       await self.onCellValueChangeFn(col, row, column)
     }, 300),
-    onCellValueChange (col, row, column) {
+    onCellValueChange(col, row, column) {
       this.onCellValueChangeDebounce(col, row, column, this)
     },
-    async onCellValueChangeFn (col, row, column) {
+    async onCellValueChangeFn(col, row, column) {
       if (!this.data[row]) {
         return
       }
@@ -838,7 +838,7 @@ export default {
         }
       }
     },
-    async deleteRow () {
+    async deleteRow() {
       try {
         const rowObj = this.rowContextMenu.row
         if (!this.rowContextMenu.rowMeta.new) {
@@ -851,7 +851,7 @@ export default {
         this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
       }
     },
-    async deleteSelectedRows () {
+    async deleteSelectedRows() {
       let row = this.rowLength
       while (row--) {
         try {
@@ -871,7 +871,7 @@ export default {
         this.$toast.success('Deleted selected rows successfully').goAway(3000)
       }
     },
-    async insertNewRow (atEnd = false, expand = false) {
+    async insertNewRow(atEnd = false, expand = false) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
       const focusCol = this.availableColumns.findIndex(c => !c.ai)
       this.data.splice(focusRow, 0, {
@@ -897,7 +897,7 @@ export default {
       // this.save()
     },
 
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       switch ([
         this._isMac ? metaKey : ctrlKey,
         key].join('_')) {
@@ -912,7 +912,7 @@ export default {
           break
       }
     },
-    async loadMeta (updateShowFields = true) {
+    async loadMeta(updateShowFields = true) {
       this.loadingMeta = true
       // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
@@ -936,13 +936,13 @@ export default {
         }
       }
     },
-    loadTableDataDeb: debounce(async function (self) {
+    loadTableDataDeb: debounce(async function(self) {
       await self.loadTableDataFn()
     }, 200),
-    loadTableData () {
+    loadTableData() {
       this.loadTableDataDeb(this)
     },
-    async loadTableDataFn () {
+    async loadTableDataFn() {
       this.loadingData = true
       try {
         if (this.api) {
@@ -959,7 +959,7 @@ export default {
       }
       this.loadingData = false
     },
-    showRowContextMenu (e, row, rowMeta, index) {
+    showRowContextMenu(e, row, rowMeta, index) {
       e.preventDefault()
       this.rowContextMenu = false
       this.$nextTick(() => {
@@ -972,33 +972,33 @@ export default {
         }
       })
     },
-    expandRow (row, rowMeta) {
+    expandRow(row, rowMeta) {
       this.showExpandModal = true
       this.selectedExpandRowIndex = row
       this.selectedExpandRowMeta = rowMeta
     },
-    async onNewColCreation () {
+    async onNewColCreation() {
       await this.loadMeta(true)
-      this.$nextTick(async () => {
+      this.$nextTick(async() => {
         await this.loadTableData()
         // this.mapFieldsAndShowFields();
       })
     }
   },
   computed: {
-    meta () {
+    meta() {
       return this.$store.state.meta.metas[this.table]
     },
-    currentApiUrl () {
+    currentApiUrl() {
       return this.api && `${this.api.apiUrl}?` + Object.entries(this.queryParams).filter(p => p[1]).map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`).join('&')
     },
-    isEditable () {
+    isEditable() {
       return this._isUIAllowed('xcDatatableEditable')
     },
-    sqlUi () {
+    sqlUi() {
       return SqlUI.create(this.nodes.dbConnection)
     },
-    api () {
+    api() {
       return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
     }
   }

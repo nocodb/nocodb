@@ -7,7 +7,7 @@
 <script>
 export default {
   name: 'Screensaver',
-  mounted () {
+  mounted() {
     // Initialising the canvas
     const canvas = this.$el.querySelector('canvas')
     const ctx = canvas.getContext('2d')
@@ -31,7 +31,7 @@ export default {
     }
 
     // Setting up the draw function
-    function draw () {
+    function draw() {
       ctx.fillStyle = 'rgba(0, 0, 0, .1)'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
       for (let i = 0; i < drops.length; i++) {

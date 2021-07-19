@@ -623,15 +623,15 @@ export default {
       isGrpc: 'project/GtrProjectIsGrpc',
       role: 'users/GtrRole'
     }),
-    user () {
+    user() {
       return this.$store.getters['users/GtrUser']
     },
-    isThisMobile () { // just an example, could be one specific value if that's all you need
+    isThisMobile() { // just an example, could be one specific value if that's all you need
       return this.isHydrated ? this.$vuetify.breakpoint.smAndDown : false
     }
   },
   watch: {
-    '$route.path' (path, oldPath) {
+    '$route.path'(path, oldPath) {
       try {
         if (oldPath === path) { return }
         const recaptcha = this.$recaptchaInstance
@@ -643,7 +643,7 @@ export default {
       } catch (e) {
       }
     },
-    '$route.params.project_id' (newId, oldId) {
+    '$route.params.project_id'(newId, oldId) {
       if (newId && newId !== oldId) {
         this.loadProjectInfo()
       }
@@ -652,7 +652,7 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     this.selectedEnv = this.$store.getters['project/GtrActiveEnv']
     this.loadProjectInfo()
   },
@@ -669,7 +669,7 @@ export default {
       toggleOutputWindow: 'windows/MutToggleOutputWindow',
       toggleTreeviewWindow: 'windows/MutToggleTreeviewWindow'
     }),
-    async loadProjectInfo () {
+    async loadProjectInfo() {
       if (this.$route.params.project_id) {
         try {
           const { info } = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
@@ -683,51 +683,51 @@ export default {
         }
       }
     },
-    setPreviewUSer (previewAs) {
+    setPreviewUSer(previewAs) {
       this.previewAs = previewAs
       window.location.reload()
     },
-    showAppStoreIcon () {
+    showAppStoreIcon() {
       this.showAppStore = true
       this.$toast.info('Apps unlocked').goAway(5000)
     },
 
-    isProjectInfoLoaded () {
+    isProjectInfoLoaded() {
       return this.$store.state.project.projectInfo !== null
     },
-    githubClickHandler (e) {
+    githubClickHandler(e) {
       //   e.preventDefault();
       //   shell.openExternal(e.path.find(e => e.href).href);
     },
-    openUrl (url) {
+    openUrl(url) {
       window.open(url, '_blank')
     },
-    openPricingPage () {
+    openPricingPage() {
       //   shell.openExternal(process.env.serverUrl + '/pricing')
     },
-    openHowItWorks () {
+    openHowItWorks() {
       //   shell.openExternal(process.env.serverUrl + '/how-it-works')
     },
-    openDiscord () {
+    openDiscord() {
       //   shell.openExternal('https://discord.gg/5RgZmkW')
     },
-    openGithub () {
+    openGithub() {
       //   shell.openExternal('https://github.com/NocoDB/NocoDB')
     },
-    dialogDebugCancel () {
+    dialogDebugCancel() {
       this.dialogDebug = false
     },
-    dialogDebugShow () {
+    dialogDebugShow() {
       this.dialogDebug = true
     },
 
-    errorDialogCancel () {
+    errorDialogCancel() {
       this.dialogErrorShow = false
     },
-    errorDialogReport () {
+    errorDialogReport() {
       this.dialogErrorShow = false
     },
-    loadChat () {
+    loadChat() {
       if (!window.Tawk_API) {
         const s1 = document.createElement('script'); const s0 = document.getElementsByTagName('script')[0]
         s1.async = true
@@ -740,7 +740,7 @@ export default {
         window.Tawk_API.maximize()
       }
     },
-    handleMigrationsMenuClick (item, closeMenu = true, sqlEditor = false) {
+    handleMigrationsMenuClick(item, closeMenu = true, sqlEditor = false) {
       // if (item._nodes.type != "db") return;
       //
       // if (closeMenu) this.$refs.migrationsMenu.isActive = false;
@@ -758,7 +758,7 @@ export default {
       // }
     },
 
-    terminalTabAdd () {
+    terminalTabAdd() {
       if (this.isDashboard) {
         const tabIndex = this.tabs.findIndex(el => el.key === 'terminal')
         if (tabIndex !== -1) {
@@ -774,7 +774,7 @@ export default {
         this.terminalDialog = true
       }
     },
-    apiClientTabAdd () {
+    apiClientTabAdd() {
       // if (this.$route.path.indexOf('dashboard') > -1) {
       const tabIndex = this.tabs.findIndex(el => el.key === 'apiClientDir')
       if (tabIndex !== -1) {
@@ -790,7 +790,7 @@ export default {
       //   this.terminalDialog = true;
       // }
     },
-    apiClientSwaggerTabAdd () {
+    apiClientSwaggerTabAdd() {
       // if (this.$route.path.indexOf('dashboard') > -1) {
       const tabIndex = this.tabs.findIndex(el => el.key === 'apiClientSwaggerDir')
       if (tabIndex !== -1) {
@@ -806,7 +806,7 @@ export default {
       //   this.terminalDialog = true;
       // }
     },
-    projectInfoTabAdd () {
+    projectInfoTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'projectInfo')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -818,7 +818,7 @@ export default {
         this.$store.dispatch('tabs/ActAddTab', item)
       }
     },
-    xcMetaTabAdd () {
+    xcMetaTabAdd() {
       // if (this.$route.path.indexOf('dashboard') > -1) {
       const tabIndex = this.tabs.findIndex(el => el.key === 'meta')
       if (tabIndex !== -1) {
@@ -833,10 +833,10 @@ export default {
       //   this.terminalDialog = true;
       // }
     },
-    apiClientSwaggerOpen () {
+    apiClientSwaggerOpen() {
       this.$router.push('/apiClient')
     },
-    graphqlClientTabAdd () {
+    graphqlClientTabAdd() {
       // const tabIndex = this.tabs.findIndex(el => el.key === `graphqlClientDir`);
       // if (tabIndex !== -1) {
       //   this.changeActiveTab(tabIndex);
@@ -849,7 +849,7 @@ export default {
       // }
       window.open(this.swaggerOrGraphiqlUrl, '_blank')
     },
-    swaggerClientTabAdd () {
+    swaggerClientTabAdd() {
       // const tabIndex = this.tabs.findIndex(el => el.key === `swaggerClientDir`);
       // if (tabIndex !== -1) {
       //   this.changeActiveTab(tabIndex);
@@ -862,7 +862,7 @@ export default {
       // }
       window.open(this.swaggerOrGraphiqlUrl, '_blank')
     },
-    grpcTabAdd () {
+    grpcTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'grpcClient')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -874,7 +874,7 @@ export default {
         this.$store.dispatch('tabs/ActAddTab', item)
       }
     },
-    rolesTabAdd () {
+    rolesTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'roles')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -889,7 +889,7 @@ export default {
         this.$eventBus.$emit('show-add-user')
       }, 200)
     },
-    settingsTabAdd () {
+    settingsTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'projectSettings')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -901,7 +901,7 @@ export default {
         this.$store.dispatch('tabs/ActAddTab', item)
       }
     },
-    aclTabAdd () {
+    aclTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'acl')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -913,7 +913,7 @@ export default {
         this.$store.dispatch('tabs/ActAddTab', item)
       }
     },
-    disableOrEnableModelTabAdd () {
+    disableOrEnableModelTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'disableOrEnableModel')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -925,7 +925,7 @@ export default {
         this.$store.dispatch('tabs/ActAddTab', item)
       }
     },
-    cronTabAdd () {
+    cronTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'cronJobs')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -937,7 +937,7 @@ export default {
         this.$store.dispatch('tabs/ActAddTab', item)
       }
     },
-    appsTabAdd () {
+    appsTabAdd() {
       const tabIndex = this.tabs.findIndex(el => el.key === 'appStore')
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
@@ -949,7 +949,7 @@ export default {
         this.$store.dispatch('tabs/ActAddTab', item)
       }
     },
-    async codeGenerateMvc () {
+    async codeGenerateMvc() {
       try {
         await this.sqlMgr.projectGenerateBackend({
           env: 'dev'
@@ -960,41 +960,41 @@ export default {
         throw e
       }
     },
-    cookieStatus (status) {
+    cookieStatus(status) {
       this.status = status
     },
-    cookieClickedAccept () {
+    cookieClickedAccept() {
       this.status = 'accept'
     },
-    cookieClickedDecline () {
+    cookieClickedDecline() {
       this.status = 'decline'
       // localStorage.removeItem('vue-cookie-accept-decline')
     },
-    removeCookie () {
+    removeCookie() {
       // console.log('Cookie removed')
       localStorage.removeItem('vue-cookie-accept-decline')
       this.status = 'Cookie removed, refresh the page.'
     },
 
-    MtdContactUs () {
+    MtdContactUs() {
       this.snackbar = true
     },
 
-    MtdHiring () {
+    MtdHiring() {
       this.$router.push('/info/hiring')
     },
 
-    MtdFaq () {
+    MtdFaq() {
       this.$router.push('/info/faq')
     },
-    MtdTos () {
+    MtdTos() {
       this.$router.push('/info/tos')
     },
-    async MtdSignOut () {
+    async MtdSignOut() {
       await this.$store.dispatch('users/ActSignOut')
       this.$router.push('/user/authentication/signin')
     },
-    MtdToggleDrawer () {
+    MtdToggleDrawer() {
       if (!this.$store.getters['users/GtrUser']) {
         this.drawer = false
       } else {
@@ -1002,10 +1002,10 @@ export default {
       }
       // console.log('Toggling drawer', this.drawer);
     },
-    changeTheme () {
+    changeTheme() {
       this.$store.dispatch('windows/ActToggleDarkMode', !this.$store.state.windows.darkTheme)
     },
-    async copyProjectInfo () {
+    async copyProjectInfo() {
       try {
         const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'ncProjectInfo'])
         copyTextToClipboard(Object.entries(data).map(([k, v]) => `${k}: **${v}**`).join('\n'))

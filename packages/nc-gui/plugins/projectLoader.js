@@ -1,4 +1,4 @@
-export default async ({ store, redirect, $axios, $toast }) => {
+export default async({ store, redirect, $axios, $toast }) => {
   await store.dispatch('plugins/pluginPostInstall', 'Branding')
   if (window.location.search &&
     /\bscope=|\bstate=/.test(window.location.search) &&

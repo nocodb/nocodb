@@ -1,7 +1,7 @@
 <template>
   <v-row justify="center">
     <v-dialog
-      v-model="dialogShow"
+      :value="dialogShow"
       persistent
       max-width="600"
       @keydown.esc="mtdDialogCancel()"
@@ -117,7 +117,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-  data () {
+  data() {
     return {
       valid: false,
       onUpdateDeleteOptions: [
@@ -145,7 +145,7 @@ export default {
     }
   },
   methods: {
-    async loadColumnList () {
+    async loadColumnList() {
       if (!this.relation.parentTable) { return }
       this.isRefColumnsLoading = true
       // const client = await this.sqlMgr.projectGetSqlClient({
@@ -181,7 +181,7 @@ export default {
 
       this.isRefColumnsLoading = false
     },
-    async loadTablesList () {
+    async loadTablesList() {
       this.isRefTablesLoading = true
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
@@ -207,14 +207,14 @@ export default {
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {
-    'relation.parentTable' () {
+    'relation.parentTable'() {
       this.loadColumnList()
     }
   },
-  async created () {
+  async created() {
     await this.loadTablesList()
 
     if (!this.relation.parentTable) {
@@ -228,18 +228,18 @@ export default {
       this.relation.parentTable = this.column.rtn
     }
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: [

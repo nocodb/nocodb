@@ -13,9 +13,11 @@
   ],
   "rules": {
     "no-console": "off",
-    //    "space-before-function-paren": "off",
-    "require-await": "off",
-    "vue/no-mutating-props": "off"
+    "space-before-function-paren": [
+      "error",
+      "never"
+    ],
+    "require-await": "off"
   },
   "parserOptions": {
     "parser": "babel-eslint",

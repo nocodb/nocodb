@@ -38,32 +38,32 @@
 export default {
   directives: { },
   components: { },
-  validate ({ params }) { return true },
+  validate({ params }) { return true },
   props: { },
-  data () {
+  data() {
     return {
 
     }
   },
-  head () { return {} },
+  head() { return {} },
   computed: {
 
   },
   watch: { },
-  created () { },
-  mounted () {},
-  beforeDestroy () {},
+  created() { },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
-    uploadProfilePicture () {
+    uploadProfilePicture() {
       // console.log('uploadProfilePicture');
     },
-    cancelUpload () {
+    cancelUpload() {
       // console.log('cancelUpload');
     }
 
   },
-  beforeCreated () {},
-  destroy () {}
+  beforeCreated() {},
+  destroy() {}
 }
 </script>
 

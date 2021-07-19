@@ -30,26 +30,26 @@ export const state = () => ({
 // modified state vars
 export const getters = {
 
-  GtrCounter (state) {
+  GtrCounter(state) {
     return state.counter
   },
 
-  GtrUser (state) {
+  GtrUser(state) {
     return state.user
   },
-  GtrToken (state) {
+  GtrToken(state) {
     return state.token
   },
 
-  GtrSocialAuthCalled (state) {
+  GtrSocialAuthCalled(state) {
     return state.social_auth_called
   },
 
-  GtrPaidUser (state) {
+  GtrPaidUser(state) {
     return state.paidUser
   },
 
-  GtrIsAuthenticated (state, getters, rootState) {
+  GtrIsAuthenticated(state, getters, rootState) {
     return rootState.project.projectInfo &&
       (rootState.project.projectInfo.authType === 'none' ||
         (rootState.project.projectInfo.authType === 'jwt' && state.user) ||
@@ -57,13 +57,13 @@ export const getters = {
       )
   },
 
-  GtrIsAdmin (state) {
+  GtrIsAdmin(state) {
     // return (state.authType === 'jwt' && state.user && state.user.roles && (state.user.roles.creator || state.user.roles.owner)) || (state.authType === 'masterKey' && state.masterKey) || state.authType === 'none'
     return (state.user && state.user.roles && (state.user.roles.creator || state.user.roles.owner)) ||
       (state.projectRole && (state.projectRole.creator || state.projectRole.owner))
   },
 
-  GtrIsUIAllowed (state) {
+  GtrIsUIAllowed(state) {
     const rolePermissions = process.env.EE ? rolePermissionsEE : rolePermissionsCE
     return (page) => {
       const user = state.user
@@ -83,7 +83,7 @@ export const getters = {
     }
   },
 
-  GtrRole (state) {
+  GtrRole(state) {
     return state.user && state.user.roles && (['owner',
       'creator',
       'editor',
@@ -100,45 +100,45 @@ export const mutations = {
   //   state.counter += 1
   // },
 
-  MutSetUser (state, user) {
+  MutSetUser(state, user) {
     // console.log('in MutPlusCounter', user);
 
     state.user = user && user.email ? user : null
   },
-  MutProjectRole (state, role) {
+  MutProjectRole(state, role) {
     // console.log('in MutPlusCounter', user);
 
     state.projectRole = role
   },
-  MutSetToken (state, token) {
+  MutSetToken(state, token) {
     state.token = token
   },
-  MutUiAbility (state, uiAbility) {
+  MutUiAbility(state, uiAbility) {
     state.ui_ability = uiAbility
   },
 
-  MutSetSocialAuthCalled (state, called) {
+  MutSetSocialAuthCalled(state, called) {
     // console.log('in MutPlusCounter', user);
     state.social_auth_called = called
   },
 
-  MutSetProjectToNull (state) {
+  MutSetProjectToNull(state) {
     state.project = null
     state.projectTree = null
   },
 
-  MutSetPaidUser (state, isPaid) {
+  MutSetPaidUser(state, isPaid) {
     state.paidUser = isPaid
   },
 
-  MutAuthType (state, authType) {
+  MutAuthType(state, authType) {
     state.authType = authType
   },
 
-  MutMasterKey (state, masterKey) {
+  MutMasterKey(state, masterKey) {
     state.masterKey = masterKey
   },
-  MutPreviewAs (state, previewAs) {
+  MutPreviewAs(state, previewAs) {
     state.previewAs = previewAs
   }
 
@@ -147,14 +147,14 @@ export const mutations = {
 // mutation are performed via actions
 export const actions = {
 
-  ActPlusCounter ({ commit }) {
+  ActPlusCounter({ commit }) {
     // console.log('in action');
     commit('MutPlusCounter')
   },
 
-  ActPollSession ({ commit, getters, rootGetters }, todo) {
+  ActPollSession({ commit, getters, rootGetters }, todo) {
     console.log('Within action : ActPollSession')
-    setInterval(async () => {
+    setInterval(async() => {
       console.log('Poll section : ')
       if (getters.GtrUser) {
         try {
@@ -188,7 +188,7 @@ export const actions = {
     }, process.env.pollingInterval)
   },
 
-  async ActNewRefferalLink ({ state, commit }) {
+  async ActNewRefferalLink({ state, commit }) {
     // console.log('ActNewRefferalLink');
     try {
       const profits = await this.$axios.post('/referral')
@@ -200,7 +200,7 @@ export const actions = {
     }
   },
 
-  async ActGetUrl ({ state, commit }, urlParamObj) {
+  async ActGetUrl({ state, commit }, urlParamObj) {
     // console.log('url:', urlParamObj['url']);
     // console.log('params:', urlParamObj['params']);
     try {
@@ -213,7 +213,7 @@ export const actions = {
     }
   },
 
-  async ActPostUrl ({ state, commit }, urlParamObj) {
+  async ActPostUrl({ state, commit }, urlParamObj) {
     try {
       const value = await this.$axios.post(urlParamObj.url, urlParamObj.body)
       // console.log(value);
@@ -225,7 +225,7 @@ export const actions = {
   },
 
   /** ************** START : authentication ****************/
-  async ActSignUp ({ commit, dispatch }, data) {
+  async ActSignUp({ commit, dispatch }, data) {
     let err = null
     try {
       if (!data.ignore_subscribe) {
@@ -244,7 +244,7 @@ export const actions = {
     return err
   },
 
-  async ActSignIn ({ commit, dispatch }, data) {
+  async ActSignIn({ commit, dispatch }, data) {
     // console.log('in action signin');
     let err = null
     try {
@@ -271,7 +271,7 @@ export const actions = {
     return err
   },
 
-  async ActSignOut ({ commit }) {
+  async ActSignOut({ commit }) {
     // console.log('in action signout');
 
     let err = null
@@ -302,7 +302,7 @@ export const actions = {
   /** ************** END : authentication ****************/
 
   /** ************** START : password reset-recovery ****************/
-  async ActPasswordForgot ({ commit }, data) {
+  async ActPasswordForgot({ commit }, data) {
     try {
       await this.$axios.post('/auth/password/forgot', data)
     } catch (e) {
@@ -310,7 +310,7 @@ export const actions = {
     }
   },
 
-  async ActGetPasswordReset ({ commit }, query) {
+  async ActGetPasswordReset({ commit }, query) {
     // console.log('in action ActGetPasswordReset', query);
 
     try {
@@ -323,7 +323,7 @@ export const actions = {
     }
   },
 
-  async ActPostPasswordReset ({ commit }, data) {
+  async ActPostPasswordReset({ commit }, data) {
     try {
       const resetPromise = await this.$axios.post('/auth/password/reset/' + data.token, data)
       commit('MutSetUser', resetPromise.data)
@@ -332,7 +332,7 @@ export const actions = {
     }
   },
 
-  async ActPostPasswordChange ({ commit }, data) {
+  async ActPostPasswordChange({ commit }, data) {
     try {
       await this.$axios.post('/user/password/change', data)
     } catch (e) {
@@ -340,7 +340,7 @@ export const actions = {
     }
   },
 
-  async ActGetSubscriptionsList ({ commit }, data) {
+  async ActGetSubscriptionsList({ commit }, data) {
     try {
       const res = await this.$axios.get('/subscription/')
       console.log(res)
@@ -352,7 +352,7 @@ export const actions = {
   },
   /** ************** END : password reset-recovery ****************/
 
-  async ActGetUserDetails ({ commit, state }) {
+  async ActGetUserDetails({ commit, state }) {
     try {
       const user = await this.$axios.get('/user/me', {
         headers: {
@@ -365,7 +365,7 @@ export const actions = {
     }
   },
 
-  async ActGetProjectUserDetails ({ commit, state }, projectId) {
+  async ActGetProjectUserDetails({ commit, state }, projectId) {
     try {
       const user = await this.$axios.get('/user/me?project_id=' + projectId, {
         headers: {
@@ -378,7 +378,7 @@ export const actions = {
     }
   },
 
-  async ActGetUserUiAbility ({ commit, state }) {
+  async ActGetUserUiAbility({ commit, state }) {
     try {
       const uiAbility = await this.$axios.get('/ui_ability')
 
@@ -399,15 +399,15 @@ export const actions = {
   },
 
   /** ************** START : social auth ****************/
-  ActAuthFb ({ commit }) {
+  ActAuthFb({ commit }) {
     // console.log('in action signout');
   },
 
-  ActAuthFbCbk ({ commit }) {
+  ActAuthFbCbk({ commit }) {
     // console.log('in action signout');
   },
 
-  async ActAuthGoogle ({ commit, rootState }) {
+  async ActAuthGoogle({ commit, rootState }) {
     // console.log('in action ActAuthGoogle', rootState);
 
     try {
@@ -434,31 +434,31 @@ export const actions = {
     }
   },
 
-  ActAuthGoogleCbk ({ commit }) {
+  ActAuthGoogleCbk({ commit }) {
     // console.log('in action signout');
   },
 
-  ActAuthPaypal ({ commit }) {
+  ActAuthPaypal({ commit }) {
     // console.log('in action signout');
   },
 
-  ActAuthPaypalCbk ({ commit }) {
+  ActAuthPaypalCbk({ commit }) {
     // console.log('in action signout');
   },
 
-  ActAuthTwitter ({ commit }) {
+  ActAuthTwitter({ commit }) {
     // console.log('in action signout');
   },
 
-  ActAuthTwitterCbk ({ commit }) {
+  ActAuthTwitterCbk({ commit }) {
     // console.log('in action signout');
   },
-  async ActGetAuthType ({ commit }) {
+  async ActGetAuthType({ commit }) {
     const { type, firstUser } = (await this.$axios.get('/auth/type')).data
     commit('MutAuthType', type)
     return { type, firstUser }
   },
-  async ActVerifyMasterKey ({ commit }, secret) {
+  async ActVerifyMasterKey({ commit }, secret) {
     return (await this.$axios({
       url: '/auth/admin/verify',
       baseURL: `${this.$axios.defaults.baseURL}/dashboard`,

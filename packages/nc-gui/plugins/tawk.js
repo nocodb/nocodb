@@ -1,6 +1,6 @@
 // eslint-disable-next-line camelcase,no-unused-vars,no-use-before-define,no-var
 var Tawk_API = Tawk_API || {}; const Tawk_LoadStart = new Date();
-(function () {
+(function() {
   const s1 = document.createElement('script'); const s0 = document.getElementsByTagName('script')[0]
   s1.async = true
   s1.src = 'https://embed.tawk.to/5d81b8de9f6b7a4457e23ba7/default'

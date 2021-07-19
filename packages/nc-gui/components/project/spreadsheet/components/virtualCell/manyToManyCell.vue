@@ -125,7 +125,7 @@ export default {
   props: {
     breadcrumbs: {
       type: Array,
-      default () {
+      default() {
         return []
       }
     },
@@ -155,7 +155,7 @@ export default {
     localState: []
   }),
   computed: {
-    getCellValue () {
+    getCellValue() {
       return (cellObj) => {
         if (cellObj) {
           if (this.childPrimaryCol) {
@@ -165,13 +165,13 @@ export default {
         }
       }
     },
-    childMeta () {
+    childMeta() {
       return this.$store.state.meta.metas[this.mm.rtn]
     },
-    assocMeta () {
+    assocMeta() {
       return this.$store.state.meta.metas[this.mm.vtn]
     },
-    childApi () {
+    childApi() {
       return this.childMeta && this.childMeta._tn
         ? ApiFactory.create(
           this.$store.getters['project/GtrProjectType'],
@@ -182,7 +182,7 @@ export default {
         )
         : null
     },
-    assocApi () {
+    assocApi() {
       return this.assocMeta && this.assocMeta._tn
         ? ApiFactory.create(
           this.$store.getters['project/GtrProjectType'],
@@ -193,16 +193,16 @@ export default {
         )
         : null
     },
-    childPrimaryCol () {
+    childPrimaryCol() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
     },
-    childPrimaryKey () {
+    childPrimaryKey() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
     },
-    parentPrimaryKey () {
+    parentPrimaryKey() {
       return this.meta && (this.meta.columns.find(c => c.pk) || {})._cn
     },
-    childQueryParams () {
+    childQueryParams() {
       if (!this.childMeta) { return {} }
       // todo: use reduce
       return {
@@ -211,7 +211,7 @@ export default {
         mm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
       }
     },
-    conditionGraph () {
+    conditionGraph() {
       if (!this.childMeta || !this.assocMeta) { return null }
       return {
         [this.assocMeta.tn]: {
@@ -222,7 +222,7 @@ export default {
         }
       }
     },
-    childAvailableColumns () {
+    childAvailableColumns() {
       const hideCols = ['created_at', 'updated_at']
       if (!this.childMeta) { return [] }
 
@@ -236,28 +236,28 @@ export default {
       return columns
     },
     // todo:
-    form () {
+    form() {
       return this.selectedChild ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
     }
   },
   watch: {
-    async isNew (n, o) {
+    async isNew(n, o) {
       if (!n && o) {
         await this.saveLocalState()
       }
     }
   },
-  async mounted () {
+  async mounted() {
     if (this.isForm) {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
     }
   },
-  created () {
+  created() {
     this.loadChildMeta()
     this.loadAssociateTableMeta()
   },
   methods: {
-    async onChildSave (child) {
+    async onChildSave(child) {
       if (this.isNewChild) {
         this.isNewChild = false
         await this.addChildToParent(child)
@@ -265,11 +265,11 @@ export default {
         this.$emit('loadTableData')
       }
     },
-    async showChildListModal () {
+    async showChildListModal() {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
       this.childListModal = true
     },
-    async unlinkChild (child) {
+    async unlinkChild(child) {
       if (this.isNew) {
         this.localState.splice(this.localState.indexOf(child), 1)
         return
@@ -289,11 +289,11 @@ export default {
         this.$refs.childList.loadData()
       }
     },
-    async removeChild (child) {
+    async removeChild(child) {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to delete the record?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -307,7 +307,7 @@ export default {
         }
       }
     },
-    async loadChildMeta () {
+    async loadChildMeta() {
       // todo: optimize
       if (!this.childMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -324,7 +324,7 @@ export default {
         // this.childMeta = JSON.parse(parentTableData.meta)
       }
     },
-    async loadAssociateTableMeta () {
+    async loadAssociateTableMeta() {
       // todo: optimize
       if (!this.assocMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -341,12 +341,12 @@ export default {
         // this.assocMeta = JSON.parse(assocTableData.meta)
       }
     },
-    async showNewRecordModal () {
+    async showNewRecordModal() {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
       this.newRecordModal = true
       // this.list = await this.c hildApi.paginatedList({})
     },
-    async addChildToParent (child) {
+    async addChildToParent(child) {
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
         this.newRecordModal = false
@@ -374,7 +374,7 @@ export default {
       }
     },
 
-    async insertAndAddNewChildRecord () {
+    async insertAndAddNewChildRecord() {
       this.newRecordModal = false
       await this.loadChildMeta()
       this.isNewChild = true
@@ -386,7 +386,7 @@ export default {
         this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
       }, 500)
     },
-    async editChild (child) {
+    async editChild(child) {
       await this.loadChildMeta()
       this.isNewChild = false
       this.selectedChild = child
@@ -395,7 +395,7 @@ export default {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
     },
-    async saveLocalState (row) {
+    async saveLocalState(row) {
       let child
       // eslint-disable-next-line no-cond-assign
       while (child = this.localState.pop()) {

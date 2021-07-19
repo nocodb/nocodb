@@ -144,7 +144,7 @@ export default {
     columnDeleteDialog: false
   }),
   methods: {
-    async deleteColumn () {
+    async deleteColumn() {
       try {
         const column = { ...this.column, cno: this.column.cn }
         column.altered = 4
@@ -164,7 +164,7 @@ export default {
         console.log(e)
       }
     },
-    async setAsPrimaryValue () {
+    async setAsPrimaryValue() {
       // todo: pass only updated fields
       try {
         const meta = JSON.parse(JSON.stringify(this.meta))

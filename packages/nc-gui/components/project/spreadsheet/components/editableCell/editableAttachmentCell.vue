@@ -223,7 +223,7 @@ export default {
     dragOver: false
   }),
   watch: {
-    value (val, prev) {
+    value(val, prev) {
       try {
         this.localState = (typeof val === 'string' && val !== prev ? JSON.parse(val) : val) || []
       } catch (e) {
@@ -236,7 +236,7 @@ export default {
     //   }
     // }
   },
-  created () {
+  created() {
     try {
       this.localState = (typeof this.value === 'string' ? JSON.parse(this.value) : this.value) || []
     } catch (e) {
@@ -244,30 +244,30 @@ export default {
     }
     document.addEventListener('keydown', this.onArrowDown)
   },
-  beforeDestroy () {
+  beforeDestroy() {
     document.removeEventListener('keydown', this.onArrowDown)
   },
-  mounted () {
+  mounted() {
   },
   methods: {
-    openUrl (url, target) {
+    openUrl(url, target) {
       window.open(url, target)
     },
     isImage,
-    hideIfVisible () {
+    hideIfVisible() {
       if (this.showImage) {
         this.showImage = false
       }
     },
-    selectImage (selectedImage, i) {
+    selectImage(selectedImage, i) {
       this.carousel = i
       this.selectedImage = selectedImage
       this.showImage = true
     },
-    addFile () {
+    addFile() {
       if (!this.isLocked) { this.$refs.file.click() }
     },
-    async onFileSelection () {
+    async onFileSelection() {
       if (!this.$refs.file.files || !this.$refs.file.files.length) {
         return
       }
@@ -289,12 +289,12 @@ export default {
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
-    removeItem (i) {
+    removeItem(i) {
       this.localState.splice(i, 1)
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
-    onArrowDown (e) {
+    onArrowDown(e) {
       if (!this.showImage) { return }
       e = e || window.event
       // eslint-disable-next-line eqeqeq
@@ -305,7 +305,7 @@ export default {
         this.carousel = ++this.carousel % this.localState.length
       }
     },
-    async onFileDrop (e) {
+    async onFileDrop(e) {
       this.dragOver = false
       this.$refs.file.files = e.dataTransfer.files
       await this.onFileSelection()

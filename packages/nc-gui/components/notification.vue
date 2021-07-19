@@ -93,18 +93,18 @@ export default {
       GetHasErrors: 'notification/GetHasErrors',
       GetPendingStatus: 'notification/GetPendingStatus'
     }),
-    notificationList () {
+    notificationList() {
       return this.$store.state.notification.list
     }
   },
   filters: {
-    capitalize (value) {
+    capitalize(value) {
       if (!value) { return '' }
       value = value.toString()
       return value.charAt(0).toUpperCase() + value.slice(1)
     }
   },
-  data () {
+  data() {
     return {
       notificationIcons: {
         success: {
@@ -126,7 +126,7 @@ export default {
     }
   },
   methods: {
-    timeDifference (previous) {
+    timeDifference(previous) {
       const current = Date.now()
       const msPerMinute = 60 * 1000
       const msPerHour = msPerMinute * 60
@@ -150,7 +150,7 @@ export default {
         return 'approximately ' + Math.round(elapsed / msPerYear) + ' years ago'
       }
     },
-    clearNotification () {
+    clearNotification() {
       this.$store.commit('notification/MutListClearFinished')
     }
 

@@ -133,12 +133,12 @@ export default {
     filter: '',
     tables: null
   }),
-  async mounted () {
+  async mounted() {
   },
   methods: {},
   computed: {
     dbsTab: {
-      set (tab) {
+      set(tab) {
         if (!tab) {
           // return this.$router.push({
           //   query: {}
@@ -154,7 +154,7 @@ export default {
           }
         })
       },
-      get () {
+      get() {
         return this.$route.query.nested_1
       }
 
@@ -163,16 +163,16 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
-    enableCountText () {
+    enableCountText() {
       return this.models
         ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
         : ''
     },
 
-    isNewOrDeletedModelFound () {
+    isNewOrDeletedModelFound() {
       return this.comparedModelList.some(m => m.new || m.deleted)
     },
-    comparedModelList () {
+    comparedModelList() {
       const res = []
       const getPriority = (item) => {
         if (item.new) { return 2 }

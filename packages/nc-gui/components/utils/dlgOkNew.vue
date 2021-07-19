@@ -47,15 +47,15 @@ export default {
     title: String,
     cancelLabel: String
   },
-  data () {
+  data() {
     return {}
   },
   computed: {
     show: {
-      get () {
+      get() {
         return this.value
       },
-      set (show) {
+      set(show) {
         this.$emit('input', show)
       }
     }

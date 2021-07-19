@@ -1,10 +1,10 @@
 export default class SqlQueryParser {
-  static getType (query) {
+  static getType(query) {
     query = query.trim().toLowerCase()
     return query.split(/\W+/)[0]
   }
 
-  static getColorForQueryType (queryType) {
+  static getColorForQueryType(queryType) {
     switch (queryType.toLowerCase()) {
       case 'select':
         return 'success'

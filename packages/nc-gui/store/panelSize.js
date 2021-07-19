@@ -5,7 +5,7 @@ export const state = () => ({
 })
 
 export const mutations = {
-  MutSize (state, args) {
+  MutSize(state, args) {
     state[args.type] = { ...state[args.type], size: args.size }
   }
 }

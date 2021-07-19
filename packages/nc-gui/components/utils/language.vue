@@ -34,14 +34,14 @@
 export default {
   name: 'Language',
   computed: {
-    languages () {
+    languages() {
       return (this.$i18n && this.$i18n.availableLocales) || ['en']
     },
     language: {
-      get () {
+      get() {
         return this.$store.state.windows.language
       },
-      set (val) {
+      set(val) {
         this.$store.commit('windows/MutLanguage', val)
       }
     }

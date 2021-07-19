@@ -540,10 +540,10 @@ export default {
   }),
   computed: {
     selectedViewIdLocal: {
-      get () {
+      get() {
         return this.selectedViewId
       },
-      set (id) {
+      set(id) {
         const selectedView = this.viewsList && this.viewsList.find(v => v.id === id)
         let queryParams = {}
 
@@ -572,26 +572,26 @@ export default {
     }
   },
   watch: {
-    async load (v) {
+    async load(v) {
       if (v) {
         await this.loadViews()
       }
     }
   },
-  async created () {
+  async created() {
     if (this.load) {
       await this.loadViews()
     }
   },
   methods: {
-    hideMiniSponsorCard () {
+    hideMiniSponsorCard() {
       this.$store.commit('windows/MutMiniSponsorCard', Date.now())
     },
-    openCreateViewDlg (type) {
+    openCreateViewDlg(type) {
       this.createViewType = type
       this.showCreateView = true
     },
-    isCentrallyAligned (col) {
+    isCentrallyAligned(col) {
       return ![
         'SingleLineText',
         'LongText',
@@ -605,13 +605,13 @@ export default {
         'LastModifiedTime'
       ].includes(col.uidt)
     },
-    onPasswordProtectChange () {
+    onPasswordProtectChange() {
       if (!this.passwordProtect) {
         this.shareLink.password = null
         this.saveShareLinkPassword()
       }
     },
-    async saveShareLinkPassword () {
+    async saveShareLinkPassword() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [
           { dbAlias: this.nodes.dbAlias },
@@ -626,7 +626,7 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
-    async loadViews () {
+    async loadViews() {
       this.viewsList = await this.sqlOp(
         {
           dbAlias: this.nodes.dbAlias
@@ -655,11 +655,11 @@ export default {
     //   }
     //   this.$emit('loadTableData');
     // },
-    copyapiUrlToClipboard () {
+    copyapiUrlToClipboard() {
       this.$clipboard(this.currentApiUrl)
       this.clipboardSuccessHandler()
     },
-    async updateViewName (view) {
+    async updateViewName(view) {
       try {
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
           id: view.id,
@@ -673,7 +673,7 @@ export default {
       }
       await this.loadViews()
     },
-    showRenameTextBox (view, i) {
+    showRenameTextBox(view, i) {
       this.$set(view, 'edit', true)
       this.$nextTick(() => {
         const input = this.$refs[`input${i}`][0]
@@ -681,7 +681,7 @@ export default {
         input.setSelectionRange(0, input.value.length)
       })
     },
-    async deleteView (view) {
+    async deleteView(view) {
       try {
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableDelete', {
           id: view.id,
@@ -694,7 +694,7 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
-    async genShareLink () {
+    async genShareLink() {
       this.showShareModel = true
       const sharedViewUrl = await this.$store.dispatch('sqlMgr/ActSqlOp', [
         { dbAlias: this.nodes.dbAlias },
@@ -714,18 +714,18 @@ export default {
       ])
       this.shareLink = sharedViewUrl
     },
-    copyView (view, i) {
+    copyView(view, i) {
       this.createViewType = view.show_as
       this.showCreateView = true
       this.copyViewRef = view
     },
-    async onViewCreate (viewMeta) {
+    async onViewCreate(viewMeta) {
       this.copyViewRef = null
       await this.loadViews()
       this.selectedViewIdLocal = viewMeta.id
       // await this.onViewChange();
     },
-    clipboard (str) {
+    clipboard(str) {
       const el = document.createElement('textarea')
       el.addEventListener('focusin', e => e.stopPropagation())
       el.value = str
@@ -734,10 +734,10 @@ export default {
       document.execCommand('copy')
       document.body.removeChild(el)
     },
-    clipboardSuccessHandler () {
+    clipboardSuccessHandler() {
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
-    copyShareUrlToClipboard () {
+    copyShareUrlToClipboard() {
       this.clipboard(this.shareLink.url)
       this.clipboardSuccessHandler()
     }

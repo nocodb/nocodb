@@ -223,7 +223,7 @@ export default {
   name: 'AclTsFileDbChild',
   components: { HandlerCodeEditor },
   props: ['nodes', 'policies', 'search'],
-  data () {
+  data() {
     return {
       showCodeEditor: false,
       editRoute: null,
@@ -253,12 +253,12 @@ export default {
     }
   },
   methods: {
-    showSourceCode (route, method) {
+    showSourceCode(route, method) {
       this.editRoute = route
       this.editMethod = method
       this.showCodeEditor = true
     },
-    aclInit () {
+    aclInit() {
       this.disableSaveButton = true
       try {
         // console.log(this.policyPath, this.data1)
@@ -270,7 +270,7 @@ export default {
         console.log(e)
       }
     },
-    groupRoutes () {
+    groupRoutes() {
       const groupedData = {}
       for (const route of this.data1) {
         if (route.path) {
@@ -280,7 +280,7 @@ export default {
       }
       this.groupedData = groupedData
     },
-    toggleColumn (role, method, checked) {
+    toggleColumn(role, method, checked) {
       for (const [path, methods] of Object.entries(this.groupedData)) {
         if (methods[method]) {
           this.$set(methods[method].acl, role, checked)
@@ -288,7 +288,7 @@ export default {
         }
       }
     },
-    toggleRow (path, checked) {
+    toggleRow(path, checked) {
       for (const [method, route] of Object.entries(this.groupedData[path])) {
         for (const role in route.acl) {
           this.$set(route.acl, role, checked)
@@ -296,7 +296,7 @@ export default {
         }
       }
     },
-    toggleAll (checked) {
+    toggleAll(checked) {
       this.disableSaveButton = false
       for (const path in this.groupedData) {
         this.rowToggle[path] = checked
@@ -315,19 +315,19 @@ export default {
         }
       }
     },
-    toggleCell (path, method, role, checked) {
+    toggleCell(path, method, role, checked) {
       this.disableSaveButton = false
       this.$set(this.columnToggle, `${method}_${role}`, Object.values(this.groupedData).some(methods => methods[method] && methods[method].acl[role]))
       this.$set(this.rowToggle, path, Object.values(this.groupedData[path]).some(route => Object.values(route.acl).some(v => v)))
     },
-    initColumnCheckBox () {
+    initColumnCheckBox() {
       for (const role of this.roles) {
         for (const method of this.methods) {
           this.columnToggle[`${method}_${role}`] = Object.values(this.groupedData).some(methods => methods[method] && methods[method].acl[role])
         }
       }
     },
-    initRowCheckBox () {
+    initRowCheckBox() {
       for (const path in this.groupedData) {
         this.rowToggle[path] = Object.values(this.groupedData[path])
           .filter(route =>
@@ -340,7 +340,7 @@ export default {
           ).length
       }
     },
-    async save () {
+    async save() {
       try {
         //
         // await this.sqlMgr.xcRoutesPolicyUpdate({
@@ -368,7 +368,7 @@ export default {
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
     allToggle: {
-      get () {
+      get() {
         return this.groupedData && Object.values(this.groupedData)
           .some(methods => Object.values(methods)
             .some(route => Object.values(route.acl)
@@ -376,11 +376,11 @@ export default {
             )
           )
       },
-      set (checked) {
+      set(checked) {
         this.toggleAll(checked)
       }
     },
-    routesName () {
+    routesName() {
       return this.policyPath && this.policyPath
         .split('/').pop()
         .replace(/\.routes.js$/, '')
@@ -394,18 +394,18 @@ export default {
           return ' ' + m[0].toUpperCase() + m.slice(1)
         })
     },
-    filteredGroupedData () {
+    filteredGroupedData() {
       return Object.entries(this.groupedData)
         .filter(([path]) => !this.search || path.toLowerCase().includes(this.search.toLowerCase()))
     }
   },
   watch: {
-    policies (d) {
+    policies(d) {
       this.data1 = JSON.parse(JSON.stringify(d))
       this.aclInit()
     }
   },
-  async mounted () {
+  async mounted() {
     this.data1 = JSON.parse(JSON.stringify(this.policies))
     this.aclInit()
   }

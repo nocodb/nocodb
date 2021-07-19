@@ -271,11 +271,11 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
-    origin () {
+    origin() {
       return location.origin
     }
   },
-  async created () {
+  async created() {
     await this.loadProjectApiInfo()
     try {
       this.iframeUrl = `${this.$axios.defaults.baseURL}/dashboard/status`
@@ -285,10 +285,10 @@ export default {
       this.showinfoIFrame = false
     }
   },
-  mounted () {
+  mounted() {
   },
   methods: {
-    async loadProjectApiInfo () {
+    async loadProjectApiInfo() {
       try {
         const { info, aggregatedInfo } = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
           headers: {
@@ -326,7 +326,7 @@ export default {
         // this.$toast.error('Some error occurred').goAway(3000);
       }
     },
-    async downloadProto () {
+    async downloadProto() {
       this.loading = true
       let data
       try {

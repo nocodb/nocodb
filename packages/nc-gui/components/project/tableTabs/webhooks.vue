@@ -476,21 +476,21 @@ export default {
       }]
     }
   }),
-  async created () {
+  async created() {
     await this.loadMeta()
     await this.loadHooksList()
     this.selectedHook = 0
     this.onEventChange()
   },
   methods: {
-    checkConditionAvail () {
+    checkConditionAvail() {
       if (!process.env.EE) {
         this.enableCondition = false
         this.$toast.info('For webhook condition : Upgrade to Enterprise Edition').goAway(3000)
       }
       this.hook.condition = []
     },
-    async onNotTypeChange () {
+    async onNotTypeChange() {
       this.notification = {}
       if (this.hook.notification.type === 'Slack') {
         const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
@@ -517,7 +517,7 @@ export default {
         this.mattermostChannels = JSON.parse(plugin.input) || []
       }
     },
-    async onEventChange () {
+    async onEventChange() {
       if (!this.hooks || !this.hooks.length) {
         return
       }
@@ -553,7 +553,7 @@ export default {
         this.notification.api = this.notification.api
       }
     },
-    async saveHooks () {
+    async saveHooks() {
       if (!this.$refs.form.validate() || !this.valid || !this.hook.event) {
         return
       }
@@ -586,7 +586,7 @@ export default {
       this.loading = false
       await this.loadHooksList()
     },
-    async loadMeta () {
+    async loadMeta() {
       this.loadingMeta = true
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
@@ -598,7 +598,7 @@ export default {
       this.fieldList = this.meta.columns.map(c => c.cn)
       this.loadingMeta = false
     },
-    async loadHooksList () {
+    async loadHooksList() {
       this.loading = true
       const hooks = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
@@ -614,7 +614,7 @@ export default {
       })
       this.loading = false
     },
-    addNewHook () {
+    addNewHook() {
       this.selectedHook = this.hooks.length
       this.hooks.push({
         notification: {
@@ -624,7 +624,7 @@ export default {
       this.onEventChange()
       this.$refs.form.resetValidation()
     },
-    async deleteHook (item, i) {
+    async deleteHook(item, i) {
       try {
         if (item.id) {
           await this.$store.dispatch('sqlMgr/ActSqlOp', [{

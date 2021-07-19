@@ -537,10 +537,10 @@ export default {
   }),
   computed: {
 
-    inviteUrl () {
+    inviteUrl() {
       return this.invite_token ? `${location.origin}${location.pathname}#/user/authentication/signup/${this.invite_token.invite_token}` : null
     },
-    rolesColors () {
+    rolesColors() {
       const colors = this.$store.state.windows.darkTheme ? enumColor.dark : enumColor.light
       return this.roles.reduce((o, r, i) => {
         o[r] = colors[i % colors.length]
@@ -548,32 +548,32 @@ export default {
       }, {})
     },
     selectedRoles: {
-      get () {
+      get() {
         return this.selectedUser && this.selectedUser.roles ? this.selectedUser.roles.split(',') : []
       },
-      set (roles) {
+      set(roles) {
         if (this.selectedUser) {
           this.selectedUser.roles = roles.filter(Boolean).join(',')
         }
       }
     },
     selectedUserIndex: {
-      get () {
+      get() {
         return this.users ? this.users.findIndex(u => u.email === this.selectedUser.email) : -1
       },
-      set (i) {
+      set(i) {
         this.selectedUser = this.users[i]
       }
     }
   },
   watch: {
     options: {
-      async handler () {
+      async handler() {
         await this.loadUsers()
       },
       deep: true
     },
-    userEditDialog (v) {
+    userEditDialog(v) {
       if (v && (this.selectedUser && !this.selectedUser.id)) {
         this.$nextTick(() => {
           setTimeout(() => {
@@ -583,23 +583,23 @@ export default {
       }
     }
   },
-  async created () {
+  async created() {
     this.$eventBus.$on('show-add-user', this.addUser)
     await this.loadUsers()
     await this.loadRoles()
   },
-  beforeDestroy () {
+  beforeDestroy() {
     this.$eventBus.$off('show-add-user', this.addUser)
   },
   methods: {
-    simpleAnim () {
+    simpleAnim() {
       const count = 30
       const defaults = {
         origin: { y: 0.7 },
         zIndex: 9999999
       }
 
-      function fire (particleRatio, opts) {
+      function fire(particleRatio, opts) {
         window.confetti(Object.assign({}, defaults, opts, {
           particleCount: Math.floor(count * particleRatio)
         }))
@@ -628,11 +628,11 @@ export default {
         startVelocity: 45
       })
     },
-    getInviteUrl (token) {
+    getInviteUrl(token) {
       return token ? `${location.origin}${location.pathname}#/user/authentication/signup/${token}` : null
     },
 
-    clipboard (str) {
+    clipboard(str) {
       const el = document.createElement('textarea')
       el.addEventListener('focusin', e => e.stopPropagation())
       el.value = str
@@ -641,7 +641,7 @@ export default {
       document.execCommand('copy')
       document.body.removeChild(el)
     },
-    async rensendInvite (id) {
+    async rensendInvite(id) {
       try {
         await this.$axios.post('/admin/resendInvite/' + id, {
           projectName: this.$store.getters['project/GtrProjectName']
@@ -659,7 +659,7 @@ export default {
         this.$toast.error(e.response.data.msg).goAway(3000)
       }
     },
-    async loadUsers () {
+    async loadUsers() {
       try {
         const { page = 1, itemsPerPage = 20 } = this.options
         const data = (await this.$axios.get('/admin', {
@@ -682,7 +682,7 @@ export default {
         console.log(e)
       }
     },
-    async loadRoles () {
+    async loadRoles() {
       try {
         this.roles = (await this.$axios.get('/admin/roles', {
           headers: {
@@ -696,7 +696,7 @@ export default {
         console.log(e)
       }
     },
-    async deleteUser (id) {
+    async deleteUser(id) {
       try {
         await this.$axios.delete('/admin/' + id, {
           params: {
@@ -714,7 +714,7 @@ export default {
       }
     },
 
-    async confirmDelete (hideDialog) {
+    async confirmDelete(hideDialog) {
       if (hideDialog) {
         this.showConfirmDlg = false
         return
@@ -722,14 +722,14 @@ export default {
       await this.deleteUser(this.deleteId)
       this.showConfirmDlg = false
     },
-    addUser () {
+    addUser() {
       this.invite_token = null
       this.selectedUser = {
         roles: 'editor'
       }
       this.userEditDialog = true
     },
-    async inviteUser (email) {
+    async inviteUser(email) {
       try {
         await this.$axios.post('/admin', {
           email,
@@ -746,7 +746,7 @@ export default {
         this.$toast.error(e.response.data.msg).goAway(3000)
       }
     },
-    async saveUser () {
+    async saveUser() {
       if (this.loading || !this.valid || !this.selectedUser) {
         return
       }

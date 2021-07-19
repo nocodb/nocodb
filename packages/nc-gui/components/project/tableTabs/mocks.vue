@@ -131,7 +131,7 @@ const levenshtein = require('fast-levenshtein')
 
 export default {
   components: {},
-  data () {
+  data() {
     return {
       colsHeader: [{ text: 'Column Name' }, { text: 'Mapper Function' }],
       cols: [],
@@ -141,7 +141,7 @@ export default {
     }
   },
   methods: {
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -165,7 +165,7 @@ export default {
       }
     },
 
-    async loadColumnList () {
+    async loadColumnList() {
       this.disableSaveButton = true
       const columnsList = await this.client.fakerColumnsList({
         tn: this.nodes.tn,
@@ -181,7 +181,7 @@ export default {
       //   }
       // })
     },
-    mapFieldWithSuggestedFakerFn () {
+    mapFieldWithSuggestedFakerFn() {
       this.cols = this.cols.map((col) => {
         let suggestion = null
         let lScore = Infinity
@@ -208,7 +208,7 @@ export default {
         return col
       })
     },
-    async saveFakeFunctions () {
+    async saveFakeFunctions() {
       try {
         await this.client.fakerColumnsCreate({ fakerColumns: this.cols, seedsFolder: this.seedsFolder, tn: this.nodes.tn })
       } catch (e) {
@@ -220,10 +220,10 @@ export default {
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  async created () {
+  async created() {
     try {
       this.seedsFolder = this.sqlMgr.projectGetFolder({
         env: this.nodes.env,
@@ -240,23 +240,23 @@ export default {
       throw e
     }
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
   filters: {
-    filterFakerList (list, type) {
+    filterFakerList(list, type) {
       const nativeType = dataTypeMapping(type)
       return list.filter(item => (nativeType === 'string') || (nativeType === item.type))
     }
   },
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable']

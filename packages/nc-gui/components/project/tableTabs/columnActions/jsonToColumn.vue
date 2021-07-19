@@ -39,43 +39,43 @@ export default {
   name: 'JsonToColumn',
   directives: {},
   components: { MonacoJsonEditor },
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: {
     value: Boolean,
     show: Boolean
   },
-  data () {
+  data() {
     return {
       jsonContent: JSON.stringify({ first_name: 'James', last_name: 'Bond' }, 0, 2),
       activeTab: 0
     }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {
     dialogShow: {
-      get () {
+      get() {
         return this.show
       },
-      set (val) {
+      set(val) {
         this.$emit('update:show', val)
       }
     }
   },
   watch: {},
-  created () {
+  created() {
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {},
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

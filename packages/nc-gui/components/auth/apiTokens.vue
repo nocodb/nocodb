@@ -140,18 +140,18 @@ export default {
     tokenObj: {},
     valid: true
   }),
-  created () {
+  created() {
     this.loadApiTokens()
   },
   methods: {
-    copyToken (token) {
+    copyToken(token) {
       this.$clipboard(token)
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
-    async loadApiTokens () {
+    async loadApiTokens() {
       this.tokens = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcApiTokenList'])
     },
-    async generateToken () {
+    async generateToken() {
       try {
         this.newTokenDialog = false
         this.tokens = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcApiTokenCreate', this.tokenObj])
@@ -162,7 +162,7 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
-    async deleteToken (item) {
+    async deleteToken(item) {
       try {
         this.tokens = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcApiTokenDelete', { id: item.id }])
         this.$toast.success('Token deleted successfully').goAway(3000)

@@ -141,7 +141,7 @@ import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
 export default {
   components: { triggerAddEditDlg, dlgLabelSubmitCancel },
-  data () {
+  data() {
     return {
       loading: false,
       showTriggerDeleteDialog: false,
@@ -161,7 +161,7 @@ export default {
     }
   },
   methods: {
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -185,7 +185,7 @@ export default {
       }
     },
 
-    async loadTriggerList () {
+    async loadTriggerList() {
       this.loading = true
       try {
         this.$store.commit('notification/MutToggleProgressBar', true)
@@ -225,11 +225,11 @@ export default {
       }
       this.loading = false
     },
-    showTriggerDlg (trigger) {
+    showTriggerDlg(trigger) {
       if (trigger) { this.selectedTrigger = trigger } else { this.selectedTrigger = {} }
       this.dialogShow = true
     },
-    async mtdTriggerDlgSubmit (triggerObject, newTrigger) {
+    async mtdTriggerDlgSubmit(triggerObject, newTrigger) {
       try {
         // const client = await this.sqlMgr.projectGetSqlClient({
         //   env: this.nodes.env,
@@ -269,11 +269,11 @@ export default {
         console.error('triggerCreate error: ', error)
       }
     },
-    mtdTriggerDlgCancel () {
+    mtdTriggerDlgCancel() {
       this.dialogShow = false
       this.selectedTrigger = null
     },
-    async deleteTrigger (action = '', trigger) {
+    async deleteTrigger(action = '', trigger) {
       if (action === 'showDialog') {
         this.showTriggerDeleteDialog = true
         this.selectedTriggerForDelete = trigger
@@ -304,24 +304,24 @@ export default {
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  created () {
+  created() {
     this.loadTriggerList()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
     console.log('triggerlist before destroy')
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'deleteTable', 'isMetaTable']

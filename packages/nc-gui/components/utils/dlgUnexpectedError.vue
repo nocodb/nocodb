@@ -41,7 +41,7 @@
 export default {
   directives: {},
   components: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
   props: [
@@ -51,15 +51,15 @@ export default {
     'errorDialogCancel',
     'errorDialogReport'
   ],
-  data () {
+  data() {
     return { fieldValue: '' }
   },
-  head () {
+  head() {
     return {}
   },
   computed: {},
   watch: {},
-  created () {
+  created() {
     // if (this.$store.state.windows.isErrorReportingEnabled && !(process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'dev'))
     //   this.$sentry.captureException(new Error(JSON.stringify({
     //     version: this.$store.state.windows.version,
@@ -67,15 +67,15 @@ export default {
     //     user : this.$store.state.users.user && this.$store.state.users.user.email
     //   })))
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {},
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   }
 }
 </script>

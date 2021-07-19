@@ -201,7 +201,7 @@ export default {
 
   }),
   computed: {
-    operations () {
+    operations() {
       return [
         'create',
         'read',
@@ -209,16 +209,16 @@ export default {
         'delete'
       ]
     },
-    customRolesCount () {
+    customRolesCount() {
       return (this.roles && this.roles.filter(r => r.type !== 'SYSTEM').length) || 0
     }
   },
-  async created () {
+  async created() {
     await this.loadRoles()
     await this.loadAggrAcl()
   },
   methods: {
-    async loadRoles () {
+    async loadRoles() {
       try {
         this.roles = (await this.$axios.get('/admin/roles', {
           headers: {
@@ -234,7 +234,7 @@ export default {
 
       this.edited = false
     },
-    async loadAggrAcl () {
+    async loadAggrAcl() {
       /*      try {
               this.aggrAcl = await this.$store.dispatch('sqlMgr/ActSqlOp', [
                 // todo: manage dbAlias or get aggregated
@@ -244,7 +244,7 @@ export default {
             } catch (e) {
             } */
     },
-    addRole () {
+    addRole() {
       this.roles.push({
         title: ('role name ' + (this.customRolesCount || '')).trim(),
         description: 'Role description'
@@ -252,7 +252,7 @@ export default {
       this.edited = true
       this.scrollAndFocusLastRow()
     },
-    async save () {
+    async save() {
       try {
         await this.$axios.put('/admin/roles', { roles: this.roles }, {
           headers: {
@@ -281,7 +281,7 @@ export default {
       await this.loadRoles()
       await this.loadAggrAcl()
     },
-    async confirmDelete (hideDialog) {
+    async confirmDelete(hideDialog) {
       if (hideDialog) {
         this.showConfirmDlg = false
         return
@@ -303,7 +303,7 @@ export default {
       }
       this.showConfirmDlg = false
     },
-    scrollAndFocusLastRow () {
+    scrollAndFocusLastRow() {
       this.$nextTick(() => {
         document.querySelector('.project-container').scrollTop = 9999
         const menuActivator = this.$el && this.$el.querySelector('tr:last-child .v-small-dialog__activator__content')

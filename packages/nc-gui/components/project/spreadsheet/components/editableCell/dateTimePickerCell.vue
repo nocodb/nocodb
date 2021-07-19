@@ -24,7 +24,7 @@ export default {
   props: ['value', 'ignoreFocus'],
   computed: {
     localState: {
-      get () {
+      get() {
         // todo : time value correction
 
         if (/^\d{6,}$/.test(this.value)) {
@@ -33,12 +33,12 @@ export default {
 
         return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : (this.value && new Date(this.value))
       },
-      set (val) {
+      set(val) {
         const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')
         this.$emit('input', uVal)
       }
     },
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -51,7 +51,7 @@ export default {
       return $listeners
     }
   },
-  mounted () {
+  mounted() {
     if (!this.ignoreFocus) {
       this.$refs.picker.display = true
     }

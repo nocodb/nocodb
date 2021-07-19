@@ -21,7 +21,7 @@ export default {
   props: ['value', 'column'],
   computed: {
 
-    setValues () {
+    setValues() {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }

@@ -227,7 +227,7 @@ export default {
   name: 'AclJs',
 
   props: ['nodes'],
-  data () {
+  data() {
     return {
       disableSaveButton: true,
       search: '',
@@ -255,10 +255,10 @@ export default {
   },
   methods: {
 
-    openFolder () {
+    openFolder() {
       // shell.openItem(path.dirname(this.policyPath))
     },
-    toggleColumn (role, method, checked) {
+    toggleColumn(role, method, checked) {
       for (const [path, methods] of Object.entries(this.data1)) {
         if (methods[method]) {
           this.$set(methods[method], role, checked)
@@ -266,7 +266,7 @@ export default {
         }
       }
     },
-    toggleRow (path, checked) {
+    toggleRow(path, checked) {
       for (const [method, roles] of Object.entries(this.data1[path])) {
         for (const role in roles) {
           this.$set(roles, role, checked)
@@ -274,7 +274,7 @@ export default {
         }
       }
     },
-    toggleAll (checked) {
+    toggleAll(checked) {
       this.disableSaveButton = false
       for (const path in this.data1) {
         this.rowToggle[path] = checked
@@ -293,19 +293,19 @@ export default {
         }
       }
     },
-    toggleCell (path, method, role, checked) {
+    toggleCell(path, method, role, checked) {
       this.disableSaveButton = false
       this.$set(this.columnToggle, `${method}_${role}`, Object.values(this.data1).some(methods => methods[method] && methods[method][role]))
       this.$set(this.rowToggle, path, Object.values(this.data1[path]).some(roles => Object.values(roles).some(v => v)))
     },
-    initColumnCheckBox () {
+    initColumnCheckBox() {
       for (const role of this.roles) {
         for (const method of this.methods) {
           this.columnToggle[`${method}_${role}`] = Object.values(this.data1).some(methods => methods[method] && methods[method][role])
         }
       }
     },
-    initRowCheckBox () {
+    initRowCheckBox() {
       for (const path in this.data1) {
         this.rowToggle[path] = Object.values(this.data1[path]).filter(roles => Object.entries(roles).filter(([role, v]) => {
           if (!this.roles.includes(role)) { this.roles = [...this.roles, role] }
@@ -313,7 +313,7 @@ export default {
         }).length).length
       }
     },
-    async aclInit () {
+    async aclInit() {
       this.disableSaveButton = true
       this.policyPath = await this.sqlMgr.projectGetPolicyPath({
         env: this.nodes.env,
@@ -330,7 +330,7 @@ export default {
         console.log(e)
       }
     },
-    async save () {
+    async save() {
       try {
         // await this.sqlMgr.writeFile({
         //   path: this.policyPath,
@@ -353,16 +353,16 @@ export default {
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
     allToggle: {
-      get () {
+      get() {
         return this.data1 && Object.values(this.data1).some(methods => Object.values(methods).some(roles => Object.values(roles).some(v => v)))
       },
-      set (checked) {
+      set(checked) {
         this.toggleAll(checked)
       }
     }
   },
   watch: {},
-  async created () {
+  async created() {
     this.aclInit()
   }
 }

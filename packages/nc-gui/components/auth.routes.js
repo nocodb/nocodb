@@ -50,7 +50,7 @@ authorizedRoutes['/user/password/reset/form'] = true
 // freeRoutes['user/authentication/signin'] = true;
 // freeRoutes['user/authentication/signup'] = true;
 
-exports.allowed = function (store, path) {
+exports.allowed = function(store, path) {
   // console.log('store.getters.GtrUser',store.getters.GtrUser);
   // console.log('path',path);
 

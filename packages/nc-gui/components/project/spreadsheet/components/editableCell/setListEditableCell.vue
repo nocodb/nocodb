@@ -54,21 +54,21 @@ export default {
   },
   computed: {
     localState: {
-      get () {
+      get() {
         return this.value && this.value.split(',')
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','))
         this.$emit('update')
       }
     },
-    setValues () {
+    setValues() {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
       return []
     },
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -81,7 +81,7 @@ export default {
       return $listeners
     }
   },
-  mounted () {
+  mounted() {
     // this.$el.focus();
     // let event;
     // event = document.createEvent('MouseEvents');

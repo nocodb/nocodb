@@ -1,5 +1,5 @@
 export default class Utils {
-  static dateToHowManyAgo (stringDate) {
+  static dateToHowManyAgo(stringDate) {
     const currDate = new Date()
     const diffMs = currDate.getTime() - new Date(stringDate).getTime()
     const sec = diffMs / 1000
@@ -16,7 +16,7 @@ export default class Utils {
     return parseInt(y) + ' year' + (parseInt(y) > 1 ? 's' : '') + ' ago'
   }
 
-  static findById (o, id) {
+  static findById(o, id) {
     // Early return
     if (o.id === id) {
       return o

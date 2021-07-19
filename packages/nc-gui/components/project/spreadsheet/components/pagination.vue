@@ -41,11 +41,11 @@ export default {
     page: 1
   }),
   watch: {
-    value (v) {
+    value(v) {
       this.page = v
     }
   },
-  mounted () {
+  mounted() {
     this.page = this.value
   }
 }

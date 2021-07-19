@@ -495,7 +495,7 @@ export default {
     clickedItem: null,
     validatorEditDialog: false
   }),
-  async created () {
+  async created() {
     // try {
     // await this.loadColumnList();
     await this.loadTableModelMeta()
@@ -507,7 +507,7 @@ export default {
   },
   methods: {
 
-    editOrAddValidation (item) {
+    editOrAddValidation(item) {
       this.clickedItem = JSON.parse(JSON.stringify(item))
       this.validatorEditDialog = true
     },
@@ -522,7 +522,7 @@ export default {
     //   console.log("table ", result.data.list);
     //   this.columns = result.data.list;
     // },
-    async loadTableModelMeta () {
+    async loadTableModelMeta() {
       this.edited = false
       this.tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
@@ -533,7 +533,7 @@ export default {
       this.columns = JSON.parse(this.tableMeta.meta)
     },
 
-    scrollAndFocusLastRow () {
+    scrollAndFocusLastRow() {
       this.$nextTick(() => {
         const menuActivator = this.$el && this.$el.querySelector('.v-expansion-panel--active table tr:last-child .v-small-dialog__activator__content')
         if (menuActivator) {
@@ -545,7 +545,7 @@ export default {
         }
       })
     },
-    scrollAndFocusLastRowInModal () {
+    scrollAndFocusLastRowInModal() {
       this.$nextTick(() => {
         const modal = document.querySelector('.v-dialog--active')
         modal.scrollTop = 99999
@@ -559,7 +559,7 @@ export default {
         }
       })
     },
-    async saveValidations () {
+    async saveValidations() {
       this.edited = false
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -574,7 +574,7 @@ export default {
         this.$toast.error('Failed to update validations').goAway(3000)
       }
     },
-    async saveValidationForColumn (clickedItem) {
+    async saveValidationForColumn(clickedItem) {
       if (clickedItem) {
         const item = this.columns.columns.find(it => it.cn === clickedItem.cn)
         if (item) {
@@ -585,13 +585,13 @@ export default {
         }
       }
     },
-    onFunctionChange (i, item) {
+    onFunctionChange(i, item) {
       this.edited = true
       const fn = validatorFnList.find(({ func }) => func === item.validate.func[i])
       item.validate.msg[i] = `Validation failed : ${item.validate.func[i]}(${this.nodes.tn}.${item.cn})`
       item.validate.args[i] = fn.args
     },
-    deleteValidation (item, i) {
+    deleteValidation(item, i) {
       this.edited = true
       item.validate.func.splice(i, 1)
       item.validate.args.splice(i, 1)

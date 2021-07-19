@@ -37,13 +37,13 @@ export default {
     editors: null
   }),
   watch: {
-    index (i) {
+    index(i) {
       if (this.editors) {
         this.editors.right.setValue(this.history[i])
       }
     }
   },
-  mounted () {
+  mounted() {
     this.differ = new AceDiff({
       element: this.$refs.diff,
       left: {
@@ -67,10 +67,10 @@ export default {
     // this.editors.right.session.setOptions({tabSize: 2, useSoftTabs: true});
   },
   methods: {
-    prev () {
+    prev() {
       this.index && --this.index
     },
-    next () {
+    next() {
       if (this.index < this.history.length - 1) { ++this.index }
     }
   }

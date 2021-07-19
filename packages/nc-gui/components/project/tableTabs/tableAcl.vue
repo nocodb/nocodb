@@ -303,24 +303,24 @@ export default {
     loading: false
   }),
   computed: {
-    roles () {
+    roles() {
       return (this.data ? Object.keys(this.data) : []).filter(r => r !== 'guest')
     },
-    operations () {
+    operations() {
       return this.allOperations.filter(({ name }) => this.nodes.tn || name === 'read')
     }
   },
-  async created () {
+  async created() {
     await this.load()
   },
   methods: {
-    async load () {
+    async load() {
       await this.loadColumnList()
       await this.loadAcl()
       this.generateAclObj()
       this.edited = false
     },
-    generateAclObj () {
+    generateAclObj() {
       const aclObj = {}
       const aclRoleOpAll = {}
       console.log(this.data)
@@ -345,7 +345,7 @@ export default {
         this.aclObj = aclObj
       })
     },
-    async save () {
+    async save() {
       const obj = {}
       for (const [key, isAllowed] of Object.entries(this.aclObj)) {
         const [column, role, operation] = key.split('___')
@@ -397,7 +397,7 @@ export default {
       }
     },
 
-    async loadColumnList () {
+    async loadColumnList() {
       // const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -415,7 +415,7 @@ export default {
       const meta = JSON.parse(result.meta)
       this.columns = meta.columns
     },
-    async loadAcl () {
+    async loadAcl() {
       this.loading = true
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
@@ -427,7 +427,7 @@ export default {
 
       this.loading = false
     },
-    onAclRoleOpAllChange (isEnabled, name) {
+    onAclRoleOpAllChange(isEnabled, name) {
       this.edited = true
       const obj = {}
       for (const key in this.aclObj) {
@@ -439,7 +439,7 @@ export default {
       }
       this.aclObj = obj
     },
-    onPermissionChange (isEnabled, name) {
+    onPermissionChange(isEnabled, name) {
       this.edited = true
       if (isEnabled && !this.aclRoleOpAll[name]) {
         this.$set(this.aclRoleOpAll, name, true)

@@ -1,4 +1,4 @@
-export default function (monaco) {
+export default function(monaco) {
   return [
     {
       insertText: 'ALTER ',

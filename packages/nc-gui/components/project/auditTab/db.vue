@@ -242,7 +242,7 @@ export default {
     Splitpanes,
     Pane
   },
-  data () {
+  data() {
     return {
       showUpAndDownBtns: false,
       tableMigrationFiles: {
@@ -314,12 +314,12 @@ export default {
     })
   },
   watch: {},
-  created () {
+  created() {
     this.loadEnv()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
   methods: {
 
@@ -327,12 +327,12 @@ export default {
     //   shell.openItem(path.join(this.currentProjectFolder, 'server', 'tool', this.nodes.dbAlias, 'migrations'));
     // },
 
-    isMigrationButtonEnabled (name) {
+    isMigrationButtonEnabled(name) {
       console.log('menu -- - ', name)
       return this.nodes.dbConnection.client === 'sqlite3' && name === 'Migration Down'
     },
 
-    async getMigrationFiles (migration) {
+    async getMigrationFiles(migration) {
       this.selectedMigration.migration = ''
       this.selectedMigration.up = ''
       this.selectedMigration.down = ''
@@ -364,7 +364,7 @@ export default {
       this.selectedMigration.down = result.data.object.down
     },
 
-    async loadEnv () {
+    async loadEnv() {
       try {
         this.$store.commit('notification/MutToggleProgressBar', true)
         const migrationArgs = {
@@ -405,11 +405,11 @@ export default {
         this.$store.commit('notification/MutToggleProgressBar', false)
       }
     },
-    async applyChanges () {
+    async applyChanges() {
     },
-    async deleteView (action = '') {
+    async deleteView(action = '') {
     },
-    async migrationUp (steps = 99999999999) {
+    async migrationUp(steps = 99999999999) {
       try {
         // await this.sqlMgr.migrator().migrationsUp({
         //   env: this.nodes.env,
@@ -439,7 +439,7 @@ export default {
       }
       await this.loadEnv()
     },
-    async migrationDown (steps = 99999999999) {
+    async migrationDown(steps = 99999999999) {
       try {
         // await this.sqlMgr.migrator().migrationsDown({
         //   env: this.nodes.env,
@@ -468,7 +468,7 @@ export default {
       }
       await this.loadEnv()
     },
-    findNextMigrationColor (item) {
+    findNextMigrationColor(item) {
       if (item.nextMigration === 1) {
         return 'orange'
       } else if (item.nextMigration === 2) {
@@ -478,7 +478,7 @@ export default {
       }
       return ''
     },
-    findMigrationTextColor (item) {
+    findMigrationTextColor(item) {
       // if (item.nextMigration === 1) {
       //   return "white--text";
       // } else if (item.nextMigration === 2) {
@@ -490,15 +490,15 @@ export default {
     }
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

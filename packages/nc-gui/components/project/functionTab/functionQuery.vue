@@ -79,7 +79,7 @@ import { SqlUI } from '../../../helpers/SqlUiFactory'
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },
-  data () {
+  data() {
     return {
       functionData: {},
       newFunction: !!this.nodes.newFunction,
@@ -98,7 +98,7 @@ export default {
       removeFunctionTab: 'tabs/removeFunctionTab'
     }),
 
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -122,7 +122,7 @@ export default {
       }
     },
 
-    async loadFunction () {
+    async loadFunction() {
       if (this.newFunction) {
         this.functionData = {
           function_name: this.nodes.function_name,
@@ -153,7 +153,7 @@ export default {
       this.functionData = result.data.list[0]
       this.oldCreateFunction = `${this.functionData.create_function}` + ''
     },
-    async applyChanges () {
+    async applyChanges() {
       try {
         if (this.newFunction) {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
@@ -204,7 +204,7 @@ export default {
         throw e
       }
     },
-    async deleteFunction (action = '') {
+    async deleteFunction(action = '') {
       try {
         if (action === 'showDialog') {
           this.dialogShow = true
@@ -242,24 +242,24 @@ export default {
       }
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  created () {
+  created() {
     this.sqlUi = SqlUI.create(this.nodes.dbConnection)
   },
-  mounted () {
+  mounted() {
     this.loadFunction()
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

@@ -107,37 +107,37 @@ export default {
     editColumnMenu: false
   }),
   computed: {
-    type () {
+    type() {
       if (this.column.bt) { return 'bt' }
       if (this.column.hm) { return 'hm' }
       if (this.column.mm) { return 'mm' }
       return ''
     },
-    childColumn () {
+    childColumn() {
       if (this.column.bt) { return this.column.bt.cn }
       if (this.column.hm) { return this.column.hm.cn }
       if (this.column.mm) { return this.column.mm.rcn }
       return ''
     },
-    childTable () {
+    childTable() {
       if (this.column.bt) { return this.column.bt.tn }
       if (this.column.hm) { return this.column.hm.tn }
       if (this.column.mm) { return this.column.mm.rtn }
       return ''
     },
-    parentTable () {
+    parentTable() {
       if (this.column.bt) { return this.column.bt.rtn }
       if (this.column.hm) { return this.column.hm.rtn }
       if (this.column.mm) { return this.column.mm.tn }
       return ''
     },
-    parentColumn () {
+    parentColumn() {
       if (this.column.bt) { return this.column.bt.rcn }
       if (this.column.hm) { return this.column.hm.rcn }
       if (this.column.mm) { return this.column.mm.cn }
       return ''
     },
-    tooltipMsg () {
+    tooltipMsg() {
       if (!this.column) { return '' }
       if (this.column.hm) {
         return `'${this.column.hm._rtn}' has many '${this.column.hm._tn}'`
@@ -150,7 +150,7 @@ export default {
     }
   },
   methods: {
-    async deleteColumn () {
+    async deleteColumn() {
       try {
         // const column = { ...this.column, cno: this.column.cn }
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{

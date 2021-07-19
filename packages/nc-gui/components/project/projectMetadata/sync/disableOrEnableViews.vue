@@ -186,12 +186,12 @@ export default {
     filter: '',
     views: null
   }),
-  async mounted () {
+  async mounted() {
     await this.loadModels()
     await this.loadTableList()
   },
   methods: {
-    async addTableMeta (tables) {
+    async addTableMeta(tables) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -199,7 +199,7 @@ export default {
         }, 'viewMetaCreate', {
           viewNames: tables// this.comparedModelList.filter(t => t.new).map(t=>t.title)
         }])
-        setTimeout(async () => {
+        setTimeout(async() => {
           await this.loadModels()
           this.$toast.success('Table metadata added successfully').goAway(3000)
         }, 1000)
@@ -207,7 +207,7 @@ export default {
         this.$toast.error('Some error occurred').goAway(5000)
       }
     },
-    async deleteTableMeta (tables) {
+    async deleteTableMeta(tables) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -215,7 +215,7 @@ export default {
         }, 'viewMetaDelete', {
           tableNames: tables
         }])
-        setTimeout(async () => {
+        setTimeout(async() => {
           await this.loadModels()
           this.$toast.success('Table metadata deleted successfully').goAway(3000)
         }, 1000)
@@ -223,7 +223,7 @@ export default {
         this.$toast.error('Some error occurred').goAway(5000)
       }
     },
-    async syncMetadata () {
+    async syncMetadata() {
       const addTables = this.comparedModelList.filter(t => t.new).map(t => t.title)
       const deleteTables = this.comparedModelList.filter(t => t.deleted).map(t => t.title)
       if (addTables.length) {
@@ -234,7 +234,7 @@ export default {
       }
     },
 
-    async recreateTableMeta (table) {
+    async recreateTableMeta(table) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -242,7 +242,7 @@ export default {
         }, 'viewMetaRecreate', {
           tn: table
         }])
-        setTimeout(async () => {
+        setTimeout(async() => {
           await this.loadModels()
           this.$toast.success('Table metadata recreated successfully').goAway(3000)
         }, 1000)
@@ -250,7 +250,7 @@ export default {
         this.$toast.error('Some error occurred').goAway(5000)
       }
     },
-    async loadModels () {
+    async loadModels() {
       if (this.dbAliasList[this.dbsTab]) {
         this.models = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -259,14 +259,14 @@ export default {
         this.edited = false
       }
     },
-    async loadTableList () {
+    async loadTableList() {
       this.views = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.db.meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
       }, 'viewList'])).data.list
     },
 
-    async saveModels () {
+    async saveModels() {
       this.updating = true
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -286,16 +286,16 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
-    enableCountText () {
+    enableCountText() {
       return this.models
         ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
         : ''
     },
 
-    isNewOrDeletedModelFound () {
+    isNewOrDeletedModelFound() {
       return this.comparedModelList.some(m => m.new || m.deleted)
     },
-    comparedModelList () {
+    comparedModelList() {
       const res = []
       const getPriority = (item) => {
         if (item.new) { return 2 }

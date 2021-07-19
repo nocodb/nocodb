@@ -1,7 +1,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-  data () {
+  data() {
     return {
       isHydrated: false,
       drawer: null
@@ -9,45 +9,45 @@ export default {
     }
   },
   computed: {
-    isDark () {
+    isDark() {
       return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.dark
     },
-    isLight () {
+    isLight() {
       return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.light
     },
-    isThisMobile () { // just an example, could be one specific value if that's all you need
+    isThisMobile() { // just an example, could be one specific value if that's all you need
       return this.isHydrated ? this.$vuetify && this.$vuetify.breakpoint && this.$vuetify.breakpoint.smAndDown : false
     },
 
-    isTool () {
+    isTool() {
       return process.env && process.env.tool
     },
-    isDashboard () {
+    isDashboard() {
       return this.$route &&
         this.$route.path &&
         (this.$route.path === '/nc' || this.$route.path === '/nc/' || this.$route.path.startsWith('/nc/'))
     },
 
-    _meta () {
+    _meta() {
       return this._isMac ? '⌘' : '^'
     },
-    _isMac () {
+    _isMac() {
       return process.platform === 'darwin'
     },
-    _isWindows () {
+    _isWindows() {
       return process.platform === 'win32'
     },
-    _isDev () {
+    _isDev() {
       return process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase().startsWith('dev')
     },
-    _isEE () {
+    _isEE() {
       return process.env.EE
     },
     ...mapGetters({
       _isUIAllowed: 'users/GtrIsUIAllowed'
     })
   },
-  mounted () {
+  mounted() {
     // this.isHydrated = true
     // if (!this.$vuetify.breakpoint.smAndDown) {
     //   //console.log('setting drawer to false');
@@ -75,13 +75,13 @@ export default {
   //   }
   // },
   methods: {
-    upgradeToEE () {
+    upgradeToEE() {
       this.$toast.info('Upgrade to Enterprise Edition').goAway(3000)
     },
-    comingSoon () {
+    comingSoon() {
       this.$toast.info('Coming soon').goAway(3000)
     },
-    async sqlOp (args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams) {
+    async sqlOp(args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams) {
       return this.$store.dispatch('sqlMgr/ActSqlOp', [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams])
     }
   }

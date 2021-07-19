@@ -4,9 +4,9 @@ import device from '../mixins/device'
 
 Vue.mixin(device)
 
-export default async ({ store }) => {
-  function getListener (binding) {
-    return function (e) {
+export default async({ store }) => {
+  function getListener(binding) {
+    return function(e) {
       if (store.state.windows.isGaEnabled || store.state.windows.isComp) {
         const cat = window.location.hash.replace(/\d+\/(?=dashboard)/, '')
         const action = binding.value && binding.value[0]
@@ -24,7 +24,7 @@ export default async ({ store }) => {
   }
 
   Vue.directive('ge', {
-    bind (el, binding, vnode) {
+    bind(el, binding, vnode) {
       if (vnode.componentInstance) {
         vnode.componentInstance.$on('click', getListener(binding))
       } else {
@@ -53,7 +53,7 @@ export default async ({ store }) => {
       // eslint-disable-next-line no-unused-vars
       let startX, startY, startWidth
 
-      function initDrag (e) {
+      function initDrag(e) {
         document.body.style.cursor = 'col-resize'
         resizer.classList.add('primary')
         startX = e.clientX
@@ -74,7 +74,7 @@ export default async ({ store }) => {
         }
       }
 
-      function doDrag (e) {
+      function doDrag(e) {
         width = (startWidth + e.clientX - startX) + 'px'
         el.style.maxWidth = el.style.minWidth = el.style.width = width
         emit(vnode, 'xcresizing', width)
@@ -82,7 +82,7 @@ export default async ({ store }) => {
         // p.style.height = (startHeight + e.clientY - startY) + 'px';
       }
 
-      function stopDrag (e) {
+      function stopDrag(e) {
         resizer.classList.remove('primary')
         document.body.style.cursor = ''
         document.documentElement.removeEventListener('mousemove', doDrag, false)

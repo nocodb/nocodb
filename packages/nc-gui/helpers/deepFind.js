@@ -1,4 +1,4 @@
-export default function (obj, path) {
+export default function(obj, path) {
   const paths = path.split('.')
   let current = obj
   let i

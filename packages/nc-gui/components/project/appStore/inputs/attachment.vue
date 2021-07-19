@@ -196,7 +196,7 @@ export default {
     selectedImage: null
   }),
   watch: {
-    value (val) {
+    value(val) {
       try {
         this.localState = (typeof val === 'string' ? JSON.parse(val) : val) || []
       } catch (e) {
@@ -209,7 +209,7 @@ export default {
     //   }
     // }
   },
-  created () {
+  created() {
     try {
       this.localState = (typeof this.value === 'string' ? JSON.parse(this.value) : this.value) || []
     } catch (e) {
@@ -217,30 +217,30 @@ export default {
     }
     document.addEventListener('keydown', this.onArrowDown)
   },
-  beforeDestroy () {
+  beforeDestroy() {
     document.removeEventListener('keydown', this.onArrowDown)
   },
-  mounted () {
+  mounted() {
   },
   methods: {
-    openUrl (url, target) {
+    openUrl(url, target) {
       window.open(url, target)
     },
     isImage,
-    hideIfVisible () {
+    hideIfVisible() {
       if (this.showImage) {
         this.showImage = false
       }
     },
-    selectImage (selectedImage, i) {
+    selectImage(selectedImage, i) {
       this.showImage = true
       this.carousel = i
       this.selectedImage = selectedImage
     },
-    addFile () {
+    addFile() {
       this.$refs.file.click()
     },
-    async onFileSelection () {
+    async onFileSelection() {
       if (!this.$refs.file.files || !this.$refs.file.files.length) {
         return
       }
@@ -256,12 +256,12 @@ export default {
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
-    removeItem (i) {
+    removeItem(i) {
       this.localState.splice(i, 1)
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
-    onArrowDown (e) {
+    onArrowDown(e) {
       if (!this.showImage) { return }
       e = e || window.event
       // eslint-disable-next-line eqeqeq

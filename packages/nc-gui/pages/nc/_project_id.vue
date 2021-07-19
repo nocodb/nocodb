@@ -23,25 +23,25 @@ export default {
     Splitpanes,
     Pane
   },
-  data () {
+  data() {
     return {
       paneSize: 18,
       mainPanelSize: 82
     }
   },
   computed: {
-    pid () {
+    pid() {
       return this.$route.params.project_id
     }
   },
-  async created () {
+  async created() {
     this.$store.watch(
       state => state.panelSize.treeView && state.panelSize.treeView.size,
       (newSize) => { this.paneSize = newSize }
     )
   },
 
-  mounted () {
+  mounted() {
     if ('new' in this.$route.query) {
       this.simpleAnim()
       this.$router.replace({ query: {} })
@@ -53,18 +53,18 @@ export default {
     }
   },
   methods: {
-    tableCreate (table) {
+    tableCreate(table) {
       if (this.$refs.treeview) {
         this.$refs.treeview.mtdTableCreate(table)
       }
     },
-    simpleAnim () {
+    simpleAnim() {
       const count = 200
       const defaults = {
         origin: { y: 0.7 }
       }
 
-      function fire (particleRatio, opts) {
+      function fire(particleRatio, opts) {
         window.confetti(Object.assign({}, defaults, opts, {
           particleCount: Math.floor(count * particleRatio)
         }))

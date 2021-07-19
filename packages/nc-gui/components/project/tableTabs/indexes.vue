@@ -232,7 +232,7 @@ import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
 export default {
   components: { dlgLabelSubmitCancel, Splitpanes, Pane },
-  data () {
+  data() {
     return {
       selected: [],
       indexCreationAllowed: true,
@@ -283,7 +283,7 @@ export default {
     }
   },
   methods: {
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -307,7 +307,7 @@ export default {
       }
     },
 
-    async mtdRefreshIndexList () {
+    async mtdRefreshIndexList() {
       try {
         this.$store.commit('notification/MutToggleProgressBar', true)
         if (this.newTable) {
@@ -323,17 +323,17 @@ export default {
         this.$store.commit('notification/MutToggleProgressBar', false)
       }
     },
-    getColumnsForIndexCreation (columns) {
+    getColumnsForIndexCreation(columns) {
       /** ************* START : get columns in this index ***************/
       let tempIndexes = JSON.parse(JSON.stringify(columns))
       console.log('columns in index', columns)
-      tempIndexes = tempIndexes.filter(function (a) {
+      tempIndexes = tempIndexes.filter(function(a) {
         return a.seq_in_index !== 0
       })
 
       console.log('tempIndexes after filter', tempIndexes)
 
-      tempIndexes = tempIndexes.sort(function (a, b) {
+      tempIndexes = tempIndexes.sort(function(a, b) {
         return a.seq_in_index - b.seq_in_index
       })
       console.log('tempIndexes after sort', tempIndexes)
@@ -348,7 +348,7 @@ export default {
 
       /** ************* END : get columns in this index ***************/
     },
-    async mtdIndexCreate (aggregatedIndex) {
+    async mtdIndexCreate(aggregatedIndex) {
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -451,7 +451,7 @@ export default {
 
       await this.mtdRefreshIndexList()
     },
-    async mtdIndexDelete (action = '', aggregatedIndex, index) {
+    async mtdIndexDelete(action = '', aggregatedIndex, index) {
       if (action === 'showDialog') {
         this.showIndexDeleteDialog = true
         this.selectedIndexForDelete = { aggregatedIndex, index }
@@ -475,13 +475,13 @@ export default {
             JSON.stringify(this.selectedIndexForDelete.aggregatedIndex.columns)
           )
 
-          tempIndexes = tempIndexes.filter(function (a) {
+          tempIndexes = tempIndexes.filter(function(a) {
             return a.seq_in_index !== 0
           })
 
           console.log('tempIndexes after filter', tempIndexes)
 
-          tempIndexes = tempIndexes.sort(function (a, b) {
+          tempIndexes = tempIndexes.sort(function(a, b) {
             return a.seq_in_index - b.seq_in_index
           })
           console.log('tempIndexes after sort', tempIndexes)
@@ -533,13 +533,13 @@ export default {
         this.selectedIndexForDelete = null
       }
     },
-    mtdToggleNonUniqueStatus (aggregatedIndex) {
+    mtdToggleNonUniqueStatus(aggregatedIndex) {
       console.log('mtdToggleNonUniqueStatus', aggregatedIndex)
       // aggregatedIndex.non_unique = aggregatedIndex.non_unique ? 0 : 1;
       aggregatedIndex.edited = true
       aggregatedIndex.editedIndexAttr = true
     },
-    mtdToggleColumnInIndex (cn, index) {
+    mtdToggleColumnInIndex(cn, index) {
       console.log('Index being edited:', this.selected)
 
       const aggregatedIndex = this.aggregatedIndexes.find(
@@ -575,7 +575,7 @@ export default {
       } else {
         const max = Math.max.apply(
           Math,
-          this.indexColumns.map(function (o) {
+          this.indexColumns.map(function(o) {
             return o.seq_in_index
           })
         )
@@ -583,7 +583,7 @@ export default {
         cn.seq_in_index = max + 1
       }
     },
-    mtdAddIndex () {
+    mtdAddIndex() {
       const itemIndex = this.aggregatedIndexes.length
       const index = {
         cardinality: 'a',
@@ -609,13 +609,13 @@ export default {
       this.selected = itemIndex
       this.mtdSelectColumnsForIndex(index, itemIndex)
     },
-    mtdResetColumnsIndexes () {
+    mtdResetColumnsIndexes() {
       for (let j = 0; j < this.columns.length; j++) {
         this.columns[j].seq_in_index = 0
         this.columns[j].is_index = false
       }
     },
-    mtdSelectColumnsForIndex (indexObj = null, index = 0) {
+    mtdSelectColumnsForIndex(indexObj = null, index = 0) {
       console.log('selecting index', index)
 
       if (!indexObj) {
@@ -644,7 +644,7 @@ export default {
 
       this.indexColumns = indexObj.columns
     },
-    calculateColumnSequenceValue () {
+    calculateColumnSequenceValue() {
       this.aggregatedIndexes.forEach((indexObj) => {
         for (let i = 0; i < this.indexes.length; i++) {
           if (indexObj.key_name === this.indexes[i].key_name) {
@@ -661,7 +661,7 @@ export default {
       })
     },
 
-    createAggregatedIndexesList (indexes) {
+    createAggregatedIndexesList(indexes) {
       for (let i = 0; i < indexes.length; i++) {
         const index = { ...indexes[i] }
         let found = 0
@@ -682,7 +682,7 @@ export default {
         }
       }
     },
-    async getIndexesAndCreateAggregatedIndexes () {
+    async getIndexesAndCreateAggregatedIndexes() {
       this.loading = true
 
       if (this.newTable) { return }
@@ -722,7 +722,7 @@ export default {
 
       this.loading = false
     },
-    async getColumnList () {
+    async getColumnList() {
       this.columnLoading = true
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
       // const client = await this.sqlMgr.projectGetSqlClient({
@@ -756,25 +756,25 @@ export default {
       console.log('Columns in table:', this.columns)
       this.columnLoading = false
     },
-    save (aggregatedIndex) {
+    save(aggregatedIndex) {
       aggregatedIndex.edited = true
 
       this.snack = true
       this.snackColor = 'success'
       this.snackText = 'Data saved'
     },
-    cancel () {
+    cancel() {
       this.snack = true
       this.snackColor = 'error'
       this.snackText = 'Canceled'
       console.log('Dialog Canceled')
     },
-    open () {
+    open() {
       this.snack = true
       this.snackColor = 'info'
       this.snackText = 'Dialog opened'
     },
-    close (aggregatedIndex) {
+    close(aggregatedIndex) {
       aggregatedIndex.edited = true
     }
   },
@@ -782,30 +782,30 @@ export default {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
 
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {
-    columns () {
+    columns() {
       return this.columns
     },
-    aggregatedIndexes (v, ov) {
+    aggregatedIndexes(v, ov) {
       console.log(v, ov)
     }
   },
-  async created () {
+  async created() {
     await this.mtdRefreshIndexList()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes', 'newTable', 'deleteTable', 'isMetaTable']

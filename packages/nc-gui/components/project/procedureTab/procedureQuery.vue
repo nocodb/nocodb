@@ -74,7 +74,7 @@ import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },
-  data () {
+  data() {
     return {
       procedure: {},
       newProcedure: !!this.nodes.newProcedure,
@@ -94,7 +94,7 @@ export default {
       removeProcedureTab: 'tabs/removeProcedureTab'
     }),
 
-    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -118,7 +118,7 @@ export default {
       }
     },
 
-    async loadProcedure () {
+    async loadProcedure() {
       try {
         this.$store.commit('notification/MutToggleProgressBar', true)
         if (this.newProcedure) {
@@ -158,7 +158,7 @@ export default {
         this.$store.commit('notification/MutToggleProgressBar', false)
       }
     },
-    async applyChanges () {
+    async applyChanges() {
       try {
         if (this.newProcedure) {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
@@ -203,7 +203,7 @@ export default {
         throw e
       }
     },
-    async deleteProcedure (action = '') {
+    async deleteProcedure(action = '') {
       try {
         if (action === 'showDialog') {
           this.dialogShow = true
@@ -240,23 +240,23 @@ export default {
       }
     }
   },
-  beforeCreated () {
+  beforeCreated() {
   },
   watch: {},
-  created () {
+  created() {
     this.loadProcedure()
   },
-  mounted () {
+  mounted() {
   },
-  beforeDestroy () {
+  beforeDestroy() {
   },
-  destroy () {
+  destroy() {
   },
   directives: {},
-  validate ({ params }) {
+  validate({ params }) {
     return true
   },
-  head () {
+  head() {
     return {}
   },
   props: ['nodes']

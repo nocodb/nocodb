@@ -165,7 +165,7 @@ export default {
 
   }),
   methods: {
-    async onEventChange () {
+    async onEventChange() {
       this.loading = true
       this.hook = {
         ...this.hook,
@@ -196,7 +196,7 @@ export default {
       }
       this.loading = false
     },
-    async saveHooks () {
+    async saveHooks() {
       if (!this.valid || !this.hook.event) {
         return
       }

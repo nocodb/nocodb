@@ -25,28 +25,28 @@ export default {
     column: Object,
     values: Array
   },
-  data () {
+  data() {
   },
   computed: {
-    colors () {
+    colors() {
       return this.$store.state.windows.darkTheme ? colors.dark : colors.light
     },
     localState: {
-      get () {
+      get() {
         return (this.value && this.value.split(',')) || []
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val.join(','))
         this.$emit('update')
       }
     },
-    setValues () {
+    setValues() {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
       return this.values || []
     },
-    parentListeners () {
+    parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
@@ -59,7 +59,7 @@ export default {
       return $listeners
     }
   },
-  mounted () {
+  mounted() {
     this.$el.focus()
     const event = document.createEvent('MouseEvents')
     event.initMouseEvent('mousedown', true, true, window)

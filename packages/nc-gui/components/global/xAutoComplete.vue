@@ -43,7 +43,7 @@ export default {
     env: String,
     styles: [Array, Object, String]
   },
-  data () {
+  data() {
     return {
       show: false,
       x: 0,
@@ -56,35 +56,35 @@ export default {
   },
   computed: {
     // filtered list based on input
-    items () {
+    items() {
       return this.envValues.filter(s => s.includes(this.activeValue))
     },
     // for setting menu width to textfield width
-    width () {
+    width() {
       return this.input && this.input.clientWidth
     },
     // extracting class names from root element
-    classNames () {
+    classNames() {
       return this.el && this.el.className
     },
     // v-model for the text filed
     autocomplete: {
-      get () {
+      get() {
         return this.value
       },
-      set (val) {
+      set(val) {
         this.$emit('input', val)
       }
     },
     //  extracting current env keys
-    envValues () {
+    envValues() {
       const envObj = this.isDashboard ? this.$store.getters['project/GtrApiEnvironment'] : this.$store.getters['project/GtrDefaultApiEnvironment']
       return envObj && envObj[this.env] ? Object.keys(envObj[this.env]) : []
     },
-    isEnvFound () {
+    isEnvFound() {
       return /{{\s*\w+\s*}}/.test(this.value)
     },
-    isEnvUsageValid () {
+    isEnvUsageValid() {
       const re = /{{\s*(\w+)\s*}}/g
       let m
       // eslint-disable-next-line no-cond-assign
@@ -94,16 +94,16 @@ export default {
       return true
     }
   },
-  mounted () {
+  mounted() {
     this.el = this.$el
     // getting input element reference
     this.input = this.$refs.input && this.$refs.input.$el.querySelector('input')
   },
-  created () {
+  created() {
   },
   methods: {
     // handling input event
-    onInput (v) {
+    onInput(v) {
       this.curPos = this.input.selectionStart || 0
       // extracting string from beginning to caret position
       // then using regex to check and extract certain pattern like
@@ -119,7 +119,7 @@ export default {
         this.show = false
       }
     },
-    onKeyup (e) {
+    onKeyup(e) {
       const menu = this.$refs.autoMenu
       // handlig up and down keys
       if (this.show && (e.which === 40 || e.which === 38)) {
@@ -132,7 +132,7 @@ export default {
         menu.onKeyDown(e)
       }
     },
-    onSelect (item) {
+    onSelect(item) {
       // appending menu value to the input
       this.input.setRangeText(
         // add closing only when its necessary

@@ -275,21 +275,21 @@ export default {
     schemaDiffDialog: false
   }),
   computed: {
-    filteredGroupedData () {
+    filteredGroupedData() {
       return Object.entries(this.groupedData)
         .filter(([path]) => !this.search || path.toLowerCase().includes(this.search.toLowerCase()))
     },
-    name () {
+    name() {
       return this.nodes.tn || this.nodes.view_name
     }
   },
-  async created () {
+  async created() {
     await this.loadRoutes()
     this.groupRoutes()
     await this.loadSwaggerDoc()
   },
   methods: {
-    groupRoutes () {
+    groupRoutes() {
       const groupedData = {}
       this.middlewares = []
       for (const route of this.routers) {
@@ -302,19 +302,19 @@ export default {
       }
       this.groupedData = groupedData
     },
-    showSourceCode (route, method) {
+    showSourceCode(route, method) {
       this.editRoute = route
       this.editMethod = method
       this.isMiddleware = false
       this.showCodeEditor = true
     },
-    showMiddlewareSourceCode (mw) {
+    showMiddlewareSourceCode(mw) {
       this.editRoute = mw
       this.editMethod = null
       this.isMiddleware = true
       this.showCodeEditor = true
     },
-    async loadSwaggerDoc () {
+    async loadSwaggerDoc() {
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
@@ -328,7 +328,7 @@ export default {
         this.swaggerDocHistory = []
       }
     },
-    async saveSwaggerDoc () {
+    async saveSwaggerDoc() {
       this.edited = false
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -343,7 +343,7 @@ export default {
         this.$toast.error('Failed to update swagger doc').goAway(3000)
       }
     },
-    async loadRoutes () {
+    async loadRoutes() {
       this.loading = true
       this.routers = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,

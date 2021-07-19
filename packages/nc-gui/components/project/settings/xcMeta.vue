@@ -162,10 +162,10 @@ export default {
     confirmMessage: ''
   }),
   methods: {
-    async exportMeta () {
+    async exportMeta() {
       this.dialogShow = true
       this.confirmMessage = 'Do you want to export metadata from meta tables?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -187,10 +187,10 @@ export default {
         }
       }
     },
-    async exportMetaZip () {
+    async exportMetaZip() {
       this.dialogShow = true
       this.confirmMessage = 'Do you want to export metadata from meta tables?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -224,10 +224,10 @@ export default {
         }
       }
     },
-    async resetMeta () {
+    async resetMeta() {
       this.dialogShow = true
       this.confirmMessage = 'Do you want to clear metadata from meta tables?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -250,10 +250,10 @@ export default {
       }
     },
 
-    async importMeta () {
+    async importMeta() {
       this.dialogShow = true
       this.confirmMessage = 'Do you want to import metadata from meta directory?'
-      this.confirmAction = async (act) => {
+      this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
@@ -275,7 +275,7 @@ export default {
         }
       }
     },
-    async importMetaZip () {
+    async importMetaZip() {
       if (this.$refs.importFile && this.$refs.importFile.files && this.$refs.importFile.files[0]) {
         const zipFile = this.$refs.importFile.files[0]
         this.loading = 'import-zip'

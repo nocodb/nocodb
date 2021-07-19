@@ -1,5 +1,5 @@
 ---
-title: 'Demostrations'
+title: 'Demos'
 description: 'Demos'
 position: 2
 category: 'Setup and Usages'

@@ -148,7 +148,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 ### Sample app        
 <code-sandbox :src="link"></code-sandbox>
 
-## Sample Demostrations
+## Sample Demos
 
 ### Docker deploying with one command
 

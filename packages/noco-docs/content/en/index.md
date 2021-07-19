@@ -40,7 +40,7 @@ Also NocoDB's app store allows you to build business workflows on views with com
 - ⚡ &nbsp;API tokens to integrate with Zapier, Integromat.
 
 
-## Architecture
+## Architecture - Simple Overview
 
 <img src="architecture.png" style="background: white;border-radius:4px;padding :10px">
 

@@ -19,7 +19,9 @@ Simple installation - takes about three minutes!
     - An example database schema can be found <a class="grey--text" href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources"> <u>here</u></a>.
     
 ## Quick try
-### 1-Click Deploy
+
+### 1-Click Deploy to Heroku
+
 <a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -28,7 +30,7 @@ Simple installation - takes about three minutes!
     />
 </a>
 
-### Node app or docker 
+### Node app / Docker 
 
 
 <code-group>
@@ -60,17 +62,49 @@ Simple installation - takes about three minutes!
   </code-block>
 </code-group>          
 
-
-
 <br>
 <br>
 
-# Production Setup 
+## Local Setup
+
+If you want to modify the source code, there are two scenarios. You can either 
+
+- change backend only or 
+- change both frontend and backend separately
+
+Even though the package ``nocodb/packages/nocodb`` is a backend project, you can still visit the dashboard as it includes ``nc-lib-gui``. 
+
+```bash
+cd packages/nocodb
+npm install
+npm run watch:run
+# open localhost:8080/dashboard in browser
+```
+
+As ``nc-lib-gui`` is hosted in npm registry, for local development on frontend part, you should run ``nc-gui`` separately. 
+
+```bash
+cd packages/nc-gui
+npm install
+npm run dev
+# open localhost:3000/dashboard in browser
+```
+
+If you wish to combine the frontend and backend together in your local devlopment environment, you may use ``packages/nc-lib-gui`` as a local depenedency by updating the ``packages/nocodb/package.json`` to 
+
+```json
+"nc-lib-gui": "file:../nc-lib-gui"
+```
+
+In this case, whenever there is any changes made in frontend, you need to run ``npm run build:copy`` under ``packages/nc-gui/``.
+
+## Production Setup 
+
 NocoDB requires a database to store metadata of spreadsheets views and external databases. 
 And connection params for this database can be specified in `NC_DB` environment variable. 
 
 
-## Docker 
+### Docker 
 
 <code-group>
   <code-block label="MySQL" active>
@@ -107,7 +141,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   </code-block> 
 </code-group> 
 
-## Docker Compose
+### Docker Compose
 
 <code-group>
   <code-block label="MySQL" active> 

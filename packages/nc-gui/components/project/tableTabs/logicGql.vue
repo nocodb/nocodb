@@ -1,228 +1,244 @@
 <template>
   <div class="graphql-logic">
-
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
-        <v-breadcrumbs :items="[{
-          text: nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: (nodes.tn || nodes.view_name) + ' (APIs)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+                     text: nodes.env,
+                     disabled: true,
+                     href: '#'
+                   },{
+                     text: nodes.dbAlias,
+                     disabled: true,
+                     href: '#'
+                   },
+                   {
+                     text: (nodes.tn || nodes.view_name) + ' (APIs)',
+                     disabled: true,
+                     href: '#'
+                   }]"
+          divider=">"
+          small
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
-
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn small outlined @click="showSwagger = !showSwagger" class="caption text-capitalize" color="primary">
-        <v-icon small  color="primary"> {{showSwagger ?'mdi-eye-off-outline' : 'mdi-eye-outline'}}</v-icon> &nbsp;
+      <v-spacer />
+      <v-btn small outlined class="caption text-capitalize" color="primary" @click="showSwagger = !showSwagger">
+        <v-icon small color="primary">
+          {{ showSwagger ?'mdi-eye-off-outline' : 'mdi-eye-outline' }}
+        </v-icon> &nbsp;
 
-        {{ showSwagger ? 'Hide Schema' : 'Show Schema' }}</v-btn>
-      <x-btn outlined tooltip="Reload Rows"
-             color="primary"
-             small
-             v-ge="['rows','reload']"
-             @click="loadSchema(); loadResolvers();">
-        <v-icon small left>refresh</v-icon>
+        {{ showSwagger ? 'Hide Schema' : 'Show Schema' }}
+      </v-btn>
+      <x-btn
+        v-ge="['rows','reload']"
+        outlined
+        tooltip="Reload Rows"
+        color="primary"
+        small
+        @click="loadSchema(); loadResolvers();"
+      >
+        <v-icon small left>
+          refresh
+        </v-icon>
         Reload
       </x-btn>
-
     </v-toolbar>
 
     <v-row class="mx-0" align="stretch">
       <v-col v-if="showSwagger">
         <v-card class="flex-shrink-1">
           <div class="text-center" style="padding: 3px">
-
             <span class="title schema-card-title">Schema</span>
           </div>
           <div class="d-flex pa-3">
-            <v-spacer></v-spacer>
+            <v-spacer />
 
-            <x-btn outlined :tooltip="`Compare GQL schema history of ${nodes.tn}`"
-                   color="primary"
-                   x-small
-                   :disabled="loading || !schemaHistory.length"
-                   @click.prevent="schemaDiffDialog = true">
-              <v-icon small left>mdi-source-branch</v-icon>
-              History <span class="history-count" v-if="schemaHistory.length">({{ schemaHistory.length }})</span>
+            <x-btn
+              outlined
+              :tooltip="`Compare GQL schema history of ${nodes.tn}`"
+              color="primary"
+              x-small
+              :disabled="loading || !schemaHistory.length"
+              @click.prevent="schemaDiffDialog = true"
+            >
+              <v-icon small left>
+                mdi-source-branch
+              </v-icon>
+              History <span v-if="schemaHistory.length" class="history-count">({{ schemaHistory.length }})</span>
             </x-btn>
-            <x-btn outlined tooltip="Save Changes"
-                   color="primary"
-                   x-small
-                   :disabled="loading"
-                   v-ge="['rows','save']"
-                   @click.prevent="saveSchema">
-              <v-icon small left>save</v-icon>
+            <x-btn
+              v-ge="['rows','save']"
+              outlined
+              tooltip="Save Changes"
+              color="primary"
+              x-small
+              :disabled="loading"
+              @click.prevent="saveSchema"
+            >
+              <v-icon small left>
+                save
+              </v-icon>
               Save
             </x-btn>
-
           </div>
           <monaco-editor
             v-model="schema"
             theme=""
             style="min-height:500px;"
-
-          >
-
-          </monaco-editor>
+          />
         </v-card>
       </v-col>
       <v-col>
-        <v-card class="flex-shrink-1" style="" v-if="filteredData.length">
+        <v-card v-if="filteredData.length" class="flex-shrink-1" style="">
           <div class="text-center" style="padding: 3px">
-
             <span class="title schema-card-title">Resolvers & Middlewares</span>
           </div>
           <v-simple-table v-if="resolvers" dense>
             <!--          style="width: auto; min-width: 500px">-->
             <thead>
-            <!--            <tr>-->
+              <!--            <tr>-->
 
-            <!--              <th colspan="3" class="text-center">-->
+              <!--              <th colspan="3" class="text-center">-->
 
-            <!--                <div class="text-center">-->
+              <!--                <div class="text-center">-->
 
-            <!--                  <span class="title card-title">Resolvers</span>-->
-            <!--                </div>-->
+              <!--                  <span class="title card-title">Resolvers</span>-->
+              <!--                </div>-->
 
-            <!--              </th>-->
+              <!--              </th>-->
 
-            <!--            </tr>-->
-            <tr>
-
-              <th colspan="3" class="text-center">
-
-
-                <v-text-field dense hide-details class="ma-2" :placeholder="`Search '${nodes.tn}' resolvers`"
-                              prepend-inner-icon="search" v-model="search"
-                              outlined></v-text-field>
-
-
-              </th>
-
-            </tr>
-
+              <!--            </tr>-->
+              <tr>
+                <th colspan="3" class="text-center">
+                  <v-text-field
+                    v-model="search"
+                    dense
+                    hide-details
+                    class="ma-2"
+                    :placeholder="`Search '${nodes.tn}' resolvers`"
+                    prepend-inner-icon="search"
+                    outlined
+                  />
+                </th>
+              </tr>
             </thead>
             <tbody>
-            <template v-for="({resolver,title,functions},i) in filteredData">
-              <tr v-if="resolver" :key="i"
-              >
-
-                <td width="20" class="px-0">
-
-                </td>
-                <td class="pl-0">
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <span v-on="on">{{ resolver }}</span>
-                    </template>
-                    <span>{{ resolver }}</span>
-                  </v-tooltip>
-                </td>
-                <td
-                  width="60" class="pa-1 text-center method-cell">
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-
-                      <v-hover v-slot:default="{ hover }">
-                        <v-icon @click="showSourceCode(resolver,functions)" small
-                                :color="hover ? 'primary':''" v-on="on">mdi-pencil
-                        </v-icon>
-                      </v-hover>
-                    </template>
-                    Edit business logic
-                  </v-tooltip>
-                </td>
-
-              </tr>
-              <tr v-else :key="i"
-              >
-
-                <td width="20" class="px-0">
-
-                </td>
-                <td class="pl-0">
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <span v-on="on" class="">{{ title }} - Middleware</span>
-                    </template>
-                    <span>{{ title }} - Middleware</span>
-                  </v-tooltip>
-                </td>
-                <td
-                  width="60" class="pa-1 text-center method-cell">
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-
-                      <v-hover v-slot:default="{ hover }">
-                        <v-icon @click="showMiddlewareSourceCode(title,functions)" small
-                                :color="hover ? 'primary':''" v-on="on">mdi-pencil
-                        </v-icon>
-                      </v-hover>
-                    </template>
-                    Edit business logic
-                  </v-tooltip>
-                </td>
-
-              </tr>
-            </template>
+              <template v-for="({resolver,title,functions},i) in filteredData">
+                <tr
+                  v-if="resolver"
+                  :key="i"
+                >
+                  <td width="20" class="px-0" />
+                  <td class="pl-0">
+                    <v-tooltip bottom>
+                      <template #activator="{ on }">
+                        <span v-on="on">{{ resolver }}</span>
+                      </template>
+                      <span>{{ resolver }}</span>
+                    </v-tooltip>
+                  </td>
+                  <td
+                    width="60"
+                    class="pa-1 text-center method-cell"
+                  >
+                    <v-tooltip bottom>
+                      <template #activator="{ on }">
+                        <v-hover v-slot="{ hover }">
+                          <v-icon
+                            small
+                            :color="hover ? 'primary':''"
+                            @click="showSourceCode(resolver,functions)"
+                            v-on="on"
+                          >
+                            mdi-pencil
+                          </v-icon>
+                        </v-hover>
+                      </template>
+                      Edit business logic
+                    </v-tooltip>
+                  </td>
+                </tr>
+                <tr
+                  v-else
+                  :key="i"
+                >
+                  <td width="20" class="px-0" />
+                  <td class="pl-0">
+                    <v-tooltip bottom>
+                      <template #activator="{ on }">
+                        <span class="" v-on="on">{{ title }} - Middleware</span>
+                      </template>
+                      <span>{{ title }} - Middleware</span>
+                    </v-tooltip>
+                  </td>
+                  <td
+                    width="60"
+                    class="pa-1 text-center method-cell"
+                  >
+                    <v-tooltip bottom>
+                      <template #activator="{ on }">
+                        <v-hover v-slot="{ hover }">
+                          <v-icon
+                            small
+                            :color="hover ? 'primary':''"
+                            @click="showMiddlewareSourceCode(title,functions)"
+                            v-on="on"
+                          >
+                            mdi-pencil
+                          </v-icon>
+                        </v-hover>
+                      </template>
+                      Edit business logic
+                    </v-tooltip>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </v-simple-table>
 
-
-          <v-alert v-else outlined type="info">Permission file not found</v-alert>
+          <v-alert v-else outlined type="info">
+            Permission file not found
+          </v-alert>
         </v-card>
       </v-col>
-
     </v-row>
 
-
-    <gql-handler-code-editor :nodes="nodes"
-                             :functions="selectedFunctions"
-                             :resolver="editResolver"
-                             :is-middleware="isMiddleware"
-                             v-model="showCodeEditor"></gql-handler-code-editor>
-
+    <gql-handler-code-editor
+      v-model="showCodeEditor"
+      :nodes="nodes"
+      :functions="selectedFunctions"
+      :resolver="editResolver"
+      :is-middleware="isMiddleware"
+    />
 
     <v-dialog v-model="schemaDiffDialog" scrollable min-width="600px">
       <v-card>
         <xc-diff
           v-model="schema"
           :history="schemaHistory"
-        ></xc-diff>
+        />
       </v-card>
     </v-dialog>
-
   </div>
 </template>
 
 <script>
-import GqlHandlerCodeEditor from "@/components/project/gqlHandlerCodeEditor";
-import MonacoTsEditor from "@/components/monaco/MonacoTsEditor";
-import MonacoEditor from "@/components/monaco/MonacoEditor";
-import XcDiff from "@/components/xcDiff";
+import GqlHandlerCodeEditor from '@/components/project/gqlHandlerCodeEditor'
+import MonacoEditor from '@/components/monaco/MonacoEditor'
+import XcDiff from '@/components/xcDiff'
 
 export default {
-  name: "logic-gql",
-  components: {XcDiff, MonacoEditor, MonacoTsEditor, GqlHandlerCodeEditor},
+  name: 'LogicGql',
+  components: { XcDiff, MonacoEditor, GqlHandlerCodeEditor },
   props: ['nodes'],
   data: () => ({
-    showSwagger:false,
+    showSwagger: false,
     selectedFunctions: null,
     schema: '',
     schemaHistory: [''],
@@ -236,22 +252,31 @@ export default {
     schemaDiffDialog: false,
     isMiddleware: false
   }),
+  computed: {
+    filteredData () {
+      return this.resolvers.filter(({ resolver }) => !resolver || (!this.search || resolver.toLowerCase().includes(this.search.toLowerCase())))
+    }
+  },
+  async created () {
+    await this.loadResolvers()
+    await this.loadSchema()
+  },
   methods: {
-    showSourceCode(resolver, functions) {
-      this.selectedFunctions = functions;
-      this.editResolver = resolver;
-      this.isMiddleware = false;
-      this.showCodeEditor = true;
+    showSourceCode (resolver, functions) {
+      this.selectedFunctions = functions
+      this.editResolver = resolver
+      this.isMiddleware = false
+      this.showCodeEditor = true
     },
-    showMiddlewareSourceCode(table, functions) {
-      this.selectedFunctions = functions;
-      this.editResolver = table;
-      this.isMiddleware = true;
-      this.showCodeEditor = true;
+    showMiddlewareSourceCode (table, functions) {
+      this.selectedFunctions = functions
+      this.editResolver = table
+      this.isMiddleware = true
+      this.showCodeEditor = true
     },
 
-    async saveSchema() {
-      this.edited = false;
+    async saveSchema () {
+      this.edited = false
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -259,50 +284,40 @@ export default {
         }, 'xcModelSchemaSet', {
           tn: this.nodes.tn || this.nodes.view_name,
           schema: this.schema
-        }]);
-        this.$toast.success('Successfully updated validations').goAway(3000);
+        }])
+        this.$toast.success('Successfully updated validations').goAway(3000)
       } catch (e) {
-        this.$toast.error('Failed to update validations').goAway(3000);
+        this.$toast.error('Failed to update validations').goAway(3000)
       }
     },
-    async loadSchema() {
+    async loadSchema () {
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
         tn: this.nodes.tn || this.nodes.view_name
-      }]);
-      this.schema = tableMeta.schema;
+      }])
+      this.schema = tableMeta.schema
       if (tableMeta.schema_previous) {
-        this.schemaHistory = JSON.parse(tableMeta.schema_previous).reverse();
+        this.schemaHistory = JSON.parse(tableMeta.schema_previous).reverse()
       } else {
-        this.schemaHistory = [];
+        this.schemaHistory = []
       }
     },
-    async loadResolvers() {
+    async loadResolvers () {
       this.resolvers = (await this.$store.dispatch('sqlMgr/ActSqlOp', [
         {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcResolverPolicyGet', {
           tn: this.nodes.tn || this.nodes.view_name
-        }])).data.list;
-    }
-  },
-  async created() {
-    await this.loadResolvers();
-    await this.loadSchema();
-  },
-  computed: {
-    filteredData() {
-      return this.resolvers.filter(({resolver}) => !resolver || (!this.search || resolver.toLowerCase().indexOf(this.search.toLowerCase()) > -1));
+        }])).data.list
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
-
 
 @import "~vuetify/src/styles/styles";
 

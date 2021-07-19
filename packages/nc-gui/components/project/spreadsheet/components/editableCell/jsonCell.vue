@@ -1,65 +1,68 @@
 <template>
-  <div @keydown.stop.enter class="cell-container">
-    <div class="d-flex ma-1" v-if="!isForm">
-      <v-spacer>
-      </v-spacer>
-      <v-btn outlined x-small class="mr-1" @click="$emit('cancel')">Cancel</v-btn>
-      <v-btn x-small color="primary" @click="save">Save</v-btn>
+  <div class="cell-container" @keydown.stop.enter>
+    <div v-if="!isForm" class="d-flex ma-1">
+      <v-spacer />
+      <v-btn outlined x-small class="mr-1" @click="$emit('cancel')">
+        Cancel
+      </v-btn>
+      <v-btn x-small color="primary" @click="save">
+        Save
+      </v-btn>
     </div>
-    <monaco-json-object-editor v-model="localState"
-                               style="width: 300px;min-height: 200px;min-width:100%"></monaco-json-object-editor>
-
-
+    <monaco-json-object-editor
+      v-model="localState"
+      style="width: 300px;min-height: 200px;min-width:100%"
+    />
   </div>
 </template>
 
 <script>
-import MonacoJsonEditor from "@/components/monaco/MonacoJsonEditor";
-import MonacoJsonObjectEditor from "@/components/monaco/MonacoJsonObjectEditor";
+import MonacoJsonObjectEditor from '@/components/monaco/MonacoJsonObjectEditor'
 
 export default {
-  name: "json-cell",
-  components: {MonacoJsonObjectEditor, MonacoJsonEditor},
+  name: 'JsonCell',
+  components: { MonacoJsonObjectEditor },
   props: {
     value: String,
-    isForm:Boolean
+    isForm: Boolean
   },
   data: () => ({
     localState: ''
   }),
-  created() {
-    this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value;
+  computed: {
+
+    parentListeners () {
+      const $listeners = {}
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
+      }
+
+      return $listeners
+    }
   },
-  mounted() {
-  }, watch: {
-    value(val) {
-      this.localState = typeof val === 'string' ? JSON.parse(val) : val;
+  watch: {
+    value (val) {
+      this.localState = typeof val === 'string' ? JSON.parse(val) : val
     },
-    localState(val){
-      if(this.isForm){
+    localState (val) {
+      if (this.isForm) {
         this.$emit('input', JSON.stringify(val))
       }
     }
   },
+  created () {
+    this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value
+  },
+  mounted () {
+  },
   methods: {
-    save() {
+    save () {
       this.$emit('input', JSON.stringify(this.localState))
     }
-  },
-  computed:{
-
-    parentListeners(){
-      const $listeners = {};
-
-      if(this.$listeners.blur){
-        $listeners.blur = this.$listeners.blur;
-      }
-      if(this.$listeners.focus){
-        $listeners.focus = this.$listeners.focus;
-      }
-
-      return $listeners;
-    },
   }
 }
 </script>

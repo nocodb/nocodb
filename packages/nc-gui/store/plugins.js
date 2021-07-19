@@ -1,39 +1,35 @@
 
-export const state = () => ({});
-
+export const state = () => ({})
 
 export const mutations = {
-  mutPluginDetails(state, {title, settings}) {
+  mutPluginDetails (state, { title, settings }) {
     state[title] = settings
   }
 }
 
-
 export const getters = {
-  brandName(state) {
+  brandName (state) {
     if (state.Branding && state.Branding.title) {
-      return state.Branding.title;
+      return state.Branding.title
     }
     return 'NocoDB'
   },
-  brandLogo(state) {
+  brandLogo (state) {
     if (state.Branding && state.Branding.logo && state.Branding.logo.length) {
-      const images = JSON.parse(state.Branding.logo);
-      if (images && images.length)
-        return images[0].url;
+      const images = JSON.parse(state.Branding.logo)
+      if (images && images.length) { return images[0].url }
     }
-    return require('~/assets/img/icons/512x512-trans.png');
+    return require('~/assets/img/icons/512x512-trans.png')
   }
 }
 
-
 export const actions = {
-  async pluginPostInstall({commit, state}, title) {
+  async pluginPostInstall ({ commit, state }, title) {
     try {
       this.plugin = await this.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         title
-      }]);
-      const settings = JSON.parse(this.plugin.input) || {};
+      }])
+      const settings = JSON.parse(this.plugin.input) || {}
       console.log(settings)
       commit('mutPluginDetails', {
         title,

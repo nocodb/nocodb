@@ -1,44 +1,44 @@
-let authorizedRoutes = {};
+const authorizedRoutes = {}
 
-authorizedRoutes['/user/settings'] = true;
-authorizedRoutes['/user/settings/accounts'] = true;
-authorizedRoutes['/user/settings/password'] = true;
-authorizedRoutes['/referral'] = true;
+authorizedRoutes['/user/settings'] = true
+authorizedRoutes['/user/settings/accounts'] = true
+authorizedRoutes['/user/settings/password'] = true
+authorizedRoutes['/referral'] = true
 
-authorizedRoutes['/realestate/profits'] = true;
-authorizedRoutes['/realestate/bygeo'] = true;
-authorizedRoutes['/payment/buy'] = true;
+authorizedRoutes['/realestate/profits'] = true
+authorizedRoutes['/realestate/bygeo'] = true
+authorizedRoutes['/payment/buy'] = true
 
-authorizedRoutes['/pricing'] = false;
-authorizedRoutes['/user'] = true;
+authorizedRoutes['/pricing'] = false
+authorizedRoutes['/user'] = true
 
-authorizedRoutes['/user/authentication'] = true;
-authorizedRoutes['/user/password'] = true;
+authorizedRoutes['/user/authentication'] = true
+authorizedRoutes['/user/password'] = true
 
-authorizedRoutes['/error/400'] = false;
-authorizedRoutes['/realestate/capitalgains'] = true;
-authorizedRoutes['/payment/train'] = true;
-authorizedRoutes['/user/settings'] = true;
+authorizedRoutes['/error/400'] = false
+authorizedRoutes['/realestate/capitalgains'] = true
+authorizedRoutes['/payment/train'] = true
+authorizedRoutes['/user/settings'] = true
 
-authorizedRoutes['/info/contact'] = false;
-authorizedRoutes['/profits'] = false;
-authorizedRoutes['/user/admin'] = true;
-authorizedRoutes['/error/403'] = false;
-authorizedRoutes['/error/404'] = false;
+authorizedRoutes['/info/contact'] = false
+authorizedRoutes['/profits'] = false
+authorizedRoutes['/user/admin'] = true
+authorizedRoutes['/error/403'] = false
+authorizedRoutes['/error/404'] = false
 
-authorizedRoutes['/info/hiring'] = false;
-authorizedRoutes['/user/settings/accounts'] = true;
-authorizedRoutes['/user/password/reset'] = false;
-authorizedRoutes['/user/settings/profile'] = true;
-authorizedRoutes['/user/settings/picture'] = true;
-authorizedRoutes['/user/password/forgot'] = false;
-authorizedRoutes['/user/authentication/signup'] = false;
-authorizedRoutes['/user/settings/password'] = true;
-authorizedRoutes['/user/admin/user-edit'] = true;
-authorizedRoutes['/user/authentication/signin'] = false;
-authorizedRoutes['/user/password/reset/success'] = true;
-authorizedRoutes['/user/password/reset/invalid'] = true;
-authorizedRoutes['/user/password/reset/form'] = true;
+authorizedRoutes['/info/hiring'] = false
+authorizedRoutes['/user/settings/accounts'] = true
+authorizedRoutes['/user/password/reset'] = false
+authorizedRoutes['/user/settings/profile'] = true
+authorizedRoutes['/user/settings/picture'] = true
+authorizedRoutes['/user/password/forgot'] = false
+authorizedRoutes['/user/authentication/signup'] = false
+authorizedRoutes['/user/settings/password'] = true
+authorizedRoutes['/user/admin/user-edit'] = true
+authorizedRoutes['/user/authentication/signin'] = false
+authorizedRoutes['/user/password/reset/success'] = true
+authorizedRoutes['/user/password/reset/invalid'] = true
+authorizedRoutes['/user/password/reset/form'] = true
 // // authorizedRoutes['/user/admin/user/_userId'] = true;
 // // authorizedRoutes['/'] = false;
 
@@ -50,20 +50,18 @@ authorizedRoutes['/user/password/reset/form'] = true;
 // freeRoutes['user/authentication/signin'] = true;
 // freeRoutes['user/authentication/signup'] = true;
 
-
 exports.allowed = function (store, path) {
-
   // console.log('store.getters.GtrUser',store.getters.GtrUser);
   // console.log('path',path);
 
   // && authorizedRoutes[path]
 
-  if(store.getters.GtrUser === null && path in authorizedRoutes && authorizedRoutes[path]) {
-    return false;
+  if (store.getters.GtrUser === null && path in authorizedRoutes && authorizedRoutes[path]) {
+    return false
   } else {
-    true;
+    return true
   }
-};
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

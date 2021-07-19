@@ -1,106 +1,113 @@
 <template>
   <v-container fluid>
-    <v-simple-table dense class="ignore-height-style params-table" style="" dense>
-      <template v-slot:default>
+    <v-simple-table dense class="ignore-height-style params-table" style="">
+      <template #default>
         <thead>
-        <tr>
-          <th class="text-left body-2 grey--text" width="40%">Param Name</th>
-          <th class="text-left body-2 grey--text" width="40%">Value</th>
-
-        </tr>
+          <tr>
+            <th class="text-left body-2 grey--text" width="40%">
+              Param Name
+            </th>
+            <th class="text-left body-2 grey--text" width="40%">
+              Value
+            </th>
+          </tr>
         </thead>
         <tbody>
-
-        <tr>
-
-          <td>
-            Connections
-          </td>
-          <td>
-            <v-text-field
-            placeholder="Enter a number"
-              hide-details
-              single-line
-              dense class="body-2" type="number" @input="$emit('input', perf)"
-              v-model="perf.connections"></v-text-field>
-
-          </td>
-
-        </tr>
-        <tr>
-
-          <td>
-            Pipeline
-          </td>
-          <td>
-            <v-text-field
-            placeholder="Enter a number"
-              hide-details
-              single-line
-              dense class="body-2" type="number" @input="$emit('input', perf)" v-model="perf.pipelining"></v-text-field>
-
-
-          </td>
-
-        </tr>
-        <tr>
-
-          <td>
-            Duration
-          </td>
-          <td>
-            <v-text-field
-            placeholder="Duration in seconds"
-              hide-details
-              single-line
-              dense class="body-2" type="number" @input="$emit('input', perf)" v-model="perf.duration"></v-text-field>
-
-
-          </td>
-
-        </tr>
+          <tr>
+            <td>
+              Connections
+            </td>
+            <td>
+              <v-text-field
+                v-model="perf.connections"
+                placeholder="Enter a number"
+                hide-details
+                single-line
+                dense
+                class="body-2"
+                type="number"
+                @input="$emit('input', perf)"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Pipeline
+            </td>
+            <td>
+              <v-text-field
+                v-model="perf.pipelining"
+                placeholder="Enter a number"
+                hide-details
+                single-line
+                dense
+                class="body-2"
+                type="number"
+                @input="$emit('input', perf)"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Duration
+            </td>
+            <td>
+              <v-text-field
+                v-model="perf.duration"
+                placeholder="Duration in seconds"
+                hide-details
+                single-line
+                dense
+                class="body-2"
+                type="number"
+                @input="$emit('input', perf)"
+              />
+            </td>
+          </tr>
         </tbody>
-
-
       </template>
     </v-simple-table>
-<div class="pa-1 text-right">
+    <div class="pa-1 text-right">
+      <p class="grey--text caption">
+        We are using <a
+          v-ge="['api-client-perf-test','autocannon-link']"
+          @click="open('https://github.com/mcollina/autocannon')"
+        >autocannon</a>
+      </p>
 
-  <p class="grey--text caption">We are using <a
-    v-ge="['api-client-perf-test','autocannon-link']" @click="open('https://github.com/mcollina/autocannon')">autocannon</a></p>
-
-    <v-btn  v-ge="['api-client-perf-test','clear']" outlined x-small @click="$emit('input',{})" color="warning"> Clear All Fields</v-btn>
-
-</div>
+      <v-btn v-ge="['api-client-perf-test','clear']" outlined x-small color="warning" @click="$emit('input',{})">
+        Clear All Fields
+      </v-btn>
+    </div>
   </v-container>
 </template>
 
 <script>
 
-  // const {shell} = require("electron").remote.require(
-  //   "./libs"
-  // );
-  export default {
-    name: "perfTest",
-    props: {
-      value: Object
-    },
-    computed: {
-      perf: {
-        get() {
-          return {...(this.value || {})};
-        },
-        set(value) {
-          this.$emit('input', value)
-        }
+// const {shell} = require("electron").remote.require(
+//   "./libs"
+// );
+export default {
+  name: 'PerfTest',
+  props: {
+    value: Object
+  },
+  computed: {
+    perf: {
+      get () {
+        return { ...(this.value || {}) }
       },
-    },
-    methods:{
-      open(url){
-        shell.openExternal(url);
+      set (value) {
+        this.$emit('input', value)
       }
     }
+  },
+  methods: {
+    open (url) {
+      // shell.openExternal(url)
+    }
   }
+}
 </script>
 
 <style scoped>

@@ -1,28 +1,36 @@
 <template>
   <div class="d-flex align-center">
-
     <v-tooltip bottom>
       <template #activator="{on}">
-        <v-icon v-if="column.hm" color="warning" x-small class="mr-1" v-on="on">mdi-table-arrow-right</v-icon>
-        <v-icon v-else-if="column.bt" color="info" x-small class="mr-1" v-on="on">mdi-table-arrow-left</v-icon>
-        <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">mdi-table-network</v-icon>
+        <v-icon v-if="column.hm" color="warning" x-small class="mr-1" v-on="on">
+          mdi-table-arrow-right
+        </v-icon>
+        <v-icon v-else-if="column.bt" color="info" x-small class="mr-1" v-on="on">
+          mdi-table-arrow-left
+        </v-icon>
+        <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
+          mdi-table-network
+        </v-icon>
 
-        <span v-on="on" class="name  flex-grow-1" :title="column._cn">{{ column._cn }}</span>
+        <span class="name  flex-grow-1" :title="column._cn" v-on="on">{{ column._cn }}</span>
 
-        <span v-if="column.rqd" v-on="on" class="error--text text--lighten-1">&nbsp;*</span>
+        <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
       </template>
-      <span class="caption" v-html="tooltipMsg"></span>
+      <span class="caption" v-html="tooltipMsg" />
     </v-tooltip>
-    <v-spacer>
-    </v-spacer>
+    <v-spacer />
 
     <v-menu offset-y open-on-hover left>
-      <template v-slot:activator="{on}">
-        <v-icon v-if="!isForm" v-on="on" small>mdi-menu-down</v-icon>
+      <template #activator="{on}">
+        <v-icon v-if="!isForm" small v-on="on">
+          mdi-menu-down
+        </v-icon>
       </template>
       <v-list dense>
         <v-list-item dense @click="editColumnMenu = true">
-          <x-icon small class="mr-1" color="primary">mdi-pencil</x-icon>
+          <x-icon small class="mr-1" color="primary">
+            mdi-pencil
+          </x-icon>
           <span class="caption">Edit</span>
         </v-list-item>
         <!--  <v-list-item dense @click="setAsPrimaryValue">
@@ -35,34 +43,45 @@
             </v-tooltip>
           </v-list-item> -->
         <v-list-item @click="columnDeleteDialog = true">
-          <x-icon small class="mr-1" color="error">mdi-delete-outline</x-icon>
+          <x-icon small class="mr-1" color="error">
+            mdi-delete-outline
+          </x-icon>
           <span class="caption">Delete</span>
         </v-list-item>
       </v-list>
     </v-menu>
 
-    <v-dialog v-model="columnDeleteDialog" max-width="500"
-              persistent>
+    <v-dialog
+      v-model="columnDeleteDialog"
+      max-width="500"
+      persistent
+    >
       <v-card>
-        <v-card-title class="grey darken-2 subheading white--text">Confirm</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text class="mt-4 title">Do you want to delete <span class="font-weight-bold">'{{
+        <v-card-title class="grey darken-2 subheading white--text">
+          Confirm
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="mt-4 title">
+          Do you want to delete <span class="font-weight-bold">'{{
             column.cn
           }}'</span> column ?
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider />
         <v-card-actions class="d-flex pa-4">
-          <v-spacer></v-spacer>
-          <v-btn small @click="columnDeleteDialog = false">Cancel</v-btn>
-          <v-btn small color="error" @click="deleteColumn">Confirm</v-btn>
+          <v-spacer />
+          <v-btn small @click="columnDeleteDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn small color="error" @click="deleteColumn">
+            Confirm
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-
-    <v-menu offset-y v-model="editColumnMenu" content-class="elevation-0" left>
-      <template v-slot:activator="{on}">
-        <span v-on="on"></span>
+    <v-menu v-model="editColumnMenu" offset-y content-class="elevation-0" left>
+      <template #activator="{on}">
+        <span v-on="on" />
       </template>
       <edit-virtual-column
         v-if="editColumnMenu"
@@ -72,49 +91,54 @@
         :column="column"
         :meta="meta"
         v-on="$listeners"
-      ></edit-virtual-column>
+      />
     </v-menu>
   </div>
 </template>
 <script>
-import EditVirtualColumn from "@/components/project/spreadsheet/components/editVirtualColumn";
+import EditVirtualColumn from '@/components/project/spreadsheet/components/editVirtualColumn'
 
 export default {
-  components: {EditVirtualColumn},
+  name: 'VirtualHeaderCell',
+  components: { EditVirtualColumn },
   props: ['column', 'nodes', 'meta', 'isForm'],
-  name: "virtualHeaderCell",
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false
   }),
   computed: {
-    type() {
-      if (this.column.bt) return 'bt'
-      if (this.column.hm) return 'hm'
-      if (this.column.mm) return 'mm'
+    type () {
+      if (this.column.bt) { return 'bt' }
+      if (this.column.hm) { return 'hm' }
+      if (this.column.mm) { return 'mm' }
+      return ''
     },
-    childColumn() {
-      if (this.column.bt) return this.column.bt.cn
-      if (this.column.hm) return this.column.hm.cn
-      if (this.column.mm) return this.column.mm.rcn
+    childColumn () {
+      if (this.column.bt) { return this.column.bt.cn }
+      if (this.column.hm) { return this.column.hm.cn }
+      if (this.column.mm) { return this.column.mm.rcn }
+      return ''
     },
-    childTable() {
-      if (this.column.bt) return this.column.bt.tn
-      if (this.column.hm) return this.column.hm.tn
-      if (this.column.mm) return this.column.mm.rtn
+    childTable () {
+      if (this.column.bt) { return this.column.bt.tn }
+      if (this.column.hm) { return this.column.hm.tn }
+      if (this.column.mm) { return this.column.mm.rtn }
+      return ''
     },
-    parentTable() {
-      if (this.column.bt) return this.column.bt.rtn
-      if (this.column.hm) return this.column.hm.rtn
-      if (this.column.mm) return this.column.mm.tn
+    parentTable () {
+      if (this.column.bt) { return this.column.bt.rtn }
+      if (this.column.hm) { return this.column.hm.rtn }
+      if (this.column.mm) { return this.column.mm.tn }
+      return ''
     },
-    parentColumn() {
-      if (this.column.bt) return this.column.bt.rcn
-      if (this.column.hm) return this.column.hm.rcn
-      if (this.column.mm) return this.column.mm.cn
+    parentColumn () {
+      if (this.column.bt) { return this.column.bt.rcn }
+      if (this.column.hm) { return this.column.hm.rcn }
+      if (this.column.mm) { return this.column.mm.cn }
+      return ''
     },
-    tooltipMsg() {
-      if (!this.column) return '';
+    tooltipMsg () {
+      if (!this.column) { return '' }
       if (this.column.hm) {
         return `'${this.column.hm._rtn}' has many '${this.column.hm._tn}'`
       } else if (this.column.mm) {
@@ -122,24 +146,26 @@ export default {
       } else if (this.column.bt) {
         return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
       }
+      return ''
     }
-  }, methods: {
-    async deleteColumn() {
+  },
+  methods: {
+    async deleteColumn () {
       try {
-        const column = {...this.column, cno: this.column.cn};
+        // const column = { ...this.column, cno: this.column.cn }
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
-        }, "xcRelationColumnDelete", {
+        }, 'xcRelationColumnDelete', {
           type: this.type,
           childColumn: this.childColumn,
           childTable: this.childTable,
           parentTable: this.parentTable,
           parentColumn: this.parentColumn,
           assocTable: this.column.mm && this.column.mm.vtn
-        }]);
-        this.$emit('saved');
-        this.columnDeleteDialog = false;
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
       } catch (e) {
         console.log(e)
       }

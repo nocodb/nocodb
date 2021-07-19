@@ -21,48 +21,48 @@
                   width="90"
                   height="90"
                   :src="require('~/assets/img/icons/512x512-trans.png')"
-                >
-                </v-img>
+                />
               </div>
               <!-- SIGN IN -->
-              <h1 class="mt-4">{{ $t('signin.title') }}</h1>
+              <h1 class="mt-4">
+                {{ $t('signin.title') }}
+              </h1>
 
               <div>
-                <v-alert type="error" dismissible v-model="formUtil.formErr">
+                <v-alert v-model="formUtil.formErr" type="error" dismissible>
                   {{ formUtil.formErrMsg }}
                 </v-alert>
               </div>
 
               <v-form
                 v-if="type === 'jwt'"
-                v-model="valid"
                 ref="formType"
+                v-model="valid"
                 lazy-validation
               >
                 <!-- Enter your work email -->
                 <v-text-field
-                  v-bind:label="$t('signin.enter_your_work_email')"
                   v-model="form.email"
+                  :label="$t('signin.enter_your_work_email')"
                   :rules="formRules.email"
                   required
-                >
-                </v-text-field>
+                />
 
                 <!-- Enter your password -->
                 <v-text-field
+                  v-model="form.password"
                   name="input-10-2"
-                  v-bind:label="$t('signin.enter_your_password')"
+                  :label="$t('signin.enter_your_password')"
                   min="8"
                   :append-icon="e3 ? 'visibility' : 'visibility_off'"
-                  @click:append="() => (e3 = !e3)"
-                  v-model="form.password"
                   :rules="formRules.password"
                   :type="e3 ? 'password' : 'text'"
-                >
-                </v-text-field>
+                  @click:append="() => (e3 = !e3)"
+                />
                 <!-- Forgot your password -->
                 <p class="accent--text text-right caption font-weight-light">
-                  <router-link to="/user/password/forgot">{{
+                  <router-link to="/user/password/forgot">
+                    {{
                       $t('signin.forget_password')
                     }}
                   </router-link>
@@ -78,26 +78,26 @@
                 <!--                </v-btn>-->
 
                 <v-btn
-                  @click="MtdOnSignin"
+                  v-ge="['Sign In', '']"
                   color="primary"
                   large
                   elevation-10
                   :disabled="false"
-                  v-ge="['Sign In', '']"
+                  @click="MtdOnSignin"
                 >
                   <b>{{ $t('signin.title') }}</b>
                 </v-btn>
 
-                <br/>
-                <br/>
-                <br/>
+                <br>
+                <br>
+                <br>
                 <!-- Don't have an account ? -->
                 <p class="caption font-weight-light">
                   {{ $t('signin.dont_ve_an_account') }}
                   <!-- Sign Up -->
                   <router-link
-                    to="/user/authentication/signup"
                     v-ge="['Don\'t have an account ?', '']"
+                    to="/user/authentication/signup"
                   >
                     {{ $t('signin.sign_up') }}
                   </router-link>
@@ -117,7 +117,7 @@
                       class="img-responsive"
                       alt="google"
                       width="24px"
-                    />
+                    >
                     <b>&nbsp; &nbsp;Sign In with Google</b>
                   </v-btn>
                   <v-btn
@@ -134,7 +134,7 @@
                       class="img-responsive"
                       alt="github"
                       width="24px"
-                    />
+                    >
                     <b>&nbsp; &nbsp;Sign In with Github</b>
                   </v-btn>
 
@@ -156,22 +156,21 @@
 
               <v-form
                 v-else-if="type === 'masterKey'"
-                v-model="formUtil.valid1"
                 ref="formType1"
-                @submit="MtdOnSignup"
+                v-model="formUtil.valid1"
                 elevation-20
+                @submit="MtdOnSignup"
               >
                 <v-text-field
-                  label="Admin Secret"
                   v-model="form.secret"
+                  label="Admin Secret"
                   :rules="formRules.secret"
                   min="8"
                   :append-icon="formUtil.e4 ? 'visibility' : 'visibility_off'"
-                  @click:append="() => (formUtil.e4 = !formUtil.e4)"
                   :type="formUtil.e4 ? 'password' : 'text'"
                   required
-                >
-                </v-text-field>
+                  @click:append="() => (formUtil.e4 = !formUtil.e4)"
+                />
 
                 <!---->
 
@@ -181,18 +180,18 @@
                 <!--                </vue-recaptcha>-->
 
                 <v-btn
-                  @click="MtdOnSignin"
+                  v-ge="['Authenticate', '']"
                   color="primary"
                   class="btn--large"
                   :disabled="!formUtil.recpatcha || !formUtil.valid1"
-                  v-ge="['Authenticate', '']"
+                  @click="MtdOnSignin"
                 >
                   Authenticate&nbsp;
                 </v-btn>
               </v-form>
 
               <template v-else>
-                <br/>
+                <br>
                 <v-alert type="warning" outlined icon="mdi-alert">
                   <!--                <v-icon color="warning">mdi-alert</v-icon>-->
                   Authentication not configured in configuration
@@ -202,51 +201,53 @@
           </v-col>
         </v-row>
 
-        <br/>
+        <br>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import Vue from 'vue';
 
 // const {shell} = require("electron").remote.require(
 //   "./libs"
 // );
-import {mapGetters, mapActions} from 'vuex';
-import {VueReCaptcha} from 'vue-recaptcha-v3';
-import {isEmail} from "@/helpers";
+import { isEmail } from '@/helpers'
 // import VueRecaptcha from 'vue-recaptcha';
 
 export default {
-  layout: 'empty',
   components: {
     // VueRecaptcha
   },
+  directives: {},
+  layout: 'empty',
+  validate ({ params }) {
+    return true
+  },
+  props: {},
 
-  data() {
+  data () {
     return {
       form: {
         email: null,
-        password: null,
+        password: null
       },
 
       formRules: {
         email: [
           // E-mail is required
-          (v) => !!v || this.$t('signin.form.rules.email_is_reqd'),
+          v => !!v || this.$t('signin.form.rules.email_is_reqd'),
           // E-mail must be valid
-          (v) => isEmail(v) ||
-            this.$t('signin.form.rules.email_must_be_valid'),
+          v => isEmail(v) ||
+            this.$t('signin.form.rules.email_must_be_valid')
         ],
         password: [
           // Password is required
-          (v) => !!v || this.$t('signin.form.rules.passwd_required'),
+          v => !!v || this.$t('signin.form.rules.passwd_required'),
           // You password must be atleast 8 characters
-          (v) =>
-            (v && v.length >= 8) || this.$t('signin.form.rules.passwd_must_be_8_chars'),
-        ],
+          v =>
+            (v && v.length >= 8) || this.$t('signin.form.rules.passwd_must_be_8_chars')
+        ]
       },
       formUtil: {
         formErr: false,
@@ -255,144 +256,139 @@ export default {
         recpatcha: true,
         e3: true,
         passwordProgress: 0,
-        progressColorValue: 'red',
+        progressColorValue: 'red'
       },
 
       valid: false,
       e3: true,
-      recpatcha: false,
-    };
-  },
-  methods: {
-    openGoogleSiginInBrowser(e) {
-      e.preventDefault();
-      shell.openExternal(process.env.auth.google.url);
-    },
-    openGithubSiginInBrowser(e) {
-      e.preventDefault();
-      shell.openExternal(process.env.auth.github.url);
-    },
-
-    onNormalVerify() {
-      this.recpatcha = true;
-    },
-
-    PlusCounter() {
-      this.$store.dispatch('ActPlusCounter');
-    },
-
-    async MtdOnSignin(e) {
-      e.preventDefault();
-      if (this.type === 'jwt') {
-        if (this.$refs.formType.validate()) {
-          let err = null;
-          //this.$nuxt.$loading.start()
-          this.form.firstName = this.form.email;
-          this.form.lastName = this.form.email;
-          console.log(process.env.xgene);
-
-          // await this.$recaptchaLoaded()
-          // const recaptchaToken = await this.$recaptcha('login')
-
-          err = await this.$store.dispatch('users/ActSignIn', {...this.form}); //, recaptchaToken});
-          if (err) {
-            this.formUtil.formErr = true;
-            this.formUtil.formErrMsg = err.data.msg;
-            return;
-          }
-          //this.$nuxt.$loading.finish()
-        }
-      } else if (this.type === 'masterKey') {
-        const valid = await this.$store.dispatch(
-          'users/ActVerifyMasterKey',
-          this.form.secret
-        );
-        if (!valid) {
-          this.formUtil.formErr = true;
-          this.formUtil.formErrMsg = 'Invalid admin secret';
-          return;
-        }
-        this.$store.commit('users/MutMasterKey', this.form.secret);
-      }
-
-      if ('redirect_to' in this.$route.query) {
-        this.$router.push(this.$route.query.redirect_to);
-      } else {
-        this.$router.push('/projects');
-      }
-    },
-
-    MtdOnSigninGoogle(e) {
-      //e.preventDefault();
-      this.$store.dispatch('users/ActAuthGoogle');
-    },
-
-    MtdOnReset() {
-      //console.log('in method reset');
-    },
-  },
-  computed: {
-    counter() {
-      return this.$store.getters['users/GtrCounter'];
-    },
-    displayName() {
-      return this.$store.getters['users/GtrUser'];
-    },
-    type() {
-      return (
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.authType
-      );
-    },
-    googleAuthEnabled() {
-      return (
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.googleAuthEnabled
-      );
-    },
-    githubAuthEnabled() {
-      return (
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.githubAuthEnabled
-      );
-    },
-  },
-  beforeCreated() {
-  },
-  async created() {
-    // this.type = (await this.$store.dispatch('users/ActGetAuthType')).type;
-    if (this.$route.query && this.$route.query.error) {
-      this.$nextTick(() =>
-        this.$toast.error(this.$route.query.error).goAway(5000)
-      );
-      this.$router.replace({path: '/user/authentication/signin'});
+      recpatcha: false
     }
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
-  validate({params}) {
-    return true;
-  },
-  head() {
+  head () {
     return {
       title: this.$t('signin.head.title'),
       meta: [
         {
           hid: this.$t('signin.head.meta.hid'),
           name: this.$t('signin.head.meta.name'),
-          content: this.$t('signin.head.meta.content'),
-        },
-      ],
-    };
+          content: this.$t('signin.head.meta.content')
+        }
+      ]
+    }
   },
-  props: {},
+  computed: {
+    counter () {
+      return this.$store.getters['users/GtrCounter']
+    },
+    displayName () {
+      return this.$store.getters['users/GtrUser']
+    },
+    type () {
+      return (
+        this.$store.state.project.projectInfo &&
+        this.$store.state.project.projectInfo.authType
+      )
+    },
+    googleAuthEnabled () {
+      return (
+        this.$store.state.project.projectInfo &&
+        this.$store.state.project.projectInfo.googleAuthEnabled
+      )
+    },
+    githubAuthEnabled () {
+      return (
+        this.$store.state.project.projectInfo &&
+        this.$store.state.project.projectInfo.githubAuthEnabled
+      )
+    }
+  },
   watch: {},
-  directives: {},
-};
+  async created () {
+    // this.type = (await this.$store.dispatch('users/ActGetAuthType')).type;
+    if (this.$route.query && this.$route.query.error) {
+      this.$nextTick(() =>
+        this.$toast.error(this.$route.query.error).goAway(5000)
+      )
+      this.$router.replace({ path: '/user/authentication/signin' })
+    }
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {
+    openGoogleSiginInBrowser (e) {
+      e.preventDefault()
+      // shell.openExternal(process.env.auth.google.url)
+    },
+    openGithubSiginInBrowser (e) {
+      e.preventDefault()
+      // shell.openExternal(process.env.auth.github.url)
+    },
+
+    onNormalVerify () {
+      this.recpatcha = true
+    },
+
+    PlusCounter () {
+      this.$store.dispatch('ActPlusCounter')
+    },
+
+    async MtdOnSignin (e) {
+      e.preventDefault()
+      if (this.type === 'jwt') {
+        if (this.$refs.formType.validate()) {
+          let err = null
+          // this.$nuxt.$loading.start()
+          this.form.firstName = this.form.email
+          this.form.lastName = this.form.email
+          console.log(process.env.xgene)
+
+          // await this.$recaptchaLoaded()
+          // const recaptchaToken = await this.$recaptcha('login')
+
+          err = await this.$store.dispatch('users/ActSignIn', { ...this.form }) //, recaptchaToken});
+          if (err) {
+            this.formUtil.formErr = true
+            this.formUtil.formErrMsg = err.data.msg
+            return
+          }
+          // this.$nuxt.$loading.finish()
+        }
+      } else if (this.type === 'masterKey') {
+        const valid = await this.$store.dispatch(
+          'users/ActVerifyMasterKey',
+          this.form.secret
+        )
+        if (!valid) {
+          this.formUtil.formErr = true
+          this.formUtil.formErrMsg = 'Invalid admin secret'
+          return
+        }
+        this.$store.commit('users/MutMasterKey', this.form.secret)
+      }
+
+      if ('redirect_to' in this.$route.query) {
+        this.$router.push(this.$route.query.redirect_to)
+      } else {
+        this.$router.push('/projects')
+      }
+    },
+
+    MtdOnSigninGoogle (e) {
+      // e.preventDefault();
+      this.$store.dispatch('users/ActAuthGoogle')
+    },
+
+    MtdOnReset () {
+      // console.log('in method reset');
+    }
+  },
+  beforeCreated () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped></style>

@@ -1,18 +1,17 @@
-import colors from 'vuetify/es5/util/colors';
+// import colors from 'vuetify/es5/util/colors'
 import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loader
 
-export default function ({app}) {
+export default function ({ app }) {
   return {
     icons: {
-      iconfont: 'mdi', // default - only for display purposes
+      iconfont: 'mdi' // default - only for display purposes
     },
     theme: {
       options: {
-        customProperties: true,
+        customProperties: true
       },
       dark: app.store.state.windows.darkTheme,
       themes: {
-
 
         dark: {
           primary: '#0989ff',
@@ -30,7 +29,7 @@ export default function ({app}) {
           text: '#333333',
           textLight: '#929292',
           backgroundColor: '#f7f7f7',
-          backgroundColorDefault: '#ffffff',
+          backgroundColorDefault: '#ffffff'
         }
       }
     }

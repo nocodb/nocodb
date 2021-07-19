@@ -1,53 +1,53 @@
-import {mapGetters} from "vuex";
+import { mapGetters } from 'vuex'
 
 export default {
-  data() {
+  data () {
     return {
       isHydrated: false,
-      drawer: null,
+      drawer: null
 
     }
   },
   computed: {
-    isDark() {
-      return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.dark;
+    isDark () {
+      return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.dark
     },
-    isLight() {
-      return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.light;
+    isLight () {
+      return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.light
     },
-    isThisMobile() { // just an example, could be one specific value if that's all you need
-      return this.isHydrated ? this.$vuetify && this.$vuetify.breakpoint && this.$vuetify.breakpoint.smAndDown : false;
-    },
-
-    isTool() {
-      return process.env && process.env.tool;
-    },
-    isDashboard() {
-      return this.$route
-        && this.$route.path
-        && (this.$route.path === '/nc' || this.$route.path === '/nc/' || this.$route.path.startsWith('/nc/'));
+    isThisMobile () { // just an example, could be one specific value if that's all you need
+      return this.isHydrated ? this.$vuetify && this.$vuetify.breakpoint && this.$vuetify.breakpoint.smAndDown : false
     },
 
-    _meta() {
-      return this._isMac ? '⌘' : '^';
+    isTool () {
+      return process.env && process.env.tool
     },
-    _isMac() {
-      return process.platform === 'darwin';
+    isDashboard () {
+      return this.$route &&
+        this.$route.path &&
+        (this.$route.path === '/nc' || this.$route.path === '/nc/' || this.$route.path.startsWith('/nc/'))
     },
-    _isWindows() {
-      return process.platform === 'win32';
+
+    _meta () {
+      return this._isMac ? '⌘' : '^'
     },
-    _isDev() {
-      return process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase().startsWith('dev');
+    _isMac () {
+      return process.platform === 'darwin'
     },
-    _isEE() {
-      return process.env.EE;
+    _isWindows () {
+      return process.platform === 'win32'
+    },
+    _isDev () {
+      return process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase().startsWith('dev')
+    },
+    _isEE () {
+      return process.env.EE
     },
     ...mapGetters({
       _isUIAllowed: 'users/GtrIsUIAllowed'
     })
   },
-  mounted() {
+  mounted () {
     // this.isHydrated = true
     // if (!this.$vuetify.breakpoint.smAndDown) {
     //   //console.log('setting drawer to false');
@@ -56,7 +56,7 @@ export default {
     //   //console.log('setting drawer to false');
     //   this.drawer = false;
     // }
-    //console.log('this.items', this.$store.getters.GtrPaidUser);
+    // console.log('this.items', this.$store.getters.GtrPaidUser);
     // this.items[1].show = !this.$store.getters.GtrPaidUser;
   },
   // methods: {
@@ -75,13 +75,13 @@ export default {
   //   }
   // },
   methods: {
-    upgradeToEE() {
-      this.$toast.info('Upgrade to Enterprise Edition').goAway(3000);
+    upgradeToEE () {
+      this.$toast.info('Upgrade to Enterprise Edition').goAway(3000)
     },
-    comingSoon() {
-      this.$toast.info('Coming soon').goAway(3000);
+    comingSoon () {
+      this.$toast.info('Coming soon').goAway(3000)
     },
-    async sqlOp(args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams) {
+    async sqlOp (args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams) {
       return this.$store.dispatch('sqlMgr/ActSqlOp', [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams])
     }
   }

@@ -1,8 +1,8 @@
 <template>
   <v-datetime-picker
-    v-on="parentListeners"
-    class="caption xc-date-time-picker"
     ref="picker"
+    v-model="localState"
+    class="caption xc-date-time-picker"
     :text-field-props="{
       class:'caption mt-0 pt-0',
       flat:true,
@@ -13,49 +13,48 @@
     :time-picker-props="{
       format:'24hr'
     }"
-    v-model="localState"
-  ></v-datetime-picker>
+    v-on="parentListeners"
+  />
 </template>
 
 <script>
 
 export default {
-  name: "date-time-picker-cell",
+  name: 'DateTimePickerCell',
   props: ['value', 'ignoreFocus'],
-  mounted() {
-    if (!this.ignoreFocus) {
-      this.$refs.picker.display = true;
-    }
-  },
   computed: {
     localState: {
-      get() {
+      get () {
         // todo : time value correction
 
         if (/^\d{6,}$/.test(this.value)) {
-          return new Date(+this.value);
+          return new Date(+this.value)
         }
 
-
-        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : (this.value && new Date(this.value));
+        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : (this.value && new Date(this.value))
       },
-      set(val) {
-        const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1');
-        this.$emit('input', uVal);
+      set (val) {
+        const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')
+        this.$emit('input', uVal)
       }
     },
-    parentListeners() {
-      const $listeners = {};
+    parentListeners () {
+      const $listeners = {}
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur;
+        $listeners.blur = this.$listeners.blur
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus;
+        $listeners.focus = this.$listeners.focus
       }
 
-      return $listeners;
-    },
+      return $listeners
+    }
+  },
+  mounted () {
+    if (!this.ignoreFocus) {
+      this.$refs.picker.display = true
+    }
   }
 }
 </script>

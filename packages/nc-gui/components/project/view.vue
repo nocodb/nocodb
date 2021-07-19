@@ -1,7 +1,7 @@
+
 <template>
   <v-container class="pa-0 ma-0 h-100" fluid>
     <v-tabs :key="!nodes.newView || created ? 'old' : 'new'" height="28" class="view-tab" color="pink">
-
       <!--    <v-tab class="caption text-capitalize">
 
             <v-icon small>mdi-table-column</v-icon>&nbsp;
@@ -20,7 +20,6 @@
                 <span class="caption  text-capitalize">APIs</span>
               </v-tab>
 
-
               <v-tab-item :transition="false">
 
                 <logic-rest
@@ -36,7 +35,6 @@
                 <v-icon small>mdi-graphql</v-icon>&nbsp;
                 <span class="caption  text-capitalize">Schema & Resolvers</span>
               </v-tab>
-
 
               <v-tab-item :transition="false">
 
@@ -54,7 +52,6 @@
                 <span class="caption text-capitalize">APIs</span>
               </v-tab>
 
-
               <v-tab-item :transition="false">
 
                 <logic-grpc
@@ -65,7 +62,6 @@
               </v-tab-item>
             </template>
           </template>-->
-
 
       <!--      <v-tab class="caption text-capitalize">
               <v-icon small>mdi-shield-edit-outline</v-icon>&nbsp;
@@ -78,7 +74,9 @@
             </v-tab-item>-->
       <template v-if="!nodes.newView || created">
         <v-tab class="caption text-capitalize">
-          <v-icon small>mdi-table-row</v-icon>&nbsp;
+          <v-icon small>
+            mdi-table-row
+          </v-icon>&nbsp;
           Spreadsheet
         </v-tab>
         <v-tab-item>
@@ -89,53 +87,57 @@
           <spreadsheet
             class="h-100"
             :nodes="nodes"
-          ></spreadsheet>
+          />
         </v-tab-item>
       </template>
 
-
       <template v-if="_isUIAllowed('view-create')">
         <v-tab class="caption text-capitalize">
-
-          <v-icon small>mdi-database-edit</v-icon>&nbsp;
+          <v-icon small>
+            mdi-database-edit
+          </v-icon>&nbsp;
           SQL
         </v-tab>
         <v-tab-item>
           <view-query
+            :nodes="nodes"
             @created="created = true"
-            :nodes="nodes"></view-query>
+          />
         </v-tab-item>
       </template>
-
     </v-tabs>
   </v-container>
 </template>
 
 <script>
 
-import ViewQuery from "./viewTabs/viewQuery";
-import ViewColumns from "./viewTabs/viewColumns";
-import {mapGetters} from "vuex";
-import Spreadsheet from "@/components/project/viewTabs/viewSpreadsheet";
+import { mapGetters } from 'vuex'
+import Spreadsheet from '@/components/project/viewTabs/viewSpreadsheet'
+import ViewQuery from './viewTabs/viewQuery'
+// import ViewColumns from './viewTabs/viewColumns'
 
 export default {
-  components: {Spreadsheet, ViewColumns, ViewQuery},
-  props: ["nodes"],
-  data: () => ({created: false, newTableCopy: null, isMetaTable: null}),
+  components: {
+    Spreadsheet,
+    // ViewColumns,
+    ViewQuery
+  },
+  props: ['nodes'],
+  data: () => ({ created: false, newTableCopy: null, isMetaTable: null }),
   computed: {
     ...mapGetters({
-      sqlMgr: "sqlMgr/sqlMgr",
-      isGraphql: "project/GtrProjectIsGraphql",
-      isNoApis: "project/GtrProjectIsNoApis",
+      sqlMgr: 'sqlMgr/sqlMgr',
+      isGraphql: 'project/GtrProjectIsGraphql',
+      isNoApis: 'project/GtrProjectIsNoApis',
       isMvc: 'project/GtrProjectIsMvc',
       isDocker: 'project/GtrProjectIsDocker',
       isPackage: 'project/GtrProjectIsPackage',
       isTs: 'project/GtrProjectIsTs',
       isRest: 'project/GtrProjectIsRest',
-      isGrpc: 'project/GtrProjectIsGrpc',
-    }),
+      isGrpc: 'project/GtrProjectIsGrpc'
+    })
   }
-};
+}
 </script>
 <style scoped>
 .view-tab {

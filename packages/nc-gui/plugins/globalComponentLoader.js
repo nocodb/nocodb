@@ -3,12 +3,11 @@ import Vue from 'vue'
 import DatetimePicker from 'vuetify-datetime-picker'
 import vueKanban from 'vue-kanban'
 
-Vue.use(DatetimePicker);
+Vue.use(DatetimePicker)
 Vue.use(vueKanban)
 
-
 const components = require.context('@/components/global', false, /[A-Z]\w+\.(vue)$/)
-components.keys().forEach(fileName => {
+components.keys().forEach((fileName) => {
   const componentConfig = components(fileName)
   const componentName = fileName.split('/').pop().split('.')[0]
   Vue.component(componentName, componentConfig.default || componentConfig)

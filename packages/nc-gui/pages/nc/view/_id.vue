@@ -1,17 +1,17 @@
 <template>
-  <xc-table></xc-table>
+  <xc-table />
 </template>
 
 <script>
-import XcTable from "@/components/project/spreadsheet/xcTable";
+import XcTable from '@/components/project/spreadsheet/xcTable'
 
 export default {
-  name: "view",
-  components: {XcTable},
+  name: 'View',
+  components: { XcTable },
   layout: 'public',
   data: () => ({
     data: null
-  }),
+  })
 }
 </script>
 

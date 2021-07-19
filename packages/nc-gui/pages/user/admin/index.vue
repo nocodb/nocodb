@@ -1,14 +1,18 @@
 <template>
-  <v-container class="text-center"  >
-    <v-row  >
+  <v-container class="text-center">
+    <v-row>
       <v-col cols="12">
         <v-card v-for="u in users1" :key="u.users_id">
           <v-card-title primary-title>
             <router-link :to="{ path: '/user/admin/user/' + u.users_id }">
-              {{u.username}}
+              {{ u.username }}
             </router-link>
-            <v-btn color="info">Edit</v-btn>
-            <v-btn color="error">Delete</v-btn>
+            <v-btn color="info">
+              Edit
+            </v-btn>
+            <v-btn color="error">
+              Delete
+            </v-btn>
           </v-card-title>
           <hr>
         </v-card>
@@ -18,43 +22,43 @@
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        users: this.$store.state.users
-      }
-    },
-    computed: {
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  props: {},
+  data () {
+    return {
+      users: this.$store.state.users
+    }
+  },
+  head () {
+    return {}
+  },
+  computed: {
 
-      users1() {
-        //console.log(this.$store.state);
-        return this.$store.state.creator.users;
-      }
+    users1 () {
+      // console.log(this.$store.state);
+      return this.$store.state.creator.users
+    }
 
-    },
-    methods: {},
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-      this.$store.dispatch('admin/ActGetUsers')
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true
-    },
-    head() {
-      return {}
-    },
-    props: {},
-    watch: {},
-    directives: {},
-    components: {}
+  },
+  watch: {},
+  created () {
+  },
+  mounted () {
+    this.$store.dispatch('admin/ActGetUsers')
+  },
+  beforeDestroy () {
+  },
+  methods: {},
+  beforeCreated () {
+  },
+  destroy () {
   }
+}
 </script>
 
 <style scoped>

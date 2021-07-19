@@ -1,18 +1,18 @@
-function initApp(config) {
-  const nuxtApp = document.createElement('div');
-  nuxtApp.id = '__nuxt';
+// eslint-disable-next-line no-unused-vars
+function initApp (config) {
+  const nuxtApp = document.createElement('div')
+  nuxtApp.id = '__nuxt'
 
   document.querySelector(config.selector).appendChild(nuxtApp);
   [
     'http://127.0.0.1:8081/_nuxt/runtime.2f84675.js',
     'http://127.0.0.1:8081/_nuxt/app.dbcf32d.js'
-  ].forEach(src => {
-    const tag = document.createElement('script');
-    tag.src = src;
-    document.body.appendChild(tag);
+  ].forEach((src) => {
+    const tag = document.createElement('script')
+    tag.src = src
+    document.body.appendChild(tag)
   })
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

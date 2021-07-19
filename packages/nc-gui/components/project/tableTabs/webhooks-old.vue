@@ -1,48 +1,55 @@
 <template>
   <div>
-
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
-        <v-breadcrumbs :items="[{
-          text: nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: nodes.tn + ' (Webhooks)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+                     text: nodes.env,
+                     disabled: true,
+                     href: '#'
+                   },{
+                     text: nodes.dbAlias,
+                     disabled: true,
+                     href: '#'
+                   },
+                   {
+                     text: nodes.tn + ' (Webhooks)',
+                     disabled: true,
+                     href: '#'
+                   }]"
+          divider=">"
+          small
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
-
       </v-toolbar-title>
-      <v-spacer></v-spacer>
+      <v-spacer />
 
-      <x-btn outlined tooltip="Save Changes"
-             color="primary"
-             small
-             :disabled="loading || !valid || !hook.event"
+      <x-btn
+        v-ge="['rows','save']"
+        outlined
+        tooltip="Save Changes"
+        color="primary"
+        small
 
-             v-ge="['rows','save']"
-             @click.prevent="saveHooks">
-        <v-icon small left>save</v-icon>
+        :disabled="loading || !valid || !hook.event"
+        @click.prevent="saveHooks"
+      >
+        <v-icon small left>
+          save
+        </v-icon>
         Save
       </x-btn>
-
-
     </v-toolbar>
 
     <v-form
+      ref="form"
       v-model="valid"
       class="mx-auto"
-      ref="form"
       lazy-validation
     >
       <v-card>
@@ -50,29 +57,33 @@
           <v-row>
             <v-col cols="6">
               <v-radio-group v-model="hook.event" @change="onEventChange">
-
-                <template v-slot:default>
+                <template #default>
                   <v-simple-table dense>
-                    <template v-slot:default>
+                    <template #default>
                       <thead>
-                      <tr>
-                        <th></th>
-                        <th>Operation</th>
-                        <th>Event</th>
-                      </tr>
+                        <tr>
+                          <th />
+                          <th>Operation</th>
+                          <th>Event</th>
+                        </tr>
                       </thead>
 
                       <tbody>
-                      <tr v-for="(e,i) in eventList" :key="i"
-                          :class="{'primary lighten-4 black--text': e.value === hook.event}">
-                        <td>
-                          <v-radio :value="e.value"></v-radio>
-                        </td>
-                        <td> {{ e.text[1] }}
-                        </td>
-                        <td> {{ e.text[0] }}
-                        </td>
-                      </tr>
+                        <tr
+                          v-for="(e,i) in eventList"
+                          :key="i"
+                          :class="{'primary lighten-4 black--text': e.value === hook.event}"
+                        >
+                          <td>
+                            <v-radio :value="e.value" />
+                          </td>
+                          <td>
+                            {{ e.text[1] }}
+                          </td>
+                          <td>
+                            {{ e.text[0] }}
+                          </td>
+                        </tr>
                       </tbody>
                     </template>
                   </v-simple-table>
@@ -82,7 +93,6 @@
               <!--      <v-radio-group v-model="hook.event" @change="onEventChage">-->
               <!--        <v-radio v-for="(e,i) in eventList" :key="i" :label="e.text" :value="e.v"></v-radio>-->
               <!--      </v-radio-group>-->
-
 
               <!--      <v-select-->
               <!--        v-model="hook.event"-->
@@ -103,21 +113,20 @@
                 <v-card-title>Webhook</v-card-title>
                 <v-card-text>
                   <v-text-field
-                    :disabled="!hook.event"
                     v-model="hook.title"
+                    :disabled="!hook.event"
                     label="Title"
                     required
                     :rules="[v => !!v || 'Title Required']"
-                  ></v-text-field>
+                  />
                   <v-text-field
-                    :disabled="!hook.event"
                     v-model="hook.url"
+                    :disabled="!hook.event"
                     label="URL"
                     required
                     type="url"
                     :rules="urlRules"
-                  ></v-text-field>
-
+                  />
 
                   <!--      <v-textarea-->
                   <!--        v-model="hook.header"-->
@@ -131,35 +140,33 @@
         </v-container>
       </v-card>
     </v-form>
-
-
   </div>
 </template>
 
 <script>
 export default {
-  name: "webhooks",
+  name: 'Webhooks',
   props: ['nodes'],
   data: () => ({
     valid: false,
     loading: false,
     eventList: [
-      {text: ["Before", "Insert"], value: ['before', 'insert']},
-      {text: ["After", "Insert"], value: ['after', 'insert']},
-      {text: ["Before", "Update"], value: ['before', 'update']},
-      {text: ["After", "Update"], value: ['after', 'update']},
-      {text: ["Before", "Delete"], value: ['before', 'delete']},
-      {text: ["After", "Delete"], value: ['after', 'delete']},
+      { text: ['Before', 'Insert'], value: ['before', 'insert'] },
+      { text: ['After', 'Insert'], value: ['after', 'insert'] },
+      { text: ['Before', 'Update'], value: ['before', 'update'] },
+      { text: ['After', 'Update'], value: ['after', 'update'] },
+      { text: ['Before', 'Delete'], value: ['before', 'delete'] },
+      { text: ['After', 'Delete'], value: ['after', 'delete'] }
     ],
     hook: {},
     urlRules: [
-      v => !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || 'Not a valid URL',
+      v => !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || 'Not a valid URL'
     ]
 
   }),
   methods: {
-    async onEventChange() {
-      this.loading = true;
+    async onEventChange () {
+      this.loading = true
       this.hook = {
         ...this.hook,
         url: '',
@@ -169,16 +176,16 @@ export default {
       const result = (await this.$store.dispatch('sqlMgr/ActSqlOp', [
         {
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
+          dbAlias: this.nodes.dbAlias
         }, 'tableXcHooksGet', {
           tn: this.nodes.tn,
           data: {
             event: this.hook.event[0],
-            operation: this.hook.event[1],
+            operation: this.hook.event[1]
           }
         }
-      ]));
-      const hooksDetails = result && result.data.list && result.data.list[0];
+      ]))
+      const hooksDetails = result && result.data.list && result.data.list[0]
 
       if (hooksDetails) {
         this.hook = {
@@ -187,28 +194,28 @@ export default {
           title: hooksDetails.title
         }
       }
-      this.loading = false;
+      this.loading = false
     },
-    async saveHooks() {
+    async saveHooks () {
       if (!this.valid || !this.hook.event) {
-        return;
+        return
       }
-      this.loading = true;
-      let hooksDetails = (await this.$store.dispatch('sqlMgr/ActSqlOp', [
+      this.loading = true
+      await this.$store.dispatch('sqlMgr/ActSqlOp', [
         {
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
+          dbAlias: this.nodes.dbAlias
         }, 'tableXcHooksSet', {
           tn: this.nodes.tn,
           data: {
             ...this.hook,
             event: this.hook.event[0],
-            operation: this.hook.event[1],
+            operation: this.hook.event[1]
           }
         }
-      ])).data;
-      this.$toast.success('Webhook details updated successfully').goAway(3000);
-      this.loading = false;
+      ])
+      this.$toast.success('Webhook details updated successfully').goAway(3000)
+      this.loading = false
     }
   }
 }

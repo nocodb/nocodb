@@ -2,22 +2,22 @@
   <div
     style="height:100%;"
     @mouseenter="onMiniHoverEnter"
-    @mouseleave="onMiniHoverLeave">
+    @mouseleave="onMiniHoverLeave"
+  >
     <!--    :expand-on-hover="mini"-->
     <v-navigation-drawer
+      ref="drawer"
+      v-model="navigation.shown"
       permanent
       mini-variant-width="50"
       :mini-variant.sync="mini"
       mini
       class="pl-2"
-      ref="drawer"
       style="min-width:100%;overflow: auto; max-height:100%;"
-      v-model="navigation.shown">
+    >
       <div class="h-100 d-flex flex-column">
         <div class="flex-grow-1" style="overflow-y: auto;min-height:200px">
-          <v-skeleton-loader class="mt-2 ml-2" v-if="!projects || !projects.length" type="button">
-
-          </v-skeleton-loader>
+          <v-skeleton-loader v-if="!projects || !projects.length" class="mt-2 ml-2" type="button" />
           <!--      <v-btn
                   v-else
                   icon
@@ -41,18 +41,16 @@
           <!--        class="pa-2"-->
           <!--      ></v-text-field>-->
 
-
-          <v-skeleton-loader v-if="!projects || !projects.length "
-                             type="list-item,list-item-three-line@3,list-item@2,list-item-three-line@3">
-
-          </v-skeleton-loader>
-
+          <v-skeleton-loader
+            v-if="!projects || !projects.length "
+            type="list-item,list-item-three-line@3,list-item@2,list-item-three-line@3"
+          />
 
           <v-treeview
-            class="mt-5 project-tree"
             v-else
-            dense
             v-model="tree"
+            class="mt-5 project-tree"
+            dense
             :open.sync="open"
             :active.sync="active"
             :items="projects"
@@ -61,47 +59,51 @@
             item-key="_nodes.key"
             open-on-click
           >
-            <template v-slot:label="{ item, open, leaf }">
+            <template #label="{ item, open, leaf }">
               <v-tooltip
                 :bottom="!!item.tooltip"
                 :right="!item.tooltip"
-                :disabled="!item.tooltip && false">
-                <template v-slot:activator="{ on }">
-
+                :disabled="!item.tooltip && false"
+              >
+                <template #activator="{ on }">
                   <div
                     v-if="!hideNode[item._nodes.type]"
                     v-on="item.tooltip || true ? on : ''"
                     @contextmenu.prevent="showCTXMenu($event, item, open, leaf)"
                     @click.stop="addTab({ ...item }, open, leaf)"
                   >
-
-
                     <template v-if="item._nodes.type ==='db'">
-                      <v-icon size="16">mdi-database</v-icon>
+                      <v-icon size="16">
+                        mdi-database
+                      </v-icon>
                       <!--                  <img-->
                       <!--                    class="grey lighten-3"-->
                       <!--                    :width="16" :src="`/db-icons/${dbIcons[item._nodes.dbConnection.client]}`"/>-->
-
                     </template>
                     <template v-else>
                       <v-icon
+                        v-if="open && icons[item._nodes.type].openIcon"
                         small
                         style="cursor:auto;"
-                        v-if="open && icons[item._nodes.type].openIcon"
                         :color="icons[item._nodes.type].openColor"
-                      >{{ icons[item._nodes.type].openIcon }}
+                      >
+                        {{ icons[item._nodes.type].openIcon }}
                       </v-icon>
                       <v-icon
+                        v-else
                         small
                         style="cursor:auto;"
-                        v-else :color="icons[item._nodes.type].color"
-                      >{{ icons[item._nodes.type].icon }}
+                        :color="icons[item._nodes.type].color"
+                      >
+                        {{ icons[item._nodes.type].icon }}
                       </v-icon>
                     </template>
-                    <span class="v-treeview-node__label body-2"
-                          :class="[icons[item._nodes.type].class, item.active ? 'font-weight-bold' : '']">{{
-                        item.name
-                      }}</span>
+                    <span
+                      class="v-treeview-node__label body-2"
+                      :class="[icons[item._nodes.type].class, item.active ? 'font-weight-bold' : '']"
+                    >{{
+                      item.name
+                    }}</span>
                   </div>
                 </template>
                 <span>{{ item.tooltip || item.name }}</span>
@@ -109,10 +111,14 @@
             </template>
           </v-treeview>
 
-          <recursive-menu v-model="menuVisible"
-                          @click="handleCTXMenuClick($event.value)"
-                          offset-y :items="ctxMenuOptions()"
-                          :position-x="x" :position-y="y"></recursive-menu>
+          <recursive-menu
+            v-model="menuVisible"
+            offset-y
+            :items="ctxMenuOptions()"
+            :position-x="x"
+            :position-y="y"
+            @click="handleCTXMenuClick($event.value)"
+          />
         </div>
         <div
           v-if="_isUIAllowed('treeViewProjectSettings')"
@@ -120,55 +126,57 @@
           :class="{'pl-3':!mini}"
           style="min-height: 250px;"
         >
-          <v-divider>
-          </v-divider>
-
+          <v-divider />
 
           <v-list dense>
-
-            <v-list-item @click="rolesTabAdd" class="body-2">
+            <v-list-item class="body-2" @click="rolesTabAdd">
               <v-tooltip bottom>
-                <template v-slot:activator="{on}">
+                <template #activator="{on}">
                   <div class="d-100 d-flex" v-on="on">
-                    <v-icon color="green" class="mr-1" small> mdi-account-group</v-icon>
+                    <v-icon color="green" class="mr-1" small>
+                      mdi-account-group
+                    </v-icon>
                     <span>Team & Auth</span>
                   </div>
                 </template>
                 Roles & Users Management
               </v-tooltip>
             </v-list-item>
-            <v-list-item @click="disableOrEnableModelTabAdd" class="body-2">
+            <v-list-item class="body-2" @click="disableOrEnableModelTabAdd">
               <v-tooltip bottom>
-                <template v-slot:activator="{on}">
+                <template #activator="{on}">
                   <div class="d-100 d-flex" v-on="on">
-                    <v-icon color="purple" class="mr-1" small>mdi-table-multiple</v-icon>
+                    <v-icon color="purple" class="mr-1" small>
+                      mdi-table-multiple
+                    </v-icon>
                     <span>Project Metadata</span>
-
                   </div>
                 </template>
                 Meta Management
               </v-tooltip>
             </v-list-item>
-            <v-list-item @click="settingsTabAdd" class="body-2">
+            <v-list-item class="body-2" @click="settingsTabAdd">
               <v-tooltip bottom>
-                <template v-slot:activator="{on}">
+                <template #activator="{on}">
                   <div class="d-100 d-flex" v-on="on">
-                    <v-icon color="orange" class="mr-1" small>mdi-cog</v-icon>
+                    <v-icon color="orange" class="mr-1" small>
+                      mdi-cog
+                    </v-icon>
                     <span>Settings</span>
                   </div>
                 </template>
                 Tool Settings (^⇧C)
               </v-tooltip>
             </v-list-item>
-            <v-list-item @click="toggleMini" class="body-2">
+            <v-list-item class="body-2" @click="toggleMini">
               <div class="d-100 d-flex" v-on="on">
-                <v-icon color="" class="mr-1" small>mdi-arrow-expand-horizontal</v-icon>
+                <v-icon color="" class="mr-1" small>
+                  mdi-arrow-expand-horizontal
+                </v-icon>
                 <span>Toggle Sidebar</span>
               </div>
             </v-list-item>
-
           </v-list>
-
         </div>
       </div>
     </v-navigation-drawer>
@@ -176,8 +184,7 @@
     <dlg-table-create
       v-model="dialogGetTableName.dialogShow"
       @create="mtdTableCreate($event)"
-    ></dlg-table-create>
-
+    />
 
     <!--    <textDlgSubmitCancel
           v-if="dialogGetTableName.dialogShow"
@@ -187,48 +194,47 @@
           :mtdDialogCancel="mtdDialogGetTableNameCancel"
         />-->
 
-
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
-      :dialogShow="dialogRenameTable.dialogShow"
+      :dialog-show="dialogRenameTable.dialogShow"
       :heading="dialogRenameTable.heading"
       :cookie="dialogRenameTable.cookie"
-      :defaultValue="dialogRenameTable.defaultValue"
-      :mtdDialogSubmit="mtdDialogRenameTableSubmit"
-      :mtdDialogCancel="mtdDialogRenameTableCancel"
+      :default-value="dialogRenameTable.defaultValue"
+      :mtd-dialog-submit="mtdDialogRenameTableSubmit"
+      :mtd-dialog-cancel="mtdDialogRenameTableCancel"
     />
     <textDlgSubmitCancel
       v-if="dialogGetViewName.dialogShow"
-      :dialogShow="dialogGetViewName.dialogShow"
+      :dialog-show="dialogGetViewName.dialogShow"
       :heading="dialogGetViewName.heading"
-      :mtdDialogSubmit="mtdDialogGetViewNameSubmit"
-      :mtdDialogCancel="mtdDialogGetViewNameCancel"
+      :mtd-dialog-submit="mtdDialogGetViewNameSubmit"
+      :mtd-dialog-cancel="mtdDialogGetViewNameCancel"
     />
     <textDlgSubmitCancel
       v-if="dialogGetFunctionName.dialogShow"
-      :dialogShow="dialogGetFunctionName.dialogShow"
+      :dialog-show="dialogGetFunctionName.dialogShow"
       :heading="dialogGetFunctionName.heading"
-      :mtdDialogSubmit="mtdDialogGetFunctionNameSubmit"
-      :mtdDialogCancel="mtdDialogGetFunctionNameCancel"
+      :mtd-dialog-submit="mtdDialogGetFunctionNameSubmit"
+      :mtd-dialog-cancel="mtdDialogGetFunctionNameCancel"
     />
     <textDlgSubmitCancel
       v-if="dialogGetProcedureName.dialogShow"
-      :dialogShow="dialogGetProcedureName.dialogShow"
+      :dialog-show="dialogGetProcedureName.dialogShow"
       :heading="dialogGetProcedureName.heading"
-      :mtdDialogSubmit="mtdDialogGetProcedureNameSubmit"
-      :mtdDialogCancel="mtdDialogGetProcedureNameCancel"
+      :mtd-dialog-submit="mtdDialogGetProcedureNameSubmit"
+      :mtd-dialog-cancel="mtdDialogGetProcedureNameCancel"
     />
     <textDlgSubmitCancel
       v-if="dialogGetSequenceName.dialogShow"
-      :dialogShow="dialogGetSequenceName.dialogShow"
+      :dialog-show="dialogGetSequenceName.dialogShow"
       :heading="dialogGetSequenceName.heading"
-      :mtdDialogSubmit="mtdDialogGetSequenceNameSubmit"
-      :mtdDialogCancel="mtdDialogGetSequenceNameCancel"
+      :mtd-dialog-submit="mtdDialogGetSequenceNameSubmit"
+      :mtd-dialog-cancel="mtdDialogGetSequenceNameCancel"
     />
     <dlgLabelSubmitCancel
       v-if="selectedNodeForDelete.dialog"
-      :actionsMtd="deleteSelectedNode"
-      :dialogShow="selectedNodeForDelete.dialog"
+      :actions-mtd="deleteSelectedNode"
+      :dialog-show="selectedNodeForDelete.dialog"
       :heading="selectedNodeForDelete.heading"
       type="error"
     />

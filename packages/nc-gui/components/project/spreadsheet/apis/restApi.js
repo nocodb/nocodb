@@ -1,42 +1,41 @@
 export default class RestApi {
-
-  constructor(table, $ctx) {
-    this.table = table;
-    this.$ctx = $ctx;
+  constructor (table, $ctx) {
+    this.table = table
+    this.$ctx = $ctx
   }
 
   // todo:  - get version letter and use table alias
-  async list(params) {
+  async list (params) {
     // const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`, params)
     const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`, params)
-    return data.data;
+    return data.data
   }
 
-  async read(id) {
-    const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/${id}`);
-    return data.data;
+  async read (id) {
+    const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/${id}`)
+    return data.data
   }
 
-  async count(params) {
+  async count (params) {
     if (this.timeout) {
-      return this.timeout;
+      return this.timeout
     }
     try {
       const data = await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/count`, params, {
-        timeout: 10000,
-      });
-      return data && data.data;
+        timeout: 10000
+      })
+      return data && data.data
     } catch (e) {
-      if (e.code === "ECONNABORTED") {
-        return this.timeout = {count: Infinity};
+      if (e.code === 'ECONNABORTED') {
+        // eslint-disable-next-line no-return-assign
+        return this.timeout = { count: Infinity }
       } else {
-        throw e;
+        throw e
       }
     }
   }
 
-
-  get(url, params, extras = {}) {
+  get (url, params, extras = {}) {
     return this.$axios({
       url,
       params,
@@ -44,33 +43,32 @@ export default class RestApi {
     })
   }
 
-
-  async paginatedList(params) {
+  async paginatedList (params) {
     // const list = await this.list(params);
     // const count = (await this.count({where: params.where || ''})).count;
-    const [list, {count}] = await Promise.all([this.list(params), this.count({
+    const [list, { count }] = await Promise.all([this.list(params), this.count({
       where: params.where || '',
       conditionGraph: params.conditionGraph
-    })]);
-    return {list, count};
+    })])
+    return { list, count }
   }
 
-  async paginatedM2mNotChildrenList(params, assoc, pid) {
-    ///api/v1/Film/m2mNotChildren/film_actor/44
+  async paginatedM2mNotChildrenList (params, assoc, pid) {
+    /// api/v1/Film/m2mNotChildren/film_actor/44
     // const list = await this.list(params);
     // const count = (await this.count({where: params.where || ''})).count;
-    const {list, info: {count}} = (await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
-    return {list, count};
+    const { list, info: { count } } = (await this.get(`/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
+    return { list, count }
   }
 
-  async update(id, data, oldData) {
+  async update (id, data, oldData) {
     const res = await this.$axios({
       method: 'put',
       url: `/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/${id}`,
-      data,
-    });
-    const colName = Object.keys(data)[0];
-    this.$ctx.$store.dispatch('sqlMgr/ActSqlOp', [{dbAlias: this.$ctx.nodes.dbAlias}, 'xcAuditCreate', {
+      data
+    })
+    const colName = Object.keys(data)[0]
+    this.$ctx.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.$ctx.nodes.dbAlias }, 'xcAuditCreate', {
       tn: this.table,
       cn: colName,
       pk: id,
@@ -78,35 +76,33 @@ export default class RestApi {
       prevValue: oldData[colName]
     }])
 
-    return res;
+    return res
   }
 
-  async insert(data) {
+  async insert (data) {
     return (await this.$axios({
       method: 'post',
       url: `/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`,
-      data,
-    })).data;
+      data
+    })).data
   }
 
-  async delete(id) {
+  async delete (id) {
     return this.$axios({
       method: 'delete',
-      url: `/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/${id}`,
+      url: `/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}/${id}`
     })
   }
 
-
-  get $axios() {
-    return this.$ctx.$axios;
+  get $axios () {
+    return this.$ctx.$axios
   }
 
-  get apiUrl() {
-    return `${process.env.NODE_ENV === 'production' ?
-      `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}`
+  get apiUrl () {
+    return `${process.env.NODE_ENV === 'production'
+      ? `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}`
       : 'http://localhost:8080'}/nc/${this.$ctx.$route.params.project_id}/api/v1/${this.table}`
   }
-
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

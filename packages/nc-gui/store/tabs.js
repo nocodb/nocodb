@@ -1,338 +1,328 @@
-import Vue from "vue";
+import Vue from 'vue'
 
 export const state = () => ({
   list: [],
   activeTab: 0,
   activeTabCtx: {}
-});
+})
 
 export const mutations = {
-  add(state, tab) {
+  add (state, tab) {
     console.log('tabs:', tab)
     if (state.list.length >= 8) {
-      state.list.shift();
+      state.list.shift()
     }
-    state.list = [...state.list, tab];
+    state.list = [...state.list, tab]
   },
-  remove(state, index) {
-    state.list.splice(index, 1);
+  remove (state, index) {
+    state.list.splice(index, 1)
   },
-  clear(state, index) {
-    state.list = [];
+  clear (state, index) {
+    state.list = []
   },
-  active(state, index) {
+  active (state, index) {
     console.log('> > > > active', state, index)
     if (state.list[index]) {
-      state.activeTabCtx = {...state.list[index]};
-      state.activeTab = index;
+      state.activeTabCtx = { ...state.list[index] }
+      state.activeTab = index
       this.$router.push({
         query: {
           name: state.list[index].name || '',
           dbalias: (state.list[index]._nodes && state.list[index]._nodes.dbAlias) || '',
-          type: (state.list[index]._nodes && state.list[index]._nodes.type) || '',
+          type: (state.list[index]._nodes && state.list[index]._nodes.type) || ''
         }
       })
     }
   },
-  list(state, list) {
-    Vue.set(state, "list", list);
+  list (state, list) {
+    Vue.set(state, 'list', list)
   },
-  activeTabCtx(state, activeTabCtx) {
-
-    let list = [...state.list];
+  activeTabCtx (state, activeTabCtx) {
+    let list = [...state.list]
     console.log('> > > > activeTabCtx', state, activeTabCtx)
 
-    list = list.map(el => {
+    list = list.map((el) => {
       if (el.name === state.activeTabCtx.name) {
-        return {...el, name: activeTabCtx.name}; // add props can be updated every rest keep it as it is
+        return { ...el, name: activeTabCtx.name } // add props can be updated every rest keep it as it is
       }
-      return el;
-    });
+      return el
+    })
 
-    state.activeTabCtx = activeTabCtx;
+    state.activeTabCtx = activeTabCtx
 
-    Vue.set(state, "list", list);
+    Vue.set(state, 'list', list)
 
     // state.list = list;
   }
-};
+}
 
 export const getters = {
-  list(state) {
+  list (state) {
     console.log('> > > > list', state)
-    return state.list;
+    return state.list
   },
-  activeTab(state) {
+  activeTab (state) {
     console.log('> > > > gtr activeTab', state.activeTab)
-    return state.activeTab;
+    return state.activeTab
   },
-  activeTabCtx(state) {
+  activeTabCtx (state) {
     console.log('> > > > gtr activeTabCtx', state.activeTabCtx)
-    return state.activeTabCtx;
+    return state.activeTabCtx
   }
-};
+}
 
 export const actions = {
-  async changeActiveTab({commit, state}, index) {
-    commit("active", index);
+  async changeActiveTab ({ commit, state }, index) {
+    commit('active', index)
   },
-  async loadDefaultTabs({commit, state, rootGetters, dispatch, rootState}, load) {
-    const tabs = [];
+  async loadDefaultTabs ({ commit, state, rootGetters, dispatch, rootState }, load) {
+    const tabs = []
 
-
-    if ('name' in this.$router.currentRoute.query
-      && 'type' in this.$router.currentRoute.query
-      && 'dbalias' in this.$router.currentRoute.query
+    if ('name' in this.$router.currentRoute.query &&
+      'type' in this.$router.currentRoute.query &&
+      'dbalias' in this.$router.currentRoute.query
     ) {
       if (!load) {
-        return commit("list", tabs);
+        return commit('list', tabs)
       }
       const {
         name,
         type,
         dbalias
-      } = this.$router.currentRoute.query;
+      } = this.$router.currentRoute.query
       try {
-        let tabNode;
+        let tabNode
         switch (type) {
-          case 'table': {
+          case 'table':
             await dispatch('project/_loadTables', {
-              dbKey: "0.projectJson.envs.dev.db.0",
-              key: "0.projectJson.envs.dev.db.0.tables",
+              dbKey: '0.projectJson.envs.dev.db.0',
+              key: '0.projectJson.envs.dev.db.0.tables',
               _nodes: {
                 dbAlias: dbalias,
                 // dbKey: "0.projectJson.envs.dev.db.0",
-                env: "dev",
+                env: 'dev',
                 // key: "0.projectJson.envs.dev.db.0.tables",
-                type: "tableDir",
+                type: 'tableDir'
               }
-            }, {root: true});
+            }, { root: true })
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
               .children[0] // db
-              .children.find(n => n.type === "tableDir") // parent node
-              .children.find(t => t.name === name);
+              .children.find(n => n.type === 'tableDir') // parent node
+              .children.find(t => t.name === name)
 
-
-          }
-            break;
-          case 'view': {
+            break
+          case 'view':
             await dispatch('project/_loadViews', {
-              dbKey: "0.projectJson.envs.dev.db.0",
-              key: "0.projectJson.envs.dev.db.0.views",
+              dbKey: '0.projectJson.envs.dev.db.0',
+              key: '0.projectJson.envs.dev.db.0.views',
               _nodes: {
                 dbAlias: dbalias,
                 // dbKey: "0.projectJson.envs.dev.db.0",
-                env: "dev",
+                env: 'dev',
                 // key: "0.projectJson.envs.dev.db.0.tables",
-                type: "viewDir",
+                type: 'viewDir'
               }
-            }, {root: true});
+            }, { root: true })
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
               .children[0] // db
-              .children.find(n => n.type === "viewDir") // parent node
-              .children.find(t => t.name === name);
+              .children.find(n => n.type === 'viewDir') // parent node
+              .children.find(t => t.name === name)
 
-
-          }
-            break;
-          case 'function': {
+            break
+          case 'function':
             await dispatch('project/_loadFunctions', {
-              dbKey: "0.projectJson.envs.dev.db.0",
-              key: "0.projectJson.envs.dev.db.0.functions",
+              dbKey: '0.projectJson.envs.dev.db.0',
+              key: '0.projectJson.envs.dev.db.0.functions',
               _nodes: {
                 dbAlias: dbalias,
                 // dbKey: "0.projectJson.envs.dev.db.0",
-                env: "dev",
+                env: 'dev',
                 // key: "0.projectJson.envs.dev.db.0.tables",
-                type: "functionDir",
+                type: 'functionDir'
               }
-            }, {root: true});
+            }, { root: true })
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
               .children[0] // db
-              .children.find(n => {
-                return n.type === "functionDir"
+              .children.find((n) => {
+                return n.type === 'functionDir'
               }) // parent node
-              .children.find(t => {
+              .children.find((t) => {
                 return t.name === name
-              });
-          }
-            ;
-            break;
-          case 'procedure': {
+              })
+
+            break
+          case 'procedure':
             await dispatch('project/_loadProcedures', {
-              dbKey: "0.projectJson.envs.dev.db.0",
-              key: "0.projectJson.envs.dev.db.0.procedures",
+              dbKey: '0.projectJson.envs.dev.db.0',
+              key: '0.projectJson.envs.dev.db.0.procedures',
               _nodes: {
                 dbAlias: dbalias,
                 // dbKey: "0.projectJson.envs.dev.db.0",
-                env: "dev",
+                env: 'dev',
                 // key: "0.projectJson.envs.dev.db.0.tables",
-                type: "procedureDir",
+                type: 'procedureDir'
               }
-            }, {root: true});
+            }, { root: true })
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
               .children[0] // db
-              .children.find(n => n.type === "procedureDir") // parent node
-              .children.find(t => t.name === name);
-
-
-          }
-          case 'sequence': {
+              .children.find(n => n.type === 'procedureDir') // parent node
+              .children.find(t => t.name === name)
+            break
+          case 'sequence':
             await dispatch('project/_loadFunctions', {
-              dbKey: "0.projectJson.envs.dev.db.0",
-              key: "0.projectJson.envs.dev.db.0.sequences",
+              dbKey: '0.projectJson.envs.dev.db.0',
+              key: '0.projectJson.envs.dev.db.0.sequences',
               _nodes: {
                 dbAlias: dbalias,
                 // dbKey: "0.projectJson.envs.dev.db.0",
-                env: "dev",
+                env: 'dev',
                 // key: "0.projectJson.envs.dev.db.0.tables",
-                type: "sequenceDir",
+                type: 'sequenceDir'
               }
-            }, {root: true});
+            }, { root: true })
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
               .children[0] // db
-              .children.find(n => {
-                return n.type === "sequenceDir"
+              .children.find((n) => {
+                return n.type === 'sequenceDir'
               }) // parent node
-              .children.find(t => {
+              .children.find((t) => {
                 return t.name === name
-              });
+              })
 
-
-          }
-            break;
+            break
         }
         if (tabNode) {
-          tabs.push(tabNode);
+          tabs.push(tabNode)
         }
       } catch (e) {
-        console.log(e);
+        console.log(e)
       }
-
     } else {
-
-
       if (rootGetters['project/GtrProjectIsGrpc']) {
         const item = {
-          name: 'gRPC Client', key: `grpcClient`, _nodes: {
+          name: 'gRPC Client',
+          key: 'grpcClient',
+          _nodes: {
             env: 'dev',
             type: 'grpcClient'
           }
-        };
-        tabs.push(item);
+        }
+        tabs.push(item)
       } else if (rootGetters['project/GtrProjectIsGraphql']) {
         const item = {
-          name: 'Graphql Client', key: `graphqlClientDir`, _nodes: {
+          name: 'Graphql Client',
+          key: 'graphqlClientDir',
+          _nodes: {
             env: 'dev',
             type: 'graphqlClientDir'
           }
-        };
-        tabs.push(item);
+        }
+        tabs.push(item)
       }
 
       tabs.unshift({
-        name: 'Team & Auth ', key: `roles`,
+        name: 'Team & Auth ',
+        key: 'roles',
         _nodes: {
           env: 'dev',
           type: 'roles'
         }
-      });
-
+      })
     }
-    commit("list", tabs);
+    commit('list', tabs)
   },
 
-  removeTableTab({commit, state}, nodes) {
-    const tabs = JSON.parse(JSON.stringify(state.list));
+  removeTableTab ({ commit, state }, nodes) {
+    const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
         el._nodes.env === nodes.env &&
         el._nodes.dbAlias === nodes.dbAlias &&
         el._nodes.tn === nodes.tn
-    );
-    tabs.splice(tabIndex, 1);
-    commit("list", tabs);
+    )
+    tabs.splice(tabIndex, 1)
+    commit('list', tabs)
   },
-  removeViewTab({commit, state}, nodes) {
-    const tabs = JSON.parse(JSON.stringify(state.list));
+  removeViewTab ({ commit, state }, nodes) {
+    const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
         el._nodes.env === nodes.env &&
         el._nodes.dbAlias === nodes.dbAlias &&
         el._nodes.view_name === nodes.view_name
-    );
-    tabs.splice(tabIndex, 1);
-    commit("list", tabs);
+    )
+    tabs.splice(tabIndex, 1)
+    commit('list', tabs)
   },
-  removeFunctionTab({commit, state}, nodes) {
-    const tabs = JSON.parse(JSON.stringify(state.list));
+  removeFunctionTab ({ commit, state }, nodes) {
+    const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
         el._nodes.env === nodes.env &&
         el._nodes.dbAlias === nodes.dbAlias &&
         el._nodes.function_name === nodes.function_name
-    );
-    tabs.splice(tabIndex, 1);
-    commit("list", tabs);
+    )
+    tabs.splice(tabIndex, 1)
+    commit('list', tabs)
   },
-  removeProcedureTab({commit, state}, nodes) {
-    const tabs = JSON.parse(JSON.stringify(state.list));
+  removeProcedureTab ({ commit, state }, nodes) {
+    const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
         el._nodes.env === nodes.env &&
         el._nodes.dbAlias === nodes.dbAlias &&
         el._nodes.procedure_name === nodes.procedure_name
-    );
-    tabs.splice(tabIndex, 1);
-    commit("list", tabs);
+    )
+    tabs.splice(tabIndex, 1)
+    commit('list', tabs)
   },
-  removeSequenceTab({commit, state}, nodes) {
-    const tabs = JSON.parse(JSON.stringify(state.list));
+  removeSequenceTab ({ commit, state }, nodes) {
+    const tabs = JSON.parse(JSON.stringify(state.list))
     const tabIndex = state.list.findIndex(
       el =>
         el._nodes.env === nodes.env &&
         el._nodes.dbAlias === nodes.dbAlias &&
         el._nodes.sequence_name === nodes.sequence_name
-    );
-    tabs.splice(tabIndex, 1);
-    commit("list", tabs);
+    )
+    tabs.splice(tabIndex, 1)
+    commit('list', tabs)
   },
-  removeTabsByName({commit, state}, item) {
-    let tabs = JSON.parse(JSON.stringify(state.list));
-    tabs = tabs.filter(el => {
+  removeTabsByName ({ commit, state }, item) {
+    let tabs = JSON.parse(JSON.stringify(state.list))
+    tabs = tabs.filter((el) => {
       if (
         el._nodes.env === item._nodes.env &&
         el._nodes.dbAlias === item._nodes.dbAlias &&
         el.name === item.name
       ) {
-        return false;
+        return false
       }
 
-      return true;
-    });
-    commit("list", tabs);
+      return true
+    })
+    commit('list', tabs)
   },
 
-  ActAddTab({commit, state, rootState}, item) {
+  ActAddTab ({ commit, state, rootState }, item) {
     if (rootState.users.ui_ability.rules.maxTabs <= state.list.length) {
-      this.commit('snackbar/setSnack', `Free plan limits to ${rootState.users.ui_ability.rules.maxTabs} tabs. Please <a href="https://nocodb.com/pricing" style="color: white;font-weight: bold;">upgrade</a> your plan for unlimited tabs.`);
-      return;
+      this.commit('snackbar/setSnack', `Free plan limits to ${rootState.users.ui_ability.rules.maxTabs} tabs. Please <a href="https://nocodb.com/pricing" style="color: white;font-weight: bold;">upgrade</a> your plan for unlimited tabs.`)
+      return
     }
-    commit('add', item);
-    const index = state.list.length - 1;
+    commit('add', item)
+    const index = state.list.length - 1
     if (state.activeTab !== 0 && state.activeTab === index) {
-      commit('active', index - 1);
-      setTimeout(() => commit('active', index));
+      commit('active', index - 1)
+      setTimeout(() => commit('active', index))
     } else {
       commit('active', index)
     }
@@ -346,7 +336,7 @@ export const actions = {
     //   })
     // });
   }
-};
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

@@ -1,87 +1,108 @@
 <template>
-
-  <v-container fluid v-if="db">
+  <v-container v-if="db" fluid>
     <v-card>
-
       <v-card class="pb-2">
         <v-toolbar flat height="50" class="toolbar-border-bottom">
-
-
-          <v-text-field v-if=" db" v-model="filter" dense hide-details
-                        class="my-2 mx-auto search-field"
-                        :placeholder="`Search '${db.connection.database}' models`"
-                        style="max-width:300px"
-                        outlined>
-            <template v-slot:prepend-inner>
-              <v-icon small>search</v-icon>
+          <v-text-field
+            v-if=" db"
+            v-model="filter"
+            dense
+            hide-details
+            class="my-2 mx-auto search-field"
+            :placeholder="`Search '${db.connection.database}' models`"
+            style="max-width:300px"
+            outlined
+          >
+            <template #prepend-inner>
+              <v-icon small>
+                search
+              </v-icon>
             </template>
-
           </v-text-field>
 
-          <v-spacer></v-spacer>
-          <x-btn outlined tooltip="Reload list" small @click="loadViewList()"
-                 color="primary"
-                 icon="refresh">Reload
+          <v-spacer />
+          <x-btn
+            outlined
+            tooltip="Reload list"
+            small
+            color="primary"
+            icon="refresh"
+            @click="loadViewList()"
+          >
+            Reload
           </x-btn>
-          <x-btn outlined :loading="updating" :disabled="updating || !edited" tooltip="Save Changes"
-                 small
-                 @click="save()"
-                 color="primary" icon="save">Save
+          <x-btn
+            outlined
+            :loading="updating"
+            :disabled="updating || !edited"
+            tooltip="Save Changes"
+            small
+            color="primary"
+            icon="save"
+            @click="save()"
+          >
+            Save
           </x-btn>
-
         </v-toolbar>
 
-
         <div class="d-flex d-100 justify-center">
-
-          <v-simple-table dense v-slot:default style="min-width: 400px">
+          <v-simple-table dense style="min-width: 400px">
             <thead>
-            <tr>
-              <th>Models
-              </th>
-              <th v-for="role in roles" :key="role">{{ role }}</th>
-            </tr>
+              <tr>
+                <th>
+                  Models
+                </th>
+                <th v-for="role in roles" :key="role">
+                  {{ role }}
+                </th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="view in views"
-                v-if="view.view_name.toLowerCase().indexOf(filter.toLowerCase()) > -1" :key="view.view_name">
-              <td>{{ view.view_name }}</td>
-              <td v-for="role in roles" :key="`${view.view_name}-${role}`">
-                <v-tooltip bottom>
-                  <template v-slot:activator="{on}">
-                    <div
-                      v-on="on">
-                      <v-checkbox dense
-                                  :true-value="false"
-                                  :false-value="true"
-                                  @change="$set(view,'edited',true)"
-                                  v-model="view.disabled[role]"></v-checkbox>
-                    </div>
-                  </template>
+              <template
+                v-for="view in views"
+              >
+                <tr
+                  v-if="view.view_name.toLowerCase().indexOf(filter.toLowerCase()) > -1"
+                  :key="view.view_name"
+                >
+                  <td>{{ view.view_name }}</td>
+                  <td v-for="role in roles" :key="`${view.view_name}-${role}`">
+                    <v-tooltip bottom>
+                      <template #activator="{on}">
+                        <div
+                          v-on="on"
+                        >
+                          <v-checkbox
+                            v-model="view.disabled[role]"
+                            dense
+                            :true-value="false"
+                            :false-value="true"
+                            @change="$set(view,'edited',true)"
+                          />
+                        </div>
+                      </template>
 
-
-                  <span v-if="view.disabled[role]">Click to hide '{{ view.view_name }}' for Role:{{ role }} in UI dashboard</span>
-                  <span v-else>Click to make '{{ view.view_name }}' visible for Role:{{ role }} in UI dashboard</span>
-
-                </v-tooltip>
-              </td>
-
-            </tr>
+                      <span v-if="view.disabled[role]">Click to hide '{{ view.view_name }}' for Role:{{ role }} in UI dashboard</span>
+                      <span v-else>Click to make '{{ view.view_name }}' visible for Role:{{ role }} in UI dashboard</span>
+                    </v-tooltip>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </v-simple-table>
         </div>
       </v-card>
     </v-card>
   </v-container>
-
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import { mapGetters } from 'vuex'
 
 export default {
-  name: "toggleViewUiAcl",
+  name: 'ToggleViewUiAcl',
   components: {},
+  props: ['nodes', 'db'],
   data: () => ({
     models: null,
     updating: false,
@@ -89,20 +110,19 @@ export default {
     filter: '',
     views: null
   }),
-  props: ['nodes', 'db'],
-  async mounted() {
-    await this.loadViewList();
+  async mounted () {
+    await this.loadViewList()
   },
   methods: {
-    async loadViewList() {
+    async loadViewList () {
       this.views = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.db.meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
       }, 'xcVisibilityMetaGet', {
         type: 'view'
-      }]));
+      }]))
     },
-    async save() {
+    async save () {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -110,7 +130,7 @@ export default {
         }, 'xcVisibilityMetaSet', {
           type: 'view',
           disableList: this.views.filter(t => t.edited)
-        }]);
+        }])
         this.$toast.success('Updated UI ACL for tables successfully').goAway(3000)
       } catch (e) {
         this.$toast.error('Some error occurred').goAway(3000)
@@ -121,11 +141,11 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
-    edited() {
+    edited () {
       return this.views && this.views.length && this.views.some(t => t.edited)
     },
-    roles() {
-      return this.views && this.views.length ? Object.keys(this.views[0].disabled) : [];
+    roles () {
+      return this.views && this.views.length ? Object.keys(this.views[0].disabled) : []
     }
   }
 }
@@ -140,7 +160,6 @@ export default {
   .v-tab {
     border-right: 1px solid #7f828b33;
   }
-
 
   .search-field.v-text-field > .v-input__control, .search-field.v-text-field > .v-input__control > .v-input__slot {
     min-height: auto;

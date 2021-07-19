@@ -1,10 +1,10 @@
-const imageExt = ['jpeg', 'gif', 'png', 'apng', 'svg', 'bmp', 'ico', 'jpg'];
+const imageExt = ['jpeg', 'gif', 'png', 'apng', 'svg', 'bmp', 'ico', 'jpg']
 
-export default imageExt;
+export default imageExt
 
 const isImage = (name) => {
-  return imageExt.some(e => name.toLowerCase().endsWith(`.${e}`));
-};
+  return imageExt.some(e => name.toLowerCase().endsWith(`.${e}`))
+}
 
 export {
   isImage

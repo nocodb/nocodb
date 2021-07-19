@@ -1,104 +1,121 @@
 <template>
   <div>
-
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
-        <v-breadcrumbs :items="[{
-                text: this.nodes.env,
-                disabled: true,
-                href: '#'
-              },{
-                text: this.nodes.dbAlias,
-                disabled: true,
-                href: '#'
-              },
-              {
-                text: (nodes.function_name) + ' (ACL)',
-                disabled: true,
-                href: '#'
-              }]" divider=">" small>
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+                     text: nodes.env,
+                     disabled: true,
+                     href: '#'
+                   },{
+                     text: nodes.dbAlias,
+                     disabled: true,
+                     href: '#'
+                   },
+                   {
+                     text: (nodes.function_name) + ' (ACL)',
+                     disabled: true,
+                     href: '#'
+                   }]"
+          divider=">"
+          small
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
-
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <x-btn outlined tooltip="Reload ACL"
-             color="primary"
-             small
-             @click="loadAcl"
-             v-ge="['acl','reload']"
+      <v-spacer />
+      <x-btn
+        v-ge="['acl','reload']"
+        outlined
+        tooltip="Reload ACL"
+        color="primary"
+        small
+        @click="loadAcl"
       >
-        <v-icon small left>refresh</v-icon>
+        <v-icon small left>
+          refresh
+        </v-icon>
         Reload
       </x-btn>
 
-      <x-btn outlined tooltip="Save Changes"
-             color="primary"
-             class="primary"
-             small
-             v-ge="['acl','save']"
-             @click="save"
-             :disabled="!edited"
+      <x-btn
+        v-ge="['acl','save']"
+        outlined
+        tooltip="Save Changes"
+        color="primary"
+        class="primary"
+        small
+        :disabled="!edited"
+        @click="save"
       >
-        <v-icon small left>save</v-icon>
+        <v-icon small left>
+          save
+        </v-icon>
         Save
       </x-btn>
-
     </v-toolbar>
 
-    <v-simple-table v-slot:default>
+    <v-simple-table>
       <thead>
-      <tr>
-        <th></th>
-        <th v-for="role in roles" :key="role">{{ role }}</th>
-      </tr>
+        <tr>
+          <th />
+          <th v-for="role in roles" :key="role">
+            {{ role }}
+          </th>
+        </tr>
       </thead>
       <tbody>
-      <tr>
-        <th>{{ nodes.function_name }}</th>
-        <th v-for="role in roles" :key="role" class="permission-checkbox-container">
-          <v-checkbox
-            @change="edited=true"
-            v-model="data[role]"
-            dense
-            hide-details
-          />
-        </th>
-      </tr>
+        <tr>
+          <th>{{ nodes.function_name }}</th>
+          <th v-for="role in roles" :key="role" class="permission-checkbox-container">
+            <v-checkbox
+              v-model="data[role]"
+              dense
+              hide-details
+              @change="edited=true"
+            />
+          </th>
+        </tr>
       </tbody>
     </v-simple-table>
-
-
   </div>
 </template>
 
 <script>
 export default {
-  name: "functionAcl",
+  name: 'FunctionAcl',
+  props: ['nodes'],
   data: () => ({
     loading: false,
     edited: false,
     data: null
   }),
-  async created() {
+  computed: {
+    roles () {
+      return this.data ? Object.keys(this.data) : []
+    }
+  },
+  async created () {
     await this.loadAcl()
   },
   methods: {
-    async loadAcl() {
-      this.loading = true;
+    async loadAcl () {
+      this.loading = true
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'xcAclGet', {
         name: this.nodes.function_name
-      }]);
-      this.data = JSON.parse(result.acl);
+      }])
+      this.data = JSON.parse(result.acl)
 
-      this.loading = false;
+      this.loading = false
     },
-    async save() {
+    async save () {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -106,19 +123,13 @@ export default {
         }, 'xcAclSave', {
           name: this.nodes.function_name,
           acl: this.data
-        }]);
-        this.$toast.success('ACL saved successfully').goAway(3000);
-        this.edited = false;
+        }])
+        this.$toast.success('ACL saved successfully').goAway(3000)
+        this.edited = false
         await this.loadAcl()
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(3000);
+        this.$toast.error('Some error occurred').goAway(3000)
       }
-    }
-  },
-  props: ['nodes'],
-  computed: {
-    roles() {
-      return this.data ? Object.keys(this.data) : []
     }
   }
 }

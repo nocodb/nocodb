@@ -5,89 +5,98 @@
     </div>
 
     <v-toolbar height="36" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
-
-
       <div class="d-flex xc-border align-center search-box">
-
         <v-menu bottom offset-y>
-          <template v-slot:activator="{on}">
+          <template #activator="{on}">
             <div v-on="on">
-              <v-icon class="pa-1 pr-0 ml-2" small
-                      color="grey"
-              >mdi-magnify
+              <v-icon
+                class="pa-1 pr-0 ml-2"
+                small
+                color="grey"
+              >
+                mdi-magnify
               </v-icon>
 
-              <v-icon color="grey"
-                      class="pl-0 pa-1" small>mdi-menu-down
+              <v-icon
+                color="grey"
+                class="pl-0 pa-1"
+                small
+              >
+                mdi-menu-down
               </v-icon>
             </div>
           </template>
           <v-list dense>
-            <v-list-item v-for="col in meta.columns" :key="col.cn"
-                         @click="searchField = col.cn">
+            <v-list-item
+              v-for="col in meta.columns"
+              :key="col.cn"
+              @click="searchField = col.cn"
+            >
               <span class="caption">{{ col.cn }}</span>
             </v-list-item>
           </v-list>
         </v-menu>
 
         <v-divider
-          vertical></v-divider>
+          vertical
+        />
 
         <v-text-field
-          autocomplete="off"
           v-model="searchQuery"
+          autocomplete="off"
           style="min-width: 300px"
           flat
           dense
           solo
           hide-details
+          :placeholder="searchField ? `Search '${searchField}' column` : 'Search all columns'"
+          class="elevation-0 pa-0 flex-grow-1 caption search-field"
           @keyup.enter="loadTableData"
           @blur="loadTableData"
-          :placeholder="searchField ? `Search '${searchField}' column` : 'Search all columns'"
-          class="elevation-0 pa-0 flex-grow-1 caption search-field">
-
-
-        </v-text-field>
+        />
       </div>
 
+      <span
+        v-if="relationType && false"
+        class="caption grey--text"
+      >{{ refTable }}({{
+        relationPrimaryValue
+      }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
 
-      <span v-if="relationType && false"
-            class="caption grey--text">{{ refTable }}({{
-          relationPrimaryValue
-        }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
-
-
-      <v-spacer></v-spacer>
+      <v-spacer />
 
       <v-btn outlined small text @click="loadTableData">
-        <v-icon small class="mr-1" color="grey  darken-3">mdi-reload</v-icon>
+        <v-icon small class="mr-1" color="grey  darken-3">
+          mdi-reload
+        </v-icon>
         Reload
       </v-btn>
 
-      <fields-menu v-model="showFields" :field-list="fieldList"></fields-menu>
+      <fields-menu v-model="showFields" :field-list="fieldList" />
 
+      <sort-list-menu v-model="sortList" :field-list="fieldList" />
 
-      <sort-list-menu :field-list="fieldList" v-model="sortList"></sort-list-menu>
-
-      <column-filter-menu :field-list="fieldList" v-model="filters"></column-filter-menu>
+      <column-filter-menu v-model="filters" :field-list="fieldList" />
 
       <v-menu>
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-icon
             v-bind="attrs"
-            v-on="on" small
+            small
             class="mx-2"
             color="grey  darken-3"
+            v-on="on"
           >
             mdi-arrow-collapse-vertical
           </v-icon>
         </template>
 
         <v-list dense class="caption">
-
-          <v-list-item v-for="h in cellHeights" dense @click.stop="cellHeight = h.size" :key="h.size">
+          <v-list-item v-for="h in cellHeights" :key="h.size" dense @click.stop="cellHeight = h.size">
             <v-list-item-icon class="mr-1">
-              <v-icon small :color="cellHeight === h.size && 'primary'">{{ h.icon }}</v-icon>
+              <v-icon small :color="cellHeight === h.size && 'primary'">
+                {{ h.icon }}
+              </v-icon>
             </v-list-item-icon>
             <v-list-item-title :class="{'primary--text' : cellHeight === h.size}" style="text-transform: capitalize">
               {{ h.size }}
@@ -95,17 +104,15 @@
           </v-list-item>
         </v-list>
       </v-menu>
-
     </v-toolbar>
-    <div :class="`cell-height-${cellHeight}`"
-         style="overflow:auto;transition: width 500ms ;height : calc(100% - 36px)"
-         class="d-flex"
+    <div
+      :class="`cell-height-${cellHeight}`"
+      style="overflow:auto;transition: width 500ms ;height : calc(100% - 36px)"
+      class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
         <div ref="table" style="  overflow: auto;width:100%">
-
-          <v-skeleton-loader v-if="loadingData" type="table"></v-skeleton-loader>
-
+          <v-skeleton-loader v-if="loadingData" type="table" />
 
           <template v-else-if="selectedView && (selectedView.type === 'view' || selectedView.show_as === 'grid' )">
             <xc-grid-view
@@ -115,10 +122,10 @@
               :show-fields="showFields"
               :belongs-to="[]"
               :has-many="[]"
-              :isPublicView="true"
+              :is-public-view="true"
               :nodes="{dbAlias:''}"
               :sql-ui="sqlUi"
-            ></xc-grid-view>
+            />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">
             <gallery-view
@@ -128,8 +135,8 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
-              :primaryValueColumn="primaryValueColumn"
-            ></gallery-view>
+              :primary-value-column="primaryValueColumn"
+            />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'kanban' ">
             <kanban-view
@@ -139,8 +146,8 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
-              :primaryValueColumn="primaryValueColumn"
-            ></kanban-view>
+              :primary-value-column="primaryValueColumn"
+            />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">
             <calendar-view
@@ -150,22 +157,20 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
-              :primaryValueColumn="primaryValueColumn"
-            ></calendar-view>
+              :primary-value-column="primaryValueColumn"
+            />
           </template>
-
-
         </div>
 
         <v-pagination
           v-if="data"
-          style="max-width: 100%"
           v-model="page"
+          style="max-width: 100%"
           :length="Math.ceil(count / size)"
           :total-visible="8"
-          @input="loadTableData"
           color="primary lighten-2"
-        ></v-pagination>
+          @input="loadTableData"
+        />
         <!--      <div v-else class="d-flex justify-center py-4">-->
         <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
         <!--      </div>-->
@@ -175,71 +180,76 @@
         :nodes="nodes"
         :table="table"
         :meta="meta"
-        :primaryValueColumn="primaryValueColumn"
-        :concatenatedXWhere="concatenatedXWhere"
+        :primary-value-column="primaryValueColumn"
+        :concatenated-x-where="concatenatedXWhere"
         :sort="sort"
 
-        :selectedViewId.sync="selectedViewId"
-        :selectedView.sync="selectedView"
+        :selected-view-id.sync="selectedViewId"
+        :selected-view.sync="selectedView"
         :filters.sync="filters"
-        :sortList.sync="sortList"
-        :showFields.sync="showFields"
+        :sort-list.sync="sortList"
+        :show-fields.sync="showFields"
       >
         <v-list-item
-          @click="showAdditionalFeatOverlay('view-columns')">
-          <v-icon x-small class="mr-2">mdi-view-column</v-icon>
+          @click="showAdditionalFeatOverlay('view-columns')"
+        >
+          <v-icon x-small class="mr-2">
+            mdi-view-column
+          </v-icon>
           <span class="caption">View Columns</span>
         </v-list-item>
         <v-list-item
-          @click="showAdditionalFeatOverlay('view-acl')">
-          <v-icon x-small class="mr-2">mdi-shield-edit-outline</v-icon>
+          @click="showAdditionalFeatOverlay('view-acl')"
+        >
+          <v-icon x-small class="mr-2">
+            mdi-shield-edit-outline
+          </v-icon>
           <span class="caption"> ACL</span>
         </v-list-item>
-
       </spreadsheet-nav-drawer>
-
     </div>
 
-
     <additional-features
-      :nodes="nodes"
       v-model="showAddFeatOverlay"
+      :nodes="nodes"
       :type="featureType"
-    ></additional-features>
+    />
   </v-container>
-
 </template>
 
 <script>
 
-
-import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
-import Table from "@/components/project/table";
+import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+// import Table from '@/components/project/table'
 // import EditableCell from "@/components/project/spreadsheet/editableCell";
-import {SqlUI} from "@/helpers/SqlUiFactory";
-import FieldsMenu from "@/components/project/spreadsheet/components/fieldsMenu";
-import SortListMenu from "@/components/project/spreadsheet/components/sortListMenu";
-import ColumnFilterMenu from "@/components/project/spreadsheet/components/columnFilterMenu";
-import XcGridView from "@/components/project/spreadsheet/views/xcGridView";
-import SpreadsheetNavDrawer from "@/components/project/spreadsheet/components/spreadsheetNavDrawer";
-import debounce from "debounce";
-import GalleryView from "@/components/project/spreadsheet/views/galleryView";
-import KanbanView from "@/components/project/spreadsheet/views/kanbanView";
-import CalendarView from "@/components/project/spreadsheet/views/calendarView";
-import AdditionalFeatures from "@/components/project/spreadsheet/overlay/additinalFeatures";
-import spreadsheet from "@/components/project/spreadsheet/mixins/spreadsheet";
+import { SqlUI } from '@/helpers/SqlUiFactory'
+import FieldsMenu from '@/components/project/spreadsheet/components/fieldsMenu'
+import SortListMenu from '@/components/project/spreadsheet/components/sortListMenu'
+import ColumnFilterMenu from '@/components/project/spreadsheet/components/columnFilterMenu'
+import XcGridView from '@/components/project/spreadsheet/views/xcGridView'
+import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
+import debounce from 'debounce'
+import GalleryView from '@/components/project/spreadsheet/views/galleryView'
+import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
+import CalendarView from '@/components/project/spreadsheet/views/calendarView'
+import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
+import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
 // import ExpandedForm from "@/components/project/spreadsheet/expandedForm";
 
-
 export default {
-  mixins: [spreadsheet],
-  name: "spreadsheet",
+  name: 'Spreadsheet',
   components: {
     AdditionalFeatures,
     CalendarView,
     KanbanView,
-    GalleryView, SpreadsheetNavDrawer, XcGridView, ColumnFilterMenu, SortListMenu, FieldsMenu, Table
+    GalleryView,
+    SpreadsheetNavDrawer,
+    XcGridView,
+    ColumnFilterMenu,
+    SortListMenu,
+    FieldsMenu
   },
+  mixins: [spreadsheet],
   props: {
     dbAlias: String,
     env: String,
@@ -248,7 +258,7 @@ export default {
     relation: Object,
     relationIdValue: [String, Number],
     refTable: String,
-    relationPrimaryValue: [String, Number],
+    relationPrimaryValue: [String, Number]
   },
   data: () => ({
     showAddFeatOverlay: false,
@@ -289,7 +299,7 @@ export default {
     spreadsheet: null,
     options: {
       allowToolbar: true,
-      columnSorting: false,
+      columnSorting: false
     },
     filteredData: [],
     showFields: {},
@@ -309,20 +319,21 @@ export default {
       icon: 'mdi-card'
     }],
     rowContextMenu: null,
-    modelName: null,
+    modelName: null
   }),
-  async mounted() {
+  async mounted () {
     try {
-      await this.loadMeta();
-      await this.loadTableData();
+      await this.loadMeta()
+      await this.loadTableData()
     } catch (e) {
       console.log(e)
     }
-    this.mapFieldsAndShowFields();
+    this.mapFieldsAndShowFields()
     if (this.data.length) {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         ...this.options,
-        columns: [...this.meta.columns.map(col => {
+        columns: [...this.meta.columns.map((col) => {
           return {
             readOnly: col.ai,
             type: typeof this.data[0][col.cn],
@@ -333,54 +344,52 @@ export default {
           type: 'hidden',
           key: ''
         }]
-      };
+      }
     }
-    this.searchField = this.primaryValueColumn;
+    this.searchField = this.primaryValueColumn
   },
-
 
   methods: {
     syncDataDebounce: debounce(async function (self) {
       await self.syncData()
     }, 500),
-    async syncData() {
+    async syncData () {
       try {
-
-        const query_params = {
+        const queryParams = {
           filters: this.filters,
           sortList: this.sortList,
-          showFields: this.showFields,
-        };
+          showFields: this.showFields
+        }
 
-        this.$set(this.selectedView, 'query_params', JSON.stringify(query_params));
+        this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
 
-        if (!this._isUIAllowed('xcVirtualTableUpdate')) return;
-        await this.sqlOp({dbAlias: this.nodes.dbAlias}, 'xcVirtualTableUpdate', {
+        if (!this._isUIAllowed('xcVirtualTableUpdate')) { return }
+        await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
-          query_params
-        });
+          query_params: queryParams
+        })
       } catch (e) {
         // this.$toast.error(e.message).goAway(3000);
       }
     },
-    mapFieldsAndShowFields() {
-      this.fieldList = this.availableColumns.map(c => c._cn);
+    mapFieldsAndShowFields () {
+      this.fieldList = this.availableColumns.map(c => c._cn)
       this.showFields = this.fieldList.reduce((obj, k) => {
-        obj[k] = true;
-        return obj;
-      }, {});
+        obj[k] = true
+        return obj
+      }, {})
     },
 
-    comingSoon() {
+    comingSoon () {
       this.$toast.info('Coming soon!').goAway(3000)
     },
-    makeSelected(col, row) {
+    makeSelected (col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
-        this.selected = {col, row};
-        this.editEnabled = {};
+        this.selected = { col, row }
+        this.editEnabled = {}
       }
     },
-    makeEditable(col, row) {
+    makeEditable (col, row) {
       if (this.meta.columns[col].ai) {
         return this.$toast.info('Auto Increment field is not editable').goAway(3000)
       }
@@ -388,103 +397,105 @@ export default {
         return this.$toast.info('Editing primary key not supported').goAway(3000)
       }
       if (this.editEnabled.col !== col || this.editEnabled.row !== row) {
-        this.editEnabled = {col, row};
+        this.editEnabled = { col, row }
       }
     },
 
-
-    async handleKeyDown({metaKey, key, altKey, shiftKey, ctrlKey}) {
+    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // ctrl + s -> save
       // ctrl + l -> reload
       // ctrl + n -> new
       switch ([
-        this._isMac ? metaKey : ctrlKey
-        , key].join('_')) {
+        this._isMac ? metaKey : ctrlKey,
+        key].join('_')) {
         case 'true_s' :
-          this.edited && await this.save();
-          break;
+          this.edited && await this.save()
+          break
         case 'true_l' :
-          await this.loadTableData();
-          break;
+          await this.loadTableData()
+          break
         case 'true_n' :
-          this.insertNewRow(true);
-          break;
+          this.insertNewRow(true)
+          break
       }
     },
 
-    addFilter() {
+    addFilter () {
       this.filters.push({
         field: '',
         op: '',
         value: '',
         logicOp: 'and'
-      });
-      this.filters = this.filters.slice();
+      })
+      this.filters = this.filters.slice()
     },
-    showAdditionalFeatOverlay(feat) {
-      this.showAddFeatOverlay = true;
-      this.featureType = feat;
+    showAdditionalFeatOverlay (feat) {
+      this.showAddFeatOverlay = true
+      this.featureType = feat
     },
-    addSort() {
+    addSort () {
       this.sortList.push({
         field: '',
         order: ''
-      });
-      this.filters = this.filters.slice();
+      })
+      this.filters = this.filters.slice()
     },
-    showRowContextMenu(e, row, rowMeta, index) {
-      e.preventDefault();
-      this.rowContextMenu = false;
+    showRowContextMenu (e, row, rowMeta, index) {
+      e.preventDefault()
+      this.rowContextMenu = false
       this.$nextTick(() => {
         this.rowContextMenu = {
           x: e.clientX,
           y: e.clientY,
-          row, index, rowMeta
+          row,
+          index,
+          rowMeta
         }
-      });
+      })
     },
-    expandRow(row, rowMeta) {
+    expandRow (row, rowMeta) {
     },
 
-    async loadMeta() {
-      this.loadingMeta = true;
+    async loadMeta () {
+      this.loadingMeta = true
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
         tn: this.table
-      }]);
-      this.meta = JSON.parse(tableMeta.meta);
-      this.loadingMeta = false;
+      }])
+      this.meta = JSON.parse(tableMeta.meta)
+      this.loadingMeta = false
     },
-    async loadTableData() {
-      this.loadingData = true;
-      const {list, count} = await this.api.paginatedList(this.queryParams);
-      this.count = count;
+    async loadTableData () {
+      this.loadingData = true
+      const { list, count } = await this.api.paginatedList(this.queryParams)
+      this.count = count
       this.data = list.map(row => ({
         row,
-        oldRow: {...row},
+        oldRow: { ...row },
         rowMeta: {}
-      }));
-      this.loadingData = false;
-    },
+      }))
+      this.loadingData = false
+    }
   },
   computed: {
-    sqlUi() {
+    sqlUi () {
       // todo: replace with correct client
-      return SqlUI.create(this.nodes.dbConnection);
+      return SqlUI.create(this.nodes.dbConnection)
     },
-    api() {
-      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], (this.meta && this.meta._tn) || this.table, this.meta && this.meta.columns, this, this.meta);
-    }, edited() {
+    api () {
+      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], (this.meta && this.meta._tn) || this.table, this.meta && this.meta.columns, this, this.meta)
+    },
+    edited () {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },
-    table() {
+    table () {
       return this.nodes.tn || this.nodes.view_name
-    },
+    }
   },
-  created() {
+  created () {
     if (this.relationType === 'hm') {
       this.filters.push({
         field: this.relation.cn,
@@ -502,13 +513,12 @@ export default {
     }
     document.addEventListener('keydown', this.onKeyDown)
   },
-  beforeDestroy() {
+  beforeDestroy () {
     document.removeEventListener('keydown', this.onKeyDown)
-  },
+  }
 }
 </script>
 <style scoped>
-
 
 /deep/ .v-input__control .v-input__slot .v-input--selection-controls__input {
   transform: scale(.85);
@@ -550,7 +560,6 @@ export default {
 /deep/ .search-field.v-text-field.v-text-field--solo.v-input--dense > .v-input__control {
   min-height: auto;
 }
-
 
 .model-name {
   position: fixed;

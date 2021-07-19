@@ -1,37 +1,37 @@
 <template>
-  <input v-on="parentListeners"  v-model="localState" type="number">
+  <input v-model="localState" type="number" v-on="parentListeners">
 </template>
 
 <script>
 export default {
-  name: "integerCell",
+  name: 'IntegerCell',
   props: {
     value: [String, Number]
   },
-  mounted() {
-    this.$el.focus();
-  },
   computed: {
     localState: {
-      get() {
+      get () {
         return this.value
       },
-      set(val) {
-        this.$emit('input', parseInt(val, 10));
+      set (val) {
+        this.$emit('input', parseInt(val, 10))
       }
     },
-    parentListeners(){
-      const $listeners = {};
+    parentListeners () {
+      const $listeners = {}
 
-      if(this.$listeners.blur){
-        $listeners.blur = this.$listeners.blur;
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
       }
-      if(this.$listeners.focus){
-        $listeners.focus = this.$listeners.focus;
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
       }
 
-      return $listeners;
-    },
+      return $listeners
+    }
+  },
+  mounted () {
+    this.$el.focus()
   }
 }
 </script>

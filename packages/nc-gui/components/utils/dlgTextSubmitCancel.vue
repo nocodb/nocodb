@@ -1,37 +1,39 @@
 <template>
   <v-row justify="center">
     <v-dialog
+      :value="dialogShow"
       persistent
-      v-model="dialogShow"
       max-width="600px"
       @keydown.esc="mtdDialogCancel()"
       @keydown.enter.prevent
     >
-      <template v-slot:activator="{ on }">
-        <p class="hidden" v-on="on"></p>
+      <template #activator="{ on }">
+        <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
         <v-card-title class="grey darken-2 subheading" style="height:30px">
           <!-- {{ this.heading }} -->
         </v-card-title>
-        <v-form v-model="valid" ref="form">
+        <v-form ref="form" v-model="valid">
           <v-card-text class="pt-4 pl-4">
-            <p class="headline">{{ heading }}</p>
+            <p class="headline">
+              {{ heading }}
+            </p>
             <v-text-field
+              ref="focus"
+              v-model="fieldValue"
               validate-on-blur
               :label="field || ''"
-              v-model="fieldValue"
               :rules="[v=> !!v || 'Value required']"
               autofocus
-              ref="focus"
               @keydown.enter.prevent="submitForm"
-            ></v-text-field>
+            />
           </v-card-text>
         </v-form>
-        <v-divider></v-divider>
+        <v-divider />
 
         <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn small class="" @click="mtdDialogCancel()">
             Cancel
           </v-btn>
@@ -39,7 +41,8 @@
             small
             class="primary"
             @click="submitForm"
-          >{{submitText || 'Submit'}}
+          >
+            {{ submitText || 'Submit' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -48,57 +51,56 @@
 </template>
 
 <script>
-  import {mapGetters, mapActions} from "vuex";
 
-  export default {
-    data() {
-      return {fieldValue: "", valid: null};
-    },
-    methods: {
-      submitForm() {
-        if (this.$refs.form.validate()) {
-          this.mtdDialogSubmit(this.fieldValue, this.cookie)
-        }
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  props: [
+    'heading',
+    'dialogShow',
+    'mtdDialogCancel',
+    'mtdDialogSubmit',
+    'field',
+    'type',
+    'cookie',
+    'defaultValue',
+    'submitText'
+  ],
+  data () {
+    return { fieldValue: '', valid: null }
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+    if (this.defaultValue) { this.fieldValue = this.defaultValue }
+    console.log('dlgTextSubmitCancel:created ', this.cookie, this.heading)
+  },
+  mounted () {
+    requestAnimationFrame(() => {
+      this.$refs.focus.focus()
+    })
+  },
+  beforeDestroy () {
+  },
+  methods: {
+    submitForm () {
+      if (this.$refs.form.validate()) {
+        this.mtdDialogSubmit(this.fieldValue, this.cookie)
       }
-    },
-    computed: {},
+    }
+  },
 
-    beforeCreated() {
-    },
-    created() {
-      if(this.defaultValue) this.fieldValue = this.defaultValue;
-      console.log('dlgTextSubmitCancel:created ', this.cookie, this.heading);
-    },
-    mounted() {
-      requestAnimationFrame(() => {
-        this.$refs.focus.focus();
-      });
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    head() {
-      return {};
-    },
-    props: [
-      "heading",
-      "dialogShow",
-      "mtdDialogCancel",
-      "mtdDialogSubmit",
-      "field",
-      "type",
-      "cookie",
-      "defaultValue",
-      'submitText'
-    ],
-    watch: {},
-    directives: {},
-    components: {}
-  };
+  beforeCreated () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped>

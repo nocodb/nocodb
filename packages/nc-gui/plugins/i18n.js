@@ -1,12 +1,12 @@
 // plugins/i18n.js
 
-import Vue from "vue";
-import VueI18n from "vue-i18n";
+import Vue from 'vue'
+import VueI18n from 'vue-i18n'
 
 // Tell Vue to use our plugin
-Vue.use(VueI18n);
+Vue.use(VueI18n)
 
-export default ({app, store}) => {
+export default ({ app, store }) => {
   // Set the i18n instance on app
   // This way we can use it globally in our components through this.$i18n
   app.i18n = new VueI18n({
@@ -14,27 +14,27 @@ export default ({app, store}) => {
     locale: store.state.windows.language,
 
     // Set the fallback locale in case the current locale can't be found
-    fallbackLocale: "en",
+    fallbackLocale: 'en',
 
     // Associate each locale to a content file
     messages: {
-      en: require("~/static/lang/en.json"),
-      zh: require("~/static/lang/zh.json"),
+      en: require('~/static/lang/en.json'),
+      zh: require('~/static/lang/zh.json'),
       // ja: require("~/static/lang/ja.json"),
-      fr: require("~/static/lang/fr.json"),
-      es: require("~/static/lang/es.json")
+      fr: require('~/static/lang/fr.json'),
+      es: require('~/static/lang/es.json')
     }
-  });
+  })
 
   store.watch(
-    (state) => state.windows.language,
+    state => state.windows.language,
     (language) => {
       if (app.i18n.availableLocales.includes(language)) {
         app.i18n.locale = language
       }
     }
-  );
-};
+  )
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

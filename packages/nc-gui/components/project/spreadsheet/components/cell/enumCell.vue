@@ -1,27 +1,32 @@
 <template>
   <div>
-    <span v-for="v in (value||'').split(',')" :key="v" :style="{
-         background:colors[v]
-      }" class="set-item ma-1 py-1 px-3">{{ v }}</span>
+    <span
+      v-for="v in (value||'').split(',')"
+      :key="v"
+      :style="{
+        background:colors[v]
+      }"
+      class="set-item ma-1 py-1 px-3"
+    >{{ v }}</span>
   </div>
 </template>
 
 <script>
-import {enumColor as colors} from "@/components/project/spreadsheet/helpers/colors";
+import { enumColor as colors } from '@/components/project/spreadsheet/helpers/colors'
 
 export default {
+  name: 'EnumCell',
   props: ['value', 'column'],
-  name: "enum-cell",
   computed: {
-    colors() {
-      const col = this.$store.state.windows.darkTheme ? colors.dark : colors.light;
+    colors () {
+      const col = this.$store.state.windows.darkTheme ? colors.dark : colors.light
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, '')).reduce((obj, v, i) => ({
           ...obj,
           [v]: col[i]
         }), {})
       }
-      return {};
+      return {}
     }
   }
 }

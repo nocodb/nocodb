@@ -1,17 +1,17 @@
 export default {
   folder: {
-    "Folder Add": "SQL_FOLDER_ADD",
-    "Folder Delete": "SQL_FOLDER_DELETE",
-    "Folder Rename": "SQL_FOLDER_RENAME",
-    "Query Add": "SQL_QUERY_ADD",
+    'Folder Add': 'SQL_FOLDER_ADD',
+    'Folder Delete': 'SQL_FOLDER_DELETE',
+    'Folder Rename': 'SQL_FOLDER_RENAME',
+    'Query Add': 'SQL_QUERY_ADD'
   },
   file: {
-    "Query Delete": "SQL_QUERY_DELETE",
-    "Query Edit": "SQL_QUERY_EDIT",
-    "Query Copy": "SQL_QUERY_COPY",
-    "Query Rename": "SQL_QUERY_RENAME",
-  },
-};
+    'Query Delete': 'SQL_QUERY_DELETE',
+    'Query Edit': 'SQL_QUERY_EDIT',
+    'Query Copy': 'SQL_QUERY_COPY',
+    'Query Rename': 'SQL_QUERY_RENAME'
+  }
+}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

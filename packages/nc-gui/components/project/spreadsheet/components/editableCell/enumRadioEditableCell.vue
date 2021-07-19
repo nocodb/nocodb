@@ -1,13 +1,13 @@
 <template>
-
   <div class="d-flex align-center">
-
     <div>
-      <div class="item" v-for="(val,i) of enumValues" :key="val">
-        <input type="radio" :id="`key-radio-${val}`" class="orange--text" v-model="localState" :value="val">
-        <label class="py-1 px-3 d-inline-block my-1 label" :for="`key-radio-${val}`"
-               :style="{
-          background:colors[i % colors.length ]
+      <div v-for="(val,i) of enumValues" :key="val" class="item">
+        <input :id="`key-radio-${val}`" v-model="localState" type="radio" class="orange--text" :value="val">
+        <label
+          class="py-1 px-3 d-inline-block my-1 label"
+          :for="`key-radio-${val}`"
+          :style="{
+            background:colors[i % colors.length ]
           }"
         >{{ val }}</label>
       </div>
@@ -16,51 +16,51 @@
 </template>
 
 <script>
-import {enumColor as colors} from "@/components/project/spreadsheet/helpers/colors";
+import { enumColor as colors } from '@/components/project/spreadsheet/helpers/colors'
 
 export default {
-  name: "enum-radio-editable-cell",
+  name: 'EnumRadioEditableCell',
   props: {
     value: String,
     column: Object
   },
-  mounted() {
+  computed: {
+    colors () {
+      return this.$store.state.windows.darkTheme ? colors.dark : colors.light
+    },
+    localState: {
+      get () {
+        return this.value
+      },
+      set (val) {
+        this.$emit('input', val)
+        this.$emit('update')
+      }
+    },
+    enumValues () {
+      if (this.column && this.column.dtxp) {
+        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
+      }
+      return []
+    },
+    parentListeners () {
+      const $listeners = {}
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
+      }
+      return $listeners
+    }
+  },
+  mounted () {
     // this.$el.focus();
     // let event;
     // event = document.createEvent('MouseEvents');
     // event.initMouseEvent('mousedown', true, true, window);
     // this.$el.dispatchEvent(event);
-  },
-  computed: {
-    colors() {
-      return this.$store.state.windows.darkTheme ? colors.dark : colors.light;
-    },
-    localState: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        this.$emit('input', val);
-        this.$emit('update');
-      }
-    },
-    enumValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
-      }
-      return [];
-    },
-    parentListeners() {
-      const $listeners = {};
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur;
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus;
-      }
-      return $listeners;
-    },
   }
 }
 </script>

@@ -2,26 +2,32 @@
   <v-container class="ma-0 pa-0" fluid style="height: 100%">
     <template v-if="!isSimpleProject">
       <v-toolbar height="42" class="toolbar-border-bottom elevation-0">
-        <v-breadcrumbs :items="[{
-          text: this.nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: this.nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+            text: nodes.env,
+            disabled: true,
+            href: '#'
+          },{
+            text: nodes.dbAlias,
+            disabled: true,
+            href: '#'
+          }]"
+          divider=">"
+          small
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
 
-        <p class=" pt-3 body-2" v-if="tableMigrationFiles.data.length">
+        <p v-if="tableMigrationFiles.data.length" class=" pt-3 body-2">
           : Pending Migrations
           <span><b>( {{ tableMigrationFiles.status }} )</b></span>
         </p>
 
-        <v-spacer></v-spacer>
+        <v-spacer />
 
         <!--        <x-btn tooltip="Open Migrations Folder"
                        icon="mdi-folder-open"
@@ -31,30 +37,39 @@
                   Open Folder
                 </x-btn>-->
 
-        <x-btn tooltip="Reload Migrations"
-               small
-               outlined
-               @dblclick="showUpAndDownBtns = !showUpAndDownBtns"
-               @click="loadEnv">
-          <v-icon left small>refresh</v-icon>
+        <x-btn
+          tooltip="Reload Migrations"
+          small
+          outlined
+          @dblclick="showUpAndDownBtns = !showUpAndDownBtns"
+          @click="loadEnv"
+        >
+          <v-icon left small>
+            refresh
+          </v-icon>
           Reload
         </x-btn>
 
         <div
-          class="ml-1" v-if=" showUpAndDownBtns &&tableMigrationFiles.data.length">
-
-
-          <v-menu v-for="(menu,menuIndex) in migrationMenu" open-on-hover bottom offset-y
-                  :key="menuIndex" class="ml-1"
+          v-if=" showUpAndDownBtns &&tableMigrationFiles.data.length"
+          class="ml-1"
+        >
+          <v-menu
+            v-for="(menu,menuIndex) in migrationMenu"
+            :key="menuIndex"
+            open-on-hover
+            bottom
+            offset-y
+            class="ml-1"
           >
-            <template v-slot:activator="{ on }">
+            <template #activator="{ on }">
               <v-btn
                 :tooltip="menu.tooltip"
                 :color="menu.color"
                 outlined
                 small
-                v-on="on"
                 :disabled="isMigrationButtonEnabled(menu.label)"
+                v-on="on"
               >
                 {{ menu.label }}
                 <v-icon>mdi-menu-down</v-icon>
@@ -62,79 +77,88 @@
             </template>
 
             <v-list dense>
-              <div v-for="(item, itemIndex) in menu.menuItems"
-                   :key="itemIndex"
+              <div
+                v-for="(item, itemIndex) in menu.menuItems"
+                :key="itemIndex"
               >
                 <v-list-item
                   @click="item.action"
                 >
                   <v-list-item-title>
-                    <v-icon small
-                            :color="menu.color">{{ item.icon }}
+                    <v-icon
+                      small
+                      :color="menu.color"
+                    >
+                      {{ item.icon }}
                     </v-icon> &nbsp;
                     {{ item.label }}
                   </v-list-item-title>
                 </v-list-item>
 
-                <v-divider v-if="itemIndex < menu.menuItems.length - 1"></v-divider>
+                <v-divider v-if="itemIndex < menu.menuItems.length - 1" />
               </div>
             </v-list>
           </v-menu>
         </div>
-
       </v-toolbar>
       <!--    <v-row class="height" v-if="tableMigrationFiles.data.length">-->
 
       <!--      <v-col class="column py-0 my-0" cols="6">-->
 
-      <splitpanes v-if="tableMigrationFiles.data.length"
-                  style="height:calc(100% - 42px);border-top: 1px solid grey" class="xc-theme">
+      <splitpanes
+        v-if="tableMigrationFiles.data.length"
+        style="height:calc(100% - 42px);border-top: 1px solid grey"
+        class="xc-theme"
+      >
         <pane min-size="20" size="40" style="overflow: auto">
           <v-card class="px-0 py-0 my-0">
             <!--          v-if="tableMigrationFiles.status"-->
             <v-hover>
               <v-checkbox
-                class="pl-3 "
-                dense
                 v-model="tableMigrationFiles.showPendingMigrations"
                 slot-scope="{ hover }"
+                class="pl-3 "
+                dense
                 color="primary lighten-1"
               >
-                <template v-slot:label=""><span
-                  class="body-2"
-                  :class="{'white--text ':hover}">Show Only Pending Migrations ({{ tableMigrationFiles.status }})</span>
+                <template #label="">
+                  <span
+                    class="body-2"
+                    :class="{'white--text ':hover}"
+                  >Show Only Pending Migrations ({{ tableMigrationFiles.status }})</span>
                 </template>
-              </v-checkbox
-              >
+              </v-checkbox>
             </v-hover>
             <v-data-table
+              v-model="tableMigrationFiles.selected"
               dense
               style="  border-top: 1px solid #7F828B33;"
               :headers="tableMigrationFiles.headers"
               :items="tableMigrationFiles.data"
-              v-model="tableMigrationFiles.selected"
               footer-props.items-per-page-options="15"
             >
-
-
-              <template v-slot:item="props">
+              <template #item="props">
                 <tr
                   v-if="tableMigrationFiles.showPendingMigrations
                     ? props.item.status === true
                     : true"
-                  @click="getMigrationFiles(props.item)"
                   :active="!!selectedMigration.migration &&
-                    selectedMigration.migration.title == props.item.title">
+                    selectedMigration.migration.title == props.item.title"
+                  @click="getMigrationFiles(props.item)"
+                >
                   <td :class="findMigrationTextColor(props.item)" class="caption">
                     {{ props.index + 1 }}
                   </td>
-                  <td class="text-center py-2 caption" style="cursor: pointer"
-                      :class="findMigrationTextColor(props.item)">
+                  <td
+                    class="text-center py-2 caption"
+                    style="cursor: pointer"
+                    :class="findMigrationTextColor(props.item)"
+                  >
                     <span>{{ props.item.title }}</span> &nbsp;&nbsp;&nbsp;&nbsp; <span>{{ props.item.titleDown }}</span>
                   </td>
                   <!--                <td></td>-->
                   <td class="text-center caption">
-                    <div class="pa-0 ma-0 caption" v-if="props.item.status">
+                    <div v-if="props.item.status" class="pa-0 ma-0 caption">
                       <x-btn text tooltip="Migration yet to be applied" btn.class="warning--text caption">
                         No
                         <!--                      <v-icon :color="findNextMigrationColor(props.item)">mdi-seal-->
@@ -160,15 +184,15 @@
             v-if="selectedMigration.up"
             :code.sync="selectedMigration.up"
             :heading="`${selectedMigration.migration.title}`"
-            cssStyle="height:300px"
-            :readOnly="true"
+            css-style="height:300px"
+            :read-only="true"
           />
           <MonacoEditor
             v-if="selectedMigration.down"
             :code.sync="selectedMigration.down"
-            cssStyle="height:300px"
+            css-style="height:300px"
             :heading="`${selectedMigration.migration.titleDown}`"
-            :readOnly="true"
+            :read-only="true"
           />
           <!--      </v-col-->
           <!--      >-->
@@ -191,7 +215,8 @@
     <template v-else>
       <v-row>
         <v-col class="pa-4">
-          <v-alert type="info" class="mx-3" outlined>Migration is not available in Simple DB Connection project
+          <v-alert type="info" class="mx-3" outlined>
+            Migration is not available in Simple DB Connection project
           </v-alert>
         </v-col>
       </v-row>
@@ -200,48 +225,48 @@
 </template>
 
 <script>
-import {mapGetters, mapActions} from "vuex";
+import { mapGetters } from 'vuex'
 
-import dlgLabelSubmitCancel from "../../utils/dlgLabelSubmitCancel";
-import MonacoEditor from "../../monaco/Monaco";
-import {Splitpanes, Pane} from 'splitpanes'
+import { Splitpanes, Pane } from 'splitpanes'
+import MonacoEditor from '../../monaco/Monaco'
 
 // const {shell, path} = require("electron").remote.require(
 //   "./libs"
 // );
 
 export default {
+  name: 'Db',
   components: {
     // dlgLabelSubmitCancel,
     MonacoEditor,
-    Splitpanes, Pane
+    Splitpanes,
+    Pane
   },
-  name:'db',
-  data() {
+  data () {
     return {
       showUpAndDownBtns: false,
       tableMigrationFiles: {
-        heading: "",
+        heading: '',
         selected: [],
         headers: [
-          {text: "#", sortable: false, width: "1%", class: '  text-center'},
-          {text: "Migration Files", value: 'migration', sortable: false, class: ' pa-4  text-center'},
+          { text: '#', sortable: false, width: '1%', class: '  text-center' },
+          { text: 'Migration Files', value: 'migration', sortable: false, class: ' pa-4  text-center' },
           // { text: "Down File", sortable: false, width: "1%" ,class:''},
-          {text: "Migrations applied", sortable: false, width: "1%", class: ' pa-4  text-center'}
+          { text: 'Migrations applied', sortable: false, width: '1%', class: ' pa-4  text-center' }
         ],
         data: [],
-        status: "",
+        status: '',
         showPendingMigrations: false
       },
       tableMigrationRows: {
-        heading: "",
+        heading: '',
         headers: [],
         data: []
       },
-      selectedMigration: {migration: null, up: null, down: null},
+      selectedMigration: { migration: null, up: null, down: null },
       view: {},
-      oldViewDefination: "",
-      newView: this.nodes.newView ? true : false,
+      oldViewDefination: '',
+      newView: !!this.nodes.newView,
       dialogShow: false,
       migrationMenu: [
         {
@@ -278,15 +303,23 @@ export default {
           ]
         }
       ]
-    };
+    }
   },
   computed: {
     ...mapGetters({
-      sqlMgr: "sqlMgr/sqlMgr",
-      currentProjectFolder: "project/currentProjectFolder",
+      sqlMgr: 'sqlMgr/sqlMgr',
+      currentProjectFolder: 'project/currentProjectFolder',
 
-      isSimpleProject: "project/GtrProjectIsDbConnection",
+      isSimpleProject: 'project/GtrProjectIsDbConnection'
     })
+  },
+  watch: {},
+  created () {
+    this.loadEnv()
+  },
+  mounted () {
+  },
+  beforeDestroy () {
   },
   methods: {
 
@@ -294,17 +327,17 @@ export default {
     //   shell.openItem(path.join(this.currentProjectFolder, 'server', 'tool', this.nodes.dbAlias, 'migrations'));
     // },
 
-    isMigrationButtonEnabled(name) {
-      console.log('menu -- - ', name);
+    isMigrationButtonEnabled (name) {
+      console.log('menu -- - ', name)
       return this.nodes.dbConnection.client === 'sqlite3' && name === 'Migration Down'
     },
 
-    async getMigrationFiles(migration) {
-      this.selectedMigration.migration = "";
-      this.selectedMigration.up = "";
-      this.selectedMigration.down = "";
-      console.log(migration);
-      this.selectedMigration.migration = migration;
+    async getMigrationFiles (migration) {
+      this.selectedMigration.migration = ''
+      this.selectedMigration.up = ''
+      this.selectedMigration.down = ''
+      console.log(migration)
+      this.selectedMigration.migration = migration
       // let result = await this.sqlMgr.migrator().migrationsToSql({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias,
@@ -319,22 +352,21 @@ export default {
       //   title: migration.title,
       //   titleDown: migration.titleDown
       // });
-      let result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsToSql', {
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsToSql', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         folder: this.currentProjectFolder,
         title: migration.title,
         titleDown: migration.titleDown
-      }]);
-      console.log(result);
-      this.selectedMigration.up = result.data.object.up;
-      this.selectedMigration.down = result.data.object.down;
+      }])
+      console.log(result)
+      this.selectedMigration.up = result.data.object.up
+      this.selectedMigration.down = result.data.object.down
     },
 
-    async loadEnv() {
-
+    async loadEnv () {
       try {
-        this.$store.commit('notification/MutToggleProgressBar', true);
+        this.$store.commit('notification/MutToggleProgressBar', true)
         const migrationArgs = {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
@@ -342,44 +374,42 @@ export default {
           sqlContentMigrate: 0,
           migrationSteps: 9999,
           onlyList: true
-        };
+        }
 
-        console.log("this.currentProjectFolder", this.currentProjectFolder);
+        console.log('this.currentProjectFolder', this.currentProjectFolder)
         // let result = await this.sqlMgr.migrator().migrationsList(migrationArgs);
         // let result = await this.sqlMgr.sqlOp(null, 'migrationsList', migrationArgs);
-        let result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsList', migrationArgs]);
-        let nextMigration = 0;
+        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsList', migrationArgs])
+        let nextMigration = 0
 
         for (let i = 0; i < result.data.object.list.length; i++) {
-          const el = result.data.object.list[i];
-          el.nextMigration = 0;
+          const el = result.data.object.list[i]
+          el.nextMigration = 0
           if (el.status === true && nextMigration === 0) {
-            nextMigration = 1;
-            el.nextMigration = nextMigration;
+            nextMigration = 1
+            el.nextMigration = nextMigration
           } else if (el.status === true && nextMigration === 1) {
-            el.nextMigration = 2;
+            el.nextMigration = 2
           }
         }
 
-        console.log("loadEnv: ", result);
-        this.tableMigrationFiles.data = result.data.object.list;
-        this.tableMigrationFiles.status = result.data.object.pending;
+        console.log('loadEnv: ', result)
+        this.tableMigrationFiles.data = result.data.object.list
+        this.tableMigrationFiles.status = result.data.object.pending
         if (this.tableMigrationFiles.data[0]) {
-          await this.getMigrationFiles(this.tableMigrationFiles.data[0]);
+          await this.getMigrationFiles(this.tableMigrationFiles.data[0])
         }
       } catch (e) {
-        console.log(e);
+        console.log(e)
       } finally {
-        this.$store.commit('notification/MutToggleProgressBar', false);
+        this.$store.commit('notification/MutToggleProgressBar', false)
       }
-
-
     },
-    async applyChanges() {
+    async applyChanges () {
     },
-    async deleteView(action = "") {
+    async deleteView (action = '') {
     },
-    async migrationUp(steps = 99999999999) {
+    async migrationUp (steps = 99999999999) {
       try {
         // await this.sqlMgr.migrator().migrationsUp({
         //   env: this.nodes.env,
@@ -402,14 +432,14 @@ export default {
           migrationSteps: steps,
           folder: this.currentProjectFolder,
           sqlContentMigrate: 1
-        }]);
-        this.$toast.success("Migration up was successfully completed.").goAway(5000)
+        }])
+        this.$toast.success('Migration up was successfully completed.').goAway(5000)
       } catch (e) {
-        this.$toast.error("Migration up was failed.").goAway(5000)
+        this.$toast.error('Migration up was failed.').goAway(5000)
       }
-      await this.loadEnv();
+      await this.loadEnv()
     },
-    async migrationDown(steps = 99999999999) {
+    async migrationDown (steps = 99999999999) {
       try {
         // await this.sqlMgr.migrator().migrationsDown({
         //   env: this.nodes.env,
@@ -431,24 +461,24 @@ export default {
           migrationSteps: steps,
           folder: this.currentProjectFolder,
           sqlContentMigrate: 1
-        }]);
-        this.$toast.success("Migration down was successfully completed.").goAway(5000)
+        }])
+        this.$toast.success('Migration down was successfully completed.').goAway(5000)
       } catch (e) {
-        this.$toast.error("Migration down was failed.").goAway(5000)
+        this.$toast.error('Migration down was failed.').goAway(5000)
       }
-      await this.loadEnv();
+      await this.loadEnv()
     },
-    findNextMigrationColor(item) {
+    findNextMigrationColor (item) {
       if (item.nextMigration === 1) {
-        return "orange";
+        return 'orange'
       } else if (item.nextMigration === 2) {
-        return "orange";
+        return 'orange'
       } else if (item.nextMigration === 0) {
-        return "grey";
+        return 'grey'
       }
-      return "";
+      return ''
     },
-    findMigrationTextColor(item) {
+    findMigrationTextColor (item) {
       // if (item.nextMigration === 1) {
       //   return "white--text";
       // } else if (item.nextMigration === 2) {
@@ -456,31 +486,23 @@ export default {
       // } else if (item.nextMigration === 0) {
       //   return "grey--text";
       // }
-      return "";
+      return ''
     }
   },
 
-  beforeCreated() {
+  beforeCreated () {
   },
-  created() {
-    this.loadEnv();
+  destroy () {
   },
-  mounted() {
+  directives: {},
+  validate ({ params }) {
+    return true
   },
-  beforeDestroy() {
+  head () {
+    return {}
   },
-  destroy() {
-  },
-  validate({params}) {
-    return true;
-  },
-  head() {
-    return {};
-  },
-  props: ["nodes"],
-  watch: {},
-  directives: {}
-};
+  props: ['nodes']
+}
 </script>
 
 <style scoped>

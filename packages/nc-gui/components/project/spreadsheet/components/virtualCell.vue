@@ -2,8 +2,8 @@
   <div>
     <v-lazy>
       <has-many-cell
-        ref="cell"
         v-if="hm"
+        ref="cell"
         :row="row"
         :value="row[`${hm._tn}List`]"
         :meta="meta"
@@ -17,8 +17,8 @@
         v-on="$listeners"
       />
       <many-to-many-cell
-        ref="cell"
         v-else-if="mm"
+        ref="cell"
         :row="row"
         :value="row[`${mm._rtn}MMList`]"
         :meta="meta"
@@ -33,9 +33,9 @@
         v-on="$listeners"
       />
       <belongs-to-cell
+        v-else-if="bt"
         ref="cell"
         :disabled-columns="disabledColumns"
-        v-else-if="bt"
         :active="active"
         :row="row"
         :value="row[`${bt._rtn}Read`]"
@@ -54,14 +54,14 @@
 </template>
 
 <script>
-import hasManyCell from "@/components/project/spreadsheet/components/virtualCell/hasManyCell";
-import manyToManyCell from "@/components/project/spreadsheet/components/virtualCell/manyToManyCell";
-import belongsToCell from "@/components/project/spreadsheet/components/virtualCell/belogsToCell";
+import hasManyCell from '@/components/project/spreadsheet/components/virtualCell/hasManyCell'
+import manyToManyCell from '@/components/project/spreadsheet/components/virtualCell/manyToManyCell'
+import belongsToCell from '@/components/project/spreadsheet/components/virtualCell/belogsToCell'
 
 // todo: optimize parent/child meta extraction
 
 export default {
-  name: "virtual-cell",
+  name: 'VirtualCell',
   components: {
     belongsToCell,
     manyToManyCell,
@@ -70,8 +70,8 @@ export default {
   props: {
     breadcrumbs: {
       type: Array,
-      default() {
-        return [];
+      default () {
+        return []
       }
     },
     column: [Object],
@@ -92,21 +92,21 @@ export default {
     disabledColumns: Object
   },
   computed: {
-    hm() {
-      return this.column && this.column.hm;
+    hm () {
+      return this.column && this.column.hm
     },
-    bt() {
-      return this.column && this.column.bt;
+    bt () {
+      return this.column && this.column.bt
     },
-    mm() {
-      return this.column && this.column.mm;
+    mm () {
+      return this.column && this.column.mm
     }
   },
   methods: {
-    async save(row) {
+    async save (row) {
       if (row && this.$refs.cell && this.$refs.cell.saveLocalState) {
         try {
-          await this.$refs.cell.saveLocalState(row);
+          await this.$refs.cell.saveLocalState(row)
         } catch (e) {
         }
       }

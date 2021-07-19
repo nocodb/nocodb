@@ -1,1 +1,1 @@
-window.confetti = require('canvas-confetti').default;
+window.confetti = require('canvas-confetti').default

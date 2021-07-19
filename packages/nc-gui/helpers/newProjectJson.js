@@ -1,27 +1,27 @@
 export default {
-  "1Env1DB": [
+  '1Env1DB': [
     {
-      name: "project",
-      type: "project",
+      name: 'project',
+      type: 'project',
       children: [
         {
-          name: "dev",
-          type: "env",
+          name: 'dev',
+          type: 'env',
           children: [
             {
-              name: "project_dev",
-              type: "db",
+              name: 'project_dev',
+              type: 'db',
               children: [],
               connection: {
-                host: "localhost",
-                port: "3306",
-                user: "root",
-                password: "password",
-                database: "project_dev",
+                host: 'localhost',
+                port: '3306',
+                user: 'root',
+                password: 'password',
+                database: 'project_dev',
                 ssl: {
-                  ca: "",
-                  key: "",
-                  cert: ""
+                  ca: '',
+                  key: '',
+                  cert: ''
                 }
               }
             }
@@ -35,52 +35,52 @@ export default {
       ]
     }
   ],
-  "2Env1DB": [
+  '2Env1DB': [
     {
-      name: "project",
-      type: "project",
+      name: 'project',
+      type: 'project',
       children: [
         {
-          name: "dev",
-          type: "env",
+          name: 'dev',
+          type: 'env',
           children: [
             {
-              name: "project_dev",
-              type: "db",
+              name: 'project_dev',
+              type: 'db',
               children: [],
               connection: {
-                host: "localhost",
-                port: "3306",
-                user: "root",
-                password: "password",
-                database: "project_dev",
+                host: 'localhost',
+                port: '3306',
+                user: 'root',
+                password: 'password',
+                database: 'project_dev',
                 ssl: {
-                  ca: "",
-                  key: "",
-                  cert: ""
+                  ca: '',
+                  key: '',
+                  cert: ''
                 }
               }
             }
           ]
         },
         {
-          name: "test",
-          type: "env",
+          name: 'test',
+          type: 'env',
           children: [
             {
-              name: "project_test",
-              type: "db",
+              name: 'project_test',
+              type: 'db',
               children: [],
               connection: {
-                host: "localhost",
-                port: "3306",
-                user: "root",
-                password: "password",
-                database: "project_test",
+                host: 'localhost',
+                port: '3306',
+                user: 'root',
+                password: 'password',
+                database: 'project_test',
                 ssl: {
-                  ca: "",
-                  key: "",
-                  cert: ""
+                  ca: '',
+                  key: '',
+                  cert: ''
                 }
               }
             }
@@ -89,86 +89,86 @@ export default {
       ]
     }
   ],
-  "2Env2DB": [
+  '2Env2DB': [
     {
-      name: "project",
-      type: "project",
+      name: 'project',
+      type: 'project',
       children: [
         {
-          name: "dev",
-          type: "env",
+          name: 'dev',
+          type: 'env',
           children: [
             {
-              name: "project_dev_1",
-              type: "db",
+              name: 'project_dev_1',
+              type: 'db',
               children: [],
               connection: {
-                host: "localhost",
-                port: "3306",
-                user: "root",
-                password: "password",
-                database: "project_dev_1",
+                host: 'localhost',
+                port: '3306',
+                user: 'root',
+                password: 'password',
+                database: 'project_dev_1',
                 ssl: {
-                  ca: "",
-                  key: "",
-                  cert: ""
+                  ca: '',
+                  key: '',
+                  cert: ''
                 }
               }
             },
             {
-              name: "project_dev_2",
-              type: "db",
+              name: 'project_dev_2',
+              type: 'db',
               children: [],
               connection: {
-                host: "localhost",
-                port: "3306",
-                user: "root",
-                password: "password",
-                database: "project_dev_2",
+                host: 'localhost',
+                port: '3306',
+                user: 'root',
+                password: 'password',
+                database: 'project_dev_2',
                 ssl: {
-                  ca: "",
-                  key: "",
-                  cert: ""
+                  ca: '',
+                  key: '',
+                  cert: ''
                 }
               }
             }
           ]
         },
         {
-          name: "test",
-          type: "env",
+          name: 'test',
+          type: 'env',
           children: [
             {
-              name: "project_test_1",
-              type: "db",
+              name: 'project_test_1',
+              type: 'db',
               children: [],
               connection: {
-                host: "localhost",
-                port: "3306",
-                user: "root",
-                password: "password",
-                database: "project_test_1",
+                host: 'localhost',
+                port: '3306',
+                user: 'root',
+                password: 'password',
+                database: 'project_test_1',
                 ssl: {
-                  ca: "",
-                  key: "",
-                  cert: ""
+                  ca: '',
+                  key: '',
+                  cert: ''
                 }
               }
             },
             {
-              name: "project_test_2",
-              type: "db",
+              name: 'project_test_2',
+              type: 'db',
               children: [],
               connection: {
-                host: "localhost",
-                port: "3306",
-                user: "root",
-                password: "password",
-                database: "project_test_2",
+                host: 'localhost',
+                port: '3306',
+                user: 'root',
+                password: 'password',
+                database: 'project_test_2',
                 ssl: {
-                  ca: "",
-                  key: "",
-                  cert: ""
+                  ca: '',
+                  key: '',
+                  cert: ''
                 }
               }
             }
@@ -177,7 +177,7 @@ export default {
       ]
     }
   ]
-};
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

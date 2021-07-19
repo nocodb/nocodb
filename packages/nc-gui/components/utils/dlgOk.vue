@@ -1,33 +1,35 @@
 <template>
-  <v-row  justify="center">
+  <v-row justify="center">
     <v-dialog
+      :value="dialogShow"
       persistent
+      max-width="450"
       @keydown.esc="actionsMtd('hideDialog')"
       @keydown.enter="actionsMtd"
-      v-model="dialogShow"
-      max-width="450"
     >
-
-      <template v-slot:activator="{ on }">
-        <p class="hidden" v-on="on"></p>
+      <template #activator="{ on }">
+        <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
         <!-- <v-toolbar dense height="30">{{ this.heading }}</v-toolbar> -->
         <v-card-title class="grey darken-1 subheading" style="height:30px">
-          {{ title || ''}}
+          {{ title || '' }}
         </v-card-title>
 
         <v-card-text class="pt-4 pl-4">
-          <span class="headline ">{{ this.heading }}</span>
+          <span class="headline ">{{ heading }}</span>
         </v-card-text>
-<!--        <v-divider></v-divider>-->
+        <!--        <v-divider></v-divider>-->
 
         <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn small :class="type" @click="mtdOk()"
-          >Ok
-          </v-btn
+          <v-spacer />
+          <v-btn
+            small
+            :class="type"
+            @click="mtdOk()"
           >
+            Ok
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -35,38 +37,37 @@
 </template>
 
 <script>
-  import {mapGetters, mapActions} from "vuex";
 
-  export default {
-    data() {
-      return {
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  props: ['type', 'title', 'heading', 'dialogShow', 'mtdOk'],
+  data () {
+    return {
 
-      };
-    },
-    methods: {},
-    computed: {},
+    }
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {},
 
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    head() {
-      return {};
-    },
-    props: ["type", "title", "heading", "dialogShow", "mtdOk"],
-    watch: {},
-    directives: {},
-    components: {}
-  };
+  beforeCreated () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped>

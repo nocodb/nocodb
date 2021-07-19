@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Clipboard from 'v-clipboard'
-import SocialSharing from 'vue-social-sharing';
+import SocialSharing from 'vue-social-sharing'
 
 Vue.use(Clipboard)
 Vue.use(SocialSharing)

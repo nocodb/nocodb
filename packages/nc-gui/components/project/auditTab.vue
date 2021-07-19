@@ -2,28 +2,28 @@
   <v-tabs class="h-100" color="x-active">
     <v-tab><span class="caption text-capitalize">Audit Logs</span></v-tab>
     <v-tab-item class="h-100">
-      <audit :nodes="nodes"></audit>
+      <audit :nodes="nodes" />
     </v-tab-item>
 
     <v-tab><span class="caption text-capitalize">SQL Migrations</span></v-tab>
     <v-tab-item>
       <sql-log-and-output>
-        <db :nodes="nodes"/>
+        <db :nodes="nodes" />
       </sql-log-and-output>
     </v-tab-item>
   </v-tabs>
 </template>
 
 <script>
-import SqlLogAndOutput from "~/components/project/sqlLogAndOutput";
-import Audit from "~/components/project/auditTab/audit";
-import AuditCE from "~/components/project/auditTab/auditCE";
-import Db from "@/components/project/auditTab/db";
+import Db from '@/components/project/auditTab/db'
+import SqlLogAndOutput from '~/components/project/sqlLogAndOutput'
+import Audit from '~/components/project/auditTab/audit'
+import AuditCE from '~/components/project/auditTab/auditCE'
 
 export default {
-  name: "auditTab",
-  components: {Db, Audit:(process.env.EE ? Audit : AuditCE), SqlLogAndOutput},
-  props: ["nodes"],
+  name: 'AuditTab',
+  components: { Db, Audit: (process.env.EE ? Audit : AuditCE), SqlLogAndOutput },
+  props: ['nodes']
 }
 </script>
 

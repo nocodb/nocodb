@@ -2,7 +2,8 @@
   <v-responsive @contextmenu="showMenuFn">
     <div class="">
       <v-card
-        class="mx-0 pa-0 elevation-0">
+        class="mx-0 pa-0 elevation-0"
+      >
         <v-card-text class="pa-0">
           <v-data-table
             class="small-footer"
@@ -10,19 +11,17 @@
             hide-default-header
             :headers="$store.state.outputs.headers"
             :items="$store.state.outputs.list"
-            :loading="loading">
-
-
-            <template v-slot:header="{props:{headers}}">
+            :loading="loading"
+          >
+            <template #header="{props:{headers}}">
               <tr style="height:19px !important;">
-                <th class="py-0 caption font-weight-bold" v-for="header in headers" :key="header.title">
-                  {{header.text}}
+                <th v-for="header in headers" :key="header.title" class="py-0 caption font-weight-bold">
+                  {{ header.text }}
                 </th>
               </tr>
             </template>
 
-
-            <template v-slot:item="{item}">
+            <template #item="{item}">
               <tr style="height:19px !important;">
                 <td v-for="(header, index) in $store.state.outputs.headers" :key="index" class="caption my-0 py-0">
                   {{ item[header.text] }}
@@ -54,51 +53,50 @@
 </template>
 
 <script>
-  import {mapGetters, mapActions, mapState} from "vuex";
 
-  export default {
-    components: {},
-    data() {
-      return {
-        loading: false,
-        showMenu: false,
-        x: 0,
-        y: 0,
-        headers: [],
-        result: [],
-        maxLogs: 100
-      };
-    },
-    methods: {
-      showMenuFn(e) {
-        e.preventDefault();
-        this.showMenu = false;
-        this.x = e.clientX;
-        this.y = e.clientY;
-        this.$nextTick(() => {
-          this.showMenu = true;
-        });
-      },
-    },
-    computed: {},
+export default {
+  components: {},
+  directives: {},
+  validate ({ params }) {
+    return true
+  },
+  props: {},
+  data () {
+    return {
+      loading: false,
+      showMenu: false,
+      x: 0,
+      y: 0,
+      headers: [],
+      result: [],
+      maxLogs: 100
+    }
+  },
+  computed: {},
+  watch: {},
+  created () {
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {
+    showMenuFn (e) {
+      e.preventDefault()
+      this.showMenu = false
+      this.x = e.clientX
+      this.y = e.clientY
+      this.$nextTick(() => {
+        this.showMenu = true
+      })
+    }
+  },
 
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    props: {},
-    watch: {},
-    directives: {}
-  };
+  beforeCreated () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped>

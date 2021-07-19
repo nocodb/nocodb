@@ -1,6 +1,5 @@
 export const state = () => ({
 
-
   /**
    * status   - pending | error | success
    * type     - create | update | delete
@@ -10,57 +9,49 @@ export const state = () => ({
   list: [],
   showProgressBar: []
 
-});
+})
 
 export const mutations = {
 
-
-  MutListAdd(state, args) {
-    console.log(state);
-    args.time = Date.now();
-    state.list.unshift(args);
+  MutListAdd (state, args) {
+    console.log(state)
+    args.time = Date.now()
+    state.list.unshift(args)
   },
 
-
-  MutListRemove(state, args) {
+  MutListRemove (state, args) {
     // find index and set status
-    let index = state.list.findIndex(n => n.status === 'pending'
-      && n.type === args.type
-      && n.module === args.module
-      && n.title === args.title);
-    console.log('index', index);
+    const index = state.list.findIndex(n => n.status === 'pending' &&
+      n.type === args.type &&
+      n.module === args.module &&
+      n.title === args.title)
+    console.log('index', index)
     if (index > -1) {
-      state.list[index].status = args.status;
+      state.list[index].status = args.status
     }
     state.list = [...state.list]
-
   },
 
-  MutListClearFinished(state, args) {
-    let len = state.list.length;
+  MutListClearFinished (state, args) {
+    let len = state.list.length
     while (len--) {
-      if (state.list[len].status !== 'pending') state.list.splice(len, 1);
+      if (state.list[len].status !== 'pending') { state.list.splice(len, 1) }
     }
   },
 
-  MutToggleProgressBar(state, status) {
-    console.log('MutToggleProgressBar', status);
-    if (status)
-      state.showProgressBar.push(1);
-    else
-      state.showProgressBar.pop();
-
+  MutToggleProgressBar (state, status) {
+    console.log('MutToggleProgressBar', status)
+    if (status) { state.showProgressBar.push(1) } else { state.showProgressBar.pop() }
   }
 
-
-};
+}
 
 export const getters = {
 
-  GetPendingStatus: ({list, showProgressBar}) => showProgressBar.length || list.some(({status}) => status === 'pending'),
-  GetHasErrors: ({list}) => list.some(({status}) => status === 'error')
+  GetPendingStatus: ({ list, showProgressBar }) => showProgressBar.length || list.some(({ status }) => status === 'pending'),
+  GetHasErrors: ({ list }) => list.some(({ status }) => status === 'error')
 
-};
+}
 
 export const actions = {}
 /**

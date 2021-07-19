@@ -1,14 +1,12 @@
-export default async function ({store, route, redirect}) {
-
+export default async function ({ store, route, redirect }) {
   if (
-    !route.path.startsWith('/nc/view/')
-    && store.getters['project/GtrIsFirstLoad'] === false
-    && (route.path === '/' || route.path === '')
-    && !store.getters['users/GtrIsAuthenticated']
+    !route.path.startsWith('/nc/view/') &&
+    store.getters['project/GtrIsFirstLoad'] === false &&
+    (route.path === '/' || route.path === '') &&
+    !store.getters['users/GtrIsAuthenticated']
   ) {
     redirect('/user/authentication/signin')
   }
-
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

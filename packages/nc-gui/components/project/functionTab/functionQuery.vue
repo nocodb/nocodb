@@ -2,29 +2,53 @@
   <v-container class="pa-0 ma-0" fluid>
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
-        <v-breadcrumbs :items="[{
-          text: this.nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: this.nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: this.nodes.function_name + ' (function)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" dark large light class="title">
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+                     text: nodes.env,
+                     disabled: true,
+                     href: '#'
+                   },{
+                     text: nodes.dbAlias,
+                     disabled: true,
+                     href: '#'
+                   },
+                   {
+                     text: nodes.function_name + ' (function)',
+                     disabled: true,
+                     href: '#'
+                   }]"
+          divider=">"
+          dark
+          large
+          light
+          class="title"
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <x-btn outlined tooltip="Save Changes" small @click="applyChanges()" color="primary" icon="save">Save</x-btn>
-      <x-btn outlined tooltip="Delete Function" small color="error" @click="deleteFunction('showDialog')"
-             icon="mdi-delete-outline">
+      <v-spacer />
+      <x-btn
+        outlined
+        tooltip="Save Changes"
+        small
+        color="primary"
+        icon="save"
+        @click="applyChanges()"
+      >
+        Save
+      </x-btn>
+      <x-btn
+        outlined
+        tooltip="Delete Function"
+        small
+        color="error"
+        icon="mdi-delete-outline"
+        @click="deleteFunction('showDialog')"
+      >
         Delete Function
       </x-btn>
     </v-toolbar>
@@ -32,14 +56,13 @@
     <monaco-editor
       v-if="functionData.create_function != undefined"
       :code.sync="functionData.create_function"
-      cssStyle="height:400px">
-
-    </monaco-editor>
+      css-style="height:400px"
+    />
 
     <dlgLabelSubmitCancel
       v-if="dialogShow"
-      :dialogShow="dialogShow"
-      :actionsMtd="deleteFunction"
+      :dialog-show="dialogShow"
+      :actions-mtd="deleteFunction"
       heading="Click Submit to Delete the Function"
       type="error"
     />
@@ -47,35 +70,35 @@
 </template>
 
 <script>
-import {mapGetters, mapActions} from "vuex";
+import { mapGetters, mapActions } from 'vuex'
 
-import MonacoEditor from "../../monaco/Monaco";
-import dlgLabelSubmitCancel from "../../utils/dlgLabelSubmitCancel";
+import MonacoEditor from '../../monaco/Monaco'
+import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
-import {SqlUI} from '../../../helpers/SqlUiFactory';
+import { SqlUI } from '../../../helpers/SqlUiFactory'
 
 export default {
-  components: {MonacoEditor, dlgLabelSubmitCancel},
-  data() {
+  components: { MonacoEditor, dlgLabelSubmitCancel },
+  data () {
     return {
       functionData: {},
-      newFunction: this.nodes.newFunction ? true : false,
-      oldCreateFunction: "",
+      newFunction: !!this.nodes.newFunction,
+      oldCreateFunction: '',
       dialogShow: false
-    };
+    }
   },
   computed: {
-    ...mapGetters({sqlMgr: "sqlMgr/sqlMgr"})
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
   methods: {
     ...mapActions({
-      loadFunctionsFromChildTreeNode: "project/loadFunctionsFromChildTreeNode",
+      loadFunctionsFromChildTreeNode: 'project/loadFunctionsFromChildTreeNode',
       loadFunctionsFromParentTreeNode:
-        "project/loadFunctionsFromParentTreeNode",
-      removeFunctionTab: "tabs/removeFunctionTab"
+        'project/loadFunctionsFromParentTreeNode',
+      removeFunctionTab: 'tabs/removeFunctionTab'
     }),
 
-    async handleKeyDown({metaKey, key, altKey, shiftKey, ctrlKey}) {
+    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -85,35 +108,27 @@ export default {
 
       switch ([metaKey, key].join('_')) {
         case 'true_s' :
-          await this.applyChanges();
-          break;
+          await this.applyChanges()
+          break
         case 'true_l' :
           await this.loadFunction()
-          break;
+          break
         // case 'true_n' :
         //   this.addColumn();
         //   break;
         case 'true_d' :
-          await this.deleteFunction('showDialog');
-          break;
-
+          await this.deleteFunction('showDialog')
+          break
       }
     },
 
-    async loadFunction() {
-      try {
-
-      } catch (e) {
-        this.$toast.error('failed')
-        throw e;
-      }
-
+    async loadFunction () {
       if (this.newFunction) {
         this.functionData = {
           function_name: this.nodes.function_name,
-          create_function: ""
-        };
-        return;
+          create_function: ''
+        }
+        return
       }
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
@@ -129,135 +144,126 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // }, 'functionRead', { function_name: this.nodes.function_name})
 
-
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
-      }, 'functionRead', { function_name: this.nodes.function_name}])
-
+      }, 'functionRead', { function_name: this.nodes.function_name }])
 
       // console.log("functionData read", result);
-      this.functionData = result.data.list[0];
-      this.oldCreateFunction = `${this.functionData.create_function}` + '';
+      this.functionData = result.data.list[0]
+      this.oldCreateFunction = `${this.functionData.create_function}` + ''
     },
-    async applyChanges() {
-
+    async applyChanges () {
       try {
         if (this.newFunction) {
-          let result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             },
-            "functionCreate",
+            'functionCreate',
             {
               function_name: this.nodes.function_name,
               create_function: this.functionData.create_function
-            }]);
+            }])
           await this.loadFunctionsFromChildTreeNode({
             _nodes: {
               ...this.nodes
             }
-          });
-          console.log("create function result", result);
-          this.newFunction = false;
-          this.oldCreateFunction = `${this.functionData.create_function}` + '';
-          this.$toast.success('Function created successfully').goAway(3000);
+          })
+          console.log('create function result', result)
+          this.newFunction = false
+          this.oldCreateFunction = `${this.functionData.create_function}` + ''
+          this.$toast.success('Function created successfully').goAway(3000)
         } else {
-
-          const function_name = this.sqlUi.extractFunctionName(this.functionData.create_function);
-          if (!function_name) {
-            this.$toast.error('Invalid syntax, please check function name.').goAway(5000);
-            return;
+          const functionName = this.sqlUi.extractFunctionName(this.functionData.create_function)
+          if (!functionName) {
+            this.$toast.error('Invalid syntax, please check function name.').goAway(5000)
+            return
           }
 
-          let result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             },
-            "functionUpdate",
+            'functionUpdate',
             {
-              function_name,
+              function_name: functionName,
               create_function: this.functionData.create_function,
               function_declaration: this.functionData.function_declaration,
               oldCreateFunction: this.oldCreateFunction
-            }]);
+            }])
 
-
-          this.oldCreateFunction = `${this.functionData.create_function}` + '';
-          console.log("update function result", result);
-          this.$toast.success('Function updated successfully').goAway(3000);
+          this.oldCreateFunction = `${this.functionData.create_function}` + ''
+          console.log('update function result', result)
+          this.$toast.success('Function updated successfully').goAway(3000)
         }
       } catch (e) {
-        this.$toast.error('Saving function failed').goAway(3000);
-        throw e;
+        this.$toast.error('Saving function failed').goAway(3000)
+        throw e
       }
     },
-    async deleteFunction(action = "") {
-
+    async deleteFunction (action = '') {
       try {
-        if (action === "showDialog") {
-          this.dialogShow = true;
-        } else if (action === "hideDialog") {
-          this.dialogShow = false;
+        if (action === 'showDialog') {
+          this.dialogShow = true
+        } else if (action === 'hideDialog') {
+          this.dialogShow = false
         } else {
-
-
-          let result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             },
-            "functionDelete",
+            'functionDelete',
             {
               function_name: this.nodes.function_name,
               create_function: this.functionData.create_function,
-              function_declaration: this.functionData.function_declaration,
-            }]);
+              function_declaration: this.functionData.function_declaration
+            }])
 
           this.removeFunctionTab({
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
             function_name: this.nodes.function_name
-          });
+          })
           await this.loadFunctionsFromParentTreeNode({
             _nodes: {
               ...this.nodes
             }
-          });
-          this.dialogShow = false;
-          this.$toast.success('Function deleted successfully').goAway(3000);
+          })
+          this.dialogShow = false
+          this.$toast.success('Function deleted successfully').goAway(3000)
         }
       } catch (e) {
-        this.$toast.error('Deleting function failed').goAway(3000);
-        throw e;
+        this.$toast.error('Deleting function failed').goAway(3000)
+        throw e
       }
-
     }
   },
-  beforeCreated() {
+  beforeCreated () {
   },
-  created() {
-    this.sqlUi = SqlUI.create(this.nodes.dbConnection);
-  },
-  mounted() {
-    this.loadFunction();
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
-  validate({params}) {
-    return true;
-  },
-  head() {
-    return {};
-  },
-  props: ["nodes"],
   watch: {},
-  directives: {}
-};
+  created () {
+    this.sqlUi = SqlUI.create(this.nodes.dbConnection)
+  },
+  mounted () {
+    this.loadFunction()
+  },
+  beforeDestroy () {
+  },
+  destroy () {
+  },
+  directives: {},
+  validate ({ params }) {
+    return true
+  },
+  head () {
+    return {}
+  },
+  props: ['nodes']
+}
 </script>
 
 <style scoped>

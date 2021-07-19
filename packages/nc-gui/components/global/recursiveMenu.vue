@@ -1,24 +1,27 @@
 <template>
   <v-menu
+    v-model="active"
     dense
-          v-model="active"
-          :offset-x="offsetX"
-          :offset-y="offsetY"
-          :position-x="positionX"
-          :position-y="positionY"
-          :open-on-hover="nested">
-
+    :offset-x="offsetX"
+    :offset-y="offsetY"
+    :position-x="positionX"
+    :position-y="positionY"
+    :open-on-hover="nested"
+  >
     <!--   nested menu activator    -->
     <template
       v-if="nested"
-      v-slot:activator="{on}">
+      #activator="{on}"
+    >
       <v-list-item
         dense
         class=""
         v-on="on"
       >
         <v-list-item-title class="">
-          <slot name="activator">{{ parent }}</slot>
+          <slot name="activator">
+            {{ parent }}
+          </slot>
         </v-list-item-title>
         <v-list-item-action
           class="my-0 py-0"
@@ -28,65 +31,80 @@
       </v-list-item>
     </template>
     <v-list dense>
-      <div class="" v-for="(item, index) in items"
-           :key="index">
+      <div
+        v-for="(item, index) in items"
+        :key="index"
+        class=""
+      >
         <template v-if="item">
           <v-list-item
+            v-if="typeof item !== 'object'"
             dense
-            v-on:click="$emit('click', {value :item})" v-if="typeof item !== 'object'">
-            <v-list-item-title class=""
-                               >
+            @click="$emit('click', {value :item})"
+          >
+            <v-list-item-title
+              class=""
+            >
               {{ index }}
             </v-list-item-title>
           </v-list-item>
           <!--     if value is a nested object then populating nested menu recursively     -->
           <v-list-item
+            v-else
             dense
-            class="px-0" v-else>
-            <recursiveMenu v-on:click="onSubMenuClick" offset-x nested :items="item"
-                           :parent="index"></recursiveMenu>
+            class="px-0"
+          >
+            <recursiveMenu
+              offset-x
+              nested
+              :items="item"
+              :parent="index"
+              @click="onSubMenuClick"
+            />
           </v-list-item>
         </template>
-        <v-divider v-else></v-divider>
+        <v-divider v-else />
       </div>
     </v-list>
   </v-menu>
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        active: false
-      }
+export default {
+  name: 'RecursiveMenu',
+  props: {
+    items: Object, // key value pairs where key will be the menu item name and value is passed with click event handler
+    value: Boolean, // for getting v-model value
+    nested: Boolean, // for populating nested menu(recursively - for internal use)
+    offsetY: Boolean,
+    offsetX: Boolean,
+    parent: String, // for activator slot label
+    positionX: Number,
+    positionY: Number
+  },
+  data () {
+    return {
+      active: false
+    }
+  },
+  watch: {
+    // two way binding of v-model
+    value (v) {
+      this.active = v
     },
-    name: "recursiveMenu",
-        props: {
-      'items': Object, // key value pairs where key will be the menu item name and value is passed with click event handler
-      'value': Boolean, // for getting v-model value
-      'nested': Boolean, // for populating nested menu(recursively - for internal use)
-      'offsetY': Boolean,
-      'offsetX': Boolean,
-      parent: String, // for activator slot label
-      positionX: Number,
-      positionY: Number,
-    }, watch: {
-      // two way binding of v-model
-      value: function (v) {
-        this.active = v;
-      },
-      active: function (v) {
-        this.$emit('input', v);
-      }
-    }, methods: {
-      // event propagating to parent v-menu(click event)
-      onSubMenuClick(event) {
-        this.$emit('click', event);
-        // hiding parent menu
-        this.active = false;
-      }
+    active (v) {
+      this.$emit('input', v)
+    }
+  },
+  methods: {
+    // event propagating to parent v-menu(click event)
+    onSubMenuClick (event) {
+      this.$emit('click', event)
+      // hiding parent menu
+      this.active = false
     }
   }
+}
 </script>
 
 <style scoped>

@@ -1,21 +1,18 @@
-import axios from 'axios';
-import SqlQueryParser from '../helpers/SqlQueryParser'
-
 export const state = () => ({
   treeView: {
     size: 20
   }
-});
+})
 
 export const mutations = {
-  MutSize(state, args) {
-    state[args.type] = {...state[args.type], size: args.size};
+  MutSize (state, args) {
+    state[args.type] = { ...state[args.type], size: args.size }
   }
-};
+}
 
-export const getters = {};
+export const getters = {}
 
-export const actions = {};
+export const actions = {}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

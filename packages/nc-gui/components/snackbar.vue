@@ -1,11 +1,11 @@
 <template>
   <div>
-    <v-snackbar :top="true" v-model="show" color="info">
-      <p class="title" ref="message" v-html="message"></p>
-      <v-btn @click.native="show = false">Close</v-btn>
+    <v-snackbar v-model="show" :top="true" color="info">
+      <p ref="message" class="title" v-html="message" />
+      <v-btn @click.native="show = false">
+        Close
+      </v-btn>
     </v-snackbar>
-
-
   </div>
 </template>
 
@@ -15,7 +15,7 @@
 //   "./libs"
 // );
 export default {
-  data() {
+  data () {
     return {
       show: false,
       message: '',
@@ -35,41 +35,40 @@ export default {
           }
         },
         data: null
-      },
-    };
-  },
-  computed: {
-    notification1() {
-      console.log('');
-      return this.$store.state.notification.snackbar;
+      }
     }
   },
-  created: function () {
-    this.$store.watch(
-      state => state.snackbar.snack,
-      () => {
-        const msg = this.$store.state.snackbar.snack;
-        if (msg !== '') {
-          this.show = true;
-          this.message = this.$store.state.snackbar.snack;
-          this.$store.commit('snackbar/setSnack', '');
-        }
-      }
-    );
-
+  computed: {
+    notification1 () {
+      console.log('')
+      return this.$store.state.notification.snackbar
+    }
   },
   watch: {
-    message() {
+    message () {
       this.$nextTick(() => {
         // get all links which starts with http and on click open them in external browser
         this.$refs.message && this.$refs.message.querySelectorAll('a[href^="http"]').forEach(ele =>
-          ele.addEventListener('click', e => {
-            e.preventDefault();
-            shell.openExternal(ele.getAttribute('href'));
+          ele.addEventListener('click', (e) => {
+            e.preventDefault()
+            // shell.openExternal(ele.getAttribute('href'))
           })
         )
       })
     }
+  },
+  created () {
+    this.$store.watch(
+      state => state.snackbar.snack,
+      () => {
+        const msg = this.$store.state.snackbar.snack
+        if (msg !== '') {
+          this.show = true
+          this.message = this.$store.state.snackbar.snack
+          this.$store.commit('snackbar/setSnack', '')
+        }
+      }
+    )
   }
 }
 

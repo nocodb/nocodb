@@ -1,29 +1,26 @@
 export default class SqlQueryParser {
-
-  static getType(query){
-    query = query.trim().toLowerCase();
-    return query.split(/\W+/)[0];
+  static getType (query) {
+    query = query.trim().toLowerCase()
+    return query.split(/\W+/)[0]
   }
 
-  static getColorForQueryType(queryType){
-    switch(queryType.toLowerCase()){
+  static getColorForQueryType (queryType) {
+    switch (queryType.toLowerCase()) {
       case 'select':
-        return 'success';
-        break;
+        return 'success'
+
       case 'insert':
       case 'update':
       case 'create':
-        return 'warning';
-        break;
+        return 'warning'
+
       case 'delete':
-        return 'error';
-        break;
+        return 'error'
+
       default:
-        return 'primary';
-        break;
+        return 'primary'
     }
   }
-
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

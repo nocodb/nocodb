@@ -1,33 +1,40 @@
 <template>
   <div class="d-flex h-100">
     <v-navigation-drawer width="300" class="pa-1">
-      <v-text-field outlined dense
-                    v-model="query"
-                    hide-details
-                    placeholder="Search apps"
-                    append-icon="mdi-magnify"
-
-      ></v-text-field>
+      <v-text-field
+        v-model="query"
+        outlined
+        dense
+        hide-details
+        placeholder="Search apps"
+        append-icon="mdi-magnify"
+      />
 
       <v-list dense>
         <v-list-item v-for="filter of filters" :key="filter">
-          <v-checkbox v-model="selectedTags" class="pt-0 mt-0" :value="filter" hide-details dense
-                      :label="filter"></v-checkbox>
+          <v-checkbox
+            v-model="selectedTags"
+            class="pt-0 mt-0"
+            :value="filter"
+            hide-details
+            dense
+            :label="filter"
+          />
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-container class="h-100 app-container">
       <v-row>
-        <v-col v-for="app in filteredApps" :key="i" cols="6">
+        <v-col v-for="(app,i) in filteredApps" :key="i" cols="6">
           <v-card
             class="elevation-0 app-item-card"
           >
-
             <v-btn x-small outlined class="install-btn caption text-capitalize" @click="installApp">
-              <v-icon x-small class="mr-1">mdi-plus</v-icon>
+              <v-icon x-small class="mr-1">
+                mdi-plus
+              </v-icon>
               Install
             </v-btn>
-
 
             <div class="d-flex flex-no-wrap">
               <v-avatar
@@ -35,16 +42,16 @@
                 size="100"
                 tile
               >
-                <v-img v-if="app.img" :src="app.img" contain></v-img>
-                <v-img v-else src="https://cdn.vuetifyjs.com/images/cards/foster.jpg" contain></v-img>
+                <v-img v-if="app.img" :src="app.img" contain />
+                <v-img v-else src="https://cdn.vuetifyjs.com/images/cards/foster.jpg" contain />
               </v-avatar>
               <div class="flex-grow-1">
                 <v-card-title
                   class="title "
                   v-text="app.name"
-                ></v-card-title>
+                />
 
-                <v-card-subtitle v-text="app.description" class="pb-1"></v-card-subtitle>
+                <v-card-subtitle class="pb-1" v-text="app.description" />
                 <v-card-actions>
                   <div class="d-flex justify-space-between d-100 align-center">
                     <v-rating
@@ -53,10 +60,10 @@
                       length="5"
                       size="15"
                       value="5"
-                    ></v-rating>
+                    />
 
-                    <span class="subtitles" v-if="app.price && app.price !== 'Free'">${{ app.price }} / mo</span>
-                    <span class="subtitles" v-else>Free</span>
+                    <span v-if="app.price && app.price !== 'Free'" class="subtitles">${{ app.price }} / mo</span>
+                    <span v-else class="subtitles">Free</span>
                   </div>
                 </v-card-actions>
 
@@ -70,19 +77,17 @@
                 <!--                  </v-btn>-->
                 <!--                </v-card-actions>-->
               </div>
-
             </div>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
-
   </div>
 </template>
 
 <script>
 export default {
-  name: "appStore",
+  name: 'AppStore',
   data: () => ({
     query: '',
     selectedTags: [],
@@ -228,37 +233,37 @@ export default {
         img: require('~/assets/img/abcd/cratedb.jpg'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: '99',
-        tags: [ 'Databases']
-      },{
+        tags: ['Databases']
+      }, {
         name: 'Cassandra',
-        img:require('~/assets/img/abcd/cassandra.png'),
+        img: require('~/assets/img/abcd/cassandra.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: '99',
-        tags: [ 'Databases']
-      },{
+        tags: ['Databases']
+      }, {
         name: 'CouchDB',
-        img:require('~/assets/img/abcd/couchdb.png'),
+        img: require('~/assets/img/abcd/couchdb.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: '99',
-        tags: [ 'Databases']
-      },{
+        tags: ['Databases']
+      }, {
         name: 'ElasticSearch',
-        img:require('~/assets/img/abcd/elasticsearch.png'),
+        img: require('~/assets/img/abcd/elasticsearch.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: '99',
-        tags: [ 'Databases']
-      },{
+        tags: ['Databases']
+      }, {
         name: 'Snowflake',
-        img:require('~/assets/img/abcd/snowflake.png'),
+        img: require('~/assets/img/abcd/snowflake.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: '99',
-        tags: [ 'Databases']
-      },{
+        tags: ['Databases']
+      }, {
         name: 'MongoDB',
         img: require('~/assets/img/abcd/mongodb.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: '99'
-      },  {
+      }, {
         name: 'BigQuery',
         img: require('~/assets/img/abcd/bigquery.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
@@ -267,19 +272,19 @@ export default {
 
       {
         name: 'REST API',
-        img:require('~/assets/img/abcd/rest.png'),
+        img: require('~/assets/img/abcd/rest.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: 'Free',
         tags: ['Free', 'API']
       }, {
         name: 'GRAPHQL API',
-        img:require('~/assets/img/abcd/graphql.png'),
+        img: require('~/assets/img/abcd/graphql.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: 'Free',
         tags: ['Free', 'API']
       }, {
         name: 'gRPC API',
-        img:require('~/assets/img/abcd/grpc.png'),
+        img: require('~/assets/img/abcd/grpc.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: 'Free',
         tags: ['Free', 'API']
@@ -287,34 +292,34 @@ export default {
 
       {
         name: 'Swagger',
-        img:require('~/assets/img/abcd/swagger.png'),
+        img: require('~/assets/img/abcd/swagger.png'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: 'Free',
         tags: ['Free', 'API Specification']
       },
       {
         name: 'Postman',
-        img:require('~/assets/img/abcd/postman.jpg'),
+        img: require('~/assets/img/abcd/postman.jpg'),
         description: 'Visualize your records on a bar, line, pie, or scatter chart',
         price: 'Free',
-        tags: [ 'API Specification']
-      },
+        tags: ['API Specification']
+      }
 
     ]
   }),
-  methods: {
-    installApp() {
-      this.$toast.info('Coming soon after seed funding.').goAway(5000);
+  computed: {
+    filters () {
+      return this.apps.reduce((arr, app) => arr.concat(app.tags || []), []).filter((f, i, arr) => i === arr.indexOf(f)).sort()
+    },
+    filteredApps () {
+      return this.apps.filter(app => (!this.query.trim() || app.name.toLowerCase().includes(this.query.trim().toLowerCase())) &&
+        (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
+      )
     }
   },
-  computed: {
-    filters() {
-      return this.apps.reduce((arr, app) => arr.concat(app.tags || []), []).filter((f, i, arr) => i === arr.indexOf(f)).sort();
-    },
-    filteredApps() {
-      return this.apps.filter(app => (!this.query.trim() || app.name.toLowerCase().indexOf(this.query.trim().toLowerCase()) > -1)
-        && (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
-      );
+  methods: {
+    installApp () {
+      this.$toast.info('Coming soon after seed funding.').goAway(5000)
     }
   }
 }
@@ -371,10 +376,6 @@ export default {
     height: 100%;
     overflow-y: auto;
   }
-
-
-
-
 
 </style>
 <!--

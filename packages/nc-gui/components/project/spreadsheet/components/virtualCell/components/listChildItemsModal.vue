@@ -1,6 +1,8 @@
 <template>
   <v-dialog v-model="show" width="600" content-class="dialog">
-    <v-icon small class="close-icon" @click="$emit('input',false)">mdi-close</v-icon>
+    <v-icon small class="close-icon" @click="$emit('input',false)">
+      mdi-close
+    </v-icon>
     <list-child-items
       v-if="show"
       ref="child"
@@ -15,19 +17,16 @@
       :query-params="queryParams"
       v-bind="$attrs"
       v-on="$listeners"
-
     />
   </v-dialog>
-
 </template>
 
 <script>
-import Pagination from "@/components/project/spreadsheet/components/pagination";
-import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
+import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
 
 export default {
-  name: "listChildItemsModal",
-  components: {ListChildItems, Pagination},
+  name: 'ListChildItemsModal',
+  components: { ListChildItems },
   props: {
     localState: Array,
     isNew: Boolean,
@@ -38,8 +37,8 @@ export default {
     },
     queryParams: {
       type: Object,
-      default() {
-        return {};
+      default () {
+        return {}
       }
     },
     primaryKey: String,
@@ -54,21 +53,22 @@ export default {
     data: null,
     page: 1
   }),
-  mounted() {
-  },
-  methods: {
-    async loadData() {
-      if (this.$refs && this.$refs.child) {
-        this.$refs.child.loadData();
+  computed: {
+    show: {
+      set (v) {
+        this.$emit('input', v)
+      },
+      get () {
+        return this.value
       }
     }
   },
-  computed: {
-    show: {
-      set(v) {
-        this.$emit('input', v)
-      }, get() {
-        return this.value;
+  mounted () {
+  },
+  methods: {
+    async loadData () {
+      if (this.$refs && this.$refs.child) {
+        this.$refs.child.loadData()
       }
     }
   }

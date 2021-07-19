@@ -1,16 +1,27 @@
 <template>
   <div>
     <v-toolbar height="32" class="elevation-0">
-      <v-spacer>
-      </v-spacer>
-      <v-btn color="primary" small
-             outlined @click="loadHook">
-        <v-icon small class="mr-1" color="primary">mdi-reload</v-icon>
+      <v-spacer />
+      <v-btn
+        color="primary"
+        small
+        outlined
+        @click="loadHook"
+      >
+        <v-icon small class="mr-1" color="primary">
+          mdi-reload
+        </v-icon>
         Reload
       </v-btn>
-      <v-btn color="primary" small
-             outlined @click="save">
-        <v-icon small class="mr-1" color="primary">save</v-icon>
+      <v-btn
+        color="primary"
+        small
+        outlined
+        @click="save"
+      >
+        <v-icon small class="mr-1" color="primary">
+          save
+        </v-icon>
         Save
       </v-btn>
     </v-toolbar>
@@ -19,10 +30,12 @@
         <v-col cols="6" offset="3">
           <v-card class="d-100">
             <v-container fluid>
-              <v-card-title class="justify-center">Auth Hook</v-card-title>
+              <v-card-title class="justify-center">
+                Auth Hook
+              </v-card-title>
               <v-row>
                 <v-col cols="12">
-                  <v-text-field v-model="data.url" dense label="URL" type="url" class="caption"></v-text-field>
+                  <v-text-field v-model="data.url" dense label="URL" type="url" class="caption" />
                 </v-col>
               </v-row>
             </v-container>
@@ -35,23 +48,23 @@
 
 <script>
 export default {
-  name: "authHooks",
-  async created() {
-    await this.loadHook();
+  name: 'AuthHooks',
+  props: {
+    nodes: Object
   },
   data: () => ({
     data: {}
   }),
-  props: {
-    nodes: Object
+  async created () {
+    await this.loadHook()
   },
   methods: {
-    async loadHook() {
+    async loadHook () {
       this.data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.nodes.dbAlias
       }, 'xcAuthHookGet'])
     },
-    async save() {
+    async save () {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.nodes.dbAlias

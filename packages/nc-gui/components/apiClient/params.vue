@@ -1,63 +1,70 @@
 <template>
   <v-container fluid>
     <v-simple-table class="ignore-height-style params-table" style="" dense>
-      <template v-slot:default>
+      <template #default>
         <thead>
-        <tr>
-          <th class="text-left caption" width="5%"></th>
-          <th class="text-left caption grey--text" width="40%">Param Name</th>
-          <th class="text-left caption grey--text" width="40%">Value</th>
-          <th class="text-left caption" width="5%"></th>
-        </tr>
+          <tr>
+            <th class="text-left caption" width="5%" />
+            <th class="text-left caption grey--text" width="40%">
+              Param Name
+            </th>
+            <th class="text-left caption grey--text" width="40%">
+              Value
+            </th>
+            <th class="text-left caption" width="5%" />
+          </tr>
         </thead>
         <!--        <tbody>-->
         <draggable v-if="value" v-model="paramList" tag="tbody">
           <tr v-for="(item,i) in paramList" :key="i">
-
             <td>
               <v-checkbox
+                v-model="item.enabled"
                 v-ge="['api-client-params','enable']"
                 small
                 class="mt-0 caption"
                 color="primary lighten-1"
                 hide-details
-                v-model="item.enabled" dense></v-checkbox>
+                dense
+              />
             </td>
             <td>
-
               <xAutoComplete
+                v-model="item.name"
                 class="body-2 caption"
                 :disabled="!item.enabled"
-                v-model="item.name"
-                @input="() => { if(i === value.length - 1 && item.name.length) value.push({name:'',value:'',
-          enabled:true}) }"
                 placeholder="Key"
                 hide-details
                 single-line
                 dense
                 :env="env"
-              ></xAutoComplete>
+                @input="() => { if(i === value.length - 1 && item.name.length) value.push({name:'',value:'',
+                                                                                           enabled:true}) }"
+              />
             </td>
             <td style="height: auto">
               <xAutoComplete
-                class="body-2 caption"
                 v-model="item.value"
+                class="body-2 caption"
                 :disabled="!item.enabled"
                 :placeholder="item.description || 'Value'"
                 hide-details
                 single-line
                 dense
                 :env="env"
-              ></xAutoComplete>
+              />
             </td>
             <td class="">
               <x-icon
                 v-ge="['api-client-params','delete']"
                 color="error grey"
-                small @click="value.splice(i,1)" tooltip="Delete param">mdi-delete-outline
+                small
+                tooltip="Delete param"
+                @click="value.splice(i,1)"
+              >
+                mdi-delete-outline
               </x-icon>
             </td>
-
           </tr>
         </draggable>
       </template>
@@ -67,60 +74,61 @@
 
 <script>
 
-  import draggable from "vuedraggable";
+import draggable from 'vuedraggable'
 
-
-  export default {
-    data() {
-      return {};
-    },
-    methods: {},
-    computed: {
-      paramList: {
-        // two way binding(v-model)
-        get() {
-          return this.value
-        },
-        set(value) {
-          this.$emit('input', value)
-        }
+export default {
+  directives: {},
+  components: { draggable },
+  validate ({ params }) {
+    return true
+  },
+  props: { value: Array, env: String },
+  data () {
+    return {}
+  },
+  head () {
+    return {}
+  },
+  computed: {
+    paramList: {
+      // two way binding(v-model)
+      get () {
+        return this.value
       },
-    },
-
-    beforeCreated() {
-    },
-    created() {
-      // creating value if not exist
-      if (!this.value || !this.value.length) this.$emit('input', [{
+      set (value) {
+        this.$emit('input', value)
+      }
+    }
+  },
+  watch: {
+    value: {
+      handler (val) {
+        // keeps at least one param row
+        if (!val || !val.length) { this.$emit('input', [{ name: '', value: '', enabled: true }]) }
+      }
+    }
+  },
+  created () {
+    // creating value if not exist
+    if (!this.value || !this.value.length) {
+      this.$emit('input', [{
         name: '',
         value: '',
         enabled: true
-      }]);
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    head() {
-      return {};
-    },
-    props: {'value': Array, env: String},
-    watch: {
-      value: {
-        handler(val) {
-          // keeps at least one param row
-          if (!val || !val.length) this.$emit('input', [{name: '', value: '', enabled: true}]);
-        }
-      },
-    },
-    directives: {},
-    components: {draggable}
-  };
+      }])
+    }
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {},
+
+  beforeCreated () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped>

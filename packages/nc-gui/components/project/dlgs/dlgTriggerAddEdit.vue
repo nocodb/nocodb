@@ -1,14 +1,15 @@
 <template>
-  <v-row  justify="center">
+  <v-row justify="center">
     <v-dialog
+      :value="dialogShow"
       persistent
+      max-width="850"
       @keydown.esc="mtdDialogCancel()"
       @click:outside="mtdDialogCancel()"
       @keydown.enter="mtdDialogSubmit(trigger, newTrigger)"
-      v-model="dialogShow"
-      max-width="850"
-      ><template v-slot:activator="{ on }">
-        <p class="hidden" v-on="on"></p>
+    >
+      <template #activator="{ on }">
+        <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
         <v-card-title class="grey darken-2 subheading" style="height:30px">
@@ -21,9 +22,9 @@
         <v-card-text class="pt-4 pl-4">
           <p class="headline">
             {{
-              this.newTrigger
+              newTrigger
                 ? "Add New Trigger"
-                : "Editing Trigger " + this.trigger.trigger_name
+                : "Editing Trigger " + trigger.trigger_name
             }}
           </p>
           <v-form ref="form" v-model="valid">
@@ -34,51 +35,53 @@
               label="Trigger Name"
               :rules="formRules.trigger_name"
               required
-            ></v-text-field>
+            />
             <v-row justify="space-between">
-              <v-col class="pa-1" cols="6" >
+              <v-col class="pa-1" cols="6">
                 <v-autocomplete
+                  v-model="trigger.timing"
                   label="Timing"
                   :full-width="false"
-                  v-model="trigger.timing"
                   :items="triggerTimingOptions"
                   :rules="formRules.timing"
                   required
                   dense
-                ></v-autocomplete></v-col
-              ><v-col class="pa-1" cols="6" >
+                />
+              </v-col><v-col class="pa-1" cols="6">
                 <v-autocomplete
+                  v-model="trigger.event"
                   label="Event"
                   :full-width="false"
-                  v-model="trigger.event"
                   :items="triggerEventOptions"
                   :rules="formRules.event"
                   required
                   dense
-                ></v-autocomplete></v-col
-            ></v-row>
+                />
+              </v-col>
+            </v-row>
           </v-form>
           <v-container>
             <MonacoEditor
               v-if="trigger.statement != undefined"
               :code.sync="trigger.statement"
-              cssStyle="border:1px solid grey;height:300px"
+              css-style="border:1px solid grey;height:300px"
             />
           </v-container>
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider />
 
         <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn class="" @click="mtdDialogCancel()">
             Cancel
           </v-btn>
           <v-btn
             class="primary "
-            @click="mtdDialogSubmit(trigger, newTrigger)"
             :disabled="!valid"
-            ><u class="shortkey">S</u>ubmit</v-btn
+            @click="mtdDialogSubmit(trigger, newTrigger)"
           >
+            <u class="shortkey">S</u>ubmit
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -86,63 +89,63 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from "vuex";
-import MonacoEditor from "../../monaco/Monaco";
+import { mapGetters } from 'vuex'
+import MonacoEditor from '../../monaco/Monaco'
 
 export default {
   components: { MonacoEditor },
-  data() {
+  data () {
     return {
       valid: false,
       formRules: {
         trigger_name: [
-          v => !!v || "Name is required",
-          v => (v && v.length <= 100) || "Name must be less than 100 characters"
+          v => !!v || 'Name is required',
+          v => (v && v.length <= 100) || 'Name must be less than 100 characters'
         ],
-        timing: [v => !!v || "Timing is required"],
-        event: [v => !!v || "Event is required"],
-        statement: [v => !!v || "Statement is required"]
+        timing: [v => !!v || 'Timing is required'],
+        event: [v => !!v || 'Event is required'],
+        statement: [v => !!v || 'Statement is required']
       },
-      triggerTimingOptions: ["BEFORE", "AFTER"],
-      triggerEventOptions: ["INSERT", "UPDATE", "DELETE"],
+      triggerTimingOptions: ['BEFORE', 'AFTER'],
+      triggerEventOptions: ['INSERT', 'UPDATE', 'DELETE'],
       trigger: {
         tn: this.nodes.tn,
-        trigger_name: this.triggerObject.trigger || "",
-        timing: this.triggerObject.timing || "BEFORE",
-        event: this.triggerObject.event || "INSERT",
-        statement: this.triggerObject.statement || `BEGIN\n\nEND;`
+        trigger_name: this.triggerObject.trigger || '',
+        timing: this.triggerObject.timing || 'BEFORE',
+        event: this.triggerObject.event || 'INSERT',
+        statement: this.triggerObject.statement || 'BEGIN\n\nEND;'
       }
-    };
+    }
   },
   methods: {},
-  computed: { ...mapGetters({ sqlMgr: "sqlMgr/sqlMgr" }) },
+  computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated() {},
-  async created() {},
-  mounted() {
+  beforeCreated () {},
+  watch: {},
+  async created () {},
+  mounted () {
     requestAnimationFrame(() => {
-      this.$refs.focus.focus();
-    });
+      this.$refs.focus.focus()
+    })
   },
-  beforeDestroy() {},
-  destroy() {},
-  validate({ params }) {
-    return true;
+  beforeDestroy () {},
+  destroy () {},
+  directives: {},
+  validate ({ params }) {
+    return true
   },
-  head() {
-    return {};
+  head () {
+    return {}
   },
   props: [
-    "nodes",
-    "newTrigger",
-    "triggerObject",
-    "dialogShow",
-    "mtdDialogCancel",
-    "mtdDialogSubmit"
-  ],
-  watch: {},
-  directives: {}
-};
+    'nodes',
+    'newTrigger',
+    'triggerObject',
+    'dialogShow',
+    'mtdDialogCancel',
+    'mtdDialogSubmit'
+  ]
+}
 </script>
 
 <style scoped>

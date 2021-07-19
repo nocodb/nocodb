@@ -1,52 +1,55 @@
 <template>
-
   <section class="section container">
-
     <div class="box">
-      <h3 class="title is-3">Password reset is invalid</h3>
-      <router-link to="/user/password/reset/form">Ask for a new password reset</router-link>
+      <h3 class="title is-3">
+        Password reset is invalid
+      </h3>
+      <router-link to="/user/password/reset/form">
+        Ask for a new password reset
+      </router-link>
     </div>
 
-    <v-row  >
-      <v-alert type="warning" dismissible v-model="alert">
-        <h1 class="title is-2">Password reset is invalid</h1>
+    <v-row>
+      <v-alert v-model="alert" type="warning" dismissible>
+        <h1 class="title is-2">
+          Password reset is invalid
+        </h1>
       </v-alert>
-      <router-link to="/user/password/reset/form">Ask for a new password reset</router-link>
+      <router-link to="/user/password/reset/form">
+        Ask for a new password reset
+      </router-link>
     </v-row>
-
   </section>
-
-
 </template>
 
 <script>
-  export default {
-    data() {
-      return {}
-    },
-    computed: {},
-    methods: {},
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true
-    },
-    head() {
-      return {}
-    },
-    props: {},
-    watch: {},
-    directives: {},
-    components: {}
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  props: {},
+  data () {
+    return {}
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {},
+  beforeCreated () {
+  },
+  destroy () {
   }
+}
 </script>
 
 <style scoped>

@@ -1,6 +1,3 @@
-import axios from 'axios';
-import SqlQueryParser from '../helpers/SqlQueryParser'
-
 export const state = () => ({
 
   /**
@@ -17,7 +14,7 @@ export const state = () => ({
   list: [{
     type: 'SELECT',
     query: 'SELECT 1',
-    response: {status: 0}
+    response: { status: 0 }
   }],
   clipboardQuery: null,
   // editors: ['', '', '']
@@ -40,7 +37,7 @@ export const state = () => ({
       fileName: null,
       filePath: null,
       edited: false
-    },
+    }
   ],
 
   sqlFilePaths: [],
@@ -48,78 +45,75 @@ export const state = () => ({
   projectSqlFilePaths: {},
   currentProjectKey: ''
 
-});
+})
 
 export const mutations = {
 
-  MutSqlFilePathsAdd(state, args) {
+  MutSqlFilePathsAdd (state, args) {
     state.projectSqlFilePaths = {
       ...state.projectSqlFilePaths,
       [state.currentProjectKey]: [...state.projectSqlFilePaths[state.currentProjectKey], args]
     }
   },
 
-  MutSqlFilePathsRemove(state, index) {
-    state.projectSqlFilePaths[state.currentProjectKey].splice(index, 1);
-    state.projectSqlFilePaths[state.currentProjectKey] = [...state.projectSqlFilePaths[state.currentProjectKey]];
+  MutSqlFilePathsRemove (state, index) {
+    state.projectSqlFilePaths[state.currentProjectKey].splice(index, 1)
+    state.projectSqlFilePaths[state.currentProjectKey] = [...state.projectSqlFilePaths[state.currentProjectKey]]
   },
 
-  MutList(state, list) {
-    state.projectSqlFilePaths[state.currentProjectKey] = list;
+  MutList (state, list) {
+    state.projectSqlFilePaths[state.currentProjectKey] = list
   },
-  MutCurrentProjectKey(state, currentProjectKey) {
-    state.currentProjectKey = currentProjectKey;
+  MutCurrentProjectKey (state, currentProjectKey) {
+    state.currentProjectKey = currentProjectKey
   },
-  MutListAdd(state, args) {
-    state.list.unshift(args);
-    if (state.list.length > 500) state.list.pop();
+  MutListAdd (state, args) {
+    state.list.unshift(args)
+    if (state.list.length > 500) { state.list.pop() }
   },
 
-  MutListRemove(state, index) {
+  MutListRemove (state, index) {
     // find index and set status
-    state.list.splice(index, 1);
+    state.list.splice(index, 1)
     state.list = [...state.list]
   },
-  MutListRemoveItem(state, item) {
+  MutListRemoveItem (state, item) {
     state.list = state.list.filter(query => item.query !== query.query)
   },
-  MutSetClipboardQuery(state, clipboardQuery) {
-    state.clipboardQuery = clipboardQuery;
+  MutSetClipboardQuery (state, clipboardQuery) {
+    state.clipboardQuery = clipboardQuery
   },
-  MutSetEditorByIndex(state, {editor, index}) {
-    state.editors[index] = editor;
-    state.editors = [...state.editors];
+  MutSetEditorByIndex (state, { editor, index }) {
+    state.editors[index] = editor
+    state.editors = [...state.editors]
   },
-  MutSetEditors(state, editors) {
-    state.editors = editors.map(editor => ({...editor}));
+  MutSetEditors (state, editors) {
+    state.editors = editors.map(editor => ({ ...editor }))
   }
 
-};
+}
 
 export const getters = {
-  GtrCurrentSqlFilePaths(state) {
-    return state.projectSqlFilePaths[state.currentProjectKey];
+  GtrCurrentSqlFilePaths (state) {
+    return state.projectSqlFilePaths[state.currentProjectKey]
   }
-};
+}
 
 export const actions = {
 
-  async executeQuery({commit, state, rootState}, {envs, query}) {
-
-
-    const sqlMgr = rootState.sqlMgr.sqlMgr;
-    let result;
+  async executeQuery ({ commit, state, rootState }, { envs, query }) {
+    // const sqlMgr = rootState.sqlMgr.sqlMgr
+    let result
     // const type = SqlQueryParser.getType(query);
     // const typeColor = SqlQueryParser.getColorForQueryType(type)
 
-
     // let t = process.hrtime();
+    // eslint-disable-next-line no-useless-catch
     try {
       // const client = await sqlMgr.projectGetSqlClient(envs);
 
-
       // result = await sqlMgr.sqlOp(envs, 'executeRawQuery', query);
-      result =  await this.dispatch('sqlMgr/ActSqlOp', [envs, 'executeRawQuery', query]);
+      result = await this.dispatch('sqlMgr/ActSqlOp', [envs, 'executeRawQuery', query])
 
       // var t1 = process.hrtime(t);
       // var t2 = (t1[0] + t1[1] / 1000000000).toFixed(2);
@@ -134,7 +128,6 @@ export const actions = {
       //   createdAt: Date.now(),
       //   timeTaken: t2,
       // })
-
     } catch (e) {
       // var t1 = process.hrtime(t);
       // var t2 = (t1[0] + t1[1] / 1000000000).toFixed(2);
@@ -150,9 +143,9 @@ export const actions = {
       //   timeTaken: t2,
       //
       // });
-      throw e;
+      throw e
     }
-    return result;
+    return result
 
     //
     //
@@ -195,17 +188,15 @@ export const actions = {
     //   commit('MutListAdd', {...a,body:JSON.stringify(a.body),headers:JSON.stringify(a.headers)});
     //   return a.response;
     // }
-
-
   },
-  async loadSqlCollectionForProject({commit, state}, {projectName, projectId}) {
-    const key = projectName + "__" + projectId;
+  async loadSqlCollectionForProject ({ commit, state }, { projectName, projectId }) {
+    const key = projectName + '__' + projectId
     commit('MutCurrentProjectKey', key)
     if (!(key in state.projectSqlFilePaths)) {
-      commit('MutList', []);
+      commit('MutList', [])
     }
   }
-};
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

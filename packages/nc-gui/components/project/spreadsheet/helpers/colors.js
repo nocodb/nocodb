@@ -10,7 +10,7 @@ export default {
     '#cfdffe',
     '#d0f1fd',
     '#c2f5e8',
-    '#ffdaf6',
+    '#ffdaf6'
   ],
   dark: [
     '#f82b6099',
@@ -22,10 +22,9 @@ export default {
     '#2d7ff999',
     '#18bfff99',
     '#20d9d299',
-    '#ff08c299',
+    '#ff08c299'
   ]
-};
-
+}
 
 const enumColor = {
   light: [
@@ -53,7 +52,6 @@ const enumColor = {
     '#666'
   ]
 }
-
 
 export {
   enumColor

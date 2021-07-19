@@ -1,6 +1,5 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="height: 100%">
-
     <v-tabs
       v-model="tab"
       height="32"
@@ -34,7 +33,6 @@
               </div>
             </v-tab-item>-->
 
-
       <v-tab>
         <v-icon icon x-small class="mr-2">
           mdi-format-paint
@@ -43,19 +41,21 @@
       </v-tab>
       <v-tab-item>
         <div class="d-flex justify-center d-100">
-          <appearance class="flex-shrink-1"></appearance>
+          <appearance class="flex-shrink-1" />
         </div>
       </v-tab-item>
 
-
       <template v-if="enableEditProject">
         <v-tab>
-          <v-icon icon x-small class="mr-2">mdi-pencil-box-outline</v-icon>
+          <v-icon icon x-small class="mr-2">
+            mdi-pencil-box-outline
+          </v-icon>
           <span class="caption text-capitalize">
-              Edit Project
-            </span></v-tab>
+            Edit Project
+          </span>
+        </v-tab>
         <v-tab-item>
-          <create-or-edit-project v-if="tab === 1" edit></create-or-edit-project>
+          <create-or-edit-project v-if="tab === 1" edit />
         </v-tab-item>
       </template>
       <!-- enable extra -->
@@ -70,27 +70,20 @@
            <logs></logs>
          </div>
        </v-tab-item>-->
-
     </v-tabs>
-
-
   </v-container>
 </template>
 
 <script>
-import XcMeta from "@/components/project/settings/xcMeta";
-import Env from "@/components/project/settings/env";
-import Appearance from "@/components/project/settings/appearance";
-import VersionAndUpdate from "@/components/project/settings/versionAndUpdate";
-import CreateOrEditProject from "@/components/createOrEditProject";
-import Logs from "@/components/project/settings/logs";
+import Appearance from '@/components/project/settings/appearance'
+import CreateOrEditProject from '@/components/createOrEditProject'
 
 export default {
-  name: "projectSettings",
-  components: {Logs, CreateOrEditProject, VersionAndUpdate, Appearance, Env, XcMeta},
+  name: 'ProjectSettings',
+  components: { CreateOrEditProject, Appearance },
   data: () => ({
     tab: 0,
-    enableEditProject:false
+    enableEditProject: false
   })
 }
 </script>

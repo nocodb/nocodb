@@ -1,72 +1,63 @@
-import axios from 'axios';
-import Vue from 'vue';
-
-// const {autocannon, XcApis} = require("electron").remote.require(
-//   "./libs"
-// );
-
-import * as XcApiHelp from '../helpers/XcApiHelp'
+import Vue from 'vue'
 
 export const state = () => ({
   projectApiFilePaths: {},
   activeEnvironment: {},
   currentProjectKey: ''
 
-});
+})
 
 export const mutations = {
 
-  MutApiFilePathsAdd(state, args) {
+  MutApiFilePathsAdd (state, args) {
     state.projectApiFilePaths = {
       ...state.projectApiFilePaths,
       [state.currentProjectKey]: [...state.projectApiFilePaths[state.currentProjectKey], args]
     }
   },
 
-  MutApiFilePathsRemove(state, index) {
-    state.projectApiFilePaths[state.currentProjectKey].splice(index, 1);
-    state.projectApiFilePaths[state.currentProjectKey] = [...state.projectApiFilePaths[state.currentProjectKey]];
+  MutApiFilePathsRemove (state, index) {
+    state.projectApiFilePaths[state.currentProjectKey].splice(index, 1)
+    state.projectApiFilePaths[state.currentProjectKey] = [...state.projectApiFilePaths[state.currentProjectKey]]
   },
 
-  MutListAdd(state, args) {
-    state.list.unshift(args);
-    if (state.list.length > 500) state.list.pop();
+  MutListAdd (state, args) {
+    state.list.unshift(args)
+    if (state.list.length > 500) { state.list.pop() }
   },
 
-  MutListRemove(state, index) {
+  MutListRemove (state, index) {
     // find index and set status
-    state.list.splice(index, 1);
-    //state.list = [...state.list]
+    state.list.splice(index, 1)
+    // state.list = [...state.list]
   },
-  MutList(state, list) {
-    state.projectApiFilePaths[state.currentProjectKey] = list;
+  MutList (state, list) {
+    state.projectApiFilePaths[state.currentProjectKey] = list
   },
-  MutCurrentProjectKey(state, currentProjectKey) {
-    state.currentProjectKey = currentProjectKey;
+  MutCurrentProjectKey (state, currentProjectKey) {
+    state.currentProjectKey = currentProjectKey
   },
-  MutActiveEnvironment(state, {env}) {
-    Vue.set(state.activeEnvironment, state.currentProjectKey, env);
+  MutActiveEnvironment (state, { env }) {
+    Vue.set(state.activeEnvironment, state.currentProjectKey, env)
   }
 
-
-};
+}
 
 export const getters = {
-  GtrCurrentApiFilePaths(state) {
-    return state.projectApiFilePaths[state.currentProjectKey];
+  GtrCurrentApiFilePaths (state) {
+    return state.projectApiFilePaths[state.currentProjectKey]
   }
-};
+}
 
 export const actions = {
 
-  async send({commit, state, rootGetters}, {apiDecoded, api}) {
-    let apiMeta = {...apiDecoded};
-    let t, t1, t2;
-
+  async send ({ commit, state, rootGetters }, { apiDecoded, api }) {
+    const apiMeta = { ...apiDecoded }
+    // let t, t1, t2
 
     // return (await rootGetters['sqlMgr/sqlMgr'].sqlOp(null, 'handleApiCall', apiMeta));
 
-    return (await this.dispatch('sqlMgr/ActSqlOp', [null, 'handleApiCall', apiMeta]));
+    return (await this.dispatch('sqlMgr/ActSqlOp', [null, 'handleApiCall', apiMeta]))
     //
     // try {
     //   commit('notification/MutToggleProgressBar', true, {root: true});
@@ -130,20 +121,17 @@ export const actions = {
     //     createdAt: Date.now()
     //   }
     // };
-
   },
 
-  async loadApiCollectionForProject({commit, state}, {projectName = '__default', projectId = '__id'}) {
-    const key = projectName + "__" + projectId;
+  async loadApiCollectionForProject ({ commit, state }, { projectName = '__default', projectId = '__id' }) {
+    const key = projectName + '__' + projectId
     commit('MutCurrentProjectKey', key)
     if (!(key in state.projectApiFilePaths)) {
-      commit('MutList', []);
+      commit('MutList', [])
     }
-  },
+  }
 
-};
-
-
+}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

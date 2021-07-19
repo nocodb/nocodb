@@ -1,63 +1,92 @@
 <template>
   <div class="d-flex align-center d-100">
+    <v-icon v-if="column.pk" color="warning" x-small class="mr-1">
+      mdi-key-variant
+    </v-icon>
+    <v-icon v-else-if="uiDatatypeIcon" small class="mr-1">
+      {{ uiDatatypeIcon }}
+    </v-icon>
 
-
-    <v-icon v-if="column.pk" color="warning" x-small class="mr-1">mdi-key-variant</v-icon>
-    <v-icon v-else-if="uiDatatypeIcon" small class="mr-1">{{ uiDatatypeIcon }}</v-icon>
-
-    <v-icon color="purple" small class="mr-1" v-else-if="isForeignKey">mdi-link-variant</v-icon>
+    <v-icon v-else-if="isForeignKey" color="purple" small class="mr-1">
+      mdi-link-variant
+    </v-icon>
 
     <span v-else-if="isInt" class="font-weight-bold mr-1" style="font-size: 15px">#</span>
     <!--    <v-icon color="grey" class="mr-1" v-if="isInt">mdi-numeric</v-icon>-->
-    <v-icon color="grey" class="mr-1 mt-n1" v-else-if="isFloat">mdi-decimal</v-icon>
-    <v-icon color="grey" small class="mr-1" v-else-if="isDate">mdi-calendar</v-icon>
-    <v-icon color="grey" small class="mr-1" v-else-if="isDateTime">mdi-calendar-clock</v-icon>
-    <v-icon color="grey" small class="mr-1" v-else-if="isSet">mdi-checkbox-multiple-marked</v-icon>
-    <v-icon color="grey" small class="mr-1" v-else-if="isEnum">mdi-radiobox-marked</v-icon>
-    <v-icon color="grey" small class="mr-1" v-else-if="isBoolean">mdi-check-box-outline</v-icon>
-    <v-icon color="grey" class="" v-else-if="isString">mdi-alpha-a</v-icon>
-    <v-icon color="grey" small class="mr-1" v-else-if="isTextArea">mdi-card-text-outline</v-icon>
+    <v-icon v-else-if="isFloat" color="grey" class="mr-1 mt-n1">
+      mdi-decimal
+    </v-icon>
+    <v-icon v-else-if="isDate" color="grey" small class="mr-1">
+      mdi-calendar
+    </v-icon>
+    <v-icon v-else-if="isDateTime" color="grey" small class="mr-1">
+      mdi-calendar-clock
+    </v-icon>
+    <v-icon v-else-if="isSet" color="grey" small class="mr-1">
+      mdi-checkbox-multiple-marked
+    </v-icon>
+    <v-icon v-else-if="isEnum" color="grey" small class="mr-1">
+      mdi-radiobox-marked
+    </v-icon>
+    <v-icon v-else-if="isBoolean" color="grey" small class="mr-1">
+      mdi-check-box-outline
+    </v-icon>
+    <v-icon v-else-if="isString" color="grey" class="">
+      mdi-alpha-a
+    </v-icon>
+    <v-icon v-else-if="isTextArea" color="grey" small class="mr-1">
+      mdi-card-text-outline
+    </v-icon>
 
     <span class="name" :title="value">{{ value }}</span>
 
     <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
 
-    <v-spacer>
-    </v-spacer>
+    <v-spacer />
 
-    <v-menu offset-y open-on-hover left
-            v-if="!isPublicView && _isUIAllowed('edit-column')  && !isForm">
-      <template v-slot:activator="{on}">
-        <v-icon v-on="on" small v-if="!isVirtual">mdi-menu-down</v-icon>
+    <v-menu
+      v-if="!isPublicView && _isUIAllowed('edit-column') && !isForm"
+      offset-y
+      open-on-hover
+      left
+    >
+      <template #activator="{on}">
+        <v-icon v-if="!isVirtual" small v-on="on">
+          mdi-menu-down
+        </v-icon>
       </template>
       <v-list dense>
         <v-list-item dense @click="editColumnMenu = true">
-          <x-icon small class="mr-1" color="primary">mdi-pencil</x-icon>
+          <x-icon small class="mr-1" color="primary">
+            mdi-pencil
+          </x-icon>
           <span class="caption">Edit</span>
         </v-list-item>
         <v-list-item dense @click="setAsPrimaryValue">
-          <x-icon small class="mr-1" color="primary">mdi-key-star</x-icon>
+          <x-icon small class="mr-1" color="primary">
+            mdi-key-star
+          </x-icon>
           <v-tooltip bottom>
-            <template v-slot:activator="{on}">
+            <template #activator="{on}">
               <span class="caption" v-on="on">Set as Primary value</span>
             </template>
             <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
           </v-tooltip>
         </v-list-item>
         <v-list-item @click="columnDeleteDialog = true">
-          <x-icon small class="mr-1" color="error">mdi-delete-outline</x-icon>
+          <x-icon small class="mr-1" color="error">
+            mdi-delete-outline
+          </x-icon>
           <span class="caption">Delete</span>
         </v-list-item>
       </v-list>
     </v-menu>
 
-
-    <v-menu offset-y v-model="editColumnMenu" content-class="elevation-0" left>
-      <template v-slot:activator="{on}">
-        <span v-on="on"></span>
+    <v-menu v-model="editColumnMenu" offset-y content-class="elevation-0" left>
+      <template #activator="{on}">
+        <span v-on="on" />
       </template>
       <edit-column
-        @onRelationDelete="$emit('onRelationDelete')"
         v-if="editColumnMenu"
         :meta="meta"
         :sql-ui="sqlUi"
@@ -65,79 +94,88 @@
         :edit-column="true"
         :column="column"
         :column-index="columnIndex"
+        @onRelationDelete="$emit('onRelationDelete')"
         @saved="$emit('saved')"
         @close="editColumnMenu = false"
-      ></edit-column>
+      />
     </v-menu>
 
-
-    <v-dialog v-model="columnDeleteDialog" max-width="500"
-              persistent>
+    <v-dialog
+      v-model="columnDeleteDialog"
+      max-width="500"
+      persistent
+    >
       <v-card>
-        <v-card-title class="grey darken-2 subheading white--text">Confirm</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text class="mt-4 title">Do you want to delete <span class="font-weight-bold">'{{
+        <v-card-title class="grey darken-2 subheading white--text">
+          Confirm
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="mt-4 title">
+          Do you want to delete <span class="font-weight-bold">'{{
             column.cn
           }}'</span> column ?
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider />
         <v-card-actions class="d-flex pa-4">
-          <v-spacer></v-spacer>
-          <v-btn small @click="columnDeleteDialog = false">Cancel</v-btn>
-          <v-btn small color="error" @click="deleteColumn">Confirm</v-btn>
+          <v-spacer />
+          <v-btn small @click="columnDeleteDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn small color="error" @click="deleteColumn">
+            Confirm
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-
   </div>
 </template>
 
 <script>
-import cell from "@/components/project/spreadsheet/mixins/cell";
-import EditColumn from "@/components/project/spreadsheet/components/editColumn";
+import cell from '@/components/project/spreadsheet/mixins/cell'
+import EditColumn from '@/components/project/spreadsheet/components/editColumn'
 
 export default {
-  components: {EditColumn},
-  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView', 'isVirtual'],
-  name: "headerCell",
+  name: 'HeaderCell',
+  components: { EditColumn },
   mixins: [cell],
+  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView', 'isVirtual'],
   data: () => ({
     editColumnMenu: false,
     columnDeleteDialog: false
   }),
   methods: {
-    async deleteColumn() {
+    async deleteColumn () {
       try {
-        const column = {...this.column, cno: this.column.cn};
-        column.altered = 4;
+        const column = { ...this.column, cno: this.column.cn }
+        column.altered = 4
         const columns = this.meta.columns.slice()
-        columns[this.columnIndex] = column;
+        columns[this.columnIndex] = column
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
-        }, "tableUpdate", {
+        }, 'tableUpdate', {
           tn: this.nodes.tn,
           originalColumns: this.meta.columns,
           columns
-        }]);
-        this.$emit('saved');
-        this.columnDeleteDialog = false;
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
       } catch (e) {
         console.log(e)
       }
-    }, async setAsPrimaryValue() {
+    },
+    async setAsPrimaryValue () {
       // todo: pass only updated fields
       try {
-        const meta = JSON.parse(JSON.stringify(this.meta));
+        const meta = JSON.parse(JSON.stringify(this.meta))
         for (const col of meta.columns) {
           if (col.pv) {
-            delete col.pv;
+            delete col.pv
           }
           if (col.cn === this.column.cn) {
-            col.pv = true;
+            col.pv = true
           }
         }
-
 
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -145,15 +183,14 @@ export default {
         }, 'xcModelSet', {
           tn: this.nodes.tn,
           meta
-        }]);
-        this.$toast.success('Successfully updated as primary column').goAway(3000);
+        }])
+        this.$toast.success('Successfully updated as primary column').goAway(3000)
       } catch (e) {
         console.log(e)
-        this.$toast.error('Failed to update primary column').goAway(3000);
+        this.$toast.error('Failed to update primary column').goAway(3000)
       }
-      this.$emit('saved');
-      this.columnDeleteDialog = false;
-
+      this.$emit('saved')
+      this.columnDeleteDialog = false
     }
   }
 }

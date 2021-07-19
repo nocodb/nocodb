@@ -1,12 +1,11 @@
 <template>
   <v-dialog
+    v-model="dialogShow"
     persistent
+    max-width="550"
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', table)"
-    v-model="dialogShow"
-    max-width="550"
   >
-
     <v-card class="elevation-1 backgroundColor">
       <v-card-title class="primary subheading white--text py-2">
         Create A New Table
@@ -15,92 +14,102 @@
       <v-card-text class=" py-6 px-10 ">
         <v-text-field
           ref="input"
-          solo flat
-          persistent-hint
           v-model="table.alias"
-          dense hide-details1 hint="Enter table name" class="mt-4 caption"></v-text-field>
+          solo
+          flat
+          persistent-hint
+          dense
+          hide-details1
+          hint="Enter table name"
+          class="mt-4 caption"
+        />
 
         <v-text-field
           v-if="!projectPrefix"
-          solo flat
           v-model="table.name"
-          dense  persistent-hint hint="Table name as saved in database" class="mt-4 caption">
-        </v-text-field>
-
-
-
+          solo
+          flat
+          dense
+          persistent-hint
+          hint="Table name as saved in database"
+          class="mt-4 caption"
+        />
 
         <div class=" mt-5">
-
           <label class="add-default-title grey--text">Add Default Columns</label>
 
           <div class=" d-flex caption justify-space-between">
-            <v-checkbox dense
-                        class="mt-0 "
-                        color="info"
-                        v-model="table.columns"
-                        hide-details
-                        value="id"
-                        @click.capture.prevent.stop="()=>{
-                          $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
-                          if(!table.columns.includes('id')){
-                            table.columns.push('id');
-                          }
-                        }"
+            <v-checkbox
+              v-model="table.columns"
+              dense
+              class="mt-0 "
+              color="info"
+              hide-details
+              value="id"
+              @click.capture.prevent.stop="()=>{
+                $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
+                if(!table.columns.includes('id')){
+                  table.columns.push('id');
+                }
+              }"
             >
-              <template v-slot:label>
+              <template #label>
                 <span class="caption">id</span>
               </template>
             </v-checkbox>
-            <v-checkbox dense
-                        class="mt-0 "
-                        color="info"
-                        v-model="table.columns"
-                        hide-details
-                        value="title"
+            <v-checkbox
+              v-model="table.columns"
+              dense
+              class="mt-0 "
+              color="info"
+              hide-details
+              value="title"
             >
-              <template v-slot:label>
+              <template #label>
                 <span class="caption">title</span>
               </template>
             </v-checkbox>
-            <v-checkbox dense
-                        class="mt-0 "
-                        color="info"
-                        v-model="table.columns"
-                        hide-details
-                        value="created_at"
+            <v-checkbox
+              v-model="table.columns"
+              dense
+              class="mt-0 "
+              color="info"
+              hide-details
+              value="created_at"
             >
-              <template v-slot:label>
+              <template #label>
                 <span class="caption">created_at</span>
               </template>
             </v-checkbox>
-            <v-checkbox dense
-                        class="mt-0 "
-                        color="info"
-                        v-model="table.columns"
-                        hide-details
-                        value="updated_at"
+            <v-checkbox
+              v-model="table.columns"
+              dense
+              class="mt-0 "
+              color="info"
+              hide-details
+              value="updated_at"
             >
-              <template v-slot:label>
+              <template #label>
                 <span class="caption">updated_at</span>
               </template>
             </v-checkbox>
           </div>
         </div>
-
       </v-card-text>
-      <v-divider></v-divider>
+      <v-divider />
 
       <v-card-actions class="py-4 px-10">
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn class="" @click="dialogShow = false">
           Cancel
         </v-btn>
         <v-btn
           :disabled="!(table.name && table.name.length) || !(table.alias && table.alias.length)"
-          color="primary" @click="$emit('create',table)">Submit
-        </v-btn
+          color="primary"
+          @click="$emit('create',table)"
         >
+          Submit
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -108,11 +117,12 @@
 
 <script>
 
-import inflection from "inflection";
+import inflection from 'inflection'
 
 export default {
-  name: 'dlg-table-create',
-  data() {
+  name: 'DlgTableCreate',
+  props: ['value'],
+  data () {
     return {
       table: {
         name: '',
@@ -121,31 +131,32 @@ export default {
           'created_at',
           'updated_at']
       }
-    };
+    }
   },
-  props: ['value'],
   computed: {
     dialogShow: {
-      get() {
+      get () {
         return this.value
-      }, set(v) {
+      },
+      set (v) {
         this.$emit('input', v)
       }
     },
-    projectPrefix() {
+    projectPrefix () {
       return this.$store.getters['project/GtrProjectPrefix']
     }
-  }, watch: {
-    'table.alias': function (v) {
+  },
+  watch: {
+    'table.alias' (v) {
       this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
     }
   },
-  mounted() {
+  mounted () {
     setTimeout(() => {
-      this.$refs.input.$el.querySelector('input').focus();
+      this.$refs.input.$el.querySelector('input').focus()
     }, 100)
   }
-};
+}
 </script>
 
 <style scoped lang="scss">

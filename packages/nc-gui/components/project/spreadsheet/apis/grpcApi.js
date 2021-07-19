@@ -1,26 +1,23 @@
 export default class GrpcApi {
-
-  constructor(table, ctx) {
-    this.table = table;
-    this.ctx = ctx;
+  constructor (table, ctx) {
+    this.table = table
+    this.ctx = ctx
   }
 
   // todo:  - get version letter and use table alias
 
-  async paginatedList(params) {
-
+  async paginatedList (params) {
     const result = await this.ctx.$store.dispatch('sqlMgr/ActSqlOp', [{
       env: this.ctx.nodes.env,
       dbAlias: this.ctx.nodes.dbAlias
     }, 'list', {
       tn: this.table,
       size: params.limit,
-      page: ((params.offset || 0) / (params.limit || 20)) + 1,
+      page: ((params.offset || 0) / (params.limit || 20)) + 1
       // orderBy:
     }])
-    return result.data;
+    return result.data
   }
-
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

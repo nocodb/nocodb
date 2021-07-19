@@ -1,31 +1,34 @@
 <template>
-  <v-expansion-panels focusable accordion="" class="elevation-20"
-                      style="border: 1px solid grey">
+  <v-expansion-panels
+    focusable
+    accordion=""
+    class="elevation-20"
+    style="border: 1px solid grey"
+  >
     <v-expansion-panel>
       <v-expansion-panel-header disable-icon-rotate>
-
         <div>
-          <v-icon color="grey darken-1">mdi-timer-sand</v-icon> &nbsp;
+          <v-icon color="grey darken-1">
+            mdi-timer-sand
+          </v-icon> &nbsp;
           <span class="grey--text text--darken-1">Coming Soon</span>
         </div>
-
       </v-expansion-panel-header>
 
       <v-expansion-panel-content>
         <v-row>
-          <v-col cols="4" v-for="(item,i) in items" :key="i">
+          <v-col v-for="(item,i) in items" :key="i" cols="4">
             <v-card class="card">
               <div
                 class="white--text d-flex flex-column card-header"
                 :style="{ background: item.background,height:'200px'}"
               >
                 <div class="card-icon d-flex flex-grow-1 align-center justify-center">
-<!--                  <v-icon size="80px">mdi-account-group</v-icon>-->
+                  <!--                  <v-icon size="80px">mdi-account-group</v-icon>-->
                 </div>
-                <v-card-title v-text="item.title"></v-card-title>
+                <v-card-title v-text="item.title" />
               </div>
-              <v-card-text class="align-self-end" v-text="item.description">
-              </v-card-text>
+              <v-card-text class="align-self-end" v-text="item.description" />
             </v-card>
           </v-col>
           <!--          <v-col cols="3">-->
@@ -46,13 +49,12 @@
         </v-row>
       </v-expansion-panel-content>
     </v-expansion-panel>
-
   </v-expansion-panels>
 </template>
 
 <script>
 export default {
-  name: "createProjectComingSoon",
+  name: 'CreateProjectComingSoon',
   data: () => ({
     items: [
       {
@@ -79,8 +81,7 @@ export default {
         background: 'linear-gradient(rgba(100, 88, 191, 0.1), #252526)',
         title: 'Cache',
         description: 'Caching for optimizing speed'
-      },
-
+      }
 
     ]
   })

@@ -1,6 +1,6 @@
 <template>
   <div align="center">
-    <h1>user.picture</h1>
+    <h1>user picture</h1>
     <section class="">
       <div class="col-xs-offset-1 col-xs-10 col-md-offset-3 col-md-4">
         <form class="signin form-horizontal">
@@ -9,59 +9,62 @@
               <!--<img ng-src="{{imageURL}}" alt="{{user.displayName}}" class="img-thumbnail user-profile-picture">-->
             </div>
             <div class="text-center form-group">
-          <span class="btn btn-primary btn-raised btn-file">
-              Select Image <input type="file" uploader="uploader">
-          </span>
+              <span class="btn btn-primary btn-raised btn-file">
+                Select Image <input type="file" uploader="uploader">
+              </span>
             </div>
             <div class="text-center form-group">
-              <button class="btn btn-primary btn-raised" @click="uploadProfilePicture()">Upload</button>
-              <button class="btn btn-default btn-raised" @click="cancelUpload()">Cancel</button>
+              <button class="btn btn-primary btn-raised" @click="uploadProfilePicture()">
+                Upload
+              </button>
+              <button class="btn btn-default btn-raised" @click="cancelUpload()">
+                Cancel
+              </button>
             </div>
             <!--<div ng-show="success" class="text-center text-success">-->
-              <!--<strong>Profile Picture Changed Successfully</strong>-->
+            <!--<strong>Profile Picture Changed Successfully</strong>-->
             <!--</div>-->
             <!--<div ng-show="error" class="text-center text-danger">-->
-              <!--<strong ng-bind="error"></strong>-->
+            <!--<strong ng-bind="error"></strong>-->
             <!--</div>-->
           </fieldset>
         </form>
       </div>
     </section>
-
   </div>
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
+export default {
+  directives: { },
+  components: { },
+  validate ({ params }) { return true },
+  props: { },
+  data () {
+    return {
 
-      }
-    },
-    computed : {
+    }
+  },
+  head () { return {} },
+  computed: {
 
+  },
+  watch: { },
+  created () { },
+  mounted () {},
+  beforeDestroy () {},
+  methods: {
+    uploadProfilePicture () {
+      // console.log('uploadProfilePicture');
     },
-    methods : {
-      uploadProfilePicture(){
-        //console.log('uploadProfilePicture');
-      },
-      cancelUpload(){
-        //console.log('cancelUpload');
-      }
+    cancelUpload () {
+      // console.log('cancelUpload');
+    }
 
-    },
-    beforeCreated () {},
-    created () { },
-    mounted () {},
-    beforeDestroy () {},
-    destroy () {},
-    validate({params}) { return true },
-    head() { return {} },
-    props: { },
-    watch: { },
-    directives : { },
-    components : { }
-  }
+  },
+  beforeCreated () {},
+  destroy () {}
+}
 </script>
 
 <style scoped>

@@ -1,13 +1,16 @@
 <template>
   <v-overlay
+    v-if="show"
     align="center"
     :color="$store.state.windows.darkTheme ? 'white' : 'black'"
     :dark="$store.state.windows.darkTheme"
     :light="!$store.state.windows.darkTheme"
-    absolute v-if="show" opacity=".75" z-index="9">
+    absolute
+    opacity=".75"
+    z-index="9"
+  >
     <div class="d-flex">
-      <v-spacer>
-      </v-spacer>
+      <v-spacer />
       <v-icon color="red" x-large class="close-icon" @click="show=false">
         mdi-close-circle
       </v-icon>
@@ -18,78 +21,74 @@
 
       <table-acl
         v-if="type === 'acl'"
-        :nodes="nodes">
-      </table-acl>
+        :nodes="nodes"
+      />
       <columns
-        :deleteTable="deleteTable"
         v-else-if="type === 'columns'"
-        :nodes="nodes">
-      </columns>
+        :delete-table="deleteTable"
+        :nodes="nodes"
+      />
       <indexes
-        :deleteTable="deleteTable"
         v-else-if="type === 'indexes'"
-        :nodes="nodes">
-      </indexes>
+        :delete-table="deleteTable"
+        :nodes="nodes"
+      />
       <triggers
         v-else-if="type === 'triggers'"
-        :nodes="nodes">
-      </triggers>
+        :nodes="nodes"
+      />
       <webhooks
         v-else-if="type === 'webhooks'"
-        :nodes="nodes">
-      </webhooks>
+        :nodes="nodes"
+      />
       <validation
         v-else-if="type === 'validators'"
-        :nodes="nodes">
-      </validation>
-
-
-
-
+        :nodes="nodes"
+      />
 
       <table-acl
         v-else-if="type === 'view-acl'"
-        :nodes="nodes">
-      </table-acl>
+        :nodes="nodes"
+      />
       <view-columns
         v-else-if="type === 'view-columns'"
-        :nodes="nodes">
-      </view-columns>
+        :nodes="nodes"
+      />
 
       <shared-views-list
         v-else-if="type === 'shared-views'"
-        :model-name="this.table"
-        :nodes="nodes">
-      </shared-views-list>
+        :model-name="table"
+        :nodes="nodes"
+      />
 
       <!--      </v-card-text>-->
       <!--    </v-card>-->
     </div>
-
   </v-overlay>
-  <span v-else></span>
+  <span v-else />
 </template>
 
 <script>
-import TableAcl from "@/components/project/tableTabs/tableAcl";
-import Columns from "@/components/project/tableTabs/columns";
-import Indexes from "@/components/project/tableTabs/indexes";
-import Triggers from "@/components/project/tableTabs/triggers";
-import Webhooks from "@/components/project/tableTabs/webhooks";
-import Validation from "@/components/project/tableTabs/validation";
-import ViewColumns from "@/components/project/viewTabs/viewColumns";
-import SharedViewsList from "@/components/project/spreadsheet/components/sharedViewsList";
+import TableAcl from '@/components/project/tableTabs/tableAcl'
+import Columns from '@/components/project/tableTabs/columns'
+import Indexes from '@/components/project/tableTabs/indexes'
+import Triggers from '@/components/project/tableTabs/triggers'
+import Webhooks from '@/components/project/tableTabs/webhooks'
+import Validation from '@/components/project/tableTabs/validation'
+import ViewColumns from '@/components/project/viewTabs/viewColumns'
+import SharedViewsList from '@/components/project/spreadsheet/components/sharedViewsList'
 
 export default {
-  name: "additional-features",
-  components: {SharedViewsList, ViewColumns, Validation, Webhooks, Triggers, Indexes, Columns, TableAcl},
+  name: 'AdditionalFeatures',
+  components: { SharedViewsList, ViewColumns, Validation, Webhooks, Triggers, Indexes, Columns, TableAcl },
   props: ['value', 'nodes', 'type', 'deleteTable', 'table'],
   computed: {
     show: {
-      set(v) {
-        this.$emit('input', v);
-      }, get() {
-        return this.value;
+      set (v) {
+        this.$emit('input', v)
+      },
+      get () {
+        return this.value
       }
     }
   }

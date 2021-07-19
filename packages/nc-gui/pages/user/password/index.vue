@@ -1,36 +1,34 @@
 <template>
-
-  <v-row  >
+  <v-row>
     <h1>password</h1>
   </v-row>
-
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
+export default {
+  directives: { },
+  components: { },
+  validate ({ params }) { return true },
+  props: { },
+  data () {
+    return {
 
-      }
-    },
-    computed : {
+    }
+  },
+  head () { return {} },
+  computed: {
 
-    },
-    methods : {
+  },
+  watch: { },
+  created () { },
+  mounted () {},
+  beforeDestroy () {},
+  methods: {
 
-    },
-    beforeCreated () {},
-    created () { },
-    mounted () {},
-    beforeDestroy () {},
-    destroy () {},
-    validate({params}) { return true },
-    head() { return {} },
-    props: { },
-    watch: { },
-    directives : { },
-    components : { }
-  }
+  },
+  beforeCreated () {},
+  destroy () {}
+}
 </script>
 
 <style scoped>

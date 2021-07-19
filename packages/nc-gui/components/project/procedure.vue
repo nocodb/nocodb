@@ -4,27 +4,27 @@
       SQL
     </v-tab>
     <v-tab-item>
-      <procedure-query :nodes="nodes"></procedure-query>
+      <procedure-query :nodes="nodes" />
     </v-tab-item>
 
     <v-tab>
       ACL
     </v-tab>
     <v-tab-item>
-      <procedure-acl :nodes="nodes"></procedure-acl>
+      <procedure-acl :nodes="nodes" />
     </v-tab-item>
   </v-tabs>
 </template>
 
 <script>
 
-import ProcedureQuery from "./procedureTab/procedureQuery";
-import ProcedureAcl from "./procedureTab/procedureAcl";
+import ProcedureQuery from './procedureTab/procedureQuery'
+import ProcedureAcl from './procedureTab/procedureAcl'
 
 export default {
-  components: {ProcedureAcl, ProcedureQuery},
-  props: ["nodes"],
-};
+  components: { ProcedureAcl, ProcedureQuery },
+  props: ['nodes']
+}
 </script>
 
 <style scoped>

@@ -1,13 +1,13 @@
 <template>
-    <api-client-swagger style="height:calc(100vh - 40px)"></api-client-swagger>
+  <api-client-swagger style="height:calc(100vh - 40px)" />
 </template>
 
 <script>
-  import ApiClientSwagger from "../components/project/apiClientSwagger";
-  export default {
-    name: "api-client",
-    components: {ApiClientSwagger}
-  }
+import ApiClientSwagger from '../components/project/apiClientSwagger'
+export default {
+  name: 'ApiClient',
+  components: { ApiClientSwagger }
+}
 </script>
 
 <style scoped>

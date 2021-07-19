@@ -1,42 +1,48 @@
 <template>
-  <v-card min-width="300px" max-width="400px" max-height="95vh" style="overflow: auto"
-          class="elevation-0 card">
+  <v-card
+    min-width="300px"
+    max-width="400px"
+    max-height="95vh"
+    style="overflow: auto"
+    class="elevation-0 card"
+  >
     <v-form v-model="valid">
       <v-container fluid @click.stop.prevent>
         <v-row>
           <v-col cols="12" class="d-flex pb-0">
-
-            <v-spacer></v-spacer>
-            <v-btn x-small outlined @click="close">Cancel</v-btn>
-            <v-btn x-small color="primary" @click="save" :disabled="!valid">Save</v-btn>
+            <v-spacer />
+            <v-btn x-small outlined @click="close">
+              Cancel
+            </v-btn>
+            <v-btn x-small color="primary" :disabled="!valid" @click="save">
+              Save
+            </v-btn>
           </v-col>
           <v-col cols="12">
             <v-text-field
               ref="column"
+              v-model="newColumn._cn"
               hide-details="auto"
               color="primary"
-              v-model="newColumn._cn"
               class="caption"
               label="Column name"
               :rules="[
-                    v => !!v  || 'Required',
-                    v => !meta || !meta.columns || !column ||meta.columns.every(c => v !== c.cn ) && meta.v.every(c => column && c._cn === column._cn || v !== c._cn ) || 'Duplicate column name'
+                v => !!v || 'Required',
+                v => !meta || !meta.columns || !column ||meta.columns.every(c => v !== c.cn ) && meta.v.every(c => column && c._cn === column._cn || v !== c._cn ) || 'Duplicate column name'
               ]"
-              dense outlined></v-text-field>
+              dense
+              outlined
+            />
           </v-col>
-
-
         </v-row>
       </v-container>
     </v-form>
-
-
   </v-card>
 </template>
 
 <script>
 export default {
-  name: "editVirtualColumn",
+  name: 'EditVirtualColumn',
   components: {},
   props: {
     nodes: Object,
@@ -48,14 +54,22 @@ export default {
     valid: false,
     newColumn: {}
   }),
-  async created() {
+  watch: {
+    column (c) {
+      this.newColumn = { ...c }
+    }
+  },
+  async created () {
+  },
+  mounted () {
+    this.newColumn = { ...this.column }
   },
   methods: {
-    close() {
-      this.$emit('input', false);
-      this.newColumn = {};
+    close () {
+      this.$emit('input', false)
+      this.newColumn = {}
     },
-    async save() {
+    async save () {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -63,41 +77,33 @@ export default {
         }, 'xcUpdateVirtualKeyAlias', {
           tn: this.nodes.tn,
           oldAlias: this.column._cn,
-          newAlias: this.newColumn._cn,
-        }]);
+          newAlias: this.newColumn._cn
+        }])
 
-        this.$toast.success('Successfully updated alias').goAway(3000);
+        this.$toast.success('Successfully updated alias').goAway(3000)
       } catch (e) {
         console.log(e)
-        this.$toast.error('Failed to update column alias').goAway(3000);
+        this.$toast.error('Failed to update column alias').goAway(3000)
       }
-      this.$emit('saved');
-      this.$emit('input', false);
+      this.$emit('saved')
+      this.$emit('input', false)
     },
 
-    focusInput() {
+    focusInput () {
       setTimeout(() => {
         if (this.$refs.column && this.$refs.column.$el) {
           this.$refs.column.$el.querySelector('input').focus()
         }
-      }, 100);
-    },
-
-  }, mounted() {
-    this.newColumn = {...this.column}
-  }, watch: {
-    column(c) {
-      this.newColumn = {...c}
+      }, 100)
     }
+
   }
 }
 </script>
 
 <style scoped lang="scss">
 
-
 ::v-deep {
-
 
   .v-input__slot {
     min-height: auto !important;

@@ -1,18 +1,17 @@
-export default function(obj, path) {
-  var paths = path.split("."),
-    current = obj,
-    i;
+export default function (obj, path) {
+  const paths = path.split('.')
+  let current = obj
+  let i
 
   for (i = 0; i < paths.length; ++i) {
-    if (current[paths[i]] == undefined) {
-      return undefined;
+    if (current[paths[i]] === undefined) {
+      return undefined
     } else {
-      current = current[paths[i]];
+      current = current[paths[i]]
     }
   }
-  return current;
+  return current
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

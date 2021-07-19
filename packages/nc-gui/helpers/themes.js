@@ -1,4 +1,4 @@
-export default  {
+export default {
   Orange: {
     primary: '#ff6601',
     secondary: '#E8D2AE',
@@ -6,38 +6,38 @@ export default  {
     info: '#3B1845',
     success: '#527A21',
     warning: '#FF5733',
-    error: '#ff0100',
+    error: '#ff0100'
   },
   Default: {
     // "primary": "#0989ff",
     // "primary": "#1082da",
-    "primary": "#1972e6",
-    "secondary": "#9575CD",
-    "accent": "#FF4081",
-    "info": "#2196F3",
-    "success": "#4CAF50",
-    "warning": "#FB8C00",
-    error: '#ff0100',
+    primary: '#1972e6',
+    secondary: '#9575CD',
+    accent: '#FF4081',
+    info: '#2196F3',
+    success: '#4CAF50',
+    warning: '#FB8C00',
+    error: '#ff0100'
   },
   Strawberry: {
-    "primary": "#ea2abb",
-    "secondary": "#00CED1",
-    "accent": "#FFF44F",
-    "info": "#00CED1",
-    "success": "#4CAF50",
-    "warning": "#FB8C00",
-    error: '#ff0100',
+    primary: '#ea2abb',
+    secondary: '#00CED1',
+    accent: '#FFF44F',
+    info: '#00CED1',
+    success: '#4CAF50',
+    warning: '#FB8C00',
+    error: '#ff0100'
   },
   Grapes: {
-    "primary": "#8b46fe",
-    "secondary": "#BFDBF7",
-    "accent": "#ED254E",
-    "info": "#00CED1",
-    "success": "#4CAF50",
-    "warning": "#FB8C00",
-    error: '#ff0100',
+    primary: '#8b46fe',
+    secondary: '#BFDBF7',
+    accent: '#ED254E',
+    info: '#00CED1',
+    success: '#4CAF50',
+    warning: '#FB8C00',
+    error: '#ff0100'
   }
-};
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

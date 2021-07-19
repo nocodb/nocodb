@@ -9,35 +9,38 @@
             :value="cellValue"
             @edit="editParent"
             @unlink="unlink"
-          ></item-chip>
+          />
         </template>
       </div>
-      <div class="action align-center justify-center px-1 flex-shrink-1"
-           :class="{'d-none': !active, 'd-flex':active  }">
-        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">{{
+      <div
+        class="action align-center justify-center px-1 flex-shrink-1"
+        :class="{'d-none': !active, 'd-flex':active }"
+      >
+        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">
+          {{
             value ? 'mdi-arrow-expand' : 'mdi-plus'
           }}
         </x-icon>
       </div>
     </template>
     <list-items
-      :key="parentId"
       v-if="newRecordModal"
+      :key="parentId"
+      v-model="newRecordModal"
       :size="10"
       :meta="parentMeta"
       :primary-col="parentPrimaryCol"
       :primary-key="parentPrimaryKey"
-      v-model="newRecordModal"
       :api="parentApi"
+      :query-params="parentQueryParams"
       @add-new-record="insertAndMapNewParentRecord"
       @add="addChildToParent"
-      :query-params="parentQueryParams"
     />
 
     <list-child-items
+      v-if="parentMeta && isForm"
       ref="childList"
-      v-if="parentMeta &&  isForm"
-      :isForm="isForm"
+      :is-form="isForm"
       :local-state="localState? [localState] : []"
       :is-new="isNew"
       :size="10"
@@ -48,24 +51,27 @@
       :api="parentApi"
       :query-params="{
         ...parentQueryParams,
-        where:  `(${parentPrimaryKey},eq,${parentId})`
+        where: `(${parentPrimaryKey},eq,${parentId})`
       }"
+      :bt="value"
       @new-record="showNewRecordModal"
       @edit="editParent"
       @unlink="unlink"
-      :bt="value"
     />
 
     <v-dialog
-      :overlay-opacity="0.8"
       v-if="selectedParent"
+      v-model="expandFormModal"
+      :overlay-opacity="0.8"
       width="1000px"
       max-width="100%"
       class=" mx-auto"
-      v-model="expandFormModal">
+    >
       <component
-        v-if="selectedParent"
         :is="form"
+        v-if="selectedParent"
+        ref="expandedForm"
+        v-model="selectedParent"
         :db-alias="nodes.dbAlias"
         :has-many="parentMeta.hasMany"
         :belongs-to="parentMeta.belongsTo"
@@ -80,33 +86,28 @@
         :query-params="parentQueryParams"
         :is-new.sync="isNewParent"
         icon-color="warning"
-        ref="expandedForm"
-        v-model="selectedParent"
+        :breadcrumbs="breadcrumbs"
         @cancel="selectedParent = null"
         @input="onParentSave"
-        :breadcrumbs="breadcrumbs"
-      ></component>
-
+      />
     </v-dialog>
-
-
   </div>
 </template>
 
 <script>
-import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
-import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
-import ItemChip from "~/components/project/spreadsheet/components/virtualCell/components/itemChip";
-import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
+import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
+import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
+import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/itemChip'
 
 export default {
-  name: "belongs-to-cell",
-  components: {ListChildItems, ItemChip, ListItems},
+  name: 'BelongsToCell',
+  components: { ListChildItems, ItemChip, ListItems },
   props: {
     breadcrumbs: {
       type: Array,
-      default() {
-        return [];
+      default () {
+        return []
       }
     },
     isForm: Boolean,
@@ -136,75 +137,140 @@ export default {
     localState: null,
     pid: null
   }),
-  async mounted() {
+  computed: {
+    parentMeta () {
+      return this.$store.state.meta.metas[this.bt.rtn]
+    },
+    parentApi () {
+      return this.parentMeta && this.parentMeta._tn
+        ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],
+          this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this, this.parentMeta)
+        : null
+    },
+    parentId () {
+      return this.pid ?? (this.value && this.parentMeta && this.parentMeta.columns.filter(c => c.pk).map(c => this.value[c._cn]).join('___'))
+    },
+    parentPrimaryCol () {
+      return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
+    },
+    parentPrimaryKey () {
+      return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
+    },
+    parentQueryParams () {
+      if (!this.parentMeta) { return {} }
+      // todo: use reduce
+      return {
+        hm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.hm).map(({ hm }) => hm.tn).join()) || '',
+        bt: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.bt).map(({ bt }) => bt.rtn).join()) || '',
+        mm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
+      }
+    },
+    parentAvailableColumns () {
+      const hideCols = ['created_at', 'updated_at']
+      if (!this.parentMeta) { return [] }
+
+      const columns = []
+      if (this.parentMeta.columns) {
+        columns.push(...this.parentMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.parentMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
+      }
+      if (this.parentMeta.v) {
+        columns.push(...this.parentMeta.v.map(v => ({ ...v, virtual: 1 })))
+      }
+      return columns
+    },
+    // todo:
+    form () {
+      return this.selectedParent ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
+    },
+    cellValue () {
+      if (this.value || this.localState) {
+        if (this.parentMeta && this.parentPrimaryCol) {
+          return (this.value || this.localState)[this.parentPrimaryCol]
+        }
+        return Object.values(this.value || this.localState)[1]
+      }
+      return null
+    }
+  },
+  watch: {
+    isNew (n, o) {
+      if (!n && o) {
+        this.localState = null
+      }
+    }
+  },
+  async mounted () {
     if (this.isForm) {
       await this.loadParentMeta()
     }
   },
+  created () {
+    this.loadParentMeta()
+  },
   methods: {
-    async onParentSave(parent) {
+    async onParentSave (parent) {
       if (this.isNewParent) {
         await this.addChildToParent(parent)
       } else {
         this.$emit('loadTableData')
       }
     },
-    async insertAndMapNewParentRecord() {
-      await this.loadParentMeta();
-      this.newRecordModal = false;
-      this.isNewParent = true;
-      this.selectedParent = {};
-      this.expandFormModal = true;
+    async insertAndMapNewParentRecord () {
+      await this.loadParentMeta()
+      this.newRecordModal = false
+      this.isNewParent = true
+      this.selectedParent = {}
+      this.expandFormModal = true
     },
 
-    async unlink() {
-      const column = this.meta.columns.find(c => c.cn === this.bt.cn);
-      const _cn = column._cn;
+    async unlink () {
+      const column = this.meta.columns.find(c => c.cn === this.bt.cn)
+      const _cn = column._cn
       if (this.isNew) {
-        this.$emit('updateCol', this.row, _cn, null);
-        this.localState = null;
+        this.$emit('updateCol', this.row, _cn, null)
+        this.localState = null
         return
       }
       if (column.rqd) {
         this.$toast.info('Unlink is not possible, instead map to another parent.').goAway(3000)
         return
       }
-      const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
-      await this.api.update(id, {[_cn]: null}, this.row)
+      const id = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
+      await this.api.update(id, { [_cn]: null }, this.row)
       this.$emit('loadTableData')
       if (this.isForm && this.$refs.childList) {
-        this.$refs.childList.loadData();
+        this.$refs.childList.loadData()
       }
     },
-    async showParentListModal() {
-      this.parentListModal = true;
-      await this.loadParentMeta();
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
-      const _cn = this.parentMeta.columns.find(c => c.cn === this.hm.cn)._cn;
+    async showParentListModal () {
+      this.parentListModal = true
+      await this.loadParentMeta()
+      const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
+      const _cn = this.parentMeta.columns.find(c => c.cn === this.hm.cn)._cn
       this.childList = await this.parentApi.paginatedList({
         where: `(${_cn},eq,${pid})`
       })
     },
-    async removeChild(child) {
-      this.dialogShow = true;
+    async removeChild (child) {
+      this.dialogShow = true
       this.confirmMessage =
-        'Do you want to delete the record?';
-      this.confirmAction = async act => {
+        'Do you want to delete the record?'
+      this.confirmAction = async (act) => {
         if (act === 'hideDialog') {
-          this.dialogShow = false;
+          this.dialogShow = false
         } else {
-          const id = this.parentMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
+          const id = this.parentMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
           await this.parentApi.delete(id)
-          this.pid = null;
-          this.dialogShow = false;
+          this.pid = null
+          this.dialogShow = false
           this.$emit('loadTableData')
           if (this.isForm && this.$refs.childList) {
-            this.$refs.childList.loadData();
+            this.$refs.childList.loadData()
           }
         }
       }
     },
-    async loadParentMeta() {
+    async loadParentMeta () {
       // todo: optimize
       if (!this.parentMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -221,20 +287,19 @@ export default {
         // this.parentMeta = JSON.parse(parentTableData.meta)
       }
     },
-    async showNewRecordModal() {
-      await this.loadParentMeta();
-      this.newRecordModal = true;
+    async showNewRecordModal () {
+      await this.loadParentMeta()
+      this.newRecordModal = true
     },
-    async addChildToParent(parent) {
-
-      const pid = this.parentMeta.columns.filter((c) => c.pk).map(c => parent[c._cn]).join('___');
-      const id = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
-      const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn;
+    async addChildToParent (parent) {
+      const pid = this.parentMeta.columns.filter(c => c.pk).map(c => parent[c._cn]).join('___')
+      const id = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
+      const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn
 
       if (this.isNew) {
-        this.localState = parent;
+        this.localState = parent
         this.$emit('updateCol', this.row, _cn, +pid || pid)
-        this.newRecordModal = false;
+        this.newRecordModal = false
         return
       }
 
@@ -242,88 +307,25 @@ export default {
         [_cn]: +pid
       }, {
         [_cn]: this.value && this.value[this.parentPrimaryKey]
-      });
-      this.pid = pid;
+      })
+      this.pid = pid
 
-      this.newRecordModal = false;
+      this.newRecordModal = false
 
       this.$emit('loadTableData')
       if (this.isForm && this.$refs.childList) {
-        this.$refs.childList.loadData();
+        this.$refs.childList.loadData()
       }
     },
-    async editParent(parent) {
-      await this.loadParentMeta();
-      this.isNewParent = false;
-      this.selectedParent = parent;
-      this.expandFormModal = true;
+    async editParent (parent) {
+      await this.loadParentMeta()
+      this.isNewParent = false
+      this.selectedParent = parent
+      this.expandFormModal = true
       setTimeout(() => {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
-    },
-  },
-  computed: {
-    parentMeta() {
-      return this.$store.state.meta.metas[this.bt.rtn];
-    },
-    parentApi() {
-      return this.parentMeta && this.parentMeta._tn ?
-        ApiFactory.create(this.$store.getters['project/GtrProjectType'],
-          this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this, this.parentMeta) : null;
-    },
-    parentId() {
-      return this.pid ?? (this.value && this.parentMeta && this.parentMeta.columns.filter((c) => c.pk).map(c => this.value[c._cn]).join('___'))
-    },
-    parentPrimaryCol() {
-      return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
-    },
-    parentPrimaryKey() {
-      return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
-    },
-    parentQueryParams() {
-      if (!this.parentMeta) return {}
-      // todo: use reduce
-      return {
-        hm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
-        bt: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
-        mm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
-      }
-    },
-    parentAvailableColumns() {
-      const hideCols = ['created_at', 'updated_at'];
-      if (!this.parentMeta) return [];
-
-      const columns = [];
-      if (this.parentMeta.columns) {
-        columns.push(...this.parentMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.parentMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
-      }
-      if (this.parentMeta.v) {
-        columns.push(...this.parentMeta.v.map(v => ({...v, virtual: 1})));
-      }
-      return columns;
-    },
-    // todo:
-    form() {
-      return this.selectedParent ? () => import("@/components/project/spreadsheet/components/expandedForm") : 'span';
-    },
-    cellValue() {
-      if (this.value || this.localState) {
-        if (this.parentMeta && this.parentPrimaryCol) {
-          return (this.value || this.localState)[this.parentPrimaryCol]
-        }
-        return Object.values(this.value || this.localState)[1]
-      }
     }
-  },
-  watch: {
-    isNew(n, o) {
-      if (!n && o) {
-        this.localState = null
-      }
-    }
-  },
-  created() {
-    this.loadParentMeta();
   }
 }
 </script>

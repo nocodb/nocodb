@@ -1,17 +1,16 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import axios from 'axios';
+import Vue from 'vue'
+import Vuex from 'vuex'
 
-Vue.use(Vuex);
+Vue.use(Vuex)
 
 export const store = new Vuex.Store({
 
-  //resourceState
+  // resourceState
   state: {
     // resourceList : []
-    list : []
+    list: []
   },
-  //modified state vars
+  // modified state vars
   getters: {
 
   },
@@ -28,8 +27,7 @@ export const store = new Vuex.Store({
 
   }
 
-
-});
+})
 
 export default store
 

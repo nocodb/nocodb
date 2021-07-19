@@ -1,43 +1,46 @@
 <template>
   <section class="section container">
     <div class="box">
-      <h2 class="title is-2">Password successfully reset</h2>
+      <h2 class="title is-2">
+        Password successfully reset
+      </h2>
     </div>
 
-    <v-row  >
-      <v-alert type="success" dismissible v-model="alert">
-        <h1 class="title is-2">Password reset is Successfull</h1>
+    <v-row>
+      <v-alert v-model="alert" type="success" dismissible>
+        <h1 class="title is-2">
+          Password reset is Successfull
+        </h1>
       </v-alert>
     </v-row>
-
   </section>
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
+export default {
+  directives: { },
+  components: { },
+  validate ({ params }) { return true },
+  props: { },
+  data () {
+    return {
 
-      }
-    },
-    computed : {
+    }
+  },
+  head () { return {} },
+  computed: {
 
-    },
-    methods : {
+  },
+  watch: { },
+  created () { },
+  mounted () {},
+  beforeDestroy () {},
+  methods: {
 
-    },
-    beforeCreated () {},
-    created () { },
-    mounted () {},
-    beforeDestroy () {},
-    destroy () {},
-    validate({params}) { return true },
-    head() { return {} },
-    props: { },
-    watch: { },
-    directives : { },
-    components : { }
-  }
+  },
+  beforeCreated () {},
+  destroy () {}
+}
 </script>
 
 <style scoped>

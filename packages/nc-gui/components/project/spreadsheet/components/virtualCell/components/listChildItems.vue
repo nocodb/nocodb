@@ -3,9 +3,10 @@
   <v-card width="600" color="">
     <v-card-title v-if="!isForm" class="textColor--text mx-2" :class="{'py-2':isForm}">
       <span v-if="!isForm">{{ meta ? meta._tn : 'Children' }}</span>
-      <v-spacer>
-      </v-spacer>
-      <v-icon small class="mr-1" @click="loadData()">mdi-reload</v-icon>
+      <v-spacer />
+      <v-icon small class="mr-1" @click="loadData()">
+        mdi-reload
+      </v-icon>
       <v-btn
         small
         class="caption"
@@ -13,7 +14,9 @@
         @click="$emit('new-record')"
       >
         <v-icon
-          small>mdi-link
+          small
+        >
+          mdi-link
         </v-icon>&nbsp;
         Link to '{{ meta._tn }}'
       </v-btn>
@@ -30,7 +33,9 @@
             @click="$emit('new-record')"
           >
             <v-icon
-              x-small>mdi-link
+              x-small
+            >
+              mdi-link
             </v-icon>&nbsp;
             Link to '{{ meta._tn }}'
           </v-btn>
@@ -38,9 +43,9 @@
         <template v-if="isDataAvail">
           <v-card
             v-for="(ch,i) in ((data && data.list) || localState)"
+            :key="i"
             class="mx-2 mb-2 child-list-modal child-card"
             outlined
-            :key="i"
             @click="$emit('edit',ch)"
           >
             <div class="remove-child-icon d-flex align-center">
@@ -48,9 +53,10 @@
                 :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
                 :color="['error','grey']"
                 small
-                @click.stop="$emit('unlink',ch,i)"
                 icon.class="mr-1 mt-n1"
-              >mdi-link-variant-remove
+                @click.stop="$emit('unlink',ch,i)"
+              >
+                mdi-link-variant-remove
               </x-icon>
               <x-icon
                 v-if="!mm && !bt"
@@ -58,54 +64,60 @@
                 :color="['error','grey']"
                 small
                 @click.stop="$emit('delete',ch,i)"
-              >mdi-delete-outline
+              >
+                mdi-delete-outline
               </x-icon>
             </div>
 
-            <v-card-title class="primary-value textColor--text text--lighten-2">{{ ch[primaryCol] }}
-              <span class="grey--text caption primary-key ml-1"
-                    v-if="primaryKey"> (Primary Key : {{ ch[primaryKey] }})</span>
+            <v-card-title class="primary-value textColor--text text--lighten-2">
+              {{ ch[primaryCol] }}
+              <span
+                v-if="primaryKey"
+                class="grey--text caption primary-key ml-1"
+              > (Primary Key : {{ ch[primaryKey] }})</span>
             </v-card-title>
           </v-card>
         </template>
 
-        <div v-else-if="data || localState" class="text-center  textLight--text"
-             :class="{'pt-6 pb-4' : !isForm , 'pt-4 pb-3':isForm}">
+        <div
+          v-else-if="data || localState"
+          class="text-center  textLight--text"
+          :class="{'pt-6 pb-4' : !isForm , 'pt-4 pb-3':isForm}"
+        >
           No item{{ bt ? '' : 's' }} found
         </div>
 
         <div v-if="isForm" class="mb-2 d-flex align-center justify-center">
           <pagination
             v-if="!bt && data && data.count > 1"
+            v-model="page"
             :size="size"
             :count="data && data.count"
-            v-model="page"
             @input="loadData"
-          ></pagination>
+          />
         </div>
       </div>
     </v-card-text>
     <v-card-actions v-if="!isForm" class="justify-center flex-column" :class="{'py-0':isForm}">
       <pagination
         v-if="!bt && data && data.count > 1"
+        v-model="page"
         :size="size"
         :count="data && data.count"
-        v-model="page"
-        @input="loadData"
         class="mb-3"
-      ></pagination>
+        @input="loadData"
+      />
     </v-card-actions>
   </v-card>
   <!--  </v-dialog>-->
-
 </template>
 
 <script>
-import Pagination from "@/components/project/spreadsheet/components/pagination";
+import Pagination from '@/components/project/spreadsheet/components/pagination'
 
 export default {
-  name: "listChildItems",
-  components: {Pagination},
+  name: 'ListChildItems',
+  components: { Pagination },
   props: {
     isForm: Boolean,
     bt: Object,
@@ -118,8 +130,8 @@ export default {
     },
     queryParams: {
       type: Object,
-      default() {
-        return {};
+      default () {
+        return {}
       }
     },
     primaryKey: String,
@@ -134,34 +146,35 @@ export default {
     data: null,
     page: 1
   }),
-  mounted() {
-    this.loadData();
+  computed: {
+    isDataAvail () {
+      return (this.data && this.data.list && this.data.list.length) || (this.localState && this.localState.length)
+    },
+    show: {
+      set (v) {
+        this.$emit('input', v)
+      },
+      get () {
+        return this.value
+      }
+    }
+  },
+  watch: {
+    queryParams () {
+      this.loadData()
+    }
+  },
+  mounted () {
+    this.loadData()
   },
   methods: {
-    async loadData() {
-      if (!this.api || this.isNew) return;
+    async loadData () {
+      if (!this.api || this.isNew) { return }
       this.data = await this.api.paginatedList({
         limit: this.size,
         offset: this.size * (this.page - 1),
         ...this.queryParams
       })
-    }
-  },
-  computed: {
-    isDataAvail() {
-      return (this.data && this.data.list && this.data.list.length) || (this.localState && this.localState.length);
-    },
-    show: {
-      set(v) {
-        this.$emit('input', v)
-      }, get() {
-        return this.value;
-      }
-    }
-  },
-  watch: {
-    queryParams() {
-      this.loadData();
     }
   }
 }

@@ -1,9 +1,9 @@
 <template>
   <div>
     <v-chip
-      small
       v-for="v in (value || '').split(',')"
       :key="v"
+      small
       :color="colors[setValues.indexOf(v) % colors.length]"
       class="set-item ma-1 py-1 px-3"
     >
@@ -13,20 +13,20 @@
 </template>
 
 <script>
-import colors from "@/mixins/colors";
+import colors from '@/mixins/colors'
 
 export default {
-  props: ['value', 'column'],
-  name: "setListCell",
+  name: 'SetListCell',
   mixins: [colors],
+  props: ['value', 'column'],
   computed: {
 
-    setValues() {
+    setValues () {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
-      return [];
-    },
+      return []
+    }
   }
 }
 </script>

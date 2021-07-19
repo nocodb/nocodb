@@ -1,9 +1,11 @@
 <template>
   <section class="section container">
     <div class="box">
-      <h1 class="title is-1">Bad request</h1>
+      <h1 class="title is-1">
+        Bad request
+      </h1>
       <div class="notification is-danger">
-        <button class="delete"></button>
+        <button class="delete" />
         You made a bad request
       </div>
     </div>
@@ -11,30 +13,30 @@
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
+export default {
+  directives: { },
+  components: { },
+  validate ({ params }) { return true },
+  props: { },
+  data () {
+    return {
 
-      }
-    },
-    computed : {
+    }
+  },
+  head () { return {} },
+  computed: {
 
-    },
-    methods : {
+  },
+  watch: { },
+  created () { },
+  mounted () {},
+  beforeDestroy () {},
+  methods: {
 
-    },
-    beforeCreated () {},
-    created () { },
-    mounted () {},
-    beforeDestroy () {},
-    destroy () {},
-    validate({params}) { return true },
-    head() { return {} },
-    props: { },
-    watch: { },
-    directives : { },
-    components : { }
-  }
+  },
+  beforeCreated () {},
+  destroy () {}
+}
 </script>
 
 <style scoped>

@@ -1,27 +1,30 @@
 <template>
-
   <v-overlay
     absolute
     class="text-center"
   >
-    <p class="display-1">Your trial period has expired.</p>
-    <v-btn @click="openPricingPage" class="primary" x-large>Buy Now</v-btn>
+    <p class="display-1">
+      Your trial period has expired.
+    </p>
+    <v-btn class="primary" x-large @click="openPricingPage">
+      Buy Now
+    </v-btn>
   </v-overlay>
 </template>
 
 <script>
 
-  // const {shell} = require("electron").remote.require(
-  //   "./libs"
-  // );
-  export default {
-    name: "trialExpired",
-    methods:{
-      openPricingPage(){
-        // shell.openExternal('https://nocodb.com/pricing');
-      }
+// const {shell} = require("electron").remote.require(
+//   "./libs"
+// );
+export default {
+  name: 'TrialExpired',
+  methods: {
+    openPricingPage () {
+      // shell.openExternal('https://nocodb.com/pricing');
     }
   }
+}
 </script>
 
 <style scoped>

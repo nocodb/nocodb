@@ -1,86 +1,84 @@
 <template>
-
   <section class="section container">
-
     <div class="box">
       <div class="field">
         <div class="control">
           <label class="label">firstName</label>
-          <input class="input" type="text" placeholder="firstName" id="firstName" v-model="user.firstName">
+          <input id="firstName" v-model="user.firstName" class="input" type="text" placeholder="firstName">
         </div>
       </div>
       <div class="field">
         <div class="control">
           <label class="label">lastName</label>
-          <input class="input" type="text" placeholder="lastName" id="lastName" v-model="user.lastName">
+          <input id="lastName" v-model="user.lastName" class="input" type="text" placeholder="lastName">
         </div>
       </div>
       <div class="field">
         <div class="control">
           <label class="label">roles</label>
-          <input class="input" type="text" placeholder="roles" id="roles" v-model="user.roles">
+          <input id="roles" v-model="user.roles" class="input" type="text" placeholder="roles">
         </div>
       </div>
-
 
       <div class="field is-grouped">
         <div class="control">
-          <button class="button is-link" @click="update()">Submit</button>
+          <button class="button is-link" @click="update()">
+            Submit
+          </button>
         </div>
       </div>
     </div>
-
   </section>
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  props: {},
+  data () {
+    return {
+      user: {
+        username: 'swetha',
+        _id: 1,
+        firstName: 'swetha',
+        lastName: 'naveen',
+        email: 'swethks@gmail.com',
+        provider: 'facebook',
+        created: '22-01-2018',
+        roles: ['editor', 'guest']
+      },
+      authentication: {
         user: {
-          username: 'swetha',
-          _id: 1,
-          firstName: 'swetha',
-          lastName: 'naveen',
-          email: 'swethks@gmail.com',
-          provider: 'facebook',
-          created: '22-01-2018',
-          roles: ['editor', 'guest']
-        },
-        authentication: {
-          user: {
-            _id: 1
-          }
+          _id: 1
         }
       }
-    },
-    computed: {},
-    methods: {
-      update() {
-        //console.log('update user');
-      }
-    },
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true
-    },
-    head() {
-      return {}
-    },
-    props: {},
-    watch: {},
-    directives: {},
-    components: {}
+    }
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {
+    update () {
+      // console.log('update user');
+    }
+  },
+  beforeCreated () {
+  },
+  destroy () {
   }
+}
 </script>
 
 <style scoped>

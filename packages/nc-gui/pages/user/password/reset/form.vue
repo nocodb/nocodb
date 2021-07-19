@@ -1,126 +1,130 @@
 <template>
-
-    <section class="section container">
-      <div class="box">
-        <div class="field">
-          <div class="control">
-            <label class="label">newPassword</label>
-            <input class="input" type="password" placeholder="newPassword" id="newPassword"
-                   v-model="passwordDetails.newPassword">
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="control">
-            <label class="label">verifyPassword</label>
-            <input class="input" type="password" placeholder="verifyPassword" id="verifyPassword"
-                   v-model="passwordDetails.verifyPassword">
-          </div>
-        </div>
-
-
-        <div class="field is-grouped">
-          <div class="control">
-            <button class="button is-link" @click="resetUserPassword">Submit</button>
-          </div>
+  <section class="section container">
+    <div class="box">
+      <div class="field">
+        <div class="control">
+          <label class="label">newPassword</label>
+          <input
+            id="newPassword"
+            v-model="passwordDetails.newPassword"
+            class="input"
+            type="password"
+            placeholder="newPassword"
+          >
         </div>
       </div>
 
+      <div class="field">
+        <div class="control">
+          <label class="label">verifyPassword</label>
+          <input
+            id="verifyPassword"
+            v-model="passwordDetails.verifyPassword"
+            class="input"
+            type="password"
+            placeholder="verifyPassword"
+          >
+        </div>
+      </div>
 
-      <v-row  >
-        <v-col cols="6">
-          <v-card class="pa-5">
-            <v-form v-model="valid" ref="formType" lazy-validation>
+      <div class="field is-grouped">
+        <div class="control">
+          <button class="button is-link" @click="resetUserPassword">
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
 
-              <v-text-field
-                name="input-10-2"
-                label="New password"
-                :append-icon="e3 ? 'visibility' : 'visibility_off'"
-                :append-icon-cb="() => (e3 = !e3)"
-                v-model="passwordDetails.newPassword"
-                :rules="formRules.password"
-                :type="e3 ? 'password' : 'text'"
-              ></v-text-field>
+    <v-row>
+      <v-col cols="6">
+        <v-card class="pa-5">
+          <v-form ref="formType" v-model="valid" lazy-validation>
+            <v-text-field
+              v-model="passwordDetails.newPassword"
+              name="input-10-2"
+              label="New password"
+              :append-icon="e3 ? 'visibility' : 'visibility_off'"
+              :append-icon-cb="() => (e3 = !e3)"
+              :rules="formRules.password"
+              :type="e3 ? 'password' : 'text'"
+            />
 
-              <v-text-field
-                name="input-10-2"
-                label="Confirm new password"
-                :append-icon="e3 ? 'visibility' : 'visibility_off'"
-                :append-icon-cb="() => (e3 = !e3)"
-                v-model="passwordDetails.verifyPassword"
-                :rules="formRules.password"
-                :type="e3 ? 'password' : 'text'"
-              ></v-text-field>
+            <v-text-field
+              v-model="passwordDetails.verifyPassword"
+              name="input-10-2"
+              label="Confirm new password"
+              :append-icon="e3 ? 'visibility' : 'visibility_off'"
+              :append-icon-cb="() => (e3 = !e3)"
+              :rules="formRules.password"
+              :type="e3 ? 'password' : 'text'"
+            />
 
-              <v-btn
-                @click="resetUserPassword"
-                :disabled="!valid">
-                submit
-              </v-btn>
-
-            </v-form>
-          </v-card>
-        </v-col>
-      </v-row>
-
-    </section>
-
+            <v-btn
+              :disabled="!valid"
+              @click="resetUserPassword"
+            >
+              submit
+            </v-btn>
+          </v-form>
+        </v-card>
+      </v-col>
+    </v-row>
+  </section>
 </template>
 
 <script>
-  import {isEmail} from "@/helpers";
+import { isEmail } from '@/helpers'
 
-  export default {
-    data() {
-      return {
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  props: {},
+  data () {
+    return {
 
-        passwordDetails: {
-          newPassword: null,
-          verifyPassword: null
-        },
+      passwordDetails: {
+        newPassword: null,
+        verifyPassword: null
+      },
 
-        formRules: {
-          email: [
-            v => !!v || 'E-mail is required',
-            v => isEmail(v) || 'E-mail must be valid'
-          ],
-        },
+      formRules: {
+        email: [
+          v => !!v || 'E-mail is required',
+          v => isEmail(v) || 'E-mail must be valid'
+        ]
+      },
 
-        valid: true,
-        e3: true,
-        alert: true,
+      valid: true,
+      e3: true,
+      alert: true
 
-
-      }
-
-    },
-    computed: {},
-    methods: {
-      resetUserPassword() {
-        //console.log('resetuserpassword');
-      }
-    },
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true
-    },
-    head() {
-      return {}
-    },
-    props: {},
-    watch: {},
-    directives: {},
-    components: {}
+    }
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {
+    resetUserPassword () {
+      // console.log('resetuserpassword');
+    }
+  },
+  beforeCreated () {
+  },
+  destroy () {
   }
+}
 </script>
 
 <style scoped>

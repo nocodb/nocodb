@@ -1,12 +1,12 @@
-export default function debounce(callback, time) {
-  let interval;
+export default function debounce (callbackFn, time) {
+  let interval
   return (...args) => {
-    clearTimeout(interval);
+    clearTimeout(interval)
     interval = setTimeout(() => {
-      interval = null;
-      callback(...args);
-    }, time);
-  };
+      interval = null
+      callbackFn(...args)
+    }, time)
+  }
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -2,19 +2,23 @@
   <v-dialog v-model="dialogShow" persistent max-width="800">
     <v-card>
       <v-progress-linear
+        v-if="progressbar"
         indeterminate
         color="green"
-        v-if="progressbar"
-      ></v-progress-linear>
+      />
       <div class="px-2">
-        <v-card-title class=" headline">Instant API Editor
-          <v-spacer></v-spacer>
-          <v-btn small :disabled="progressbar" @click="dialogShow = false">Cancel</v-btn>
+        <v-card-title class=" headline">
+          Instant API Editor
+          <v-spacer />
+          <v-btn small :disabled="progressbar" @click="dialogShow = false">
+            Cancel
+          </v-btn>
           <v-btn color="primary" small :disabled="progressbar" @click="saveCode">
-            <v-icon small class="mr-1">mdi-content-save</v-icon>
+            <v-icon small class="mr-1">
+              mdi-content-save
+            </v-icon>
             Save
           </v-btn>
-
         </v-card-title>
 
         <v-card-text>
@@ -23,10 +27,9 @@
           <!--          ></v-textarea>-->
 
           <monaco-ts-editor
-            style="min-height: 450px"
             v-model="code"
-          ></monaco-ts-editor>
-
+            style="min-height: 450px"
+          />
         </v-card-text>
       </div>
     </v-card>
@@ -34,24 +37,11 @@
 </template>
 
 <script>
-import MonacoTsEditor from "../monaco/MonacoTsEditor";
+import MonacoTsEditor from '../monaco/MonacoTsEditor'
 
 export default {
-  name: "handlerCodeEditor",
-  components: {MonacoTsEditor},
-  data: () => ({
-    progressbar: false,
-    code: ''
-  }),
-  computed: {
-    dialogShow: {
-      get() {
-        return this.value;
-      }, set(val) {
-        this.$emit('input', val);
-      }
-    }
-  },
+  name: 'HandlerCodeEditor',
+  components: { MonacoTsEditor },
   props: {
     value: Boolean,
     method: String,
@@ -62,14 +52,69 @@ export default {
       default: false
     }
   },
-  methods: {
-    async saveCode() {
+  data: () => ({
+    progressbar: false,
+    code: ''
+  }),
+  computed: {
+    dialogShow: {
+      get () {
+        return this.value
+      },
+      set (val) {
+        this.$emit('input', val)
+      }
+    }
+  },
+  watch: {
+    async route (val) {
       try {
-        this.progressbar = true;
+        if (this.isMiddleware) {
+          this.code = JSON.parse(val.functions)[0]
+        } else {
+          this.code = JSON.parse(val[this.method].functions)[0]
+        }
+      } catch (e) {
+        let functions
+        if (this.isMiddleware) {
+          functions = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+            tn: this.nodes.tn || this.nodes.view_name
+          }, 'defaultRestMiddlewareCodeGet', {
+            title: this.route.title,
+            relation_type: this.route.relation_type,
+            tn: this.nodes.tn || this.nodes.view_name
+          }])
+        } else {
+          functions = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+            tn: this.nodes.tn || this.nodes.view_name
+          }, 'defaultRestHandlerCodeGet', {
+            type: this.method,
+            path: this.route[this.method].path,
+            title: this.route[this.method].title,
+            relation_type: this.route[this.method].relation_type,
+            tnp: this.route[this.method].tnp,
+            tnc: this.route[this.method].tnc,
+            tn: this.nodes.tn || this.nodes.view_name
+          }])
+        }
+        if (functions && functions.length) {
+          this.code = functions[0]
+        }
+      }
+    }
+  },
+  methods: {
+    async saveCode () {
+      try {
+        this.progressbar = true
         if (this.isMiddleware) {
           await this.$store.dispatch('sqlMgr/ActSqlOp', [{
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias,
+            dbAlias: this.nodes.dbAlias
           }, 'xcRoutesMiddlewareUpdate', {
             tn: this.nodes.tn || this.nodes.view_name,
             type: this.method,
@@ -79,64 +124,23 @@ export default {
         } else {
           await this.$store.dispatch('sqlMgr/ActSqlOp', [{
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias,
+            dbAlias: this.nodes.dbAlias
           }, 'xcRoutesHandlerUpdate', {
             type: this.method,
             title: this.route[this.method].title,
             functions: [this.code],
             path: this.route[this.method].path,
             relation_type: this.route[this.method].relation_type,
-            tn: this.nodes.tn || this.nodes.view_name,
+            tn: this.nodes.tn || this.nodes.view_name
           }])
         }
-        this.$toast.success('API Handler updated successfully').goAway(3000);
-        this.dialogShow = false;
+        this.$toast.success('API Handler updated successfully').goAway(3000)
+        this.dialogShow = false
       } catch (e) {
-        console.log('Error', e);
-        this.$toast.error('Some internal error occurred').goAway(3000);
+        console.log('Error', e)
+        this.$toast.error('Some internal error occurred').goAway(3000)
       }
-      this.progressbar = false;
-    }
-  },
-  watch: {
-    async route(val) {
-      try {
-        if (this.isMiddleware) {
-          this.code = JSON.parse(val.functions)[0]
-        } else {
-          this.code = JSON.parse(val[this.method].functions)[0]
-        }
-      } catch (e) {
-        let functions;
-        if (this.isMiddleware) {
-          functions = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-            env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias,
-            tn: this.nodes.tn || this.nodes.view_name,
-          }, 'defaultRestMiddlewareCodeGet', {
-            title: this.route.title,
-            relation_type: this.route.relation_type,
-            tn: this.nodes.tn || this.nodes.view_name,
-          }])
-        } else {
-          functions = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-            env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias,
-            tn: this.nodes.tn || this.nodes.view_name,
-          }, 'defaultRestHandlerCodeGet', {
-            type: this.method,
-            path: this.route[this.method].path,
-            title: this.route[this.method].title,
-            relation_type: this.route[this.method].relation_type,
-            tnp: this.route[this.method].tnp,
-            tnc: this.route[this.method].tnc,
-            tn: this.nodes.tn || this.nodes.view_name,
-          }])
-        }
-        if (functions && functions.length) {
-          this.code = functions[0];
-        }
-      }
+      this.progressbar = false
     }
   }
 }

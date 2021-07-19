@@ -1,42 +1,45 @@
 <template>
   <v-textarea
+    v-model="localState"
     dense
     outlined
-    :rules="[v => !!v || !inputDetails.required  || 'Required']"
+    :rules="[v => !!v || !inputDetails.required || 'Required']"
     :name="inputDetails.key"
     :placeholder="inputDetails.placeholder || ''"
     hide-details="auto"
-    v-on="parentListeners" v-model="localState" class="caption" rows="3"
+    class="caption"
+    rows="3"
     :required="inputDetails.valid"
-  ></v-textarea>
-
+    v-on="parentListeners"
+  />
 </template>
 
 <script>
 export default {
-  name: "textAreaCell",
+  name: 'TextAreaCell',
   props: {
     value: String,
     inputDetails: Object
   },
-  created() {
-    this.localState = this.value;
-  },
-  mounted() {
-    this.$refs.textarea.focus();
-  }, computed: {
+  computed: {
     localState: {
-      get() {
+      get () {
         return this.value
       },
-      set(val) {
-        this.$emit('input', val);
+      set (val) {
+        this.$emit('input', val)
       }
     },
-    parentListeners() {
-      const $listeners = {};
-      return $listeners;
-    },
+    parentListeners () {
+      const $listeners = {}
+      return $listeners
+    }
+  },
+  created () {
+    this.localState = this.value
+  },
+  mounted () {
+    this.$refs.textarea.focus()
   }
 }
 </script>

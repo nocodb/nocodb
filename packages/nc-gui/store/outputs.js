@@ -1,28 +1,24 @@
-import axios from 'axios';
-import SqlQueryParser from '../helpers/SqlQueryParser'
-
 export const state = () => ({
-  list: [{name: 'abc'}],
-  headers: [{text: 'SQL Output', value: 'name'}],
-});
+  list: [{ name: 'abc' }],
+  headers: [{ text: 'SQL Output', value: 'name' }]
+})
 
 export const mutations = {
-  MutClear(state) {
-    state.list = [];
-    state.headers = [];
+  MutClear (state) {
+    state.list = []
+    state.headers = []
   },
-  MutListSet(state, args) {
-    let list = args.result;
-    if (args.sqlUi)
-      list = args.sqlUi.handleRawOutput(args.result, args.headers);
-    state.list = [...list];
-    state.headers = [...args.headers];
+  MutListSet (state, args) {
+    let list = args.result
+    if (args.sqlUi) { list = args.sqlUi.handleRawOutput(args.result, args.headers) }
+    state.list = [...list]
+    state.headers = [...args.headers]
   }
-};
+}
 
-export const getters = {};
+export const getters = {}
 
-export const actions = {};
+export const actions = {}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

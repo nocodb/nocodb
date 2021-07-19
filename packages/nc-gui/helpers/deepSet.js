@@ -1,9 +1,9 @@
-export default function(obj, value, path) {
-  let i;
-  path = path.split(".");
-  for (i = 0; i < path.length - 1; i++) obj = obj[path[i]];
+export default function (obj, value, path) {
+  let i
+  path = path.split('.')
+  for (i = 0; i < path.length - 1; i++) { obj = obj[path[i]] }
 
-  obj[path[i]] = value;
+  obj[path[i]] = value
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

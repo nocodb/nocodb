@@ -1,18 +1,18 @@
-let xUtilsPlugin = {};
+import Vue from 'vue'
+
+const xUtilsPlugin = {}
 xUtilsPlugin.install = function (Vue, options) {
   Vue.prototype.$xutils = function () {
-return {};
+    return {}
   }
-    // {
-    // get isDev(){
-    //   return process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'dev';
-    // }
+  // {
+  // get isDev(){
+  //   return process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'dev';
+  // }
   // };
-};
+}
 
-import Vue from 'vue';
-
-Vue.use(xUtilsPlugin);
+Vue.use(xUtilsPlugin)
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

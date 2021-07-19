@@ -4,107 +4,149 @@
     @keydown.stop.right
     @keydown.stop.up
     @keydown.stop.down
-    @keydown.stop.enter="$emit('save')">
+    @keydown.stop.enter="$emit('save')"
+  >
     <editable-attachment-cell
-      :active="active"
-      v-on="$listeners"
-      :db-alias="dbAlias"
       v-if="isAttachment"
-      v-model="localState"></editable-attachment-cell>
+      v-model="localState"
+      :active="active"
+      :db-alias="dbAlias"
+      v-on="$listeners"
+    />
 
+    <boolean-cell
+      v-else-if="isBoolean"
+      v-model="localState"
+      :is-form="isForm"
+      v-on="parentListeners"
+      @input="$emit('change');"
+    />
 
-    <boolean-cell :isForm="isForm" v-else-if="isBoolean" v-on="parentListeners"
-                  v-model="localState" @input="$emit('change');"></boolean-cell>
+    <integer-cell
+      v-else-if="isInt"
+      v-model="localState"
+      v-on="parentListeners"
+    />
 
-    <integer-cell v-else-if="isInt" v-on="parentListeners"
-                  v-model="localState"></integer-cell>
+    <float-cell
+      v-else-if="isFloat"
+      v-model="localState"
+      v-on="parentListeners"
+    />
 
-    <float-cell v-else-if="isFloat" v-on="parentListeners"
-                v-model="localState"></float-cell>
+    <date-picker-cell
+      v-else-if="isDate"
+      v-model="localState"
+      v-on="parentListeners"
+      @input="$emit('change')"
+    />
 
-    <date-picker-cell v-else-if="isDate" v-on="parentListeners"
-                      @input="$emit('change')"
-                      v-model="localState"></date-picker-cell>
+    <time-picker-cell
+      v-else-if="isTime"
+      v-model="localState"
+      v-on="parentListeners"
+      @update="$emit('change')"
+    />
 
-    <time-picker-cell v-else-if="isTime" v-on="parentListeners"
-                      @update="$emit('change')"
-                      v-model="localState"></time-picker-cell>
+    <date-time-picker-cell
+      v-else-if="isDateTime"
+      v-model="localState"
+      ignore-focus="ignoreFocus"
+      v-on="parentListeners"
+      @input="$emit('change')"
+    />
 
-    <date-time-picker-cell ignoreFocus="ignoreFocus" v-on="parentListeners"
-                           @input="$emit('change')"
-                           v-else-if="isDateTime" v-model="localState"></date-time-picker-cell>
-
-    <enum-cell v-else-if="isEnum && !isForm && !active" :column="column" v-on="parentListeners"
-               v-model="localState"></enum-cell>
-    <enum-list-cell v-else-if="isEnum" :is-form="isForm" :column="column" v-on="parentListeners"
-                    v-model="localState"></enum-list-cell>
+    <enum-cell
+      v-else-if="isEnum && !isForm && !active"
+      v-model="localState"
+      :column="column"
+      v-on="parentListeners"
+    />
+    <enum-list-cell
+      v-else-if="isEnum"
+      v-model="localState"
+      :is-form="isForm"
+      :column="column"
+      v-on="parentListeners"
+    />
     <!--    <enum-radio-editable-cell v-else-if="isEnum" :column="column" v-on="parentListeners"
                                   v-model="localState"></enum-radio-editable-cell>-->
 
-    <json-cell v-else-if="isJSON" v-model="localState"
-               v-on="parentListeners"
-               @input="$emit('save')"
-    ></json-cell>
-
-    <set-list-editable-cell :column="column" v-else-if="isSet && (active || isForm)" v-model="localState"
-                            v-on="parentListeners"></set-list-editable-cell>
-    <set-list-cell :column="column" v-else-if="isSet" v-model="localState"
-                   v-on="parentListeners"></set-list-cell>
-
-
-    <text-cell v-else-if="isString" v-on="parentListeners" v-model="localState"></text-cell>
-
-    <text-area-cell
-      :is-form="isForm"
-      v-else-if="isTextArea"
+    <json-cell
+      v-else-if="isJSON"
       v-model="localState"
       v-on="parentListeners"
-    ></text-area-cell>
+      @input="$emit('save')"
+    />
+
+    <set-list-editable-cell
+      v-else-if="isSet && (active || isForm)"
+      v-model="localState"
+      :column="column"
+      v-on="parentListeners"
+    />
+    <set-list-cell
+      v-else-if="isSet"
+      v-model="localState"
+      :column="column"
+      v-on="parentListeners"
+    />
+
+    <text-cell v-else-if="isString" v-model="localState" v-on="parentListeners" />
+
+    <text-area-cell
+      v-else-if="isTextArea"
+      v-model="localState"
+      :is-form="isForm"
+      v-on="parentListeners"
+    />
     <!--<set-list-checkbox-cell :column="column" v-else-if="isSet" v-model="localState"
                             v-on="parentListeners"></set-list-checkbox-cell>-->
 
-    <text-cell v-else v-model="localState" v-on="$listeners"></text-cell>
+    <text-cell v-else v-model="localState" v-on="$listeners" />
   </div>
 </template>
 
 <script>
-import DatePickerCell from "@/components/project/spreadsheet/components/editableCell/datePickerCell";
-import TextCell from "@/components/project/spreadsheet/components/editableCell/textCell";
-import DateTimePickerCell from "@/components/project/spreadsheet/components/editableCell/dateTimePickerCell";
-import TextAreaCell from "@/components/project/spreadsheet/components/editableCell/textAreaCell";
-import EnumListCell from "@/components/project/spreadsheet/components/editableCell/enumListEditableCell";
-import JsonCell from "@/components/project/spreadsheet/components/editableCell/jsonCell";
-import IntegerCell from "@/components/project/spreadsheet/components/editableCell/integerCell";
-import FloatCell from "@/components/project/spreadsheet/components/editableCell/floatCell";
-import TimePickerCell from "@/components/project/spreadsheet/components/editableCell/timePickerCell";
-import BooleanCell from "@/components/project/spreadsheet/components/editableCell/booleanCell";
-import SetListCheckboxCell from "@/components/project/spreadsheet/components/editableCell/setListCheckboxCell";
-import cell from "@/components/project/spreadsheet/mixins/cell";
-import EnumRadioEditableCell from "@/components/project/spreadsheet/components/editableCell/enumRadioEditableCell";
-import EditableAttachmentCell from "@/components/project/spreadsheet/components/editableCell/editableAttachmentCell";
-import EnumCell from "@/components/project/spreadsheet/components/cell/enumCell";
-import SetListEditableCell from "@/components/project/spreadsheet/components/editableCell/setListEditableCell";
-import SetListCell from "@/components/project/spreadsheet/components/cell/setListCell";
-import debounce from "debounce";
+import DatePickerCell from '@/components/project/spreadsheet/components/editableCell/datePickerCell'
+import TextCell from '@/components/project/spreadsheet/components/editableCell/textCell'
+import DateTimePickerCell from '@/components/project/spreadsheet/components/editableCell/dateTimePickerCell'
+import TextAreaCell from '@/components/project/spreadsheet/components/editableCell/textAreaCell'
+import EnumListCell from '@/components/project/spreadsheet/components/editableCell/enumListEditableCell'
+import JsonCell from '@/components/project/spreadsheet/components/editableCell/jsonCell'
+import IntegerCell from '@/components/project/spreadsheet/components/editableCell/integerCell'
+import FloatCell from '@/components/project/spreadsheet/components/editableCell/floatCell'
+import TimePickerCell from '@/components/project/spreadsheet/components/editableCell/timePickerCell'
+import BooleanCell from '@/components/project/spreadsheet/components/editableCell/booleanCell'
+import cell from '@/components/project/spreadsheet/mixins/cell'
+import EditableAttachmentCell from '@/components/project/spreadsheet/components/editableCell/editableAttachmentCell'
+import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
+import SetListEditableCell from '@/components/project/spreadsheet/components/editableCell/setListEditableCell'
+import SetListCell from '@/components/project/spreadsheet/components/cell/setListCell'
+import debounce from 'debounce'
 
 export default {
-  name: "editable-cell",
-  mixins: [cell],
+  name: 'EditableCell',
   components: {
     SetListCell,
     SetListEditableCell,
     EnumCell,
     EditableAttachmentCell,
-    EnumRadioEditableCell,
-    SetListCheckboxCell,
     BooleanCell,
     TimePickerCell,
     FloatCell,
-    IntegerCell, JsonCell, EnumListCell, TextAreaCell, DateTimePickerCell, TextCell, DatePickerCell
+    IntegerCell,
+    JsonCell,
+    EnumListCell,
+    TextAreaCell,
+    DateTimePickerCell,
+    TextCell,
+    DatePickerCell
   },
+  mixins: [cell],
   props: {
     dbAlias: String,
-    value: [String, Number, Object, Boolean,Array,Object],
+    value: [String, Number, Object, Boolean, Array, Object],
     meta: Object,
     ignoreFocus: Boolean,
     isForm: Boolean,
@@ -115,20 +157,20 @@ export default {
     destroyed: false
   }),
 
-  mounted() {
+  mounted () {
     // this.$refs.input.focus();
   },
-  beforeDestroy() {
+  beforeDestroy () {
     if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime)) {
-      this.$emit('change');
+      this.$emit('change')
     }
-    this.destroyed = true;
+    this.destroyed = true
   },
   methods: {
     syncDataDebounce: debounce(async function (self) {
       await self.syncData()
     }, 1000),
-    syncData() {
+    syncData () {
       if (!this.destroyed) {
         this.$emit('update')
       }
@@ -136,35 +178,35 @@ export default {
   },
   computed: {
     localState: {
-      get() {
+      get () {
         return this.value
       },
-      set(val) {
-        this.changed = true;
-        this.$emit('input', val);
-        this.syncDataDebounce(this);
+      set (val) {
+        this.changed = true
+        this.$emit('input', val)
+        this.syncDataDebounce(this)
       }
     },
-    parentListeners() {
-      const $listeners = {};
+    parentListeners () {
+      const $listeners = {}
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur;
+        $listeners.blur = this.$listeners.blur
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus;
+        $listeners.focus = this.$listeners.focus
       }
 
       if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel;
+        $listeners.cancel = this.$listeners.cancel
       }
 
       if (this.$listeners.update) {
-        $listeners.update = this.$listeners.update;
+        $listeners.update = this.$listeners.update
       }
 
-      return $listeners;
-    },
+      return $listeners
+    }
 
   }
 }

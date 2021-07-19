@@ -1,13 +1,13 @@
 <template>
   <v-dialog
+    :value="dialogShow"
     persistent
+    max-width="450"
     @keydown.esc="actionsMtd('hideDialog')"
     @keydown.enter="actionsMtd"
-    v-model="dialogShow"
-    max-width="450"
   >
-    <template v-slot:activator="{ on }">
-      <p class="hidden" v-on="on"></p>
+    <template #activator="{ on }">
+      <p class="hidden" v-on="on" />
     </template>
     <v-card class="elevation-1">
       <!-- <v-toolbar dense height="30">{{ this.heading }}</v-toolbar> -->
@@ -16,57 +16,59 @@
       </v-card-title>
 
       <v-card-text class="pt-4 pl-4">
-        <span class="headline ">{{ this.heading }}</span></v-card-text
-      >
-      <v-divider></v-divider>
+        <span class="headline ">{{ heading }}</span>
+      </v-card-text>
+      <v-divider />
 
       <v-card-actions class="pa-4">
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn small class="" @click="actionsMtd('hideDialog')">
           Cancel
         </v-btn>
-        <v-btn small :class="type" @click="actionsMtd()"
-        >Submit
-        </v-btn
+        <v-btn
+          small
+          :class="type"
+          @click="actionsMtd()"
         >
+          Submit
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
-import {mapGetters, mapActions} from "vuex";
 
 export default {
-  name: 'dlg-label-submit-cancel',
-  data() {
-    return {};
-  },
-  methods: {},
-  computed: {},
-
-  beforeCreated() {
-  },
-  created() {
-  },
-  xcCronSavented() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
-  validate({params}) {
-    return true;
-  },
-  head() {
-    return {};
+  name: 'DlgLabelSubmitCancel',
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
   },
   // todo: 2 way binding for dialogShow
-  props: ["heading", "dialogShow", "actionsMtd", "title", "type"],
+  props: ['heading', 'dialogShow', 'actionsMtd', 'title', 'type'],
+  data () {
+    return {}
+  },
+  head () {
+    return {}
+  },
+  computed: {},
   watch: {},
-  directives: {},
-  components: {}
-};
+  created () {
+  },
+  beforeDestroy () {
+  },
+  methods: {},
+
+  beforeCreated () {
+  },
+  xcCronSavented () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped>

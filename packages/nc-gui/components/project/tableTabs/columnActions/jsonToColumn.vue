@@ -1,84 +1,83 @@
 <template>
   <v-dialog
+    v-model="dialogShow"
     width="60%"
-    v-model="dialogShow">
+  >
     <v-card>
-
-      <h5 class="body-1 pa-1 text-center">Paste JSON/JSON5 String</h5>
+      <h5 class="body-1 pa-1 text-center">
+        Paste JSON/JSON5 String
+      </h5>
 
       <div class="d-flex" style="height: 100%; width:100%">
-
         <div style="" class="text-center flex-shrink-1 d-flex flex-column">
-
           <x-icon
             icon-class="mx-2 mt-3 elevation-1"
             color="success success"
             @click="$emit('load',jsonContent)"
-          >mdi-send
+          >
+            mdi-send
           </x-icon>
-
         </div>
         <div class="flex-grow-1" style="overflow:auto;height:100%">
-
           <monaco-json-editor
-            :validate="false"
             v-model="jsonContent"
-            lang="json" style="height: 500px;width: 100%;min-width: 250px"
-          ></monaco-json-editor>
+            :validate="false"
+            lang="json"
+            style="height: 500px;width: 100%;min-width: 250px"
+          />
         </div>
       </div>
-
     </v-card>
-
   </v-dialog>
 </template>
 
 <script>
 
-  import {MonacoJsonEditor} from '../../../monaco/index'
+import { MonacoJsonEditor } from '../../../monaco/index'
 
-  export default {
-    name: "jsonToColumn",
-    data() {
-      return {
-        jsonContent: JSON.stringify({first_name: "James", last_name: "Bond"}, 0, 2),
-        activeTab: 0
-      };
-    },
-    methods: {},
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    head() {
-      return {};
-    },
-    props: {
-      value: Boolean,
-      show: Boolean
-    },
-    computed: {
-      dialogShow: {
-        get() {
-          return this.show;
-        }, set(val) {
-          this.$emit('update:show', val);
-        }
+export default {
+  name: 'JsonToColumn',
+  directives: {},
+  components: { MonacoJsonEditor },
+  validate ({ params }) {
+    return true
+  },
+  props: {
+    value: Boolean,
+    show: Boolean
+  },
+  data () {
+    return {
+      jsonContent: JSON.stringify({ first_name: 'James', last_name: 'Bond' }, 0, 2),
+      activeTab: 0
+    }
+  },
+  head () {
+    return {}
+  },
+  computed: {
+    dialogShow: {
+      get () {
+        return this.show
+      },
+      set (val) {
+        this.$emit('update:show', val)
       }
-    },
-    watch: {},
-    directives: {},
-    components: {MonacoJsonEditor}
+    }
+  },
+  watch: {},
+  created () {
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {},
+  beforeCreated () {
+  },
+  destroy () {
   }
+}
 </script>
 
 <style scoped>

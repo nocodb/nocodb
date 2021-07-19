@@ -2,20 +2,19 @@
   <div>
     <v-text-field
       v-bind="$attrs"
-      v-model="autocomplete"
-      @input="onInput"
       ref="input"
+      v-model="autocomplete"
       :style="styles"
-      @keydown.native="onKeyup"
       :class="[classNames,{'env-valid' : isEnvFound && isEnvUsageValid, 'env-invalid' : isEnvFound && !isEnvUsageValid}]"
-    >
-    </v-text-field>
+      @input="onInput"
+      @keydown.native="onKeyup"
+    />
 
     <v-menu
       ref="autoMenu"
+      v-model="show"
       :position-x="x"
       :position-y="y"
-      v-model="show"
       dense
       :min-width="width"
     >
@@ -24,131 +23,130 @@
           v-for="(item, index) in envValues"
           :key="index"
           @click="onSelect(item)"
-          v-on:keyup.enter="onSelect(item)"
+          @keyup.enter="onSelect(item)"
         >
           <v-list-item-title>{{ item }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
-
   </div>
-
-
 </template>
 
 <script>
 
-  // http://jsfiddle.net/pranavcbalan/qg5xyko6/
+// http://jsfiddle.net/pranavcbalan/qg5xyko6/
 
-  export default {
-    data() {
-      return {
-        show: false,
-        x: 0,
-        y: 0,
-        activeValue: '',
-        curPos: 0,
-        input: null,
-        el: null
+export default {
+  name: 'XAutoComplete',
+  props: {
+    value: String,
+    env: String,
+    styles: [Array, Object, String]
+  },
+  data () {
+    return {
+      show: false,
+      x: 0,
+      y: 0,
+      activeValue: '',
+      curPos: 0,
+      input: null,
+      el: null
+    }
+  },
+  computed: {
+    // filtered list based on input
+    items () {
+      return this.envValues.filter(s => s.includes(this.activeValue))
+    },
+    // for setting menu width to textfield width
+    width () {
+      return this.input && this.input.clientWidth
+    },
+    // extracting class names from root element
+    classNames () {
+      return this.el && this.el.className
+    },
+    // v-model for the text filed
+    autocomplete: {
+      get () {
+        return this.value
+      },
+      set (val) {
+        this.$emit('input', val)
       }
     },
-    name: "xAutoComplete",
-    props: {
-      value: String,
-      env: String,
-      styles: [Array, Object, String]
+    //  extracting current env keys
+    envValues () {
+      const envObj = this.isDashboard ? this.$store.getters['project/GtrApiEnvironment'] : this.$store.getters['project/GtrDefaultApiEnvironment']
+      return envObj && envObj[this.env] ? Object.keys(envObj[this.env]) : []
     },
-    computed: {
-      // filtered list based on input
-      items() {
-        return this.envValues.filter(s => s.indexOf(this.activeValue) > -1);
-      },
-      // for setting menu width to textfield width
-      width() {
-        return this.input && this.input.clientWidth;
-      },
-      // extracting class names from root element
-      classNames() {
-        return this.el && this.el.className;
-      },
-      // v-model for the text filed
-      autocomplete: {
-        get() {
-          return this.value;
-        }, set(val) {
-          this.$emit('input', val);
-        }
-      },
-      //  extracting current env keys
-      envValues() {
-        const envObj = this.isDashboard ? this.$store.getters['project/GtrApiEnvironment'] : this.$store.getters['project/GtrDefaultApiEnvironment'];
-        return envObj && envObj[this.env] ? Object.keys(envObj[this.env]) : [];
-      },
-      isEnvFound() {
-        return /{{\s*\w+\s*}}/.test(this.value);
-      },
-      isEnvUsageValid() {
-        const re = /{{\s*(\w+)\s*}}/g;
-        let m;
-        while (m = re.exec(this.value)) {
-          if (!this.envValues.includes(m[1])) return false;
-        }
-        return true;
+    isEnvFound () {
+      return /{{\s*\w+\s*}}/.test(this.value)
+    },
+    isEnvUsageValid () {
+      const re = /{{\s*(\w+)\s*}}/g
+      let m
+      // eslint-disable-next-line no-cond-assign
+      while (m = re.exec(this.value)) {
+        if (!this.envValues.includes(m[1])) { return false }
+      }
+      return true
+    }
+  },
+  mounted () {
+    this.el = this.$el
+    // getting input element reference
+    this.input = this.$refs.input && this.$refs.input.$el.querySelector('input')
+  },
+  created () {
+  },
+  methods: {
+    // handling input event
+    onInput (v) {
+      this.curPos = this.input.selectionStart || 0
+      // extracting string from beginning to caret position
+      // then using regex to check and extract certain pattern like
+      // eg: {{ , {{ someWord,...
+      const m = v.slice(0, this.curPos).match(/{{\s?(\w*)$/)
+      if (m) {
+        this.activeValue = m[1] || ''
+        this.show = true
+        // calculate menu position relative to input element
+        this.x = this.input.getBoundingClientRect().left// + (this.curPos * 8) % this.$refs.input.$el.clientWidth;
+        this.y = this.input.getBoundingClientRect().top + this.input.clientHeight
+      } else {
+        this.show = false
       }
     },
-    mounted() {
-      this.el = this.$el;
-      // getting input element reference
-      this.input = this.$refs.input && this.$refs.input.$el.querySelector('input');
-    },
-    methods: {
-      // handling input event
-      onInput(v) {
-        this.curPos = this.input.selectionStart || 0;
-        // extracting string from beginning to caret position
-        // then using regex to check and extract certain pattern like
-        // eg: {{ , {{ someWord,...
-        let m = v.slice(0, this.curPos).match(/{{\s?(\w*)$/);
-        if (m) {
-          this.activeValue = m[1] || '';
-          this.show = true;
-          // calculate menu position relative to input element
-          this.x = this.input.getBoundingClientRect().left;// + (this.curPos * 8) % this.$refs.input.$el.clientWidth;
-          this.y = this.input.getBoundingClientRect().top + this.input.clientHeight;
-        } else {
-          this.show = false;
-        }
-      },
-      onKeyup(e) {
-        const menu = this.$refs.autoMenu
-        // handlig up and down keys
-        if (this.show && (e.which === 40 || e.which === 38)) {
-          e.preventDefault()
-          menu.onKeyDown(e)
-          return;
-        }
-        // handling enter and space
-        if (this.show && (e.which === 13 || e.which === 32)) {
-          menu.onKeyDown(e)
-        }
-      },
-      onSelect(item) {
-        // appending menu value to the input
-        this.input.setRangeText(
-          // add closing only when its necessary
-          item.slice(this.activeValue.length) + (this.autocomplete.substr(this.input.selectionEnd, 2) === '}}' ? '' : '}}'),
-          this.input.selectionStart,
-          this.input.selectionEnd,
-          'end'
-        );
-        // trigger input event to sync with vue model
-        this.input.dispatchEvent(new Event('input'))
-        this.show = false;
+    onKeyup (e) {
+      const menu = this.$refs.autoMenu
+      // handlig up and down keys
+      if (this.show && (e.which === 40 || e.which === 38)) {
+        e.preventDefault()
+        menu.onKeyDown(e)
+        return
+      }
+      // handling enter and space
+      if (this.show && (e.which === 13 || e.which === 32)) {
+        menu.onKeyDown(e)
       }
     },
-    created() {
+    onSelect (item) {
+      // appending menu value to the input
+      this.input.setRangeText(
+        // add closing only when its necessary
+        item.slice(this.activeValue.length) + (this.autocomplete.substr(this.input.selectionEnd, 2) === '}}' ? '' : '}}'),
+        this.input.selectionStart,
+        this.input.selectionEnd,
+        'end'
+      )
+      // trigger input event to sync with vue model
+      this.input.dispatchEvent(new Event('input'))
+      this.show = false
     }
   }
+}
 </script>
 
 <style scoped>

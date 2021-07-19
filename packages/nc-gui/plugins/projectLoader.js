@@ -1,24 +1,23 @@
-export default async ({store, redirect, $axios, $toast}) => {
-  await store.dispatch('plugins/pluginPostInstall', 'Branding');
-  if (window.location.search
-    && /\bscope=|\bstate=/.test(window.location.search)
-    && /\bcode=/.test(window.location.search)) {
+export default async ({ store, redirect, $axios, $toast }) => {
+  await store.dispatch('plugins/pluginPostInstall', 'Branding')
+  if (window.location.search &&
+    /\bscope=|\bstate=/.test(window.location.search) &&
+    /\bcode=/.test(window.location.search)) {
     try {
       const tokenData = await $axios.create({
-        baseURL: $axios.defaults.baseURL,
-      }).post(`/auth/${window.location.search.indexOf('state=github') > -1 ? 'github' : 'google'}/genTokenByCode${window.location.search}`);
+        baseURL: $axios.defaults.baseURL
+      }).post(`/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${window.location.search}`)
 
-      store.commit('users/MutSetToken', tokenData.data.token);
-      await store.dispatch('users/ActGetUserDetails');
+      store.commit('users/MutSetToken', tokenData.data.token)
+      await store.dispatch('users/ActGetUserDetails')
     } catch (e) {
       if (e.response && e.response.data && e.response.data.msg) {
-        $toast.error(e.response.data.msg).goAway(3000);
+        $toast.error(e.response.data.msg).goAway(3000)
       }
     }
-    const newURL = window.location.href.split("?")[0];
-    window.history.pushState('object', document.title, newURL);
+    const newURL = window.location.href.split('?')[0]
+    window.history.pushState('object', document.title, newURL)
   }
-
 
   const icons = {
     success: {
@@ -31,38 +30,36 @@ export default async ({store, redirect, $axios, $toast}) => {
       class: 'error',
       icon: 'error'
     }
-  };
+  }
 
   store.watch(
-    state => {
-      return state.notification.list && state.notification.list[0] && state.notification.list[0].status;
+    (state) => {
+      return state.notification.list && state.notification.list[0] && state.notification.list[0].status
     },
     () => {
       // console.log(store.state.notification.list)
-      const n = store.state.notification.list.length && store.state.notification.list[0];
+      const n = store.state.notification.list.length && store.state.notification.list[0]
       if (n && n.status !== 'pending' && n.type !== 'List') {
-        const msg = `${n.type} ${n.module}.${n.title} ${icons[n.status].message}`;
+        const msg = `${n.type} ${n.module}.${n.title} ${icons[n.status].message}`
         $toast[n.status](msg, {
           duration: 2000,
           icon: icons[n.status].icon
         })
       }
     }
-  );
+  )
 
   // window.onNuxtReady(async () => {
   console.log('===== Within nuxt ready handler =====')
-  await store.dispatch('project/ActLoadProjectInfo');
-  console.log('==== Projectinfo ', store.state.project.projectInfo);
+  await store.dispatch('project/ActLoadProjectInfo')
+  console.log('==== Projectinfo ', store.state.project.projectInfo)
   if (!store.state.project.projectInfo.projectHasDb) {
     redirect('/')
   } else if (store.state.project.projectInfo.projectHasAdmin === false) {
     redirect('/')
   }
   // })
-
-
-};
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

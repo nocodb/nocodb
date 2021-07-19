@@ -1,14 +1,14 @@
 <template>
   <v-row justify="center">
     <v-dialog
+      v-model="dialogShow"
       persistent
+      max-width="600"
       @keydown.esc="mtdDialogCancel()"
       @keydown.enter="mtdDialogSubmit(relation)"
-      v-model="dialogShow"
-      max-width="600"
     >
-      <template v-slot:activator="{ on }">
-        <p class="hidden" v-on="on"></p>
+      <template #activator="{ on }">
+        <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
         <v-card-title class="grey darken-2 subheading" style="height:30px">
@@ -17,127 +17,124 @@
         <v-form v-model="valid">
           <v-card-text class="pt-4 pl-4">
             <p class="headline">
-              {{ this.heading }} for {{ this.column.cn }}
+              {{ heading }} for {{ column.cn }}
             </p>
-            <v-row justify="space-between"
+            <v-row
+              justify="space-between"
             >
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
 
+                  v-model="relation.parentTable"
                   :loading="isRefTablesLoading"
                   label="Select Reference Table"
                   :full-width="false"
-                  v-model="relation.parentTable"
                   :items="refTables"
                   item-text="tn"
                   required
                   dense
-                ></v-autocomplete>
-              </v-col
-              >
+                />
+              </v-col>
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
+                  ref="parentColumnRef"
+                  v-model="relation.parentColumn"
                   :loading="isRefColumnsLoading"
                   label="Select Reference Column"
                   :full-width="false"
-                  v-model="relation.parentColumn"
                   :items="refColumns"
                   item-text="cn"
                   required
                   dense
-                  ref="parentColumnRef"
-                ></v-autocomplete>
-              </v-col
-              >
+                />
+              </v-col>
             </v-row>
 
-            <v-row justify="space-between"
+            <v-row
+              justify="space-between"
             >
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
+                  v-model="relation.onUpdate"
                   label="On Update"
                   :full-width="false"
-                  v-model="relation.onUpdate"
                   :items="onUpdateDeleteOptions"
                   required
                   dense
                   :disabled="relation.type !== 'real'"
-                ></v-autocomplete>
+                />
               </v-col>
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
+                  v-model="relation.onDelete"
                   label="On Delete"
                   :full-width="false"
-                  v-model="relation.onDelete"
                   :items="onUpdateDeleteOptions"
                   required
                   dense
                   :disabled="relation.type !== 'real'"
-                ></v-autocomplete>
+                />
               </v-col>
             </v-row>
 
-
             <v-row>
-
               <v-col class="pa-1">
                 <v-checkbox
+                  v-model="relation.type"
                   false-value="real"
                   true-value="virtual"
                   label="Virtual Relation"
                   :full-width="false"
-                  v-model="relation.type"
                   required
                   class="mt-0"
                   dense
-                ></v-checkbox>
+                />
               </v-col>
             </v-row>
           </v-card-text>
-          <v-divider></v-divider>
+          <v-divider />
 
           <v-card-actions class="pa-4">
-            <v-spacer></v-spacer>
+            <v-spacer />
             <v-btn class="" @click="mtdDialogCancel()">
               Cancel
             </v-btn>
             <v-btn
               class="primary "
-              @click="mtdDialogSubmit(relation)"
               :disabled="!valid"
-            ><u class="shortkey">S</u>ubmit
-            </v-btn
+              @click="mtdDialogSubmit(relation)"
             >
+              <u class="shortkey">S</u>ubmit
+            </v-btn>
           </v-card-actions>
-        </v-form
-        >
+        </v-form>
       </v-card>
     </v-dialog>
   </v-row>
 </template>
 
 <script>
-import {mapGetters, mapActions} from "vuex";
+import { mapGetters } from 'vuex'
 
 export default {
-  data() {
+  data () {
     return {
       valid: false,
       onUpdateDeleteOptions: [
-        "NO ACTION",
-        "CASCADE",
-        "RESTRICT",
-        "SET NULL",
-        "SET DEFAULT"
+        'NO ACTION',
+        'CASCADE',
+        'RESTRICT',
+        'SET NULL',
+        'SET DEFAULT'
       ],
       relation: {
         childColumn: this.column.cn,
         childTable: this.nodes.tn,
-        parentTable: this.column.rtn || "",
-        parentColumn: this.column.rcn || "",
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
-        updateRelation: this.column.rtn ? true : false,
+        parentTable: this.column.rtn || '',
+        parentColumn: this.column.rcn || '',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+        updateRelation: !!this.column.rtn,
         type: 'real'
       },
       isRefTablesLoading: false,
@@ -145,12 +142,12 @@ export default {
       refColumns: [],
       refTables: [],
       relationColumnChanged: false
-    };
+    }
   },
   methods: {
-    async loadColumnList() {
-      if (!this.relation.parentTable) return;
-      this.isRefColumnsLoading = true;
+    async loadColumnList () {
+      if (!this.relation.parentTable) { return }
+      this.isRefColumnsLoading = true
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -159,107 +156,101 @@ export default {
       //   tn: this.relation.parentTable
       // });
 
-
       // const result = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'columnList', {   tn: this.relation.parentTable})
 
-
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
-      }, 'columnList', {tn: this.relation.parentTable}])
+      }, 'columnList', { tn: this.relation.parentTable }])
 
-
-      const columns = result.data.list;
-      this.refColumns = JSON.parse(JSON.stringify(columns));
+      const columns = result.data.list
+      this.refColumns = JSON.parse(JSON.stringify(columns))
 
       if (this.relation.updateRelation && !this.relationColumnChanged) {
-        //only first time when editing add defaault value to this field
-        this.relation.parentColumn = this.column.rcn;
-        this.relationColumnChanged = true;
+        // only first time when editing add defaault value to this field
+        this.relation.parentColumn = this.column.rcn
+        this.relationColumnChanged = true
       } else {
-        //find pk column and assign to parentColumn
-        const pkKeyColumns = this.refColumns.filter(el => el.pk);
-        this.relation.parentColumn = (pkKeyColumns[0] || {}).cn || "";
+        // find pk column and assign to parentColumn
+        const pkKeyColumns = this.refColumns.filter(el => el.pk)
+        this.relation.parentColumn = (pkKeyColumns[0] || {}).cn || ''
       }
 
-      this.isRefColumnsLoading = false;
+      this.isRefColumnsLoading = false
     },
-    async loadTablesList() {
-      this.isRefTablesLoading = true;
+    async loadTablesList () {
+      this.isRefTablesLoading = true
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.tableList();
 
-
       // const result = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'tableList');
 
-
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
-      }, 'tableList']);
+      }, 'tableList'])
 
+      const tables = result.data.list
 
-      const tables = result.data.list;
-
-      this.refTables = JSON.parse(JSON.stringify(tables));
-      this.isRefTablesLoading = false;
+      this.refTables = JSON.parse(JSON.stringify(tables))
+      this.isRefTablesLoading = false
     }
   },
-  computed: {...mapGetters({sqlMgr: "sqlMgr/sqlMgr"})},
+  computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated() {
+  beforeCreated () {
   },
-  async created() {
-    await this.loadTablesList();
+  watch: {
+    'relation.parentTable' () {
+      this.loadColumnList()
+    }
+  },
+  async created () {
+    await this.loadTablesList()
 
     if (!this.relation.parentTable) {
-      let tn = (this.refTables[0] || {}).tn || "";
-      if (tn === "nc_evolutions" || tn === "_evolutions") {
-        tn = (this.refTables[1] || {}).tn || "";
+      let tn = (this.refTables[0] || {}).tn || ''
+      if (tn === 'nc_evolutions' || tn === '_evolutions') {
+        tn = (this.refTables[1] || {}).tn || ''
       }
-      this.relation.parentTable = tn;
+      this.relation.parentTable = tn
     }
     if (this.column.rtn) {
-      this.relation.parentTable = this.column.rtn;
+      this.relation.parentTable = this.column.rtn
     }
   },
-  mounted() {
+  mounted () {
   },
-  beforeDestroy() {
+  beforeDestroy () {
   },
-  destroy() {
-  },
-  validate({params}) {
-    return true;
-  },
-  head() {
-    return {};
-  },
-  props: [
-    "nodes",
-    "column",
-    "heading",
-    "dialogShow",
-    "mtdDialogCancel",
-    "mtdDialogSubmit"
-  ],
-  watch: {
-    "relation.parentTable": function () {
-      this.loadColumnList();
-    }
+  destroy () {
   },
   directives: {},
-  components: {}
-};
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  head () {
+    return {}
+  },
+  props: [
+    'nodes',
+    'column',
+    'heading',
+    'dialogShow',
+    'mtdDialogCancel',
+    'mtdDialogSubmit'
+  ]
+}
 </script>
 
 <style scoped>

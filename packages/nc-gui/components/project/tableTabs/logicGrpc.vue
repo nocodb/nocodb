@@ -1,181 +1,199 @@
+<!-- eslint-disable -->
 <template>
   <div>
-
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
-        <v-breadcrumbs :items="[{
-          text: nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: nodes.tn || nodes.view_name + ' (APIs)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+                     text: nodes.env,
+                     disabled: true,
+                     href: '#'
+                   },{
+                     text: nodes.dbAlias,
+                     disabled: true,
+                     href: '#'
+                   },
+                   {
+                     text: nodes.tn || nodes.view_name + ' (APIs)',
+                     disabled: true,
+                     href: '#'
+                   }]"
+          divider=">"
+          small
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
-
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn small outlined @click="showSwagger = !showSwagger" class="caption text-capitalize" color="primary">
-        <v-icon small  color="primary"> {{showSwagger ?'mdi-eye-off-outline' : 'mdi-eye-outline'}}</v-icon> &nbsp;
+      <v-spacer />
+      <v-btn small outlined class="caption text-capitalize" color="primary" @click="showSwagger = !showSwagger">
+        <v-icon small color="primary">
+          {{ showSwagger ?'mdi-eye-off-outline' : 'mdi-eye-outline' }}
+        </v-icon> &nbsp;
 
-        {{ showSwagger ? 'Hide Protobuf' : 'Show Protobuf' }}</v-btn>
-      <x-btn outlined tooltip="Reload Rows"
-             color="primary"
-             small
-             v-ge="['rows','reload']"
-             @click="loadSchema(); loadRpcs();">
-        <v-icon small left>refresh</v-icon>
+        {{ showSwagger ? 'Hide Protobuf' : 'Show Protobuf' }}
+      </v-btn>
+      <x-btn
+        v-ge="['rows','reload']"
+        outlined
+        tooltip="Reload Rows"
+        color="primary"
+        small
+        @click="loadSchema(); loadRpcs();"
+      >
+        <v-icon small left>
+          refresh
+        </v-icon>
         Reload
       </x-btn>
-
-
     </v-toolbar>
 
     <v-container fluid>
       <v-row>
         <v-col v-if="showSwagger">
-
           <v-card class="flex-shrink-1">
-
             <div class="text-center" style="padding: 3px">
-
               <span class="title schema-card-title">Protobuf</span>
             </div>
             <div class="d-flex pa-3">
-              <v-spacer></v-spacer>
-              <x-btn outlined :tooltip="`Compare GQL schema history of ${nodes.tn}`"
-                     color="primary"
-                     x-small
-                     :disabled="loading || !schemaHistory.length"
-                     @click.prevent="schemaDiffDialog = true">
-                <v-icon small left>mdi-source-branch</v-icon>
-                History <span class="history-count" v-if="schemaHistory.length">({{ schemaHistory.length }})</span>
+              <v-spacer />
+              <x-btn
+                outlined
+                :tooltip="`Compare GQL schema history of ${nodes.tn}`"
+                color="primary"
+                x-small
+                :disabled="loading || !schemaHistory.length"
+                @click.prevent="schemaDiffDialog = true"
+              >
+                <v-icon small left>
+                  mdi-source-branch
+                </v-icon>
+                History <span v-if="schemaHistory.length" class="history-count">({{ schemaHistory.length }})</span>
               </x-btn>
-              <x-btn outlined tooltip="Save Changes"
-                     color="primary"
-                     x-small
-                     :disabled="loading"
-                     v-ge="['rows','save']"
-                     @click.prevent="saveMessageAndRpc">
-                <v-icon small left>save</v-icon>
+              <x-btn
+                v-ge="['rows','save']"
+                outlined
+                tooltip="Save Changes"
+                color="primary"
+                x-small
+                :disabled="loading"
+                @click.prevent="saveMessageAndRpc"
+              >
+                <v-icon small left>
+                  save
+                </v-icon>
                 Save
               </x-btn>
-
             </div>
-            <p class="caption pa-1">Messages</p>
+            <p class="caption pa-1">
+              Messages
+            </p>
             <monaco-editor
               v-model="messages"
               theme=""
               style="min-height:250px;"
-
             />
-            <p class="caption pa-1 mt-2">rpcs</p>
+            <p class="caption pa-1 mt-2">
+              rpcs
+            </p>
             <monaco-editor
               v-model="services"
               theme=""
               style="min-height:250px;"
-
             />
           </v-card>
         </v-col>
         <v-col>
           <!--    <div class="d-flex justify-center">-->
-          <v-card class="flex-shrink-1" style="" v-if="rpcServices && filteredData.length">
-
-
-
-            <v-text-field dense hide-details class="ma-2 mt-2"
-                          :placeholder="`Search ${nodes.tn || nodes.view_name} rpc services`"
-                          prepend-inner-icon="search" v-model="search"
-                          outlined></v-text-field>
-
+          <v-card v-if="rpcServices && filteredData.length" class="flex-shrink-1" style="">
+            <v-text-field
+              v-model="search"
+              dense
+              hide-details
+              class="ma-2 mt-2"
+              :placeholder="`Search ${nodes.tn || nodes.view_name} rpc services`"
+              prepend-inner-icon="search"
+              outlined
+            />
 
             <v-simple-table v-if="rpcServices" dense style="width: auto; min-width: 500px">
               <thead>
-              <tr>
+                <tr>
+                  <th colspan="2" class="text-center">
+                    <div class="text-center">
+                      <span class="title">RPC Services</span>
+                    </div>
+                  </th>
 
-                <th colspan="2" class="text-center">
-
-                  <div class="text-center">
-
-                    <span class="title">RPC Services</span>
-                  </div>
-
-                </th>
-
-                <th
-                  width="60"
-                  class="text-center">
-
-                  <span class="title"></span>
-                </th>
-              </tr>
-
+                  <th
+                    width="60"
+                    class="text-center"
+                  >
+                    <span class="title" />
+                  </th>
+                </tr>
               </thead>
               <tbody>
-              <tr v-for="{service,...rest} in filteredData"
-              >
-
-                <td width="20" class="px-0">
-
-                </td>
-                <td class="pl-0">
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <span v-on="on">{{ service }}</span>
-                    </template>
-                    <span>{{ service }}</span>
-                  </v-tooltip>
-                </td>
-                <td
-                  width="60" class="pa-1 text-center method-cell">
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-
-                      <v-hover v-slot:default="{ hover }">
-                        <v-icon @click="showSourceCode(service,rest)" small
-                                :color="hover ? 'primary':''" v-on="on">mdi-pencil
-                        </v-icon>
-                      </v-hover>
-                    </template>
-                    Edit business logic
-                  </v-tooltip>
-                </td>
-
-              </tr>
+                <tr
+                  v-for="{service,...rest} in filteredData"
+                >
+                  <td width="20" class="px-0" />
+                  <td class="pl-0">
+                    <v-tooltip bottom>
+                      <template #activator="{ on }">
+                        <span v-on="on">{{ service }}</span>
+                      </template>
+                      <span>{{ service }}</span>
+                    </v-tooltip>
+                  </td>
+                  <td
+                    width="60"
+                    class="pa-1 text-center method-cell"
+                  >
+                    <v-tooltip bottom>
+                      <template #activator="{ on }">
+                        <v-hover v-slot="{ hover }">
+                          <v-icon
+                            small
+                            :color="hover ? 'primary':''"
+                            @click="showSourceCode(service,rest)"
+                            v-on="on"
+                          >
+                            mdi-pencil
+                          </v-icon>
+                        </v-hover>
+                      </template>
+                      Edit business logic
+                    </v-tooltip>
+                  </td>
+                </tr>
               </tbody>
             </v-simple-table>
 
-
-            <v-alert v-else outlined type="info">Permission file not found</v-alert>
+            <v-alert v-else outlined type="info">
+              Permission file not found
+            </v-alert>
           </v-card>
         </v-col>
         <!--    </div>-->
       </v-row>
     </v-container>
-    <grpc-handler-code-editor :nodes="nodes"
-                              :service="editService"
-                              :serviceData="editServiceData"
-                              v-model="showCodeEditor"></grpc-handler-code-editor>
-
+    <grpc-handler-code-editor
+      v-model="showCodeEditor"
+      :nodes="nodes"
+      :service="editService"
+      :service-data="editServiceData"
+    />
 
     <v-dialog v-model="schemaDiffDialog" scrollable min-width="600px">
       <v-card>
         <xc-diff
           v-model="messages"
           :history="schemaHistory"
-        ></xc-diff>
+        />
       </v-card>
     </v-dialog>
   </div>
@@ -183,15 +201,15 @@
 
 <script>
 
-import GrpcHandlerCodeEditor from "@/components/project/grpcHandlerCodeEditor";
-import MonacoEditor from "~/components/monaco/MonacoEditor";
+import GrpcHandlerCodeEditor from '@/components/project/grpcHandlerCodeEditor'
+import MonacoEditor from '~/components/monaco/MonacoEditor'
 
 export default {
-  name: "logic-grpc",
-  components: {GrpcHandlerCodeEditor, MonacoEditor},
+  name: 'LogicGrpc',
+  components: { GrpcHandlerCodeEditor, MonacoEditor },
   props: ['nodes'],
   data: () => ({
-    showSwagger:false,
+    showSwagger: false,
     editServiceData: null,
     loading: false,
     search: '',
@@ -200,11 +218,11 @@ export default {
       'get', 'post', 'put', 'delete'
     ],
     methodColor: {
-      'get': 'success',
-      'post': 'warning',
-      'put': 'info',
-      'patch': 'secondary',
-      'delete': 'error'
+      get: 'success',
+      post: 'warning',
+      put: 'info',
+      patch: 'secondary',
+      delete: 'error'
     },
     editService: '',
     showCodeEditor: false,
@@ -213,38 +231,47 @@ export default {
     schemaHistory: [],
     schemaDiffDialog: false
   }),
+  computed: {
+    filteredData () {
+      return this.rpcServices.filter(({ service }) => service && (!this.search || service.toLowerCase().includes(this.search.toLowerCase())))
+    }
+  },
+  async created () {
+    await this.loadRpcs()
+    await this.loadSchema()
+  },
   methods: {
 
-    showSourceCode(service, serviceData) {
-      this.editService = service;
-      this.showCodeEditor = true;
-      this.editServiceData = serviceData;
+    showSourceCode (service, serviceData) {
+      this.editService = service
+      this.showCodeEditor = true
+      this.editServiceData = serviceData
     },
-    async loadSchema() {
+    async loadSchema () {
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
         tn: this.nodes.tn || this.nodes.view_name
-      }]);
-      this.messages = tableMeta.messages;
-      this.services = tableMeta.services;
+      }])
+      this.messages = tableMeta.messages
+      this.services = tableMeta.services
       if (tableMeta.schema_previous) {
-        this.schemaHistory = JSON.parse(tableMeta.schema_previous).reverse();
+        this.schemaHistory = JSON.parse(tableMeta.schema_previous).reverse()
       } else {
-        this.schemaHistory = [];
+        this.schemaHistory = []
       }
     },
-    async loadRpcs() {
+    async loadRpcs () {
       this.rpcServices = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
+        dbAlias: this.nodes.dbAlias
       }, 'xcRpcPolicyGet', {
         tn: this.nodes.tn || this.nodes.view_name
-      }])).data.list;
+      }])).data.list
     },
-    async saveMessageAndRpc() {
-      this.edited = false;
+    async saveMessageAndRpc () {
+      this.edited = false
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -252,21 +279,12 @@ export default {
         }, 'xcModelMessagesAndServicesSet', {
           tn: this.nodes.tn || this.nodes.view_name,
           messages: this.messages,
-          services: this.services,
-        }]);
-        this.$toast.success('Successfully updated protobuf messages and rpcs').goAway(3000);
+          services: this.services
+        }])
+        this.$toast.success('Successfully updated protobuf messages and rpcs').goAway(3000)
       } catch (e) {
-        this.$toast.error('Failed to update validations').goAway(3000);
+        this.$toast.error('Failed to update validations').goAway(3000)
       }
-    },
-  },
-  async created() {
-    await this.loadRpcs();
-    await this.loadSchema();
-  },
-  computed: {
-    filteredData() {
-      return this.rpcServices.filter(({service}) => service && (!this.search || service.toLowerCase().indexOf(this.search.toLowerCase()) > -1));
     }
   }
 }

@@ -1,47 +1,59 @@
 <template>
   <div>
-
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
-        <v-breadcrumbs :items="[{
-          text: nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: nodes._tn + ' (Webhooks)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+                     text: nodes.env,
+                     disabled: true,
+                     href: '#'
+                   },{
+                     text: nodes.dbAlias,
+                     disabled: true,
+                     href: '#'
+                   },
+                   {
+                     text: nodes._tn + ' (Webhooks)',
+                     disabled: true,
+                     href: '#'
+                   }]"
+          divider=">"
+          small
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
-
       </v-toolbar-title>
-      <v-spacer></v-spacer>
+      <v-spacer />
 
-
-      <x-btn outlined tooltip="Reload hooks"
-             color="primary"
-             small
-             v-ge="['hooks','reload']"
-             @click.prevent="loadHooksList">
-        <v-icon small left>mdi-reload</v-icon>
+      <x-btn
+        v-ge="['hooks','reload']"
+        outlined
+        tooltip="Reload hooks"
+        color="primary"
+        small
+        @click.prevent="loadHooksList"
+      >
+        <v-icon small left>
+          mdi-reload
+        </v-icon>
         Reload
       </x-btn>
 
-
-      <x-btn outlined tooltip="Save Changes"
-             color="primary"
-             small
-             v-ge="['hooks','add new']"
-             @click.prevent="addNewHook">
-        <v-icon small left>mdi-plus</v-icon>
+      <x-btn
+        v-ge="['hooks','add new']"
+        outlined
+        tooltip="Save Changes"
+        color="primary"
+        small
+        @click.prevent="addNewHook"
+      >
+        <v-icon small left>
+          mdi-plus
+        </v-icon>
         Add New
       </x-btn>
 
@@ -55,163 +67,171 @@
               <v-icon small left>save</v-icon>
               Save
             </x-btn>-->
-
-
     </v-toolbar>
 
     <v-form
+      ref="form"
       v-model="valid"
       class="mx-auto"
-      ref="form"
       lazy-validation
     >
       <v-card>
         <v-container fluid>
-
-
           <v-row>
             <v-col cols="7">
-              <v-radio-group v-model="selectedHook" @change="onEventChange" v-slot:default>
-                <v-simple-table dense v-slot:default>
-                  <thead>
-                  <tr>
-                    <th>
-                    </th>
-                    <th>Title</th>
-                    <th>Event</th>
-                    <th>Condition</th>
-                    <th>Notify Via</th>
-                    <th>Action</th>
-                  </tr>
-                  </thead>
+              <v-radio-group v-model="selectedHook" @change="onEventChange">
+                <template #default>
+                  <v-simple-table dense>
+                    <template #default>
+                      <thead>
+                        <tr>
+                          <th />
+                          <th>Title</th>
+                          <th>Event</th>
+                          <th>Condition</th>
+                          <th>Notify Via</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
 
-                  <tbody>
-                  <template v-if="hooks && hooks.length">
-                    <tr v-for="(item,i) in hooks">
-                      <td>
-                        <v-radio :value="i"></v-radio>
-                      </td>
-                      <td>{{ item.title }}</td>
-                      <td>{{ item.event }} {{ item.operation }}</td>
-                      <td>
-                        <v-icon v-if="item.condition" color="success" small>mdi-check-bold</v-icon>
-                      </td>
-                      <td>{{ item.notification && item.notification.type }}</td>
-                      <td>
-                        <x-icon small color="error" @click.stop="deleteHook(item, i)">mdi-delete</x-icon>
-                        <!--              <x-icon small :color="loading || !valid || !hook.event ?  'grey' : 'primary'"
-                                              @click.stop="(!loading && valid && hook.event) && saveHooks()">save
-                                      </x-icon>-->
-                      </td>
-
-                    </tr>
-                  </template>
-                  <tr v-else>
-                    <td colspan="6" class="text-center py-5">
-
-                      <x-btn outlined tooltip="Save Changes"
-                             color="primary"
-                             small
-                             v-ge="['hooks','add new']"
-                             @click.prevent="addNewHook">
-                        <v-icon small left>mdi-plus</v-icon>
-                        Add New Webhook
-                      </x-btn>
-                    </td>
-                  </tr>
-                  </tbody>
-
-                </v-simple-table>
+                      <tbody>
+                        <template v-if="hooks && hooks.length">
+                          <tr v-for="(item,i) in hooks" :key="i">
+                            <td>
+                              <v-radio :value="i" />
+                            </td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.event }} {{ item.operation }}</td>
+                            <td>
+                              <v-icon v-if="item.condition" color="success" small>
+                                mdi-check-bold
+                              </v-icon>
+                            </td>
+                            <td>{{ item.notification && item.notification.type }}</td>
+                            <td>
+                              <x-icon small color="error" @click.stop="deleteHook(item, i)">
+                                mdi-delete
+                              </x-icon>
+                            <!--              <x-icon small :color="loading || !valid || !hook.event ?  'grey' : 'primary'"
+                                                  @click.stop="(!loading && valid && hook.event) && saveHooks()">save
+                                          </x-icon>-->
+                            </td>
+                          </tr>
+                        </template>
+                        <tr v-else>
+                          <td colspan="6" class="text-center py-5">
+                            <x-btn
+                              v-ge="['hooks','add new']"
+                              outlined
+                              tooltip="Save Changes"
+                              color="primary"
+                              small
+                              @click.prevent="addNewHook"
+                            >
+                              <v-icon small left>
+                                mdi-plus
+                              </v-icon>
+                              Add New Webhook
+                            </x-btn>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </template>
+                  </v-simple-table>
+                </template>
               </v-radio-group>
             </v-col>
             <v-col cols="5">
-              <v-card class="" v-if="hook">
+              <v-card v-if="hook" class="">
                 <v-card-title>
                   Webhook
-                  <v-spacer></v-spacer>
-                  <x-btn outlined tooltip="Save"
-                         color="primary"
-                         small
-                         :disabled="loading || !valid || !hook.event"
+                  <v-spacer />
+                  <x-btn
+                    v-ge="['hooks','save']"
+                    outlined
+                    tooltip="Save"
+                    color="primary"
+                    small
 
-                         v-ge="['hooks','save']"
-                         @click.prevent="saveHooks">
-                    <v-icon small left>save</v-icon>
+                    :disabled="loading || !valid || !hook.event"
+                    @click.prevent="saveHooks"
+                  >
+                    <v-icon small left>
+                      save
+                    </v-icon>
                     Save
                   </x-btn>
                 </v-card-title>
                 <v-card-text>
-
                   <v-text-field
+                    v-model="hook.title"
                     class="caption"
                     outlined
                     dense
-                    v-model="hook.title"
                     label="Title"
                     required
                     :rules="[v => !!v || 'Title Required']"
-                  ></v-text-field>
+                  />
 
-                  <webhook-event :event.sync="hook.event"
-                                 :operation.sync="hook.operation"
-                  ></webhook-event>
-
+                  <webhook-event
+                    :event.sync="hook.event"
+                    :operation.sync="hook.operation"
+                  />
 
                   <v-card class="mb-8">
                     <v-card-text>
                       <v-checkbox
+                        v-model="enableCondition"
                         dense
-                        @change="checkConditionAvail"
                         hide-details
                         class="mt-1"
                         label="On Condition"
-                        v-model="enableCondition"
-                      ></v-checkbox>
+                        @change="checkConditionAvail"
+                      />
 
-
-                      <column-filter v-if="enableCondition && _isEE"
-                                     :field-list="fieldList"
-                                     v-model="hook.condition"
-                                     dense style="max-width: 100%">
-                      </column-filter>
+                      <column-filter
+                        v-if="enableCondition && _isEE"
+                        v-model="hook.condition"
+                        :field-list="fieldList"
+                        dense
+                        style="max-width: 100%"
+                      />
                     </v-card-text>
                   </v-card>
 
                   <v-select
+                    v-model="hook.notification.type"
                     outlined
                     dense
-                    v-model="hook.notification.type"
                     label="Notification"
                     required
                     :items="notificationList"
                     :rules="[v => !!v || 'Title Required']"
                     class="caption"
-                    @change="onNotTypeChange"
                     :prepend-inner-icon="notificationIcon[hook.notification.type]"
+                    @change="onNotTypeChange"
                   >
-
-                    <template v-slot:item="{item}">
+                    <template #item="{item}">
                       <v-list-item-icon>
-                        <v-icon small>{{ notificationIcon[item] }}</v-icon>
+                        <v-icon small>
+                          {{ notificationIcon[item] }}
+                        </v-icon>
                       </v-list-item-icon>
                       <v-list-item-title>
                         {{ item }}
                       </v-list-item-title>
-
                     </template>
-
                   </v-select>
 
-
                   <template v-if="hook.notification.type === 'URL'">
-                    <http-webhook v-model="notification"></http-webhook>
+                    <http-webhook v-model="notification" />
                   </template>
 
                   <template v-if="hook.notification.type === 'Slack'">
                     <v-combobox
                       v-if="slackChannels"
-                      :rules="[v => !!v || 'Required']"
                       v-model="notification.channels"
+                      :rules="[v => !!v || 'Required']"
                       :items="slackChannels"
                       item-text="channel"
                       label="Select Slack channels"
@@ -219,14 +239,13 @@
                       outlined
                       dense
                       class="caption"
-                    >
-                    </v-combobox>
+                    />
                   </template>
                   <template v-if="hook.notification.type === 'Microsoft Teams'">
                     <v-combobox
                       v-if="teamsChannels"
-                      :rules="[v => !!v || 'Required']"
                       v-model="notification.channels"
+                      :rules="[v => !!v || 'Required']"
                       :items="teamsChannels"
                       item-text="channel"
                       label="Select Teams channels"
@@ -234,14 +253,13 @@
                       outlined
                       dense
                       class="caption"
-                    >
-                    </v-combobox>
+                    />
                   </template>
                   <template v-if="hook.notification.type === 'Discord'">
                     <v-combobox
                       v-if="discordChannels"
-                      :rules="[v => !!v || 'Required']"
                       v-model="notification.channels"
+                      :rules="[v => !!v || 'Required']"
                       :items="discordChannels"
                       item-text="channel"
                       label="Select Discord channels"
@@ -249,14 +267,13 @@
                       outlined
                       dense
                       class="caption"
-                    >
-                    </v-combobox>
+                    />
                   </template>
                   <template v-if="hook.notification.type === 'Mattermost'">
                     <v-combobox
                       v-if="mattermostChannels"
-                      :rules="[v => !!v || 'Required']"
                       v-model="notification.channels"
+                      :rules="[v => !!v || 'Required']"
                       :items="mattermostChannels"
                       item-text="channel"
                       label="Select Mattermost channels"
@@ -264,73 +281,80 @@
                       outlined
                       dense
                       class="caption"
-                    >
-                    </v-combobox>
+                    />
                   </template>
 
                   <template v-if="inputs[hook.notification.type] && notification">
                     <template v-for="input in inputs[hook.notification.type]">
-
-
-                      <v-textarea class="caption" :key="input.key"
-                                  dense outlined v-if="input.type === 'LongText'"
-                                  :label="input.label"
-                                  v-model="notification[input.key]"
-                                  :rules="[v => !input.required || !!v || 'Required']"
-                      ></v-textarea>
-                      <v-text-field class="caption" :key="input.key"
-                                    dense outlined v-else :label="input.label"
-                                    v-model="notification[input.key]"
-                                    :rules="[v => !input.required || !!v || 'Required']"
-                      ></v-text-field>
+                      <v-textarea
+                        v-if="input.type === 'LongText'"
+                        :key="input.key"
+                        v-model="notification[input.key]"
+                        class="caption"
+                        dense
+                        outlined
+                        :label="input.label"
+                        :rules="[v => !input.required || !!v || 'Required']"
+                      />
+                      <v-text-field
+                        v-else
+                        :key="input.key"
+                        v-model="notification[input.key]"
+                        class="caption"
+                        dense
+                        outlined
+                        :label="input.label"
+                        :rules="[v => !input.required || !!v || 'Required']"
+                      />
                     </template>
                   </template>
-
                 </v-card-text>
-
 
                 <v-card-text>
                   <span class="caption grey--text">
                     <em>Available context variables are <strong>data, user, payload and env</strong></em>
                     <v-tooltip top>
                       <template #activator="{on}">
-                    <v-icon small
-                            v-on="on"
-                            color="grey"
-                            class="ml-2">mdi-information</v-icon>
-                        </template>
-                    <span class="caption">
-                      <strong>data</strong> : Row data <br>
-                      <strong>user</strong> : User information<br>
-                      <strong>payload</strong> : Plugin settings payload<br>
-                      <strong>env</strong> : Environment values (process.env)
+                        <v-icon
+                          small
+                          color="grey"
+                          class="ml-2"
+                          v-on="on"
+                        >mdi-information</v-icon>
+                      </template>
+                      <span class="caption">
+                        <strong>data</strong> : Row data <br>
+                        <strong>user</strong> : User information<br>
+                        <strong>payload</strong> : Plugin settings payload<br>
+                        <strong>env</strong> : Environment values (process.env)
 
-                    </span>
+                      </span>
                     </v-tooltip>
                   </span>
                 </v-card-text>
-
               </v-card>
-
             </v-col>
           </v-row>
         </v-container>
       </v-card>
     </v-form>
-
-
   </div>
 </template>
 
 <script>
-import ColumnFilter from "~/components/project/spreadsheet/components/columnFilter";
-import FormInput from "~/components/project/appStore/FormInput";
-import WebhookEvent from "~/components/project/tableTabs/webhookEvent";
-import HttpWebhook from "./webhook/httpWebhook";
+import HttpWebhook from './webhook/httpWebhook'
+import ColumnFilter from '~/components/project/spreadsheet/components/columnFilter'
+// import FormInput from '~/components/project/appStore/FormInput'
+import WebhookEvent from '~/components/project/tableTabs/webhookEvent'
 
 export default {
-  name: "webhooks",
-  components: {HttpWebhook, WebhookEvent, FormInput, ColumnFilter},
+  name: 'Webhooks',
+  components: {
+    HttpWebhook,
+    WebhookEvent,
+    // FormInput,
+    ColumnFilter
+  },
   props: ['nodes'],
   data: () => ({
     slackChannels: null,
@@ -350,23 +374,23 @@ export default {
       'Mattermost',
       'Twilio',
       'Whatsapp Twilio',
-      'URL',
+      'URL'
     ],
     filters: [],
     hook: null,
     notification: {},
     notificationIcon: {
-      'URL': 'mdi-link',
-      'Email': 'mdi-email',
-      'Slack': 'mdi-slack',
+      URL: 'mdi-link',
+      Email: 'mdi-email',
+      Slack: 'mdi-slack',
       'Microsoft Teams': 'mdi-microsoft-teams',
-      'Discord': 'mdi-discord',
-      'Mattermost': 'mdi-chat',
+      Discord: 'mdi-discord',
+      Mattermost: 'mdi-chat',
       'Whatsapp Twilio': 'mdi-whatsapp',
-      'Twilio': 'mdi-cellphone-message',
+      Twilio: 'mdi-cellphone-message'
     },
     urlRules: [
-      v => !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || 'Not a valid URL',
+      v => !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || 'Not a valid URL'
     ],
     fieldList: [],
     inputs: {
@@ -391,35 +415,40 @@ export default {
           type: 'LongText',
           required: true
         }
-      ], Slack: [{
+      ],
+      Slack: [{
         key: 'body',
         label: 'Body',
         placeholder: 'Body',
         type: 'LongText',
         required: true
       }
-      ], 'Microsoft Teams': [{
+      ],
+      'Microsoft Teams': [{
         key: 'body',
         label: 'Body',
         placeholder: 'Body',
         type: 'LongText',
         required: true
       }
-      ], Discord: [{
+      ],
+      Discord: [{
         key: 'body',
         label: 'Body',
         placeholder: 'Body',
         type: 'LongText',
         required: true
       }
-      ], Mattermost: [{
+      ],
+      Mattermost: [{
         key: 'body',
         label: 'Body',
         placeholder: 'Body',
         type: 'LongText',
         required: true
       }
-      ], 'Twilio': [{
+      ],
+      Twilio: [{
         key: 'body',
         label: 'Body',
         placeholder: 'Body',
@@ -445,86 +474,95 @@ export default {
         type: 'LongText',
         required: true
       }]
-    },
+    }
   }),
+  async created () {
+    await this.loadMeta()
+    await this.loadHooksList()
+    this.selectedHook = 0
+    this.onEventChange()
+  },
   methods: {
-    checkConditionAvail() {
+    checkConditionAvail () {
       if (!process.env.EE) {
-        this.enableCondition = false;
+        this.enableCondition = false
         this.$toast.info('For webhook condition : Upgrade to Enterprise Edition').goAway(3000)
       }
       this.hook.condition = []
     },
-    async onNotTypeChange() {
-      this.notification = {};
+    async onNotTypeChange () {
+      this.notification = {}
       if (this.hook.notification.type === 'Slack') {
         const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
           title: 'Slack'
-        }]);
-        this.slackChannels = JSON.parse(plugin.input) || [];
+        }])
+        this.slackChannels = JSON.parse(plugin.input) || []
       }
       if (this.hook.notification.type === 'Microsoft Teams') {
         const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
           title: 'Microsoft Teams'
-        }]);
-        this.teamsChannels = JSON.parse(plugin.input) || [];
+        }])
+        this.teamsChannels = JSON.parse(plugin.input) || []
       }
       if (this.hook.notification.type === 'Discord') {
         const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
           title: 'Discord'
-        }]);
-        this.discordChannels = JSON.parse(plugin.input) || [];
+        }])
+        this.discordChannels = JSON.parse(plugin.input) || []
       }
       if (this.hook.notification.type === 'Mattermost') {
         const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
           title: 'Mattermost'
-        }]);
-        this.mattermostChannels = JSON.parse(plugin.input) || [];
+        }])
+        this.mattermostChannels = JSON.parse(plugin.input) || []
       }
     },
-    async onEventChange() {
-      if (!this.hooks || !this.hooks.length) return
-      const {notification: {payload, type}, ...hook} = this.hooks[this.selectedHook];
+    async onEventChange () {
+      if (!this.hooks || !this.hooks.length) {
+        return
+      }
+      const { notification: { payload, type }, ...hook } = this.hooks[this.selectedHook]
 
       this.hook = {
         ...hook,
         notification: {
           type
         }
-      };
+      }
       this.enableCondition = !!this.hook.condition
-      await this.onNotTypeChange();
-      this.notification = payload;
+      await this.onNotTypeChange()
+      this.notification = payload
       if (this.hook.notification.type === 'Slack') {
-        this.notification.webhook_url = this.notification.webhook_url
-          && this.notification.webhook_url.map(v => this.slackChannels.find(s => v.webhook_url === s.webhook_url))
+        this.notification.webhook_url = this.notification.webhook_url &&
+          this.notification.webhook_url.map(v => this.slackChannels.find(s => v.webhook_url === s.webhook_url))
       }
       if (this.hook.notification.type === 'Microsoft Teams') {
-        this.notification.webhook_url = this.notification.webhook_url
-          && this.notification.webhook_url.map(v => this.teamsChannels.find(s => v.webhook_url === s.webhook_url))
+        this.notification.webhook_url = this.notification.webhook_url &&
+          this.notification.webhook_url.map(v => this.teamsChannels.find(s => v.webhook_url === s.webhook_url))
       }
       if (this.hook.notification.type === 'Discord') {
-        this.notification.webhook_url = this.notification.webhook_url
-          && this.notification.webhook_url.map(v => this.discordChannels.find(s => v.webhook_url === s.webhook_url))
+        this.notification.webhook_url = this.notification.webhook_url &&
+          this.notification.webhook_url.map(v => this.discordChannels.find(s => v.webhook_url === s.webhook_url))
       }
       if (this.hook.notification.type === 'Mattermost') {
-        this.notification.webhook_url = this.notification.webhook_url
-          && this.notification.webhook_url.map(v => this.mattermostChannels.find(s => v.webhook_url === s.webhook_url))
+        this.notification.webhook_url = this.notification.webhook_url &&
+          this.notification.webhook_url.map(v => this.mattermostChannels.find(s => v.webhook_url === s.webhook_url))
       }
       if (this.hook.notification.type === 'URL') {
+        // eslint-disable-next-line no-self-assign
         this.notification.api = this.notification.api
       }
     },
-    async saveHooks() {
+    async saveHooks () {
       if (!this.$refs.form.validate() || !this.valid || !this.hook.event) {
-        return;
+        return
       }
-      this.loading = true;
+      this.loading = true
       try {
         const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [
           {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias,
+            dbAlias: this.nodes.dbAlias
           }, 'tableXcHooksSet', {
             tn: this.nodes.tn,
             data: {
@@ -535,58 +573,58 @@ export default {
               }
             }
           }
-        ]);
+        ])
 
         if (!this.hook.id && res) {
-          this.hook.id = Array.isArray(res) ? res[0] : res;
+          this.hook.id = Array.isArray(res) ? res[0] : res
         }
 
-        this.$toast.success('Webhook details updated successfully').goAway(3000);
+        this.$toast.success('Webhook details updated successfully').goAway(3000)
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
-      this.loading = false;
-      await this.loadHooksList();
+      this.loading = false
+      await this.loadHooksList()
     },
-    async loadMeta() {
-      this.loadingMeta = true;
+    async loadMeta () {
+      this.loadingMeta = true
       const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
         tn: this.nodes.tn
-      }]);
-      this.meta = JSON.parse(tableMeta.meta);
-      this.fieldList = this.meta.columns.map(c => c.cn);
-      this.loadingMeta = false;
+      }])
+      this.meta = JSON.parse(tableMeta.meta)
+      this.fieldList = this.meta.columns.map(c => c.cn)
+      this.loadingMeta = false
     },
-    async loadHooksList() {
-      this.loading = true;
+    async loadHooksList () {
+      this.loading = true
       const hooks = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcHooksList', {
         tn: this.nodes.tn
-      }]);
-      this.hooks = hooks.data.list.map(h => {
-        h.notification = h.notification && JSON.parse(h.notification);
-        h.condition = h.condition && JSON.parse(h.condition);
+      }])
+      this.hooks = hooks.data.list.map((h) => {
+        h.notification = h.notification && JSON.parse(h.notification)
+        h.condition = h.condition && JSON.parse(h.condition)
 
-        return h;
-      });
-      this.loading = false;
+        return h
+      })
+      this.loading = false
     },
-    addNewHook() {
-      this.selectedHook = this.hooks.length;
+    addNewHook () {
+      this.selectedHook = this.hooks.length
       this.hooks.push({
         notification: {
           // type:'Email'
         }
-      });
-      this.onEventChange();
+      })
+      this.onEventChange()
       this.$refs.form.resetValidation()
     },
-    async deleteHook(item, i) {
+    async deleteHook (item, i) {
       try {
         if (item.id) {
           await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -596,25 +634,19 @@ export default {
             id: item.id,
             title: item.title,
             tn: this.nodes.tn
-          }]);
-          this.hooks.splice(i, 1);
+          }])
+          this.hooks.splice(i, 1)
         } else {
-          this.hooks.splice(i, 1);
+          this.hooks.splice(i, 1)
         }
-        this.$toast.success('Hook deleted successfully').goAway(3000);
+        this.$toast.success('Hook deleted successfully').goAway(3000)
         if (!this.hooks.length) {
-          this.hook = null;
+          this.hook = null
         }
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
     }
-  },
-  async created() {
-    await this.loadMeta();
-    await this.loadHooksList();
-    this.selectedHook = 0;
-    this.onEventChange();
   }
 }
 </script>

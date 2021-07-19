@@ -1,76 +1,74 @@
 <template>
   <section class="section container">
-    <div class="box" v-if="this.$store.state.users.user!==null">
-
+    <div v-if="$store.state.users.user!==null" class="box">
       <div class="field">
         <div class="control">
           <label class="label">firstname</label>
-          <input class="input" type="text" placeholder="firstname" id="firstname" v-model="form.firstName">
+          <input id="firstname" v-model="form.firstName" class="input" type="text" placeholder="firstname">
         </div>
       </div>
 
       <div class="field">
         <div class="control">
           <label class="label">lastname</label>
-          <input class="input" type="text" placeholder="lastname" id="lastname" v-model="form.lastName">
+          <input id="lastname" v-model="form.lastName" class="input" type="text" placeholder="lastname">
         </div>
       </div>
-
-
 
       <div class="field is-grouped">
         <div class="control">
-          <button class="button is-link" @click="updateUserProfile">Submit</button>
+          <button class="button is-link" @click="updateUserProfile">
+            Submit
+          </button>
         </div>
         <div class="control">
-          <button class="button is-text">Cancel</button>
+          <button class="button is-text">
+            Cancel
+          </button>
         </div>
       </div>
     </div>
-
   </section>
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
+export default {
+  directives: { },
+  components: { },
+  validate ({ params }) { return true },
+  props: { },
+  data () {
+    return {
 
-        form : {
-          firstName : null,
-          lastName : null
-        }
-
-      }
-    },
-    computed : {
-
-    },
-    methods : {
-      updateUserProfile(){
-        //console.log('update user profile',this.$store.user);
-      }
-    },
-    beforeCreated () {},
-    created () { },
-    mounted () {
-
-      if(this.$store.state.users.user){
-        //console.log('update user profile',this.$store.state);
-        this.form.firstName = this.$store.state.users.user.firstName;
-        this.form.lastName = this.$store.state.users.user.firstName;
+      form: {
+        firstName: null,
+        lastName: null
       }
 
-    },
-    beforeDestroy () {},
-    destroy () {},
-    validate({params}) { return true },
-    head() { return {} },
-    props: { },
-    watch: { },
-    directives : { },
-    components : { }
-  }
+    }
+  },
+  head () { return {} },
+  computed: {
+
+  },
+  watch: { },
+  created () { },
+  mounted () {
+    if (this.$store.state.users.user) {
+      // console.log('update user profile',this.$store.state);
+      this.form.firstName = this.$store.state.users.user.firstName
+      this.form.lastName = this.$store.state.users.user.firstName
+    }
+  },
+  beforeDestroy () {},
+  methods: {
+    updateUserProfile () {
+      // console.log('update user profile',this.$store.user);
+    }
+  },
+  beforeCreated () {},
+  destroy () {}
+}
 </script>
 
 <style scoped>

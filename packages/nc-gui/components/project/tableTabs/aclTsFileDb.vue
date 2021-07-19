@@ -1,79 +1,100 @@
-<template>
+<!-- eslint-disable --><template>
   <div>
     <v-card style="">
-
       <v-toolbar flat height="42" class="toolbar-border-bottom">
         <v-toolbar-title>
-          <v-breadcrumbs :items="[{
-          text: this.nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: this.nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: this.nodes.tn + ' (ACL)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-            <template v-slot:divider>
-              <v-icon small color="grey lighten-2">forward</v-icon>
+          <v-breadcrumbs
+            :items="[{
+                       text: nodes.env,
+                       disabled: true,
+                       href: '#'
+                     },{
+                       text: nodes.dbAlias,
+                       disabled: true,
+                       href: '#'
+                     },
+                     {
+                       text: nodes.tn + ' (ACL)',
+                       disabled: true,
+                       href: '#'
+                     }]"
+            divider=">"
+            small
+          >
+            <template #divider>
+              <v-icon small color="grey lighten-2">
+                forward
+              </v-icon>
             </template>
           </v-breadcrumbs>
-
         </v-toolbar-title>
-        <v-spacer></v-spacer>
-        <x-btn outlined tooltip="Reload ACL"
-               color="primary"
-               small
-               v-ge="['acl','reload']"
-               @click="reload"
+        <v-spacer />
+        <x-btn
+          v-ge="['acl','reload']"
+          outlined
+          tooltip="Reload ACL"
+          color="primary"
+          small
+          @click="reload"
         >
-          <v-icon small left>refresh</v-icon>
+          <v-icon small left>
+            refresh
+          </v-icon>
           Reload
         </x-btn>
-        <x-btn tooltip="Open Corresponding Folder"
-               icon="mdi-folder-open"
-               outlined
-               small
-               :disabled="!policies || !policies.length"
-               color="primary"
-               v-ge="['acl','open-folder']"
-               @click="openFolder">
+        <x-btn
+          v-ge="['acl','open-folder']"
+          tooltip="Open Corresponding Folder"
+          icon="mdi-folder-open"
+          outlined
+          small
+          :disabled="!policies || !policies.length"
+          color="primary"
+          @click="openFolder"
+        >
           Open Folder
         </x-btn>
-        <x-btn outlined tooltip="Save Changes"
-               color="primary"
-               class="primary"
-               small
-               @click="save"
-               :disabled="disableSaveButton"
-               v-ge="['acl','save']">
-          <v-icon small left>save</v-icon>
+        <x-btn
+          v-ge="['acl','save']"
+          outlined
+          tooltip="Save Changes"
+          color="primary"
+          class="primary"
+          small
+          :disabled="disableSaveButton"
+          @click="save"
+        >
+          <v-icon small left>
+            save
+          </v-icon>
           Save
         </x-btn>
-
       </v-toolbar>
 
       <template v-if="loading">
         <v-skeleton-loader
           type="table"
-          width="100%"></v-skeleton-loader>
-
+          width="100%"
+        />
       </template>
 
       <template v-else>
-        <v-text-field dense hide-details class="ma-2" :placeholder="`Search ${nodes.tn} routes`"
-                      prepend-inner-icon="search" v-model="search"
-                      outlined></v-text-field>
+        <v-text-field
+          v-model="search"
+          dense
+          hide-details
+          class="ma-2"
+          :placeholder="`Search ${nodes.tn} routes`"
+          prepend-inner-icon="search"
+          outlined
+        />
         <acl-typeorm-db-child
           v-if="policies && policies.length"
           ref="acl"
-          :nodes="nodes" :search="search" :policies="policies"
-        ></acl-typeorm-db-child>
-
+          :nodes="nodes"
+          :search="search"
+          :policies="policies"
+        />
       </template>
       <!--      <acl-ts-file-child-->
       <!--        style="border-bottom: 1px solid grey"-->
@@ -85,19 +106,26 @@
 </template>
 
 <script>
-import {mapGetters} from "vuex";
-import AclTypeormDbChild from "./aclTsFileDbChild";
-
+import { mapGetters } from 'vuex'
+import AclTypeormDbChild from './aclTsFileDbChild'
 
 // const {shell, path} = require("electron").remote.require('./libs');
 
 export default {
-  name: "acl-typeorm-db",
-  components: {AclTypeormDbChild},
-  props: ["nodes"],
+  name: 'AclTypeormDb',
+  components: { AclTypeormDbChild },
+  props: ['nodes'],
+  data () {
+    return {
+      disableSaveButton: false,
+      policies: [],
+      search: '',
+      loading: false
+    }
+  },
   methods: {
 
-    async aclInit() {
+    async aclInit () {
       // // this.disableSaveButton = true;
       // this.policies = (await this.sqlMgr.xcRoutesPolicyGet({
       //   env: this.nodes.env,
@@ -109,40 +137,31 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         tn: this.nodes.tn
-      }])).data.list;
+      }])).data.list
     },
-    reload() {
-      this.$refs.acl.aclInit();
+    reload () {
+      this.$refs.acl.aclInit()
     },
-    save() {
-      this.$refs.acl.save();
+    save () {
+      this.$refs.acl.save()
     },
-    openFolder() {
-    },
-  },
-  data() {
-    return {
-      disableSaveButton: false,
-      policies: [],
-      search: '',
-      loading: false
+    openFolder () {
     }
   },
   computed: {
-    ...mapGetters({sqlMgr: "sqlMgr/sqlMgr"}),
-  },
-  mounted() {
-    this.$nuxt.$loading.start();
-    setTimeout(async () => {
-      await this.aclInit();
-      this.$nuxt.$loading.finish();
-      this.loading = false;
-
-    }, 500);
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
   watch: {},
-  created() {
-    this.loading = true;
+  mounted () {
+    this.$nuxt.$loading.start()
+    setTimeout(async () => {
+      await this.aclInit()
+      this.$nuxt.$loading.finish()
+      this.loading = false
+    }, 500)
+  },
+  created () {
+    this.loading = true
   }
 }
 </script>

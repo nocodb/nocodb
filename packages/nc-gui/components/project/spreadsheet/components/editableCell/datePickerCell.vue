@@ -1,46 +1,49 @@
 <template>
   <v-menu>
-    <template v-slot:activator="{on}">
-      <input class="value" v-on="on" v-model="localState">
+    <template #activator="{on}">
+      <input v-model="localState" class="value" v-on="on">
     </template>
     <v-date-picker
+      v-model="localState"
       flat
       @click.native.stop
-      v-on="parentListeners" v-model="localState"></v-date-picker>
+      v-on="parentListeners"
+    />
   </v-menu>
 </template>
 
 <script>
 export default {
-  name: "date-picker-cell", props: {
+  name: 'DatePickerCell',
+  props: {
     value: [String, Date]
-  },
-  mounted() {
-    if (this.$el && this.$el.$el) {
-      this.$el.$el.focus();
-    }
   },
   computed: {
     localState: {
-      get() {
-        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : (this.value && new Date(this.value));
+      get () {
+        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : (this.value && new Date(this.value))
       },
-      set(val) {
-        this.$emit('input', val && new Date(val).toJSON().slice(0, 10));
+      set (val) {
+        this.$emit('input', val && new Date(val).toJSON().slice(0, 10))
       }
     },
-    parentListeners() {
-      const $listeners = {};
+    parentListeners () {
+      const $listeners = {}
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur;
+        $listeners.blur = this.$listeners.blur
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus;
+        $listeners.focus = this.$listeners.focus
       }
 
-      return $listeners;
-    },
+      return $listeners
+    }
+  },
+  mounted () {
+    if (this.$el && this.$el.$el) {
+      this.$el.$el.focus()
+    }
   }
 }
 </script>

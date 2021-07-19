@@ -4,27 +4,26 @@
       SQL
     </v-tab>
     <v-tab-item>
-      <function-query :nodes="nodes"></function-query>
+      <function-query :nodes="nodes" />
     </v-tab-item>
     <v-tab>
       ACL
     </v-tab>
     <v-tab-item>
-      <function-acl :nodes="nodes"></function-acl>
+      <function-acl :nodes="nodes" />
     </v-tab-item>
   </v-tabs>
 </template>
 
 <script>
 
-
-import FunctionQuery from "./functionTab/functionQuery";
-import FunctionAcl from "./functionTab/functionAcl";
+import FunctionQuery from './functionTab/functionQuery'
+import FunctionAcl from './functionTab/functionAcl'
 
 export default {
-  components: {FunctionAcl, FunctionQuery},
-  props: ["nodes"],
-};
+  components: { FunctionAcl, FunctionQuery },
+  props: ['nodes']
+}
 </script>
 
 <style scoped>

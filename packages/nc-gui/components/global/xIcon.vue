@@ -1,37 +1,36 @@
 <template>
-
   <v-tooltip v-if="tooltip" v-bind="tooltipProp">
-    <template v-slot:activator="{ on }">
-      <v-hover v-slot:default="{ hover }">
+    <template #activator="{ on }">
+      <v-hover v-slot="{ hover }">
         <v-icon
-          v-on="{...on, ...$listeners}"
           :class="[hover ? hclass : xclass,iconClass, $attrs['icon.class']]"
           :color="hover ? colors[0] : colors[1]"
           :style="hover ? hstyle : xstyle"
           v-bind="$attrs"
+          v-on="{...on, ...$listeners}"
         >
-          <slot/>
+          <slot />
         </v-icon>
       </v-hover>
     </template>
-    <span v-html="tooltip"></span>
+    <span v-html="tooltip" />
   </v-tooltip>
-  <v-hover v-else v-slot:default="{ hover }">
+  <v-hover v-else v-slot="{ hover }">
     <v-icon
       :class="[hover ? hclass : xclass,iconClass,$attrs['icon.class']]"
       :color="hover ? colors[0] : colors[1]"
       :style="hover ? hstyle : xstyle"
-      v-on="$listeners"
       v-bind="$attrs"
+      v-on="$listeners"
     >
-      <slot/>
+      <slot />
     </v-icon>
   </v-hover>
 </template>
 
 <script>
 export default {
-  name: "xIcon",
+  name: 'XIcon',
   props: {
     tooltipProp: {
       type: Object,
@@ -47,15 +46,15 @@ export default {
     xstyle: String,
     hcolor: String,
     color: [String, Array],
-    iconClass: String,
+    iconClass: String
   },
   computed: {
-    colors() {
-      return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : [];
+    colors () {
+      return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : []
     }
   },
   methods: {
-    triggerClick(...args) {
+    triggerClick (...args) {
       this.$emit('click', ...args)
     }
   }

@@ -4,6 +4,7 @@
       <v-col cols="12" class="py-1">
         <div>
           <v-text-field
+            v-model="url"
             class=""
             outlined
             solo-inverted
@@ -11,22 +12,33 @@
             dense
             rounded
             hide-details
-            v-model="url"
             label="Graphql Url"
             @keypress.enter="loadUrl"
           >
-            <template v-slot:append-outer>
-              <x-btn icon="mdi-graphql" btn.class="mt-n1" tooltip="Load graphql schema" color="primary"
-                     @click="loadUrl">Load
+            <template #append-outer>
+              <x-btn
+                icon="mdi-graphql"
+                btn.class="mt-n1"
+                tooltip="Load graphql schema"
+                color="primary"
+                @click="loadUrl"
+              >
+                Load
               </x-btn>
             </template>
-
           </v-text-field>
         </div>
       </v-col>
       <v-col cols="12" class="py-0 px-5" style="width: 100%;height: calc(100% - 52px)">
-        <iframe v-shortkey="['ctrl','shift','w']" @shortkey="test" class="white" :src="webViewUrl" ref="webview"
-                id="foo" style="width: 100%;height: 100%"></iframe>
+        <iframe
+          id="foo"
+          ref="webview"
+          v-shortkey="['ctrl','shift','w']"
+          class="white"
+          :src="webViewUrl"
+          style="width: 100%;height: 100%"
+          @shortkey="test"
+        />
       </v-col>
     </v-row>
   </v-container>
@@ -34,41 +46,41 @@
 
 <script>
 export default {
-  name: "swaggerClient",
-  data() {
+  name: 'SwaggerClient',
+  data () {
     return {
       url: '',
       webViewUrl: ''
     }
   },
-  methods: {
-    test() {
-      console.log('triggerd')
-    },
-    loadUrl() {
-      this.webViewUrl = this.url;
-      // if (this.url)
-      //   this.$store.commit('graphqlClient/MutListAdd', {url: this.url});
-    },
-  },
-  async created() {
+  async created () {
     // if (this.$store.state.graphqlClient.list && this.$store.state.graphqlClient.list[0])
     //   this.webViewUrl = this.url = this.$store.state.graphqlClient.list[0].url;
     try {
-      const {info} = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
+      const { info } = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
         headers: {
           'xc-auth': this.$store.state.users.token
         }
-      })).data;
-      const swagger = Object.values(info).find(v => v.swaggerUrl);
+      })).data
+      const swagger = Object.values(info).find(v => v.swaggerUrl)
       if (swagger) {
         this.webViewUrl = this.url = swagger.swaggerUrl
       }
     } catch (e) {
     }
   },
-  mounted() {
+  mounted () {
 
+  },
+  methods: {
+    test () {
+      console.log('triggerd')
+    },
+    loadUrl () {
+      this.webViewUrl = this.url
+      // if (this.url)
+      //   this.$store.commit('graphqlClient/MutListAdd', {url: this.url});
+    }
   }
 
 }

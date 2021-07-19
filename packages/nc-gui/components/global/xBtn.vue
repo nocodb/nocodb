@@ -1,37 +1,42 @@
 <template>
   <v-tooltip v-if="tooltip || $slots['tooltip']" v-bind="tooltipProp">
-    <template v-slot:activator="{ on }">
-      <v-btn :class="[btnClass,$attrs['btn.class']]" v-bind="$attrs"  v-on="{...$listeners,...on}">
-        <v-icon small v-if="icon">{{icon}}</v-icon>&nbsp;
-        <slot/>
+    <template #activator="{ on }">
+      <v-btn :class="[btnClass,$attrs['btn.class']]" v-bind="$attrs" v-on="{...$listeners,...on}">
+        <v-icon v-if="icon" small>
+          {{ icon }}
+        </v-icon>&nbsp;
+        <slot />
       </v-btn>
     </template>
-    <slot name="tooltip"><span>{{tooltip}}</span></slot>
+    <slot name="tooltip">
+      <span>{{ tooltip }}</span>
+    </slot>
   </v-tooltip>
-  <v-btn ref="btn" v-else v-bind="$attrs" :class="[btnClass,$attrs['btn.class']]"  v-on="$listeners">
-    <v-icon v-if="icon">{{icon}}</v-icon>
-    <slot/>
+  <v-btn v-else ref="btn" v-bind="$attrs" :class="[btnClass,$attrs['btn.class']]" v-on="$listeners">
+    <v-icon v-if="icon">
+      {{ icon }}
+    </v-icon>
+    <slot />
   </v-btn>
-
 </template>
 
 <script>
-  export default {
-    name: "xBtn",
-    props: {
-      tooltipProp: {
-        type: Object,
-        default: () => ({
-          bottom: true
-        })
-      },
-      btnClass:[Object,String,Array],
-      tooltip: String,
-      icon: String,
+export default {
+  name: 'XBtn',
+  props: {
+    tooltipProp: {
+      type: Object,
+      default: () => ({
+        bottom: true
+      })
     },
-    methods: {
-    }
+    btnClass: [Object, String, Array],
+    tooltip: String,
+    icon: String
+  },
+  methods: {
   }
+}
 </script>
 
 <style scoped>

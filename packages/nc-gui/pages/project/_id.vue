@@ -1,12 +1,12 @@
 <template>
-  <create-or-edit-project></create-or-edit-project>
+  <create-or-edit-project />
 </template>
 
 <script>
-import CreateOrEditProject from "@/components/createOrEditProject";
+import CreateOrEditProject from '@/components/createOrEditProject'
 export default {
-  name: "_id",
-  components: {CreateOrEditProject}
+  name: 'Id',
+  components: { CreateOrEditProject }
 }
 </script>
 

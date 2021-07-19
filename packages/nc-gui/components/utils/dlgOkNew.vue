@@ -1,12 +1,11 @@
 <template>
   <v-dialog
     v-model="show"
-    @keydown.enter="$emit('ok');show = false;"
     max-width="450"
+    @keydown.enter="$emit('ok');show = false;"
   >
-
-    <template v-slot:activator="{ on }">
-      <p class="hidden" v-on="on"></p>
+    <template #activator="{ on }">
+      <p class="hidden" v-on="on" />
     </template>
     <v-card class="elevation-20">
       <!-- <v-toolbar dense height="30">{{ this.heading }}</v-toolbar> -->
@@ -19,15 +18,18 @@
       </v-card-text>
 
       <v-card-actions class="pa-4">
-        <v-spacer></v-spacer>
-        <v-btn @click="show = false;"
-        >{{ cancelLabel || 'Cancel' }}
-        </v-btn
+        <v-spacer />
+        <v-btn
+          @click="show = false;"
         >
-        <v-btn :color="type" @click="$emit('ok');show = false;"
-        >{{ okLabel || 'Ok' }}
-        </v-btn
+          {{ cancelLabel || 'Cancel' }}
+        </v-btn>
+        <v-btn
+          :color="type"
+          @click="$emit('ok');show = false;"
         >
+          {{ okLabel || 'Ok' }}
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -36,28 +38,29 @@
 <script>
 
 export default {
-  name: 'dlg-ok-new',
-  data() {
-    return {};
-  },
-  computed: {
-    show: {
-      get() {
-        return this.value
-      }, set(show) {
-        this.$emit('input', show)
-      }
-    }
-  },
+  name: 'DlgOkNew',
   props: {
     value: Boolean,
     heading: String,
     okLabel: String,
     type: String,
-    title:String,
-    cancelLabel:String
+    title: String,
+    cancelLabel: String
   },
-};
+  data () {
+    return {}
+  },
+  computed: {
+    show: {
+      get () {
+        return this.value
+      },
+      set (show) {
+        this.$emit('input', show)
+      }
+    }
+  }
+}
 </script>
 
 <style scoped>

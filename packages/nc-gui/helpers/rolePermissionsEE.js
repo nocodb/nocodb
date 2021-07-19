@@ -3,19 +3,19 @@ export default {
   owner: '*',
   guest: {},
   editor: {
-    airTable:true,
-    column:true
+    airTable: true,
+    column: true
   },
   commenter: {
-    airTable:true,
-    column:true
+    airTable: true,
+    column: true
   },
   viewer: {
-    airTable:true,
-    column:true
+    airTable: true,
+    column: true
   },
-  user:{
-    projectCreate:true
+  user: {
+    projectCreate: true
   }
 }
 /**

@@ -2,19 +2,23 @@
   <v-dialog v-model="dialogShow" persistent max-width="800">
     <v-card>
       <v-progress-linear
+        v-if="progressbar"
         indeterminate
         color="green"
-        v-if="progressbar"
-      ></v-progress-linear>
+      />
       <div class="px-2">
-        <v-card-title class=" headline">Instant API Editor
-          <v-spacer></v-spacer>
-          <v-btn small :disabled="progressbar" @click="dialogShow = false">Cancel</v-btn>
+        <v-card-title class=" headline">
+          Instant API Editor
+          <v-spacer />
+          <v-btn small :disabled="progressbar" @click="dialogShow = false">
+            Cancel
+          </v-btn>
           <v-btn color="primary" small :disabled="progressbar" @click="saveCode">
-            <v-icon small class="mr-1">mdi-content-save</v-icon>
+            <v-icon small class="mr-1">
+              mdi-content-save
+            </v-icon>
             Save
           </v-btn>
-
         </v-card-title>
 
         <v-card-text>
@@ -23,10 +27,9 @@
           <!--          ></v-textarea>-->
 
           <monaco-ts-editor
-            style="min-height: 450px"
             v-model="code"
-          ></monaco-ts-editor>
-
+            style="min-height: 450px"
+          />
         </v-card-text>
       </div>
     </v-card>
@@ -34,24 +37,11 @@
 </template>
 
 <script>
-import MonacoTsEditor from "../monaco/MonacoTsEditor";
+import MonacoTsEditor from '../monaco/MonacoTsEditor'
 
 export default {
-  name: "gql-handler-code-editor",
-  components: {MonacoTsEditor},
-  data: () => ({
-    progressbar: false,
-    code: ''
-  }),
-  computed: {
-    dialogShow: {
-      get() {
-        return this.value;
-      }, set(val) {
-        this.$emit('input', val);
-      }
-    }
-  },
+  name: 'GqlHandlerCodeEditor',
+  components: { MonacoTsEditor },
   props: {
     value: Boolean,
     resolver: Object,
@@ -62,44 +52,58 @@ export default {
     },
     functions: String
   },
-  methods: {
-    async saveCode() {
-      try {
-        this.progressbar = true;
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
-        }, this.isMiddleware ? 'xcResolverMiddlewareUpdate' : 'xcResolverHandlerUpdate', {
-          tn: this.nodes.tn || this.nodes.view_name,
-          resolver: this.resolver,
-          functions: [this.code]
-        }])
-        this.$toast.success('API Handler updated successfully').goAway(3000);
-        this.dialogShow = false;
-      } catch (e) {
-        console.log('Error', e);
-        this.$toast.error('Some internal error occurred').goAway(3000);
+  data: () => ({
+    progressbar: false,
+    code: ''
+  }),
+  computed: {
+    dialogShow: {
+      get () {
+        return this.value
+      },
+      set (val) {
+        this.$emit('input', val)
       }
-      this.progressbar = false;
     }
   },
   watch: {
-    async resolver(val) {
+    async resolver (val) {
       try {
         console.log('=============', this.functions)
         this.code = JSON.parse(this.functions)[0]
       } catch (e) {
         const functionCode = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
+          dbAlias: this.nodes.dbAlias
         }, this.isMiddleware ? 'defaultResolverMiddlewareCode' : 'defaultResolverHandlerCodeGet', {
           tn: this.nodes.tn || this.nodes.view_name,
           resolver: this.resolver
         }])
         if (functionCode) {
-          this.code = functionCode;
+          this.code = functionCode
         }
       }
+    }
+  },
+  methods: {
+    async saveCode () {
+      try {
+        this.progressbar = true
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, this.isMiddleware ? 'xcResolverMiddlewareUpdate' : 'xcResolverHandlerUpdate', {
+          tn: this.nodes.tn || this.nodes.view_name,
+          resolver: this.resolver,
+          functions: [this.code]
+        }])
+        this.$toast.success('API Handler updated successfully').goAway(3000)
+        this.dialogShow = false
+      } catch (e) {
+        console.log('Error', e)
+        this.$toast.error('Some internal error occurred').goAway(3000)
+      }
+      this.progressbar = false
     }
   }
 }

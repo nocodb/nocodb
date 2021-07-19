@@ -1,53 +1,60 @@
 <template>
-
   <splitpanes horizontal class="xc-theme">
     <pane :size=" mainPanelSize" min-size="50" style="overflow: auto">
-      <slot/>
+      <slot />
     </pane>
 
     <pane v-if="$store.state.windows.outputWindow && !hide" :size="50" min-size="10" style="overflow: auto">
-      <ProjectOutput/>
+      <ProjectOutput />
     </pane>
-<!--    <pane v-if="$store.state.windows.logWindow && !$store.state.windows.outputWindow && !hide" :size="10" min-size="10"-->
-<!--          style="overflow: auto">-->
-<!--      <ProjectLogs/>-->
-<!--    </pane>-->
-<!--    <pane v-if="$store.state.windows.logWindow && $store.state.windows.outputWindow && !hide" :size="10" min-size="10"-->
-<!--          style="overflow: auto">-->
-<!--      <ProjectLogs/>-->
-<!--    </pane>-->
+    <!--    <pane v-if="$store.state.windows.logWindow && !$store.state.windows.outputWindow && !hide" :size="10" min-size="10"-->
+    <!--          style="overflow: auto">-->
+    <!--      <ProjectLogs/>-->
+    <!--    </pane>-->
+    <!--    <pane v-if="$store.state.windows.logWindow && $store.state.windows.outputWindow && !hide" :size="10" min-size="10"-->
+    <!--          style="overflow: auto">-->
+    <!--      <ProjectLogs/>-->
+    <!--    </pane>-->
   </splitpanes>
 </template>
 
 <script>
 
-import {Splitpanes, Pane} from 'splitpanes'
+import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import ProjectLogs from "~/components/projectLogs";
-import ProjectOutput from "~/components/projectOutput";
+// import ProjectLogs from '~/components/projectLogs'
+import ProjectOutput from '~/components/projectOutput'
 
 export default {
-  name: "sqlLogAndOutput",
-  props: {
-    hide: Boolean
-  },
+  name: 'SqlLogAndOutput',
   components: {
-    ProjectLogs,
+    // ProjectLogs,
     ProjectOutput,
     Splitpanes,
     Pane
   },
-  data() {
+  props: {
+    hide: Boolean
+  },
+  data () {
     return {
       mainPanelSize: 50
     }
   },
-  created() {
-    if (!this.$store.state.windows.outputWindow && !this.$store.state.windows.logWindow) this.$nextTick(() => this.mainPanelSize = 100)
+  created () {
+    if (!this.$store.state.windows.outputWindow && !this.$store.state.windows.logWindow) {
+      this.$nextTick(() => {
+        this.mainPanelSize = 100
+      })
+    }
     this.$store.watch(
-      (state) => !state.windows.outputWindow && !state.windows.logWindow,
+      state => !state.windows.outputWindow && !state.windows.logWindow,
       (newState) => {
-        if (newState) this.$nextTick(() => this.mainPanelSize = 100)
+        if (newState) {
+          this.$nextTick(() => {
+            this.mainPanelSize = 100
+          })
+        }
       }
     )
   }

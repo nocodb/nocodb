@@ -1,46 +1,41 @@
-import {MysqlUi} from "./MysqlUi";
-import {PgUi} from "./PgUi";
-import {MssqlUi} from "./MssqlUi";
-import {OracleUi} from "./OracleUi";
-import {SqliteUi} from "./SqliteUi";
+import { MysqlUi } from './MysqlUi'
+import { PgUi } from './PgUi'
+import { MssqlUi } from './MssqlUi'
+import { OracleUi } from './OracleUi'
+import { SqliteUi } from './SqliteUi'
 
 // import {YugabyteUi} from "./YugabyteUi";
 // import {TidbUi} from "./TidbUi";
 // import {VitessUi} from "./VitessUi";
 
-
 export class SqlUI {
-  static create(connectionConfig) {
+  static create (connectionConfig) {
     // connectionConfig.meta = connectionConfig.meta || {};
     // connectionConfig.meta.dbtype = connectionConfig.meta.dbtype || "";
-    if (connectionConfig.client === "mysql" || connectionConfig.client === "mysql2") {
+    if (connectionConfig.client === 'mysql' || connectionConfig.client === 'mysql2') {
       // if (connectionConfig.meta.dbtype === "tidb")
       //   return Tidb;
       // if (connectionConfig.meta.dbtype === "vitess")
       //   return Vitess;
 
-      console.log('- - - -In Mysql UI');
+      console.log('- - - -In Mysql UI')
 
-      return MysqlUi;
+      return MysqlUi
     }
 
-    if (connectionConfig.client === "sqlite3")
-      return SqliteUi;
-    if (connectionConfig.client === "mssql")
-      return MssqlUi;
-    if (connectionConfig.client === "oracledb")
-      return OracleUi;
+    if (connectionConfig.client === 'sqlite3') { return SqliteUi }
+    if (connectionConfig.client === 'mssql') { return MssqlUi }
+    if (connectionConfig.client === 'oracledb') { return OracleUi }
 
-    if (connectionConfig.client === "pg") {
+    if (connectionConfig.client === 'pg') {
       // if (connectionConfig.meta.dbtype === "yugabyte")
       //   return Yugabyte;
-      return PgUi;
+      return PgUi
     }
 
-    throw new Error("Database not supported");
+    throw new Error('Database not supported')
   }
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -1,35 +1,38 @@
 <template>
   <v-text-field
+    v-model="localState"
     dense
     outlined
-    :rules="[v => !!v || !inputDetails.required  || 'Required']"
+    :rules="[v => !!v || !inputDetails.required || 'Required']"
     :name="inputDetails.key"
     :required="inputDetails.valid"
     :placeholder="inputDetails.placeholder || ''"
     hide-details="auto"
-    v-on="parentListeners" v-model="localState" class="caption"/>
+    class="caption"
+    v-on="parentListeners"
+  />
 </template>
 
 <script>
 export default {
-  name: "textField",
+  name: 'TextField',
   props: {
     value: String,
     inputDetails: Object
   },
   computed: {
     localState: {
-      get() {
+      get () {
         return this.value
       },
-      set(val) {
-        this.$emit('input', val);
+      set (val) {
+        this.$emit('input', val)
       }
     },
-    parentListeners() {
-      const $listeners = {};
-      return $listeners;
-    },
+    parentListeners () {
+      const $listeners = {}
+      return $listeners
+    }
   }
 }
 </script>

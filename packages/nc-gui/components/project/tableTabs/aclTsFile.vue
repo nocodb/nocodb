@@ -1,133 +1,159 @@
+<!-- eslint-disable -->
 <template>
   <div>
     <v-card style="">
-
       <v-toolbar flat height="42" class="toolbar-border-bottom">
         <v-toolbar-title>
-          <v-breadcrumbs :items="[{
-          text: this.nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: this.nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: this.nodes.tn + ' (ACL)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-            <template v-slot:divider>
-              <v-icon small color="grey lighten-2">forward</v-icon>
+          <v-breadcrumbs
+            :items="[{
+                       text: nodes.env,
+                       disabled: true,
+                       href: '#'
+                     },{
+                       text: nodes.dbAlias,
+                       disabled: true,
+                       href: '#'
+                     },
+                     {
+                       text: nodes.tn + ' (ACL)',
+                       disabled: true,
+                       href: '#'
+                     }]"
+            divider=">"
+            small
+          >
+            <template #divider>
+              <v-icon small color="grey lighten-2">
+                forward
+              </v-icon>
             </template>
           </v-breadcrumbs>
-
         </v-toolbar-title>
-        <v-spacer></v-spacer>
-        <x-btn outlined tooltip="Reload ACL"
-               color="primary"
-               small
-               v-ge="['acl','reload']"
-               @click="reload"
+        <v-spacer />
+        <x-btn
+          v-ge="['acl','reload']"
+          outlined
+          tooltip="Reload ACL"
+          color="primary"
+          small
+          @click="reload"
         >
-          <v-icon small left>refresh</v-icon>
+          <v-icon small left>
+            refresh
+          </v-icon>
           Reload
         </x-btn>
-        <x-btn tooltip="Open Corresponding Folder"
-               icon="mdi-folder-open"
-               outlined
-               small
-               :disabled="!policyPaths || !policyPaths.length"
-               color="primary"
-               v-ge="['acl','open-folder']"
-               @click="openFolder">
+        <x-btn
+          v-ge="['acl','open-folder']"
+          tooltip="Open Corresponding Folder"
+          icon="mdi-folder-open"
+          outlined
+          small
+          :disabled="!policyPaths || !policyPaths.length"
+          color="primary"
+          @click="openFolder"
+        >
           Open Folder
         </x-btn>
-        <x-btn outlined tooltip="Save Changes"
-               color="primary"
-               class="primary"
-               small
-               @click="save"
-               :disabled="disableSaveButton"
-               v-ge="['acl','save']">
-          <v-icon small left>save</v-icon>
+        <x-btn
+          v-ge="['acl','save']"
+          outlined
+          tooltip="Save Changes"
+          color="primary"
+          class="primary"
+          small
+          :disabled="disableSaveButton"
+          @click="save"
+        >
+          <v-icon small left>
+            save
+          </v-icon>
           Save
         </x-btn>
-
       </v-toolbar>
 
-      <v-text-field dense hide-details class="ma-2" :placeholder="`Search ${nodes.tn} routes`"
-                    prepend-inner-icon="search" v-model="search"
-                    outlined></v-text-field>
+      <v-text-field
+        v-model="search"
+        dense
+        hide-details
+        class="ma-2"
+        :placeholder="`Search ${nodes.tn} routes`"
+        prepend-inner-icon="search"
+        outlined
+      />
 
       <acl-ts-file-child
-        style="border-bottom: 1px solid grey"
         v-for="(policyPath,k) in policyPaths"
         :key="k"
-        ref="acl" :nodes="nodes" :search="search" :policyPath="policyPath"></acl-ts-file-child>
+        ref="acl"
+        style="border-bottom: 1px solid grey"
+        :nodes="nodes"
+        :search="search"
+        :policy-path="policyPath"
+      />
 
-      <v-alert v-if="policyPaths && !policyPaths.length" outlined type="info">Permission file not found</v-alert>
+      <v-alert v-if="policyPaths && !policyPaths.length" outlined type="info">
+        Permission file not found
+      </v-alert>
     </v-card>
   </div>
 </template>
 
 <script>
-  import {mapGetters} from "vuex";
-  import aclTsFileChild from './aclTsFileChild'
+import { mapGetters } from 'vuex'
+import aclTsFileChild from './aclTsFileChild'
 
+// const {shell, path} = require("electron").remote.require('./libs');
 
-  // const {shell, path} = require("electron").remote.require('./libs');
+export default {
+  name: 'AclTypeorm',
+  components: { aclTsFileChild },
+  props: ['nodes'],
+  data () {
+    return {
+      policyPaths: null,
+      search: ''
+    }
+  },
+  methods: {
 
-  export default {
-    name: "acl-typeorm",
-    components: {aclTsFileChild},
-    props: ["nodes"],
-    methods: {
+    async aclInit () {
+      // this.disableSaveButton = true;
+      // this.policyPaths = await this.sqlMgr.projectGetTsPolicyPath({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias,
+      //   tn: this.nodes.tn
+      // });
 
-      async aclInit() {
-        // this.disableSaveButton = true;
-        // this.policyPaths = await this.sqlMgr.projectGetTsPolicyPath({
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias,
-        //   tn: this.nodes.tn
-        // });
-
-        this.policyPaths = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
-        }, 'projectGetTsPolicyPath', {
-          tn: this.nodes.tn
-        }]);
-      },
-      reload() {
-        for (const $acl of this.$refs.acl) {
-          $acl.aclInit();
-        }
-      },
-      save() {
-        for (const $acl of this.$refs.acl) {
-          $acl.save();
-        }
-      },
-      openFolder() {
-        // shell.openItem(path.dirname(this.policyPaths[0]));
-      },
+      this.policyPaths = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias
+      }, 'projectGetTsPolicyPath', {
+        tn: this.nodes.tn
+      }])
     },
-    data() {
-      return {
-        policyPaths: null,
-        search: ''
+    reload () {
+      for (const $acl of this.$refs.acl) {
+        $acl.aclInit()
       }
     },
-    computed: {
-      ...mapGetters({sqlMgr: "sqlMgr/sqlMgr"}),
+    save () {
+      for (const $acl of this.$refs.acl) {
+        $acl.save()
+      }
     },
-    async created() {
-      await this.aclInit();
-    },
-    watch: {}
+    openFolder () {
+      // shell.openItem(path.dirname(this.policyPaths[0]));
+    }
+  },
+  computed: {
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
+  },
+  watch: {},
+  async created () {
+    await this.aclInit()
   }
+}
 </script>
 
 <style scoped>

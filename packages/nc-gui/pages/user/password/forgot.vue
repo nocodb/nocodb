@@ -2,9 +2,7 @@
   <v-container class="text-center" fluid>
     <v-row align="center">
       <v-col md="6" offset-md="3">
-
         <v-card v-if="showMsg" class="pa-5 ma-5">
-
           <v-alert type="success" :value="true" outline>
             <p class="display-1">
               {{ $t('signin.password.recovery.success') }}
@@ -12,132 +10,125 @@
           </v-alert>
         </v-card>
 
-        <v-card class="pa-5 elevation-10" color="" v-else>
-
+        <v-card v-else class="pa-5 elevation-10" color="">
           <h1>{{ $t('signin.password.recovery.title') }}</h1>
-
 
           <br>
           <p>{{ $t('signin.password.recovery.message_1') }}</p>
           <p>{{ $t('signin.password.recovery.message_2') }}</p>
 
-
           <div>
-            <v-alert type="error" dismissible v-model="formUtil.formErr">
-              {{formUtil.formErrMsg}}
+            <v-alert v-model="formUtil.formErr" type="error" dismissible>
+              {{ formUtil.formErrMsg }}
             </v-alert>
           </div>
 
-
-          <v-form v-model="valid" ref="formType" lazy-validation>
-
+          <v-form ref="formType" v-model="valid" lazy-validation>
             <v-text-field
-              label="E-mail"
               v-model="form.email"
+              label="E-mail"
               :rules="formRules.email"
               required
-            ></v-text-field>
+            />
 
-<!--            <vue-recaptcha @verify="onNormalVerify" sitekey="6LfbcqMUAAAAAAb_2319UdF8m68JHSYVy_m4wPBx"-->
-<!--                           style="transform:scale(0.7);-webkit-transform:scale(0.7);transform-origin:0 0;-webkit-transform-origin:0 0;">-->
+            <!--            <vue-recaptcha @verify="onNormalVerify" sitekey="6LfbcqMUAAAAAAb_2319UdF8m68JHSYVy_m4wPBx"-->
+            <!--                           style="transform:scale(0.7);-webkit-transform:scale(0.7);transform-origin:0 0;-webkit-transform-origin:0 0;">-->
 
-<!--            </vue-recaptcha>-->
-
+            <!--            </vue-recaptcha>-->
 
             <v-btn
-              @click="resetPasswordHandle"
               color="primary"
               large
               :disabled="!valid"
+              @click="resetPasswordHandle"
             >
               {{ $t('signin.password.recovery.button') }}
             </v-btn>
-
           </v-form>
         </v-card>
       </v-col>
     </v-row>
   </v-container>
-
 </template>
 
 <script>
-  import VueRecaptcha from 'vue-recaptcha';
-  import {isEmail} from "@/helpers";
+// import VueRecaptcha from 'vue-recaptcha'
+import { isEmail } from '@/helpers'
 
-  export default {
+export default {
+  directives: {},
+  components: {
+    // VueRecaptcha
+  },
+  validate ({ params }) {
+    return true
+  },
+  props: {},
 
-    data() {
-      return {
-        recpatcha: false,
-        showMsg: false,
+  data () {
+    return {
+      recpatcha: false,
+      showMsg: false,
 
-        form: {
-          email: '',
-        },
-
-        formRules: {
-          email: [
-            v => !!v || this.$t('signin.form.rules.email_1'),
-            v => isEmail(v) || this.$t('signin.form.rules.email_2')
-          ],
-        },
-        formUtil: {
-          formErr: false,
-          formErrMsg: ''
-        },
-
-        valid: true,
-        e3: false,
-
-      }
-    },
-    computed: {},
-    methods: {
-
-      onNormalVerify() {
-        this.recpatcha = true;
+      form: {
+        email: ''
       },
 
+      formRules: {
+        email: [
+          v => !!v || this.$t('signin.form.rules.email_1'),
+          v => isEmail(v) || this.$t('signin.form.rules.email_2')
+        ]
+      },
+      formUtil: {
+        formErr: false,
+        formErrMsg: ''
+      },
 
-      async resetPasswordHandle(e) {
-        if (this.$refs.formType.validate()) {
-          e.preventDefault();
-          // await this.$recaptchaLoaded()
-          // const recaptchaToken = await this.$recaptcha('login')
+      valid: true,
+      e3: false
 
-          let err = await this.$store.dispatch('users/ActPasswordForgot', {...this.form,});// recaptchaToken});
-          if (err) {
-            this.formUtil.formErr = true;
-            this.formUtil.formErrMsg = err.data.msg;
-          } else {
-            this.showMsg = true;
-          }
+    }
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {
+
+    onNormalVerify () {
+      this.recpatcha = true
+    },
+
+    async resetPasswordHandle (e) {
+      if (this.$refs.formType.validate()) {
+        e.preventDefault()
+        // await this.$recaptchaLoaded()
+        // const recaptchaToken = await this.$recaptcha('login')
+
+        const err = await this.$store.dispatch('users/ActPasswordForgot', { ...this.form })// recaptchaToken});
+        if (err) {
+          this.formUtil.formErr = true
+          this.formUtil.formErrMsg = err.data.msg
+        } else {
+          this.showMsg = true
         }
       }
+    }
 
-    },
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true
-    },
-    head() {
-      return {}
-    },
-    props: {},
-    watch: {},
-    directives: {},
-    components: {VueRecaptcha},
+  },
+  beforeCreated () {
+  },
+  destroy () {
   }
+}
 </script>
 
 <style scoped>

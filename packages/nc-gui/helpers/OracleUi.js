@@ -1,12 +1,11 @@
 export class OracleUi {
-
-  static getNewTableColumns() {
+  static getNewTableColumns () {
     return [
       {
-        cn: "id",
-        dt: "integer",
-        dtx: "integer",
-        ct: "int(11)",
+        cn: 'id',
+        dt: 'integer',
+        dtx: 'integer',
+        ct: 'int(11)',
         nrqd: false,
         rqd: true,
         ck: false,
@@ -20,15 +19,15 @@ export class OracleUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: "ID",
-        uip: "",
-        uicn: ""
+        uidt: 'ID',
+        uip: '',
+        uicn: ''
       },
       {
-        cn: "title",
-        dt: "varchar",
-        dtx: "specificType",
-        ct: "varchar(45)",
+        cn: 'title',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -43,9 +42,9 @@ export class OracleUi {
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
-        uip: "",
-        uicn: "",
-      },
+        uip: '',
+        uicn: ''
+      }
       // {
       //   cn: "created_at",
       //   dt: "timestamp",
@@ -82,15 +81,15 @@ export class OracleUi {
       //   dtxp: '',
       //   dtxs: ''
       // }
-    ];
+    ]
   }
 
-  static getNewColumn(suffix) {
+  static getNewColumn (suffix) {
     return {
-      cn: "title" + suffix,
-      dt: "integer",
-      dtx: "specificType",
-      ct: "integer(11)",
+      cn: 'title' + suffix,
+      dt: 'integer',
+      dtx: 'specificType',
+      ct: 'integer(11)',
       nrqd: true,
       rqd: false,
       ck: false,
@@ -101,15 +100,15 @@ export class OracleUi {
       clen: 45,
       np: null,
       ns: null,
-      //data_type_x_specific: ' ',
+      // data_type_x_specific: ' ',
       dtxp: '11',
       dtxs: ' ',
-      altered: 1, uidt: 'Number',
-      uip: "",
-      uicn: "",
-    };
+      altered: 1,
+      uidt: 'Number',
+      uip: '',
+      uicn: ''
+    }
   }
-
 
   // static getDefaultLengthForDatatype(type) {
   //   switch (type) {
@@ -227,19 +226,17 @@ export class OracleUi {
   //
   // }
 
-  static getDefaultLengthForDatatype(type) {
+  static getDefaultLengthForDatatype (type) {
     switch (type) {
       default:
-        return ""
+        return ''
     }
-
   }
 
-
-  static getDefaultLengthIsDisabled(type) {
+  static getDefaultLengthIsDisabled (type) {
     switch (type) {
       case 'integer':
-        return true;
+        return true
       case 'bfile':
       case 'binary rowid':
       case 'binary double':
@@ -290,27 +287,20 @@ export class OracleUi {
       case 'varchar2':
       case 'varray':
       case 'varying array':
-        return false;
-        break;
+        return false
     }
-
   }
 
-
-  static getDefaultValueForDatatype(type) {
+  static getDefaultValueForDatatype (type) {
     switch (type) {
       default:
-        return '';
-        break;
-
+        return ''
     }
   }
 
-
-  static getDefaultScaleForDatatype(type) {
+  static getDefaultScaleForDatatype (type) {
     switch (type) {
       case 'integer':
-
       case 'bfile':
       case 'binary rowid':
       case 'binary double':
@@ -362,32 +352,29 @@ export class OracleUi {
       case 'varray':
       case 'varying array':
         return ' '
-        break;
-
     }
-
   }
 
-  static colPropAIDisabled(col, columns) {
-    //console.log(col);
+  static colPropAIDisabled (col, columns) {
+    // console.log(col);
     if (col.dt === 'int4' ||
       col.dt === 'integer' ||
       col.dt === 'bigint' ||
       col.dt === 'smallint') {
-      for (var i = 0; i < columns.length; ++i) {
+      for (let i = 0; i < columns.length; ++i) {
         if (columns[i].cn !== col.cn && columns[i].ai) {
-          return true;
+          return true
         }
       }
-      return false;
+      return false
     } else {
-      return true;
+      return true
     }
   }
 
-  static colPropUNDisabled(col) {
-    //console.log(col);
-    return true;
+  static colPropUNDisabled (col) {
+    // console.log(col);
+    return true
     // if (col.dt === 'int' ||
     //   col.dt === 'tinyint' ||
     //   col.dt === 'smallint' ||
@@ -399,10 +386,10 @@ export class OracleUi {
     // }
   }
 
-  static onCheckboxChangeAI(col) {
-    console.log(col);
+  static onCheckboxChangeAI (col) {
+    console.log(col)
     if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
-      col.altered = col.altered || 2;
+      col.altered = col.altered || 2
     }
 
     // if (!col.ai) {
@@ -412,57 +399,53 @@ export class OracleUi {
     // }
   }
 
-  static showScale(columnObj) {
-    return false;
+  static showScale (columnObj) {
+    return false
   }
 
-
-  static removeUnsigned(columns) {
-
-    for (var i = 0; i < columns.length; ++i) {
-      if (columns[i].altered === 1 && (!(columns[i].dt === 'int'
-        || columns[i].dt === 'bigint'
-        || columns[i].dt === 'tinyint'
-        || columns[i].dt === 'smallint'
-        || columns[i].dt === 'mediumint'))) {
-        columns[i].un = false;
-        console.log('>> resetting unsigned value', columns[i].cn);
+  static removeUnsigned (columns) {
+    for (let i = 0; i < columns.length; ++i) {
+      if (columns[i].altered === 1 && (!(columns[i].dt === 'int' ||
+        columns[i].dt === 'bigint' ||
+        columns[i].dt === 'tinyint' ||
+        columns[i].dt === 'smallint' ||
+        columns[i].dt === 'mediumint'))) {
+        columns[i].un = false
+        console.log('>> resetting unsigned value', columns[i].cn)
       }
-      console.log(columns[i].cn);
+      console.log(columns[i].cn)
     }
-
   }
 
-  static columnEditable(colObj) {
-    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
+  static columnEditable (colObj) {
+    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
   }
 
-  static extractFunctionName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
-    const match = query.match(reg);
-    return match && match[1];
+  static extractFunctionName (query) {
+    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
+    const match = query.match(reg)
+    return match && match[1]
   }
 
-
-  static extractProcedureName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
-    const match = query.match(reg);
-    return match && match[1];
+  static extractProcedureName (query) {
+    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
+    const match = query.match(reg)
+    return match && match[1]
   }
 
-  static splitQueries(query) {
+  static splitQueries (query) {
     /***
      * we are splitting based on semicolon
      * there are mechanism to escape semicolon within single/double quotes(string)
      */
-    return query.match(/\b("[^"]*;[^"]*"|'[^']*;[^']*'|[^;])*;/g);
+    return query.match(/\b("[^"]*;[^"]*"|'[^']*;[^']*'|[^;])*;/g)
   }
 
-  static onCheckboxChangeAU(col) {
-    console.log(col);
-    if (1) {
-      col.altered = col.altered || 2;
-    }
+  static onCheckboxChangeAU (col) {
+    console.log(col)
+    // if (1) {
+    col.altered = col.altered || 2
+    // }
 
     // if (!col.ai) {
     //   col.dtx = 'specificType'
@@ -476,9 +459,8 @@ export class OracleUi {
    * @param args
    * @returns {string|*}
    */
-  sanitiseQuery(args) {
-
-    let q = args.query.trim().split(';');
+  sanitiseQuery (args) {
+    let q = args.query.trim().split(';')
 
     if (q[0].startsWith('Select')) {
       q = q[0] + ` LIMIT 0,${args.limit ? args.limit : 100};`
@@ -487,229 +469,218 @@ export class OracleUi {
     } else if (q[0].startsWith('SELECT')) {
       q = q[0] + ` LIMIT 0,${args.limit ? args.limit : 100};`
     } else {
-      return args.query;
+      return args.query
     }
 
-    return q;
-
+    return q
   }
 
-  getColumnsFromJson(json, tn) {
-
-    let columns = [];
+  getColumnsFromJson (json, tn) {
+    const columns = []
 
     try {
       if (typeof json === 'object' && !Array.isArray(json)) {
-
-        let keys = Object.keys(json);
+        const keys = Object.keys(json)
 
         for (let i = 0; i < keys.length; ++i) {
-
           switch (typeof json[keys[i]]) {
-
             case 'number':
               if (Number.isInteger(json[keys[i]])) {
                 columns.push({
-                  "dp": null,
-                  "tn": tn,
-                  "cn": keys[i],
-                  "cno": keys[i],
-                  "dt": "int",
-                  "np": 10,
-                  "ns": 0,
-                  "clen": null,
-                  "cop": 1,
-                  "pk": false,
-                  "nrqd": false,
-                  "rqd": false,
-                  "un": false,
-                  "ct": "int(11) unsigned",
-                  "ai": false,
-                  "unique": false,
-                  "cdf": null,
-                  "cc": "",
-                  "csn": null,
-                  "dtx": "specificType",
-                  "dtxp": "11",
-                  "dtxs": 0,
+                  dp: null,
+                  tn,
+                  cn: keys[i],
+                  cno: keys[i],
+                  dt: 'int',
+                  np: 10,
+                  ns: 0,
+                  clen: null,
+                  cop: 1,
+                  pk: false,
+                  nrqd: false,
+                  rqd: false,
+                  un: false,
+                  ct: 'int(11) unsigned',
+                  ai: false,
+                  unique: false,
+                  cdf: null,
+                  cc: '',
+                  csn: null,
+                  dtx: 'specificType',
+                  dtxp: '11',
+                  dtxs: 0,
                   altered: 1
-                });
+                })
               } else {
                 columns.push({
-                  "dp": null,
-                  "tn": tn,
-                  "cn": keys[i],
-                  "cno": keys[i],
-                  "dt": "float",
-                  "np": 10,
-                  "ns": 2,
-                  "clen": null,
-                  "cop": 1,
-                  "pk": false,
-                  "nrqd": false,
-                  "rqd": false,
-                  "un": false,
-                  "ct": "int(11) unsigned",
-                  "ai": false,
-                  "unique": false,
-                  "cdf": null,
-                  "cc": "",
-                  "csn": null,
-                  "dtx": "specificType",
-                  "dtxp": "11",
-                  "dtxs": 2,
+                  dp: null,
+                  tn,
+                  cn: keys[i],
+                  cno: keys[i],
+                  dt: 'float',
+                  np: 10,
+                  ns: 2,
+                  clen: null,
+                  cop: 1,
+                  pk: false,
+                  nrqd: false,
+                  rqd: false,
+                  un: false,
+                  ct: 'int(11) unsigned',
+                  ai: false,
+                  unique: false,
+                  cdf: null,
+                  cc: '',
+                  csn: null,
+                  dtx: 'specificType',
+                  dtxp: '11',
+                  dtxs: 2,
                   altered: 1
-                });
+                })
               }
 
-              break;
+              break
 
             case 'string':
 
               if (json[keys[i]].length <= 255) {
                 columns.push({
-                  "dp": null,
-                  "tn": tn,
-                  "cn": keys[i],
-                  "cno": keys[i],
-                  "dt": "varchar",
-                  "np": 45,
-                  "ns": 0,
-                  "clen": null,
-                  "cop": 1,
-                  "pk": false,
-                  "nrqd": false,
-                  "rqd": false,
-                  "un": false,
-                  "ct": "int(11) unsigned",
-                  "ai": false,
-                  "unique": false,
-                  "cdf": null,
-                  "cc": "",
-                  "csn": null,
-                  "dtx": "specificType",
-                  "dtxp": "45",
-                  "dtxs": 0,
+                  dp: null,
+                  tn,
+                  cn: keys[i],
+                  cno: keys[i],
+                  dt: 'varchar',
+                  np: 45,
+                  ns: 0,
+                  clen: null,
+                  cop: 1,
+                  pk: false,
+                  nrqd: false,
+                  rqd: false,
+                  un: false,
+                  ct: 'int(11) unsigned',
+                  ai: false,
+                  unique: false,
+                  cdf: null,
+                  cc: '',
+                  csn: null,
+                  dtx: 'specificType',
+                  dtxp: '45',
+                  dtxs: 0,
                   altered: 1
-                });
+                })
               } else {
                 columns.push({
-                  "dp": null,
-                  "tn": tn,
-                  "cn": keys[i],
-                  "cno": keys[i],
-                  "dt": "text",
-                  "np": null,
-                  "ns": 0,
-                  "clen": null,
-                  "cop": 1,
-                  "pk": false,
-                  "nrqd": false,
-                  "rqd": false,
-                  "un": false,
-                  "ct": "int(11) unsigned",
-                  "ai": false,
-                  "unique": false,
-                  "cdf": null,
-                  "cc": "",
-                  "csn": null,
-                  "dtx": "specificType",
-                  "dtxp": null,
-                  "dtxs": 0,
+                  dp: null,
+                  tn,
+                  cn: keys[i],
+                  cno: keys[i],
+                  dt: 'text',
+                  np: null,
+                  ns: 0,
+                  clen: null,
+                  cop: 1,
+                  pk: false,
+                  nrqd: false,
+                  rqd: false,
+                  un: false,
+                  ct: 'int(11) unsigned',
+                  ai: false,
+                  unique: false,
+                  cdf: null,
+                  cc: '',
+                  csn: null,
+                  dtx: 'specificType',
+                  dtxp: null,
+                  dtxs: 0,
                   altered: 1
-                });
+                })
               }
 
-              break;
+              break
 
             case 'boolean':
               columns.push({
-                "dp": null,
-                "tn": tn,
-                "cn": keys[i],
-                "cno": keys[i],
-                "dt": "boolean",
-                "np": 3,
-                "ns": 0,
-                "clen": null,
-                "cop": 1,
-                "pk": false,
-                "nrqd": false,
-                "rqd": false,
-                "un": false,
-                "ct": "int(11) unsigned",
-                "ai": false,
-                "unique": false,
-                "cdf": null,
-                "cc": "",
-                "csn": null,
-                "dtx": "specificType",
-                "dtxp": "1",
-                "dtxs": 0,
+                dp: null,
+                tn,
+                cn: keys[i],
+                cno: keys[i],
+                dt: 'boolean',
+                np: 3,
+                ns: 0,
+                clen: null,
+                cop: 1,
+                pk: false,
+                nrqd: false,
+                rqd: false,
+                un: false,
+                ct: 'int(11) unsigned',
+                ai: false,
+                unique: false,
+                cdf: null,
+                cc: '',
+                csn: null,
+                dtx: 'specificType',
+                dtxp: '1',
+                dtxs: 0,
                 altered: 1
-              });
-              break;
+              })
+              break
 
             case 'object':
               columns.push({
-                "dp": null,
-                "tn": tn,
-                "cn": keys[i],
-                "cno": keys[i],
-                "dt": "json",
-                "np": 3,
-                "ns": 0,
-                "clen": null,
-                "cop": 1,
-                "pk": false,
-                "nrqd": false,
-                "rqd": false,
-                "un": false,
-                "ct": "int(11) unsigned",
-                "ai": false,
-                "unique": false,
-                "cdf": null,
-                "cc": "",
-                "csn": null,
-                "dtx": "specificType",
-                "dtxp": null,
-                "dtxs": 0,
+                dp: null,
+                tn,
+                cn: keys[i],
+                cno: keys[i],
+                dt: 'json',
+                np: 3,
+                ns: 0,
+                clen: null,
+                cop: 1,
+                pk: false,
+                nrqd: false,
+                rqd: false,
+                un: false,
+                ct: 'int(11) unsigned',
+                ai: false,
+                unique: false,
+                cdf: null,
+                cc: '',
+                csn: null,
+                dtx: 'specificType',
+                dtxp: null,
+                dtxs: 0,
                 altered: 1
-              });
-              break;
+              })
+              break
 
             default:
-              break;
-
+              break
           }
-
         }
-
       }
     } catch (e) {
-      console.log('Error in getColumnsFromJson', e);
-    } finally {
-      return columns;
+      console.log('Error in getColumnsFromJson', e)
     }
-
+    return columns
   }
 
-  static colPropAuDisabled(col) {
-    return true;
+  static colPropAuDisabled (col) {
+    return true
   }
 
-
-  static getAbstractType(col) {
+  static getAbstractType (col) {
     switch ((col.dt || col.dt).toLowerCase()) {
       case 'integer':
-        return 'integer';
+        return 'integer'
       case 'bfile':
       case 'binary rowid':
       case 'binary double':
       case 'binary_float':
-        return 'string';
+        return 'string'
       case 'blob':
-        return 'blob';
+        return 'blob'
       case 'canoical':
       case 'cfile':
       case 'char':
@@ -718,7 +689,7 @@ export class OracleUi {
       case 'contigous array':
         return 'string'
       case 'date':
-        return 'date';
+        return 'date'
       case 'decimal':
       case 'double precision':
       case 'float':
@@ -738,7 +709,6 @@ export class OracleUi {
       case 'nclob':
         return 'string'
       case 'nvarchar2':
-
       case 'octet':
       case 'oid':
       case 'pointer':
@@ -776,155 +746,150 @@ export class OracleUi {
     }
   }
 
-  static getUIType(col) {
+  static getUIType (col) {
     switch (this.getAbstractType(col)) {
       case 'integer':
-        return 'Number';
-      case "boolean":
-        return 'Checkbox';
-      case  'float':
-        return 'Decimal';
-      case "date":
-        return 'Date';
-      case "datetime":
-        return 'CreateTime';
-      case "time":
-        return 'Time';
+        return 'Number'
+      case 'boolean':
+        return 'Checkbox'
+      case 'float':
+        return 'Decimal'
+      case 'date':
+        return 'Date'
+      case 'datetime':
+        return 'CreateTime'
+      case 'time':
+        return 'Time'
       case 'year':
-        return 'Year';
-      case   'string':
-        return 'SingleLineText';
-      case "text":
-        return 'LongText';
+        return 'Year'
+      case 'string':
+        return 'SingleLineText'
+      case 'text':
+        return 'LongText'
       case 'blob':
         return 'Attachment'
-      case "enum":
-        return 'SingleSelect';
-      case "set":
-        return 'MultiSelect';
-      case "json":
-        return 'LongText';
+      case 'enum':
+        return 'SingleSelect'
+      case 'set':
+        return 'MultiSelect'
+      case 'json':
+        return 'LongText'
     }
-
   }
 
-
-
-  static getDataTypeForUiType(col) {
+  static getDataTypeForUiType (col) {
     const colProp = {}
     switch (col.uidt) {
       case 'ID':
-        colProp.dt = 'integer';
-        colProp.pk = true;
-        colProp.un = true;
-        colProp.ai = true;
-        colProp.rqd = true;
-        break;
+        colProp.dt = 'integer'
+        colProp.pk = true
+        colProp.un = true
+        colProp.ai = true
+        colProp.rqd = true
+        break
       case 'ForeignKey':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       case 'SingleLineText':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       case 'LongText':
-        colProp.dt = 'clob';
-        break;
+        colProp.dt = 'clob'
+        break
       case 'Attachment':
-        colProp.dt = 'clob';
-        break;
+        colProp.dt = 'clob'
+        break
       case 'Checkbox':
-        colProp.dt = 'tinyint';
-        colProp.dtxp = 1;
-        break;
+        colProp.dt = 'tinyint'
+        colProp.dtxp = 1
+        break
       case 'MultiSelect':
-        colProp.dt = 'varchar2';
-        break;
+        colProp.dt = 'varchar2'
+        break
       case 'SingleSelect':
-        colProp.dt = 'varchar2';
-        break;
+        colProp.dt = 'varchar2'
+        break
       case 'Collaborator':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       case 'Date':
-        colProp.dt = 'varchar';
+        colProp.dt = 'varchar'
 
-        break;
+        break
       case 'Year':
-        colProp.dt = 'year';
-        break;
+        colProp.dt = 'year'
+        break
       case 'Time':
-        colProp.dt = 'time';
-        break;
+        colProp.dt = 'time'
+        break
       case 'PhoneNumber':
-        colProp.dt = 'varchar';
-        colProp.validate = {"func": ["isMobilePhone"], "args": [""], "msg": ["Validation failed : isMobilePhone"]}
-        break;
+        colProp.dt = 'varchar'
+        colProp.validate = { func: ['isMobilePhone'], args: [''], msg: ['Validation failed : isMobilePhone'] }
+        break
       case 'Email':
-        colProp.dt = 'varchar';
-        colProp.validate = {"func": ["isEmail"], "args": [""], "msg": ["Validation failed : isEmail"]}
-        break;
+        colProp.dt = 'varchar'
+        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail'] }
+        break
       case 'URL':
-        colProp.dt = 'varchar';
-        colProp.validate = {"func": ["isURL"], "args": [""], "msg": ["Validation failed : isURL"]}
-        break;
+        colProp.dt = 'varchar'
+        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL'] }
+        break
       case 'Number':
-        colProp.dt = 'integer';
-        break;
+        colProp.dt = 'integer'
+        break
       case 'Decimal':
-        colProp.dt = 'decimal';
-        break;
+        colProp.dt = 'decimal'
+        break
       case 'Currency':
-        colProp.dt = 'decimal';
-        colProp.validate = {"func": ["isCurrency"], "args": [""], "msg": ["Validation failed : isCurrency"]}
-        break;
+        colProp.dt = 'decimal'
+        colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : isCurrency'] }
+        break
       case 'Percent':
-        colProp.dt = 'double';
-        break;
+        colProp.dt = 'double'
+        break
       case 'Duration':
-        colProp.dt = 'integer';
-        break;
+        colProp.dt = 'integer'
+        break
       case 'Rating':
-        colProp.dt = 'float';
-        break;
+        colProp.dt = 'float'
+        break
       case 'Formula':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       case 'Rollup':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       case 'Count':
-        colProp.dt = 'integer';
-        break;
+        colProp.dt = 'integer'
+        break
       case 'Lookup':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       case 'DateTime':
-        colProp.dt = 'timestamp';
-        break;
+        colProp.dt = 'timestamp'
+        break
       case 'CreateTime':
-        colProp.dt = 'timestamp';
-        break;
+        colProp.dt = 'timestamp'
+        break
       case 'LastModifiedTime':
-        colProp.dt = 'timestamp';
-        break;
+        colProp.dt = 'timestamp'
+        break
       case 'AutoNumber':
-        colProp.dt = 'integer';
-        break;
+        colProp.dt = 'integer'
+        break
       case 'Barcode':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       case 'Button':
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
       default:
-        colProp.dt = 'varchar';
-        break;
+        colProp.dt = 'varchar'
+        break
     }
     return colProp
   }
-
 }
-
 
 // module.exports = PgUiHelp;
 /**

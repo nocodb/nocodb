@@ -14,7 +14,8 @@
         x-small
         icon.class="unlink-icon"
         @click.stop="$emit('unlink',item)"
-      >mdi-close-thick
+      >
+        mdi-close-thick
       </x-icon>
     </div>
   </v-chip>
@@ -22,12 +23,12 @@
 
 <script>
 export default {
+  name: 'ItemChip',
   props: {
     value: [String, Number, Boolean],
     active: Boolean,
     item: Object
-  },
-  name: "item-chip"
+  }
 }
 </script>
 

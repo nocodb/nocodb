@@ -1,21 +1,28 @@
 <template>
   <div>
-    <div class="d-flex ma-1" v-if="!isForm">
-      <v-spacer>
-      </v-spacer>
-      <v-btn v-if="!isForm" outlined x-small class="mr-1" @click="$emit('cancel')">Cancel</v-btn>
-      <v-btn v-if="!isForm" x-small color="primary" @click="save">Save</v-btn>
+    <div v-if="!isForm" class="d-flex ma-1">
+      <v-spacer />
+      <v-btn v-if="!isForm" outlined x-small class="mr-1" @click="$emit('cancel')">
+        Cancel
+      </v-btn>
+      <v-btn v-if="!isForm" x-small color="primary" @click="save">
+        Save
+      </v-btn>
     </div>
-    <textarea v-on="parentListeners"  ref="textarea" v-model="localState" rows="3"
-              @input="isForm && save()"
-              @keydown.stop.enter></textarea>
+    <textarea
+      ref="textarea"
+      v-model="localState"
+      rows="3"
+      v-on="parentListeners"
+      @input="isForm && save()"
+      @keydown.stop.enter
+    />
   </div>
-
 </template>
 
 <script>
 export default {
-  name: "textAreaCell",
+  name: 'TextAreaCell',
   props: {
     value: String,
     isForm: Boolean
@@ -23,40 +30,41 @@ export default {
   data: () => ({
     localState: ''
   }),
-  created() {
-    this.localState = this.value;
+  computed: {
+
+    parentListeners () {
+      const $listeners = {}
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
+      }
+
+      return $listeners
+    }
   },
-  mounted() {
-    this.$refs.textarea && this.$refs.textarea.focus();
-  }, watch: {
-    value(val) {
-      this.localState = val;
+  watch: {
+    value (val) {
+      this.localState = val
     },
-    localState(val) {
+    localState (val) {
       if (this.isForm) {
         this.$emit('input', val)
       }
     }
   },
+  created () {
+    this.localState = this.value
+  },
+  mounted () {
+    this.$refs.textarea && this.$refs.textarea.focus()
+  },
   methods: {
-    save() {
+    save () {
       this.$emit('input', this.localState)
     }
-  },
-  computed:{
-
-    parentListeners(){
-      const $listeners = {};
-
-      if(this.$listeners.blur){
-        $listeners.blur = this.$listeners.blur;
-      }
-      if(this.$listeners.focus){
-        $listeners.focus = this.$listeners.focus;
-      }
-
-      return $listeners;
-    },
   }
 }
 </script>

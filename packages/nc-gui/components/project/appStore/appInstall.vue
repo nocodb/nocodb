@@ -3,51 +3,60 @@
     <v-form v-model="valid">
       <template v-if="formDetails">
         <div class="title  d-flex align-center justify-center mb-4">
-          <div :style="{ background : plugin.title === 'SES' ? '#242f3e' : '' }"
-               class="mr-1 d-flex align-center justify-center"
-               :class="{ 'pa-2' : plugin.title === 'SES'}" v-if="plugin.logo">
+          <div
+            v-if="plugin.logo"
+            :style="{ background : plugin.title === 'SES' ? '#242f3e' : '' }"
+            class="mr-1 d-flex align-center justify-center"
+            :class="{ 'pa-2' : plugin.title === 'SES'}"
+          >
             <img
-              :src="plugin.logo" height="25">
+              :src="plugin.logo"
+              height="25"
+            >
           </div>
           <v-icon
-            color="#242f3e" size="30" v-else-if="plugin.icon" class="mr-1">{{ plugin.icon }}
+            v-else-if="plugin.icon"
+            color="#242f3e"
+            size="30"
+            class="mr-1"
+          >
+            {{ plugin.icon }}
           </v-icon>
 
           <span @dblclick="copyDefault">{{ formDetails.title }}</span>
         </div>
 
-        <v-divider class="mb-7"></v-divider>
+        <v-divider class="mb-7" />
         <div v-if="formDetails.array">
-
           <table class="form-table mx-auto">
             <thead>
-            <tr>
-              <th v-for="(item,i) in formDetails.items" :key="i">
-                <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
-              </th>
-            </tr>
+              <tr>
+                <th v-for="(item,i) in formDetails.items" :key="i">
+                  <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
+                </th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="(set,j) in settings" :key="j">
-              <td v-for="(item,i) in formDetails.items" :key="i">
-                <form-input :input-details="item" v-model="set[item.key]"></form-input>
-              </td>
-              <td v-if="j">
-                <x-icon small iconClass="pointer" color="error" @click="settings.splice(j,1)">mdi-delete-outline
-                </x-icon>
-              </td>
+              <tr v-for="(set,j) in settings" :key="j">
+                <td v-for="(item,i) in formDetails.items" :key="i">
+                  <form-input v-model="set[item.key]" :input-details="item" />
+                </td>
+                <td v-if="j">
+                  <x-icon small icon-class="pointer" color="error" @click="settings.splice(j,1)">
+                    mdi-delete-outline
+                  </x-icon>
+                </td>
+              </tr>
 
-            </tr>
-
-            <tr>
-              <td :colspan="formDetails.items.length" class="text-center">
-                <x-icon iconClass="pointer" @click="settings.push({})">mdi-plus</x-icon>
-              </td>
-            </tr>
+              <tr>
+                <td :colspan="formDetails.items.length" class="text-center">
+                  <x-icon icon-class="pointer" @click="settings.push({})">
+                    mdi-plus
+                  </x-icon>
+                </td>
+              </tr>
             </tbody>
           </table>
-
-
         </div>
 
         <div v-else class="d-flex justify-center">
@@ -57,22 +66,23 @@
                 <label class="caption ">{{ item.label }} <span v-if="item.required" class="red--text">*</span></label>
               </div>
               <div :key="i">
-                <form-input :input-details="item" v-model="settings[item.key]"></form-input>
+                <form-input v-model="settings[item.key]" :input-details="item" />
               </div>
             </template>
           </div>
-
         </div>
         <div class="d-flex mb-4 mt-7 justify-center">
-          <v-btn small
-                 :outlined="action.key !== 'save'"
-                 v-for="action in formDetails.actions"
-                 @click="doAction(action)"
-                 :key="action.key"
-                 :color="action.key === 'save' ? 'primary' : '' "
-                 :disabled="(action.key === 'save'  && !valid) || (action.key === 'test' && testing)"
-                 :loading="action.key === 'test' && testing"
-          >{{ action.label }}
+          <v-btn
+            v-for="action in formDetails.actions"
+            :key="action.key"
+            small
+            :outlined="action.key !== 'save'"
+            :color="action.key === 'save' ? 'primary' : '' "
+            :disabled="(action.key === 'save' && !valid) || (action.key === 'test' && testing)"
+            :loading="action.key === 'test' && testing"
+            @click="doAction(action)"
+          >
+            {{ action.label }}
           </v-btn>
         </div>
       </template>
@@ -81,132 +91,131 @@
 </template>
 
 <script>
-import FormInput from "@/components/project/appStore/FormInput";
+import FormInput from '@/components/project/appStore/FormInput'
 
 export default {
-  name: "appInstall",
-  components: {FormInput},
+  name: 'AppInstall',
+  components: { FormInput },
   props: ['title', 'defaultConfig'],
   data: () => ({
     plugin: null,
     formDetails: null,
     settings: null,
     pluginId: null,
-    title: null,
+    // title: null,
     valid: null,
     testing: false
   }),
+  watch: {
+    async id () {
+      this.settings = {}
+      await this.readPluginDetails()
+    }
+  },
+  async created () {
+    await this.readPluginDetails()
+  },
   methods: {
-    simpleAnim() {
-      var count = 200;
-      var defaults = {
-        origin: {y: 0.7}
-      };
+    simpleAnim () {
+      const count = 200
+      const defaults = {
+        origin: { y: 0.7 }
+      }
 
-      function fire(particleRatio, opts) {
+      function fire (particleRatio, opts) {
         window.confetti(Object.assign({}, defaults, opts, {
           particleCount: Math.floor(count * particleRatio)
-        }));
+        }))
       }
 
       fire(0.25, {
         spread: 26,
-        startVelocity: 55,
-      });
+        startVelocity: 55
+      })
       fire(0.2, {
-        spread: 60,
-      });
+        spread: 60
+      })
       fire(0.35, {
         spread: 100,
         decay: 0.91,
         scalar: 0.8
-      });
+      })
       fire(0.1, {
         spread: 120,
         startVelocity: 25,
         decay: 0.92,
         scalar: 1.2
-      });
+      })
       fire(0.1, {
         spread: 120,
-        startVelocity: 45,
-      });
+        startVelocity: 45
+      })
     },
-    async saveSettings() {
+    async saveSettings () {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginSet', {
           input: this.settings,
           id: this.pluginId,
           title: this.plugin.title
-        }]);
+        }])
 
-        this.$emit('saved');
-        this.$toast.success(this.formDetails.msgOnInstall || 'Plugin settings saved successfully').goAway(5000);
-        this.simpleAnim();
+        this.$emit('saved')
+        this.$toast.success(this.formDetails.msgOnInstall || 'Plugin settings saved successfully').goAway(5000)
+        this.simpleAnim()
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
-
     },
-    async testSettings() {
-      this.testing = true;
+    async testSettings () {
+      this.testing = true
       try {
         const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginTest', {
           input: this.settings,
           id: this.pluginId,
           category: this.plugin.category,
           title: this.plugin.title
-        }]);
+        }])
         if (res) {
           this.$toast.success('Successfully tested plugin settings').goAway(3000)
         } else {
           this.$toast.info('Invalid credentials').goAway(3000)
         }
       } catch (e) {
-        this.$toast[e.message === 'Not implemented' ? 'info' : 'error'](e.message).goAway(3000);
+        this.$toast[e.message === 'Not implemented' ? 'info' : 'error'](e.message).goAway(3000)
       }
-      this.testing = false;
+      this.testing = false
     },
-    async doAction(action) {
+    async doAction (action) {
       switch (action.key) {
         case 'save' :
-          await this.saveSettings();
-          break;
+          await this.saveSettings()
+          break
         case 'test' :
-          await this.testSettings();
-          break;
+          await this.testSettings()
+          break
         default:
-          break;
+          break
       }
     },
-    async readPluginDetails() {
+    async readPluginDetails () {
       try {
         this.plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
           title: this.title
-        }]);
-        this.formDetails = JSON.parse(this.plugin.input_schema);
-        this.pluginId = this.plugin.id;
-        this.settings = JSON.parse(this.plugin.input) || (this.formDetails.array ? [{}] : {});
+        }])
+        this.formDetails = JSON.parse(this.plugin.input_schema)
+        this.pluginId = this.plugin.id
+        this.settings = JSON.parse(this.plugin.input) || (this.formDetails.array ? [{}] : {})
       } catch (e) {
       }
     },
-    copyDefault() {
+    copyDefault () {
       if (this.plugin.title.replace(/\s/g, '_').toLowerCase() in this.defaultConfig) {
-        const data = this.defaultConfig[this.plugin.title.replace(/\s/g, '_').toLowerCase()];
-        this.settings = JSON.parse(JSON.stringify(data));
-        this.$toast.info('Demo credentials added').goAway(3000);
+        const data = this.defaultConfig[this.plugin.title.replace(/\s/g, '_').toLowerCase()]
+        this.settings = JSON.parse(JSON.stringify(data))
+        this.$toast.info('Demo credentials added').goAway(3000)
       }
-    },
-
-  },
-  async created() {
-    await this.readPluginDetails();
-  },
-  watch: {
-    async id() {
-      this.settings = {};
-      await this.readPluginDetails();
     }
+
   }
 }
 </script>
@@ -245,7 +254,6 @@ export default {
   align-items: center;
 }
 
-
 .form-table {
   border: none;
   min-width: 400px;
@@ -254,6 +262,5 @@ export default {
 tbody tr:nth-of-type(odd) {
   background-color: transparent;
 }
-
 
 </style>

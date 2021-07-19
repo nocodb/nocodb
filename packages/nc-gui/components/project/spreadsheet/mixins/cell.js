@@ -1,50 +1,59 @@
-import {uiTypes} from "@/components/project/spreadsheet/helpers/uiTypes";
+import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   props: {
     sqlUi: [Object, Function],
-    column: Object,
+    column: Object
   },
   computed: {
-    uiDatatype() {
-      return this.column && this.column.uidt;
+    uiDatatype () {
+      return this.column && this.column.uidt
     },
-    uiDatatypeIcon() {
-      const ui = this.uiDatatype && uiTypes.find(ui => ui.name === this.uiDatatype);
-      return ui && ui.icon;
+    uiDatatypeIcon () {
+      const ui = this.uiDatatype && uiTypes.find(ui => ui.name === this.uiDatatype)
+      return ui && ui.icon
     },
-    abstractType() {
-      return this.sqlUi && this.sqlUi.getAbstractType(this.column);
+    abstractType () {
+      return this.sqlUi && this.sqlUi.getAbstractType(this.column)
     },
-    dataTypeLow() {
-      return this.column && this.column.dt && this.column.dt.toLowerCase();
+    dataTypeLow () {
+      return this.column && this.column.dt && this.column.dt.toLowerCase()
     },
-    isBoolean() {
-      return this.abstractType === 'boolean';
+    isBoolean () {
+      return this.abstractType === 'boolean'
     },
-    isString() {
-      return this.abstractType === 'string';
+    isString () {
+      return this.abstractType === 'string'
     },
-    isTextArea() {
-      return this.column.uidt === 'LongText';
-    }, isInt() {
-      return this.abstractType === 'integer';
-    }, isFloat() {
-      return this.abstractType === 'float';
-    }, isDate() {
-      return this.abstractType === 'date' || this.column.uidt === 'Date';
-    }, isTime() {
-      return this.abstractType === 'time';
-    }, isDateTime() {
-      return this.abstractType === 'datetime';
-    }, isJSON() {
-      return this.abstractType === 'json';
-    }, isEnum() {
-      return this.column.uidt === 'SingleSelect';
-    }, isSet() {
-      return this.column.uidt === 'MultiSelect';
-    }, isAttachment() {
-      return this.column.uidt === 'Attachment';
+    isTextArea () {
+      return this.column.uidt === 'LongText'
+    },
+    isInt () {
+      return this.abstractType === 'integer'
+    },
+    isFloat () {
+      return this.abstractType === 'float'
+    },
+    isDate () {
+      return this.abstractType === 'date' || this.column.uidt === 'Date'
+    },
+    isTime () {
+      return this.abstractType === 'time'
+    },
+    isDateTime () {
+      return this.abstractType === 'datetime'
+    },
+    isJSON () {
+      return this.abstractType === 'json'
+    },
+    isEnum () {
+      return this.column.uidt === 'SingleSelect'
+    },
+    isSet () {
+      return this.column.uidt === 'MultiSelect'
+    },
+    isAttachment () {
+      return this.column.uidt === 'Attachment'
     }
 
   }

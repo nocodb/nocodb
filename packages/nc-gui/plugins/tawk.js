@@ -1,12 +1,13 @@
-var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+// eslint-disable-next-line camelcase,no-unused-vars,no-use-before-define,no-var
+var Tawk_API = Tawk_API || {}; const Tawk_LoadStart = new Date();
 (function () {
-  var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
-  s1.async = true;
-  s1.src = 'https://embed.tawk.to/5d81b8de9f6b7a4457e23ba7/default';
-  s1.charset = 'UTF-8';
-  s1.setAttribute('crossorigin', '*');
-  s0.parentNode.insertBefore(s1, s0);
-})();
+  const s1 = document.createElement('script'); const s0 = document.getElementsByTagName('script')[0]
+  s1.async = true
+  s1.src = 'https://embed.tawk.to/5d81b8de9f6b7a4457e23ba7/default'
+  s1.charset = 'UTF-8'
+  s1.setAttribute('crossorigin', '*')
+  s0.parentNode.insertBefore(s1, s0)
+})()
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

@@ -1,20 +1,22 @@
 <template>
-
   <v-dialog
+    v-model="dialogShow"
     width="60%"
-    v-model="dialogShow">
+  >
     <v-container>
       <v-card class="pa-10">
-        <v-icon @click="dialogShow = false" class="float-right  " color="error">mdi-close-box-outline</v-icon>
-        <p class="text-center">
-        <p class="display-1 text-center">NocoDB: Settings</p>
-
+        <v-icon class="float-right  " color="error" @click="dialogShow = false">
+          mdi-close-box-outline
+        </v-icon>
+        <p class="text-center" /><p class="display-1 text-center">
+          NocoDB: Settings
+        </p>
 
         <v-tabs
-          color="pink"
           v-model="tab"
+          color="pink"
         >
-          <v-tabs-slider></v-tabs-slider>
+          <v-tabs-slider />
 
           <v-tab
             href="#tab-theme"
@@ -30,7 +32,7 @@
               tile
             >
               <v-simple-table dense style="border: 1px solid grey">
-                <template v-slot:default>
+                <template #default>
                   <!--                  <thead>-->
                   <!--                  <tr>-->
                   <!--                    <th class="text-left " width="25%">Name</th>-->
@@ -38,214 +40,222 @@
                   <!--                  </tr>-->
                   <!--                  </thead>-->
                   <tbody>
-                  <tr>
-                    <td>Dark Mode</td>
-                    <td>
-                      <v-tooltip bottom>
-                        <template v-slot:activator="{ on }">
-                          <v-icon @click="toggleDarkTheme" v-on="on" x-large
-                                  :color="$vuetify.theme.dark ? 'primary':'primary'">
-                            mdi-bat
-                          </v-icon>
-                        </template>
-                        <h3 class="pa-3">
-                          {{$vuetify.theme.dark ? 'It does come in Black' : 'Does it come in Black ?' }}
-                          <i></i>
-                        </h3>
-                      </v-tooltip>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Language</td>
-                    <td>
-                      <v-radio-group v-model="language" row>
-                        <v-radio
-                          v-for="{label,value} in languages"
-                          :key="value"
-                          :label="label"
-                          :value="value"
-                        ></v-radio>
-                      </v-radio-group>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Themes</td>
-                    <td class="pa-1">
-                      <v-list rounded>
-                        <!--              <v-subheader>REPORTS</v-subheader>-->
-                        <v-list-item-group color="primary" v-model="item">
-                          <v-list-item
-                            class="mb-n1"
-                            v-for="(t,i) in themes"
-                            :key="i"
-                            :value="i"
-                            @click.native.prevent.stop="changeTheme(t,i)"
-                          >
-                            <v-list-item-content class="py-0">
-                              <div class="d-flex align-center" style="width:100%">
-                                <div style="width: 100px">{{i}}</div>
-                                <div class="flex-grow-1">
-                                  <v-container fluid class="pa-0">
-                                    <v-row>
-                                      <v-col class="mx-2" style="height: 20px" v-for="(col,key) in t"
-                                             :style="{backgroundColor: col}"
-                                             :key="key">
-                                      </v-col>
-                                    </v-row>
-                                  </v-container>
+                    <tr>
+                      <td>Dark Mode</td>
+                      <td>
+                        <v-tooltip bottom>
+                          <template #activator="{ on }">
+                            <v-icon
+                              x-large
+                              :color="$vuetify.theme.dark ? 'primary':'primary'"
+                              @click="toggleDarkTheme"
+                              v-on="on"
+                            >
+                              mdi-bat
+                            </v-icon>
+                          </template>
+                          <h3 class="pa-3">
+                            {{ $vuetify.theme.dark ? 'It does come in Black' : 'Does it come in Black ?' }}
+                            <i />
+                          </h3>
+                        </v-tooltip>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Language</td>
+                      <td>
+                        <v-radio-group v-model="language" row>
+                          <v-radio
+                            v-for="{label,value} in languages"
+                            :key="value"
+                            :label="label"
+                            :value="value"
+                          />
+                        </v-radio-group>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Themes</td>
+                      <td class="pa-1">
+                        <v-list rounded>
+                          <!--              <v-subheader>REPORTS</v-subheader>-->
+                          <v-list-item-group v-model="item" color="primary">
+                            <v-list-item
+                              v-for="(t,i) in themes"
+                              :key="i"
+                              class="mb-n1"
+                              :value="i"
+                              @click.native.prevent.stop="changeTheme(t,i)"
+                            >
+                              <v-list-item-content class="py-0">
+                                <div class="d-flex align-center" style="width:100%">
+                                  <div style="width: 100px">
+                                    {{ i }}
+                                  </div>
+                                  <div class="flex-grow-1">
+                                    <v-container fluid class="pa-0">
+                                      <v-row>
+                                        <v-col
+                                          v-for="(col,key) in t"
+                                          :key="key"
+                                          class="mx-2"
+                                          style="height: 20px"
+                                          :style="{backgroundColor: col}"
+                                        />
+                                      </v-row>
+                                    </v-container>
+                                  </div>
                                 </div>
-                              </div>
-                            </v-list-item-content>
+                              </v-list-item-content>
+                            </v-list-item>
+                            <v-list-item
+                              class="mb-n2"
+                              value="Custom"
+                              @click.native.prevent.stop="changeTheme(customTheme,'Custom')"
+                            >
+                              <v-list-item-content class="py-0">
+                                <div class="d-flex align-center" style="width:100%">
+                                  <div style="min-width: 100px">
+                                    Custom
+                                  </div>
+                                  <div class="flex-grow-1">
+                                    <!--                            <v-container fluid>-->
 
-                          </v-list-item>
-                          <v-list-item
-                            class="mb-n2"
-                            value="Custom"
-                            @click.native.prevent.stop="changeTheme(customTheme,'Custom')">
-                            <v-list-item-content class="py-0">
-                              <div class="d-flex align-center" style="width:100%">
-                                <div style="min-width: 100px">Custom</div>
-                                <div class="flex-grow-1">
-                                  <!--                            <v-container fluid>-->
-
-                                  <x-btn
-                                    small
-                                    btn.class="ma-1 caption"
-                                    v-for="(col,key) in customTheme"
-                                    :color="col"
-                                    :key="key"
-                                    @click="customKey = key, colorPickerModel= true"
-                                    tooltip="Click to change the color"
-                                  > {{key}}
-                                  </x-btn>
+                                    <x-btn
+                                      v-for="(col,key) in customTheme"
+                                      :key="key"
+                                      small
+                                      btn.class="ma-1 caption"
+                                      :color="col"
+                                      tooltip="Click to change the color"
+                                      @click="customKey = key, colorPickerModel= true"
+                                    >
+                                      {{ key }}
+                                    </x-btn>
+                                  </div>
                                 </div>
-                              </div>
-                            </v-list-item-content>
-                          </v-list-item>
-                        </v-list-item-group>
-                      </v-list>
-
-                    </td>
-                  </tr>
+                              </v-list-item-content>
+                            </v-list-item>
+                          </v-list-item-group>
+                        </v-list>
+                      </td>
+                    </tr>
                   </tbody>
                 </template>
               </v-simple-table>
-
-
             </v-card>
           </v-tab-item>
 
-<!--          <v-tab-->
-<!--            href="#tab-telemetry"-->
-<!--          >-->
-<!--            Telemetry-->
-<!--          </v-tab>-->
+          <!--          <v-tab-->
+          <!--            href="#tab-telemetry"-->
+          <!--          >-->
+          <!--            Telemetry-->
+          <!--          </v-tab>-->
 
-<!--          <v-tab-item-->
-<!--            value="tab-telemetry"-->
-<!--          >-->
-<!--            <v-card-->
-<!--              flat-->
-<!--              tile-->
-<!--            >-->
-<!--              <v-simple-table dense style="border: 1px solid grey">-->
-<!--                <template v-slot:default>-->
-<!--                  &lt;!&ndash;                  <thead>&ndash;&gt;-->
-<!--                  &lt;!&ndash;                  <tr>&ndash;&gt;-->
-<!--                  &lt;!&ndash;                    <th class="text-left" width="25%">Name</th>&ndash;&gt;-->
-<!--                  &lt;!&ndash;                    <th class="text-left">Value</th>&ndash;&gt;-->
-<!--                  &lt;!&ndash;                  </tr>&ndash;&gt;-->
-<!--                  &lt;!&ndash;                  </thead>&ndash;&gt;-->
-<!--                  <tbody>-->
-<!--                  <tr>-->
-<!--                    <td class="py-2">Error Reporting-->
-<!--                      <x-icon small tooltip="For crash reports we use sentry.io">mdi-information-outline</x-icon>-->
-<!--                    </td>-->
+          <!--          <v-tab-item-->
+          <!--            value="tab-telemetry"-->
+          <!--          >-->
+          <!--            <v-card-->
+          <!--              flat-->
+          <!--              tile-->
+          <!--            >-->
+          <!--              <v-simple-table dense style="border: 1px solid grey">-->
+          <!--                <template v-slot:default>-->
+          <!--                  &lt;!&ndash;                  <thead>&ndash;&gt;-->
+          <!--                  &lt;!&ndash;                  <tr>&ndash;&gt;-->
+          <!--                  &lt;!&ndash;                    <th class="text-left" width="25%">Name</th>&ndash;&gt;-->
+          <!--                  &lt;!&ndash;                    <th class="text-left">Value</th>&ndash;&gt;-->
+          <!--                  &lt;!&ndash;                  </tr>&ndash;&gt;-->
+          <!--                  &lt;!&ndash;                  </thead>&ndash;&gt;-->
+          <!--                  <tbody>-->
+          <!--                  <tr>-->
+          <!--                    <td class="py-2">Error Reporting-->
+          <!--                      <x-icon small tooltip="For crash reports we use sentry.io">mdi-information-outline</x-icon>-->
+          <!--                    </td>-->
 
-<!--                    <td class="py-2">-->
-<!--                      <v-switch-->
-<!--                        flat-->
-<!--                        v-model="isErrorReportingEnabled"-->
-<!--                        color="grey "-->
-<!--                        @click.prevent.stop="toggleLogReport"-->
-<!--                      ></v-switch>-->
-<!--                    </td>-->
-<!--                  </tr>-->
-<!--                  <tr>-->
-<!--                    <td class="py-2">Google Analytics</td>-->
-<!--                    <td class="py-2" style="position: relative">-->
+          <!--                    <td class="py-2">-->
+          <!--                      <v-switch-->
+          <!--                        flat-->
+          <!--                        v-model="isErrorReportingEnabled"-->
+          <!--                        color="grey "-->
+          <!--                        @click.prevent.stop="toggleLogReport"-->
+          <!--                      ></v-switch>-->
+          <!--                    </td>-->
+          <!--                  </tr>-->
+          <!--                  <tr>-->
+          <!--                    <td class="py-2">Google Analytics</td>-->
+          <!--                    <td class="py-2" style="position: relative">-->
 
-<!--                      <v-switch-->
-<!--                        v-if="$store.state.users.ui_ability.rules.disableGA"-->
-<!--                        v-model="isGaEnabled"-->
-<!--                        color="grey "-->
-<!--                        flat-->
-<!--                        @click.prevent.stop="toggleGa"-->
-<!--                      ></v-switch>-->
+          <!--                      <v-switch-->
+          <!--                        v-if="$store.state.users.ui_ability.rules.disableGA"-->
+          <!--                        v-model="isGaEnabled"-->
+          <!--                        color="grey "-->
+          <!--                        flat-->
+          <!--                        @click.prevent.stop="toggleGa"-->
+          <!--                      ></v-switch>-->
 
-<!--                      <v-tooltip-->
-<!--                        right-->
-<!--                        bottom-->
-<!--                        v-else>-->
-<!--                        <template v-slot:activator="{on}">-->
-<!--                          <div-->
-<!--                            v-on="on">-->
-<!--                            <v-switch-->
-<!--                              v-model="isGaEnabled"-->
-<!--                              disabled-->
-<!--                              color="grey "-->
-<!--                              flat-->
-<!--                            ></v-switch>-->
-<!--                          </div>-->
-<!--                        </template>-->
-<!--                        Only Enterprise user can disable Google Analytics-->
-<!--                      </v-tooltip>-->
+          <!--                      <v-tooltip-->
+          <!--                        right-->
+          <!--                        bottom-->
+          <!--                        v-else>-->
+          <!--                        <template v-slot:activator="{on}">-->
+          <!--                          <div-->
+          <!--                            v-on="on">-->
+          <!--                            <v-switch-->
+          <!--                              v-model="isGaEnabled"-->
+          <!--                              disabled-->
+          <!--                              color="grey "-->
+          <!--                              flat-->
+          <!--                            ></v-switch>-->
+          <!--                          </div>-->
+          <!--                        </template>-->
+          <!--                        Only Enterprise user can disable Google Analytics-->
+          <!--                      </v-tooltip>-->
 
-<!--                    </td>-->
-<!--                  </tr>-->
-<!--                  <tr>-->
-<!--                    <td class="py-2"> Telemetry-->
-<!--                      <x-icon small-->
-<!--                              tooltip="Only count of {Tables, APIs, Relations}, Time taken for api creation and tool-uuid"-->
-<!--                      >-->
-<!--                        mdi-information-outline-->
-<!--                      </x-icon>-->
-<!--                    </td>-->
-<!--                    <td class="py-2">-->
+          <!--                    </td>-->
+          <!--                  </tr>-->
+          <!--                  <tr>-->
+          <!--                    <td class="py-2"> Telemetry-->
+          <!--                      <x-icon small-->
+          <!--                              tooltip="Only count of {Tables, APIs, Relations}, Time taken for api creation and tool-uuid"-->
+          <!--                      >-->
+          <!--                        mdi-information-outline-->
+          <!--                      </x-icon>-->
+          <!--                    </td>-->
+          <!--                    <td class="py-2">-->
 
-<!--                      <v-switch-->
-<!--                        v-if="$store.state.users.ui_ability.rules.disableTelemetry"-->
-<!--                        flat-->
-<!--                        disabled-->
-<!--                        v-model="isTelemetryEnabled"-->
-<!--                        color="grey "-->
-<!--                      ></v-switch>-->
-<!--                      <v-tooltip-->
-<!--                        v-else-->
-<!--                        right-->
-<!--                        bottom>-->
-<!--                        <template v-slot:activator="{on}">-->
-<!--                          <div-->
-<!--                            v-on="on">-->
-<!--                            <v-switch-->
-<!--                              flat-->
-<!--                              disabled-->
-<!--                              v-model="isTelemetryEnabled"-->
-<!--                              color="grey "-->
-<!--                            ></v-switch>-->
-<!--                          </div>-->
-<!--                        </template>-->
-<!--                        Only Enterprise user can disable Telemetry-->
-<!--                      </v-tooltip>-->
-<!--                    </td>-->
-<!--                  </tr>-->
-<!--                  </tbody>-->
-<!--                </template>-->
-<!--              </v-simple-table>-->
+          <!--                      <v-switch-->
+          <!--                        v-if="$store.state.users.ui_ability.rules.disableTelemetry"-->
+          <!--                        flat-->
+          <!--                        disabled-->
+          <!--                        v-model="isTelemetryEnabled"-->
+          <!--                        color="grey "-->
+          <!--                      ></v-switch>-->
+          <!--                      <v-tooltip-->
+          <!--                        v-else-->
+          <!--                        right-->
+          <!--                        bottom>-->
+          <!--                        <template v-slot:activator="{on}">-->
+          <!--                          <div-->
+          <!--                            v-on="on">-->
+          <!--                            <v-switch-->
+          <!--                              flat-->
+          <!--                              disabled-->
+          <!--                              v-model="isTelemetryEnabled"-->
+          <!--                              color="grey "-->
+          <!--                            ></v-switch>-->
+          <!--                          </div>-->
+          <!--                        </template>-->
+          <!--                        Only Enterprise user can disable Telemetry-->
+          <!--                      </v-tooltip>-->
+          <!--                    </td>-->
+          <!--                  </tr>-->
+          <!--                  </tbody>-->
+          <!--                </template>-->
+          <!--              </v-simple-table>-->
 
-
-<!--            </v-card>-->
-<!--          </v-tab-item>-->
+          <!--            </v-card>-->
+          <!--          </v-tab-item>-->
 
           <v-tab
             href="#tab-other"
@@ -261,7 +271,7 @@
               tile
             >
               <v-simple-table dense style="border: 1px solid grey">
-                <template v-slot:default>
+                <template #default>
                   <!--                <thead>-->
                   <!--                <tr>-->
                   <!--                  <th class="text-left " width="25%">Name</th>-->
@@ -269,271 +279,273 @@
                   <!--                </tr>-->
                   <!--                </thead>-->
                   <tbody>
-                  <tr>
-                    <td>
-                      Version
-                    </td>
-                    <td>
-                      <span @contextmenu="rightClick">{{$store.state.windows.version}}</span>
-                    </td>
-                  </tr>
-                  <!--                <tr>-->
-                  <!--                  <td>-->
-                  <!--                    Check for updates-->
-                  <!--                  </td>-->
-                  <!--                  <td>-->
-                  <!--                    <v-switch-->
-                  <!--                      flat-->
-                  <!--                      v-model="checkForUpdate"-->
-                  <!--                      color="grey "-->
-                  <!--                    ></v-switch>-->
-                  <!--                  </td>-->
-                  <!--                </tr>-->
-                  <tr @dblclick="enableAppRefresh = true">
-                    <td>
-                      Auto update
-                    </td>
-                    <td>
-                      <v-switch
-                        flat
-                        v-model="autoUpdate"
-                        color="grey "
-                      ></v-switch>
-                    </td>
-                  </tr>
-                  <tr v-if="enableAppRefresh">
-                    <td>
-                      Application refresh
-                    </td>
-                    <td>
-                      <v-btn @click="applicationRefresh">Refresh</v-btn>
-                    </td>
-                  </tr>
+                    <tr>
+                      <td>
+                        Version
+                      </td>
+                      <td>
+                        <span @contextmenu="rightClick">{{ $store.state.windows.version }}</span>
+                      </td>
+                    </tr>
+                    <!--                <tr>-->
+                    <!--                  <td>-->
+                    <!--                    Check for updates-->
+                    <!--                  </td>-->
+                    <!--                  <td>-->
+                    <!--                    <v-switch-->
+                    <!--                      flat-->
+                    <!--                      v-model="checkForUpdate"-->
+                    <!--                      color="grey "-->
+                    <!--                    ></v-switch>-->
+                    <!--                  </td>-->
+                    <!--                </tr>-->
+                    <tr @dblclick="enableAppRefresh = true">
+                      <td>
+                        Auto update
+                      </td>
+                      <td>
+                        <v-switch
+                          v-model="autoUpdate"
+                          flat
+                          color="grey "
+                        />
+                      </td>
+                    </tr>
+                    <tr v-if="enableAppRefresh">
+                      <td>
+                        Application refresh
+                      </td>
+                      <td>
+                        <v-btn @click="applicationRefresh">
+                          Refresh
+                        </v-btn>
+                      </td>
+                    </tr>
                   </tbody>
                 </template>
               </v-simple-table>
-
             </v-card>
           </v-tab-item>
         </v-tabs>
-
-
       </v-card>
       <v-dialog
         v-model="colorPickerModel"
         width="350"
       >
-        <v-color-picker class="mx-auto my-2" @input="changeTheme(customTheme)" v-if="customTheme[customKey]"
-                        v-model="customTheme[customKey]"></v-color-picker>
+        <v-color-picker
+          v-if="customTheme[customKey]"
+          v-model="customTheme[customKey]"
+          class="mx-auto my-2"
+          @input="changeTheme(customTheme)"
+        />
       </v-dialog>
 
       <dlgLabelSubmitCancel
         v-if="dialogShow"
-        :dialogShow="gaDialogShow"
-        :actionsMtd="gaDialogFunction"
+        :dialog-show="gaDialogShow"
+        :actions-mtd="gaDialogFunction"
         heading="Click submit to disable Google Analytics."
         type="primary"
       />
 
       <dlgLabelSubmitCancel
         v-if="dialogShow"
-        :dialogShow="logReportDialogShow"
-        :actionsMtd="logReportDialogFunction"
+        :dialog-show="logReportDialogShow"
+        :actions-mtd="logReportDialogFunction"
         heading="Error reporting helps us to build a better product. Press cancel to help us build a better product ?"
         type="primary"
       />
-
     </v-container>
   </v-dialog>
 </template>
 <script>
 
-  import dlgLabelSubmitCancel from './utils/dlgLabelSubmitCancel';
-  import XIcon from "./global/xIcon";
-  import themes from "../helpers/themes";
+import themes from '../helpers/themes'
+import dlgLabelSubmitCancel from './utils/dlgLabelSubmitCancel'
 
-  export default {
-    components: {XIcon, dlgLabelSubmitCancel},
+export default {
+  components: { dlgLabelSubmitCancel },
+  directives: {},
+  validate ({ params }) {
+    return true
+  },
+  props: { value: Boolean },
 
-    data() {
-      return {
-        rightClickCount: 0,
-        enableAppRefresh: false,
-        tab: null,
-        gaDialogShow: false,
-        logReportDialogShow: false,
-        languages: [
-          {label: 'English', value: 'en'},
-          // {label: 'Japanese', value: 'ja'},
-          // {label: 'Chinese', value: 'zh'}
-        ],
-        item: 'default',
-        primary: '',
-        colors: [
-          '#ea4235',
-          '#4CAF50',
-          '#FF9800',
-          '#0288D1'
-        ],
-        customKey: null,
-        colorPickerModel: false,
-        customTheme: {
-          "primary": "#6f5dcc",
-          "secondary": "#BFDBF7",
-          "accent": "#ED254E",
-          "info": "#00CED1",
-          "success": "#4CAF50",
-          "warning": "#FB8C00",
-          error: '#ff0100',
-        },
-        themes:themes
+  data () {
+    return {
+      rightClickCount: 0,
+      enableAppRefresh: false,
+      tab: null,
+      gaDialogShow: false,
+      logReportDialogShow: false,
+      languages: [
+        { label: 'English', value: 'en' }
+        // {label: 'Japanese', value: 'ja'},
+        // {label: 'Chinese', value: 'zh'}
+      ],
+      item: 'default',
+      primary: '',
+      colors: [
+        '#ea4235',
+        '#4CAF50',
+        '#FF9800',
+        '#0288D1'
+      ],
+      customKey: null,
+      colorPickerModel: false,
+      customTheme: {
+        primary: '#6f5dcc',
+        secondary: '#BFDBF7',
+        accent: '#ED254E',
+        info: '#00CED1',
+        success: '#4CAF50',
+        warning: '#FB8C00',
+        error: '#ff0100'
+      },
+      themes
+    }
+  },
+  fetch ({ store, params }) {
+  },
+  computed: {
+    checkForUpdate: {
+      get () {
+        return this.$store.state.windows.checkForUpdate
+      },
+      set (value) {
+        this.$store.commit('windows/MutCheckForUpdate', value)
       }
     },
-    computed: {
-      checkForUpdate: {
-        get() {
-          return this.$store.state.windows.checkForUpdate
-        }, set(value) {
-          this.$store.commit('windows/MutCheckForUpdate', value)
-        }
+    autoUpdate: {
+      get () {
+        return this.$store.state.windows.downloadAndUpdateRelease
       },
-      autoUpdate: {
-        get() {
-          return this.$store.state.windows.downloadAndUpdateRelease
-        }, set(value) {
-          this.$store.commit('windows/MutDownloadAndUpdateRelease', value)
-        }
-      },
-      isGaEnabled: {
-        get() {
-          return this.$store.state.windows.isGaEnabled
-        }, set(value) {
-          this.$store.commit('windows/MutToggleGaEnabled', value)
-        }
-      },
-      isErrorReportingEnabled: {
-        get() {
-          return this.$store.state.windows.isErrorReportingEnabled
-        }, set(value) {
-          this.$store.commit('windows/MutToggleErrorReportingEnabled', value)
-        }
-      },
-      isTelemetryEnabled: {
-        get() {
-          return this.$store.state.windows.isErrorReportingEnabled
-        }, set(value) {
-          this.$store.commit('windows/MutToggleTelemetryEnabled', value)
-        }
-      },
-      dialogShow: {
-        get() {
-          return this.value;
-        }, set(val) {
-          this.$emit('input', val);
-        }
-      },
-      language: {
-        get() {
-          return this.$store.state.windows.language;
-        }, set(val) {
-          this.$store.commit('windows/MutSetLanguage', val);
-        }
-      },
+      set (value) {
+        this.$store.commit('windows/MutDownloadAndUpdateRelease', value)
+      }
     },
-    methods: {
-      rightClick() {
-        this.rightClickCount++;
-        if (this.rightClickCount > 5) {
-          // require('electron').remote.getCurrentWindow().toggleDevTools();
-          this.rightClickCount = 0;
-        }
+    isGaEnabled: {
+      get () {
+        return this.$store.state.windows.isGaEnabled
       },
-      async applicationRefresh() {
-        localStorage.removeItem('vuex');
-        location.reload();
+      set (value) {
+        this.$store.commit('windows/MutToggleGaEnabled', value)
+      }
+    },
+    isErrorReportingEnabled: {
+      get () {
+        return this.$store.state.windows.isErrorReportingEnabled
       },
-      toggleGa(event) {
-        if (this.isGaEnabled) {
-          this.gaDialogShow = true;
-        } else
-          this.isGaEnabled = true;
+      set (value) {
+        this.$store.commit('windows/MutToggleErrorReportingEnabled', value)
+      }
+    },
+    isTelemetryEnabled: {
+      get () {
+        return this.$store.state.windows.isErrorReportingEnabled
       },
-      toggleLogReport(event) {
-        if (this.isErrorReportingEnabled) {
-          this.logReportDialogShow = true;
-        } else
-          this.isErrorReportingEnabled = true;
+      set (value) {
+        this.$store.commit('windows/MutToggleTelemetryEnabled', value)
+      }
+    },
+    dialogShow: {
+      get () {
+        return this.value
       },
-      logReportDialogFunction(action) {
-        if (action !== 'hideDialog' && this.$store.state.users.user && this.$store.state.users.user.email) {
-          this.isErrorReportingEnabled = false;
+      set (val) {
+        this.$emit('input', val)
+      }
+    },
+    language: {
+      get () {
+        return this.$store.state.windows.language
+      },
+      set (val) {
+        this.$store.commit('windows/MutSetLanguage', val)
+      }
+    }
+  },
+  watch: {},
+  created () {
+    this.customTheme = { ...this.customTheme, ...this.$store.state.windows.customTheme }
+    this.item = this.$store.state.windows.themeName
+    this.$store.watch(
+      state => state.windows.customTheme,
+      (theme) => {
+        this.customTheme = { ...this.customTheme, ...theme }
+      })
+
+    this.$store.watch(state => state.windows.themeName,
+      (theme) => {
+        this.$nextTick(() => {
+          if (this.item !== theme) { this.item = theme }
+        })
+      })
+  },
+  beforeMount () {
+  },
+  async mounted () {
+
+  },
+  beforeDestroy () {
+  },
+  methods: {
+    rightClick () {
+      this.rightClickCount++
+      if (this.rightClickCount > 5) {
+        // require('electron').remote.getCurrentWindow().toggleDevTools();
+        this.rightClickCount = 0
+      }
+    },
+    async applicationRefresh () {
+      localStorage.removeItem('vuex')
+      location.reload()
+    },
+    toggleGa (event) {
+      if (this.isGaEnabled) {
+        this.gaDialogShow = true
+      } else { this.isGaEnabled = true }
+    },
+    toggleLogReport (event) {
+      if (this.isErrorReportingEnabled) {
+        this.logReportDialogShow = true
+      } else { this.isErrorReportingEnabled = true }
+    },
+    logReportDialogFunction (action) {
+      if (action !== 'hideDialog' && this.$store.state.users.user && this.$store.state.users.user.email) {
+        this.isErrorReportingEnabled = false
+      } else {
+        this.$toast.error('Only a registered user can disable Error Reporting, Please Login then disable.').goAway(5000)
+      }
+      this.logReportDialogShow = false
+    },
+    gaDialogFunction (action) {
+      if (action !== 'hideDialog') {
+        if (this.$store.state.users.user && this.$store.state.users.user.email) {
+          this.isGaEnabled = false
         } else {
-          this.$toast.error('Only a registered user can disable Error Reporting, Please Login then disable.').goAway(5000)
+          this.$toast.error('Only a registered user can disable Google Analytics, Please Login then disable.').goAway(5000)
         }
-        this.logReportDialogShow = false;
-      },
-      gaDialogFunction(action) {
-        if (action !== 'hideDialog') {
-          if (this.$store.state.users.user && this.$store.state.users.user.email) {
-            this.isGaEnabled = false;
-          } else {
-            this.$toast.error('Only a registered user can disable Google Analytics, Please Login then disable.').goAway(5000)
-          }
-        }
-        this.gaDialogShow = false;
-      },
-      async changeTheme(t, theme = 'Custom') {
-        this.item = theme;
-        if (theme === 'Custom')
-          await this.$store.dispatch('windows/ActSetTheme', {theme: {...t}, custom: true});
-        await this.$store.dispatch('windows/ActSetTheme', {theme: {...t}, themeName: theme});
-
-
-      },
-      toggleDarkTheme() {
-        this.$store.commit('windows/MutToggleDarkMode');
       }
+      this.gaDialogShow = false
     },
-    fetch({store, params}) {
+    async changeTheme (t, theme = 'Custom') {
+      this.item = theme
+      if (theme === 'Custom') { await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, custom: true }) }
+      await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, themeName: theme })
     },
-    beforeCreated() {
-    },
-    created() {
-      this.customTheme = {...this.customTheme, ...this.$store.state.windows.customTheme}
-      this.item = this.$store.state.windows.themeName;
-      this.$store.watch(
-        state => state.windows.customTheme,
-        theme => {
-          this.customTheme = {...this.customTheme, ...theme};
-        })
-
-      this.$store.watch(state => state.windows.themeName,
-        theme => {
-          this.$nextTick(() => {
-            if (this.item !== theme) this.item = theme
-          })
-        })
-    },
-    beforeMount() {
-    },
-    async mounted() {
-
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true
-    },
-    props: {value: Boolean},
-    watch: {},
-    directives: {},
+    toggleDarkTheme () {
+      this.$store.commit('windows/MutToggleDarkMode')
+    }
+  },
+  beforeCreated () {
+  },
+  destroy () {
   }
+}
 </script>
 
 <style scoped>
-
 
 </style>
 <!--

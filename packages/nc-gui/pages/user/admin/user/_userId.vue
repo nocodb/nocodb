@@ -1,48 +1,46 @@
 <template>
-  <v-container >
-    <v-row  >
+  <v-container>
+    <v-row>
       <v-col cols="12">
         <v-card class="pa-5">
-          <v-form v-model="valid" ref="formType" lazy-validation>
+          <v-form ref="formType" v-model="valid" lazy-validation>
             <v-text-field
-              label="username"
               v-model="user.username"
+              label="username"
               disabled
-            ></v-text-field>
+            />
 
             <v-text-field
-              label="firstName"
               v-model="user.firstName"
+              label="firstName"
               disabled
-            ></v-text-field>
+            />
 
             <v-text-field
-              label="lastName"
               v-model="user.lastName"
+              label="lastName"
               disabled
-            ></v-text-field>
+            />
 
             <v-text-field
-              label="provider"
               v-model="user.provider"
+              label="provider"
               disabled
-            ></v-text-field>
+            />
 
             <v-text-field
-              label="roles"
               v-model="user.roles"
+              label="roles"
               disabled
-            ></v-text-field>
+            />
 
-            <v-btn @click="editUser" color="primary">
+            <v-btn color="primary" @click="editUser">
               Edit
             </v-btn>
 
-            <v-btn @click="removeUser" color="red">
+            <v-btn color="red" @click="removeUser">
               Delete
             </v-btn>
-
-
           </v-form>
         </v-card>
       </v-col>
@@ -51,57 +49,56 @@
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        user : {
-          username :'',
-          _id: 0,
-          firstName: '',
-          lastName: '',
-          email: '',
-          provider: '',
-          created: '',
-          roles: []
-        },
-        valid: true
-
-      }
-    },
-    computed : {
-
-    },
-    methods : {
-      removeUser(){
-        //console.log('remove user');
+export default {
+  directives: { },
+  components: { },
+  validate ({ params }) { return true },
+  props: { },
+  data () {
+    return {
+      user: {
+        username: '',
+        _id: 0,
+        firstName: '',
+        lastName: '',
+        email: '',
+        provider: '',
+        created: '',
+        roles: []
       },
-      editUser(args) {
-        //console.log('edit user');
-      }
+      valid: true
 
+    }
+  },
+  head () { return {} },
+  computed: {
+
+  },
+  watch: { },
+  created () { },
+  async mounted () {
+    // console.log('routeparams',this.$route.params);
+    const user = await this.$store.dispatch('users/ActGetUser', this.$route.params.userId)
+
+    if ('username' in user) {
+      this.user = user
+    }
+
+    // console.log(this.user);
+  },
+  beforeDestroy () {},
+  methods: {
+    removeUser () {
+      // console.log('remove user');
     },
-    beforeCreated () {},
-    created () { },
-    async mounted () {
+    editUser (args) {
+      // console.log('edit user');
+    }
 
-      //console.log('routeparams',this.$route.params);
-      let user = await this.$store.dispatch('users/ActGetUser',this.$route.params.userId)
-
-      if ('username' in user){
-        this.user = user;
-      }
-
-      //console.log(this.user);
-    },
-    beforeDestroy () {},
-    destroy () {},
-    validate({params}) { return true },
-    head() { return {} },
-    props: { },
-    watch: { },
-    directives : { },
-    components : { }
-  }
+  },
+  beforeCreated () {},
+  destroy () {}
+}
 </script>
 
 <style scoped>

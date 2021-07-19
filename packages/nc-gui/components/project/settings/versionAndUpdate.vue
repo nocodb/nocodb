@@ -1,67 +1,70 @@
 <template>
   <div>
-    <h3 class="text-center mb-5">Version And Update</h3>
+    <h3 class="text-center mb-5">
+      Version And Update
+    </h3>
 
     <v-simple-table dense>
-      <template v-slot:default>
+      <template #default>
         <tbody>
-        <tr>
-          <td>
-            Version
-          </td>
-          <td>
-            <span @contextmenu="rightClick">{{ $store.state.windows.version }}</span>
-          </td>
-        </tr>
-        <!--                <tr>-->
-        <!--                  <td>-->
-        <!--                    Check for updates-->
-        <!--                  </td>-->
-        <!--                  <td>-->
-        <!--                    <v-switch-->
-        <!--                      flat-->
-        <!--                      v-model="checkForUpdate"-->
-        <!--                      color="grey "-->
-        <!--                    ></v-switch>-->
-        <!--                  </td>-->
-        <!--                </tr>-->
-        <tr @dblclick="enableAppRefresh = true">
-          <td>
-            Auto update
-          </td>
-          <td>
-            <v-switch
-              flat
-              v-model="autoUpdate"
-              color="grey "
-            ></v-switch>
-          </td>
-        </tr>
-        <tr v-if="enableAppRefresh">
-          <td>
-            Application refresh
-          </td>
-          <td>
-            <v-btn @click="applicationRefresh">Refresh</v-btn>
-          </td>
-        </tr>
+          <tr>
+            <td>
+              Version
+            </td>
+            <td>
+              <span @contextmenu="rightClick">{{ $store.state.windows.version }}</span>
+            </td>
+          </tr>
+          <!--                <tr>-->
+          <!--                  <td>-->
+          <!--                    Check for updates-->
+          <!--                  </td>-->
+          <!--                  <td>-->
+          <!--                    <v-switch-->
+          <!--                      flat-->
+          <!--                      v-model="checkForUpdate"-->
+          <!--                      color="grey "-->
+          <!--                    ></v-switch>-->
+          <!--                  </td>-->
+          <!--                </tr>-->
+          <tr @dblclick="enableAppRefresh = true">
+            <td>
+              Auto update
+            </td>
+            <td>
+              <v-switch
+                v-model="autoUpdate"
+                flat
+                color="grey "
+              />
+            </td>
+          </tr>
+          <tr v-if="enableAppRefresh">
+            <td>
+              Application refresh
+            </td>
+            <td>
+              <v-btn @click="applicationRefresh">
+                Refresh
+              </v-btn>
+            </td>
+          </tr>
         </tbody>
       </template>
     </v-simple-table>
 
-
     <dlgLabelSubmitCancel
       v-if="dialogShow"
-      :dialogShow="gaDialogShow"
-      :actionsMtd="gaDialogFunction"
+      :dialog-show="gaDialogShow"
+      :actions-mtd="gaDialogFunction"
       heading="Click submit to disable Google Analytics."
       type="primary"
     />
 
     <dlgLabelSubmitCancel
       v-if="dialogShow"
-      :dialogShow="logReportDialogShow"
-      :actionsMtd="logReportDialogFunction"
+      :dialog-show="logReportDialogShow"
+      :actions-mtd="logReportDialogFunction"
       heading="Error reporting helps us to build a better product. Press cancel to help us build a better product ?"
       type="primary"
     />
@@ -69,128 +72,130 @@
 </template>
 <script>
 
-import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel';
-import XIcon from "../../global/xIcon";
-import themes from "../../../helpers/themes";
+import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
 export default {
-  components: {XIcon, dlgLabelSubmitCancel},
+  components: { dlgLabelSubmitCancel },
 
-  data() {
+  data () {
     return {
       rightClickCount: 0,
       enableAppRefresh: false,
       gaDialogShow: false,
       logReportDialogShow: false,
       languages: [
-        {label: 'English', value: 'en'},
+        { label: 'English', value: 'en' }
         // {label: 'Japanese', value: 'ja'},
         // {label: 'Chinese', value: 'zh'}
       ],
-      item: 'default',
+      item: 'default'
 
     }
   },
   computed: {
     checkForUpdate: {
-      get() {
+      get () {
         return this.$store.state.windows.checkForUpdate
-      }, set(value) {
+      },
+      set (value) {
         this.$store.commit('windows/MutCheckForUpdate', value)
       }
     },
     autoUpdate: {
-      get() {
+      get () {
         return this.$store.state.windows.downloadAndUpdateRelease
-      }, set(value) {
+      },
+      set (value) {
         this.$store.commit('windows/MutDownloadAndUpdateRelease', value)
       }
     },
     isGaEnabled: {
-      get() {
+      get () {
         return this.$store.state.windows.isGaEnabled
-      }, set(value) {
+      },
+      set (value) {
         this.$store.commit('windows/MutToggleGaEnabled', value)
       }
     },
     isErrorReportingEnabled: {
-      get() {
+      get () {
         return this.$store.state.windows.isErrorReportingEnabled
-      }, set(value) {
+      },
+      set (value) {
         this.$store.commit('windows/MutToggleErrorReportingEnabled', value)
       }
     },
     isTelemetryEnabled: {
-      get() {
+      get () {
         return this.$store.state.windows.isErrorReportingEnabled
-      }, set(value) {
+      },
+      set (value) {
         this.$store.commit('windows/MutToggleTelemetryEnabled', value)
       }
     },
     dialogShow: {
-      get() {
-        return this.value;
-      }, set(val) {
-        this.$emit('input', val);
+      get () {
+        return this.value
+      },
+      set (val) {
+        this.$emit('input', val)
       }
     },
     language: {
-      get() {
-        return this.$store.state.windows.language;
-      }, set(val) {
-        this.$store.commit('windows/MutSetLanguage', val);
+      get () {
+        return this.$store.state.windows.language
+      },
+      set (val) {
+        this.$store.commit('windows/MutSetLanguage', val)
       }
-    },
+    }
   },
   methods: {
-    rightClick() {
-      this.rightClickCount++;
+    rightClick () {
+      this.rightClickCount++
       if (this.rightClickCount > 5) {
         // require('electron').remote.getCurrentWindow().toggleDevTools();
-        this.rightClickCount = 0;
+        this.rightClickCount = 0
       }
     },
-    async applicationRefresh() {
-      localStorage.removeItem('vuex');
-      location.reload();
+    async applicationRefresh () {
+      localStorage.removeItem('vuex')
+      location.reload()
     },
-    toggleGa(event) {
+    toggleGa (event) {
       if (this.isGaEnabled) {
-        this.gaDialogShow = true;
-      } else
-        this.isGaEnabled = true;
+        this.gaDialogShow = true
+      } else { this.isGaEnabled = true }
     },
-    toggleLogReport(event) {
+    toggleLogReport (event) {
       if (this.isErrorReportingEnabled) {
-        this.logReportDialogShow = true;
-      } else
-        this.isErrorReportingEnabled = true;
+        this.logReportDialogShow = true
+      } else { this.isErrorReportingEnabled = true }
     },
-    logReportDialogFunction(action) {
+    logReportDialogFunction (action) {
       if (action !== 'hideDialog' && this.$store.state.users.user && this.$store.state.users.user.email) {
-        this.isErrorReportingEnabled = false;
+        this.isErrorReportingEnabled = false
       } else {
         this.$toast.error('Only a registered user can disable Error Reporting, Please Login then disable.').goAway(5000)
       }
-      this.logReportDialogShow = false;
+      this.logReportDialogShow = false
     },
-    gaDialogFunction(action) {
+    gaDialogFunction (action) {
       if (action !== 'hideDialog') {
         if (this.$store.state.users.user && this.$store.state.users.user.email) {
-          this.isGaEnabled = false;
+          this.isGaEnabled = false
         } else {
           this.$toast.error('Only a registered user can disable Google Analytics, Please Login then disable.').goAway(5000)
         }
       }
-      this.gaDialogShow = false;
-    },
+      this.gaDialogShow = false
+    }
 
-  },
+  }
 }
 </script>
 
 <style scoped>
-
 
 </style>
 <!--

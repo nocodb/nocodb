@@ -1,12 +1,13 @@
 <template>
   <div class="d-flex align-center">
-
     <div>
-      <div class="" v-for="(val,i) of setValues" :key="val">
-        <input type="checkbox" :id="`key-check-box-${val}`" class="orange--text" v-model="localState" :value="val">
-        <label class="py-1 px-3 d-inline-block my-1 label" :for="`key-check-box-${val}`"
-               :style="{
-          background:colors[i % colors.length ]
+      <div v-for="(val,i) of setValues" :key="val" class="">
+        <input :id="`key-check-box-${val}`" v-model="localState" type="checkbox" class="orange--text" :value="val">
+        <label
+          class="py-1 px-3 d-inline-block my-1 label"
+          :for="`key-check-box-${val}`"
+          :style="{
+            background:colors[i % colors.length ]
           }"
         >{{ val }}</label>
       </div>
@@ -15,55 +16,54 @@
 </template>
 
 <script>
-import colors from "@/components/project/spreadsheet/helpers/colors";
+import colors from '@/components/project/spreadsheet/helpers/colors'
 
 export default {
-  name: "set-list-checkbox-cell",
+  name: 'SetListCheckboxCell',
   props: {
     value: String,
     column: Object,
-    values:Array
+    values: Array
   },
-  data() {
-  },
-  mounted() {
-    this.$el.focus();
-    let event;
-    event = document.createEvent('MouseEvents');
-    event.initMouseEvent('mousedown', true, true, window);
-    this.$el.dispatchEvent(event);
+  data () {
   },
   computed: {
-    colors() {
-      return this.$store.state.windows.darkTheme ? colors.dark : colors.light;
+    colors () {
+      return this.$store.state.windows.darkTheme ? colors.dark : colors.light
     },
     localState: {
-      get() {
+      get () {
         return (this.value && this.value.split(',')) || []
       },
-      set(val) {
-        this.$emit('input', val.join(','));
-        this.$emit('update');
+      set (val) {
+        this.$emit('input', val.join(','))
+        this.$emit('update')
       }
     },
-    setValues() {
+    setValues () {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
       }
-      return this.values || [];
+      return this.values || []
     },
-    parentListeners() {
-      const $listeners = {};
+    parentListeners () {
+      const $listeners = {}
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur;
+        $listeners.blur = this.$listeners.blur
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus;
+        $listeners.focus = this.$listeners.focus
       }
 
-      return $listeners;
-    },
+      return $listeners
+    }
+  },
+  mounted () {
+    this.$el.focus()
+    const event = document.createEvent('MouseEvents')
+    event.initMouseEvent('mousedown', true, true, window)
+    this.$el.dispatchEvent(event)
   }
 }
 </script>

@@ -1,42 +1,44 @@
 <template>
   <div class="d-flex h-100">
-
-
-    <v-dialog min-width="400px" max-width="700px" min-height="300" v-model="pluginInstallOverlay">
-
-      <v-card v-if="installPlugin && pluginInstallOverlay" :dark="$store.state.windows.darkTheme"
-              :light="!$store.state.windows.darkTheme">
-        <app-install :title="installPlugin.title" @close="pluginInstallOverlay = false" @saved="saved()" :defaultConfig="defaultConfig"></app-install>
-
+    <v-dialog v-model="pluginInstallOverlay" min-width="400px" max-width="700px" min-height="300">
+      <v-card
+        v-if="installPlugin && pluginInstallOverlay"
+        :dark="$store.state.windows.darkTheme"
+        :light="!$store.state.windows.darkTheme"
+      >
+        <app-install :title="installPlugin.title" :default-config="defaultConfig" @close="pluginInstallOverlay = false" @saved="saved()" />
       </v-card>
-
     </v-dialog>
 
-
-    <dlg-ok-new v-model="pluginUninstallModal"
-                @ok="confirmResetPlugin"
-                :heading="`Please click on submit to reset ${resetPluginRef && resetPluginRef.title}`"
-                ok-label="Submit"
-                type="primary"
-    ></dlg-ok-new>
+    <dlg-ok-new
+      v-model="pluginUninstallModal"
+      :heading="`Please click on submit to reset ${resetPluginRef && resetPluginRef.title}`"
+      ok-label="Submit"
+      type="primary"
+      @ok="confirmResetPlugin"
+    />
 
     <v-dialog min-width="400px" max-width="700px" min-height="300">
-
-
-      <v-card v-if="resetPluginRef" :dark="$store.state.windows.darkTheme"
-              :light="!$store.state.windows.darkTheme">
+      <v-card
+        v-if="resetPluginRef"
+        :dark="$store.state.windows.darkTheme"
+        :light="!$store.state.windows.darkTheme"
+      >
         <v-card-text> Please confirm to reset {{ resetPluginRef.title }}</v-card-text>
         <v-card-actions>
-          <v-btn color="primary" @click="confirmResetPlugin">Yes</v-btn>
-          <v-btn @click="pluginUninstallModal = false">No</v-btn>
+          <v-btn color="primary" @click="confirmResetPlugin">
+            Yes
+          </v-btn>
+          <v-btn @click="pluginUninstallModal = false">
+            No
+          </v-btn>
         </v-card-actions>
       </v-card>
-
     </v-dialog>
 
     <v-container class="h-100 app-container">
       <v-row class="d-flex align-stretch">
-        <v-col class="" v-for="(app,i) in filteredApps" :key="i" cols="6">
+        <v-col v-for="(app,i) in filteredApps" :key="i" class="" cols="6">
           <!--          @click="installApp(app)"-->
 
           <v-card
@@ -44,22 +46,37 @@
             class="elevatio app-item-card "
           >
             <div class="install-btn ">
-              <v-btn v-if="app.parsedInput" x-small outlined class=" caption text-capitalize"
-                     @click="installApp(app)">
-                <v-icon x-small class="mr-1">mdi-pencil</v-icon>
+              <v-btn
+                v-if="app.parsedInput"
+                x-small
+                outlined
+                class=" caption text-capitalize"
+                @click="installApp(app)"
+              >
+                <v-icon x-small class="mr-1">
+                  mdi-pencil
+                </v-icon>
                 Edit
               </v-btn>
-              <v-btn v-if="app.parsedInput" x-small outlined class="caption text-capitalize"
-                     @click="resetApp(app)">
-                <v-icon x-small class="mr-1">mdi-close-circle-outline</v-icon>
+              <v-btn
+                v-if="app.parsedInput"
+                x-small
+                outlined
+                class="caption text-capitalize"
+                @click="resetApp(app)"
+              >
+                <v-icon x-small class="mr-1">
+                  mdi-close-circle-outline
+                </v-icon>
                 Reset
               </v-btn>
               <v-btn v-else x-small outlined class=" caption text-capitalize" @click="installApp(app)">
-                <v-icon x-small class="mr-1">mdi-plus</v-icon>
+                <v-icon x-small class="mr-1">
+                  mdi-plus
+                </v-icon>
                 Install
               </v-btn>
             </div>
-
 
             <div class="d-flex flex-no-wrap">
               <v-avatar
@@ -68,16 +85,18 @@
                 tile
                 :color="app.title === 'SES' ? '#242f3e' : ''"
               >
-                <v-img v-if="app.logo" :src="app.logo" contain></v-img>
-                <v-icon v-else-if="app.icon" color="#242f3e" size="50">{{ app.icon }}</v-icon>
+                <v-img v-if="app.logo" :src="app.logo" contain />
+                <v-icon v-else-if="app.icon" color="#242f3e" size="50">
+                  {{ app.icon }}
+                </v-icon>
               </v-avatar>
               <div class="flex-grow-1">
                 <v-card-title
                   class="title "
                   v-text="app.title"
-                ></v-card-title>
+                />
 
-                <v-card-subtitle v-text="app.description" class="pb-1"></v-card-subtitle>
+                <v-card-subtitle class="pb-1" v-text="app.description" />
                 <v-card-actions>
                   <div class="d-flex justify-space-between d-100 align-center">
                     <v-rating
@@ -86,7 +105,7 @@
                       length="5"
                       size="15"
                       :value="5"
-                    ></v-rating>
+                    />
 
                     <!--                    <span class="subtitles" v-if="app.price && app.price !== 'Free'">${{ app.price }} / mo</span>-->
                     <!--                    <span class="subtitles" v-else>Free</span>-->
@@ -103,7 +122,6 @@
                 <!--                  </v-btn>-->
                 <!--                </v-card-actions>-->
               </div>
-
             </div>
           </v-card>
         </v-col>
@@ -112,30 +130,37 @@
 
     <v-navigation-drawer width="300" class="pa-1">
       <v-text-field
-        dense
         v-model="query"
+        dense
         hide-details
         placeholder="Search apps"
         color="primary"
         class="search-field caption"
-
       >
-        <template v-slot:prepend-inner>
-          <v-icon small class="mt-1">mdi-magnify</v-icon>
+        <template #prepend-inner>
+          <v-icon small class="mt-1">
+            mdi-magnify
+          </v-icon>
         </template>
-
       </v-text-field>
 
       <v-list dense>
         <v-list-item v-for="filter of filters" :key="filter" dense>
-          <v-checkbox v-model="selectedTags" class="pt-0 mt-0" :value="filter" hide-details dense
-                      :label="filter">
-            <template v-slot:label>
-              <v-icon small class="mr-1">{{ icons[filter] }}</v-icon>
+          <v-checkbox
+            v-model="selectedTags"
+            class="pt-0 mt-0"
+            :value="filter"
+            hide-details
+            dense
+            :label="filter"
+          >
+            <template #label>
+              <v-icon small class="mr-1">
+                {{ icons[filter] }}
+              </v-icon>
 
               {{ filter }}
             </template>
-
           </v-checkbox>
         </v-list-item>
       </v-list>
@@ -144,12 +169,12 @@
 </template>
 
 <script>
-import AppInstall from "@/components/project/appStore/appInstall";
-import DlgOkNew from "@/components/utils/dlgOkNew";
+import AppInstall from '@/components/project/appStore/appInstall'
+import DlgOkNew from '@/components/utils/dlgOkNew'
 
 export default {
-  name: "appStore",
-  components: {DlgOkNew, AppInstall},
+  name: 'AppStore',
+  components: { DlgOkNew, AppInstall },
   data: () => ({
     query: '',
     selectedTags: [],
@@ -158,7 +183,7 @@ export default {
     installPlugin: null,
     resetPluginRef: null,
     pluginUninstallModal: false,
-    defaultConfig:{},
+    defaultConfig: {},
     icons: {
       Email: 'mdi-email-outline',
       Storage: 'mdi-usb-flash-drive-outline',
@@ -168,68 +193,68 @@ export default {
       Cache: 'mdi-cached',
       Enterprise: 'mdi-bank',
       Chat: 'mdi-chat-outline'
-    },
+    }
   }),
-  async created() {
-    await this.loadPluginList();
-    this.readPluginDefaults();
+  computed: {
+    filters () {
+      return this.apps.reduce((arr, app) => arr.concat(app.tags || []), []).filter((f, i, arr) => i === arr.indexOf(f)).sort()
+    },
+    filteredApps () {
+      return this.apps.filter(app => (!this.query.trim() || app.name.toLowerCase().includes(this.query.trim().toLowerCase())) &&
+        (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
+      )
+    }
+  },
+  async created () {
+    await this.loadPluginList()
+    this.readPluginDefaults()
   },
   methods: {
-    async readPluginDefaults() {
+    async readPluginDefaults () {
       try {
         this.defaultConfig = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginDemoDefaults'])
       } catch (e) {
       }
     },
-    async confirmResetPlugin() {
+    async confirmResetPlugin () {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginSet', {
           input: null,
           id: this.resetPluginRef.id,
           title: this.resetPluginRef.title,
           uninstall: true
-        }]);
+        }])
 
-        this.$toast.success('Plugin uninstalled successfully').goAway(5000);
-        await this.loadPluginList();
+        this.$toast.success('Plugin uninstalled successfully').goAway(5000)
+        await this.loadPluginList()
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
     },
-    async saved() {
-      this.pluginInstallOverlay = false;
-      await this.loadPluginList();
+    async saved () {
+      this.pluginInstallOverlay = false
+      await this.loadPluginList()
     },
-    async installApp(app) {
-      this.pluginInstallOverlay = true;
-      this.installPlugin = app;
+    async installApp (app) {
+      this.pluginInstallOverlay = true
+      this.installPlugin = app
     },
-    async resetApp(app) {
-      this.pluginUninstallModal = true;
-      this.resetPluginRef = app;
+    async resetApp (app) {
+      this.pluginUninstallModal = true
+      this.resetPluginRef = app
     },
-    async loadPluginList() {
+    async loadPluginList () {
       try {
-        const plugins = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginList']);
-        plugins.push(...plugins.splice(0, 3));
-        this.apps = plugins.map(p => {
-          p.tags = p.tags ? p.tags.split(',') : [];
+        const plugins = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginList'])
+        plugins.push(...plugins.splice(0, 3))
+        this.apps = plugins.map((p) => {
+          p.tags = p.tags ? p.tags.split(',') : []
           p.parsedInput = p.input && JSON.parse(p.input)
-          return p;
+          return p
         })
       } catch (e) {
 
       }
-    },
-  },
-  computed: {
-    filters() {
-      return this.apps.reduce((arr, app) => arr.concat(app.tags || []), []).filter((f, i, arr) => i === arr.indexOf(f)).sort();
-    },
-    filteredApps() {
-      return this.apps.filter(app => (!this.query.trim() || app.name.toLowerCase().indexOf(this.query.trim().toLowerCase()) > -1)
-        && (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
-      );
     }
   }
 }
@@ -286,7 +311,6 @@ export default {
     font-size: .8rem;
   }
 
-
   .search-field.v-text-field > .v-input__control, .search-field.v-text-field > .v-input__control > .v-input__slot {
     min-height: auto;
   }
@@ -296,7 +320,6 @@ export default {
   height: 100%;
   overflow-y: auto;
 }
-
 
 </style>
 <!--

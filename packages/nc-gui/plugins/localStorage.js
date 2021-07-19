@@ -2,9 +2,8 @@ import createPersistedState from 'vuex-persistedstate'
 
 // var authRoute = require('../components/auth.routes');
 // var pollStarted = false;
-import SecureLS from "secure-ls";
+import SecureLS from 'secure-ls'
 import isDev from '../helpers/xutils'
-
 
 // const jExcelDark = {
 //   '--jexcel_header_color': '#888',
@@ -47,8 +46,7 @@ import isDev from '../helpers/xutils'
 //   '--active_color': '#007aff'
 // };
 
-
-const ls = new SecureLS({isCompression: false});
+const ls = new SecureLS({ isCompression: false })
 
 // function toggleJexcelTheme(isDark) {
 //   const bodyStyles = document.body.style;
@@ -63,23 +61,21 @@ const ls = new SecureLS({isCompression: false});
 //   }
 // }
 
-export default async ({store, $vuetify: {theme}}) => {
-
-
+export default async ({ store, $vuetify: { theme } }) => {
   /**
    *
    */
   store.watch(
-    (state) => state.windows.theme,
+    state => state.windows.theme,
     (c) => {
       // console.log(JSON.stringify(themes.dark,0,3))
       // console.log(JSON.stringify(themes.light,0,3))
-      theme.themes.dark = {...theme.themes.dark, ...c}
-      theme.themes.light = {...theme.themes.light, ...c}
+      theme.themes.dark = { ...theme.themes.dark, ...c }
+      theme.themes.light = { ...theme.themes.light, ...c }
     }
-  );
+  )
   store.watch(
-    (state) => state.windows.darkTheme,
+    state => state.windows.darkTheme,
     (isDark) => {
       // if (isDark && !store.state.users.ui_ability.rules.darkTheme) setTimeout(() => store.commit('windows/MutToggleDarkMode', false), 10000)
       theme.dark = isDark
@@ -87,11 +83,10 @@ export default async ({store, $vuetify: {theme}}) => {
       document.body.classList.add(isDark ? 'dark' : 'light')
       document.body.classList.remove(isDark ? 'light' : 'dark')
     }
-  );
+  )
   document.body.classList.add(store.state.windows.darkTheme ? 'dark' : 'light')
   document.body.classList.remove(store.state.windows.darkTheme ? 'light' : 'dark')
   // toggleJexcelTheme(store.state.windows.darkTheme);
-
 
   // In case of HMR, mutation occurs before nuxReady, so previously saved state
   // gets replaced with original state received from server. So, we've to skip HMR.
@@ -105,24 +100,23 @@ export default async ({store, $vuetify: {theme}}) => {
 
   createPersistedState({
     fetchBeforeUse: true,
-    async rehydrated(store) {
-
-      window.rehydrated = true;
+    async rehydrated (store) {
+      window.rehydrated = true
       console.log(store.state.windows)
       console.log('Date difference ', await store.dispatch('windows/ActGetExpiryDate'))
     },
     paths: ['users', 'sqlClient', 'apiClient', 'panelSize', 'windows', 'graphqlClient', 'apiClientSwagger'],
     ...(
-      isDev() ?
-        {}
+      isDev()
+        ? {}
         : {
-          storage: {
-            getItem: key => ls.get(key),
-            setItem: (key, value) => ls.set(key, value),
-            removeItem: key => ls.remove(key)
+            storage: {
+              getItem: key => ls.get(key),
+              setItem: (key, value) => ls.set(key, value),
+              removeItem: key => ls.remove(key)
+            }
           }
-        }
-    ),
+    )
   })(store) // vuex plugins can be connected to store, even after creation
 
   // POLLING

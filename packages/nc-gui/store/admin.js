@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-//resourceState
+// resourceState
 const state = () => ({
 
   // resourceList : []
@@ -8,11 +8,11 @@ const state = () => ({
 
 })
 
-//modified state vars
+// modified state vars
 const getters = {
 
-  GtrUsers(state) {
-    return state.users;
+  GtrUsers (state) {
+    return state.users
   }
 
 }
@@ -20,9 +20,9 @@ const getters = {
 // state variables are modified here
 const mutations = {
 
-  MutSetUsers(state, users) {
-    //console.log('in MutPlusCounter', users);
-    state.users = users;
+  MutSetUsers (state, users) {
+    // console.log('in MutPlusCounter', users);
+    state.users = users
   }
 
 }
@@ -30,42 +30,40 @@ const mutations = {
 // mutation are performed via actions
 const actions = {
 
-  /**************** START : users admin ****************/
-  async ActGetUsers({commit}) {
-    console.log('in action ActGetUsers');
+  /** ************** START : users admin ****************/
+  async ActGetUsers ({ commit }) {
+    console.log('in action ActGetUsers')
     try {
-      let usersPromise = await axios.get('/api/users');
-      commit('MutSetUsers', usersPromise.data);
-      console.log(usersPromise);
+      const usersPromise = await axios.get('/api/users')
+      commit('MutSetUsers', usersPromise.data)
+      console.log(usersPromise)
     } catch (e) {
-      console.log(e);
+      console.log(e)
     }
   },
 
-  async ActGetUser({commit},data) {
-
+  async ActGetUser ({ commit }, data) {
     try {
-      let usersPromise = await axios.get('/api/users/'+data);
-      console.log(usersPromise);
-      //console.log(data);
-      //return {}
-      return usersPromise.data;
+      const usersPromise = await axios.get('/api/users/' + data)
+      console.log(usersPromise)
+      // console.log(data);
+      // return {}
+      return usersPromise.data
     } catch (e) {
-      console.log(e);
+      console.log(e)
     }
   },
 
-  ActUpdateUser({commit}) {
-    console.log('in action signout');
+  ActUpdateUser ({ commit }) {
+    console.log('in action signout')
   },
 
-  ActDeleteUser({commit}) {
-    console.log('in action signout');
+  ActDeleteUser ({ commit }) {
+    console.log('in action signout')
   }
-  /**************** END : users admin ****************/
+  /** ************** END : users admin ****************/
 
 }
-
 
 export default {
   state,

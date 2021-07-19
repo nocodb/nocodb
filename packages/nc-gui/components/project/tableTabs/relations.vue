@@ -1,17 +1,25 @@
 <template>
   <v-container>
     <h1>Relation List</h1>
-    <v-btn @click="loadRelationList" color="primary"
+    <v-btn
+      color="primary"
+      @click="loadRelationList"
     >
-      <v-icon left>refresh</v-icon>
+      <v-icon left>
+        refresh
+      </v-icon>
       Reload
-    </v-btn
+    </v-btn>
+    <v-btn
+      small
+      class=" text-right"
+      @click="deleteTable('showDialog')"
     >
-    <v-btn small @click="deleteTable('showDialog')" class=" text-right"
-    >Delete Table
-    </v-btn
-    >
-    <v-btn @click="throwError()">error</v-btn>
+      Delete Table
+    </v-btn>
+    <v-btn @click="throwError()">
+      error
+    </v-btn>
     <v-row>
       <v-col cols="6">
         <v-data-table
@@ -19,7 +27,7 @@
           :items="relations"
           footer-props.items-per-page-options="30"
         >
-          <template v-slot:item="props">
+          <template #item="props">
             <td>{{ props.item.cstn }}</td>
             <td>{{ props.item.rtn }}</td>
           </template>
@@ -31,129 +39,124 @@
           :items="columns"
           footer-props.items-per-page-options="30"
         >
-          <template v-slot:items="props">
+          <template #items="props">
             <td>{{ props.item.cn }}</td>
           </template>
         </v-data-table>
       </v-col>
     </v-row>
-  </v-container
-  >
+  </v-container>
 </template>
 
 <script>
-  import {mapGetters, mapActions} from "vuex";
+import { mapGetters } from 'vuex'
 
-  export default {
-    data() {
-      return {
-        relations: [],
-        columns: [],
-        relationHeaders: [
-          {
-            text: "Relation",
-            sortable: false
-          },
-          {
-            text: "Referenced Table",
-            sortable: false
-          }
-        ],
-        columnHeaders: [
-          {
-            text: "Column",
-            sortable: false
-          }
-        ],
-        max25chars: v => v.length <= 25 || "Input too long!"
-      };
+export default {
+  data () {
+    return {
+      relations: [],
+      columns: [],
+      relationHeaders: [
+        {
+          text: 'Relation',
+          sortable: false
+        },
+        {
+          text: 'Referenced Table',
+          sortable: false
+        }
+      ],
+      columnHeaders: [
+        {
+          text: 'Column',
+          sortable: false
+        }
+      ],
+      max25chars: v => v.length <= 25 || 'Input too long!'
+    }
+  },
+  methods: {
+    throwError () {
+      throw new Error('new erroror ')
     },
-    methods: {
-      throwError() {
-        throw new Error("new erroror ");
-      },
-      async loadRelationList() {
-        if (this.newTable) return;
+    async loadRelationList () {
+      if (this.newTable) { return }
 
-        // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
-        // const client = await this.sqlMgr.projectGetSqlClient({
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias
-        // });
-        // const result = await client.relationList({
-        //   tn: this.nodes.tn
-        // });
-        //
+      // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
+      // const client = await this.sqlMgr.projectGetSqlClient({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // });
+      // const result = await client.relationList({
+      //   tn: this.nodes.tn
+      // });
+      //
 
-        // const result = await this.sqlMgr.sqlOp({
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias
-        // }, 'relationList', {   tn: this.nodes.tn})
+      // const result = await this.sqlMgr.sqlOp({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // }, 'relationList', {   tn: this.nodes.tn})
 
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias
+      }, 'relationList', { tn: this.nodes.tn }])
 
-        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'relationList', {tn: this.nodes.tn}])
-
-
-        // console.log(result, "relations");
-        this.relations = result.data.list;
-        // this.loadColumnList(result.data.list[0].rtn);
-      },
-      async loadColumnList(tn = "") {
-        // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
-        // const client = await this.sqlMgr.projectGetSqlClient({
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias
-        // });
-        // const result = await client.columnList({
-        //   tn
-        // });
-
-
-        // const result = await this.sqlMgr.sqlOp({
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias
-        // }, 'columnList', {
-        //   tn
-        // });
-
-        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'columnList', {
-          tn
-        }]);
-
-
-        this.columns = result.data.list;
-      }
+      // console.log(result, "relations");
+      this.relations = result.data.list
+      // this.loadColumnList(result.data.list[0].rtn);
     },
-    computed: {...mapGetters({sqlMgr: "sqlMgr/sqlMgr"})},
+    async loadColumnList (tn = '') {
+      // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
+      // const client = await this.sqlMgr.projectGetSqlClient({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // });
+      // const result = await client.columnList({
+      //   tn
+      // });
 
-    beforeCreated() {
-    },
-    created() {
-      this.loadRelationList();
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    head() {
-      return {};
-    },
-    props: ["nodes", "newTable", "deleteTable"],
-    watch: {},
-    directives: {},
-    components: {}
-  };
+      // const result = await this.sqlMgr.sqlOp({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // }, 'columnList', {
+      //   tn
+      // });
+
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias
+      }, 'columnList', {
+        tn
+      }])
+
+      this.columns = result.data.list
+    }
+  },
+  computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
+
+  beforeCreated () {
+  },
+  watch: {},
+  created () {
+    this.loadRelationList()
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  destroy () {
+  },
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  head () {
+    return {}
+  },
+  props: ['nodes', 'newTable', 'deleteTable']
+}
 </script>
 
 <style scoped>

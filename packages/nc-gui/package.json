@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nuxt",
     "build": "nuxt build",
+    "lint": "eslint . --ext .js,.vue --fix --quiet",
     "start": "nuxt start",
     "generate": "nuxt generate",
     "build:copy": "npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
@@ -57,10 +58,14 @@
     "xterm-addon-web-links": "^0.4.0"
   },
   "devDependencies": {
+    "@intlify/eslint-plugin-vue-i18n": "^0.11.1",
+    "@nuxtjs/eslint-config": "^6.0.1",
     "@nuxtjs/vuetify": "^1.11.2",
     "cypress": "^7.3.0",
+    "eslint": "^7.31.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
     "sass": "~1.32.12",
+    "vue-eslint-parser": "^7.9.0",
     "webpack-obfuscator": "^1.9.0"
   }
 }

@@ -1,36 +1,51 @@
 <template>
   <v-card class="pb-2">
-
     <v-toolbar flat height="42" class="toolbar-border-bottom">
-      <v-spacer></v-spacer>
-      <x-btn outlined tooltip="Validation Documentation"
-             color="primary"
-             small
-             href="https://docs.nocodb.com/en/v0.5/database/database-model-validation" target="_blank">
-        <v-icon small left>mdi-book-open-variant</v-icon>
+      <v-spacer />
+      <x-btn
+        outlined
+        tooltip="Validation Documentation"
+        color="primary"
+        small
+        href="https://docs.nocodb.com/en/v0.5/database/database-model-validation"
+        target="_blank"
+      >
+        <v-icon small left>
+          mdi-book-open-variant
+        </v-icon>
         Validation Docs
       </x-btn>
-      <x-btn outlined tooltip="Reload validation"
-             color="primary"
-             small
-             @click="loadTableModelMeta">
-        <v-icon small left>refresh</v-icon>
+      <x-btn
+        outlined
+        tooltip="Reload validation"
+        color="primary"
+        small
+        @click="loadTableModelMeta"
+      >
+        <v-icon small left>
+          refresh
+        </v-icon>
         Reload
       </x-btn>
-      <x-btn outlined tooltip="Save Changes"
-             color="primary"
-             small
-             :disabled="!edited || loading"
-             @click.prevent="saveValidations">
-        <v-icon small left>save</v-icon>
+      <x-btn
+        outlined
+        tooltip="Save Changes"
+        color="primary"
+        small
+        :disabled="!edited || loading"
+        @click.prevent="saveValidations"
+      >
+        <v-icon small left>
+          save
+        </v-icon>
         Save
       </x-btn>
     </v-toolbar>
     <template v-if="columns">
-
-
-      <p class="title mt-6 mb-6"> Table : <span class="text-capitalize">{{ columns._tn }}</span><br>
-        <span class="font-weight-thin">Write Validations For Columns</span></p>
+      <p class="title mt-6 mb-6">
+        Table : <span class="text-capitalize">{{ columns._tn }}</span><br>
+        <span class="font-weight-thin">Write Validations For Columns</span>
+      </p>
 
       <!--      <v-row justify="center">
               <v-col cols="4" class="d-flex align-center">
@@ -41,44 +56,50 @@
               </v-col>
             </v-row>-->
 
-
-      <v-simple-table style="max-width:800px; margin:0 auto" class="mb-10" dense v-slot:default>
-        <thead>
-        <tr>
-          <th>Column Name</th>
-          <th>Alias</th>
-          <th>Validators</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(item,i) in columns.columns">
-          <td>{{ item.cn }}</td>
-          <td>
-            <v-edit-dialog lazy>
-              <span> {{ item._cn }}</span>
-              <template v-slot:input>
-                <v-text-field
-                  @input="edited=true"
-                  v-model="item._cn"
-                  label="Edit"
-                  single-line
-                ></v-text-field>
-              </template>
-            </v-edit-dialog>
-          </td>
-          <td>
-            <x-btn
-              @click="editOrAddValidation(item)"
-              :tooltip="`Edit/Add validation for '${item.cn}' column`" color="primary"
-              style="text-transform:capitalize" x-small outlined>
-              <v-icon class=" mr-1" x-small>mdi-lead-pencil</v-icon>
-              Validation ({{ item.validate.func.length }})
-            </x-btn>
-          </td>
-        </tr>
-        </tbody>
+      <v-simple-table style="max-width:800px; margin:0 auto" class="mb-10" dense>
+        <template #default>
+          <thead>
+            <tr>
+              <th>Column Name</th>
+              <th>Alias</th>
+              <th>Validators</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item,i) in columns.columns" :key="i">
+              <td>{{ item.cn }}</td>
+              <td>
+                <v-edit-dialog lazy>
+                  <span> {{ item._cn }}</span>
+                  <template #input>
+                    <v-text-field
+                      v-model="item._cn"
+                      label="Edit"
+                      single-line
+                      @input="edited=true"
+                    />
+                  </template>
+                </v-edit-dialog>
+              </td>
+              <td>
+                <x-btn
+                  :tooltip="`Edit/Add validation for '${item.cn}' column`"
+                  color="primary"
+                  style="text-transform:capitalize"
+                  x-small
+                  outlined
+                  @click="editOrAddValidation(item)"
+                >
+                  <v-icon class=" mr-1" x-small>
+                    mdi-lead-pencil
+                  </v-icon>
+                  Validation ({{ item.validate.func.length }})
+                </x-btn>
+              </td>
+            </tr>
+          </tbody>
+        </template>
       </v-simple-table>
-
 
       <!--      <v-expansion-panels accordion style="width: 70%; min-width: 500px; margin:5px auto">-->
       <!--        <v-expansion-panel-->
@@ -158,7 +179,6 @@
       <!--                &lt;!&ndash;                  </v-edit-dialog>&ndash;&gt;-->
       <!--                &lt;!&ndash;                </td>&ndash;&gt;-->
 
-
       <!--                <td>-->
       <!--                  <x-icon-->
       <!--                    small-->
@@ -180,98 +200,115 @@
       <!--      </v-expansion-panels>-->
     </template>
 
-
     <v-dialog v-model="validatorEditDialog" max-width="700px">
-
       <v-card v-if="clickedItem">
-        <v-card-title class="headline justify-center mb-5">Validations for '{{ clickedItem.cn }}({{ clickedItem.dt }})'
+        <v-card-title class="headline justify-center mb-5">
+          Validations for '{{ clickedItem.cn }}({{ clickedItem.dt }})'
         </v-card-title>
         <v-card-text>
-
           <div class="d-flex">
-            <v-spacer>
-            </v-spacer>
+            <v-spacer />
 
-            <v-btn outlined x-small @click="validatorEditDialog = false">Cancel</v-btn>
-            <x-btn outlined tooltip="Add new validation"
-                   color="primary"
-                   x-small
-                   @click.prevent="(clickedItem.validate.func.push(''),edited=true,scrollAndFocusLastRowInModal())">
-              <v-icon small left>mdi-plus</v-icon>
+            <v-btn outlined x-small @click="validatorEditDialog = false">
+              Cancel
+            </v-btn>
+            <x-btn
+              outlined
+              tooltip="Add new validation"
+              color="primary"
+              x-small
+              @click.prevent="(clickedItem.validate.func.push(''),edited=true,scrollAndFocusLastRowInModal())"
+            >
+              <v-icon small left>
+                mdi-plus
+              </v-icon>
               Add Validation
             </x-btn>
-            <v-btn outlined color="primary" x-small @click.prevent="saveValidationForColumn(clickedItem)">Save</v-btn>
+            <v-btn outlined color="primary" x-small @click.prevent="saveValidationForColumn(clickedItem)">
+              Save
+            </v-btn>
           </div>
           <v-simple-table v-if="clickedItem.validate.func && clickedItem.validate.func.length" dense>
             <thead>
-            <tr>
-              <th class="caption font-weight-normal">Validation Function</th>
-              <th class="caption font-weight-normal">Error Message</th>
-              <!--                <th class="caption font-weight-normal">Optional Argument</th>-->
-              <th></th>
-            </tr>
+              <tr>
+                <th class="caption font-weight-normal">
+                  Validation Function
+                </th>
+                <th class="caption font-weight-normal">
+                  Error Message
+                </th>
+                <!--                <th class="caption font-weight-normal">Optional Argument</th>-->
+                <th />
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="(func,i) in clickedItem.validate.func">
-              <td>
-                <v-edit-dialog
-                  lazy
-                >
-                  <span>{{ func }}</span>
-                  <template v-slot:input>
+              <tr v-for="(func,i) in clickedItem.validate.func" :key="i">
+                <td>
+                  <v-edit-dialog
+                    lazy
+                  >
+                    <span>{{ func }}</span>
+                    <template #input>
+                      <v-autocomplete
+                        v-model="clickedItem.validate.func[i]"
+                        dense
+                        :items="fnList"
+                        item-text="func"
+                        @change="onFunctionChange(i,clickedItem)"
+                      />
+                    </template>
+                  </v-edit-dialog>
+                </td>
+                <td>
+                  <v-edit-dialog lazy>
+                    <span> {{ clickedItem.validate.msg[i] }}</span>
+                    <template #input>
+                      <v-text-field
+                        v-model="clickedItem.validate.msg[i]"
+                        label="Edit"
+                        single-line
+                        @input="edited=true"
+                      />
+                    </template>
+                  </v-edit-dialog>
+                </td>
+                <!--                <td>-->
+                <!--                  <v-edit-dialog lazy>-->
+                <!--                    <span> {{ clickedItem.validate.args[i] }}</span>-->
+                <!--                    <template v-slot:input>-->
+                <!--                      <v-text-field-->
+                <!--                        @input="edited=true"-->
+                <!--                        v-model="clickedItem.validate.args[i]"-->
+                <!--                        label="Edit"-->
+                <!--                        single-line-->
+                <!--                      ></v-text-field>-->
+                <!--                    </template>-->
+                <!--                  </v-edit-dialog>-->
+                <!--                </td>-->
 
-                    <v-autocomplete
-                      @change="onFunctionChange(i,clickedItem)"
-                      dense
-                      v-model="clickedItem.validate.func[i]"
-                      :items="fnList"
-                      item-text="func"
-                    ></v-autocomplete>
-                  </template>
-                </v-edit-dialog>
-              </td>
-              <td>
-                <v-edit-dialog lazy>
-                  <span> {{ clickedItem.validate.msg[i] }}</span>
-                  <template v-slot:input>
-                    <v-text-field
-                      @input="edited=true"
-                      v-model="clickedItem.validate.msg[i]"
-                      label="Edit"
-                      single-line
-                    ></v-text-field>
-                  </template>
-                </v-edit-dialog>
-              </td>
-              <!--                <td>-->
-              <!--                  <v-edit-dialog lazy>-->
-              <!--                    <span> {{ clickedItem.validate.args[i] }}</span>-->
-              <!--                    <template v-slot:input>-->
-              <!--                      <v-text-field-->
-              <!--                        @input="edited=true"-->
-              <!--                        v-model="clickedItem.validate.args[i]"-->
-              <!--                        label="Edit"-->
-              <!--                        single-line-->
-              <!--                      ></v-text-field>-->
-              <!--                    </template>-->
-              <!--                  </v-edit-dialog>-->
-              <!--                </td>-->
-
-
-              <td>
-                <x-icon
-                  small
-                  color="error" tooltip="Delete role" @click="deleteValidation(clickedItem,i)">
-                  mdi-delete-forever
-                </x-icon>
-              </td>
-            </tr>
+                <td>
+                  <x-icon
+                    small
+                    color="error"
+                    tooltip="Delete role"
+                    @click="deleteValidation(clickedItem,i)"
+                  >
+                    mdi-delete-forever
+                  </x-icon>
+                </td>
+              </tr>
             </tbody>
           </v-simple-table>
           <div v-else class="d-flex justify-center">
-            <v-alert dense outlined type="info" color="grey lighten-1" icon="mdi-information-outline"
-                     class="caption mt-4"
-                     style="width:auto">
+            <v-alert
+              dense
+              outlined
+              type="info"
+              color="grey lighten-1"
+              icon="mdi-information-outline"
+              class="caption mt-4"
+              style="width:auto"
+            >
               No validation for '{{ clickedItem.cn }}'
             </v-alert>
           </div>
@@ -282,175 +319,171 @@
         <!--        </v-card-actions>-->
       </v-card>
     </v-dialog>
-
-
   </v-card>
 </template>
 
 <script>
 
-import {SqlUI} from "@/helpers/SqlUiFactory";
-
-const validatorFnList = [{"func": "contains", "args": '', msg: 'Error contains'}, {
-  "func": "equals",
-  "args": '',
+const validatorFnList = [{ func: 'contains', args: '', msg: 'Error contains' }, {
+  func: 'equals',
+  args: '',
   msg: 'Error equals'
 }, {
-  "func": "isAfter",
-  "args": '',
+  func: 'isAfter',
+  args: '',
   msg: 'Error isAfter'
-}, {"func": "isAlpha", "args": '', msg: 'Error isAlpha'}, {
-  "func": "isAlphanumeric",
-  "args": '',
+}, { func: 'isAlpha', args: '', msg: 'Error isAlpha' }, {
+  func: 'isAlphanumeric',
+  args: '',
   msg: 'Error isAlphanumeric'
 }, {
-  "func": "isAscii",
-  "args": '',
+  func: 'isAscii',
+  args: '',
   msg: 'Error isAscii'
-}, {"func": "isBase32", "args": '', msg: 'Error isBase32'}, {"func": "isBase64", "args": '', msg: 'Error isBase64'}, {
-  "func": "isBefore",
-  "args": '',
+}, { func: 'isBase32', args: '', msg: 'Error isBase32' }, { func: 'isBase64', args: '', msg: 'Error isBase64' }, {
+  func: 'isBefore',
+  args: '',
   msg: 'Error isBefore'
-}, {"func": "isBIC", "args": '', msg: 'Error isBIC'}, {"func": "isBoolean", "args": '', msg: 'Error isBoolean'}, {
-  "func": "isBtcAddress",
-  "args": '',
+}, { func: 'isBIC', args: '', msg: 'Error isBIC' }, { func: 'isBoolean', args: '', msg: 'Error isBoolean' }, {
+  func: 'isBtcAddress',
+  args: '',
   msg: 'Error isBtcAddress'
-}, {"func": "isByteLength", "args": '', msg: 'Error isByteLength'}, {
-  "func": "isCreditCard",
-  "args": '',
+}, { func: 'isByteLength', args: '', msg: 'Error isByteLength' }, {
+  func: 'isCreditCard',
+  args: '',
   msg: 'Error isCreditCard'
 }, {
-  "func": "isCurrency",
-  "args": '',
+  func: 'isCurrency',
+  args: '',
   msg: 'Error isCurrency'
-}, {"func": "isDataURI", "args": '', msg: 'Error isDataURI'}, {"func": "isDate", "args": '', msg: 'Error isDate'}, {
-  "func": "isDecimal",
-  "args": '',
+}, { func: 'isDataURI', args: '', msg: 'Error isDataURI' }, { func: 'isDate', args: '', msg: 'Error isDate' }, {
+  func: 'isDecimal',
+  args: '',
   msg: 'Error isDecimal'
-}, {"func": "isDivisibleBy", "args": '', msg: 'Error isDivisibleBy'}, {
-  "func": "isEAN",
-  "args": '',
+}, { func: 'isDivisibleBy', args: '', msg: 'Error isDivisibleBy' }, {
+  func: 'isEAN',
+  args: '',
   msg: 'Error isEAN'
 }, {
-  "func": "isEmail",
-  "args": '',
+  func: 'isEmail',
+  args: '',
   msg: 'Error isEmail'
-}, {"func": "isEmpty", "args": '', msg: 'Error isEmpty'}, {
-  "func": "isEthereumAddress",
-  "args": '',
+}, { func: 'isEmpty', args: '', msg: 'Error isEmpty' }, {
+  func: 'isEthereumAddress',
+  args: '',
   msg: 'Error isEthereumAddress'
 }, {
-  "func": "isFloat",
-  "args": '',
+  func: 'isFloat',
+  args: '',
   msg: 'Error isFloat'
-}, {"func": "isFQDN", "args": '', msg: 'Error isFQDN'}, {"func": "isFullWidth", "args": '', msg: 'Error isFullWidth'}, {
-  "func": "isHalfWidth",
-  "args": '',
+}, { func: 'isFQDN', args: '', msg: 'Error isFQDN' }, { func: 'isFullWidth', args: '', msg: 'Error isFullWidth' }, {
+  func: 'isHalfWidth',
+  args: '',
   msg: 'Error isHalfWidth'
-}, {"func": "isHash", "args": '', msg: 'Error isHash'}, {
-  "func": "isHexadecimal",
-  "args": '',
+}, { func: 'isHash', args: '', msg: 'Error isHash' }, {
+  func: 'isHexadecimal',
+  args: '',
   msg: 'Error isHexadecimal'
 }, {
-  "func": "isHexColor",
-  "args": '',
+  func: 'isHexColor',
+  args: '',
   msg: 'Error isHexColor'
-}, {"func": "isHSL", "args": '', msg: 'Error isHSL'}, {"func": "isIBAN", "args": '', msg: 'Error isIBAN'}, {
-  "func": "isIdentityCard",
-  "args": '',
+}, { func: 'isHSL', args: '', msg: 'Error isHSL' }, { func: 'isIBAN', args: '', msg: 'Error isIBAN' }, {
+  func: 'isIdentityCard',
+  args: '',
   msg: 'Error isIdentityCard'
-}, {"func": "isIMEI", "args": '', msg: 'Error isIMEI'}, {
-  "func": "isIn",
-  "args": '',
+}, { func: 'isIMEI', args: '', msg: 'Error isIMEI' }, {
+  func: 'isIn',
+  args: '',
   msg: 'Error isIn'
-}, {"func": "isInt", "args": '', msg: 'Error isInt'}, {
-  "func": "isIP",
-  "args": '',
+}, { func: 'isInt', args: '', msg: 'Error isInt' }, {
+  func: 'isIP',
+  args: '',
   msg: 'Error isIP'
-}, {"func": "isIPRange", "args": '', msg: 'Error isIPRange'}, {"func": "isISBN", "args": '', msg: 'Error isISBN'}, {
-  "func": "isISIN",
-  "args": '',
+}, { func: 'isIPRange', args: '', msg: 'Error isIPRange' }, { func: 'isISBN', args: '', msg: 'Error isISBN' }, {
+  func: 'isISIN',
+  args: '',
   msg: 'Error isISIN'
-}, {"func": "isISO8601", "args": '', msg: 'Error isISO8601'}, {
-  "func": "isISO31661Alpha2",
-  "args": '',
+}, { func: 'isISO8601', args: '', msg: 'Error isISO8601' }, {
+  func: 'isISO31661Alpha2',
+  args: '',
   msg: 'Error isISO31661Alpha2'
 }, {
-  "func": "isISO31661Alpha3",
-  "args": '',
+  func: 'isISO31661Alpha3',
+  args: '',
   msg: 'Error isISO31661Alpha3'
-}, {"func": "isISRC", "args": '', msg: 'Error isISRC'}, {
-  "func": "isISSN",
-  "args": '',
+}, { func: 'isISRC', args: '', msg: 'Error isISRC' }, {
+  func: 'isISSN',
+  args: '',
   msg: 'Error isISSN'
-}, {"func": "isJSON", "args": '', msg: 'Error isJSON'}, {
-  "func": "isJWT",
-  "args": '',
+}, { func: 'isJSON', args: '', msg: 'Error isJSON' }, {
+  func: 'isJWT',
+  args: '',
   msg: 'Error isJWT'
-}, {"func": "isLatLong", "args": '', msg: 'Error isLatLong'}, {"func": "isLength", "args": '', msg: 'Error isLength'}, {
-  "func": "isLocale",
-  "args": '',
+}, { func: 'isLatLong', args: '', msg: 'Error isLatLong' }, { func: 'isLength', args: '', msg: 'Error isLength' }, {
+  func: 'isLocale',
+  args: '',
   msg: 'Error isLocale'
-}, {"func": "isLowercase", "args": '', msg: 'Error isLowercase'}, {
-  "func": "isMACAddress",
-  "args": '',
+}, { func: 'isLowercase', args: '', msg: 'Error isLowercase' }, {
+  func: 'isMACAddress',
+  args: '',
   msg: 'Error isMACAddress'
 }, {
-  "func": "isMagnetURI",
-  "args": '',
+  func: 'isMagnetURI',
+  args: '',
   msg: 'Error isMagnetURI'
-}, {"func": "isMD5", "args": '', msg: 'Error isMD5'}, {"func": "isMimeType", "args": '', msg: 'Error isMimeType'}, {
-  "func": "isMobilePhone",
-  "args": '',
+}, { func: 'isMD5', args: '', msg: 'Error isMD5' }, { func: 'isMimeType', args: '', msg: 'Error isMimeType' }, {
+  func: 'isMobilePhone',
+  args: '',
   msg: 'Error isMobilePhone'
-}, {"func": "isMongoId", "args": '', msg: 'Error isMongoId'}, {
-  "func": "isMultibyte",
-  "args": '',
+}, { func: 'isMongoId', args: '', msg: 'Error isMongoId' }, {
+  func: 'isMultibyte',
+  args: '',
   msg: 'Error isMultibyte'
 }, {
-  "func": "isNumeric",
-  "args": '',
+  func: 'isNumeric',
+  args: '',
   msg: 'Error isNumeric'
-}, {"func": "isOctal", "args": '', msg: 'Error isOctal'}, {
-  "func": "isPassportNumber",
-  "args": '',
+}, { func: 'isOctal', args: '', msg: 'Error isOctal' }, {
+  func: 'isPassportNumber',
+  args: '',
   msg: 'Error isPassportNumber'
 }, {
-  "func": "isPort",
-  "args": '',
+  func: 'isPort',
+  args: '',
   msg: 'Error isPort'
-}, {"func": "isPostalCode", "args": '', msg: 'Error isPostalCode'}, {
-  "func": "isRFC3339",
-  "args": '',
+}, { func: 'isPostalCode', args: '', msg: 'Error isPostalCode' }, {
+  func: 'isRFC3339',
+  args: '',
   msg: 'Error isRFC3339'
 }, {
-  "func": "isRgbColor",
-  "args": '',
+  func: 'isRgbColor',
+  args: '',
   msg: 'Error isRgbColor'
-}, {"func": "isSemVer", "args": '', msg: 'Error isSemVer'}, {
-  "func": "isSurrogatePair",
-  "args": '',
+}, { func: 'isSemVer', args: '', msg: 'Error isSemVer' }, {
+  func: 'isSurrogatePair',
+  args: '',
   msg: 'Error isSurrogatePair'
 }, {
-  "func": "isUppercase",
-  "args": '',
+  func: 'isUppercase',
+  args: '',
   msg: 'Error isUppercase'
-}, {"func": "isSlug", "args": '', msg: 'Error isSlug'}, {
-  "func": "isTaxID",
-  "args": '',
+}, { func: 'isSlug', args: '', msg: 'Error isSlug' }, {
+  func: 'isTaxID',
+  args: '',
   msg: 'Error isTaxID'
-}, {"func": "isURL", "args": '', msg: 'Error isURL'}, {
-  "func": "isUUID",
-  "args": '',
+}, { func: 'isURL', args: '', msg: 'Error isURL' }, {
+  func: 'isUUID',
+  args: '',
   msg: 'Error isUUID'
-}, {"func": "isVariableWidth", "args": '', msg: 'Error isVariableWidth'}, {
-  "func": "isWhitelisted",
-  "args": '',
+}, { func: 'isVariableWidth', args: '', msg: 'Error isVariableWidth' }, {
+  func: 'isWhitelisted',
+  args: '',
   msg: 'Error isWhitelisted'
-}, {"func": "matches", "args": '', msg: 'Error matches'}];
+}, { func: 'matches', args: '', msg: 'Error matches' }]
 
 export default {
-  name: "validation",
+  name: 'Validation',
   props: ['nodes'],
   data: () => ({
     fnList: validatorFnList,
@@ -462,13 +495,22 @@ export default {
     clickedItem: null,
     validatorEditDialog: false
   }),
+  async created () {
+    // try {
+    // await this.loadColumnList();
+    await this.loadTableModelMeta()
+    // } catch (e) {
+    //   throw e
+    // } finally {
+    //
+    // }
+  },
   methods: {
 
-    editOrAddValidation(item) {
-      this.clickedItem = JSON.parse(JSON.stringify(item));
-      this.validatorEditDialog = true;
+    editOrAddValidation (item) {
+      this.clickedItem = JSON.parse(JSON.stringify(item))
+      this.validatorEditDialog = true
     },
-
 
     // async loadColumnList() {
     //   const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -480,45 +522,45 @@ export default {
     //   console.log("table ", result.data.list);
     //   this.columns = result.data.list;
     // },
-    async loadTableModelMeta() {
-      this.edited = false;
+    async loadTableModelMeta () {
+      this.edited = false
       this.tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
         tn: this.nodes.tn
-      }]);
+      }])
       this.columns = JSON.parse(this.tableMeta.meta)
     },
 
-    scrollAndFocusLastRow() {
+    scrollAndFocusLastRow () {
       this.$nextTick(() => {
-        const menuActivator = this.$el && this.$el.querySelector('.v-expansion-panel--active table tr:last-child .v-small-dialog__activator__content');
+        const menuActivator = this.$el && this.$el.querySelector('.v-expansion-panel--active table tr:last-child .v-small-dialog__activator__content')
         if (menuActivator) {
-          menuActivator.click();
+          menuActivator.click()
           this.$nextTick(() => {
-            const inputField = document.querySelector('.menuable__content__active input');
+            const inputField = document.querySelector('.menuable__content__active input')
             inputField && inputField.select()
           })
         }
       })
     },
-    scrollAndFocusLastRowInModal() {
+    scrollAndFocusLastRowInModal () {
       this.$nextTick(() => {
-        const modal = document.querySelector('.v-dialog--active');
-        modal.scrollTop = 99999;
-        const menuActivator = modal.querySelector('table tr:last-child .v-small-dialog__activator__content');
+        const modal = document.querySelector('.v-dialog--active')
+        modal.scrollTop = 99999
+        const menuActivator = modal.querySelector('table tr:last-child .v-small-dialog__activator__content')
         if (menuActivator) {
-          menuActivator.click();
+          menuActivator.click()
           this.$nextTick(() => {
-            const inputField = document.querySelector('.menuable__content__active input');
+            const inputField = document.querySelector('.menuable__content__active input')
             inputField && inputField.select()
           })
         }
       })
     },
-    async saveValidations() {
-      this.edited = false;
+    async saveValidations () {
+      this.edited = false
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -526,47 +568,35 @@ export default {
         }, 'xcModelSet', {
           tn: this.nodes.tn,
           meta: this.columns
-        }]);
-        this.$toast.success('Successfully updated validations').goAway(3000);
+        }])
+        this.$toast.success('Successfully updated validations').goAway(3000)
       } catch (e) {
-        this.$toast.error('Failed to update validations').goAway(3000);
+        this.$toast.error('Failed to update validations').goAway(3000)
       }
     },
-    async saveValidationForColumn(clickedItem) {
-
+    async saveValidationForColumn (clickedItem) {
       if (clickedItem) {
-        const item = this.columns.columns.find(it => it.cn === clickedItem.cn);
+        const item = this.columns.columns.find(it => it.cn === clickedItem.cn)
         if (item) {
-          Object.assign(item, clickedItem);
-          await this.saveValidations();
-          this.validatorEditDialog = false;
-          this.clickedItem = null;
+          Object.assign(item, clickedItem)
+          await this.saveValidations()
+          this.validatorEditDialog = false
+          this.clickedItem = null
         }
       }
     },
-    onFunctionChange(i, item) {
-      this.edited = true;
-      const fn = validatorFnList.find(({func}) => func === item.validate.func[i]);
-      item.validate.msg[i] = `Validation failed : ${item.validate.func[i]}(${this.nodes.tn}.${item.cn})`;
-      item.validate.args[i] = fn.args;
+    onFunctionChange (i, item) {
+      this.edited = true
+      const fn = validatorFnList.find(({ func }) => func === item.validate.func[i])
+      item.validate.msg[i] = `Validation failed : ${item.validate.func[i]}(${this.nodes.tn}.${item.cn})`
+      item.validate.args[i] = fn.args
     },
-    deleteValidation(item, i) {
-      this.edited = true;
-      item.validate.func.splice(i, 1);
-      item.validate.args.splice(i, 1);
-      item.validate.msg.splice(i, 1);
+    deleteValidation (item, i) {
+      this.edited = true
+      item.validate.func.splice(i, 1)
+      item.validate.args.splice(i, 1)
+      item.validate.msg.splice(i, 1)
     }
-  },
-  async created() {
-    try {
-      // await this.loadColumnList();
-      await this.loadTableModelMeta();
-    } catch (e) {
-      throw e;
-    } finally {
-
-    }
-
   }
 }
 </script>

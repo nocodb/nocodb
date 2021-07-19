@@ -1,46 +1,49 @@
 <template>
   <div>
     <v-toolbar dense>
-      <v-spacer/>
-      <v-btn @click="prev" outlined x-small :disabled="!index">Prev</v-btn>
-      <v-btn @click="next" outlined x-small :disabled="index===history.length -1">Next</v-btn>
+      <v-spacer />
+      <v-btn outlined x-small :disabled="!index" @click="prev">
+        Prev
+      </v-btn>
+      <v-btn outlined x-small :disabled="index===history.length -1" @click="next">
+        Next
+      </v-btn>
     </v-toolbar>
-    <div style="height:500px; width:100%;position: relative" id="editor">
-      <div ref="diff"></div>
+    <div id="editor" style="height:500px; width:100%;position: relative">
+      <div ref="diff" />
     </div>
   </div>
 </template>
 
 <script>
 
-
-import ace from 'ace-builds';
+// import ace from 'ace-builds'
 //
-import AceDiff from 'ace-diff';
-//// optionally, include CSS, or use your own
-import 'ace-diff/dist/ace-diff.min.css';
+import AceDiff from 'ace-diff'
+/// / optionally, include CSS, or use your own
+import 'ace-diff/dist/ace-diff.min.css'
 // Or use the dark mode
 // import 'ace-diff/dist/ace-diff-dark.min.css';
 
 export default {
-  name: "xc-diff",
+  name: 'XcDiff',
+  props: {
+    value: String,
+    history: Array
+  },
   data: () => ({
     differ: null,
     index: 0,
     editors: null
   }),
-  props: {
-    value: String,
-    history: Array
-  },
-  methods: {
-    prev() {
-      this.index && --this.index;
-    }, next() {
-      if (this.index < this.history.length - 1) ++this.index;
+  watch: {
+    index (i) {
+      if (this.editors) {
+        this.editors.right.setValue(this.history[i])
+      }
     }
   },
-  mounted() {
+  mounted () {
     this.differ = new AceDiff({
       element: this.$refs.diff,
       left: {
@@ -51,22 +54,24 @@ export default {
         content: this.history[this.index],
         editable: false
       },
-      diffGranularity: 'specific',
+      diffGranularity: 'specific'
 
-    });
+    })
 
-    this.editors = this.differ.getEditors();
-    this.editors.left.on("change", () => {
+    this.editors = this.differ.getEditors()
+    this.editors.left.on('change', () => {
       this.$emit('input', this.editors.left.getValue())
     })
     //
     // this.editors.left.session.setOptions({tabSize: 2, useSoftTabs: true});
     // this.editors.right.session.setOptions({tabSize: 2, useSoftTabs: true});
-  }, watch: {
-    index(i) {
-      if (this.editors) {
-        this.editors.right.setValue(this.history[i]);
-      }
+  },
+  methods: {
+    prev () {
+      this.index && --this.index
+    },
+    next () {
+      if (this.index < this.history.length - 1) { ++this.index }
     }
   }
 }

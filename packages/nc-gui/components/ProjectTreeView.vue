@@ -2,19 +2,18 @@
   <div style="height: 100%" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
     <!--    :expand-on-hover="mini"-->
     <v-navigation-drawer
+      ref="drawer"
+      v-model="navigation.shown"
       permanent
       mini-variant-width="50"
       :mini-variant.sync="mini"
       mini
       class="pl-2"
-      ref="drawer"
       style="min-width: 100%; height: 100%"
-      v-model="navigation.shown"
     >
       <div class="h-100 d-flex flex-column">
         <div class="flex-grow-1" style="overflow-y: auto; min-height: 200px">
-          <v-skeleton-loader class="mt-2 ml-2" v-if="!projects || !projects.length" type="button">
-          </v-skeleton-loader>
+          <v-skeleton-loader v-if="!projects || !projects.length" class="mt-2 ml-2" type="button" />
           <!--      <v-btn
                   v-else
                   icon
@@ -41,14 +40,13 @@
           <v-skeleton-loader
             v-if="!projects || !projects.length"
             type="list-item,list-item-three-line@3,list-item@2,list-item-three-line@3"
-          >
-          </v-skeleton-loader>
+          />
 
           <v-treeview
-            class="mt-5 project-tree"
             v-else-if="isTreeView"
-            dense
             v-model="tree"
+            class="mt-5 project-tree"
+            dense
             :open.sync="open"
             :active.sync="active"
             :items="projects"
@@ -58,13 +56,13 @@
             open-on-click
             color="primary"
           >
-            <template v-slot:label="{ item, open, leaf }">
+            <template #label="{ item, open, leaf }">
               <v-tooltip
                 :bottom="!!item.tooltip"
                 :right="!item.tooltip"
                 :disabled="!item.tooltip && false"
               >
-                <template v-slot:activator="{ on }">
+                <template #activator="{ on }">
                   <div
                     v-if="!hideNode[item._nodes.type]"
                     v-on="item.tooltip || true ? on : ''"
@@ -72,25 +70,29 @@
                     @click.stop="addTab({ ...item }, open, leaf)"
                   >
                     <template v-if="item._nodes.type === 'db'">
-                      <v-icon size="16">mdi-database</v-icon>
+                      <v-icon size="16">
+                        mdi-database
+                      </v-icon>
                       <!--                  <img-->
                       <!--                    class="grey lighten-3"-->
                       <!--                    :width="16" :src="`/db-icons/${dbIcons[item._nodes.dbConnection.client]}`"/>-->
                     </template>
                     <template v-else>
                       <v-icon
+                        v-if="open && icons[item._nodes.type].openIcon"
                         small
                         style="cursor: auto"
-                        v-if="open && icons[item._nodes.type].openIcon"
                         :color="icons[item._nodes.type].openColor"
-                        >{{ icons[item._nodes.type].openIcon }}
+                      >
+                        {{ icons[item._nodes.type].openIcon }}
                       </v-icon>
                       <v-icon
+                        v-else
                         small
                         style="cursor: auto"
-                        v-else
                         :color="icons[item._nodes.type].color"
-                        >{{ icons[item._nodes.type].icon }}
+                      >
+                        {{ icons[item._nodes.type].icon }}
                       </v-icon>
                     </template>
                     <span
@@ -99,8 +101,7 @@
                         icons[item._nodes.type].class,
                         item.active ? 'font-weight-bold' : '',
                       ]"
-                      >{{ item.name }}</span
-                    >
+                    >{{ item.name }}</span>
                   </div>
                 </template>
                 <span>{{ item.tooltip || item.name }}</span>
@@ -109,44 +110,47 @@
           </v-treeview>
           <v-container v-else fluid class="px-1">
             <v-list dense expand>
-              <template v-for="item in listViewArr" v-if="showNode(item)">
+              <template v-for="item in listViewArr">
                 <!--                   v-if="item.children && item.children.length"-->
                 <v-list-group
+                  v-if="isNested(item) && showNode(item)"
+                  :key="item.type"
                   color="textColor"
-                  v-if="isNested(item)"
+                  :value="isActiveList(item)"
                   @click="
                     !(item.children && item.children.length) && addTab({ ...item }, false, false)
                   "
                   @contextmenu.prevent="showCTXMenu($event, item, true, false)"
-                  :key="item.type"
-                  :value="isActiveList(item)"
                 >
-                  <template v-slot:appendIcon>
-                    <v-icon small color="grey">mdi-chevron-down</v-icon>
+                  <template #appendIcon>
+                    <v-icon small color="grey">
+                      mdi-chevron-down
+                    </v-icon>
                   </template>
-                  <template v-slot:activator>
+                  <template #activator>
                     <v-list-item-icon>
                       <v-icon
+                        v-if="open && icons[item._nodes.type].openIcon"
                         x-small
                         style="cursor: auto"
-                        v-if="open && icons[item._nodes.type].openIcon"
                         :color="icons[item._nodes.type].openColor"
-                        >{{ icons[item._nodes.type].openIcon }}
+                      >
+                        {{ icons[item._nodes.type].openIcon }}
                       </v-icon>
                       <v-icon
+                        v-else
                         x-small
                         style="cursor: auto"
-                        v-else
                         :color="icons[item._nodes.type].color"
-                        >{{ icons[item._nodes.type].icon }}
+                      >
+                        {{ icons[item._nodes.type].icon }}
                       </v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>
-                      <v-tooltip top v-if="!isNonAdminAccessAllowed(item)">
-                        <template v-slot:activator="{ on }">
-                          <span v-on="on" class="caption font-weight-regular">
-                            {{ item.name }}</span
-                          >
+                      <v-tooltip v-if="!isNonAdminAccessAllowed(item)" top>
+                        <template #activator="{ on }">
+                          <span class="caption font-weight-regular" v-on="on">
+                            {{ item.name }}</span>
                         </template>
                         <span class="caption">Only visible to Creator</span>
                       </v-tooltip>
@@ -155,39 +159,38 @@
                         class="caption font-weight-regular"
                         @dblclick="showSqlClient = true"
                       >
-                        {{ item.name }}</span
-                      >
+                        {{ item.name }}</span>
                     </v-list-item-title>
 
-                    <v-spacer></v-spacer>
+                    <v-spacer />
 
                     <v-tooltip bottom>
-                      <template v-slot:activator="{ on }">
+                      <template #activator="{ on }">
                         <x-icon
                           v-if="_isUIAllowed('treeview-add-button')"
-                          v-on="on"
                           :color="['x-active', 'grey']"
                           small
+                          v-on="on"
                           @click.prevent.stop="handleCreateBtnClick(item.type, item)"
                         >
                           mdi-plus-circle-outline
                         </x-icon>
                       </template>
-                      <span class="caption"
-                        >Add new
-                        <span class="text-capitalize">{{ item.type.slice(0, -3) }}</span></span
-                      >
+                      <span
+                        class="caption"
+                      >Add new
+                        <span class="text-capitalize">{{ item.type.slice(0, -3) }}</span></span>
                     </v-tooltip>
                   </template>
 
                   <v-list-item-group :value="selectedItem">
                     <v-list-item
+                      v-for="child in item.children || []"
+                      :key="child.key"
                       color="x-active"
                       active-class="font-weight-bold"
                       :selectable="true"
                       dense
-                      v-for="child in item.children || []"
-                      :key="child.key"
                       :value="`${(child._nodes && child._nodes).type || ''}||${
                         (child._nodes && child._nodes.dbAlias) || ''
                       }||${child.name}`"
@@ -197,27 +200,29 @@
                     >
                       <v-list-item-icon>
                         <v-icon
+                          v-if="icons[child._nodes.type].openIcon"
                           x-small
                           style="cursor: auto"
-                          v-if="icons[child._nodes.type].openIcon"
                           :color="icons[child._nodes.type].openColor"
-                          >{{ icons[child._nodes.type].openIcon }}
+                        >
+                          {{ icons[child._nodes.type].openIcon }}
                         </v-icon>
                         <v-icon
+                          v-else
                           x-small
                           style="cursor: auto"
-                          v-else
                           :color="icons[child._nodes.type].color"
-                          >{{ icons[child._nodes.type].icon }}
+                        >
+                          {{ icons[child._nodes.type].icon }}
                         </v-icon>
                       </v-list-item-icon>
                       <v-list-item-title>
                         <v-tooltip
-                          bottom
                           v-if="_isUIAllowed('creator_tooltip') && child.creator_tooltip"
+                          bottom
                         >
-                          <template v-slot:activator="{ on }">
-                            <span v-on="on" class="caption" @dblclick="showSqlClient = true">
+                          <template #activator="{ on }">
+                            <span class="caption" v-on="on" @dblclick="showSqlClient = true">
                               {{ child.name }}
                             </span>
                           </template>
@@ -226,17 +231,19 @@
                         <span v-else class="caption">{{ child.name }}</span>
                       </v-list-item-title>
                       <template v-if="child.type === 'table'">
-                        <v-spacer></v-spacer>
+                        <v-spacer />
                         <div class="action d-flex" @click.stop>
                           <v-menu>
-                            <template v-slot:activator="{ on }">
-                              <v-icon small v-on="on">mdi-dots-vertical</v-icon>
+                            <template #activator="{ on }">
+                              <v-icon small v-on="on">
+                                mdi-dots-vertical
+                              </v-icon>
                             </template>
 
                             <v-list dense>
                               <v-list-item
-                                dense
                                 v-if="_isUIAllowed('treeview-rename-button')"
+                                dense
                                 @click="
                                   menuItem = child;
                                   dialogRenameTable.cookie = child;
@@ -245,15 +252,19 @@
                                 "
                               >
                                 <v-list-item-icon>
-                                  <v-icon x-small> mdi-pencil-outline </v-icon>
+                                  <v-icon x-small>
+                                    mdi-pencil-outline
+                                  </v-icon>
                                 </v-list-item-icon>
                                 <v-list-item-title>
                                   <span classs="caption">Rename</span>
                                 </v-list-item-title>
                               </v-list-item>
-                              <v-list-item dense v-if="_isUIAllowed('ui-acl')" @click="openUIACL">
+                              <v-list-item v-if="_isUIAllowed('ui-acl')" dense @click="openUIACL">
                                 <v-list-item-icon>
-                                  <v-icon x-small> mdi-shield-outline </v-icon>
+                                  <v-icon x-small>
+                                    mdi-shield-outline
+                                  </v-icon>
                                 </v-list-item-icon>
                                 <v-list-item-title>
                                   <span classs="caption">UI ACL</span>
@@ -269,9 +280,9 @@
                   </v-list-item-group>
                 </v-list-group>
                 <v-list-item
-                  :selectable="false"
                   v-else-if="item.type !== 'sqlClientDir' || showSqlClient"
                   :key="item.key"
+                  :selectable="false"
                   :value="`${(item._nodes && item._nodes).type || ''}||${
                     (item._nodes && item._nodes.dbAlias) || ''
                   }||${item.name}`"
@@ -280,25 +291,30 @@
                 >
                   <v-list-item-icon>
                     <v-icon
+                      v-if="open && icons[item._nodes.type].openIcon"
                       small
                       style="cursor: auto"
-                      v-if="open && icons[item._nodes.type].openIcon"
                       :color="icons[item._nodes.type].openColor"
-                      >{{ icons[item._nodes.type].openIcon }}
+                    >
+                      {{ icons[item._nodes.type].openIcon }}
                     </v-icon>
-                    <v-icon small style="cursor: auto" v-else :color="icons[item._nodes.type].color"
-                      >{{ icons[item._nodes.type].icon }}
+                    <v-icon
+                      v-else
+                      small
+                      style="cursor: auto"
+                      :color="icons[item._nodes.type].color"
+                    >
+                      {{ icons[item._nodes.type].icon }}
                     </v-icon>
                   </v-list-item-icon>
                   <v-list-item-title>
-                    <v-tooltip top v-if="!isNonAdminAccessAllowed(item)">
-                      <template v-slot:activator="{ on }">
+                    <v-tooltip v-if="!isNonAdminAccessAllowed(item)" top>
+                      <template #activator="{ on }">
                         <span
-                          v-on="on"
                           class="caption font-weight-regular"
+                          v-on="on"
                           @dblclick="showSqlClient = true"
-                          >{{ item.name }}</span
-                        >
+                        >{{ item.name }}</span>
                       </template>
                       <span class="caption">Only visible to Creator</span>
                     </v-tooltip>
@@ -306,8 +322,7 @@
                       v-else
                       class="caption font-weight-regular"
                       @dblclick="showSqlClient = true"
-                      >{{ item.name }}</span
-                    >
+                    >{{ item.name }}</span>
                   </v-list-item-title>
                 </v-list-item>
               </template>
@@ -315,15 +330,15 @@
           </v-container>
           <recursive-menu
             v-model="menuVisible"
-            @click="handleCTXMenuClick($event.value)"
             offset-y
             :items="ctxMenuOptions()"
             :position-x="x"
             :position-y="y"
-          ></recursive-menu>
+            @click="handleCTXMenuClick($event.value)"
+          />
         </div>
         <div class="pr-3 advance-menu" :class="{ 'pl-3': !mini }">
-          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')"> </v-divider>
+          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')" />
 
           <v-list
             v-if="_isUIAllowed('treeViewProjectSettings')"
@@ -335,16 +350,17 @@
                 <!-- Settings -->
                 <span class="body-2 grey--text">{{ $t('treeview.settings') }}</span>
                 <v-tooltip top>
-                  <template v-slot:activator="{ on }">
+                  <template #activator="{ on }">
                     <x-icon
                       class="mt-n1"
-                      v-on="on"
                       color="pink grey"
-                      @mouseenter="overShieldIcon = true"
-                      @mouseleave="overShieldIcon = false"
                       icon-class="ml-2"
                       small
-                      >mdi-shield-lock-outline
+                      v-on="on"
+                      @mouseenter="overShieldIcon = true"
+                      @mouseleave="overShieldIcon = false"
+                    >
+                      mdi-shield-lock-outline
                     </x-icon>
                   </template>
                   <!-- Only visible to Creator -->
@@ -355,14 +371,16 @@
 
             <template v-if="_isUIAllowed('treeViewProjectSettings')">
               <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                  <v-list-item dense @click="appsTabAdd" class="body-2" v-on="on">
+                <template #activator="{ on }">
+                  <v-list-item dense class="body-2" @click="appsTabAdd" v-on="on">
                     <v-list-item-icon>
-                      <v-icon x-small> mdi-storefront-outline</v-icon>
+                      <v-icon x-small>
+                        mdi-storefront-outline
+                      </v-icon>
                     </v-list-item-icon>
                     <!-- App Store -->
-                    <v-list-item-title
-                      ><span class="font-weight-regular caption">{{
+                    <v-list-item-title>
+                      <span class="font-weight-regular caption">{{
                         $t('treeview.app_store')
                       }}</span>
                     </v-list-item-title>
@@ -373,31 +391,35 @@
               </v-tooltip>
 
               <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                  <v-list-item dense @click="rolesTabAdd" class="body-2" v-on="on">
+                <template #activator="{ on }">
+                  <v-list-item dense class="body-2" @click="rolesTabAdd" v-on="on">
                     <v-list-item-icon>
-                      <v-icon x-small> mdi-account-group</v-icon>
+                      <v-icon x-small>
+                        mdi-account-group
+                      </v-icon>
                     </v-list-item-icon>
                     <!-- Team & Auth -->
-                    <v-list-item-title
-                      ><span class="font-weight-regular caption">{{
+                    <v-list-item-title>
+                      <span class="font-weight-regular caption">{{
                         $t('treeview.team_n_auth')
-                      }}</span></v-list-item-title
-                    >
+                      }}</span>
+                    </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Roles & Users Management -->
                 {{ $t('treeview.team_n_auth.tooltip') }}
               </v-tooltip>
               <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                  <v-list-item dense @click="disableOrEnableModelTabAdd" class="body-2" v-on="on">
+                <template #activator="{ on }">
+                  <v-list-item dense class="body-2" @click="disableOrEnableModelTabAdd" v-on="on">
                     <v-list-item-icon>
-                      <v-icon x-small>mdi-table-multiple</v-icon>
+                      <v-icon x-small>
+                        mdi-table-multiple
+                      </v-icon>
                     </v-list-item-icon>
                     <!-- Project Metadata -->
-                    <v-list-item-title
-                      ><span class="font-weight-regular caption">{{
+                    <v-list-item-title>
+                      <span class="font-weight-regular caption">{{
                         $t('treeview.project_metadata')
                       }}</span>
                     </v-list-item-title>
@@ -408,7 +430,7 @@
               </v-tooltip>
             </template>
           </v-list>
-          <v-divider></v-divider>
+          <v-divider />
 
           <!--          <v-list dense>-->
           <!--    <v-list-item dense class="body-2 pt-2">
@@ -442,7 +464,6 @@
                     </h3>
                   </v-tooltip>
 
-
                 </div>
               </v-list-item>-->
 
@@ -461,11 +482,13 @@
           <!--          </v-list>-->
           <!--          <v-divider></v-divider>-->
 
-          <v-list dense v-if="_isUIAllowed('previewAs') || previewAs">
+          <v-list v-if="_isUIAllowed('previewAs') || previewAs" dense>
             <v-list-item>
               <!-- Preview as -->
               <span class="body-2 grey--text">{{ $t('treeview.preview_as') }}</span>
-              <v-icon small class="ml-1">mdi-drama-masks</v-icon>
+              <v-icon small class="ml-1">
+                mdi-drama-masks
+              </v-icon>
               <!--                <v-icon small>mdi-menu-down</v-icon>-->
             </v-list-item>
 
@@ -478,27 +501,32 @@
               <div class="mx-4 d-flex align-center mb-2">
                 <template v-for="(role, i) in rolesList">
                   <!--                  <span v-if="i" vertical :key="i" class="mx-2 caption grey&#45;&#45;text">or</span>-->
-                  <v-divider v-if="i" vertical :key="i" class="mx-2 caption grey--text"></v-divider>
+                  <v-divider v-if="i" :key="i" vertical class="mx-2 caption grey--text" />
                   <div
-                    @click="setPreviewUSer(role.title)"
                     :key="role.title"
                     class="pointer text-center"
+                    @click="setPreviewUSer(role.title)"
                   >
-                    <v-icon small class="mr-1" :color="role.title === previewAs ? 'x-active' : ''"
-                      >{{ roleIcon[role.title] }}
+                    <v-icon
+                      small
+                      class="mr-1"
+                      :color="role.title === previewAs ? 'x-active' : ''"
+                    >
+                      {{ roleIcon[role.title] }}
                     </v-icon>
                     <span
                       class="caption text-capitalize"
                       :class="{ 'x-active--text': role.title === previewAs }"
-                      >{{ role.title }}</span
-                    >
+                    >{{ role.title }}</span>
                   </div>
                 </template>
               </div>
               <template v-if="previewAs">
                 <!--                <v-divider></v-divider>-->
                 <v-list-item @click="setPreviewUSer(null)">
-                  <v-icon small class="mr-1">mdi-close</v-icon>
+                  <v-icon small class="mr-1">
+                    mdi-close
+                  </v-icon>
                   <!-- Reset Preview -->
                   <span class="caption">{{ $t('treeview.reset_review') }}</span>
                 </v-list-item>
@@ -507,7 +535,6 @@
           </v-list>
 
           <!--  <v-list dense>
-
 
               <v-list-item>
                 <v-list-item-title>
@@ -545,13 +572,13 @@
       v-if="dialogGetTableName.dialogShow"
       v-model="dialogGetTableName.dialogShow"
       @create="mtdTableCreate($event)"
-    ></dlg-table-create>
+    />
 
     <dlg-view-create
       v-if="dialogGetViewName.dialogShow"
       v-model="dialogGetViewName.dialogShow"
       @create="mtdViewCreate($event)"
-    ></dlg-view-create>
+    />
 
     <!--    <textDlgSubmitCancel
           v-if="dialogGetTableName.dialogShow"
@@ -563,12 +590,12 @@
 
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
-      :dialogShow="dialogRenameTable.dialogShow"
+      :dialog-show="dialogRenameTable.dialogShow"
       :heading="dialogRenameTable.heading"
       :cookie="dialogRenameTable.cookie"
-      :defaultValue="dialogRenameTable.defaultValue"
-      :mtdDialogSubmit="mtdDialogRenameTableSubmit"
-      :mtdDialogCancel="mtdDialogRenameTableCancel"
+      :default-value="dialogRenameTable.defaultValue"
+      :mtd-dialog-submit="mtdDialogRenameTableSubmit"
+      :mtd-dialog-cancel="mtdDialogRenameTableCancel"
     />
     <!--    <textDlgSubmitCancel
           v-if="dialogGetViewName.dialogShow"
@@ -579,29 +606,29 @@
         />-->
     <textDlgSubmitCancel
       v-if="dialogGetFunctionName.dialogShow"
-      :dialogShow="dialogGetFunctionName.dialogShow"
+      :dialog-show="dialogGetFunctionName.dialogShow"
       :heading="dialogGetFunctionName.heading"
-      :mtdDialogSubmit="mtdDialogGetFunctionNameSubmit"
-      :mtdDialogCancel="mtdDialogGetFunctionNameCancel"
+      :mtd-dialog-submit="mtdDialogGetFunctionNameSubmit"
+      :mtd-dialog-cancel="mtdDialogGetFunctionNameCancel"
     />
     <textDlgSubmitCancel
       v-if="dialogGetProcedureName.dialogShow"
-      :dialogShow="dialogGetProcedureName.dialogShow"
+      :dialog-show="dialogGetProcedureName.dialogShow"
       :heading="dialogGetProcedureName.heading"
-      :mtdDialogSubmit="mtdDialogGetProcedureNameSubmit"
-      :mtdDialogCancel="mtdDialogGetProcedureNameCancel"
+      :mtd-dialog-submit="mtdDialogGetProcedureNameSubmit"
+      :mtd-dialog-cancel="mtdDialogGetProcedureNameCancel"
     />
     <textDlgSubmitCancel
       v-if="dialogGetSequenceName.dialogShow"
-      :dialogShow="dialogGetSequenceName.dialogShow"
+      :dialog-show="dialogGetSequenceName.dialogShow"
       :heading="dialogGetSequenceName.heading"
-      :mtdDialogSubmit="mtdDialogGetSequenceNameSubmit"
-      :mtdDialogCancel="mtdDialogGetSequenceNameCancel"
+      :mtd-dialog-submit="mtdDialogGetSequenceNameSubmit"
+      :mtd-dialog-cancel="mtdDialogGetSequenceNameCancel"
     />
     <dlgLabelSubmitCancel
       v-if="selectedNodeForDelete.dialog"
-      :actionsMtd="deleteSelectedNode"
-      :dialogShow="selectedNodeForDelete.dialog"
+      :actions-mtd="deleteSelectedNode"
+      :dialog-show="selectedNodeForDelete.dialog"
       :heading="selectedNodeForDelete.heading"
       type="error"
     />

@@ -1,12 +1,12 @@
 export const state = () => ({
   snack: ''
-});
+})
 
 export const mutations = {
-  setSnack(state, snack) {
-    state.snack = snack;
+  setSnack (state, snack) {
+    state.snack = snack
   }
-};
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

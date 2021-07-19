@@ -3,47 +3,53 @@
     <template v-if="!isForm">
       <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
         <template v-if="(value || localState)">
-          <item-chip v-for="(v,j) in (value || localState)"
-                     :active="active"
-                     :item="v"
-                     :value="getCellValue(v)"
-                     :key="j"
-                     @edit="editChild"
-                     @unlink="unlinkChild"
-          ></item-chip>
-
+          <item-chip
+            v-for="(v,j) in (value || localState)"
+            :key="j"
+            :active="active"
+            :item="v"
+            :value="getCellValue(v)"
+            @edit="editChild"
+            @unlink="unlinkChild"
+          />
         </template>
         <span v-if="value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</span>
       </div>
-      <div class="actions align-center justify-center px-1 flex-shrink-1"
-           :class="{'d-none': !active, 'd-flex':active }">
-        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">mdi-plus</x-icon>
-        <x-icon x-small :color="['primary','grey']" @click="showChildListModal" class="ml-2">mdi-arrow-expand</x-icon>
+      <div
+        class="actions align-center justify-center px-1 flex-shrink-1"
+        :class="{'d-none': !active, 'd-flex':active }"
+      >
+        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">
+          mdi-plus
+        </x-icon>
+        <x-icon x-small :color="['primary','grey']" class="ml-2" @click="showChildListModal">
+          mdi-arrow-expand
+        </x-icon>
       </div>
     </template>
 
-
     <list-items
       v-if="newRecordModal"
+      v-model="newRecordModal"
       :hm="true"
       :size="10"
       :meta="childMeta"
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
-      v-model="newRecordModal"
       :api="api"
       :mm="mm"
       :parent-id="row && row[parentPrimaryKey]"
+      :query-params="childQueryParams"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
-      :query-params="childQueryParams"/>
+    />
 
     <list-child-items
       :is="isForm ? 'list-child-items' : 'list-child-items-modal'"
-      :isForm="isForm"
-      ref="childList"
       v-if="childMeta && assocMeta && (isForm || childListModal)"
+      ref="childList"
       v-model="childListModal"
+      :is-form="isForm"
       :is-new="isNew"
       :size="10"
       :meta="childMeta"
@@ -60,25 +66,27 @@
       @unlink="unlinkChild"
     />
     <dlg-label-submit-cancel
-      type="primary"
       v-if="dialogShow"
-      :actionsMtd="confirmAction"
-      :dialogShow="dialogShow"
+      type="primary"
+      :actions-mtd="confirmAction"
+      :dialog-show="dialogShow"
       :heading="confirmMessage"
-    >
-    </dlg-label-submit-cancel>
+    />
 
     <!-- todo : move to listitem component -->
     <v-dialog
-      :overlay-opacity="0.8"
       v-if="selectedChild"
+      v-model="expandFormModal"
+      :overlay-opacity="0.8"
       width="1000px"
       max-width="100%"
       class=" mx-auto"
-      v-model="expandFormModal">
+    >
       <component
-        v-if="selectedChild"
         :is="form"
+        v-if="selectedChild"
+        ref="expandedForm"
+        v-model="selectedChild"
         :db-alias="nodes.dbAlias"
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
@@ -92,38 +100,33 @@
         icon-color="warning"
         :nodes="nodes"
         :query-params="childQueryParams"
-        ref="expandedForm"
         :is-new.sync="isNewChild"
-        v-model="selectedChild"
         :breadcrumbs="breadcrumbs"
         @cancel="selectedChild = null"
         @input="onChildSave"
-      ></component>
-
+      />
     </v-dialog>
-
-
   </div>
 </template>
 
 <script>
-import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
-import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
-import ListItems from "@/components/project/spreadsheet/components/virtualCell/components/listItems";
-import ItemChip from "~/components/project/spreadsheet/components/virtualCell/components/itemChip";
-import ListChildItems from "@/components/project/spreadsheet/components/virtualCell/components/listChildItems";
+import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
+import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
+import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
 import listChildItemsModal
-  from "@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal";
-import {parseIfInteger} from "@/helpers";
+  from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
+import { parseIfInteger } from '@/helpers'
+import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/itemChip'
 
 export default {
-  name: "many-to-many-cell",
-  components: {ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel, listChildItemsModal},
+  name: 'ManyToManyCell',
+  components: { ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel, listChildItemsModal },
   props: {
     breadcrumbs: {
       type: Array,
-      default() {
-        return [];
+      default () {
+        return []
       }
     },
     value: [Object, Array],
@@ -135,7 +138,7 @@ export default {
     sqlUi: [Object, Function],
     active: Boolean,
     isNew: Boolean,
-    isForm: Boolean,
+    isForm: Boolean
   },
   data: () => ({
     isNewChild: false,
@@ -151,62 +154,160 @@ export default {
     expandFormModal: false,
     localState: []
   }),
-  async mounted() {
-    if (this.isForm) {
-      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
-    }
-  },
-  methods: {
-    async onChildSave(child) {
-      if (this.isNewChild) {
-        this.isNewChild = false;
-        await this.addChildToParent(child);
-      } else {
-        this.$emit('loadTableData')
+  computed: {
+    getCellValue () {
+      return (cellObj) => {
+        if (cellObj) {
+          if (this.childPrimaryCol) {
+            return cellObj[this.childPrimaryCol]
+          }
+          return Object.values(cellObj)[1]
+        }
       }
     },
-    async showChildListModal() {
-      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
-      this.childListModal = true;
-    }, async unlinkChild(child) {
-      if (this.isNew) {
-        this.localState.splice(this.localState.indexOf(child), 1)
-        return;
-      }
-      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
-
-      const _pcn = this.meta.columns.find(c => c.cn === this.mm.cn)._cn;
-      const _ccn = this.childMeta.columns.find(c => c.cn === this.mm.rcn)._cn;
-
-      const apcn = this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn;
-      const accn = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn).cn;
-
-      const id = this.assocMeta.columns.filter((c) => c.cn === apcn || c.cn === accn).map(c => c.cn === apcn ? this.row[_pcn] : child[_ccn]).join('___');
-      await this.assocApi.delete(id)
-      this.$emit('loadTableData')
-      if ((this.childListModal || this.isForm) && this.$refs.childList) {
-        this.$refs.childList.loadData();
+    childMeta () {
+      return this.$store.state.meta.metas[this.mm.rtn]
+    },
+    assocMeta () {
+      return this.$store.state.meta.metas[this.mm.vtn]
+    },
+    childApi () {
+      return this.childMeta && this.childMeta._tn
+        ? ApiFactory.create(
+          this.$store.getters['project/GtrProjectType'],
+          this.childMeta._tn,
+          this.childMeta.columns,
+          this,
+          this.childMeta
+        )
+        : null
+    },
+    assocApi () {
+      return this.assocMeta && this.assocMeta._tn
+        ? ApiFactory.create(
+          this.$store.getters['project/GtrProjectType'],
+          this.assocMeta._tn,
+          this.assocMeta.columns,
+          this,
+          this.assocMeta
+        )
+        : null
+    },
+    childPrimaryCol () {
+      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
+    },
+    childPrimaryKey () {
+      return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
+    },
+    parentPrimaryKey () {
+      return this.meta && (this.meta.columns.find(c => c.pk) || {})._cn
+    },
+    childQueryParams () {
+      if (!this.childMeta) { return {} }
+      // todo: use reduce
+      return {
+        hm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({ hm }) => hm.tn).join()) || '',
+        bt: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({ bt }) => bt.rtn).join()) || '',
+        mm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
       }
     },
-    async removeChild(child) {
-      this.dialogShow = true;
-      this.confirmMessage =
-        'Do you want to delete the record?';
-      this.confirmAction = async act => {
-        if (act === 'hideDialog') {
-          this.dialogShow = false;
-        } else {
-          const id = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
-          await this.childApi.delete(id)
-          this.dialogShow = false;
-          this.$emit('loadTableData')
-          if ((this.childListModal || this.isForm) && this.$refs.childList) {
-            this.$refs.childList.loadData();
+    conditionGraph () {
+      if (!this.childMeta || !this.assocMeta) { return null }
+      return {
+        [this.assocMeta.tn]: {
+          relationType: 'hm',
+          [this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn]: {
+            eq: this.row[this.parentPrimaryKey]
           }
         }
       }
     },
-    async loadChildMeta() {
+    childAvailableColumns () {
+      const hideCols = ['created_at', 'updated_at']
+      if (!this.childMeta) { return [] }
+
+      const columns = []
+      if (this.childMeta.columns) {
+        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.childMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
+      }
+      if (this.childMeta.v) {
+        columns.push(...this.childMeta.v.map(v => ({ ...v, virtual: 1 })))
+      }
+      return columns
+    },
+    // todo:
+    form () {
+      return this.selectedChild ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
+    }
+  },
+  watch: {
+    async isNew (n, o) {
+      if (!n && o) {
+        await this.saveLocalState()
+      }
+    }
+  },
+  async mounted () {
+    if (this.isForm) {
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
+    }
+  },
+  created () {
+    this.loadChildMeta()
+    this.loadAssociateTableMeta()
+  },
+  methods: {
+    async onChildSave (child) {
+      if (this.isNewChild) {
+        this.isNewChild = false
+        await this.addChildToParent(child)
+      } else {
+        this.$emit('loadTableData')
+      }
+    },
+    async showChildListModal () {
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
+      this.childListModal = true
+    },
+    async unlinkChild (child) {
+      if (this.isNew) {
+        this.localState.splice(this.localState.indexOf(child), 1)
+        return
+      }
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
+
+      const _pcn = this.meta.columns.find(c => c.cn === this.mm.cn)._cn
+      const _ccn = this.childMeta.columns.find(c => c.cn === this.mm.rcn)._cn
+
+      const apcn = this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn
+      const accn = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn).cn
+
+      const id = this.assocMeta.columns.filter(c => c.cn === apcn || c.cn === accn).map(c => c.cn === apcn ? this.row[_pcn] : child[_ccn]).join('___')
+      await this.assocApi.delete(id)
+      this.$emit('loadTableData')
+      if ((this.childListModal || this.isForm) && this.$refs.childList) {
+        this.$refs.childList.loadData()
+      }
+    },
+    async removeChild (child) {
+      this.dialogShow = true
+      this.confirmMessage =
+        'Do you want to delete the record?'
+      this.confirmAction = async (act) => {
+        if (act === 'hideDialog') {
+          this.dialogShow = false
+        } else {
+          const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
+          await this.childApi.delete(id)
+          this.dialogShow = false
+          this.$emit('loadTableData')
+          if ((this.childListModal || this.isForm) && this.$refs.childList) {
+            this.$refs.childList.loadData()
+          }
+        }
+      }
+    },
+    async loadChildMeta () {
       // todo: optimize
       if (!this.childMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -223,7 +324,7 @@ export default {
         // this.childMeta = JSON.parse(parentTableData.meta)
       }
     },
-    async loadAssociateTableMeta() {
+    async loadAssociateTableMeta () {
       // todo: optimize
       if (!this.assocMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -240,176 +341,81 @@ export default {
         // this.assocMeta = JSON.parse(assocTableData.meta)
       }
     },
-    async showNewRecordModal() {
-      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()]);
-      this.newRecordModal = true;
+    async showNewRecordModal () {
+      await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
+      this.newRecordModal = true
       // this.list = await this.c hildApi.paginatedList({})
     },
-    async addChildToParent(child) {
+    async addChildToParent (child) {
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
-        this.newRecordModal = false;
+        this.newRecordModal = false
         return
       }
-      const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
-      const pid = this.meta.columns.filter((c) => c.pk).map(c => this.row[c._cn]).join('___');
+      const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
+      const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
 
-      const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn;
-      const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn;
+      const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn
+      const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn
       try {
         await this.assocApi.insert({
           [vcidCol]: parseIfInteger(cid),
           [vpidCol]: parseIfInteger(pid)
-        });
+        })
 
         this.$emit('loadTableData')
       } catch (e) {
         // todo: handle
         console.log(e)
       }
-      this.newRecordModal = false;
+      this.newRecordModal = false
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
-        this.$refs.childList.loadData();
+        this.$refs.childList.loadData()
       }
-
     },
 
-
-    async insertAndAddNewChildRecord() {
-      this.newRecordModal = false;
-      await this.loadChildMeta();
-      this.isNewChild = true;
+    async insertAndAddNewChildRecord () {
+      this.newRecordModal = false
+      await this.loadChildMeta()
+      this.isNewChild = true
       this.selectedChild = {
         [this.childForeignKey]: this.parentId
-      };
-      this.expandFormModal = true;
+      }
+      this.expandFormModal = true
       setTimeout(() => {
         this.$refs.expandedForm && this.$refs.expandedForm.$set(this.$refs.expandedForm.changedColumns, this.childForeignKey, true)
       }, 500)
-    }, async editChild(child) {
-      await this.loadChildMeta();
-      this.isNewChild = false;
-      this.selectedChild = child;
-      this.expandFormModal = true;
+    },
+    async editChild (child) {
+      await this.loadChildMeta()
+      this.isNewChild = false
+      this.selectedChild = child
+      this.expandFormModal = true
       setTimeout(() => {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
     },
-    async saveLocalState(row) {
-      let child;
+    async saveLocalState (row) {
+      let child
+      // eslint-disable-next-line no-cond-assign
       while (child = this.localState.pop()) {
         if (row) {
           // todo: use common method
-          const cid = this.childMeta.columns.filter((c) => c.pk).map(c => child[c._cn]).join('___');
-          const pid = this.meta.columns.filter((c) => c.pk).map(c => row[c._cn]).join('___');
+          const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
+          const pid = this.meta.columns.filter(c => c.pk).map(c => row[c._cn]).join('___')
 
-          const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn;
-          const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn;
+          const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn
+          const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn
           await this.assocApi.insert({
             [vcidCol]: parseIfInteger(cid),
             [vpidCol]: parseIfInteger(pid)
-          });
+          })
         } else {
           await this.addChildToParent(child)
         }
       }
-      this.$emit('newRecordsSaved');
+      this.$emit('newRecordsSaved')
     }
-  },
-  computed: {
-    getCellValue() {
-      return cellObj => {
-        if (cellObj) {
-          if (this.childPrimaryCol) {
-            return cellObj[this.childPrimaryCol]
-          }
-          return Object.values(cellObj)[1]
-        }
-      }
-    },
-    childMeta() {
-      return this.$store.state.meta.metas[this.mm.rtn]
-    },
-    assocMeta() {
-      return this.$store.state.meta.metas[this.mm.vtn]
-    },
-    childApi() {
-      return this.childMeta && this.childMeta._tn ?
-        ApiFactory.create(
-          this.$store.getters['project/GtrProjectType'],
-          this.childMeta._tn,
-          this.childMeta.columns,
-          this,
-          this.childMeta
-        ) : null;
-    },
-    assocApi() {
-      return this.assocMeta && this.assocMeta._tn ?
-        ApiFactory.create(
-          this.$store.getters['project/GtrProjectType'],
-          this.assocMeta._tn,
-          this.assocMeta.columns,
-          this,
-          this.assocMeta
-        ) : null;
-    },
-    childPrimaryCol() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
-    },
-    childPrimaryKey() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
-    },
-    parentPrimaryKey() {
-      return this.meta && (this.meta.columns.find(c => c.pk) || {})._cn
-    },
-    childQueryParams() {
-      if (!this.childMeta) return {}
-      // todo: use reduce
-      return {
-        hm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({hm}) => hm.tn).join()) || '',
-        bt: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({bt}) => bt.rtn).join()) || '',
-        mm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({mm}) => mm.rtn).join()) || ''
-      }
-    },
-    conditionGraph() {
-      if (!this.childMeta || !this.assocMeta) return null;
-      return {
-        [this.assocMeta.tn]: {
-          "relationType": "hm",
-          [this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn]: {
-            "eq": this.row[this.parentPrimaryKey]
-          }
-        }
-      }
-    },
-    childAvailableColumns() {
-      const hideCols = ['created_at', 'updated_at'];
-      if (!this.childMeta) return [];
-
-      const columns = [];
-      if (this.childMeta.columns) {
-        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.childMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
-      }
-      if (this.childMeta.v) {
-        columns.push(...this.childMeta.v.map(v => ({...v, virtual: 1})));
-      }
-      return columns;
-    },
-    // todo:
-    form() {
-      return this.selectedChild ? () => import("@/components/project/spreadsheet/components/expandedForm") : 'span';
-    },
-  },
-  watch: {
-    async isNew(n, o) {
-      if (!n && o) {
-        await this.saveLocalState();
-      }
-    }
-  },
-  created() {
-    this.loadChildMeta();
-    this.loadAssociateTableMeta()
   }
 }
 </script>
@@ -431,7 +437,6 @@ export default {
     display: inline;
   }
 }
-
 
 .child-list-modal {
   position: relative;

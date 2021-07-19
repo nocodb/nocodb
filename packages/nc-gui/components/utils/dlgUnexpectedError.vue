@@ -1,32 +1,35 @@
 <template>
   <v-row justify="center">
     <v-dialog
+      :value="dialogErrorShow"
       persistent
-      v-model="dialogErrorShow"
       max-width="500px"
       @keydown.esc="errorDialogCancel()"
       @keydown.enter="errorDialogReport"
     >
-      <template v-slot:activator="{ on }">
-        <p class="hidden" v-on="on"></p>
+      <template #activator="{ on }">
+        <p class="hidden" v-on="on" />
       </template>
       <v-card class="pa-2">
         <v-card-title class="headline text-center">
-          <span>{{ this.heading }}</span>
+          <span>{{ heading }}</span>
         </v-card-title>
-        <v-card-text class="" v-if="this.error">
-          {{ this.error.message }}
+        <v-card-text v-if="error" class="">
+          {{ error.message }}
         </v-card-text>
 
         <v-card-actions class="pa-1">
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn small class="" @click="errorDialogCancel">
             Cancel
           </v-btn>
-          <v-btn small class="warning" @click="errorDialogReport"
-          >Report
-          </v-btn
+          <v-btn
+            small
+            class="warning"
+            @click="errorDialogReport"
           >
+            Report
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -34,48 +37,47 @@
 </template>
 
 <script>
-  import {mapGetters, mapActions} from "vuex";
 
-  export default {
-    data() {
-      return {fieldValue: ""};
-    },
-    methods: {},
-    computed: {},
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    return true
+  },
+  props: [
+    'heading',
+    'error',
+    'dialogErrorShow',
+    'errorDialogCancel',
+    'errorDialogReport'
+  ],
+  data () {
+    return { fieldValue: '' }
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+    // if (this.$store.state.windows.isErrorReportingEnabled && !(process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'dev'))
+    //   this.$sentry.captureException(new Error(JSON.stringify({
+    //     version: this.$store.state.windows.version,
+    //     error: this.error,
+    //     user : this.$store.state.users.user && this.$store.state.users.user.email
+    //   })))
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  methods: {},
 
-    beforeCreated() {
-    },
-    created() {
-      // if (this.$store.state.windows.isErrorReportingEnabled && !(process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'dev'))
-      //   this.$sentry.captureException(new Error(JSON.stringify({
-      //     version: this.$store.state.windows.version,
-      //     error: this.error,
-      //     user : this.$store.state.users.user && this.$store.state.users.user.email
-      //   })))
-    },
-    mounted() {
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    head() {
-      return {};
-    },
-    props: [
-      "heading",
-      "error",
-      "dialogErrorShow",
-      "errorDialogCancel",
-      "errorDialogReport"
-    ],
-    watch: {},
-    directives: {},
-    components: {}
-  };
+  beforeCreated () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped>

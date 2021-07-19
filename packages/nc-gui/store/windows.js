@@ -1,17 +1,5 @@
-// import moment from 'moment';
-import themes from "../helpers/themes";
-import browserLang from "browser-lang";
-
-
-const defaultTheme = {
-  "primary": "#0989ff",
-  "secondary": "#9575CD",
-  "accent": "#FF4081",
-  "info": "#2196F3",
-  "success": "#4CAF50",
-  "warning": "#FB8C00",
-  error: '#ff0100',
-};
+import browserLang from 'browser-lang'
+import themes from '../helpers/themes'
 
 export const state = () => ({
   treeWindow: true,
@@ -25,20 +13,20 @@ export const state = () => ({
   isErrorReportingEnabled: true,
   customTheme: {},
   language: browserLang({
-    languages: ["en", "ar", "nl", "fr", "de", "it", "ja", "ru", "es", "ca", "cs", "et", "lt", "no", "te", "ur", "zh-cn", "da", "tl", "el", "ms", "pl", "sr", "sv", "th", "bn", "zh-tw", "fi", "ko", "iw", "ml", "pt", "sk", "tg", "tr", "vi", "bg", "hr", "eo", "id", "lv", "mr", "ro", "sl", "ta", "uk", "kn", "hi"],
-    fallback: 'en',
+    languages: ['en', 'ar', 'nl', 'fr', 'de', 'it', 'ja', 'ru', 'es', 'ca', 'cs', 'et', 'lt', 'no', 'te', 'ur', 'zh-cn', 'da', 'tl', 'el', 'ms', 'pl', 'sr', 'sv', 'th', 'bn', 'zh-tw', 'fi', 'ko', 'iw', 'ml', 'pt', 'sk', 'tg', 'tr', 'vi', 'bg', 'hr', 'eo', 'id', 'lv', 'mr', 'ro', 'sl', 'ta', 'uk', 'kn', 'hi'],
+    fallback: 'en'
   }),
   showTour: {
     home: true,
     dashboard: true
   },
-  startedDate: new Date(),//moment().format(),
+  startedDate: new Date(), // moment().format(),
   scaffoldOnSave: false,
   pollingFailedMaxRetry: 0,
   stats: {
     tableCount: 0,
     viewCount: 0,
-    relationCount: 0,
+    relationCount: 0
   },
   version: '0.0.0',
   checkForUpdate: true,
@@ -50,133 +38,146 @@ export const state = () => ({
   screensaver: true,
   autoApplyFilter: true,
   apiLoading: false
-});
+})
 
 export const mutations = {
-  MutApiLoading(state, status) {
+  MutApiLoading (state, status) {
     state.apiLoading = status
   },
-  MutAutoApplyFilter(state, v) {
-    state.autoApplyFilter = v;
+  MutAutoApplyFilter (state, v) {
+    state.autoApplyFilter = v
   },
-  MutToggleLogWindow(state, show) {
-    state.logWindow = !state.logWindow;
-  }, MutScreensaver(state, show) {
-    state.screensaver = show;
-  }, MutToggleDarkMode(state, status) {
-    if (typeof status !== 'boolean') status = !state.darkTheme;
-    state.darkTheme = status;
-  }, MutToggleGaEnabled(state, isEnabled) {
-    state.isGaEnabled = isEnabled;
-  }, MutToggleErrorReportingEnabled(state, isEnabled) {
-    state.isErrorReportingEnabled = isEnabled;
-  }, MutToggleTelemetryEnabled(state, isEnabled) {
-    state.isTelemetryEnabled = isEnabled;
-  }, MutSetTheme(state, {theme, themeName}) {
-    state.themeName = themeName;
-    state.theme = theme;
-  }, MutToggleTheme(state) {
-    const keys = Object.keys(themes);
-    const index = keys.indexOf(state.themeName) + 1;
-    state.themeName = keys[index];
-    state.theme = themes[state.themeName];
-  }, MutSetCustomTheme(state, theme) {
-    state.customTheme = theme;
-  }, MutLanguage(state, language) {
-    state.language = language;
+  MutToggleLogWindow (state, show) {
+    state.logWindow = !state.logWindow
   },
-  MutToggleTreeviewWindow(state, show) {
-    state.treeWindow = !state.treeWindow;
+  MutScreensaver (state, show) {
+    state.screensaver = show
   },
-  MutToggleOutputWindow(state, show) {
-    state.outputWindow = !state.outputWindow;
+  MutToggleDarkMode (state, status) {
+    if (typeof status !== 'boolean') {
+      status = !state.darkTheme
+    }
+    state.darkTheme = status
   },
-  MutToggleLogWindowFromTab(state, {client, status}) {
+  MutToggleGaEnabled (state, isEnabled) {
+    state.isGaEnabled = isEnabled
+  },
+  MutToggleErrorReportingEnabled (state, isEnabled) {
+    state.isErrorReportingEnabled = isEnabled
+  },
+  MutToggleTelemetryEnabled (state, isEnabled) {
+    state.isTelemetryEnabled = isEnabled
+  },
+  MutSetTheme (state, { theme, themeName }) {
+    state.themeName = themeName
+    state.theme = theme
+  },
+  MutToggleTheme (state) {
+    const keys = Object.keys(themes)
+    const index = keys.indexOf(state.themeName) + 1
+    state.themeName = keys[index]
+    state.theme = themes[state.themeName]
+  },
+  MutSetCustomTheme (state, theme) {
+    state.customTheme = theme
+  },
+  MutLanguage (state, language) {
+    state.language = language
+  },
+  MutToggleTreeviewWindow (state, show) {
+    state.treeWindow = !state.treeWindow
+  },
+  MutToggleOutputWindow (state, show) {
+    state.outputWindow = !state.outputWindow
+  },
+  MutToggleLogWindowFromTab (state, { client, status }) {
     if (client) {
-      state.clientDisabledLogWindow = status;
-      state.logWindow = false;
-    } else {
-      if (state.clientDisabledLogWindow) {
-        state.logWindow = true;
-      }
+      state.clientDisabledLogWindow = status
+      state.logWindow = false
+    } else if (state.clientDisabledLogWindow) {
+      state.logWindow = true
     }
   },
-  MutShowTour(state, {page, status = false}) {
-    state.showTour = {...state.showTour, [page]: status};
+  MutShowTour (state, { page, status = false }) {
+    state.showTour = { ...state.showTour, [page]: status }
   },
-  MutStartedDate(state, date) {
-    state.expiryDate = date;
+  MutStartedDate (state, date) {
+    state.expiryDate = date
   },
-  MutPollingIncrementBy(state, val = 1) {
-    state.pollingFailedMaxRetry += val;
+  MutPollingIncrementBy (state, val = 1) {
+    state.pollingFailedMaxRetry += val
   },
-  MutPollingSet(state, val = 0) {
-    state.pollingFailedMaxRetry = val;
+  MutPollingSet (state, val = 0) {
+    state.pollingFailedMaxRetry = val
   },
-  MutToggleScaffoldOnSave(state, status) {
+  MutToggleScaffoldOnSave (state, status) {
     if (typeof status === 'boolean') {
       state.scaffoldOnSave = status
     } else {
-      state.scaffoldOnSave = !state.scaffoldOnSave;
+      state.scaffoldOnSave = !state.scaffoldOnSave
     }
   },
-  MutStat(state, stats) {
-    for (const key in stats) stats[key] += state.stats[key] || 0;
-    state.stats = {...state.stats, ...stats}
+  MutStat (state, stats) {
+    for (const key in stats) {
+      stats[key] += state.stats[key] || 0
+    }
+    state.stats = { ...state.stats, ...stats }
   },
-  MutResetStats(state) {
-    for (const key in state.stats) state.stats[key] = 0;
-    state.stats = {...state.stats}
+  MutResetStats (state) {
+    for (const key in state.stats) {
+      state.stats[key] = 0
+    }
+    state.stats = { ...state.stats }
   },
-  MutVersion(state, version) {
-    state.version = version;
+  MutVersion (state, version) {
+    state.version = version
   },
 
-  MutCheckForUpdate(state, checkForUpdate) {
-    state.checkForUpdate = checkForUpdate;
+  MutCheckForUpdate (state, checkForUpdate) {
+    state.checkForUpdate = checkForUpdate
   },
-  MutDownloadAndUpdateRelease(state, downloadAndUpdateRelease) {
-    state.downloadAndUpdateRelease = downloadAndUpdateRelease;
+  MutDownloadAndUpdateRelease (state, downloadAndUpdateRelease) {
+    state.downloadAndUpdateRelease = downloadAndUpdateRelease
   },
-  MutIsComp(state, isComp) {
-    state.isComp = isComp;
+  MutIsComp (state, isComp) {
+    state.isComp = isComp
   },
-  MutMetatables(state, show) {
-    state.metatables = show;
+  MutMetatables (state, show) {
+    state.metatables = show
   },
-  MutNc(state, nc) {
-    state.nc = nc;
+  MutNc (state, nc) {
+    state.nc = nc
   },
-  MutMiniSponsorCard(state, miniSponsorCard) {
-    state.miniSponsorCard = miniSponsorCard;
+  MutMiniSponsorCard (state, miniSponsorCard) {
+    state.miniSponsorCard = miniSponsorCard
   }
-};
+}
 
 export const getters = {
-  GtrNoOfDaysLeft(state) {
+  GtrNoOfDaysLeft (state) {
     // const passedDays = moment().diff(state.startedDate, 'days');
     // return passedDays > 30 ? 0 : 30 - passedDays;
   },
-  GtrHasTrialPeriodExpired(state) {
+  GtrHasTrialPeriodExpired (state) {
     // const passedDays = moment().diff(state.startedDate, 'days');
     // return passedDays > 30;
   },
-  GtrMaxPollingRetryExceeded(state) {
-    return state.pollingFailedMaxRetry >= process.env.pollingFailedMaxRetry;
+  GtrMaxPollingRetryExceeded (state) {
+    return state.pollingFailedMaxRetry >= process.env.pollingFailedMaxRetry
   },
-  GtrShouldWork(state) {
-    return () => state.isComp ? Math.floor(Math.random() * 1000) % 5 === 0 : true;
+  GtrShouldWork (state) {
+    return () => state.isComp ? Math.floor(Math.random() * 1000) % 5 === 0 : true
   }
-};
+}
 
 export const actions = {
-  ActGetExpiryDate({state, commit}, args) {
+  ActGetExpiryDate ({ state, commit }, args) {
     // if (!state.startedDate) {
     //   commit('MutStartedDate', moment().format())
     // }
     // return moment().diff(state.startedDate, 'days') // 1
   },
-  ActToggleDarkMode({state, commit, rootState}, status) {
+  ActToggleDarkMode ({ state, commit, rootState }, status) {
     //
     // const prepareToastMessage = () => {
     //   if (rootState.users.user && rootState.users.user.email) {
@@ -198,50 +199,29 @@ export const actions = {
     //   }, process.env.darkThemeResetInSeconds)
     // }
     commit('MutToggleDarkMode', status)
-  }
-  ,
-  ActCheckMaxTable({state, commit, rootState}, {tableIndex}) {
+  },
+  ActCheckMaxTable ({ state, commit, rootState }, { tableIndex }) {
     const prepareToastMessage = () => {
       return `You are allowed to access only ${rootState.users.ui_ability.rules.maxTables} tables.<br/>
 You can either upgrade or <a href="#/referral" style="color: white;font-weight: bold;">refer</a> us. `
-    };
-
+    }
 
     if (process.env.ui_ability) {
       if (tableIndex > rootState.users.ui_ability.rules.maxTables) {
         this.commit('snackbar/setSnack', prepareToastMessage())
-        return false;
+        return false
       }
     }
-    return true;
+    return true
   },
-  async ActSyncStats({state, commit}, stats) {
-    commit('MutStats', stats);
-    try {
-      let res = await this.$axios.post('/api/v1/user/stats', {...stats, id: await machineId()})
-      commit('MutResetStats', stats);
-    } catch (e) {
-
-    }
-
-  },
-  async ActSetTheme({state, commit, rootState}, {theme, themeName, custom}) {
-//
-//     if (!rootState.users.ui_ability.rules.darkTheme && themeName !== 'Default') {
-//       setTimeout(() => {
-//         this.commit('snackbar/setSnack', `Custom theme is not available for your profile. <br/>
-// You can either upgrade or <a href="#/referral" style="color: white;font-weight: bold;">refer</a> us.`)
-//         commit('MutSetTheme', {theme: defaultTheme, themeName: 'Default'});
-//       }, process.env.darkThemeResetInSeconds);
-//     }
+  ActSetTheme ({ state, commit, rootState }, { theme, themeName, custom }) {
     if (custom) {
-      commit('MutSetCustomTheme', theme);
+      commit('MutSetCustomTheme', theme)
     } else {
-      commit('MutSetTheme', {theme, themeName});
+      commit('MutSetTheme', { theme, themeName })
     }
   }
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

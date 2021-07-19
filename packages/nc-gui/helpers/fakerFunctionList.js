@@ -895,7 +895,7 @@ const functionList = [
     type: 'string'
   }
 ]
-export default functionList;
+export default functionList
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

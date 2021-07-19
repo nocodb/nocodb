@@ -1,78 +1,77 @@
-export function apiPrepareForInvocation(api) {
-  api.meta.path = api.meta.path || api.path;
-  api.meta.method = api.meta.method.toUpperCase();
+export function apiPrepareForInvocation (api) {
+  api.meta.path = api.meta.path || api.path
+  api.meta.method = api.meta.method.toUpperCase()
   api.meta.parameters = api.meta.parameters || (api.swagger.parameters && api.swagger.parameters.filter(p => p.in === 'query').map(p => ({
-    "name": p.name,
-    "value": "",
-    "enabled": false,
-    "description": p.description
-  })));
+    name: p.name,
+    value: '',
+    enabled: false,
+    description: p.description
+  })))
 
   api.meta.headers = api.meta.headers || (api.swagger.parameters && api.swagger.parameters.filter(p => p.in === 'header').map(p => ({
-    "name": p.name,
-    "value": "",
-    "enabled": false,
-    "description": p.description
-  })));
+    name: p.name,
+    value: '',
+    enabled: false,
+    description: p.description
+  })))
 
-  return api;
-
+  return api
 }
 
-
-
-export function nodeHandleIfNew(node){
+export function nodeHandleIfNew (node) {
   if (node.isLeaf && !node.meta) {
     node.swagger = {
-      parameters:[]
-    };
+      parameters: []
+    }
     node.meta = {
       method: 'GET',
       parameters: [],
       headers: [],
       path: ''
     }
-  } else if (!node.meta){
-    node.meta = {};
-    node.swagger = {};
+  } else if (!node.meta) {
+    node.meta = {}
+    node.swagger = {}
   }
 }
 
-
-
-export function axiosRequestMake(apiMeta) {
+export function axiosRequestMake (apiMeta) {
   if (apiMeta.body) {
     try {
-      apiMeta.body = JSON.parse(apiMeta.body);
+      apiMeta.body = JSON.parse(apiMeta.body)
     } catch (e) {
-      console.log(e);
+      console.log(e)
     }
   }
 
   if (apiMeta.auth) {
     try {
-      apiMeta.auth = JSON.parse(apiMeta.auth);
+      apiMeta.auth = JSON.parse(apiMeta.auth)
     } catch (e) {
-      console.log(e);
+      console.log(e)
     }
   }
 
-  apiMeta.response = {};
+  apiMeta.response = {}
   const req = {
-    params: apiMeta.parameters ? apiMeta.parameters.reduce((paramsObj, param) => {
-      if (param.name && param.enabled) paramsObj[param.name] = param.value;
-      return paramsObj;
-    }, {}) : {},
+    params: apiMeta.parameters
+      ? apiMeta.parameters.reduce((paramsObj, param) => {
+        if (param.name && param.enabled) { paramsObj[param.name] = param.value }
+        return paramsObj
+      }, {})
+      : {},
     url: apiMeta.path,
     method: apiMeta.method,
     data: apiMeta.body,
-    headers: apiMeta.headers ? apiMeta.headers.reduce((headersObj, header) => {
-      if (header.name && header.enabled) headersObj[header.name] = header.value;
-      return headersObj;
-    }, {}) : {},
+    headers: apiMeta.headers
+      ? apiMeta.headers.reduce((headersObj, header) => {
+        if (header.name && header.enabled) { headersObj[header.name] = header.value }
+        return headersObj
+      }, {})
+      : {},
     withCredentials: true
-  };
-  return req;
+  }
+  return req
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

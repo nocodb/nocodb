@@ -1,33 +1,33 @@
 <template>
-  <v-dialog v-model="value" width="600px">
+  <v-dialog :value="value" width="600px">
     <v-card>
       <v-container fluid>
-        <v-form v-model="valid" ref="form">
+        <v-form ref="form" v-model="valid">
           <div style="width:500px" class="mx-auto mt-10">
             <v-text-field
-              @keyup.enter="createProject"
               ref="input"
+              v-model="name"
               outlined
               :full-width="false"
               class="caption"
               dense
               label="Project name"
-              v-model="name"
               :rules="[v => !!v || 'Project name required']"
-            ></v-text-field>
+              @keyup.enter="createProject"
+            />
 
-
-            <div v-for="type in projectTypes">
-              <v-radio-group hide-details dense v-model="projectType">
+            <div v-for="type in projectTypes" :key="type.text">
+              <v-radio-group v-model="projectType" hide-details dense>
                 <v-radio :value="type.value">
-                  <template v-slot:label>
-                    <v-icon small :color="type.iconColor">{{ type.icon }}</v-icon>
+                  <template #label>
+                    <v-icon small :color="type.iconColor">
+                      {{ type.icon }}
+                    </v-icon>
                     <span class="caption">{{ type.text }}</span>
                   </template>
                 </v-radio>
               </v-radio-group>
             </div>
-
 
             <!--            <v-select
                           outlined
@@ -47,17 +47,16 @@
 
                         </v-select>-->
 
-
             <div class="text-center">
               <v-btn
                 :loading="loading"
                 :disabled="!valid"
+                color="primary"
                 @click="createProject"
-                color="primary">
+              >
                 Create Project
               </v-btn>
             </div>
-
           </div>
         </v-form>
       </v-container>
@@ -67,48 +66,58 @@
 
 <script>
 export default {
-  name: "dlgProjectCreate",
+  name: 'DlgProjectCreate',
   props: {
     value: Boolean
-  }, data: () => ({
+  },
+  data: () => ({
     valid: null,
     name: '',
     loading: false,
     projectType: 'rest',
     projectTypes: [
-      {text: 'Automatic REST APIs on database', value: 'rest', icon: 'mdi-code-json', iconColor: 'green'},
-      {text: 'Automatic GRAPHQL APIs on database', value: 'graphql', icon: 'mdi-graphql', iconColor: 'pink'},
+      { text: 'Automatic REST APIs on database', value: 'rest', icon: 'mdi-code-json', iconColor: 'green' },
+      { text: 'Automatic GRAPHQL APIs on database', value: 'graphql', icon: 'mdi-graphql', iconColor: 'pink' }
       /*      {
               text: 'Automatic gRPC APIs on database',
               value: 'grpc',
               icon: require('@/assets/img/grpc-icon-color.png'),
               type: 'img'
-            },*/
-    ],
+            }, */
+    ]
   }),
-  mounted() {
+  computed: {
+    typeIcon () {
+      if (this.projectType) {
+        return this.projectTypes.find(({ value }) => value === this.projectType)
+      } else {
+        return { icon: 'mdi-server', iconColor: 'primary' }
+      }
+    }
+  },
+  mounted () {
     setTimeout(() => {
       this.$refs.input.$el.querySelector('input').focus()
-    }, 100);
+    }, 100)
   },
   methods: {
-    async createProject() {
+    async createProject () {
       if (this.$refs.form.validate()) {
-        this.loading = true;
+        this.loading = true
         try {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, "projectCreateByWebWithXCDB", {
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
             title: this.name,
-            projectType: this.projectType,
-          }]);
+            projectType: this.projectType
+          }])
 
-          await this.$store.dispatch('project/ActLoadProjectInfo');
+          await this.$store.dispatch('project/ActLoadProjectInfo')
 
-          this.projectReloading = false;
+          this.projectReloading = false
 
           if (this.$store.state.project.projectInfo.firstUser || this.$store.state.project.projectInfo.authType === 'masterKey') {
             return this.$router.push({
-              path: `/user/authentication/signup`
-            });
+              path: '/user/authentication/signup'
+            })
           }
 
           this.$router.push({
@@ -116,24 +125,14 @@ export default {
             query: {
               new: 1
             }
-          });
+          })
           this.$emit('change', false)
         } catch (e) {
           this.$toast.error(e.message).goAway(3000)
         }
-        this.loading = false;
-
+        this.loading = false
       }
     }
-  },
-  computed: {
-    typeIcon() {
-      if (this.projectType) {
-        return this.projectTypes.find(({value}) => value === this.projectType)
-      } else {
-        return {'icon': 'mdi-server', iconColor: 'primary'}
-      }
-    },
   }
 }
 </script>

@@ -1,18 +1,17 @@
 <template>
   <div>
-    <v-tabs color="x-active" height="30" v-model="dbsTab">
-
-
+    <v-tabs v-model="dbsTab" color="x-active" height="30">
       <v-tab href="#xc-project-meta">
-        <v-icon icon x-small class="mr-2"> mdi-file-table-box-multiple-outline</v-icon>
-        <span class="caption text-capitalize"> Project Metadata</span></v-tab>
+        <v-icon icon x-small class="mr-2">
+          mdi-file-table-box-multiple-outline
+        </v-icon>
+        <span class="caption text-capitalize"> Project Metadata</span>
+      </v-tab>
       <v-tab-item value="xc-project-meta">
         <div class="d-flex justify-center d-100">
-          <xc-meta>
-          </xc-meta>
+          <xc-meta />
         </div>
       </v-tab-item>
-
 
       <template v-for="(db,i) in dbAliasList">
         <v-tab :key="db.meta.dbAlias + i" :href="'#' + db.meta.dbAlias" class="text-capitalize caption">
@@ -20,11 +19,15 @@
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 't' + i" :value=" db.meta.dbAlias">
           <v-tabs color="x-active" height="28">
-            <v-tab class="text-capitalize caption">Tables</v-tab>
+            <v-tab class="text-capitalize caption">
+              Tables
+            </v-tab>
             <v-tab-item>
               <disable-or-enable-tables
-                :nodes="nodes" :db="db"
-                :db-alias="db.meta.dbAlias"></disable-or-enable-tables>
+                :nodes="nodes"
+                :db="db"
+                :db-alias="db.meta.dbAlias"
+              />
             </v-tab-item>
             <!-- enable extra -->
             <!-- <v-tab class="text-capitalize caption">Views</v-tab>
@@ -44,25 +47,29 @@
                                              :db-alias="db.meta.dbAlias"></disable-or-enable-procedures>
              </v-tab-item>-->
 
-            <v-tab class="text-capitalize caption">Relations</v-tab>
+            <v-tab class="text-capitalize caption">
+              Relations
+            </v-tab>
             <v-tab-item>
-              <disable-or-enable-relations :nodes="nodes" :db-alias="db.meta.dbAlias"></disable-or-enable-relations>
+              <disable-or-enable-relations :nodes="nodes" :db-alias="db.meta.dbAlias" />
             </v-tab-item>
-
-
           </v-tabs>
         </v-tab-item>
-
 
         <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption">
           {{ db.connection.database }} UI Access Control
         </v-tab>
-        <v-tab-item :key="db.meta.dbAlias  + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
+        <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
           <v-tabs color="x-active" height="28">
-            <v-tab class="text-capitalize caption">Tables</v-tab>
+            <v-tab class="text-capitalize caption">
+              Tables
+            </v-tab>
             <v-tab-item>
-              <toggle-table-ui-acl :nodes="nodes" :db="db"
-                                   :db-alias="db.meta.dbAlias"></toggle-table-ui-acl>
+              <toggle-table-ui-acl
+                :nodes="nodes"
+                :db="db"
+                :db-alias="db.meta.dbAlias"
+              />
             </v-tab-item>
             <!-- enable extra -->
             <!--  <v-tab class="text-capitalize caption">Views</v-tab>
@@ -82,50 +89,42 @@
                                          :db-alias="db.meta.dbAlias"></toggle-procedure-ui-acl>
 
               </v-tab-item>-->
-            <v-tab class="text-capitalize caption">Relations</v-tab>
+            <v-tab class="text-capitalize caption">
+              Relations
+            </v-tab>
             <v-tab-item>
-              <toggle-relations-ui-acl :nodes="nodes" :db="db"
-                                       :db-alias="db.meta.dbAlias"></toggle-relations-ui-acl>
+              <toggle-relations-ui-acl
+                :nodes="nodes"
+                :db="db"
+                :db-alias="db.meta.dbAlias"
+              />
             </v-tab-item>
           </v-tabs>
-
         </v-tab-item>
-
-
       </template>
     </v-tabs>
   </div>
 </template>
 
 <script>
-import {mapGetters} from "vuex";
-import {isMetaTable} from "@/helpers/xutils";
-import XIcon from "@/components/global/xIcon";
-import XBtn from "@/components/global/xBtn";
-import DisableOrEnableRelations from "./sync/disableOrEnableRelations";
-import XcMeta from "../settings/xcMeta";
-import DisableOrEnableViews from "./sync/disableOrEnableViews";
-import DisableOrEnableFunctions from "./sync/disableOrEnableFunctions";
-import DisableOrEnableProcedures from "./sync/disableOrEnableProcedures";
-import DisableOrEnableTables from "@/components/project/projectMetadata/sync/disableOrEnableTables";
-import ToggleTableUiAcl from "@/components/project/projectMetadata/uiAcl/toggleTableUIAcl";
-import ToggleViewUiAcl from "@/components/project/projectMetadata/uiAcl/toggleViewUIAcl";
-import ToggleFunctionUiAcl from "@/components/project/projectMetadata/uiAcl/toggleFunctionUIAcl";
-import ToggleProcedureUiAcl from "@/components/project/projectMetadata/uiAcl/toggleProcedureUIAcl";
-import ToggleRelationsUiAcl from "@/components/project/projectMetadata/uiAcl/toggleRelationsUIAcl";
+import { mapGetters } from 'vuex'
+import { isMetaTable } from '@/helpers/xutils'
+import DisableOrEnableTables from '@/components/project/projectMetadata/sync/disableOrEnableTables'
+import ToggleTableUiAcl from '@/components/project/projectMetadata/uiAcl/toggleTableUIAcl'
+import ToggleRelationsUiAcl from '@/components/project/projectMetadata/uiAcl/toggleRelationsUIAcl'
+import XcMeta from '../settings/xcMeta'
+import DisableOrEnableRelations from './sync/disableOrEnableRelations'
 
 export default {
-  name: "disableOrEnableModels",
+  name: 'DisableOrEnableModels',
   components: {
     ToggleRelationsUiAcl,
-    ToggleProcedureUiAcl,
-    ToggleFunctionUiAcl,
-    ToggleViewUiAcl,
     ToggleTableUiAcl,
     DisableOrEnableTables,
-    DisableOrEnableProcedures,
-    DisableOrEnableFunctions, DisableOrEnableViews, XcMeta, DisableOrEnableRelations, XBtn, XIcon
+    XcMeta,
+    DisableOrEnableRelations
   },
+  props: ['nodes'],
   data: () => ({
     edited: false,
     models: null,
@@ -134,20 +133,20 @@ export default {
     filter: '',
     tables: null
   }),
-  props: ['nodes'],
-  async mounted() {
+  async mounted () {
   },
   methods: {},
   computed: {
     dbsTab: {
-      set(tab) {
+      set (tab) {
         if (!tab) {
           // return this.$router.push({
           //   query: {}
           // })
-          return;
+          return
         }
-        const nested_1 = tab;
+        // eslint-disable-next-line camelcase
+        const nested_1 = tab
         this.$router.push({
           query: {
             ...this.$route.query,
@@ -155,7 +154,7 @@ export default {
           }
         })
       },
-      get() {
+      get () {
         return this.$route.query.nested_1
       }
 
@@ -164,40 +163,39 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
-    enableCountText() {
-      return this.models ?
-        `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
+    enableCountText () {
+      return this.models
+        ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
         : ''
     },
 
-    isNewOrDeletedModelFound() {
+    isNewOrDeletedModelFound () {
       return this.comparedModelList.some(m => m.new || m.deleted)
     },
-    comparedModelList() {
-
-      const res = [];
+    comparedModelList () {
+      const res = []
       const getPriority = (item) => {
-        if (item.new) return 2;
-        if (item.deleted) return 1;
-        return 0;
+        if (item.new) { return 2 }
+        if (item.deleted) { return 1 }
+        return 0
       }
       if (this.tables && this.models) {
-        const tables = this.tables.filter(t => !isMetaTable(t.tn)).map(t => t.tn);
-        res.push(...this.models.map(m => {
-          const i = tables.indexOf(m.title);
+        const tables = this.tables.filter(t => !isMetaTable(t.tn)).map(t => t.tn)
+        res.push(...this.models.map((m) => {
+          const i = tables.indexOf(m.title)
           if (i === -1) {
-            m.deleted = true;
+            m.deleted = true
           } else {
-            tables.splice(i, 1);
+            tables.splice(i, 1)
           }
-          return m;
-        }));
+          return m
+        }))
         res.push(...tables.map(t => ({
           title: t, new: true
         })))
       }
       res.sort((a, b) => getPriority(b) - getPriority(a))
-      return res;
+      return res
     }
   }
 }

@@ -1,87 +1,92 @@
 <template>
   <div>
     <v-progress-linear
+      v-if="progressbar"
       indeterminate
       color="green"
-      v-if="progressbar"
-    ></v-progress-linear>
-    <h3 class=" text-center mb-5 grey--text text--darken-2">Change environment</h3>
+    />
+    <h3 class=" text-center mb-5 grey--text text--darken-2">
+      Change environment
+    </h3>
     <div>
       <div class="">
         <v-select
+          v-model="selectedEnv"
           hide-details
           dense
           :items="envList"
-          v-model="selectedEnv"
           label="Solo field"
           solo
-        ></v-select>
+        />
       </div>
     </div>
     <div class="mt-4 d-flex d-100">
-      <v-spacer></v-spacer>
-      <v-btn small :disabled="progressbar" @click="dialogShow = false">Close</v-btn>
-      <v-btn color="primary" small :disabled="progressbar" @click="changeEnv">Change</v-btn>
+      <v-spacer />
+      <v-btn small :disabled="progressbar" @click="dialogShow = false">
+        Close
+      </v-btn>
+      <v-btn color="primary" small :disabled="progressbar" @click="changeEnv">
+        Change
+      </v-btn>
     </div>
   </div>
-
 </template>
 
 <script>
 
-import {mapGetters} from 'vuex';
-import axios from "axios";
+import { mapGetters } from 'vuex'
+import axios from 'axios'
 
 export default {
-  name: "env",
+  name: 'Env',
   data: () => ({
     selectedEnv: 'dev',
     progressbar: false
   }),
   computed: {
     ...mapGetters({
-      envList: 'project/GtrEnvList',
-    }),
+      envList: 'project/GtrEnvList'
+    })
   },
-  mounted() {
-    const unserializedList = this.$store.state.project.unserializedList;
-    this.selectedEnv = (unserializedList[0]
-      && unserializedList[0].projectJson
-      && unserializedList[0].projectJson.workingEnv) || 'dev';
+  mounted () {
+    const unserializedList = this.$store.state.project.unserializedList
+    this.selectedEnv = (unserializedList[0] &&
+      unserializedList[0].projectJson &&
+      unserializedList[0].projectJson.workingEnv) || 'dev'
     this.$store.watch((state) => {
       const unserializedList = state.project.unserializedList
-      return (unserializedList[0]
-        && unserializedList[0].projectJson
-        && unserializedList[0].projectJson.workingEnv) || 'dev'
-    }, (value) => this.selectedEnv = value)
+      return (unserializedList[0] &&
+        unserializedList[0].projectJson &&
+        unserializedList[0].projectJson.workingEnv) || 'dev'
+    }, (value) => { this.selectedEnv = value })
   },
   methods: {
-    async changeEnv() {
-      this.progressbar = true;
-      await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectChangeEnv', {env: this.selectedEnv}]);
-      await new Promise(resolve => {
+    async changeEnv () {
+      this.progressbar = true
+      await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectChangeEnv', { env: this.selectedEnv }])
+      await new Promise((resolve) => {
         const interv = setInterval(() => {
           axios.create({
             baseURL: `${this.$axios.defaults.baseURL}/dashboard`
           }).get('').then(() => {
-            this.projectReloading = false;
-            clearInterval(interv);
-            resolve();
-          }).catch(err => {
+            this.projectReloading = false
+            clearInterval(interv)
+            resolve()
+          }).catch(() => {
           })
-        }, 1000);
+        }, 1000)
       })
-      this.progressbar = false;
-      await this.$store.dispatch('users/ActSignOut');
+      this.progressbar = false
+      await this.$store.dispatch('users/ActSignOut')
 
-      await this.$store.dispatch('project/ActLoadProjectInfo');
+      await this.$store.dispatch('project/ActLoadProjectInfo')
       if (this.$store.state.project.projectInfo.projectHasAdmin === false) {
         return this.$router.push('/start')
       }
-      location.reload();
-    },
+      location.reload()
+    }
   },
-  props: {value: Boolean}
+  props: { value: Boolean }
 }
 </script>
 

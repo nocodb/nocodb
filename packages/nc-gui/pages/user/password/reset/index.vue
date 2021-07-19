@@ -3,187 +3,187 @@
     <v-row v-if="resetSuccess" align="center">
       <v-col md="6" offset-md="3">
         <v-card class="pa-5 elevation-10" color="">
-
-          <h1 class="text-center" color="accent">RESET PASSWORD</h1>
+          <h1 class="text-center" color="accent">
+            RESET PASSWORD
+          </h1>
           <br>
 
-          <v-form v-model="valid" ref="formType" lazy-validation>
-
+          <v-form ref="formType" v-model="valid" lazy-validation>
             <v-text-field
+              v-model="passwordDetails.newPassword"
               name="input-10-2"
               label="New password"
               :append-icon="e3 ? 'visibility' : 'visibility_off'"
               :append-icon-cb="() => (e3 = !e3)"
-              v-model="passwordDetails.newPassword"
               :rules="formRules.password"
               :type="e3 ? 'password' : 'text'"
-            ></v-text-field>
+            />
 
             <v-text-field
+              v-model="passwordDetails.verifyPassword"
               name="input-10-2"
               label="Confirm new password"
               :append-icon="e3 ? 'visibility' : 'visibility_off'"
               :append-icon-cb="() => (e3 = !e3)"
-              v-model="passwordDetails.verifyPassword"
               :rules="formRules.password1"
               :type="e3 ? 'password' : 'text'"
-            ></v-text-field>
+            />
 
             <v-btn
-              @click="resetUserPassword"
               large
-              color="primary">
+              color="primary"
+              @click="resetUserPassword"
+            >
               RESET PASSWORD
             </v-btn>
-
           </v-form>
         </v-card>
       </v-col>
     </v-row>
     <v-row v-else>
-      <v-alert type="warning" dismissible v-model="alert">
-        <h1 class="title is-2">Invalid RESET token - make sure you have opened right reset link</h1>
+      <v-alert v-model="alert" type="warning" dismissible>
+        <h1 class="title is-2">
+          Invalid RESET token - make sure you have opened right reset link
+        </h1>
       </v-alert>
     </v-row>
   </v-row>
-
 </template>
 
 <script>
-  import {isEmail} from "@/helpers";
+import { isEmail } from '@/helpers'
 
-  export default {
-    data() {
-      return {
-        resetSuccess: true,
-        passwordDetails: {
-          newPassword: null,
-          verifyPassword: null,
-          token: null
-        },
+export default {
+  directives: {},
+  components: {},
+  validate ({ params }) {
+    // console.log('validate');
+    return true
+  },
+  props: {},
+  data () {
+    return {
+      resetSuccess: true,
+      passwordDetails: {
+        newPassword: null,
+        verifyPassword: null,
+        token: null
+      },
 
-        formRules: {
-          email: [
-            v => !!v || 'E-mail is required',
-            v => isEmail(v) || 'E-mail must be valid'
-          ],
-          password: [
-            v => (this.PasswordValidate(v)) || this.passwordValidateMsg
-          ],
-          password1: [
-            v => (this.PasswordValidate1(v)) || 'Confirm password should match'
-          ]
-        },
-        passwordProgress: 0,
-        passwordValidateMsg: '',
-        valid: true,
-        e3: true,
-        alert: true,
+      formRules: {
+        email: [
+          v => !!v || 'E-mail is required',
+          v => isEmail(v) || 'E-mail must be valid'
+        ],
+        password: [
+          v => (this.PasswordValidate(v)) || this.passwordValidateMsg
+        ],
+        password1: [
+          v => (this.PasswordValidate1(v)) || 'Confirm password should match'
+        ]
+      },
+      passwordProgress: 0,
+      passwordValidateMsg: '',
+      valid: true,
+      e3: true,
+      alert: true
 
+    }
+  },
+  head () {
+    // console.log('head');
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+    // console.log('created');
+  },
+  async mounted () {
+    // console.log('mounted', this.$route.query);
+    this.resetSuccess = await this.$store.dispatch('users/ActGetPasswordReset', this.$route.query)
+    // this.resetSuccess =  true;
+    // console.log('mounted', this.resetSuccess);
+  },
+  beforeDestroy () {
+    // console.log('beforeDestroy');
+  },
+  methods: {
+    async resetUserPassword (e) {
+      if (this.$refs.formType.validate()) {
+        e.preventDefault()
+        this.passwordDetails.token = this.$route.query.token
+        // console.log('passworDetails', this.passwordDetails);
+
+        await this.$recaptchaLoaded()
+        const recaptchaToken = await this.$recaptcha('login')
+
+        await this.$store.dispatch('users/ActPostPasswordReset', { ...this.passwordDetails, recaptchaToken })
+        this.$router.push('/')
       }
     },
-    computed: {},
-    methods: {
-      async resetUserPassword(e) {
-        if (this.$refs.formType.validate()) {
-          e.preventDefault();
-          this.passwordDetails.token = this.$route.query.token;
-          //console.log('passworDetails', this.passwordDetails);
-
-          await this.$recaptchaLoaded()
-          const recaptchaToken = await this.$recaptcha('login')
-
-          await this.$store.dispatch('users/ActPostPasswordReset', {...this.passwordDetails, recaptchaToken})
-          this.$router.push('/');
-        }
-      },
-      PasswordValidate(p) {
-
-        if (!p) {
-          this.passwordProgress = 0;
-          this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
-          return false;
-        }
-
-        let msg = '';
-        let validation = true;
-        let progress = 0;
-
-        if (!(p.length >= 8)) {
-          msg += 'Atleast 8 letters. '
-          validation = validation && false;
-        } else {
-          progress = Math.min(100, progress + 25)
-        }
-
-        if (!(p.match(/.*[A-Z].*/))) {
-          msg += 'One Uppercase Letter. '
-          validation = validation && false;
-        } else {
-          progress = Math.min(100, progress + 25)
-        }
-
-        if (!(p.match(/.*[0-9].*/))) {
-          msg += 'One Number. '
-          validation = validation && false;
-        } else {
-          progress = Math.min(100, progress + 25)
-        }
-
-        if (!(p.match(/[$&+,:;=?@#|'<>.^*()%!-]/))) {
-          msg += 'One special letter. '
-          validation = validation && false;
-        } else {
-          progress = Math.min(100, progress + 25)
-        }
-
-        this.passwordProgress = progress;
-        //console.log('progress', progress);
-
-        this.passwordValidateMsg = msg;
-
-        //console.log('msg', msg, validation);
-
-        return validation;
-      },
-      PasswordValidate1(confirmPassword) {
-        if (confirmPassword) {
-          return this.passwordDetails.newPassword.startsWith(confirmPassword);
-        }
-        return false;
+    PasswordValidate (p) {
+      if (!p) {
+        this.passwordProgress = 0
+        this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
+        return false
       }
+
+      let msg = ''
+      let validation = true
+      let progress = 0
+
+      if (!(p.length >= 8)) {
+        msg += 'Atleast 8 letters. '
+        validation = validation && false
+      } else {
+        progress = Math.min(100, progress + 25)
+      }
+
+      if (!(p.match(/.*[A-Z].*/))) {
+        msg += 'One Uppercase Letter. '
+        validation = validation && false
+      } else {
+        progress = Math.min(100, progress + 25)
+      }
+
+      if (!(p.match(/.*[0-9].*/))) {
+        msg += 'One Number. '
+        validation = validation && false
+      } else {
+        progress = Math.min(100, progress + 25)
+      }
+
+      if (!(p.match(/[$&+,:;=?@#|'<>.^*()%!-]/))) {
+        msg += 'One special letter. '
+        validation = validation && false
+      } else {
+        progress = Math.min(100, progress + 25)
+      }
+
+      this.passwordProgress = progress
+      // console.log('progress', progress);
+
+      this.passwordValidateMsg = msg
+
+      // console.log('msg', msg, validation);
+
+      return validation
     },
-    beforeCreated() {
-      //console.log('beforeCreate');
-    },
-    created() {
-      //console.log('created');
-    },
-    async mounted() {
-      //console.log('mounted', this.$route.query);
-      this.resetSuccess = await this.$store.dispatch('users/ActGetPasswordReset', this.$route.query)
-      //this.resetSuccess =  true;
-      //console.log('mounted', this.resetSuccess);
-    },
-    beforeDestroy() {
-      //console.log('beforeDestroy');
-    },
-    destroy() {
-      //console.log('destroy');
-    },
-    validate({params}) {
-      //console.log('validate');
-      return true
-    },
-    head() {
-      //console.log('head');
-      return {}
-    },
-    props: {},
-    watch: {},
-    directives: {},
-    components: {}
+    PasswordValidate1 (confirmPassword) {
+      if (confirmPassword) {
+        return this.passwordDetails.newPassword.startsWith(confirmPassword)
+      }
+      return false
+    }
+  },
+  beforeCreated () {
+    // console.log('beforeCreate');
+  },
+  destroy () {
+    // console.log('destroy');
   }
+}
 </script>
 
 <style scoped>

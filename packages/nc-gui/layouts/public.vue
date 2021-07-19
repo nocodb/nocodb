@@ -1,5 +1,4 @@
 <template>
-
   <v-app>
     <v-app-bar
       class="elevation-0"
@@ -13,25 +12,25 @@
       <!-- <v-toolbar-side-icon></v-toolbar-side-icon> -->
       <v-toolbar-title>
         <v-tooltip bottom>
-          <template v-slot:activator="{ on }">
+          <template #activator="{ on }">
             <v-btn to="/projects" icon class="pa-1 brand-icon" v-on="on">
-              <v-img :src="require('~/assets/img/icons/512x512-trans.png')" max-height="30px" max-width="30px"></v-img>
+              <v-img :src="require('~/assets/img/icons/512x512-trans.png')" max-height="30px" max-width="30px" />
               <!-- <v-icon color="primary">alpha-x-circle</v-icon
               ><v-icon color="primary">alpha-c-circle </v-icon> -->
             </v-btn>
           </template>
           NocoDB Home
         </v-tooltip>
-        <template v-if="!isDashboard"><span class="title"> Noco Cloud</span></template>
+        <template v-if="!isDashboard">
+          <span class="title"> Noco Cloud</span>
+        </template>
       </v-toolbar-title>
-
-
     </v-app-bar>
 
     <v-main class="primary">
       <v-container fluid style="">
         <v-card class="card">
-          <nuxt/>
+          <nuxt />
         </v-card>
       </v-container>
     </v-main>
@@ -40,7 +39,7 @@
 
 <script>
 export default {
-  name: "public"
+  name: 'Public'
 }
 </script>
 

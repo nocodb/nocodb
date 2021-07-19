@@ -11,26 +11,36 @@
       flex
       footer-props.items-per-page-options="100"
     >
-      <template v-slot:item="props">
+      <template #item="props">
         <tr class="" style="height:19px !important;">
           <td class="py-0">
             <v-icon
               v-if="props.item.status === 0"
               color="green lighten-1"
               size="10"
-            >mdi-circle
+            >
+              mdi-circle
             </v-icon>
             <v-icon
-              size="10" v-else-if="props.item.status === 1" color="orange lighten-1"
-            >mdi-circle
+              v-else-if="props.item.status === 1"
+              size="10"
+              color="orange lighten-1"
+            >
+              mdi-circle
             </v-icon>
             <v-icon
-              size="10" v-else color="red lighten-1">mdi-circle
+              v-else
+              size="10"
+              color="red lighten-1"
+            >
+              mdi-circle
             </v-icon>
           </td>
           <!--        <td>{{ 100-props.index }}</td>-->
-          <td  class="caption grey--text py-0">{{ props.item.time }}</td>
-          <td  class="caption py-0">
+          <td class="caption grey--text py-0">
+            {{ props.item.time }}
+          </td>
+          <td class="caption py-0">
             {{ props.item.action }}
           </td>
         </tr>
@@ -59,109 +69,109 @@
 </template>
 
 <script>
-  // const {emittery} = require("electron").remote.require("./libs");
-  import {mapGetters, mapActions, mapState} from "vuex";
+// const {emittery} = require("electron").remote.require("./libs");
+// import { mapGetters, mapActions, mapState } from 'vuex'
 
-  export default {
-    components: {},
-    data() {
-      return {
-        showMenu: false,
-        x: 0,
-        y: 0,
-        headers: [
-          {
-            text: "",
-            sortable: false,
-            width: "1%",
-            class: ""
-          },
-          // {
-          //   text: "#",
-          //   sortable: false,
-          //   width: "1%",
-          //   class: "grey darken-2"
-          // },
-          {
-            text: "Time",
-            sortable: false,
-            width: "1%",
-            class: "caption"
-          },
-          {
-            text: "Logs",
-            sortable: false,
-            width: "100%",
-            class: "caption"
-          }
-          // {
-          //   text: "Response",
-          //   sortable: false,
-          //   width: "1%",
-          //   class: ""
-          // },
-          // {
-          //   text: "Duration",
-          //   sortable: false,
-          //   width: "10%",
-          //   class: ""
-          // }
-        ],
-        logs: [],
-        maxLogs: 100
-      };
+export default {
+  components: {},
+  directives: {},
+  validate ({ params }) {
+    return true
+  },
+  props: {},
+  data () {
+    return {
+      showMenu: false,
+      x: 0,
+      y: 0,
+      headers: [
+        {
+          text: '',
+          sortable: false,
+          width: '1%',
+          class: ''
+        },
+        // {
+        //   text: "#",
+        //   sortable: false,
+        //   width: "1%",
+        //   class: "grey darken-2"
+        // },
+        {
+          text: 'Time',
+          sortable: false,
+          width: '1%',
+          class: 'caption'
+        },
+        {
+          text: 'Logs',
+          sortable: false,
+          width: '100%',
+          class: 'caption'
+        }
+        // {
+        //   text: "Response",
+        //   sortable: false,
+        //   width: "1%",
+        //   class: ""
+        // },
+        // {
+        //   text: "Duration",
+        //   sortable: false,
+        //   width: "10%",
+        //   class: ""
+        // }
+      ],
+      logs: [],
+      maxLogs: 100
+    }
+  },
+  head () {
+    return {}
+  },
+  computed: {},
+  watch: {},
+  created () {
+  },
+  mounted () {
+    // emittery.on("UI", data => {
+    //   //const logs = JSON.parse(JSON.stringify(this.logs));
+    //   if (this.logs.length > this.maxLogs) {
+    //     this.logs.pop();
+    //   }
+    //   this.logs.unshift({
+    //     status: data.status,
+    //     action: data.data,
+    //     time: new Date().toLocaleTimeString()
+    //     // response: "",
+    //     // duration: "123 ms"
+    //   });
+    //   //this.logs = logs;
+    // });
+  },
+  beforeDestroy () {
+  },
+  methods: {
+    showMenuFn (e) {
+      // console.log("showMenuFn", e);
+      e.preventDefault()
+      this.showMenu = false
+      this.x = e.clientX
+      this.y = e.clientY
+      this.$nextTick(() => {
+        this.showMenu = true
+      })
     },
-    methods: {
-      showMenuFn(e) {
-        // console.log("showMenuFn", e);
-        e.preventDefault();
-        this.showMenu = false;
-        this.x = e.clientX;
-        this.y = e.clientY;
-        this.$nextTick(() => {
-          this.showMenu = true;
-        });
-      },
-      clearLogs() {
-        this.logs = [];
-      }
-    },
-    computed: {},
+    clearLogs () {
+      this.logs = []
+    }
+  },
 
-    beforeCreated() {
-    },
-    created() {
-    },
-    mounted() {
-      // emittery.on("UI", data => {
-      //   //const logs = JSON.parse(JSON.stringify(this.logs));
-      //   if (this.logs.length > this.maxLogs) {
-      //     this.logs.pop();
-      //   }
-      //   this.logs.unshift({
-      //     status: data.status,
-      //     action: data.data,
-      //     time: new Date().toLocaleTimeString()
-      //     // response: "",
-      //     // duration: "123 ms"
-      //   });
-      //   //this.logs = logs;
-      // });
-    },
-    beforeDestroy() {
-    },
-    destroy() {
-    },
-    validate({params}) {
-      return true;
-    },
-    head() {
-      return {};
-    },
-    props: {},
-    watch: {},
-    directives: {}
-  };
+  beforeCreated () {
+  },
+  destroy () {
+  }
+}
 </script>
 
 <style scoped>

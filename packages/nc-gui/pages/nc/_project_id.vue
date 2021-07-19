@@ -2,103 +2,99 @@
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
     <splitpanes style="height:calc(100vh - 40px)" class="xc-theme">
       <pane min-size="10" :size="paneSize" max-size="50" style="overflow: auto">
-        <ProjectTreeView ref="treeview"/>
+        <ProjectTreeView ref="treeview" />
       </pane>
       <pane :size="100 - paneSize">
-
-        <ProjectTabs :key="pid" @tableCreate="tableCreate"/>
+        <ProjectTabs :key="pid" @tableCreate="tableCreate" />
       </pane>
     </splitpanes>
-
   </v-container>
 </template>
 <script>
 
-import {Splitpanes, Pane} from 'splitpanes'
-import ProjectTabs from "@/components/projectTabs";
-import ProjectTreeView from "@/components/ProjectTreeView";
-
+import { Splitpanes, Pane } from 'splitpanes'
+import ProjectTabs from '@/components/projectTabs'
+import ProjectTreeView from '@/components/ProjectTreeView'
 
 export default {
   components: {
     ProjectTreeView,
     ProjectTabs,
     Splitpanes,
-    Pane,
+    Pane
   },
-  data() {
+  data () {
     return {
       paneSize: 18,
       mainPanelSize: 82
-    };
+    }
   },
-  async created() {
+  computed: {
+    pid () {
+      return this.$route.params.project_id
+    }
+  },
+  async created () {
     this.$store.watch(
-      (state) => state.panelSize.treeView && state.panelSize.treeView.size,
-      (newSize) => this.paneSize = newSize
+      state => state.panelSize.treeView && state.panelSize.treeView.size,
+      (newSize) => { this.paneSize = newSize }
     )
-
-
   },
 
-  mounted() {
+  mounted () {
     if ('new' in this.$route.query) {
       this.simpleAnim()
-      this.$router.replace({query: {}})
+      this.$router.replace({ query: {} })
     }
     try {
-      hj('stateChange', `${this.$axios.defaults.baseURL}/dashboard/#/nc/`);
+      // eslint-disable-next-line no-undef
+      hj('stateChange', `${this.$axios.defaults.baseURL}/dashboard/#/nc/`)
     } catch (e) {
     }
   },
   methods: {
-    tableCreate(table) {
+    tableCreate (table) {
       if (this.$refs.treeview) {
-        this.$refs.treeview.mtdTableCreate(table);
+        this.$refs.treeview.mtdTableCreate(table)
       }
     },
-    simpleAnim() {
-      var count = 200;
-      var defaults = {
-        origin: {y: 0.7}
-      };
+    simpleAnim () {
+      const count = 200
+      const defaults = {
+        origin: { y: 0.7 }
+      }
 
-      function fire(particleRatio, opts) {
+      function fire (particleRatio, opts) {
         window.confetti(Object.assign({}, defaults, opts, {
           particleCount: Math.floor(count * particleRatio)
-        }));
+        }))
       }
 
       fire(0.25, {
         spread: 26,
-        startVelocity: 55,
-      });
+        startVelocity: 55
+      })
       fire(0.2, {
-        spread: 60,
-      });
+        spread: 60
+      })
       fire(0.35, {
         spread: 100,
         decay: 0.91,
         scalar: 0.8
-      });
+      })
       fire(0.1, {
         spread: 120,
         startVelocity: 25,
         decay: 0.92,
         scalar: 1.2
-      });
+      })
       fire(0.1, {
         spread: 120,
-        startVelocity: 45,
-      });
-    },
-  },
-  computed: {
-    pid() {
-      return this.$route.params.project_id
+        startVelocity: 45
+      })
     }
   }
-};
+}
 </script>
 <style scoped>
 /deep/ .splitpanes__splitter {

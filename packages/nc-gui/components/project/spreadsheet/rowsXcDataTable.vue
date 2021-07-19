@@ -1,70 +1,96 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
     <v-toolbar height="32" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
-
       <div class="d-flex xc-border align-center search-box">
-
         <v-menu bottom offset-y>
-          <template v-slot:activator="{on}">
+          <template #activator="{on}">
             <div v-on="on">
-              <v-icon class="pa-1 pr-0 ml-2" small
-                      color="grey"
-              >mdi-magnify
+              <v-icon
+                class="pa-1 pr-0 ml-2"
+                small
+                color="grey"
+              >
+                mdi-magnify
               </v-icon>
 
-              <v-icon color="grey"
-                      class="pl-0 pa-1" small>mdi-menu-down
+              <v-icon
+                color="grey"
+                class="pl-0 pa-1"
+                small
+              >
+                mdi-menu-down
               </v-icon>
             </div>
           </template>
           <v-list dense>
-            <v-list-item v-for="col in availableRealColumns" :key="col.cn"
-                         @click="searchField = col._cn">
+            <v-list-item
+              v-for="col in availableRealColumns"
+              :key="col.cn"
+              @click="searchField = col._cn"
+            >
               <span class="caption">{{ col._cn }}</span>
             </v-list-item>
           </v-list>
         </v-menu>
 
         <v-divider
-          vertical></v-divider>
+          vertical
+        />
 
         <v-text-field
-          autocomplete="off"
           v-model="searchQueryVal"
+          autocomplete="off"
           style="min-width: 300px"
           flat
           dense
           solo
           hide-details
+          :placeholder="searchField ? `Search '${searchField}' column` : 'Search all columns'"
+          class="elevation-0 pa-0 flex-grow-1 caption search-field"
           @keyup.enter="searchQuery = searchQueryVal"
           @blur="searchQuery = searchQueryVal"
-          :placeholder="searchField ? `Search '${searchField}' column` : 'Search all columns'"
-          class="elevation-0 pa-0 flex-grow-1 caption search-field">
-
-
-        </v-text-field>
+        />
       </div>
 
+      <span
+        v-if="relationType && false"
+        class="caption grey--text"
+      >{{ refTable }}({{
+        relationPrimaryValue
+      }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
 
-      <span v-if="relationType && false"
-            class="caption grey--text">{{ refTable }}({{
-          relationPrimaryValue
-        }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
+      <v-spacer />
 
-
-      <v-spacer></v-spacer>
-
-
-      <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type"></lock-menu>
+      <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
       <x-btn tooltip="Reload view data" outlined small text @click="reload">
-        <v-icon small class="mr-1" color="grey  darken-3">mdi-reload</v-icon>
+        <v-icon small class="mr-1" color="grey  darken-3">
+          mdi-reload
+        </v-icon>
       </x-btn>
-      <x-btn tooltip="Add new row" v-if="relationType !== 'bt'" :disabled="isLocked" outlined small text
-             @click="insertNewRow(true,true)">
-        <v-icon small class="mr-1" color="grey  darken-3">mdi-plus</v-icon>
+      <x-btn
+        v-if="relationType !== 'bt'"
+        tooltip="Add new row"
+        :disabled="isLocked"
+        outlined
+        small
+        text
+        @click="insertNewRow(true,true)"
+      >
+        <v-icon small class="mr-1" color="grey  darken-3">
+          mdi-plus
+        </v-icon>
       </x-btn>
-      <x-btn small text outlined tooltip="Save new rows" :disabled="!edited || isLocked" @click="save">
-        <v-icon small class="mr-1" color="grey  darken-3">save</v-icon>
+      <x-btn
+        small
+        text
+        outlined
+        tooltip="Save new rows"
+        :disabled="!edited || isLocked"
+        @click="save"
+      >
+        <v-icon small class="mr-1" color="grey  darken-3">
+          save
+        </v-icon>
         Save
       </x-btn>
 
@@ -73,26 +99,35 @@
         :field-list="fieldList"
         :meta="meta"
         :is-locked="isLocked"
-        :fieldsOrder.sync="fieldsOrder"
-        :sqlUi="sqlUi"
-        :showSystemFields.sync="showSystemFields"
+        :fields-order.sync="fieldsOrder"
+        :sql-ui="sqlUi"
+        :show-system-fields.sync="showSystemFields"
       />
 
       <sort-list
-        :is-locked="isLocked"
-        :field-list="realFieldList"
         v-model="sortList"
-      ></sort-list>
-      <column-filter
         :is-locked="isLocked"
         :field-list="realFieldList"
+      />
+      <column-filter
         v-model="filters"
-        dense>
-      </column-filter>
+        :is-locked="isLocked"
+        :field-list="realFieldList"
+        dense
+      />
       <v-tooltip bottom>
-        <template v-slot:activator="{on}">
-          <v-btn :disabled="isLocked" v-on="on" small @click="checkAndDeleteTable" outlined text>
-            <x-icon small color="red grey">mdi-delete-outline</x-icon>
+        <template #activator="{on}">
+          <v-btn
+            :disabled="isLocked"
+            small
+            outlined
+            text
+            v-on="on"
+            @click="checkAndDeleteTable"
+          >
+            <x-icon small color="red grey">
+              mdi-delete-outline
+            </x-icon>
           </v-btn>
         </template>
         <span class="">Delete table</span>
@@ -125,44 +160,49 @@
 
       <x-btn
         tooltip="Toggle navigation drawer"
-        outlined small text @click="toggleDrawer = !toggleDrawer"
-        :btnClass="{ 'primary lighten-5' : !toggleDrawer}"
+        outlined
+        small
+        text
+        :btn-class="{ 'primary lighten-5' : !toggleDrawer}"
+        @click="toggleDrawer = !toggleDrawer"
       >
-        <v-icon small
-                class="mx-2"
-                color="grey  darken-3"
-        >{{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
+        <v-icon
+          small
+          class="mx-2"
+          color="grey  darken-3"
+        >
+          {{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
         </v-icon>
       </x-btn>
     </v-toolbar>
-    <div :class="`cell-height-${cellHeight}`"
-         style=" height:calc(100% - 32px);overflow:auto;transition: width 100ms "
-         class="d-flex"
+    <div
+      :class="`cell-height-${cellHeight}`"
+      style=" height:calc(100% - 32px);overflow:auto;transition: width 100ms "
+      class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
         <div ref="table" style="height : calc(100% - 36px); overflow: auto;width:100%">
-
-          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingMeta)" type="table"></v-skeleton-loader>
+          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingMeta)" type="table" />
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
               :key="key"
               ref="ncgridview"
-              :relationType="relationType"
+              :relation-type="relationType"
               :columns-width.sync="columnsWidth"
               :is-locked="isLocked"
               :table="table"
-              :availableColumns="availableColumns"
-              :showFields="showFields"
-              :sqlUi="sqlUi"
-              :isEditable="isEditable"
+              :available-columns="availableColumns"
+              :show-fields="showFields"
+              :sql-ui="sqlUi"
+              :is-editable="isEditable"
               :nodes="nodes"
-              :primaryValueColumn="primaryValueColumn"
-              :belongsTo="belongsTo"
-              :hasMany="hasMany"
+              :primary-value-column="primaryValueColumn"
+              :belongs-to="belongsTo"
+              :has-many="hasMany"
               :data="data"
-              :visibleColLength="visibleColLength"
+              :visible-col-length="visibleColLength"
               :meta="meta"
-              :isVirtual="selectedView.type === 'vtable'"
+              :is-virtual="selectedView.type === 'vtable'"
               :api="api"
               @onNewColCreation="onNewColCreation"
               @onCellValueChange="onCellValueChange"
@@ -173,7 +213,7 @@
               @onRelationDelete="loadMeta"
               @loadTableData="loadTableData"
               @loadMeta="loadMeta"
-            ></xc-grid-view>
+            />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">
             <gallery-view
@@ -183,9 +223,9 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
-              :primaryValueColumn="primaryValueColumn"
+              :primary-value-column="primaryValueColumn"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
-            ></gallery-view>
+            />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'kanban' ">
             <kanban-view
@@ -195,9 +235,9 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
-              :primaryValueColumn="primaryValueColumn"
+              :primary-value-column="primaryValueColumn"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
-            ></kanban-view>
+            />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">
             <calendar-view
@@ -207,17 +247,16 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
-              :primaryValueColumn="primaryValueColumn"
+              :primary-value-column="primaryValueColumn"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
-            ></calendar-view>
+            />
           </template>
-
         </div>
         <template v-if="data">
           <pagination
+            v-model="page"
             :count="count"
             :size="size"
-            v-model="page"
             @input="loadTableData"
           />
           <!--  <v-pagination
@@ -254,49 +293,53 @@
       </div>
 
       <spreadsheet-nav-drawer
-        :currentApiUrl="currentApiUrl"
-        :toggleDrawer="toggleDrawer"
+        ref="drawer"
+        :current-api-url="currentApiUrl"
+        :toggle-drawer="toggleDrawer"
         :nodes="nodes"
         :table="table"
         :meta="meta"
-        :selectedViewId.sync="selectedViewId"
-        :selectedView.sync="selectedView"
-        :primaryValueColumn="primaryValueColumn"
-        :concatenatedXWhere="concatenatedXWhere"
+        :selected-view-id.sync="selectedViewId"
+        :selected-view.sync="selectedView"
+        :primary-value-column="primaryValueColumn"
+        :concatenated-x-where="concatenatedXWhere"
         :sort="sort"
         :filters.sync="filters"
-        :sortList.sync="sortList"
-        :showFields.sync="showFields"
-        @mapFieldsAndShowFields="mapFieldsAndShowFields"
-        @loadTableData="loadTableData"
-        ref="drawer"
+        :sort-list.sync="sortList"
+        :show-fields.sync="showFields"
         :load="loadViews"
         :hide-views="!relation"
-        :showAdvanceOptions.sync="showAdvanceOptions"
-        :fieldsOrder.sync="fieldsOrder"
-        :viewStatus.sync="viewStatus"
-        :columnsWidth.sync="columnsWidth"
+        :show-advance-options.sync="showAdvanceOptions"
+        :fields-order.sync="fieldsOrder"
+        :view-status.sync="viewStatus"
+        :columns-width.sync="columnsWidth"
+        @mapFieldsAndShowFields="mapFieldsAndShowFields"
+        @loadTableData="loadTableData"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
       >
         <v-tooltip bottom>
-          <template v-slot:activator="{on}">
+          <template #activator="{on}">
             <v-list-item
               v-on="on"
-              @click="showAdditionalFeatOverlay('webhooks')">
-
-              <v-icon x-small class="mr-2">mdi-hook</v-icon>
+              @click="showAdditionalFeatOverlay('webhooks')"
+            >
+              <v-icon x-small class="mr-2">
+                mdi-hook
+              </v-icon>
               <span class="caption"> Automations</span>
             </v-list-item>
-
           </template>
           Create Automations or API Webhooks
         </v-tooltip>
         <v-tooltip bottom>
-          <template v-slot:activator="{on}">
+          <template #activator="{on}">
             <v-list-item
               v-on="on"
-              @click="showAdditionalFeatOverlay('acl')">
-              <v-icon x-small class="mr-2">mdi-shield-edit-outline</v-icon>
+              @click="showAdditionalFeatOverlay('acl')"
+            >
+              <v-icon x-small class="mr-2">
+                mdi-shield-edit-outline
+              </v-icon>
               <span class="caption"> API ACL</span>
             </v-list-item>
           </template>
@@ -304,38 +347,47 @@
         </v-tooltip>
         <v-list-item
           v-if="showAdvanceOptions"
-          @click="showAdditionalFeatOverlay('validators')">
-
-          <v-icon x-small class="mr-2">mdi-sticker-check-outline</v-icon>
+          @click="showAdditionalFeatOverlay('validators')"
+        >
+          <v-icon x-small class="mr-2">
+            mdi-sticker-check-outline
+          </v-icon>
           <span class="caption"> API Validators</span>
         </v-list-item>
         <v-divider
-          v-if="showAdvanceOptions" class="advance-menu-divider"></v-divider>
+          v-if="showAdvanceOptions"
+          class="advance-menu-divider"
+        />
 
         <v-list-item
           v-if="showAdvanceOptions"
-          @click="showAdditionalFeatOverlay('columns')">
-          <v-icon x-small class="mr-2">mdi-view-column</v-icon>
+          @click="showAdditionalFeatOverlay('columns')"
+        >
+          <v-icon x-small class="mr-2">
+            mdi-view-column
+          </v-icon>
           <span class="caption font-weight-light">SQL Columns</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
-          @click="showAdditionalFeatOverlay('indexes')">
-
-          <v-icon x-small class="mr-2">mdi-blur</v-icon>
+          @click="showAdditionalFeatOverlay('indexes')"
+        >
+          <v-icon x-small class="mr-2">
+            mdi-blur
+          </v-icon>
           <span class="caption font-weight-light">SQL Indexes</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
-          @click="showAdditionalFeatOverlay('triggers')">
-
-          <v-icon x-small class="mr-2">mdi-shield-edit-outline</v-icon>
+          @click="showAdditionalFeatOverlay('triggers')"
+        >
+          <v-icon x-small class="mr-2">
+            mdi-shield-edit-outline
+          </v-icon>
           <span class="caption font-weight-light">SQL Triggers</span>
         </v-list-item>
-
       </spreadsheet-nav-drawer>
     </div>
-
 
     <v-menu
       v-if="rowContextMenu"
@@ -359,106 +411,92 @@
           <v-list-item @click="deleteSelectedRows">
             <span class="caption">Delete Selected Rows</span>
           </v-list-item>
-
         </template>
         <template v-if="meta.hasMany && meta.hasMany.length">
-
-          <v-divider v-if="isEditable && !isLocked"></v-divider>
+          <v-divider v-if="isEditable && !isLocked" />
           <span class="ml-3 grey--text " style="font-size: 9px">Has Many</span>
 
-          <v-list-item v-for="(hm,i) in meta.hasMany" @click="addNewRelationTabCtxMenu(hm,'hm')" :key="i">
+          <v-list-item v-for="(hm,i) in meta.hasMany" :key="i" @click="addNewRelationTabCtxMenu(hm,'hm')">
             <span class="caption text-capitalize">{{ hm._tn }}</span>
           </v-list-item>
         </template>
 
         <template v-if="meta.belongsTo && meta.belongsTo.length">
-
-          <v-divider></v-divider>
+          <v-divider />
           <span class="ml-3 grey--text " style="font-size: 9px">Belongs To</span>
 
-          <v-list-item v-for="(bt,i) in belongsTo" @click="addNewRelationTabCtxMenu(bt,'bt')" :key="i">
+          <v-list-item v-for="(bt,i) in belongsTo" :key="i" @click="addNewRelationTabCtxMenu(bt,'bt')">
             <span class="caption text-capitalize">{{ bt._rtn }}</span>
           </v-list-item>
         </template>
-
-
       </v-list>
     </v-menu>
     <v-dialog
-      :overlay-opacity="0.8"
       v-if="data"
+      v-model="showExpandModal"
+      :overlay-opacity="0.8"
       width="1000px"
       max-width="100%"
       class=" mx-auto"
-      v-model="showExpandModal">
-
+    >
       <expanded-form
+        v-if="selectedExpandRowIndex != null && data[selectedExpandRowIndex]"
         :key="selectedExpandRowIndex"
+        v-model="data[selectedExpandRowIndex].row"
         :db-alias="nodes.dbAlias"
         :has-many="hasMany"
         :belongs-to="belongsTo"
-        v-if="selectedExpandRowIndex != null && data[selectedExpandRowIndex]"
         :table="table"
-        v-model="data[selectedExpandRowIndex].row"
-        :oldRow.sync="data[selectedExpandRowIndex].oldRow"
+        :old-row.sync="data[selectedExpandRowIndex].oldRow"
         :is-new="data[selectedExpandRowIndex].rowMeta.new"
         :selected-row-meta="selectedExpandRowMeta"
         :meta="meta"
         :sql-ui="sqlUi"
         :primary-value-column="primaryValueColumn"
         :api="api"
-        :availableColumns="availableColumns"
+        :available-columns="availableColumns"
         :nodes="nodes"
         :query-params="queryParams"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"
         @loadTableData="loadTableData"
-      ></expanded-form>
-
+      />
     </v-dialog>
 
-
     <additional-features
-      :deleteTable="deleteTable"
-      :nodes="nodes"
       v-model="showAddFeatOverlay"
+      :delete-table="deleteTable"
+      :nodes="nodes"
       :type="featureType"
       :table="table"
-    ></additional-features>
-
+    />
   </v-container>
-
 </template>
 
 <script>
 
+import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import { SqlUI } from '@/helpers/SqlUiFactory'
 
-import ApiFactory from "@/components/project/spreadsheet/apis/apiFactory";
-import Table from "@/components/project/table";
-import {SqlUI} from "@/helpers/SqlUiFactory";
-
-import NewColumn from "@/components/project/spreadsheet/components/editColumn";
-import {mapActions} from "vuex";
-import AdditionalFeatures from "@/components/project/spreadsheet/overlay/additinalFeatures";
-import ColumnFilter from "~/components/project/spreadsheet/components/columnFilterMenu";
-import CreateViewDialog from "@/components/project/spreadsheet/dialog/createViewDialog";
-import debounce from 'debounce';
-import GalleryView from "@/components/project/spreadsheet/views/galleryView";
-import CalendarView from "@/components/project/spreadsheet/views/calendarView";
-import KanbanView from "@/components/project/spreadsheet/views/kanbanView";
-import XcGridView from "@/components/project/spreadsheet/views/xcGridView";
-import SortList from "@/components/project/spreadsheet/components/sortListMenu";
-import Fields from "@/components/project/spreadsheet/components/fieldsMenu";
-import SpreadsheetNavDrawer from "@/components/project/spreadsheet/components/spreadsheetNavDrawer";
-import spreadsheet from "@/components/project/spreadsheet/mixins/spreadsheet";
-import LockMenu from "@/components/project/spreadsheet/components/lockMenu";
-import ExpandedForm from "@/components/project/spreadsheet/components/expandedForm";
-import Pagination from "@/components/project/spreadsheet/components/pagination";
+import { mapActions } from 'vuex'
+import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
+import debounce from 'debounce'
+import GalleryView from '@/components/project/spreadsheet/views/galleryView'
+import CalendarView from '@/components/project/spreadsheet/views/calendarView'
+import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
+import XcGridView from '@/components/project/spreadsheet/views/xcGridView'
+import SortList from '@/components/project/spreadsheet/components/sortListMenu'
+import Fields from '@/components/project/spreadsheet/components/fieldsMenu'
+import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
+import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
+import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
+import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
+import Pagination from '@/components/project/spreadsheet/components/pagination'
+import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
 
 export default {
-  mixins: [spreadsheet],
-  name: "rows-xc-data-table",
+  name: 'RowsXcDataTable',
   components: {
     Pagination,
     ExpandedForm,
@@ -470,12 +508,10 @@ export default {
     KanbanView,
     CalendarView,
     GalleryView,
-    CreateViewDialog,
     ColumnFilter,
-    AdditionalFeatures,
-    NewColumn,
-    Table,
+    AdditionalFeatures
   },
+  mixins: [spreadsheet],
   props: {
     env: String,
     nodes: Object,
@@ -539,7 +575,7 @@ export default {
     spreadsheet: null,
     options: {
       allowToolbar: true,
-      columnSorting: false,
+      columnSorting: false
     },
     filteredData: [],
 
@@ -558,10 +594,10 @@ export default {
     }],
     rowContextMenu: null
   }),
-  async mounted() {
+  async mounted () {
     try {
-      await this.createTableIfNewTable();
-      await this.loadMeta();
+      await this.createTableIfNewTable()
+      await this.loadMeta()
 
       if (this.relationType === 'hm') {
         this.filters.push({
@@ -580,110 +616,111 @@ export default {
         })
       } else {
         // await this.$refs.drawer.loadViews();
-        await this.loadTableData();
+        await this.loadTableData()
       }
-      this.mapFieldsAndShowFields();
+      this.mapFieldsAndShowFields()
     } catch (e) {
       console.log(e)
     }
-    this.searchField = this.primaryValueColumn;
-    this.dataLoaded = true;
+    this.searchField = this.primaryValueColumn
+    this.dataLoaded = true
 
     // await this.loadViews();
   },
   methods: {
     ...mapActions({
-      loadTablesFromChildTreeNode: "project/loadTablesFromChildTreeNode"
+      loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
-    checkAndDeleteTable() {
+    checkAndDeleteTable () {
       if (
-        !this.meta &&
-        this.meta.hasMany && this.meta.hasMany.length ||
-        this.meta.manyToMany && this.meta.manyToMany.length ||
-        this.meta.belongsTo && this.meta.belongsTo.length
+        (!this.meta) && (
+          (this.meta.hasMany && this.meta.hasMany.length) ||
+        (this.meta.manyToMany && this.meta.manyToMany.length) ||
+        (this.meta.belongsTo && this.meta.belongsTo.length))
       ) {
         return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
       }
       this.deleteTable('showDialog')
     },
-    async reload() {
+    async reload () {
       this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         tn: this.table,
         force: true
-      });
-      await this.loadTableData();
-      this.key = Math.random();
+      })
+      await this.loadTableData()
+      this.key = Math.random()
     },
-    reloadComments() {
+    reloadComments () {
       if (this.$refs.ncgridview) {
-        this.$refs.ncgridview.xcAuditModelCommentsCount();
+        this.$refs.ncgridview.xcAuditModelCommentsCount()
       }
     },
     syncDataDebounce: debounce(async function (self) {
       await self.syncData()
     }, 500),
-    async syncData() {
-      if (this.relation) return;
+    async syncData () {
+      if (this.relation) {
+        return
+      }
       try {
-
-        const query_params = {
+        const queryParams = {
           filters: this.filters,
           sortList: this.sortList,
           showFields: this.showFields,
           fieldsOrder: this.fieldsOrder,
           viewStatus: this.viewStatus,
-          columnsWidth: this.columnsWidth,
-        };
+          columnsWidth: this.columnsWidth
+        }
 
-        this.$set(this.selectedView, 'query_params', JSON.stringify(query_params));
+        this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
 
-        if (!this._isUIAllowed('xcVirtualTableUpdate')) return;
-        await this.sqlOp({dbAlias: this.nodes.dbAlias}, 'xcVirtualTableUpdate', {
+        if (!this._isUIAllowed('xcVirtualTableUpdate')) {
+          return
+        }
+        await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
-          query_params
-        });
+          query_params: queryParams
+        })
       } catch (e) {
         // this.$toast.error(e.message).goAway(3000);
       }
     },
-    showAdditionalFeatOverlay(feat) {
-      this.showAddFeatOverlay = true;
-      this.featureType = feat;
+    showAdditionalFeatOverlay (feat) {
+      this.showAddFeatOverlay = true
+      this.featureType = feat
     },
-    async createTableIfNewTable() {
-
+    async createTableIfNewTable () {
       if (this.nodes.newTable) {
-        const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.cn));
+        const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.cn))
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias
           },
-          "tableCreate",
+          'tableCreate',
           {
             tn: this.nodes.tn,
             _tn: this.nodes._tn,
             columns
-          }]);
+          }])
         await this.loadTablesFromChildTreeNode({
           _nodes: {
             ...this.nodes
           }
-        });
-        delete this.nodes.newTable;
+        })
+        delete this.nodes.newTable
       }
 
-      this.loadViews = true;
+      this.loadViews = true
     },
 
-
-    comingSoon() {
+    comingSoon () {
       this.$toast.info('Coming soon!').goAway(3000)
     },
-    addNewRelationTabCtxMenu(obj, type) {
-      const rowObj = this.rowContextMenu.row;
+    addNewRelationTabCtxMenu (obj, type) {
+      const rowObj = this.rowContextMenu.row
 
       this.addNewRelationTab(
         obj,
@@ -698,49 +735,48 @@ export default {
         rowObj[this.primaryValueColumn]
       )
     },
-    changed(col, row) {
-      this.$set(this.data[row].rowMeta, 'changed', this.data[row].rowMeta.changed || {});
+    changed (col, row) {
+      this.$set(this.data[row].rowMeta, 'changed', this.data[row].rowMeta.changed || {})
       if (this.data[row].rowMeta) {
-        this.$set(this.data[row].rowMeta.changed, this.availableColumns[col].cn, true);
+        this.$set(this.data[row].rowMeta.changed, this.availableColumns[col].cn, true)
       }
     },
-    async save() {
-
+    async save () {
       for (let row = 0; row < this.rowLength; row++) {
-        const {row: rowObj, rowMeta} = this.data[row];
+        const { row: rowObj, rowMeta } = this.data[row]
         if (rowMeta.new) {
           try {
             const pks = this.meta.columns.filter((col) => {
-              return col.pk;
-            });
+              return col.pk
+            })
             if (this.meta.columns.every((col) => {
-              return !col.ai;
+              return !col.ai
             }) && pks.length && pks.every(col => !rowObj[col._cn] && !(col.columnDefault || col.default))) {
-              return this.$toast.info('Primary column is empty please provide some value').goAway(3000);
+              return this.$toast.info('Primary column is empty please provide some value').goAway(3000)
             }
             if (this.meta.columns.some((col) => {
               return !col.ai && col.rqd && (rowObj[col._cn] === undefined || rowObj[col._cn] === null) && !col.default
             })) {
-              return;
+              return
             }
 
             const insertObj = this.meta.columns.reduce((o, col) => {
               if (!col.ai && (rowObj && rowObj[col._cn]) !== null) {
-                o[col._cn] = rowObj && rowObj[col._cn];
+                o[col._cn] = rowObj && rowObj[col._cn]
               }
-              return o;
-            }, {});
+              return o
+            }, {})
 
-            let insertedData = await this.api.insert(insertObj);
+            let insertedData = await this.api.insert(insertObj)
 
             // todo: optimize
             if (this.meta.v && this.meta.v.length) {
               try {
-                const where = this.meta.columns.filter((c) => c.pk).map(c => `(${c._cn},eq,${insertedData[c._cn]})`).join('~and');
+                const where = this.meta.columns.filter(c => c.pk).map(c => `(${c._cn},eq,${insertedData[c._cn]})`).join('~and')
                 if (where) {
-                  const {childs, parents, many} = this.queryParams;
-                  const data = (await this.api.list({where, childs, parents, many}) || [insertedData]);
-                  insertedData = data.length ? data[0] : insertedData;
+                  const { childs, parents, many } = this.queryParams
+                  const data = (await this.api.list({ where, childs, parents, many }) || [insertedData])
+                  insertedData = data.length ? data[0] : insertedData
                 }
               } catch (e) {
                 // ignore
@@ -750,13 +786,12 @@ export default {
             this.data.splice(row, 1, {
               row: insertedData,
               rowMeta: {},
-              oldRow: {...insertedData}
-            });
+              oldRow: { ...insertedData }
+            })
 
             this.$toast.success(`${insertedData[this.primaryValueColumn] ? `${insertedData[this.primaryValueColumn]}'s r` : 'R'}ow saved successfully.`, {
               position: 'bottom-center'
-            }).goAway(3000);
-
+            }).goAway(3000)
           } catch (e) {
             if (e.response && e.response.data && e.response.data.msg) {
               this.$toast.error(e.response.data.msg).goAway(3000)
@@ -768,29 +803,32 @@ export default {
       }
     },
 
-
     onCellValueChangeDebounce: debounce(async function (col, row, column, self) {
       await self.onCellValueChangeFn(col, row, column)
     }, 300),
-    onCellValueChange(col, row, column) {
+    onCellValueChange (col, row, column) {
       this.onCellValueChangeDebounce(col, row, column, this)
     },
-    async onCellValueChangeFn(col, row, column) {
-      if (!this.data[row]) return;
-      const {row: rowObj, rowMeta, oldRow} = this.data[row];
+    async onCellValueChangeFn (col, row, column) {
+      if (!this.data[row]) {
+        return
+      }
+      const { row: rowObj, rowMeta, oldRow } = this.data[row]
       if (rowMeta.new) {
         await this.save()
       } else {
         try {
-          if (!this.api) return;
-          const id = this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join('___');
+          if (!this.api) {
+            return
+          }
+          const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
           await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
-          }, {[column._cn]: oldRow[column._cn]})
+          }, { [column._cn]: oldRow[column._cn] })
           this.$set(oldRow, column._cn, rowObj[column._cn])
           this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
             position: 'bottom-center'
-          }).goAway(3000);
+          }).goAway(3000)
         } catch (e) {
           if (e.response && e.response.data && e.response.data.msg) {
             this.$toast.error(e.response.data.msg).goAway(3000)
@@ -800,80 +838,82 @@ export default {
         }
       }
     },
-    async deleteRow() {
+    async deleteRow () {
       try {
-        const rowObj = this.rowContextMenu.row;
+        const rowObj = this.rowContextMenu.row
         if (!this.rowContextMenu.rowMeta.new) {
-          const id = this.meta && this.meta.columns && this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join('___');
-          await this.api.delete(id);
+          const id = this.meta && this.meta.columns && this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+          await this.api.delete(id)
         }
-        this.data.splice(this.rowContextMenu.index, 1);
-        this.$toast.success(`Deleted row successfully`).goAway(3000)
+        this.data.splice(this.rowContextMenu.index, 1)
+        this.$toast.success('Deleted row successfully').goAway(3000)
       } catch (e) {
         this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
       }
     },
-    async deleteSelectedRows() {
+    async deleteSelectedRows () {
       let row = this.rowLength
       while (row--) {
         try {
-          const {row: rowObj, rowMeta} = this.data[row];
+          const { row: rowObj, rowMeta } = this.data[row]
           if (!rowMeta.selected) {
-            continue;
+            continue
           }
           if (!rowMeta.new) {
-            const id = this.meta.columns.filter((c) => c.pk).map(c => rowObj[c._cn]).join('___');
-            await this.api.delete(id);
+            const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+            await this.api.delete(id)
           }
-          this.data.splice(row, 1);
+          this.data.splice(row, 1)
         } catch (e) {
           return this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
         }
 
-        this.$toast.success(`Deleted selected rows successfully`).goAway(3000)
+        this.$toast.success('Deleted selected rows successfully').goAway(3000)
       }
     },
-    async insertNewRow(atEnd = false, expand = false) {
-      const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1;
-      const focusCol = this.availableColumns.findIndex(c => !c.ai);
+    async insertNewRow (atEnd = false, expand = false) {
+      const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
+      const focusCol = this.availableColumns.findIndex(c => !c.ai)
       this.data.splice(focusRow, 0, {
-        row: this.relationType === 'hm' ? {
-          ...this.fieldList.reduce((o, f) => ({...o, [f]: null}), {}),
-          [this.relation.cn]: this.relationIdValue
-        } : this.fieldList.reduce((o, f) => ({...o, [f]: null}), {}),
+        row: this.relationType === 'hm'
+          ? {
+              ...this.fieldList.reduce((o, f) => ({ ...o, [f]: null }), {}),
+              [this.relation.cn]: this.relationIdValue
+            }
+          : this.fieldList.reduce((o, f) => ({ ...o, [f]: null }), {}),
         rowMeta: {
           new: true
-        }, oldRow: {}
-      });
+        },
+        oldRow: {}
+      })
 
-      this.selected = {row: focusRow, col: focusCol}
-      this.editEnabled = {row: focusRow, col: focusCol}
+      this.selected = { row: focusRow, col: focusCol }
+      this.editEnabled = { row: focusRow, col: focusCol }
 
       if (expand) {
-        const {rowMeta} = this.data[this.data.length - 1];
+        const { rowMeta } = this.data[this.data.length - 1]
         this.expandRow(this.data.length - 1, rowMeta)
       }
       // this.save()
     },
 
-
-    async handleKeyDown({metaKey, key, altKey, shiftKey, ctrlKey}) {
+    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       switch ([
-        this._isMac ? metaKey : ctrlKey
-        , key].join('_')) {
+        this._isMac ? metaKey : ctrlKey,
+        key].join('_')) {
         case 'true_s' :
-          this.edited && await this.save();
-          break;
+          this.edited && await this.save()
+          break
         case 'true_l' :
-          await this.loadTableData();
-          break;
+          await this.loadTableData()
+          break
         case 'true_n' :
-          this.insertNewRow(true);
-          break;
+          this.insertNewRow(true)
+          break
       }
     },
-    async loadMeta(updateShowFields = true) {
-      this.loadingMeta = true;
+    async loadMeta (updateShowFields = true) {
+      this.loadingMeta = true
       // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -886,12 +926,12 @@ export default {
         dbAlias: this.nodes.dbAlias,
         tn: this.table,
         force: true
-      });
-      this.loadingMeta = false;
+      })
+      this.loadingMeta = false
       if (updateShowFields) {
         try {
           const qp = JSON.parse(tableMeta.query_params)
-          this.showFields = qp.showFields ? qp.showFields : this.showFields;
+          this.showFields = qp.showFields ? qp.showFields : this.showFields
         } catch (e) {
         }
       }
@@ -899,72 +939,73 @@ export default {
     loadTableDataDeb: debounce(async function (self) {
       await self.loadTableDataFn()
     }, 200),
-    loadTableData() {
+    loadTableData () {
       this.loadTableDataDeb(this)
     },
-    async loadTableDataFn() {
-      this.loadingData = true;
+    async loadTableDataFn () {
+      this.loadingData = true
       try {
         if (this.api) {
-          const {list, count} = await this.api.paginatedList(this.queryParams);
-          this.count = count;
+          const { list, count } = await this.api.paginatedList(this.queryParams)
+          this.count = count
           this.data = list.map(row => ({
             row,
-            oldRow: {...row},
+            oldRow: { ...row },
             rowMeta: {}
-          }));
+          }))
         }
       } catch (e) {
-        console.log(e);
+        console.log(e)
       }
-      this.loadingData = false;
+      this.loadingData = false
     },
-    showRowContextMenu(e, row, rowMeta, index) {
-      e.preventDefault();
-      this.rowContextMenu = false;
+    showRowContextMenu (e, row, rowMeta, index) {
+      e.preventDefault()
+      this.rowContextMenu = false
       this.$nextTick(() => {
         this.rowContextMenu = {
           x: e.clientX,
           y: e.clientY,
-          row, index, rowMeta
+          row,
+          index,
+          rowMeta
         }
-      });
+      })
     },
-    expandRow(row, rowMeta) {
-      this.showExpandModal = true;
-      this.selectedExpandRowIndex = row;
-      this.selectedExpandRowMeta = rowMeta;
+    expandRow (row, rowMeta) {
+      this.showExpandModal = true
+      this.selectedExpandRowIndex = row
+      this.selectedExpandRowMeta = rowMeta
     },
-    async onNewColCreation() {
-      await this.loadMeta(true);
+    async onNewColCreation () {
+      await this.loadMeta(true)
       this.$nextTick(async () => {
-        await this.loadTableData();
+        await this.loadTableData()
         // this.mapFieldsAndShowFields();
-      });
+      })
     }
   },
   computed: {
-    meta() {
-      return this.$store.state.meta.metas[this.table];
+    meta () {
+      return this.$store.state.meta.metas[this.table]
     },
-    currentApiUrl() {
+    currentApiUrl () {
       return this.api && `${this.api.apiUrl}?` + Object.entries(this.queryParams).filter(p => p[1]).map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`).join('&')
     },
-    isEditable() {
+    isEditable () {
       return this._isUIAllowed('xcDatatableEditable')
     },
-    sqlUi() {
-      return SqlUI.create(this.nodes.dbConnection);
+    sqlUi () {
+      return SqlUI.create(this.nodes.dbConnection)
     },
-    api() {
-      return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null;
+    api () {
+      return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
     }
-  },
+  }
 }
 </script>
 
 <style scoped>
-
 
 /deep/ .v-input__control .v-input__slot .v-input--selection-controls__input {
   transform: scale(.85);
@@ -983,7 +1024,6 @@ export default {
   text-transform: capitalize;
 }
 
-
 .row-expand-icon, .row-checkbox {
   opacity: 0;
 }
@@ -991,7 +1031,6 @@ export default {
 /deep/ .row-checkbox .v-input__control {
   height: 24px !important;
 }
-
 
 .cell-height-medium td, .cell-height-medium tr {
   min-height: 35px !important;
@@ -1011,7 +1050,6 @@ export default {
   /*max-height: 50px !important;*/
 }
 
-
 /deep/ .xc-border.search-box {
   overflow: visible;
   border-radius: 4px;
@@ -1030,17 +1068,14 @@ export default {
   min-height: auto;
 }
 
-
 .views-navigation-drawer {
   transition: .4s max-width, .4s min-width;
 }
-
 
 .new-column-header {
   text-align: center;
   min-width: 70px;
 }
-
 
 /deep/ .v-input__control label {
   font-size: inherit;

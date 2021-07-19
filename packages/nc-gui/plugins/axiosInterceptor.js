@@ -6,47 +6,45 @@
 //   });
 // }
 
-export default ({store, $axios, redirect, $toast}) => {
+export default ({ store, $axios, redirect, $toast }) => {
   // Add a request interceptor
   $axios.interceptors.request.use(function (config) {
-    config.headers['xc-gui'] = 'true';
+    config.headers['xc-gui'] = 'true'
     if (store.state.users.token) {
-      config.headers['xc-auth'] = store.state.users.token;
+      config.headers['xc-auth'] = store.state.users.token
     }
     if (!config.url.endsWith('/user/me') && !config.url.endsWith('/admin/roles') && store.state.users.previewAs) {
-      config.headers['xc-preview'] = store.state.users.previewAs;
+      config.headers['xc-preview'] = store.state.users.previewAs
     }
 
-    return config;
-  });
+    return config
+  })
 
   // $axios.setBaseURL('http://localhost:8080')
 
   $axios.interceptors.response.use((response) => {
     // Return a successful response back to the calling service
-    return response;
+    return response
   }, (error) => {
-
     if (error.response && error.response.data && error.response.data.msg === 'Database config not found') {
-      redirect('/project/0');
-      return;
+      redirect('/project/0')
+      return
     }
 
     // Return any error which is not due to authentication back to the calling service
     if (!error.response || error.response.status !== 401) {
       return new Promise((resolve, reject) => {
-        reject(error);
-      });
+        reject(error)
+      })
     }
 
     // Logout user if token refresh didn't work or user is disabled
-    if (error.config.url == '/api/v1/auth/refresh-token' ) {
+    if (error.config.url === '/api/v1/auth/refresh-token') {
       store.dispatch('users/ActSignOut')
 
-
       return new Promise((resolve, reject) => {
-        reject(error);
-      });
+        reject(error)
+      })
     }
 
     // Try request again with new token
@@ -56,33 +54,32 @@ export default ({store, $axios, redirect, $toast}) => {
       .then((token) => {
         console.log(token)
         // New request with new token
-        const config = error.config;
-        config.headers['xc-auth'] = token.data.token;
+        const config = error.config
+        config.headers['xc-auth'] = token.data.token
         store.commit('users/MutSetToken', token.data.token)
 
         return new Promise((resolve, reject) => {
-          $axios.request(config).then(response => {
-            resolve(response);
+          $axios.request(config).then((response) => {
+            resolve(response)
           }).catch((error) => {
-            reject(error);
+            reject(error)
           })
-        });
-
+        })
       })
       .catch(async (error) => {
-        await store.dispatch('users/ActSignOut');
+        await store.dispatch('users/ActSignOut')
         if (store.state.project.projectInfo.firstUser) {
-          redirect('/');
+          redirect('/')
         } else {
-          $toast.clear();
+          $toast.clear()
           $toast.info('Token expired please login to continue', {
             position: 'bottom-center'
           }).goAway(5000)
-          redirect('/user/authentication/signin');
+          redirect('/user/authentication/signin')
         }
-        Promise.reject(error);
-      });
-  });
+        Promise.reject(error)
+      })
+  })
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

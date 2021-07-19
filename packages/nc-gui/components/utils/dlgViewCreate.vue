@@ -1,12 +1,11 @@
 <template>
   <v-dialog
+    v-model="dialogShow"
     persistent
+    max-width="450"
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', view)"
-    v-model="dialogShow"
-    max-width="450"
   >
-
     <v-card class="elevation-1 backgroundColor">
       <v-card-title class="primary subheading white--text py-2">
         Create A New View
@@ -15,29 +14,40 @@
       <v-card-text class=" py-6 px-10 ">
         <v-text-field
           ref="input"
-          solo flat
           v-model="view.alias"
-          dense hide-details label="Enter the Model Name" class="mt-4 caption"></v-text-field>
+          solo
+          flat
+          dense
+          hide-details
+          label="Enter the Model Name"
+          class="mt-4 caption"
+        />
 
         <v-text-field
           v-if="!projectPrefix"
-          solo flat
           v-model="view.name"
-          dense hide-details label="SQL View Name" class="mt-4 caption"></v-text-field>
-
+          solo
+          flat
+          dense
+          hide-details
+          label="SQL View Name"
+          class="mt-4 caption"
+        />
       </v-card-text>
-      <v-divider></v-divider>
+      <v-divider />
 
       <v-card-actions class="py-4 px-10">
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn class="" @click="dialogShow = false">
           Cancel
         </v-btn>
         <v-btn
           :disabled="!(view.name && view.name.length) || !(view.alias && view.alias.length)"
-          color="primary" @click="$emit('create',view)">Submit
-        </v-btn
+          color="primary"
+          @click="$emit('create',view)"
         >
+          Submit
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -45,40 +55,42 @@
 
 <script>
 
-import inflection from "inflection";
+import inflection from 'inflection'
 
 export default {
-  name: 'dlg-view-create',
-  data() {
+  name: 'DlgViewCreate',
+  props: ['value'],
+  data () {
     return {
       view: {
         name: ''
       }
-    };
+    }
   },
-  props: ['value'],
   computed: {
     dialogShow: {
-      get() {
+      get () {
         return this.value
-      }, set(v) {
+      },
+      set (v) {
         this.$emit('input', v)
       }
     },
-    projectPrefix() {
+    projectPrefix () {
       return this.$store.getters['project/GtrProjectPrefix']
     }
-  }, watch: {
-    'view.alias': function (v) {
+  },
+  watch: {
+    'view.alias' (v) {
       this.$set(this.view, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
     }
   },
-  mounted() {
+  mounted () {
     setTimeout(() => {
-      this.$refs.input.$el.querySelector('input').focus();
+      this.$refs.input.$el.querySelector('input').focus()
     }, 100)
   }
-};
+}
 </script>
 
 <style scoped>

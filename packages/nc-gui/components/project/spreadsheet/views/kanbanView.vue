@@ -1,9 +1,10 @@
 <template>
   <v-container fluid>
-
     <kanban-board :stages="stages" :blocks="blocks" @update-block="updateBlock">
       <div v-for="(stage,i) in stages" :slot="stage" :key="stage" class="mx-auto">
-        <v-chip :color="stagesColors[i]" class="text-uppercase caption font-weight-bold">{{ stage }}</v-chip>
+        <v-chip :color="stagesColors[i]" class="text-uppercase caption font-weight-bold">
+          {{ stage }}
+        </v-chip>
       </div>
       <div v-for="block in blocks" :slot="block.id" :key="block.id" class="caption">
         <!--        <div>-->
@@ -22,7 +23,7 @@
 // import "vue-kanban/src/assets/kanban.css";
 
 export default {
-  name: "kanbanView",
+  name: 'KanbanView',
   data: () => ({
     stages: ['on-hold', 'in-progress', 'needs-review', 'approved'],
     stagesColors: ['error', 'primary', 'warning', 'success'],
@@ -30,85 +31,85 @@ export default {
       {
         id: 1,
         status: 'on-hold',
-        title: 'More language options',
+        title: 'More language options'
       },
       {
         id: 2,
         status: 'on-hold',
-        title: 'Customizable links',
+        title: 'Customizable links'
       },
       {
         id: 3,
         status: 'on-hold',
-        title: 'Emoji support',
+        title: 'Emoji support'
       },
       {
         id: 4,
         status: 'on-hold',
-        title: 'Video embedding',
+        title: 'Video embedding'
       },
       {
         id: 5,
         status: 'on-hold',
-        title: 'Photo gallery support',
+        title: 'Photo gallery support'
       },
       {
         id: 6,
         status: 'on-hold',
-        title: 'Starred cards',
+        title: 'Starred cards'
       },
       {
         id: 7,
         status: 'in-progress',
-        title: 'Reporting',
+        title: 'Reporting'
       },
       {
         id: 8,
         status: 'in-progress',
-        title: 'Marks card as done',
+        title: 'Marks card as done'
       },
       {
         id: 9,
         status: 'in-progress',
-        title: 'Multiple due dates',
+        title: 'Multiple due dates'
       },
       {
         id: 10,
         status: 'in-progress',
-        title: 'Expand notifications',
+        title: 'Expand notifications'
       },
       {
         id: 11,
         status: 'needs-review',
-        title: '"Heart" commad',
+        title: '"Heart" commad'
       },
       {
         id: 12,
         status: 'needs-review',
-        title: 'Assign checklist item',
+        title: 'Assign checklist item'
       },
       {
         id: 13,
         status: 'approved',
-        title: 'Delete permissions',
+        title: 'Delete permissions'
       },
       {
         id: 14,
         status: 'approved',
-        title: '3rd party calendar support',
+        title: '3rd party calendar support'
       },
       {
         id: 15,
         status: 'approved',
-        title: '2FA',
+        title: '2FA'
       },
       {
         id: 16,
         status: 'approved',
-        title: 'Additional sticker packs',
-      },
+        title: 'Additional sticker packs'
+      }
 
-    ],
+    ]
   })
 }
 </script>

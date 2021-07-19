@@ -1,6 +1,6 @@
-import Vue from "vue";
+import Vue from 'vue'
 
-Vue.use(require("vue-shortkey"));
+Vue.use(require('vue-shortkey'))
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

@@ -1,136 +1,113 @@
-import axios from 'axios';
-
 export const state = () => ({
 
-  servers: {},
+  servers: {}
 
-});
+})
 
 export const mutations = {
 
-  MutAddServer(state, args) {
+  MutAddServer (state, args) {
+    args.alive = true
+    state.servers[args.key] = args
+    state.servers = { ...state.servers }
+    // state.servers[args.key].alive = true;
 
-    args.alive = true;
-    state.servers[args.key] = args;
-    state.servers = {...state.servers};
-    //state.servers[args.key].alive = true;
-
-    console.log('MutAddServer', state.servers);
+    console.log('MutAddServer', state.servers)
   },
 
-  MutRemoveServer(state, args) {
-
-    console.log('MutRemoveServer', args);
+  MutRemoveServer (state, args) {
+    console.log('MutRemoveServer', args)
 
     if (args.key in state.servers) {
-      let temp = state.servers;
-      delete temp[args.key];
-      state.servers = {...temp};
+      const temp = state.servers
+      delete temp[args.key]
+      state.servers = { ...temp }
     }
-
   },
 
-  MutCloudUrl(state, args) {
-
-
+  MutCloudUrl (state, args) {
     if (args.key in state.servers) {
-      let temp = state.servers;
-      state.servers[args.key].cloudUrl = args.cloudUrl;
-      state.servers = {...temp};
-      console.log('MutCloudUrl', args);
-    }
-
-  },
-
-
-};
-
-export const getters = {};
-
-export const actions = {
-
-  async start({commit, state, rootState}, args) {
-
-    commit('notification/MutToggleProgressBar', true, {root: true});
-
-    try {
-
-      // let result = await rootState.sqlMgr.sqlMgr.projectAPIServerStart(args);
-      let result = await this.dispatch('sqlMgr/ActSqlOp', [null, 'projectAPIServerStart', args]);
-
-      if (result.code === 0) {
-        let serverResult = {...args, ...result.data.object};
-        commit('MutAddServer', serverResult);
-      }
-
-    } catch (e) {
-      console.log(e);
-      throw e
-    } finally {
-      commit('notification/MutToggleProgressBar', false, {root: true});
-    }
-
-  },
-
-  async stop({commit, state, rootState}, args) {
-
-    commit('notification/MutToggleProgressBar', true, {root: true});
-
-    try {
-
-      // let result = await rootState.sqlMgr.sqlMgr.projectAPIServerStop(args);
-      let result = await this.dispatch('sqlMgr/ActSqlOp', [null, 'projectAPIServerStop', args]);
-
-      if (result.code === 0) {
-        commit('MutRemoveServer', args);
-      }
-
-    } catch (e) {
-      console.log(e);
-      throw e
-    } finally {
-      commit('notification/MutToggleProgressBar', false, {root: true});
-    }
-  },
-
-  async getCloudUrl({commit, state, rootState}, args) {
-
-    commit('notification/MutToggleProgressBar', true, {root: true});
-
-    try {
-
-      let result = await rootState.sqlMgr.sqlMgr.projectAPIServerGetCloudUrl(args);
-
-      if (result.code === 0) {
-        commit('MutCloudUrl', {...args, ...result.data});
-      }
-
-    } catch (e) {
-      console.log(e);
-      throw e
-    } finally {
-      commit('notification/MutToggleProgressBar', false, {root: true});
-    }
-  },
-
-  async cloudSendNotification({commit, state, rootState}, args) {
-
-    commit('notification/MutToggleProgressBar', true, {root: true});
-
-    try {
-
-      let result = await rootState.sqlMgr.sqlMgr.projectAPIServerSendNotification(args);
-
-    } catch (e) {
-      console.log(e);
-      throw e
-    } finally {
-      commit('notification/MutToggleProgressBar', false, {root: true});
+      const temp = state.servers
+      state.servers[args.key].cloudUrl = args.cloudUrl
+      state.servers = { ...temp }
+      console.log('MutCloudUrl', args)
     }
   }
 
+}
 
-};
+export const getters = {}
+
+export const actions = {
+
+  async start ({ commit, state, rootState }, args) {
+    commit('notification/MutToggleProgressBar', true, { root: true })
+
+    try {
+      // let result = await rootState.sqlMgr.sqlMgr.projectAPIServerStart(args);
+      const result = await this.dispatch('sqlMgr/ActSqlOp', [null, 'projectAPIServerStart', args])
+
+      if (result.code === 0) {
+        const serverResult = { ...args, ...result.data.object }
+        commit('MutAddServer', serverResult)
+      }
+    } catch (e) {
+      console.log(e)
+      throw e
+    } finally {
+      commit('notification/MutToggleProgressBar', false, { root: true })
+    }
+  },
+
+  async stop ({ commit, state, rootState }, args) {
+    commit('notification/MutToggleProgressBar', true, { root: true })
+
+    try {
+      // let result = await rootState.sqlMgr.sqlMgr.projectAPIServerStop(args);
+      const result = await this.dispatch('sqlMgr/ActSqlOp', [null, 'projectAPIServerStop', args])
+
+      if (result.code === 0) {
+        commit('MutRemoveServer', args)
+      }
+    } catch (e) {
+      console.log(e)
+      throw e
+    } finally {
+      commit('notification/MutToggleProgressBar', false, { root: true })
+    }
+  },
+
+  async getCloudUrl ({ commit, state, rootState }, args) {
+    commit('notification/MutToggleProgressBar', true, { root: true })
+
+    try {
+      const result = await rootState.sqlMgr.sqlMgr.projectAPIServerGetCloudUrl(args)
+
+      if (result.code === 0) {
+        commit('MutCloudUrl', { ...args, ...result.data })
+      }
+    } catch (e) {
+      console.log(e)
+      throw e
+    } finally {
+      commit('notification/MutToggleProgressBar', false, { root: true })
+    }
+  },
+
+  async cloudSendNotification ({ commit, state, rootState }, args) {
+    commit('notification/MutToggleProgressBar', true, { root: true })
+
+    try {
+      await rootState.sqlMgr.sqlMgr.projectAPIServerSendNotification(args)
+    } catch (e) {
+      console.log(e)
+      throw e
+    } finally {
+      commit('notification/MutToggleProgressBar', false, { root: true })
+    }
+  }
+
+}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

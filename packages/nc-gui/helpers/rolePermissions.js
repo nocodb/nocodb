@@ -2,8 +2,8 @@ export default {
   creator: '*',
   owner: '*',
   guest: {},
-  user:{
-    projectCreate:true
+  user: {
+    projectCreate: true
   }
 }
 /**

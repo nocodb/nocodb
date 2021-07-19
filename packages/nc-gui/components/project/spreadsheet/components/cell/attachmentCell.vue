@@ -1,45 +1,54 @@
 <template>
-  <div class="d-flex align-center img-container d-100 h-100" v-on="$listeners"
-       @dragover.prevent="dragOver = true"
-       @dragenter.prevent="dragOver = true"
-       @dragexit="dragOver = false"
-       @dragleave="dragOver = false"
-       @dragend="dragOver = false"
-       @drop.prevent
+  <div
+    class="d-flex align-center img-container d-100 h-100"
+    v-on="$listeners"
+    @dragover.prevent="dragOver = true"
+    @dragenter.prevent="dragOver = true"
+    @dragexit="dragOver = false"
+    @dragleave="dragOver = false"
+    @dragend="dragOver = false"
+    @drop.prevent
   >
-
-
     <div v-if="dragOver" class="drop-overlay">
       <div>
-        <v-icon small>mdi-cloud-upload-outline</v-icon>
+        <v-icon small>
+          mdi-cloud-upload-outline
+        </v-icon>
         <span class="caption font-weight-bold">Drop here</span>
       </div>
     </div>
-
-
-    <div v-if="localState" v-for="item in localState" class="thumbnail d-flex align-center justify-center">
-      <v-lazy class="d-flex align-center justify-center">
-        <v-tooltip bottom>
-          <template v-slot:activator="{on}">
-            <img alt="#" v-if="isImage(item.title)" :src="item.url" v-on="on">
-            <v-icon v-else-if="item.icon" v-on="on" size="33">{{ item.icon }}</v-icon>
-            <v-icon v-else v-on="on" size="33">mdi-file</v-icon>
-          </template>
-          <span>{{ item.title }}</span>
-        </v-tooltip>
-      </v-lazy>
-    </div>
+    <template v-if="localState">
+      <div v-for="item in localState" :key="item.title" class="thumbnail d-flex align-center justify-center">
+        <v-lazy class="d-flex align-center justify-center">
+          <v-tooltip bottom>
+            <template #activator="{on}">
+              <img v-if="isImage(item.title)" alt="#" :src="item.url" v-on="on">
+              <v-icon v-else-if="item.icon" size="33" v-on="on">
+                {{ item.icon }}
+              </v-icon>
+              <v-icon v-else size="33" v-on="on">
+                mdi-file
+              </v-icon>
+            </template>
+            <span>{{ item.title }}</span>
+          </v-tooltip>
+        </v-lazy>
+      </div>
+    </template>
   </div>
 </template>
 
 <script>
-import {isImage} from "@/components/project/spreadsheet/helpers/imageExt";
+import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
 
 export default {
-  name: "attachmentCell",
+  name: 'AttachmentCell',
   props: ['value', 'column'],
+  data: () => ({
+    dragOver: false
+  }),
   computed: {
-    localState() {
+    localState () {
       try {
         return JSON.parse(this.value) || []
       } catch (e) {
@@ -47,11 +56,8 @@ export default {
       }
     }
   },
-  data: () => ({
-    dragOver: false
-  }),
   methods: {
-    isImage,
+    isImage
   }
 }
 </script>

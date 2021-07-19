@@ -1,0 +1,25 @@
+{
+  "root": true,
+  "parser": "vue-eslint-parser",
+  "ignorePatterns": [
+    "node_modules",
+    ".nuxt",
+    "dist",
+    "static"
+  ],
+  "extends": [
+    "@nuxtjs",
+    "plugin:@intlify/vue-i18n/recommended"
+  ],
+  "rules": {
+    "no-console": "off",
+    //    "space-before-function-paren": "off",
+    "require-await": "off",
+    "vue/no-mutating-props": "off"
+  },
+  "parserOptions": {
+    "parser": "babel-eslint",
+    "ecmaVersion": 8,
+    "sourceType": "module"
+  }
+}

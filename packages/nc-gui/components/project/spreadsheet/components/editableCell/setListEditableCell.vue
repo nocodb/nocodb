@@ -16,10 +16,11 @@
       deletable-chips
       class="text-center mt-0 "
     >
-      <template v-slot:selection="data">
+      <template #selection="data">
         <v-chip
-          small class="ma-1 "
           :key="data"
+          small
+          class="ma-1 "
           :color="colors[setValues.indexOf(data.item) % colors.length]"
           @click:close="data.parent.selectItem(data.item)"
         >
@@ -27,62 +28,65 @@
         </v-chip>
       </template>
 
-
-      <template v-slot:item="{item}">
-        <v-chip small :color="colors[setValues.indexOf(item) % colors.length]">{{ item }}</v-chip>
+      <template #item="{item}">
+        <v-chip small :color="colors[setValues.indexOf(item) % colors.length]">
+          {{ item }}
+        </v-chip>
       </template>
-      <template v-slot:append>
-        <v-icon small class="mt-2">mdi-menu-down</v-icon>
+      <template #append>
+        <v-icon small class="mt-2">
+          mdi-menu-down
+        </v-icon>
       </template>
     </v-combobox>
   </div>
 </template>
 
 <script>
-import colors from "@/mixins/colors";
+import colors from '@/mixins/colors'
 
 export default {
-  name: "set-list-editable-cell",
+  name: 'SetListEditableCell',
+  mixins: [colors],
   props: {
     value: String,
     column: Object
   },
-  mixins: [colors],
-  mounted() {
+  computed: {
+    localState: {
+      get () {
+        return this.value && this.value.split(',')
+      },
+      set (val) {
+        this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','))
+        this.$emit('update')
+      }
+    },
+    setValues () {
+      if (this.column && this.column.dtxp) {
+        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
+      }
+      return []
+    },
+    parentListeners () {
+      const $listeners = {}
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
+      }
+
+      return $listeners
+    }
+  },
+  mounted () {
     // this.$el.focus();
     // let event;
     // event = document.createEvent('MouseEvents');
     // event.initMouseEvent('mousedown', true, true, window);
     // this.$el.dispatchEvent(event);
-  },
-  computed: {
-    localState: {
-      get() {
-        return this.value && this.value.split(',')
-      },
-      set(val) {
-        this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','));
-        this.$emit('update');
-      }
-    },
-    setValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
-      }
-      return [];
-    },
-    parentListeners() {
-      const $listeners = {};
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur;
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus;
-      }
-
-      return $listeners;
-    },
   }
 }
 </script>

@@ -1,9 +1,9 @@
-import Vue from 'vue';
+import Vue from 'vue'
 
 const GlobalPlugins = {
-  install(v) {
-    v.prototype.$eventBus = new Vue();
-  },
-};
+  install (v) {
+    v.prototype.$eventBus = new Vue()
+  }
+}
 
-Vue.use(GlobalPlugins);
+Vue.use(GlobalPlugins)

@@ -2,29 +2,50 @@
   <v-container class="pa-0 ma-0" fluid>
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
-        <v-breadcrumbs :items="[{
-          text: this.nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: this.nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        },
-        {
-          text: this.nodes.procedure_name + ' (function)',
-          disabled: true,
-          href: '#'
-        }]" divider=">" small>
-          <template v-slot:divider>
-            <v-icon small color="grey lighten-2">forward</v-icon>
+        <v-breadcrumbs
+          :items="[{
+                     text: nodes.env,
+                     disabled: true,
+                     href: '#'
+                   },{
+                     text: nodes.dbAlias,
+                     disabled: true,
+                     href: '#'
+                   },
+                   {
+                     text: nodes.procedure_name + ' (function)',
+                     disabled: true,
+                     href: '#'
+                   }]"
+          divider=">"
+          small
+        >
+          <template #divider>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <x-btn outlined tooltip="Save Changes" small @click="applyChanges()" color="primary" icon="save">Save</x-btn>
-      <x-btn outlined tooltip="Delete Procedure" small color="error" @click="deleteProcedure('showDialog')"
-             icon="mdi-delete-outline">
+      <v-spacer />
+      <x-btn
+        outlined
+        tooltip="Save Changes"
+        small
+        color="primary"
+        icon="save"
+        @click="applyChanges()"
+      >
+        Save
+      </x-btn>
+      <x-btn
+        outlined
+        tooltip="Delete Procedure"
+        small
+        color="error"
+        icon="mdi-delete-outline"
+        @click="deleteProcedure('showDialog')"
+      >
         Delete Procedure
         <!--        <v-icon>delete</v-icon>-->
       </x-btn>
@@ -32,48 +53,48 @@
     <monaco-editor
       v-if="procedure.create_procedure != undefined"
       :code.sync="procedure.create_procedure"
-      cssStyle="height:500px"
-    ></monaco-editor>
+      css-style="height:500px"
+    />
     <dlgLabelSubmitCancel
-      type="error"
       v-if="dialogShow"
-      :dialogShow="dialogShow"
-      cssStyle="border:1px solid grey;height:300px"
-      :actionsMtd="deleteProcedure"
+      type="error"
+      :dialog-show="dialogShow"
+      css-style="border:1px solid grey;height:300px"
+      :actions-mtd="deleteProcedure"
       heading="Click Submit to Delete the Procedure"
     />
   </v-container>
 </template>
 
 <script>
-import {mapGetters, mapActions} from "vuex";
+import { mapGetters, mapActions } from 'vuex'
 
-import MonacoEditor from "../../monaco/Monaco";
-import dlgLabelSubmitCancel from "../../utils/dlgLabelSubmitCancel";
+import MonacoEditor from '../../monaco/Monaco'
+import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
 export default {
-  components: {MonacoEditor, dlgLabelSubmitCancel},
-  data() {
+  components: { MonacoEditor, dlgLabelSubmitCancel },
+  data () {
     return {
       procedure: {},
-      newProcedure: this.nodes.newProcedure ? true : false,
-      oldCreateProcedure: "",
+      newProcedure: !!this.nodes.newProcedure,
+      oldCreateProcedure: '',
       dialogShow: false
-    };
+    }
   },
   computed: {
-    ...mapGetters({sqlMgr: "sqlMgr/sqlMgr"})
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
   },
   methods: {
     ...mapActions({
       loadProceduresFromChildTreeNode:
-        "project/loadProceduresFromChildTreeNode",
+        'project/loadProceduresFromChildTreeNode',
       loadProceduresFromParentTreeNode:
-        "project/loadProceduresFromParentTreeNode",
-      removeProcedureTab: "tabs/removeProcedureTab"
+        'project/loadProceduresFromParentTreeNode',
+      removeProcedureTab: 'tabs/removeProcedureTab'
     }),
 
-    async handleKeyDown({metaKey, key, altKey, shiftKey, ctrlKey}) {
+    async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
@@ -83,32 +104,30 @@ export default {
 
       switch ([metaKey, key].join('_')) {
         case 'true_s' :
-          await this.applyChanges();
-          break;
+          await this.applyChanges()
+          break
         case 'true_l' :
           await this.loadProcedure()
-          break;
+          break
         // case 'true_n' :
         //   this.addColumn();
         //   break;
         case 'true_d' :
-          await this.deleteProcedure('showDialog');
-          break;
-
+          await this.deleteProcedure('showDialog')
+          break
       }
     },
 
-    async loadProcedure() {
-
+    async loadProcedure () {
       try {
-        this.$store.commit('notification/MutToggleProgressBar', true);
+        this.$store.commit('notification/MutToggleProgressBar', true)
         if (this.newProcedure) {
           this.procedure = {
             procedure_name: this.nodes.procedure_name,
-            create_procedure: ""
-          };
-          this.$store.commit('notification/MutToggleProgressBar', false);
-          return;
+            create_procedure: ''
+          }
+          this.$store.commit('notification/MutToggleProgressBar', false)
+          return
         }
 
         // // console.log("env: this.env", this.env, this.dbAlias);
@@ -125,137 +144,123 @@ export default {
         //   dbAlias: this.nodes.dbAlias
         // }, 'procedureRead', {procedure_name: this.nodes.procedure_name})
 
-
         const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
-        }, 'procedureRead', {procedure_name: this.nodes.procedure_name}])
-
+        }, 'procedureRead', { procedure_name: this.nodes.procedure_name }])
 
         // console.log("procedure read", result);
-        this.procedure = result.data.list[0];
-        this.oldCreateProcedure = this.procedure.create_procedure;
-
+        this.procedure = result.data.list[0]
+        this.oldCreateProcedure = this.procedure.create_procedure
       } catch (e) {
-        console.log(e);
+        console.log(e)
       } finally {
-        this.$store.commit('notification/MutToggleProgressBar', false);
+        this.$store.commit('notification/MutToggleProgressBar', false)
       }
-
     },
-    async applyChanges() {
-
+    async applyChanges () {
       try {
-
         if (this.newProcedure) {
-
-          let result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             },
-            "procedureCreate",
+            'procedureCreate',
             {
               procedure_name: this.nodes.procedure_name,
               create_procedure: this.procedure.create_procedure
-            }]);
+            }])
 
           await this.loadProceduresFromChildTreeNode({
             _nodes: {
               ...this.nodes
             }
-          });
-          console.log("create procedure result", result);
-          this.newProcedure = false;
-          this.oldCreateProcedure = this.procedure.create_procedure;
-          this.$toast.success('Procedure created successfully').goAway(3000);
+          })
+          console.log('create procedure result', result)
+          this.newProcedure = false
+          this.oldCreateProcedure = this.procedure.create_procedure
+          this.$toast.success('Procedure created successfully').goAway(3000)
         } else {
-
-          let result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             },
-            "procedureUpdate",
+            'procedureUpdate',
             {
               procedure_name: this.nodes.procedure_name,
               create_procedure: this.procedure.create_procedure,
               oldCreateProcedure: this.oldCreateProcedure
-            }]);
+            }])
 
-          this.oldCreateProcedure = this.procedure.create_procedure;
-          console.log("update procedure result", result);
-          this.$toast.success('Procedure updated successfully').goAway(3000);
+          this.oldCreateProcedure = this.procedure.create_procedure
+          console.log('update procedure result', result)
+          this.$toast.success('Procedure updated successfully').goAway(3000)
         }
-
       } catch (e) {
-        this.$toast.error('Saving procedure failed').goAway(3000);
-        throw e;
+        this.$toast.error('Saving procedure failed').goAway(3000)
+        throw e
       }
-
     },
-    async deleteProcedure(action = "") {
-
+    async deleteProcedure (action = '') {
       try {
-        if (action === "showDialog") {
-          this.dialogShow = true;
-        } else if (action === "hideDialog") {
-          this.dialogShow = false;
+        if (action === 'showDialog') {
+          this.dialogShow = true
+        } else if (action === 'hideDialog') {
+          this.dialogShow = false
         } else {
-
-          let result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             },
-            "procedureDelete",
+            'procedureDelete',
             {
               procedure_name: this.nodes.procedure_name,
               create_procedure: this.oldCreateProcedure
-            }]);
+            }])
 
           this.removeProcedureTab({
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
             procedure_name: this.nodes.procedure_name
-          });
+          })
           await this.loadProceduresFromParentTreeNode({
             _nodes: {
               ...this.nodes
             }
-          });
-          this.dialogShow = false;
-          this.$toast.success('Procedure deleted successfully').goAway(3000);
+          })
+          this.dialogShow = false
+          this.$toast.success('Procedure deleted successfully').goAway(3000)
         }
       } catch (e) {
-        this.$toast.error('Deleting procedure failed').goAway(3000);
-        throw e;
+        this.$toast.error('Deleting procedure failed').goAway(3000)
+        throw e
       }
-
-
     }
   },
-  beforeCreated() {
+  beforeCreated () {
   },
-  created() {
-    this.loadProcedure();
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
-  validate({params}) {
-    return true;
-  },
-  head() {
-    return {};
-  },
-  props: ["nodes"],
   watch: {},
-  directives: {}
-};
+  created () {
+    this.loadProcedure()
+  },
+  mounted () {
+  },
+  beforeDestroy () {
+  },
+  destroy () {
+  },
+  directives: {},
+  validate ({ params }) {
+    return true
+  },
+  head () {
+    return {}
+  },
+  props: ['nodes']
+}
 </script>
 
 <style scoped>

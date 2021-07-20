@@ -1,8 +1,6 @@
 #!/bin/sh
 
 FILE="/usr/src/app/package.json"
-#sleep 5
-mkdir /usr/src/data
 
 if [ ! -f "$FILE" ]
 then

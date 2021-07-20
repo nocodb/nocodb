@@ -3578,8 +3578,6 @@ export default class NcMetaMgr {
         return 0;
       })?.[0];
 
-      result.docker.name = '0.10.7'
-
       if (result.docker && result.docker.name !== packageVersion) {
         result.docker.upgrade = true;
       }

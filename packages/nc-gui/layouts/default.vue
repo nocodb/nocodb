@@ -96,6 +96,8 @@
       <v-spacer />
 
       <v-toolbar-items class="hidden-sm-and-down">
+        <release-info class="mr-2 py-0" />
+
         <template v-if="isDashboard">
           <div>
             <x-btn v-if="_isUIAllowed('add-user')" small color="white" btn-class="primary--text" @click="rolesTabAdd">
@@ -544,6 +546,7 @@
 </template>
 
 <script>
+import ReleaseInfo from '@/components/releaseInfo'
 import { mapGetters, mapActions, mapMutations } from 'vuex'
 import 'splitpanes/dist/splitpanes.css'
 import { copyTextToClipboard } from '@/helpers/xutils'
@@ -558,6 +561,7 @@ import Language from '~/components/utils/language'
 
 export default {
   components: {
+    ReleaseInfo,
     Language,
     ChangeEnv,
     XBtn,

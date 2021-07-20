@@ -59,6 +59,22 @@ export default async({ store, redirect, $axios, $toast }) => {
     redirect('/')
   }
   // })
+
+  // fetch latest release info
+  const fetchReleaseInfo = async() => {
+    try {
+      const releaseInfo = await store.dispatch('sqlMgr/ActSqlOp', [null, 'xcRelease'])
+      if (releaseInfo && releaseInfo.docker && releaseInfo.docker.upgrade) {
+        store.commit('app/MutReleaseVersion', releaseInfo.docker.name)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  fetchReleaseInfo().then(() => {
+  })
+  setInterval(fetchReleaseInfo, 10 * 60 * 1000)
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

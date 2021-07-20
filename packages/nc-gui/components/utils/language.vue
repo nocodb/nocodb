@@ -2,11 +2,9 @@
   <div>
     <v-menu bottom offset-y>
       <template #activator="{on}">
-        <v-btn small class="text-capitalize caption font-weight-bold" text v-on="on">
-          <v-icon small class="">
-            mdi-translate
-          </v-icon>
-        </v-btn>
+        <v-icon size="20" class="ml-2" v-on="on">
+          mdi-translate
+        </v-icon>
       </template>
       <v-list dense>
         <v-list-item-group

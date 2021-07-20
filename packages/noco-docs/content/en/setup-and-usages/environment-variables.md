@@ -1,7 +1,7 @@
 ---
 title: 'Environment Variables'
 description: 'Environment Variables'
-position: 3
+position: 2
 category: 'Setup and Usages'
 fullscreen: true
 menuTitle: 'Environment Variables'

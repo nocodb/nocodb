@@ -31,7 +31,7 @@ import NcMetaMgrEE from "./meta/NcMetaMgrEE";
 import {RestApiBuilder} from "./rest/RestApiBuilder";
 import RestAuthCtrlCE from "./rest/RestAuthCtrl";
 import RestAuthCtrlEE from "./rest/RestAuthCtrlEE";
-
+import mkdirp from 'mkdirp';
 const log = debug('nc:app');
 require('dotenv').config();
 
@@ -149,6 +149,9 @@ export default class Noco {
     } = args || {};
 
     log('Initializing app');
+
+    // create tool directory if missing
+    mkdirp(this.config.toolDir);
 
     this.initSentry();
 

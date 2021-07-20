@@ -27,8 +27,8 @@ export default class XcCache {
     return this.instance?.get(key);
   }
 
-  public static set(key, val): boolean {
-    return this.instance?.set(key, val);
+  public static set(key, val, maxAge = 1000 * 60 * 60): boolean {
+    return this.instance?.set(key, val, maxAge);
   }
 
   public static del(key): void {

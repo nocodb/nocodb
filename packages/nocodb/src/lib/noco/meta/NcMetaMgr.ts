@@ -34,17 +34,12 @@ import EmailFactory from "../plugins/adapters/email/EmailFactory";
 import Twilio from "../plugins/adapters/twilio/Twilio";
 import {RestApiBuilder} from "../rest/RestApiBuilder";
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
-
+import {packageVersion} from 'nc-help';
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
-
-let packageInfo: any = {};
-try {
-  packageInfo = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-} catch (_e) {
-}
+const NOCO_RELEASE = 'NOCO_RELEASE';
 
 export default class NcMetaMgr {
   public projectConfigs = {};
@@ -60,7 +55,7 @@ export default class NcMetaMgr {
   protected projectMgr: any;
   // @ts-ignore
   protected isEe = false;
-
+  4
 
   constructor(app: Noco, config: NcConfig, xcMeta: NcMetaIO) {
     this.app = app;
@@ -78,8 +73,6 @@ export default class NcMetaMgr {
 
     await this.pluginMgr?.init();
 
-    await this.initStorage();
-    await this.initEmail();
     await this.initTwilio();
     await this.initCache();
     this.eeVerify();
@@ -223,7 +216,7 @@ export default class NcMetaMgr {
               githubAuthEnabled: !!(process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET),
               oneClick: !!process.env.NC_ONE_CLICK,
               connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
-              version: packageInfo?.version
+              version: packageVersion
             })
           }
           if (this.config.auth.masterKey) {
@@ -964,28 +957,6 @@ export default class NcMetaMgr {
     }
   }
 
-  protected async initStorage(_overwrite = false): Promise<void> {
-    //
-    // const activeStorage = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-    //   active: true,
-    //   category: 'Storage'
-    // });
-    //
-    // this.storageAdapter = StorageFactory.create(activeStorage, overwrite);
-    // await this.storageAdapter?.init();
-  }
-
-  protected async initEmail(_overwrite = false): Promise<void> {
-
-    // const activeStorage = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-    //   active: true,
-    //   category: 'Email'
-    // });
-    //
-    // this.emailAdapter = EmailFactory.create(activeStorage, overwrite);
-    // await this.emailAdapter?.init();
-  }
-
   protected async initTwilio(overwrite = false): Promise<void> {
 
     const activeStorage = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
@@ -1017,6 +988,9 @@ export default class NcMetaMgr {
           break;
         case 'getSharedViewData':
           result = await this.getSharedViewData(req, args);
+          break;
+        case 'xcRelease':
+          result = await this.xcRelease();
           break;
 
         default:
@@ -3475,7 +3449,7 @@ export default class NcMetaMgr {
       Database: config.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]?.client,
       'ProjectOnRootDB': !!config?.prefix,
       'RootDB': this.config?.meta?.db?.client,
-      'PackageVersion': packageInfo?.version
+      'PackageVersion': packageVersion
     }
   }
 
@@ -3574,6 +3548,48 @@ export default class NcMetaMgr {
 
   public get webhookNotificationAdapters() {
     return this.pluginMgr?.webhookNotificationAdapters;
+  }
+
+  private async xcRelease() {
+    const cachedResult = XcCache.get(NOCO_RELEASE);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    const result: any = {
+      current: packageVersion,
+      isDocker: isDocker()
+    };
+    try {
+      const dockerTags = (await axios({
+        url: 'https://registry.hub.docker.com/v1/repositories/nocodb/nocodb/tags'
+      })).data;
+      const verPattern = /^(\d+)\.(\d+)\.(\d+)$/;
+      result.docker = dockerTags.sort((a, b): any => {
+        const m1: any = a.name.match(verPattern);
+        const m2: any = b.name.match(verPattern);
+        if (m1 && m2) {
+          return (m2[1] - m1[1]) || (m2[2] - m1[2]) || (m2[3] - m1[3]);
+        } else if (m1) {
+          return -Infinity
+        } else if (m2) {
+          return Infinity
+        }
+        return 0;
+      })?.[0];
+
+      result.docker.name = '0.10.7'
+
+      if (result.docker && result.docker.name !== packageVersion) {
+        result.docker.upgrade = true;
+      }
+
+      XcCache.set(NOCO_RELEASE, result, 60 * 60 * 1000);
+    } catch (e) {
+      console.log(e);
+    }
+
+    return result;
   }
 
 }

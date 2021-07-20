@@ -151,7 +151,7 @@ export default class Noco {
     log('Initializing app');
 
     // create tool directory if missing
-    mkdirp(this.config.toolDir);
+    mkdirp.sync(this.config.toolDir);
 
     this.initSentry();
 

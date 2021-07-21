@@ -60,7 +60,7 @@
           <v-col cols="12" class="h-100">
             <v-card class="h-100 elevation-0">
               <v-row style="height:100%">
-                <v-col offset="2" :cols="8" class="h-100">
+                <v-col offset="2" :cols="8" class="h-100" style="overflow-y: auto">
                   <!--                  <v-card class="h-100 px-4 py-2">-->
 
                   <!--                <v-row>
@@ -218,6 +218,9 @@
                       New User
                     </x-btn>
                   </div>
+
+                  <feedback-form class="mx-auto mt-6" />
+
                   <!--                  </v-card>-->
                 </v-col>
 
@@ -436,7 +439,8 @@
           <p class="caption grey--text mt-3">
             Looks like you have not configured mailer yet! <br>Please copy above
             invite
-            link and send it to {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.
+            link and send it to
+            {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.
           </p>
 
           <!--          todo: show error message if failed-->
@@ -502,6 +506,7 @@
 </template>
 
 <script>
+import FeedbackForm from '@/components/feedbackForm'
 import SetListCheckboxCell from '@/components/project/spreadsheet/components/editableCell/setListCheckboxCell'
 import { enumColor } from '@/components/project/spreadsheet/helpers/colors'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
@@ -509,7 +514,7 @@ import { isEmail } from '@/helpers'
 
 export default {
   name: 'UserManagement',
-  components: { DlgLabelSubmitCancel, SetListCheckboxCell },
+  components: { FeedbackForm, DlgLabelSubmitCancel, SetListCheckboxCell },
   data: () => ({
     deleteItem: null,
     invite_token: null,

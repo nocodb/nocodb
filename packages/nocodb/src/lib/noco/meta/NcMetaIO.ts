@@ -4,14 +4,14 @@ import Noco from "../Noco";
 const META_TABLES = {
   graphql: ['nc_models', 'nc_resolvers', 'nc_loaders', 'nc_store', 'nc_hooks', 'nc_roles', 'nc_acl', 'nc_api_tokens', 'nc_relations', 'nc_migrations',
     'nc_disabled_models_for_role',
-    'nc_shared_views', 'nc_cron'
+    'nc_shared_views', 'nc_cron', 'nc_audit'
   ],
   grpc: ['nc_models', 'nc_rpc', 'nc_store', 'nc_hooks', 'nc_roles', 'nc_acl', 'nc_relations', 'nc_migrations', 'nc_api_tokens', 'nc_disabled_models_for_role',
     'nc_shared_views', 'nc_cron'],
   rest: [
     'nc_models', 'nc_routes', 'nc_store', 'nc_hooks', 'nc_roles', 'nc_acl', 'nc_relations', 'nc_migrations', 'nc_api_tokens',
     'nc_disabled_models_for_role',
-    'nc_shared_views', 'nc_cron'],
+    'nc_shared_views', 'nc_cron', 'nc_audit'],
 }
 
 export default abstract class NcMetaIO {
@@ -95,7 +95,7 @@ export default abstract class NcMetaIO {
                                    dbAlias: string): Promise<boolean>;
 
   public abstract metaReset(project_id: string,
-                            dbAlias: string,apiType?:string): Promise<void>;
+                            dbAlias: string, apiType?: string): Promise<void>;
 
   public abstract projectCreate(projectName: string,
                                 config: any,
@@ -120,9 +120,9 @@ export default abstract class NcMetaIO {
   public abstract isUserHaveAccessToProject(projectId: string,
                                             userId: any): Promise<boolean>;
 
-  public abstract projectGet(projectName: string, encrypt?:boolean): Promise<any>;
+  public abstract projectGet(projectName: string, encrypt?: boolean): Promise<any>;
 
-  public abstract projectGetById(projectId: string, encrypt?:boolean ): Promise<any>;
+  public abstract projectGetById(projectId: string, encrypt?: boolean): Promise<any>;
 
   public abstract projectDelete(title: string): Promise<any>;
 

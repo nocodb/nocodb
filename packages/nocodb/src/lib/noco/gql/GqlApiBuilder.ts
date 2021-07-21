@@ -66,7 +66,7 @@ class XCType {
 
 export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
-
+  public readonly type='rest';
   private resolvers: { [key: string]: GqlResolver | GqlProcedureResolver, ___procedure?: GqlProcedureResolver };
   private schemas: { [key: string]: any };
   private types: { [key: string]: new(o: any) => any };
@@ -147,6 +147,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   public async onTableCreate(tn: string, args): Promise<void> {
     this.log(`onTableCreate : '%s' `, tn)
+
+    await super.onTableCreate(tn,args);
+
     const columns = {
       [tn]: args?.columns?.map(({altered: _al, ...rest}) => rest)
     }

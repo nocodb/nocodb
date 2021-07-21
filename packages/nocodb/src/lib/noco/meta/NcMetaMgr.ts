@@ -485,7 +485,7 @@ export default class NcMetaMgr {
         });
 
         archive.pipe(output);
-        archive.directory(path.join(this.config.toolDir, 'nc', args.project_id), `xc/${args.project_id}`);
+        archive.directory(path.join(this.config.toolDir, 'nc', args.project_id), `nc/${args.project_id}`);
         // archive.file(path.join(this.config.toolDir, 'config.xc.json'), {name: 'config.xc.json'});
         archive.finalize();
 

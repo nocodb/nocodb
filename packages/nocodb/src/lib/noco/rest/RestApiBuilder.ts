@@ -34,7 +34,7 @@ const log = debug('nc:api:rest');
 const NC_CUSTOM_ROUTE_KEY = '__xc_custom';
 
 export class RestApiBuilder extends BaseApiBuilder<Noco> {
-
+  public readonly type='rest';
   private controllers: { [key: string]: RestCtrlBelongsTo | RestCtrl | RestCtrlHasMany | RestCtrlCustom };
   private procedureCtrl: RestCtrlProcedure;
   private routers: { [key: string]: Router };
@@ -601,6 +601,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   public async onTableCreate(tn: string, args?: any): Promise<void> {
+
+   await super.onTableCreate(tn,args);
 
     const columns = args.columns ? {
       [tn]: args.columns?.map(({altered: _al, ...rest}) => rest)

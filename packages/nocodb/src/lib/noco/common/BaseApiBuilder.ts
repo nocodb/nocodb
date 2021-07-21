@@ -5,10 +5,9 @@ import {Router} from "express";
 import inflection from "inflection";
 import Knex from "knex";
 import {
-  // ModelXcMetaFactory,
   MysqlClient, PgClient, SqlClient,
-  // ExpressXcPolicy,
-  SqlClientFactory
+  SqlClientFactory,
+  Tele
 } from 'nc-help';
 
 import XcDynamicChanges from "../../../interface/XcDynamicChanges";
@@ -56,6 +55,8 @@ const IGNORE_TABLES = [
 
 
 export default abstract class BaseApiBuilder<T extends Noco> implements XcDynamicChanges {
+  public abstract readonly type: string;
+
   public get knex(): XKnex {
     return this.sqlClient?.knex || this.dbDriver;
   }
@@ -167,8 +168,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return this.sqlClient;
   }
 
-  public abstract onTableCreate(tn: string, args?: any): Promise<void>  ;
-
   public abstract onViewCreate(viewName: string): Promise<void>  ;
 
   public abstract onFunctionCreate(functionName: string): Promise<void>  ;
@@ -210,6 +209,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
   public async onRelationCreate(tnp: string, tnc: string, args?: any): Promise<void> {
+
     const {
       childColumn,
       onDelete,
@@ -246,6 +246,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       })
     }
 
+    Tele.emit('evt', {evt_type: 'relation:created'})
   }
 
   public async onRelationDelete(tnp: string, tnc: string, args: any): Promise<void> {
@@ -975,7 +976,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       ...ctx,
       _tn: this.metas[ctx.tn]._tn,
       _ctn: this.metas[tnc]._tn,
-      ctn:tnc,
+      ctn: tnc,
       project_id: this.projectId
     };
   }
@@ -1751,6 +1752,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       }
     }
     await this.loadXcAcl()
+  }
+
+  public async onTableCreate(_tn: string, _args?: any) {
+    Tele.emit('evt', {evt_type: 'table:created'})
   }
 }
 

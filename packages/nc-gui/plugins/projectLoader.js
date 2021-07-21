@@ -66,6 +66,8 @@ export default async({ store, redirect, $axios, $toast }) => {
       const releaseInfo = await store.dispatch('sqlMgr/ActSqlOp', [null, 'xcRelease'])
       if (releaseInfo && releaseInfo.docker && releaseInfo.docker.upgrade) {
         store.commit('app/MutReleaseVersion', releaseInfo.docker.name)
+      } else {
+        store.commit('app/MutReleaseVersion', null)
       }
     } catch (e) {
       // ignore

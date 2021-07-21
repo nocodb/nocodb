@@ -95,6 +95,7 @@
       <component
         :is="form"
         v-if="selectedChild"
+        ref="expandedForm"
         v-model="selectedChild"
         :db-alias="nodes.dbAlias"
         :has-many="childMeta.hasMany"
@@ -102,7 +103,6 @@
         :table="childMeta.tn"
         :old-row="{...selectedChild}"
         :meta="childMeta"
-        ref="expandedForm"
         :sql-ui="sqlUi"
         :primary-value-column="childPrimaryCol"
         :api="childApi"

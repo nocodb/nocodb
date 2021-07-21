@@ -171,17 +171,16 @@
 
             <br>
 
-            <v-row justify="center">
-              <p class="text-right grey--text font-weight-light caption">
+            <div class="text-center">
+              <p class="grey--text font-weight-light caption">
                 By signing up, you agree to
                 <span class="grey--text pointer" @click="openUrl('https://nocodb.com/terms-of-service')"><u>Terms of service</u></span>
-              </p> &nbsp;
-
+              </p>
               <div class="d-flex align-center mb-4 justify-center">
                 <v-checkbox v-model="subscribe" color="grey" dense hide-details class="mt-0  pt-0" />
                 <label class="caption grey--text font-weight-light">Subscribe to our weekly newsletter</label>
               </div>
-            </v-row>
+            </div>
 
             <!--<br>-->
             <!--<h3>OR</h3>-->

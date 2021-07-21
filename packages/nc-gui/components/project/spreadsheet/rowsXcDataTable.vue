@@ -821,6 +821,12 @@ export default {
           if (!this.api) {
             return
           }
+
+          // return if there is no change
+          if (oldRow[column._cn] === rowObj[column._cn]) {
+            return
+          }
+
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
           await this.api.update(id, {
             [column._cn]: rowObj[column._cn]

@@ -62,47 +62,37 @@ Simple installation - takes about three minutes!
   </code-block>
 </code-group>          
 
-<br>
-<br>
-
 ## Local Setup
 
-If you want to modify the source code, there are two scenarios. You can either 
+If you want to modify the source code, 
 
-- change backend only or 
-- change both frontend and backend separately
-
-Even though the package ``nocodb/packages/nocodb`` is a backend project, you can still visit the dashboard as it includes ``nc-lib-gui``. 
+- Start the backend locally
 
 ```bash
 cd packages/nocodb
 npm install
 npm run watch:run
-# open localhost:8080/dashboard in browser
 ```
 
-As ``nc-lib-gui`` is hosted in npm registry, for local development on frontend part, you should run ``nc-gui`` separately. 
+- Start the frontend locally
 
 ```bash
 cd packages/nc-gui
 npm install
 npm run dev
-# open localhost:3000/dashboard in browser
 ```
 
-If you wish to combine the frontend and backend together in your local devlopment environment, you may use ``packages/nc-lib-gui`` as a local depenedency by updating the ``packages/nocodb/package.json`` to 
+- Open ``localhost:3000/dashboard`` in browser
 
-```json
-"nc-lib-gui": "file:../nc-lib-gui"
-```
-
-In this case, whenever there is any changes made in frontend, you need to run ``npm run build:copy`` under ``packages/nc-gui/``.
+<alert>
+  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
+   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
+</alert>
 
 ## Production Setup 
 
 NocoDB requires a database to store metadata of spreadsheets views and external databases. 
 And connection params for this database can be specified in `NC_DB` environment variable. 
-
 
 ### Docker 
 

@@ -21,7 +21,7 @@ export default {
   computed: {
     localState: {
       get() {
-        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : (this.value && new Date(this.value))
+        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ').replace(/\s\d{2}:\d{2}:[\d:.]+z?$/i, '') : (this.value && new Date(this.value))
       },
       set(val) {
         this.$emit('input', val && new Date(val).toJSON().slice(0, 10))

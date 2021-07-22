@@ -15,7 +15,7 @@
 
       <template v-for="(db,i) in dbAliasList">
         <v-tab :key="db.meta.dbAlias + i" :href="'#' + db.meta.dbAlias" class="text-capitalize caption">
-          {{ db.connection.database }} {{ db.meta.dbAlias }} Metadata
+          {{ db.connection.database | extractDbName }} {{ db.meta.dbAlias }} Metadata
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 't' + i" :value=" db.meta.dbAlias">
           <v-tabs color="x-active" height="28">
@@ -57,7 +57,7 @@
         </v-tab-item>
 
         <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption">
-          {{ db.connection.database }} UI Access Control
+          {{ db.connection.database | extractDbName }} UI Access Control
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
           <v-tabs color="x-active" height="28">
@@ -196,6 +196,11 @@ export default {
       }
       res.sort((a, b) => getPriority(b) - getPriority(a))
       return res
+    }
+  },
+  filters: {
+    extractDbName(name) {
+      return (name || '').split('/').pop()
     }
   }
 }

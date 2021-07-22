@@ -50,3 +50,14 @@ commit automatically with `git commit -s`.
 You can also use git [aliases](https://git-scm.com/book/tr/v2/Git-Basics-Git-Aliases)
 like `git config --global alias.ci 'commit -s'`. Now you can commit with
 `git ci` and the commit will be signed.
+
+
+## How to sign your previous work
+
+In case you forget to sign your work, you can do the following:
+
+```bash
+# sign the last N commits - replace it before executing the command
+git rebase HEAD~N --signoff
+git push -f
+```

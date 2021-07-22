@@ -22,7 +22,15 @@ Enter your work email and your password.
 
 ![image](https://user-images.githubusercontent.com/35857179/126597144-0343b5ca-c7ca-47a4-926d-4e8df2f8c161.png)
 
-If you start your application without specifying ``NC_DB``. A local SQLite will be created in root folder. Your data will be stored there. If you are using Docker, it is recommended to mount ``/usr/src/data`` folder for persistence (since ``v0.10.6``), otherwise your data will be lost after recreating the container.
+If you start your application without specifying ``NC_DB``. A local SQLite will be created in root folder. Your data will be stored there. 
+
+If you are using Docker, it is recommended to mount ``/usr/app/data/`` for persistent volume (since ``v0.10.6``), otherwise your data will be lost after recreating the container.
+
+Example:
+
+```
+docker run -d -p 8080:8080 --name foo -v /local/path:/usr/app/data/ nocodb/nocodb
+```
 
 ## Initialize your first project 
 

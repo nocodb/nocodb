@@ -1,8 +1,8 @@
 ---
 title: 'Setup and Usages'
 description: 'Simple installation - takes about three minutes!'
-position: 1
-category: 'Setup and Usages'
+position: 2
+category: 'Getting started'
 menuTitle: 'Installation'
 link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark
 ---

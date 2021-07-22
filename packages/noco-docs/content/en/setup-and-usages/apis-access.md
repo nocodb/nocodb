@@ -1,7 +1,7 @@
 ---
 title: 'APIs Access'
 description: 'APIs Access'
-position: 1
+position: 2
 category: 'Setup and Usages'
 menuTitle: 'APIs Access'
 ---

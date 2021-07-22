@@ -2,7 +2,7 @@
 title: 'Demos'
 description: 'Demos'
 position: 4
-category: 'Setup and Usages'
+category: 'Getting started'
 fullscreen: true
 menuTitle: 'Demos'
 ---

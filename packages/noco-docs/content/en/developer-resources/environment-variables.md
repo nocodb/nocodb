@@ -1,8 +1,8 @@
 ---
 title: 'Environment Variables'
 description: 'Environment Variables'
-position: 2
-category: 'Setup and Usages'
+position: 3
+category: 'Developer Resources'
 fullscreen: true
 menuTitle: 'Environment Variables'
 ---

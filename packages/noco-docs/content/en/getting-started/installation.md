@@ -1,5 +1,5 @@
 ---
-title: 'Setup and Usages'
+title: 'Installation'
 description: 'Simple installation - takes about three minutes!'
 position: 2
 category: 'Getting started'

@@ -1,7 +1,7 @@
 ---
 title: 'Installation'
 description: 'Simple installation - takes about three minutes!'
-position: 2
+position: 1
 category: 'Getting started'
 menuTitle: 'Installation'
 link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark

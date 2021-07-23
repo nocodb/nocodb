@@ -1,8 +1,8 @@
 ---
 title: 'FAQs'
 description: 'FAQs'
-position: 3
-category: 'Getting started'
+position: 8
+category: 'FAQ'
 fullscreen: true
 menuTitle: 'FAQs'
 ---

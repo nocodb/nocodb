@@ -1,9 +1,9 @@
 ---
 title: 'Table & Columns'
-description: 'Table and Columns Creation'
+description: 'Table and Columns'
 position: 11
 category: 'Setup and Usages'
-menuTitle: 'Table and Columns Creation'
+menuTitle: 'Table and Columns'
 ---
 
 
@@ -51,20 +51,39 @@ For adding new values to the table we need new rows, new rows can be added in tw
 ### Using Form
 
 - Click the `+` icon in the toolbar of the table tab.
-
 	![Pasted_Image_23_07_21__5_40_PM](https://user-images.githubusercontent.com/61551451/126783882-abd7e1dc-f13f-49bf-b44d-e66a06aacf5d.png)
--  Now it will open a modal Form to enter the values, provide the values and press the save button.
-
-
-![Pasted_Image_23_07_21__6_22_PM](https://user-images.githubusercontent.com/61551451/126784347-b82f9dfd-4c6d-4d65-be07-80e051ff19de.png)
-
-
-
-
-
+- Now it will open a modal Form to enter the values, provide the values and press the save button.
+    ![Pasted_Image_23_07_21__6_22_PM](https://user-images.githubusercontent.com/61551451/126784347-b82f9dfd-4c6d-4d65-be07-80e051ff19de.png)
+- After saving it will be there on your table.
+    ![image](https://user-images.githubusercontent.com/61551451/126785340-e9b80ad0-ba06-4a22-8a01-876d829c9673.png)
 
 
 ### Using Table Row
 
 
+- Click the bottom row of the table which contains `+` icon at the beginning.
+	![Pasted_Image_23_07_21__6_36_PM](https://user-images.githubusercontent.com/61551451/126786285-c5b4a614-ee3f-4ff9-8783-064f81b8b83d.png)
+- Now it will add a new row in the table and you can start editing by any of the following methods
+    - Double click
+    - Click and start typing (this way it will clear the previous content)
+    - Click and press enter to start editing
+- And it will automatically save on blur event or if inactive.
 
+  
+
+## Table Deletion
+
+The table can be deleted using the `delete` icon present in the toolbar within the table tab.
+
+![Pasted_Image_23_07_21__6_45_PM](https://user-images.githubusercontent.com/61551451/126787235-6751cadf-3e8a-446d-9db8-0d6ec330b243.png)
+
+## Column Deletion
+
+Column deletion can be done by using the `delete` option from the column header menu.
+
+![Pasted_Image_23_07_21__6_49_PM](https://user-images.githubusercontent.com/61551451/126787679-562aaa22-14b3-4ff8-8057-b8219e057110.png)
+
+
+## Row Deletion
+
+Right-click on anywhere in the row and then from the context menu select `Delete Row` option. Bulk delete is also possible by selecting multiple rows by using the checkbox in first column and then `Delete Selected Rows` options from the context menu.

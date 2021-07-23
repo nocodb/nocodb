@@ -73,6 +73,7 @@ export default class NcConfigFactory implements NcConfig {
 
     if (process.env.NC_PUBLIC_URL) {
       config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
 
@@ -156,6 +157,7 @@ export default class NcConfigFactory implements NcConfig {
 
     if (process.env.NC_PUBLIC_URL) {
       config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
 
@@ -382,6 +384,7 @@ export default class NcConfigFactory implements NcConfig {
 
     if (process.env.NC_PUBLIC_URL) {
       config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
 
@@ -491,6 +494,7 @@ export default class NcConfigFactory implements NcConfig {
 
     if (process.env.NC_PUBLIC_URL) {
       config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
 
@@ -539,6 +543,7 @@ export default class NcConfigFactory implements NcConfig {
   public queriesFolder: string | string[] = '';
   public seedsFolder: string | string[];
   public title: string;
+  public publicUrl: string;
   public projectType;
   public meta = {
     "db": {

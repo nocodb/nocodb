@@ -177,13 +177,14 @@ export default class Noco {
     /******************* Middlewares : start *******************/
     this.router.use((req: any, _res, next) => {
       req.nc = this.requestContext;
-      req.ncSiteUrl = this.config?.envs?.[this.env]?.publicUrl || (req.protocol + '://' + req.get('host'));
+      req.ncSiteUrl = this.config?.envs?.[this.env]?.publicUrl || this.config?.publicUrl  || (req.protocol + '://' + req.get('host'));
       req.ncFullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
       next();
     });
 
 
     // to get ip addresses
+
     this.router.use(requestIp.mw())
     this.router.use(cookieParser());
     this.router.use(bodyParser.json({

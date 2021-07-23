@@ -218,6 +218,7 @@ export interface NcConfig {
   dashboardPath?: string;
 
   prefix?: string;
+  publicUrl?: string;
 
 }
 

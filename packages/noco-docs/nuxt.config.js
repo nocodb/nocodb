@@ -6,7 +6,6 @@ export default theme({
   },
   css: [
     "./assets/main.css"
-  ], content: {
-    liveEdit: false
-  }
+  ]
 })
+

@@ -14,6 +14,8 @@ NocoDB works by connecting to any relational database and transforming them into
 
 Also NocoDB's app store allows you to build business workflows on views with combination of Slack, Microsoft Teams, Discord, Twilio, Whatsapp, Email & any 3rd party APIs too. Plus NocoDB provides programmatic access to APIs so that you can build integrations with Zapier / Integromat and custom applications too.
 
+<img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
+
 ## Features
 
 ### Rich Spreadsheet Interface

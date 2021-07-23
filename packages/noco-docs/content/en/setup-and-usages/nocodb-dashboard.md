@@ -1,7 +1,7 @@
 ---
 title: 'NocoDB Dashboard'
 description: 'NocoDB Dashboard'
-position: 1
+position: 4
 category: 'Setup and Usages'
 menuTitle: 'NocoDB Dashboard'
 ---

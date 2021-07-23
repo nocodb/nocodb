@@ -631,7 +631,9 @@ export class SqliteUi {
   }
 
   static isValidTimestamp(key, value) {
-    if (typeof value !== 'number') { return false }
+    if (typeof value !== 'number') {
+      return false
+    }
     return new Date(value).getTime() > 0 && /(?:_|(?=A))[aA]t$/.test(key)
   }
 
@@ -653,7 +655,9 @@ export class SqliteUi {
   }
 
   static colPropAuDisabled(col) {
-    if (col.altered !== 1) { return true }
+    if (col.altered !== 1) {
+      return true
+    }
 
     switch (col.dt) {
       case 'date':
@@ -866,7 +870,8 @@ export class SqliteUi {
         ]
 
       case 'Checkbox':
-        return ['int',
+        return [
+          'int',
           'integer',
           'tinyint',
           'smallint',
@@ -1038,8 +1043,8 @@ export class SqliteUi {
 
       case 'Date':
         return [
-          'date'
-
+          'date',
+          'varchar'
         ]
 
       case 'DateTime':

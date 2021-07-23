@@ -1,7 +1,7 @@
 ---
 title: 'FAQs'
 description: 'FAQs'
-position: 8
+position: 100
 category: 'FAQ'
 fullscreen: true
 menuTitle: 'FAQs'

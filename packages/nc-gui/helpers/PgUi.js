@@ -1581,7 +1581,7 @@ export class PgUi {
 
         break
       case 'Year':
-        colProp.dt = 'year'
+        colProp.dt = 'int'
         break
       case 'Time':
         colProp.dt = 'time'

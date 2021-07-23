@@ -1,6 +1,6 @@
 ---
 title: 'REST APIs'
-position: 6
+position: 20
 category: 'Developer Resources'
 menuTitle: 'REST APIs'
 ---

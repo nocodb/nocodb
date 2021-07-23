@@ -29,7 +29,7 @@ After the successful submission, the table will create and open as a new tab.
 
 Adding a column is simple, you have to click the `+` icon on the right corner of the table.
 
-![Step 9](../../static/s3/9.png)![Pasted_Image_23_07_21__4_39_PM](https://user-images.githubusercontent.com/61551451/126773798-4470d632-69e0-4f5f-803b-e3597715fe22.png)
+![Pasted_Image_23_07_21__4_39_PM](https://user-images.githubusercontent.com/61551451/126773798-4470d632-69e0-4f5f-803b-e3597715fe22.png)
 
 After the click, it will show a menu and you can enter the column name and choose the column type ([Abstract type](./abstract-types)) from the column type. And finally, you can click the save button to create the new column.
 

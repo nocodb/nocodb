@@ -105,6 +105,20 @@
 
               <template v-if="newColumn.uidt !== 'Formula'">
                 <v-col
+                  v-if="isLookup"
+                  cols="12"
+                >
+                  <lookup-options
+                    ref="lookup"
+                    :column="newColumn"
+                    :nodes="nodes"
+                    :meta="meta"
+                    :is-s-q-lite="isSQLite"
+                    :alias="newColumn.cn"
+                    :is-m-s-s-q-l="isMSSQL"
+                  />
+                </v-col>
+                <v-col
                   v-if="isLinkToAnotherRecord"
                   cols="12"
                 >
@@ -140,7 +154,7 @@
                   />
                 </v-col>
 
-                <template v-if="newColumn.cn && newColumn.uidt && !isLinkToAnotherRecord">
+                <template v-if="newColumn.cn && newColumn.uidt && !isLinkToAnotherRecord && !isLookup">
                   <v-col cols="12">
                     <v-container fluid class="wrapper">
                       <v-row>
@@ -352,6 +366,7 @@
 </template>
 
 <script>
+import LookupOptions from '@/components/project/spreadsheet/components/editColumn/lookupOptions'
 import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 import CustomSelectOptions from '@/components/project/spreadsheet/components/editColumn/customSelectOptions'
 import RelationOptions from '@/components/project/spreadsheet/components/editColumn/relationOptions'
@@ -362,7 +377,7 @@ import { MssqlUi } from '@/helpers/MssqlUi'
 
 export default {
   name: 'EditColumn',
-  components: { LinkedToAnotherOptions, DlgLabelSubmitCancel, RelationOptions, CustomSelectOptions },
+  components: { LookupOptions, LinkedToAnotherOptions, DlgLabelSubmitCancel, RelationOptions, CustomSelectOptions },
   props: {
     nodes: Object,
     sqlUi: [Object, Function],
@@ -403,6 +418,9 @@ export default {
     isLinkToAnotherRecord() {
       return this.newColumn && this.newColumn.uidt === 'LinkToAnotherRecord'
     },
+    isLookup() {
+      return this.newColumn && this.newColumn.uidt === 'Lookup'
+    },
     relation() {
       return this.meta && this.column && this.meta.belongsTo && this.meta.belongsTo.find(bt => bt.cn === this.column.cn)
     }
@@ -429,7 +447,7 @@ export default {
       })
     },
     genColumnData() {
-      this.newColumn = this.column ? { ...this.column } : this.sqlUi.getNewColumn(this.meta.columns.length + 1)
+      this.newColumn = this.column ? { ...this.column } : this.sqlUi.getNewColumn([...this.meta.columns, ...(this.meta.v || [])].length + 1)
       this.newColumn.cno = this.newColumn.cn
     },
     /*
@@ -463,6 +481,10 @@ export default {
         if (this.isLinkToAnotherRecord && this.$refs.relation) {
           await this.$refs.relation.saveRelation()
           return this.$emit('saved')
+        }
+        if (this.isLookup && this.$refs.lookup) {
+          await this.$refs.lookup.save()
+          return this.$emit('saved', this.newColumn.cn)
         }
 
         this.newColumn.tn = this.nodes.tn
@@ -584,6 +606,10 @@ export default {
 <style scoped lang="scss">
 
 ::v-deep {
+  .wrapper {
+    border: solid 2px #7f828b33;
+    border-radius: 4px;
+  }
 
   .v-input__slot {
     min-height: auto !important;

@@ -681,7 +681,8 @@ export default {
         }
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
-          query_params: queryParams
+          query_params: queryParams,
+          tn: this.meta.tn
         })
       } catch (e) {
         // this.$toast.error(e.message).goAway(3000);
@@ -918,15 +919,8 @@ export default {
           break
       }
     },
-    async loadMeta(updateShowFields = true) {
+    async loadMeta(updateShowFields = true, col) {
       this.loadingMeta = true
-      // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-      //   env: this.nodes.env,
-      //   dbAlias: this.nodes.dbAlias
-      // }, 'tableXcModelGet', {
-      //   tn: this.table
-      // }]);
-      // this.meta = JSON.parse(tableMeta.meta);
       const tableMeta = await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
@@ -938,6 +932,9 @@ export default {
         try {
           const qp = JSON.parse(tableMeta.query_params)
           this.showFields = qp.showFields ? qp.showFields : this.showFields
+          if (col) {
+            this.$set(this.showFields, col, true)
+          }
         } catch (e) {
         }
       }
@@ -983,8 +980,8 @@ export default {
       this.selectedExpandRowIndex = row
       this.selectedExpandRowMeta = rowMeta
     },
-    async onNewColCreation() {
-      await this.loadMeta(true)
+    async onNewColCreation(col) {
+      await this.loadMeta(true, col)
       this.$nextTick(async() => {
         await this.loadTableData()
         // this.mapFieldsAndShowFields();

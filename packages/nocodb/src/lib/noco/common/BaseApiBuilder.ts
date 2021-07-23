@@ -470,8 +470,18 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                   }
                 }
               }
+
+
+              // update lookup columns
+              this.metas[bt.rtn].v?.forEach(v => {
+                if (v.tn === tn && v.cn === column.cno) {
+                  relationTableMetas.add(this.metas[bt.rtn])
+                  v.cn = column.cn;
+                }
+              })
             }
           }
+
 
           // update column name in has many
           if (newMeta.hasMany?.length) {
@@ -489,6 +499,44 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                   }
                 }
               }
+
+              // update lookup columns
+              this.metas[hm.tn].v?.forEach(v => {
+                if (v.tn === tn && v.cn === column.cno) {
+                  relationTableMetas.add(this.metas[hm.tn])
+                  v.cn = column.cn;
+                }
+              })
+
+            }
+          }
+
+          // update column name in many to many
+          if (newMeta.manyToMany?.length) {
+            for (const mm of newMeta.manyToMany) {
+              if (mm.cn === column.cno) {
+                mm.cn = column.cn;
+                mm._cn = column._cn;
+
+                // update column name in child table metadata
+                relationTableMetas.add(this.metas[mm.rtn])
+                for (const cMm of this.metas[mm.rtn]?.manyToMany) {
+                  if (cMm.rcn === column.cno && cMm.rtn === tn) {
+                    cMm.rcn = column.cn;
+                    cMm._rcn = column._cn;
+                  }
+                }
+              }
+
+
+              // update lookup columns
+              this.metas[mm.rtn].v?.forEach(v => {
+                if (v.tn === tn && v.cn === column.cno) {
+                  relationTableMetas.add(this.metas[mm.tn])
+                  v.cn = column.cn;
+                }
+              })
+
             }
           }
         }
@@ -605,6 +653,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       }, {
         title: relMeta.tn
       });
+      this.models[relMeta.tn] = this.getBaseModel(relMeta);
+      XcCache.del([this.projectId, this.dbAlias, 'table', relMeta.tn].join('::'));
     }
   }
 
@@ -1756,6 +1806,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   public async onTableCreate(_tn: string, _args?: any) {
     Tele.emit('evt', {evt_type: 'table:created'})
+  }
+
+  public onVirtualTableUpdate(args: any) {
+    const meta =  XcCache.get([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
+    if(meta && meta.id === args.id) {
+      XcCache.del([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
+      // todo: update meta and model
+    }
   }
 }
 

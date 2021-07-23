@@ -1101,7 +1101,7 @@ class BaseModelSql extends BaseModel {
    * @private
    */
   async _getChildListInParent({parent, child}, rest = {}, index) {
-    const {where, limit, offset, sort, ...restArgs} = this._getChildListArgs(rest, index, child);
+    const {where, limit, offset, sort, ...restArgs} = this._getChildListArgs(rest, index, child, 'h');
     let {fields} = restArgs;
     const {cn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
     const _cn = this.dbModels[child].columnToAlias?.[cn];
@@ -1155,7 +1155,7 @@ class BaseModelSql extends BaseModel {
   }
 
   public async _getGroupedManyToManyList({rest = {}, index = 0, child, parentIds}) {
-    const {where, limit, offset, sort, ...restArgs} = this._getChildListArgs(rest, index, child);
+    const {where, limit, offset, sort, ...restArgs} = this._getChildListArgs(rest, index, child, 'm');
     let {fields} = restArgs;
     const {tn, cn, vtn, vcn, vrcn, rtn, rcn} = this.manyToManyRelations.find(({rtn}) => rtn === child) || {};
     // @ts-ignore
@@ -1445,7 +1445,7 @@ class BaseModelSql extends BaseModel {
    * @private
    */
   async _belongsTo({parent, rcn, parentIds, childs, cn, ...rest}, index) {
-    let {fields} = this._getChildListArgs(rest, index, parent);
+    let {fields} = this._getChildListArgs(rest, index, parent, 'b');
     if (fields !== '*' && fields.split(',').indexOf(rcn) === -1) {
       fields += ',' + rcn;
     }
@@ -1642,18 +1642,21 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} consisting of fields*,where*,limit*,offset*,sort*
    * @private
    */
-  _getChildListArgs(args: any, index?: number, child?: string) {
+  _getChildListArgs(args: any, index?: number, child?: string, prefix = '') {
     index++;
     const obj: XcFilter = {};
-    obj.where = args[`where${index}`] || args[`w${index}`] || '';
-    obj.limit = Math.max(Math.min(args[`limit${index}`] || args[`l${index}`] || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
-    obj.offset = args[`offset${index}`] || args[`o${index}`] || 0;
-    obj.fields = args[`fields${index}`] || args[`f${index}`] || this.getPKandPV(child);
-    obj.sort = args[`sort${index}`] || args[`s${index}`];
+    obj.where = args[`${prefix}where${index}`] || args[`w${index}`] || '';
+    obj.limit = Math.max(Math.min(args[`${prefix}limit${index}`] || args[`${prefix}l${index}`] || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
+    obj.offset = args[`${prefix}offset${index}`] || args[`${prefix}o${index}`] || 0;
+    obj.fields = args[`${prefix}fields${index}`] || args[`f${index}`];
+    obj.sort = args[`${prefix}sort${index}`] || args[`${prefix}s${index}`];
+
+    obj.fields = obj.fields ? `${obj.fields},${this.getTablePKandPVFields(child)}` : this.getTablePKandPVFields(child);
+
     return obj;
   }
 
-  private getPKandPV(child: string) {
+  private getTablePKandPVFields(child: string) {
     return child ?
       (this.dbModels[child]?.columns?.filter(col => col.pk || col.pv).map(col => col.cn) || ['*']).join(',')
       : '*';

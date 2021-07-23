@@ -5,10 +5,10 @@
     small
     text-color="textColor"
     :color="isDark ? '' : 'primary lighten-5'"
-    @click="active && $emit('edit',item)"
+    @click="!readonly && active && $emit('edit',item)"
   >
     <span class="name" :title="value">{{ value }}</span>
-    <div v-show="active" class="mr-n1 ml-2">
+    <div v-show="active" v-if="!readonly" class="mr-n1 ml-2">
       <x-icon
         :color="['text' , 'textLight']"
         x-small
@@ -27,7 +27,8 @@ export default {
   props: {
     value: [String, Number, Boolean],
     active: Boolean,
-    item: Object
+    item: Object,
+    readonly: Boolean
   }
 }
 </script>

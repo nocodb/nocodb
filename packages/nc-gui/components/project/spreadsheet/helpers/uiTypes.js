@@ -13,6 +13,10 @@ const uiTypes = [
     icon: 'mdi-link-variant'
   },
   {
+    name: 'Lookup',
+    icon: 'mdi-link-variant'
+  },
+  {
     name: 'SingleLineText',
     icon: 'mdi-format-color-text'
   },

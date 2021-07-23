@@ -49,12 +49,27 @@
         :breadcrumbs="breadcrumbs"
         v-on="$listeners"
       />
+      <lookup-cell
+        v-else-if="lookup"
+        :disabled-columns="disabledColumns"
+        :active="active"
+        :row="row"
+        :meta="meta"
+        :nodes="nodes"
+        :api="api"
+        :sql-ui="sqlUi"
+        :is-new="isNew"
+        :is-form="isForm"
+        :column="column"
+        v-on="$listeners "
+      />
     </v-lazy>
   </div>
 </template>
 
 <script>
 import hasManyCell from '@/components/project/spreadsheet/components/virtualCell/hasManyCell'
+import LookupCell from '@/components/project/spreadsheet/components/virtualCell/lookupCell'
 import manyToManyCell from '@/components/project/spreadsheet/components/virtualCell/manyToManyCell'
 import belongsToCell from '@/components/project/spreadsheet/components/virtualCell/belogsToCell'
 
@@ -63,6 +78,7 @@ import belongsToCell from '@/components/project/spreadsheet/components/virtualCe
 export default {
   name: 'VirtualCell',
   components: {
+    LookupCell,
     belongsToCell,
     manyToManyCell,
     hasManyCell
@@ -100,6 +116,9 @@ export default {
     },
     mm() {
       return this.column && this.column.mm
+    },
+    lookup() {
+      return this.column && this.column.lookup
     }
   },
   methods: {

@@ -146,6 +146,10 @@ export default class NcProjectBuilder {
 
         break;
 
+      case 'xcVirtualTableUpdate':
+        await curBuilder.onVirtualTableUpdate(data.req.args);
+        break;
+
 
       case 'tableCreate':
         await curBuilder.onTableCreate(data.req.args.tn, data.req.args);

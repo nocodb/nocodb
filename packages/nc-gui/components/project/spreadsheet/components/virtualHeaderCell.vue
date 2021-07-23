@@ -11,6 +11,9 @@
         <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
           mdi-table-network
         </v-icon>
+        <v-icon v-else-if="column.lookup" color="pink" x-small class="mr-1" v-on="on">
+          mdi-table-network
+        </v-icon>
 
         <span class="name  flex-grow-1" :title="column._cn" v-on="on">{{ column._cn }}</span>
 
@@ -27,7 +30,7 @@
         </v-icon>
       </template>
       <v-list dense>
-        <v-list-item dense @click="editColumnMenu = true">
+        <v-list-item v-if="!column.lookup" dense @click="editColumnMenu = true">
           <x-icon small class="mr-1" color="primary">
             mdi-pencil
           </x-icon>
@@ -108,37 +111,69 @@ export default {
   }),
   computed: {
     type() {
-      if (this.column.bt) { return 'bt' }
-      if (this.column.hm) { return 'hm' }
-      if (this.column.mm) { return 'mm' }
+      if (this.column.bt) {
+        return 'bt'
+      }
+      if (this.column.hm) {
+        return 'hm'
+      }
+      if (this.column.mm) {
+        return 'mm'
+      }
       return ''
     },
     childColumn() {
-      if (this.column.bt) { return this.column.bt.cn }
-      if (this.column.hm) { return this.column.hm.cn }
-      if (this.column.mm) { return this.column.mm.rcn }
+      if (this.column.bt) {
+        return this.column.bt.cn
+      }
+      if (this.column.hm) {
+        return this.column.hm.cn
+      }
+      if (this.column.mm) {
+        return this.column.mm.rcn
+      }
       return ''
     },
     childTable() {
-      if (this.column.bt) { return this.column.bt.tn }
-      if (this.column.hm) { return this.column.hm.tn }
-      if (this.column.mm) { return this.column.mm.rtn }
+      if (this.column.bt) {
+        return this.column.bt.tn
+      }
+      if (this.column.hm) {
+        return this.column.hm.tn
+      }
+      if (this.column.mm) {
+        return this.column.mm.rtn
+      }
       return ''
     },
     parentTable() {
-      if (this.column.bt) { return this.column.bt.rtn }
-      if (this.column.hm) { return this.column.hm.rtn }
-      if (this.column.mm) { return this.column.mm.tn }
+      if (this.column.bt) {
+        return this.column.bt.rtn
+      }
+      if (this.column.hm) {
+        return this.column.hm.rtn
+      }
+      if (this.column.mm) {
+        return this.column.mm.tn
+      }
       return ''
     },
     parentColumn() {
-      if (this.column.bt) { return this.column.bt.rcn }
-      if (this.column.hm) { return this.column.hm.rcn }
-      if (this.column.mm) { return this.column.mm.cn }
+      if (this.column.bt) {
+        return this.column.bt.rcn
+      }
+      if (this.column.hm) {
+        return this.column.hm.rcn
+      }
+      if (this.column.mm) {
+        return this.column.mm.cn
+      }
       return ''
     },
     tooltipMsg() {
-      if (!this.column) { return '' }
+      if (!this.column) {
+        return ''
+      }
       if (this.column.hm) {
         return `'${this.column.hm._rtn}' has many '${this.column.hm._tn}'`
       } else if (this.column.mm) {
@@ -150,9 +185,8 @@ export default {
     }
   },
   methods: {
-    async deleteColumn() {
+    async deleteRelation() {
       try {
-        // const column = { ...this.column, cno: this.column.cn }
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
@@ -168,6 +202,42 @@ export default {
         this.columnDeleteDialog = false
       } catch (e) {
         console.log(e)
+      }
+    },
+    async deleteLookupColumn() {
+      try {
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.nodes.dbAlias,
+          env: this.nodes.env,
+          tn: this.meta.tn,
+          force: true
+        })
+        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
+
+        // remove lookup from virtual columns
+        meta.v = meta.v.filter(cl => cl.cn !== this.column.cn ||
+          cl.type !== this.column.type ||
+          cl._cn !== this.column._cn ||
+          cl.tn !== this.column.tn)
+
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcModelSet', {
+          tn: this.nodes.tn,
+          meta
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    async deleteColumn() {
+      if (this.column.lookup) {
+        await this.deleteLookupColumn()
+      } else {
+        await this.deleteRelation()
       }
     }
   }

@@ -23,23 +23,33 @@ export default {
       // not implemented
     },
     onKeyDown(e) {
-      if (this.selected.col === null || this.selected.row === null) { return }
+      if (this.selected.col === null || this.selected.row === null) {
+        return
+      }
       switch (e.keyCode) {
         // left
         case 37:
-          if (this.selected.col > 0) { this.selected.col-- }
+          if (this.selected.col > 0) {
+            this.selected.col--
+          }
           break
         // right
         case 39:
-          if (this.selected.col < this.colLength - 1) { this.selected.col++ }
+          if (this.selected.col < this.colLength - 1) {
+            this.selected.col++
+          }
           break
         // up
         case 38:
-          if (this.selected.row > 0) { this.selected.row-- }
+          if (this.selected.row > 0) {
+            this.selected.row--
+          }
           break
         // down
         case 40:
-          if (this.selected.row < this.rowLength - 1) { this.selected.row++ }
+          if (this.selected.row < this.rowLength - 1) {
+            this.selected.row++
+          }
           break
         // enter
         case 13:
@@ -111,6 +121,59 @@ export default {
 
       return this.xWhere ? where + `~and(${this.xWhere})` : where
     },
+    nestedAndRollupColumnParams() {
+      // generate params for nested columns
+      const nestedFields = ((this.meta && this.meta.v && this.meta.v) || []).reduce((obj, vc) => {
+        if (vc.hm) {
+          obj.hm.push(vc.hm.tn)
+        } else if (vc.bt) {
+          obj.bt.push(vc.bt.rtn)
+        } else if (vc.mm) {
+          obj.mm.push(vc.mm.rtn)
+        }
+        return obj
+      }, { hm: [], bt: [], mm: [] })
+
+      // todo: handle if virtual column missing
+      // construct fields args based on lookup columns
+      const fieldsObj = ((this.meta && this.meta.v && this.meta.v) || []).reduce((obj, vc) => {
+        if (!vc.lookup) {
+          return obj
+        }
+
+        let key
+        let index
+        let column
+
+        switch (vc.type) {
+          case 'mm':
+            index = nestedFields.mm.indexOf(vc.tn) + 1
+            key = `mfields${index}`
+            column = vc.cn
+            break
+          case 'hm':
+            index = nestedFields.hm.indexOf(vc.tn) + 1
+            key = `hfields${index}`
+            column = vc.cn
+            break
+          case 'bt':
+            index = nestedFields.bt.indexOf(vc.tn) + 1
+            key = `bfields${index}`
+            column = vc.cn
+            break
+        }
+
+        if (index && column) {
+          obj[key] = `${obj[key] ? `${obj[key]},` : ''}${column}`
+        }
+
+        return obj
+      }, {})
+      return {
+        ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({ ...ro, [k]: a.join(',') }), {}),
+        ...fieldsObj
+      }
+    },
     queryParams() {
       return {
         limit: this.size,
@@ -118,10 +181,9 @@ export default {
         // condition: this.condition,
         where: this.concatenatedXWhere,
         sort: this.sort,
-        // todo: use reduce
-        hm: (this.meta && this.meta.v && this.meta.v.filter(v => v.hm).map(({ hm }) => hm.tn).join()) || '',
-        bt: (this.meta && this.meta.v && this.meta.v.filter(v => v.bt).map(({ bt }) => bt.rtn).join()) || '',
-        mm: (this.meta && this.meta.v && this.meta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
+        ...this.nestedAndRollupColumnParams
+        // ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({ ...ro, [k]: a.join(',') })),
+        // ...fieldsObj
       }
     },
     colLength() {
@@ -169,23 +231,31 @@ export default {
       return this.nodes.tn || this.nodes.view_name
     },
     primaryValueColumn() {
-      if (!this.meta || !this.availableColumns || !this.availableColumns.length) { return '' }
+      if (!this.meta || !this.availableColumns || !this.availableColumns.length) {
+        return ''
+      }
       return (this.availableColumns.find(col => col.pv) || { _cn: '' })._cn
     }
   },
   watch: {
     'viewStatus.type'() {
-      if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
+      if (!this.loadingMeta || !this.loadingData) {
+        this.syncDataDebounce(this)
+      }
     },
     showFields: {
       handler(v) {
-        if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
+        if (!this.loadingMeta || !this.loadingData) {
+          this.syncDataDebounce(this)
+        }
       },
       deep: true
     },
     fieldsOrder: {
       handler(v) {
-        if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
+        if (!this.loadingMeta || !this.loadingData) {
+          this.syncDataDebounce(this)
+        }
       },
       deep: true
     },
@@ -243,7 +313,9 @@ export default {
         // if (!this.progress) {
         //   await this.loadTableData();
         // }
-        if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
+        if (!this.loadingMeta || !this.loadingData) {
+          this.syncDataDebounce(this)
+        }
       },
       deep: true
     },
@@ -256,12 +328,16 @@ export default {
         // if (!this.progress) {
         //   await this.loadTableData();
         // }
-        if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
+        if (!this.loadingMeta || !this.loadingData) {
+          this.syncDataDebounce(this)
+        }
       },
       deep: true
     },
     columnsWidth() {
-      if (!this.loadingMeta || !this.loadingData) { this.syncDataDebounce(this) }
+      if (!this.loadingMeta || !this.loadingData) {
+        this.syncDataDebounce(this)
+      }
     },
     sort(n, o) {
       if (o !== n) {

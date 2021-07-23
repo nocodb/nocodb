@@ -431,10 +431,10 @@ export default {
       this.selected.col = null
       this.selected.row = null
     },
-    onNewColCreation() {
+    onNewColCreation(col) {
       this.addNewColMenu = false
       this.addNewColModal = false
-      this.$emit('onNewColCreation')
+      this.$emit('onNewColCreation', col)
     },
     expandRow(...args) {
       this.$emit('expandRow', ...args)

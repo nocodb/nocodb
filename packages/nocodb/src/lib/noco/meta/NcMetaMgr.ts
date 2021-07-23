@@ -1728,9 +1728,6 @@ export default class NcMetaMgr {
 
   // NOTE: updated
   protected async tableXcModelGet(req, args): Promise<any> {
-
-    console.time('tableXcModelGet')
-
     const roles = req.session?.passport?.user?.roles;
     const dbAlias = await this.getDbAlias(args);
 
@@ -1745,7 +1742,8 @@ export default class NcMetaMgr {
         'meta',
         'parent_model_title',
         'title',
-        'query_params'
+        'query_params',
+        'id'
       ]);
       this.cacheModelSet(args.project_id, dbAlias, 'table', args.args.tn, meta);
     }
@@ -1819,7 +1817,6 @@ export default class NcMetaMgr {
 
     meta.meta = JSON.stringify(parsedTableMeta);
 
-    console.timeEnd('tableXcModelGet')
     return meta;
   }
 

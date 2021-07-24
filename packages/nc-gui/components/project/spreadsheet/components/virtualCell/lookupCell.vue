@@ -10,16 +10,39 @@
           :readonly="true"
         />
       </template>
+      <span
+        v-if="localValue && localValue.length === 10"
+        class="caption pointer ml-1 grey--text"
+        @click="showLookupListModal"
+      >more...
+      </span>
     </div>
+    <list-child-items-modal
+      v-if="lookUpMeta && lookupListModal"
+      ref="childList"
+      v-model="lookupListModal"
+      :is-form="isForm"
+      :is-new="isNew"
+      :size="10"
+      :meta="lookUpMeta"
+      :parent-meta="meta"
+      :primary-col="lookUpColumnAlias"
+      :api="lookupApi"
+      :read-only="true"
+      :query-params="queryParams"
+    />
   </div>
 </template>
 
 <script>
+import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 import ItemChip from '@/components/project/spreadsheet/components/virtualCell/components/itemChip'
+import ListChildItemsModal
+  from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
 
 export default {
   name: 'LookupCell',
-  components: { ItemChip },
+  components: { ListChildItemsModal, ItemChip },
   props: {
     meta: [Object],
     column: [Object],
@@ -31,9 +54,33 @@ export default {
     isNew: Boolean,
     isForm: Boolean
   },
+  data: () => ({
+    lookupListModal: false
+  }),
   computed: {
+    // todo : optimize
+    lookupApi() {
+      // return this.$ncApis({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias,
+      //   table: this.column.tn
+      // })
+
+      return this.lookUpMeta && this.lookUpMeta._tn
+        ? ApiFactory.create(
+          this.$store.getters['project/GtrProjectType'],
+          this.lookUpMeta._tn,
+          this.lookUpMeta.columns,
+          this,
+          this.lookUpMeta
+        )
+        : null
+    },
     lookUpMeta() {
       return this.$store.state.meta.metas[this.column.tn]
+    },
+    assocMeta() {
+      return this.column.type === 'mm' && this.$store.state.meta.metas[this.column.relation.vtn]
     },
     lookUpColumnAlias() {
       if (!this.lookUpMeta || !this.column.cn) {
@@ -64,6 +111,29 @@ export default {
         return this.localValueObj.map(o => o[this.lookUpColumnAlias])
       }
       return [this.localValueObj[this.lookUpColumnAlias]]
+    },
+    queryParams() {
+      switch (this.column.type) {
+        case 'bt':
+          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.relation.rcn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.relation.cn)._cn]})` }
+        case 'hm':
+          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.relation.cn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.relation.rcn)._cn]})` }
+        case 'mm':
+          return this.assocMeta
+            ? {
+                conditionGraph: {
+                  [this.assocMeta.tn]: {
+                    relationType: 'hm',
+                    [this.assocMeta.columns.find(c => c.cn === this.column.relation.vcn).cn]: {
+                      eq: this.row[this.meta.columns.find(c => c.cn === this.column.relation.cn)._cn]
+                    }
+                  }
+                }
+              }
+            : {}
+        default:
+          return {}
+      }
     }
   },
   created() {
@@ -78,6 +148,16 @@ export default {
           tn: this.column.tn
         })
       }
+      if (this.column.type === 'mm' && !this.assocMeta) {
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+          tn: this.column.relation.vtn
+        })
+      }
+    },
+    showLookupListModal() {
+      this.lookupListModal = true
     }
   }
 }
@@ -87,10 +167,11 @@ export default {
 .chips-wrapper {
   .chips {
     max-width: 100%;
-    &.lookup-items{
+
+    &.lookup-items {
       flex-wrap: wrap;
       row-gap: 3px;
-      gap:3px;
+      gap: 3px;
       margin: 3px 0;
     }
   }

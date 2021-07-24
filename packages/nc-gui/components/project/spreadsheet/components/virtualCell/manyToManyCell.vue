@@ -171,6 +171,7 @@ export default {
     assocMeta() {
       return this.$store.state.meta.metas[this.mm.vtn]
     },
+    // todo : optimize
     childApi() {
       return this.childMeta && this.childMeta._tn
         ? ApiFactory.create(
@@ -182,6 +183,7 @@ export default {
         )
         : null
     },
+    // todo : optimize
     assocApi() {
       return this.assocMeta && this.assocMeta._tn
         ? ApiFactory.create(

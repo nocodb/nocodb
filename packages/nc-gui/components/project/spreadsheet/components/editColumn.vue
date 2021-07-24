@@ -32,6 +32,7 @@
               label="Column name"
               dense
               outlined
+              :disabled="isLookup"
               @input="newColumn.altered = newColumn.altered || 8"
             />
           </v-col>

@@ -477,6 +477,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 if (v.tn === tn && v.cn === column.cno) {
                   relationTableMetas.add(this.metas[bt.rtn])
                   v.cn = column.cn;
+                  v._cn = column._cn;
                 }
               })
             }
@@ -505,6 +506,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 if (v.tn === tn && v.cn === column.cno) {
                   relationTableMetas.add(this.metas[hm.tn])
                   v.cn = column.cn;
+                  v._cn = column._cn;
                 }
               })
 
@@ -534,6 +536,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 if (v.tn === tn && v.cn === column.cno) {
                   relationTableMetas.add(this.metas[mm.tn])
                   v.cn = column.cn;
+                  v._cn = column._cn;
                 }
               })
 
@@ -587,6 +590,53 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             filters.splice(0, filters.length);
           }
         }
+
+
+        // Delete lookup columns mapping to current column
+        // update column name in belongs to
+        if (newMeta.belongsTo?.length) {
+          for (const bt of newMeta.belongsTo) {
+            // filter out lookup columns which maps to current col
+            this.metas[bt.rtn].v = this.metas[bt.rtn].v?.filter(v => {
+              if (v.lookup && v.tn === tn && v.cn === column.cn) {
+                relationTableMetas.add(this.metas[bt.rtn])
+                return false;
+              }
+              return true;
+            })
+          }
+        }
+
+
+        // update column name in has many
+        if (newMeta.hasMany?.length) {
+          for (const hm of newMeta.hasMany) {
+            // filter out lookup columns which maps to current col
+            this.metas[hm.tn].v = this.metas[hm.tn].v?.filter(v => {
+              if (v.lookup && v.tn === tn && v.cn === column.cn) {
+                relationTableMetas.add(this.metas[hm.tn])
+                return false;
+              }
+              return true
+            })
+          }
+        }
+
+        // update column name in many to many
+        if (newMeta.manyToMany?.length) {
+          for (const mm of newMeta.manyToMany) {
+            // filter out lookup columns which maps to current col
+            this.metas[mm.rtn].v=this.metas[mm.rtn].v?.filter(v => {
+              if (v.tn === tn && v.rcn === column.cn) {
+                relationTableMetas.add(this.metas[mm.tn])
+                return false;
+              }
+              return true;
+            })
+          }
+        }
+
+
       } else if (column.altered === 1) {
         // handle new col -- no change
         for (const permObj of Object.values(acl)) {
@@ -1809,8 +1859,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
   public onVirtualTableUpdate(args: any) {
-    const meta =  XcCache.get([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
-    if(meta && meta.id === args.id) {
+    const meta = XcCache.get([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
+    if (meta && meta.id === args.id) {
       XcCache.del([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
       // todo: update meta and model
     }

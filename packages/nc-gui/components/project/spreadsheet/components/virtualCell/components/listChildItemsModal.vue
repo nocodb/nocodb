@@ -16,6 +16,7 @@
       :api="api"
       :query-params="queryParams"
       v-bind="$attrs"
+      :read-only="readOnly"
       v-on="$listeners"
     />
   </v-dialog>
@@ -28,6 +29,7 @@ export default {
   name: 'ListChildItemsModal',
   components: { ListChildItems },
   props: {
+    readOnly: Boolean,
     localState: Array,
     isNew: Boolean,
     value: Boolean,

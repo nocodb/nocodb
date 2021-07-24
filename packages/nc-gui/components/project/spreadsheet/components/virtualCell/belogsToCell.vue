@@ -141,6 +141,7 @@ export default {
     parentMeta() {
       return this.$store.state.meta.metas[this.bt.rtn]
     },
+    // todo : optimize
     parentApi() {
       return this.parentMeta && this.parentMeta._tn
         ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],

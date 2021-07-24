@@ -15,9 +15,10 @@
           mdi-table-network
         </v-icon>
 
-        <span class="name  flex-grow-1" :title="column._cn" v-on="on">{{ column._cn }}</span>
+        <span class="name  flex-grow-1" :title="column._cn" v-on="on" v-html="alias">
 
-        <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
+          <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
+        </span>
       </template>
       <span class="caption" v-html="tooltipMsg" />
     </v-tooltip>
@@ -110,6 +111,9 @@ export default {
     editColumnMenu: false
   }),
   computed: {
+    alias() {
+      return this.column.lookup ? `${this.column._cn} <small class="grey--text text--darken-1">(from ${this.column._tn})</small>` : this.column._cn
+    },
     type() {
       if (this.column.bt) {
         return 'bt'

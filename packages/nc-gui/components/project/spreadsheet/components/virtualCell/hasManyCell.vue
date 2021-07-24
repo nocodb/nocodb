@@ -176,6 +176,7 @@ export default {
     childMeta() {
       return this.$store.state.meta.metas[this.hm.tn]
     },
+    // todo : optimize
     childApi() {
       return this.childMeta && this.childMeta._tn
         ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],

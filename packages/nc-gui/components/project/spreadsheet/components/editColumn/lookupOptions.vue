@@ -95,10 +95,10 @@ export default {
         const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
 
         meta.v.push({
-          _cn: this.alias,
+          // _cn: this.alias,
           lookup: true,
           ...this.lookup.table,
-          cn: this.lookup.column.cn
+          ...this.lookup.column
         })
 
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{

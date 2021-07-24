@@ -22,7 +22,9 @@ export default ({ app, store }) => {
       zh: require('~/static/lang/zh.json'),
       // ja: require("~/static/lang/ja.json"),
       fr: require('~/static/lang/fr.json'),
-      es: require('~/static/lang/es.json')
+      es: require('~/static/lang/es.json'),
+      pt: require('~/static/lang/pt.json')
+
     }
   })
 
@@ -42,6 +44,8 @@ export default ({ app, store }) => {
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Sebastien Gellet <sebastien.gellet@gmail.com>
  * @author Alejandro Moreno <info@pixplix.com>
+ * @author Bruno Moreira <arq.bruno.moreira@gmail.com>
+
  *
  * @license GNU AGPL version 3 or any later version
  *

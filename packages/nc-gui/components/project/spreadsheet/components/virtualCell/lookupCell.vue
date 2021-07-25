@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+// import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 import ItemChip from '@/components/project/spreadsheet/components/virtualCell/components/itemChip'
 import ListChildItemsModal
   from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
@@ -60,21 +60,21 @@ export default {
   computed: {
     // todo : optimize
     lookupApi() {
-      // return this.$ncApis({
-      //   env: this.nodes.env,
-      //   dbAlias: this.nodes.dbAlias,
-      //   table: this.column.tn
-      // })
+      return this.column && this.$ncApis.get({
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        table: this.column.tn
+      })
 
-      return this.lookUpMeta && this.lookUpMeta._tn
-        ? ApiFactory.create(
-          this.$store.getters['project/GtrProjectType'],
-          this.lookUpMeta._tn,
-          this.lookUpMeta.columns,
-          this,
-          this.lookUpMeta
-        )
-        : null
+      // return this.lookUpMeta && this.lookUpMeta._tn
+      //   ? ApiFactory.create(
+      //     this.$store.getters['project/GtrProjectType'],
+      //     this.lookUpMeta._tn,
+      //     this.lookUpMeta.columns,
+      //     this,
+      //     this.lookUpMeta
+      //   )
+      //   : null
     },
     lookUpMeta() {
       return this.$store.state.meta.metas[this.column.tn]

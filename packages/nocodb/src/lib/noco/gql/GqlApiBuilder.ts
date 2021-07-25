@@ -24,8 +24,6 @@ import GqlResolver from "./GqlResolver";
 import commonSchema from './common.schema';
 
 
-
-
 const log = debug('nc:api:gql');
 
 
@@ -66,7 +64,7 @@ class XCType {
 
 export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
-  public readonly type='rest';
+  public readonly type = 'gql';
   private resolvers: { [key: string]: GqlResolver | GqlProcedureResolver, ___procedure?: GqlProcedureResolver };
   private schemas: { [key: string]: any };
   private types: { [key: string]: new(o: any) => any };
@@ -148,7 +146,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   public async onTableCreate(tn: string, args): Promise<void> {
     this.log(`onTableCreate : '%s' `, tn)
 
-    await super.onTableCreate(tn,args);
+    await super.onTableCreate(tn, args);
 
     const columns = {
       [tn]: args?.columns?.map(({altered: _al, ...rest}) => rest)
@@ -444,8 +442,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             return (await this.models[tn]._getGroupedManyToManyList({
               parentIds,
               child: mm.rtn,
+              // todo: optimize - query only required fields
               rest: {
-                fields1: '*'
+                mfields1: '*'
               }
             }))?.map(child => child.map(c => new self.types[mm.rtn](c)));
           },
@@ -1381,7 +1380,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
-          v: oldMeta.v.filter(({hm}) => !hm || hm.rtn !== tnp || hm.tn !== tnc)
+          v: oldMeta.v.filter(({hm, lookup, relation, type}) => (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
+            !(lookup && relation && type === 'hm' && relation.rtn === tnp && relation.tn === tnc))
         });
         // todo: backup schema
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
@@ -1430,7 +1430,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
-          v: oldMeta.v.filter(({bt}) => !bt || bt.rtn !== tnp || bt.tn !== tnc)
+          v: oldMeta.v.filter(({bt, lookup, relation, type}) => (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
+            !(lookup && relation && type === 'bt' && relation.rtn === tnp && relation.tn === tnc))
         });
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnc,

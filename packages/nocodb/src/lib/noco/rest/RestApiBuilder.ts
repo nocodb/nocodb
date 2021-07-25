@@ -1215,7 +1215,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
-          v: oldMeta.v.filter(({hm}) => !hm || hm.rtn !== tnp || hm.tn !== tnc)
+          v: oldMeta.v.filter(({hm, lookup, relation, type}) => (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
+            !(lookup && relation && type==='hm'&&relation.rtn === tnp && relation.tn === tnc ))
         });
 
         // todo: delete from query_params
@@ -1251,7 +1252,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
-          v: oldMeta.v.filter(({bt}) => !bt || bt.rtn !== tnp || bt.tn !== tnc)
+          v: oldMeta.v.filter(({bt, relation, lookup,type}) => (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
+                       !(lookup && relation && type==='bt'&&relation.rtn === tnp && relation.tn === tnc ))
         });
         // todo: delete from query_params
         await this.xcMeta.metaUpdate(this.projectId,

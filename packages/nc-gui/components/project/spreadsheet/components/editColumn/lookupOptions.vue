@@ -16,7 +16,14 @@
             :item-value="v => v"
             :rules="[v => !!v || 'Required']"
             dense
-          />
+          >
+            <template #item="{item}">
+              <span class="caption"><span class="font-weight-bold"> {{
+                item._tn
+              }}</span> <small>({{ relationNames[item.type] }})
+              </small></span>
+            </template>
+          </v-autocomplete>
         </v-col>
         <v-col cols="6">
           <v-autocomplete
@@ -32,20 +39,27 @@
             dense
             :loading="loadingColumns"
             :item-value="v => v"
-            :rules="[v => !!v || 'Required']"
+            :rules="[v => !!v || 'Required',checkLookupExist]"
           />
         </v-col>
       </v-row>
     </v-container>
   </div>
 </template>
+
 <script>
+
 export default {
   name: 'LookupOptions',
   props: ['nodes', 'column', 'meta', 'isSQLite', 'alias'],
   data: () => ({
     lookup: {},
-    loadingColumns: false
+    loadingColumns: false,
+    relationNames: {
+      mm: 'Many To Many',
+      hm: 'Has Many',
+      bt: 'Belongs To'
+    }
   }),
   computed: {
     refTables() {
@@ -68,6 +82,14 @@ export default {
     }
   },
   methods: {
+    checkLookupExist(v) {
+      return (this.lookup.table && (this.meta.v || []).every(c => !(
+        c.lookup &&
+        c.type === this.lookup.table.type &&
+        c.tn === this.lookup.table.tn &&
+        c.cn === v.cn
+      ))) || 'Lookup already exist'
+    },
     async onTableChange() {
       this.loadingColumns = true
       if (this.lookup.table) {
@@ -108,6 +130,8 @@ export default {
           tn: this.nodes.tn,
           meta
         }])
+
+        return this.$emit('saved', `${this.lookup.column._cn} (from ${this.lookup.table._tn})`)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }

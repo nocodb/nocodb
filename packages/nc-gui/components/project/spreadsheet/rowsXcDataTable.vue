@@ -59,7 +59,9 @@
         relationPrimaryValue
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
 
-      <v-spacer />
+      <v-spacer class="h-100" @dblclick="debug=true" />
+
+      <debug-metas v-if="debug" class="mr-3" />
 
       <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
       <x-btn tooltip="Reload view data" outlined small text @click="reload">
@@ -476,7 +478,7 @@
 
 <script>
 
-import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
 import { SqlUI } from '@/helpers/SqlUiFactory'
 
 import { mapActions } from 'vuex'
@@ -498,6 +500,7 @@ import ColumnFilter from '~/components/project/spreadsheet/components/columnFilt
 export default {
   name: 'RowsXcDataTable',
   components: {
+    DebugMetas,
     Pagination,
     ExpandedForm,
     LockMenu,
@@ -525,6 +528,7 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    debug: false,
     key: 1,
     dataLoaded: false,
     searchQueryVal: '',
@@ -803,10 +807,10 @@ export default {
         }
       }
     },
-
+    // todo: move debounce to cell since this will skip few update api call
     onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
       await self.onCellValueChangeFn(col, row, column)
-    }, 300),
+    }, 100),
     onCellValueChange(col, row, column) {
       this.onCellValueChangeDebounce(col, row, column, this)
     },
@@ -1002,7 +1006,12 @@ export default {
       return SqlUI.create(this.nodes.dbConnection)
     },
     api() {
-      return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
+      return this.meta && this.$ncApis.get({
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        table: this.meta.tn
+      })
+      // return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
     }
   }
 }

@@ -184,6 +184,8 @@ export default {
         return `'${this.column.mm._tn}' & '${this.column.mm._rtn}' have <br>many to many relation`
       } else if (this.column.bt) {
         return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
+      } else if (this.column.lookup) {
+        return `'${this.column._cn}' from '${this.column._tn}' (${this.column.type}))`
       }
       return ''
     }

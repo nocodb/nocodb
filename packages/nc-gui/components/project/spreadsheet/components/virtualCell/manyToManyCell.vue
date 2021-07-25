@@ -110,7 +110,7 @@
 </template>
 
 <script>
-import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+// import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
 import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
 import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
@@ -173,27 +173,38 @@ export default {
     },
     // todo : optimize
     childApi() {
-      return this.childMeta && this.childMeta._tn
-        ? ApiFactory.create(
-          this.$store.getters['project/GtrProjectType'],
-          this.childMeta._tn,
-          this.childMeta.columns,
-          this,
-          this.childMeta
-        )
-        : null
+      return this.childMeta && this.$ncApis.get({
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        table: this.childMeta.tn
+      })
+      //
+      // return this.childMeta && this.childMeta._tn
+      //   ? ApiFactory.create(
+      //     this.$store.getters['project/GtrProjectType'],
+      //     this.childMeta._tn,
+      //     this.childMeta.columns,
+      //     this,
+      //     this.childMeta
+      //   )
+      //   : null
     },
     // todo : optimize
     assocApi() {
-      return this.assocMeta && this.assocMeta._tn
-        ? ApiFactory.create(
-          this.$store.getters['project/GtrProjectType'],
-          this.assocMeta._tn,
-          this.assocMeta.columns,
-          this,
-          this.assocMeta
-        )
-        : null
+      return this.childMeta && this.$ncApis.get({
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        table: this.assocMeta.tn
+      })
+      // return this.assocMeta && this.assocMeta._tn
+      //   ? ApiFactory.create(
+      //     this.$store.getters['project/GtrProjectType'],
+      //     this.assocMeta._tn,
+      //     this.assocMeta.columns,
+      //     this,
+      //     this.assocMeta
+      //   )
+      //   : null
     },
     childPrimaryCol() {
       return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn

@@ -901,8 +901,15 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     parentMeta.manyToMany = parentMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
     childMeta.manyToMany = childMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
 
-    parentMeta.v = parentMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
-    childMeta.v = childMeta.v.filter(({mm}) => !mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    // filter lookup and relation virtual columns
+    parentMeta.v = parentMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+   // check for lookup
+    && !(rest.type === 'mm' && (rest.relation.tn === parent && rest.relation.rtn === child || rest.relation.tn === child && rest.relation.rtn === parent))
+    )
+    childMeta.v = childMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+      // check for lookup
+      && !(rest.type === 'mm' && (rest.relation.tn === parent && rest.relation.rtn === child || rest.relation.tn === child && rest.relation.rtn === parent))
+    )
 
     for (const meta of [parentMeta, childMeta]) {
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {

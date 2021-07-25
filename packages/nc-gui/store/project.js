@@ -267,6 +267,10 @@ export const actions = {
       const data = await this.dispatch('sqlMgr/ActSqlOp', [null, 'PROJECT_READ_BY_WEB']); // unsearialized data
       commit("list", data.data.list);
       commit("meta/MutClear", null, {root: true});
+     if(this.$ncApis){
+      this.$ncApis.clear();
+      this.$ncApis.setProjectId(this.$router.currentRoute.params.project_id);
+     }
     } catch (e) {
       this.$toast.error(e).goAway(3000);
       this.$router.push('/projects')

@@ -64,7 +64,7 @@ export default {
     },
     fieldList() {
       return this.availableColumns.map((c) => {
-        return c._cn
+        return c.alias
       })
     },
     realFieldList() {
@@ -95,10 +95,25 @@ export default {
         columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
       }
 
+      {
+        const _ref = {}
+        columns.forEach((c) => {
+          if (c.virtual && c.lookup) {
+            c.alias = `${c._cn} (from ${c._tn})`
+          } else {
+            c.alias = c._cn
+          }
+          if (c.alias in _ref) {
+            c.alias += _ref[c.alias]++
+          } else {
+            _ref[c.alias] = 1
+          }
+        })
+      }
       if (this.fieldsOrder.length) {
         return [...columns].sort((c1, c2) => {
-          const i1 = this.fieldsOrder.indexOf(c1._cn)
-          const i2 = this.fieldsOrder.indexOf(c2._cn)
+          const i1 = this.fieldsOrder.indexOf(c1.alias)
+          const i2 = this.fieldsOrder.indexOf(c2.alias)
           return (i1 === -1 ? Infinity : i1) - (i2 === -1 ? Infinity : i2)
         })
       }

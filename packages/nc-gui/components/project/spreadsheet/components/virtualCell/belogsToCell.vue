@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+// import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
 import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/itemChip'
@@ -143,10 +143,15 @@ export default {
     },
     // todo : optimize
     parentApi() {
-      return this.parentMeta && this.parentMeta._tn
-        ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],
-          this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this, this.parentMeta)
-        : null
+      return this.parentMeta && this.$ncApis.get({
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        table: this.parentMeta.tn
+      })
+      // return this.parentMeta && this.parentMeta._tn
+      //   ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],
+      //     this.parentMeta && this.parentMeta._tn, this.parentMeta && this.parentMeta.columns, this, this.parentMeta)
+      //   : null
     },
     parentId() {
       return this.pid ?? (this.value && this.parentMeta && this.parentMeta.columns.filter(c => c.pk).map(c => this.value[c._cn]).join('___'))

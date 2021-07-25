@@ -55,6 +55,7 @@ export default {
     '@/plugins/globalComponentLoader',
     '@/plugins/globalMixin',
     '@/plugins/globalEventBus',
+    '@/plugins/ncApis',
     '~/plugins/i18n.js',
     { src: '~plugins/projectLoader.js', ssr: false }
   ],

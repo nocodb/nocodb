@@ -117,6 +117,7 @@
                     :is-s-q-lite="isSQLite"
                     :alias="newColumn.cn"
                     :is-m-s-s-q-l="isMSSQL"
+                    v-on="$listeners"
                   />
                 </v-col>
                 <v-col
@@ -485,7 +486,6 @@ export default {
         }
         if (this.isLookup && this.$refs.lookup) {
           await this.$refs.lookup.save()
-          return this.$emit('saved', this.newColumn.cn)
         }
 
         this.newColumn.tn = this.nodes.tn
@@ -517,7 +517,7 @@ export default {
           await this.$refs.relation.saveRelation()
         }
 
-        this.$emit('saved')
+        this.$emit('saved', this.newColumn._cn)
       } catch (e) {
         console.log(e)
       }

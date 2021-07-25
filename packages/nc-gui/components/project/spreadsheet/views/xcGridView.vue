@@ -16,14 +16,14 @@
           </th>
           <th
             v-for="(col) in availableColumns"
-            v-show="showFields[col._cn]"
-            :key="col._cn"
+            v-show="showFields[col.alias]"
+            :key="col.alias"
             v-xc-ver-resize
             class="grey-border caption font-wight-regular"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
-            :data-col="col._cn"
-            @xcresize="onresize(col._cn,$event)"
-            @xcresizing="onXcResizing(col._cn,$event)"
+            :data-col="col.alias"
+            @xcresize="onresize(col.alias,$event)"
+            @xcresizing="onXcResizing(col.alias,$event)"
             @xcresized="resizingCol = null"
           >
             <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
@@ -130,8 +130,8 @@
           </td>
           <td
             v-for="(columnObj,col) in availableColumns"
-            v-show="showFields[columnObj._cn]"
-            :key="row + columnObj._cn + col"
+            v-show="showFields[columnObj.alias]"
+            :key="row + columnObj.alias"
             class="cell pointer"
             :class="{
               'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
@@ -139,7 +139,7 @@
               'text-center': isCentrallyAligned(columnObj),
               'required': isRequired(columnObj,rowObj)
             }"
-            :data-col="columnObj._cn"
+            :data-col="columnObj.alias"
             @dblclick="makeEditable(col,row,columnObj.ai)"
             @click="makeSelected(col,row);"
           >
@@ -278,9 +278,6 @@ export default {
     colLength() {
       return (this.availableColumns && this.availableColumns.length) || 0
     },
-    // visibleColLength() {
-    //   return (this.availableColumns && this.availableColumns.length) || 0
-    // },
     rowLength() {
       return (this.data && this.data.length) || 0
     },
@@ -416,7 +413,7 @@ export default {
             return
           }
           if (e.key && e.key.length === 1) {
-            this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, e.key)
+            this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, '')
             this.editEnabled = { ...this.selected }
           }
         }

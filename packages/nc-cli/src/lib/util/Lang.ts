@@ -44,18 +44,17 @@ class Lang {
       case 'en-IE':
       case 'en-US':
       default:
-
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.en?.[str]}\t:`;
+        
       case 'zh':
       case 'zh-Hans':
-      case 'zh-Hant':
       case 'zh-CN':
-      case 'zh-HK':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.['zh-cn']?.[str]}\t:`;
 
+      case 'zh-Hant':
+      case 'zh-HK':
       case 'zh-TW':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.['zh-tw']?.[str]}\t:`;
-
 
       case 'de':
       case 'de-DE':
@@ -79,6 +78,7 @@ class Lang {
       case 'es-US':
       case 'es-VE':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.es?.[str]}\t:`;
+        
       case 'fi':
       case 'fi-FI':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.fi?.[str]}\t:`;
@@ -89,6 +89,7 @@ class Lang {
       case 'fr-BE':
       case 'fr-CH':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.fr?.[str]}\t:`;
+        
       case 'it':
       case 'it-IT':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.it?.[str]}\t:`;
@@ -96,6 +97,7 @@ class Lang {
       case 'ja':
       case 'ja-JP':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.ja?.[str]}\t:`;
+        
       case 'ko':
       case 'ko-KR':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.ko?.[str]}\t:`;
@@ -109,13 +111,11 @@ class Lang {
       case 'pt':
       case 'pt-BR':
       case 'pt-PT':
-
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.pt?.[str]}\t:`;
 
       case 'ru':
       case 'ru-RU':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.ru?.[str]}\t:`;
-
 
       case 'sv':
       case 'sv-SE':
@@ -130,11 +130,9 @@ class Lang {
       case 'tl-PH':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.tl?.[str]}\t:`;
 
-
       case 'tr':
       case 'tr-TR':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.tr?.[str]}\t:`;
-
 
       case 'uk':
       case 'uk-UA':
@@ -159,6 +157,7 @@ export {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

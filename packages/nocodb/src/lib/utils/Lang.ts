@@ -41,9 +41,9 @@ class Lang {
       case 'zh-Hans':
       case 'zh-Hant':
       case 'zh-CN':
-      case 'zh-HK':
         return `${formattedTranslate?.['zh-cn']?.[str]}`;
 
+      case 'zh-HK':
       case 'zh-TW':
         return `${formattedTranslate?.['zh-tw']?.[str]}`;
 
@@ -153,6 +153,7 @@ export {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

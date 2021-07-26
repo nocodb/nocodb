@@ -261,7 +261,17 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "bmscmoreira",
+      "name": "Bruno Moreira",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3017910?v=4",
+      "profile": "https://brunomoreira.opo.pt",
+      "contributions": [
+        "code"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "skipCi": true
 }

@@ -118,7 +118,7 @@ export default {
       return this.column && this.column.mm
     },
     lookup() {
-      return this.column && this.column.lookup
+      return this.column && this.column.lk
     }
   },
   methods: {

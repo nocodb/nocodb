@@ -1380,8 +1380,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
-          v: oldMeta.v.filter(({hm, lookup, relation, type}) => (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
-            !(lookup && relation && type === 'hm' && relation.rtn === tnp && relation.tn === tnc))
+          v: oldMeta.v.filter(({hm, lk}) => (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
+            !(lk && lk.type === 'hm' && lk.rtn === tnp && lk.tn === tnc))
         });
         // todo: backup schema
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
@@ -1430,8 +1430,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
-          v: oldMeta.v.filter(({bt, lookup, relation, type}) => (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
-            !(lookup && relation && type === 'bt' && relation.rtn === tnp && relation.tn === tnc))
+          v: oldMeta.v.filter(({bt, lk}) => (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
+            !(lk && lk.type === 'bt' && lk.rtn === tnp && lk.tn === tnc))
         });
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           title: tnc,
@@ -1963,3 +1963,5 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+

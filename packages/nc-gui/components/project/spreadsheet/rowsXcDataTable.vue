@@ -184,7 +184,7 @@
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
         <div ref="table" style="height : calc(100% - 36px); overflow: auto;width:100%">
-          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingMeta)" type="table" />
+          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData)" type="table" />
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
               :key="key"
@@ -601,7 +601,9 @@ export default {
   async mounted() {
     try {
       await this.createTableIfNewTable()
+      this.loadingMeta = true
       await this.loadMeta()
+      this.loadingMeta = false
 
       if (this.relationType === 'hm') {
         this.filters.push({
@@ -935,9 +937,12 @@ export default {
       if (updateShowFields) {
         try {
           const qp = JSON.parse(tableMeta.query_params)
-          this.showFields = qp.showFields ? qp.showFields : this.showFields
+          this.showFields = qp.showFields || this.showFields
           if (col) {
             this.$set(this.showFields, col, true)
+          }
+          if (this.selectedViewId === tableMeta.id) {
+            this.columnsWidth = qp.columnsWidth || this.columnsWidth
           }
         } catch (e) {
         }

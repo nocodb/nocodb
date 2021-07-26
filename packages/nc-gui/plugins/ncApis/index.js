@@ -5,7 +5,7 @@ export default function({ store: $store, $axios, ...rest }, inject) {
   let projectId = null
 
   inject('ncApis', {
-    get: ({ table, dbAlias, env }) => {
+    get: ({ table, dbAlias = 'db', env = 'dev' }) => {
       if (!$store.state.meta.metas[table]) {
         return
       }

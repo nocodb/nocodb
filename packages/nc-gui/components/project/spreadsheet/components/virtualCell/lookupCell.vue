@@ -63,42 +63,32 @@ export default {
       return this.column && this.$ncApis.get({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        table: this.column.tn
+        table: this.column.lk.ltn
       })
-
-      // return this.lookUpMeta && this.lookUpMeta._tn
-      //   ? ApiFactory.create(
-      //     this.$store.getters['project/GtrProjectType'],
-      //     this.lookUpMeta._tn,
-      //     this.lookUpMeta.columns,
-      //     this,
-      //     this.lookUpMeta
-      //   )
-      //   : null
     },
     lookUpMeta() {
-      return this.$store.state.meta.metas[this.column.tn]
+      return this.$store.state.meta.metas[this.column.lk.ltn]
     },
     assocMeta() {
-      return this.column.type === 'mm' && this.$store.state.meta.metas[this.column.relation.vtn]
+      return this.column.lk.type === 'mm' && this.$store.state.meta.metas[this.column.lk.vtn]
     },
     lookUpColumnAlias() {
-      if (!this.lookUpMeta || !this.column.cn) {
+      if (!this.lookUpMeta || !this.column.lk.lcn) {
         return
       }
-      return (this.$store.state.meta.metas[this.column.tn].columns.find(cl => cl.cn === this.column.cn) || {})._cn
+      return (this.$store.state.meta.metas[this.column.lk.ltn].columns.find(cl => cl.cn === this.column.lk.lcn) || {})._cn
     },
     localValueObj() {
       if (!this.column || !this.row) {
         return null
       }
-      switch (this.column.type) {
+      switch (this.column.lk.type) {
         case 'mm':
-          return this.row[`${this.column._tn}MMList`]
+          return this.row[`${this.column.lk._ltn}MMList`]
         case 'hm':
-          return this.row[`${this.column._tn}List`]
+          return this.row[`${this.column.lk._ltn}List`]
         case 'bt':
-          return this.row[`${this.column._tn}Read`]
+          return this.row[`${this.column.lk._ltn}Read`]
         default:
           return null
       }
@@ -113,19 +103,19 @@ export default {
       return [this.localValueObj[this.lookUpColumnAlias]]
     },
     queryParams() {
-      switch (this.column.type) {
+      switch (this.column.lk.type) {
         case 'bt':
-          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.relation.rcn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.relation.cn)._cn]})` }
+          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.lk.rcn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.lk.cn)._cn]})` }
         case 'hm':
-          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.relation.cn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.relation.rcn)._cn]})` }
+          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.lk.cn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.lk.rcn)._cn]})` }
         case 'mm':
           return this.assocMeta
             ? {
                 conditionGraph: {
                   [this.assocMeta.tn]: {
                     relationType: 'hm',
-                    [this.assocMeta.columns.find(c => c.cn === this.column.relation.vcn).cn]: {
-                      eq: this.row[this.meta.columns.find(c => c.cn === this.column.relation.cn)._cn]
+                    [this.assocMeta.columns.find(c => c.cn === this.column.lk.vcn).cn]: {
+                      eq: this.row[this.meta.columns.find(c => c.cn === this.column.lk.cn)._cn]
                     }
                   }
                 }
@@ -145,14 +135,14 @@ export default {
         await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
-          tn: this.column.tn
+          tn: this.column.lk.ltn
         })
       }
-      if (this.column.type === 'mm' && !this.assocMeta) {
+      if (this.column.lk.type === 'mm' && !this.assocMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
-          tn: this.column.relation.vtn
+          tn: this.column.lk.vtn
         })
       }
     },

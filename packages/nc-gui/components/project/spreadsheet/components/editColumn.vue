@@ -20,6 +20,7 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
+              v-if="!isLookup"
               ref="column"
               v-model="newColumn.cn"
               hide-details="auto"
@@ -32,7 +33,6 @@
               label="Column name"
               dense
               outlined
-              :disabled="isLookup"
               @input="newColumn.altered = newColumn.altered || 8"
             />
           </v-col>
@@ -485,7 +485,7 @@ export default {
           return this.$emit('saved')
         }
         if (this.isLookup && this.$refs.lookup) {
-          await this.$refs.lookup.save()
+          return await this.$refs.lookup.save()
         }
 
         this.newColumn.tn = this.nodes.tn

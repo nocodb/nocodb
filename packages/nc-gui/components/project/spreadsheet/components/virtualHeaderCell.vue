@@ -11,9 +11,17 @@
         <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
           mdi-table-network
         </v-icon>
-        <v-icon v-else-if="column.lookup" color="pink" x-small class="mr-1" v-on="on">
-          mdi-table-network
-        </v-icon>
+        <template v-else-if="column.lk">
+          <v-icon v-if="column.lk.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+            mdi-table-column-plus-before
+          </v-icon>
+          <v-icon v-else-if="column.lk.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+            mdi-table-column-plus-before
+          </v-icon>
+          <v-icon v-else-if="column.lk.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+            mdi-table-column-plus-before
+          </v-icon>
+        </template>
 
         <span class="name  flex-grow-1" :title="column._cn" v-on="on" v-html="alias">
 
@@ -31,7 +39,7 @@
         </v-icon>
       </template>
       <v-list dense>
-        <v-list-item v-if="!column.lookup" dense @click="editColumnMenu = true">
+        <v-list-item v-if="!column.lk" dense @click="editColumnMenu = true">
           <x-icon small class="mr-1" color="primary">
             mdi-pencil
           </x-icon>
@@ -112,7 +120,7 @@ export default {
   }),
   computed: {
     alias() {
-      return this.column.lookup ? `${this.column._cn} <small class="grey--text text--darken-1">(from ${this.column._tn})</small>` : this.column._cn
+      return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column._cn
     },
     type() {
       if (this.column.bt) {
@@ -184,8 +192,8 @@ export default {
         return `'${this.column.mm._tn}' & '${this.column.mm._rtn}' have <br>many to many relation`
       } else if (this.column.bt) {
         return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
-      } else if (this.column.lookup) {
-        return `'${this.column._cn}' from '${this.column._tn}' (${this.column.type}))`
+      } else if (this.column.lk) {
+        return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
       }
       return ''
     }
@@ -240,7 +248,7 @@ export default {
       }
     },
     async deleteColumn() {
-      if (this.column.lookup) {
+      if (this.column.lk) {
         await this.deleteLookupColumn()
       } else {
         await this.deleteRelation()

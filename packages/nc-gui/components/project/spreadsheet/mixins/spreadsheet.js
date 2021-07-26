@@ -98,8 +98,8 @@ export default {
       {
         const _ref = {}
         columns.forEach((c) => {
-          if (c.virtual && c.lookup) {
-            c.alias = `${c._cn} (from ${c._tn})`
+          if (c.virtual && c.lk) {
+            c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
           } else {
             c.alias = c._cn
           }
@@ -152,7 +152,7 @@ export default {
       // todo: handle if virtual column missing
       // construct fields args based on lookup columns
       const fieldsObj = ((this.meta && this.meta.v && this.meta.v) || []).reduce((obj, vc) => {
-        if (!vc.lookup) {
+        if (!vc.lk) {
           return obj
         }
 
@@ -160,21 +160,21 @@ export default {
         let index
         let column
 
-        switch (vc.type) {
+        switch (vc.lk.type) {
           case 'mm':
-            index = nestedFields.mm.indexOf(vc.tn) + 1
+            index = nestedFields.mm.indexOf(vc.lk.ltn) + 1
             key = `mfields${index}`
-            column = vc.cn
+            column = vc.lk.lcn
             break
           case 'hm':
-            index = nestedFields.hm.indexOf(vc.tn) + 1
+            index = nestedFields.hm.indexOf(vc.lk.ltn) + 1
             key = `hfields${index}`
-            column = vc.cn
+            column = vc.lk.lcn
             break
           case 'bt':
-            index = nestedFields.bt.indexOf(vc.tn) + 1
+            index = nestedFields.bt.indexOf(vc.lk.ltn) + 1
             key = `bfields${index}`
-            column = vc.cn
+            column = vc.lk.lcn
             break
         }
 

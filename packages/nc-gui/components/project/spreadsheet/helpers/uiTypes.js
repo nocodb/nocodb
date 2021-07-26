@@ -14,7 +14,7 @@ const uiTypes = [
   },
   {
     name: 'Lookup',
-    icon: 'mdi-link-variant'
+    icon: 'mdi-table-column-plus-before'
   },
   {
     name: 'SingleLineText',

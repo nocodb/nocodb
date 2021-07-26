@@ -27,7 +27,7 @@
             @xcresized="resizingCol = null"
           >
             <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
-          -->
+    -->
 
             <virtual-header-cell
               v-if="col.virtual"
@@ -208,6 +208,7 @@
     </table>
 
     <div is="style" v-html="style" />
+    <div is="style" v-html="resizeColStyle" />
   </div>
 </template>
 
@@ -290,27 +291,17 @@ export default {
     },
     style() {
       let style = ''
-      for (const [key, val] of Object.entries(this.columnsWidth || {})) {
-        if (val && key !== this.resizingCol) {
-          style += `
-            [data-col="${key}"]{
-              min-width: ${val};
-              max-width: ${val};
-              width: ${val};
-            }
-        `
-        } else if (key === this.resizingCol) {
-          style += `
-            [data-col="${key}"]{
-              min-width: ${this.resizingColWidth};
-              max-width: ${this.resizingColWidth};
-              width: ${this.resizingColWidth};
-            }
-        `
+      for (const c of this.availableColumns) {
+        const val = (this.columnsWidth && this.columnsWidth[c.alias]) || (c.virtual ? '200px' : (columnStyling[c.uidt] && columnStyling[c.uidt].w))
+        if (val && c.key !== this.resizingCol) {
+          style += `[data-col="${c.alias}"]{min-width:${val};max-width:${val};width: ${val};}`
         }
       }
 
       return style
+    },
+    resizeColStyle() {
+      return this.resizingCol ? ` [data-col="${this.resizingCol}"]{min-width:${this.resizingColWidth};max-width:${this.resizingColWidth};width:${this.resizingColWidth};}` : ''
     }
   },
   watch: {
@@ -344,20 +335,20 @@ export default {
       this.onCellValueChange(colIndex, rowIndex, columnObj)
     },
     calculateColumnWidth() {
-      setTimeout(() => {
-        const obj = {}
-        this.meta && this.meta.columns && this.meta.columns.forEach((c) => {
-          obj[c._cn] = (columnStyling[c.uidt] && columnStyling[c.uidt].w) || undefined
-        })
-        this.meta && this.meta.v && this.meta.v.forEach((v) => {
-          obj[v._cn] = v.bt ? '100px' : '200px'
-        })
-        Array.from(this.$el.querySelectorAll('th')).forEach((el) => {
-          const width = el.getBoundingClientRect().width
-          obj[el.dataset.col] = obj[el.dataset.col] || ((width < 100 ? 100 : width) + 'px')
-        })
-        this.$emit('update:columnsWidth', { ...obj, ...(this.columnWidth || {}) })
-      }, 500)
+      // setTimeout(() => {
+      //   const obj = {}
+      //   this.meta && this.meta.columns && this.meta.columns.forEach((c) => {
+      //     obj[c._cn] = (columnStyling[c.uidt] && columnStyling[c.uidt].w) || undefined
+      //   })
+      //   this.meta && this.meta.v && this.meta.v.forEach((v) => {
+      //     obj[v._cn] = v.bt ? '100px' : '200px'
+      //   })
+      //   Array.from(this.$el.querySelectorAll('th')).forEach((el) => {
+      //     const width = el.getBoundingClientRect().width
+      //     obj[el.dataset.col] = obj[el.dataset.col] || ((width < 100 ? 100 : width) + 'px')
+      //   })
+      //   this.$emit('update:columnsWidth', { ...obj, ...(this.columnWidth || {}) })
+      // }, 2000)
     },
     isCentrallyAligned(col) {
       return !['SingleLineText',
@@ -372,7 +363,9 @@ export default {
         'LastModifiedTime'].includes(col.uidt)
     },
     async xcAuditModelCommentsCount() {
-      if (this.isPublicView || !this.data || !this.data.length) { return }
+      if (this.isPublicView || !this.data || !this.data.length) {
+        return
+      }
       const aggCount = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.nodes.dbAlias
       }, 'xcAuditModelCommentsCount', {
@@ -386,23 +379,33 @@ export default {
     },
 
     onKeyDown(e) {
-      if (this.selected.col === null || this.selected.row === null) { return }
+      if (this.selected.col === null || this.selected.row === null) {
+        return
+      }
       switch (e.keyCode) {
         // left
         case 37:
-          if (this.selected.col > 0) { this.selected.col-- }
+          if (this.selected.col > 0) {
+            this.selected.col--
+          }
           break
         // right
         case 39:
-          if (this.selected.col < this.colLength - 1) { this.selected.col++ }
+          if (this.selected.col < this.colLength - 1) {
+            this.selected.col++
+          }
           break
         // up
         case 38:
-          if (this.selected.row > 0) { this.selected.row-- }
+          if (this.selected.row > 0) {
+            this.selected.row--
+          }
           break
         // down
         case 40:
-          if (this.selected.row < this.rowLength - 1) { this.selected.row++ }
+          if (this.selected.row < this.rowLength - 1) {
+            this.selected.row++
+          }
           break
         // enter
         case 13:
@@ -424,7 +427,9 @@ export default {
         this.meta.columns &&
         this.meta.columns[this.selected.col] &&
         this.meta.columns[this.selected.col].virtual
-      ) { return }
+      ) {
+        return
+      }
       this.selected.col = null
       this.selected.row = null
     },
@@ -452,7 +457,9 @@ export default {
       }
     },
     makeEditable(col, row) {
-      if (this.isPublicView || !this.isEditable) { return }
+      if (this.isPublicView || !this.isEditable) {
+        return
+      }
       if (this.availableColumns[col].ai) {
         return this.$toast.info('Auto Increment field is not editable').goAway(3000)
       }
@@ -775,10 +782,6 @@ th:first-child, td:first-child {
 
 .has-many-icon {
   transform: rotate(90deg);
-}
-
-th {
-  min-width: 100px;
 }
 
 </style>

@@ -48,8 +48,6 @@ export default async({ store }) => {
       el.appendChild(resizer)
       resizer.addEventListener('mousedown', initDrag, false)
 
-      el.style.transition = '20ms width0'
-
       // eslint-disable-next-line no-unused-vars
       let startX, startY, startWidth
 
@@ -76,10 +74,8 @@ export default async({ store }) => {
 
       function doDrag(e) {
         width = (startWidth + e.clientX - startX) + 'px'
-        el.style.maxWidth = el.style.minWidth = el.style.width = width
+        el.style.width = width
         emit(vnode, 'xcresizing', width)
-        //
-        // p.style.height = (startHeight + e.clientY - startY) + 'px';
       }
 
       function stopDrag(e) {

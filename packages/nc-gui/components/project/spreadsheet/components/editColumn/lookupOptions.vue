@@ -12,14 +12,14 @@
             label="Child Table"
             :full-width="false"
             :items="refTables"
-            item-text="_tn"
+            item-text="_ltn"
             :item-value="v => v"
             :rules="[v => !!v || 'Required']"
             dense
           >
             <template #item="{item}">
               <span class="caption"><span class="font-weight-bold"> {{
-                item._tn
+                item._ltn
               }}</span> <small>({{ relationNames[item.type] }})
               </small></span>
             </template>
@@ -35,7 +35,7 @@
             label="Child column"
             :full-width="false"
             :items="columnList"
-            item-text="_cn"
+            item-text="_lcn"
             dense
             :loading="loadingColumns"
             :item-value="v => v"
@@ -65,9 +65,46 @@ export default {
     refTables() {
       return this.meta
         ? [
-            ...(this.meta.belongsTo || []).map(bt => ({ type: 'bt', relation: bt, tn: bt.rtn, _tn: bt._rtn })),
-            ...(this.meta.hasMany || []).map(hm => ({ type: 'hm', relation: hm, tn: hm.tn, _tn: hm._tn })),
-            ...(this.meta.manyToMany || []).map(mm => ({ type: 'mm', relation: mm, tn: mm.rtn, _tn: mm._rtn }))
+            ...(this.meta.belongsTo || []).map(({ rtn, _rtn, rcn, tn, cn }) => ({
+              type: 'bt',
+              rtn,
+              _rtn,
+              rcn,
+              tn,
+              cn,
+              ltn: rtn,
+              _ltn: _rtn
+            })),
+            ...(this.meta.hasMany || []).map(({
+              tn,
+              _tn,
+              cn,
+              rcn,
+              rtn
+            }) => ({
+              type: 'hm',
+              tn,
+              _tn,
+              cn,
+              rcn,
+              rtn,
+              ltn: tn,
+              _ltn: _tn
+            })),
+            ...(this.meta.manyToMany || []).map(({ vtn, _vtn, vrcn, vcn, rtn, _rtn, rcn, tn, cn }) => ({
+              type: 'mm',
+              tn,
+              cn,
+              vtn,
+              _vtn,
+              vrcn,
+              rcn,
+              rtn,
+              vcn,
+              _rtn,
+              ltn: rtn,
+              _ltn: _rtn
+            }))
           ]
         : []
     },
@@ -76,18 +113,21 @@ export default {
         this.lookup &&
         this.lookup.table &&
         this.$store.state.meta.metas &&
-        this.$store.state.meta.metas[this.lookup.table.tn] &&
-        this.$store.state.meta.metas[this.lookup.table.tn].columns
-      ) || []).map(({ cn, _cn }) => ({ cn, _cn }))
+        this.$store.state.meta.metas[this.lookup.table.ltn] &&
+        this.$store.state.meta.metas[this.lookup.table.ltn].columns
+      ) || []).map(({ cn, _cn }) => ({
+        lcn: cn,
+        _lcn: _cn
+      }))
     }
   },
   methods: {
     checkLookupExist(v) {
       return (this.lookup.table && (this.meta.v || []).every(c => !(
-        c.lookup &&
-        c.type === this.lookup.table.type &&
-        c.tn === this.lookup.table.tn &&
-        c.cn === v.cn
+        c.lk &&
+        c.lk.type === this.lookup.table.type &&
+        c.lk.ltn === this.lookup.table.ltn &&
+        c.lk.lcn === v.lcn
       ))) || 'Lookup already exist'
     },
     async onTableChange() {
@@ -97,7 +137,7 @@ export default {
           await this.$store.dispatch('meta/ActLoadMeta', {
             dbAlias: this.nodes.dbAlias,
             env: this.nodes.env,
-            tn: this.lookup.table.tn
+            tn: this.lookup.table.ltn
           })
         } catch (e) {
           // ignore
@@ -117,10 +157,11 @@ export default {
         const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
 
         meta.v.push({
-          // _cn: this.alias,
-          lookup: true,
-          ...this.lookup.table,
-          ...this.lookup.column
+          _cn: this.alias,
+          lk: {
+            ...this.lookup.table,
+            ...this.lookup.column
+          }
         })
 
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -131,7 +172,7 @@ export default {
           meta
         }])
 
-        return this.$emit('saved', `${this.lookup.column._cn} (from ${this.lookup.table._tn})`)
+        return this.$emit('saved', `${this.lookup.column._lcn} (from ${this.lookup.table._ltn})`)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }

@@ -474,10 +474,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
               // update lookup columns
               this.metas[bt.rtn].v?.forEach(v => {
-                if (v.tn === tn && v.cn === column.cno) {
+                if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
                   relationTableMetas.add(this.metas[bt.rtn])
-                  v.cn = column.cn;
-                  v._cn = column._cn;
+                  v.lk.lcn = column.cn;
+                  v.lk._lcn = column._cn;
                 }
               })
             }
@@ -503,10 +503,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
               // update lookup columns
               this.metas[hm.tn].v?.forEach(v => {
-                if (v.tn === tn && v.cn === column.cno) {
+                if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
                   relationTableMetas.add(this.metas[hm.tn])
-                  v.cn = column.cn;
-                  v._cn = column._cn;
+                  v.lk.lcn = column.cn;
+                  v.lk._lcn = column._cn;
                 }
               })
 
@@ -533,10 +533,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
               // update lookup columns
               this.metas[mm.rtn].v?.forEach(v => {
-                if (v.tn === tn && v.cn === column.cno) {
+                if (v.lk &&v.lk.ltn === tn && v.lk.lcn === column.cno) {
                   relationTableMetas.add(this.metas[mm.tn])
-                  v.cn = column.cn;
-                  v._cn = column._cn;
+                  v.lk.lcn = column.cn;
+                  v.lk._lcn = column._cn;
                 }
               })
 
@@ -598,7 +598,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           for (const bt of newMeta.belongsTo) {
             // filter out lookup columns which maps to current col
             this.metas[bt.rtn].v = this.metas[bt.rtn].v?.filter(v => {
-              if (v.lookup && v.tn === tn && v.cn === column.cn) {
+              if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
                 relationTableMetas.add(this.metas[bt.rtn])
                 return false;
               }
@@ -613,7 +613,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           for (const hm of newMeta.hasMany) {
             // filter out lookup columns which maps to current col
             this.metas[hm.tn].v = this.metas[hm.tn].v?.filter(v => {
-              if (v.lookup && v.tn === tn && v.cn === column.cn) {
+              if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
                 relationTableMetas.add(this.metas[hm.tn])
                 return false;
               }
@@ -627,7 +627,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           for (const mm of newMeta.manyToMany) {
             // filter out lookup columns which maps to current col
             this.metas[mm.rtn].v=this.metas[mm.rtn].v?.filter(v => {
-              if (v.tn === tn && v.rcn === column.cn) {
+              if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
                 relationTableMetas.add(this.metas[mm.tn])
                 return false;
               }
@@ -904,11 +904,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // filter lookup and relation virtual columns
     parentMeta.v = parentMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
    // check for lookup
-    && !(rest.type === 'mm' && (rest.relation.tn === parent && rest.relation.rtn === child || rest.relation.tn === child && rest.relation.rtn === parent))
+    && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
     )
     childMeta.v = childMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
       // check for lookup
-      && !(rest.type === 'mm' && (rest.relation.tn === parent && rest.relation.rtn === child || rest.relation.tn === child && rest.relation.rtn === parent))
+      && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
     )
 
     for (const meta of [parentMeta, childMeta]) {

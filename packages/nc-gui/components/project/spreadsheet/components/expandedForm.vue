@@ -59,82 +59,86 @@
         <v-container fluid style="height:70vh" class="py-0">
           <v-row class="h-100">
             <v-col class="h-100 px-10" style="overflow-y: auto" cols="8" :offset="isNew || !toggleDrawer ? 2 : 0">
-              <div
+              <template
                 v-for="(col,i) in fields"
-                :key="i"
-                :class="{
-                  'active-row' : active === col._cn,
-                  required: isRequired(col, localState)
-                }"
-                class="row-col  my-4"
               >
-                <div>
-                  <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
-                    <virtual-header-cell
+                <div
+                  v-if="!col.lk"
+                  :key="i"
+                  :class="{
+                    'active-row' : active === col._cn,
+                    required: isRequired(col, localState)
+                  }"
+                  class="row-col  my-4"
+                >
+                  <div>
+                    <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
+                      <virtual-header-cell
+                        v-if="col.virtual"
+                        :column="col"
+                        :nodes="nodes"
+                        :is-form="true"
+                        :meta="meta"
+                      />
+                      <header-cell
+                        v-else
+                        :is-form="true"
+                        :is-foreign-key="col.cn in belongsTo || col.cn in hasMany"
+                        :value="col._cn"
+                        :column="col"
+                        :sql-ui="sqlUi"
+                      />
+
+                    </label>
+                    <virtual-cell
                       v-if="col.virtual"
+                      ref="virtual"
+                      :disabled-columns="disabledColumns"
                       :column="col"
+                      :row="localState"
                       :nodes="nodes"
-                      :is-form="true"
                       :meta="meta"
-                    />
-                    <header-cell
-                      v-else
-                      :is-form="true"
-                      :is-foreign-key="col.cn in belongsTo || col.cn in hasMany"
-                      :value="col._cn"
-                      :column="col"
+                      :api="api"
+                      :active="true"
                       :sql-ui="sqlUi"
+                      :is-new="isNew"
+                      :is-form="true"
+                      :breadcrumbs="localBreadcrumbs"
+                      @updateCol="updateCol"
+                      @newRecordsSaved="$listeners.loadTableData|| reload"
                     />
 
-                  </label>
-                  <virtual-cell
-                    v-if="col.virtual"
-                    ref="virtual"
-                    :disabled-columns="disabledColumns"
-                    :column="col"
-                    :row="localState"
-                    :nodes="nodes"
-                    :meta="meta"
-                    :api="api"
-                    :active="true"
-                    :sql-ui="sqlUi"
-                    :is-new="isNew"
-                    :is-form="true"
-                    :breadcrumbs="localBreadcrumbs"
-                    @updateCol="updateCol"
-                    @newRecordsSaved="$listeners.loadTableData|| reload"
-                  />
-
-                  <div
-                    v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
-                    style="height:100%; width:100%"
-                    class="caption xc-input"
-                    @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
-                  >
-                    <input
-                      style="height:100%; width: 100%"
-                      readonly
-                      disabled
-                      :value="localState[col._cn]"
+                    <div
+                      v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
+                      style="height:100%; width:100%"
+                      class="caption xc-input"
+                      @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
                     >
-                  </div>
+                      <input
+                        style="height:100%; width: 100%"
+                        readonly
+                        disabled
+                        :value="localState[col._cn]"
+                      >
+                    </div>
 
-                  <editable-cell
-                    v-else
-                    :id="`data-table-form-${col._cn}`"
-                    v-model="localState[col._cn]"
-                    :db-alias="dbAlias"
-                    :column="col"
-                    class="xc-input body-2"
-                    :meta="meta"
-                    :sql-ui="sqlUi"
-                    is-form
-                    @focus="active = col._cn"
-                    @blur="active = ''"
-                    @input="$set(changedColumns,col._cn, true)"
-                  />
+                    <editable-cell
+                      v-else
+                      :id="`data-table-form-${col._cn}`"
+                      v-model="localState[col._cn]"
+                      :db-alias="dbAlias"
+                      :column="col"
+                      class="xc-input body-2"
+                      :meta="meta"
+                      :sql-ui="sqlUi"
+                      is-form
+                      @focus="active = col._cn"
+                      @blur="active = ''"
+                      @input="$set(changedColumns,col._cn, true)"
+                    />
+                  </div>
                 </div>
-              </div>
+              </template>
             </v-col>
             <v-col
               v-if="!isNew && toggleDrawer"

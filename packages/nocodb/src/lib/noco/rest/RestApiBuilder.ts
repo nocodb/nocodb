@@ -1,4 +1,3 @@
-
 import fs from 'fs';
 import path from 'path';
 
@@ -34,7 +33,7 @@ const log = debug('nc:api:rest');
 const NC_CUSTOM_ROUTE_KEY = '__xc_custom';
 
 export class RestApiBuilder extends BaseApiBuilder<Noco> {
-  public readonly type='rest';
+  public readonly type = 'rest';
   private controllers: { [key: string]: RestCtrlBelongsTo | RestCtrl | RestCtrlHasMany | RestCtrlCustom };
   private procedureCtrl: RestCtrlProcedure;
   private routers: { [key: string]: Router };
@@ -602,7 +601,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
   public async onTableCreate(tn: string, args?: any): Promise<void> {
 
-   await super.onTableCreate(tn,args);
+    await super.onTableCreate(tn, args);
 
     const columns = args.columns ? {
       [tn]: args.columns?.map(({altered: _al, ...rest}) => rest)
@@ -1215,8 +1214,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
-          v: oldMeta.v.filter(({hm, lookup, relation, type}) => (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
-            !(lookup && relation && type==='hm'&&relation.rtn === tnp && relation.tn === tnc ))
+          v: oldMeta.v.filter(({hm, lk}) => (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
+            !(lk && lk.type === 'hm' && lk.rtn === tnp && lk.tn === tnc))
         });
 
         // todo: delete from query_params
@@ -1252,8 +1251,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
-          v: oldMeta.v.filter(({bt, relation, lookup,type}) => (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
-                       !(lookup && relation && type==='bt'&&relation.rtn === tnp && relation.tn === tnc ))
+          v: oldMeta.v.filter(({bt, lk}) => (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
+            !(lk && lk.type === 'bt' && lk.rtn === tnp && lk.tn === tnc))
         });
         // todo: delete from query_params
         await this.xcMeta.metaUpdate(this.projectId,

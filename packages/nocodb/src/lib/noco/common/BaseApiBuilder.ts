@@ -1,12 +1,12 @@
-import * as fs from "fs";
+// import * as fs from "fs";
 
 import debug from 'debug';
 import {Router} from "express";
 import inflection from "inflection";
-import Knex from "knex";
+// import Knex from "knex";
 import {
   MysqlClient, PgClient, SqlClient,
-  SqlClientFactory,
+  // SqlClientFactory,
   Tele
 } from 'nc-help';
 
@@ -23,6 +23,7 @@ import XcCache from "../plugins/adapters/cache/XcCache";
 
 import BaseModel from "./BaseModel";
 import {XcCron} from "./XcCron";
+import NcConnectionMgr from "./NcConnectionMgr";
 
 const log = debug('nc:api:base');
 
@@ -951,57 +952,69 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
   protected initDbDriver(): void {
-    if (!this.dbDriver) {
-      if(this.projectBuilder?.prefix){
-        this.dbDriver = this.xcMeta.knex
-      }else {
-        if (this.connectionConfig?.connection?.ssl && typeof this.connectionConfig?.connection?.ssl === 'object') {
-          if (this.connectionConfig.connection.ssl.caFilePath) {
-            this.connectionConfig.connection.ssl.ca = fs
-              .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
-              .toString();
-          }
-          if (this.connectionConfig.connection.ssl.keyFilePath) {
-            this.connectionConfig.connection.ssl.key = fs
-              .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
-              .toString();
-          }
-          if (this.connectionConfig.connection.ssl.certFilePath) {
-            this.connectionConfig.connection.ssl.cert = fs
-              .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
-              .toString();
-          }
-        }
-
-        const isSqlite = this.connectionConfig.client === 'sqlite3';
-        this.baseLog(`initDbDriver : initializing db driver first time`)
-        this.dbDriver = XKnex(isSqlite ?
-          this.connectionConfig.connection as Knex.Config :
-          {
-            ...this.connectionConfig, connection: {
-              ...this.connectionConfig.connection,
-              typeCast(_field, next) {
-                const res = next();
-                if (res instanceof Buffer) {
-                  return [...res].map(v => ('00' + v.toString(16)).slice(-2)).join('');
-                }
-                return res;
-              }
-            }
-          } as any);
-        if (isSqlite) {
-          this.dbDriver.raw(`PRAGMA journal_mode=WAL;`).then(() => {
-          })
-        }
-      }
-    }
-    if (!this.sqlClient) {
-      this.sqlClient = SqlClientFactory.create(this.connectionConfig) as MysqlClient;
-      // close knex connection in sqlclient and reuse existing connection
-      this.sqlClient.knex.destroy();
-      this.sqlClient.knex = this.getDbDriver();
-      this.sqlClient.sqlClient = this.getDbDriver();
-    }
+    this.dbDriver =  NcConnectionMgr.get({
+      dbAlias:this.dbAlias,
+      env:this.config.env,
+      config:this.config,
+      projectId:this.projectId
+    });
+    this.sqlClient = NcConnectionMgr.getSqlClient({
+      dbAlias:this.dbAlias,
+      env:this.config.env,
+      config:this.config,
+      projectId:this.projectId
+    })
+    // if (!this.dbDriver) {
+    //   if(this.projectBuilder?.prefix){
+    //     this.dbDriver = this.xcMeta.knex
+    //   }else {
+    //     if (this.connectionConfig?.connection?.ssl && typeof this.connectionConfig?.connection?.ssl === 'object') {
+    //       if (this.connectionConfig.connection.ssl.caFilePath) {
+    //         this.connectionConfig.connection.ssl.ca = fs
+    //           .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
+    //           .toString();
+    //       }
+    //       if (this.connectionConfig.connection.ssl.keyFilePath) {
+    //         this.connectionConfig.connection.ssl.key = fs
+    //           .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
+    //           .toString();
+    //       }
+    //       if (this.connectionConfig.connection.ssl.certFilePath) {
+    //         this.connectionConfig.connection.ssl.cert = fs
+    //           .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
+    //           .toString();
+    //       }
+    //     }
+    //
+    //     const isSqlite = this.connectionConfig.client === 'sqlite3';
+    //     this.baseLog(`initDbDriver : initializing db driver first time`)
+    //     this.dbDriver = XKnex(isSqlite ?
+    //       this.connectionConfig.connection as Knex.Config :
+    //       {
+    //         ...this.connectionConfig, connection: {
+    //           ...this.connectionConfig.connection,
+    //           typeCast(_field, next) {
+    //             const res = next();
+    //             if (res instanceof Buffer) {
+    //               return [...res].map(v => ('00' + v.toString(16)).slice(-2)).join('');
+    //             }
+    //             return res;
+    //           }
+    //         }
+    //       } as any);
+    //     if (isSqlite) {
+    //       this.dbDriver.raw(`PRAGMA journal_mode=WAL;`).then(() => {
+    //       })
+    //     }
+    //   }
+    // }
+    // if (!this.sqlClient) {
+    //   this.sqlClient = SqlClientFactory.create(this.connectionConfig) as MysqlClient;
+    //   // close knex connection in sqlclient and reuse existing connection
+    //   this.sqlClient.knex.destroy();
+    //   this.sqlClient.knex = this.getDbDriver();
+    //   this.sqlClient.sqlClient = this.getDbDriver();
+    // }
   }
 
 

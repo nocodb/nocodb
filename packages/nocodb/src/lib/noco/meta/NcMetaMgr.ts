@@ -36,6 +36,7 @@ import {RestApiBuilder} from "../rest/RestApiBuilder";
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
 import {packageVersion} from 'nc-help';
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
+// import NcConnectionMgr from "../common/NcConnectionMgr";
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -81,6 +82,10 @@ export default class NcMetaMgr {
     for (const project of await this.xcMeta.projectList()) {
       const config = JSON.parse(project.config);
       this.projectConfigs[project.id] = config;
+      // const knexRefs = (this.app?.projectBuilders?.find(p => p.id === project.id)?.apiBuilders || []).reduce((ref, ab) => ({
+      //   ...ref,
+      //   [ab.dbAlias]: ab.getDbDriver()
+      // }), {})
       this.projectMgr.getSqlMgr({...project, config, metaDb: this.xcMeta?.knex}).projectOpenByWeb(config);
     }
 

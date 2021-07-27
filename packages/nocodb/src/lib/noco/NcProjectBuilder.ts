@@ -12,6 +12,7 @@ import Noco from "./Noco";
 import {GqlApiBuilder} from "./gql/GqlApiBuilder";
 import {XCEeError} from "./meta/NcMetaMgr";
 import {RestApiBuilder} from "./rest/RestApiBuilder";
+import NcConnectionMgr from "./common/NcConnectionMgr";
 
 export default class NcProjectBuilder {
 
@@ -617,6 +618,12 @@ export default class NcProjectBuilder {
 
         try {
 
+          const sqlClient = NcConnectionMgr.getSqlClient({
+            dbAlias: connectionConfig?.mets?.dbAlias,
+            env: this.config.env,
+            config: this.config,
+            projectId: this.id
+          })
           /* create migrator */
           const migrator = new Migrator({
             project_id: this.id,
@@ -638,7 +645,8 @@ export default class NcProjectBuilder {
           await migrator.sync({
             folder: this.config?.toolDir,
             env: this.appConfig.workingEnv,
-            dbAlias: connectionConfig.meta.dbAlias
+            dbAlias: connectionConfig.meta.dbAlias,
+            sqlClient
           });
 
           await migrator.migrationsUp({
@@ -647,8 +655,8 @@ export default class NcProjectBuilder {
             dbAlias: connectionConfig.meta.dbAlias,
             migrationSteps: 99999,
             sqlContentMigrate: 1,
+            sqlClient
           });
-
 
         } catch (e) {
           console.log(e);

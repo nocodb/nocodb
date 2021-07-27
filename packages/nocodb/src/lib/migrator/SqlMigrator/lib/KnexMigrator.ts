@@ -298,7 +298,7 @@ export default class KnexMigrator extends SqlMigrator {
   }
 
   async _initDbWithSql(connectionConfig) {
-    const sqlClient = SqlClientFactory.create(connectionConfig);
+    const sqlClient = connectionConfig.sqlClient || SqlClientFactory.create(connectionConfig);
     if (connectionConfig.client === "oracledb") {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${
@@ -375,7 +375,7 @@ export default class KnexMigrator extends SqlMigrator {
     // await sqlClient.createTableIfNotExists({tn: connectionConfig.meta.tn});
   }
 
-  async _initEnvDbsWithSql(env, dbAlias = null) {
+  async _initEnvDbsWithSql(env, dbAlias = null, sqlClient =null) {
 
     const {envs} = this.project;
 
@@ -387,7 +387,7 @@ export default class KnexMigrator extends SqlMigrator {
 
       /* if no dbAlias - init all dbs in env. Else check if it matches the one sent in args */
       if (!dbAlias || dbAlias === envs[env].db[i].meta.dbAlias) {
-        await this._initDbWithSql(connectionConfig);
+        await this._initDbWithSql({...connectionConfig, sqlClient});
       }
     }
   }
@@ -500,7 +500,7 @@ export default class KnexMigrator extends SqlMigrator {
         args.dbAlias,
         args.env
       );
-      const sqlClient = SqlClientFactory.create(connection);
+      const sqlClient = args.sqlClient || SqlClientFactory.create(connection);
       const migrations = await sqlClient.selectAll(connection.meta.tn);
       /** ************** END : get files and migrations *************** */
 
@@ -901,10 +901,10 @@ export default class KnexMigrator extends SqlMigrator {
         /* happens when creating the project */
         for (const env in this.project.envs) {
           args.env = env;
-          await this._initEnvDbsWithSql(args.env, args.dbAlias);
+          await this._initEnvDbsWithSql(args.env, args.dbAlias, args.sqlClient);
         }
       } else {
-        await this._initEnvDbsWithSql(args.env, args.dbAlias);
+        await this._initEnvDbsWithSql(args.env, args.dbAlias, args.sqlClient);
       }
 
     } catch (e) {
@@ -1069,7 +1069,7 @@ export default class KnexMigrator extends SqlMigrator {
    *                  and only filenames are migrated to _evolution table
    * @memberof KnexMigrator
    */
-  async migrationsUp(args: any = {}) {
+   async migrationsUp(args: any = {}) {
 
     const func = this.migrationsUp.name;
     // const result = new Result();
@@ -1092,7 +1092,8 @@ export default class KnexMigrator extends SqlMigrator {
       upFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.up.sql'),
       downFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.down.sql'),
       tn: this._getEvolutionsTablename(args),//`${this.toolDir}`,
-      sqlContentMigrate: args.sqlContentMigrate
+      sqlContentMigrate: args.sqlContentMigrate,
+      sqlClient: args.sqlClient
     });
   }
 

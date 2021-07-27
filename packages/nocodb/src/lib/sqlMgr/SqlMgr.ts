@@ -11,6 +11,8 @@ import slash from 'slash';
 
 const log = new Debug("SqlMgr");
 import KnexMigrator from '../migrator/SqlMigrator/lib/KnexMigrator'
+// import {XKnex} from "../dataMapper";
+import NcConnectionMgr from "../noco/common/NcConnectionMgr";
 
 
 const ToolOps = {
@@ -268,18 +270,23 @@ export default class SqlMgr {
       args.folder = slash(this.currentProjectFolder);
 
       // create connections for each db connection
-      for (const key in this.currentProjectJson.envs) {
-        for (let i = 0; i < this.currentProjectJson.envs[key].db.length; i++) {
+      for (const env in this.currentProjectJson.envs) {
+        for (let i = 0; i < this.currentProjectJson.envs[env].db.length; i++) {
           const connectionConfig = JSON.parse(
-            JSON.stringify(this.currentProjectJson.envs[key].db[i])
+            JSON.stringify(this.currentProjectJson.envs[env].db[i])
           );
 
-          const connectionKey = `${key}_${
-            this.currentProjectJson.envs[key].db[i].meta.dbAlias
+          const connectionKey = `${env}_${
+            this.currentProjectJson.envs[env].db[i].meta.dbAlias
           }`;
 
           this.currentProjectConnections[connectionKey] = SqlClientFactory.create(
-            connectionConfig
+            {...connectionConfig, knex: NcConnectionMgr.get({
+                dbAlias:this.currentProjectJson.envs[env].db[i].meta.dbAlias,
+                env:env,
+                config:args,
+                projectId:args.id
+              })}
           );
 
           this.currentProjectServers[connectionKey] = {
@@ -784,10 +791,10 @@ export default class SqlMgr {
     console.log(args);
 
     // create sql client for this operation
-    const client = await this.projectGetSqlClient(args);
+    const sqlClient = await this.projectGetSqlClient(args);
 
     // do sql operation
-    const sqlMigrationStatements = await client[op](opArgs);
+    const sqlMigrationStatements = await sqlClient[op](opArgs);
     console.log(
       `Sql Migration Statement for '${op}'`,
       sqlMigrationStatements.data.object
@@ -824,7 +831,8 @@ export default class SqlMgr {
         ...args,
         sqlContentMigrate: 0,
         migrationSteps: 9999,
-        folder: this.currentProjectFolder
+        folder: this.currentProjectFolder,
+        sqlClient
       };
       // console.log(`Migration up args for '${op}'`, migrationArgs);
       await this.migrator().migrationsUp(migrationArgs);

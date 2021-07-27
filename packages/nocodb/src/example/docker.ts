@@ -19,8 +19,8 @@ server.set('view engine', 'ejs');
 
 
 process.env[`DEBUG`] = 'xc*';
+process.env[`NODE_TLS_REJECT_UNAUTHORIZED`] = '0';
 
-// process.env[`DATABASE_URL`] = 'postgres://postgres:xgene@localhost:32768/chinook4';
 // process.env[`NC_ONE_CLICK`] = 'true';
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 //

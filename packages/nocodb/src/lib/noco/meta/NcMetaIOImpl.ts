@@ -8,6 +8,7 @@ import Noco from "../Noco";
 import XcMigrationSource from "../common/XcMigrationSource";
 
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
+import NcConnectionMgr from "../common/NcConnectionMgr";
 
 
 export default class NcMetaIOImpl extends NcMetaIO {
@@ -76,6 +77,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       dbIndex = dbIndex === -1 ? 0 : dbIndex;
       this.connection = XKnex(this.config.envs?.[this.config.workingEnv]?.db[dbIndex] as any);
     }
+    NcConnectionMgr.setXcMeta(this);
   }
 
   private get knexConnection(): XKnex {

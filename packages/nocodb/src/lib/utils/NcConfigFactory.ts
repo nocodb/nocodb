@@ -217,10 +217,10 @@ export default class NcConfigFactory implements NcConfig {
           "port": +url.port,
           'user': url.searchParams.get('u') || url.searchParams.get('user'),
         },
-        pool: {
-          min: 1,
-          max: 1
-        },
+        // pool: {
+        //   min: 1,
+        //   max: 1
+        // },
         acquireConnectionTimeout: 600000,
       } as any;
 
@@ -303,10 +303,10 @@ export default class NcConfigFactory implements NcConfig {
           "port": +url.port,
           'user': url.searchParams.get('u') || url.searchParams.get('user'),
         },
-        pool: {
-          min: 1,
-          max: 2
-        },
+        // pool: {
+        //   min: 1,
+        //   max: 2
+        // },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path') ? {
           searchPath: url.searchParams.get('search_path').split(',')
@@ -521,6 +521,7 @@ export default class NcConfigFactory implements NcConfig {
         args.meta.db
       );
       await metaSqlClient.createDatabaseIfNotExists(args.meta.db?.connection);
+      await metaSqlClient.knex.destroy();
     }
 
 

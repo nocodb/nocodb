@@ -144,7 +144,7 @@
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
-    "nc-help": "^0.2.8",
+    "nc-help": "^0.2.10",
     "nc-lib-gui": "^0.2.9",
     "nc-plugin": "^0.1.1",
     "nodemailer": "^6.4.10",

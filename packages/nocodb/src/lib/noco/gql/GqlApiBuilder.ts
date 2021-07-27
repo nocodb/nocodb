@@ -77,7 +77,6 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     super(app, projectBuilder, config, connectionConfig);
     this.config = config;
     this.connectionConfig = connectionConfig;
-    this.models = {};
     this.resolvers = {};
     this.schemas = {};
     this.types = {};

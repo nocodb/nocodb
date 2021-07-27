@@ -253,6 +253,9 @@ export default {
     }
   },
   watch: {
+    meta() {
+      this.mapFieldsAndShowFields()
+    },
     'viewStatus.type'() {
       if (!this.loadingMeta || !this.loadingData) {
         this.syncDataDebounce(this)

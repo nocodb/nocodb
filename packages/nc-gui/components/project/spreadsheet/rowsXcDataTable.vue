@@ -941,9 +941,6 @@ export default {
           if (col) {
             this.$set(this.showFields, col, true)
           }
-          if (this.selectedViewId === tableMeta.id) {
-            this.columnsWidth = qp.columnsWidth || this.columnsWidth
-          }
         } catch (e) {
         }
       }

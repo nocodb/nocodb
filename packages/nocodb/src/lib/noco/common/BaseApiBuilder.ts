@@ -342,10 +342,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       title: tn
     })
 
-    let queryParams;
+    let queryParams: any;
     try {
       queryParams = JSON.parse(oldModelRow.query_params);
     } catch (e) {
+      queryParams = {}
     }
 
 
@@ -434,7 +435,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           aclOper.push(async () => this.modifyColumnNameInACL(tn, column.cno, column.cn));
 
           // virtual views param update
-          for (const qp of virtualViewsParamsArr) {
+          for (const qp of [queryParams, ...virtualViewsParamsArr]) {
+            if (!qp) continue
             // @ts-ignore
             const {filters, sortList, showFields} = qp;
             /* update sort field */
@@ -533,8 +535,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
               // update lookup columns
               this.metas[mm.rtn].v?.forEach(v => {
-                if (v.lk &&v.lk.ltn === tn && v.lk.lcn === column.cno) {
-                  relationTableMetas.add(this.metas[mm.tn])
+                if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
+                  relationTableMetas.add(this.metas[mm.rtn])
                   v.lk.lcn = column.cn;
                   v.lk._lcn = column._cn;
                 }
@@ -626,9 +628,9 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         if (newMeta.manyToMany?.length) {
           for (const mm of newMeta.manyToMany) {
             // filter out lookup columns which maps to current col
-            this.metas[mm.rtn].v=this.metas[mm.rtn].v?.filter(v => {
+            this.metas[mm.rtn].v = this.metas[mm.rtn].v?.filter(v => {
               if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
-                relationTableMetas.add(this.metas[mm.tn])
+                relationTableMetas.add(this.metas[mm.rtn])
                 return false;
               }
               return true;
@@ -668,12 +670,27 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       }
     }
 
+
+    // update relation tables metadata
+    for (const relMeta of relationTableMetas) {
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        meta: JSON.stringify(relMeta)
+      }, {
+        title: relMeta.tn
+      });
+      this.models[relMeta.tn] = this.getBaseModel(relMeta);
+      XcCache.del([this.projectId, this.dbAlias, 'table', relMeta.tn].join('::'));
+    }
+
     await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
       meta: JSON.stringify(newMeta),
       ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
     }, {
       title: tn
     });
+    XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
+
+    this.models[tn] = this.getBaseModel(newMeta);
 
     await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
       acl: JSON.stringify(acl)
@@ -691,21 +708,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
     this.baseLog(`onTableUpdate : Generating model instance for '%s' table`, tn)
 
-    this.models[tn] = this.getBaseModel(newMeta);
 
 
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
 
-    // update relation tables metadata
-    for (const relMeta of relationTableMetas) {
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        meta: JSON.stringify(relMeta)
-      }, {
-        title: relMeta.tn
-      });
-      this.models[relMeta.tn] = this.getBaseModel(relMeta);
-      XcCache.del([this.projectId, this.dbAlias, 'table', relMeta.tn].join('::'));
-    }
+
   }
 
 
@@ -903,8 +910,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
     // filter lookup and relation virtual columns
     parentMeta.v = parentMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
-   // check for lookup
-    && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
+      // check for lookup
+      && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
     )
     childMeta.v = childMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
       // check for lookup
@@ -945,47 +952,50 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   protected initDbDriver(): void {
     if (!this.dbDriver) {
-      if (this.connectionConfig?.connection?.ssl && typeof this.connectionConfig?.connection?.ssl === 'object') {
-        if (this.connectionConfig.connection.ssl.caFilePath) {
-          this.connectionConfig.connection.ssl.ca = fs
-            .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.keyFilePath) {
-          this.connectionConfig.connection.ssl.key = fs
-            .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.certFilePath) {
-          this.connectionConfig.connection.ssl.cert = fs
-            .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
-            .toString();
-        }
-      }
-
-      const isSqlite = this.connectionConfig.client === 'sqlite3';
-      this.baseLog(`initDbDriver : initializing db driver first time`)
-      this.dbDriver = XKnex(isSqlite ?
-        this.connectionConfig.connection as Knex.Config :
-        {
-          ...this.connectionConfig, connection: {
-            ...this.connectionConfig.connection,
-            typeCast(_field, next) {
-              const res = next();
-              if (res instanceof Buffer) {
-                return [...res].map(v => ('00' + v.toString(16)).slice(-2)).join('');
-              }
-              return res;
-            }
+      if(this.projectBuilder?.prefix){
+        this.dbDriver = this.xcMeta.knex
+      }else {
+        if (this.connectionConfig?.connection?.ssl && typeof this.connectionConfig?.connection?.ssl === 'object') {
+          if (this.connectionConfig.connection.ssl.caFilePath) {
+            this.connectionConfig.connection.ssl.ca = fs
+              .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
+              .toString();
           }
-        } as any);
-      if (isSqlite) {
-        this.dbDriver.raw(`PRAGMA journal_mode=WAL;`).then(() => {
-        })
+          if (this.connectionConfig.connection.ssl.keyFilePath) {
+            this.connectionConfig.connection.ssl.key = fs
+              .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
+              .toString();
+          }
+          if (this.connectionConfig.connection.ssl.certFilePath) {
+            this.connectionConfig.connection.ssl.cert = fs
+              .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
+              .toString();
+          }
+        }
+
+        const isSqlite = this.connectionConfig.client === 'sqlite3';
+        this.baseLog(`initDbDriver : initializing db driver first time`)
+        this.dbDriver = XKnex(isSqlite ?
+          this.connectionConfig.connection as Knex.Config :
+          {
+            ...this.connectionConfig, connection: {
+              ...this.connectionConfig.connection,
+              typeCast(_field, next) {
+                const res = next();
+                if (res instanceof Buffer) {
+                  return [...res].map(v => ('00' + v.toString(16)).slice(-2)).join('');
+                }
+                return res;
+              }
+            }
+          } as any);
+        if (isSqlite) {
+          this.dbDriver.raw(`PRAGMA journal_mode=WAL;`).then(() => {
+          })
+        }
       }
     }
     if (!this.sqlClient) {
-
       this.sqlClient = SqlClientFactory.create(this.connectionConfig) as MysqlClient;
       // close knex connection in sqlclient and reuse existing connection
       this.sqlClient.knex.destroy();

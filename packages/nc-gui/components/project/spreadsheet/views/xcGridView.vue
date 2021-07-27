@@ -208,11 +208,17 @@
     </table>
 
     <div is="style" v-html="style" />
-    <div is="style" v-html="resizeColStyle" />
+    <!--    <div is="style" v-html="resizeColStyle" />-->
+    <dynamic-style>
+      <template v-if="resizingCol">
+        [data-col="{{ resizingCol }}"]{min-width:{{ resizingColWidth }};max-width:{{ resizingColWidth }};width:{{ resizingColWidth }};}
+      </template>
+    </dynamic-style>
   </div>
 </template>
 
 <script>
+import DynamicStyle from '@/components/dynamicStyle'
 import HeaderCell from '@/components/project/spreadsheet/components/headerCell'
 import EditableCell from '@/components/project/spreadsheet/components/editableCell'
 import EditColumn from '@/components/project/spreadsheet/components/editColumn'
@@ -225,6 +231,7 @@ import VirtualHeaderCell from '@/components/project/spreadsheet/components/virtu
 export default {
   name: 'XcGridView',
   components: {
+    DynamicStyle,
     VirtualHeaderCell,
     VirtualCell,
     TableCell,
@@ -299,10 +306,10 @@ export default {
       }
 
       return style
-    },
-    resizeColStyle() {
-      return this.resizingCol ? ` [data-col="${this.resizingCol}"]{min-width:${this.resizingColWidth};max-width:${this.resizingColWidth};width:${this.resizingColWidth};}` : ''
     }
+    // resizeColStyle() {
+    //   return this.resizingCol ? ` [data-col="${this.resizingCol}"]{min-width:${this.resizingColWidth};max-width:${this.resizingColWidth};width:${this.resizingColWidth};}` : ''
+    // }
   },
   watch: {
     data() {

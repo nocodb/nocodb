@@ -221,7 +221,25 @@ class SwaggerXc extends BaseRender {
                 "required": true,
                 "type": "integer",
                 "format": "int64"
-              }
+              },
+              {
+                "in": "query",
+                "name": "bt",
+                "type": "String",
+                "description": "Comma separated parent table names(Belongs To)"
+              },
+              {
+                "in": "query",
+                "name": "hm",
+                "type": "String",
+                "description": "Comma separated child table names(Has Many)"
+              },
+              {
+                "in": "query",
+                "name": "mm",
+                "type": "String",
+                "description": "Comma separated child table names(Many to Many)"
+              },
             ],
             "responses": {
               "200": {

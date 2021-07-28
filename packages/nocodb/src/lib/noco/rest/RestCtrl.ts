@@ -60,7 +60,8 @@ export class RestCtrl extends RestBaseCtrl {
   }
 
   public async get(req: Request | any, res): Promise<void> {
-    const data = await req.model.readByPk(req.params.id, req.query);
+    // const data = await req.model.readByPk(req.params.id, req.query);
+    const data = await req.model.nestedRead(req.params.id, req.query);
     res.xcJson(data);
   }
 

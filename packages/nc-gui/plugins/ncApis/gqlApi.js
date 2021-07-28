@@ -65,8 +65,8 @@ export default class GqlApi {
     return `{${this.gqlQueryListName}${this.generateQueryParams(params)}{${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}}`
   }
 
-  gqlReadQuery(id) {
-    return `{${this.gqlQueryReadName}(id:"${id}"){${this.gqlReqBody}}}`
+  async gqlReadQuery(id) {
+    return `{${this.gqlQueryReadName}(id:"${id}"){${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}}`
   }
 
   gqlCountQuery(params) {
@@ -209,7 +209,7 @@ export default class GqlApi {
 
   async read(id) {
     const data = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
-      query: this.gqlReadQuery(id),
+      query: await this.gqlReadQuery(id),
       variables: null
     })
     return data.data.data[this.gqlQueryReadName]

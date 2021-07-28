@@ -1334,6 +1334,63 @@ class BaseModelSql extends BaseModel {
     }
   }
 
+  async nestedRead(id, {hm: childs = '', bt: parents = '', mm: many = '', where, fields: fields1, f, ...rest}) {
+
+
+    let fields = fields1 || f || '*';
+    try {
+
+      // todo: use fields in readbyPk
+      if (fields !== '*' && fields.split(',').indexOf(this.pks[0].cn) === -1) {
+        fields += ',' + this.pks[0].cn;
+      }
+
+
+      const item = await this.readByPk(id);
+      if (!item) return item;
+
+      for (const parent of parents.split(',')) {
+        const {cn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
+        if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
+          fields += ',' + cn;
+        }
+      }
+
+
+      const items = [item];
+
+      if (items && items.length) {
+        await Promise.all([...new Set(childs.split(','))].map((child, index) => child && this._getChildListInParent({
+          parent: items,
+          child
+        }, rest, index)));
+      }
+
+      await Promise.all(parents.split(',').map((parent, index): any => {
+        if (!parent) {
+          return;
+        }
+        const {cn, rcn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
+        const parentIds = [...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))];
+        return this._belongsTo({parent, rcn, parentIds, childs: items, cn, ...rest}, index);
+      }))
+
+
+      if (items && items.length) {
+        await Promise.all([...new Set(many.split(','))].map((child, index) => child && this._getManyToManyList({
+          parent: items,
+          child
+        }, rest, index)));
+      }
+
+
+      return item;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
+
   // todo: naming
   public m2mNotChildren({pid = null, assoc = null, ...args}): Promise<any> {
     if (pid === null || assoc === null) {

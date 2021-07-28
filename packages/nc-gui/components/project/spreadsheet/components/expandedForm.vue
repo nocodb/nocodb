@@ -418,12 +418,12 @@ export default {
       }
     },
     async reload() {
-      // const id = this.meta.columns.filter((c) => c.pk).map(c => this.localState[c._cn]).join('___');
-      const where = this.meta.columns.filter(c => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and')
+      const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
+      // const where = this.meta.columns.filter(c => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and')
       this.$set(this, 'changedColumns', {})
-      // this.localState = await this.api.read(id);
-      const data = await this.api.list({ ...(this.queryParams || {}), where }) || [{}]
-      this.localState = data[0] || this.localState
+      this.localState = await this.api.read(id, this.queryParams || {})
+      // const data = await this.api.list({ ...(this.queryParams || {}), where }) || [{}]
+      // this.localState = data[0] || this.localState
       if (!this.isNew && this.toggleDrawer) {
         this.getAuditsAndComments()
       }

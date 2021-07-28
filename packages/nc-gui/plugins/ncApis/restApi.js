@@ -11,8 +11,8 @@ export default class RestApi {
     return data.data
   }
 
-  async read(id) {
-    const data = await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`)
+  async read(id, params = {}) {
+    const data = await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`, params)
     return data.data
   }
 

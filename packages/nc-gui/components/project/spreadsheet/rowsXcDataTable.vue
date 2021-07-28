@@ -261,37 +261,7 @@
             :size="size"
             @input="loadTableData"
           />
-          <!--  <v-pagination
-              v-if="count !== Infinity"
-              style="max-width: 100%"
-              v-model="page"
-              :length="Math.ceil(count / size)"
-              :total-visible="8"
-              @input="loadTableData"
-              color="primary lighten-2"
-            ></v-pagination>
-            <div v-else class="mx-auto d-flex align-center mt-n1 " style="max-width:250px">
-              <span class="caption" style="white-space: nowrap"> Change page:</span>
-              <v-text-field
-                class="ml-1 caption"
-                :full-width="false"
-                outlined
-                dense
-                hide-details
-                v-model="page"
-                @keydown.enter="loadTableData"
-                type="number"
-              >
-                <template #append>
-                  <x-icon tooltip="Change page" small icon.class="mt-1" @click="loadTableData">mdi-keyboard-return
-                  </x-icon>
-                </template>
-              </v-text-field>
-            </div>-->
         </template>
-        <!--      <div v-else class="d-flex justify-center py-4">-->
-        <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
-        <!--      </div>-->
       </div>
 
       <spreadsheet-nav-drawer
@@ -414,9 +384,9 @@
             <span class="caption">Delete Selected Rows</span>
           </v-list-item>
         </template>
-        <template v-if="meta.hasMany && meta.hasMany.length">
+        <!--        <template v-if="meta.hasMany && meta.hasMany.length">
           <v-divider v-if="isEditable && !isLocked" />
-          <span class="ml-3 grey--text " style="font-size: 9px">Has Many</span>
+          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Has Many</span>
 
           <v-list-item v-for="(hm,i) in meta.hasMany" :key="i" @click="addNewRelationTabCtxMenu(hm,'hm')">
             <span class="caption text-capitalize">{{ hm._tn }}</span>
@@ -425,12 +395,12 @@
 
         <template v-if="meta.belongsTo && meta.belongsTo.length">
           <v-divider />
-          <span class="ml-3 grey--text " style="font-size: 9px">Belongs To</span>
+          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Belongs To</span>
 
           <v-list-item v-for="(bt,i) in belongsTo" :key="i" @click="addNewRelationTabCtxMenu(bt,'bt')">
             <span class="caption text-capitalize">{{ bt._rtn }}</span>
           </v-list-item>
-        </template>
+        </template>-->
       </v-list>
     </v-menu>
     <v-dialog

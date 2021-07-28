@@ -41,6 +41,7 @@
           show-count
           class="mr-3 align-self-center"
         />
+        <a class="caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 

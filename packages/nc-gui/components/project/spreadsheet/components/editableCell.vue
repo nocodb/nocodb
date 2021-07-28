@@ -92,6 +92,8 @@
       v-on="parentListeners"
     />
 
+    <editable-url-cell v-else-if="isURL" v-model="localState" v-on="parentListeners" />
+
     <text-cell v-else-if="isString" v-model="localState" v-on="parentListeners" />
 
     <text-area-cell
@@ -109,6 +111,7 @@
 
 <script>
 import DatePickerCell from '@/components/project/spreadsheet/components/editableCell/datePickerCell'
+import EditableUrlCell from '@/components/project/spreadsheet/components/editableCell/editableUrlCell'
 import TextCell from '@/components/project/spreadsheet/components/editableCell/textCell'
 import DateTimePickerCell from '@/components/project/spreadsheet/components/editableCell/dateTimePickerCell'
 import TextAreaCell from '@/components/project/spreadsheet/components/editableCell/textAreaCell'
@@ -128,6 +131,7 @@ import debounce from 'debounce'
 export default {
   name: 'EditableCell',
   components: {
+    EditableUrlCell,
     SetListCell,
     SetListEditableCell,
     EnumCell,

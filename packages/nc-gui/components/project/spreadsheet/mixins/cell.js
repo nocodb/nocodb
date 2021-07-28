@@ -52,6 +52,9 @@ export default {
     isSet() {
       return this.column.uidt === 'MultiSelect'
     },
+    isURL() {
+      return this.column.uidt === 'URL'
+    },
     isAttachment() {
       return this.column.uidt === 'Attachment'
     }

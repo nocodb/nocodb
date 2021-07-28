@@ -10,10 +10,12 @@
   <set-list-cell v-else-if="isSet" :value="value" :column="column" @click.stop="$emit('enableedit')" />
   <!--  <enum-list-editable-cell @click.stop="$emit('enableedit')" v-else-if="isEnum && selected" :value="value" :column="column"></enum-list-editable-cell>-->
   <enum-cell v-else-if="isEnum" :value="value" :column="column" @click.stop="$emit('enableedit')" />
+  <url-cell v-else-if="isURL" :value="value" />
   <span v-else>{{ value }}</span>
 </template>
 
 <script>
+import UrlCell from '@/components/project/spreadsheet/components/cell/urlCell'
 import cell from '@/components/project/spreadsheet/mixins/cell'
 import SetListCell from '@/components/project/spreadsheet/components/cell/setListCell'
 import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
@@ -21,7 +23,7 @@ import EditableAttachmentCell from '@/components/project/spreadsheet/components/
 
 export default {
   name: 'TableCell',
-  components: { EditableAttachmentCell, EnumCell, SetListCell },
+  components: { UrlCell, EditableAttachmentCell, EnumCell, SetListCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected'],
   computed: {}

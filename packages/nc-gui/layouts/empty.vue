@@ -2,6 +2,7 @@
   <v-app>
     <snackbar />
     <v-content>
+      <v-app-bar v-show="false" dark />
       <v-container fluid style="">
         <nuxt />
       </v-container>

@@ -39,7 +39,7 @@
 
                 <v-text-field
                   v-model="form.email"
-                  label="$t('signin.input_1')"
+                  :label="$t('signin.enter_your_work_email')"
                   :rules="formRules.email"
                   required
                 />
@@ -47,7 +47,7 @@
                 <v-text-field
                   v-model="form.password"
                   name="input-10-2"
-                  label="$t('signin.input_2')"
+                  :label="$t('signin.enter_your_password')"
                   min="8"
                   :append-icon="formUtil.e3 ? 'visibility' : 'visibility_off'"
                   :rules="formRules.password"
@@ -87,7 +87,7 @@
                 <br>
                 <br>
                 <p v-ge="['Already have an account ?','']" class="font-weight-light caption">
-                  {{ $t('signup.message_2') }}
+                  {{ $t('signup.already_ve_an_account') }}
                   <router-link to="/user/authentication/signin">
                     {{ $t('signin.title') }}
                   </router-link>
@@ -230,6 +230,7 @@
 //   "./libs"
 // );
 import { isEmail } from '@/helpers'
+import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin'
 // import VueRecaptcha from 'vue-recaptcha';
 
 export default {
@@ -237,6 +238,7 @@ export default {
     // VueRecaptcha
   },
   directives: {},
+  mixins: [passwordValidateMixin],
   layout: 'empty',
   validate() {
     return true
@@ -354,7 +356,7 @@ export default {
       return this.formUtil.progressColorValue
     },
 
-    PasswordValidate(p) {
+    /*  PasswordValidate(p) {
       if (!p) {
         this.passwordProgress = 0
         this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
@@ -372,14 +374,14 @@ export default {
         progress = Math.min(100, progress + 25)
       }
 
-      if (!(p.match(/.*[A-Z].*/))) {
+      if (!(p.match(/.*[A-Z].*!/))) {
         msg += 'One Uppercase Letter. '
         validation = validation && false
       } else {
         progress = Math.min(100, progress + 25)
       }
 
-      if (!(p.match(/.*[0-9].*/))) {
+      if (!(p.match(/.*[0-9].*!/))) {
         msg += 'One Number. '
         validation = validation && false
       } else {
@@ -403,7 +405,7 @@ export default {
       // console.log('msg', msg, validation);
 
       return validation
-    },
+    }, */
 
     PlusCounter() {
       this.$store.dispatch('ActPlusCounter')

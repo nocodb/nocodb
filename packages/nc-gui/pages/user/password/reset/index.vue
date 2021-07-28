@@ -52,10 +52,12 @@
 
 <script>
 import { isEmail } from '@/helpers'
+import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin'
 
 export default {
   directives: {},
   components: {},
+  mixins: [passwordValidateMixin],
   validate({ params }) {
     // console.log('validate');
     return true
@@ -65,7 +67,7 @@ export default {
     return {
       resetSuccess: true,
       passwordDetails: {
-        newPassword: null,
+        newPassword: '',
         verifyPassword: null,
         token: null
       },
@@ -122,7 +124,7 @@ export default {
         this.$router.push('/')
       }
     },
-    PasswordValidate(p) {
+    /*    PasswordValidate(p) {
       if (!p) {
         this.passwordProgress = 0
         this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
@@ -140,14 +142,14 @@ export default {
         progress = Math.min(100, progress + 25)
       }
 
-      if (!(p.match(/.*[A-Z].*/))) {
+      if (!(p.match(/.*[A-Z].*!/))) {
         msg += 'One Uppercase Letter. '
         validation = validation && false
       } else {
         progress = Math.min(100, progress + 25)
       }
 
-      if (!(p.match(/.*[0-9].*/))) {
+      if (!(p.match(/.*[0-9].*!/))) {
         msg += 'One Number. '
         validation = validation && false
       } else {
@@ -169,7 +171,7 @@ export default {
       // console.log('msg', msg, validation);
 
       return validation
-    },
+    }, */
     PasswordValidate1(confirmPassword) {
       if (confirmPassword) {
         return this.passwordDetails.newPassword.startsWith(confirmPassword)

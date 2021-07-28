@@ -744,21 +744,7 @@ export default {
               return o
             }, {})
 
-            let insertedData = await this.api.insert(insertObj)
-
-            // todo: optimize
-            if (this.meta.v && this.meta.v.length) {
-              try {
-                const where = this.meta.columns.filter(c => c.pk).map(c => `(${c._cn},eq,${insertedData[c._cn]})`).join('~and')
-                if (where) {
-                  const { childs, parents, many } = this.queryParams
-                  const data = (await this.api.list({ where, childs, parents, many }) || [insertedData])
-                  insertedData = data.length ? data[0] : insertedData
-                }
-              } catch (e) {
-                // ignore
-              }
-            }
+            const insertedData = await this.api.insert(insertObj)
 
             this.data.splice(row, 1, {
               row: insertedData,

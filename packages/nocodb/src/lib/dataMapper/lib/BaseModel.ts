@@ -62,6 +62,7 @@ abstract class BaseModel {
   protected hasManyRelations: any;
   protected belongsToRelations: any;
   protected manyToManyRelations: any;
+  protected virtualColumns: any;
   protected config: any;
   protected clientType: string;
   public readonly type: string;

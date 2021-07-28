@@ -76,12 +76,25 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     await this.handleHooks('after.delete', data, req)
   }
 
-  private async handleHooks(hookName, data, req): Promise<void> {
+  private async handleHooks(hookName, _data, req): Promise<void> {
+    let data = _data;
+
+
     try {
       if (this.tn in this.builder.hooks
         && hookName in this.builder.hooks[this.tn]
         && this.builder.hooks[this.tn][hookName]
       ) {
+
+        if (hookName === 'after.update') {
+          try {
+            data = await this.nestedRead(req.params.id, this.defaultNestedQueryParams)
+          } catch (_) {
+            /* ignore */
+          }
+        }
+
+
         for (const hook of this.builder.hooks[this.tn][hookName]) {
           if (!hook.active) {
             continue

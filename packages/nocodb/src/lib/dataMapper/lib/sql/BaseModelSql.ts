@@ -41,6 +41,7 @@ class BaseModelSql extends BaseModel {
       hasMany = [],
       belongsTo = [],
       manyToMany = [],
+      v,
       type,
       dbModels
     }: {
@@ -66,6 +67,7 @@ class BaseModelSql extends BaseModel {
     this.hasManyRelations = hasMany;
     this.belongsToRelations = belongsTo;
     this.manyToManyRelations = manyToMany;
+    this.virtualColumns = v;
     this.config = {
       limitDefault: process.env.DB_QUERY_LIMIT_DEFAULT || 10,
       limitMax: process.env.DB_QUERY_LIMIT_MAX || 500,
@@ -157,7 +159,9 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} Copy of the object excluding primary keys
    * @private
    */
-  _extractPks(obj) {
+  _extractPks(obj): {
+    [key: string]: any
+  } {
     const objCopy = this.mapAliasToColumn(obj);
     for (const key in objCopy) {
       if (this.pks.filter(pk => pk._cn === key).length === 0) {
@@ -173,7 +177,7 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} Copy of the object excluding primary keys
    * @private
    */
-  _extractPksValues(obj) {
+  _extractPksValues(obj): string {
     const objCopy = this.mapAliasToColumn(obj);
     for (const key in objCopy) {
       if (this.pks.filter(pk => pk._cn === key).length === 0) {
@@ -238,6 +242,7 @@ class BaseModelSql extends BaseModel {
    * @param {Object} [trx] - knex transaction object
    * @returns {Promise<Object[]>|Promise<Number[]>}
    */
+  // todo: optimize
   async insert(data, trx = null, cookie?: any) {
 
     try {
@@ -260,6 +265,7 @@ class BaseModelSql extends BaseModel {
         response = await this._run(query);
       }
 
+      const ai = this.columns.find(c => c.ai);
       if (!response || (typeof response?.[0] !== 'object' && response?.[0] !== null)) {
         let id;
         if (response?.length) {
@@ -268,12 +274,14 @@ class BaseModelSql extends BaseModel {
           id = (await this._run(query))[0];
         }
 
-        const ai = this.columns.find(c => c.ai);
         if (ai) {
-          response = await this.readByPk(id)
+          // response = await this.readByPk(id)
+          response = await this.nestedRead(id, this.defaultNestedBtQueryParams)
         } else {
           response = data;
         }
+      } else if (ai) {
+        response = await this.nestedRead(Array.isArray(response) ? response?.[0]?.[ai._cn] : response?.[ai._cn], this.defaultNestedBtQueryParams)
       }
 
       if (Array.isArray(response)) {
@@ -1763,6 +1771,75 @@ class BaseModelSql extends BaseModel {
       }
     }
     return obj;
+  }
+
+  protected get defaultNestedBtQueryParams(): any {
+    return Object.entries(this.defaultNestedQueryParams || {}).reduce((paramsObj, [key, val]) => {
+      if (key.startsWith('bfield') || key.startsWith('bf') || key === 'bt') {
+        return {...paramsObj, [key]: val}
+      }
+      return paramsObj;
+    }, {})
+  }
+
+  protected get defaultNestedQueryParams(): any {
+    // generate default nested fields args based on virtual column list
+    try {
+      const nestedFields: {
+        [key: string]: string[]
+      } = (this.virtualColumns || []).reduce((obj, vc) => {
+        if (vc.hm) {
+          obj.hm.push(vc.hm.tn)
+        } else if (vc.bt) {
+          obj.bt.push(vc.bt.rtn)
+        } else if (vc.mm) {
+          obj.mm.push(vc.mm.rtn)
+        }
+        return obj
+      }, {hm: [], bt: [], mm: []})
+
+      // todo: handle if virtual column missing
+      // construct fields args based on lookup columns
+      const fieldsObj = (this.virtualColumns || []).reduce((obj, vc) => {
+        if (!vc.lk) {
+          return obj
+        }
+
+        let key
+        let index
+        let column
+
+        switch (vc.lk.type) {
+          case 'mm':
+            index = nestedFields.mm.indexOf(vc.lk.ltn) + 1
+            key = `mfields${index}`
+            column = vc.lk.lcn
+            break
+          case 'hm':
+            index = nestedFields.hm.indexOf(vc.lk.ltn) + 1
+            key = `hfields${index}`
+            column = vc.lk.lcn
+            break
+          case 'bt':
+            index = nestedFields.bt.indexOf(vc.lk.ltn) + 1
+            key = `bfields${index}`
+            column = vc.lk.lcn
+            break
+        }
+
+        if (index && column) {
+          obj[key] = `${obj[key] ? `${obj[key]},` : ''}${column}`
+        }
+
+        return obj
+      }, {})
+      return {
+        ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({...ro, [k]: a.join(',')}), {}),
+        ...fieldsObj
+      }
+    } catch (e) {
+      return {}
+    }
   }
 
 }

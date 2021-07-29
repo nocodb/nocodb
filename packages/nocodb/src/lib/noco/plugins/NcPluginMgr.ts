@@ -18,6 +18,7 @@ import S3PluginConfig from "../../../plugins/s3";
 import ScalewayPluginConfig from "../../../plugins/scaleway";
 import SlackPluginConfig from "../../../plugins/slack";
 import SMTPPluginConfig from "../../../plugins/smtp";
+import MailerSendConfig from "../../../plugins/mailerSend";
 import SpacesPluginConfig from "../../../plugins/spaces";
 import TeamsPluginConfig from "../../../plugins/teams";
 import TwilioPluginConfig from "../../../plugins/twilio";
@@ -46,6 +47,7 @@ const defaultPlugins = [
   LinodePluginConfig,
   UpcloudPluginConfig,
   SMTPPluginConfig,
+  MailerSendConfig,
   ScalewayPluginConfig,
 ]
 

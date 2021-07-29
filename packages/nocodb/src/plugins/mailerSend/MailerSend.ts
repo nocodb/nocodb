@@ -1,12 +1,12 @@
 import {IEmailAdapter} from "nc-plugin";
-import nodemailer from "nodemailer";
-import Mail from "nodemailer/lib/mailer";
+import MailerSend, {EmailParams, Recipient} from "mailersend";
+
 
 import {XcEmail} from "../../interface/IEmailAdapter";
 
-export default class SMTP implements IEmailAdapter {
+export default class Mailer implements IEmailAdapter {
 
-  private transporter: Mail;
+  private mailersend: MailerSend;
   private input: any;
 
   constructor(input: any) {
@@ -14,30 +14,34 @@ export default class SMTP implements IEmailAdapter {
   }
 
   public async init(): Promise<any> {
-    const config = {
-      // from: this.input.from,
-      // options: {
-      "host": this.input?.host,
-      "port": parseInt(this.input?.port, 10),
-      "secure": this.input?.secure === 'true',
-      "auth": {
-        "user": this.input?.username,
-        "pass": this.input?.password
-      }
-      // }
-    }
-    this.transporter = nodemailer.createTransport(config);
+    this.mailersend = new MailerSend({
+      api_key: this.input?.api_key,
+    })
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
-    if (this.transporter) {
-      await this.transporter.sendMail({...mail, from: this.input.from})
+
+    const recipients = [
+      new Recipient(mail.to)
+    ];
+
+    const emailParams = new EmailParams()
+      .setFrom(this.input.from)
+      .setFromName(this.input.from_name)
+      .setRecipients(recipients)
+      .setSubject(mail.subject)
+      .setHtml(mail.html)
+      .setText(mail.text);
+
+    const res = await this.mailersend.send(emailParams)
+    if (res.status === 401) {
+      throw new Error(res.status)
     }
   }
 
   public async test(email): Promise<boolean> {
     try {
-     await this.mailSend({
+      await this.mailSend({
         to: email,
         subject: "Test email",
         html: 'Test email'

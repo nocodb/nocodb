@@ -134,6 +134,7 @@
     "knex": "^0.21.2",
     "lodash": "^4.17.19",
     "lru-cache": "^6.0.0",
+    "mailersend": "^1.1.0",
     "material-design-icons-iconfont": "^6.1.0",
     "md5": "^2.2.1",
     "minio": "^7.0.18",

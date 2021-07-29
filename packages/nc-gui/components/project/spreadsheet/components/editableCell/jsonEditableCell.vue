@@ -11,6 +11,7 @@
     </div>
     <monaco-json-object-editor
       v-model="localState"
+      class="text-left caption"
       style="width: 300px;min-height: 200px;min-width:100%"
     />
   </div>
@@ -20,7 +21,7 @@
 import MonacoJsonObjectEditor from '@/components/monaco/MonacoJsonObjectEditor'
 
 export default {
-  name: 'JsonCell',
+  name: 'JsonEditableCell',
   components: { MonacoJsonObjectEditor },
   props: {
     value: String,
@@ -46,7 +47,11 @@ export default {
   },
   watch: {
     value(val) {
-      this.localState = typeof val === 'string' ? JSON.parse(val) : val
+      try {
+        this.localState = typeof val === 'string' ? JSON.parse(val) : val
+      } catch (e) {
+        // ignore parse error for invalid JSON
+      }
     },
     localState(val) {
       if (this.isForm) {
@@ -55,7 +60,11 @@ export default {
     }
   },
   created() {
-    this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value
+    try {
+      this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value
+    } catch (e) {
+      // ignore parse error for invalid JSON
+    }
   },
   mounted() {
   },

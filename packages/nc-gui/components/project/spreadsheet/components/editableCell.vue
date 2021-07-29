@@ -69,10 +69,8 @@
       :column="column"
       v-on="parentListeners"
     />
-    <!--    <enum-radio-editable-cell v-else-if="isEnum" :column="column" v-on="parentListeners"
-                                  v-model="localState"></enum-radio-editable-cell>-->
 
-    <json-cell
+    <json-editable-cell
       v-else-if="isJSON"
       v-model="localState"
       v-on="parentListeners"
@@ -102,8 +100,6 @@
       :is-form="isForm"
       v-on="parentListeners"
     />
-    <!--<set-list-checkbox-cell :column="column" v-else-if="isSet" v-model="localState"
-                            v-on="parentListeners"></set-list-checkbox-cell>-->
 
     <text-cell v-else v-model="localState" v-on="$listeners" />
   </div>
@@ -112,11 +108,11 @@
 <script>
 import DatePickerCell from '@/components/project/spreadsheet/components/editableCell/datePickerCell'
 import EditableUrlCell from '@/components/project/spreadsheet/components/editableCell/editableUrlCell'
+import JsonEditableCell from '@/components/project/spreadsheet/components/editableCell/jsonEditableCell'
 import TextCell from '@/components/project/spreadsheet/components/editableCell/textCell'
 import DateTimePickerCell from '@/components/project/spreadsheet/components/editableCell/dateTimePickerCell'
 import TextAreaCell from '@/components/project/spreadsheet/components/editableCell/textAreaCell'
 import EnumListCell from '@/components/project/spreadsheet/components/editableCell/enumListEditableCell'
-import JsonCell from '@/components/project/spreadsheet/components/editableCell/jsonCell'
 import IntegerCell from '@/components/project/spreadsheet/components/editableCell/integerCell'
 import FloatCell from '@/components/project/spreadsheet/components/editableCell/floatCell'
 import TimePickerCell from '@/components/project/spreadsheet/components/editableCell/timePickerCell'
@@ -131,6 +127,7 @@ import debounce from 'debounce'
 export default {
   name: 'EditableCell',
   components: {
+    JsonEditableCell,
     EditableUrlCell,
     SetListCell,
     SetListEditableCell,
@@ -140,7 +137,6 @@ export default {
     TimePickerCell,
     FloatCell,
     IntegerCell,
-    JsonCell,
     EnumListCell,
     TextAreaCell,
     DateTimePickerCell,

@@ -44,7 +44,7 @@ export default {
       return this.abstractType === 'datetime'
     },
     isJSON() {
-      return this.abstractType === 'json'
+      return this.abstractType === 'json' || this.column.uidt === 'JSON'
     },
     isEnum() {
       return this.column.uidt === 'SingleSelect'

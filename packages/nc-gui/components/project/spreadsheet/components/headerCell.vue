@@ -10,6 +10,9 @@
     <v-icon v-else-if="isForeignKey" color="purple" small class="mr-1">
       mdi-link-variant
     </v-icon>
+    <v-icon v-else-if="isJSON" color="purple" small class="mr-1">
+      mdi-code-json
+    </v-icon>
 
     <span v-else-if="isInt" class="font-weight-bold mr-1" style="font-size: 15px">#</span>
     <!--    <v-icon color="grey" class="mr-1" v-if="isInt">mdi-numeric</v-icon>-->

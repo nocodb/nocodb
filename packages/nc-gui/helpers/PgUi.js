@@ -1647,6 +1647,9 @@ export class PgUi {
       case 'Button':
         colProp.dt = 'character varying'
         break
+      case 'JSON':
+        colProp.dt = 'json'
+        break
       default:
         colProp.dt = 'character varying'
         break
@@ -1676,6 +1679,12 @@ export class PgUi {
           'char',
           'character',
           'character varying',
+          'text'
+        ]
+
+      case 'JSON':
+        return [
+          'json',
           'text'
         ]
       case 'Checkbox':

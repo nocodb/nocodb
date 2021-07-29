@@ -11,10 +11,12 @@
   <!--  <enum-list-editable-cell @click.stop="$emit('enableedit')" v-else-if="isEnum && selected" :value="value" :column="column"></enum-list-editable-cell>-->
   <enum-cell v-else-if="isEnum" :value="value" :column="column" @click.stop="$emit('enableedit')" />
   <url-cell v-else-if="isURL" :value="value" />
+  <json-cell v-else-if="isJSON" :value="value" />
   <span v-else>{{ value }}</span>
 </template>
 
 <script>
+import JsonCell from '@/components/project/spreadsheet/components/cell/jsonCell'
 import UrlCell from '@/components/project/spreadsheet/components/cell/urlCell'
 import cell from '@/components/project/spreadsheet/mixins/cell'
 import SetListCell from '@/components/project/spreadsheet/components/cell/setListCell'
@@ -23,7 +25,7 @@ import EditableAttachmentCell from '@/components/project/spreadsheet/components/
 
 export default {
   name: 'TableCell',
-  components: { UrlCell, EditableAttachmentCell, EnumCell, SetListCell },
+  components: { JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected'],
   computed: {}

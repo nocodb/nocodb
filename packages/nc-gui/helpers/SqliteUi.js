@@ -846,6 +846,9 @@ export class SqliteUi {
       case 'Button':
         colProp.dt = 'varchar'
         break
+      case 'JSON':
+        colProp.dt = 'text'
+        break
       default:
         colProp.dt = 'varchar'
         break
@@ -1071,6 +1074,10 @@ export class SqliteUi {
         return ['varchar']
 
       case 'Geometry':
+        return [
+          'text'
+        ]
+      case 'JSON':
         return [
           'text'
         ]

@@ -1149,6 +1149,9 @@ export class MssqlUi {
           'nvarchar'
         ]
 
+      case 'JSON' :
+        return ['text', 'ntext']
+
       case 'Checkbox':
         return [
           'bigint',

@@ -129,6 +129,10 @@ const uiTypes = [
     icon: 'mdi-ruler-square-compass'
   },
   {
+    name: 'JSON',
+    icon: 'mdi-code-json'
+  },
+  {
     name: 'SpecificDBType',
     icon: 'mdi-database-settings'
   }

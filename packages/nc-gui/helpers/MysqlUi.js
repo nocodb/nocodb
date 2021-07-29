@@ -1021,6 +1021,9 @@ export class MysqlUi {
       case 'Button':
         colProp.dt = 'varchar'
         break
+      case 'JSON':
+        colProp.dt = 'json'
+        break
       default:
         colProp.dt = 'varchar'
         break
@@ -1053,6 +1056,15 @@ export class MysqlUi {
           'char',
           'varchar',
           'nchar',
+          'text',
+          'tinytext',
+          'mediumtext',
+          'longtext'
+        ]
+
+      case 'JSON':
+        return [
+          'json',
           'text',
           'tinytext',
           'mediumtext',

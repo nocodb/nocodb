@@ -384,6 +384,18 @@
             <span class="caption">Delete Selected Rows</span>
           </v-list-item>
         </template>
+        <template v-if="rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
+          <v-tooltip bottom>
+            <template #activator="{on}">
+              <v-list-item v-on="on" @click="clearCellValue">
+                <span class="caption">Clear</span>
+              </v-list-item>
+            </template>
+
+            <span class="caption">Set column value to <strong>null</strong></span>
+          </v-tooltip>
+        </template>
+
         <!--        <template v-if="meta.hasMany && meta.hasMany.length">
           <v-divider v-if="isEditable && !isLocked" />
           <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Has Many</span>
@@ -564,7 +576,7 @@ export default {
       icon: 'mdi-view-stream'
     }, {
       size: 'xlarge',
-      icon: 'mdi-card'
+      icon: 'mdi-ca rd'
     }],
     rowContextMenu: null
   }),
@@ -840,6 +852,15 @@ export default {
         this.$toast.success('Deleted selected rows successfully').goAway(3000)
       }
     },
+
+    async clearCellValue() {
+      const { col, colIndex, row, index } = this.rowContextMenu
+      if (row[col._cn] === null) {
+        return
+      }
+      this.$set(this.data[index].row, col._cn, null)
+      this.onCellValueChangeFn(colIndex, index, col)
+    },
     async insertNewRow(atEnd = false, expand = false) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
       const focusCol = this.availableColumns.findIndex(c => !c.ai)
@@ -924,7 +945,7 @@ export default {
       }
       this.loadingData = false
     },
-    showRowContextMenu(e, row, rowMeta, index) {
+    showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
       e.preventDefault()
       this.rowContextMenu = false
       this.$nextTick(() => {
@@ -933,7 +954,9 @@ export default {
           y: e.clientY,
           row,
           index,
-          rowMeta
+          rowMeta,
+          colIndex,
+          col
         }
       })
     },

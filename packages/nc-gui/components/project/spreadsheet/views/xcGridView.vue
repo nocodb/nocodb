@@ -87,11 +87,11 @@
         <tr
           v-for="({row:rowObj, rowMeta},row) in data"
           :key="row"
-          @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row)"
         >
           <td
             style="width: 65px"
             class="caption"
+            @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row)"
           >
             <div class="d-flex align-center">
               <span
@@ -142,6 +142,7 @@
             :data-col="columnObj.alias"
             @dblclick="makeEditable(col,row,columnObj.ai)"
             @click="makeSelected(col,row);"
+            @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row,col, columnObj)"
           >
             <virtual-cell
               v-if="columnObj.virtual"
@@ -448,8 +449,8 @@ export default {
     expandRow(...args) {
       this.$emit('expandRow', ...args)
     },
-    showRowContextMenu($event, rowObj, rowMeta, row) {
-      this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row)
+    showRowContextMenu($event, rowObj, rowMeta, row, ...rest) {
+      this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row, ...rest)
     },
     onCellValueChange(col, row, column, ev) {
       this.$emit('onCellValueChange', col, row, column, ev)

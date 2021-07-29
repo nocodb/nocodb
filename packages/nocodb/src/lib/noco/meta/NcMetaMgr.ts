@@ -1,3 +1,4 @@
+import CryptoJS from 'crypto-js';
 import fs from 'fs';
 import path from 'path';
 
@@ -375,11 +376,12 @@ export default class NcMetaMgr {
     try {
       await this.xcMetaTablesReset(args);
       let projectConfigPath;
+      // let storeFilePath;
       await extract(file.path, {
         dir: this.config.toolDir,
         onEntry(entry, _zipfile) {
           // extract xc_project.json file path
-          if (entry.fileName?.endsWith('xc_project.json')) {
+          if (entry.fileName?.endsWith('nc_project.json')) {
             projectConfigPath = entry.fileName;
           }
         }
@@ -392,11 +394,18 @@ export default class NcMetaMgr {
         // read project config and extract project id
         let projectConfig: any = fs.readFileSync(path.join(this.config?.toolDir, projectConfigPath), 'utf8');
         projectConfig = projectConfig && JSON.parse(projectConfig);
+
+        // decrypt with old key and encrypt again with latest key
+        const config = CryptoJS.AES.decrypt(projectConfig.config, projectConfig.key).toString(CryptoJS.enc.Utf8)
+        delete projectConfig.key;
+        projectConfig.config = CryptoJS.AES.encrypt(config, this.config?.auth?.jwt?.secret).toString()
+
         const importProjectId = projectConfig?.id;
 
         // check project already exist
         if (await this.xcMeta.projectGetById(importProjectId)) {
           // todo:
+          throw new Error(`Project with id '${importProjectId}' already exist`)
         } else {
           // create the project if not found
           await this.xcMeta.knex('nc_projects').insert(projectConfig);
@@ -451,7 +460,8 @@ export default class NcMetaMgr {
         }
 
         const projectMetaData = await this.xcMeta.projectGetById(projectId, true);
-        fs.writeFileSync(path.join(metaFolder, `xc_project.json`), JSON.stringify(projectMetaData, null, 2));
+        projectMetaData.key = this.config?.auth?.jwt?.secret;
+        fs.writeFileSync(path.join(metaFolder, `nc_project.json`), JSON.stringify(projectMetaData, null, 2));
 
 
         this.xcMeta.audit(projectId, dbAlias, 'nc_audit', {

@@ -2942,7 +2942,7 @@ export default class NcMetaMgr {
           let tables = await this.xcMeta.metaList(this.getProjectId(args), this.getDbAlias(args), 'nc_models', {
             condition: {
               type: 'table',
-              mm: null
+              ...(args?.args?.includeM2M ? {} : {mm: null})
             }
           });
 

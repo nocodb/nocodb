@@ -61,6 +61,24 @@
             </td>
           </tr>
           <tr>
+            <td>Show M2M Tables</td>
+            <td>
+              <v-tooltip bottom>
+                <template #activator="{ on }">
+                  <v-checkbox
+                    v-model="includeM2M"
+                    x-large
+                    color="primary"
+                    v-on="on"
+                  >
+                    mdi-table-network
+                  </v-checkbox>
+                </template>
+                Include/Exclude M2M tables
+              </v-tooltip>
+            </td>
+          </tr>
+          <tr>
             <td>Language</td>
             <td>
               <v-radio-group v-model="language" row>
@@ -219,6 +237,14 @@ export default {
       },
       set(show) {
         this.$store.commit('windows/MutScreensaver', show)
+      }
+    },
+    includeM2M: {
+      get() {
+        return this.$store.state.windows.includeM2M
+      },
+      set(show) {
+        this.$store.commit('windows/MutIncludeM2M', show)
       }
     }
   },

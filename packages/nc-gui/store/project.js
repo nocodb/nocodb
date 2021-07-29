@@ -292,13 +292,12 @@ export const actions = {
       //   dbAlias: data._nodes.dbAlias
       // });
       // const result = await client.tableList();
-
       const result = await dispatch('sqlMgr/ActSqlOpPlus', [
         {
           env: data._nodes.env,
           dbAlias: data._nodes.dbAlias
         },
-        "tableList"
+        "tableList", {includeM2M: rootState.windows.includeM2M}
       ], {root: true});
 
 
@@ -307,7 +306,7 @@ export const actions = {
       }
 
       result.data.list = result.data.list.filter(t => rootState.windows.metatables || !isMetaTable(t.tn));
-      console.log("tablelist debufg", result.data.list);
+      console.log("tablelist", result.data.list);
       deepSet(state.unserializedList, result.data.list, `${key}`);
       commit("list", state.unserializedList);
     } else {

@@ -31,7 +31,7 @@ export default {
           return new Date(+this.value)
         }
 
-        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : (this.value && new Date(this.value))
+        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : ((this.value && new Date(this.value)))
       },
       set(val) {
         const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')

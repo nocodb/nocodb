@@ -37,7 +37,8 @@ export const state = () => ({
   miniSponsorCard: 0,
   screensaver: true,
   autoApplyFilter: true,
-  apiLoading: false
+  apiLoading: false,
+  includeM2M: false
 })
 
 export const mutations = {
@@ -150,6 +151,9 @@ export const mutations = {
   },
   MutMiniSponsorCard(state, miniSponsorCard) {
     state.miniSponsorCard = miniSponsorCard
+  },
+  MutIncludeM2M(state, includeM2M) {
+    state.includeM2M = includeM2M
   }
 }
 

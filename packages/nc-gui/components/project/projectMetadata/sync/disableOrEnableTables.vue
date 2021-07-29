@@ -270,7 +270,7 @@ export default {
       this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         dbAlias: this.db.meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
-      }, 'tableList', { force: true }])).data.list
+      }, 'tableList', { force: true, includeM2M: true }])).data.list
     },
 
     async saveModels() {

@@ -621,7 +621,7 @@ export default {
     }),
     checkAndDeleteTable() {
       if (
-        (!this.meta) && (
+        !this.meta || (
           (this.meta.hasMany && this.meta.hasMany.length) ||
         (this.meta.manyToMany && this.meta.manyToMany.length) ||
         (this.meta.belongsTo && this.meta.belongsTo.length))

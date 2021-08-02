@@ -149,7 +149,7 @@
                 'darken-4':$vuetify.theme.dark
               }"
             >
-              <v-skeleton-loader v-if="loadingLogs" type="list-item-avatar-two-line@8" />
+              <v-skeleton-loader v-if="loadingLogs && !logs" type="list-item-avatar-two-line@8" />
 
               <v-list
                 v-else
@@ -162,7 +162,7 @@
                   'darken-4':$vuetify.theme.dark
                 }"
               >
-                <v-list-item v-for="(log,i) in logs" :key="i" class="d-flex">
+                <v-list-item v-for="log in logs" :key="log.id" class="d-flex">
                   <v-list-item-icon class="ma-0 mr-2">
                     <v-icon :color="isYou(log.user) ? 'pink lighten-2' : 'blue lighten-2'">
                       mdi-account-circle
@@ -193,6 +193,13 @@
 
               <v-spacer />
               <v-divider />
+              <div class="d-flex align-center justify-center">
+                <v-switch v-model="commentsOnly" class="mt-1" dense hide-details @change="getAuditsAndComments">
+                  <template #label>
+                    <span class="caption grey--text">Comments only</span>
+                  </template>
+                </v-switch>
+              </div>
               <div class="flex-shrink-1 mt-2 d-flex pl-4">
                 <v-icon color="pink lighten-2" class="mr-2">
                   mdi-account-circle
@@ -293,7 +300,8 @@ export default {
     localState: {},
     changedColumns: {},
     comment: null,
-    showSystemFields: false
+    showSystemFields: false,
+    commentsOnly: false
   }),
   computed: {
     primaryKey() {
@@ -303,7 +311,9 @@ export default {
       return !!Object.keys(this.changedColumns).length
     },
     fields() {
-      if (this.availableColumns) { return this.availableColumns }
+      if (this.availableColumns) {
+        return this.availableColumns
+      }
 
       const hideCols = ['created_at', 'updated_at']
 
@@ -373,7 +383,8 @@ export default {
       this.loadingLogs = true
       const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.dbAlias }, 'xcModelRowAuditAndCommentList', {
         model_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___'),
-        model_name: this.meta._tn
+        model_name: this.meta._tn,
+        comments: this.commentsOnly
       }])
       this.logs = data.list
       this.loadingLogs = false
@@ -394,7 +405,9 @@ export default {
           // save hasmany and manytomany relations from local state
           if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
             for (const vcell of this.$refs.virtual) {
-              if (vcell.save) { await vcell.save(this.localState) }
+              if (vcell.save) {
+                await vcell.save(this.localState)
+              }
             }
           }
 

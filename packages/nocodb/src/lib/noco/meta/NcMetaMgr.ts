@@ -3347,6 +3347,7 @@ export default class NcMetaMgr {
       condition: {
         model_id: args.args.model_id,
         model_name: args.args.model_name,
+        ...(args.args.comments ? {op_type: "COMMENT"} : {})
       }
     });
 

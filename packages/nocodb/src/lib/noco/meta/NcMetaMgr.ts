@@ -405,7 +405,7 @@ export default class NcMetaMgr {
         // check project already exist
         if (await this.xcMeta.projectGetById(importProjectId)) {
           // todo:
-          throw new Error(`Project with id '${importProjectId}' already exist`)
+          throw new Error(`Project with id '${importProjectId}' already exist, it's not allowed at the moment`)
         } else {
           // create the project if not found
           await this.xcMeta.knex('nc_projects').insert(projectConfig);

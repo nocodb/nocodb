@@ -180,7 +180,7 @@ export default {
             ])
             this.$toast.success('Successfully exported metadata').goAway(3000)
           } catch (e) {
-            this.$toast.error('Some internal error occurred').goAway(3000)
+            this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
           this.loading = null
@@ -217,7 +217,7 @@ export default {
             link.click()
             this.$toast.success('Successfully exported metadata').goAway(3000)
           } catch (e) {
-            this.$toast.error('Some internal error occurred').goAway(3000)
+            this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
           this.loading = null
@@ -242,7 +242,7 @@ export default {
             ])
             this.$toast.success('Metadata cleared successfully').goAway(3000)
           } catch (e) {
-            this.$toast.error('Some internal error occurred').goAway(3000)
+            this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
           this.loading = null
@@ -268,7 +268,7 @@ export default {
 
             this.$toast.success('Metadata imported successfully').goAway(3000)
           } catch (e) {
-            this.$toast.error('Some internal error occurred').goAway(3000)
+            this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
           this.loading = null
@@ -292,7 +292,7 @@ export default {
           ])
           this.$toast.success('Successfully imported metadata').goAway(3000)
         } catch (e) {
-          this.$toast.error('Some internal error occurred').goAway(3000)
+          this.$toast.error(e.message).goAway(3000)
         }
         this.dialogShow = false
         this.loading = null

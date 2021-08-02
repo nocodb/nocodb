@@ -3,6 +3,7 @@ import _ from 'lodash';
 import Validator from 'validator';
 
 import BaseModel, {XcFilter, XcFilterWithAlias} from '../BaseModel';
+import formulaQueryBuilder from "./formulaQueryBuilder";
 
 
 /**
@@ -661,6 +662,7 @@ class BaseModelSql extends BaseModel {
     try {
       return await this._run(
         this.$db.select(this.selectQuery('*'))
+          .select(...this.selectFormulas)
           .conditionGraph(args?.conditionGraph)
           .where(this._wherePk(id)).first()
       ) || {};
@@ -715,13 +717,10 @@ class BaseModelSql extends BaseModel {
 
       const {fields, where, limit, offset, sort, condition, conditionGraph = null} = this._getListArgs(args);
 
-      // if (fields === '*') {
-      //   fields = `${this.tn}.*`;
-      // }
-
       const query = this.$db
         // .select(...fields.split(','))
         .select(this.selectQuery(fields))
+        .select(...this.selectFormulas)
         .xwhere(where, this.selectQuery(''))
         .condition(condition, this.selectQuery(''))
         .conditionGraph(conditionGraph);
@@ -1742,10 +1741,11 @@ class BaseModelSql extends BaseModel {
       : '*';
   }
 
+
 // @ts-ignore
   public selectQuery(fields) {
     const fieldsArr = fields.split(',');
-    return this.columns?.reduce((selectObj, col) => {
+    const selectObj = this.columns?.reduce((selectObj, col) => {
       if (
         !fields
         || fieldsArr.includes('*')
@@ -1757,6 +1757,10 @@ class BaseModelSql extends BaseModel {
       }
       return selectObj;
     }, {}) || '*';
+
+
+    return selectObj;
+
   }
 
   // @ts-ignore
@@ -1855,6 +1859,15 @@ class BaseModelSql extends BaseModel {
     } catch (e) {
       return {}
     }
+  }
+
+  protected get selectFormulas() {
+    return (this.virtualColumns || [])?.reduce((arr, v) => {
+      if (v.formula?.value) {
+        arr.push(formulaQueryBuilder(v.formula?.value, v._cn, this.dbDriver))
+      }
+      return arr;
+    }, [])
   }
 
 }

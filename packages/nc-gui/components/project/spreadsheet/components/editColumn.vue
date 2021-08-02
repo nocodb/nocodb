@@ -328,7 +328,18 @@
               </template>
               <template v-else>
                 <v-col cols12>
-                  <v-autocomplete
+                  <formula-options
+                    ref="formula"
+                    :column="newColumn"
+                    :nodes="nodes"
+                    :meta="meta"
+                    :is-s-q-lite="isSQLite"
+                    :alias="newColumn.cn"
+                    :is-m-s-s-q-l="isMSSQL"
+                    v-on="$listeners"
+                  />
+
+                  <!--                  <v-autocomplete
                     label="Formula"
                     hide-details
                     class="caption formula-type"
@@ -337,9 +348,9 @@
                     :items="formulas"
                   >
                     <template #item="{item}">
-                      <span class="green--text text--darken-2 caption font-weight-regular">{{ item }}</span>
+                      <span class="green&#45;&#45;text text&#45;&#45;darken-2 caption font-weight-regular">{{ item }}</span>
                     </template>
-                  </v-autocomplete>
+                  </v-autocomplete>-->
                 </v-col>
               </template>
             </template>
@@ -368,6 +379,7 @@
 </template>
 
 <script>
+import FormulaOptions from '@/components/project/spreadsheet/components/editColumn/formulaOptions'
 import LookupOptions from '@/components/project/spreadsheet/components/editColumn/lookupOptions'
 import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 import CustomSelectOptions from '@/components/project/spreadsheet/components/editColumn/customSelectOptions'
@@ -379,7 +391,14 @@ import { MssqlUi } from '@/helpers/MssqlUi'
 
 export default {
   name: 'EditColumn',
-  components: { LookupOptions, LinkedToAnotherOptions, DlgLabelSubmitCancel, RelationOptions, CustomSelectOptions },
+  components: {
+    FormulaOptions,
+    LookupOptions,
+    LinkedToAnotherOptions,
+    DlgLabelSubmitCancel,
+    RelationOptions,
+    CustomSelectOptions
+  },
   props: {
     nodes: Object,
     sqlUi: [Object, Function],
@@ -393,9 +412,9 @@ export default {
     valid: false,
     relationDeleteDlg: false,
     newColumn: {},
-    uiTypes,
+    uiTypes
     // dataTypes: [],
-    formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
+    // formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
   }),
   computed: {
     isEditDisabled() {

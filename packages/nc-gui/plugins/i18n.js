@@ -19,9 +19,9 @@ export default ({ app, store }) => {
     // Associate each locale to a content file
     messages: {
       en: require('~/static/lang/en.json'),
-      zh_HK: require('~/static/lang/zh_HK.json'),
-      zh_TW: require('~/static/lang/zh_TW.json'),
-      zh_CN: require('~/static/lang/zh_CN.json'),
+      // zh_HK: require('~/static/lang/zh_HK.json'),
+      // zh_TW: require('~/static/lang/zh_TW.json'),
+      // zh_CN: require('~/static/lang/zh_CN.json'),
       // ja: require("~/static/lang/ja.json"),
       fr: require('~/static/lang/fr.json'),
       es: require('~/static/lang/es.json'),

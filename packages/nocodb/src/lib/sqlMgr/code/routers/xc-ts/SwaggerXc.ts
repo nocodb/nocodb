@@ -146,31 +146,31 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "fields",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated fields from the model"
               },
               {
                 "in": "query",
                 "name": "bt",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated parent table names(Belongs To)"
               },
               {
                 "in": "query",
                 "name": "hm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Has Many)"
               },
               {
                 "in": "query",
                 "name": "mm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Many to Many)"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -219,24 +219,24 @@ class SwaggerXc extends BaseRender {
                 "in": "path",
                 "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "String"
+                "type": "string"
               },
               {
                 "in": "query",
                 "name": "bt",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated parent table names(Belongs To)"
               },
               {
                 "in": "query",
                 "name": "hm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Has Many)"
               },
               {
                 "in": "query",
                 "name": "mm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Many to Many)"
               },
             ],
@@ -274,7 +274,7 @@ class SwaggerXc extends BaseRender {
                 "in": "path",
                 "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "String"
+                "type": "string"
               },
               {
                 "in": "body",
@@ -308,7 +308,7 @@ class SwaggerXc extends BaseRender {
                 "in": "path",
                 "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "String"
+                "type": "string"
               }
             ],
             "responses": {
@@ -442,13 +442,13 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "fields",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated fields from the model"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -502,7 +502,7 @@ class SwaggerXc extends BaseRender {
                 "in": "path",
                 "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "String"
+                "type": "string"
               }
             ],
             "responses": {
@@ -532,7 +532,7 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               }
             ],
@@ -567,13 +567,13 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -628,7 +628,7 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               }, {
                 "in": "query",
@@ -695,13 +695,13 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -759,25 +759,25 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               },
               {
                 "in": "query",
                 "name": "func",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated aggregate functions"
               },
               {
                 "in": "query",
                 "name": "having",
-                "type": "String",
+                "type": "string",
                 "description": "Having expression"
               },
               {
                 "in": "query",
                 "name": "fields",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated fields from the model"
               },
               {

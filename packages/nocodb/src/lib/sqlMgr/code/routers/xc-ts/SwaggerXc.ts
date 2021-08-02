@@ -217,10 +217,9 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn} to return`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "String"
               },
               {
                 "in": "query",
@@ -273,10 +272,9 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn} to return`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "String"
               },
               {
                 "in": "body",
@@ -308,10 +306,9 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn} to return`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "String"
               }
             ],
             "responses": {
@@ -503,10 +500,9 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn}`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "String"
               }
             ],
             "responses": {

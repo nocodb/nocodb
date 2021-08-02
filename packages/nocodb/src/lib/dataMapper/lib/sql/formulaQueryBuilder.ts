@@ -4,7 +4,7 @@ import jsep from 'jsep';
 // todo: switch function based on database
 
 export default function formulaQueryBuilder(str, alias, knex) {
-  const fn = (pt, a?, nestedBinary?) => {
+  const fn = (pt, a?, prevBinaryOp ?) => {
     const colAlias = a ? ` as ${a}` : '';
     if (pt.type === 'CallExpression') {
       switch (pt.callee.name) {
@@ -16,9 +16,9 @@ export default function formulaQueryBuilder(str, alias, knex) {
               operator: '+',
               left: pt.arguments[0],
               right: {...pt, arguments: pt.arguments.slice(1)}
-            }, a, nestedBinary)
+            }, a, prevBinaryOp)
           } else {
-            return fn(pt.arguments[0], a, nestedBinary)
+            return fn(pt.arguments[0], a, prevBinaryOp)
           }
           break;
         case 'AVG':
@@ -28,9 +28,9 @@ export default function formulaQueryBuilder(str, alias, knex) {
               operator: '/',
               left: {...pt, callee: {name: 'SUM'}},
               right: {type: 'Literal', value: pt.arguments.length}
-            }, a, nestedBinary)
+            }, a, prevBinaryOp)
           } else {
-            return fn(pt.arguments[0], a, nestedBinary)
+            return fn(pt.arguments[0], a, prevBinaryOp)
           }
           break;
         case 'concat':
@@ -42,9 +42,9 @@ export default function formulaQueryBuilder(str, alias, knex) {
                 operator: '||',
                 left: pt.arguments[0],
                 right: {...pt, arguments: pt.arguments.slice(1)}
-              }, a, nestedBinary)
+              }, a, prevBinaryOp)
             } else {
-              return fn(pt.arguments[0], a, nestedBinary)
+              return fn(pt.arguments[0], a, prevBinaryOp)
             }
           }
           break;
@@ -56,8 +56,8 @@ export default function formulaQueryBuilder(str, alias, knex) {
     } else if (pt.type === 'Identifier') {
       return knex.raw(`??${colAlias}`, [pt.name]);
     } else if (pt.type === 'BinaryExpression') {
-      const query = knex.raw(`${fn(pt.left, null, true).toQuery()} ${pt.operator} ${fn(pt.right, null, true).toQuery()}${colAlias}`)
-      if (nestedBinary) {
+      const query = knex.raw(`${fn(pt.left, null, pt.operator).toQuery()} ${pt.operator} ${fn(pt.right, null, pt.operator).toQuery()}${colAlias}`)
+      if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')')
       }
       return query;

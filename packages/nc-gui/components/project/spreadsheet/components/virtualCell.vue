@@ -63,11 +63,17 @@
         :column="column"
         v-on="$listeners "
       />
+      <formula-cell
+        v-else-if="formula"
+        :row="row"
+        :column="column"
+      />
     </v-lazy>
   </div>
 </template>
 
 <script>
+import FormulaCell from '@/components/project/spreadsheet/components/virtualCell/formulaCell'
 import hasManyCell from '@/components/project/spreadsheet/components/virtualCell/hasManyCell'
 import LookupCell from '@/components/project/spreadsheet/components/virtualCell/lookupCell'
 import manyToManyCell from '@/components/project/spreadsheet/components/virtualCell/manyToManyCell'
@@ -78,6 +84,7 @@ import belongsToCell from '@/components/project/spreadsheet/components/virtualCe
 export default {
   name: 'VirtualCell',
   components: {
+    FormulaCell,
     LookupCell,
     belongsToCell,
     manyToManyCell,
@@ -119,6 +126,9 @@ export default {
     },
     lookup() {
       return this.column && this.column.lk
+    },
+    formula() {
+      return this.column && this.column.formula
     }
   },
   methods: {

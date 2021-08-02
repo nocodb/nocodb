@@ -11,6 +11,9 @@
         <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
           mdi-table-network
         </v-icon>
+        <v-icon v-else-if="column.formula" x-small class="mr-1" v-on="on">
+          mdi-math-integral
+        </v-icon>
         <template v-else-if="column.lk">
           <v-icon v-if="column.lk.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
@@ -24,7 +27,6 @@
         </template>
 
         <span class="name  flex-grow-1" :title="column._cn" v-on="on" v-html="alias">
-
           <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
         </span>
       </template>

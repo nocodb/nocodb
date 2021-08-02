@@ -34,21 +34,21 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       expect(formulaQueryBuilder("concat(city, ' _ ',city_id+country_id)", 'a',knexMysqlRef).toQuery()).eq('concat(`city`,\' _ \',`city_id` + `country_id`) as a')
       expect(formulaQueryBuilder("concat(city, ' _ ',city_id+country_id)", 'a',knexPgRef).toQuery()).eq('concat("city",\' _ \',"city_id" + "country_id") as a')
       expect(formulaQueryBuilder("concat(city, ' _ ',city_id+country_id)", 'a',knexMssqlRef).toQuery()).eq('concat([city],\' _ \',[city_id] + [country_id]) as a')
-      expect(formulaQueryBuilder("concat(city, ' _ ',city_id+country_id)", 'a',knexSqliteRef).toQuery()).eq('`city` || (\' _ \' || (`city_id` + `country_id`)) as a')
+      expect(formulaQueryBuilder("concat(city, ' _ ',city_id+country_id)", 'a',knexSqliteRef).toQuery()).eq('`city` || \' _ \' || (`city_id` + `country_id`) as a')
         done()
     });
     it('Addition', function (done) {
-      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexMysqlRef).toQuery()).eq('`city_id` + (`country_id` + (2 + (3 + (4 + (5 + 4))))) as a')
-      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexPgRef).toQuery()).eq('"city_id" + ("country_id" + (2 + (3 + (4 + (5 + 4))))) as a')
-      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexMssqlRef).toQuery()).eq('[city_id] + ([country_id] + (2 + (3 + (4 + (5 + 4))))) as a')
-      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexSqliteRef).toQuery()).eq('`city_id` + (`country_id` + (2 + (3 + (4 + (5 + 4))))) as a')
+      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexMysqlRef).toQuery()).eq('`city_id` + `country_id` + 2 + 3 + 4 + 5 + 4 as a')
+      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexPgRef).toQuery()).eq('"city_id" + "country_id" + 2 + 3 + 4 + 5 + 4 as a')
+      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexMssqlRef).toQuery()).eq('[city_id] + [country_id] + 2 + 3 + 4 + 5 + 4 as a')
+      expect(formulaQueryBuilder("ADD(city_id,country_id,2,3,4,5,4)", 'a',knexSqliteRef).toQuery()).eq('`city_id` + `country_id` + 2 + 3 + 4 + 5 + 4 as a')
       done()
     });
     it('Average', function (done) {
-      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexMysqlRef).toQuery()).eq('(`city_id` + (`country_id` + (2 + (3 + (4 + (5 + 4)))))) / 7 as a')
-      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexPgRef).toQuery()).eq('("city_id" + ("country_id" + (2 + (3 + (4 + (5 + 4)))))) / 7 as a')
-      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexMssqlRef).toQuery()).eq('([city_id] + ([country_id] + (2 + (3 + (4 + (5 + 4)))))) / 7 as a')
-      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexSqliteRef).toQuery()).eq('(`city_id` + (`country_id` + (2 + (3 + (4 + (5 + 4)))))) / 7 as a')
+      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexMysqlRef).toQuery()).eq('(`city_id` + `country_id` + 2 + 3 + 4 + 5 + 4) / 7 as a')
+      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexPgRef).toQuery()).eq('("city_id" + "country_id" + 2 + 3 + 4 + 5 + 4) / 7 as a')
+      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexMssqlRef).toQuery()).eq('([city_id] + [country_id] + 2 + 3 + 4 + 5 + 4) / 7 as a')
+      expect(formulaQueryBuilder("AVG(city_id,country_id,2,3,4,5,4)", 'a',knexSqliteRef).toQuery()).eq('(`city_id` + `country_id` + 2 + 3 + 4 + 5 + 4) / 7 as a')
       done()
     });
   });

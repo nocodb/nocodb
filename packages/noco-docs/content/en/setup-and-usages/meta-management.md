@@ -27,24 +27,24 @@ Under ``Project Metadata``, you can perform the following operations.
 - Clear all metadata from meta tables
 
 <alert>
-  Currently the project meta can be only imported to the same DB instance. 
+  Import won't work with zip files exported from the older version of apps (< 0.11.6). <br> 
+  Import / Export will only transfer metadata and files related to the project and not any table data in the project.
 </alert>
 
 ## Database Metadata
 
 Under ``DB Metadata``, You can manage your models. For example, if you do not want to expose some APIs, you can untick those under APIs here.
 
-![image](https://user-images.githubusercontent.com/35857179/126928981-6c63499e-d4de-42e6-80fa-c7688480d0a0.png)
+![image](https://user-images.githubusercontent.com/35857179/127611038-a10ccee5-72ca-42cf-a55b-c8268c9fbe5c.png)
 
 The relations of all tables are listed under ``Relations``.
 
-![image](https://user-images.githubusercontent.com/35857179/126929023-dbb82353-bebf-4a44-85b9-3e4095f24b67.png)
+![image](https://user-images.githubusercontent.com/35857179/127611116-0289f739-bad7-45a0-b2bd-bfd8565f50b8.png)
 
 ## UI Access Control
 
 You can control the access to each table and relation by roles. 
 
-![image](https://user-images.githubusercontent.com/35857179/126929212-384a91c0-645f-4958-b00b-1b89105026ea.png)
+![image](https://user-images.githubusercontent.com/35857179/127611188-339de6ca-e648-47c0-a358-eee0d03ae9d0.png)
 
-![image](https://user-images.githubusercontent.com/35857179/126929223-66520c0b-9303-4a61-abf8-e7911215904d.png)
-
+![image](https://user-images.githubusercontent.com/35857179/127611237-5c43e194-a8ba-4e33-b473-5b690a38e80d.png)

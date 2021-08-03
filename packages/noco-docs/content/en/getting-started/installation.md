@@ -60,7 +60,10 @@ Simple installation - takes about three minutes!
   ```
 
   </code-block>
-</code-group>          
+</code-group>  
+
+> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
+        
 
 ## Local Setup
 

@@ -3,7 +3,14 @@ import jsep from 'jsep';
 
 // todo: switch function based on database
 
-export default function formulaQueryBuilder(str, alias, knex) {
+export function formulaQueryBuilderFromString(str, alias, knex) {
+  return formulaQueryBuilder(jsep(str), alias,knex)
+}
+
+
+
+
+export default function formulaQueryBuilder(tree, alias, knex) {
   const fn = (pt, a?, prevBinaryOp ?) => {
     const colAlias = a ? ` as ${a}` : '';
     if (pt.type === 'CallExpression') {
@@ -63,7 +70,7 @@ export default function formulaQueryBuilder(str, alias, knex) {
       return query;
     }
   };
-  return fn(jsep(str), alias)
+  return fn(tree, alias)
 }
 
 

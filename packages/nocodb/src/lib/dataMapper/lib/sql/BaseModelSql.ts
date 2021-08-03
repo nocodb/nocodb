@@ -3,7 +3,7 @@ import _ from 'lodash';
 import Validator from 'validator';
 
 import BaseModel, {XcFilter, XcFilterWithAlias} from '../BaseModel';
-import formulaQueryBuilder from "./formulaQueryBuilder";
+import formulaQueryBuilder from "./formulaQueryBuilderFromString";
 
 
 /**
@@ -1863,8 +1863,8 @@ class BaseModelSql extends BaseModel {
 
   protected get selectFormulas() {
     return (this.virtualColumns || [])?.reduce((arr, v) => {
-      if (v.formula?.value) {
-        arr.push(formulaQueryBuilder(v.formula?.value, v._cn, this.dbDriver))
+      if (v.formula?.value && !v.formula?.error?.length) {
+        arr.push(formulaQueryBuilder(v.formula?.tree, v._cn, this.dbDriver))
       }
       return arr;
     }, [])

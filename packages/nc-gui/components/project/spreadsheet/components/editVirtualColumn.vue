@@ -34,6 +34,18 @@
               outlined
             />
           </v-col>
+
+          <v-col v-if="column.formula" cols="12">
+            <formula-options
+              ref="formula"
+              :value="column.formula"
+              :column="column"
+              :new-column="newColumn"
+              :nodes="nodes"
+              :meta="meta"
+              :alias="newColumn._cn"
+            />
+          </v-col>
         </v-row>
       </v-container>
     </v-form>
@@ -41,9 +53,11 @@
 </template>
 
 <script>
+import FormulaOptions from '@/components/project/spreadsheet/components/editColumn/formulaOptions'
+
 export default {
   name: 'EditVirtualColumn',
-  components: {},
+  components: { FormulaOptions },
   props: {
     nodes: Object,
     meta: Object,
@@ -71,21 +85,25 @@ export default {
     },
     async save() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'xcUpdateVirtualKeyAlias', {
-          tn: this.nodes.tn,
-          oldAlias: this.column._cn,
-          newAlias: this.newColumn._cn
-        }])
+        if (this.column.formula) {
+          await this.$refs.formula.update()
+        } else {
+          await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias
+          }, 'xcUpdateVirtualKeyAlias', {
+            tn: this.nodes.tn,
+            oldAlias: this.column._cn,
+            newAlias: this.newColumn._cn
+          }])
 
-        this.$toast.success('Successfully updated alias').goAway(3000)
+          this.$toast.success('Successfully updated alias').goAway(3000)
+        }
       } catch (e) {
         console.log(e)
         this.$toast.error('Failed to update column alias').goAway(3000)
       }
-      this.$emit('saved')
+      this.$emit('saved', this.newColumn._cn)
       this.$emit('input', false)
     },
 

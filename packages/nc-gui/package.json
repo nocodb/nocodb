@@ -25,6 +25,7 @@
     "file-saver": "^2.0.5",
     "fix-path": "^3.0.0",
     "inflection": "^1.12.0",
+    "jsep": "^0.4.0",
     "material-design-icons-iconfont": "^5.0.1",
     "monaco-editor": "^0.18.1",
     "monaco-themes": "^0.2.5",

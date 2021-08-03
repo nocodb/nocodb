@@ -84,6 +84,34 @@ class SwaggerXc extends BaseRender {
 
       properties[column._cn] = field;
     }
+
+    for (const column of (args.v || [])) {
+      const field: any = {};
+      field.readOnly = true;
+      let _cn = column._cn;
+
+      if (column.mm) {
+        field.type = 'array';
+        field.items = {
+          $ref: `#/definitions/${column.mm?._rtn}`
+        };
+        _cn = `${column.mm?._rtn}MMList`;
+      } else if (column.hm) {
+        field.type = 'array';
+        field.items = {
+          $ref: `#/definitions/${column.mm?._rtn}`
+        };
+        field.$ref = `#/definitions/${column.mm?._rtn}`
+        _cn = `${column.mm?._rtn}List`;
+      } else if (column.bt) {
+        field.$ref = `#/definitions/${column.mm?._tn}`
+        _cn = `${column.mm?._rtn}Read`;
+      }
+
+      properties[_cn] = field;
+
+    }
+
     return obj;
   }
 
@@ -190,7 +218,8 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "sort",
-                "description": "Comma separated sort fields",
+                "description":
+                  "Comma separated sort fields",
                 "type": "string"
               }
 

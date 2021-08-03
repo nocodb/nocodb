@@ -196,6 +196,8 @@ export default {
         return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
       } else if (this.column.lk) {
         return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
+      } else if (this.column.formula) {
+        return `Formula - ${this.column.formula.value}`
       }
       return ''
     }
@@ -249,9 +251,36 @@ export default {
         console.log(e)
       }
     },
+    async deleteFormulaColumn() {
+      try {
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.nodes.dbAlias,
+          env: this.nodes.env,
+          tn: this.meta.tn,
+          force: true
+        })
+        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
+        // remove formula from virtual columns
+        meta.v = meta.v.filter(cl => !cl.formula || cl._cn !== this.column._cn)
+
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcModelSet', {
+          tn: this.nodes.tn,
+          meta
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
+      } catch (e) {
+        console.log(e)
+      }
+    },
     async deleteColumn() {
       if (this.column.lk) {
         await this.deleteLookupColumn()
+      } else if (this.column.formula) {
+        await this.deleteFormulaColumn()
       } else {
         await this.deleteRelation()
       }

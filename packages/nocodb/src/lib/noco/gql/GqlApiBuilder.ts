@@ -89,7 +89,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   public async init(): Promise<void> {
     await super.init();
-    await this.loadResolvers(null);
+    return await this.loadResolvers(null);
   }
 
   public async onToggleModelRelation(relationInModels: any): Promise<void> {

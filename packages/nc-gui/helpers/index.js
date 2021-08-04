@@ -45,6 +45,39 @@ export function insertAtCursor(myField, myValue, len) {
   } else {
     myField.value += myValue
   }
+  return myField.value
+}
+
+function ReturnWord(text, caretPos) {
+  const index = text.indexOf(caretPos)
+  const preText = text.substring(0, caretPos)
+  if (preText.indexOf(' ') > 0) {
+    const words = preText.split(' ')
+    return words[words.length - 1] // return last word
+  } else {
+    return preText
+  }
+}
+
+export function getWordUntilCaret(ctrl) {
+  const caretPos = GetCaretPosition(ctrl)
+  const word = ReturnWord(ctrl.value, caretPos)
+  return word || ''
+}
+
+function GetCaretPosition(ctrl) {
+  let CaretPos = 0 // IE Support
+  if (document.selection) {
+    ctrl.focus()
+    const Sel = document.selection.createRange()
+    Sel.moveStart('character', -ctrl.value.length)
+    CaretPos = Sel.text.length
+  }
+  // Firefox support
+  else if (ctrl.selectionStart || ctrl.selectionStart == '0') {
+    CaretPos = ctrl.selectionStart
+  }
+  return (CaretPos)
 }
 
 /**

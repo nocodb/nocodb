@@ -9,58 +9,59 @@
     >
       <template #activator>
         <!-- todo: autocomplete based on available functions and metadata -->
-        <v-text-field
-          ref="input"
-          v-model="formula.value"
-          dense
-          outlined
-          class="caption"
-          hide-details="auto"
-          label="Formula"
-          persistent-hint
-          hint="Available formulas are ADD, AVG, CONCAT, +, -, /"
-          :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
-          autocomplete="off"
-          @input="handleInputDeb"
-        />
+        <v-tooltip color="info">
+          <template #activator="{on}">
+            <v-text-field
+              ref="input"
+              v-model="formula.value"
+              dense
+              outlined
+              class="caption"
+              hide-details="auto"
+              label="Formula"
+              persistent-hint
+              hint="Available formulas are ADD, AVG, CONCAT, +, -, /"
+              :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
+              autocomplete="off"
+              v-on="on"
+              @input="handleInputDeb"
+              @keydown.down.prevent="suggestionListDown"
+              @keydown.up.prevent="suggestionListUp"
+              @keydown.enter.prevent="selectText"
+            />
+          </template>
+          <span class="caption">Example: AVG(column1, column2, column3)</span>
+        </v-tooltip>
       </template>
-      <!--    <div class="nc-autocomplete">-->
-      <v-list v-if="suggestion" dense max-height="50vh">
-        <v-list-item
-          v-for="it in suggestion"
-          :key="it"
-          dense
-          @mousedown.prevent="appendText(it)"
+      <v-list v-if="suggestion" dense max-height="50vh" class="background-color">
+        <v-list-item-group
+          v-model="selected"
+          color="primary"
         >
-          <span class="caption">{{ it }}</span>
-        </v-list-item>
+          <v-list-item
+            v-for="(it,i) in suggestion"
+            :key="i"
+            dense
+            selectable
+            @mousedown.prevent="appendText(it)"
+          >
+            <span
+              class="caption"
+              :class="{
+                'primary--text text--lighten-2 font-weight-bold': it.type ==='function'
+              }"
+            >{{ it.text }}<span v-if="it.type ==='function'">(...)</span></span>
+          </v-list-item>
+        </v-list-item-group>
       </v-list>
-
-      <!--      <div>-->
-      <!--        <h1>Auto-complete...</h1>-->
-      <!--        <div-->
-      <!--          ref="input"-->
-      <!--          contenteditable="true"-->
-
-      <!--          @input="handleInputDeb"-->
-      <!--        />-->
-      <!--        <div ref="time" />-->
-      <!--        <div ref="fakeDiv" class="div" />-->
-
-      <!--        &lt;!&ndash;    </div>&ndash;&gt;-->
-      <!--      </div>-->
     </v-menu>
-
-    <pre class="caption">
-      {{ suggestion }}
-    </pre>
   </div>
 </template>
 
 <script>
 
 import NcAutocompleteTree from '@/help/NcAutocompleteTree'
-import { insertAtCursor } from '@/helpers'
+import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import debounce from 'debounce'
 import jsep from 'jsep'
 
@@ -73,20 +74,23 @@ export default {
     availableFunctions: ['AVG', 'ADD', 'CONCAT'],
     availableBinOps: ['+', '-', '*', '/'],
     autocomplete: true,
-    suggestion: null
+    suggestion: null,
+    wordToComplete: '',
+    selected: 0,
+    tooltip: true
   }),
   computed: {
     suggestionsList() {
       return [
-        ...this.meta.columns.map(c => ({ text: c.cn, type: 'column', c })),
         ...this.availableFunctions.map(fn => ({ text: fn, type: 'function' })),
+        ...this.meta.columns.map(c => ({ text: c.cn, type: 'column', c })),
         ...this.availableBinOps.map(op => ({ text: op, type: 'op' }))
       ]
     },
     acTree() {
       const ref = new NcAutocompleteTree()
       for (const sug of this.suggestionsList) {
-        ref.add(sug.text)
+        ref.add(sug)
       }
       return ref
     }
@@ -186,10 +190,11 @@ export default {
       return arr
     },
     appendText(it) {
+      const text = it.text.slice(this.wordToComplete.length)
       if (it.type === 'function') {
-        insertAtCursor(this.$refs.input.$el.querySelector('input'), it.text + '()', it.text.length + 1)
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text + '()', text.length + 1))
       } else {
-        insertAtCursor(this.$refs.input.$el.querySelector('input'), it.text)
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text))
       }
     },
     _handleInputDeb: debounce(async function(self) {
@@ -199,25 +204,40 @@ export default {
       this._handleInputDeb(this)
     },
     handleInput() {
-      this.autocomplete = true
+      this.selected = 0
       // const $fakeDiv = this.$refs.fakeDiv
       this.suggestion = null
-      const query = this.formula.value
-      if (query !== '') {
-        const parts = query.split(' ')
+      const query = getWordUntilCaret(this.$refs.input.$el.querySelector('input')) // this.formula.value
+      // if (query !== '') {
+      const parts = query.split(/\W+/)
 
-        const wordToComplete = parts.pop()
+      this.wordToComplete = parts.pop()
 
-        if (wordToComplete !== '') {
-          // get best match using popularity
-          this.suggestion = this.acTree.complete(wordToComplete)
-        } else {
-          // $span.textContent = '' // clear ghost span
-        }
-      } else {
-        // $time.textContent = ''
-        // $span.textContent = '' // clear ghost span
+      // if (this.wordToComplete !== '') {
+      // get best match using popularity
+      this.suggestion = this.acTree.complete(this.wordToComplete)
+
+      this.autocomplete = !!this.suggestion.length
+      // } else {
+      //   // $span.textContent = '' // clear ghost span
+      // }
+      // } else {
+      //   this.autocomplete = false
+      //   // $time.textContent = ''
+      //   // $span.textContent = '' // clear ghost span
+      // }
+    },
+    selectText() {
+      if (this.selected > -1 && this.selected < this.suggestion.length) {
+        this.appendText(this.suggestion[this.selected])
+        this.autocomplete = false
       }
+    },
+    suggestionListDown() {
+      this.selected = ++this.selected % this.suggestion.length
+    },
+    suggestionListUp() {
+      this.selected = --this.selected > -1 ? this.selected : this.suggestion.length - 1
     }
   }
 }

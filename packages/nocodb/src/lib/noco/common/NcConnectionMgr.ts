@@ -60,7 +60,11 @@ export default class NcConnectionMgr {
         }
       }
 
-      const isSqlite = connectionConfig.client === 'sqlite3';
+      const isSqlite = connectionConfig?.client === 'sqlite3';
+
+      if (connectionConfig?.connection?.port) {
+        connectionConfig.connection.port = +connectionConfig.connection.port
+      }
 
       this.connectionRefs[projectId][env][dbAlias] = XKnex(isSqlite ?
         connectionConfig.connection as Knex.Config :

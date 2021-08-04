@@ -63,11 +63,14 @@ class SwaggerXc extends BaseRender {
       [args._tn]: {
         type: 'object',
         properties: {}
+      },
+      [`${args._tn}Nested`]: {
+        type: 'object',
+        properties: {}
       }
-
     };
 
-    const properties = obj[args._tn].properties;
+    let properties = obj[args._tn].properties;
 
     for (const column of args.columns) {
       const field: any = {};
@@ -85,6 +88,7 @@ class SwaggerXc extends BaseRender {
       properties[column._cn] = field;
     }
 
+    properties = Object.assign(obj[`${args._tn}Nested`].properties, properties)
     for (const column of (args.v || [])) {
       const field: any = {};
       field.readOnly = true;
@@ -99,13 +103,13 @@ class SwaggerXc extends BaseRender {
       } else if (column.hm) {
         field.type = 'array';
         field.items = {
-          $ref: `#/definitions/${column.mm?._rtn}`
+          $ref: `#/definitions/${column.hm?._tn}`
         };
-        field.$ref = `#/definitions/${column.mm?._rtn}`
-        _cn = `${column.mm?._rtn}List`;
+        field.$ref = `#/definitions/${column.hm?._tn}`
+        _cn = `${column.hm?._tn}List`;
       } else if (column.bt) {
-        field.$ref = `#/definitions/${column.mm?._tn}`
-        _cn = `${column.mm?._rtn}Read`;
+        field.$ref = `#/definitions/${column.bt?._rtn}`
+        _cn = `${column.bt?._rtn}Read`;
       }
 
       properties[_cn] = field;
@@ -227,7 +231,16 @@ class SwaggerXc extends BaseRender {
             "responses": {
               "405": {
                 "description": "Invalid input"
-              }
+              },
+              "200": {
+                "description": "successful operation",
+                "schema": {
+                  type: "array",
+                  items: {
+                    "$ref": `#/definitions/${this.ctx._tn}Nested`
+                  }
+                }
+              },
             }
           }
         },
@@ -273,7 +286,7 @@ class SwaggerXc extends BaseRender {
               "200": {
                 "description": "successful operation",
                 "schema": {
-                  "$ref": `#/definitions/${this.ctx._tn}`
+                  "$ref": `#/definitions/${this.ctx._tn}Nested`
                 }
               },
               "400": {

@@ -317,7 +317,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`onValidationUpdate : '%s'`, tn);
     const modelRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
       title: tn,
-      type:'table'
+      type: 'table'
     });
 
     if (!modelRow) {
@@ -1365,7 +1365,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
 
-  protected async getManyToManyRelations({parent = null, child = null, localMetas = null} = {}) {
+  protected async getManyToManyRelations({parent = null, child = null, localMetas = null} = {}): Promise<Set<any>> {
     const metas = new Set<any>();
     const assocMetas = new Set<any>();
 
@@ -1492,6 +1492,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         this.models[meta.tn] = this.getBaseModel(meta)
       }
     }
+
+    return metas;
   }
 
 

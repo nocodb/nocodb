@@ -1852,8 +1852,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     log(`${this.dbAlias} : ${str}`, ...args);
   }
 
-  public async onManyToManyRelationCreate(parent: string, child: string, args?: any) {
-    await super.onManyToManyRelationCreate(parent, child, args);
+  public async onManyToManyRelationCreate(parent: string, child: string, args?: any): Promise<Set<any>> {
+    const res = await super.onManyToManyRelationCreate(parent, child, args);
     for (const tn of [parent, child]) {
       const meta = this.metas[tn];
       const {columns, hasMany, belongsTo, manyToMany} = meta;
@@ -1900,7 +1900,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     });
 
     await this.reInitializeGraphqlEndpoint();
-
+    return res;
   }
 
   public async onManyToManyRelationDelete(parent: string, child: string, args?: any) {

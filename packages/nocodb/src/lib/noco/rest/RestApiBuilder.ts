@@ -291,7 +291,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       r._rtn = args?.tableNames?.find(t => t.tn === r.rtn)?._tn || this.getTableNameAlias(r.rtn);
       r._tn = args?.tableNames?.find(t => t.tn === r.tn)?._tn || this.getTableNameAlias(r.tn);
       r.enabled = true;
-    })
+    });
 
 
     this.relationsCount = relations.length;
@@ -564,7 +564,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     await NcHelp.executeOperations(relationRoutes, this.connectionConfig.client);
 
 
-    await this.getManyToManyRelations();
 
 
     const swaggerDoc = {
@@ -599,6 +598,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       await this.generateSwaggerJson(swaggerDoc);
     }
 
+
+    await this.getManyToManyRelations();
 
   }
 
@@ -1052,7 +1053,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
         })
 
-        swaggerArr.push(new SwaggerXc({ctx:{...ctx, v: oldMeta.v}}).getObject());
+        swaggerArr.push(new SwaggerXc({ctx: {...ctx, v: oldMeta.v}}).getObject());
 
 
         if (queryParams?.showFields) {
@@ -1149,8 +1150,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
         })
 
-        swaggerArr.push(new SwaggerXc({ctx:{...ctx, v: oldMeta.v}}).getObject());
-
+        swaggerArr.push(new SwaggerXc({ctx: {...ctx, v: oldMeta.v}}).getObject());
 
 
         if (queryParams?.showFields) {
@@ -1796,6 +1796,52 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     });
 
     await this.onSwaggerDocUpdate(tn);
+  }
+
+
+  protected async getManyToManyRelations(args = {}): Promise<Set<any>> {
+    const metas:Set<any> = await super.getManyToManyRelations(args);
+
+    for (const metaObj of metas) {
+
+      const ctx = this.generateContextForTable(
+        metaObj.tn,
+        metaObj.columns,
+        [...metaObj.belongsTo, ...metaObj.hasMany],
+        metaObj.hasMany,
+        metaObj.belongsTo
+      );
+
+      const swaggerDoc = await new SwaggerXc({
+        dir: '', ctx: {
+          ...ctx,
+          v: metaObj.v
+        }, filename: ''
+      }).getObject();
+
+      const meta = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        title: metaObj.tn,
+        type: 'table'
+      });
+      const oldSwaggerDoc = JSON.parse(meta.schema);
+
+      // keep upto 5 schema backup on table update
+      let previousSchemas = [oldSwaggerDoc]
+      if (meta.schema_previous) {
+        previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
+      }
+
+      oldSwaggerDoc.definitions = swaggerDoc.definitions;
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema: JSON.stringify(oldSwaggerDoc),
+        schema_previous: JSON.stringify(previousSchemas)
+      }, {
+        title: metaObj.tn,
+        type: 'table'
+      });
+    }
+
+    return metas
   }
 
 }

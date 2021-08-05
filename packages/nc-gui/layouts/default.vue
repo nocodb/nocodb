@@ -675,7 +675,6 @@ export default {
       toggleTreeviewWindow: 'windows/MutToggleTreeviewWindow'
     }),
     async loadProjectInfo() {
-      debugger
       if (this.$route.params.project_id) {
         try {
           const { info } = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {

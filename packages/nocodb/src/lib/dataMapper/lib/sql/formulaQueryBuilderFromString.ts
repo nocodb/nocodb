@@ -1,4 +1,5 @@
 import jsep from 'jsep';
+import getFunctionName from "./getFunctionName";
 
 
 // todo: switch function based on database
@@ -38,7 +39,6 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
             return fn(pt.arguments[0], a, prevBinaryOp)
           }
           break;
-        case 'concat':
         case 'CONCAT':
           if (knex.clientType() === 'sqlite3') {
             if (pt.arguments.length > 1) {
@@ -53,6 +53,9 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
             }
           }
           break;
+        default:
+          pt.callee.name = getFunctionName(pt.callee.name, knex)
+          break
       }
 
       return knex.raw(`${pt.callee.name}(${pt.arguments.map(arg => fn(arg).toQuery()).join()})${colAlias}`)

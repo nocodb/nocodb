@@ -38,7 +38,9 @@ export default class GqlApi {
   }
 
   generateQueryParams(params) {
-    if (!params) { return '(where:"")' }
+    if (!params) {
+      return '(where:"")'
+    }
     const res = []
     if ('limit' in params) {
       res.push(`limit: ${params.limit}`)
@@ -65,7 +67,7 @@ export default class GqlApi {
     return `{${this.gqlQueryListName}${this.generateQueryParams(params)}{${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}}`
   }
 
-  async gqlReadQuery(id) {
+  async gqlReadQuery(id, params = {}) {
     return `{${this.gqlQueryReadName}(id:"${id}"){${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}}`
   }
 
@@ -89,6 +91,7 @@ export default class GqlApi {
     return `\n${this.columns.map(c => c._cn).join('\n')}\n`
   }
 
+  // todo: query only visible columns
   async gqlRelationReqBody(params) {
     let str = ''
     if (params.hm) {
@@ -130,6 +133,14 @@ export default class GqlApi {
         }
       }
     }
+    // add formula columns to query
+    str += this.meta.v.reduce((arr, v) => {
+      if (v.formula) {
+        arr.push(v._cn)
+      }
+      return arr
+    }, []).join('\n')
+
     return str
   }
 
@@ -207,9 +218,9 @@ export default class GqlApi {
     return data1.data.data[this.gqlMutationDeleteName]
   }
 
-  async read(id) {
+  async read(id, params = {}) {
     const data = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
-      query: await this.gqlReadQuery(id),
+      query: await this.gqlReadQuery(id, params),
       variables: null
     })
     return data.data.data[this.gqlQueryReadName]

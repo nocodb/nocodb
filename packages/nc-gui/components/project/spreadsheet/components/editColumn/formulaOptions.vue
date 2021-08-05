@@ -60,7 +60,7 @@
 
 <script>
 
-import NcAutocompleteTree from '@/help/NcAutocompleteTree'
+import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import debounce from 'debounce'
 import jsep from 'jsep'
@@ -190,11 +190,12 @@ export default {
       return arr
     },
     appendText(it) {
-      const text = it.text.slice(this.wordToComplete.length)
+      const text = it.text
+      const len = this.wordToComplete.length
       if (it.type === 'function') {
-        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text + '()', text.length + 1))
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text + '()', len, 1))
       } else {
-        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text))
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
     },
     _handleInputDeb: debounce(async function(self) {

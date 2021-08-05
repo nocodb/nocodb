@@ -1785,7 +1785,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       }, ...Object.values(this.resolvers).map(r => r.mapResolvers(this.customResolver))]);
 
       this.log(`initGraphqlRoute : Building graphql schema`);
-      const schemaStr = mergeTypeDefs([...Object.values(this.schemas).filter(Boolean), ` ${this.customResolver?.schema || ''} \n ${commonSchema}`], {
+      const schemaStr = mergeTypeDefs([
+        ...Object.values(this.schemas).filter(Boolean),
+        ` ${this.customResolver?.schema || ''} \n ${commonSchema}`,
+        ...this.typesWithFormulaProps
+      ], {
         commentDescriptions: true,
         forceSchemaDefinition: true,
         reverseDirectives: true,
@@ -1972,7 +1976,29 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   }
 
+  // todo: dump it in db
+  // extending types for formula column
+  private get typesWithFormulaProps(): string[] {
+    const schemas = [];
 
+    for (const meta of Object.values(this.metas)) {
+      const props = [];
+      for (const v of meta.v) {
+        if (!v.formula) continue
+        props.push(`${v._cn}: JSON`)
+      }
+      if (props.length) {
+        schemas.push(`type ${meta._tn} {\n${props.join('\n')}\n}`)
+      }
+    }
+    return schemas;
+  }
+
+
+  async onMetaUpdate(tn: string): Promise<void> {
+    await super.onMetaUpdate(tn);
+    return this.reInitializeGraphqlEndpoint();
+  }
 }
 
 /**

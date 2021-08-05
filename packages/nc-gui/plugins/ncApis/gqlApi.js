@@ -92,7 +92,7 @@ export default class GqlApi {
   }
 
   // todo: query only visible columns
-  async gqlRelationReqBody(params) {
+  async gqlRelationReqBody(params = {}) {
     let str = ''
     if (params.hm) {
       for (const child of params.hm.split(',')) {
@@ -173,10 +173,10 @@ export default class GqlApi {
     return { list, count }
   }
 
-  async update(id, data, oldData) {
+  async update(id, data, oldData, params = {}) {
     const data1 = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
       query: `mutation update($id:String!, $data:${this.tableCamelized}Input){
-         ${this.gqlMutationUpdateName}(id: $id, data: $data)
+         ${this.gqlMutationUpdateName}(id: $id, data: $data){${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}
       }`,
       variables: {
         id, data
@@ -195,10 +195,10 @@ export default class GqlApi {
     return data1.data.data[this.gqlMutationUpdateName]
   }
 
-  async insert(data) {
+  async insert(data, params = {}) {
     const data1 = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
       query: `mutation create($data:${this.tableCamelized}Input){
-         ${this.gqlMutationCreateName}(data: $data){${this.gqlReqBody}}
+         ${this.gqlMutationCreateName}(data: $data){${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}
       }`,
       variables: {
         data

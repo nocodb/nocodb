@@ -1788,7 +1788,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const schemaStr = mergeTypeDefs([
         ...Object.values(this.schemas).filter(Boolean),
         ` ${this.customResolver?.schema || ''} \n ${commonSchema}`,
-        ...this.typesWithFormulaProps
+        // ...this.typesWithFormulaProps
       ], {
         commentDescriptions: true,
         forceSchemaDefinition: true,
@@ -1976,27 +1976,65 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   }
 
-  // todo: dump it in db
-  // extending types for formula column
-  private get typesWithFormulaProps(): string[] {
-    const schemas = [];
+  /*  // todo: dump it in db
+    // extending types for formula column
+    private get typesWithFormulaProps(): string[] {
+      const schemas = [];
 
-    for (const meta of Object.values(this.metas)) {
-      const props = [];
-      for (const v of meta.v) {
-        if (!v.formula) continue
-        props.push(`${v._cn}: JSON`)
+      for (const meta of Object.values(this.metas)) {
+        const props = [];
+        for (const v of meta.v) {
+          if (!v.formula) continue
+          props.push(`${v._cn}: JSON`)
+        }
+        if (props.length) {
+          schemas.push(`type ${meta._tn} {\n${props.join('\n')}\n}`)
+        }
       }
-      if (props.length) {
-        schemas.push(`type ${meta._tn} {\n${props.join('\n')}\n}`)
-      }
-    }
-    return schemas;
-  }
+      return schemas;
+    }*/
 
 
   async onMetaUpdate(tn: string): Promise<void> {
     await super.onMetaUpdate(tn);
+    const meta = this.metas[tn];
+
+    const ctx = this.generateContextForTable(tn, meta.columns,
+      [...meta.belongsTo, meta.hasMany],
+      meta.hasMany,
+      meta.belongsTo
+    )
+
+    const oldSchema = this.schemas[tn];
+    // this.log(`onTableUpdate :  Populating new schema for '%s' table`, changeObj.tn);
+    // meta.schema =
+    this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs({
+      ...meta,
+      ...ctx
+    })).getString();
+    if (oldSchema !== this.schemas[tn]) {
+      // this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, tn);
+
+      const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        title: tn
+      });
+
+      // keep upto 5 schema backup on table update
+      let previousSchemas = [oldSchema]
+      if (oldModel.schema_previous) {
+        previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+      }
+
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema: meta.schema,
+        schema_previous: JSON.stringify(previousSchemas)
+      }, {
+        title: tn
+      });
+
+    }
+
+
     return this.reInitializeGraphqlEndpoint();
   }
 }

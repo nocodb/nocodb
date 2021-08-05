@@ -9,31 +9,30 @@
     >
       <template #activator>
         <!-- todo: autocomplete based on available functions and metadata -->
-        <v-tooltip color="info">
-          <template #activator="{on}">
-            <v-text-field
-              ref="input"
-              v-model="formula.value"
-              dense
-              outlined
-              class="caption"
-              hide-details="auto"
-              label="Formula"
-              persistent-hint
-              hint="Available formulas are ADD, AVG, CONCAT, +, -, /"
-              :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
-              autocomplete="off"
-              v-on="on"
-              @input="handleInputDeb"
-              @keydown.down.prevent="suggestionListDown"
-              @keydown.up.prevent="suggestionListUp"
-              @keydown.enter.prevent="selectText"
-            />
-          </template>
-          <span class="caption">Example: AVG(column1, column2, column3)</span>
-        </v-tooltip>
+        <!--        <v-tooltip color="info" right>-->
+        <!--          <template #activator="{on}">-->
+        <v-text-field
+          ref="input"
+          v-model="formula.value"
+          dense
+          outlined
+          class="caption"
+          hide-details="auto"
+          label="Formula"
+          persistent-hint
+          hint="Available formulas are ADD, AVG, CONCAT, +, -, /"
+          :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
+          autocomplete="off"
+          @input="handleInputDeb"
+          @keydown.down.prevent="suggestionListDown"
+          @keydown.up.prevent="suggestionListUp"
+          @keydown.enter.prevent="selectText"
+        />
+        <!--          </template>-->
+        <!--          <span class="caption">Example: AVG(column1, column2, column3)</span>-->
+        <!--        </v-tooltip>-->
       </template>
-      <v-list v-if="suggestion" dense max-height="50vh" class="background-color">
+      <v-list v-if="suggestion" ref="sugList" dense max-height="50vh" style="overflow: auto">
         <v-list-item-group
           v-model="selected"
           color="primary"
@@ -41,6 +40,7 @@
           <v-list-item
             v-for="(it,i) in suggestion"
             :key="i"
+            ref="sugOptions"
             dense
             selectable
             @mousedown.prevent="appendText(it)"
@@ -73,7 +73,7 @@ export default {
     // formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
     availableFunctions: ['AVG', 'ADD', 'CONCAT'],
     availableBinOps: ['+', '-', '*', '/'],
-    autocomplete: true,
+    autocomplete: false,
     suggestion: null,
     wordToComplete: '',
     selected: 0,
@@ -83,7 +83,7 @@ export default {
     suggestionsList() {
       return [
         ...this.availableFunctions.map(fn => ({ text: fn, type: 'function' })),
-        ...this.meta.columns.map(c => ({ text: c.cn, type: 'column', c })),
+        ...this.meta.columns.map(c => ({ text: c._cn, type: 'column', c })),
         ...this.availableBinOps.map(op => ({ text: op, type: 'op' }))
       ]
     },
@@ -177,7 +177,7 @@ export default {
         }
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
       } else if (pt.type === 'Identifier') {
-        if (this.meta.columns.every(c => c.cn !== pt.name)) {
+        if (this.meta.columns.every(c => c._cn !== pt.name)) {
           arr.push(`Column with name '${pt.name}' is not available`)
         }
       } else if (pt.type === 'BinaryExpression') {
@@ -236,24 +236,25 @@ export default {
     },
     suggestionListDown() {
       this.selected = ++this.selected % this.suggestion.length
+      this.scrollToSelectedOption()
     },
     suggestionListUp() {
       this.selected = --this.selected > -1 ? this.selected : this.suggestion.length - 1
+      this.scrollToSelectedOption()
+    },
+    scrollToSelectedOption() {
+      this.$nextTick(() => {
+        if (this.$refs.sugOptions[this.selected]) {
+          try {
+            this.$refs.sugList.$el.scrollTo({ top: this.$refs.sugOptions[this.selected].$el.offsetTop, behavior: 'smooth' })
+          } catch (e) {
+          }
+        }
+      })
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
-//.formula-wrapper {
-//  overflow: visible;
-//  position: relative;
-//
-//  .nc-autocomplete {
-//    position: absolute;
-//    //top: 100%;
-//    top:0;
-//    left: 0
-//  }
-//}
 </style>

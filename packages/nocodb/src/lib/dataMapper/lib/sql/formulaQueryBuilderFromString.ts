@@ -4,13 +4,11 @@ import jsep from 'jsep';
 // todo: switch function based on database
 
 export function formulaQueryBuilderFromString(str, alias, knex) {
-  return formulaQueryBuilder(jsep(str), alias,knex)
+  return formulaQueryBuilder(jsep(str), alias, knex)
 }
 
 
-
-
-export default function formulaQueryBuilder(tree, alias, knex) {
+export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {}) {
   const fn = (pt, a?, prevBinaryOp ?) => {
     const colAlias = a ? ` as ${a}` : '';
     if (pt.type === 'CallExpression') {
@@ -61,7 +59,7 @@ export default function formulaQueryBuilder(tree, alias, knex) {
     } else if (pt.type === 'Literal') {
       return knex.raw(`?${colAlias}`, [pt.value]);
     } else if (pt.type === 'Identifier') {
-      return knex.raw(`??${colAlias}`, [pt.name]);
+      return knex.raw(`??${colAlias}`, [aliasToColumn[pt.name] || pt.name]);
     } else if (pt.type === 'BinaryExpression') {
       const query = knex.raw(`${fn(pt.left, null, pt.operator).toQuery()} ${pt.operator} ${fn(pt.right, null, pt.operator).toQuery()}${colAlias}`)
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {

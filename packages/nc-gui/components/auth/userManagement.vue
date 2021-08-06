@@ -147,6 +147,7 @@
                         </td>
                         <td>
                           <x-icon
+                            v-if="item.project_id"
                             tooltip="Edit User"
                             icon-class=""
                             color="primary"

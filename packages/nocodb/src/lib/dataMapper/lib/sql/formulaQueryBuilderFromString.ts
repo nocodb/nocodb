@@ -1,5 +1,5 @@
 import jsep from 'jsep';
-import getFunctionName from "./getFunctionName";
+import mapFunctionName from "./mapFunctionName";
 
 
 // todo: switch function based on database
@@ -53,8 +53,10 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
             }
           }
           break;
-        default:
-          pt.callee.name = getFunctionName(pt.callee.name, knex)
+        default: {
+          const res = mapFunctionName({pt, knex, alias, aliasToCol: aliasToColumn, fn})
+          if (res) return res;
+        }
           break
       }
 

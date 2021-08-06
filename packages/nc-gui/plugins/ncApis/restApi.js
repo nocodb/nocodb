@@ -76,7 +76,7 @@ export default class RestApi {
       prevValue: oldData[colName]
     }])
 
-    return res
+    return res.data
   }
 
   async insert(data) {

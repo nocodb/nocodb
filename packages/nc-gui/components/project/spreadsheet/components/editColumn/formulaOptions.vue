@@ -75,7 +75,15 @@ export default {
       'AVG', 'ADD', 'CONCAT', 'TRIM',
       'UPPER',
       'LOWER',
-      'LEN'
+      'LEN',
+      'MIN',
+      'MAX',
+      'CEILING', 'FLOOR', 'ROUND',
+      'MOD', 'REPEAT',
+      'LOG', 'EXP', 'POWER', 'SQRT', // todo: remove in sqlite
+      'ABS',
+      'NOW',
+      'REPLACE'
     ],
     availableBinOps: ['+', '-', '*', '/'],
     autocomplete: false,

@@ -4,6 +4,7 @@ export default {
   guest: {},
   editor: {
     airTable: true,
+    xcDatatableEditable: true,
     column: true
   },
   commenter: {

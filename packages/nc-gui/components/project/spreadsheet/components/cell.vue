@@ -12,7 +12,7 @@
   <enum-cell v-else-if="isEnum" :value="value" :column="column" @click.stop="$emit('enableedit')" />
   <url-cell v-else-if="isURL" :value="value" />
   <json-cell v-else-if="isJSON" :value="value" />
-  <span v-else>{{ value }}</span>
+  <span v-else :class="{'long-text-cell' : isTextArea}">{{ value }}</span>
 </template>
 
 <script>
@@ -33,6 +33,9 @@ export default {
 </script>
 
 <style scoped>
+.long-text-cell{
+  white-space: pre;
+}
 </style>
 <!--
 /**

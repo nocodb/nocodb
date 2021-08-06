@@ -171,10 +171,102 @@ And connection params for this database can be specified in `NC_DB` environment 
   </code-block> 
 </code-group> 
 
-### Sample app        
-<code-sandbox :src="link"></code-sandbox>
+### AWS ECS (Fargate)
+
+#### Create ECS Cluster
+
+```
+aws ecs create-cluster \
+--cluster-name <YOUR_ECS_CLUSTER>
+```
+
+#### Create Log group
+
+```
+aws logs create-log-group \
+--log-group-name /ecs/<YOUR_APP_NAME>/<YOUR_CONTAINER_NAME>
+```
+
+#### Create ECS Task Definiton
+
+Every time you create it, it will add a new version. If it is not existing, the version will be 1. 
+
+```bash
+aws ecs register-task-definition \
+--cli-input-json "file://./<YOUR_TASK_DEF_NAME>.json"
+```
+
+<alert>
+This json file defines the container specification. You can define secrets such as NC_DB and environment variables here.
+</alert>
+
+Here's the sample Task Definition
+
+```json
+{
+	"family": "nocodb-sample-task-def",
+	"networkMode": "awsvpc",
+	"containerDefinitions": [{
+		"name": "<YOUR_CONTAINER_NAME>",
+		"image": "nocodb/nocodb:latest",
+		"essential": true,
+		"logConfiguration": {
+			"logDriver": "awslogs",
+			"options": {
+				"awslogs-group": "/ecs/<YOUR_APP_NAME>/<YOUR_CONTAINER_NAME>",
+				"awslogs-region": "<YOUR_AWS_REGION>",
+				"awslogs-stream-prefix": "ecs"
+			}
+		},
+		"secrets": [{
+			"name": "<YOUR_SECRETS_NAME>",
+			"valueFrom": "<YOUR_SECRET_ARN>"
+		}],
+		"environment": [{
+			"name": "<YOUR_ENV_VARIABLE_NAME>",
+			"value": "<YOUR_ENV_VARIABLE_VALUE>"
+		}],
+		"portMappings": [{
+			"containerPort": 8080,
+			"hostPort": 8080,
+			"protocol": "tcp"
+		}]
+	}],
+	"requiresCompatibilities": [
+		"FARGATE"
+	],
+	"cpu": "256",
+	"memory": "512",
+	"executionRoleArn": "<YOUR_ECS_EXECUTION_ROLE_ARN>",
+	"taskRoleArn": "<YOUR_ECS_TASK_ROLE_ARN>"
+}
+```
+
+#### Create ECS Service
+
+```bash
+aws ecs create-service \
+--cluster <YOUR_ECS_CLUSTER> \
+--service-name  <YOUR_SERVICE_NAME> \
+--task-definition <YOUR_TASK_DEF>:<YOUR_TASK_DEF_VERSION> \
+--desired-count <DESIRED_COUNT> \
+--launch-type "FARGATE" \
+--platform-version <VERSION> \
+--health-check-grace-period-seconds <GRACE_PERIOD_IN_SECOND> \
+--network-configuration "awsvpcConfiguration={subnets=["<YOUR_SUBSETS>"], securityGroups=["<YOUR_SECURITY_GROUPS>"]" \
+--load-balancer targetGroupArn=<TARGET_GROUP_ARN>,containerName=<CONTAINER_NAME>,containerPort=<YOUR_CONTAINER_PORT>
+```
+
+<alert>
+  If your service fails to start, you may check the logs in ECS console or in Cloudwatch. Generally it fails due to the connection between ECS container and NC_DB. Make sure the security groups have the correct inbound and outbound rules.  
+</alert>
+
 
 ## Sample Demos
+
+### Code Sandbox
+
+<code-sandbox :src="link"></code-sandbox>
 
 ### Docker deploying with one command
 

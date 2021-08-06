@@ -92,10 +92,12 @@ export default class NcMetaMgr {
 
 
     // todo: acl
-    router.get('/dl/:projectId/:dbAlias/:fileName', async (req, res) => {
+    router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
       try {
-        const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
-        const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+        // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
+        const type = mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] || 'text/plain';
+        // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+        const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params[0], req.params[1], 'uploads', ...req.params[2].split('/'))));
         res.writeHead(200, {'Content-Type': type});
         res.end(img, 'binary');
       } catch (e) {
@@ -942,19 +944,21 @@ export default class NcMetaMgr {
 
   public async xcAttachmentUpload(req, args, file) {
     try {
-      const fileName = `${nanoid(6)}${path.extname(file.originalname)}`
+      const appendPath = args.args.appendPath || [];
+      const prependName = args.args.prependName?.length ? args.args.prependName.join('_') + '_' : '';
+      const fileName = `${prependName}${nanoid(6)}_${file.originalname}`
       let destPath;
       if (args?.args?.public) {
-        destPath = path.join('nc', 'public', 'files', 'uploads');
+        destPath = path.join('nc', 'public', 'files', 'uploads', ...appendPath);
       } else {
-        destPath = path.join('nc', this.getProjectId(args), this.getDbAlias(args), 'uploads');
+        destPath = path.join('nc', this.getProjectId(args), this.getDbAlias(args), 'uploads', ...appendPath);
       }
       let url = await this.storageAdapter.fileCreate(slash(path.join(destPath, fileName)), file);
       if (!url) {
         if (args?.args?.public) {
-          url = `${req.ncSiteUrl}/dl/public/files/${fileName}`;
+          url = `${req.ncSiteUrl}/dl/public/files/${appendPath?.length ? appendPath.join('/') + '/' : ''}${fileName}`;
         } else {
-          url = `${req.ncSiteUrl}/dl/${this.getProjectId(args)}/${this.getDbAlias(args)}/${fileName}`;
+          url = `${req.ncSiteUrl}/dl/${this.getProjectId(args)}/${this.getDbAlias(args)}/${appendPath?.length ? appendPath.join('/') + '/' : ''}${fileName}`;
         }
       }
       return {

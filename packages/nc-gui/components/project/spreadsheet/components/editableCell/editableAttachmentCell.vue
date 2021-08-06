@@ -212,7 +212,7 @@ import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
 
 export default {
   name: 'EditableAttachmentCell',
-  props: ['dbAlias', 'value', 'active', 'isLocked'],
+  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column'],
   data: () => ({
     carousel: null,
     uploading: false,
@@ -265,7 +265,9 @@ export default {
       this.showImage = true
     },
     addFile() {
-      if (!this.isLocked) { this.$refs.file.click() }
+      if (!this.isLocked) {
+        this.$refs.file.click()
+      }
     },
     async onFileSelection() {
       if (!this.$refs.file.files || !this.$refs.file.files.length) {
@@ -276,7 +278,10 @@ export default {
         try {
           const item = await this.$store.dispatch('sqlMgr/ActUpload', [{
             dbAlias: this.dbAlias
-          }, 'xcAttachmentUpload', {}, file])
+          }, 'xcAttachmentUpload', {
+            appendPath: [this.meta.tn],
+            prependName: [this.column.cn]
+          }, file])
           this.localState.push(item)
         } catch (e) {
           this.$toast.error((e.message) || 'Some internal error occurred').goAway(3000)
@@ -295,7 +300,9 @@ export default {
       this.$emit('update')
     },
     onArrowDown(e) {
-      if (!this.showImage) { return }
+      if (!this.showImage) {
+        return
+      }
       e = e || window.event
       // eslint-disable-next-line eqeqeq
       if (e.keyCode == '37') {

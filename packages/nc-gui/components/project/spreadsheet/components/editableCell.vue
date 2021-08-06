@@ -11,6 +11,8 @@
       v-model="localState"
       :active="active"
       :db-alias="dbAlias"
+      :meta="meta"
+      :column="column"
       v-on="$listeners"
     />
 

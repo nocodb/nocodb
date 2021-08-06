@@ -651,33 +651,42 @@ export default class RestAuthCtrl {
 
   protected async refreshToken(req, res): Promise<any> {
     console.log('token refresh')
-    const user = await this.users.where({
-      refresh_token: req.cookies.refresh_token
-    }).first();
+    try {
 
-    if (!user) {
-      return res.status(400).json({msg: 'Invalid refresh token'});
+      if(!req?.cookies?.refresh_token){
+        return res.status(400).json({msg: 'Missing refresh token'});
+      }
+
+      const user = await this.users.where({
+        refresh_token: req.cookies.refresh_token
+      }).first();
+
+      if (!user) {
+        return res.status(400).json({msg: 'Invalid refresh token'});
+      }
+
+      const refreshToken = this.randomTokenString();
+
+      await this.users.update({
+        refresh_token: refreshToken
+      }).where({
+        id: user.id
+      });
+
+      this.setTokenCookie(res, refreshToken);
+
+      res.json({
+        token: jwt.sign({
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          id: user.id,
+          roles: user.roles
+        }, this.config.auth.jwt.secret, this.config.auth.jwt.options)
+      } as any);
+    }catch (e) {
+      return res.status(400).json({msg: e.message});
     }
-
-    const refreshToken = this.randomTokenString();
-
-    await this.users.update({
-      refresh_token: refreshToken
-    }).where({
-      id: user.id
-    });
-
-    this.setTokenCookie(res, refreshToken);
-
-    res.json({
-      token: jwt.sign({
-        email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        id: user.id,
-        roles: user.roles
-      }, this.config.auth.jwt.secret, this.config.auth.jwt.options)
-    } as any);
   }
 
   protected async signup(req, res, next): Promise<any> {

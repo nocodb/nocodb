@@ -1542,6 +1542,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     this.router.get(`/${this.getDbAlias()}/swagger`, async (_req, res) => {
       res.send(ejs.render((await import('./ui/auth/swagger')).default, {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         baseUrl: `/`,
         dbAlias: this.getDbAlias(),
         projectId: this.projectId

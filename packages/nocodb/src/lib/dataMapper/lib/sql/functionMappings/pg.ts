@@ -14,7 +14,7 @@ const pg = {
   INT(args: MapFnArgs) {
     // todo: correction
     return args.knex.raw(`REGEXP_REPLACE(COALESCE(${args.fn(args.pt.arguments[0])}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')${args.colAlias}`)
-  }
+  },
 }
 
 

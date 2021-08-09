@@ -48,7 +48,7 @@ const mssql = {
   },
   INT: (args: MapFnArgs) => {
     return args.knex.raw(`CASE WHEN ISNUMERIC(${args.fn(args.pt.arguments[0]).toQuery()}) = 1 THEN FLOOR(${args.fn(args.pt.arguments[0]).toQuery()}) ELSE 0 END${args.colAlias}`)
-  }
+  },
 }
 
 export default mssql;

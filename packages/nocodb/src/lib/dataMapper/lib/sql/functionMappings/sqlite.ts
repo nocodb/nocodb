@@ -23,6 +23,14 @@ const sqlite3 = {
   SEARCH:'INSTR',
   INT(args: MapFnArgs) {
     return args.knex.raw(`CAST(${args.fn(args.pt.arguments[0])} as INTEGER)${args.colAlias}`)
+  },
+
+
+  LEFT:(args: MapFnArgs)=> {
+    return args.knex.raw(`SUBSTR(${args.fn(args.pt.arguments[0])},1,${args.fn(args.pt.arguments[1])})${args.colAlias}`)
+  },
+  RIGHT:(args: MapFnArgs)=> {
+    return args.knex.raw(`SUBSTR(${args.fn(args.pt.arguments[0])},-${args.fn(args.pt.arguments[1])})${args.colAlias}`)
   }
 }
 

@@ -161,7 +161,7 @@ abstract class BaseModel {
     const ids = (id + '').split('___');
     const where = {};
     for (let i = 0; i < this.pks.length; ++i) {
-      where[this.pks[i].cn] = ids[i];
+      where[this.pks?.[i]?.cn] = ids[i];
     }
     return where;
   }
@@ -303,7 +303,7 @@ abstract class BaseModel {
       }
 
       const response = await this.dbDriver.batchInsert(this.tn, data, 50)
-        .returning(this.pks[0].cn);
+        .returning(this.pks?.[0]?.cn || '*');
 
       await this.afterInsertb(data);
 
@@ -454,7 +454,7 @@ abstract class BaseModel {
    */
   async countByPk({where, condition}) {
     try {
-      return await this._run(this.$db.count(`${(this.pks[0] || this.columns[0]).cn} as count`)
+      return await this._run(this.$db.count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
         .xwhere(where)
         .condition(condition)
         .first());
@@ -481,7 +481,7 @@ abstract class BaseModel {
       return await this._run(this.$db.where(this._whereFk({
         parentId,
         tnp
-      })).count(`${(this.pks[0] || this.columns[0]).cn} as count`)
+      })).count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
         .xwhere(where)
         .condition(condition)
         .first());
@@ -722,7 +722,7 @@ abstract class BaseModel {
       const columns = [...(column_name ? [column_name] : []), ...fields.split(',').filter(Boolean)];
       const query = this.$db
         .groupBy(columns)
-        .count(`${(this.pks[0] || this.columns[0]).cn} as count`)
+        .count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
         .select(columns)
         .xhaving(having);
 
@@ -924,7 +924,7 @@ abstract class BaseModel {
       parent.map(p => {
         const query = this
           .dbDriver(child)
-          .where({[cn]: p[this.pks[0].cn]})
+          .where({[cn]: p[this.pks?.[0]?.cn]})
           .xwhere(where).condition(condition)
           .select(...fields.split(','));
 
@@ -935,7 +935,7 @@ abstract class BaseModel {
 
     const gs = _.groupBy(childs, cn);
     parent.forEach(row => {
-      row[child] = gs[row[this.pks[0].cn]] || [];
+      row[child] = gs[row[this.pks?.[0]?.cn]] || [];
     })
   }
 
@@ -990,8 +990,8 @@ abstract class BaseModel {
     fields = fields || f || '*';
     try {
 
-      if (fields !== '*' && fields.split(',').indexOf(this.pks[0].cn) === -1) {
-        fields += ',' + this.pks[0].cn;
+      if (fields !== '*' && fields.split(',').indexOf(this.pks?.[0]?.cn) === -1) {
+        fields += ',' + this.pks?.[0]?.cn;
       }
 
       const parent = await this.list({childs, where, fields, ...rest});

@@ -1206,7 +1206,12 @@ class BaseModelSql extends BaseModel {
    * @param {String} [args.sort]   - comma separated column names where each column name is cn ascending and -cn is cn descending
    * @returns {Promise<Object[]>} return child rows
    */
-  async hasManyChildren({child, parentId, conditionGraph = null, ...args}: XcFilterWithAlias & { child: string, parentId: any }) {
+  async hasManyChildren({
+                          child,
+                          parentId,
+                          conditionGraph = null,
+                          ...args
+                        }: XcFilterWithAlias & { child: string, parentId: any }) {
     try {
       const {where, limit, offset, sort, ...restArgs} = this._getListArgs(args);
       let {fields} = restArgs;
@@ -1296,7 +1301,7 @@ class BaseModelSql extends BaseModel {
     let fields = fields1 || f || '*';
     try {
 
-      if (fields !== '*' && fields.split(',').indexOf(this.pks[0].cn) === -1) {
+      if (fields !== '*' && this.pks[0] && fields.split(',').indexOf(this.pks?.[0]?.cn) === -1) {
         fields += ',' + this.pks[0].cn;
       }
 
@@ -1349,7 +1354,7 @@ class BaseModelSql extends BaseModel {
     try {
 
       // todo: use fields in readbyPk
-      if (fields !== '*' && fields.split(',').indexOf(this.pks[0].cn) === -1) {
+      if (fields !== '*' && this.pks[0] && fields.split(',').indexOf(this.pks[0].cn) === -1) {
         fields += ',' + this.pks[0].cn;
       }
 

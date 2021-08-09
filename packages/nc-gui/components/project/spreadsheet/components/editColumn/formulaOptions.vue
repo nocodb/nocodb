@@ -61,7 +61,7 @@
 <script>
 
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
-import { getWordUntilCaret, insertAtCursor } from '@/helpers'
+import {getWordUntilCaret, insertAtCursor} from '@/helpers'
 import debounce from 'debounce'
 import jsep from 'jsep'
 
@@ -87,7 +87,9 @@ export default {
       'SEARCH',
       'INT',
       'RIGHT',
-      'LEFT'
+      'LEFT',
+      'SUBSTR',
+      'MID'
     ],
     availableBinOps: ['+', '-', '*', '/'],
     autocomplete: false,
@@ -99,9 +101,9 @@ export default {
   computed: {
     suggestionsList() {
       return [
-        ...this.availableFunctions.map(fn => ({ text: fn, type: 'function' })),
-        ...this.meta.columns.map(c => ({ text: c._cn, type: 'column', c })),
-        ...this.availableBinOps.map(op => ({ text: op, type: 'op' }))
+        ...this.availableFunctions.map(fn => ({text: fn, type: 'function'})),
+        ...this.meta.columns.map(c => ({text: c._cn, type: 'column', c})),
+        ...this.availableBinOps.map(op => ({text: op, type: 'op'}))
       ]
     },
     acTree() {
@@ -113,7 +115,7 @@ export default {
     }
   },
   created() {
-    this.formula = this.value ? { ...this.value } : {}
+    this.formula = this.value ? {...this.value} : {}
   },
   methods: {
     async save() {
@@ -215,7 +217,7 @@ export default {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
     },
-    _handleInputDeb: debounce(async function(self) {
+    _handleInputDeb: debounce(async function (self) {
       await self.handleInput()
     }, 250),
     handleInputDeb() {

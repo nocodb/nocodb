@@ -54,7 +54,7 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
           }
           break;
         default: {
-          const res = mapFunctionName({pt, knex, alias, aliasToCol: aliasToColumn, fn})
+          const res = mapFunctionName({pt, knex, alias, aliasToCol: aliasToColumn, fn, colAlias})
           if (res) return res;
         }
           break

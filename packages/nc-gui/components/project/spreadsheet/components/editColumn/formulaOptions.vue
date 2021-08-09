@@ -83,7 +83,11 @@ export default {
       'LOG', 'EXP', 'POWER', 'SQRT', // todo: remove in sqlite
       'ABS',
       'NOW',
-      'REPLACE'
+      'REPLACE',
+      'SEARCH',
+      'INT',
+      'RIGHT',
+      'LEFT'
     ],
     availableBinOps: ['+', '-', '*', '/'],
     autocomplete: false,

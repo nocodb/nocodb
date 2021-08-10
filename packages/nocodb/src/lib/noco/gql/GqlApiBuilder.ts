@@ -238,7 +238,13 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     // todo: load procedure and functions
     await this.loadXcAcl();
 
-    const {metaArr, enabledModels, tableAndViewArr, functionArr, procedureArr} = await this.readXcModelsAndGroupByType();
+    const {
+      metaArr,
+      enabledModels,
+      tableAndViewArr,
+      functionArr,
+      procedureArr
+    } = await this.readXcModelsAndGroupByType();
 
 
     const procedureResolver = new GqlProcedureResolver(this, functionArr, procedureArr, this.procedureOrFunctionAcls);
@@ -286,12 +292,18 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       };
 
       this.schemas[meta.title] = meta.schema;
-      this.policies[meta.title] = resolversArr.filter(({title}) => title === meta.title).reduce((aclObj, {acl, resolver}) => {
+      this.policies[meta.title] = resolversArr.filter(({title}) => title === meta.title).reduce((aclObj, {
+        acl,
+        resolver
+      }) => {
         aclObj[resolver] = JSON.parse(acl);
         return aclObj;
       }, {});
 
-      const functions = resolversArr.filter(({title}) => title === meta.title).reduce((fnObj, {functions, resolver}) => {
+      const functions = resolversArr.filter(({title}) => title === meta.title).reduce((fnObj, {
+        functions,
+        resolver
+      }) => {
         fnObj[resolver] = JSON.parse(functions);
         return fnObj;
       }, {});
@@ -536,20 +548,32 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
 
     if (args?.tableNames?.length) {
+      const relatedTableList = []
+      // extract tables which have relation with the tables in list
+      for (const r of relations) {
+        if (args.tableNames.some(t => t.tn === r.tn)) {
+          if (!relatedTableList.includes(r.rtn)) {
+            relatedTableList.push(r.rtn)
+            await this.onTableDelete(r.rtn)
+          }
+        } else if (args.tableNames.some(t => t.tn === r.rtn)) {
+          if (!relatedTableList.includes(r.tn)) {
+            relatedTableList.push(r.tn)
+            await this.onTableDelete(r.tn)
+          }
+        }
+      }
+
       tables = args.tableNames.map(({tn, _tn}) => ({
         tn,
         _tn,
         type: args.type
       }));
+
+      tables.push(...relatedTableList.map(t => ({tn: t})))
     } else {
       tables = (await this.sqlClient.tableList())?.data?.list?.filter(({tn}) => !IGNORE_TABLES.includes(tn));
 
-      /* filter based on prefix */
-      if (this.projectBuilder?.prefix) {
-        tables = tables.filter(t => t.tn.startsWith(this.projectBuilder?.prefix))
-      }
-
-      this.tablesCount = tables.length;
       // enable extra
       // tables.push(...(await this.sqlClient.viewList())?.data?.list?.map(v => {
       //   this.viewsCount++;
@@ -605,6 +629,17 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       //   }
       // }
     }
+
+
+    /* filter based on prefix */
+    if (this.projectBuilder?.prefix) {
+      tables = tables.filter(t => {
+        t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '')
+        return t.tn.startsWith(this.projectBuilder?.prefix)
+      })
+    }
+
+    this.tablesCount = tables.length;
 
 
     if (tables.length) {

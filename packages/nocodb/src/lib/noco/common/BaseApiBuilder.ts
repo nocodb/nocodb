@@ -710,7 +710,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`onTableUpdate : Generating model instance for '%s' table`, tn)
 
 
-
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
 
 
@@ -910,11 +909,17 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     childMeta.manyToMany = childMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
 
     // filter lookup and relation virtual columns
-    parentMeta.v = parentMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    parentMeta.v = parentMeta.v.filter(({
+                                          mm,
+                                          ...rest
+                                        }) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
       // check for lookup
       && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
     )
-    childMeta.v = childMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    childMeta.v = childMeta.v.filter(({
+                                        mm,
+                                        ...rest
+                                      }) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
       // check for lookup
       && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
     )
@@ -952,17 +957,17 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
   protected initDbDriver(): void {
-    this.dbDriver =  NcConnectionMgr.get({
-      dbAlias:this.dbAlias,
-      env:this.config.env,
-      config:this.config,
-      projectId:this.projectId
+    this.dbDriver = NcConnectionMgr.get({
+      dbAlias: this.dbAlias,
+      env: this.config.env,
+      config: this.config,
+      projectId: this.projectId
     });
     this.sqlClient = NcConnectionMgr.getSqlClient({
-      dbAlias:this.dbAlias,
-      env:this.config.env,
-      config:this.config,
-      projectId:this.projectId
+      dbAlias: this.dbAlias,
+      env: this.config.env,
+      config: this.config,
+      projectId: this.projectId
     })
     // if (!this.dbDriver) {
     //   if(this.projectBuilder?.prefix){
@@ -1092,10 +1097,16 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return ctx;
   }
 
-  protected getTableNameAlias(tn: string) {
+  protected getTableNameAlias(tableName: string) {
+    let tn = tableName;
     if (this.metas?.[tn]?._tn) {
       return this.metas?.[tn]?._tn;
     }
+
+    if (this.projectBuilder?.prefix) {
+      tn = tn.replace(this.projectBuilder?.prefix, '')
+    }
+
     const modifiedTableName = tn?.replace(/^(?=\d+)/, 'ISN___')
     return this.getInflectedName(modifiedTableName, this.connectionConfig?.meta?.inflection?.tn);
   }
@@ -1104,8 +1115,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`generateContextForHasMany : '%s' => '%s'`, ctx.tn, tnc);
     return {
       ...ctx,
-      _tn: this.metas[ctx.tn]._tn,
-      _ctn: this.metas[tnc]._tn,
+      _tn: this.metas[ctx.tn]?._tn,
+      _ctn: this.metas[tnc]?._tn,
       ctn: tnc,
       project_id: this.projectId
     };
@@ -1426,10 +1437,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         // todo: ignore duplicate m2m relations
         // todo: optimize, just compare associative table(Vtn)
         ...meta.manyToMany.filter((v, i) => !meta.v.some(v1 => v1.mm
-          && (
-            v1.mm.tn === v.tn && v.rtn === v1.mm.rtn
-            || v1.mm.rtn === v.tn && v.tn === v1.mm.rtn
-          ) && v.vtn === v1.mm.vtn)
+            && (
+              v1.mm.tn === v.tn && v.rtn === v1.mm.rtn
+              || v1.mm.rtn === v.tn && v.tn === v1.mm.rtn
+            ) && v.vtn === v1.mm.vtn)
           // ignore duplicate
           && !meta.manyToMany.some((v1, i1) => i1 !== i && v1.tn === v.tn && v.rtn === v1.rtn && v.vtn === v1.vtn)
         ).map(mm => {

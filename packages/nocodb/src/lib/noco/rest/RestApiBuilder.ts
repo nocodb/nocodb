@@ -314,16 +314,11 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         }
       }
 
-      tables = args.tableNames.map(({tn}) => ({tn, type: args.type}));
+      tables = args.tableNames.map(({tn,_tn}) => ({tn, type: args.type,_tn}));
+      tables.push(...relatedTableList.map(t => ({tn:t})))
     } else {
       tables = (await this.sqlClient.tableList())?.data?.list?.filter(({tn}) => !IGNORE_TABLES.includes(tn));
 
-      /* filter based on prefix */
-      if (this.projectBuilder?.prefix) {
-        tables = tables.filter(t => t?.tn?.startsWith(this.projectBuilder?.prefix))
-      }
-
-      this.tablesCount = tables.length;
 
       // enable extra
       /*      tables.push(...(await this.sqlClient.viewList())?.data?.list?.map(v => {
@@ -342,6 +337,17 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       // enable extra
       await this.populteProcedureAndFunctionRoutes();
     }
+
+
+    /* filter based on prefix */
+    if (this.projectBuilder?.prefix) {
+      tables = tables.filter(t => {
+        t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '')
+        return t?.tn?.startsWith(this.projectBuilder?.prefix)
+      })
+    }
+
+    this.tablesCount = tables.length;
 
     const relationRoutes: Array<() => Promise<void>> = [];
 

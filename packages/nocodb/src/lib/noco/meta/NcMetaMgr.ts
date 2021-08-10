@@ -2964,6 +2964,11 @@ export default class NcMetaMgr {
             tables = (await sqlClient.tableList())?.data?.list?.map(table => {
               return tables.find(mod => mod.title === table.tn) ?? {title: table.tn, alias: table.tn};
             });
+            const config = this.projectConfigs[this.getProjectId(args)]
+            tables = config?.prefix ? tables.filter(t => {
+              t.alias = t.title.replace(config?.prefix, '')
+              return t.title.startsWith(config?.prefix)
+            }) : tables;
           }
 
           const result = tables.reduce((obj, table) => {

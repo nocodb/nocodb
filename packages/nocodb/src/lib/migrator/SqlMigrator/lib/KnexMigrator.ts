@@ -501,7 +501,7 @@ export default class KnexMigrator extends SqlMigrator {
         args.env
       );
       const sqlClient = args.sqlClient || SqlClientFactory.create(connection);
-      const migrations = await sqlClient.selectAll(connection.meta.tn);
+      const migrations = await sqlClient.selectAll(sqlClient.getTnPath(connection.meta.tn));
       /** ************** END : get files and migrations *************** */
 
       if (files.length === migrations.length) {
@@ -667,7 +667,7 @@ export default class KnexMigrator extends SqlMigrator {
                 vm.emit(`'${query}' : Executed SQL query`);
               }
               for (const data of metaTableInserts) {
-                await trx(connection.meta.tn).insert(data);
+                await trx(sqlClient.getTnPath(connection.meta.tn)).insert(data);
                 vm.emit(`'${data.title}' : Updating bookkeeping of SQL UP migration - done`);
               }
               await trx.commit();
@@ -743,7 +743,7 @@ export default class KnexMigrator extends SqlMigrator {
         args.env
       );
       const sqlClient = SqlClientFactory.create(connection);
-      const migrations = await sqlClient.selectAll(connection.meta.tn);
+      const migrations = await sqlClient.selectAll(sqlClient.getTnPath(connection.meta.tn));
 
       if (migrations.length) {
         try {
@@ -820,7 +820,7 @@ export default class KnexMigrator extends SqlMigrator {
             }
             for (const condition of metaDownDeletes) {
               vm.emit(`'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`);
-              await trx(connection.meta.tn).where(condition).del();
+              await trx(sqlClient.getTnPath(connection.meta.tn)).where(condition).del();
             }
 
 

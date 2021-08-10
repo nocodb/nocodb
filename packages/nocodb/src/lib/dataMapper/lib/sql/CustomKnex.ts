@@ -678,7 +678,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 
 type CustomKnex = Knex;
 
-function CustomKnex(arg: string | Knex.Config<any>): CustomKnex {
+function CustomKnex(arg: string | Knex.Config<any>|any): CustomKnex {
 
   const knex: any = Knex(arg);
 
@@ -706,6 +706,12 @@ function CustomKnex(arg: string | Knex.Config<any>): CustomKnex {
         return typeof arg === 'string' ? arg.match(/^(\w+):/) ?? [1] : arg.client;
       }
     },
+    searchPath: {
+      enumerable: true,
+      value: () => {
+        return arg?.searchPath?.[0]
+      }
+    }
   });
 
   /**

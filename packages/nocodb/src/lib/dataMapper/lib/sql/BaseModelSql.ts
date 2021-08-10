@@ -118,8 +118,14 @@ class BaseModelSql extends BaseModel {
    *
    * @returns {Object} knex instance attached to a table
    */
-  get $db() {
-    return this.dbDriver(this.tn);
+  public get $db() {
+    return this.dbDriver(this.tnPath);
+  }
+
+  public get tnPath(){
+    const schema = (this.dbDriver as any).searchPath?.();
+    const table = this.isMssql() && schema ? this.dbDriver.raw('??.??', [schema, this.tn]) : this.tn;
+    return table;
   }
 
   /**
@@ -258,7 +264,7 @@ class BaseModelSql extends BaseModel {
 
       await this.validate(insertObj);
 
-      const query = driver(this.tn).insert(insertObj);
+      const query = driver(this.tnPath).insert(insertObj);
 
       if (this.isPg() || this.dbDriver.clientType() === 'mssql') {
         query.returning(Object.entries(this.aliasToColumn).map(([val, key]) => `${key} as ${val}`));
@@ -321,7 +327,7 @@ class BaseModelSql extends BaseModel {
       const driver = trx ? trx : this.dbDriver
 
       // this.validate(data);
-      const response = await this._run(driver(this.tn).update(mappedData).where(this._wherePk(id)));
+      const response = await this._run(driver(this.tnPath).update(mappedData).where(this._wherePk(id)));
       await this.afterUpdate(data, trx, cookie);
       return response;
     } catch (e) {
@@ -345,7 +351,7 @@ class BaseModelSql extends BaseModel {
 
       const dbDriver = trx ? trx : this.dbDriver;
 
-      const response = await this._run(dbDriver(this.tn).del().where(this._wherePk(id)));
+      const response = await this._run(dbDriver(this.tnPath).del().where(this._wherePk(id)));
       await this.afterDelete({id}, trx, cookie);
       return response;
     } catch (e) {
@@ -378,7 +384,7 @@ class BaseModelSql extends BaseModel {
       await this.validate(insertObj);
       Object.assign(insertObj, this._whereFk({parentId, tnp}))
 
-      const query = dbDriver(this.tn).insert(insertObj);
+      const query = dbDriver(this.tnPath).insert(insertObj);
 
       if (this.dbDriver.clientType() === 'pg' || this.dbDriver.clientType() === 'mssql') {
         query.returning(this.selectQuery(''));
@@ -438,7 +444,7 @@ class BaseModelSql extends BaseModel {
 
       const dbDriver = trx ? trx : this.dbDriver;
       // this.validate(data);
-      const response = await this._run(dbDriver(this.tn).update(data).where(this._wherePk(id)).andWhere(this._whereFk({
+      const response = await this._run(dbDriver(this.tnPath).update(data).where(this._wherePk(id)).andWhere(this._whereFk({
         tnp,
         parentId
       })));
@@ -469,7 +475,7 @@ class BaseModelSql extends BaseModel {
 
       const driver = trx ? trx : this.dbDriver
 
-      const response = await this._run(driver(this.tn).update(data).xwhere(where, this.selectQuery('')).condition(condition, this.selectQuery('')));
+      const response = await this._run(driver(this.tnPath).update(data).xwhere(where, this.selectQuery('')).condition(condition, this.selectQuery('')));
 
       // await this.afterUpdate(data);
       return response;
@@ -497,7 +503,7 @@ class BaseModelSql extends BaseModel {
       await this.beforeDelete({id, parentId, tnp}, trx, cookie);
 
       const dbDriver = trx ? trx : this.dbDriver;
-      const response = await this._run(dbDriver(this.tn).del().where(this._wherePk(id)).andWhere(this._whereFk({
+      const response = await this._run(dbDriver(this.tnPath).del().where(this._wherePk(id)).andWhere(this._whereFk({
         tnp,
         parentId
       })));
@@ -525,7 +531,7 @@ class BaseModelSql extends BaseModel {
 
       const driver = trx ? trx : this.dbDriver
 
-      const response = await this._run(driver(this.tn).del().xwhere(where, this.selectQuery('')).condition(condition, this.selectQuery('')));
+      const response = await this._run(driver(this.tnPath).del().xwhere(where, this.selectQuery('')).condition(condition, this.selectQuery('')));
 
       // await this.afterUpdate(data);
       return response;
@@ -1123,7 +1129,7 @@ class BaseModelSql extends BaseModel {
       parent.map(p => {
         const query =
           this
-            .dbDriver(child)
+            .dbDriver(this.dbModels[child].tnPath)
             .where(cn, p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select(this.dbModels[child].selectQuery(fields)) // ...fields.split(','));
@@ -1178,7 +1184,7 @@ class BaseModelSql extends BaseModel {
       parentIds.map(id => {
         const query =
           this
-            .dbDriver(child)
+            .dbDriver(this.dbModels[child].tnPath)
             .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
             .where(`${vtn}.${vcn}`, id) // p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
             .xwhere(where, this.dbModels[child].selectQuery(''))
@@ -1221,7 +1227,7 @@ class BaseModelSql extends BaseModel {
         fields = `${child}.*`
       }
 
-      const query = this.dbDriver(child)
+      const query = this.dbDriver(this.dbModels[child].tnPath)
         // .select(...fields.split(','))
         .select(this.dbModels?.[child]?.selectQuery(fields) || fields)
         .where(cn, parentId)
@@ -1421,7 +1427,7 @@ class BaseModelSql extends BaseModel {
       .condition(condition, childModel.selectQuery(''))
       .conditionGraph(conditionGraph)
       .whereNotIn(rcn,
-        childModel.dbDriver(rtn)
+        childModel.dbDriver(this.dbModels[rtn].tnPath)
           .select(`${rtn}.${rcn}`)
           .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
           .where(`${vtn}.${vcn}`, pid)
@@ -1450,7 +1456,7 @@ class BaseModelSql extends BaseModel {
       .condition(condition, childModel.selectQuery(''))
       .conditionGraph(conditionGraph)
       .whereNotIn(rcn,
-        childModel.dbDriver(rtn)
+        childModel.dbDriver(this.dbModels[rtn].tnPath)
           .select(`${rtn}.${rcn}`)
           .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
           .where(`${vtn}.${vcn}`, pid)
@@ -1521,7 +1527,7 @@ class BaseModelSql extends BaseModel {
     }
 
     const parents = await this._run(
-      this.dbDriver(parent)
+      this.dbDriver(this.dbModels[parent].tnPath)
         // .select(...fields.split(',')
         .select(
           this.dbModels[parent].selectQuery(fields)
@@ -1562,7 +1568,7 @@ class BaseModelSql extends BaseModel {
       const childs = await this._run(this._paginateAndSort(this.dbDriver.union(
         ids.map(p => {
           const query = this
-            .dbDriver(child)
+            .dbDriver(this.dbModels[child].tnPath)
             .where({[cn]: p})
             .conditionGraph(conditionGraph)
             .xwhere(where, this.selectQuery(''))
@@ -1588,6 +1594,10 @@ class BaseModelSql extends BaseModel {
     return this.clientType === 'sqlite3';
   }
 
+  isMssql() {
+    return this.clientType === 'mssql';
+  }
+
   /**
    * Returns key value paired grouped children list
    *
@@ -1609,7 +1619,7 @@ class BaseModelSql extends BaseModel {
       const childs = await this._run(this.dbDriver.unionAll(
         ids.map(p => {
           const query = this
-            .dbDriver(child)
+            .dbDriver(this.dbModels[child].tnPath)
             .where({[cn]: p})
             .xwhere(where, this.selectQuery(''))
             .conditionGraph(conditionGraph)

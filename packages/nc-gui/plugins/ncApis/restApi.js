@@ -35,7 +35,7 @@ export default class RestApi {
     }
   }
 
-  get(url, params, extras = {}) {
+  get(url, params={}, extras = {}) {
     return this.$axios({
       url,
       params,

@@ -253,7 +253,7 @@ aws ecs create-service \
 --launch-type "FARGATE" \
 --platform-version <VERSION> \
 --health-check-grace-period-seconds <GRACE_PERIOD_IN_SECOND> \
---network-configuration "awsvpcConfiguration={subnets=["<YOUR_SUBSETS>"], securityGroups=["<YOUR_SECURITY_GROUPS>"]" \
+--network-configuration "awsvpcConfiguration={subnets=["<YOUR_SUBSETS>"], securityGroups=["<YOUR_SECURITY_GROUPS>"], assignPublicIp=ENABLED}" \
 --load-balancer targetGroupArn=<TARGET_GROUP_ARN>,containerName=<CONTAINER_NAME>,containerPort=<YOUR_CONTAINER_PORT>
 ```
 

@@ -8,7 +8,15 @@
           :active="active"
           :value="value"
           :readonly="true"
-        />
+        >
+          <table-cell
+            :column="lookUpColumn"
+            :meta="lookUpMeta"
+            :db-alias="nodes.dbAlias"
+            :value="value"
+            :sql-ui="sqlUi"
+          />
+        </item-chip>
       </template>
       <span
         v-if="localValue && localValue.length === 10"
@@ -39,10 +47,11 @@
 import ItemChip from '@/components/project/spreadsheet/components/virtualCell/components/itemChip'
 import ListChildItemsModal
   from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
+import TableCell from '../cell'
 
 export default {
   name: 'LookupCell',
-  components: { ListChildItemsModal, ItemChip },
+  components: { TableCell, ListChildItemsModal, ItemChip },
   props: {
     meta: [Object],
     column: [Object],
@@ -77,6 +86,12 @@ export default {
         return
       }
       return (this.$store.state.meta.metas[this.column.lk.ltn].columns.find(cl => cl.cn === this.column.lk.lcn) || {})._cn
+    },
+    lookUpColumn() {
+      if (!this.lookUpMeta || !this.column.lk.lcn) {
+        return
+      }
+      return (this.$store.state.meta.metas[this.column.lk.ltn].columns.find(cl => cl.cn === this.column.lk.lcn) || {})
     },
     localValueObj() {
       if (!this.column || !this.row) {

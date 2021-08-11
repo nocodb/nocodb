@@ -16,7 +16,7 @@ import ses from "../plugins/ses";
 
 const up = async (knex) => {
   await knex.schema.createTable('nc_projects', table => {
-    table.string('id', 191).primary();
+    table.string('id', 128).primary();
     table.string('title');
     table.string('status');
     table.text('description');

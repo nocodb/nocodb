@@ -1,141 +1,247 @@
 {
-  "projects.my_projects": "我的專案",
-  "projects.reload_projects_tooltip": "重新整理",
-  "projects.create_new_project_button.text": "建立新專案",
-  "projects.create_new_project_button.subtext_1": "建立",
-  "projects.create_new_project_button.subtext_1_tooltip": "建立新專案",
-  "projects.create_new_project_button.subtext_2": "連接外部數據庫來創建",
-  "projects.create_new_project_button.subtext_2_tooltip": "支援 MySQL, PostgreSQL, SQL Server & SQLite",
-  "projects.search_project": "搜尋專案",
-  "projects.import_metadata": "導入元數據",
-  "projects.export_metadata": "導出元數據",
-  "projects.clear_metadata": "清除元數據",
-  "projects.stop_project": "停止專案",
-  "projects.start_project": "啟動專案",
-  "projects.restart_project": "重啟專案",
-  "projects.delete_project": "刪除專案",
-  "projects.project_api_type_tooltip_graphql": "可通過 GraphQL API 訪問",
-  "projects.project_api_type_tooltip_rest": "可通過 REST API 訪問",
-  "projects.project_empty_message": "開始建立新專案",
-  "projects.import_button.text": "通過上傳元數據 zip 文件導入 NocoDB 專案",
-  "projects.show_community_star": "Star",
-  "projects.show_community_us_on_Github": "us on Github",
-  "projects.show_community_book_a_free_demo": "預訂免費演示",
-  "projects.show_community_get_your_questions_answered": "讓您的問題得到解答",
-  "projects.show_community_join_discord": "加入 Discord",
-  "projects.show_community_follow_nocodb": "追蹤 NocoDB",
-  "projects.search.your_search_found_no_results": "Your search for {search} found no results",
-  "projects.ext_db.title.edit": "編輯專案",
-  "projects.ext_db.title.create": "建立新專案",
-  "projects.ext_db.project_name": "輸入專案名稱",
-  "projects.ext_db.project_type": "Access Project via",
-  "projects.ext_db.button.save_project": "存儲專案",
-  "projects.ext_db.button.update_and_restart": "更新及重啟",
-  "projects.ext_db.button.cancel": "取消",
-  "projects.ext_db.button.cancel_tooltip": "取消及返回",
-  "projects.ext_db.credentials": "數據庫 Credentials",
-  "projects.ext_db.credentials.db_type": "數據庫 Type",
-  "projects.ext_db.credentials.sqlite_file": "SQLite 文件",
-  "projects.ext_db.credentials.host_address": "主機地址",
-  "projects.ext_db.credentials.port": "端口號碼",
-  "projects.ext_db.credentials.username": "用戶名稱",
-  "projects.ext_db.credentials.password": "密碼",
-  "projects.ext_db.credentials.db_create_if_not_exists": "數據庫 : create if not exists",
-  "projects.ext_db.credentials.button.test_db_conn": "測試數據庫連接",
-  "projects.ext_db.credentials.button.remove_db_from_env": "從環境中刪除數據庫",
-  "projects.ext_db.credentials.advanced": "安全證書及高級參數",
-  "projects.ext_db.credentials.advanced.ssl.client_key": "客戶端密鑰",
-  "projects.ext_db.credentials.advanced.ssl.client_cert": "客戶端證書",
-  "projects.ext_db.credentials.advanced.ssl.server_ca": "Server CA",
-  "projects.ext_db.credentials.advanced.ssl.client_key.toolip": "Select .key file",
-  "projects.ext_db.credentials.advanced.ssl.client_cert.toolip": "Select .cert file",
-  "projects.ext_db.credentials.advanced.ssl.server_ca.toolip": "Select CA file",
-  "projects.ext_db.credentials.advanced.ssl.preferred": "首選",
-  "projects.ext_db.credentials.advanced.ssl.usage.no": "No",
-  "projects.ext_db.credentials.advanced.ssl.usage.preferred": "首選",
-  "projects.ext_db.credentials.advanced.ssl.usage.required": "Required",
-  "projects.ext_db.credentials.advanced.ssl.usage.requried_ca": "Required-CA",
-  "projects.ext_db.credentials.advanced.ssl.usage.requried_identity": "Required-IDENTITY",
-  "projects.ext_db.credentials.advanced.inflection.table_name": "Inflection - Table name",
-  "projects.ext_db.credentials.advanced.inflection.column_name": "Inflection - Column name",
-  "projects.ext_db.credentials.advanced.button.edit_conn_json": "Edit connection JSON",
-  "projects.ext_db.error.invalid_char_in_folder_path": "Invalid character in folder path.",
-  "projects.ext_db.error.invalid_db_credentials": "Invalid 數據庫 credentials.",
-  "projects.ext_db.error.unable_to_connect_to_db": "Unable to connect to 數據庫, please check your 數據庫 is up.",
-  "projects.ext_db.error.user_doesnt_ve_sufficient_permission": "User does not exist or have sufficient permission to create schema.",
-  "projects.ext_db.head.title": "建立新專案 | NocoDB",
-  "projects.ext_db.dialog.success": "連接成功",
-  "projects.ext_db.dialog.failure": "連接失敗：",
-  "projects.notifications.no_new": "沒有新的通知",
-  "projects.notifications.clear": "清除",
-  "signin.title": "登入",
-  "signin.enter_your_work_email": "輸入您的工作電子郵件",
-  "signin.enter_your_password": "輸入您的密碼",
-  "signin.forget_password": "忘記密碼？",
-  "signin.dont_ve_an_account": "沒有賬戶?",
-  "signin.sign_up": "註冊",
-  "signin.form.rules.email_is_reqd": "E-mail is required",
-  "signin.form.rules.email_must_be_valid": "E-mail must be valid",
-  "signin.form.rules.passwd_required": "Password is required",
-  "signin.form.rules.passwd_must_be_8_chars": "You password must be atleast 8 characters",
-  "signin.head.title": "登入 | NocoDB",
-  "signin.head.meta.hid": "登入 NocoDB",
-  "signin.head.meta.name": "登入 NocoDB",
-  "signin.head.meta.content": "登入 NocoDB",
-  "signin.password.recovery.title": "重置您的密碼",
-  "signin.password.recovery.message_1": "請提供您註冊時使用的電子郵件地址。",
-  "signin.password.recovery.message_2": "我們將向您發送一封電子郵件，其中包含重置密碼的鏈接。",
-  "signin.password.recovery.success": "請檢查您的電子郵件以重置密碼",
-  "signin.password.recovery.button": "發送電子郵件",
-  "signup.title": "註冊",
-  "signup.you_will_be_the_super_admin": "您將成為 超級管理員",
-  "signup.already_ve_an_account": "已經有一個帳戶？",
-  "treeview.settings": "設置",
-  "treeview.settings.tooltip": "僅創作者可見",
-  "treeview.app_store": "App Store",
-  "treeview.team_n_auth": "Team & Auth",
-  "treeview.team_n_auth.tooltip": "Roles & Users Management",
-  "treeview.project_metadata": "專案元數據",
-  "treeview.project_metadata.tooltip": "元數據管理",
-  "treeview.preview_as": "預覽為",
-  "treeview.reset_review": "重置預覽",
-  "nav_drawer.title": "Views",
-  "nav_drawer.virtual_views.action.copy": "Copy view",
-  "nav_drawer.virtual_views.action.rename": "Rename view",
-  "nav_drawer.virtual_views.action.delete": "Delete view",
-  "nav_drawer.virtual_views.title": "Create a View",
-  "nav_drawer.virtual_views.caption": "Only visible to Creator",
-  "nav_drawer.virtual_views.grid": "Grid",
-  "nav_drawer.virtual_views.grid.create": "Add Grid View",
-  "nav_drawer.virtual_views.gallery": "Gallery",
-  "nav_drawer.virtual_views.gallery.create": "Add Gallery View",
-  "nav_drawer.virtual_views.calendar": "Calendar",
-  "nav_drawer.virtual_views.calendar.create": "Add Calendar View",
-  "nav_drawer.virtual_views.kanban": "Kanban",
-  "nav_drawer.virtual_views.kanban.create": "Add Kanban View",
-  "nav_drawer.virtual_views.form": "Form",
-  "nav_drawer.virtual_views.form.create": "Add Form View",
-  "nav_drawer.advanced.title1": "Share View",
-  "nav_drawer.advanced.views_list": "Views List",
-  "nav_drawer.advanced.copy_api_url": "Copy API URL",
-  "nav_drawer.share_view.title": "This view is shared via a private link",
-  "nav_drawer.share_view.body": "People with private link can only see cells visible in this view",
-  "nav_drawer.share_view.toggle.option1": "Restrict access with a password",
-  "nav_drawer.share_view.toggle.option2": "Access is password restricted",
-  "nav_drawer.share_view.password.caption": "Enter the password",
-  "nav_drawer.share_view.password.button": "Save password",
-  "management.tabs.user": "用戶管理",
-  "management.tabs.api": "API Tokens 管理",
-  "management.tabs.roles": "Roles 管理",
-  "management.meta.title": "Metadata Operations",
-  "management.meta.export_to_file": "導出文件",
-  "management.meta.import": "導入",
-  "management.meta.export_to_zip": "導出 zip",
-  "management.meta.import_zip": "導入 zip",
-  "management.meta.reset": "重置",
-  "management.meta.export_to_file.desc": "Export all metadata from the meta tables to meta directory.",
-  "management.meta.import.desc": "Import all metadata from the meta directory to meta tables.",
-  "management.meta.export_to_zip.desc": "Export project meta to zip file and download.",
-  "management.meta.import_zip.desc": "Import project meta zip file and restart.",
-  "management.meta.reset.desc": "Clear all metadata from meta tables."
+  "projects": {
+    "my_projects": "我的專案",
+    "reload_projects_tooltip": "重新整理",
+    "create_new_project_button": {
+      "text": "建立新專案",
+      "subtext_1": "建立",
+      "subtext_1_tooltip": "建立新專案",
+      "subtext_2": "連接外部數據庫來創建",
+      "subtext_2_tooltip": "支援 MySQL, PostgreSQL, SQL Server & SQLite"
+    },
+    "search_project": "搜尋專案",
+    "import_metadata": "導入元數據",
+    "export_metadata": "導出元數據",
+    "clear_metadata": "清除元數據",
+    "stop_project": "停止專案",
+    "start_project": "啟動專案",
+    "restart_project": "重啟專案",
+    "delete_project": "刪除專案",
+    "project_api_type_tooltip_graphql": "可通過 GraphQL API 訪問",
+    "project_api_type_tooltip_rest": "可通過 REST API 訪問",
+    "project_empty_message": "開始建立新專案",
+    "import_button": {
+      "text": "通過上傳元數據 zip 文件導入 NocoDB 專案"
+    },
+    "show_community_star": "Star",
+    "show_community_us_on_Github": "us on Github",
+    "show_community_book_a_free_demo": "預訂免費演示",
+    "show_community_get_your_questions_answered": "讓您的問題得到解答",
+    "show_community_join_discord": "加入 Discord",
+    "show_community_follow_nocodb": "追蹤 NocoDB",
+    "search": {
+      "your_search_found_no_results": "Your search for {search} found no results"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "編輯專案",
+        "create": "建立新專案"
+      },
+      "project_name": "輸入專案名稱",
+      "project_type": "Access Project via",
+      "button": {
+        "save_project": "存儲專案",
+        "update_and_restart": "更新及重啟",
+        "cancel": "取消",
+        "cancel_tooltip": "取消及返回"
+      },
+      "credentials": {
+        "title": "數據庫 Credentials",
+        "db_type": "數據庫 Type",
+        "sqlite_file": "SQLite 文件",
+        "host_address": "主機地址",
+        "port": "端口號碼",
+        "username": "用戶名稱",
+        "password": "密碼",
+        "db_create_if_not_exists": "數據庫 : create if not exists",
+        "button": {
+          "test_db_conn": "測試數據庫連接",
+          "remove_db_from_env": "從環境中刪除數據庫"
+        },
+        "advanced": {
+          "title": "安全證書及高級參數",
+          "ssl": {
+            "client_key": {
+              "title": "客戶端密鑰",
+              "toolip": "Select .key file"
+            },
+            "client_cert": {
+              "title": "客戶端證書",
+              "toolip": "Select .cert file"
+            },
+            "server_ca": {
+              "title": "Server CA",
+              "toolip": "Select CA file"
+            },
+            "preferred": "首選",
+            "usage": {
+              "no": "No",
+              "preferred": "首選",
+              "required": "Required",
+              "requried_ca": "Required-CA",
+              "requried_identity": "Required-IDENTITY"
+            }
+          },
+          "inflection": {
+            "table_name": "Inflection - Table name",
+            "column_name": "Inflection - Column name"
+          },
+          "button": {
+            "edit_conn_json": "Edit connection JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Invalid character in folder path.",
+        "invalid_db_credentials": "Invalid 數據庫 credentials.",
+        "unable_to_connect_to_db": "Unable to connect to 數據庫, please check your 數據庫 is up.",
+        "user_doesnt_ve_sufficient_permission": "User does not exist or have sufficient permission to create schema."
+      },
+      "head": {
+        "title": "建立新專案 | NocoDB"
+      },
+      "dialog": {
+        "success": "連接成功",
+        "failure": "連接失敗："
+      }
+    },
+    "notifications": {
+      "no_new": "沒有新的通知",
+      "clear": "清除"
+    }
+  },
+  "signin": {
+    "title": "登入",
+    "enter_your_work_email": "輸入您的工作電子郵件",
+    "enter_your_password": "輸入您的密碼",
+    "forget_password": "忘記密碼？",
+    "dont_ve_an_account": "沒有賬戶?",
+    "sign_up": "註冊",
+    "form": {
+      "rules": {
+        "email_is_reqd": "E-mail is required",
+        "email_must_be_valid": "E-mail must be valid",
+        "passwd_required": "Password is required",
+        "passwd_must_be_8_chars": "You password must be atleast 8 characters"
+      }
+    },
+    "head": {
+      "title": "登入 | NocoDB",
+      "meta": {
+        "hid": "登入 NocoDB",
+        "name": "登入 NocoDB",
+        "content": "登入 NocoDB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "重置您的密碼",
+        "message_1": "請提供您註冊時使用的電子郵件地址。",
+        "message_2": "我們將向您發送一封電子郵件，其中包含重置密碼的鏈接。",
+        "success": "請檢查您的電子郵件以重置密碼",
+        "button": "發送電子郵件"
+      }
+    }
+  },
+  "signup": {
+    "title": "註冊",
+    "you_will_be_the_super_admin": "您將成為 超級管理員",
+    "already_ve_an_account": "已經有一個帳戶？"
+  },
+  "treeview": {
+    "settings": {
+      "title": "設置",
+      "tooltip": "僅創作者可見"
+    },
+    "app_store": "App Store",
+    "team_n_auth": {
+      "title": "Team & Auth",
+      "tooltip": "Roles & Users Management"
+    },
+    "project_metadata": {
+      "title": "專案元數據",
+      "tooltip": "元數據管理"
+    },
+    "preview_as": "預覽為",
+    "reset_review": "重置預覽"
+  },
+  "nav_drawer": {
+    "title": "Views",
+    "virtual_views": {
+      "action": {
+        "copy": "Copy view",
+        "rename": "Rename view",
+        "delete": "Delete view"
+      },
+      "title": "Create a View",
+      "caption": "Only visible to Creator",
+      "grid": {
+        "title": "Grid",
+        "create": "Add Grid View"
+      },
+      "gallery": {
+        "title": "Gallery",
+        "create": "Add Gallery View"
+      },
+      "calendar": {
+        "title": "Calendar",
+        "create": "Add Calendar View"
+      },
+      "kanban": {
+        "title": "Kanban",
+        "create": "Add Kanban View"
+      },
+      "form": {
+        "title": "Form",
+        "create": "Add Form View"
+      }
+    },
+    "advanced": {
+      "title1": "Share View",
+      "views_list": "Views List",
+      "copy_api_url": "Copy API URL"
+    },
+    "share_view": {
+      "title": "This view is shared via a private link",
+      "body": "People with private link can only see cells visible in this view",
+      "toggle": {
+        "option1": "Restrict access with a password",
+        "option2": "Access is password restricted"
+      },
+      "password": {
+        "caption": "Enter the password",
+        "button": "Save password"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "用戶管理",
+      "api": "API Tokens 管理",
+      "roles": "Roles 管理"
+    },
+    "meta": {
+      "title": "Metadata Operations",
+      "export_to_file": {
+        "title": "導出文件",
+        "desc": "Export all metadata from the meta tables to meta directory."
+      },
+      "import": {
+        "title": "導入",
+        "desc": "Import all metadata from the meta directory to meta tables."
+      },
+      "export_to_zip": {
+        "title": "導出 zip",
+        "desc": "Export project meta to zip file and download."
+      },
+      "import_zip": {
+        "title": "導入 zip",
+        "desc": "Import project meta zip file and restart."
+      },
+      "reset": {
+        "title": "重置",
+        "desc": "Clear all metadata from meta tables."
+      }
+    }
+  }
 }

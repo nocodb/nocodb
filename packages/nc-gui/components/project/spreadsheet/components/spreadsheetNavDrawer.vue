@@ -150,7 +150,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Grid -->
-                        {{ $t('nav_drawer.virtual_views.grid') }}
+                        {{ $t('nav_drawer.virtual_views.grid.title') }}
                       </span>
                     </v-list-item-title>
                     <v-spacer />
@@ -174,7 +174,7 @@
                       <span class="font-weight-regular">
                         <!-- Gallery -->
 
-                        {{ $t('nav_drawer.virtual_views.gallery') }}
+                        {{ $t('nav_drawer.virtual_views.gallery.title') }}
                       </span>
                     </v-list-item-title>
 
@@ -204,7 +204,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Calendar -->
-                        {{ $t('nav_drawer.virtual_views.calendar') }}
+                        {{ $t('nav_drawer.virtual_views.calendar.title') }}
                       </span>
                     </v-list-item-title>
 
@@ -233,7 +233,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Kanban -->
-                        {{ $t('nav_drawer.virtual_views.kanban') }}
+                        {{ $t('nav_drawer.virtual_views.kanban.title') }}
                       </span>
                     </v-list-item-title>
 
@@ -263,7 +263,7 @@
                       <span class="font-weight-regular">
                         <!-- Form -->
 
-                        {{ $t('nav_drawer.virtual_views.form') }}
+                        {{ $t('nav_drawer.virtual_views.form.title') }}
                       </span>
                     </v-list-item-title>
 

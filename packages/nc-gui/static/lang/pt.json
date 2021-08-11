@@ -1,141 +1,247 @@
- {
-  "projects.my_projects": "Os meus Projectos",
-  "projects.reload_projects_tooltip": "Actualizar Projectos",
-  "projects.create_new_project_button.text": "Novo Projecto",
-  "projects.create_new_project_button.subtext_1": "Criar",
-  "projects.create_new_project_button.subtext_1_tooltip": "Criar um novo projecto",
-  "projects.create_new_project_button.subtext_2": "Criar por Ligação <br>a Base de Dados Externa",
-  "projects.create_new_project_button.subtext_2_tooltip": "Suporta MySQL, PostgreSQL, SQL Server & SQLite",
-  "projects.search_project": "Procurar Projecto",
-  "projects.import_metadata": "Importar Metadados",
-  "projects.export_metadata": "Exportar Metadados",
-  "projects.clear_metadata": "Limpar Metadados",
-  "projects.stop_project": "Parar Projecto",
-  "projects.start_project": "Iniciar Projecto",
-  "projects.restart_project": "Reiniciar Projecto",
-  "projects.delete_project": "Apagar Projecto",
-  "projects.project_api_type_tooltip_graphql": "Acessível por GraphQL APIs",
-  "projects.project_api_type_tooltip_rest": "Acessível por REST APIs",
-  "projects.project_empty_message": "Comece por criar um projecto novo",
-  "projects.import_button.text": "Importar projecto NocoDB por carregamento de ficheiro zip de metadados",
-  "projects.show_community_star": "Estrela",
-  "projects.show_community_us_on_Github": "nós no Github",
-  "projects.show_community_book_a_free_demo": "Marque uma DEMONSTRAÇÃO gratuita",
-  "projects.show_community_get_your_questions_answered": "Obtenha resposta às suas questões",
-  "projects.show_community_join_discord": "Junte-se ao Discord",
-  "projects.show_community_follow_nocodb": "Siga NocoDB",
-  "projects.search.your_search_found_no_results": "A sua pesquisa por {search} não encontrou resultados",
-  "projects.ext_db.title.edit": "Editar Projecto",
-  "projects.ext_db.title.create": "Criar Projecto",
-  "projects.ext_db.project_name": "Introduzir Nome de Projecto",
-  "projects.ext_db.project_type": "Aceder ao Projecto por",
-  "projects.ext_db.button.save_project": "Guardar Projecto",
-  "projects.ext_db.button.update_and_restart": "Actualizar & Reiniciar",
-  "projects.ext_db.button.cancel": "Cancelar",
-  "projects.ext_db.button.cancel_tooltip": "Cancelar e voltar",
-  "projects.ext_db.credentials": "Credenciais da Base de Dados",
-  "projects.ext_db.credentials.db_type": "Tipo de Base de Dados",
-  "projects.ext_db.credentials.sqlite_file": "Ficheiro SQLite",
-  "projects.ext_db.credentials.host_address": "Endereço do servidor",
-  "projects.ext_db.credentials.port": "Número da Porta",
-  "projects.ext_db.credentials.username": "Utilizador",
-  "projects.ext_db.credentials.password": "Palavra-passe",
-  "projects.ext_db.credentials.db_create_if_not_exists": "Base de Dados : criar se não existir",
-  "projects.ext_db.credentials.button.test_db_conn": "Testar ligação à Base de Dados",
-  "projects.ext_db.credentials.button.remove_db_from_env": "Remover Base de Dados do ambiente",
-  "projects.ext_db.credentials.advanced": "SSL & parâmetros avançados",
-  "projects.ext_db.credentials.advanced.ssl.client_key": "Chave do Cliente",
-  "projects.ext_db.credentials.advanced.ssl.client_cert": "Certificado do Cliente",
-  "projects.ext_db.credentials.advanced.ssl.server_ca": "CA do Servidor",
-  "projects.ext_db.credentials.advanced.ssl.client_key.toolip": "Seleccione ficheiro .key",
-  "projects.ext_db.credentials.advanced.ssl.client_cert.toolip": "Seleccione ficheiro .cert",
-  "projects.ext_db.credentials.advanced.ssl.server_ca.toolip": "Seleccione ficheiro CA",
-  "projects.ext_db.credentials.advanced.ssl.preferred": "Preferido",
-  "projects.ext_db.credentials.advanced.ssl.usage.no": "Não",
-  "projects.ext_db.credentials.advanced.ssl.usage.preferred": "Preferido",
-  "projects.ext_db.credentials.advanced.ssl.usage.required": "Obrigatório",
-  "projects.ext_db.credentials.advanced.ssl.usage.requried_ca": "Obrigatório-CA",
-  "projects.ext_db.credentials.advanced.ssl.usage.requried_identity": "Obrigatório-IDENTIDADE",
-  "projects.ext_db.credentials.advanced.inflection.table_name": "Inflexão - Nome da Tabela",
-  "projects.ext_db.credentials.advanced.inflection.column_name": "Inflexão - Nome da Coluna",
-  "projects.ext_db.credentials.advanced.button.edit_conn_json": "Editar ligação JSON",
-  "projects.ext_db.error.invalid_char_in_folder_path": "Caracter inválido no caminho da pasta.",
-  "projects.ext_db.error.invalid_db_credentials": "Credenciais de Base de Dados inválidas.",
-  "projects.ext_db.error.unable_to_connect_to_db": "Incapaz de ligar à Base de Dados, por favor verifique que esta se encontra operacional.",
-  "projects.ext_db.error.user_doesnt_ve_sufficient_permission": "O Utilizador não existe ou não tem privilégios suficientes para criar o esquema.",
-  "projects.ext_db.head.title": "Criar Projecto | Noco",
-  "projects.ext_db.dialog.success": "A ligação foi bem sucedida",
-  "projects.ext_db.dialog.failure": "A ligação falhou:",
-  "projects.notifications.no_new": "Sem novas notificações",
-  "projects.notifications.clear": "Limpar",
-  "signin.title": "AUTENTIQUE-SE",
-  "signin.enter_your_work_email": "Introduza o seu Email de trabalho",
-  "signin.enter_your_password": "Introduza a sua palavra-passe",
-  "signin.forget_password": "Esqueceu-se da palavra-passe ?",
-  "signin.dont_ve_an_account": "Não tem uma conta ?",
-  "signin.sign_up": "Registe-se",
-  "signin.form.rules.email_is_reqd": "O Email é obrigatório",
-  "signin.form.rules.email_must_be_valid": "O Email deve ser válido",
-  "signin.form.rules.passwd_required": "A Palavra-passe é obrigatória",
-  "signin.form.rules.passwd_must_be_8_chars": "A sua palavra-passe deve conter pelo menos 8 caracteres",
-  "signin.head.title": "Autentique-se | Noco",
-  "signin.head.meta.hid": "Autentique-se no Noco",
-  "signin.head.meta.name": "Autentique-se no Noco",
-  "signin.head.meta.content": "Autentique-se no Noco",
-  "signin.password.recovery.title": "Redefina a sua palavra-passe",
-  "signin.password.recovery.message_1": "Por favor introduza o email que utilizou para se registar.",
-  "signin.password.recovery.message_2": "Enviar-lhe-emos um email com uma ligação para redefinir a sua palavra-passe.",
-  "signin.password.recovery.success": "Por favor verifique o seu email para redefinir a palavra-passe",
-  "signin.password.recovery.button": "ENVIAR EMAIL",
-  "signup.title": "REGISTE-SE",
-  "signup.you_will_be_the_super_admin": "Será o 'Super Administrador'",
-  "signup.already_ve_an_account": "Já tem uma conta ?",
-  "treeview.settings": "Definições",
-  "treeview.settings.tooltip": "Apenas visível para o Criador",
-  "treeview.app_store": "Loja de Aplicações",
-  "treeview.team_n_auth": "Equipa & Autenticação",
-  "treeview.team_n_auth.tooltip": "Papéis & Gestão de Utilizadores",
-  "treeview.project_metadata": "Metadados do Projecto",
-  "treeview.project_metadata.tooltip": "Gestão de Metadados",
-  "treeview.preview_as": "Pré-visualizar como",
-  "treeview.reset_review": "Redefinir pré-visualização",
-  "nav_drawer.title": "Vistas",
-  "nav_drawer.virtual_views.action.copy": "Copiar vista",
-  "nav_drawer.virtual_views.action.rename": "Renomear vista",
-  "nav_drawer.virtual_views.action.delete": "Apagar vista",
-  "nav_drawer.virtual_views.title": "Criar uma vista",
-  "nav_drawer.virtual_views.caption": "Apenas visível para o Criador",
-  "nav_drawer.virtual_views.grid": "Grelha",
-  "nav_drawer.virtual_views.grid.create": "Adicionar vista de grelha",
-  "nav_drawer.virtual_views.gallery": "Galeria",
-  "nav_drawer.virtual_views.gallery.create": "Adicionar vista de galeria",
-  "nav_drawer.virtual_views.calendar": "Calendário",
-  "nav_drawer.virtual_views.calendar.create": "Adicionar vista de calendário",
-  "nav_drawer.virtual_views.kanban": "Kanban",
-  "nav_drawer.virtual_views.kanban.create": "Adicionar vista de Kanban",
-  "nav_drawer.virtual_views.form": "Formulário",
-  "nav_drawer.virtual_views.form.create": "Adicionar vista de formulário",
-  "nav_drawer.advanced.title1": "Partilhar Vista",
-  "nav_drawer.advanced.views_list": "Lista de Vistas",
-  "nav_drawer.advanced.copy_api_url": "Copiar URL da API",
-  "nav_drawer.share_view.title": "Esta vista é partilhada através de uma ligação privada",
-  "nav_drawer.share_view.body": "As pessoas com acesso à ligação privada só podem ver as células visíveis nesta vista",
-  "nav_drawer.share_view.toggle.option1": "Restringir acesso com uma palavra-passe",
-  "nav_drawer.share_view.toggle.option2": "O acesso está protegido por uma palavra-passe",
-  "nav_drawer.share_view.password.caption": "Introduza a palavra-passe",
-  "nav_drawer.share_view.password.button": "Guarde a palavra-passe",
-  "management.tabs.user": "Gestão de Utilizadores",
-  "management.tabs.api": "Gestão de Tokens API Tokens",
-  "management.tabs.roles": "Gestão de papéis",
-  "management.meta.title": "Operações com Metadados",
-  "management.meta.export_to_file": "Exportar para ficheiro",
-  "management.meta.import": "Importar",
-  "management.meta.export_to_zip": "Exportar zip",
-  "management.meta.import_zip": "Importar zip",
-  "management.meta.reset": "Redefinir",
-  "management.meta.export_to_file.desc": "Exportar todos os metadados das meta-tabelas para um directório de metadados.",
-  "management.meta.import.desc": "Importar todos os metadados do directório de metadados para as meta-tabelas.",
-  "management.meta.export_to_zip.desc": "Exportar metadados do projecto para ficheiro zip e descarregar.",
-  "management.meta.import_zip.desc": "Importar ficheiro zip de metadados do projecto e reiniciar.",
-  "management.meta.reset.desc": "Limpar todos os metadados das meta-tabelas."
+{
+  "projects": {
+    "my_projects": "Os meus Projectos",
+    "reload_projects_tooltip": "Actualizar Projectos",
+    "create_new_project_button": {
+      "text": "Novo Projecto",
+      "subtext_1": "Criar",
+      "subtext_1_tooltip": "Criar um novo projecto",
+      "subtext_2": "Criar por Ligação <br>a Base de Dados Externa",
+      "subtext_2_tooltip": "Suporta MySQL, PostgreSQL, SQL Server & SQLite"
+    },
+    "search_project": "Procurar Projecto",
+    "import_metadata": "Importar Metadados",
+    "export_metadata": "Exportar Metadados",
+    "clear_metadata": "Limpar Metadados",
+    "stop_project": "Parar Projecto",
+    "start_project": "Iniciar Projecto",
+    "restart_project": "Reiniciar Projecto",
+    "delete_project": "Apagar Projecto",
+    "project_api_type_tooltip_graphql": "Acessível por GraphQL APIs",
+    "project_api_type_tooltip_rest": "Acessível por REST APIs",
+    "project_empty_message": "Comece por criar um projecto novo",
+    "import_button": {
+      "text": "Importar projecto NocoDB por carregamento de ficheiro zip de metadados"
+    },
+    "show_community_star": "Estrela",
+    "show_community_us_on_Github": "nós no Github",
+    "show_community_book_a_free_demo": "Marque uma DEMONSTRAÇÃO gratuita",
+    "show_community_get_your_questions_answered": "Obtenha resposta às suas questões",
+    "show_community_join_discord": "Junte-se ao Discord",
+    "show_community_follow_nocodb": "Siga NocoDB",
+    "search": {
+      "your_search_found_no_results": "A sua pesquisa por {search} não encontrou resultados"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Editar Projecto",
+        "create": "Criar Projecto"
+      },
+      "project_name": "Introduzir Nome de Projecto",
+      "project_type": "Aceder ao Projecto por",
+      "button": {
+        "save_project": "Guardar Projecto",
+        "update_and_restart": "Actualizar & Reiniciar",
+        "cancel": "Cancelar",
+        "cancel_tooltip": "Cancelar e voltar"
+      },
+      "credentials": {
+        "title": "Credenciais da Base de Dados",
+        "db_type": "Tipo de Base de Dados",
+        "sqlite_file": "Ficheiro SQLite",
+        "host_address": "Endereço do servidor",
+        "port": "Número da Porta",
+        "username": "Utilizador",
+        "password": "Palavra-passe",
+        "db_create_if_not_exists": "Base de Dados : criar se não existir",
+        "button": {
+          "test_db_conn": "Testar ligação à Base de Dados",
+          "remove_db_from_env": "Remover Base de Dados do ambiente"
+        },
+        "advanced": {
+          "title": "SSL & parâmetros avançados",
+          "ssl": {
+            "client_key": {
+              "title": "Chave do Cliente",
+              "toolip": "Seleccione ficheiro .key"
+            },
+            "client_cert": {
+              "title": "Certificado do Cliente",
+              "toolip": "Seleccione ficheiro .cert"
+            },
+            "server_ca": {
+              "title": "CA do Servidor",
+              "toolip": "Seleccione ficheiro CA"
+            },
+            "preferred": "Preferido",
+            "usage": {
+              "no": "Não",
+              "preferred": "Preferido",
+              "required": "Obrigatório",
+              "requried_ca": "Obrigatório-CA",
+              "requried_identity": "Obrigatório-IDENTIDADE"
+            }
+          },
+          "inflection": {
+            "table_name": "Inflexão - Nome da Tabela",
+            "column_name": "Inflexão - Nome da Coluna"
+          },
+          "button": {
+            "edit_conn_json": "Editar ligação JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Caracter inválido no caminho da pasta.",
+        "invalid_db_credentials": "Credenciais de Base de Dados inválidas.",
+        "unable_to_connect_to_db": "Incapaz de ligar à Base de Dados, por favor verifique que esta se encontra operacional.",
+        "user_doesnt_ve_sufficient_permission": "O Utilizador não existe ou não tem privilégios suficientes para criar o esquema."
+      },
+      "head": {
+        "title": "Criar Projecto | Noco"
+      },
+      "dialog": {
+        "success": "A ligação foi bem sucedida",
+        "failure": "A ligação falhou:"
+      }
+    },
+    "notifications": {
+      "no_new": "Sem novas notificações",
+      "clear": "Limpar"
+    }
+  },
+  "signin": {
+    "title": "AUTENTIQUE-SE",
+    "enter_your_work_email": "Introduza o seu Email de trabalho",
+    "enter_your_password": "Introduza a sua palavra-passe",
+    "forget_password": "Esqueceu-se da palavra-passe ?",
+    "dont_ve_an_account": "Não tem uma conta ?",
+    "sign_up": "Registe-se",
+    "form": {
+      "rules": {
+        "email_is_reqd": "O Email é obrigatório",
+        "email_must_be_valid": "O Email deve ser válido",
+        "passwd_required": "A Palavra-passe é obrigatória",
+        "passwd_must_be_8_chars": "A sua palavra-passe deve conter pelo menos 8 caracteres"
+      }
+    },
+    "head": {
+      "title": "Autentique-se | Noco",
+      "meta": {
+        "hid": "Autentique-se no Noco",
+        "name": "Autentique-se no Noco",
+        "content": "Autentique-se no Noco"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Redefina a sua palavra-passe",
+        "message_1": "Por favor introduza o email que utilizou para se registar.",
+        "message_2": "Enviar-lhe-emos um email com uma ligação para redefinir a sua palavra-passe.",
+        "success": "Por favor verifique o seu email para redefinir a palavra-passe",
+        "button": "ENVIAR EMAIL"
+      }
+    }
+  },
+  "signup": {
+    "title": "REGISTE-SE",
+    "you_will_be_the_super_admin": "Será o 'Super Administrador'",
+    "already_ve_an_account": "Já tem uma conta ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Definições",
+      "tooltip": "Apenas visível para o Criador"
+    },
+    "app_store": "Loja de Aplicações",
+    "team_n_auth": {
+      "title": "Equipa & Autenticação",
+      "tooltip": "Papéis & Gestão de Utilizadores"
+    },
+    "project_metadata": {
+      "title": "Metadados do Projecto",
+      "tooltip": "Gestão de Metadados"
+    },
+    "preview_as": "Pré-visualizar como",
+    "reset_review": "Redefinir pré-visualização"
+  },
+  "nav_drawer": {
+    "title": "Vistas",
+    "virtual_views": {
+      "action": {
+        "copy": "Copiar vista",
+        "rename": "Renomear vista",
+        "delete": "Apagar vista"
+      },
+      "title": "Criar uma vista",
+      "caption": "Apenas visível para o Criador",
+      "grid": {
+        "title": "Grelha",
+        "create": "Adicionar vista de grelha"
+      },
+      "gallery": {
+        "title": "Galeria",
+        "create": "Adicionar vista de galeria"
+      },
+      "calendar": {
+        "title": "Calendário",
+        "create": "Adicionar vista de calendário"
+      },
+      "kanban": {
+        "title": "Kanban",
+        "create": "Adicionar vista de Kanban"
+      },
+      "form": {
+        "title": "Formulário",
+        "create": "Adicionar vista de formulário"
+      }
+    },
+    "advanced": {
+      "title1": "Partilhar Vista",
+      "views_list": "Lista de Vistas",
+      "copy_api_url": "Copiar URL da API"
+    },
+    "share_view": {
+      "title": "Esta vista é partilhada através de uma ligação privada",
+      "body": "As pessoas com acesso à ligação privada só podem ver as células visíveis nesta vista",
+      "toggle": {
+        "option1": "Restringir acesso com uma palavra-passe",
+        "option2": "O acesso está protegido por uma palavra-passe"
+      },
+      "password": {
+        "caption": "Introduza a palavra-passe",
+        "button": "Guarde a palavra-passe"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Gestão de Utilizadores",
+      "api": "Gestão de Tokens API Tokens",
+      "roles": "Gestão de papéis"
+    },
+    "meta": {
+      "title": "Operações com Metadados",
+      "export_to_file": {
+        "title": "Exportar para ficheiro",
+        "desc": "Exportar todos os metadados das meta-tabelas para um directório de metadados."
+      },
+      "import": {
+        "title": "Importar",
+        "desc": "Importar todos os metadados do directório de metadados para as meta-tabelas."
+      },
+      "export_to_zip": {
+        "title": "Exportar zip",
+        "desc": "Exportar metadados do projecto para ficheiro zip e descarregar."
+      },
+      "import_zip": {
+        "title": "Importar zip",
+        "desc": "Importar ficheiro zip de metadados do projecto e reiniciar."
+      },
+      "reset": {
+        "title": "Redefinir",
+        "desc": "Limpar todos os metadados das meta-tabelas."
+      }
+    }
+  }
 }

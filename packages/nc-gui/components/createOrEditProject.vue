@@ -227,7 +227,7 @@
                       'text-center mb-2 mt-3 grey--text': edit,
                     }"
                   >
-                    {{ $t('projects.ext_db.credentials') }}
+                    {{ $t('projects.ext_db.credentials.title') }}
                   </p>
                   <v-expansion-panels
                     v-model="panel"
@@ -527,7 +527,7 @@
                                               <v-expansion-panel-header>
                                                 <!-- SSL & Advanced parameters -->
                                                 <span class="grey--text caption">{{
-                                                  $t('projects.ext_db.credentials.advanced')
+                                                  $t('projects.ext_db.credentials.advanced.title')
                                                 }}</span>
                                               </v-expansion-panel-header>
                                               <v-expansion-panel-content>
@@ -1130,9 +1130,9 @@ export default {
                 ui: {
                   setup: -1,
                   ssl: {
-                    key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
-                    cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
-                    ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca') // Server CA
+                    key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key.title'), // Client Key
+                    cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert.title'), // Client Cert
+                    ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca.title') // Server CA
                   },
                   sslUse: 'Preferred'
                 }

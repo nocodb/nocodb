@@ -348,7 +348,7 @@
             <v-list-item>
               <v-list-item-title>
                 <!-- Settings -->
-                <span class="body-2 grey--text">{{ $t('treeview.settings') }}</span>
+                <span class="body-2 grey--text">{{ $t('treeview.settings.title') }}</span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
@@ -401,7 +401,7 @@
                     <!-- Team & Auth -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.team_n_auth')
+                        $t('treeview.team_n_auth.title')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
@@ -420,7 +420,7 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.project_metadata')
+                        $t('treeview.project_metadata.title')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>

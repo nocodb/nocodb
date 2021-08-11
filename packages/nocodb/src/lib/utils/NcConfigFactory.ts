@@ -303,10 +303,6 @@ export default class NcConfigFactory implements NcConfig {
           "port": +url.port,
           'user': url.searchParams.get('u') || url.searchParams.get('user'),
         },
-        // pool: {
-        //   min: 1,
-        //   max: 2
-        // },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path') ? {
           searchPath: url.searchParams.get('search_path').split(',')
@@ -316,6 +312,21 @@ export default class NcConfigFactory implements NcConfig {
         dbConfig.connection.ssl = true;
       }
     }
+    url.searchParams.forEach((_value, key) => {
+      let value:any = _value;
+      if (value === 'true') {
+        value = true;
+      } else if (value === 'false') {
+        value = false;
+      }
+      if (!['password', 'p', 'database', 'd', 'user', 'u', 'search_path'].includes(key)) {
+        key.split('.').reduce((obj, k, i, arr) => {
+          return obj[k] = i === arr.length - 1 ? value : (obj[k] || {})
+        }, dbConfig);
+      }
+    })
+
+
     return dbConfig
   }
 

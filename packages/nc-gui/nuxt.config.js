@@ -19,7 +19,7 @@ export default {
   ** Nuxt target
   ** See https://nuxtjs.org/api/configuration-target
   */
-  target: 'server',
+  target: 'static',
   /*
   ** Headers of the page
   ** See https://nuxtjs.org/api/configuration-head
@@ -210,6 +210,16 @@ export default {
   ],
   env: {
     EE: !!process.env.EE
+  },
+  pwa: {
+    workbox: {
+      /* workbox options */
+      assetsURLPattern: './_nuxt/',
+      pagesURLPattern: './'
+    },
+    manifest: {
+      publicPath: './'
+    }
   }
 }
 /**

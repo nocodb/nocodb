@@ -22,6 +22,7 @@
     "canvas-confetti": "^1.4.0",
     "dayjs": "^1.10.4",
     "debounce": "^1.2.0",
+    "file-saver": "^2.0.5",
     "fix-path": "^3.0.0",
     "inflection": "^1.12.0",
     "material-design-icons-iconfont": "^5.0.1",

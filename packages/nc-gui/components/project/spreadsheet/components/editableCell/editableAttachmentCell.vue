@@ -78,12 +78,14 @@
     >
       <v-card class="h-100 images-modal">
         <v-card-text class="h-100 backgroundColor">
-          <v-btn small class="my-4" :loading="uploading" @click="addFile">
-            <v-icon small class="mr-2">
-              mdi-link-variant
-            </v-icon>
-            Attach File
-          </v-btn>
+          <div class="d-flex mx-2">
+            <v-btn small class="my-4 " :loading="uploading" @click="addFile">
+              <v-icon small class="mr-2">
+                mdi-link-variant
+              </v-icon>
+              <span class="caption">Attach File</span>
+            </v-btn>
+          </div>
 
           <div class="d-flex flex-wrap h-100">
             <v-container fluid style="max-height:calc(90vh - 80px);overflow-y: auto">
@@ -96,6 +98,9 @@
                   >
                     <v-icon small class="remove-icon" @click="removeItem(i)">
                       mdi-close-circle
+                    </v-icon>
+                    <v-icon color="grey" class="download-icon" @click.stop="downloadItem(item,i)">
+                      mdi-download
                     </v-icon>
                     <div class="pa-2 d-flex align-center" style="height:200px">
                       <img
@@ -138,8 +143,10 @@
               <div class="mx-auto d-flex flex-column justify-center align-center" style="min-height:100px">
                 <p class="title text-center">
                   {{ item.title }}
+                  <v-icon class="ml-3" color="grey" @click.stop="downloadItem(item,i)">
+                    mdi-download
+                  </v-icon>
                 </p>
-
                 <div style="width:90vh;height:calc(100vh - 150px)" class="d-flex align-center justify-center">
                   <img
                     v-if="isImage(item.title)"
@@ -209,7 +216,7 @@
 
 <script>
 import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
-
+import FileSaver from 'file-saver'
 export default {
   name: 'EditableAttachmentCell',
   props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column'],
@@ -299,6 +306,9 @@ export default {
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
+    downloadItem(item) {
+      FileSaver.saveAs(item.url, item.title)
+    },
     onArrowDown(e) {
       if (!this.showImage) {
         return
@@ -321,7 +331,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .img-container {
   margin: 0 -2px;
 }
@@ -383,6 +393,20 @@ export default {
   position: absolute;
   top: 5px;
   right: 5px
+}
+.modal-thumbnail-card{
+
+  .download-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    opacity:0;
+    transition:.4s opacity;
+  }
+
+  &:hover .download-icon{
+    opacity:1
+  }
 }
 
 .image-overlay-container {
@@ -472,7 +496,4 @@ export default {
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
--->
+ * along with this p

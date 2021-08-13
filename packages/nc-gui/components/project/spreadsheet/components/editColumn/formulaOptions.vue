@@ -64,6 +64,7 @@ import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import debounce from 'debounce'
 import jsep from 'jsep'
+import formulaList, { validations } from '../../../../../helpers/formulaList'
 
 export default {
   name: 'FormulaOptions',
@@ -71,26 +72,7 @@ export default {
   data: () => ({
     formula: {},
     // formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
-    availableFunctions: [
-      'AVG', 'ADD', 'CONCAT', 'TRIM',
-      'UPPER',
-      'LOWER',
-      'LEN',
-      'MIN',
-      'MAX',
-      'CEILING', 'FLOOR', 'ROUND',
-      'MOD', 'REPEAT',
-      'LOG', 'EXP', 'POWER', 'SQRT', // todo: remove in sqlite
-      'ABS',
-      'NOW',
-      'REPLACE',
-      'SEARCH',
-      'INT',
-      'RIGHT',
-      'LEFT',
-      'SUBSTR',
-      'MID'
-    ],
+    availableFunctions: formulaList,
     availableBinOps: ['+', '-', '*', '/'],
     autocomplete: false,
     suggestion: null,
@@ -199,6 +181,16 @@ export default {
       if (pt.type === 'CallExpression') {
         if (!this.availableFunctions.includes(pt.callee.name)) {
           arr.push(`'${pt.callee.name}' function is not available`)
+        }
+        const validation = validations[pt.callee.name] && validations[pt.callee.name].validation
+        if (validation && validation.args) {
+          if (validation.args.rqd !== undefined && validation.args.rqd !== pt.arguments.length) {
+            arr.push(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)
+          } else if (validation.args.min !== undefined && validation.args.min > pt.arguments.length) {
+            arr.push(`'${pt.callee.name}' required minimum ${validation.args.min} arguments`)
+          } else if (validation.args.max !== undefined && validation.args.max < pt.arguments.length) {
+            arr.push(`'${pt.callee.name}' required maximum ${validation.args.max} arguments`)
+          }
         }
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
       } else if (pt.type === 'Identifier') {

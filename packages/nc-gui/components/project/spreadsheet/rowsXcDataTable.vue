@@ -461,7 +461,6 @@
 <script>
 
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
-import { SqlUI } from '@/helpers/SqlUiFactory'
 
 import { mapActions } from 'vuex'
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
@@ -477,6 +476,7 @@ import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
 import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
 import Pagination from '@/components/project/spreadsheet/components/pagination'
+import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
 
 export default {

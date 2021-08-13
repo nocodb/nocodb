@@ -889,6 +889,10 @@ export class OracleUi {
     }
     return colProp
   }
+
+  static getUnsupportedFnList() {
+    return []
+  }
 }
 
 // module.exports = PgUiHelp;

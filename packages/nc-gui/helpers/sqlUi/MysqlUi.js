@@ -1,47 +1,64 @@
 const dbTypes = [
   'int',
-  'integer',
-  'tinyint',
   'smallint',
   'mediumint',
   'bigint',
-  'int2',
-  'int8',
-  'character',
-  'blob sub_type text',
-  'blob',
-  'real',
-  'double',
-  'double precision',
-  'float',
-  'numeric',
+  'bit',
   'boolean',
+  'float',
+  'decimal',
+  'double',
+  'serial',
+  'tinyint',
   'date',
   'datetime',
-  'text',
+  'timestamp',
+  'time',
+  'year',
+  'char',
   'varchar',
-  'timestamp'
+  'nchar',
+  'text',
+  'tinytext',
+  'mediumtext',
+  'longtext',
+  'binary',
+  'varbinary',
+  'blob',
+  'tinyblob',
+  'mediumblob',
+  'longblob',
+  'enum',
+  'set',
+  'geometry',
+  'point',
+  'linestring',
+  'polygon',
+  'multipoint',
+  'multilinestring',
+  'multipolygon',
+  'json'
 ]
 
-export class SqliteUi {
+export class MysqlUi {
   static getNewTableColumns() {
     return [
       {
         cn: 'id',
-        dt: 'integer',
+        dt: 'int',
         dtx: 'integer',
         ct: 'int(11)',
         nrqd: false,
         rqd: true,
         ck: false,
         pk: true,
-        un: false,
+        un: true,
         ai: true,
         cdf: null,
         clen: null,
-        np: null,
+        np: 11,
         ns: 0,
-        dtxp: '',
+        dtxp: '11',
         dtxs: '',
         altered: 1,
         uidt: 'ID',
@@ -52,7 +69,7 @@ export class SqliteUi {
         cn: 'title',
         dt: 'varchar',
         dtx: 'specificType',
-        ct: 'varchar',
+        ct: 'varchar(45)',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -63,7 +80,7 @@ export class SqliteUi {
         clen: 45,
         np: null,
         ns: null,
-        dtxp: '',
+        dtxp: '45',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -72,9 +89,9 @@ export class SqliteUi {
       },
       {
         cn: 'created_at',
-        dt: 'datetime',
+        dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar',
+        ct: 'varchar(45)',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -94,16 +111,16 @@ export class SqliteUi {
       },
       {
         cn: 'updated_at',
-        dt: 'datetime',
+        dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar',
+        ct: 'varchar(45)',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
+        cdf: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
         clen: 45,
         np: null,
         ns: null,
@@ -120,7 +137,7 @@ export class SqliteUi {
   static getNewColumn(suffix) {
     return {
       cn: 'title' + suffix,
-      dt: 'integer',
+      dt: 'int',
       dtx: 'specificType',
       ct: 'integer(11)',
       nrqd: true,
@@ -134,7 +151,7 @@ export class SqliteUi {
       np: null,
       ns: null,
       // data_type_x_specific: ' ',
-      dtxp: '',
+      dtxp: '11',
       dtxs: ' ',
       altered: 1,
       uidt: 'Number',
@@ -143,163 +160,47 @@ export class SqliteUi {
     }
   }
 
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
-
   static getDefaultLengthForDatatype(type) {
     switch (type) {
       case 'int':
-        return ''
+        return 11
 
       case 'tinyint':
-        return ''
+        return 1
 
       case 'smallint':
-        return ''
+        return 5
 
       case 'mediumint':
-        return ''
+        return 9
 
       case 'bigint':
-        return ''
+        return 20
 
       case 'bit':
-        return ''
+        return 64
 
       case 'boolean':
         return ''
 
       case 'float':
-        return ''
+        return 12
 
       case 'decimal':
-        return ''
+        return 10
 
       case 'double':
-        return ''
+        return 22
 
       case 'serial':
-        return ''
+        return 20
 
       case 'date':
         return ''
 
       case 'datetime':
       case 'timestamp':
-        return ''
+        return 6
 
       case 'time':
         return ''
@@ -308,13 +209,13 @@ export class SqliteUi {
         return ''
 
       case 'char':
-        return ''
+        return 255
 
       case 'varchar':
-        return ''
+        return 45
 
       case 'nchar':
-        return ''
+        return 255
 
       case 'text':
         return ''
@@ -329,10 +230,10 @@ export class SqliteUi {
         return ''
 
       case 'binary':
-        return ''
+        return 255
 
       case 'varbinary':
-        return ''
+        return 65500
 
       case 'blob':
         return ''
@@ -347,10 +248,10 @@ export class SqliteUi {
         return ''
 
       case 'enum':
-        return ''
+        return '\'a\',\'b\''
 
       case 'set':
-        return ''
+        return '\'a\',\'b\''
 
       case 'geometry':
         return ''
@@ -373,58 +274,288 @@ export class SqliteUi {
 
   static getDefaultLengthIsDisabled(type) {
     switch (type) {
-      case 'integer':
-      case 'blob':
-      case 'real':
-      case 'numeric':
-        return true
-
-      case 'text':
+      case 'int':
+      case 'tinyint':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'float':
+      case 'decimal':
+      case 'double':
+      case 'serial':
+      case 'datetime':
+      case 'timestamp':
+      case 'char':
+      case 'varchar':
+      case 'nchar':
+      case 'binary':
+      case 'varbinary':
+      case 'enum':
+      case 'set':
+      case 'geometry':
+      case 'point':
+      case 'linestring':
+      case 'polygon':
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+      case 'json':
+      case 'bit':
         return false
+
+      case 'boolean':
+      case 'date':
+      case 'time':
+      case 'year':
+      case 'text':
+      case 'tinytext':
+      case 'mediumtext':
+      case 'longtext':
+      case 'blob':
+      case 'tinyblob':
+      case 'mediumblob':
+      case 'longblob':
+        return true
     }
   }
 
   static getDefaultValueForDatatype(type) {
     switch (type) {
-      case 'integer':
+      case 'int':
         return 'eg : ' + 10
 
-      case 'text':
-        return 'eg : hey'
+      case 'tinyint':
+        return 'eg : ' + 1
 
-      case 'numeric':
+      case 'smallint':
         return 'eg : ' + 10
 
-      case 'real':
+      case 'mediumint':
+        return 'eg : ' + 10
+
+      case 'bigint':
+        return 'eg : ' + 100
+
+      case 'bit':
+        return 'eg : ' + 1
+
+      case 'boolean':
+        return 'eg : ' + 1
+
+      case 'float':
         return 'eg : ' + 10.0
 
-      case 'blob':
+      case 'decimal':
+        return 'eg : ' + 10.0
+
+      case 'double':
+        return 'eg : ' + 10.0
+
+      case 'serial':
         return 'eg : ' + 100
+
+      case 'date':
+        return 'eg : ' + '2020-09-09'
+
+      case 'datetime':
+        return 'eg : ' + 'now()\n\nCURRENT_TIMESTAMP\n\nCURRENT_TIMESTAMP on update CURRENT_TIMESTAMP\n\n1992-10-12 00:00:00'
+
+      case 'timestamp':
+        return 'eg : ' + 'now()\n\nCURRENT_TIMESTAMP\n\nCURRENT_TIMESTAMP on update CURRENT_TIMESTAMP\n\n1992-10-12 00:00:00'
+
+      case 'time':
+        return 'eg : ' + '00:00:00'
+
+      case 'year':
+        return 'eg : ' + '2020'
+
+      case 'char':
+        return 'eg : ' + 'a'
+
+      case 'varchar':
+        return 'eg : ' + 'hey'
+
+      case 'nchar':
+        return 'eg : ' + 'hey'
+
+      case 'text':
+        return 'eg : ' + 'hey'
+
+      case 'tinytext':
+        return 'eg : ' + 'hey'
+
+      case 'mediumtext':
+        return 'eg : ' + 'hey'
+
+      case 'longtext':
+        return 'eg : ' + 'hey'
+
+      case 'binary':
+        return 'eg : ' + 1
+
+      case 'varbinary':
+        return 'eg : ' + 'hey'
+
+      case 'blob':
+        return 'eg : ' + 'hey'
+
+      case 'tinyblob':
+        return 'eg : ' + 'hey'
+
+      case 'mediumblob':
+        return 'eg : ' + 'hey'
+
+      case 'longblob':
+        return 'eg : ' + 'hey'
+
+      case 'enum':
+        return 'eg : ' + 'a'
+
+      case 'set':
+        return 'eg : ' + 'a'
+
+      case 'geometry':
+        return 'geometry can\'t have default value'
+
+      case 'point':
+        return 'point can\'t have default value'
+
+      case 'linestring':
+        return 'linestring can\'t have default value'
+
+      case 'polygon':
+        return 'polygon can\'t have default value'
+
+      case 'multipoint':
+        return 'multipoint can\'t have default value'
+
+      case 'multilinestring':
+        return 'multilinestring can\'t have default value'
+
+      case 'multipolygon':
+        return 'multipolygon can\'t have default value'
+
+      case 'json':
+        return 'JSON can\'t have default value'
     }
   }
 
   static getDefaultScaleForDatatype(type) {
     switch (type) {
-      case 'integer':
+      case 'int':
+        return ' '
+
+      case 'tinyint':
+        return ' '
+
+      case 'smallint':
+        return ' '
+
+      case 'mediumint':
+        return ' '
+
+      case 'bigint':
+        return ' '
+
+      case 'bit':
+        return ' '
+
+      case 'boolean':
+        return ' '
+
+      case 'float':
+        return '2'
+
+      case 'decimal':
+        return '2'
+
+      case 'double':
+        return '2'
+
+      case 'serial':
+        return ' '
+
+      case 'date':
+      case 'datetime':
+      case 'timestamp':
+        return ' '
+
+      case 'time':
+        return ' '
+
+      case 'year':
+        return ' '
+
+      case 'char':
+        return ' '
+
+      case 'varchar':
+        return ' '
+
+      case 'nchar':
         return ' '
 
       case 'text':
         return ' '
 
-      case 'numeric':
+      case 'tinytext':
         return ' '
 
-      case 'real':
+      case 'mediumtext':
+        return ' '
+
+      case 'longtext':
+        return ' '
+
+      case 'binary':
+        return ' '
+
+      case 'varbinary':
         return ' '
 
       case 'blob':
+        return ' '
+
+      case 'tinyblob':
+        return ' '
+
+      case 'mediumblob':
+        return ' '
+
+      case 'longblob':
+        return ' '
+
+      case 'enum':
+        return ' '
+
+      case 'set':
+        return ' '
+
+      case 'geometry':
+        return ' '
+      case 'point':
+        return ' '
+      case 'linestring':
+        return ' '
+      case 'polygon':
+        return ' '
+      case 'multipoint':
+        return ' '
+      case 'multilinestring':
+        return ' '
+      case 'multipolygon':
+        return ' '
+      case 'json':
         return ' '
     }
   }
 
   static colPropAIDisabled(col, columns) {
     // console.log(col);
-    if (col.dt === 'integer') {
+    if (col.dt === 'int' ||
+      col.dt === 'tinyint' ||
+      col.dt === 'bigint' ||
+      col.dt === 'smallint') {
       for (let i = 0; i < columns.length; ++i) {
         if (columns[i].cn !== col.cn && columns[i].ai) {
           return true
@@ -438,16 +569,15 @@ export class SqliteUi {
 
   static colPropUNDisabled(col) {
     // console.log(col);
-    return true
-    // if (col.dt === 'int' ||
-    //   col.dt === 'tinyint' ||
-    //   col.dt === 'smallint' ||
-    //   col.dt === 'mediumint' ||
-    //   col.dt === 'bigint') {
-    //   return false;
-    // } else {
-    //   return true;
-    // }
+    if (col.dt === 'int' ||
+      col.dt === 'tinyint' ||
+      col.dt === 'smallint' ||
+      col.dt === 'mediumint' ||
+      col.dt === 'bigint') {
+      return false
+    } else {
+      return true
+    }
   }
 
   static onCheckboxChangeAI(col) {
@@ -463,8 +593,24 @@ export class SqliteUi {
     // }
   }
 
+  static onCheckboxChangeAU(col) {
+    console.log(col)
+    // if (1) {
+    col.altered = col.altered || 2
+    // }
+
+    // if (!col.ai) {
+    //   col.dtx = 'specificType'
+    // } else {
+    //   col.dtx = ''
+    // }
+  }
+
   static showScale(columnObj) {
-    return false
+    return (columnObj.dt === 'float' ||
+      columnObj.dt === 'decimal' ||
+      columnObj.dt === 'double' ||
+      columnObj.dt === 'real')
   }
 
   static removeUnsigned(columns) {
@@ -481,24 +627,24 @@ export class SqliteUi {
     }
   }
 
+  static columnEditable(colObj) {
+    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
+  }
+
   static extractFunctionName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
+    const reg = /^\s*CREATE\s+.*?(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:`?[\w\d_]+`?\.)?`?([\w_\d]+)`?/i
     const match = query.match(reg)
     return match && match[1]
   }
 
   static extractProcedureName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
+    const reg = /^\s*CREATE.*?\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
     const match = query.match(reg)
     return match && match[1]
   }
 
-  static columnEditable(colObj) {
-    return true // colObj.altered === 1;
-  }
-
   static handleRawOutput(result, headers) {
-    console.log(result)
+    result = result[0] ? result[0] : []
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0])
       // set headers before settings result
@@ -506,6 +652,13 @@ export class SqliteUi {
         const text = keys[i]
         headers.push({ text, value: text, sortable: false })
       }
+    } else {
+      const keys = Object.keys(result)
+      for (let i = 0; i < keys.length; i++) {
+        const text = keys[i]
+        if (typeof text !== 'function') { headers.push({ text, value: text, sortable: false }) }
+      }
+      result = [result]
     }
     return result
   }
@@ -523,7 +676,7 @@ export class SqliteUi {
    * @param args
    * @returns {string|*}
    */
-  sanitiseQuery(args) {
+  static sanitiseQuery(args) {
     let q = args.query.trim().split(';')
 
     if (q[0].startsWith('Select')) {
@@ -551,8 +704,8 @@ export class SqliteUi {
             tn,
             cn: keys[i],
             cno: keys[i],
-            np: null,
-            ns: null,
+            np: 10,
+            ns: 0,
             clen: null,
             cop: 1,
             pk: false,
@@ -574,30 +727,38 @@ export class SqliteUi {
           switch (typeof json[keys[i]]) {
             case 'number':
               if (Number.isInteger(json[keys[i]])) {
-                if (SqliteUi.isValidTimestamp(keys[i], json[keys[i]])) {
+                if (MysqlUi.isValidTimestamp(keys[i], json[keys[i]])) {
                   Object.assign(column, {
                     dt: 'timestamp'
                   })
                 } else {
                   Object.assign(column, {
-                    dt: 'integer'
+                    dt: 'int',
+                    np: 10,
+                    ns: 0
                   })
                 }
               } else {
                 Object.assign(column, {
-                  dt: 'real'
+                  dt: 'float',
+                  np: 10,
+                  ns: 2,
+                  dtxp: '11',
+                  dtxs: 2
                 })
               }
               break
             case 'string':
-              // if (SqliteUi.isValidDate(json[keys[i]])) {
-              //   Object.assign(column, {
-              //     "dt": "datetime"
-              //   });
-              // } else
-              if (json[keys[i]].length <= 255) {
+              if (MysqlUi.isValidDate(json[keys[i]])) {
                 Object.assign(column, {
-                  dt: 'varchar'
+                  dt: 'datetime'
+                })
+              } else if (json[keys[i]].length <= 255) {
+                Object.assign(column, {
+                  dt: 'varchar',
+                  np: 255,
+                  ns: 0,
+                  dtxp: '255'
                 })
               } else {
                 Object.assign(column, {
@@ -607,14 +768,16 @@ export class SqliteUi {
               break
             case 'boolean':
               Object.assign(column, {
-                dt: 'integer'
+                dt: 'boolean',
+                np: 3,
+                ns: 0
               })
               break
             case 'object':
               Object.assign(column, {
-                dt: 'text',
-                np: null,
-                dtxp: null
+                dt: 'json',
+                np: 3,
+                ns: 0
               })
               break
             default:
@@ -631,9 +794,7 @@ export class SqliteUi {
   }
 
   static isValidTimestamp(key, value) {
-    if (typeof value !== 'number') {
-      return false
-    }
+    if (typeof value !== 'number') { return false }
     return new Date(value).getTime() > 0 && /(?:_|(?=A))[aA]t$/.test(key)
   }
 
@@ -641,71 +802,8 @@ export class SqliteUi {
     return new Date(value).getTime() > 0
   }
 
-  static onCheckboxChangeAU(col) {
-    console.log(col)
-    // if (1) {
-    col.altered = col.altered || 2
-    // }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
-  }
-
   static colPropAuDisabled(col) {
-    if (col.altered !== 1) {
-      return true
-    }
-
-    switch (col.dt) {
-      case 'date':
-      case 'datetime':
-      case 'timestamp':
-      case 'time':
-        return false
-
-      default :
-        return true
-    }
-  }
-
-  static getAbstractType(col) {
-    switch ((col.dt || col.dt).toLowerCase()) {
-      case 'date':
-        return 'date'
-      case 'datetime':
-      case 'timestamp':
-        return 'datetime'
-      case 'integer':
-      case 'int':
-      case 'tinyint':
-      case 'smallint':
-      case 'mediumint':
-      case 'bigint':
-      case 'int2':
-      case 'int8':
-        return 'integer'
-      case 'text':
-        return 'text'
-      case 'boolean':
-        return 'boolean'
-      case 'real':
-      case 'double':
-      case 'double precision':
-      case 'float':
-      case 'numeric':
-        return 'float'
-
-      case 'blob sub_type text':
-      case 'blob':
-        return 'blob'
-
-      case 'character':
-      case 'varchar':
-        return 'string'
-    }
+    return true
   }
 
   static getUIType(col) {
@@ -719,7 +817,7 @@ export class SqliteUi {
       case 'date':
         return 'Date'
       case 'datetime':
-        return 'CreateTime'
+        return 'DateTime'
       case 'time':
         return 'Time'
       case 'year':
@@ -739,11 +837,85 @@ export class SqliteUi {
     }
   }
 
+  static getAbstractType(col) {
+    switch (col.dt.toLowerCase()) {
+      case 'int':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'bit':
+        return 'integer'
+
+      case 'boolean':
+        return 'boolean'
+
+      case 'float':
+      case 'decimal':
+      case 'double':
+      case 'serial':
+        return 'float'
+      case 'tinyint':
+        // eslint-disable-next-line eqeqeq
+        if (col.dtxp == '1') {
+          return 'boolean'
+        } else {
+          return 'integer'
+        }
+      case 'date':
+        return 'date'
+      case 'datetime':
+      case 'timestamp':
+        return 'datetime'
+      case 'time':
+        return 'time'
+      case 'year':
+        return 'year'
+      case 'char':
+      case 'varchar':
+      case 'nchar':
+        return 'string'
+      case 'text':
+      case 'tinytext':
+      case 'mediumtext':
+      case 'longtext':
+        return 'text'
+
+      // todo: use proper type
+      case 'binary':
+        return 'string'
+      case 'varbinary':
+        return 'text'
+
+      case 'blob':
+      case 'tinyblob':
+      case 'mediumblob':
+      case 'longblob':
+        return 'blob'
+
+      case 'enum':
+        return 'enum'
+      case 'set':
+        return 'set'
+
+      case 'geometry':
+      case 'point':
+      case 'linestring':
+      case 'polygon':
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+        return 'string'
+
+      case 'json':
+        return 'json'
+    }
+  }
+
   static getDataTypeForUiType(col) {
     const colProp = {}
     switch (col.uidt) {
       case 'ID':
-        colProp.dt = 'integer'
+        colProp.dt = 'int'
         colProp.pk = true
         colProp.un = true
         colProp.ai = true
@@ -762,15 +934,14 @@ export class SqliteUi {
         colProp.dt = 'text'
         break
       case 'Checkbox':
-        // colProp.dt = 'tinyint';
-        // colProp.dtxp = 1;
-        colProp.dt = 'boolean'
+        colProp.dt = 'tinyint'
+        colProp.dtxp = 1
         break
       case 'MultiSelect':
-        colProp.dt = 'text'
+        colProp.dt = 'set'
         break
       case 'SingleSelect':
-        colProp.dt = 'text'
+        colProp.dt = 'enum'
         break
       case 'Collaborator':
         colProp.dt = 'varchar'
@@ -787,31 +958,35 @@ export class SqliteUi {
         break
       case 'PhoneNumber':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isMobilePhone'], args: [''], msg: ['Validation failed : isMobilePhone'] }
+        colProp.validate = {
+          func: ['isMobilePhone'],
+          args: [''],
+          msg: ['Validation failed : isMobilePhone ({cn})']
+        }
         break
       case 'Email':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail'] }
+        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail ({cn})'] }
         break
       case 'URL':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL'] }
+        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL ({cn})'] }
         break
       case 'Number':
-        colProp.dt = 'integer'
+        colProp.dt = 'int'
         break
       case 'Decimal':
         colProp.dt = 'decimal'
         break
       case 'Currency':
-        colProp.dt = 'double precision'
+        colProp.dt = 'decimal'
         colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : isCurrency'] }
         break
       case 'Percent':
         colProp.dt = 'double'
         break
       case 'Duration':
-        colProp.dt = 'integer'
+        colProp.dt = 'int'
         break
       case 'Rating':
         colProp.dt = 'float'
@@ -823,7 +998,7 @@ export class SqliteUi {
         colProp.dt = 'varchar'
         break
       case 'Count':
-        colProp.dt = 'integer'
+        colProp.dt = 'int'
         break
       case 'Lookup':
         colProp.dt = 'varchar'
@@ -838,7 +1013,7 @@ export class SqliteUi {
         colProp.dt = 'datetime'
         break
       case 'AutoNumber':
-        colProp.dt = 'integer'
+        colProp.dt = 'int'
         break
       case 'Barcode':
         colProp.dt = 'varchar'
@@ -847,7 +1022,7 @@ export class SqliteUi {
         colProp.dt = 'varchar'
         break
       case 'JSON':
-        colProp.dt = 'text'
+        colProp.dt = 'json'
         break
       default:
         colProp.dt = 'varchar'
@@ -864,189 +1039,174 @@ export class SqliteUi {
 
       case 'SingleLineText':
       case 'LongText':
-      case 'Attachment':
       case 'Collaborator':
         return [
-          'character',
+          'char',
+          'varchar',
+          'nchar',
           'text',
-          'varchar'
+          'tinytext',
+          'mediumtext',
+          'longtext'
+        ]
+
+      case 'Attachment':
+        return [
+          'json',
+          'char',
+          'varchar',
+          'nchar',
+          'text',
+          'tinytext',
+          'mediumtext',
+          'longtext'
+        ]
+
+      case 'JSON':
+        return [
+          'json',
+          'text',
+          'tinytext',
+          'mediumtext',
+          'longtext'
         ]
 
       case 'Checkbox':
         return [
           'int',
-          'integer',
-          'tinyint',
           'smallint',
           'mediumint',
           'bigint',
-          'int2',
-          'int8',
-          'boolean'
+          'bit',
+          'boolean',
+          'serial',
+          'tinyint'
         ]
 
       case 'MultiSelect':
-        return [
-          'text',
-          'varchar'
-        ]
+        return ['set', 'text',
+          'tinytext',
+          'mediumtext',
+          'longtext']
 
       case 'SingleSelect':
-        return [
-          'text',
-          'varchar'
-        ]
+        return ['enum', 'text',
+          'tinytext',
+          'mediumtext',
+          'longtext']
 
       case 'Year':
-        return ['int', 'integer',
-          'tinyint',
-          'smallint',
-          'mediumint',
-          'bigint',
-          'int2',
-          'int8']
+        return ['year']
 
       case 'Time':
-        return [
-          'int',
-          'integer',
-          'tinyint',
-          'smallint',
-          'mediumint',
-          'bigint',
-          'int2',
-          'int8']
+        return ['time']
 
       case 'PhoneNumber':
       case 'Email':
         return [
-          'varchar',
-          'text'
+          'varchar'
         ]
 
       case 'URL':
         return [
-          'varchar',
-          'text'
+          'text',
+          'tinytext',
+          'mediumtext',
+          'longtext',
+          'varchar'
         ]
 
       case 'Number':
         return [
           'int',
-          'integer',
-          'tinyint',
           'smallint',
           'mediumint',
           'bigint',
-          'int2',
-          'int8',
-          'numeric',
-          'real',
+          'bit',
+          'float',
+          'decimal',
           'double',
-          'double precision',
-          'float'
+          'serial'
         ]
 
       case 'Decimal':
         return [
-          'real',
-          'double',
-          'double precision',
           'float',
-          'numeric'
+          'decimal',
+          'double',
+          'serial'
         ]
 
       case 'Currency':
-        return [
-          'real',
-          'double',
-          'double precision',
+        return ['decimal',
           'float',
-          'int',
-          'integer',
-          'tinyint',
+          'double',
+          'serial', 'int',
           'smallint',
           'mediumint',
           'bigint',
-          'int2',
-          'int8',
-          'numeric']
+          'bit']
 
       case 'Percent':
-        return [
-          'real',
-          'double',
-          'double precision',
+        return ['decimal',
           'float',
-          'int',
-          'integer',
-          'tinyint',
+          'double',
+          'serial', 'int',
           'smallint',
           'mediumint',
           'bigint',
-          'int2',
-          'int8',
-          'numeric'
-        ]
+          'bit']
 
       case 'Duration':
-        return [
-          'int',
-          'integer',
-          'tinyint',
+        return ['decimal',
+          'float',
+          'double',
+          'serial', 'int',
           'smallint',
           'mediumint',
           'bigint',
-          'int2',
-          'int8']
+          'bit']
 
       case 'Rating':
-        return [
-          'real',
-          'double',
-          'double precision',
+        return ['decimal',
           'float',
-          'int',
-          'integer',
-          'tinyint',
+          'double',
+          'serial', 'int',
           'smallint',
           'mediumint',
           'bigint',
-          'int2',
-          'int8',
-          'numeric']
+          'bit']
 
       case 'Formula':
         return [
+          'char',
+          'varchar',
+          'nchar',
           'text',
-          'varchar'
+          'tinytext',
+          'mediumtext',
+          'longtext'
         ]
 
       case 'Rollup':
-        return [
-          'varchar'
-        ]
+        return ['varchar']
 
       case 'Count':
         return [
           'int',
-          'integer',
-          'tinyint',
           'smallint',
           'mediumint',
           'bigint',
-          'int2',
-          'int8'
-        ]
+          'serial']
 
       case 'Lookup':
-        return [
-          'varchar'
-        ]
+        return ['varchar']
 
       case 'Date':
         return [
           'date',
+          'datetime',
+          'timestamp',
           'varchar'
         ]
 
@@ -1055,31 +1215,29 @@ export class SqliteUi {
       case 'LastModifiedTime':
         return [
           'datetime',
-          'timestamp'
+          'timestamp',
+          'varchar'
         ]
 
       case 'AutoNumber':
         return [
           'int',
-          'integer',
-          'tinyint',
           'smallint',
           'mediumint',
-          'bigint',
-          'int2',
-          'int8'
-        ]
+          'bigint']
 
       case 'Barcode':
         return ['varchar']
 
       case 'Geometry':
         return [
-          'text'
-        ]
-      case 'JSON':
-        return [
-          'text'
+          'geometry',
+          'point',
+          'linestring',
+          'polygon',
+          'multipoint',
+          'multilinestring',
+          'multipolygon'
         ]
 
       case 'Button':
@@ -1087,9 +1245,13 @@ export class SqliteUi {
         return dbTypes
     }
   }
+
+  static getUnsupportedFnList() {
+    return []
+  }
 }
 
-// module.exports = PgUiHelp;
+// module.exports = MysqlUiHelp;
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

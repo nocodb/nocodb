@@ -44,6 +44,7 @@
               :nodes="nodes"
               :meta="meta"
               :alias="newColumn._cn"
+              :sql-ui="sqlUi"
             />
           </v-col>
         </v-row>
@@ -62,7 +63,8 @@ export default {
     nodes: Object,
     meta: Object,
     value: Boolean,
-    column: Object
+    column: Object,
+    sqlUi: [Function, Object]
   },
   data: () => ({
     valid: false,

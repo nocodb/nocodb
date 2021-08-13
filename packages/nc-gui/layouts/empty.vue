@@ -1,12 +1,12 @@
 <template>
   <v-app>
     <snackbar />
-    <v-content>
+    <v-main>
       <v-app-bar v-show="false" dark />
       <v-container fluid style="">
         <nuxt />
       </v-container>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 

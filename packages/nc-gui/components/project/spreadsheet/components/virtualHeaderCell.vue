@@ -104,6 +104,7 @@
         :edit-column="true"
         :column="column"
         :meta="meta"
+        :sql-ui="sqlUi"
         v-on="$listeners"
       />
     </v-menu>
@@ -115,7 +116,7 @@ import EditVirtualColumn from '@/components/project/spreadsheet/components/editV
 export default {
   name: 'VirtualHeaderCell',
   components: { EditVirtualColumn },
-  props: ['column', 'nodes', 'meta', 'isForm'],
+  props: ['column', 'nodes', 'meta', 'isForm', 'sqlUi'],
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false

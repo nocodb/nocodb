@@ -123,7 +123,7 @@ class BaseModelSql extends BaseModel {
     return this.dbDriver(this.tnPath);
   }
 
-  public get tnPath(){
+  public get tnPath() {
     const schema = (this.dbDriver as any).searchPath?.();
     const table = this.isMssql() && schema ? this.dbDriver.raw('??.??', [schema, this.tn]) : this.tn;
     return table;
@@ -328,8 +328,10 @@ class BaseModelSql extends BaseModel {
       const driver = trx ? trx : this.dbDriver
 
       // this.validate(data);
-      const response = await this._run(driver(this.tnPath).update(mappedData).where(this._wherePk(id)));
-      await this.afterUpdate(data, trx, cookie);
+      await this._run(driver(this.tnPath).update(mappedData).where(this._wherePk(id)));
+
+      const response = await this.nestedRead(id, this.defaultNestedQueryParams)
+      await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);

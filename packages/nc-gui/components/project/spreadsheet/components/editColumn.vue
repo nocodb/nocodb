@@ -338,6 +338,7 @@
                       :is-s-q-lite="isSQLite"
                       :alias="newColumn.cn"
                       :is-m-s-s-q-l="isMSSQL"
+                      :sql-ui="sqlUi"
                       v-on="$listeners"
                     />
 
@@ -389,8 +390,7 @@ import CustomSelectOptions from '@/components/project/spreadsheet/components/edi
 import RelationOptions from '@/components/project/spreadsheet/components/editColumn/relationOptions'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
 import LinkedToAnotherOptions from '@/components/project/spreadsheet/components/editColumn/linkedToAnotherOptions'
-import { SqliteUi } from '@/helpers/SqliteUi'
-import { MssqlUi } from '@/helpers/MssqlUi'
+import { SqliteUi, MssqlUi } from '@/helpers/sqlUi'
 
 export default {
   name: 'EditColumn',

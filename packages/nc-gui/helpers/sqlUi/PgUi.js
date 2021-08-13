@@ -1928,6 +1928,10 @@ export class PgUi {
         return dbTypes
     }
   }
+
+  static getUnsupportedFnList() {
+    return []
+  }
 }
 
 // module.exports = PgUiHelp;

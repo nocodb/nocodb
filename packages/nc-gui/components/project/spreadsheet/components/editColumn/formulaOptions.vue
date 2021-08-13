@@ -7,7 +7,7 @@
       nudge-bottom="-25px"
       allow-overflow
     >
-      <template #activator>
+      <template #activator="_args">
         <!-- todo: autocomplete based on available functions and metadata -->
         <!--        <v-tooltip color="info" right>-->
         <!--          <template #activator="{on}">-->
@@ -61,13 +61,13 @@
 <script>
 
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
-import {getWordUntilCaret, insertAtCursor} from '@/helpers'
+import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import debounce from 'debounce'
 import jsep from 'jsep'
 
 export default {
   name: 'FormulaOptions',
-  props: ['nodes', 'column', 'meta', 'isSQLite', 'alias', 'value'],
+  props: ['nodes', 'column', 'meta', 'isSQLite', 'alias', 'value', 'sqlUi'],
   data: () => ({
     formula: {},
     // formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
@@ -100,10 +100,15 @@ export default {
   }),
   computed: {
     suggestionsList() {
+      console.log(this)
+      const unsupportedFnList = this.sqlUi.getUnsupportedFnList()
       return [
-        ...this.availableFunctions.map(fn => ({text: fn, type: 'function'})),
-        ...this.meta.columns.map(c => ({text: c._cn, type: 'column', c})),
-        ...this.availableBinOps.map(op => ({text: op, type: 'op'}))
+        ...this.availableFunctions.filter(fn => !unsupportedFnList.includes(fn)).map(fn => ({
+          text: fn,
+          type: 'function'
+        })),
+        ...this.meta.columns.map(c => ({ text: c._cn, type: 'column', c })),
+        ...this.availableBinOps.map(op => ({ text: op, type: 'op' }))
       ]
     },
     acTree() {
@@ -115,7 +120,7 @@ export default {
     }
   },
   created() {
-    this.formula = this.value ? {...this.value} : {}
+    this.formula = this.value ? { ...this.value } : {}
   },
   methods: {
     async save() {
@@ -185,6 +190,7 @@ export default {
         if (err.length) {
           return err.join(', ')
         }
+        return true
       } catch (e) {
         return e.message
       }
@@ -217,7 +223,7 @@ export default {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
     },
-    _handleInputDeb: debounce(async function (self) {
+    _handleInputDeb: debounce(async function(self) {
       await self.handleInput()
     }, 250),
     handleInputDeb() {

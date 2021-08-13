@@ -34,6 +34,7 @@
               :column="col"
               :nodes="nodes"
               :meta="meta"
+              :sql-ui="sqlUi"
               @saved="onNewColCreation"
             />
 

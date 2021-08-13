@@ -713,7 +713,7 @@ import uiTypes from '@/components/project/spreadsheet/helpers/uiTypes'
 import addRelationDlg from '../dlgs/dlgAddRelation.vue'
 import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel.vue'
 
-import { SqlUI } from '../../../helpers/SqlUiFactory'
+import { SqlUI } from '../../../helpers/sqlUi/SqlUiFactory'
 import jsonToColumn from './columnActions/jsonToColumn'
 
 // const {path} = require("electron").remote.require(

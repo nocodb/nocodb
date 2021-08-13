@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "My Projects",
+    "reload_projects_tooltip": "Refresh projects",
+    "create_new_project_button": {
+      "text": "创建新项目",
+      "subtext_1": "Create",
+      "subtext_1_tooltip": "Create a new project",
+      "subtext_2": "Create By Connecting <br>To An External Database",
+      "subtext_2_tooltip": "Supports MySQL, PostgreSQL, SQL Server & SQLite"
+    },
+    "search_project": "Search Project",
+    "import_metadata": "Import Metadata",
+    "export_metadata": "Export Metadata",
+    "clear_metadata": "Clear Metadata",
+    "stop_project": "Stop Project",
+    "start_project": "Start Project",
+    "restart_project": "Restart Project",
+    "delete_project": "Delete Project",
+    "project_api_type_tooltip_graphql": "Accessible via GraphQL APIs",
+    "project_api_type_tooltip_rest": "Accessible via REST APIs",
+    "project_empty_message": "Get started by creating a new project",
+    "import_button": {
+      "text": "Import NocoDB Project by uploading metadata zip file"
+    },
+    "show_community_star": "Star",
+    "show_community_us_on_Github": "us on Github",
+    "show_community_book_a_free_demo": "Book a Free DEMO",
+    "show_community_get_your_questions_answered": "Get your questions answered",
+    "show_community_join_discord": "Join Discord",
+    "show_community_follow_nocodb": "Follow NocoDB",
+    "search": {
+      "your_search_found_no_results": "Your search for {search} found no results"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Edit Project",
+        "create": "Create Project"
+      },
+      "project_name": "Enter Project Name",
+      "project_type": "Access Project via",
+      "button": {
+        "save_project": "Save Project",
+        "update_and_restart": "Update & Restart",
+        "cancel": "Cancel",
+        "cancel_tooltip": "Cancel and Return"
+      },
+      "credentials": {
+        "title": "Database Credentials",
+        "db_type": "Database Type",
+        "sqlite_file": "SQLite File",
+        "host_address": "Host Address",
+        "port": "Port Number",
+        "username": "Username",
+        "password": "Password",
+        "db_create_if_not_exists": "Database : create if not exists",
+        "button": {
+          "test_db_conn": "Test Database Connection",
+          "remove_db_from_env": "Remove Database from environment"
+        },
+        "advanced": {
+          "title": "SSL & Advanced parameters",
+          "ssl": {
+            "client_key": {
+              "title": "Client Key",
+              "toolip": "Select .key file"
+            },
+            "client_cert": {
+              "title": "Client Cert",
+              "toolip": "Select .cert file"
+            },
+            "server_ca": {
+              "title": "Server CA",
+              "toolip": "Select CA file"
+            },
+            "preferred": "Preferred",
+            "usage": {
+              "no": "No",
+              "preferred": "Preferred",
+              "required": "Required",
+              "requried_ca": "Required-CA",
+              "requried_identity": "Required-IDENTITY"
+            }
+          },
+          "inflection": {
+            "table_name": "Inflection - Table name",
+            "column_name": "Inflection - Column name"
+          },
+          "button": {
+            "edit_conn_json": "Edit connection JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Invalid character in folder path.",
+        "invalid_db_credentials": "Invalid database credentials.",
+        "unable_to_connect_to_db": "Unable to connect to database, please check your database is up.",
+        "user_doesnt_ve_sufficient_permission": "User does not exist or have sufficient permission to create schema."
+      },
+      "head": {
+        "title": "Create Project | NocoDB"
+      },
+      "dialog": {
+        "success": "Connection was successful",
+        "failure": "Connection Failure:"
+      }
+    },
+    "notifications": {
+      "no_new": "No new notifications",
+      "clear": "Clear"
+    }
+  },
+  "signin": {
+    "title": "SIGN IN",
+    "enter_your_work_email": "Enter your work email",
+    "enter_your_password": "Enter your password",
+    "forget_password": "Forgot your password ?",
+    "dont_ve_an_account": "Don't have an account ?",
+    "sign_up": "Sign Up",
+    "form": {
+      "rules": {
+        "email_is_reqd": "E-mail is required",
+        "email_must_be_valid": "E-mail must be valid",
+        "passwd_required": "Password is required",
+        "passwd_must_be_8_chars": "You password must be atleast 8 characters"
+      }
+    },
+    "head": {
+      "title": "Log In | NocoDB",
+      "meta": {
+        "hid": "Log In To NocoDB",
+        "name": "Log In To NocoDB",
+        "content": "Log In To NocoDB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Reset your password",
+        "message_1": "Please provide the email address you used when you signed up.",
+        "message_2": "We will send you an email with a link to reset your password.",
+        "success": "Please check your email to reset the password",
+        "button": "SEND EMAIL"
+      }
+    }
+  },
+  "signup": {
+    "title": "SIGN UP",
+    "you_will_be_the_super_admin": "You will be the 'Super Admin'",
+    "already_ve_an_account": "Already have an account ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Settings",
+      "tooltip": "Only visible to Creator"
+    },
+    "app_store": "App Store",
+    "team_n_auth": {
+      "title": "Team & Auth",
+      "tooltip": "Roles & Users Management"
+    },
+    "project_metadata": {
+      "title": "Project Metadata",
+      "tooltip": "Meta Management"
+    },
+    "preview_as": "Preview as",
+    "reset_review": "Reset Preview"
+  },
+  "nav_drawer": {
+    "title": "Views",
+    "virtual_views": {
+      "action": {
+        "copy": "Copy view",
+        "rename": "Rename view",
+        "delete": "Delete view"
+      },
+      "title": "Create a View",
+      "caption": "Only visible to Creator",
+      "grid": {
+        "title": "Grid",
+        "create": "Add Grid View"
+      },
+      "gallery": {
+        "title": "Gallery",
+        "create": "Add Gallery View"
+      },
+      "calendar": {
+        "title": "Calendar",
+        "create": "Add Calendar View"
+      },
+      "kanban": {
+        "title": "Kanban",
+        "create": "Add Kanban View"
+      },
+      "form": {
+        "title": "Form",
+        "create": "Add Form View"
+      }
+    },
+    "advanced": {
+      "title1": "Share View",
+      "views_list": "Views List",
+      "copy_api_url": "Copy API URL"
+    },
+    "share_view": {
+      "title": "This view is shared via a private link",
+      "body": "People with private link can only see cells visible in this view",
+      "toggle": {
+        "option1": "Restrict access with a password",
+        "option2": "Access is password restricted"
+      },
+      "password": {
+        "caption": "Enter the password",
+        "button": "Save password"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Users Management",
+      "api": "API Tokens Management",
+      "roles": "Roles Management"
+    },
+    "meta": {
+      "title": "Metadata Operations",
+      "export_to_file": {
+        "title": "Export to file",
+        "desc": "Export all metadata from the meta tables to meta directory."
+      },
+      "import": {
+        "title": "Import",
+        "desc": "Import all metadata from the meta directory to meta tables."
+      },
+      "export_to_zip": {
+        "title": "Export zip",
+        "desc": "Export project meta to zip file and download."
+      },
+      "import_zip": {
+        "title": "Import zip",
+        "desc": "Import project meta zip file and restart."
+      },
+      "reset": {
+        "title": "Reset",
+        "desc": "Clear all metadata from meta tables."
+      }
+    }
+  }
+}

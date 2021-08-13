@@ -17,25 +17,25 @@
       "error",
       "never"
     ],
-    "require-await": "off"
-//    "@intlify/vue-i18n/no-raw-text": "off",
-//    "@intlify/vue-i18n/no-duplicate-keys-in-locale": [
-//      "error",
-//      {
-//        "ignoreI18nBlock": false
-//      }
-//    ],
-//    "@intlify/vue-i18n/no-missing-keys": "error"
+    "require-await": "off",
+    "@intlify/vue-i18n/no-raw-text": "off",
+    "@intlify/vue-i18n/no-duplicate-keys-in-locale": [
+      "error",
+      {
+        "ignoreI18nBlock": false
+      }
+    ],
+    "@intlify/vue-i18n/no-missing-keys": "error"
   },
   "parserOptions": {
     "parser": "babel-eslint",
     "ecmaVersion": 8,
     "sourceType": "module"
+  },
+  "settings": {
+    "vue-i18n": {
+      "localeDir": "./static/lang/*.json",
+      "messageSyntaxVersion": "^8.20.0"
+    }
   }
-//  "settings": {
-//    "vue-i18n": {
-//      "localeDir": "./static/lang/*.json",
-//      "messageSyntaxVersion": "^8.20.0"
-//    }
-//  }
 }

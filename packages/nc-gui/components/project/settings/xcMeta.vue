@@ -30,7 +30,7 @@
                 mdi-export
               </v-icon>&nbsp;
               <!-- Export to file -->
-              {{ $t('management.meta.export_to_file') }}
+              {{ $t('management.meta.export_to_file.title') }}
             </v-btn>
           </td>
         </tr>
@@ -54,7 +54,7 @@
               </v-icon>&nbsp;
 
               <!-- Import -->
-              {{ $t('management.meta.import') }}
+              {{ $t('management.meta.import.title') }}
             </v-btn>
           </td>
         </tr>
@@ -77,7 +77,7 @@
                 mdi-export
               </v-icon>&nbsp;
               <!-- Export zip -->
-              {{ $t('management.meta.export_to_zip') }}
+              {{ $t('management.meta.export_to_zip.title') }}
             </v-btn>
           </td>
         </tr>
@@ -100,7 +100,7 @@
               </v-icon>&nbsp;
 
               <!-- Import Zip -->
-              {{ $t('management.meta.import_zip') }}
+              {{ $t('management.meta.import_zip.title') }}
             </v-btn>
 
             <input
@@ -130,7 +130,7 @@
                 mdi-delete-variant
               </v-icon>&nbsp;
               <!-- Reset -->
-              {{ $t('management.meta.reset') }}
+              {{ $t('management.meta.reset.title') }}
             </v-btn>
           </td>
         </tr>

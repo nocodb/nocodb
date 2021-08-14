@@ -75,7 +75,7 @@
               </x-btn>
               <!--              <x-btn
                               btn.class="pl-1"
-                              v-if="_isUIAllowed('projectCreate')"
+                              v-if="_isUIAllowed('projectCreate',true)"
                               outlined
                               data-v-step="1"
                               color="primary"
@@ -87,7 +87,7 @@
                             </x-btn>
                             <x-btn
                               btn.class="pl-1"
-                              v-if="_isUIAllowed('projectCreate')"
+                              v-if="_isUIAllowed('projectCreate',true)"
                               outlined
                               data-v-step="1"
                               color="primary"
@@ -103,7 +103,7 @@
                   <template #activator="{ on }">
                     <div>
                       <x-btn
-                        v-if="_isUIAllowed('projectCreate')"
+                        v-if="_isUIAllowed('projectCreate',true)"
                         v-ge="['home', 'project-new']"
                         outlined
                         data-v-step="1"
@@ -194,7 +194,7 @@
                 </v-menu>
               </template>
               <x-btn
-                v-else-if="_isUIAllowed('projectCreate')"
+                v-else-if="_isUIAllowed('projectCreate',true)"
                 v-ge="['home', 'project-new']"
                 outlined
                 data-v-step="1"
@@ -266,7 +266,7 @@
                     </td>
                     <td>
                       <div
-                        v-if="_isUIAllowed('project.actions')"
+                        v-if="_isUIAllowed('project.actions',true)"
                         :class="{
                           'action-icons': !(
                             projectStatusUpdating &&

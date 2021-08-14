@@ -65,14 +65,14 @@ export const getters = {
 
   GtrIsUIAllowed(state) {
     const rolePermissions = process.env.EE ? rolePermissionsEE : rolePermissionsCE
-    return (page) => {
+    return (page, ignorePreviewAs = false) => {
       const user = state.user
       let roles = {
         ...((user && user.roles) || {}),
         ...(state.projectRole || {})
       }
 
-      if (state.previewAs) {
+      if (state.previewAs && !ignorePreviewAs) {
         roles = {
           [state.previewAs]: true
         }

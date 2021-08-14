@@ -718,13 +718,15 @@ export default class NcProjectBuilder {
         }
       }
 
-      res.json({
+      const result = {
         info,
         aggregatedInfo: {
           list: this.apiInfInfoList,
           aggregated: this.aggregatedApiInfo
         }
-      });
+      }
+
+      res.json(result);
     });
   }
 

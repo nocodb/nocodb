@@ -32,6 +32,8 @@ import {RestApiBuilder} from "./rest/RestApiBuilder";
 import RestAuthCtrlCE from "./rest/RestAuthCtrl";
 import RestAuthCtrlEE from "./rest/RestAuthCtrlEE";
 import mkdirp from 'mkdirp';
+import MetaAPILogger from "./meta/MetaAPILogger";
+
 const log = debug('nc:app');
 require('dotenv').config();
 
@@ -177,7 +179,7 @@ export default class Noco {
     /******************* Middlewares : start *******************/
     this.router.use((req: any, _res, next) => {
       req.nc = this.requestContext;
-      req.ncSiteUrl = this.config?.envs?.[this.env]?.publicUrl || this.config?.publicUrl  || (req.protocol + '://' + req.get('host'));
+      req.ncSiteUrl = this.config?.envs?.[this.env]?.publicUrl || this.config?.publicUrl || (req.protocol + '://' + req.get('host'));
       req.ncFullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
       next();
     });
@@ -205,6 +207,7 @@ export default class Noco {
       req.ncProjectId = req.ncProjectId || req.params.project_id;
       next();
     })
+    this.router.use(MetaAPILogger.mw);
 
     /******************* Middlewares : end *******************/
 

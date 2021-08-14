@@ -37,7 +37,6 @@ import {RestApiBuilder} from "../rest/RestApiBuilder";
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
 import {packageVersion} from 'nc-help';
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
-// import NcConnectionMgr from "../common/NcConnectionMgr";
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -57,7 +56,6 @@ export default class NcMetaMgr {
   protected projectMgr: any;
   // @ts-ignore
   protected isEe = false;
-  4
 
   constructor(app: Noco, config: NcConfig, xcMeta: NcMetaIO) {
     this.app = app;
@@ -212,20 +210,20 @@ export default class NcMetaMgr {
 
             let projectHasAdmin = false;
             projectHasAdmin = !!(await knex('xc_users').first())
-
-            return res.json({
-              authType: 'jwt',
-              projectHasAdmin,
-              firstUser: !projectHasAdmin,
-              projectHasDb,
-              type: this.config.type,
-              env: this.config.workingEnv,
-              googleAuthEnabled: !!(process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET),
-              githubAuthEnabled: !!(process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET),
-              oneClick: !!process.env.NC_ONE_CLICK,
-              connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
-              version: packageVersion
-            })
+const result = {
+  authType: 'jwt',
+  projectHasAdmin,
+  firstUser: !projectHasAdmin,
+  projectHasDb,
+  type: this.config.type,
+  env: this.config.workingEnv,
+  googleAuthEnabled: !!(process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET),
+  githubAuthEnabled: !!(process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET),
+  oneClick: !!process.env.NC_ONE_CLICK,
+  connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+  version: packageVersion
+};
+            return res.json(result)
           }
           if (this.config.auth.masterKey) {
             return res.json({
@@ -292,6 +290,7 @@ export default class NcMetaMgr {
       return res.status(400).json({msg: e.message})
     }
 
+
     if (this.listener) {
       await this.listener({
         req: req.body,
@@ -302,6 +301,8 @@ export default class NcMetaMgr {
         }
       });
     }
+
+
 
     return res.json(result);
   }
@@ -1019,6 +1020,7 @@ export default class NcMetaMgr {
     } catch (e) {
       return next(e);
     }
+
     res.json(result);
   }
 
@@ -1496,7 +1498,6 @@ export default class NcMetaMgr {
         default:
           return next();
       }
-
       if (this.listener) {
         await this.listener({
           user: req.user,

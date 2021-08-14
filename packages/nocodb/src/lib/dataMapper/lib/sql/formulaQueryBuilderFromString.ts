@@ -66,6 +66,10 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
     } else if (pt.type === 'Identifier') {
       return knex.raw(`??${colAlias}`, [aliasToColumn[pt.name] || pt.name]);
     } else if (pt.type === 'BinaryExpression') {
+      if (pt.operator === '==') {
+        pt.operator = '='
+      }
+
       const query = knex.raw(`${fn(pt.left, null, pt.operator).toQuery()} ${pt.operator} ${fn(pt.right, null, pt.operator).toQuery()}${colAlias}`)
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')')

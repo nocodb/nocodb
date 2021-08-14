@@ -7,7 +7,6 @@ const validations = {
   ADD: {
     validation: {
       args: { min: 1 }
-
     }
   },
   CONCAT: {
@@ -42,7 +41,9 @@ const validations = {
     validation: { args: { rqd: 1 } }
   },
   SUBSTR: { validation: { args: { min: 2, max: 3 } } },
-  MID: { validation: { args: { rqd: 1 } } }
+  MID: { validation: { args: { rqd: 1 } } },
+  IF: { validation: { args: { min: 2, max: 3 } } },
+  SWITCH: { validation: { args: { min: 3 } } }
 }
 
 export default Object.keys(validations)

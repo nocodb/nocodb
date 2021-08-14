@@ -1,6 +1,8 @@
 import {MapFnArgs} from "../mapFunctionName";
+import commonFns from "./commonFns";
 
 const mssql = {
+  ...commonFns,
   MIN: (args: MapFnArgs) => {
     if (args.pt.arguments.length === 1) {
       return args.fn(args.pt.arguments[0])
@@ -49,7 +51,7 @@ const mssql = {
   INT: (args: MapFnArgs) => {
     return args.knex.raw(`CASE WHEN ISNUMERIC(${args.fn(args.pt.arguments[0]).toQuery()}) = 1 THEN FLOOR(${args.fn(args.pt.arguments[0]).toQuery()}) ELSE 0 END${args.colAlias}`)
   },
-  MID:'SUBSTR'
+  MID:'SUBSTR',
 }
 
 export default mssql;

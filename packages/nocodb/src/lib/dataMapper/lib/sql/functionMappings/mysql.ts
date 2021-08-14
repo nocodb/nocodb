@@ -1,7 +1,9 @@
 import {MapFnArgs} from "../mapFunctionName";
+import commonFns from "./commonFns";
 
 
 const mysql2 = {
+  ...commonFns,
   LEN: 'CHAR_LENGTH',
   MIN: 'LEAST',
   MAX: 'GREATEST',
@@ -20,7 +22,7 @@ const mysql2 = {
   RIGHT:(args: MapFnArgs)=> {
     return args.knex.raw(`SUBSTR(${args.fn(args.pt.arguments[0])},-${args.fn(args.pt.arguments[1])})${args.colAlias}`)
   },
-  MID:'SUBSTR'
+  MID:'SUBSTR',
 }
 
 

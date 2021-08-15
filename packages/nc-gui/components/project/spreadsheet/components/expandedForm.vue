@@ -476,6 +476,12 @@ export default {
   color: var(--v-primary-base);
 }
 
+.title.text-center {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 ::v-deep {
 
   .v-breadcrumbs__item:nth-child(odd) {
@@ -597,6 +603,7 @@ h5 {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Ayush Sahu <aztrexdx@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

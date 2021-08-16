@@ -816,7 +816,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .expect(200, function (err, res) {
               if (err) done(err);
               const data = res.body.data.countryUpdate;
-              expect(data).to.be.a('number');
+              expect(data).to.be.a('object');
               // todo:
               done();
             })

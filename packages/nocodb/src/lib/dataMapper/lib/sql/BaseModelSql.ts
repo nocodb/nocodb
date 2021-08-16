@@ -1111,6 +1111,7 @@ class BaseModelSql extends BaseModel {
    * @param {Object[]} parent - parent list array
    * @param {String} child - child table name
    * @param {Object} rest - index suffixed fields, limit, offset, where and sort
+   * @param {Object} rest - index suffixed fields, limit, offset, where and sort
    * @param index - child table index
    * @returns {Promise<void>}
    * @private
@@ -1378,7 +1379,7 @@ class BaseModelSql extends BaseModel {
       }
 
 
-      const items = [item];
+      const items = Object.keys(item).length ? [item] : [];
 
       if (items && items.length) {
         await Promise.all([...new Set(childs.split(','))].map((child, index) => child && this._getChildListInParent({

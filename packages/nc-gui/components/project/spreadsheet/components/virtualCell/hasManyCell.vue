@@ -25,7 +25,12 @@
         class="actions align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >
-        <x-icon small :color="['primary','grey']" @click="showNewRecordModal">
+        <x-icon
+          v-if="_isUIAllowed('xcDatatableEditable')"
+          small
+          :color="['primary','grey']"
+          @click="showNewRecordModal"
+        >
           mdi-plus
         </x-icon>
         <x-icon x-small :color="['primary','grey']" class="ml-2" @click="showChildListModal">

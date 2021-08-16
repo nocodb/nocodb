@@ -34,6 +34,7 @@
               :column="col"
               :nodes="nodes"
               :meta="meta"
+              :is-public-view="isPublicView"
               @saved="onNewColCreation"
             />
 

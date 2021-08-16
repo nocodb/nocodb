@@ -8,7 +8,7 @@
         mdi-reload
       </v-icon>
       <v-btn
-        v-if="!readOnly"
+        v-if="!readOnly && _isUIAllowed('xcDatatableEditable')"
         small
         class="caption"
         color="primary"

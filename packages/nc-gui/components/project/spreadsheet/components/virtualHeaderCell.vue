@@ -32,7 +32,12 @@
     </v-tooltip>
     <v-spacer />
 
-    <v-menu offset-y open-on-hover left>
+    <v-menu
+      v-if="!isPublicView && _isUIAllowed('edit-column') && !isForm"
+      offset-y
+      open-on-hover
+      left
+    >
       <template #activator="{on}">
         <v-icon v-if="!isForm" small v-on="on">
           mdi-menu-down
@@ -113,7 +118,7 @@ import EditVirtualColumn from '@/components/project/spreadsheet/components/editV
 export default {
   name: 'VirtualHeaderCell',
   components: { EditVirtualColumn },
-  props: ['column', 'nodes', 'meta', 'isForm'],
+  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView'],
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false

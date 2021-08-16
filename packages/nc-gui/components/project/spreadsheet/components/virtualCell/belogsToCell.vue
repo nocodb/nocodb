@@ -13,6 +13,7 @@
         </template>
       </div>
       <div
+        v-if="_isUIAllowed('xcDatatableEditable')"
         class="action align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >

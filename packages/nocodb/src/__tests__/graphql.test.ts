@@ -811,7 +811,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
 
             .set('xc-auth', token)
             .send({
-              query: `mutation{ countryUpdate( id : "${COUNTRY_ID}", data : { country: "abcd" })  } `
+              query: `mutation{ countryUpdate( id : "${COUNTRY_ID}", data : { country: "abcd" }){ country }  } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);

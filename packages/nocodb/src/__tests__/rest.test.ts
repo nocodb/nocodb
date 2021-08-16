@@ -425,7 +425,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({country: COUNTRY_NAME + 'a'})
             .expect(200, (err, res) => {
               if (err) done(err)
-              expect(res.body).to.be.equal(1);
+              expect(res.body).to.be.a('object');
               request(app)
                 .get(`/nc/${projectId}/api/v1/country/` + (dbConfig.client === 'mssql' ? COUNTRY_ID_RET :COUNTRY_ID))
                 .set('xc-auth', token)

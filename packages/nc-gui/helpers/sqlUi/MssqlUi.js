@@ -1,46 +1,42 @@
 const dbTypes = [
-  'int',
-  'smallint',
-  'mediumint',
   'bigint',
+  'binary',
   'bit',
-  'boolean',
-  'float',
-  'decimal',
-  'double',
-  'serial',
-  'tinyint',
+  'char',
   'date',
   'datetime',
-  'timestamp',
-  'time',
-  'year',
-  'char',
-  'varchar',
-  'nchar',
-  'text',
-  'tinytext',
-  'mediumtext',
-  'longtext',
-  'binary',
-  'varbinary',
-  'blob',
-  'tinyblob',
-  'mediumblob',
-  'longblob',
-  'enum',
-  'set',
+  'datetime2',
+  'datetimeoffset',
+  'decimal',
+  'float',
+  'geography',
   'geometry',
-  'point',
-  'linestring',
-  'polygon',
-  'multipoint',
-  'multilinestring',
-  'multipolygon',
-  'json'
+  'heirarchyid',
+  'image',
+  'int',
+  'money',
+  'nchar',
+  'ntext',
+  'numeric',
+  'nvarchar',
+  'real',
+  'json',
+  'smalldatetime',
+  'smallint',
+  'smallmoney',
+  'sql_variant',
+  'sysname',
+  'text',
+  'time',
+  'timestamp',
+  'tinyint',
+  'uniqueidentifier',
+  'varbinary',
+  'xml',
+  'varchar'
 ]
 
-export class MysqlUi {
+export class MssqlUi {
   static getNewTableColumns() {
     return [
       {
@@ -52,13 +48,13 @@ export class MysqlUi {
         rqd: true,
         ck: false,
         pk: true,
-        un: true,
+        un: false,
         ai: true,
         cdf: null,
         clen: null,
-        np: 11,
+        np: null,
         ns: 0,
-        dtxp: '11',
+        dtxp: '',
         dtxs: '',
         altered: 1,
         uidt: 'ID',
@@ -89,7 +85,7 @@ export class MysqlUi {
       },
       {
         cn: 'created_at',
-        dt: 'timestamp',
+        dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar(45)',
         nrqd: true,
@@ -98,7 +94,7 @@ export class MysqlUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
+        cdf: 'GETDATE()',
         clen: 45,
         np: null,
         ns: null,
@@ -111,7 +107,7 @@ export class MysqlUi {
       },
       {
         cn: 'updated_at',
-        dt: 'timestamp',
+        dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar(45)',
         nrqd: true,
@@ -120,7 +116,7 @@ export class MysqlUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
+        cdf: 'GETDATE()',
         clen: 45,
         np: null,
         ns: null,
@@ -151,7 +147,7 @@ export class MysqlUi {
       np: null,
       ns: null,
       // data_type_x_specific: ' ',
-      dtxp: '11',
+      dtxp: '',
       dtxs: ' ',
       altered: 1,
       uidt: 'Number',
@@ -160,400 +156,508 @@ export class MysqlUi {
     }
   }
 
+  // static getDefaultLengthForDatatype(type) {
+  //   switch (type) {
+  //     case "int":
+  //       return 11;
+  //       break;
+  //     case "tinyint":
+  //       return 1;
+  //       break;
+  //     case "smallint":
+  //       return 5;
+  //       break;
+  //
+  //     case "mediumint":
+  //       return 9;
+  //       break;
+  //     case "bigint":
+  //       return 20;
+  //       break;
+  //     case "bit":
+  //       return 64;
+  //       break;
+  //     case "boolean":
+  //       return '';
+  //       break;
+  //     case "float":
+  //       return 12;
+  //       break;
+  //     case "decimal":
+  //       return 10;
+  //       break;
+  //     case "double":
+  //       return 22;
+  //       break;
+  //     case "serial":
+  //       return 20;
+  //       break;
+  //     case "date":
+  //       return '';
+  //       break;
+  //     case "datetime":
+  //     case "timestamp":
+  //       return 6;
+  //       break;
+  //     case "time":
+  //       return '';
+  //       break;
+  //     case "year":
+  //       return '';
+  //       break;
+  //     case "char":
+  //       return 255;
+  //       break;
+  //     case "varchar":
+  //       return 45;
+  //       break;
+  //     case "nchar":
+  //       return 255;
+  //       break;
+  //     case "text":
+  //       return '';
+  //       break;
+  //     case "tinytext":
+  //       return '';
+  //       break;
+  //     case "mediumtext":
+  //       return '';
+  //       break;
+  //     case "longtext":
+  //       return ''
+  //       break;
+  //     case "binary":
+  //       return 255;
+  //       break;
+  //     case "varbinary":
+  //       return 65500;
+  //       break;
+  //     case "blob":
+  //       return '';
+  //       break;
+  //     case "tinyblob":
+  //       return '';
+  //       break;
+  //     case "mediumblob":
+  //       return '';
+  //       break;
+  //     case "longblob":
+  //       return '';
+  //       break;
+  //     case "enum":
+  //       return '\'a\',\'b\'';
+  //       break;
+  //     case "set":
+  //       return '\'a\',\'b\'';
+  //       break;
+  //     case "geometry":
+  //       return '';
+  //     case "point":
+  //       return '';
+  //     case "linestring":
+  //       return '';
+  //     case "polygon":
+  //       return '';
+  //     case "multipoint":
+  //       return '';
+  //     case "multilinestring":
+  //       return '';
+  //     case "multipolygon":
+  //       return '';
+  //     case "json":
+  //       return ''
+  //       break;
+  //
+  //   }
+  //
+  // }
+
   static getDefaultLengthForDatatype(type) {
     switch (type) {
-      case 'int':
-        return 11
-
-      case 'tinyint':
-        return 1
-
-      case 'smallint':
-        return 5
-
-      case 'mediumint':
-        return 9
-
       case 'bigint':
-        return 20
-
-      case 'bit':
-        return 64
-
-      case 'boolean':
         return ''
 
-      case 'float':
-        return 12
+      case 'binary':
+        return ''
 
-      case 'decimal':
-        return 10
+      case 'bit':
+        return ''
 
-      case 'double':
-        return 22
-
-      case 'serial':
-        return 20
+      case 'char':
+        return ''
 
       case 'date':
         return ''
 
       case 'datetime':
-      case 'timestamp':
-        return 6
-
-      case 'time':
         return ''
 
-      case 'year':
+      case 'datetime2':
         return ''
 
-      case 'char':
-        return 255
+      case 'datetimeoffset':
+        return ''
 
-      case 'varchar':
-        return 45
+      case 'decimal':
+        return ''
+
+      case 'float':
+        return ''
+
+      case 'geography':
+        return ''
+
+      case 'geometry':
+        return ''
+
+      case 'heirarchyid':
+        return ''
+
+      case 'image':
+        return ''
+
+      case 'int':
+        return ''
+
+      case 'money':
+        return ''
 
       case 'nchar':
-        return 255
+        return ''
+
+      case 'ntext':
+        return ''
+
+      case 'numeric':
+        return ''
+
+      case 'nvarchar':
+        return ''
+
+      case 'real':
+        return ''
+
+      case 'json':
+        return ''
+
+      case 'smalldatetime':
+        return ''
+
+      case 'smallint':
+        return ''
+
+      case 'smallmoney':
+        return ''
+
+      case 'sql_variant':
+        return ''
+
+      case 'sysname':
+        return ''
 
       case 'text':
         return ''
 
-      case 'tinytext':
+      case 'time':
         return ''
 
-      case 'mediumtext':
+      case 'timestamp':
         return ''
 
-      case 'longtext':
+      case 'tinyint':
         return ''
 
-      case 'binary':
-        return 255
+      case 'uniqueidentifier':
+        return ''
 
       case 'varbinary':
-        return 65500
-
-      case 'blob':
         return ''
 
-      case 'tinyblob':
+      case 'xml':
         return ''
 
-      case 'mediumblob':
+      case 'varchar':
         return ''
 
-      case 'longblob':
-        return ''
-
-      case 'enum':
-        return '\'a\',\'b\''
-
-      case 'set':
-        return '\'a\',\'b\''
-
-      case 'geometry':
-        return ''
-      case 'point':
-        return ''
-      case 'linestring':
-        return ''
-      case 'polygon':
-        return ''
-      case 'multipoint':
-        return ''
-      case 'multilinestring':
-        return ''
-      case 'multipolygon':
-        return ''
-      case 'json':
+      default:
         return ''
     }
   }
 
   static getDefaultLengthIsDisabled(type) {
     switch (type) {
-      case 'int':
-      case 'tinyint':
-      case 'smallint':
-      case 'mediumint':
       case 'bigint':
-      case 'float':
-      case 'decimal':
-      case 'double':
-      case 'serial':
-      case 'datetime':
-      case 'timestamp':
-      case 'char':
-      case 'varchar':
-      case 'nchar':
       case 'binary':
-      case 'varbinary':
-      case 'enum':
-      case 'set':
-      case 'geometry':
-      case 'point':
-      case 'linestring':
-      case 'polygon':
-      case 'multipoint':
-      case 'multilinestring':
-      case 'multipolygon':
-      case 'json':
       case 'bit':
+      case 'char':
+      case 'date':
+      case 'datetime':
+      case 'datetime2':
+      case 'datetimeoffset':
+      case 'decimal':
+      case 'float':
+      case 'geography':
+      case 'geometry':
+      case 'heirarchyid':
+      case 'image':
+      case 'int':
+      case 'money':
+      case 'nchar':
+      case 'ntext':
+      case 'numeric':
+      case 'nvarchar':
+      case 'real':
+      case 'json':
+      case 'smalldatetime':
+      case 'smallint':
+      case 'smallmoney':
+      case 'sql_variant':
+      case 'sysname':
+      case 'text':
+      case 'time':
+      case 'timestamp':
+      case 'tinyint':
+      case 'uniqueidentifier':
+      case 'varbinary':
+      case 'xml':
+        return true
+
+      case 'varchar':
         return false
 
-      case 'boolean':
-      case 'date':
-      case 'time':
-      case 'year':
-      case 'text':
-      case 'tinytext':
-      case 'mediumtext':
-      case 'longtext':
-      case 'blob':
-      case 'tinyblob':
-      case 'mediumblob':
-      case 'longblob':
+      default:
         return true
     }
   }
 
   static getDefaultValueForDatatype(type) {
     switch (type) {
-      case 'int':
-        return 'eg : ' + 10
-
-      case 'tinyint':
-        return 'eg : ' + 1
-
-      case 'smallint':
-        return 'eg : ' + 10
-
-      case 'mediumint':
-        return 'eg : ' + 10
-
       case 'bigint':
-        return 'eg : ' + 100
-
-      case 'bit':
-        return 'eg : ' + 1
-
-      case 'boolean':
-        return 'eg : ' + 1
-
-      case 'float':
-        return 'eg : ' + 10.0
-
-      case 'decimal':
-        return 'eg : ' + 10.0
-
-      case 'double':
-        return 'eg : ' + 10.0
-
-      case 'serial':
-        return 'eg : ' + 100
-
-      case 'date':
-        return 'eg : ' + '2020-09-09'
-
-      case 'datetime':
-        return 'eg : ' + 'now()\n\nCURRENT_TIMESTAMP\n\nCURRENT_TIMESTAMP on update CURRENT_TIMESTAMP\n\n1992-10-12 00:00:00'
-
-      case 'timestamp':
-        return 'eg : ' + 'now()\n\nCURRENT_TIMESTAMP\n\nCURRENT_TIMESTAMP on update CURRENT_TIMESTAMP\n\n1992-10-12 00:00:00'
-
-      case 'time':
-        return 'eg : ' + '00:00:00'
-
-      case 'year':
-        return 'eg : ' + '2020'
-
-      case 'char':
-        return 'eg : ' + 'a'
-
-      case 'varchar':
-        return 'eg : ' + 'hey'
-
-      case 'nchar':
-        return 'eg : ' + 'hey'
-
-      case 'text':
-        return 'eg : ' + 'hey'
-
-      case 'tinytext':
-        return 'eg : ' + 'hey'
-
-      case 'mediumtext':
-        return 'eg : ' + 'hey'
-
-      case 'longtext':
-        return 'eg : ' + 'hey'
+        return 'eg: '
 
       case 'binary':
-        return 'eg : ' + 1
+        return 'eg: '
 
-      case 'varbinary':
-        return 'eg : ' + 'hey'
+      case 'bit':
+        return 'eg: '
 
-      case 'blob':
-        return 'eg : ' + 'hey'
+      case 'char':
+        return 'eg: '
 
-      case 'tinyblob':
-        return 'eg : ' + 'hey'
+      case 'date':
+        return 'eg: '
 
-      case 'mediumblob':
-        return 'eg : ' + 'hey'
+      case 'datetime':
+        return 'eg: '
 
-      case 'longblob':
-        return 'eg : ' + 'hey'
+      case 'datetime2':
+        return 'eg: '
 
-      case 'enum':
-        return 'eg : ' + 'a'
+      case 'datetimeoffset':
+        return 'eg: '
 
-      case 'set':
-        return 'eg : ' + 'a'
+      case 'decimal':
+        return 'eg: '
+
+      case 'float':
+        return 'eg: '
+
+      case 'geography':
+        return 'eg: '
 
       case 'geometry':
-        return 'geometry can\'t have default value'
+        return 'eg: '
 
-      case 'point':
-        return 'point can\'t have default value'
+      case 'heirarchyid':
+        return 'eg: '
 
-      case 'linestring':
-        return 'linestring can\'t have default value'
+      case 'image':
+        return 'eg: '
 
-      case 'polygon':
-        return 'polygon can\'t have default value'
+      case 'int':
+        return 'eg: '
 
-      case 'multipoint':
-        return 'multipoint can\'t have default value'
+      case 'money':
+        return 'eg: '
 
-      case 'multilinestring':
-        return 'multilinestring can\'t have default value'
+      case 'nchar':
+        return 'eg: '
 
-      case 'multipolygon':
-        return 'multipolygon can\'t have default value'
+      case 'ntext':
+        return 'eg: '
+
+      case 'numeric':
+        return 'eg: '
+
+      case 'nvarchar':
+        return 'eg: '
+
+      case 'real':
+        return 'eg: '
 
       case 'json':
-        return 'JSON can\'t have default value'
+        return 'eg: '
+
+      case 'smalldatetime':
+        return 'eg: '
+
+      case 'smallint':
+        return 'eg: '
+
+      case 'smallmoney':
+        return 'eg: '
+
+      case 'sql_variant':
+        return 'eg: '
+
+      case 'sysname':
+        return 'eg: '
+
+      case 'text':
+        return 'eg: '
+
+      case 'time':
+        return 'eg: '
+
+      case 'timestamp':
+        return 'eg: '
+
+      case 'tinyint':
+        return 'eg: '
+
+      case 'uniqueidentifier':
+        return 'eg: '
+
+      case 'varbinary':
+        return 'eg: '
+
+      case 'xml':
+        return 'eg: '
+
+      case 'varchar':
+        return 'eg: '
+
+      default:
+        return ''
     }
   }
 
   static getDefaultScaleForDatatype(type) {
     switch (type) {
-      case 'int':
-        return ' '
-
-      case 'tinyint':
-        return ' '
-
-      case 'smallint':
-        return ' '
-
-      case 'mediumint':
-        return ' '
-
       case 'bigint':
-        return ' '
-
-      case 'bit':
-        return ' '
-
-      case 'boolean':
-        return ' '
-
-      case 'float':
-        return '2'
-
-      case 'decimal':
-        return '2'
-
-      case 'double':
-        return '2'
-
-      case 'serial':
-        return ' '
-
-      case 'date':
-      case 'datetime':
-      case 'timestamp':
-        return ' '
-
-      case 'time':
-        return ' '
-
-      case 'year':
-        return ' '
-
-      case 'char':
-        return ' '
-
-      case 'varchar':
-        return ' '
-
-      case 'nchar':
-        return ' '
-
-      case 'text':
-        return ' '
-
-      case 'tinytext':
-        return ' '
-
-      case 'mediumtext':
-        return ' '
-
-      case 'longtext':
-        return ' '
+        return ''
 
       case 'binary':
-        return ' '
+        return ''
 
-      case 'varbinary':
-        return ' '
+      case 'bit':
+        return ''
 
-      case 'blob':
-        return ' '
+      case 'char':
+        return ''
 
-      case 'tinyblob':
-        return ' '
+      case 'date':
+        return ''
 
-      case 'mediumblob':
-        return ' '
+      case 'datetime':
+        return ''
 
-      case 'longblob':
-        return ' '
+      case 'datetime2':
+        return ''
 
-      case 'enum':
-        return ' '
+      case 'datetimeoffset':
+        return ''
 
-      case 'set':
-        return ' '
+      case 'decimal':
+        return ''
+
+      case 'float':
+        return ''
+
+      case 'geography':
+        return ''
 
       case 'geometry':
-        return ' '
-      case 'point':
-        return ' '
-      case 'linestring':
-        return ' '
-      case 'polygon':
-        return ' '
-      case 'multipoint':
-        return ' '
-      case 'multilinestring':
-        return ' '
-      case 'multipolygon':
-        return ' '
+        return ''
+
+      case 'heirarchyid':
+        return ''
+
+      case 'image':
+        return ''
+
+      case 'int':
+        return ''
+
+      case 'money':
+        return ''
+
+      case 'nchar':
+        return ''
+
+      case 'ntext':
+        return ''
+
+      case 'numeric':
+        return ''
+
+      case 'nvarchar':
+        return ''
+
+      case 'real':
+        return ''
+
       case 'json':
-        return ' '
+        return ''
+
+      case 'smalldatetime':
+        return ''
+
+      case 'smallint':
+        return ''
+
+      case 'smallmoney':
+        return ''
+
+      case 'sql_variant':
+        return ''
+
+      case 'sysname':
+        return ''
+
+      case 'text':
+        return ''
+
+      case 'time':
+        return ''
+
+      case 'timestamp':
+        return ''
+
+      case 'tinyint':
+        return ''
+
+      case 'uniqueidentifier':
+        return ''
+
+      case 'varbinary':
+        return ''
+
+      case 'xml':
+        return ''
+
+      case 'varchar':
+        return ''
+
+      default:
+        return ''
     }
   }
 
   static colPropAIDisabled(col, columns) {
     // console.log(col);
-    if (col.dt === 'int' ||
-      col.dt === 'tinyint' ||
+    if (col.dt === 'int4' ||
+      col.dt === 'integer' ||
       col.dt === 'bigint' ||
       col.dt === 'smallint') {
       for (let i = 0; i < columns.length; ++i) {
@@ -569,15 +673,16 @@ export class MysqlUi {
 
   static colPropUNDisabled(col) {
     // console.log(col);
-    if (col.dt === 'int' ||
-      col.dt === 'tinyint' ||
-      col.dt === 'smallint' ||
-      col.dt === 'mediumint' ||
-      col.dt === 'bigint') {
-      return false
-    } else {
-      return true
-    }
+    return true
+    // if (col.dt === 'int' ||
+    //   col.dt === 'tinyint' ||
+    //   col.dt === 'smallint' ||
+    //   col.dt === 'mediumint' ||
+    //   col.dt === 'bigint') {
+    //   return false;
+    // } else {
+    //   return true;
+    // }
   }
 
   static onCheckboxChangeAI(col) {
@@ -593,24 +698,8 @@ export class MysqlUi {
     // }
   }
 
-  static onCheckboxChangeAU(col) {
-    console.log(col)
-    // if (1) {
-    col.altered = col.altered || 2
-    // }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
-  }
-
   static showScale(columnObj) {
-    return (columnObj.dt === 'float' ||
-      columnObj.dt === 'decimal' ||
-      columnObj.dt === 'double' ||
-      columnObj.dt === 'real')
+    return false
   }
 
   static removeUnsigned(columns) {
@@ -632,19 +721,20 @@ export class MysqlUi {
   }
 
   static extractFunctionName(query) {
-    const reg = /^\s*CREATE\s+.*?(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:`?[\w\d_]+`?\.)?`?([\w_\d]+)`?/i
+    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
     const match = query.match(reg)
     return match && match[1]
   }
 
   static extractProcedureName(query) {
-    const reg = /^\s*CREATE.*?\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
+    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
     const match = query.match(reg)
     return match && match[1]
   }
 
   static handleRawOutput(result, headers) {
-    result = result[0] ? result[0] : []
+    console.log(result)
+
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0])
       // set headers before settings result
@@ -652,13 +742,9 @@ export class MysqlUi {
         const text = keys[i]
         headers.push({ text, value: text, sortable: false })
       }
-    } else {
-      const keys = Object.keys(result)
-      for (let i = 0; i < keys.length; i++) {
-        const text = keys[i]
-        if (typeof text !== 'function') { headers.push({ text, value: text, sortable: false }) }
-      }
-      result = [result]
+    } else if (result === undefined) {
+      headers.push({ text: 'Message', value: 'message', sortable: false })
+      result = [{ message: 'Success' }]
     }
     return result
   }
@@ -676,7 +762,7 @@ export class MysqlUi {
    * @param args
    * @returns {string|*}
    */
-  static sanitiseQuery(args) {
+  sanitiseQuery(args) {
     let q = args.query.trim().split(';')
 
     if (q[0].startsWith('Select')) {
@@ -727,7 +813,7 @@ export class MysqlUi {
           switch (typeof json[keys[i]]) {
             case 'number':
               if (Number.isInteger(json[keys[i]])) {
-                if (MysqlUi.isValidTimestamp(keys[i], json[keys[i]])) {
+                if (MssqlUi.isValidTimestamp(keys[i], json[keys[i]])) {
                   Object.assign(column, {
                     dt: 'timestamp'
                   })
@@ -749,7 +835,7 @@ export class MysqlUi {
               }
               break
             case 'string':
-              if (MysqlUi.isValidDate(json[keys[i]])) {
+              if (MssqlUi.isValidDate(json[keys[i]])) {
                 Object.assign(column, {
                   dt: 'datetime'
                 })
@@ -768,16 +854,17 @@ export class MysqlUi {
               break
             case 'boolean':
               Object.assign(column, {
-                dt: 'boolean',
-                np: 3,
+                dt: 'bit',
+                np: null,
                 ns: 0
               })
               break
             case 'object':
               Object.assign(column, {
-                dt: 'json',
-                np: 3,
-                ns: 0
+                dt: 'varchar',
+                np: 255,
+                ns: 0,
+                dtxp: '255'
               })
               break
             default:
@@ -802,8 +889,102 @@ export class MysqlUi {
     return new Date(value).getTime() > 0
   }
 
+  static onCheckboxChangeAU(col) {
+    console.log(col)
+    // if (1) {
+    col.altered = col.altered || 2
+    // }
+
+    // if (!col.ai) {
+    //   col.dtx = 'specificType'
+    // } else {
+    //   col.dtx = ''
+    // }
+  }
+
   static colPropAuDisabled(col) {
-    return true
+    if (col.altered !== 1) { return true }
+
+    switch (col.dt) {
+      case 'date':
+      case 'datetime':
+      case 'datetime2':
+      case 'datetimeoffset':
+      case 'time':
+      case 'timestamp':
+        return false
+
+      default:
+        return true
+    }
+  }
+
+  static getAbstractType(col) {
+    switch ((col.dt || col.dt).toLowerCase()) {
+      case 'bigint':
+      case 'smallint':
+      case 'bit':
+      case 'tinyint':
+      case 'int':
+        return 'integer'
+
+      case 'binary':
+        return 'string'
+
+      case 'char':
+        return 'string'
+
+      case 'date':
+        return 'date'
+      case 'datetime':
+      case 'datetime2':
+      case 'smalldatetime':
+      case 'datetimeoffset':
+        return 'datetime'
+      case 'decimal':
+      case 'float':
+        return 'float'
+
+      case 'geography':
+      case 'geometry':
+      case 'heirarchyid':
+      case 'image':
+        return 'string'
+
+      case 'money':
+      case 'nchar':
+        return 'string'
+
+      case 'ntext':
+        return 'text'
+      case 'numeric':
+        return 'float'
+      case 'nvarchar':
+        return 'string'
+      case 'real':
+        return 'float'
+
+      case 'json':
+        return 'json'
+
+      case 'smallmoney':
+      case 'sql_variant':
+      case 'sysname':
+        return 'string'
+      case 'text':
+        return 'text'
+      case 'time':
+        return 'time'
+      case 'timestamp':
+        return 'timestamp'
+
+      case 'uniqueidentifier':
+      case 'varbinary':
+      case 'xml':
+        return 'string'
+      case 'varchar':
+        return 'string'
+    }
   }
 
   static getUIType(col) {
@@ -817,7 +998,7 @@ export class MysqlUi {
       case 'date':
         return 'Date'
       case 'datetime':
-        return 'DateTime'
+        return 'CreateTime'
       case 'time':
         return 'Time'
       case 'year':
@@ -834,80 +1015,6 @@ export class MysqlUi {
         return 'MultiSelect'
       case 'json':
         return 'LongText'
-    }
-  }
-
-  static getAbstractType(col) {
-    switch (col.dt.toLowerCase()) {
-      case 'int':
-      case 'smallint':
-      case 'mediumint':
-      case 'bigint':
-      case 'bit':
-        return 'integer'
-
-      case 'boolean':
-        return 'boolean'
-
-      case 'float':
-      case 'decimal':
-      case 'double':
-      case 'serial':
-        return 'float'
-      case 'tinyint':
-        // eslint-disable-next-line eqeqeq
-        if (col.dtxp == '1') {
-          return 'boolean'
-        } else {
-          return 'integer'
-        }
-      case 'date':
-        return 'date'
-      case 'datetime':
-      case 'timestamp':
-        return 'datetime'
-      case 'time':
-        return 'time'
-      case 'year':
-        return 'year'
-      case 'char':
-      case 'varchar':
-      case 'nchar':
-        return 'string'
-      case 'text':
-      case 'tinytext':
-      case 'mediumtext':
-      case 'longtext':
-        return 'text'
-
-      // todo: use proper type
-      case 'binary':
-        return 'string'
-      case 'varbinary':
-        return 'text'
-
-      case 'blob':
-      case 'tinyblob':
-      case 'mediumblob':
-      case 'longblob':
-        return 'blob'
-
-      case 'enum':
-        return 'enum'
-      case 'set':
-        return 'set'
-
-      case 'geometry':
-      case 'point':
-      case 'linestring':
-      case 'polygon':
-      case 'multipoint':
-      case 'multilinestring':
-      case 'multipolygon':
-        return 'string'
-
-      case 'json':
-        return 'json'
     }
   }
 
@@ -938,10 +1045,10 @@ export class MysqlUi {
         colProp.dtxp = 1
         break
       case 'MultiSelect':
-        colProp.dt = 'set'
+        colProp.dt = 'text'
         break
       case 'SingleSelect':
-        colProp.dt = 'enum'
+        colProp.dt = 'text'
         break
       case 'Collaborator':
         colProp.dt = 'varchar'
@@ -951,26 +1058,22 @@ export class MysqlUi {
 
         break
       case 'Year':
-        colProp.dt = 'year'
+        colProp.dt = 'int'
         break
       case 'Time':
         colProp.dt = 'time'
         break
       case 'PhoneNumber':
         colProp.dt = 'varchar'
-        colProp.validate = {
-          func: ['isMobilePhone'],
-          args: [''],
-          msg: ['Validation failed : isMobilePhone ({cn})']
-        }
+        colProp.validate = { func: ['isMobilePhone'], args: [''], msg: ['Validation failed : isMobilePhone'] }
         break
       case 'Email':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail ({cn})'] }
+        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail'] }
         break
       case 'URL':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL ({cn})'] }
+        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL'] }
         break
       case 'Number':
         colProp.dt = 'int'
@@ -1021,9 +1124,6 @@ export class MysqlUi {
       case 'Button':
         colProp.dt = 'varchar'
         break
-      case 'JSON':
-        colProp.dt = 'json'
-        break
       default:
         colProp.dt = 'varchar'
         break
@@ -1039,64 +1139,40 @@ export class MysqlUi {
 
       case 'SingleLineText':
       case 'LongText':
+      case 'Attachment':
       case 'Collaborator':
         return [
           'char',
-          'varchar',
-          'nchar',
+          'ntext',
           'text',
-          'tinytext',
-          'mediumtext',
-          'longtext'
+          'varchar',
+          'nvarchar'
         ]
 
-      case 'Attachment':
-        return [
-          'json',
-          'char',
-          'varchar',
-          'nchar',
-          'text',
-          'tinytext',
-          'mediumtext',
-          'longtext'
-        ]
-
-      case 'JSON':
-        return [
-          'json',
-          'text',
-          'tinytext',
-          'mediumtext',
-          'longtext'
-        ]
+      case 'JSON' :
+        return ['text', 'ntext']
 
       case 'Checkbox':
         return [
-          'int',
-          'smallint',
-          'mediumint',
           'bigint',
           'bit',
-          'boolean',
-          'serial',
+          'int',
           'tinyint'
         ]
 
       case 'MultiSelect':
-        return ['set', 'text',
-          'tinytext',
-          'mediumtext',
-          'longtext']
+        return [
+          'text', 'ntext'
+        ]
 
       case 'SingleSelect':
-        return ['enum', 'text',
-          'tinytext',
-          'mediumtext',
-          'longtext']
+        return [
+          'text',
+          'ntext'
+        ]
 
       case 'Year':
-        return ['year']
+        return ['int']
 
       case 'Time':
         return ['time']
@@ -1109,105 +1185,109 @@ export class MysqlUi {
 
       case 'URL':
         return [
-          'text',
-          'tinytext',
-          'mediumtext',
-          'longtext',
-          'varchar'
+          'varchar',
+          'text'
         ]
 
       case 'Number':
         return [
           'int',
-          'smallint',
-          'mediumint',
           'bigint',
           'bit',
-          'float',
           'decimal',
-          'double',
-          'serial'
+          'float',
+          'numeric',
+          'real',
+          'smallint',
+          'tinyint'
         ]
 
       case 'Decimal':
         return [
-          'float',
+
           'decimal',
-          'double',
-          'serial'
+          'float'
         ]
 
       case 'Currency':
-        return ['decimal',
-          'float',
-          'double',
-          'serial', 'int',
-          'smallint',
-          'mediumint',
+        return [
+          'int',
           'bigint',
-          'bit']
+          'bit',
+          'decimal',
+          'float',
+          'numeric',
+          'real',
+          'smallint',
+          'tinyint']
 
       case 'Percent':
-        return ['decimal',
-          'float',
-          'double',
-          'serial', 'int',
-          'smallint',
-          'mediumint',
+        return [
+          'int',
           'bigint',
-          'bit']
+          'bit',
+          'decimal',
+          'float',
+          'numeric',
+          'real',
+          'smallint',
+          'tinyint'
+        ]
 
       case 'Duration':
-        return ['decimal',
-          'float',
-          'double',
-          'serial', 'int',
-          'smallint',
-          'mediumint',
+        return [
+          'int',
           'bigint',
-          'bit']
+          'bit',
+          'decimal',
+          'float',
+          'numeric',
+          'real',
+          'smallint',
+          'tinyint']
 
       case 'Rating':
-        return ['decimal',
-          'float',
-          'double',
-          'serial', 'int',
-          'smallint',
-          'mediumint',
+        return [
+          'int',
           'bigint',
-          'bit']
+          'bit',
+          'decimal',
+          'float',
+          'numeric',
+          'real',
+          'smallint',
+          'tinyint']
 
       case 'Formula':
         return [
-          'char',
-          'varchar',
-          'nchar',
           'text',
-          'tinytext',
-          'mediumtext',
-          'longtext'
+          'ntext',
+          'varchar',
+          'nvarchar'
         ]
 
       case 'Rollup':
-        return ['varchar']
+        return [
+          'varchar'
+        ]
 
       case 'Count':
         return [
           'int',
-          'smallint',
-          'mediumint',
           'bigint',
-          'serial']
+          'smallint',
+          'tinyint'
+        ]
 
       case 'Lookup':
-        return ['varchar']
+        return [
+          'varchar'
+        ]
 
       case 'Date':
         return [
-          'date',
-          'datetime',
-          'timestamp',
-          'varchar'
+          'date'
+
         ]
 
       case 'DateTime':
@@ -1215,29 +1295,25 @@ export class MysqlUi {
       case 'LastModifiedTime':
         return [
           'datetime',
-          'timestamp',
-          'varchar'
+          'datetime2',
+          'datetimeoffset'
         ]
 
       case 'AutoNumber':
         return [
           'int',
+          'bigint',
           'smallint',
-          'mediumint',
-          'bigint']
+          'tinyint'
+        ]
 
       case 'Barcode':
         return ['varchar']
 
       case 'Geometry':
         return [
-          'geometry',
-          'point',
-          'linestring',
-          'polygon',
-          'multipoint',
-          'multilinestring',
-          'multipolygon'
+
+          'geometry'
         ]
 
       case 'Button':
@@ -1245,9 +1321,13 @@ export class MysqlUi {
         return dbTypes
     }
   }
+
+  static getUnsupportedFnList() {
+    return []
+  }
 }
 
-// module.exports = MysqlUiHelp;
+// module.exports = PgUiHelp;
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

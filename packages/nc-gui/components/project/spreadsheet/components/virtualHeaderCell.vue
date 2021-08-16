@@ -11,6 +11,9 @@
         <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
           mdi-table-network
         </v-icon>
+        <v-icon v-else-if="column.formula" x-small class="mr-1" v-on="on">
+          mdi-math-integral
+        </v-icon>
         <template v-else-if="column.lk">
           <v-icon v-if="column.lk.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
@@ -24,7 +27,6 @@
         </template>
 
         <span class="name  flex-grow-1" :title="column._cn" v-on="on" v-html="alias">
-
           <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
         </span>
       </template>
@@ -107,6 +109,7 @@
         :edit-column="true"
         :column="column"
         :meta="meta"
+        :sql-ui="sqlUi"
         v-on="$listeners"
       />
     </v-menu>
@@ -118,7 +121,7 @@ import EditVirtualColumn from '@/components/project/spreadsheet/components/editV
 export default {
   name: 'VirtualHeaderCell',
   components: { EditVirtualColumn },
-  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView'],
+  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi'],
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false
@@ -199,6 +202,8 @@ export default {
         return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
       } else if (this.column.lk) {
         return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
+      } else if (this.column.formula) {
+        return `Formula - ${this.column.formula.value}`
       }
       return ''
     }
@@ -252,9 +257,36 @@ export default {
         console.log(e)
       }
     },
+    async deleteFormulaColumn() {
+      try {
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.nodes.dbAlias,
+          env: this.nodes.env,
+          tn: this.meta.tn,
+          force: true
+        })
+        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
+        // remove formula from virtual columns
+        meta.v = meta.v.filter(cl => !cl.formula || cl._cn !== this.column._cn)
+
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcModelSet', {
+          tn: this.nodes.tn,
+          meta
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
+      } catch (e) {
+        console.log(e)
+      }
+    },
     async deleteColumn() {
       if (this.column.lk) {
         await this.deleteLookupColumn()
+      } else if (this.column.formula) {
+        await this.deleteFormulaColumn()
       } else {
         await this.deleteRelation()
       }

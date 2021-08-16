@@ -325,7 +325,7 @@ import { VueTreeList, Tree, TreeNode } from 'vue-tree-list'
 import { Splitpanes, Pane } from 'splitpanes'
 import sqlRightClickOptions from '../../helpers/sqlRightClickOptions'
 import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel.vue'
-import { SqlUI } from '../../helpers/SqlUiFactory'
+import { SqlUI } from '../../helpers/sqlUi/SqlUiFactory'
 
 import Utils from '../../helpers/Utils'
 

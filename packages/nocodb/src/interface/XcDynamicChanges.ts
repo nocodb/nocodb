@@ -4,7 +4,7 @@ export default interface XcDynamicChanges {
   onTableDelete(tn: string): Promise<void>;
   onTableRename(oldTableName: string, newTableName: string): Promise<void>;
   onHandlerCodeUpdate(tn: string): Promise<void>;
-  onValidationUpdate(tn:string):Promise<void>;
+  onMetaUpdate(tn:string):Promise<void>;
 }
 
 

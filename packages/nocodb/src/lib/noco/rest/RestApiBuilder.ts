@@ -291,7 +291,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       r._rtn = args?.tableNames?.find(t => t.tn === r.rtn)?._tn || this.getTableNameAlias(r.rtn);
       r._tn = args?.tableNames?.find(t => t.tn === r.tn)?._tn || this.getTableNameAlias(r.tn);
       r.enabled = true;
-    })
+    });
 
 
     this.relationsCount = relations.length;
@@ -398,7 +398,13 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         this.log('xcTablesPopulate : Generating swagger apis for \'%s\' - %s', table.tn, table.type)
         /* create swagger json for table */
-        swaggerRefs[table.tn].push(await new SwaggerXc({dir: '', ctx, filename: ''}).getObject())
+        swaggerRefs[table.tn].push(await new SwaggerXc({
+          dir: '',
+          ctx: {
+            ...ctx,
+            v: meta.v
+          }, filename: ''
+        }).getObject())
 
         await this.generateAndSaveAcl(table.tn, table.type);
 
@@ -558,7 +564,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     await NcHelp.executeOperations(relationRoutes, this.connectionConfig.client);
 
 
-    await this.getManyToManyRelations();
 
 
     const swaggerDoc = {
@@ -593,6 +598,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       await this.generateSwaggerJson(swaggerDoc);
     }
 
+
+    await this.getManyToManyRelations();
 
   }
 
@@ -995,7 +1002,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   // NOTE: xc-meta
   public async onRelationCreate(tnp: string, tnc: string, args): Promise<void> {
     await super.onRelationCreate(tnp, tnc, args)
-    const newRelatedTableSwagger = [];
+    // const newRelatedTableSwagger = [];
     this.log('onRelationCreate : \'%s\' ==> \'%s\'', tnp, tnc)
 
     this.deleteRoutesForTables([tnp, tnc])
@@ -1004,6 +1011,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const swaggerArr = [];
       const columns = this.metas[tnp]?.columns;
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);
+      const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnp);
 
       // set table name alias
       hasMany.forEach(r => {
@@ -1011,10 +1019,9 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         r._tn = this.getTableNameAlias(r.tn);
       })
 
-      const ctx = this.generateContextForTable(tnp, columns, relations, hasMany, []);
+      const ctx = this.generateContextForTable(tnp, columns, relations, hasMany, belongsTo);
       const meta = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
 
-      newRelatedTableSwagger.push(new SwaggerXc({ctx}).getObject());
 
       // update old model meta with new details
       const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnp});
@@ -1025,7 +1032,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
 
 
-      swaggerArr.push(JSON.parse(existingModel.schema));
+      // swaggerArr.push(JSON.parse(existingModel.schema));
       if (existingModel) {
         this.log(`onRelationCreate : Updating model metadata for parent table '%s'`, tnp);
         // todo: persisting old table_alias and columnAlias
@@ -1045,6 +1052,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           hm: meta.hasMany.find(hm => hm.rtn === tnp && hm.tn === tnc),
           _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
         })
+
+        swaggerArr.push(new SwaggerXc({ctx: {...ctx, v: oldMeta.v}}).getObject());
 
 
         if (queryParams?.showFields) {
@@ -1100,7 +1109,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const swaggerArr = [];
       const columns = this.metas[tnc]?.columns;
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnc);
-      const ctx = this.generateContextForTable(tnc, columns, relations, [], belongsTo);
+      const hasMany = this.extractHasManyRelationsOfTable(relations, tnc);
+      const ctx = this.generateContextForTable(tnc, columns, relations, hasMany, belongsTo);
       const meta = ModelXcMetaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getObject();
 
 
@@ -1121,7 +1131,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
 
 
-      swaggerArr.push(JSON.parse(existingModel.schema))
+      // swaggerArr.push(JSON.parse(existingModel.schema))
       if (existingModel) {
         meta.belongsTo.forEach(hm => {
           hm.enabled = true;
@@ -1139,6 +1149,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           bt: meta.belongsTo.find(hm => hm.rtn === tnp && hm.tn === tnc),
           _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
         })
+
+        swaggerArr.push(new SwaggerXc({ctx: {...ctx, v: oldMeta.v}}).getObject());
 
 
         if (queryParams?.showFields) {
@@ -1744,6 +1756,94 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     // add new routes
 
   }
+
+  public async onMetaUpdate(tn: string) {
+    await super.onMetaUpdate(tn);
+    const ctx = this.generateContextForTable(
+      tn,
+      this.metas[tn].columns,
+      [...this.metas[tn].belongsTo, ...this.metas[tn].hasMany],
+      this.metas[tn].hasMany,
+      this.metas[tn].belongsTo
+    );
+
+    const swaggerDoc = await new SwaggerXc({
+      dir: '', ctx: {
+        ...ctx,
+        v: this.metas[tn].v
+      }, filename: ''
+    }).getObject();
+    const meta = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+      title: tn,
+      type: 'table'
+    });
+    const oldSwaggerDoc = JSON.parse(meta.schema);
+
+    // keep upto 5 schema backup on table update
+    let previousSchemas = [oldSwaggerDoc]
+    if (meta.schema_previous) {
+      previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
+    }
+
+
+    oldSwaggerDoc.definitions = swaggerDoc.definitions;
+    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+      schema: JSON.stringify(oldSwaggerDoc),
+      schema_previous: JSON.stringify(previousSchemas)
+    }, {
+      title: tn,
+      type: 'table'
+    });
+
+    await this.onSwaggerDocUpdate(tn);
+  }
+
+
+  protected async getManyToManyRelations(args = {}): Promise<Set<any>> {
+    const metas:Set<any> = await super.getManyToManyRelations(args);
+
+    for (const metaObj of metas) {
+
+      const ctx = this.generateContextForTable(
+        metaObj.tn,
+        metaObj.columns,
+        [...metaObj.belongsTo, ...metaObj.hasMany],
+        metaObj.hasMany,
+        metaObj.belongsTo
+      );
+
+      const swaggerDoc = await new SwaggerXc({
+        dir: '', ctx: {
+          ...ctx,
+          v: metaObj.v
+        }, filename: ''
+      }).getObject();
+
+      const meta = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        title: metaObj.tn,
+        type: 'table'
+      });
+      const oldSwaggerDoc = JSON.parse(meta.schema);
+
+      // keep upto 5 schema backup on table update
+      let previousSchemas = [oldSwaggerDoc]
+      if (meta.schema_previous) {
+        previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
+      }
+
+      oldSwaggerDoc.definitions = swaggerDoc.definitions;
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema: JSON.stringify(oldSwaggerDoc),
+        schema_previous: JSON.stringify(previousSchemas)
+      }, {
+        title: metaObj.tn,
+        type: 'table'
+      });
+    }
+
+    return metas
+  }
+
 }
 
 

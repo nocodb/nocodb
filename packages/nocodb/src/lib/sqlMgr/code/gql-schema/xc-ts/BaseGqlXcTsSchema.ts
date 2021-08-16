@@ -76,6 +76,18 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
     return str;
   }
 
+  protected generateFormulaTypes(args: any): string {
+    if (!args.v?.length) {
+      return '';
+    }
+    const props = [];
+    for (const v of args.v) {
+      if (!v.formula) continue
+      props.push(`\t\t${v._cn}: JSON`)
+    }
+    return props.length ? `\r\n${props.join('\r\n')}\r\n` : '';
+  }
+
   protected _getInputType(args): string {
     let str = `input ${args._tn}Input { \r\n`
     for (const column of args.columns) {
@@ -108,7 +120,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
   protected _getMutation(args): string {
     let str = `type Mutation { \r\n`
     str += `\t\t${args._tn}Create(data:${args._tn}Input): ${args._tn}\r\n`
-    str += `\t\t${args._tn}Update(id:String,data:${args._tn}Input):  Int\r\n` // ${args._tn}\r\n`
+    str += `\t\t${args._tn}Update(id:String,data:${args._tn}Input):  ${args._tn}\r\n` // ${args._tn}\r\n`
     str += `\t\t${args._tn}Delete(id:String): Int\r\n`// ${args._tn}\r\n`
     str += `\t\t${args._tn}CreateBulk(data: [${args._tn}Input]): [Int]\r\n`
     str += `\t\t${args._tn}UpdateBulk(data: [${args._tn}Input]): [Int]\r\n`
@@ -127,7 +139,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
         console.log(`Skipping ${args.tn}.${column._cn}`);
       } else {
         str += `\t\t${column._cn.replace(/ /g, '_')}: ${this._getGraphqlType(column)},\r\n`;
-        strWhere += `\t\t${column._cn .replace(/ /g, '_')}: ${this._getGraphqlConditionType(column)},\r\n`;
+        strWhere += `\t\t${column._cn.replace(/ /g, '_')}: ${this._getGraphqlConditionType(column)},\r\n`;
       }
 
     }
@@ -150,6 +162,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
 
     str += this.generateManyToManyTypeProps(args);
+    str += this.generateFormulaTypes(args);
 
     let belongsToRelations = args.belongsTo;
     if (belongsToRelations.length > 1) {

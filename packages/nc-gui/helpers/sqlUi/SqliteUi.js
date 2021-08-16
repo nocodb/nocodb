@@ -1,47 +1,34 @@
 const dbTypes = [
+  'int',
+  'integer',
+  'tinyint',
+  'smallint',
+  'mediumint',
   'bigint',
-  'binary',
-  'bit',
-  'char',
+  'int2',
+  'int8',
+  'character',
+  'blob sub_type text',
+  'blob',
+  'real',
+  'double',
+  'double precision',
+  'float',
+  'numeric',
+  'boolean',
   'date',
   'datetime',
-  'datetime2',
-  'datetimeoffset',
-  'decimal',
-  'float',
-  'geography',
-  'geometry',
-  'heirarchyid',
-  'image',
-  'int',
-  'money',
-  'nchar',
-  'ntext',
-  'numeric',
-  'nvarchar',
-  'real',
-  'json',
-  'smalldatetime',
-  'smallint',
-  'smallmoney',
-  'sql_variant',
-  'sysname',
   'text',
-  'time',
-  'timestamp',
-  'tinyint',
-  'uniqueidentifier',
-  'varbinary',
-  'xml',
-  'varchar'
+  'varchar',
+  'timestamp'
 ]
 
-export class MssqlUi {
+export class SqliteUi {
   static getNewTableColumns() {
     return [
       {
         cn: 'id',
-        dt: 'int',
+        dt: 'integer',
         dtx: 'integer',
         ct: 'int(11)',
         nrqd: false,
@@ -65,7 +52,7 @@ export class MssqlUi {
         cn: 'title',
         dt: 'varchar',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'varchar',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -76,7 +63,7 @@ export class MssqlUi {
         clen: 45,
         np: null,
         ns: null,
-        dtxp: '45',
+        dtxp: '',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -87,14 +74,14 @@ export class MssqlUi {
         cn: 'created_at',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'varchar',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'GETDATE()',
+        cdf: 'CURRENT_TIMESTAMP',
         clen: 45,
         np: null,
         ns: null,
@@ -109,14 +96,14 @@ export class MssqlUi {
         cn: 'updated_at',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'varchar',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'GETDATE()',
+        cdf: 'CURRENT_TIMESTAMP',
         clen: 45,
         np: null,
         ns: null,
@@ -133,7 +120,7 @@ export class MssqlUi {
   static getNewColumn(suffix) {
     return {
       cn: 'title' + suffix,
-      dt: 'int',
+      dt: 'integer',
       dtx: 'specificType',
       ct: 'integer(11)',
       nrqd: true,
@@ -274,392 +261,170 @@ export class MssqlUi {
 
   static getDefaultLengthForDatatype(type) {
     switch (type) {
-      case 'bigint':
+      case 'int':
         return ''
 
-      case 'binary':
+      case 'tinyint':
+        return ''
+
+      case 'smallint':
+        return ''
+
+      case 'mediumint':
+        return ''
+
+      case 'bigint':
         return ''
 
       case 'bit':
         return ''
 
-      case 'char':
+      case 'boolean':
+        return ''
+
+      case 'float':
+        return ''
+
+      case 'decimal':
+        return ''
+
+      case 'double':
+        return ''
+
+      case 'serial':
         return ''
 
       case 'date':
         return ''
 
       case 'datetime':
-        return ''
-
-      case 'datetime2':
-        return ''
-
-      case 'datetimeoffset':
-        return ''
-
-      case 'decimal':
-        return ''
-
-      case 'float':
-        return ''
-
-      case 'geography':
-        return ''
-
-      case 'geometry':
-        return ''
-
-      case 'heirarchyid':
-        return ''
-
-      case 'image':
-        return ''
-
-      case 'int':
-        return ''
-
-      case 'money':
-        return ''
-
-      case 'nchar':
-        return ''
-
-      case 'ntext':
-        return ''
-
-      case 'numeric':
-        return ''
-
-      case 'nvarchar':
-        return ''
-
-      case 'real':
-        return ''
-
-      case 'json':
-        return ''
-
-      case 'smalldatetime':
-        return ''
-
-      case 'smallint':
-        return ''
-
-      case 'smallmoney':
-        return ''
-
-      case 'sql_variant':
-        return ''
-
-      case 'sysname':
-        return ''
-
-      case 'text':
+      case 'timestamp':
         return ''
 
       case 'time':
         return ''
 
-      case 'timestamp':
+      case 'year':
         return ''
 
-      case 'tinyint':
-        return ''
-
-      case 'uniqueidentifier':
-        return ''
-
-      case 'varbinary':
-        return ''
-
-      case 'xml':
+      case 'char':
         return ''
 
       case 'varchar':
         return ''
 
-      default:
+      case 'nchar':
+        return ''
+
+      case 'text':
+        return ''
+
+      case 'tinytext':
+        return ''
+
+      case 'mediumtext':
+        return ''
+
+      case 'longtext':
+        return ''
+
+      case 'binary':
+        return ''
+
+      case 'varbinary':
+        return ''
+
+      case 'blob':
+        return ''
+
+      case 'tinyblob':
+        return ''
+
+      case 'mediumblob':
+        return ''
+
+      case 'longblob':
+        return ''
+
+      case 'enum':
+        return ''
+
+      case 'set':
+        return ''
+
+      case 'geometry':
+        return ''
+      case 'point':
+        return ''
+      case 'linestring':
+        return ''
+      case 'polygon':
+        return ''
+      case 'multipoint':
+        return ''
+      case 'multilinestring':
+        return ''
+      case 'multipolygon':
+        return ''
+      case 'json':
         return ''
     }
   }
 
   static getDefaultLengthIsDisabled(type) {
     switch (type) {
-      case 'bigint':
-      case 'binary':
-      case 'bit':
-      case 'char':
-      case 'date':
-      case 'datetime':
-      case 'datetime2':
-      case 'datetimeoffset':
-      case 'decimal':
-      case 'float':
-      case 'geography':
-      case 'geometry':
-      case 'heirarchyid':
-      case 'image':
-      case 'int':
-      case 'money':
-      case 'nchar':
-      case 'ntext':
-      case 'numeric':
-      case 'nvarchar':
+      case 'integer':
+      case 'blob':
       case 'real':
-      case 'json':
-      case 'smalldatetime':
-      case 'smallint':
-      case 'smallmoney':
-      case 'sql_variant':
-      case 'sysname':
+      case 'numeric':
+        return true
+
       case 'text':
-      case 'time':
-      case 'timestamp':
-      case 'tinyint':
-      case 'uniqueidentifier':
-      case 'varbinary':
-      case 'xml':
-        return true
-
-      case 'varchar':
         return false
-
-      default:
-        return true
     }
   }
 
   static getDefaultValueForDatatype(type) {
     switch (type) {
-      case 'bigint':
-        return 'eg: '
-
-      case 'binary':
-        return 'eg: '
-
-      case 'bit':
-        return 'eg: '
-
-      case 'char':
-        return 'eg: '
-
-      case 'date':
-        return 'eg: '
-
-      case 'datetime':
-        return 'eg: '
-
-      case 'datetime2':
-        return 'eg: '
-
-      case 'datetimeoffset':
-        return 'eg: '
-
-      case 'decimal':
-        return 'eg: '
-
-      case 'float':
-        return 'eg: '
-
-      case 'geography':
-        return 'eg: '
-
-      case 'geometry':
-        return 'eg: '
-
-      case 'heirarchyid':
-        return 'eg: '
-
-      case 'image':
-        return 'eg: '
-
-      case 'int':
-        return 'eg: '
-
-      case 'money':
-        return 'eg: '
-
-      case 'nchar':
-        return 'eg: '
-
-      case 'ntext':
-        return 'eg: '
-
-      case 'numeric':
-        return 'eg: '
-
-      case 'nvarchar':
-        return 'eg: '
-
-      case 'real':
-        return 'eg: '
-
-      case 'json':
-        return 'eg: '
-
-      case 'smalldatetime':
-        return 'eg: '
-
-      case 'smallint':
-        return 'eg: '
-
-      case 'smallmoney':
-        return 'eg: '
-
-      case 'sql_variant':
-        return 'eg: '
-
-      case 'sysname':
-        return 'eg: '
+      case 'integer':
+        return 'eg : ' + 10
 
       case 'text':
-        return 'eg: '
+        return 'eg : hey'
 
-      case 'time':
-        return 'eg: '
+      case 'numeric':
+        return 'eg : ' + 10
 
-      case 'timestamp':
-        return 'eg: '
+      case 'real':
+        return 'eg : ' + 10.0
 
-      case 'tinyint':
-        return 'eg: '
-
-      case 'uniqueidentifier':
-        return 'eg: '
-
-      case 'varbinary':
-        return 'eg: '
-
-      case 'xml':
-        return 'eg: '
-
-      case 'varchar':
-        return 'eg: '
-
-      default:
-        return ''
+      case 'blob':
+        return 'eg : ' + 100
     }
   }
 
   static getDefaultScaleForDatatype(type) {
     switch (type) {
-      case 'bigint':
-        return ''
-
-      case 'binary':
-        return ''
-
-      case 'bit':
-        return ''
-
-      case 'char':
-        return ''
-
-      case 'date':
-        return ''
-
-      case 'datetime':
-        return ''
-
-      case 'datetime2':
-        return ''
-
-      case 'datetimeoffset':
-        return ''
-
-      case 'decimal':
-        return ''
-
-      case 'float':
-        return ''
-
-      case 'geography':
-        return ''
-
-      case 'geometry':
-        return ''
-
-      case 'heirarchyid':
-        return ''
-
-      case 'image':
-        return ''
-
-      case 'int':
-        return ''
-
-      case 'money':
-        return ''
-
-      case 'nchar':
-        return ''
-
-      case 'ntext':
-        return ''
-
-      case 'numeric':
-        return ''
-
-      case 'nvarchar':
-        return ''
-
-      case 'real':
-        return ''
-
-      case 'json':
-        return ''
-
-      case 'smalldatetime':
-        return ''
-
-      case 'smallint':
-        return ''
-
-      case 'smallmoney':
-        return ''
-
-      case 'sql_variant':
-        return ''
-
-      case 'sysname':
-        return ''
+      case 'integer':
+        return ' '
 
       case 'text':
-        return ''
+        return ' '
 
-      case 'time':
-        return ''
+      case 'numeric':
+        return ' '
 
-      case 'timestamp':
-        return ''
+      case 'real':
+        return ' '
 
-      case 'tinyint':
-        return ''
-
-      case 'uniqueidentifier':
-        return ''
-
-      case 'varbinary':
-        return ''
-
-      case 'xml':
-        return ''
-
-      case 'varchar':
-        return ''
-
-      default:
-        return ''
+      case 'blob':
+        return ' '
     }
   }
 
   static colPropAIDisabled(col, columns) {
     // console.log(col);
-    if (col.dt === 'int4' ||
-      col.dt === 'integer' ||
-      col.dt === 'bigint' ||
-      col.dt === 'smallint') {
+    if (col.dt === 'integer') {
       for (let i = 0; i < columns.length; ++i) {
         if (columns[i].cn !== col.cn && columns[i].ai) {
           return true
@@ -716,10 +481,6 @@ export class MssqlUi {
     }
   }
 
-  static columnEditable(colObj) {
-    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
-  }
-
   static extractFunctionName(query) {
     const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i
     const match = query.match(reg)
@@ -732,9 +493,12 @@ export class MssqlUi {
     return match && match[1]
   }
 
+  static columnEditable(colObj) {
+    return true // colObj.altered === 1;
+  }
+
   static handleRawOutput(result, headers) {
     console.log(result)
-
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0])
       // set headers before settings result
@@ -742,9 +506,6 @@ export class MssqlUi {
         const text = keys[i]
         headers.push({ text, value: text, sortable: false })
       }
-    } else if (result === undefined) {
-      headers.push({ text: 'Message', value: 'message', sortable: false })
-      result = [{ message: 'Success' }]
     }
     return result
   }
@@ -790,8 +551,8 @@ export class MssqlUi {
             tn,
             cn: keys[i],
             cno: keys[i],
-            np: 10,
-            ns: 0,
+            np: null,
+            ns: null,
             clen: null,
             cop: 1,
             pk: false,
@@ -813,38 +574,30 @@ export class MssqlUi {
           switch (typeof json[keys[i]]) {
             case 'number':
               if (Number.isInteger(json[keys[i]])) {
-                if (MssqlUi.isValidTimestamp(keys[i], json[keys[i]])) {
+                if (SqliteUi.isValidTimestamp(keys[i], json[keys[i]])) {
                   Object.assign(column, {
                     dt: 'timestamp'
                   })
                 } else {
                   Object.assign(column, {
-                    dt: 'int',
-                    np: 10,
-                    ns: 0
+                    dt: 'integer'
                   })
                 }
               } else {
                 Object.assign(column, {
-                  dt: 'float',
-                  np: 10,
-                  ns: 2,
-                  dtxp: '11',
-                  dtxs: 2
+                  dt: 'real'
                 })
               }
               break
             case 'string':
-              if (MssqlUi.isValidDate(json[keys[i]])) {
+              // if (SqliteUi.isValidDate(json[keys[i]])) {
+              //   Object.assign(column, {
+              //     "dt": "datetime"
+              //   });
+              // } else
+              if (json[keys[i]].length <= 255) {
                 Object.assign(column, {
-                  dt: 'datetime'
-                })
-              } else if (json[keys[i]].length <= 255) {
-                Object.assign(column, {
-                  dt: 'varchar',
-                  np: 255,
-                  ns: 0,
-                  dtxp: '255'
+                  dt: 'varchar'
                 })
               } else {
                 Object.assign(column, {
@@ -854,17 +607,14 @@ export class MssqlUi {
               break
             case 'boolean':
               Object.assign(column, {
-                dt: 'bit',
-                np: null,
-                ns: 0
+                dt: 'integer'
               })
               break
             case 'object':
               Object.assign(column, {
-                dt: 'varchar',
-                np: 255,
-                ns: 0,
-                dtxp: '255'
+                dt: 'text',
+                np: null,
+                dtxp: null
               })
               break
             default:
@@ -881,7 +631,9 @@ export class MssqlUi {
   }
 
   static isValidTimestamp(key, value) {
-    if (typeof value !== 'number') { return false }
+    if (typeof value !== 'number') {
+      return false
+    }
     return new Date(value).getTime() > 0 && /(?:_|(?=A))[aA]t$/.test(key)
   }
 
@@ -903,85 +655,54 @@ export class MssqlUi {
   }
 
   static colPropAuDisabled(col) {
-    if (col.altered !== 1) { return true }
+    if (col.altered !== 1) {
+      return true
+    }
 
     switch (col.dt) {
       case 'date':
       case 'datetime':
-      case 'datetime2':
-      case 'datetimeoffset':
-      case 'time':
       case 'timestamp':
+      case 'time':
         return false
 
-      default:
+      default :
         return true
     }
   }
 
   static getAbstractType(col) {
     switch ((col.dt || col.dt).toLowerCase()) {
-      case 'bigint':
-      case 'smallint':
-      case 'bit':
-      case 'tinyint':
-      case 'int':
-        return 'integer'
-
-      case 'binary':
-        return 'string'
-
-      case 'char':
-        return 'string'
-
       case 'date':
         return 'date'
       case 'datetime':
-      case 'datetime2':
-      case 'smalldatetime':
-      case 'datetimeoffset':
+      case 'timestamp':
         return 'datetime'
-      case 'decimal':
-      case 'float':
-        return 'float'
-
-      case 'geography':
-      case 'geometry':
-      case 'heirarchyid':
-      case 'image':
-        return 'string'
-
-      case 'money':
-      case 'nchar':
-        return 'string'
-
-      case 'ntext':
-        return 'text'
-      case 'numeric':
-        return 'float'
-      case 'nvarchar':
-        return 'string'
-      case 'real':
-        return 'float'
-
-      case 'json':
-        return 'json'
-
-      case 'smallmoney':
-      case 'sql_variant':
-      case 'sysname':
-        return 'string'
+      case 'integer':
+      case 'int':
+      case 'tinyint':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'int2':
+      case 'int8':
+        return 'integer'
       case 'text':
         return 'text'
-      case 'time':
-        return 'time'
-      case 'timestamp':
-        return 'timestamp'
+      case 'boolean':
+        return 'boolean'
+      case 'real':
+      case 'double':
+      case 'double precision':
+      case 'float':
+      case 'numeric':
+        return 'float'
 
-      case 'uniqueidentifier':
-      case 'varbinary':
-      case 'xml':
-        return 'string'
+      case 'blob sub_type text':
+      case 'blob':
+        return 'blob'
+
+      case 'character':
       case 'varchar':
         return 'string'
     }
@@ -1022,7 +743,7 @@ export class MssqlUi {
     const colProp = {}
     switch (col.uidt) {
       case 'ID':
-        colProp.dt = 'int'
+        colProp.dt = 'integer'
         colProp.pk = true
         colProp.un = true
         colProp.ai = true
@@ -1041,8 +762,9 @@ export class MssqlUi {
         colProp.dt = 'text'
         break
       case 'Checkbox':
-        colProp.dt = 'tinyint'
-        colProp.dtxp = 1
+        // colProp.dt = 'tinyint';
+        // colProp.dtxp = 1;
+        colProp.dt = 'boolean'
         break
       case 'MultiSelect':
         colProp.dt = 'text'
@@ -1058,7 +780,7 @@ export class MssqlUi {
 
         break
       case 'Year':
-        colProp.dt = 'int'
+        colProp.dt = 'year'
         break
       case 'Time':
         colProp.dt = 'time'
@@ -1076,20 +798,20 @@ export class MssqlUi {
         colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL'] }
         break
       case 'Number':
-        colProp.dt = 'int'
+        colProp.dt = 'integer'
         break
       case 'Decimal':
         colProp.dt = 'decimal'
         break
       case 'Currency':
-        colProp.dt = 'decimal'
+        colProp.dt = 'double precision'
         colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : isCurrency'] }
         break
       case 'Percent':
         colProp.dt = 'double'
         break
       case 'Duration':
-        colProp.dt = 'int'
+        colProp.dt = 'integer'
         break
       case 'Rating':
         colProp.dt = 'float'
@@ -1101,7 +823,7 @@ export class MssqlUi {
         colProp.dt = 'varchar'
         break
       case 'Count':
-        colProp.dt = 'int'
+        colProp.dt = 'integer'
         break
       case 'Lookup':
         colProp.dt = 'varchar'
@@ -1116,13 +838,16 @@ export class MssqlUi {
         colProp.dt = 'datetime'
         break
       case 'AutoNumber':
-        colProp.dt = 'int'
+        colProp.dt = 'integer'
         break
       case 'Barcode':
         colProp.dt = 'varchar'
         break
       case 'Button':
         colProp.dt = 'varchar'
+        break
+      case 'JSON':
+        colProp.dt = 'text'
         break
       default:
         colProp.dt = 'varchar'
@@ -1142,45 +867,61 @@ export class MssqlUi {
       case 'Attachment':
       case 'Collaborator':
         return [
-          'char',
-          'ntext',
+          'character',
           'text',
-          'varchar',
-          'nvarchar'
+          'varchar'
         ]
-
-      case 'JSON' :
-        return ['text', 'ntext']
 
       case 'Checkbox':
         return [
-          'bigint',
-          'bit',
           'int',
-          'tinyint'
+          'integer',
+          'tinyint',
+          'smallint',
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8',
+          'boolean'
         ]
 
       case 'MultiSelect':
         return [
-          'text', 'ntext'
+          'text',
+          'varchar'
         ]
 
       case 'SingleSelect':
         return [
           'text',
-          'ntext'
+          'varchar'
         ]
 
       case 'Year':
-        return ['int']
+        return ['int', 'integer',
+          'tinyint',
+          'smallint',
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8']
 
       case 'Time':
-        return ['time']
+        return [
+          'int',
+          'integer',
+          'tinyint',
+          'smallint',
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8']
 
       case 'PhoneNumber':
       case 'Email':
         return [
-          'varchar'
+          'varchar',
+          'text'
         ]
 
       case 'URL':
@@ -1192,78 +933,93 @@ export class MssqlUi {
       case 'Number':
         return [
           'int',
+          'integer',
+          'tinyint',
+          'smallint',
+          'mediumint',
           'bigint',
-          'bit',
-          'decimal',
-          'float',
+          'int2',
+          'int8',
           'numeric',
           'real',
-          'smallint',
-          'tinyint'
+          'double',
+          'double precision',
+          'float'
         ]
 
       case 'Decimal':
         return [
-
-          'decimal',
-          'float'
+          'real',
+          'double',
+          'double precision',
+          'float',
+          'numeric'
         ]
 
       case 'Currency':
         return [
-          'int',
-          'bigint',
-          'bit',
-          'decimal',
-          'float',
-          'numeric',
           'real',
+          'double',
+          'double precision',
+          'float',
+          'int',
+          'integer',
+          'tinyint',
           'smallint',
-          'tinyint']
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8',
+          'numeric']
 
       case 'Percent':
         return [
-          'int',
-          'bigint',
-          'bit',
-          'decimal',
-          'float',
-          'numeric',
           'real',
+          'double',
+          'double precision',
+          'float',
+          'int',
+          'integer',
+          'tinyint',
           'smallint',
-          'tinyint'
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8',
+          'numeric'
         ]
 
       case 'Duration':
         return [
           'int',
-          'bigint',
-          'bit',
-          'decimal',
-          'float',
-          'numeric',
-          'real',
+          'integer',
+          'tinyint',
           'smallint',
-          'tinyint']
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8']
 
       case 'Rating':
         return [
-          'int',
-          'bigint',
-          'bit',
-          'decimal',
-          'float',
-          'numeric',
           'real',
+          'double',
+          'double precision',
+          'float',
+          'int',
+          'integer',
+          'tinyint',
           'smallint',
-          'tinyint']
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8',
+          'numeric']
 
       case 'Formula':
         return [
           'text',
-          'ntext',
-          'varchar',
-          'nvarchar'
+          'varchar'
         ]
 
       case 'Rollup':
@@ -1274,9 +1030,13 @@ export class MssqlUi {
       case 'Count':
         return [
           'int',
-          'bigint',
+          'integer',
+          'tinyint',
           'smallint',
-          'tinyint'
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8'
         ]
 
       case 'Lookup':
@@ -1286,8 +1046,8 @@ export class MssqlUi {
 
       case 'Date':
         return [
-          'date'
-
+          'date',
+          'varchar'
         ]
 
       case 'DateTime':
@@ -1295,16 +1055,19 @@ export class MssqlUi {
       case 'LastModifiedTime':
         return [
           'datetime',
-          'datetime2',
-          'datetimeoffset'
+          'timestamp'
         ]
 
       case 'AutoNumber':
         return [
           'int',
-          'bigint',
+          'integer',
+          'tinyint',
           'smallint',
-          'tinyint'
+          'mediumint',
+          'bigint',
+          'int2',
+          'int8'
         ]
 
       case 'Barcode':
@@ -1312,14 +1075,23 @@ export class MssqlUi {
 
       case 'Geometry':
         return [
-
-          'geometry'
+          'text'
+        ]
+      case 'JSON':
+        return [
+          'text'
         ]
 
       case 'Button':
       default:
         return dbTypes
     }
+  }
+
+  static getUnsupportedFnList() {
+    return [
+      'LOG', 'EXP', 'POWER', 'SQRT'
+    ]
   }
 }
 

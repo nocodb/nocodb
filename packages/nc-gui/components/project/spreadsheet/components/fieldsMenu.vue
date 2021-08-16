@@ -50,7 +50,7 @@
           v-for="field in fieldsOrderLoc"
         >
           <v-list-item
-            v-if="field.toLowerCase().indexOf(fieldFilter.toLowerCase()) > -1"
+            v-if="field && field.toLowerCase().indexOf(fieldFilter.toLowerCase()) > -1"
             :key="field"
             dense
           >

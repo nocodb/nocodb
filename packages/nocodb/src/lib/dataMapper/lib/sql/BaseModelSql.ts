@@ -3,6 +3,7 @@ import _ from 'lodash';
 import Validator from 'validator';
 
 import BaseModel, {XcFilter, XcFilterWithAlias} from '../BaseModel';
+import formulaQueryBuilder from "./formulaQueryBuilderFromString";
 
 
 /**
@@ -122,7 +123,7 @@ class BaseModelSql extends BaseModel {
     return this.dbDriver(this.tnPath);
   }
 
-  public get tnPath(){
+  public get tnPath() {
     const schema = (this.dbDriver as any).searchPath?.();
     const table = this.isMssql() && schema ? this.dbDriver.raw('??.??', [schema, this.tn]) : this.tn;
     return table;
@@ -327,8 +328,10 @@ class BaseModelSql extends BaseModel {
       const driver = trx ? trx : this.dbDriver
 
       // this.validate(data);
-      const response = await this._run(driver(this.tnPath).update(mappedData).where(this._wherePk(id)));
-      await this.afterUpdate(data, trx, cookie);
+      await this._run(driver(this.tnPath).update(mappedData).where(this._wherePk(id)));
+
+      const response = await this.nestedRead(id, this.defaultNestedQueryParams)
+      await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);
@@ -661,6 +664,7 @@ class BaseModelSql extends BaseModel {
     try {
       return await this._run(
         this.$db.select(this.selectQuery('*'))
+          .select(...this.selectFormulas)
           .conditionGraph(args?.conditionGraph)
           .where(this._wherePk(id)).first()
       ) || {};
@@ -715,13 +719,10 @@ class BaseModelSql extends BaseModel {
 
       const {fields, where, limit, offset, sort, condition, conditionGraph = null} = this._getListArgs(args);
 
-      // if (fields === '*') {
-      //   fields = `${this.tn}.*`;
-      // }
-
       const query = this.$db
         // .select(...fields.split(','))
         .select(this.selectQuery(fields))
+        .select(...this.selectFormulas)
         .xwhere(where, this.selectQuery(''))
         .condition(condition, this.selectQuery(''))
         .conditionGraph(conditionGraph);
@@ -1742,10 +1743,11 @@ class BaseModelSql extends BaseModel {
       : '*';
   }
 
+
 // @ts-ignore
   public selectQuery(fields) {
     const fieldsArr = fields.split(',');
-    return this.columns?.reduce((selectObj, col) => {
+    const selectObj = this.columns?.reduce((selectObj, col) => {
       if (
         !fields
         || fieldsArr.includes('*')
@@ -1757,6 +1759,10 @@ class BaseModelSql extends BaseModel {
       }
       return selectObj;
     }, {}) || '*';
+
+
+    return selectObj;
+
   }
 
   // @ts-ignore
@@ -1855,6 +1861,15 @@ class BaseModelSql extends BaseModel {
     } catch (e) {
       return {}
     }
+  }
+
+  protected get selectFormulas() {
+    return (this.virtualColumns || [])?.reduce((arr, v) => {
+      if (v.formula?.value && !v.formula?.error?.length) {
+        arr.push(formulaQueryBuilder(v.formula?.tree, v._cn, this.dbDriver))
+      }
+      return arr;
+    }, [])
   }
 
 }

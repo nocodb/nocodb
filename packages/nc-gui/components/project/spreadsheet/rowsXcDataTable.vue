@@ -461,7 +461,6 @@
 <script>
 
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
-import { SqlUI } from '@/helpers/SqlUiFactory'
 
 import { mapActions } from 'vuex'
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
@@ -477,6 +476,7 @@ import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
 import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
 import Pagination from '@/components/project/spreadsheet/components/pagination'
+import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
 
 export default {
@@ -803,9 +803,13 @@ export default {
           }
 
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
-          await this.api.update(id, {
+
+          const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
           }, { [column._cn]: oldRow[column._cn] })
+
+          this.$set(this.data[row], 'row', { ...rowObj, ...newData })
+
           this.$set(oldRow, column._cn, rowObj[column._cn])
           this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
             position: 'bottom-center'

@@ -128,6 +128,7 @@
     "inflection": "^1.12.0",
     "is-docker": "^2.2.1",
     "js-beautify": "^1.11.0",
+    "jsep": "^0.4.0",
     "json2csv": "^5.0.6",
     "jsonfile": "^6.1.0",
     "jsonwebtoken": "^8.5.1",

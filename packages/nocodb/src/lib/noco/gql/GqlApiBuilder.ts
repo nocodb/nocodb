@@ -1497,7 +1497,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   public async onTableUpdate(changeObj: any): Promise<void> {
     this.log(`onTableUpdate :  '%s'`, changeObj.tn);
-    await super.onTableUpdate(changeObj, async ({ctx, meta}) => {
+    await super.onTableUpdate(changeObj, async ({ctx}) => {
 
 
       const tn = changeObj.tn;
@@ -1515,7 +1515,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       const oldSchema = this.schemas[tn];
       this.log(`onTableUpdate :  Populating new schema for '%s' table`, changeObj.tn);
-      meta.schema = this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(enabledModelCtx)).getString();
+       this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(enabledModelCtx)).getString();
       if (oldSchema !== this.schemas[tn]) {
         this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, changeObj.tn);
 
@@ -1530,7 +1530,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         }
 
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          schema: meta.schema,
+          schema: this.schemas[tn],
           schema_previous: JSON.stringify(previousSchemas)
         }, {
           title: tn
@@ -1785,7 +1785,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       }, ...Object.values(this.resolvers).map(r => r.mapResolvers(this.customResolver))]);
 
       this.log(`initGraphqlRoute : Building graphql schema`);
-      const schemaStr = mergeTypeDefs([...Object.values(this.schemas).filter(Boolean), ` ${this.customResolver?.schema || ''} \n ${commonSchema}`], {
+      const schemaStr = mergeTypeDefs([
+        ...Object.values(this.schemas).filter(Boolean),
+        ` ${this.customResolver?.schema || ''} \n ${commonSchema}`,
+        // ...this.typesWithFormulaProps
+      ], {
         commentDescriptions: true,
         forceSchemaDefinition: true,
         reverseDirectives: true,
@@ -1852,8 +1856,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     log(`${this.dbAlias} : ${str}`, ...args);
   }
 
-  public async onManyToManyRelationCreate(parent: string, child: string, args?: any) {
-    await super.onManyToManyRelationCreate(parent, child, args);
+  public async onManyToManyRelationCreate(parent: string, child: string, args?: any): Promise<Set<any>> {
+    const res = await super.onManyToManyRelationCreate(parent, child, args);
     for (const tn of [parent, child]) {
       const meta = this.metas[tn];
       const {columns, hasMany, belongsTo, manyToMany} = meta;
@@ -1900,7 +1904,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     });
 
     await this.reInitializeGraphqlEndpoint();
-
+    return res;
   }
 
   public async onManyToManyRelationDelete(parent: string, child: string, args?: any) {
@@ -1972,7 +1976,68 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   }
 
+  /*  // todo: dump it in db
+    // extending types for formula column
+    private get typesWithFormulaProps(): string[] {
+      const schemas = [];
 
+      for (const meta of Object.values(this.metas)) {
+        const props = [];
+        for (const v of meta.v) {
+          if (!v.formula) continue
+          props.push(`${v._cn}: JSON`)
+        }
+        if (props.length) {
+          schemas.push(`type ${meta._tn} {\n${props.join('\n')}\n}`)
+        }
+      }
+      return schemas;
+    }*/
+
+
+  async onMetaUpdate(tn: string): Promise<void> {
+    await super.onMetaUpdate(tn);
+    const meta = this.metas[tn];
+
+    const ctx = this.generateContextForTable(tn, meta.columns,
+      [...meta.belongsTo, meta.hasMany],
+      meta.hasMany,
+      meta.belongsTo
+    )
+
+    const oldSchema = this.schemas[tn];
+    // this.log(`onTableUpdate :  Populating new schema for '%s' table`, changeObj.tn);
+    // meta.schema =
+    this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs({
+      ...meta,
+      ...ctx
+    })).getString();
+    if (oldSchema !== this.schemas[tn]) {
+      // this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, tn);
+
+      const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        title: tn
+      });
+
+      // keep upto 5 schema backup on table update
+      let previousSchemas = [oldSchema]
+      if (oldModel.schema_previous) {
+        previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+      }
+
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema: this.schemas[tn],
+        schema_previous: JSON.stringify(previousSchemas)
+      }, {
+        title: tn,
+        type:'table'
+      });
+
+    }
+
+
+    return this.reInitializeGraphqlEndpoint();
+  }
 }
 
 /**

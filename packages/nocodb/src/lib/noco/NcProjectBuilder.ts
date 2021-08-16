@@ -229,7 +229,7 @@ export default class NcProjectBuilder {
         break;
 
       case 'xcModelSet':
-        await curBuilder.onValidationUpdate(data.req.args.tn);
+        await curBuilder.onMetaUpdate(data.req.args.tn);
         console.log(`Updated validations for table : ${data.req.args.tn}`)
         break;
       case 'xcUpdateVirtualKeyAlias':

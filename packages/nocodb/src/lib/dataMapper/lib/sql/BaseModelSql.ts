@@ -1128,10 +1128,11 @@ class BaseModelSql extends BaseModel {
 
     const childs = await this._run(this.dbDriver.union(
       parent.map(p => {
+        const id =p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] || p[this.pks[0].cn];
         const query =
           this
             .dbDriver(this.dbModels[child].tnPath)
-            .where(cn, p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
+            .where(cn, id)
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select(this.dbModels[child].selectQuery(fields)) // ...fields.split(','));
 

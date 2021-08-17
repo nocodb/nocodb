@@ -72,6 +72,14 @@ export default {
         return c._cn
       })
     },
+    formulaFieldList() {
+      return this.availableColumns.reduce((arr, c) => {
+        if (c.formula) {
+          arr.push(c._cn)
+        }
+        return arr
+      }, [])
+    },
     availableRealColumns() {
       return this.availableColumns && this.availableColumns.filter(c => !c.virtual)
     },

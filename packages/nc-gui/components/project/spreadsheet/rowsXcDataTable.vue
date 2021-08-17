@@ -109,12 +109,12 @@
       <sort-list
         v-model="sortList"
         :is-locked="isLocked"
-        :field-list="realFieldList"
+        :field-list="[...realFieldList, ...formulaFieldList]"
       />
       <column-filter
         v-model="filters"
         :is-locked="isLocked"
-        :field-list="realFieldList"
+        :field-list="[...realFieldList, ...formulaFieldList]"
         dense
       />
       <v-tooltip bottom>

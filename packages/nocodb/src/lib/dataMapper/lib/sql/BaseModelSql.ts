@@ -20,6 +20,7 @@ class BaseModelSql extends BaseModel {
 
   public readonly _tn: string;
   private _selectFormulas: any;
+  private _selectFormulasObj: any;
   private _defaultNestedQueryParams: any;
 
   /**
@@ -719,13 +720,14 @@ class BaseModelSql extends BaseModel {
 
     try {
 
-      const {fields, where, limit, offset, sort, condition, conditionGraph = null} = this._getListArgs(args);
+      const {fields, where, limit, offset, sort, condition, conditionGraph = null, having} = this._getListArgs(args);
 
       const query = this.$db
         // .select(...fields.split(','))
         .select(this.selectQuery(fields))
         .select(...this.selectFormulas)
-        .xwhere(where, this.selectQuery(''))
+        .xwhere(where, {...this.selectQuery(''),...this.selectFormulasObj})
+        .xhaving(having, this.selectQuery(''))
         .condition(condition, this.selectQuery(''))
         .conditionGraph(conditionGraph);
 
@@ -820,9 +822,9 @@ class BaseModelSql extends BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async countByPk({where = '', conditionGraph = null}) {
+  async countByPk({where = '', conditionGraph = null, having = ''}) {
     try {
-      if (this.isPg() && !conditionGraph && !where) {
+      if (this.isPg() && !conditionGraph && !where && !having) {
         const res = (await this._run(
           this.dbDriver.raw(`select reltuples::int8 as count 
         from pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
@@ -836,7 +838,8 @@ class BaseModelSql extends BaseModel {
       return await this._run(this.$db
         .conditionGraph(conditionGraph)
         .count(`${this.tn}.${(this.pks[0] || this.columns[0]).cn} as count`)
-        .xwhere(where, this.selectQuery(''))
+        .xwhere(where, {...this.selectQuery(''),...this.selectFormulasObj})
+        .xhaving(having, this.selectQuery(''))
         .first());
     } catch (e) {
       console.log(e);
@@ -1710,6 +1713,7 @@ class BaseModelSql extends BaseModel {
   _getListArgs(args: XcFilterWithAlias): XcFilter {
     const obj: XcFilter = {};
     obj.where = args.where || args.w || '';
+    obj.having = args.having || args.h || '';
     obj.condition = args.condition || args.c || {};
     obj.conditionGraph = args.conditionGraph || {};
     obj.limit = Math.max(Math.min(args.limit || args.l || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
@@ -1808,7 +1812,7 @@ class BaseModelSql extends BaseModel {
   }
 
   protected get defaultNestedQueryParams(): any {
-    if(!this._defaultNestedQueryParams) {
+    if (!this._defaultNestedQueryParams) {
       // generate default nested fields args based on virtual column list
       try {
         const nestedFields: {
@@ -1880,6 +1884,18 @@ class BaseModelSql extends BaseModel {
       }, [])
     }
     return this._selectFormulas
+  }
+
+  protected get selectFormulasObj() {
+    if (!this._selectFormulasObj) {
+      this._selectFormulasObj = (this.virtualColumns || [])?.reduce((obj, v) => {
+        if (v.formula?.value && !v.formula?.error?.length) {
+          obj[v._cn] = formulaQueryBuilder(v.formula?.tree, null, this.dbDriver, this.aliasToColumn);
+        }
+        return obj;
+      }, {})
+    }
+    return this._selectFormulasObj;
   }
 
 }

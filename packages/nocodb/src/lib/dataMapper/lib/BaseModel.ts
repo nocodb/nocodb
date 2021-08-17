@@ -1467,6 +1467,7 @@ abstract class BaseModel {
 
 export interface XcFilter {
   where?: string;
+  having?: string;
   condition?: any;
   conditionGraph?: any;
   limit?: string | number;
@@ -1477,6 +1478,7 @@ export interface XcFilter {
 
 export interface XcFilterWithAlias extends XcFilter {
   w?: string;
+  h?: string;
   c?: any;
   l?: string | number;
   o?: string | number;

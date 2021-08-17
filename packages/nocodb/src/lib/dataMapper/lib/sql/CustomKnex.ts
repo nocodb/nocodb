@@ -323,7 +323,7 @@ declare module 'knex' {
  * Append xwhere to knex query builder
  */
 Knex.QueryBuilder.extend('xwhere', function (conditionString, columnAliases?: {
-  [columnAlias: string]: string
+  [columnAlias: string]: string|any
 }) {
   const conditions = toArrayOfConditions(conditionString);
   return appendWhereCondition(conditions, columnAliases || {}, this);

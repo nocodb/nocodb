@@ -57,7 +57,11 @@ const IGNORE_TABLES = [
 // Base class of GQL type
 class XCType {
   constructor(o) {
-    Object.assign(this, o)
+    for (const k in o) {
+      if (!this[k]) {
+        this[k] = o[k]
+      }
+    }
   }
 }
 
@@ -1515,7 +1519,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       const oldSchema = this.schemas[tn];
       this.log(`onTableUpdate :  Populating new schema for '%s' table`, changeObj.tn);
-       this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(enabledModelCtx)).getString();
+      this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(enabledModelCtx)).getString();
       if (oldSchema !== this.schemas[tn]) {
         this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, changeObj.tn);
 
@@ -2030,7 +2034,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         schema_previous: JSON.stringify(previousSchemas)
       }, {
         title: tn,
-        type:'table'
+        type: 'table'
       });
 
     }

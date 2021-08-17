@@ -2401,6 +2401,7 @@ const result = {
         childColumn: `${parentMeta.tn}_p_id`,
         parentTable: parentMeta.tn,
         parentColumn: parentPK.cn,
+        foreignKeyName:`${parentMeta.tn.slice(0,3)}_${childMeta.tn.slice(0,3)}_${nanoid(6)}_p_fk`,
         type: 'real'
       };
       const rel2Args = {
@@ -2409,6 +2410,7 @@ const result = {
         childColumn: `${childMeta.tn}_c_id`,
         parentTable: childMeta.tn,
         parentColumn: childPK.cn,
+        foreignKeyName:`${parentMeta.tn.slice(0,3)}_${childMeta.tn.slice(0,3)}_${nanoid(6)}_c_fk`,
         type: 'real'
       };
       if (args.args.type === 'real') {

@@ -1865,10 +1865,11 @@ class BaseModelSql extends BaseModel {
     }
   }
 
+  // todo: optimize
   protected get selectFormulas() {
     return (this.virtualColumns || [])?.reduce((arr, v) => {
       if (v.formula?.value && !v.formula?.error?.length) {
-        arr.push(formulaQueryBuilder(v.formula?.tree, v._cn, this.dbDriver))
+        arr.push(formulaQueryBuilder(v.formula?.tree, v._cn, this.dbDriver, this.aliasToColumn))
       }
       return arr;
     }, [])

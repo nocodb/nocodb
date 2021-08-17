@@ -19,6 +19,8 @@ class BaseModelSql extends BaseModel {
   };
 
   public readonly _tn: string;
+  private _selectFormulas: any;
+  private _defaultNestedQueryParams: any;
 
   /**
    *
@@ -1129,7 +1131,7 @@ class BaseModelSql extends BaseModel {
 
     const childs = await this._run(this.dbDriver.union(
       parent.map(p => {
-        const id =p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] || p[this.pks[0].cn];
+        const id = p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] || p[this.pks[0].cn];
         const query =
           this
             .dbDriver(this.dbModels[child].tnPath)
@@ -1806,73 +1808,78 @@ class BaseModelSql extends BaseModel {
   }
 
   protected get defaultNestedQueryParams(): any {
-    // generate default nested fields args based on virtual column list
-    try {
-      const nestedFields: {
-        [key: string]: string[]
-      } = (this.virtualColumns || []).reduce((obj, vc) => {
-        if (vc.hm) {
-          obj.hm.push(vc.hm.tn)
-        } else if (vc.bt) {
-          obj.bt.push(vc.bt.rtn)
-        } else if (vc.mm) {
-          obj.mm.push(vc.mm.rtn)
-        }
-        return obj
-      }, {hm: [], bt: [], mm: []})
-
-      // todo: handle if virtual column missing
-      // construct fields args based on lookup columns
-      const fieldsObj = (this.virtualColumns || []).reduce((obj, vc) => {
-        if (!vc.lk) {
+    if(!this._defaultNestedQueryParams) {
+      // generate default nested fields args based on virtual column list
+      try {
+        const nestedFields: {
+          [key: string]: string[]
+        } = (this.virtualColumns || []).reduce((obj, vc) => {
+          if (vc.hm) {
+            obj.hm.push(vc.hm.tn)
+          } else if (vc.bt) {
+            obj.bt.push(vc.bt.rtn)
+          } else if (vc.mm) {
+            obj.mm.push(vc.mm.rtn)
+          }
           return obj
+        }, {hm: [], bt: [], mm: []})
+
+        // todo: handle if virtual column missing
+        // construct fields args based on lookup columns
+        const fieldsObj = (this.virtualColumns || []).reduce((obj, vc) => {
+          if (!vc.lk) {
+            return obj
+          }
+
+          let key
+          let index
+          let column
+
+          switch (vc.lk.type) {
+            case 'mm':
+              index = nestedFields.mm.indexOf(vc.lk.ltn) + 1
+              key = `mfields${index}`
+              column = vc.lk.lcn
+              break
+            case 'hm':
+              index = nestedFields.hm.indexOf(vc.lk.ltn) + 1
+              key = `hfields${index}`
+              column = vc.lk.lcn
+              break
+            case 'bt':
+              index = nestedFields.bt.indexOf(vc.lk.ltn) + 1
+              key = `bfields${index}`
+              column = vc.lk.lcn
+              break
+          }
+
+          if (index && column) {
+            obj[key] = `${obj[key] ? `${obj[key]},` : ''}${column}`
+          }
+
+          return obj
+        }, {})
+        this._defaultNestedQueryParams = {
+          ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({...ro, [k]: a.join(',')}), {}),
+          ...fieldsObj
         }
-
-        let key
-        let index
-        let column
-
-        switch (vc.lk.type) {
-          case 'mm':
-            index = nestedFields.mm.indexOf(vc.lk.ltn) + 1
-            key = `mfields${index}`
-            column = vc.lk.lcn
-            break
-          case 'hm':
-            index = nestedFields.hm.indexOf(vc.lk.ltn) + 1
-            key = `hfields${index}`
-            column = vc.lk.lcn
-            break
-          case 'bt':
-            index = nestedFields.bt.indexOf(vc.lk.ltn) + 1
-            key = `bfields${index}`
-            column = vc.lk.lcn
-            break
-        }
-
-        if (index && column) {
-          obj[key] = `${obj[key] ? `${obj[key]},` : ''}${column}`
-        }
-
-        return obj
-      }, {})
-      return {
-        ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({...ro, [k]: a.join(',')}), {}),
-        ...fieldsObj
+      } catch (e) {
+        return {}
       }
-    } catch (e) {
-      return {}
     }
+    return this._defaultNestedQueryParams;
   }
 
-  // todo: optimize
   protected get selectFormulas() {
-    return (this.virtualColumns || [])?.reduce((arr, v) => {
-      if (v.formula?.value && !v.formula?.error?.length) {
-        arr.push(formulaQueryBuilder(v.formula?.tree, v._cn, this.dbDriver, this.aliasToColumn))
-      }
-      return arr;
-    }, [])
+    if (!this._selectFormulas) {
+      this._selectFormulas = (this.virtualColumns || [])?.reduce((arr, v) => {
+        if (v.formula?.value && !v.formula?.error?.length) {
+          arr.push(formulaQueryBuilder(v.formula?.tree, v._cn, this.dbDriver, this.aliasToColumn))
+        }
+        return arr;
+      }, [])
+    }
+    return this._selectFormulas
   }
 
 }

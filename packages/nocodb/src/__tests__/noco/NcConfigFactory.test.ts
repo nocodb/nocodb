@@ -34,12 +34,10 @@ describe('Config Factory Tests', () => {
     expect(config.connection.password).to.be.eq('xgene')
     expect(config.connection.database).to.be.eq('abcde')
     expect(config.pool).to.be.a('object')
-    expect(config.pool.min).to.be.eq('1')
-    expect(config.pool.max).to.be.eq('2')
+    expect(config.pool.min).to.be.eq(1)
+    expect(config.pool.max).to.be.eq(2)
     expect(config.ssl).to.be.a('object')
     expect(config.ssl.rejectUnauthorized).to.be.eq(false)
     done();
   });
-
-
 });

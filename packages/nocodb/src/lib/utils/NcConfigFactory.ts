@@ -313,12 +313,15 @@ export default class NcConfigFactory implements NcConfig {
       }
     }
     url.searchParams.forEach((_value, key) => {
-      let value:any = _value;
+      let value: any = _value;
       if (value === 'true') {
         value = true;
       } else if (value === 'false') {
         value = false;
+      } else if (/^\d+$/.test(value)) {
+        value = +value;
       }
+      // todo: implement config read from JSON file or JSON env val read
       if (!['password', 'p', 'database', 'd', 'user', 'u', 'search_path'].includes(key)) {
         key.split('.').reduce((obj, k, i, arr) => {
           return obj[k] = i === arr.length - 1 ? value : (obj[k] || {})

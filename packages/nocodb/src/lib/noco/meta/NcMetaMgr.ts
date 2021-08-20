@@ -15,6 +15,7 @@ import {
 } from 'nc-help'
 import slash from 'slash';
 import {v4 as uuidv4} from 'uuid';
+import {ncp} from 'ncp';
 
 import IEmailAdapter from "../../../interface/IEmailAdapter";
 import IStorageAdapter from "../../../interface/IStorageAdapter";
@@ -37,6 +38,7 @@ import {RestApiBuilder} from "../rest/RestApiBuilder";
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
 import {packageVersion} from 'nc-help';
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
+import {promisify} from "util";
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -210,19 +212,19 @@ export default class NcMetaMgr {
 
             let projectHasAdmin = false;
             projectHasAdmin = !!(await knex('xc_users').first())
-const result = {
-  authType: 'jwt',
-  projectHasAdmin,
-  firstUser: !projectHasAdmin,
-  projectHasDb,
-  type: this.config.type,
-  env: this.config.workingEnv,
-  googleAuthEnabled: !!(process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET),
-  githubAuthEnabled: !!(process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET),
-  oneClick: !!process.env.NC_ONE_CLICK,
-  connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
-  version: packageVersion
-};
+            const result = {
+              authType: 'jwt',
+              projectHasAdmin,
+              firstUser: !projectHasAdmin,
+              projectHasDb,
+              type: this.config.type,
+              env: this.config.workingEnv,
+              googleAuthEnabled: !!(process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET),
+              githubAuthEnabled: !!(process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET),
+              oneClick: !!process.env.NC_ONE_CLICK,
+              connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+              version: packageVersion
+            };
             return res.json(result)
           }
           if (this.config.auth.masterKey) {
@@ -303,7 +305,6 @@ const result = {
     }
 
 
-
     return res.json(result);
   }
 
@@ -352,7 +353,11 @@ const result = {
           const data = JSON.parse(fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8'));
           for (const row of data) {
             delete row.id;
-            await this.xcMeta.metaInsert(projectId, dbAlias, tn, row)
+            await this.xcMeta.metaInsert(projectId, dbAlias, tn, {
+              ...row,
+              db_alias: dbAlias,
+              project_id: projectId
+            })
           }
         }
       }
@@ -376,6 +381,98 @@ const result = {
   // NOTE: xc-meta
   // Extract and import metadata and config from zip file
   public async xcMetaTablesImportZipToLocalFsAndDb(args, file, req) {
+    try {
+      await this.xcMetaTablesReset(args);
+      let projectConfigPath;
+      // let storeFilePath;
+      await extract(file.path, {
+        dir: path.join(this.config.toolDir, 'uploads'),
+        onEntry(entry, _zipfile) {
+          // extract xc_project.json file path
+          if (entry.fileName?.endsWith('nc_project.json')) {
+            projectConfigPath = entry.fileName;
+          }
+        }
+      });
+      // delete temporary upload file
+      fs.unlinkSync(file.path);
+
+      let projectId = this.getProjectId(args)
+      if (!projectConfigPath) {
+        throw new Error('Missing project config file')
+      }
+
+      const projectDetailsJSON: any = fs.readFileSync(path.join(this.config.toolDir, 'uploads', projectConfigPath), 'utf8');
+      const projectDetails = projectDetailsJSON && JSON.parse(projectDetailsJSON);
+
+      if (args.args.importsToCurrentProject) {
+        await promisify(ncp)(path.join(this.config.toolDir, 'uploads', 'nc', projectDetails.id), path.join(this.config.toolDir, 'nc', projectId), {clobber:true})
+      } else {
+        // decrypt with old key and encrypt again with latest key
+        const projectConfig = JSON.parse(CryptoJS.AES.decrypt(projectDetails.config, projectDetails.key).toString(CryptoJS.enc.Utf8))
+        // delete projectDetails.key;
+        projectDetails.config = projectConfig;
+
+
+        // create new project and import
+        const project = await this.xcMeta.projectCreate(projectDetails.title, projectConfig, projectDetails.description);
+        projectId = project.id;
+
+        // move files to newly created project meta folder
+        await promisify(ncp)(path.join(this.config.toolDir, 'uploads', 'nc', projectDetails.id), path.join(this.config.toolDir, 'nc', projectId))
+
+        await this.xcMeta.projectAddUser(projectId, req?.session?.passport?.user?.id, 'owner,creator');
+        await this.projectMgr.getSqlMgr({
+          ...projectConfig,
+          metaDb: this.xcMeta?.knex
+        }).projectOpenByWeb(projectConfig);
+        this.projectConfigs[projectId] = projectConfig;
+        args.freshImport = true;
+      }
+
+
+      //   const importProjectId = projectConfig?.id;
+      //
+      //   // check project already exist
+      //   if (await this.xcMeta.projectGetById(importProjectId)) {
+      //     // todo:
+      //     throw new Error(`Project with id '${importProjectId}' already exist, it's not allowed at the moment`)
+      //   } else {
+      //     // create the project if not found
+      //     await this.xcMeta.knex('nc_projects').insert(projectConfig);
+      //     projectConfig = JSON.parse((await this.xcMeta.projectGetById(importProjectId))?.config);
+      //
+      //     // duplicated code from project create - see projectCreateByWeb
+      //     await this.xcMeta.projectAddUser(importProjectId, req?.session?.passport?.user?.id, 'owner,creator');
+      //     await this.projectMgr.getSqlMgr({
+      //       ...projectConfig,
+      //       metaDb: this.xcMeta?.knex
+      //     }).projectOpenByWeb(projectConfig);
+      //     this.projectConfigs[importProjectId] = projectConfig;
+      //
+      //     args.freshImport = true;
+      //   }
+      //   args.project_id = importProjectId;
+      // }
+
+      args.project_id = projectId
+
+      await this.xcMetaTablesImportLocalFsToDb(args, req);
+      this.xcMeta.audit(projectId, null, 'nc_audit', {
+        op_type: 'META',
+        op_sub_type: 'IMPORT_FROM_ZIP',
+        user: req.user.email,
+        description: `imported ${projectId} from zip file uploaded `, ip: req.clientIp
+      })
+
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // NOTE: xc-meta
+  // Extract and import metadata and config from zip file
+  public async xcMetaTablesImportZipToLocalFsAndDbV1(args, file, req) {
     try {
       await this.xcMetaTablesReset(args);
       let projectConfigPath;
@@ -2401,7 +2498,7 @@ const result = {
         childColumn: `${parentMeta.tn}_p_id`,
         parentTable: parentMeta.tn,
         parentColumn: parentPK.cn,
-        foreignKeyName:`${parentMeta.tn.slice(0,3)}_${childMeta.tn.slice(0,3)}_${nanoid(6)}_p_fk`,
+        foreignKeyName: `${parentMeta.tn.slice(0, 3)}_${childMeta.tn.slice(0, 3)}_${nanoid(6)}_p_fk`,
         type: 'real'
       };
       const rel2Args = {
@@ -2410,7 +2507,7 @@ const result = {
         childColumn: `${childMeta.tn}_c_id`,
         parentTable: childMeta.tn,
         parentColumn: childPK.cn,
-        foreignKeyName:`${parentMeta.tn.slice(0,3)}_${childMeta.tn.slice(0,3)}_${nanoid(6)}_c_fk`,
+        foreignKeyName: `${parentMeta.tn.slice(0, 3)}_${childMeta.tn.slice(0, 3)}_${nanoid(6)}_c_fk`,
         type: 'real'
       };
       if (args.args.type === 'real') {

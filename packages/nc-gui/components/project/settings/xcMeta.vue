@@ -283,11 +283,12 @@ export default {
           this.$refs.importFile.value = ''
           await this.$store.dispatch('sqlMgr/ActUpload', [
             {
-              // dbAlias: 'db',
               env: 'dev'
             },
             'xcMetaTablesImportZipToLocalFsAndDb',
-            {},
+            {
+              importsToCurrentProject: true
+            },
             zipFile
           ])
           this.$toast.success('Successfully imported metadata').goAway(3000)

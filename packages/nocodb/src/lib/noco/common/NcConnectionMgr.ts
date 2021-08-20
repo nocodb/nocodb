@@ -21,6 +21,27 @@ export default class NcConnectionMgr {
     this.metaKnex = ncMeta;
   }
 
+  public static delete({
+                         dbAlias = 'db',
+                         env = 'dev',
+                         projectId
+                       }: {
+    dbAlias: string,
+    env: string,
+    projectId: string
+  }) {
+    // todo: ignore meta projects
+    if (this.connectionRefs?.[projectId]?.[env]?.[dbAlias]) {
+      try {
+        const conn = this.connectionRefs[projectId][env][dbAlias];
+        conn.destroy();
+        delete this.connectionRefs[projectId][env][dbAlias];
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
+
   public static get({
                       dbAlias = 'db',
                       env = 'dev',

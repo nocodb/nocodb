@@ -21,7 +21,7 @@ export default class NcProjectBuilder {
   public readonly description: string;
   public readonly router: Router;
   public readonly apiBuilders: Array<RestApiBuilder | GqlApiBuilder> = [];
-  public readonly config: any;
+  private _config: any;
 
   protected startTime;
   protected app: Noco;
@@ -38,7 +38,7 @@ export default class NcProjectBuilder {
       this.id = project.id;
       this.title = project.title;
       this.description = project.description;
-      this.config = {...this.appConfig, ...JSON.parse(project.config)};
+      this._config = {...this.appConfig, ...JSON.parse(project.config)};
       this.router = Router();
     }
   }
@@ -455,11 +455,7 @@ export default class NcProjectBuilder {
       case 'xcMetaTablesImportLocalFsToDb':
       case 'xcMetaTablesImportZipToLocalFsAndDb':
       case 'projectRestart':
-        this.router.stack.splice(0, this.router.stack.length);
-        this.apiBuilders.splice(0, this.apiBuilders.length);
-        await this.app.ncMeta.projectStatusUpdate(this.title, 'stopped');
-        await this.init();
-        NcProjectBuilder.triggerGarbageCollect();
+        await this.reInit();
         this.app.ncMeta.audit(this.id, null, 'nc_audit', {
           op_type: 'PROJECT',
           op_sub_type: 'RESTARTED',
@@ -784,6 +780,34 @@ export default class NcProjectBuilder {
     return this.config?.prefix;
   }
 
+  public get config(): any {
+    return this._config;
+  }
+
+  public updateConfig(config: string) {
+    this._config = {...this.appConfig, ...JSON.parse(config)};
+  }
+
+  public async reInit() {
+    this.router.stack.splice(0, this.router.stack.length);
+    this.apiBuilders.splice(0, this.apiBuilders.length);
+    await this.app.ncMeta.projectStatusUpdate(this.title, 'stopped');
+    const dbs = this.config?.envs?.[this.appConfig.workingEnv]?.db
+
+    if (!dbs || !dbs.length) {
+      return;
+    }
+
+    for (const connectionConfig of dbs) {
+      NcConnectionMgr.delete({
+        dbAlias: connectionConfig?.mets?.dbAlias,
+        env: this.config.env,
+        projectId: this.id
+      })
+    }
+    NcProjectBuilder.triggerGarbageCollect();
+    await this.init();
+  }
 
 }
 

@@ -490,6 +490,7 @@
                                                 : 'password'
                                             "
                                             :label="$t('projects.ext_db.credentials.password')"
+                                            @dblclick="enableDbEdit++"
                                           >
                                             <template #append>
                                               <v-icon
@@ -516,6 +517,7 @@
                                           <v-text-field
                                             v-model="db.connection.database"
                                             v-ge="['project', 'env-db-name']"
+                                            :disabled="edit && enableDbEdit < 2"
                                             class="body-2 database-field"
                                             :rules="form.requiredRule"
                                             :label="$t('projects.ext_db.credentials.db_create_if_not_exists')"
@@ -1046,6 +1048,7 @@ export default {
       ],
       loaderMessage: '',
       projectReloading: false,
+      enableDbEdit: 0,
       authTypes: [
         { text: 'JWT', value: 'jwt' },
         { text: 'Master Key', value: 'masterKey' },
@@ -1055,19 +1058,6 @@ export default {
       projectTypes: [
         { text: 'REST APIs', value: 'rest', icon: 'mdi-code-json', iconColor: 'green' },
         { text: 'GRAPHQL APIs', value: 'graphql', icon: 'mdi-graphql', iconColor: 'pink' }
-        // {
-        //   text: 'Automatic gRPC APIs on database',
-        //   value: 'grpc',
-        //   icon: require('@/assets/img/grpc-icon-color.png'),
-        //   type: 'img'
-        // },
-        // {
-        //   text: 'Automatic SQL Schema Migrations',
-        //   value: 'migrations',
-        //   icon: 'mdi-database-sync',
-        //   iconColor: 'indigo'
-        // },
-        // {text: 'Simple Database Connection', value: 'dbConnection', icon: 'mdi-database', iconColor: 'primary'},
       ],
 
       showPass: {},
@@ -1317,9 +1307,9 @@ export default {
       },
       sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred'), // Preferred
       ssl: {
-        key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
-        cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
-        ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca') // Server CA
+        key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key.title'), // Client Key
+        cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert.title'), // Client Cert
+        ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca.title') // Server CA
       },
       databaseNames: {
         MySQL: 'mysql2',
@@ -1559,7 +1549,8 @@ export default {
             options: JSON5.parse(this.smtpConfiguration.options),
             from: this.smtpConfiguration.from
           }
-        } catch (e) {}
+        } catch (e) {
+        }
       }
 
       xcConfig.meta = xcConfig.meta || {}
@@ -1593,9 +1584,9 @@ export default {
           Vue.set(db, 'ui', {
             setup: 0,
             ssl: {
-              key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key'), // Client Key
-              cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert'), // Client Cert
-              ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca') // Server CA
+              key: this.$t('projects.ext_db.credentials.advanced.ssl.client_key.title'), // Client Key
+              cert: this.$t('projects.ext_db.credentials.advanced.ssl.client_cert.title'), // Client Cert
+              ca: this.$t('projects.ext_db.credentials.advanced.ssl.server_ca.title') // Server CA
             },
             sslUse: this.$t('projects.ext_db.credentials.advanced.ssl.preferred') // Preferred
           })
@@ -1641,8 +1632,12 @@ export default {
       let i = 0
       const toast = this.$toast.info(this.loaderMessages[0])
       const interv = setInterval(() => {
-        if (this.edit) { return }
-        if (i < this.loaderMessages.length - 1) { i++ }
+        if (this.edit) {
+          return
+        }
+        if (i < this.loaderMessages.length - 1) {
+          i++
+        }
         if (toast) {
           if (!this.allSchemas) {
             toast.text(this.loaderMessages[i])
@@ -1849,7 +1844,7 @@ export default {
         this.project.envs[env].db.length === 1 &&
         this.project.envs[env].db[0].connection.user === 'postgres' &&
         this.project.envs[env].db[0].connection.database ===
-          `${this.project.title}_${env}_${this.project.envs[env].length}`
+        `${this.project.title}_${env}_${this.project.envs[env].length}`
       ) {
         this.handleSSL(db)
         if (db.client === 'sqlite3') {
@@ -1885,7 +1880,7 @@ export default {
 
             for (const e in this.project.envs) {
               if (e === env) {
-              //  ignore
+                //  ignore
               } else {
                 console.log(this.project.envs[e])
 
@@ -1932,7 +1927,9 @@ export default {
     },
 
     sendAdvancedConfig(connection) {
-      if (!connection.ssl) { return false }
+      if (!connection.ssl) {
+        return false
+      }
       let sendAdvancedConfig = false
       const sslOptions = Object.values(connection.ssl).filter(el => !!el)
       console.log('sslOptions:', sslOptions)
@@ -1963,7 +1960,8 @@ export default {
         // }
       }
     },
-    getDatabaseForTestConnection(dbType) {},
+    getDatabaseForTestConnection(dbType) {
+    },
     async testConnection(db, env, panelIndex) {
       this.$store.commit('notification/MutToggleProgressBar', true)
       try {
@@ -2028,7 +2026,9 @@ export default {
       return dbs.db.every(db => db.ui.setup === 1)
     },
     openFirstPanel() {
-      if (!this.edit) { this.panel = 0 }
+      if (!this.edit) {
+        this.panel = 0
+      }
     },
     onDatabaseTypeChanged(client, db1, index, env) {
       for (const env in this.project.envs) {
@@ -2072,7 +2072,9 @@ export default {
       }
     },
     selectDatabaseClient(database, index = 0) {
-      if (this.client) { this.client[index] = database }
+      if (this.client) {
+        this.client[index] = database
+      }
     },
     setDBStatus(db, status) {
       db.ui.setup = status
@@ -2091,11 +2093,15 @@ export default {
       Vue.set(this.project, 'envs', { ...this.project.envs })
     }
   },
-  fetch({ store, params }) {},
-  beforeCreated() {},
+  fetch({ store, params }) {
+  },
+  beforeCreated() {
+  },
   watch: {
     'project.title'(newValue, oldValue) {
-      if (!newValue) { return }
+      if (!newValue) {
+        return
+      }
       if (!this.edit) {
         // Vue.set(this.project, 'folder', slash(path.join(this.baseFolder, newValue)))
         Vue.set(this.project, 'folder', [this.baseFolder, newValue].join('/'))
@@ -2218,7 +2224,8 @@ export default {
       // }
     }
   },
-  beforeMount() {},
+  beforeMount() {
+  },
   mounted() {
     this.$set(
       this.project,
@@ -2236,8 +2243,10 @@ export default {
       input.focus()
     })
   },
-  beforeDestroy() {},
-  destroy() {},
+  beforeDestroy() {
+  },
+  destroy() {
+  },
   validate({ params }) {
     return true
   },

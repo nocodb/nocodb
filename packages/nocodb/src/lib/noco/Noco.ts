@@ -294,21 +294,22 @@ export default class Noco {
             const builder = new NcProjectBuilder(this, this.config, project);
             this.projectBuilders.push(builder)
             await builder.init(true);
+          } else {
+            const projectBuilder = this.projectBuilders.find(pb => pb.id == data.req?.project_id);
+            return projectBuilder?.handleRunTimeChanges(data);
           }
         }
           break;
 
-        case 'projectUpdateByWeb':
-          this.config.toolDir = this.config.toolDir || process.cwd();
-          this.config.workingEnv = this.env;
-          this.ncMeta.setConfig(this.config);
-          this.metaMgr.setConfig(this.config);
-          this.router.stack.splice(0, this.router.stack.length);
-          this.ncToolApi.destroy();
-          this.ncToolApi.reInitialize(this.config);
-          this.initWebSocket();
-          await this.init({});
-          console.log(`Project created: ${data.req.args.tn}`)
+        case 'projectUpdateByWeb': {
+          const projectId = data.req?.project_id;
+          const project = await this.ncMeta.projectGetById(data?.req?.project_id)
+          const projectBuilder = this.projectBuilders.find(pb => pb.id === projectId);
+
+          projectBuilder.updateConfig(project.config)
+          await projectBuilder.reInit()
+          console.log(`Project updated: ${projectId}`)
+        }
           break;
 
         case 'projectChangeEnv':

@@ -436,7 +436,7 @@ export default class NcProjectBuilder {
       case 'projectDelete':
         this.router.stack.splice(0, this.router.stack.length);
         this.apiBuilders.splice(0, this.apiBuilders.length);
-        await this.app.ncMeta.projectDelete(this.title);
+        await this.app.ncMeta.projectDeleteById(this.id);
         await this.app.ncMeta.knex('nc_projects_users').where({project_id: this.id}).del();
         for (const db of (this.config?.envs?.[this.appConfig?.workingEnv]?.db || [])) {
           const dbAlias = db?.meta?.dbAlias;

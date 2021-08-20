@@ -657,6 +657,12 @@ export default class NcMetaIOImpl extends NcMetaIO {
     }).delete();
   }
 
+  public projectDeleteById(id: string): Promise<any> {
+    return this.connection('nc_projects').where({
+      id
+    }).delete();
+  }
+
   public async projectStatusUpdate(projectName: string, status: string): Promise<any> {
     return this.connection('nc_projects').update({
       status

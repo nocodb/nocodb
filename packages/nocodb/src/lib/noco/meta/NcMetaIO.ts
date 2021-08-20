@@ -125,6 +125,7 @@ export default abstract class NcMetaIO {
   public abstract projectGetById(projectId: string, encrypt?: boolean): Promise<any>;
 
   public abstract projectDelete(title: string): Promise<any>;
+  public abstract projectDeleteById(id: string): Promise<any>;
 
   public abstract startTransaction();
 

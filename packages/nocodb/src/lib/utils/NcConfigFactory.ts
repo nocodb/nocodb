@@ -50,8 +50,18 @@ export default class NcConfigFactory implements NcConfig {
       config.meta.db.connection.filename = path.join(config.toolDir, config.meta.db.connection.filename)
     }
 
+    if (process.env.NC_DB_JSON) {
+      config.meta.db = JSON.parse(process.env.NC_DB_JSON);
+    } else if (process.env.NC_DB_JSON_FILE) {
+      const filePath = process.env.NC_DB_JSON_FILE;
 
-    if (process.env.NC_DB) {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`NC_DB_JSON_FILE not found: ${filePath}`);
+      }
+
+      const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
+      config.meta.db = JSON.parse(fileContent);
+    } else if (process.env.NC_DB) {
       config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB)
     }
 

@@ -1,0 +1,18 @@
+{
+  "client": "pg",
+  "connection": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "postgres",
+    "password": "xgene",
+    "database": "abcde"
+  },
+  "pool": {
+    "min": 1,
+    "max": 2
+  },
+  "ssl": {
+    "rejectUnauthorized": false
+  },
+  "acquireConnectionTimeout": 600000
+}

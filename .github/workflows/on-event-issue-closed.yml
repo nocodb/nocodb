@@ -1,4 +1,4 @@
-name: Issue closed notification
+name: "On Event : Issue Closed"
 
 on:
   issues:

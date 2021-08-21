@@ -1,4 +1,4 @@
-name: DCO Check
+name: Check DCO
 on: [pull_request]
 
 jobs:

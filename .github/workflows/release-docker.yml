@@ -1,4 +1,4 @@
-name: docker
+name: "Release : Docker"
 
 on:
   workflow_dispatch:

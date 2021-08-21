@@ -328,7 +328,7 @@ menuTitle: 'Abstract Types'
 ### Formula
 
 
-
+For more about formula visit [here](./formula)
 
 
 ### Count

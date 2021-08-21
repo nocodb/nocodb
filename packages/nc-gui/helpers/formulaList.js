@@ -9,6 +9,16 @@ const validations = {
       args: { min: 1 }
     }
   },
+  AND: {
+    validation: {
+      args: { min: 1 }
+    }
+  },
+  OR: {
+    validation: {
+      args: { min: 1 }
+    }
+  },
   CONCAT: {
     validation: { args: { min: 1 } }
   },

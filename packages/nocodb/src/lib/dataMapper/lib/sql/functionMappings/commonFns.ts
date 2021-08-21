@@ -3,7 +3,7 @@ import {MapFnArgs} from "../mapFunctionName";
 export default {
   // todo: handle default case
   SWITCH: (args: MapFnArgs) => {
-    const count = Math.floor((args.pt.arguments.length-1) / 2)
+    const count = Math.floor((args.pt.arguments.length - 1) / 2)
     let query = '';
 
     const switchVal = args.fn(args.pt.arguments[0]).toQuery();
@@ -23,6 +23,12 @@ export default {
     }
     return args.knex.raw(`CASE ${query}\n END${args.colAlias}`)
   },
-  TRUE:(_args) => 1,
-  FALSE:(_args) => 0
+  TRUE: (_args) => 1,
+  FALSE: (_args) => 0,
+  AND: (args: MapFnArgs) => {
+    return args.knex.raw(`${args.knex.raw(`${args.pt.arguments.map(ar => args.fn(ar).toQuery()).join(' AND ')}`).wrap('(', ')').toQuery()}${args.colAlias}`)
+  },
+  OR: (args: MapFnArgs) => {
+    return args.knex.raw(`${args.knex.raw(`${args.pt.arguments.map(ar => args.fn(ar).toQuery()).join(' OR ')}`).wrap('(', ')').toQuery()}${args.colAlias}`)
+  },
 }

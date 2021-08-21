@@ -71,7 +71,7 @@ export default class OvhCloud implements IStorageAdapter {
     s3Options.accessKeyId = this.input.access_key
     s3Options.secretAccessKey = this.input.access_secret;
 
-    s3Options.endpoint = new AWS.Endpoint(`ewr1.vultrobjects.com`);
+    s3Options.endpoint = new AWS.Endpoint(`s3.${this.input.region}.cloud.ovh.net`);
 
     this.s3Client = new AWS.S3(s3Options);
 

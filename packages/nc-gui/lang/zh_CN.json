@@ -1,62 +1,62 @@
 {
   "projects": {
-    "my_projects": "My Projects",
-    "reload_projects_tooltip": "Refresh projects",
+    "my_projects": "我的项目",
+    "reload_projects_tooltip": "刷新项目",
     "create_new_project_button": {
       "text": "创建新项目",
-      "subtext_1": "Create",
-      "subtext_1_tooltip": "Create a new project",
-      "subtext_2": "Create By Connecting <br>To An External Database",
-      "subtext_2_tooltip": "Supports MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_1": "新建",
+      "subtext_1_tooltip": "新建一个项目",
+      "subtext_2": "通过连接新建 <br>连接到外部数据库",
+      "subtext_2_tooltip": "支持 MySQL, PostgreSQL, SQL Server & SQLite"
     },
-    "search_project": "Search Project",
-    "import_metadata": "Import Metadata",
-    "export_metadata": "Export Metadata",
-    "clear_metadata": "Clear Metadata",
-    "stop_project": "Stop Project",
-    "start_project": "Start Project",
-    "restart_project": "Restart Project",
-    "delete_project": "Delete Project",
-    "project_api_type_tooltip_graphql": "Accessible via GraphQL APIs",
-    "project_api_type_tooltip_rest": "Accessible via REST APIs",
-    "project_empty_message": "Get started by creating a new project",
+    "search_project": "搜索项目",
+    "import_metadata": "导入 Metadata",
+    "export_metadata": "导出 Metadata",
+    "clear_metadata": "清空 Metadata",
+    "stop_project": "暂停项目",
+    "start_project": "开启项目",
+    "restart_project": "重启项目",
+    "delete_project": "删除项目",
+    "project_api_type_tooltip_graphql": "通过GraphQL API访问",
+    "project_api_type_tooltip_rest": "通过REST API访问",
+    "project_empty_message": "从创建新项目开始",
     "import_button": {
-      "text": "Import NocoDB Project by uploading metadata zip file"
+      "text": "通过上传metadata zip 文件导入NocoDB"
     },
-    "show_community_star": "Star",
+    "show_community_star": "点赞",
     "show_community_us_on_Github": "us on Github",
     "show_community_book_a_free_demo": "Book a Free DEMO",
-    "show_community_get_your_questions_answered": "Get your questions answered",
-    "show_community_join_discord": "Join Discord",
-    "show_community_follow_nocodb": "Follow NocoDB",
+    "show_community_get_your_questions_answered": "使你的问题得到解答",
+    "show_community_join_discord": "加入 Discord",
+    "show_community_follow_nocodb": "关注 NocoDB",
     "search": {
       "your_search_found_no_results": "Your search for {search} found no results"
     },
     "ext_db": {
       "title": {
-        "edit": "Edit Project",
-        "create": "Create Project"
+        "edit": "编辑项目",
+        "create": "创建项目"
       },
-      "project_name": "Enter Project Name",
+      "project_name": "输入项目名称",
       "project_type": "Access Project via",
       "button": {
-        "save_project": "Save Project",
-        "update_and_restart": "Update & Restart",
-        "cancel": "Cancel",
-        "cancel_tooltip": "Cancel and Return"
+        "save_project": "保存项目",
+        "update_and_restart": "更新并重启",
+        "cancel": "取消",
+        "cancel_tooltip": "取消并返回"
       },
       "credentials": {
-        "title": "Database Credentials",
-        "db_type": "Database Type",
-        "sqlite_file": "SQLite File",
-        "host_address": "Host Address",
+        "title": "数据库凭证",
+        "db_type": "数据库类型",
+        "sqlite_file": "SQLite 文件",
+        "host_address": "Host 地址",
         "port": "Port Number",
-        "username": "Username",
-        "password": "Password",
-        "db_create_if_not_exists": "Database : create if not exists",
+        "username": "用户名",
+        "password": "密码",
+        "db_create_if_not_exists": "数据库：不存在就新建",
         "button": {
-          "test_db_conn": "Test Database Connection",
-          "remove_db_from_env": "Remove Database from environment"
+          "test_db_conn": "测试数据库连接",
+          "remove_db_from_env": "从环境中删除数据库"
         },
         "advanced": {
           "title": "SSL & Advanced parameters",
@@ -92,133 +92,133 @@
         }
       },
       "error": {
-        "invalid_char_in_folder_path": "Invalid character in folder path.",
-        "invalid_db_credentials": "Invalid database credentials.",
-        "unable_to_connect_to_db": "Unable to connect to database, please check your database is up.",
-        "user_doesnt_ve_sufficient_permission": "User does not exist or have sufficient permission to create schema."
+        "invalid_char_in_folder_path": "文件夹路径中的字符无效。",
+        "invalid_db_credentials": "无效的数据库凭据。",
+        "unable_to_connect_to_db": "无法连接到数据库，请检查您的数据库是否已启动。",
+        "user_doesnt_ve_sufficient_permission": "用户不存在或具有创建架构的足够权限。"
       },
       "head": {
-        "title": "Create Project | NocoDB"
+        "title": "新建项目 | NocoDB"
       },
       "dialog": {
-        "success": "Connection was successful",
-        "failure": "Connection Failure:"
+        "success": "连接成功",
+        "failure": "连接失败:"
       }
     },
     "notifications": {
-      "no_new": "No new notifications",
-      "clear": "Clear"
+      "no_new": "没有新通知",
+      "clear": "清空"
     }
   },
   "signin": {
-    "title": "SIGN IN",
-    "enter_your_work_email": "Enter your work email",
-    "enter_your_password": "Enter your password",
-    "forget_password": "Forgot your password ?",
-    "dont_ve_an_account": "Don't have an account ?",
-    "sign_up": "Sign Up",
+    "title": "登录",
+    "enter_your_work_email": "请输入您的工作邮箱",
+    "enter_your_password": "请输入您的密码",
+    "forget_password": "忘记密码？",
+    "dont_ve_an_account": "还没有账号？",
+    "sign_up": "注册",
     "form": {
       "rules": {
-        "email_is_reqd": "E-mail is required",
-        "email_must_be_valid": "E-mail must be valid",
-        "passwd_required": "Password is required",
-        "passwd_must_be_8_chars": "You password must be atleast 8 characters"
+        "email_is_reqd": "邮箱必填",
+        "email_must_be_valid": "邮箱无效",
+        "passwd_required": "密码必填",
+        "passwd_must_be_8_chars": "您的密码必须至少为 8 个字符"
       }
     },
     "head": {
-      "title": "Log In | NocoDB",
+      "title": "登录 | NocoDB",
       "meta": {
-        "hid": "Log In To NocoDB",
-        "name": "Log In To NocoDB",
-        "content": "Log In To NocoDB"
+        "hid": "登录到 NocoDB",
+        "name": "登录到 NocoDB",
+        "content": "登录到 NocoDB"
       }
     },
     "password": {
       "recovery": {
-        "title": "Reset your password",
-        "message_1": "Please provide the email address you used when you signed up.",
-        "message_2": "We will send you an email with a link to reset your password.",
-        "success": "Please check your email to reset the password",
-        "button": "SEND EMAIL"
+        "title": "重置您的密码",
+        "message_1": "请提供您注册时使用的电子邮件地址。",
+        "message_2": "我们将向您发送一封电子邮件，其中包含重置密码的链接。",
+        "success": "请检查您的邮箱以重置密码",
+        "button": "发送邮件"
       }
     }
   },
   "signup": {
-    "title": "SIGN UP",
-    "you_will_be_the_super_admin": "You will be the 'Super Admin'",
-    "already_ve_an_account": "Already have an account ?"
+    "title": "注册",
+    "you_will_be_the_super_admin": "你将成为 '超级管理员'",
+    "already_ve_an_account": "已有账号？"
   },
   "treeview": {
     "settings": {
-      "title": "Settings",
-      "tooltip": "Only visible to Creator"
+      "title": "设置",
+      "tooltip": "仅创建人可见"
     },
-    "app_store": "App Store",
+    "app_store": "软件商店",
     "team_n_auth": {
-      "title": "Team & Auth",
-      "tooltip": "Roles & Users Management"
+      "title": "团队和认证",
+      "tooltip": "角色和用户管理"
     },
     "project_metadata": {
-      "title": "Project Metadata",
-      "tooltip": "Meta Management"
+      "title": "项目信息",
+      "tooltip": "项目信息管理"
     },
-    "preview_as": "Preview as",
-    "reset_review": "Reset Preview"
+    "preview_as": "预览",
+    "reset_review": "重置预览"
   },
   "nav_drawer": {
-    "title": "Views",
+    "title": "视图",
     "virtual_views": {
       "action": {
-        "copy": "Copy view",
-        "rename": "Rename view",
-        "delete": "Delete view"
+        "copy": "复制视图",
+        "rename": "重命名视图",
+        "delete": "删除视图"
       },
-      "title": "Create a View",
-      "caption": "Only visible to Creator",
+      "title": "创建视图",
+      "caption": "仅创建人可见",
       "grid": {
-        "title": "Grid",
-        "create": "Add Grid View"
+        "title": "网格",
+        "create": "添加一个网格视图"
       },
       "gallery": {
-        "title": "Gallery",
-        "create": "Add Gallery View"
+        "title": "画廊",
+        "create": "添加一个画廊视图"
       },
       "calendar": {
-        "title": "Calendar",
-        "create": "Add Calendar View"
+        "title": "日历",
+        "create": "添加一个日历视图"
       },
       "kanban": {
-        "title": "Kanban",
-        "create": "Add Kanban View"
+        "title": "看板",
+        "create": "添加一个看板视图"
       },
       "form": {
-        "title": "Form",
-        "create": "Add Form View"
+        "title": "表单",
+        "create": "添加一个表单视图"
       }
     },
     "advanced": {
-      "title1": "Share View",
-      "views_list": "Views List",
-      "copy_api_url": "Copy API URL"
+      "title1": "分享视图",
+      "views_list": "视图列表",
+      "copy_api_url": "复制 API URL"
     },
     "share_view": {
-      "title": "This view is shared via a private link",
-      "body": "People with private link can only see cells visible in this view",
+      "title": "此视图是通过私人链接共享的",
+      "body": "拥有私人链接的人只能看到此视图中可见的单元格",
       "toggle": {
-        "option1": "Restrict access with a password",
-        "option2": "Access is password restricted"
+        "option1": "使用密码限制访问",
+        "option2": "访问受密码限制"
       },
       "password": {
-        "caption": "Enter the password",
-        "button": "Save password"
+        "caption": "输入密码",
+        "button": "保存密码"
       }
     }
   },
   "management": {
     "tabs": {
-      "user": "Users Management",
-      "api": "API Tokens Management",
-      "roles": "Roles Management"
+      "user": "账号管理",
+      "api": "API Tokens 管理",
+      "roles": "角色管理"
     },
     "meta": {
       "title": "Metadata Operations",

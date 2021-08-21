@@ -3,6 +3,8 @@ name: "Publish : Docs"
 on:
   push:
     branches: [ master ]
+  release:
+    types: [ published ]
 
 jobs:
   copy-file:
@@ -21,7 +23,7 @@ jobs:
         with:
           node-version: 14
       - name: Build docs
-        if: ${{ env.CHANGED == 'OK' }}
+        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         run: |
           cd packages/noco-docs
           npm install
@@ -29,7 +31,7 @@ jobs:
 
 
       - name: Pushes generated output
-        if: ${{ env.CHANGED == 'OK' }}
+        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}

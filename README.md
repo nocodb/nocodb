@@ -257,6 +257,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://brunomoreira.opo.pt"><img src="https://avatars.githubusercontent.com/u/3017910?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bruno Moreira</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bmscmoreira" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/AztrexDX"><img src="https://avatars.githubusercontent.com/u/86340924?v=4?s=100" width="100px;" alt=""/><br /><sub><b>AztrexDX</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=AztrexDX" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ejose19"><img src="https://avatars.githubusercontent.com/u/8742215?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ejose19</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ejose19" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/maximeag"><img src="https://avatars.githubusercontent.com/u/3855368?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Maxime</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=maximeag" title="Code">💻</a></td>
   </tr>
 </table>
 

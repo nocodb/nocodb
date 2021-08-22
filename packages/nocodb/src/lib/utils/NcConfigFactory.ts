@@ -22,6 +22,11 @@ const defaultClientPortMapping = {
   mssql: 1433,
 }
 
+const defaultConnectionConfig ={
+  timezone: 'UTC',
+  dateStrings: true
+}
+
 
 export default class NcConfigFactory implements NcConfig {
 
@@ -210,7 +215,7 @@ export default class NcConfigFactory implements NcConfig {
         client: 'sqlite3',
         "connection": {
           "client": "sqlite3",
-          "connection": {
+          "connection": {          
             "filename": url.searchParams.get('d') || url.searchParams.get('database')
           },
           "database": url.searchParams.get('d') || url.searchParams.get('database'),
@@ -221,6 +226,7 @@ export default class NcConfigFactory implements NcConfig {
       dbConfig = {
         client: url.protocol.replace(':', ''),
         "connection": {
+          ...defaultConnectionConfig,
           database: url.searchParams.get('d') || url.searchParams.get('database'),
           "host": url.hostname,
           "password": url.searchParams.get('p') || url.searchParams.get('password'),
@@ -307,6 +313,7 @@ export default class NcConfigFactory implements NcConfig {
       dbConfig = {
         client: url.protocol.replace(':', ''),
         "connection": {
+          ...defaultConnectionConfig,
           database: url.searchParams.get('d') || url.searchParams.get('database'),
           "host": url.hostname,
           "password": url.searchParams.get('p') || url.searchParams.get('password'),
@@ -616,6 +623,11 @@ export default class NcConfigFactory implements NcConfig {
   // }
 
 }
+
+export {
+  defaultConnectionConfig
+}
+
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

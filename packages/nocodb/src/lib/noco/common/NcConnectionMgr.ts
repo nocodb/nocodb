@@ -5,6 +5,7 @@ import Knex from "knex";
 
 import {SqlClientFactory} from 'nc-help';
 import NcMetaIO from "../meta/NcMetaIO";
+import {defaultConnectionConfig} from "../../utils/NcConfigFactory";
 
 export default class NcConnectionMgr {
   private static connectionRefs: {
@@ -92,6 +93,7 @@ export default class NcConnectionMgr {
         {
           ...connectionConfig,
           connection: {
+            ...defaultConnectionConfig,
             ...connectionConfig.connection,
             typeCast(_field, next) {
               const res = next();

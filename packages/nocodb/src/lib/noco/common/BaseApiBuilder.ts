@@ -218,7 +218,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       onDelete,
       onUpdate,
       parentColumn,
-      virtual
+      virtual,
+      foreignKeyName: fkn
     } = args;
 
     XcCache.del([this.projectId, this.dbAlias, 'table', tnp].join('::'));
@@ -236,6 +237,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         db_type: this.connectionConfig?.client,
         dr: onDelete,
         ur: onUpdate,
+        fkn
       })
     } else {
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
@@ -248,7 +250,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         rcn: parentColumn,
       })
     }
-
     Tele.emit('evt', {evt_type: 'relation:created'})
   }
 

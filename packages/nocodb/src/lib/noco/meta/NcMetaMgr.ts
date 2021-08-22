@@ -2529,7 +2529,7 @@ export default class NcMetaMgr {
             }
           });
         }
-        const outrel1 = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationCreate', {
+        const outrel1 = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('n', {
           ...args,
           args: rel2Args
         });
@@ -2616,7 +2616,8 @@ export default class NcMetaMgr {
               childColumn: relation.cn,
               childTable: relation.tn,
               parentTable: relation.rtn,
-              parentColumn: relation.rcn
+              parentColumn: relation.rcn,
+              foreignKeyName: relation.fkn
             },
             api: 'relationDelete',
             sqlOpPlus: true,
@@ -2683,6 +2684,7 @@ export default class NcMetaMgr {
             parentColumn: rel1.rcn,
             childTable: rel1.tn,
             childColumn: rel1.cn,
+            foreignKeyName: rel1.fkn,
             type: 'bt',
           }
         }, req, false)
@@ -2693,6 +2695,7 @@ export default class NcMetaMgr {
             parentColumn: rel2.rcn,
             childTable: rel2.tn,
             childColumn: rel2.cn,
+            foreignKeyName: rel2.fkn,
             type: 'bt',
           }
         }, req, false);

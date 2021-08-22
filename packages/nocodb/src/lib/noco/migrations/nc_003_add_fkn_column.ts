@@ -1,32 +1,22 @@
-import * as project from '../migrations/nc_001_init';
-import * as m2m from '../migrations/nc_002_add_m2m';
-import * as fkn from '../migrations/nc_003_add_fkn_column';
+import Knex from "knex";
 
-// Create a custom migration source class
-export default class XcMigrationSource{
-  // Must return a Promise containing a list of migrations.
-  // Migrations can be whatever you want, they will be passed as
-  // arguments to getMigrationName and getMigration
-  public getMigrations(): Promise<any> {
-    // In this example we are just returning migration names
-    return Promise.resolve(['project','m2m', 'fkn'])
-  }
+const up = async (knex: Knex) => {
+  await knex.schema.alterTable('nc_relations', table => {
+    table.string('fkn');
+  })
+};
 
-  public getMigrationName(migration): string {
-    return migration;
-  }
+const down = async (knex) => {
+  await knex.schema.alterTable('nc_relations', table => {
+    table.dropColumns('fkn');
+  })
+};
 
-  public getMigration(migration): any {
-    switch (migration) {
-      case 'project':
-        return project;
-      case 'm2m':
-        return m2m;
-      case 'fkn':
-        return fkn;
-    }
-  }
+
+export {
+  up, down
 }
+
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

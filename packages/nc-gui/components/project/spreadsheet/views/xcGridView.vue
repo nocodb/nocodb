@@ -27,7 +27,7 @@
             @xcresized="resizingCol = null"
           >
             <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
-    -->
+-->
 
             <virtual-header-cell
               v-if="col.virtual"
@@ -136,13 +136,13 @@
             :key="row + columnObj.alias"
             class="cell pointer"
             :class="{
-              'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
+              'active' :!isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,
               'text-center': isCentrallyAligned(columnObj),
               'required': isRequired(columnObj,rowObj)
             }"
             :data-col="columnObj.alias"
-            @dblclick="makeEditable(col,row,columnObj.ai)"
+            @dblclick="makeEditable(col,row,columnObj.ai,rowMeta)"
             @click="makeSelected(col,row);"
             @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row,col, columnObj)"
           >
@@ -162,7 +162,8 @@
 
             <editable-cell
               v-else-if="
-                !isLocked
+                (isPkAvail ||rowMeta.new) &&
+                  !isLocked
                   && !isPublicView
                   && (editEnabled.col === col && editEnabled.row === row)
                   || enableEditable(columnObj)
@@ -190,11 +191,11 @@
               :db-alias="nodes.dbAlias"
               :value="rowObj[columnObj._cn]"
               :sql-ui="sqlUi"
-              @enableedit="makeSelected(col,row);makeEditable(col,row,columnObj.ai)"
+              @enableedit="makeSelected(col,row);makeEditable(col,row,columnObj.ai, rowMeta)"
             />
           </td>
         </tr>
-        <tr v-if="!isLocked && !isPublicView && isEditable && relationType !== 'bt'">
+        <tr v-if="isPkAvail && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
           <td :colspan="visibleColLength + 1" class="text-left pointer" @click="insertNewRow(true)">
             <v-tooltip top>
               <template #activator="{on}">
@@ -214,7 +215,9 @@
     <!--    <div is="style" v-html="resizeColStyle" />-->
     <dynamic-style>
       <template v-if="resizingCol">
-        [data-col="{{ resizingCol }}"]{min-width:{{ resizingColWidth }};max-width:{{ resizingColWidth }};width:{{ resizingColWidth }};}
+        [data-col="{{ resizingCol }}"]{min-width:{{ resizingColWidth }};max-width:{{
+          resizingColWidth
+        }};width:{{ resizingColWidth }};}
       </template>
     </dynamic-style>
   </div>
@@ -261,7 +264,8 @@ export default {
     table: String,
     isVirtual: Boolean,
     isLocked: Boolean,
-    columnsWidth: { type: Object }
+    columnsWidth: { type: Object },
+    isPkAvail: Boolean
   },
   data: () => ({
     resizingCol: null,
@@ -426,6 +430,10 @@ export default {
             return
           }
           if (e.key && e.key.length === 1) {
+            if (!this.isPkAvail && !this.data[this.selected.row].rowMeta.new) {
+              return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
+            }
+
             this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, '')
             this.editEnabled = { ...this.selected }
           }
@@ -466,9 +474,13 @@ export default {
         this.editEnabled = {}
       }
     },
-    makeEditable(col, row) {
+    makeEditable(col, row, _, rowMeta) {
       if (this.isPublicView || !this.isEditable) {
         return
+      }
+
+      if (!this.isPkAvail && !rowMeta.new) {
+        return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
       }
       if (this.availableColumns[col].ai) {
         return this.$toast.info('Auto Increment field is not editable').goAway(3000)

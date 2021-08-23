@@ -413,6 +413,9 @@ export default {
 
           await this.reload()
         } else if (Object.keys(updatedObj).length) {
+          if (!id) {
+            return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
+          }
           await this.api.update(id, updatedObj, this.oldRow)
         } else {
           return this.$toast.info('No columns to update').goAway(3000)

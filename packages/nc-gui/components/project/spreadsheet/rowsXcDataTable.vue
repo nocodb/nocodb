@@ -62,7 +62,15 @@
       <v-spacer class="h-100" @dblclick="debug=true" />
 
       <debug-metas v-if="debug" class="mr-3" />
-
+      <v-tooltip bottom>
+        <template #activator="{on}">
+          <v-icon v-if="!isPkAvail" color="warning" small class="mr-3" v-on="on">
+            mdi-information-outline
+          </v-icon>
+        </template>
+        <span class="caption">          Update & Delete not allowed since the table doesn't have any primary key
+        </span>
+      </v-tooltip>
       <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
       <x-btn tooltip="Reload view data" outlined small text @click="reload">
         <v-icon small class="mr-1" color="grey  darken-3">
@@ -208,6 +216,7 @@
               :meta="meta"
               :is-virtual="selectedView.type === 'vtable'"
               :api="api"
+              :is-pk-avail="isPkAvail"
               @onNewColCreation="onNewColCreation"
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
@@ -631,8 +640,8 @@ export default {
       if (
         !this.meta || (
           (this.meta.hasMany && this.meta.hasMany.length) ||
-        (this.meta.manyToMany && this.meta.manyToMany.length) ||
-        (this.meta.belongsTo && this.meta.belongsTo.length))
+          (this.meta.manyToMany && this.meta.manyToMany.length) ||
+          (this.meta.belongsTo && this.meta.belongsTo.length))
       ) {
         return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
       }
@@ -817,6 +826,10 @@ export default {
 
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
 
+          if (!id) {
+            return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
+          }
+
           const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
           }, { [column._cn]: oldRow[column._cn] })
@@ -841,6 +854,11 @@ export default {
         const rowObj = this.rowContextMenu.row
         if (!this.rowContextMenu.rowMeta.new) {
           const id = this.meta && this.meta.columns && this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+
+          if (!id) {
+            return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
+          }
+
           await this.api.delete(id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
@@ -859,6 +877,11 @@ export default {
           }
           if (!rowMeta.new) {
             const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+
+            if (!id) {
+              return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
+            }
+
             await this.api.delete(id)
           }
           this.data.splice(row, 1)
@@ -991,6 +1014,9 @@ export default {
     }
   },
   computed: {
+    isPkAvail() {
+      return this.meta && this.meta.columns.some(c => c.pk)
+    },
     isGallery() {
       return this.selectedView && this.selectedView.show_as === 'gallery'
     },

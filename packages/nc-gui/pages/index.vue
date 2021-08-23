@@ -1,5 +1,6 @@
 <template>
   <v-row
+    class="welcome-page"
     style="min-height: 100vh"
     align="center"
     justify="center"

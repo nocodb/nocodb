@@ -219,11 +219,11 @@
                 :footer-props="{
                   'items-per-page-options': [20, -1],
                 }"
-                class="pa-4 text-left mx-auto"
+                class="pa-4 text-left mx-auto "
                 style="cursor: pointer"
               >
                 <template #item="props">
-                  <tr @click="projectRouteHandler(props.item)">
+                  <tr class="project-row" @click="projectRouteHandler(props.item)">
                     <td data-v-step="2">
                       <v-icon
                         x-small

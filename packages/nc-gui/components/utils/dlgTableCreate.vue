@@ -6,7 +6,7 @@
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', table)"
   >
-    <v-card class="elevation-1 backgroundColor">
+    <v-card class="elevation-1 backgroundColor nc-create-table-card">
       <v-card-title class="primary subheading white--text py-2">
         Create A New Table
       </v-card-title>
@@ -21,7 +21,7 @@
           dense
           hide-details1
           hint="Enter table name"
-          class="mt-4 caption"
+          class="mt-4 caption nc-table-name"
         />
 
         <v-text-field
@@ -32,7 +32,7 @@
           dense
           persistent-hint
           hint="Table name as saved in database"
-          class="mt-4 caption"
+          class="mt-4 caption nc-table-name-alias"
         />
 
         <div class=" mt-5">
@@ -106,6 +106,7 @@
         <v-btn
           :disabled="!(table.name && table.name.length) || !(table.alias && table.alias.length)"
           color="primary"
+          class="nc-create-table-submit"
           @click="$emit('create',table)"
         >
           Submit

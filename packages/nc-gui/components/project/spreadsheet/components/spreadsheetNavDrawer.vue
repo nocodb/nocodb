@@ -513,7 +513,9 @@ export default {
     currentApiUrl: String,
     fieldsOrder: Array,
     viewStatus: Object,
-    columnsWidth: Object
+    columnsWidth: Object,
+    coverImageField: String,
+    showSystemFields: Boolean
   },
   data: () => ({
     time: Date.now(),
@@ -562,6 +564,8 @@ export default {
         this.$emit('update:fieldsOrder', queryParams.fieldsOrder || [])
         this.$emit('update:viewStatus', queryParams.viewStatus || {})
         this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
+        this.$emit('update:coverImageField', queryParams.coverImageField)
+        this.$emit('update:showSystemFields', queryParams.showSystemFields)
         if (queryParams.showFields) {
           this.$emit('update:showFields', queryParams.showFields)
         } else {

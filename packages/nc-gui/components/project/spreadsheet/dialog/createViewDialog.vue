@@ -75,10 +75,10 @@ export default {
   methods: {
     async createView() {
       let showFields = null
-
+      let attachmentCol
       if (this.show_as === 'gallery') {
         showFields = { [this.primaryValueColumn]: true }
-        const attachmentCol = this.meta.columns.find(c => c.uidt === 'Attachment')
+        attachmentCol = this.meta.columns.find(c => c.uidt === 'Attachment')
         if (attachmentCol) {
           showFields[attachmentCol.cn] = true
         }
@@ -97,6 +97,7 @@ export default {
           title: this.view_name,
           query_params: {
             showFields,
+            coverImageField: attachmentCol ? attachmentCol._cn : '',
             ...this.queryParams
           },
           parent_model_title: this.table,

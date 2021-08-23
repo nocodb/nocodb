@@ -26,7 +26,7 @@ import SetListCell from '@/components/project/spreadsheet/components/cell/setLis
 import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
 import EditableAttachmentCell from '@/components/project/spreadsheet/components/editableCell/editableAttachmentCell'
 import DateCell from './cell/dateCell'
-import DateTimeCell from './cell/timeCell'
+import DateTimeCell from './cell/dateTimeCell'
 import TimeCell from './cell/timeCell'
 
 export default {

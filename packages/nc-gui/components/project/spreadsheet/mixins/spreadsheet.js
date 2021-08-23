@@ -86,6 +86,7 @@ export default {
     availableColumns() {
       let columns = []
 
+      if (!this.meta) { return [] }
       // todo: generate hideCols based on default values
       const hideCols = ['created_at', 'updated_at']
 
@@ -277,6 +278,11 @@ export default {
       },
       deep: true
     },
+    coverImageField(v) {
+      if (!this.loadingMeta || !this.loadingData) {
+        this.syncDataDebounce(this)
+      }
+    },
     fieldsOrder: {
       handler(v) {
         if (!this.loadingMeta || !this.loadingData) {
@@ -284,6 +290,11 @@ export default {
         }
       },
       deep: true
+    },
+    showSystemFields(v) {
+      if (!this.loadingMeta || !this.loadingData) {
+        this.syncDataDebounce(this)
+      }
     },
     filters: {
       async handler(filter) {

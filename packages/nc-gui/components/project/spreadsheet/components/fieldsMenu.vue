@@ -27,7 +27,34 @@
     </template>
 
     <v-list dense class="pt-0" min-width="280" @click.stop>
-      <v-list-item dense class="">
+      <template v-if="isGallery">
+        <div class="pa-2">
+          <v-select
+            v-model="coverImageFieldLoc"
+            label="Cover Image"
+            class="caption cover-image"
+            dense
+            outlined
+            :items="attachmentFields"
+            item-text="alias"
+            item-value="_cn"
+            hide-details
+            @click.stop
+          >
+            <template #prepend-inner>
+              <v-icon small class="cover-image-icon">
+                mdi-image
+              </v-icon>
+            </template>
+          </v-select>
+        </div>
+        <v-divider />
+      </template>
+
+      <v-list-item
+        dense
+        class=""
+      >
         <v-text-field
           v-model="fieldFilter"
           dense
@@ -109,6 +136,8 @@ export default {
     draggable
   },
   props: {
+    coverImageField: String,
+    isGallery: Boolean,
     sqlUi: [Object, Function],
     meta: Object,
     fieldsOrder: [Array],
@@ -126,6 +155,20 @@ export default {
     fieldsOrderLoc: []
   }),
   computed: {
+    attachmentFields() {
+      return [...(this.meta && this.meta.columns ? this.meta.columns.filter(f => f.uidt === 'Attachment') : []), {
+        alias: 'None',
+        _cn: ''
+      }]
+    },
+    coverImageFieldLoc: {
+      get() {
+        return this.coverImageField
+      },
+      set(val) {
+        this.$emit('update:coverImageField', val)
+      }
+    },
     columnMeta() {
       return this.meta && this.meta.columns ? this.meta.columns.reduce((o, c) => ({ ...o, [c._cn]: c }), {}) : {}
     },
@@ -186,17 +229,37 @@ export default {
 }
 </script>
 
-<style scoped>
-/deep/ .v-list-item {
-  min-height: 30px;
-}
+<style scoped lang="scss">
+::v-deep {
+  .v-list-item {
+    min-height: 30px;
+  }
 
-/deep/ .v-input--checkbox .v-icon {
-  font-size: 12px !important;
+  .v-input--checkbox .v-icon {
+    font-size: 12px !important;
+  }
+
+  .cover-image {
+    .v-input__append-inner {
+      margin-top: 4px !important;
+    }
+
+    .v-input__slot {
+      min-height: 25px !important;
+    }
+
+    &.v-input input {
+      max-height: 20px !important;
+    }
+
+    .cover-image-icon{
+      margin-top: 2px;
+    }
+  }
 }
 
 .drag-icon {
-  cursor: all-scroll;
-  /*cursor: grab;*/
+  cursor: all-scroll; /*cursor: grab;*/
 }
+
 </style>

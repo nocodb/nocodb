@@ -104,6 +104,8 @@
         :fields-order.sync="fieldsOrder"
         :sql-ui="sqlUi"
         :show-system-fields.sync="showSystemFields"
+        :cover-image-field.sync="coverImageField"
+        :is-gallery="isGallery"
       />
 
       <sort-list
@@ -217,7 +219,7 @@
               @loadMeta="loadMeta"
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">
+          <template v-else-if="isGallery ">
             <gallery-view
               :nodes="nodes"
               :table="table"
@@ -225,7 +227,9 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
+              :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
+              :cover-image-field="coverImageField"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
@@ -237,6 +241,7 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
+              :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
@@ -272,6 +277,7 @@
         :table="table"
         :meta="meta"
         :selected-view-id.sync="selectedViewId"
+        :cover-image-field.sync="coverImageField"
         :selected-view.sync="selectedView"
         :primary-value-column="primaryValueColumn"
         :concatenated-x-where="concatenatedXWhere"
@@ -285,6 +291,7 @@
         :fields-order.sync="fieldsOrder"
         :view-status.sync="viewStatus"
         :columns-width.sync="columnsWidth"
+        :show-system-fields.sync="showSystemFields"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
         @loadTableData="loadTableData"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
@@ -519,6 +526,7 @@ export default {
       type: null
     },
     fieldsOrder: [],
+    coverImageField: null,
     showSystemFields: false,
     showAdvanceOptions: false,
     loadViews: false,
@@ -659,7 +667,12 @@ export default {
           showFields: this.showFields,
           fieldsOrder: this.fieldsOrder,
           viewStatus: this.viewStatus,
-          columnsWidth: this.columnsWidth
+          columnsWidth: this.columnsWidth,
+          showSystemFields: this.showSystemFields
+        }
+
+        if (this.isGallery) {
+          queryParams.coverImageField = this.coverImageField
         }
 
         this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
@@ -978,6 +991,9 @@ export default {
     }
   },
   computed: {
+    isGallery() {
+      return this.selectedView && this.selectedView.show_as === 'gallery'
+    },
     meta() {
       return this.$store.state.meta.metas[this.table]
     },

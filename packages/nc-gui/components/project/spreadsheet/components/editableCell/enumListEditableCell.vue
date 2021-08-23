@@ -87,9 +87,23 @@ export default {
 }
 </script>
 
-<style scoped>
-/deep/ .v-select{
-  min-width: 150px;
+<style scoped lang="scss">
+::v-deep {
+  .v-select {
+    min-width: 150px;
+  }
+  .v-input__slot{
+    padding-right: 0 !important;
+    padding-left: 35px !important;
+  }
+  .v-input__icon.v-input__icon--clear {
+    width: 15px !important;
+    min-width: 13px !important;
+
+    .v-icon {
+      font-size: 13px !important;
+    }
+  }
 }
 </style>
 <!--

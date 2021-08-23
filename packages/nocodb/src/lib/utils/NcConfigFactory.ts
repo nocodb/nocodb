@@ -22,9 +22,9 @@ const defaultClientPortMapping = {
   mssql: 1433,
 }
 
-const defaultConnectionConfig ={
-  timezone: 'UTC',
-  dateStrings: true
+const defaultConnectionConfig = {
+  // timezone: 'UTC',
+  // dateStrings: true
 }
 
 

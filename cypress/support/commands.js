@@ -23,3 +23,6 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+Cypress.Commands.add('waitForSpinners', () => {
+  cy.get('#nuxt-loading', { timeout: 10_000 }).should('have.length', 0)
+})

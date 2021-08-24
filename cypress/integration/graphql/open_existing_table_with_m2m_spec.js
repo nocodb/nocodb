@@ -1,7 +1,6 @@
 describe('GraphQL api - Existing table with M2M', () => {
 
   before(() => {
-    cy.visit('http://localhost:3000', {retryOnNetworkFailure: true, timeout: 120000})
     cy.waitForSpinners();
     cy.openOrCreateGqlProject();
   })
@@ -16,7 +15,7 @@ describe('GraphQL api - Existing table with M2M', () => {
     cy.get(`.project-tab:contains(Actor)`).should('exist')
     cy.url().should('contain', `?name=Actor&`)
 
-    cy.get('td[data-col="Actor <=> Film"] div').first().click({force: true})
+    cy.get('td[data-col="Actor <=> Film"] div', {timeout:12000}).first().click({force: true})
     cy.get('td[data-col="Actor <=> Film"] div .mdi-arrow-expand').first().click({force: true})
     //
     // cy.get(":contains(Link to 'City')").should('exist')

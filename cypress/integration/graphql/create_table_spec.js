@@ -1,7 +1,6 @@
 describe('Rest api project test', () => {
 
   before(() => {
-    cy.visit('http://localhost:3000', {retryOnNetworkFailure: true, timeout: 120000})
     cy.waitForSpinners();
     cy.openOrCreateGqlProject();
   })

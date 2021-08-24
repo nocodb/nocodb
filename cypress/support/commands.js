@@ -26,28 +26,41 @@
 
 // for waiting until page load
 Cypress.Commands.add('waitForSpinners', () => {
+  cy.visit('http://localhost:3000', {retryOnNetworkFailure: true, timeout: 120000})
   cy.get('#nuxt-loading', {timeout: 10_000}).should('have.length', 0)
 })
+Cypress.Commands.add('signinOrSignup', () => {
 
+  // signin/signup
+  cy.get('body').then(($body) => {
+    cy.wait(1000)
+    cy.url().then(url => {
+      if (!url.includes('/projects')) {
+        // handle initial load
+        if ($body.find('.welcome-page').length > 0) {
+          cy.wait(8000);
+          cy.get('body').trigger('mousemove');
+          cy.contains('Let\'s Begin').click();
+          cy.get('input[type="text"]').type('pranavc@gmail.com');
+          cy.get('input[type="password"]').type('Password123.');
+          cy.get('button:contains("SIGN UP")').click()
+
+          // handle signin
+        } else {
+          cy.get('input[type="text"]').type('pranavc@gmail.com');
+          cy.get('input[type="password"]').type('Password123.');
+          cy.get('button:contains("SIGN IN")').click()
+        }
+      }
+
+    })
+  })
+});
 // for opening/creating a rest project
 Cypress.Commands.add('openOrCreateRestProject', () => {
 
   // signin/signup
-  cy.get('body').then(($body) => {
-    // handle initial load
-    if ($body.find('.welcome-page').length > 0) {
-      cy.wait(8000);
-      cy.get('body').trigger('mousemove');
-      cy.contains('Let\'s Begin').click();
-      cy.get('input[type="text"]').type('pranavc@gmail.com');
-      cy.get('input[type="password"]').type('Password123.');
-      cy.get('button:contains("SIGN UP")').click()
-    } else {
-      cy.get('input[type="text"]').type('pranavc@gmail.com');
-      cy.get('input[type="password"]').type('Password123.');
-      cy.get('button:contains("SIGN IN")').click()
-    }
-  });
+  cy.signinOrSignup()
   cy.wait(2000);
   cy.get('body').then($body => {
     // if project exist open
@@ -66,27 +79,13 @@ Cypress.Commands.add('openOrCreateRestProject', () => {
   cy.url({timeout: 20000}).should('contain', '#/nc/')
 
 })
+
+
 Cypress.Commands.add('openOrCreateGqlProject', () => {
 
+  cy.signinOrSignup()
 
-  // signin/signup
-  cy.get('body').then(($body) => {
-    // handle initial load
-    if ($body.find('.welcome-page').length > 0) {
-      cy.wait(8000);
-      cy.get('body').trigger('mousemove');
-      cy.contains('Let\'s Begin').click();
-      cy.get('input[type="text"]').type('pranavc@gmail.com');
-      cy.get('input[type="password"]').type('Password123.');
-      cy.get('button:contains("SIGN UP")').click()
 
-      // handle signin
-    } else {
-      cy.get('input[type="text"]').type('pranavc@gmail.com');
-      cy.get('input[type="password"]').type('Password123.');
-      cy.get('button:contains("SIGN IN")').click()
-    }
-  });
   cy.wait(2000);
   cy.get('body').then($body => {
     // if project exist open

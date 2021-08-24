@@ -7,15 +7,11 @@ services:
      restart: always
      environment:
        MYSQL_ROOT_PASSWORD: password
-     ports:
-       - 3306:3306
      volumes:
        - ./packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
   xc-cypress-nocodb:
     network_mode: host
     image: node:12.22.1-slim
-    ports:
-      - "8080:8080"
     volumes:
       - ./packages/nocodb:/home/app
     command:
@@ -27,8 +23,6 @@ services:
   xc-cypress-nc-gui:
     network_mode: host
     image: node:12.22.1-slim
-    ports:
-      - "3000:3000"
     environment:
       - HOST=0.0.0.0
       - PORT=3000

@@ -85,7 +85,7 @@ describe('Rest api project test', () => {
     cy.get(`.project-tab:contains(Actor)`).should('exist')
     cy.url().should('contain', `?name=Actor&`)
 
-    cy.get('td[data-col="Actor <=> Film"] div:visible').first().click({force: true})
+    cy.get('td[data-col="Actor <=> Film"] div').first().click({force: true})
     cy.get('td[data-col="Actor <=> Film"] div .mdi-arrow-expand').first().click({force: true})
     //
     // cy.get(":contains(Link to 'City')").should('exist')

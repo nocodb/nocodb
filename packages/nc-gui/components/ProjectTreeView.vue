@@ -8,7 +8,7 @@
       mini-variant-width="50"
       :mini-variant.sync="mini"
       mini
-      class="pl-2"
+      class="pl-2 nc-nav-drawer"
       style="min-width: 100%; height: 100%"
     >
       <div class="h-100 d-flex flex-column">
@@ -45,7 +45,7 @@
           <v-treeview
             v-else-if="isTreeView"
             v-model="tree"
-            class="mt-5 project-tree"
+            class="mt-5 project-tree nc-project-tree"
             dense
             :open.sync="open"
             :active.sync="active"
@@ -109,7 +109,7 @@
             </template>
           </v-treeview>
           <v-container v-else fluid class="px-1">
-            <v-list dense expand>
+            <v-list dense expand class="nc-project-tree nc-single-env-project-tree">
               <template v-for="item in listViewArr">
                 <!--                   v-if="item.children && item.children.length"-->
                 <v-list-group

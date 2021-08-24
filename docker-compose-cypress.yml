@@ -19,7 +19,7 @@ services:
       - -c
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        cd /home/app/ && npm i && npm run run
+        cd /home/app/ && rm package-lock.json && npm i && npm run run
   xc-cypress-nc-gui:
     network_mode: host
     image: node:12.22.1-slim
@@ -34,4 +34,4 @@ services:
       - -c
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        cd /home/app/ && npm i && npm run dev
+        cd /home/app/ && rm package-lock.json && npm i && npm run dev

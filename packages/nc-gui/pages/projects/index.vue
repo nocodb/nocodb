@@ -223,7 +223,11 @@
                 style="cursor: pointer"
               >
                 <template #item="props">
-                  <tr class="project-row" @click="projectRouteHandler(props.item)">
+                  <tr
+                    class="project-row"
+                    :class="`nc-${props.item.projectType}-project-row`"
+                    @click="projectRouteHandler(props.item)"
+                  >
                     <td data-v-step="2">
                       <v-icon
                         x-small

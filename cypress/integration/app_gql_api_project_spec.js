@@ -1,6 +1,7 @@
-describe('Rest api project test', () => {
+describe('GraphQL api project test', () => {
 
-/*  before(() => {
+/*
+  before(() => {
     cy.visit('http://localhost:3000', {retryOnNetworkFailure: true, timeout: 120000})
     cy.waitForSpinners();
   })
@@ -66,38 +67,32 @@ describe('Rest api project test', () => {
 
 
   it('Open and check country table', () => {
-    cy.contains('Country').first().click({force: true});
+    cy.contains('Country').click();
 
-    cy.get(`.project-tab:contains(Country):visible`).should('exist')
+    cy.get(`.project-tab:contains(Country)`).should('exist')
     cy.url().should('contain', `?name=Country&`)
 
-    cy.get('td[data-col="Country => City"] div:visible').first().click()
-    cy.get('td[data-col="Country => City"] div .mdi-arrow-expand:visible').first().click()
+    cy.get('td[data-col="Country => City"] div').first().click()
+    cy.get('td[data-col="Country => City"] div .mdi-arrow-expand').first().click()
 
-    cy.get(":contains(Link to 'City'):visible").should('exist')
+    cy.get(":contains(Link to 'City')").should('exist')
 
-    cy.get(":contains(Link to 'City'):visible").first().click()
+    cy.get(":contains(Link to 'City'):visible").click()
   });
 
-  //
   it('Open and check actor table for m2m', () => {
-    cy.contains('Actor').first().click({force: true});
+    cy.contains('Actor').click();
 
     cy.get(`.project-tab:contains(Actor)`).should('exist')
     cy.url().should('contain', `?name=Actor&`)
 
-    cy.get('td[data-col="Actor <=> Film"] div').first().click({force: true})
-    cy.get('td[data-col="Actor <=> Film"] div .mdi-arrow-expand').first().click({force: true})
+    cy.get('td[data-col="Actor <=> Film"] div').first().click()
+    cy.get('td[data-col="Actor <=> Film"] div .mdi-arrow-expand').first().click()
     //
     // cy.get(":contains(Link to 'City')").should('exist')
     //
     // cy.get(":contains(Link to 'City'):visible").click()
-
-    cy.get('.child-card:visible').should('exist').first().click()
-
-    cy.contains('Save Row').should('exist');
-    cy.contains('Save Row').should('exist');
-
-  });*/
+  });
+*/
 
 })

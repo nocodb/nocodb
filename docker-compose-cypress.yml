@@ -11,18 +11,19 @@ services:
        - ./packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
   xc-cypress-nocodb:
     network_mode: host
-    image: node:12.22.1-slim
+    image: node:14-alpine
     volumes:
       - ./packages/nocodb:/home/app
     command:
-      - /bin/bash
+      - /bin/sh
       - -c
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        cd /home/app/ && rm package-lock.json && npm i && npm run run
+        rm /home/app/package-lock.json
+        cd /home/app/ && npm i && npm run run
   xc-cypress-nc-gui:
     network_mode: host
-    image: node:12.22.1-slim
+    image: node:14-alpine
     environment:
       - HOST=0.0.0.0
       - PORT=3000
@@ -30,9 +31,10 @@ services:
       - ./packages/nc-gui:/home/app
       - ./packages/nc-lib-gui:/home/nc-lib-gui
     command:
-      - /bin/bash
+      - /bin/sh
       - -c
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        apk --update --no-cache add git
         rm /home/app/package-lock.json
         cd /home/app/ && npm i && npm run dev

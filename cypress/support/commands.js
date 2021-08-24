@@ -42,8 +42,6 @@ Cypress.Commands.add('openOrCreateRestProject', () => {
       cy.get('input[type="text"]').type('pranavc@gmail.com');
       cy.get('input[type="password"]').type('Password123.');
       cy.get('button:contains("SIGN UP")').click()
-
-      // handle signin
     } else {
       cy.get('input[type="text"]').type('pranavc@gmail.com');
       cy.get('input[type="password"]').type('Password123.');

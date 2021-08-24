@@ -64,7 +64,6 @@
     "@nuxtjs/eslint-config": "^6.0.1",
     "@nuxtjs/vuetify": "^1.11.2",
     "babel-eslint": "^10.1.0",
-    "cypress": "^7.3.0",
     "eslint": "^7.31.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
     "sass": "~1.32.12",

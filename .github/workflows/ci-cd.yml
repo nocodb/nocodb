@@ -4,7 +4,7 @@
 name: "CI/CD"
 on:
   push:
-    branches: [ master ]
+    branches: [ master, cypress ]
   pull_request:
     branches: [ master ]
 
@@ -19,7 +19,7 @@ jobs:
        with:
          start: docker-compose -f ./docker-compose-cypress.yml up
          wait-on: 'http://localhost:8080/dashboard'
-         wait-on-timeout: 240      
+         wait-on-timeout: 900
   docker:
 
     runs-on: ubuntu-latest

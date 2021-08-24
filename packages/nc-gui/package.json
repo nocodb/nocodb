@@ -8,7 +8,7 @@
     "lint": "eslint . --ext .js,.vue --fix --quiet",
     "start": "nuxt start",
     "generate": "nuxt generate",
-    "build:copy": "npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
+    "build:copy": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:jsdeliver": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh  ./dist/ ../nc-lib-gui/lib/dist/ ; npm publish ../nc-lib-gui"
   },
   "dependencies": {

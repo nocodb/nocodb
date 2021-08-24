@@ -1,15 +1,34 @@
 version: "3.5"
 
 services:
-    xc-cypress-test:
-      image: node:12.22.1-slim
-      ports:
-        - 8080:8080
-      volumes:
-        - ./packages/nocodb:/home/app
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-          cd /home/app/ && npm i && npm run run
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - 3306:3306
+    volumes:
+      - ./packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: "/etc/init.d/mysql status"
+      interval: 1s
+      retries: 240
+  xc-cypress-nocodb:
+    image: node:12.22.1-slim
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./packages/:/home/packages/
+    depends_on:
+      - mysql
+    command:
+      - /bin/bash
+      - -c
+      - |
+        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        apt-get update && apt-get install rsync -y
+        cp -r /home/packages/ /home/app/
+        cd /home/app/nc-gui && npm i && npm run build:copy && cd ../nc-lib-gui && npm i
+        rm -rf /home/app/nocodb/node_modules/nc-lib-gui
+        cd /home/app/nocodb && npm i ../nc-lib-gui ; npm i && npm run run

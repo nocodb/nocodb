@@ -1,34 +1,43 @@
 version: "3.5"
 
 services:
-  mysql:
-    image: mysql:5.7
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-    ports:
-      - 3306:3306
-    volumes:
-      - ./packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: "/etc/init.d/mysql status"
-      interval: 1s
-      retries: 240
+  db80:
+     network_mode: host
+     image: mysql:8.0
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: password
+     ports:
+       - 3306:3306
+     volumes:
+       - ./packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
   xc-cypress-nocodb:
+    network_mode: host
     image: node:12.22.1-slim
     ports:
       - "8080:8080"
     volumes:
-      - ./packages/:/home/packages/
-    depends_on:
-      - mysql
+      - ./packages/nocodb:/home/app
     command:
       - /bin/bash
       - -c
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        apt-get update && apt-get install rsync -y
-        cp -r /home/packages/ /home/app/
-        cd /home/app/nc-gui && npm i && npm run build:copy && cd ../nc-lib-gui && npm i
-        rm -rf /home/app/nocodb/node_modules/nc-lib-gui
-        cd /home/app/nocodb && npm i ../nc-lib-gui ; npm i && npm run run
+        cd /home/app/ && npm i && npm run run
+  xc-cypress-nc-gui:
+    network_mode: host
+    image: node:12.22.1-slim
+    ports:
+      - "3000:3000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+    volumes:
+      - ./packages/nc-gui:/home/app
+      - ./packages/nc-lib-gui:/home/nc-lib-gui
+    command:
+      - /bin/bash
+      - -c
+      - |
+        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        cd /home/app/ && npm i && npm run dev

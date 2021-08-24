@@ -2,11 +2,11 @@
   <div>
     <table
       v-if="data"
-      class="xc-row-table"
+      class="xc-row-table nc-grid"
       style=" "
     >
       <thead>
-        <tr class="text-left">
+        <tr class="text-left nc-grid-header-row">
           <th
             class="grey-border caption"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4 grey--text text--darken-2'"
@@ -19,7 +19,7 @@
             v-show="showFields[col.alias]"
             :key="col.alias"
             v-xc-ver-resize
-            class="grey-border caption font-wight-regular"
+            class="grey-border caption font-wight-regular  nc-grid-header-cell"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
             :data-col="col.alias"
             @xcresize="onresize(col.alias,$event)"
@@ -58,7 +58,7 @@
           <th
             v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
-            class="grey-border new-column-header pointer"
+            class="grey-border new-column-header pointer  nc-grid-header-cell"
             @click="addNewColMenu = true"
           >
             <v-menu
@@ -89,10 +89,11 @@
         <tr
           v-for="({row:rowObj, rowMeta},row) in data"
           :key="row"
+          class=" nc-grid-row"
         >
           <td
             style="width: 65px"
-            class="caption"
+            class="caption nc-grid-cell"
             @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row)"
           >
             <div class="d-flex align-center">
@@ -134,7 +135,7 @@
             v-for="(columnObj,col) in availableColumns"
             v-show="showFields[columnObj.alias]"
             :key="row + columnObj.alias"
-            class="cell pointer"
+            class="cell pointer nc-grid-cell"
             :class="{
               'active' :!isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,
@@ -196,7 +197,7 @@
           </td>
         </tr>
         <tr v-if="isPkAvail && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
-          <td :colspan="visibleColLength + 1" class="text-left pointer" @click="insertNewRow(true)">
+          <td :colspan="visibleColLength + 1" class="text-left pointer nc-grid-add-new-cell" @click="insertNewRow(true)">
             <v-tooltip top>
               <template #activator="{on}">
                 <v-icon small color="pink" v-on="on">

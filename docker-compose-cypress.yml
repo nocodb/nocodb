@@ -34,4 +34,5 @@ services:
       - -c
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        cd /home/app/ && rm package-lock.json && npm i && npm run dev
+        rm /home/app/package-lock.json
+        cd /home/app/ && npm i && npm run dev

@@ -6,7 +6,13 @@
           <v-icon :color="iconColor">
             mdi-table-arrow-right
           </v-icon>
-          {{ table }} : {{ localState[primaryValueColumn] }}
+
+          <template v-if="meta">
+            {{ meta._tn }}
+          </template>
+          <template v-else>
+            {{ table }}
+          </template> : {{ localState[primaryValueColumn] }}
         </h5>
         <v-spacer />
         <v-btn small text @click="reload">
@@ -329,7 +335,7 @@ export default {
       return Object.values(this.changedColumns).some(Boolean)
     },
     localBreadcrumbs() {
-      return [...this.breadcrumbs, `${this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
+      return [...this.breadcrumbs, `${this.meta ? this.meta._tn : this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
     }
   },
   watch: {

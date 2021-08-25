@@ -158,6 +158,7 @@ export default {
           dbAlias: this.nodes.dbAlias
         }, 'tableUpdate', {
           tn: this.nodes.tn,
+          _tn: this.meta._tn,
           originalColumns: this.meta.columns,
           columns
         }])

@@ -37,4 +37,5 @@ services:
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         apk --update --no-cache add git
         rm /home/app/package-lock.json
-        cd /home/app/ && npm i && npm run dev
+        # cd /home/app/ && npm i && npm run dev
+        cd /home/app/ && npm i && NODE_ENV=development npm run build && npm start

@@ -31,6 +31,14 @@ Under ``Project Metadata``, you can perform the following operations.
   Import / Export will only transfer metadata and files related to the project and not any table data in the project.
 </alert>
 
+### Migration example (Source project > Destination project)
+1. Source project : Under ``Meta Management`` tab, select ``Export zip``, click ``Submit``. This step extracts project metadata and stores it in compressed (zip) format
+![meta-1](https://user-images.githubusercontent.com/86527202/130773584-95af2c04-584e-4fd7-90c5-45c7c62f7567.png)
+
+2. Destination project : Under ``Meta Management`` tab, select ``Import zip``, select ``meta.zip`` file stored in previous step. This step imports project metadata from compressed file (zip) selected and restarts project.
+![meta-2](https://user-images.githubusercontent.com/86527202/130773616-60e1bcad-cc4f-4a63-91d3-ddde185d5877.png)
+
+
 ## Database Metadata
 
 Under ``DB Metadata``, You can manage your models. For example, if you do not want to expose some APIs, you can untick those under APIs here.

@@ -1316,7 +1316,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         '_rtn',
         'type',
         'db_type',
-        'dr'
+        'dr',
+        'fkn'
       ]
     });
 
@@ -1337,6 +1338,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // todo: insert parallelly
     for (const relation of relations) {
       relation.enabled = true;
+      relation.fkn=  relation?.cstn ;
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_relations', {
         tn: relation.tn,
         _tn: this.getTableNameAlias(relation.tn),
@@ -1350,6 +1352,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         db_type: this.connectionConfig?.client,
         dr: relation?.dr,
         ur: relation?.ur,
+        fkn: relation?.cstn
       })
     }
     return relations;

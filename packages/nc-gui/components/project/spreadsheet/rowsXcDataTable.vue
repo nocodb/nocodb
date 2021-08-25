@@ -130,6 +130,7 @@
       <v-tooltip bottom>
         <template #activator="{on}">
           <v-btn
+            class="nc-table-delete-btn"
             :disabled="isLocked"
             small
             outlined

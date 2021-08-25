@@ -31,7 +31,6 @@ Under ``Project Metadata``, you can perform the following operations.
   Import / Export will only transfer metadata and files related to the project and not any table data in the project.
 </alert>
 
-
 ## Migration example
 ### Export metadata
 Source project : Under ``Meta Management`` tab, select ``Export zip``, click ``Submit``. This step extracts project metadata and stores it in compressed (zip) format  

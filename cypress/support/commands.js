@@ -26,7 +26,13 @@
 
 // for waiting until page load
 Cypress.Commands.add('waitForSpinners', () => {
-  cy.visit('http://localhost:3000', {retryOnNetworkFailure: true, timeout: 120000})
+  cy.visit('http://localhost:3000', {
+    retryOnNetworkFailure: true,
+    timeout: 1200000,
+    headers: {
+      "Accept-Encoding": "gzip, deflate"
+    }
+  })
   cy.get('#nuxt-loading', {timeout: 10_000}).should('have.length', 0)
 })
 Cypress.Commands.add('signinOrSignup', () => {
@@ -41,7 +47,7 @@ Cypress.Commands.add('signinOrSignup', () => {
           cy.wait(8000);
           cy.get('body').trigger('mousemove');
           cy.contains('Let\'s Begin').click();
-          cy.get('input[type="text"]').type('pranavc@gmail.com');
+          cy.get('input[type="text"]', {timeout: 12000}).type('pranavc@gmail.com');
           cy.get('input[type="password"]').type('Password123.');
           cy.get('button:contains("SIGN UP")').click()
 

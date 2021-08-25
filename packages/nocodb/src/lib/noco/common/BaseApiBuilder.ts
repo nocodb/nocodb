@@ -1389,7 +1389,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           continue;
         }
 
-        const tableMetaA = this.metas[meta.belongsTo[0].rtn];
+        const tableMetaA = this.  metas[meta.belongsTo[0].rtn];
         const tableMetaB = this.metas[meta.belongsTo[1].rtn];
 
         /*        // remove hasmany relation with associate table from tables

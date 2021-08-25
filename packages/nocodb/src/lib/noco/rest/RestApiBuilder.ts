@@ -1473,17 +1473,17 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       });
       const oldSwaggerDoc = JSON.parse(meta.schema);
 
-      // keep upto 5 schema backup on table update
-      let previousSchemas = [oldSwaggerDoc]
-      if (meta.schema_previous) {
-        previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
-      }
+      // // keep upto 5 schema backup on table update
+      // let previousSchemas = [oldSwaggerDoc]
+      // if (meta.schema_previous) {
+      //   previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
+      // }
 
 
       oldSwaggerDoc.definitions = swaggerDoc.definitions;
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         schema: JSON.stringify(oldSwaggerDoc),
-        schema_previous: JSON.stringify(previousSchemas)
+        // schema_previous: JSON.stringify(previousSchemas)
       }, {
         title: changeObj.tn,
         type: 'table'
@@ -1779,17 +1779,17 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     });
     const oldSwaggerDoc = JSON.parse(meta.schema);
 
-    // keep upto 5 schema backup on table update
-    let previousSchemas = [oldSwaggerDoc]
-    if (meta.schema_previous) {
-      previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
-    }
+    // // keep upto 5 schema backup on table update
+    // let previousSchemas = [oldSwaggerDoc]
+    // if (meta.schema_previous) {
+    //   previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
+    // }
 
 
     oldSwaggerDoc.definitions = swaggerDoc.definitions;
     await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
       schema: JSON.stringify(oldSwaggerDoc),
-      schema_previous: JSON.stringify(previousSchemas)
+      // schema_previous: JSON.stringify(previousSchemas)
     }, {
       title: tn,
       type: 'table'
@@ -1825,16 +1825,16 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       });
       const oldSwaggerDoc = JSON.parse(meta.schema);
 
-      // keep upto 5 schema backup on table update
-      let previousSchemas = [oldSwaggerDoc]
-      if (meta.schema_previous) {
-        previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
-      }
+      // // keep upto 5 schema backup on table update
+      // let previousSchemas = [oldSwaggerDoc]
+      // if (meta.schema_previous) {
+      //   previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
+      // }
 
       oldSwaggerDoc.definitions = swaggerDoc.definitions;
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         schema: JSON.stringify(oldSwaggerDoc),
-        schema_previous: JSON.stringify(previousSchemas)
+        // schema_previous: JSON.stringify(previousSchemas)
       }, {
         title: metaObj.tn,
         type: 'table'

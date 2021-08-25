@@ -322,11 +322,11 @@ export default {
         tn: this.nodes.tn || this.nodes.view_name
       }])
       this.swaggerDoc = JSON.stringify(JSON.parse(tableMeta.schema), 0, 2)
-      if (tableMeta.schema_previous) {
-        this.swaggerDocHistory = JSON.parse(tableMeta.schema_previous).reverse().map(o => JSON.stringify(o, null, 2))
-      } else {
-        this.swaggerDocHistory = []
-      }
+      // if (tableMeta.schema_previous) {
+      //   this.swaggerDocHistory = JSON.parse(tableMeta.schema_previous).reverse().map(o => JSON.stringify(o, null, 2))
+      // } else {
+      //   this.swaggerDocHistory = []
+      // }
     },
     async saveSwaggerDoc() {
       this.edited = false

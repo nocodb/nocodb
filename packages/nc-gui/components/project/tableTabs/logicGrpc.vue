@@ -256,11 +256,11 @@ export default {
       }])
       this.messages = tableMeta.messages
       this.services = tableMeta.services
-      if (tableMeta.schema_previous) {
-        this.schemaHistory = JSON.parse(tableMeta.schema_previous).reverse()
-      } else {
-        this.schemaHistory = []
-      }
+      // if (tableMeta.schema_previous) {
+      //   this.schemaHistory = JSON.parse(tableMeta.schema_previous).reverse()
+      // } else {
+      //   this.schemaHistory = []
+      // }
     },
     async loadRpcs() {
       this.rpcServices = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{

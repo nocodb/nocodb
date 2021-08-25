@@ -115,7 +115,7 @@
         <v-divider />
         <v-card-text class="mt-4 title">
           Do you want to delete <span class="font-weight-bold">'{{
-            column.cn
+            column._cn
           }}'</span> column ?
         </v-card-text>
         <v-divider />

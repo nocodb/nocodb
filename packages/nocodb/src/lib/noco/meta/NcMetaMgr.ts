@@ -406,7 +406,7 @@ export default class NcMetaMgr {
       const projectDetails = projectDetailsJSON && JSON.parse(projectDetailsJSON);
 
       if (args.args.importsToCurrentProject) {
-        await promisify(ncp)(path.join(this.config.toolDir, 'uploads', 'nc', projectDetails.id), path.join(this.config.toolDir, 'nc', projectId), {clobber:true})
+        await promisify(ncp)(path.join(this.config.toolDir, 'uploads', 'nc', projectDetails.id), path.join(this.config.toolDir, 'nc', projectId), {clobber: true})
       } else {
         // decrypt with old key and encrypt again with latest key
         const projectConfig = JSON.parse(CryptoJS.AES.decrypt(projectDetails.config, projectDetails.key).toString(CryptoJS.enc.Utf8))
@@ -2413,6 +2413,7 @@ export default class NcMetaMgr {
   }
 
 
+  // todo: transaction
   protected async xcM2MRelationCreate(args: any, req): Promise<any> {
     const dbAlias = this.getDbAlias(args);
     const projectId = this.getProjectId(args);
@@ -2529,7 +2530,7 @@ export default class NcMetaMgr {
             }
           });
         }
-        const outrel1 = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('n', {
+        const outrel1 = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('relationCreate', {
           ...args,
           args: rel2Args
         });
@@ -2677,45 +2678,54 @@ export default class NcMetaMgr {
         const assocMeta = JSON.parse(assoc.meta);
         const rel1 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
         const rel2 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.childTable)
-        await this.xcRelationColumnDelete({
-          ...args,
-          args: {
-            parentTable: rel1.rtn,
-            parentColumn: rel1.rcn,
-            childTable: rel1.tn,
-            childColumn: rel1.cn,
-            foreignKeyName: rel1.fkn,
-            type: 'bt',
+        if (rel1) {
+          await this.xcRelationColumnDelete({
+            ...args,
+            args: {
+              parentTable: rel1.rtn,
+              parentColumn: rel1.rcn,
+              childTable: rel1.tn,
+              childColumn: rel1.cn,
+              foreignKeyName: rel1.fkn,
+              type: 'bt',
+            }
+          }, req, false)
+        }
+        if (rel2) {
+          await this.xcRelationColumnDelete({
+            ...args,
+            args: {
+              parentTable: rel2.rtn,
+              parentColumn: rel2.rcn,
+              childTable: rel2.tn,
+              childColumn: rel2.cn,
+              foreignKeyName: rel2.fkn,
+              type: 'bt',
+            }
+          }, req, false);
+        }
+
+        // ignore deleting table if it have more than 2 columns
+        if (assocMeta.columns.length === 2) {
+
+
+          const opArgs = {
+            ...args,
+            args: assocMeta,
+            api: 'tableDelete',
+            sqlOpPlus: true,
+          };
+
+          const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
+
+          if (this.listener) {
+            await this.listener({
+              req: opArgs,
+              res: out,
+              user: req.user,
+              ctx: {req}
+            });
           }
-        }, req, false)
-        await this.xcRelationColumnDelete({
-          ...args,
-          args: {
-            parentTable: rel2.rtn,
-            parentColumn: rel2.rcn,
-            childTable: rel2.tn,
-            childColumn: rel2.cn,
-            foreignKeyName: rel2.fkn,
-            type: 'bt',
-          }
-        }, req, false);
-
-
-        const opArgs = {
-          ...args,
-          args: assocMeta,
-          api: 'tableDelete',
-          sqlOpPlus: true,
-        };
-        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
-
-        if (this.listener) {
-          await this.listener({
-            req: opArgs,
-            res: out,
-            user: req.user,
-            ctx: {req}
-          });
         }
 
       }

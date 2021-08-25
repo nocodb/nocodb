@@ -112,7 +112,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       }
     });
 
-    for (const {meta, id, title, schema_previous} of metas) {
+    for (const {meta, id, title,
+      // schema_previous
+    } of metas) {
       const metaObj = JSON.parse(meta);
       /* filter relation where this table is present */
       const hasMany = metaObj.hasMany.filter(({enabled}) => enabled)
@@ -127,15 +129,15 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const newSchema = this.schemas[title] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
       if (oldSchema !== this.schemas[title]) {
         // keep upto 5 schema backup on table update
-        let previousSchemas = [oldSchema]
-        if (schema_previous) {
-          previousSchemas = [...JSON.parse(schema_previous), oldSchema].slice(-5);
-        }
+        // const previousSchemas = [oldSchema]
+        // if (schema_previous) {
+        //   previousSchemas = [...JSON.parse(schema_previous), oldSchema].slice(-5);
+        // }
         this.log(`onToggleModelRelation : Updating and taking backup of schema for '%s' table`, title)
 
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           schema: newSchema,
-          schema_previous: JSON.stringify(previousSchemas)
+          // schema_previous: JSON.stringify(previousSchemas)
         }, {
           id
         });
@@ -1523,19 +1525,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       if (oldSchema !== this.schemas[tn]) {
         this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, changeObj.tn);
 
-        const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-          title: tn
-        });
+        // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        //   title: tn
+        // });
 
         // keep upto 5 schema backup on table update
-        let previousSchemas = [oldSchema]
-        if (oldModel.schema_previous) {
-          previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
-        }
+        // let previousSchemas = [oldSchema]
+        // if (oldModel.schema_previous) {
+        //   previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+        // }
 
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           schema: this.schemas[tn],
-          schema_previous: JSON.stringify(previousSchemas)
+          // schema_previous: JSON.stringify(previousSchemas)
         }, {
           title: tn
         });
@@ -1567,19 +1569,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
         this.log(`onViewUpdate :  Updating and taking backup of schema - '%s' view`, viewName);
 
-        const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-          title: viewName
-        });
+        // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        //   title: viewName
+        // });
 
-        // keep upto 5 schema backup on table update
-        let previousSchemas = [oldSchema]
-        if (oldModel.schema_previous) {
-          previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
-        }
+        // // keep upto 5 schema backup on table update
+        // let previousSchemas = [oldSchema]
+        // if (oldModel.schema_previous) {
+        //   previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+        // }
 
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           schema: meta.schema,
-          schema_previous: JSON.stringify(previousSchemas)
+          // schema_previous: JSON.stringify(previousSchemas)
         }, {
           title: viewName
         });
@@ -1641,19 +1643,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const newSchemaa = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
 
         if (newSchemaa !== this.schemas[tn]) {
-          const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-            title: tn
-          });
+          // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+          //   title: tn
+          // });
 
-          this.log(`onToggleModels : Updating and taking backup of schema for '%s'`, tn);
-          let previousSchemas = [this.schemas[tn]];
-          if (oldModel.schema_previous) {
-            previousSchemas = [...JSON.parse(oldModel.schema_previous), [this.schemas[tn]]].slice(-5);
-          }
+          // this.log(`onToggleModels : Updating and taking backup of schema for '%s'`, tn);
+          // let previousSchemas = [this.schemas[tn]];
+          // if (oldModel.schema_previous) {
+          //   previousSchemas = [...JSON.parse(oldModel.schema_previous), [this.schemas[tn]]].slice(-5);
+          // }
           this.schemas[tn] = newSchemaa;
           await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
             schema: this.schemas[tn],
-            schema_previous: JSON.stringify(previousSchemas)
+            // schema_previous: JSON.stringify(previousSchemas)
           }, {
             title: tn
           })
@@ -2019,19 +2021,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     if (oldSchema !== this.schemas[tn]) {
       // this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, tn);
 
-      const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-        title: tn
-      });
+      // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+      //   title: tn
+      // });
 
-      // keep upto 5 schema backup on table update
-      let previousSchemas = [oldSchema]
-      if (oldModel.schema_previous) {
-        previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
-      }
+      // // keep upto 5 schema backup on table update
+      // let previousSchemas = [oldSchema]
+      // if (oldModel.schema_previous) {
+      //   previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+      // }
 
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
         schema: this.schemas[tn],
-        schema_previous: JSON.stringify(previousSchemas)
+        // schema_previous: JSON.stringify(previousSchemas)
       }, {
         title: tn,
         type: 'table'

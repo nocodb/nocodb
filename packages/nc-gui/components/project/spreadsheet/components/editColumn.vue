@@ -4,7 +4,7 @@
     max-width="400px"
     max-height="95vh"
     style="overflow: auto"
-    class="elevation-0 card"
+    class="elevation-0 card nc-col-create-or-edit-card"
   >
     <v-form ref="form" v-model="valid">
       <v-container fluid @click.stop.prevent>
@@ -29,7 +29,7 @@
                 v => !!v || 'Required',
                 v => !meta || !meta.columns || meta.columns.every(c => column && c.cn === column.cn || v !== c.cn ) && meta.v.every(c => v !== c._cn ) || 'Duplicate column name'
               ]"
-              class="caption"
+              class="caption nc-column-name-input"
               label="Column name"
               dense
               outlined
@@ -72,7 +72,7 @@
                     hide-details
                     item-value="name"
                     item-text="name"
-                    class="caption ui-type"
+                    class="caption ui-type nc-ui-dt-dropdown"
                     :class="{'primary lighten-5' : newColumn.uidt }"
                     label="Column type"
                     dense

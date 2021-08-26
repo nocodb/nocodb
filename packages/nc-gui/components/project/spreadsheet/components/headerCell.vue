@@ -59,7 +59,7 @@
         </v-icon>
       </template>
       <v-list dense>
-        <v-list-item dense @click="editColumnMenu = true">
+        <v-list-item class="nc-column-edit" dense @click="editColumnMenu = true">
           <x-icon small class="mr-1" color="primary">
             mdi-pencil
           </x-icon>
@@ -76,7 +76,7 @@
             <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
           </v-tooltip>
         </v-list-item>
-        <v-list-item @click="columnDeleteDialog = true">
+        <v-list-item class="nc-column-delete" @click="columnDeleteDialog = true">
           <x-icon small class="mr-1" color="error">
             mdi-delete-outline
           </x-icon>
@@ -108,7 +108,7 @@
       max-width="500"
       persistent
     >
-      <v-card>
+      <v-card class="nc-delete-dialog-card">
         <v-card-title class="grey darken-2 subheading white--text">
           Confirm
         </v-card-title>

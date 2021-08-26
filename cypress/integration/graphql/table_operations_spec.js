@@ -1,4 +1,4 @@
-describe('Rest api - Table', () => {
+describe('GraphQL api - Table', () => {
 
   const name = 'Test' + Date.now();
 
@@ -31,59 +31,16 @@ describe('Rest api - Table', () => {
     cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
     cy.get('.nc-column-name-input input').clear().type('new_column')
     cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-    cy
-      .get('th:contains(new_column)')
-      .should('exist');
+
   });
-
-  // edit the newly created column
-  it('Edit table column - rename & uidt update', () => {
-
-
-    cy.get('th:contains(new_column) .mdi-menu-down')
-      .trigger('mouseover')
-      .click()
-
-    cy.get('.nc-column-edit').click()
-
-
-    // change column type and verify
-    cy.get('.nc-ui-dt-dropdown').click()
-    cy.contains('LongText').click()
-    cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-
-    cy.get('th[data-col="new_column"] .mdi-text-subject').should('exist')
-
-
-    cy.get('th:contains(new_column) .mdi-menu-down')
-      .trigger('mouseover')
-      .click()
-
-    cy.get('.nc-column-edit').click()
-
-    // rename column and verify
-    cy.get('.nc-column-name-input input').clear().type('updated_column')
-    cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-
-
-    cy
-      .get('th:contains(updated_column)')
-      .should('exist');
-    cy
-      .get('th:contains(new_column)')
-      .should('not.exist');
-
-
-  })
-
 
   // delete the newly created column
   it('Delete table column', () => {
     cy
-      .get('th:contains(updated_column)')
+      .get('th:contains(new_column)')
       .should('exist');
 
-    cy.get('th:contains(updated_column) .mdi-menu-down')
+    cy.get('th:contains(new_column) .mdi-menu-down')
       .trigger('mouseover')
       .click()
 
@@ -92,7 +49,7 @@ describe('Rest api - Table', () => {
 
 
     cy
-      .get('th:contains(updated_column)')
+      .get('th:contains(new_column)')
       .should('not.exist');
 
   })
@@ -100,7 +57,6 @@ describe('Rest api - Table', () => {
 
   // delete newly created table
   it('Delete Table', () => {
-
     cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
       .first().click()
 
@@ -113,6 +69,4 @@ describe('Rest api - Table', () => {
     cy.get('button:contains(Submit)').click()
     cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
   });
-
-
 })

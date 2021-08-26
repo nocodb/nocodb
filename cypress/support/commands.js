@@ -87,7 +87,17 @@ Cypress.Commands.add('openOrCreateRestProject', () => {
 })
 
 
+Cypress.Commands.add('openTableTab', (tn) => {
+  cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
+    .first().click()
+
+  cy.get('.nc-project-tree').contains(tn, {timeout: 6000}).first().click({force: true});
+
+  cy.get(`.project-tab:contains(${tn}):visible`).should('exist')
+
+});
 Cypress.Commands.add('openOrCreateGqlProject', () => {
+
 
   cy.signinOrSignup()
 
@@ -111,3 +121,6 @@ Cypress.Commands.add('openOrCreateGqlProject', () => {
   cy.url({timeout: 20000}).should('contain', '#/nc/')
 
 })
+
+
+

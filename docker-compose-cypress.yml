@@ -19,6 +19,7 @@ services:
       - -c
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        # cp -r /home/app1/ /home/app/
         rm /home/app/package-lock.json
         cd /home/app/ && npm i && EE=true npm run run
   xc-cypress-nc-gui:
@@ -36,6 +37,7 @@ services:
       - |
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         apk --update --no-cache add git
+        # cp -r /home/app1/ /home/app/
         rm /home/app/package-lock.json
-        cd /home/app/ && npm i && npm run dev
-        # cd /home/app/ && npm i && NODE_ENV=development npm run build && npm start
+        # cd /home/app/ && npm i && npm run dev
+        cd /home/app/ && npm i && NODE_ENV=development npm run build && npm start

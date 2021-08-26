@@ -47,7 +47,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb
 ```
 
-> To persist data you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
+> To persist data you can mount volume at `/usr/app/data/`.
 
 ### Using Npm
 ```

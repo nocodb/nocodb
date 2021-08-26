@@ -270,7 +270,7 @@
                     </td>
                     <td>
                       <div
-                        v-if="_isUIAllowed('project.actions',true)"
+                        v-if="_isUIAllowed('projectActions',true)"
                         :class="{
                           'action-icons': !(
                             projectStatusUpdating &&
@@ -610,8 +610,8 @@
 </template>
 
 <script>
-import SponsorMini from '@/components/sponsorMini'
 import dlgLabelSubmitCancel from '../../components/utils/dlgLabelSubmitCancel.vue'
+import SponsorMini from '@/components/sponsorMini'
 import colors from '~/mixins/colors'
 
 export default {

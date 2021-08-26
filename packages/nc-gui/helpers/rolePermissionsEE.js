@@ -16,7 +16,8 @@ export default {
     column: true
   },
   user: {
-    projectCreate: true
+    projectCreate: true,
+    projectActions: true
   }
 }
 /**

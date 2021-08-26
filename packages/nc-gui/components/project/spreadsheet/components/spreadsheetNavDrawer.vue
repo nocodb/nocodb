@@ -141,7 +141,7 @@
               </v-list-item>
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" v-on="on" @click="openCreateViewDlg('grid')">
+                  <v-list-item dense class="body-2  nc-create-grid-view" v-on="on" @click="openCreateViewDlg('grid')">
                     <v-list-item-icon class="mr-n1">
                       <v-icon color="blue" x-small>
                         mdi-grid-large
@@ -164,7 +164,7 @@
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" v-on="on" @click="openCreateViewDlg('gallery')">
+                  <v-list-item dense class="body-2 nc-create-gallery-view" v-on="on" @click="openCreateViewDlg('gallery')">
                     <v-list-item-icon class="mr-n1">
                       <v-icon color="orange" x-small>
                         mdi-camera-image

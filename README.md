@@ -178,7 +178,7 @@ docker-compose up
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
 | NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
 
-# Running locally 
+# Development setup 
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb

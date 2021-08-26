@@ -65,7 +65,7 @@ Simple installation - takes about three minutes!
 > To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
         
 
-## Local Setup
+## Development Setup
 
 If you want to modify the source code, 
 

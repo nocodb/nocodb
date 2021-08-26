@@ -28,7 +28,7 @@ menuTitle: 'REST APIs'
   * Access Control
 
 
-## API Overview
+## Data APIs
 
 |  **Method**  |  **Path**  | **Query Params** | **Description**  |
 |---|---|---|---|
@@ -56,7 +56,20 @@ menuTitle: 'REST APIs'
     </em>
 </alert>
 
-### HasMany APIs
+### Query params
+
+
+|  **Name**    | **Alias** | **Use case** | **Default value**  |**Example value**  |
+|---|---|---|---|---|
+|  [where](#comparison-operators)  | [w](#comparison-operators)  |  Complicated where conditions | | `(colName,eq,colValue)~or(colName2,gt,colValue2)` <br />[Usage: Comparison operators](#comparison-operators) <br />[Usage: Logical operators](#logical-operators) |
+|  limit  | l |  Number of rows to get(SQL limit value)  | 10  | 20 |
+|  offset  | o |  Offset for pagination(SQL offset value)  | 0  | 20 |
+|  sort  | s |  Sort by column name, Use `-` as prefix for descending sort  |   | column_name |
+|  fields  | f |  Required column names in result  |  * | column_name1,column_name2 |
+|  fields1  | f1 |  Required column names in child result  |  * | column_name1,column_name2 |
+
+
+## HasMany APIs
 
 |  **Method**  |  **Path**  | **Query Params** | **Description**  |
 |---|---|---|---|
@@ -77,7 +90,7 @@ menuTitle: 'REST APIs'
     </em>
 </alert>
 
-### BelongsTo APIs
+## BelongsTo APIs
 
 |  **Method**  |  **Path**  | **Query Params** | **Description**  |
 |---|---|---|---|
@@ -91,17 +104,6 @@ menuTitle: 'REST APIs'
     </em>
 </alert>
 
-### Query params
-
-
-|  **Name**    | **Alias** | **Use case** | **Default value**  |**Example value**  |
-|---|---|---|---|---|
-|  [where](#comparison-operators)  | [w](#comparison-operators)  |  Complicated where conditions | | `(colName,eq,colValue)~or(colName2,gt,colValue2)` <br />[Usage: Comparison operators](#comparison-operators) <br />[Usage: Logical operators](#logical-operators) |
-|  limit  | l |  Number of rows to get(SQL limit value)  | 10  | 20 |
-|  offset  | o |  Offset for pagination(SQL offset value)  | 0  | 20 |
-|  sort  | s |  Sort by column name, Use `-` as prefix for descending sort  |   | column_name |
-|  fields  | f |  Required column names in result  |  * | column_name1,column_name2 |
-|  fields1  | f1 |  Required column names in child result  |  * | column_name1,column_name2 |
 
 #### Comparison operators
 

@@ -62,7 +62,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
 | Create new project | NC_DB | NC_DB |
 | Create new project with external DB | NC_DB | External database |
 
-## Project Structures
+## NocoDB repository structure
 
 We use ``Lerna`` to manage multi-packages. We have the following [packages](https://github.com/nocodb/nocodb/tree/master/packages).
 

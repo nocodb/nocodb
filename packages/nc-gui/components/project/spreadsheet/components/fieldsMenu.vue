@@ -8,6 +8,7 @@
         overlap
       >
         <v-btn
+          class="nc-fields-menu-btn"
           :disabled="isLocked"
           outlined
           small

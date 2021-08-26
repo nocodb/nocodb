@@ -84,6 +84,7 @@
         outlined
         small
         text
+        btn.class="nc-add-new-row-btn"
         @click="insertNewRow(true,true)"
       >
         <v-icon small class="mr-1" color="grey  darken-3">

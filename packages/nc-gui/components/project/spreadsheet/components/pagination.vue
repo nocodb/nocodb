@@ -5,7 +5,8 @@
     style="max-width: 100%"
     :length="Math.ceil(count / size)"
     :total-visible="8"
-    color="primary lighten-2 nc-pagination"
+    color="primary lighten-2"
+    class="nc-pagination"
     @input="$emit('input',page)"
   />
   <div v-else class="mx-auto d-flex align-center mt-n1 " style="max-width:250px">

@@ -26,7 +26,7 @@
           v-else
           :key="i + '_4'"
           v-model="filter.logicOp"
-          class="flex-shrink-1 flex-grow-0 elevation-0 caption"
+          class="flex-shrink-1 flex-grow-0 elevation-0 caption "
           :items="['and' ,'or']"
           solo
           flat
@@ -43,7 +43,7 @@
           v-if="filter.readOnly"
           :key="i + '_5'"
           v-model="filter.field"
-          class="caption"
+          class="caption "
           placeholder="Field"
           solo
           flat
@@ -60,7 +60,7 @@
           v-else
           :key="i + '_6'"
           v-model="filter.field"
-          class="caption"
+          class="caption nc-filter-field-select"
           :items="fieldList"
           placeholder="Field"
           solo
@@ -77,7 +77,7 @@
         <v-select
           :key="'k' + i"
           v-model="filter.op"
-          class="flex-shrink-1 flex-grow-0 caption"
+          class="flex-shrink-1 flex-grow-0 caption  nc-filter-operation-select"
           :items="opList"
           placeholder="Operation"
           solo
@@ -101,7 +101,7 @@
           flat
           hide-details
           dense
-          class="caption"
+          class="caption nc-filter-value-select"
           :disabled="filter.readOnly"
           @click.stop
         />

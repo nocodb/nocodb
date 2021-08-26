@@ -12,6 +12,8 @@ services:
   xc-cypress-nocodb:
     network_mode: host
     image: node:14-alpine
+    environment:
+      - EE=true
     volumes:
       - ./packages/nocodb:/home/app
     command:
@@ -28,6 +30,7 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=3000
+      - EE=true
     volumes:
       - ./packages/nc-gui:/home/app
       - ./packages/nc-lib-gui:/home/nc-lib-gui

@@ -16,11 +16,14 @@ describe('GraphQL Project operations', () => {
     cy.contains('Ok & Save Project', {timeout: 3000}).click()
     cy.url({timeout: 12000}).should('contain', '#/nc/')
   });
+
   it('Stop Project', () => {
+    cy.wait(100000)
     // cy.get('.nc-graphql-project-row .mdi-stop-circle-outline', {timeout: 10000}).last().trigger('onmouseover').trigger('mouseenter')
     cy.get('.nc-graphql-project-row .mdi-stop-circle-outline', {timeout: 10000}).last().invoke('show').click();
     cy.contains('Submit').closest('button').click();
   });
+
   it('Start Project', () => {
     cy.get('.nc-graphql-project-row .mdi-play-circle-outline', {timeout: 10000}).last().invoke('show').click();
     cy.contains('Submit').closest('button').click();

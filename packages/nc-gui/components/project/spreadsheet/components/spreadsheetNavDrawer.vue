@@ -21,7 +21,8 @@
                 dense
                 :value="view.id"
                 active-class="x-active--text"
-                class="body-2 text-capitalize view"
+                class="body-2 text-capitalize view nc-view-item"
+                :class="`nc-${view.show_as}-view-item`"
               >
                 <v-list-item-icon class="mr-n1">
                   <v-icon
@@ -68,7 +69,7 @@
                     :tooltip="$t('nav_drawer.virtual_views.action.copy')"
                     x-small
                     color="primary"
-                    icon-class="view-icon"
+                    icon-class="view-icon nc-view-copy-icon"
                     @click.stop="copyView(view, i)"
                   >
                     mdi-content-copy
@@ -79,7 +80,7 @@
                     :tooltip="$t('nav_drawer.virtual_views.action.rename')"
                     x-small
                     color="primary"
-                    icon-class="view-icon"
+                    icon-class="view-icon nc-view-edit-icon"
                     @click.stop="showRenameTextBox(view, i)"
                   >
                     mdi-pencil
@@ -90,7 +91,7 @@
                     :tooltip="$t('nav_drawer.virtual_views.action.delete')"
                     small
                     color="error"
-                    icon-class="view-icon"
+                    icon-class="view-icon nc-view-delete-icon"
                     @click.stop="deleteView(view)"
                   >
                     mdi-delete-outline

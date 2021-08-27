@@ -1,12 +1,19 @@
 describe('GraphQL Project operations', () => {
 
   beforeEach(() => {
+    cy.restoreLocalStorage();
+  });
+
+  afterEach(() => {
+    cy.saveLocalStorage();
+  });
+
+  before(() => {
     cy.waitForSpinners();
     cy.signinOrSignup();
   })
 
   it('Create Project', () => {
-    // cy.visit('')
     cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
     cy.get('.create-external-db-project').click()
     cy.url({timeout: 6000}).should('contain', '#/project/')
@@ -18,21 +25,24 @@ describe('GraphQL Project operations', () => {
   });
 
   it('Stop Project', () => {
-    cy.wait(100000)
+    cy.visit('./#/projects')
     // cy.get('.nc-graphql-project-row .mdi-stop-circle-outline', {timeout: 10000}).last().trigger('onmouseover').trigger('mouseenter')
     cy.get('.nc-graphql-project-row .mdi-stop-circle-outline', {timeout: 10000}).last().invoke('show').click();
     cy.contains('Submit').closest('button').click();
   });
 
   it('Start Project', () => {
+    cy.visit('./#/projects')
     cy.get('.nc-graphql-project-row .mdi-play-circle-outline', {timeout: 10000}).last().invoke('show').click();
     cy.contains('Submit').closest('button').click();
   });
   it('Restart Project', () => {
+    cy.visit('./#/projects')
     cy.get('.nc-graphql-project-row .mdi-restart', {timeout: 10000}).last().invoke('show').click();
     cy.contains('Submit').closest('button').click();
   });
   it('Delete Project', () => {
+    cy.visit('./#/projects')
     cy.get('.nc-graphql-project-row .mdi-delete-circle-outline', {timeout: 10000}).last().invoke('show').click();
     cy.contains('Submit').closest('button').click();
   });

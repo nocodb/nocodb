@@ -4,5 +4,6 @@
   "pageLoadTimeout": 600000,
   "viewportWidth": 1800,
   "viewportHeight": 1000,
-  "video": false
+  "video": false,
+  "retries": 2
 }

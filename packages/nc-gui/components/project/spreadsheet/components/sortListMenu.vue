@@ -29,7 +29,7 @@
     <div class="backgroundColor pa-2" style="min-width: 330px">
       <div class="sort-grid" @click.stop>
         <template v-for="(sort,i) in sortList" dense>
-          <v-icon :key="i + 'icon'" small @click.stop="sortList.splice(i,1)">
+          <v-icon :key="i + 'icon'" class="nc-sort-item-remove-btn" small @click.stop="sortList.splice(i,1)">
             mdi-close-box
           </v-icon>
 

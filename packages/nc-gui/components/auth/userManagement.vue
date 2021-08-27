@@ -491,7 +491,7 @@
               v-ge="['rows','save']"
               tooltip="Save Changes"
               color="primary"
-              btn.class="mt-5  mb-3 pr-5"
+              btn.class="mt-5  mb-3 pr-5 nc-invite-or-save-btn"
               @click="saveUser"
             >
               <v-icon small left>

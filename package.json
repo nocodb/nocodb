@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "devDependencies": {
+    "@4tw/cypress-drag-drop": "^1.8.0",
     "cypress": "^7.3.0",
     "jsdoc-to-markdown": "^5.0.3",
     "lerna": "^3.20.1"

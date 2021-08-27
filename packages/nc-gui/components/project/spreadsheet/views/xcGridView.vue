@@ -115,7 +115,7 @@
                   v-if="!groupedAggCount[ids[row]]"
                   color="pink"
                   small
-                  class="row-expand-icon mr-1 pointer"
+                  class="row-expand-icon nc-row-expand-icon  mr-1 pointer"
                   @click="expandRow(row,rowMeta)"
                 >
                   mdi-arrow-expand

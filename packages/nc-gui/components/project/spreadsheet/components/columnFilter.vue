@@ -9,7 +9,7 @@
           v-if="!filter.readOnly"
           :key="i + '_3'"
           small
-          class=""
+          class="nc-filter-item-remove-btn"
           @click.stop="filters.splice(i,1)"
         >
           mdi-close-box

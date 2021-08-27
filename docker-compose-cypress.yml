@@ -23,6 +23,7 @@ services:
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         # cp -r /home/app1/ /home/app/
         rm /home/app/package-lock.json
+        rm /home/app/noco.db
         cd /home/app/ && npm i && EE=true npm run run
   xc-cypress-nc-gui:
     network_mode: host

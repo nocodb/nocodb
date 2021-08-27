@@ -24,6 +24,8 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+require('@4tw/cypress-drag-drop')
+
 // for waiting until page load
 Cypress.Commands.add('waitForSpinners', () => {
   cy.visit('http://localhost:3000', {
@@ -33,7 +35,7 @@ Cypress.Commands.add('waitForSpinners', () => {
       "Accept-Encoding": "gzip, deflate"
     }
   })
-  cy.get('#nuxt-loading', {timeout: 10_000}).should('have.length', 0)
+  cy.get('#nuxt-loading', {timeout: 10_0000}).should('have.length', 0)
 })
 Cypress.Commands.add('signinOrSignup', () => {
 
@@ -63,28 +65,30 @@ Cypress.Commands.add('signinOrSignup', () => {
   })
 });
 // for opening/creating a rest project
-Cypress.Commands.add('openOrCreateRestProject', () => {
+Cypress.Commands.add('openOrCreateRestProject', (_args) => {
+    const args = Object.assign({new: false}, _args)
 
-  // signin/signup
-  cy.signinOrSignup()
-  cy.wait(2000);
-  cy.get('body').then($body => {
-    // if project exist open
-    if ($body.find('.nc-rest-project-row').length) {
-      cy.get('.nc-rest-project-row').first().click()
-      // create new project
-    } else {
-      cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
-      cy.get('.create-external-db-project').click()
-      cy.url({timeout: 6000}).should('contain', '#/project')
-      cy.get('.database-field input').click().clear().type('sakila')
-      cy.contains('Test Database Connection').click()
-      cy.contains('Ok & Save Project', {timeout: 3000}).click()
-    }
-  })
-  cy.url({timeout: 20000}).should('contain', '#/nc/')
+    // signin/signup
+    cy.signinOrSignup()
+    cy.wait(2000);
+    cy.get('body').then($body => {
+      // if project exist open
+      if ($body.find('.nc-rest-project-row').length && !args.new) {
+        cy.get('.nc-rest-project-row').first().click()
+        // create new project
+      } else {
+        cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
+        cy.get('.create-external-db-project').click()
+        cy.url({timeout: 6000}).should('contain', '#/project')
+        cy.get('.database-field input').click().clear().type('sakila')
+        cy.contains('Test Database Connection').click()
+        cy.contains('Ok & Save Project', {timeout: 3000}).click()
+      }
+    })
+    cy.url({timeout: 20000}).should('contain', '#/nc/')
 
-})
+  }
+)
 
 
 Cypress.Commands.add('openTableTab', (tn) => {
@@ -96,8 +100,8 @@ Cypress.Commands.add('openTableTab', (tn) => {
   cy.get(`.project-tab:contains(${tn}):visible`).should('exist')
 
 });
-Cypress.Commands.add('openOrCreateGqlProject', () => {
-
+Cypress.Commands.add('openOrCreateGqlProject', (_args) => {
+  const args = Object.assign({new: false}, _args)
 
   cy.signinOrSignup()
 
@@ -105,7 +109,7 @@ Cypress.Commands.add('openOrCreateGqlProject', () => {
   cy.wait(2000);
   cy.get('body').then($body => {
     // if project exist open
-    if ($body.find('.nc-graphql-project-row').length) {
+    if ($body.find('.nc-graphql-project-row').length && !args.new) {
       cy.get('.nc-graphql-project-row').first().click()
       // create new project
     } else {
@@ -122,5 +126,137 @@ Cypress.Commands.add('openOrCreateGqlProject', () => {
 
 })
 
+let LOCAL_STORAGE_MEMORY = {};
+
+Cypress.Commands.add("saveLocalStorage", () => {
+  Object.keys(localStorage).forEach(key => {
+    LOCAL_STORAGE_MEMORY[key] = localStorage[key];
+  });
+});
+
+Cypress.Commands.add("restoreLocalStorage", () => {
+  Object.keys(LOCAL_STORAGE_MEMORY).forEach(key => {
+    localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
+  });
+});
+
+Cypress.Commands.add("getActiveModal", () => {
+  return cy.get('.v-dialog.v-dialog--active')
+});
+
+Cypress.Commands.add("getActiveMenu", () => {
+  return cy.get('.menuable__content__active')
+});
+
+
+
+// Drag n Drop
+// refer: https://stackoverflow.com/a/55409853
+
+const getCoords = ($el) => {
+  const domRect = $el[0].getBoundingClientRect()
+  const coords = { x: domRect.left + (domRect.width / 2 || 0), y: domRect.top + (domRect.height / 2 || 0) }
+
+  return coords
+}
+
+const dragTo = (subject, to, opts) => {
+
+  opts = Cypress._.defaults(opts, {
+    // delay inbetween steps
+    delay: 0,
+    // interpolation between coords
+    steps: 0,
+    // >=10 steps
+    smooth: false,
+  })
+
+  if (opts.smooth) {
+    opts.steps = Math.max(opts.steps, 10)
+  }
+
+  const win = subject[0].ownerDocument.defaultView
+
+  const elFromCoords = (coords) => win.document.elementFromPoint(coords.x, coords.y)
+  const winMouseEvent = win.MouseEvent
+
+  const send = (type, coords, el) => {
+
+    el = el || elFromCoords(coords)
+
+    el.dispatchEvent(
+      new winMouseEvent(type, Object.assign({}, { clientX: coords.x, clientY: coords.y }, { bubbles: true, cancelable: true }))
+    )
+  }
+
+  const toSel = to
+
+  function drag (from, to, steps = 1) {
+
+    const fromEl = elFromCoords(from)
+
+    const _log = Cypress.log({
+      $el: fromEl,
+      name: 'drag to',
+      message: toSel,
+    })
+
+    _log.snapshot('before', { next: 'after', at: 0 })
+
+    _log.set({ coords: to })
+
+    send('mouseover', from, fromEl)
+    send('mousedown', from, fromEl)
+
+    cy.then(() => {
+      return Cypress.Promise.try(() => {
+
+        if (steps > 0) {
+
+          const dx = (to.x - from.x) / steps
+          const dy = (to.y - from.y) / steps
+
+          return Cypress.Promise.map(Array(steps).fill(), (v, i) => {
+            i = steps - 1 - i
+
+            let _to = {
+              x: from.x + dx * (i),
+              y: from.y + dy * (i),
+            }
+
+            send('mousemove', _to, fromEl)
+
+            return Cypress.Promise.delay(opts.delay)
+
+          }, { concurrency: 1 })
+        }
+      })
+        .then(() => {
+
+          send('mousemove', to, fromEl)
+          send('mouseover', to)
+          send('mousemove', to)
+          send('mouseup', to)
+          _log.snapshot('after', { at: 1 }).end()
+
+        })
+
+    })
+
+  }
+
+  const $el = subject
+  const fromCoords = getCoords($el)
+  const toCoords = getCoords(cy.$$(to))
+
+  drag(fromCoords, toCoords, opts.steps)
+}
+
+Cypress.Commands.addAll(
+  { prevSubject: 'element' },
+  {
+    dragTo,
+  }
+)
 
 

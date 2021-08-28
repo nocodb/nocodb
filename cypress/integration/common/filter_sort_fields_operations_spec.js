@@ -81,14 +81,6 @@ const genTest = (type) => {
       cy.get('th:contains(LastUpdate)').should('be.visible')
 
 
-      // drag fields
-      cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
-      cy.get('.nc-column-name-input input').clear().type('new_column1')
-      cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-      cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
-      cy.get('.nc-column-name-input input').clear().type('new_column2')
-      cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-
       // cy.get('.menuable__content__active .v-list-item label:contains(Country)').closest('.v-list-item').dragTo('.v-list-item:has(.menuable__content__active .v-list-item label:contains(LastUpdate)')
       /*    cy.get('.nc-fields-menu-btn').click()
 

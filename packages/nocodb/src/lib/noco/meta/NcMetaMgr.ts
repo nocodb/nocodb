@@ -1352,7 +1352,9 @@ export default class NcMetaMgr {
         case 'projectList':
           result = await this.xcMeta.userProjectList(req?.session?.passport?.user?.id);
           result.forEach(p => {
-            p.projectType = JSON.parse(p.config)?.projectType;
+            const config =JSON.parse(p.config);
+            p.projectType = config?.projectType;
+            p.prefix = config?.prefix
             delete p.config
           })
           break;

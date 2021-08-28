@@ -34,7 +34,7 @@
               v-model="name"
               autofocus
               :full-width="false"
-              class=""
+              class="nc-metadb-project-name"
               label="Enter Project Name"
               :rules="[v => !!v || 'Project name required']"
             />

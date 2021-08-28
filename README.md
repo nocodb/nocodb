@@ -200,6 +200,23 @@ npm run dev
 
 Changes made to code automatically restart.
 
+
+## Running Cypress tests locally
+
+```shell
+# run requered services by using docker compose 
+docker-compose -f ./docker-compose-cypress.yml up
+
+
+
+# wait until both 3000 and 8080 porta are avalable
+# and run cypress test using following command
+npm run cypress:run
+
+# or run following command to run it with GUI
+npm run cypress:open
+```
+
 # Contributing
 - Please take a look at ./contribute/HowToApplyLicense.md 
 - Ignore adding headers for .json or .md or .yml   

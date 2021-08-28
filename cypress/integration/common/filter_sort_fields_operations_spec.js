@@ -1,6 +1,6 @@
 const genTest = (type) => {
 
-  describe(`${type.toUpperCase()} api - Filter, Fields, Sort`, () => {
+  describe(`${type.toUpperCase()} api - Filter, Fields,  Sort`, () => {
 
     before(() => {
       cy.waitForSpinners();
@@ -29,7 +29,7 @@ const genTest = (type) => {
     })
 
     // check pagination
-    it('Check country table - ', () => {
+    it('Check country table - Pagination', () => {
       cy.get('.nc-pagination').should('exist');
       cy.get('.nc-pagination .v-pagination > li:last-child').click()
       cy.get('.nc-pagination .v-pagination > li:contains(2) button').should('have.class', 'v-pagination__item--active')
@@ -40,9 +40,7 @@ const genTest = (type) => {
     // create new row
     it('Create new row', () => {
       cy.get('.nc-add-new-row-btn').click();
-
       cy.get('#data-table-form-Country > input').first().type('Test Country');
-
       cy.contains('Save Row').filter('button').click()
 
       // todo: verify
@@ -64,21 +62,33 @@ const genTest = (type) => {
     })
 
 
+    describe('Field Operation', () => {
+
+      before(() => {
+        cy.get('.nc-fields-menu-btn').click()
+      })
+      if ('Hide field', () => {
+        cy.get('th:contains(LastUpdate)').should('be.visible')
+        // toggle and confirm it's hidden
+        cy.get('.menuable__content__active .v-list-item label:contains(LastUpdate)').click()
+        cy.get('th:contains(LastUpdate)').should('not.be.visible')
+      })
+
+      it('Show field', () => {
+        cy.get('.menuable__content__active .v-list-item label:contains(LastUpdate)').click()
+        cy.get('th:contains(LastUpdate)').should('be.visible')
+      })
+    })
+
+
     // Test fields
-    it.only('Add fields options', () => {
-
-      cy.get('th:contains(LastUpdate)').should('be.visible')
-
-      // toggle and confirm it's hidden
-      cy.get('.nc-fields-menu-btn').click()
-      cy.get('.menuable__content__active .v-list-item label:contains(LastUpdate)').click()
-      cy.get('th:contains(LastUpdate)').should('not.be.visible')
+    // it('Add fields options', () => {
 
 
       // toggle and confirm it's visible
-      // cy.get('.nc-fields-menu-btn').click()
-      cy.get('.menuable__content__active .v-list-item label:contains(LastUpdate)').click()
-      cy.get('th:contains(LastUpdate)').should('be.visible')
+      // // cy.get('.nc-fields-menu-btn').click()
+      // cy.get('.menuable__content__active .v-list-item label:contains(LastUpdate)').click()
+      // cy.get('th:contains(LastUpdate)').should('be.visible')
 
 
       // cy.get('.menuable__content__active .v-list-item label:contains(Country)').closest('.v-list-item').dragTo('.v-list-item:has(.menuable__content__active .v-list-item label:contains(LastUpdate)')
@@ -116,28 +126,41 @@ const genTest = (type) => {
             // draggable.dispatchEvent(new MouseEvent('mouseup'));
           })*/
 
+    // })
+
+
+    describe('Filter operations', () => {
+
+      it('Create Filter', () => {
+        cy.get('.nc-filter-menu-btn').click()
+        cy.contains('Add Filter').click();
+
+        cy.get('.nc-filter-field-select').last().click();
+        cy.get('.menuable__content__active .v-list-item:contains(Country)').click()
+        cy.get('.nc-filter-operation-select').last().click();
+        cy.get('.menuable__content__active .v-list-item:contains("is equal")').click()
+        cy.get('.nc-filter-value-select input:text').last().type('India');
+
+        cy.get('td:contains(India)').should('exist')
+      })
+
+      it('Delete Filter', () => {
+
+        // remove sort and check
+        cy.get('.nc-filter-item-remove-btn').click()
+        cy.contains('td:contains(India)').should('not.exist')
+
+      })
+
     })
 
 
-    // Test filter
-    it('Add filter options', () => {
-      cy.get('.nc-filter-menu-btn').click()
-      cy.contains('Add Filter').click();
-
-      cy.get('.nc-filter-field-select').last().click();
-      cy.get('.menuable__content__active .v-list-item:contains(Country)').click()
-      cy.get('.nc-filter-operation-select').last().click();
-      cy.get('.menuable__content__active .v-list-item:contains("is equal")').click()
-      cy.get('.nc-filter-value-select input:text').last().type('India');
-
-      cy.get('td:contains(India)').should('exist')
-
-
-      // remove sort and check
-      cy.get('.nc-filter-item-remove-btn').click()
-      cy.contains('td:contains(India)').should('not.exist')
-
-    })
+    //
+    // // Test filter
+    // it('Add filter options', () => {
+    //
+    //
+    // })
 
   })
 }

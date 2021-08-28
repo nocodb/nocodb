@@ -120,7 +120,7 @@
                   </template>
                   <v-list dense>
                     <v-list-item
-                      class="create-xc-db-project"
+                      class="create-xc-db-project nc-create-xc-db-project"
                       @click="onCreateProject('xcdb')"
                     >
                       <v-list-item-icon class="mr-2">
@@ -130,7 +130,7 @@
                       </v-list-item-icon>
                       <v-list-item-title>
                         <!-- Create -->
-                        <span class="caption font-weight-regular">{{
+                        <span class="caption font-weight-regular ">{{
                           $t('projects.create_new_project_button.subtext_1')
                         }}</span>
                       </v-list-item-title>
@@ -155,7 +155,7 @@
                     <v-divider />
                     <v-list-item
                       title
-                      class="pt-2 create-external-db-project"
+                      class="pt-2 create-external-db-project nc-create-external-db-project"
                       @click="onCreateProject()"
                     >
                       <v-list-item-icon class="mr-2">
@@ -225,7 +225,9 @@
                 <template #item="props">
                   <tr
                     class="project-row"
-                    :class="`nc-${props.item.projectType}-project-row`"
+                    :class="[`nc-${props.item.projectType}-project-row`,{
+                      'nc-meta-project-row': props.item.prefix
+                    }]"
                     @click="projectRouteHandler(props.item)"
                   >
                     <td data-v-step="2">

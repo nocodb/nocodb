@@ -2,12 +2,13 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "@4tw/cypress-drag-drop": "^1.8.0",
     "cypress": "^7.3.0",
     "jsdoc-to-markdown": "^5.0.3",
     "lerna": "^3.20.1"
   },
   "scripts": {
+    "cypress:run": "cypress run",
+    "cypress:open": "cypress open",
     "test:travis": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna run test:travis --since",
     "lerna:install": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna bootstrap --ignore nc-cli --since",
     "updated:xc-migrator": "lerna run publish --scope xc-migrator && lerna run xc && lerna publish && npm install -f xc-cli",

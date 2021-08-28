@@ -24,7 +24,7 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-require('@4tw/cypress-drag-drop')
+// require('@4tw/cypress-drag-drop')
 
 // for waiting until page load
 Cypress.Commands.add('waitForSpinners', () => {
@@ -72,17 +72,25 @@ Cypress.Commands.add('openOrCreateRestProject', (_args) => {
     cy.signinOrSignup()
     cy.wait(2000);
     cy.get('body').then($body => {
+      const filter = args.meta ? '.nc-meta-project-row' : ':not(.nc-meta-project-row)';
       // if project exist open
-      if ($body.find('.nc-rest-project-row').length && !args.new) {
-        cy.get('.nc-rest-project-row').first().click()
-        // create new project
+      if ($body.find('.nc-rest-project-row').filter(filter).length && !args.new) {
+        cy.get('.nc-rest-project-row').filter(filter).first().click()
       } else {
         cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
-        cy.get('.create-external-db-project').click()
-        cy.url({timeout: 6000}).should('contain', '#/project')
-        cy.get('.database-field input').click().clear().type('sakila')
-        cy.contains('Test Database Connection').click()
-        cy.contains('Ok & Save Project', {timeout: 3000}).click()
+        if (args.meta) {
+          cy.get('.nc-create-xc-db-project').click()
+          cy.url({timeout: 6000}).should('contain', '#/project/xcdb')
+          cy.get('.nc-metadb-project-name').type('test_proj' + Date.now())
+          cy.contains('button','Create', {timeout: 3000}).click()
+        } else {
+          cy.get('.nc-create-external-db-project').click()
+          cy.url({timeout: 6000}).should('contain', '#/project')
+          cy.contains('GRAPHQL APIs').closest('label').click()
+          cy.get('.database-field input').click().clear().type('sakila')
+          cy.contains('Test Database Connection').click()
+          cy.contains('Ok & Save Project', {timeout: 3000}).click()
+        }
       }
     })
     cy.url({timeout: 20000}).should('contain', '#/nc/')
@@ -101,25 +109,32 @@ Cypress.Commands.add('openTableTab', (tn) => {
 
 });
 Cypress.Commands.add('openOrCreateGqlProject', (_args) => {
-  const args = Object.assign({new: false}, _args)
+  const args = Object.assign({new: false, meta: false}, _args)
 
   cy.signinOrSignup()
 
-
   cy.wait(2000);
   cy.get('body').then($body => {
+    const filter = args.meta ? '.nc-meta-project-row' : ':not(.nc-meta-project-row)';
     // if project exist open
-    if ($body.find('.nc-graphql-project-row').length && !args.new) {
-      cy.get('.nc-graphql-project-row').first().click()
-      // create new project
+    if ($body.find('.nc-graphql-project-row').filter(filter).length && !args.new) {
+      cy.get('.nc-graphql-project-row').filter(filter).first().click()
     } else {
       cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
-      cy.get('.create-external-db-project').click()
-      cy.url({timeout: 6000}).should('contain', '#/project')
-      cy.contains('GRAPHQL APIs').closest('label').click()
-      cy.get('.database-field input').click().clear().type('sakila')
-      cy.contains('Test Database Connection').click()
-      cy.contains('Ok & Save Project', {timeout: 3000}).click()
+      if (args.meta) {
+        cy.get('.nc-create-xc-db-project').click()
+        cy.url({timeout: 6000}).should('contain', '#/project/xcdb')
+        cy.contains('GRAPHQL APIs').closest('label').click();
+        cy.get('.nc-metadb-project-name').type('test_proj' + Date.now())
+        cy.contains('button','Create', {timeout: 3000}).click()
+      } else {
+        cy.get('.nc-create-external-db-project').click()
+        cy.url({timeout: 6000}).should('contain', '#/project')
+        cy.contains('GRAPHQL APIs').closest('label').click()
+        cy.get('.database-field input').click().clear().type('sakila')
+        cy.contains('Test Database Connection').click()
+        cy.contains('Ok & Save Project', {timeout: 3000}).click()
+      }
     }
   })
   cy.url({timeout: 20000}).should('contain', '#/nc/')
@@ -149,9 +164,50 @@ Cypress.Commands.add("getActiveMenu", () => {
 });
 
 
+Cypress.Commands.add('createTable', (name) => {
+  cy.get('.add-btn').click();
+  cy.get('.nc-create-table-card .nc-table-name input[type="text"]').first().click().clear().type(name)
+  cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]').first().should('have.value', name.toLowerCase())
+  cy.wait(5000)
+  cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
+  cy.get(`.project-tab:contains(${name})`).should('exist')
+  cy.url().should('contain', `?name=${name}&`)
+})
+
+Cypress.Commands.add('deleteTable', (name) => {
+  cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
+    .first().click()
+
+  cy.get('.nc-project-tree').contains(name, {timeout: 6000}).first().click({force: true});
+
+  cy.get(`.project-tab:contains(${name}):visible`).should('exist')
+
+  cy.get('.nc-table-delete-btn:visible').click()
+
+  cy.get('button:contains(Submit)').click()
+  cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
+})
+
+Cypress.Commands.add('createColumn', (table, columnName) => {
+  cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
+    .first().click()
+
+  cy.get('.nc-project-tree').contains(table, {timeout: 6000}).first().click({force: true});
+
+  cy.get(`.project-tab:contains(${table}):visible`).should('exist')
+
+  cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
+  cy.get('.nc-column-name-input input').clear().type(columnName)
+  cy.get('.nc-col-create-or-edit-card').contains('Save').click()
+  cy
+    .get('th:contains(new_column)')
+    .should('exist');
+})
+
 
 // Drag n Drop
 // refer: https://stackoverflow.com/a/55409853
+/*
 
 const getCoords = ($el) => {
   const domRect = $el[0].getBoundingClientRect()
@@ -258,5 +314,6 @@ Cypress.Commands.addAll(
     dragTo,
   }
 )
+*/
 
 

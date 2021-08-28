@@ -447,7 +447,7 @@
           <!--          todo: show error message if failed-->
         </div>
         <template v-else>
-          <v-form v-model="valid" @submit.prevent="saveUser">
+          <v-form ref="form" v-model="valid" @submit.prevent="saveUser">
             <v-row class="mt-4">
               <v-col cols="12">
                 <v-text-field
@@ -753,7 +753,7 @@ export default {
       }
     },
     async saveUser() {
-      if (this.loading || !this.valid || !this.selectedUser) {
+      if (this.loading || !this.$refs.form.validate() || !this.selectedUser) {
         return
       }
 

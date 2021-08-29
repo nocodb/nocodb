@@ -26,11 +26,11 @@ const genTest = (type) => {
 
 
     it('Add new row', () => {
-      cy.get('.nc-add-new-row-btn').click();
+      cy.get('.nc-add-new-row-btn').click({force: true});
 
       cy.get('#data-table-form-Title > input').first().type(randVal);
 
-      cy.contains('Save Row').filter('button').click({force:true})
+      cy.contains('Save Row').filter('button').click({force: true})
 
       cy.get('td').contains(randVal).should('exist');
 
@@ -40,11 +40,11 @@ const genTest = (type) => {
       cy.get('td').contains(randVal)
         .closest('tr')
         .find('.nc-row-expand-icon')
-        .click({force:true});
+        .click({force: true});
 
 
       cy.get('#data-table-form-Title > input').first().clear().type(updatedRandVal);
-      cy.contains('Save Row').filter('button').click({force:true})
+      cy.contains('Save Row').filter('button').click({force: true})
 
 
       cy.get('td').contains(updatedRandVal).should('exist');
@@ -54,10 +54,10 @@ const genTest = (type) => {
 
 
     it('Delete row', () => {
-      cy.get('td').contains(updatedRandVal).rightclick({force:true})
+      cy.get('td').contains(updatedRandVal).rightclick({force: true})
 
       // delete row
-      cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click({force:true})
+      cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click({force: true})
       cy.wait(1000)
       cy.get('td').contains(randVal).should('not.exist');
     })

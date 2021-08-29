@@ -86,7 +86,6 @@ Cypress.Commands.add('openOrCreateRestProject', (_args) => {
         } else {
           cy.get('.nc-create-external-db-project').click()
           cy.url({timeout: 6000}).should('contain', '#/project')
-          cy.contains('GRAPHQL APIs').closest('label').click()
           cy.get('.database-field input').click().clear().type('sakila')
           cy.contains('Test Database Connection').click()
           cy.contains('Ok & Save Project', {timeout: 3000}).click()

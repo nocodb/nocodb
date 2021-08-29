@@ -3,7 +3,7 @@ const genTest = (type) => {
   describe(`${type.toUpperCase()} api - Table Row`, () => {
     const randVal = 'Test' + Date.now();
     const updatedRandVal = 'Updated' + Date.now();
-    const name = 'Test' + Date.now();
+    const name = 'Tablerow' + Date.now();
 
     before(() => {
       cy.waitForSpinners();
@@ -30,7 +30,7 @@ const genTest = (type) => {
 
       cy.get('#data-table-form-Title > input').first().type(randVal);
 
-      cy.contains('Save Row').filter('button').click()
+      cy.contains('Save Row').filter('button').click({force:true})
 
       cy.get('td').contains(randVal).should('exist');
 
@@ -40,11 +40,11 @@ const genTest = (type) => {
       cy.get('td').contains(randVal)
         .closest('tr')
         .find('.nc-row-expand-icon')
-        .click();
+        .click({force:true});
 
 
       cy.get('#data-table-form-Title > input').first().clear().type(updatedRandVal);
-      cy.contains('Save Row').filter('button').click()
+      cy.contains('Save Row').filter('button').click({force:true})
 
 
       cy.get('td').contains(updatedRandVal).should('exist');
@@ -54,10 +54,10 @@ const genTest = (type) => {
 
 
     it('Delete row', () => {
-      cy.get('td').contains(updatedRandVal).rightclick()
+      cy.get('td').contains(updatedRandVal).rightclick({force:true})
 
       // delete row
-      cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click()
+      cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click({force:true})
       cy.wait(1000)
       cy.get('td').contains(randVal).should('not.exist');
     })

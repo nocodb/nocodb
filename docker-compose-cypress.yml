@@ -24,8 +24,8 @@ services:
         # cp -r /home/app1/ /home/app/
         rm /home/app/package-lock.json
         rm /home/app/noco.db
-        # cd /home/app/ && npm i && EE=true npm run run
-        cd /home/app/ && npm i && EE=true npm run watch:run
+        cd /home/app/ && npm i && EE=true npm run run
+        # cd /home/app/ && npm i && EE=true npm run watch:run
   xc-cypress-nc-gui:
     network_mode: host
     image: node:14-alpine

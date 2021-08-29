@@ -76,7 +76,7 @@ class BaseModelSql extends BaseModel {
       limitDefault: process.env.DB_QUERY_LIMIT_DEFAULT || 10,
       limitMax: process.env.DB_QUERY_LIMIT_MAX || 500,
       limitMin: process.env.DB_QUERY_LIMIT_MIN || 1,
-      log: true,
+      log: false,
       explain: false,
       hasManyMax: 5,
       bulkLengthMax: 1000,

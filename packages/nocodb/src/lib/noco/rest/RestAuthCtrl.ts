@@ -492,11 +492,9 @@ export default class RestAuthCtrl {
 
   protected initJwtStrategy() {
     passport.use(new Strategy(this.jwtOptions, (jwtPayload, done) => {
-      console.time('fetch user')
       this.users.where({
         email: jwtPayload?.email
       }).first().then(user => {
-        console.timeEnd('fetch user')
         if (user) {
           user.roles = 'owner,creator'
           return done(null, user);

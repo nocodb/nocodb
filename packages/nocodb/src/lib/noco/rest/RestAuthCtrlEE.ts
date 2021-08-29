@@ -159,7 +159,6 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
       ...this.jwtOptions,
       passReqToCallback: true
     }, (req, jwtPayload, done) => {
-      console.time('fetch user')
 
       const keyVals = [jwtPayload?.email]
       if (req.ncProjectId) {
@@ -185,7 +184,6 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
 
         } else {
           // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
-          console.timeEnd('fetch user')
           if (user) {
             XcCache.set(key, user);
             return done(null, user);

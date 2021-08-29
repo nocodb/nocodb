@@ -1,9 +1,7 @@
 const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - Table Column`, () => {
-    const randVal = 'Test' + Date.now();
-    const updatedRandVal = 'Updated' + Date.now();
-    const name = 'Test' + Date.now();
+    const name = 'Table' + Date.now();
 
     before(() => {
       cy.waitForSpinners();
@@ -26,10 +24,10 @@ const genTest = (type) => {
     });
 
     it('Create Table Column', () => {
-      cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
-        .first().click()
-
-      cy.get('.nc-project-tree').contains(name, {timeout: 6000}).first().click({force: true});
+      // cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
+      //   .first().click()
+      //
+      // cy.get('.nc-project-tree').contains(name, {timeout: 6000}).first().click({force: true});
 
       cy.get(`.project-tab:contains(${name}):visible`).should('exist')
 
@@ -77,6 +75,8 @@ const genTest = (type) => {
       cy.get('th:contains(new_column) .mdi-menu-down')
         .trigger('mouseover', {force: true})
         .click({force: true})
+
+      cy.get('.nc-column-edit').click()
 
       // rename column and verify
       cy.get('.nc-column-name-input input').clear().type('updated_column')

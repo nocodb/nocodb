@@ -25,6 +25,17 @@
             mdi-table-column-plus-before
           </v-icon>
         </template>
+        <template v-else-if="column.rollup">
+          <v-icon v-if="column.rollup.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+            {{ rollupIcon }}
+          </v-icon>
+          <v-icon v-else-if="column.rollup.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+            {{ rollupIcon }}
+          </v-icon>
+          <v-icon v-else-if="column.rollup.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+            {{ rollupIcon }}
+          </v-icon>
+        </template>
 
         <span class="name  flex-grow-1" :title="column._cn" v-on="on" v-html="alias">
           <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
@@ -116,6 +127,7 @@
   </div>
 </template>
 <script>
+import { getUIDTIcon } from '../helpers/uiTypes'
 import EditVirtualColumn from '@/components/project/spreadsheet/components/editVirtualColumn'
 
 export default {
@@ -124,7 +136,8 @@ export default {
   props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi'],
   data: () => ({
     columnDeleteDialog: false,
-    editColumnMenu: false
+    editColumnMenu: false,
+    rollupIcon: getUIDTIcon('Rollup')
   }),
   computed: {
     alias() {
@@ -204,6 +217,8 @@ export default {
         return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
       } else if (this.column.formula) {
         return `Formula - ${this.column.formula.value}`
+      } else if (this.column.rollup) {
+        return `${this.column.rollup.fn} of ${this.column.rollup._rlcn} (${this.column.rollup._rltn})`
       }
       return ''
     }
@@ -282,11 +297,39 @@ export default {
         console.log(e)
       }
     },
+    async deleteRollupColumn() {
+      try {
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.nodes.dbAlias,
+          env: this.nodes.env,
+          tn: this.meta.tn,
+          force: true
+        })
+        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
+
+        // remove rollup from virtual columns
+        meta.v = meta.v.filter(cl => !cl.rollup || cl._cn !== this.column._cn)
+
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcModelSet', {
+          tn: this.nodes.tn,
+          meta
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
+      } catch (e) {
+        console.log(e)
+      }
+    },
     async deleteColumn() {
       if (this.column.lk) {
         await this.deleteLookupColumn()
       } else if (this.column.formula) {
         await this.deleteFormulaColumn()
+      } else if (this.column.rollup) {
+        await this.deleteRollupColumn()
       } else {
         await this.deleteRelation()
       }

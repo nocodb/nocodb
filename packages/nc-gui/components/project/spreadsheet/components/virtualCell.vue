@@ -68,11 +68,17 @@
         :row="row"
         :column="column"
       />
+      <rollup-cell
+        v-else-if="rollup"
+        :row="row"
+        :column="column"
+      />
     </v-lazy>
   </div>
 </template>
 
 <script>
+import RollupCell from './virtualCell/rollupCell'
 import FormulaCell from '@/components/project/spreadsheet/components/virtualCell/formulaCell'
 import hasManyCell from '@/components/project/spreadsheet/components/virtualCell/hasManyCell'
 import LookupCell from '@/components/project/spreadsheet/components/virtualCell/lookupCell'
@@ -84,6 +90,7 @@ import belongsToCell from '@/components/project/spreadsheet/components/virtualCe
 export default {
   name: 'VirtualCell',
   components: {
+    RollupCell,
     FormulaCell,
     LookupCell,
     belongsToCell,
@@ -129,6 +136,9 @@ export default {
     },
     formula() {
       return this.column && this.column.formula
+    },
+    rollup() {
+      return this.column && this.column.rollup
     }
   },
   methods: {

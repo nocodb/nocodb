@@ -1,4 +1,3 @@
-
 const uiTypes = [
   {
     name: 'ID',
@@ -96,10 +95,10 @@ const uiTypes = [
     name: 'Formula',
     icon: 'mdi-math-integral'
   },
-  // {
-  //   name: 'Rollup',
-  //   icon: 'mdi-movie-roll',
-  // },
+  {
+    name: 'Rollup',
+    icon: 'mdi-movie-roll'
+  },
   {
     name: 'Count',
     icon: 'mdi-counter'
@@ -146,8 +145,12 @@ const uiTypes = [
   // },
 ]
 
+const getUIDTIcon = (uidt) => {
+  return (uiTypes.find(t => t.name === uidt) || {}).icon
+}
+
 export {
-  uiTypes
+  uiTypes, getUIDTIcon
 }
 export default [
   'ID',

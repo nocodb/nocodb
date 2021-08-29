@@ -4,6 +4,7 @@ import Validator from 'validator';
 
 import BaseModel, {XcFilter, XcFilterWithAlias} from '../BaseModel';
 import formulaQueryBuilder from "./formulaQueryBuilderFromString";
+import genRollupSelect from "./genRollupSelect";
 
 
 /**
@@ -726,7 +727,8 @@ class BaseModelSql extends BaseModel {
         // .select(...fields.split(','))
         .select(this.selectQuery(fields))
         .select(...this.selectFormulas)
-        .xwhere(where, {...this.selectQuery(''),...this.selectFormulasObj})
+        .select(...this.selectRollups)
+        .xwhere(where, {...this.selectQuery(''), ...this.selectFormulasObj})
         .xhaving(having, this.selectQuery(''))
         .condition(condition, this.selectQuery(''))
         .conditionGraph(conditionGraph);
@@ -838,7 +840,7 @@ class BaseModelSql extends BaseModel {
       return await this._run(this.$db
         .conditionGraph(conditionGraph)
         .count(`${this.tn}.${(this.pks[0] || this.columns[0]).cn} as count`)
-        .xwhere(where, {...this.selectQuery(''),...this.selectFormulasObj})
+        .xwhere(where, {...this.selectQuery(''), ...this.selectFormulasObj})
         .xhaving(having, this.selectQuery(''))
         .first());
     } catch (e) {
@@ -1898,7 +1900,20 @@ class BaseModelSql extends BaseModel {
     return this._selectFormulasObj;
   }
 
+  // todo: optimize
+  protected get selectRollups() {
+    return (this.virtualColumns || [])?.reduce((arr, v) => {
+      if (v.rollup) {
+        arr.push(
+          genRollupSelect({knex: this.dbDriver, rollup: v.rollup}).as(v._cn)
+        );
+      }
+      return arr;
+    }, [])
+  }
 }
+
+
 
 
 export {BaseModelSql};

@@ -99,11 +99,11 @@
                     </template>
                   </v-autocomplete>
 
-                <!--                        <v-list dense max-height="calc(100vh - 300px)" style="overflow: auto">-->
-                <!--                          <v-list-item v-for="item in uiTypes" @click.stop :key="item">-->
-                <!--                            <span class="caption">{{ item }}</span>-->
-                <!--                          </v-list-item>-->
-                <!--                        </v-list>-->
+                  <!--                        <v-list dense max-height="calc(100vh - 300px)" style="overflow: auto">-->
+                  <!--                          <v-list-item v-for="item in uiTypes" @click.stop :key="item">-->
+                  <!--                            <span class="caption">{{ item }}</span>-->
+                  <!--                          </v-list-item>-->
+                  <!--                        </v-list>-->
                 </v-col>
 
                 <template v-if="newColumn.uidt !== 'Formula'">
@@ -113,6 +113,21 @@
                   >
                     <lookup-options
                       ref="lookup"
+                      :column="newColumn"
+                      :nodes="nodes"
+                      :meta="meta"
+                      :is-s-q-lite="isSQLite"
+                      :alias="newColumn.cn"
+                      :is-m-s-s-q-l="isMSSQL"
+                      v-on="$listeners"
+                    />
+                  </v-col>
+                  <v-col
+                    v-if="isRollup"
+                    cols="12"
+                  >
+                    <rollup-options
+                      ref="rollup"
                       :column="newColumn"
                       :nodes="nodes"
                       :meta="meta"
@@ -158,7 +173,7 @@
                     />
                   </v-col>
 
-                  <template v-if="newColumn.cn && newColumn.uidt && !isLinkToAnotherRecord && !isLookup">
+                  <template v-if="newColumn.cn && newColumn.uidt && !isVirtual">
                     <v-col cols="12">
                       <v-container fluid class="wrapper">
                         <v-row>
@@ -342,18 +357,18 @@
                       v-on="$listeners"
                     />
 
-                  <!--                  <v-autocomplete
-                    label="Formula"
-                    hide-details
-                    class="caption formula-type"
-                    outlined
-                    dense
-                    :items="formulas"
-                  >
-                    <template #item="{item}">
-                      <span class="green&#45;&#45;text text&#45;&#45;darken-2 caption font-weight-regular">{{ item }}</span>
-                    </template>
-                  </v-autocomplete>-->
+                    <!--                  <v-autocomplete
+                      label="Formula"
+                      hide-details
+                      class="caption formula-type"
+                      outlined
+                      dense
+                      :items="formulas"
+                    >
+                      <template #item="{item}">
+                        <span class="green&#45;&#45;text text&#45;&#45;darken-2 caption font-weight-regular">{{ item }}</span>
+                      </template>
+                    </v-autocomplete>-->
                   </v-col>
                 </template>
               </template>
@@ -383,6 +398,7 @@
 </template>
 
 <script>
+import RollupOptions from './editColumn/rollupOptions'
 import FormulaOptions from '@/components/project/spreadsheet/components/editColumn/formulaOptions'
 import LookupOptions from '@/components/project/spreadsheet/components/editColumn/lookupOptions'
 import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
@@ -395,6 +411,7 @@ import { SqliteUi, MssqlUi } from '@/helpers/sqlUi'
 export default {
   name: 'EditColumn',
   components: {
+    RollupOptions,
     FormulaOptions,
     LookupOptions,
     LinkedToAnotherOptions,
@@ -416,8 +433,6 @@ export default {
     relationDeleteDlg: false,
     newColumn: {},
     uiTypes
-    // dataTypes: [],
-    // formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
   }),
   computed: {
     isEditDisabled() {
@@ -445,8 +460,14 @@ export default {
     isLookup() {
       return this.newColumn && this.newColumn.uidt === 'Lookup'
     },
+    isRollup() {
+      return this.newColumn && this.newColumn.uidt === 'Rollup'
+    },
     relation() {
       return this.meta && this.column && this.meta.belongsTo && this.meta.belongsTo.find(bt => bt.cn === this.column.cn)
+    },
+    isVirtual() {
+      return this.isLinkToAnotherRecord || this.isLookup || this.isRollup
     }
   },
   watch: {
@@ -508,6 +529,9 @@ export default {
         }
         if (this.isLookup && this.$refs.lookup) {
           return await this.$refs.lookup.save()
+        }
+        if (this.isRollup && this.$refs.rollup) {
+          return await this.$refs.rollup.save()
         }
         if (this.newColumn.uidt === 'Formula' && this.$refs.formula) {
           return await this.$refs.formula.save()

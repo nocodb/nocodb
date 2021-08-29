@@ -76,13 +76,13 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
     return str;
   }
 
-  protected generateFormulaTypes(args: any): string {
+  protected generateVirtualTypes(args: any): string {
     if (!args.v?.length) {
       return '';
     }
     const props = [];
     for (const v of args.v) {
-      if (!v.formula) continue
+      if (!v.formula && !v.rollup) continue
       props.push(`\t\t${v._cn}: JSON`)
     }
     return props.length ? `\r\n${props.join('\r\n')}\r\n` : '';
@@ -162,7 +162,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
 
     str += this.generateManyToManyTypeProps(args);
-    str += this.generateFormulaTypes(args);
+    str += this.generateVirtualTypes(args);
 
     let belongsToRelations = args.belongsTo;
     if (belongsToRelations.length > 1) {

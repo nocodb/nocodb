@@ -162,6 +162,10 @@ Cypress.Commands.add("getActiveMenu", () => {
   return cy.get('.menuable__content__active')
 });
 
+Cypress.Commands.add("getActiveModal", () => {
+  return cy.get('.v-dialog__content--active')
+});
+
 
 Cypress.Commands.add('createTable', (name) => {
   cy.get('.add-btn').click();

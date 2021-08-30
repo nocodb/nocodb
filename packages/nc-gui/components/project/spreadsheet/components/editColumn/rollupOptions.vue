@@ -7,7 +7,7 @@
             ref="input"
             v-model="rollup.table"
             outlined
-            class="caption"
+            class="caption nc-rollup-table"
             hide-details="auto"
             label="Child Table"
             :full-width="false"
@@ -30,7 +30,7 @@
             ref="input"
             v-model="rollup.column"
             outlined
-            class="caption"
+            class="caption  nc-rollup-column"
             hide-details="auto"
             label="Child column"
             :full-width="false"
@@ -47,7 +47,7 @@
             ref="aggrInput"
             v-model="rollup.fn"
             outlined
-            class="caption"
+            class="caption  nc-rollup-fn"
             hide-details="auto"
             label="Aggregate function"
             :full-width="false"

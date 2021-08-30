@@ -2,6 +2,8 @@ const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - Table Column`, () => {
     const name = 'Table' + Date.now();
+    const colName = 'column_name' + Date.now();
+    const updatedColName = 'updated_column_name' + Date.now();
 
     before(() => {
       cy.waitForSpinners();
@@ -32,10 +34,10 @@ const genTest = (type) => {
       cy.get(`.project-tab:contains(${name}):visible`).should('exist')
 
       cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
-      cy.get('.nc-column-name-input input').clear().type('new_column')
+      cy.get('.nc-column-name-input input').clear().type(colName)
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()
       cy
-        .get('th:contains(new_column)')
+        .get(`th:contains(${colName})`)
         .should('exist');
     });
 
@@ -44,7 +46,7 @@ const genTest = (type) => {
     it('Edit table column - rename & uidt update', () => {
 
 
-      cy.get('th:contains(new_column) .mdi-menu-down')
+      cy.get(`th:contains(${colName}) .mdi-menu-down`)
         .trigger('mouseover', {force: true})
         .click({force: true})
 
@@ -56,10 +58,10 @@ const genTest = (type) => {
       cy.contains('LongText').click()
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()
 
-      cy.get('th[data-col="new_column"] .mdi-text-subject').should('exist')
+      cy.get(`th[data-col="${colName}"] .mdi-text-subject`).should('exist')
 
 
-      cy.get('th:contains(new_column) .mdi-menu-down')
+      cy.get(`th:contains(${colName}) .mdi-menu-down`)
         .trigger('mouseover', {force: true})
         .click({force: true})
 
@@ -72,22 +74,22 @@ const genTest = (type) => {
     it('Edit table column - rename', () => {
 
 
-      cy.get('th:contains(new_column) .mdi-menu-down')
+      cy.get(`th:contains(${colName}) .mdi-menu-down`)
         .trigger('mouseover', {force: true})
         .click({force: true})
 
       cy.get('.nc-column-edit').click()
 
       // rename column and verify
-      cy.get('.nc-column-name-input input').clear().type('updated_column')
+      cy.get('.nc-column-name-input input').clear().type(updatedColName)
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()
 
 
       cy
-        .get('th:contains(updated_column)')
+        .get(`th:contains(${updatedColName})`)
         .should('exist');
       cy
-        .get('th:contains(new_column)')
+        .get(`th:contains(${colName})`)
         .should('not.exist');
 
 
@@ -97,10 +99,10 @@ const genTest = (type) => {
     // delete the newly created column
     it('Delete table column', () => {
       cy
-        .get('th:contains(updated_column)')
+        .get(`th:contains(${updatedColName})`)
         .should('exist');
 
-      cy.get('th:contains(updated_column) .mdi-menu-down')
+      cy.get(`th:contains(${updatedColName}) .mdi-menu-down`)
         .trigger('mouseover')
         .click()
 
@@ -109,7 +111,7 @@ const genTest = (type) => {
 
 
       cy
-        .get('th:contains(updated_column)')
+        .get(`th:contains(${updatedColName})`)
         .should('not.exist');
 
     })

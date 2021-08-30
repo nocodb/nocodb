@@ -58,7 +58,7 @@
       </template>
       <v-list dense>
         <v-list-item v-if="!column.lk" dense @click="editColumnMenu = true">
-          <x-icon small class="mr-1" color="primary">
+          <x-icon small class="mr-1 nc-column-edit" color="primary">
             mdi-pencil
           </x-icon>
           <span class="caption">Edit</span>
@@ -73,7 +73,7 @@
             </v-tooltip>
           </v-list-item> -->
         <v-list-item @click="columnDeleteDialog = true">
-          <x-icon small class="mr-1" color="error">
+          <x-icon small class="mr-1 nc-column-delete" color="error">
             mdi-delete-outline
           </x-icon>
           <span class="caption">Delete</span>

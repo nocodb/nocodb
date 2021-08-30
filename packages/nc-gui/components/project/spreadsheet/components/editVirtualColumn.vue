@@ -4,7 +4,7 @@
     max-width="400px"
     max-height="95vh"
     style="overflow: auto"
-    class="elevation-0 card"
+    class="elevation-0 card nc-col-create-or-edit-card"
   >
     <v-form v-model="valid">
       <v-container fluid @click.stop.prevent>
@@ -24,7 +24,7 @@
               v-model="newColumn._cn"
               hide-details="auto"
               color="primary"
-              class="caption"
+              class="caption nc-column-name-input"
               label="Column name"
               :rules="[
                 v => !!v || 'Required',
@@ -86,6 +86,7 @@ export default {
       this.newColumn = {}
     },
     async save() {
+      // todo: rollup update
       try {
         if (this.column.formula) {
           await this.$refs.formula.update()

@@ -1,7 +1,7 @@
 version: "3.5"
 
 services:
-  db80:
+  xc-mysql-sakila-db:
      network_mode: host
      image: mysql:8.0
      restart: always

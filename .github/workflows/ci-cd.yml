@@ -17,7 +17,7 @@ jobs:
      - name: Cypress run
        uses: cypress-io/github-action@v2
        with:
-         start: docker-compose -f ./docker-compose-cypress.yml up
+         start: docker-compose -f ./docker-compose-cypress.yml up -d
          wait-on: 'http://localhost:3000'
          wait-on-timeout: 900
   docker:

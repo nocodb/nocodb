@@ -138,7 +138,7 @@ export default {
       return this.column && this.column.formula
     },
     rollup() {
-      return this.column && this.column.rollup
+      return this.column && this.column.rl
     }
   },
   methods: {

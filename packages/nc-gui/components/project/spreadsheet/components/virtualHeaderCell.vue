@@ -25,14 +25,14 @@
             mdi-table-column-plus-before
           </v-icon>
         </template>
-        <template v-else-if="column.rollup">
-          <v-icon v-if="column.rollup.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+        <template v-else-if="column.rl">
+          <v-icon v-if="column.rl.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
-          <v-icon v-else-if="column.rollup.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="column.rl.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
-          <v-icon v-else-if="column.rollup.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="column.rl.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
         </template>
@@ -217,8 +217,8 @@ export default {
         return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
       } else if (this.column.formula) {
         return `Formula - ${this.column.formula.value}`
-      } else if (this.column.rollup) {
-        return `${this.column.rollup.fn} of ${this.column.rollup._rlcn} (${this.column.rollup._rltn})`
+      } else if (this.column.rl) {
+        return `${this.column.rl.fn} of ${this.column.rl._rlcn} (${this.column.rl._rltn})`
       }
       return ''
     }
@@ -308,7 +308,7 @@ export default {
         const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
 
         // remove rollup from virtual columns
-        meta.v = meta.v.filter(cl => !cl.rollup || cl._cn !== this.column._cn)
+        meta.v = meta.v.filter(cl => !cl.rl || cl._cn !== this.column._cn)
 
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
@@ -328,7 +328,7 @@ export default {
         await this.deleteLookupColumn()
       } else if (this.column.formula) {
         await this.deleteFormulaColumn()
-      } else if (this.column.rollup) {
+      } else if (this.column.rl) {
         await this.deleteRollupColumn()
       } else {
         await this.deleteRelation()

@@ -82,7 +82,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
     }
     const props = [];
     for (const v of args.v) {
-      if (!v.formula && !v.rollup) continue
+      if (!v.formula && !v.rl) continue
       props.push(`\t\t${v._cn}: JSON`)
     }
     return props.length ? `\r\n${props.join('\r\n')}\r\n` : '';

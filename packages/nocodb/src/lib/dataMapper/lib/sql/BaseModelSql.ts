@@ -1903,9 +1903,9 @@ class BaseModelSql extends BaseModel {
   // todo: optimize
   protected get selectRollups() {
     return (this.virtualColumns || [])?.reduce((arr, v) => {
-      if (v.rollup) {
+      if (v.rl) {
         arr.push(
-          genRollupSelect({knex: this.dbDriver, rollup: v.rollup}).as(v._cn)
+          genRollupSelect({knex: this.dbDriver, rollup: v.rl}).as(v._cn)
         );
       }
       return arr;

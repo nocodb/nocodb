@@ -135,7 +135,7 @@ export default class GqlApi {
     }
     // add formula columns to query
     str += this.meta.v.reduce((arr, v) => {
-      if (v.formula || v.rollup) {
+      if (v.formula || v.rl) {
         arr.push(v._cn)
       }
       return arr

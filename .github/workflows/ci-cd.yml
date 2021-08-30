@@ -9,17 +9,17 @@ on:
     branches: [ master ]
 
 jobs:
-  cypress-run:
-   runs-on: ubuntu-20.04
-   steps:
-     - name: Checkout
-       uses: actions/checkout@v2
-     - name: Cypress run
-       uses: cypress-io/github-action@v2
-       with:
-         start: docker-compose -f ./docker-compose-cypress.yml up -d
-         wait-on: 'http://localhost:3000'
-         wait-on-timeout: 900
+#  cypress-run:
+#   runs-on: ubuntu-20.04
+#   steps:
+#     - name: Checkout
+#       uses: actions/checkout@v2
+#     - name: Cypress run
+#       uses: cypress-io/github-action@v2
+#       with:
+#         start: docker-compose -f ./docker-compose-cypress.yml up -d
+#         wait-on: 'http://localhost:3000'
+#         wait-on-timeout: 900
   docker:
 
     runs-on: ubuntu-latest

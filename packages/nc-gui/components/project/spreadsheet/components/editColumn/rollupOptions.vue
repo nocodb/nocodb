@@ -176,7 +176,7 @@ export default {
 
         meta.v.push({
           _cn: this.alias,
-          rollup: {
+          rl: {
             ...this.rollup.table,
             ...this.rollup.column,
             fn: this.rollup.fn

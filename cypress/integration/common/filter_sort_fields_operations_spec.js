@@ -67,6 +67,7 @@ const genTest = (type) => {
       before(() => {
         cy.get('.nc-fields-menu-btn').click()
       })
+
       if ('Hide field', () => {
         cy.get('th:contains(LastUpdate)').should('be.visible')
         // toggle and confirm it's hidden

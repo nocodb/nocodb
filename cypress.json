@@ -5,6 +5,5 @@
   "viewportWidth": 1980,
   "viewportHeight": 1000,
   "video": false,
-  "retries": 2,
   "screenshotOnRunFailure": false
 }

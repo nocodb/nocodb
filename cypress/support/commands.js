@@ -155,15 +155,15 @@ Cypress.Commands.add("restoreLocalStorage", () => {
 });
 
 Cypress.Commands.add("getActiveModal", () => {
-  return cy.get('.v-dialog.v-dialog--active')
+  return cy.get('.v-dialog.v-dialog--active').last()
 });
 
 Cypress.Commands.add("getActiveMenu", () => {
-  return cy.get('.menuable__content__active')
+  return cy.get('.menuable__content__active').last()
 });
 
 Cypress.Commands.add("getActiveModal", () => {
-  return cy.get('.v-dialog__content--active')
+  return cy.get('.v-dialog__content--active').last()
 });
 
 

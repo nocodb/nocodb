@@ -196,6 +196,7 @@ export default {
     relationPrimaryValue: [String, Number]
   },
   data: () => ({
+    fieldsOrder: [],
     password: null,
     showPasswordModal: false,
     client: 'mysql',
@@ -262,20 +263,20 @@ export default {
     modelName: null
   }),
   computed: {
-    availableColumns() {
-      let columns
-      const hideCols = ['created_at', 'updated_at']
-
-      if (this.showSystemFields) {
-        columns = this.meta.columns || []
-      } else if (this.data && this.data.length) {
-        // c._cn in this.data[0].row &&
-        columns = (this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c._cn))) || []
-      } else {
-        columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c._cn))) || []
-      }
-      return columns
-    },
+    // availableColumns() {
+    //   let columns
+    //   const hideCols = ['created_at', 'updated_at']
+    //
+    //   if (this.showSystemFields) {
+    //     columns = this.meta.columns || []
+    //   } else if (this.data && this.data.length) {
+    //     // c._cn in this.data[0].row &&
+    //     columns = (this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c._cn))) || []
+    //   } else {
+    //     columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c._cn))) || []
+    //   }
+    //   return columns
+    // },
     concatenatedXWhere() {
       let where = ''
       if (this.searchField && this.searchQuery.trim()) {

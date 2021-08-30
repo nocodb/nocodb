@@ -78,7 +78,7 @@
         </v-icon>
       </x-btn>
       <x-btn
-        v-if="relationType !== 'bt'"
+        v-if="_isUIAllowed('table-add-new-row') && relationType !== 'bt'"
         tooltip="Add new row"
         :disabled="isLocked"
         outlined
@@ -128,9 +128,13 @@
         :field-list="[...realFieldList, ...formulaFieldList]"
         dense
       />
-      <v-tooltip bottom>
+      <v-tooltip
+        v-if="_isUIAllowed('table-delete')"
+        bottom
+      >
         <template #activator="{on}">
           <v-btn
+            v-show="_isUIAllowed('table-delete')"
             class="nc-table-delete-btn"
             :disabled="isLocked"
             small
@@ -478,11 +482,11 @@
 
 <script>
 
+import { mapActions } from 'vuex'
+import debounce from 'debounce'
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
 
-import { mapActions } from 'vuex'
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
-import debounce from 'debounce'
 import GalleryView from '@/components/project/spreadsheet/views/galleryView'
 import CalendarView from '@/components/project/spreadsheet/views/calendarView'
 import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
@@ -988,6 +992,7 @@ export default {
       this.loadingData = false
     },
     showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
+      if (!this._isUIAllowed('table-grid-context-menu')) { return }
       e.preventDefault()
       this.rowContextMenu = false
       this.$nextTick(() => {

@@ -44,7 +44,7 @@
         <v-btn small @click="$emit('cancel')">
           Cancel
         </v-btn>
-        <v-btn small color="primary" @click="save">
+        <v-btn :disabled="!_isUIAllowed('table-row-update')" small color="primary" @click="save">
           Save Row
         </v-btn>
       </div>
@@ -250,9 +250,9 @@
 
 <script>
 
+import dayjs from 'dayjs'
 import HeaderCell from '@/components/project/spreadsheet/components/headerCell'
 import EditableCell from '@/components/project/spreadsheet/components/editableCell'
-import dayjs from 'dayjs'
 import colors from '@/mixins/colors'
 import VirtualCell from '@/components/project/spreadsheet/components/virtualCell'
 import VirtualHeaderCell from '@/components/project/spreadsheet/components/virtualHeaderCell'

@@ -463,10 +463,13 @@
         :available-columns="availableColumns"
         :nodes="nodes"
         :query-params="queryParams"
+        :show-next-prev="true"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"
         @loadTableData="loadTableData"
+        @next="loadNext"
+        @prev="loadPrev"
       />
     </v-dialog>
 
@@ -642,6 +645,12 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
+    loadNext() {
+      this.selectedExpandRowIndex = ++this.selectedExpandRowIndex % this.data.length
+    },
+    loadPrev() {
+      this.selectedExpandRowIndex = --this.selectedExpandRowIndex === -1 ? this.data.length - 1 : this.selectedExpandRowIndex
+    },
     checkAndDeleteTable() {
       if (
         !this.meta || (
@@ -992,7 +1001,9 @@ export default {
       this.loadingData = false
     },
     showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
-      if (!this._isUIAllowed('table-grid-context-menu')) { return }
+      if (!this._isUIAllowed('table-grid-context-menu')) {
+        return
+      }
       e.preventDefault()
       this.rowContextMenu = false
       this.$nextTick(() => {

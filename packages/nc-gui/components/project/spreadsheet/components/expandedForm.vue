@@ -12,7 +12,8 @@
           </template>
           <template v-else>
             {{ table }}
-          </template> : {{ localState[primaryValueColumn] }}
+          </template>
+          : {{ localState[primaryValueColumn] }}
         </h5>
         <v-spacer />
         <v-btn small text @click="reload">
@@ -65,6 +66,16 @@
         <v-container fluid style="height:70vh" class="py-0">
           <v-row class="h-100">
             <v-col class="h-100 px-10" style="overflow-y: auto" cols="8" :offset="isNew || !toggleDrawer ? 2 : 0">
+              <div v-if="showNextPrev" class="d-flex my-4">
+                <x-icon tooltip="Previous record" small outlined @click="$emit('prev', localState)">
+                  mdi-arrow-left-bold-outline
+                </x-icon>
+                <span class="flex-grow-1" />
+                <x-icon tooltip="Next record" small outlined @click="$emit('next', localState)">
+                  mdi-arrow-right-bold-outline
+                </x-icon>
+              </div>
+
               <template
                 v-for="(col,i) in fields"
               >
@@ -266,6 +277,10 @@ export default {
   components: { VirtualHeaderCell, VirtualCell, EditableCell, HeaderCell },
   mixins: [colors],
   props: {
+    showNextPrev: {
+      type: Boolean,
+      default: false
+    },
     breadcrumbs: {
       type: Array,
       default() {

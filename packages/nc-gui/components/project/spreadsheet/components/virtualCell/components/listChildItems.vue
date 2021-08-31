@@ -24,7 +24,7 @@
     </v-card-title>
     <v-card-text>
       <div class="items-container pt-2 mb-n4" :class="{'mx-n2' : isForm}">
-        <div v-if="!readOnly" class="text-right mb-2 mt-n2 mx-2">
+        <div v-if="!readOnly && _isUIAllowed('xcDatatableEditable')" class="text-right mb-2 mt-n2 mx-2">
           <v-btn
             v-if="isForm"
             x-small
@@ -47,11 +47,11 @@
             :key="i"
             class="mx-2 mb-2 child-list-modal child-card"
             outlined
-            @click="!readOnly && $emit('edit',ch)"
+            @click="!readOnly && $emit('edit',ch) && _isUIAllowed('xcDatatableEditable')"
           >
             <div class="remove-child-icon d-flex align-center">
               <x-icon
-                v-if="!readOnly"
+                v-if="!readOnly&& _isUIAllowed('xcDatatableEditable')"
                 :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
                 :color="['error','grey']"
                 small
@@ -61,7 +61,7 @@
                 mdi-link-variant-remove
               </x-icon>
               <x-icon
-                v-if="!mm && !bt && !readOnly"
+                v-if="!mm && !bt && !readOnly&& _isUIAllowed('xcDatatableEditable')"
                 :tooltip="`Delete row in '${meta._tn}'`"
                 :color="['error','grey']"
                 small

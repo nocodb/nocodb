@@ -203,7 +203,7 @@
     },
     "share_view": {
       "title": "Esta vista es compartida por link privado",
-      "body": "Personas con el link privado podrán únicamente ver celdas visibles de esta vista",
+      "body": "Las personas con el link privado podrán únicamente ver celdas visibles de esta vista",
       "toggle": {
         "option1": "Restringir acceso mediante contraseña",
         "option2": "Restricción mediante contraseña"

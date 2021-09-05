@@ -6,7 +6,7 @@
       "text": "Nuevo proyecto",
       "subtext_1": "Crear",
       "subtext_1_tooltip": "Crear un nuevo proyecto",
-      "subtext_2": "Conectate a una <br>base de datos externa",
+      "subtext_2": "Conéctate a una <br>base de datos externa",
       "subtext_2_tooltip": "Soporta MySQL, PostgreSQL, SQL Server & SQLite"
     },
     "search_project": "Buscar proyecto",
@@ -53,7 +53,7 @@
         "port": "Puerto",
         "username": "Usuario",
         "password": "Contraseña",
-        "db_create_if_not_exists": "Base de datos : crear si no existe",
+        "db_create_if_not_exists": "Base de datos : Crear si no existe",
         "button": {
           "test_db_conn": "Probar conexión a base de datos",
           "remove_db_from_env": "Eliminar base de datos del ambiente"
@@ -70,7 +70,7 @@
               "toolip": "Seleccionar archivo .cert"
             },
             "server_ca": {
-              "title": "Servodpr CA",
+              "title": "Servidor CA",
               "toolip": "Seleccionar archivo CA"
             },
             "preferred": "Privilegios",
@@ -92,9 +92,9 @@
         }
       },
       "error": {
-        "invalid_char_in_folder_path": "Carácteres invalidos en la ruta de la carpeta.",
-        "invalid_db_credentials": "Credenciales de Base de datos incorrectas.",
-        "unable_to_connect_to_db": "Sin conexión a base de datos, por favor verifica qué tu base de datos esté en línea.",
+        "invalid_char_in_folder_path": "Caracteres invalidos en la ruta de la carpeta.",
+        "invalid_db_credentials": "Credenciales de Base de Datos incorrectas.",
+        "unable_to_connect_to_db": "Sin conexión a la base de datos, por favor verifica qué tu base de datos esté en línea.",
         "user_doesnt_ve_sufficient_permission": "El usuario no existe o tiene permisos insuficientes para crear el esquema."
       },
       "head": {
@@ -112,11 +112,11 @@
   },
   "signin": {
     "title": "INICIAR SESIÓN",
-    "enter_your_work_email": "Ingrese tu e-mail de trabajo",
-    "enter_your_password": "Ingrese tu contraseña",
+    "enter_your_work_email": "Ingresa tu e-mail de trabajo",
+    "enter_your_password": "Ingresa tu contraseña",
     "forget_password": "Has olvidado tu contraseña?",
     "dont_ve_an_account": "No tienes una cuenta?",
-    "sign_up": "Registrarse",
+    "sign_up": "Regístrarse",
     "form": {
       "rules": {
         "email_is_reqd": "E-mail requerido",
@@ -137,8 +137,8 @@
       "recovery": {
         "title": "Cambiar contraseña",
         "message_1": "Por favor ingresa el e-mail que usas para conectarte.",
-        "message_2": "Enviaremos un link al e-mail para cambiar la contraseña.",
-        "success": "Por favor revisa el e-mail para cambiar la contraseña",
+        "message_2": "Enviaremos un link a tu e-mail para cambiar la contraseña.",
+        "success": "Por favor revisa tu e-mail para cambiar la contraseña",
         "button": "ENVIAR CORREO"
       }
     }
@@ -156,7 +156,7 @@
     "app_store": "App Store",
     "team_n_auth": {
       "title": "Team & Auth",
-      "tooltip": "Roles y Gestión de usuarios"
+      "tooltip": "Roles y gestión de usuarios"
     },
     "project_metadata": {
       "title": "Proyecto Metadata",

@@ -176,12 +176,12 @@
       "title": "Crear una Vista",
       "caption": "Sólo visible por el creador",
       "grid": {
-        "title": "Red",
-        "create": "Agregar vista de red"
+        "title": "Grilla",
+        "create": "Agregar vista de grilla"
       },
       "gallery": {
         "title": "Galeria",
-        "create": "Agregar vista de Galeria"
+        "create": "Agregar vista de Galería"
       },
       "calendar": {
         "title": "Calendario",

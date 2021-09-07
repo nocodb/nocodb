@@ -1,9 +1,9 @@
 ---
-title: 'API Webhooks'
-description: 'API Webhooks'
-position: 14
-category: 'Setup and Usages'
-menuTitle: 'API Webhooks'
+title: 'Webhooks'
+description: 'Webhooks'
+position: 400
+category: 'Developer Resources'
+menuTitle: 'Webhooks'
 ---
 
 

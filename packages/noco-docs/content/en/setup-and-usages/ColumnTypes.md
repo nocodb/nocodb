@@ -1,12 +1,12 @@
 ---
-title: 'Abstract Types'
-description: 'Abstract Types'
-position: 12
-category: 'Setup and Usages'
-menuTitle: 'Abstract Types'
+title: 'Column Types'
+description: 'Column Types'
+position: 30
+category: 'Usage'
+menuTitle: 'Column Types'
 ---
 
-## Available Abstract Types
+## Available Column Types
 
 | Type | Description |
 |---|---|

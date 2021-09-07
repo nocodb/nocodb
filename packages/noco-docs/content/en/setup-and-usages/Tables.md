@@ -1,9 +1,9 @@
 ---
-title: 'Table & Columns'
-description: 'Table and Columns'
-position: 11
-category: 'Setup and Usages'
-menuTitle: 'Table and Columns'
+title: 'Tables'
+description: 'Tables'
+position: 20
+category: 'Usage'
+menuTitle: 'Tables'
 ---
 
 

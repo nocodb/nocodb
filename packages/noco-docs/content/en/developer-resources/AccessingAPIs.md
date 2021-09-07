@@ -1,9 +1,9 @@
 ---
-title: 'APIs Access'
-description: 'APIs Access'
-position: 14
-category: 'Setup and Usages'
-menuTitle: 'APIs Access'
+title: 'How to access APIs ?'
+description: 'How to access APIs ?'
+position: 100
+category: 'Developer Resources'
+menuTitle: 'How to access APIs ?'
 ---
 
 ## REST APIs

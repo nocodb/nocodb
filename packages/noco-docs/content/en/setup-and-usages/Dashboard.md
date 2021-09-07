@@ -1,9 +1,9 @@
 ---
-title: 'NocoDB Dashboard'
-description: 'NocoDB Dashboard'
+title: 'Dashboard'
+description: 'Dashboard'
 position: 10
-category: 'Setup and Usages'
-menuTitle: 'NocoDB Dashboard'
+category: 'Usage'
+menuTitle: 'Dashboard'
 ---
 
 ## Setup your first super admin

@@ -2,7 +2,7 @@
 title: 'NocoDB Documentation'
 description: 'NocoDB Documentation'
 position: 0
-category: 'Getting started'
+category: 'Welcome'
 menuTitle: 'Introduction'
 ---
 

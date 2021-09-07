@@ -1,9 +1,9 @@
 ---
-title: 'Meta Management'
-description: 'Meta Management'
-position: 15
-category: 'Setup and Usages'
-menuTitle: 'Meta Managements'
+title: 'Metadata'
+description: 'Metadata'
+position: 60
+category: 'Usage'
+menuTitle: 'Metadata'
 ---
 
 To go to the Meta Management Portal, click ``Project Metadata`` under ``Settings`` on the leftmost menu.

@@ -1,12 +1,17 @@
-const genTest = (type) => {
+const genTest = (dbType) => {
 
-  describe(`${type.toUpperCase()} api - Table views`, () => {
+  describe(`${dbType.toUpperCase()} api - Table views`, () => {
 
     const name = 'Test' + Date.now();
 
+    // Run once before test- create project (rest/graphql)
+    //
     before(() => {
       cy.waitForSpinners();
-      if (type === 'rest') {
+
+      // create project
+      //
+      if (dbType === 'rest') {
         cy.openOrCreateRestProject({
           new: true
         });
@@ -15,38 +20,93 @@ const genTest = (type) => {
           new: true
         });
       }
+
+      // open a table to work on views
+      //
       cy.openTableTab('Country');
     })
 
-    it('Create grid view', () => {
-      cy.get('.nc-create-grid-view').click();
-      cy.getActiveModal().find('button:contains(Submit)').click()
-      cy.get('.nc-view-item.nc-grid-view-item').should('exist')
-    })
-    it('Create gallery view', () => {
-      cy.get('.nc-create-gallery-view').click();
-      cy.getActiveModal().find('button:contains(Submit)').click()
-      cy.get('.nc-view-item.nc-gallery-view-item').should('exist')
-    })
-    /*  it('Delete grid view', () => {
-        cy.get('.nc-view-item.nc-grid-view-item').then($items => {
-          cy.get('.nc-view-item.nc-grid-view-item .nc-view-delete-icon').last().invoke('show').click()
-          expect(Cypress.$('.nc-view-item.nc-grid-view-item').length).to.be.lt($items.length)
-        })
+
+    // Common routine to create/edit/delete GRID & GALLERY view
+    // Input: viewType - 'grid'/'gallery'
+    //
+    const viewTest = (viewType) => {
+
+      it(`Create ${viewType} view`, () => {
+
+        // click on 'Grid/Gallery' button on Views bar
+        cy.get(`.nc-create-${viewType}-view`).click();
+
+        // Pop up window, click Submit (accepting default name for view)
+        cy.getActiveModal().find('button:contains(Submit)').click()
+
+        // validate if view was creted && contains default name 'Country1'
+        cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').should('exist')
       })
-      it('Delete gallery view', () => {
-        cy.get('.nc-view-item.nc-gallery-view-item').then($items => {
-          cy.get('.nc-view-item.nc-gallery-view-item .nc-view-delete-icon').last().invoke('show').click()
-          expect(Cypress.$('.nc-view-item.nc-gallery-view-item').length).to.be.lt($items.length)
-        })
 
-      })*/
 
+      it(`Edit ${viewType} view name`, () => {
+
+        // click on edit-icon (becomes visible on hovering mouse)
+        cy.get('.nc-view-edit-icon').click({ force: true, timeout: 1000 })
+
+        // feed new name
+        cy.get(`.nc-${viewType}-view-item input`).type(`${viewType}View-1{enter}`)
+        cy.wait(1000)
+
+        // validate
+        cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains(`${viewType}View-1`).should('exist')
+      })
+
+
+      it(`Delete ${viewType} view`, () => {
+
+        // number of view entries should be 2 before we delete
+        cy.get('.nc-view-item').its('length').should('eq', 2)
+
+        // click on delete icon (becomes visible on hovering mouse)
+        cy.get('.nc-view-delete-icon').click({ force: true })
+        cy.wait(1000)
+
+        // confirm if the number of veiw entries is reduced by 1
+        cy.get('.nc-view-item').its('length').should('eq', 1)
+      })
+
+    }
+
+    // below two scenario's will be invoked twice, once for rest & then for graphql
+    viewTest('grid')
+    viewTest('gallery')
 
   })
 }
 
-
+// invoke for different API types supported
+//
 genTest('rest')
 genTest('graphql')
+
+
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Raju Udava <sivadstala@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 

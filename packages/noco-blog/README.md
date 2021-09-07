@@ -1,11 +1,2 @@
-# `noco-doc`
+# `noco-blog`
 
-> TODO: description
-
-## Usage
-
-```
-const nocoDoc = require('noco-doc');
-
-// TODO: DEMONSTRATE API
-```

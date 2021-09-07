@@ -1,3 +1,2 @@
 # nc-cli
 
-xc-cli

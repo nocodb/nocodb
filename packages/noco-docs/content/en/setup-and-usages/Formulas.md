@@ -1,9 +1,9 @@
 ---
-title: 'Formula' 
-description: 'Formula' 
+title: 'Formulas' 
+description: 'Formulas' 
 position: 40 
 category: 'Usage' 
-menuTitle: 'Formula'
+menuTitle: 'Formulas'
 ---
 
 ## Available Formula Features

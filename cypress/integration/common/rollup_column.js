@@ -33,12 +33,6 @@ const genTest = (type) => {
 
     // Routine to create a new look up column
     //
-    // Input: 
-    //  columnName: name to be displayed on column
-    //  childTable: child-table name to look up to
-    //  childCol: child-column name from child-table above to look up to
-    //  aggregateFunc: can be one of count/ sum/ ..
-    //
     const addLookUpColumn = (columnName, childTable, childCol, aggregateFunc) => {
 
       // (+) icon at end of column header (to add a new column)
@@ -77,8 +71,6 @@ const genTest = (type) => {
     }
 
     // routine to delete column
-    // Input:
-    //  columnName - columnName to delete
     //
     const deleteColumnByName = (columnName) => {
 
@@ -103,10 +95,6 @@ const genTest = (type) => {
 
 
     // routine to edit column
-    //
-    // Input
-    //  oldName: existing column name
-    //  newName: new name to change
     //
     const editColumnByName = (oldName, newName) => {
 

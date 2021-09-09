@@ -43,13 +43,13 @@ const config: XcPluginConfig ={
       label: 'Username',
       placeholder: 'Username',
       type: XcType.SingleLineText,
-      required: true
+      required: false
     }, {
       key: 'password',
       label: 'Password',
       placeholder: 'Password',
       type: XcType.Password,
-      required: true
+      required: false
     },],
     actions: [{
       label: 'Test',

@@ -3,6 +3,8 @@ import {XcPluginConfig} from "nc-plugin";
 
 import SMTPPlugin from "./SMTPPlugin";
 
+// @author <dean@deanlofts.xyz>
+
 const config: XcPluginConfig ={
   builder: SMTPPlugin,
   title: 'SMTP',

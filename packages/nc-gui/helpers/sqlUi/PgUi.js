@@ -1760,14 +1760,16 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial'
+          'smallserial',
+          'numeric',
         ]
 
       case 'Decimal':
         return [
           'double precision',
           'float4',
-          'float8'
+          'float8',
+          'numeric',
         ]
 
       case 'Currency':
@@ -1784,7 +1786,9 @@ export class PgUi {
           'serial8',
           'double precision',
           'money', 'float4',
-          'float8']
+          'float8',
+          'numeric',
+        ]
 
       case 'Percent':
         return [
@@ -1802,7 +1806,8 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial'
+          'smallserial',
+          'numeric',
         ]
 
       case 'Duration':
@@ -1821,7 +1826,9 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial']
+          'smallserial',
+          'numeric',
+        ]
 
       case 'Rating':
         return [
@@ -1839,7 +1846,9 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial']
+          'smallserial',
+          'numeric',
+        ]
 
       case 'Formula':
         return [

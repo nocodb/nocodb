@@ -1,12 +1,3 @@
-/**
- *  file: navigation.js
- *  purpose: signUp/ projects page navigation options
- *  author: raju udava
- *  date: 06 Sep 2020
- *
- **/
-
-
 ///////////////////////////////////////////////////////////
 // Sign in/ Sign up page
 
@@ -78,6 +69,7 @@ export class _projectsPage {
     //
 
     // {dbType, apiType, name}
+    // for external database, {databaseType, hostAddress, portNumber, username, password, databaseName}
 
     // Open existing project
     // TODO: add projectName validation
@@ -90,22 +82,28 @@ export class _projectsPage {
     }
 
     // Create new project
-    // Input: {dbType, apiType, name}
+    // Input: 
+    //          projectData     {dbType, apiType, name}
+    //          dbCredentials   {databaseType, hostAddress, portNumber, username, password, databaseName}
     // Returns: projectName
     // 
-    createProject(projectData) {
+    // To configure
+    //      SSL & advanced parameters
+    //      Database type selection 
+    //
+    createProject(projectData, cred) {
 
         cy.get('body', { timeout: 2000 })
 
+        let projectName = projectData.name
+
+        if (projectData.name == '')
+            projectName = 'test_proj' + Date.now()
+
+        // click on "New Project" 
+        cy.get(':nth-child(5) > .v-btn').click()
+
         if (NC_DB_NONE == projectData.dbType) {
-
-            let projectName = projectData.name
-
-            if (projectData.name == '')
-                projectName = 'test_proj' + Date.now()
-
-            // click on "New Project" 
-            cy.get(':nth-child(5) > .v-btn').click()
 
             // Subsequent form, select (+ Create) option
             cy.get('.nc-create-xc-db-project').click({ force: true })
@@ -128,9 +126,39 @@ export class _projectsPage {
         }
         else {
 
-            // Existing database connections
-            // TBD
+            // Subsequent form, select (+ Create by connection to external database) option
+            cy.get('.nc-create-external-db-project').click({ force: true })
 
+            // feed project name
+            //cy.get('.nc-metadb-project-name').type(projectName)
+            cy.contains('Enter Project Name').parent().find('input').clear().type(projectName)
+
+            // Radio button: defaults to NC_REST
+            if (NC_GQL == projectData.apiType) {
+                cy.contains('GRAPHQL APIs').closest('label').click();
+            }
+
+            // External database credentials
+            // cy.contains('Database Type').parent().find('input').eq(1).click()
+            // cy.wait(100)
+            // cy.get('body').contains(' MySQL ').parents('div').click()
+
+            if (cred.hostAddress != '') cy.contains('Host Address').parent().find('input').clear().type(cred.hostAddress)
+            if (cred.portNumber != '') cy.contains('Port Number').parent().find('input').clear().type(cred.portNumber)
+            if (cred.username != '') cy.contains('Username').parent().find('input').clear().type(cred.username)
+            if (cred.password != '') cy.contains('Password').parent().find('input').clear().type(cred.password)
+            if (cred.databaseName != '') cy.contains('Database : create if not exists').parent().find('input').clear().type(cred.databaseName)
+
+            // Test database connection
+            cy.contains('Test Database Connection').click()
+
+            // Create project
+            cy.contains('Ok & Save Project', { timeout: 6000 }).click()
+
+            // takes a while to load project
+            this.waitHomePageLoad()
+
+            return projectName
         }
     }
 
@@ -209,7 +237,7 @@ export class _projectsPage {
     }
 
     waitHomePageLoad() {
-        cy.url({ timeout: 12000 }).should('contain', '?type=roles')
+        cy.url({ timeout: 25000 }).should('contain', '?type=roles')
     }
 
     waitDeletePageLoad() {
@@ -219,3 +247,25 @@ export class _projectsPage {
 
 export const loginPage = new _loginPage;
 export const projectsPage = new _projectsPage;
+
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Raju Udava <sivadstala@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */

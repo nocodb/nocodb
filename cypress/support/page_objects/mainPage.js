@@ -23,25 +23,12 @@ export class _mainPage {
         this.TEAM_N_AUTH = 3
         this.PROJ_METADATA = 4
         this.ROLE_VIEW = 5
-
-        // this.EDITOR = 'editor'
-        // this.COMMENTER = 'commenter'
-        // this.VIEWER = 'viewer'
     }
 
     toolBarTopLeft(toolBarItem) {
 
         cy.get('header.v-toolbar').eq(0).find('a').then((obj) => {
             cy.wrap(obj).eq(toolBarItem).click()
-
-            // just for test
-            // only Home page is internal link
-            // all others open in another tab
-            //
-            // if (toolBarItem == toolBar.HOME) {
-            //     cy.url({ timeout: 6000 }).should('contain', '#/project')
-            //     cy.wait(6000)
-            // }
         })
     }
 
@@ -50,21 +37,13 @@ export class _mainPage {
         cy.get('header.v-toolbar').eq(0).find('button').then((obj) => {
             cy.wrap(obj).eq(toolBarItem).click()
             cy.wait(500)
-
-            // just for test
-            // if (toolBarItem == toolBar.SHARE ||
-            //     toolBarItem == toolBar.ALERT ||
-            //     toolBarItem == toolBar.LANGUAGE ||
-            //     toolBarItem == toolBar.USER
-            // ) { cy.get('body').type('{esc}') }
         })
     }
 
 
     navigationDraw(item) {
-
         if (item == this.ROLE_VIEW)
-            return cy.get('.nc-nav-drawer').find('.v-list').eq(3)
+            return cy.get('.nc-nav-drawer').find('.v-list').last()
         else
             return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
     }

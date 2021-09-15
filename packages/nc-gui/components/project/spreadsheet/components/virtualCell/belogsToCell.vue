@@ -2,7 +2,7 @@
   <div class="d-flex d-100 chips-wrapper" :class="{active}">
     <template v-if="!isForm">
       <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
-        <template v-if="(value || localState)&& _isUIAllowed('xcDatatableEditable') ">
+        <template v-if="(value || localState)">
           <item-chip
             :active="active"
             :item="value"

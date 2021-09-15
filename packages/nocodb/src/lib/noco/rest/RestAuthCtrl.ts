@@ -1150,7 +1150,7 @@ export default class RestAuthCtrl {
       });
 
       if (!req.session?.passport?.user?.roles?.owner) {
-        queryBuilder.whereNot('roles', 'like', '%owner%')
+        queryBuilder.whereNot('nc_projects_users.roles', 'like', '%owner%')
         count = (await this.users.count('id as count').whereNot('roles', 'like', '%owner%').first()).count;
       } else {
         count = (await this.users.count('id as count').where('email', 'like', `%${query}%`).first()).count;

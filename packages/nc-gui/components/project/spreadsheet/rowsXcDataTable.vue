@@ -78,7 +78,7 @@
         </v-icon>
       </x-btn>
       <x-btn
-        v-if="_isUIAllowed('table-add-new-row') && relationType !== 'bt'"
+        v-if="isEditable && relationType !== 'bt'"
         tooltip="Add new row"
         :disabled="isLocked"
         outlined

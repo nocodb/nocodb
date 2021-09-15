@@ -286,6 +286,7 @@
                   :value="`${(item._nodes && item._nodes).type || ''}||${
                     (item._nodes && item._nodes.dbAlias) || ''
                   }||${item.name}`"
+                  :class="`nc-treeview-item-${item.name}`"
                   @click.stop="addTab({ ...item }, false, false)"
                   @contextmenu.prevent="showCTXMenu($event, item, false, false)"
                 >

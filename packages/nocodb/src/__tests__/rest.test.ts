@@ -355,7 +355,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .expect(200, (err, res) => {
             if (err) done(err)
             expect(res.body).to.be.a('array');
-            expect(Object.keys(res.body[0]).length).to.be.equal(2);
+            expect(Object.keys(res.body[0]).length).to.be.equal(3);
             expect(res.body[0]).to.have.all.keys('country_id', 'country');
             done();
           });

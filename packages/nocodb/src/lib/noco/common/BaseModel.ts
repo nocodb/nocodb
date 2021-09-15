@@ -7,6 +7,10 @@ import {BaseModelSql} from "../../dataMapper";
 // import axios from "axios";
 import BaseApiBuilder from "./BaseApiBuilder";
 
+Handlebars.registerHelper('json', function(context) {
+  return JSON.stringify(context);
+});
+
 class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
 
 

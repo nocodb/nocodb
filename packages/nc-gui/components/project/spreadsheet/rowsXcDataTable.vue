@@ -1001,7 +1001,7 @@ export default {
       this.loadingData = false
     },
     showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
-      if (!this._isUIAllowed('table-grid-context-menu')) {
+      if (!this.isEditable) {
         return
       }
       e.preventDefault()

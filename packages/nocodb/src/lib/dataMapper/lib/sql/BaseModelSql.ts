@@ -669,6 +669,7 @@ class BaseModelSql extends BaseModel {
       return await this._run(
         this.$db.select(this.selectQuery('*'))
           .select(...this.selectFormulas)
+          .select(...this.selectRollups)
           .conditionGraph(args?.conditionGraph)
           .where(this._wherePk(id)).first()
       ) || {};
@@ -756,8 +757,21 @@ class BaseModelSql extends BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async findOne(args: XcFilterWithAlias = {}) {
+  async findOne(args: XcFilterWithAlias & {
+    hm?: string,
+    bt?: string,
+    mm?: string
+  } = {}) {
     try {
+
+
+      args = Object.assign({}, this.defaultNestedQueryParams, args);
+
+
+      const {
+        hm: childs = '', bt: parents = '', mm: many = ''
+      } = args;
+
       const {where, condition, conditionGraph, ...rest} = this._getListArgs(args);
       let {fields} = rest;
       if (fields === '*') {
@@ -766,10 +780,25 @@ class BaseModelSql extends BaseModel {
       const query = this.$db
         // .select(fields)
         .select(this.selectQuery(fields))
+        .select(...this.selectFormulas)
+        .select(...this.selectRollups)
         .xwhere(where, this.selectQuery('')).condition(condition, this.selectQuery(''))
         .conditionGraph(conditionGraph).first();
       this._paginateAndSort(query, args)
-      return await this._run(query) || {};
+      const item = await this._run(query);
+
+      const items = item ? [item] : [];
+
+
+      for (const parent of parents.split(',')) {
+        const {cn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
+        if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
+          fields += ',' + cn;
+        }
+      }
+      await this._extractedNestedChilds(items, childs, rest, parents, many);
+      return item;
+
     } catch (e) {
       console.log(e);
       throw e;
@@ -1313,7 +1342,16 @@ class BaseModelSql extends BaseModel {
 
   // todo : add conditionGraph
   // todo : implement nestedread
-  async nestedList({hm: childs = '', bt: parents = '', mm: many = '', where, fields: fields1, f, ...rest}) {
+  async nestedList({ where, fields: fields1, f, ...rest}) {
+
+
+    rest = Object.assign({}, this.defaultNestedQueryParams, rest);
+
+
+    const {
+      hm: childs = '', bt: parents = '', mm: many = ''
+    } = rest;
+
     let fields = fields1 || f || '*';
     try {
 
@@ -1363,8 +1401,15 @@ class BaseModelSql extends BaseModel {
     }
   }
 
-  async nestedRead(id, {hm: childs = '', bt: parents = '', mm: many = '', where, fields: fields1, f, ...rest}) {
+  async nestedRead(id, { where, fields: fields1, f, ...rest}) {
 
+
+    rest = Object.assign({}, this.defaultNestedQueryParams, rest);
+
+
+    const {
+      hm: childs = '', bt: parents = '', mm: many = ''
+    } = rest;
 
     let fields = fields1 || f || '*';
     try {
@@ -1387,30 +1432,7 @@ class BaseModelSql extends BaseModel {
 
 
       const items = Object.keys(item).length ? [item] : [];
-
-      if (items && items.length) {
-        await Promise.all([...new Set(childs.split(','))].map((child, index) => child && this._getChildListInParent({
-          parent: items,
-          child
-        }, rest, index)));
-      }
-
-      await Promise.all(parents.split(',').map((parent, index): any => {
-        if (!parent) {
-          return;
-        }
-        const {cn, rcn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
-        const parentIds = [...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))];
-        return this._belongsTo({parent, rcn, parentIds, childs: items, cn, ...rest}, index);
-      }))
-
-
-      if (items && items.length) {
-        await Promise.all([...new Set(many.split(','))].map((child, index) => child && this._getManyToManyList({
-          parent: items,
-          child
-        }, rest, index)));
-      }
+      await this._extractedNestedChilds(items, childs, rest, parents, many);
 
 
       return item;
@@ -1420,7 +1442,33 @@ class BaseModelSql extends BaseModel {
     }
   }
 
-  // todo: naming
+  private async _extractedNestedChilds(items: any[], childs: string, rest, parents: string, many: string) {
+    if (items && items.length) {
+      await Promise.all([...new Set(childs.split(','))].map((child, index) => child && this._getChildListInParent({
+        parent: items,
+        child
+      }, rest, index)));
+    }
+
+    await Promise.all(parents.split(',').map((parent, index): any => {
+      if (!parent) {
+        return;
+      }
+      const {cn, rcn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
+      const parentIds = [...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))];
+      return this._belongsTo({parent, rcn, parentIds, childs: items, cn, ...rest}, index);
+    }))
+
+
+    if (items && items.length) {
+      await Promise.all([...new Set(many.split(','))].map((child, index) => child && this._getManyToManyList({
+        parent: items,
+        child
+      }, rest, index)));
+    }
+  }
+
+// todo: naming
   public m2mNotChildren({pid = null, assoc = null, ...args}): Promise<any> {
     if (pid === null || assoc === null) {
       return null;
@@ -1914,8 +1962,6 @@ class BaseModelSql extends BaseModel {
 }
 
 
-
-
 export {BaseModelSql};
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
@@ -1939,3 +1985,5 @@ export {BaseModelSql};
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+

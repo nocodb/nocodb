@@ -8,7 +8,7 @@
     @dragend="dragOver = false"
     @drop.prevent="onFileDrop"
   >
-    <div v-show="_isUIAllowed('table-attachment') && dragOver" class="drop-overlay">
+    <div v-show="_isUIAllowed('tableAttachment') && dragOver" class="drop-overlay">
       <div>
         <v-icon small>
           mdi-cloud-upload-outline
@@ -58,7 +58,7 @@
         <v-icon v-if="uploading" small color="primary">
           mdi-loading mdi-spin
         </v-icon>
-        <v-icon v-else-if="_isUIAllowed('table-attachment')" v-show="active" small color="primary">
+        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary">
           mdi-plus
         </v-icon>
       </div>
@@ -79,7 +79,7 @@
       <v-card class="h-100 images-modal">
         <v-card-text class="h-100 backgroundColor">
           <div class="d-flex mx-2">
-            <v-btn v-if="_isUIAllowed('table-attachment')" small class="my-4 " :loading="uploading" @click="addFile">
+            <v-btn v-if="_isUIAllowed('tableAttachment')" small class="my-4 " :loading="uploading" @click="addFile">
               <v-icon small class="mr-2">
                 mdi-link-variant
               </v-icon>
@@ -96,7 +96,7 @@
                     height="200px"
                     style="position: relative"
                   >
-                    <v-icon v-if="_isUIAllowed('table-attachment')" small class="remove-icon" @click="removeItem(i)">
+                    <v-icon v-if="_isUIAllowed('tableAttachment')" small class="remove-icon" @click="removeItem(i)">
                       mdi-close-circle
                     </v-icon>
                     <v-icon color="grey" class="download-icon" @click.stop="downloadItem(item,i)">

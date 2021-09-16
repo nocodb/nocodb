@@ -5,7 +5,8 @@ export default {
   editor: {
     airTable: true,
     xcDatatableEditable: true,
-    column: true
+    column: true,
+    tableAttachment: true
   },
   commenter: {
     airTable: true,

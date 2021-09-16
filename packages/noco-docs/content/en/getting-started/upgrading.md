@@ -8,17 +8,33 @@ link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme
 ---
 
 ## Docker
+### Find, stop & delete nocodb docker container 
+```
+docker ps
+
+docker stop YOUR_CONTAINER_ID"
+
+docker rm YOUR_CONTAINER_ID"
+```
+
+### Find & remove nocodb docker image
+```
+docker images
+
+docker rmi YOUR_IMAGE_ID
+```
+
+### Pull the latest nocodb image with same environment variables
+```
+docker run -d -p 8080:8080 \
+    -e NC_DB="YOUR_NC_DB_URL" \
+    -e NC_AUTH_JWT_SECRET="YOUR_NC_AUTH_JWT_SECRET_IF_GIVEN" \
+    nocodb/nocodb:latest
+```
+
 Updating nocodb docker container is similar to updating [any other docker container](https://www.whitesourcesoftware.com/free-developer-tools/blog/update-docker-images/).
-
-Usually this involves the following
-- Find the nocodb image
-- Stop the nocodb docker container
-- Remove the nocodb docker container
-- Pull & Run the latest nocodb docker container
-
-_*Please ensure you run latest docker container with same environment variables as before.*_
-
-
+ 
+### Example docker upgrade
 
 
 

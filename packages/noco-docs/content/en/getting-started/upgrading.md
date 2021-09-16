@@ -35,6 +35,7 @@ docker run -d -p 8080:8080 \
 Updating nocodb docker container is similar to updating [any other docker container](https://www.whitesourcesoftware.com/free-developer-tools/blog/update-docker-images/).
  
 ### Example docker upgrade
+![Screen Shot 2021-09-16 at 09 23 07](https://user-images.githubusercontent.com/5435402/133578984-53c6b96b-3e8b-4a96-b6c2-36f3c09ffdde.png)
 
 
 

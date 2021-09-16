@@ -356,7 +356,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             if (err) done(err)
             expect(res.body).to.be.a('array');
             expect(Object.keys(res.body[0]).length).to.be.equal(3);
-            expect(res.body[0]).to.have.all.keys('country_id', 'country');
+            expect(res.body[0]).to.have.all.keys('country_id', 'country','cityList');
             done();
           });
       });

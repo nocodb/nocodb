@@ -416,6 +416,10 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
+import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel'
+import columnList from './tableTabs/columns'
+import indexList from './tableTabs/indexes'
+import triggerList from './tableTabs/triggers'
 import { isMetaTable } from '@/helpers/xutils'
 import Webhooks from '@/components/project/tableTabs/webhooks'
 import LogicRest from '@/components/project/tableTabs/logicRest'
@@ -424,11 +428,7 @@ import LogicGrpc from '@/components/project/tableTabs/logicGrpc'
 import Validation from '@/components/project/tableTabs/validation'
 import TableAcl from '@/components/project/tableTabs/tableAcl'
 import RowsXcDataTable from '@/components/project/spreadsheet/rowsXcDataTable'
-import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel'
 // import TrialExpired from '../trialExpired'
-import columnList from './tableTabs/columns'
-import indexList from './tableTabs/indexes'
-import triggerList from './tableTabs/triggers'
 // import rows from './tableTabs/rows'
 
 // import AclGql from './tableTabs/aclGql'

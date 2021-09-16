@@ -736,7 +736,7 @@ export default {
             ...this.nodes
           }
         })
-        delete this.nodes.newTable
+        // delete this.nodes.newTable
       }
 
       this.loadViews = true

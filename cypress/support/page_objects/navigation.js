@@ -1,3 +1,6 @@
+
+import { defaultDbParams } from "./projectConstants"
+
 ///////////////////////////////////////////////////////////
 // Sign in/ Sign up page
 
@@ -23,7 +26,7 @@ export class _loginPage {
     signIn(userCredentials) {
         this.go(urlPool.ncUrlSignIn)
 
-        cy.get('input[type="text"]').type(userCredentials.username)
+        cy.get('input[type="text"]', {timeout: 6000}).type(userCredentials.username)
         cy.get('input[type="password"]').type(userCredentials.password)
         cy.get('button:contains("SIGN IN")').click()
 
@@ -35,7 +38,7 @@ export class _loginPage {
     signUp(userCredentials) {
         this.go(urlPool.ncUrlSignUp)
 
-        cy.get('input[type="text"]').type(userCredentials.username)
+        cy.get('input[type="text"]', {timeout: 6000}).type(userCredentials.username)
         cy.get('input[type="password"]').type(userCredentials.password)
         cy.get('button:contains("SIGN UP")').click()
 
@@ -162,6 +165,17 @@ export class _projectsPage {
         }
     }
 
+    // create REST default project (sakila DB)
+    //
+    createDefaulRestProject() {
+        return this.createProject({ dbType: 1, apiType: 0, name: '' }, defaultDbParams )
+    }
+
+    // create GraphQL default project (sakila DB)
+    //
+    createDefaultGraphQlProject() {
+        return this.createProject({ dbType: 1, apiType: 1, name: '' }, defaultDbParams )
+    }
 
     // Click on refresh key on projects page
     //

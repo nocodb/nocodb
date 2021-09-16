@@ -31,4 +31,19 @@ export default {
   OR: (args: MapFnArgs) => {
     return args.knex.raw(`${args.knex.raw(`${args.pt.arguments.map(ar => args.fn(ar).toQuery()).join(' OR ')}`).wrap('(', ')').toQuery()}${args.colAlias}`)
   },
+  AVG: (args: MapFnArgs) => {
+    if (args.pt.arguments.length > 1) {
+      return args.fn({
+        type: 'BinaryExpression',
+        operator: '/',
+        left: {...args.pt, callee: {name: 'SUM'}},
+        right: {type: 'Literal', value: args.pt.arguments.length}
+      }, args.a, args.prevBinaryOp)
+    } else {
+      return args.fn(args.pt.arguments[0], args.a, args.prevBinaryOp)
+    }
+  },
+  FLOAT: (args: MapFnArgs) => {
+    return args.fn(args.pt?.arguments?.[0]).wrap('(',')');
+  }
 }

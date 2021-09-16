@@ -23,6 +23,9 @@ const mysql2 = {
     return args.knex.raw(`SUBSTR(${args.fn(args.pt.arguments[0])},-${args.fn(args.pt.arguments[1])})${args.colAlias}`)
   },
   MID:'SUBSTR',
+  FLOAT: (args: MapFnArgs) => {
+    return args.knex.raw(`CAST(${args.fn(args.pt.arguments[0])} as DOUBLE)${args.colAlias}`).wrap('(',')')
+  }
 }
 
 

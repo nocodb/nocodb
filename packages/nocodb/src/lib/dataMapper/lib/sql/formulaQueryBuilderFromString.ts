@@ -27,18 +27,18 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
             return fn(pt.arguments[0], a, prevBinaryOp)
           }
           break;
-        case 'AVG':
-          if (pt.arguments.length > 1) {
-            return fn({
-              type: 'BinaryExpression',
-              operator: '/',
-              left: {...pt, callee: {name: 'SUM'}},
-              right: {type: 'Literal', value: pt.arguments.length}
-            }, a, prevBinaryOp)
-          } else {
-            return fn(pt.arguments[0], a, prevBinaryOp)
-          }
-          break;
+        // case 'AVG':
+        //   if (pt.arguments.length > 1) {
+        //     return fn({
+        //       type: 'BinaryExpression',
+        //       operator: '/',
+        //       left: {...pt, callee: {name: 'SUM'}},
+        //       right: {type: 'Literal', value: pt.arguments.length}
+        //     }, a, prevBinaryOp)
+        //   } else {
+        //     return fn(pt.arguments[0], a, prevBinaryOp)
+        //   }
+        //   break;
         case 'CONCAT':
           if (knex.clientType() === 'sqlite3') {
             if (pt.arguments.length > 1) {
@@ -54,7 +54,7 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
           }
           break;
         default: {
-          const res = mapFunctionName({pt, knex, alias, aliasToCol: aliasToColumn, fn, colAlias})
+          const res = mapFunctionName({pt, knex, alias, a, aliasToCol: aliasToColumn, fn, colAlias, prevBinaryOp})
           if (res) return res;
         }
           break
@@ -69,6 +69,17 @@ export default function formulaQueryBuilder(tree, alias, knex, aliasToColumn = {
       if (pt.operator === '==') {
         pt.operator = '='
       }
+
+      if (pt.operator === '/') {
+        pt.left = {
+          callee: {name: 'FLOAT'},
+          type: 'CallExpression',
+          arguments: [
+            pt.left
+          ]
+        }
+      }
+
 
       const query = knex.raw(`${fn(pt.left, null, pt.operator).toQuery()} ${pt.operator} ${fn(pt.right, null, pt.operator).toQuery()}${colAlias}`)
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {

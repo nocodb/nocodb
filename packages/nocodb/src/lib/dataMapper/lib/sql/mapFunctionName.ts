@@ -10,13 +10,17 @@ export interface MapFnArgs {
   aliasToCol: { [alias: string]: string },
   knex: XKnex,
   alias: string,
-  fn: (...args: any) => QueryBuilder,
-  colAlias:string
+  a?: string,
+  fn: (...args: any) => QueryBuilder | any,
+  colAlias: string,
+  prevBinaryOp?: any
 }
 
 const mapFunctionName = (args: MapFnArgs): any => {
+
   const name = args.pt.callee.name;
   let val;
+
   switch (args.knex.clientType()) {
     case 'mysql':
     case 'mysql2':

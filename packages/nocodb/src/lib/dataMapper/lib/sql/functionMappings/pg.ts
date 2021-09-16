@@ -18,6 +18,9 @@ const pg = {
     return args.knex.raw(`REGEXP_REPLACE(COALESCE(${args.fn(args.pt.arguments[0])}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')${args.colAlias}`)
   },
   MID: 'SUBSTR',
+  FLOAT: (args: MapFnArgs) => {
+    return args.knex.raw(`CAST(${args.fn(args.pt.arguments[0])} as DOUBLE PRECISION)${args.colAlias}`).wrap('(',')')
+  }
 }
 
 

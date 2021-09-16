@@ -1,12 +1,12 @@
 {
-  "name": "xc-electron-web",
-  "version": "1.0.0",
+  "name": "nc-gui",
+  "version": "0.11.30",
   "private": true,
   "scripts": {
-    "dev": "nuxt",
+    "dev": "EE=true nuxt",
     "build": "nuxt build",
     "lint": "eslint . --ext .js,.vue --fix --quiet",
-    "start": "nuxt start",
+    "start": "EE=true nuxt start",
     "generate": "nuxt generate",
     "build:copy": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:jsdeliver": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh  ./dist/ ../nc-lib-gui/lib/dist/ ; npm publish ../nc-lib-gui"

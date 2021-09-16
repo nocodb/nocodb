@@ -315,6 +315,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mrtngrsbch",
+      "name": "Martin Gersbach",
+      "avatar_url": "https://avatars.githubusercontent.com/u/693328?v=4",
+      "profile": "https://museosabiertos.org",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

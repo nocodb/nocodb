@@ -638,8 +638,10 @@ class BaseModelSql extends BaseModel {
 
       const res = [];
       for (const d of ids) {
-        const response = await this._run(transaction(this.tn).del().where(this._extractPks(d)));
-        res.push(response);
+        if(Object.keys(d).length) {
+          const response = await this._run(transaction(this.tn).del().where(d));
+          res.push(response);
+        }
       }
       await this.afterDeleteb(res, transaction);
 

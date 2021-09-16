@@ -320,19 +320,30 @@
 
                               </v-list-item-title>
                             </v-list-item>-->
+              <v-list-item  v-ge="['Sign Out','']" dense>
+                <v-list-item-title>
+                  <v-icon small>
+                    mdi-at
+                  </v-icon>&nbsp; <span class="font-weight-bold">{{ userEmail }}</span>
+                </v-list-item-title>
+              </v-list-item>
 
-              <v-list-item
+              <v-divider></v-divider>
+
+              <v-list-item v-if="isDashboard"
                 v-clipboard="$store.state.users.token"
                 dense
                 @click.stop="$toast.success('Auth token copied to clipboard').goAway(3000)"
               >
+
                 <v-list-item-title>
                   <v-icon key="terminal-dash" small>
-                    mdi-console
+                    mdi-content-copy
                   </v-icon>&nbsp;
                   <span class="font-weight-regular">Copy auth token</span>
                 </v-list-item-title>
               </v-list-item>
+
               <!--
                             <v-list-item dense @click.stop="projectInfoTabAdd">
                               <v-list-item-title>
@@ -357,23 +368,25 @@
                     {{ isGql ? 'GraphQL APIs' : 'Swagger APIs Doc' }}</span>
                 </v-list-item-title>
               </v-list-item>
+              <v-divider></v-divider>
+              <v-list-item v-if="isDashboard" v-ge="['Sign Out','']" dense @click="copyProjectInfo">
+                <v-list-item-title>
+                  <v-icon small>
+                    mdi-information-outline
+                  </v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
+                </v-list-item-title>
+              </v-list-item>
 
-              <v-list-item dense @click.stop="settingsTabAdd">
+              <v-list-item dense @click.stop="settingsTabAdd" v-if="isDashboard">
                 <v-list-item-title>
                   <v-icon key="terminal-dash" small>
-                    mdi-cog
+                    mdi-palette
                   </v-icon>&nbsp;
                   <span class="font-weight-regular">Themes</span>
                 </v-list-item-title>
               </v-list-item>
 
-              <v-list-item v-if="isDashboard" v-ge="['Sign Out','']" dense @click="copyProjectInfo">
-                <v-list-item-title>
-                  <v-icon small>
-                    info
-                  </v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
-                </v-list-item-title>
-              </v-list-item>
+              <v-divider v-if="isDashboard"></v-divider>
 
               <v-list-item v-ge="['Sign Out','']" dense @click="MtdSignOut">
                 <v-list-item-title>
@@ -626,7 +639,8 @@ export default {
       isGql: 'project/GtrProjectIsGraphql',
       isRest: 'project/GtrProjectIsRest',
       isGrpc: 'project/GtrProjectIsGrpc',
-      role: 'users/GtrRole'
+      role: 'users/GtrRole',
+      userEmail: 'users/GtrUserEmail'
     }),
     user() {
       return this.$store.getters['users/GtrUser']

@@ -6,7 +6,7 @@
       "text": "Nuevo proyecto",
       "subtext_1": "Crear",
       "subtext_1_tooltip": "Crear un nuevo proyecto",
-      "subtext_2": "Conectarse a una <br>base de datos externa",
+      "subtext_2": "Conéctate a una <br>base de datos externa",
       "subtext_2_tooltip": "Soporta MySQL, PostgreSQL, SQL Server & SQLite"
     },
     "search_project": "Buscar proyecto",
@@ -17,33 +17,33 @@
     "start_project": "Iniciar proyecto",
     "restart_project": "Reiniciar proyecto",
     "delete_project": "Borrar proyecto",
-    "project_api_type_tooltip_graphql": "Accesible via GraphQL APIs",
-    "project_api_type_tooltip_rest": "Accesible via REST APIs",
-    "project_empty_message": "Comenzar creando un nuevo proyecto",
+    "project_api_type_tooltip_graphql": "Accesible vía GraphQL APIs",
+    "project_api_type_tooltip_rest": "Accesible vía REST APIs",
+    "project_empty_message": "Comienza creando un nuevo proyecto",
     "import_button": {
       "text": "Importar el proyecto NocoDB cargando un archivo zip de metadatos"
     },
     "show_community_star": "Síguenos",
     "show_community_us_on_Github": "en Github",
     "show_community_book_a_free_demo": "Agendar un DEMO Gratuito",
-    "show_community_get_your_questions_answered": "Obtenga respuestas a sus preguntas",
+    "show_community_get_your_questions_answered": "Obtén respuestas a tus preguntas",
     "show_community_join_discord": "Ingresar a Discord",
     "show_community_follow_nocodb": "Seguir a NocoDB",
     "search": {
-      "your_search_found_no_results": "Su búsqueda de {search} no encontró resultados"
+      "your_search_found_no_results": "Tu búsqueda de {search} no encontró resultados"
     },
     "ext_db": {
       "title": {
         "edit": "Editar proyecto",
         "create": "Crear proyecto"
       },
-      "project_name": "Ingresar nombre de proyecto",
-      "project_type": "Acceder al proyecto a través de",
+      "project_name": "Ingresa el nombre de proyecto",
+      "project_type": "Accede al proyecto a través de",
       "button": {
         "save_project": "Guardar proyecto",
-        "update_and_restart": "Actualizar & Reiniciar",
+        "update_and_restart": "Actualizar y Reiniciar",
         "cancel": "Cancelar",
-        "cancel_tooltip": "Cancelar and Regresar"
+        "cancel_tooltip": "Cancelar y Regresar"
       },
       "credentials": {
         "title": "Credenciales de Base de Datos",
@@ -53,13 +53,13 @@
         "port": "Puerto",
         "username": "Usuario",
         "password": "Contraseña",
-        "db_create_if_not_exists": "Base de datos : crear si no existe",
+        "db_create_if_not_exists": "Base de datos : Crear si no existe",
         "button": {
           "test_db_conn": "Probar conexión a base de datos",
           "remove_db_from_env": "Eliminar base de datos del ambiente"
         },
         "advanced": {
-          "title": "SSL & parámetros avanzados",
+          "title": "SSL y parámetros avanzados",
           "ssl": {
             "client_key": {
               "title": "Clave de Cliente",
@@ -70,7 +70,7 @@
               "toolip": "Seleccionar archivo .cert"
             },
             "server_ca": {
-              "title": "Servodpr CA",
+              "title": "Servidor CA",
               "toolip": "Seleccionar archivo CA"
             },
             "preferred": "Privilegios",
@@ -83,8 +83,8 @@
             }
           },
           "inflection": {
-            "table_name": "Inflection - Nombre de tabla",
-            "column_name": "Inflection - Nombre de columna"
+            "table_name": "Inflección - Nombre de tabla",
+            "column_name": "Inflección - Nombre de columna"
           },
           "button": {
             "edit_conn_json": "Editar conexión JSON"
@@ -92,16 +92,16 @@
         }
       },
       "error": {
-        "invalid_char_in_folder_path": "Carácteres invalidos en la ruta de la carpeta.",
-        "invalid_db_credentials": "Credenciales de Base de datos incorrectas.",
-        "unable_to_connect_to_db": "Sin conexión a base de datos, por favor verifique qué su base de datos esté en línea.",
-        "user_doesnt_ve_sufficient_permission": "El usuario no existe o tiene permisos insuficientes para crear esquema."
+        "invalid_char_in_folder_path": "Caracteres invalidos en la ruta de la carpeta.",
+        "invalid_db_credentials": "Credenciales de Base de Datos incorrectas.",
+        "unable_to_connect_to_db": "Sin conexión a la base de datos, por favor verifica qué tu base de datos esté en línea.",
+        "user_doesnt_ve_sufficient_permission": "El usuario no existe o tiene permisos insuficientes para crear el esquema."
       },
       "head": {
         "title": "Crear proyecto | NocoDB"
       },
       "dialog": {
-        "success": "Conexión correcta",
+        "success": "Conexión exitosa",
         "failure": "Conexión incorrecta:"
       }
     },
@@ -112,17 +112,17 @@
   },
   "signin": {
     "title": "INICIAR SESIÓN",
-    "enter_your_work_email": "Ingrese su correo de trabajo",
-    "enter_your_password": "Ingrese su contraseña",
-    "forget_password": "Olvidó su contraseña?",
-    "dont_ve_an_account": "No tiene una cuenta?",
-    "sign_up": "Registrarse",
+    "enter_your_work_email": "Ingresa tu e-mail de trabajo",
+    "enter_your_password": "Ingresa tu contraseña",
+    "forget_password": "Has olvidado tu contraseña?",
+    "dont_ve_an_account": "No tienes una cuenta?",
+    "sign_up": "Regístrarse",
     "form": {
       "rules": {
         "email_is_reqd": "E-mail requerido",
         "email_must_be_valid": "E-mail debe ser correcto",
         "passwd_required": "Contraseña requerida",
-        "passwd_must_be_8_chars": "Su contraseña debe tener almenos 8 carácteres"
+        "passwd_must_be_8_chars": "Tu contraseña debe tener al menos 8 carácteres"
       }
     },
     "head": {
@@ -136,9 +136,9 @@
     "password": {
       "recovery": {
         "title": "Cambiar contraseña",
-        "message_1": "Por favor ingresa el correo electrónico que usas para conectarte.",
-        "message_2": "Enviaremos un link al correo electrónico para cambiar la contraseña.",
-        "success": "Por favor revise el correo electrónico para cambiar la contraseña",
+        "message_1": "Por favor ingresa el e-mail que usas para conectarte.",
+        "message_2": "Enviaremos un link a tu e-mail para cambiar la contraseña.",
+        "success": "Por favor revisa tu e-mail para cambiar la contraseña",
         "button": "ENVIAR CORREO"
       }
     }
@@ -146,7 +146,7 @@
   "signup": {
     "title": "REGISTRARSE",
     "you_will_be_the_super_admin": "Serás 'Super Admin'",
-    "already_ve_an_account": "Ya tiene una cuenta?"
+    "already_ve_an_account": "Ya tienes una cuenta?"
   },
   "treeview": {
     "settings": {
@@ -156,7 +156,7 @@
     "app_store": "App Store",
     "team_n_auth": {
       "title": "Team & Auth",
-      "tooltip": "Roles & Gestión de usuarios"
+      "tooltip": "Roles y gestión de usuarios"
     },
     "project_metadata": {
       "title": "Proyecto Metadata",
@@ -176,12 +176,12 @@
       "title": "Crear una Vista",
       "caption": "Sólo visible por el creador",
       "grid": {
-        "title": "Red",
-        "create": "Agregar vista de red"
+        "title": "Grilla",
+        "create": "Agregar vista de grilla"
       },
       "gallery": {
         "title": "Galeria",
-        "create": "Agregar vista de Galeria"
+        "create": "Agregar vista de Galería"
       },
       "calendar": {
         "title": "Calendario",
@@ -193,7 +193,7 @@
       },
       "form": {
         "title": "Formulario",
-        "create": "Agregar vista del Formulario"
+        "create": "Agregar vista de Formulario"
       }
     },
     "advanced": {
@@ -203,7 +203,7 @@
     },
     "share_view": {
       "title": "Esta vista es compartida por link privado",
-      "body": "Personas con el link privado podrán únicamente ver celdas visibles a esta vista",
+      "body": "Las personas con el link privado podrán únicamente ver celdas visibles de esta vista",
       "toggle": {
         "option1": "Restringir acceso mediante contraseña",
         "option2": "Restricción mediante contraseña"

@@ -37,7 +37,10 @@ Cypress.Commands.add('waitForSpinners', () => {
   })
   cy.get('#nuxt-loading', {timeout: 10_0000}).should('have.length', 0)
 })
-Cypress.Commands.add('signinOrSignup', () => {
+
+
+Cypress.Commands.add('signinOrSignup', (_args) => {
+  const args = Object.assign({username: 'user@nocodb.com', password: 'Password123.'}, _args)
 
   // signin/signup
   cy.get('body').then(($body) => {
@@ -49,21 +52,21 @@ Cypress.Commands.add('signinOrSignup', () => {
           cy.wait(8000);
           cy.get('body').trigger('mousemove');
           cy.contains('Let\'s Begin').click();
-          cy.get('input[type="text"]', {timeout: 12000}).type('user@nocodb.com');
-          cy.get('input[type="password"]').type('Password123.');
+          cy.get('input[type="text"]', { timeout: 12000 }).type(args.username);
+          cy.get('input[type="password"]').type(args.password);
           cy.get('button:contains("SIGN UP")').click()
 
           // handle signin
         } else {
-          cy.get('input[type="text"]').type('user@nocodb.com');
-          cy.get('input[type="password"]').type('Password123.');
+          cy.get('input[type="text"]', { timeout: 12000 }).type(args.username);
+          cy.get('input[type="password"]').type(args.password);
           cy.get('button:contains("SIGN IN")').click()
         }
       }
-
     })
   })
 });
+
 // for opening/creating a rest project
 Cypress.Commands.add('openOrCreateRestProject', (_args) => {
     const args = Object.assign({new: false}, _args)

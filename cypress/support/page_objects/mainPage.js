@@ -26,18 +26,11 @@ export class _mainPage {
     }
 
     toolBarTopLeft(toolBarItem) {
-
-        cy.get('header.v-toolbar').eq(0).find('a').then((obj) => {
-            cy.wrap(obj).eq(toolBarItem).click()
-        })
+        return cy.get('header.v-toolbar').eq(0).find('a').eq(toolBarItem)
     }
 
     toolBarTopRight(toolBarItem) {
-
-        cy.get('header.v-toolbar').eq(0).find('button').then((obj) => {
-            cy.wrap(obj).eq(toolBarItem).click()
-            cy.wait(500)
-        })
+        return cy.get('header.v-toolbar').eq(0).find('button').eq(toolBarItem)
     }
 
 
@@ -46,6 +39,64 @@ export class _mainPage {
             return cy.get('.nc-nav-drawer').find('.v-list').last()
         else
             return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
+    }
+
+
+    // add new user to specified role
+    //
+    addNewUserToProject = (userCred, roleType) => {
+
+        let linkText
+
+        // click on New User button, feed details
+        cy.get('button:contains("New User")').first().click()
+        cy.get('label:contains("Email")').next('input').type(userCred.username).trigger('input')
+        cy.get('label:contains("Select User roles")').click()
+
+        // opt-in requested role & submit
+        // note that, 'editor' is set by default
+        //
+        cy.getActiveMenu().contains(roleType).click()
+        cy.getActiveMenu().contains('editor').click()
+        cy.get('.mdi-menu-down').click()
+        cy.get('.nc-invite-or-save-btn').click()
+
+        // get URL, invoke
+        cy.getActiveModal().find('.v-alert').then(($obj) => {
+            linkText = $obj.text()
+            cy.log(linkText)
+
+            cy.visit(linkText)
+
+            cy.wait(3000)
+
+            // Redirected to new URL, feed details
+            //
+            cy.get('input[type="text"]').type(userCred.username)
+            cy.get('input[type="password"]').type(userCred.password)
+            cy.get('button:contains("SIGN UP")').click()
+
+            cy.url({ timeout: 6000 }).should('contain', '#/project')
+            cy.wait(1000)            
+        })
+    }
+
+    addExistingUserToProject = (emailId, role) => {
+
+        cy.get('.v-list-item:contains("Team & Auth")').click()
+        cy.get(`tr:contains(${emailId})`).find('.mdi-plus', {timeout: 2000}).click()
+        cy.get(`tr:contains(${emailId})`).find('.mdi-pencil-outline', {timeout: 2000}).click()
+
+        cy.get('label:contains(Select User roles)').click()
+
+        // opt-in requested role & submit
+        // note that, 'editor' is set by default
+        //
+        cy.getActiveMenu().contains(role).click()
+        cy.getActiveMenu().contains('editor').click()
+        cy.get('.mdi-menu-down').click()
+        cy.get('.nc-invite-or-save-btn').click()  
+        cy.wait(1000)       
     }
 }
 

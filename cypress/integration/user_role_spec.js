@@ -38,63 +38,6 @@ const roles = {
 }
 
 
-// add new user to specified role
-//
-const addUser = (userCred, role) => {
-
-    let linkText
-
-    // click on New User button, feed details
-    cy.get('button:contains("New User")').first().click()
-    cy.get('label:contains(Email)').next('input').type(userCred.username).trigger('input')
-    cy.get('label:contains(Select User roles)').click()
-
-    // opt-in requested role & submit
-    // note that, 'editor' is set by default
-    //
-    cy.getActiveMenu().contains(role).click()
-    cy.getActiveMenu().contains('editor').click()
-    cy.get('.mdi-menu-down').click()
-    cy.get('.nc-invite-or-save-btn').click()
-
-    // get URL, invoke
-    cy.getActiveModal().find('.v-alert').then(($obj) => {
-        linkText = $obj.text()
-        cy.log(linkText)
-
-        cy.visit(linkText)
-    })
-
-    // SignUp is taken care under userRoleCreation()
-    // wait for some time to ensure screen is loaded
-    //
-    cy.wait(2000)
-}
-
-
-const userRoleCreation = (roleType) => {
-    it(`User creation: ${roleType}`, () => {
-
-        loginPage.signIn(roles.owner.credentials)
-        projectsPage.openProject('sakilaDb')
-
-        // Team & Auth tab is open by default
-        //
-        addUser(roles[roleType].credentials, roleType)
-
-        // Redirected to new URL, feed details
-        //
-        cy.get('input[type="text"]').type(roles[roleType].credentials.username)
-        cy.get('input[type="password"]').type(roles[roleType].credentials.password)
-        cy.get('button:contains("SIGN UP")').click()
-
-        cy.url({ timeout: 6000 }).should('contain', '#/project')
-        cy.wait(1000)
-
-        projectsPage.openProject('sakilaDb')
-    })
-}
-
 describe('Test project creation, user creation', () => {
 
     let projectName = ''

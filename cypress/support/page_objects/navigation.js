@@ -57,15 +57,6 @@ export class _loginPage {
 ///////////////////////////////////////////////////////////
 // Projects page
 
-// DB type
-const NC_DB_NONE = 0
-const NC_DB_EXISTING = 1
-
-// API type
-const NC_REST = 0
-const NC_GQL = 1
-
-
 export class _projectsPage {
 
     // Project creation options
@@ -106,7 +97,7 @@ export class _projectsPage {
         // click on "New Project" 
         cy.get(':nth-child(5) > .v-btn').click()
 
-        if (NC_DB_NONE == projectData.dbType) {
+        if ('none' == projectData.dbType) {
 
             // Subsequent form, select (+ Create) option
             cy.get('.nc-create-xc-db-project').click({ force: true })
@@ -115,7 +106,7 @@ export class _projectsPage {
             cy.get('.nc-metadb-project-name').type(projectName)
 
             // Radio button: defaults to NC_REST
-            if (NC_GQL == projectData.apiType) {
+            if ('GQL' == projectData.apiType) {
                 cy.contains('GRAPHQL APIs').closest('label').click();
             }
 
@@ -127,6 +118,8 @@ export class _projectsPage {
 
             return projectName
         }
+
+        // dbType == 'external'
         else {
 
             // Subsequent form, select (+ Create by connection to external database) option
@@ -137,7 +130,7 @@ export class _projectsPage {
             cy.contains('Enter Project Name').parent().find('input').clear().type(projectName)
 
             // Radio button: defaults to NC_REST
-            if (NC_GQL == projectData.apiType) {
+            if ('GQL' == projectData.apiType) {
                 cy.contains('GRAPHQL APIs').closest('label').click();
             }
 

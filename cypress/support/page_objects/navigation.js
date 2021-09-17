@@ -1,3 +1,6 @@
+
+import { defaultDbParams } from "./projectConstants"
+
 ///////////////////////////////////////////////////////////
 // Sign in/ Sign up page
 
@@ -23,7 +26,7 @@ export class _loginPage {
     signIn(userCredentials) {
         this.go(urlPool.ncUrlSignIn)
 
-        cy.get('input[type="text"]').type(userCredentials.username)
+        cy.get('input[type="text"]', {timeout: 6000}).type(userCredentials.username)
         cy.get('input[type="password"]').type(userCredentials.password)
         cy.get('button:contains("SIGN IN")').click()
 
@@ -35,7 +38,7 @@ export class _loginPage {
     signUp(userCredentials) {
         this.go(urlPool.ncUrlSignUp)
 
-        cy.get('input[type="text"]').type(userCredentials.username)
+        cy.get('input[type="text"]', {timeout: 6000}).type(userCredentials.username)
         cy.get('input[type="password"]').type(userCredentials.password)
         cy.get('button:contains("SIGN UP")').click()
 
@@ -53,15 +56,6 @@ export class _loginPage {
 
 ///////////////////////////////////////////////////////////
 // Projects page
-
-// DB type
-const NC_DB_NONE = 0
-const NC_DB_EXISTING = 1
-
-// API type
-const NC_REST = 0
-const NC_GQL = 1
-
 
 export class _projectsPage {
 
@@ -103,7 +97,7 @@ export class _projectsPage {
         // click on "New Project" 
         cy.get(':nth-child(5) > .v-btn').click()
 
-        if (NC_DB_NONE == projectData.dbType) {
+        if ('none' == projectData.dbType) {
 
             // Subsequent form, select (+ Create) option
             cy.get('.nc-create-xc-db-project').click({ force: true })
@@ -112,7 +106,7 @@ export class _projectsPage {
             cy.get('.nc-metadb-project-name').type(projectName)
 
             // Radio button: defaults to NC_REST
-            if (NC_GQL == projectData.apiType) {
+            if ('GQL' == projectData.apiType) {
                 cy.contains('GRAPHQL APIs').closest('label').click();
             }
 
@@ -124,6 +118,8 @@ export class _projectsPage {
 
             return projectName
         }
+
+        // dbType == 'external'
         else {
 
             // Subsequent form, select (+ Create by connection to external database) option
@@ -134,7 +130,7 @@ export class _projectsPage {
             cy.contains('Enter Project Name').parent().find('input').clear().type(projectName)
 
             // Radio button: defaults to NC_REST
-            if (NC_GQL == projectData.apiType) {
+            if ('GQL' == projectData.apiType) {
                 cy.contains('GRAPHQL APIs').closest('label').click();
             }
 
@@ -162,6 +158,17 @@ export class _projectsPage {
         }
     }
 
+    // create REST default project (sakila DB)
+    //
+    createDefaulRestProject() {
+        return this.createProject({ dbType: 1, apiType: 0, name: '' }, defaultDbParams )
+    }
+
+    // create GraphQL default project (sakila DB)
+    //
+    createDefaultGraphQlProject() {
+        return this.createProject({ dbType: 1, apiType: 1, name: '' }, defaultDbParams )
+    }
 
     // Click on refresh key on projects page
     //

@@ -7,14 +7,15 @@ menuTitle: 'Webhooks'
 ---
 
 
+## Triggers available
+Webhooks allows user to trigger on certain operations on following database operations
+- AFTER INSERT
+- AFTER UPDATE
+- AFTER DELETE
 
-Webhooks allows user to trigger certain operation on following database operations
-- INSERT
-- UPDATE
-- DELETE
-The hook can trigger `before` or `after` a certain operation and the triggers will trigger asynchronously without blocking the actual operation.
+The triggers will trigger asynchronously without blocking the actual operation.
 
-## Available Triggers
+## Trigger to following applications/services
 
 | Trigger | Details |
 |-------|-------|

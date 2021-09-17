@@ -22,14 +22,12 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
 </p>  
 
-<p align="center">
-    <img src="static/open-source-airtable-alternative/OpenSourceAirtableAlternative.png" width="100%">
-    <br/><br/>
-</p>
+![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
 
 # Quick try
 ### 1-Click Deploy
@@ -78,28 +76,42 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 <br>
 
 # Screenshots
-<img src="static/nocodb/2.png"/>
+
+![2](https://user-images.githubusercontent.com/5435402/133759229-4275b934-873b-4a9b-9f23-96470fec9775.png)
 <br>
-<img src="static/nocodb/1.png"/>
+
+![1](https://user-images.githubusercontent.com/5435402/133759218-f8b0bffc-707f-451c-82f2-b5ba2573d6a6.png)
 <br>
-<img src="static/nocodb/7.png"/>
+
+![7](https://user-images.githubusercontent.com/5435402/133759245-a536165b-55f1-46a8-a74e-1964e7e481c6.png)
 <br>
-<img src="static/nocodb/5.png"/>
+
+![5](https://user-images.githubusercontent.com/5435402/133759240-dd3f2509-aab7-4bd1-9a58-4c2dff08f2f2.png)
 <br>
-<img src="static/nocodb/6.png"/>
+
+![6](https://user-images.githubusercontent.com/5435402/133759242-2311a127-17c8-406c-b865-1a2e9c8ee398.png)
 <br>
-<img src="static/nocodb/3.png"/>
+
+![3](https://user-images.githubusercontent.com/5435402/133759234-9b539029-be36-4a35-b55a-bee3ebd0e010.png)
 <br>
-<img src="static/nocodb/4.png"/>
+
+![4](https://user-images.githubusercontent.com/5435402/133759236-dc182129-3768-4e23-874e-98f5f32e962c.png)
 <br>
-<img src="static/nocodb/11.png"/>
+
+![11](https://user-images.githubusercontent.com/5435402/133759253-bb9bc729-ee28-4f86-ab95-7d112c0815f2.png)
 <br>
-<img src="static/nocodb/10.png"/>
+
+![10](https://user-images.githubusercontent.com/5435402/133759250-ebd75ecf-31db-4a17-b2d7-2c43af78a54e.png)
 <br>
-<img src="static/nocodb/8.png"/>
+
+![8](https://user-images.githubusercontent.com/5435402/133759248-3a7141e0-4b7d-4079-a5f9-cf8611d00bc5.png)
 <br>
-<img src="static/nocodb/9.png"/>
-<br>
+
+![9](https://user-images.githubusercontent.com/5435402/133759249-8c1a85c2-a55c-48f6-bd58-aa6b4195cce7.png)
+
+
+
+
 
 
 
@@ -290,4 +302,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+
+
 

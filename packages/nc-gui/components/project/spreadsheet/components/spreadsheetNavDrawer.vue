@@ -189,94 +189,94 @@
                 {{ $t('nav_drawer.virtual_views.gallery.create') }}
               </v-tooltip>
 
-              <v-tooltip bottom>
-                <template #activator="{ on }">
-                  <v-list-item
-                    dense
-                    class="body-2"
-                    v-on="on"
-                    @click="enableDummyFeat ? openCreateViewDlg('calendar') : comingSoon()"
-                  >
-                    <v-list-item-icon class="mr-n1">
-                      <v-icon x-small>
-                        mdi-calendar
-                      </v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>
-                      <span class="font-weight-regular">
-                        <!-- Calendar -->
-                        {{ $t('nav_drawer.virtual_views.calendar.title') }}
-                      </span>
-                    </v-list-item-title>
+<!--              <v-tooltip bottom>-->
+<!--                <template #activator="{ on }">-->
+<!--                  <v-list-item-->
+<!--                    dense-->
+<!--                    class="body-2"-->
+<!--                    v-on="on"-->
+<!--                    @click="enableDummyFeat ? openCreateViewDlg('calendar') : comingSoon()"-->
+<!--                  >-->
+<!--                    <v-list-item-icon class="mr-n1">-->
+<!--                      <v-icon x-small>-->
+<!--                        mdi-calendar-->
+<!--                      </v-icon>-->
+<!--                    </v-list-item-icon>-->
+<!--                    <v-list-item-title>-->
+<!--                      <span class="font-weight-regular">-->
+<!--                        &lt;!&ndash; Calendar &ndash;&gt;-->
+<!--                        {{ $t('nav_drawer.virtual_views.calendar.title') }}-->
+<!--                      </span>-->
+<!--                    </v-list-item-title>-->
 
-                    <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
-                  </v-list-item>
-                </template>
-                <!-- Add Calendar View -->
-                {{ $t('nav_drawer.virtual_views.calendar.create') }}
-              </v-tooltip>
-              <v-tooltip bottom>
-                <template #activator="{ on }">
-                  <v-list-item
-                    dense
-                    open-class="body-2"
-                    v-on="on"
-                    @click="enableDummyFeat ? openCreateViewDlg('kanban') : comingSoon()"
-                  >
-                    <v-list-item-icon class="mr-n1">
-                      <v-icon x-small>
-                        mdi-tablet-dashboard
-                      </v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>
-                      <span class="font-weight-regular">
-                        <!-- Kanban -->
-                        {{ $t('nav_drawer.virtual_views.kanban.title') }}
-                      </span>
-                    </v-list-item-title>
+<!--                    <v-spacer />-->
+<!--                    <v-icon class="mr-1" small>-->
+<!--                      mdi-plus-->
+<!--                    </v-icon>-->
+<!--                  </v-list-item>-->
+<!--                </template>-->
+<!--                &lt;!&ndash; Add Calendar View &ndash;&gt;-->
+<!--                {{ $t('nav_drawer.virtual_views.calendar.create') }}-->
+<!--              </v-tooltip>-->
+<!--              <v-tooltip bottom>-->
+<!--                <template #activator="{ on }">-->
+<!--                  <v-list-item-->
+<!--                    dense-->
+<!--                    open-class="body-2"-->
+<!--                    v-on="on"-->
+<!--                    @click="enableDummyFeat ? openCreateViewDlg('kanban') : comingSoon()"-->
+<!--                  >-->
+<!--                    <v-list-item-icon class="mr-n1">-->
+<!--                      <v-icon x-small>-->
+<!--                        mdi-tablet-dashboard-->
+<!--                      </v-icon>-->
+<!--                    </v-list-item-icon>-->
+<!--                    <v-list-item-title>-->
+<!--                      <span class="font-weight-regular">-->
+<!--                        &lt;!&ndash; Kanban &ndash;&gt;-->
+<!--                        {{ $t('nav_drawer.virtual_views.kanban.title') }}-->
+<!--                      </span>-->
+<!--                    </v-list-item-title>-->
 
-                    <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
-                  </v-list-item>
-                </template>
-                <!-- Add Kanban View -->
-                {{ $t('nav_drawer.virtual_views.kanban.create') }}
-              </v-tooltip>
-              <v-tooltip bottom>
-                <template #activator="{ on }">
-                  <v-list-item
-                    dense
-                    class="body-2"
-                    v-on="on"
-                    @click="$toast.info('Coming soon').goAway(3000)"
-                  >
-                    <v-list-item-icon class="mr-n1">
-                      <v-icon x-small class="mt-n1">
-                        mdi-form-select
-                      </v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>
-                      <span class="font-weight-regular">
-                        <!-- Form -->
+<!--                    <v-spacer />-->
+<!--                    <v-icon class="mr-1" small>-->
+<!--                      mdi-plus-->
+<!--                    </v-icon>-->
+<!--                  </v-list-item>-->
+<!--                </template>-->
+<!--                &lt;!&ndash; Add Kanban View &ndash;&gt;-->
+<!--                {{ $t('nav_drawer.virtual_views.kanban.create') }}-->
+<!--              </v-tooltip>-->
+<!--              <v-tooltip bottom>-->
+<!--                <template #activator="{ on }">-->
+<!--                  <v-list-item-->
+<!--                    dense-->
+<!--                    class="body-2"-->
+<!--                    v-on="on"-->
+<!--                    @click="$toast.info('Coming soon').goAway(3000)"-->
+<!--                  >-->
+<!--                    <v-list-item-icon class="mr-n1">-->
+<!--                      <v-icon x-small class="mt-n1">-->
+<!--                        mdi-form-select-->
+<!--                      </v-icon>-->
+<!--                    </v-list-item-icon>-->
+<!--                    <v-list-item-title>-->
+<!--                      <span class="font-weight-regular">-->
+<!--                        &lt;!&ndash; Form &ndash;&gt;-->
 
-                        {{ $t('nav_drawer.virtual_views.form.title') }}
-                      </span>
-                    </v-list-item-title>
+<!--                        {{ $t('nav_drawer.virtual_views.form.title') }}-->
+<!--                      </span>-->
+<!--                    </v-list-item-title>-->
 
-                    <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
-                  </v-list-item>
-                </template>
-                <!-- Add Form View -->
-                {{ $t('nav_drawer.virtual_views.form.create') }}
-              </v-tooltip>
+<!--                    <v-spacer />-->
+<!--                    <v-icon class="mr-1" small>-->
+<!--                      mdi-plus-->
+<!--                    </v-icon>-->
+<!--                  </v-list-item>-->
+<!--                </template>-->
+<!--                &lt;!&ndash; Add Form View &ndash;&gt;-->
+<!--                {{ $t('nav_drawer.virtual_views.form.create') }}-->
+<!--              </v-tooltip>-->
             </v-list>
           </template>
         </div>
@@ -378,19 +378,19 @@
               </v-menu>
             </v-list-item>
 
-<!--            <v-tooltip bottom>-->
-<!--              <template #activator="{ on }">-->
-<!--                <v-list-item v-on="on" @click="copyapiUrlToClipboard">-->
-<!--                  <v-icon x-small class="mr-2">-->
-<!--                    mdi-content-copy-->
-<!--                  </v-icon>-->
-<!--                  &lt;!&ndash; Copy API URL &ndash;&gt;-->
-<!--                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>-->
-<!--                </v-list-item>-->
-<!--              </template>-->
-<!--              &lt;!&ndash; Copy API URL &ndash;&gt;-->
-<!--              {{ $t('nav_drawer.advanced.views_list') }}-->
-<!--            </v-tooltip>-->
+            <v-tooltip bottom>
+              <template #activator="{ on }">
+                <v-list-item v-on="on" @click="copyapiUrlToClipboard">
+                  <v-icon x-small class="mr-2">
+                    mdi-content-copy
+                  </v-icon>
+                  <!-- Copy API URL -->
+                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>
+                </v-list-item>
+              </template>
+              <!-- Copy API URL -->
+              {{ $t('nav_drawer.advanced.views_list') }}
+            </v-tooltip>
             <template v-if="_isUIAllowed('model')">
               <v-divider class="advance-menu-divider" />
               <slot />

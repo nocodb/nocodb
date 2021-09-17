@@ -291,3 +291,12 @@ Our mission is to provide the most powerful no-code interface for databases whic
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
+
+# Litestream
+- Let's update the litestream image 
+- Will confirm whether it works 
+- Adding configuration for all clouds
+- Documenting it
+- litestream + npm setup
+- Architecture diagram
+

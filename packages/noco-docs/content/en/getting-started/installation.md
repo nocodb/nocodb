@@ -274,6 +274,10 @@ aws ecs create-service \
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
 | NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+| AWS_ACCESS_KEY_ID | No | For Litestream - S3 access key id               | if Litestream is configure and NC_DB is not present. SQLite gets backed up to S3  |
+| AWS_SECRET_ACCESS_KEY | No | For Litestream - S3 secret access key         | if Litestream is configure and NC_DB is not present. SQLite gets backed up to S3  |
+| AWS_BUCKET | No | For Litestream - S3 bucket                              | if Litestream is configure and NC_DB is not present. SQLite gets backed up to S3  |
+| AWS_BUCKET_PATH | No | For Litestream - S3 bucket path                   | if Litestream is configure and NC_DB is not present. SQLite gets backed up to S3  |
 
 ## Sample Demos
 

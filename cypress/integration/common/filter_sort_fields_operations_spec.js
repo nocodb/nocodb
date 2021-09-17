@@ -1,29 +1,16 @@
+
+import { loginPage } from "../../support/page_objects/navigation"
+
+
 const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - Filter, Fields,  Sort`, () => {
 
     before(() => {
-      cy.waitForSpinners();
-      if (type === 'rest') {
-        cy.openOrCreateRestProject({
-          new: true
-        });
-      } else {
-        cy.openOrCreateGqlProject({
-          new: true
-        });
-      }
+      loginPage.loginAndOpenProject(type)
 
       // open country table
       cy.openTableTab('Country');
-      // cy.intercept({
-      //   method: "GET",
-      //   url: "/nc/**/api/v1/Country**",
-      //   hostname: 'localhost',
-      //   port: 8080
-      // }).as("dataGetFirst");
-      // cy.wait("@dataGetFirst");
-      // todo: wait until api call completes
       cy.wait(2000)
 
     })

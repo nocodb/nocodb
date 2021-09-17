@@ -1,4 +1,6 @@
 
+import { loginPage } from "../../support/page_objects/navigation"
+
 const genTest = (type) => {
 
     describe(`${type.toUpperCase()} api - FORMULA`, () => {
@@ -6,15 +8,7 @@ const genTest = (type) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.waitForSpinners();
-
-            // create project
-            //
-            if (type === 'rest') {
-                cy.openOrCreateRestProject({ new: true })
-            } else {
-                cy.openOrCreateGqlProject({ new: true })
-            }
+            loginPage.loginAndOpenProject(type)
 
             // open a table to work on views
             //
@@ -143,7 +137,7 @@ const genTest = (type) => {
             // ADD, AVG, LEN
             RESULT_MATH_0[i] = ((cityId[i] + countryId[i]) +
                 ((cityId[i] + countryId[i]) / 2) +
-                (city[i].length)).toFixed(4)
+                (city[i].length))
 
             // CEILING, FLOOR, ROUND, MOD, MIN, MAX
             RESULT_MATH_1[i] = (Math.ceil(1.4) +

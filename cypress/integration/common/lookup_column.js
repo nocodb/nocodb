@@ -1,4 +1,6 @@
 
+import { loginPage } from "../../support/page_objects/navigation"
+
 const genTest = (type) => {
 
     describe(`${type.toUpperCase()} api - LookUp column`, () => {
@@ -15,15 +17,7 @@ const genTest = (type) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.waitForSpinners();
-
-            // create project
-            //
-            if (type === 'rest') {
-                cy.openOrCreateRestProject({ new: true })
-            } else {
-                cy.openOrCreateGqlProject({ new: true })
-            }
+            loginPage.loginAndOpenProject(type)
 
             // open a table to work on views
             //

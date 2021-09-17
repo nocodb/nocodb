@@ -1,4 +1,4 @@
-import { loginPage, projectsPage } from "../../support/page_objects/navigation"
+import { loginPage } from "../../support/page_objects/navigation"
 
 const shareViewWithPwd = (pwdCorrect, pwd) => {
 
@@ -85,26 +85,10 @@ const genTest = (type) => {
 
     describe(`${type.toUpperCase()} api - Clipboard access`, () => {
 
-        let projectName
-
-        // create project with default credentials to work with
-        //
-        before( () => {
-
-            loginPage.signIn({ username: 'user@nocodb.com', password: 'Password123.' })
-
-            if(type == 'rest')
-                projectName = projectsPage.createDefaulRestProject() 
-            else
-                projectName = projectsPage.createDefaultGraphQlProject()
-        })
-
         // Run once before test- create project (rest/graphql)
         //
         beforeEach(() => {
-            loginPage.signIn({ username: 'user@nocodb.com', password: 'Password123.' })
-            projectsPage.openProject(projectName)
-
+            loginPage.loginAndOpenProject(type)
             cy.openTableTab('City');
         })
 
@@ -122,11 +106,11 @@ const genTest = (type) => {
 
         it('Delete view', deleteCreatedViews )
 
-        // clean up
-        after( () => {
-            loginPage.signIn({ username: 'user@nocodb.com', password: 'Password123.' })
-            projectsPage.deleteProject(projectName)
-        })
+        // // clean up
+        // after( () => {
+        //     loginPage.signIn({ username: 'user@nocodb.com', password: 'Password123.' })
+        //     projectsPage.deleteProject(projectName)
+        // })
     })
 }
 

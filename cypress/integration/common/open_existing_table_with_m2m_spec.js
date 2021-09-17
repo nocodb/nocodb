@@ -1,20 +1,11 @@
+
+import { loginPage } from "../../support/page_objects/navigation"
+
 const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - Existing table with M2M'`, () => {
 
-
-    before(() => {
-      cy.waitForSpinners();
-      if (type === 'rest') {
-        cy.openOrCreateRestProject({
-          new: true
-        });
-      } else {
-        cy.openOrCreateGqlProject({
-          new: true
-        });
-      }
-    })
+    before(loginPage.loginAndOpenProject(type))
 
     it('Open Actor table', () => {
 

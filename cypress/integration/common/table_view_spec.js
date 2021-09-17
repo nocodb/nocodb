@@ -7,19 +7,7 @@ const genTest = (dbType) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      cy.waitForSpinners();
-
-      // create project
-      //
-      if (dbType === 'rest') {
-        cy.openOrCreateRestProject({
-          new: true
-        });
-      } else {
-        cy.openOrCreateGqlProject({
-          new: true
-        });
-      }
+      loginPage.loginAndOpenProject(type)
 
       // open a table to work on views
       //

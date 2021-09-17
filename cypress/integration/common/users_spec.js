@@ -2,18 +2,7 @@ const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - User Management`, () => {
 
-    before(() => {
-      cy.waitForSpinners();
-      if (type === 'rest') {
-        cy.openOrCreateRestProject({
-          new: true
-        });
-      } else {
-        cy.openOrCreateGqlProject({
-          new: true
-        });
-      }
-    });
+    before( loginPage.loginAndOpenProject(type) )
 
     const email = `noco${Date.now()}@gmail.com`;
 

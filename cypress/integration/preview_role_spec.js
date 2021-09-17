@@ -5,6 +5,7 @@
 
 import { loginPage, projectsPage } from "../support/page_objects/navigation"
 import { mainPage } from "../support/page_objects/mainPage"
+import { roles } from "../support/page_objects/projectConstants"
 
 // should we reverify permissions after preview reset?
 const reVerificationAfterReset = false
@@ -12,40 +13,6 @@ const reVerificationAfterReset = false
 // should we verify permissions in owner mode before preview?
 const baseVerificationBeforePreview = false
 
-// database
-//      validation details
-//          advSettings: left navigation bar (audit, metadata, auth, transient view modes)
-//          editSchema: create table, add/update/delete column
-//          editData: add/ update/ delete row, cell contents
-//          editComment: add comment
-//          shareView: right navigation bar (share options)
-const roles = {
-    owner: {
-        name: 'owner',
-        credentials: { username: 'user@nocodb.com', password: 'Password123.' },
-        validations: { advSettings: true, editSchema: true, editData: true, editComment: true, shareView: true }
-    },
-    creator: {
-        name: 'creator',
-        credentials: { username: 'creator@nocodb.com', password: 'Password123.' },
-        validations: { advSettings: true, editSchema: true, editData: true, editComment: true, shareView: true }
-    },
-    editor: {
-        name: 'editor',
-        credentials: { username: 'editor@nocodb.com', password: 'Password123.' },
-        validations: { advSettings: false, editSchema: false, editData: true, editComment: true, shareView: false }
-    },
-    commenter: {
-        name: 'commenter',
-        credentials: { username: 'commenter@nocodb.com', password: 'Password123.' },
-        validations: { advSettings: false, editSchema: false, editData: false, editComment: true, shareView: false }
-    },
-    viewer: {
-        name: 'viewer',
-        credentials: { username: 'viewer@nocodb.com', password: 'Password123.' },
-        validations: { advSettings: false, editSchema: false, editData: false, editComment: false, shareView: false }
-    }
-}
 
 // project configuration settings
 //

@@ -6,17 +6,7 @@ const genTest = (type) => {
     const updatedColName = 'updated_column_name' + Date.now();
 
     before(() => {
-      cy.waitForSpinners();
-      if (type === 'rest') {
-        cy.openOrCreateRestProject({
-          new: true
-        });
-      } else {
-        cy.openOrCreateGqlProject({
-          new: true
-        });
-      }
-
+      loginPage.loginAndOpenProject(type)
       cy.createTable(name)
     });
 

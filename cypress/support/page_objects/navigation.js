@@ -1,5 +1,5 @@
 
-import { defaultDbParams } from "./projectConstants"
+import { roles, staticProjects, defaultDbParams } from "./projectConstants"
 
 ///////////////////////////////////////////////////////////
 // Sign in/ Sign up page
@@ -51,6 +51,17 @@ export class _loginPage {
         cy.url({ timeout: 6000 }).should('contain', '#/project')
         cy.wait(1000)
     }
+
+    // standard pre-project activity
+    //
+    loginAndOpenProject(apiType) {
+        loginPage.signIn(roles.owner.credentials)
+
+        if ('rest' == apiType) 
+            projectsPage.openProject(staticProjects.externalREST.basic.name)
+        else
+            projectsPage.openProject(staticProjects.externalGQL.basic.name)        
+    }    
 }
 
 

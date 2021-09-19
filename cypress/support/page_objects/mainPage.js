@@ -98,6 +98,23 @@ export class _mainPage {
         cy.get('.nc-invite-or-save-btn').click()  
         cy.wait(1000)       
     }
+
+    getCell = (columnHeader, cellNumber) => {
+        return cy.get(`tbody > :nth-child(${cellNumber}) > [data-col="${columnHeader}"]`)
+    }
+
+    getPagination = (pageNumber) => {
+        if(pageNumber == '<')
+            return cy.get('.nc-pagination .v-pagination > li:first-child')
+        if(pageNumber == '>')
+            return cy.get('.nc-pagination .v-pagination > li:last-child')
+            
+        return cy.get(`.nc-pagination .v-pagination > li:contains(${pageNumber}) button`)
+    }
+
+    getRow = (rowIndex) => {
+        return cy.get('.xc-row-table').find('tr').eq(rowIndex)
+    }
 }
 
 

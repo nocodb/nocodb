@@ -165,7 +165,7 @@ Cypress.Commands.add("getActiveMenu", () => {
   return cy.get('.menuable__content__active').last()
 });
 
-Cypress.Commands.add("getActiveModal", () => {
+Cypress.Commands.add("getActiveContentModal", () => {
   return cy.get('.v-dialog__content--active').last()
 });
 

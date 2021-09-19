@@ -314,8 +314,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         }
       }
 
-      tables = args.tableNames.map(({tn,_tn}) => ({tn, type: args.type,_tn}));
-      tables.push(...relatedTableList.map(t => ({tn:t})))
+      tables = args.tableNames.map(({tn, _tn}) => ({tn, type: args.type, _tn}));
+      tables.push(...relatedTableList.map(t => ({tn: t})))
     } else {
       tables = (await this.sqlClient.tableList())?.data?.list?.filter(({tn}) => !IGNORE_TABLES.includes(tn));
 
@@ -562,8 +562,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     /* handle xc_tables update in parallel */
     await NcHelp.executeOperations(tableRoutes, this.connectionConfig.client);
     await NcHelp.executeOperations(relationRoutes, this.connectionConfig.client);
-
-
 
 
     const swaggerDoc = {
@@ -1628,54 +1626,75 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     addApis?: any,
     deleteTags?: string[]
   }) {
+
     this.log(`swaggerUpdate :`,);
+
     if (!args.deleteApis && !args.addApis && !args.deleteTags) {
       return;
     }
 
+    /* load swagger JSON */
     const swaggerFilePath = path.join(this.config.toolDir, 'nc', this.projectId, this.getDbAlias(), 'swagger');
-    const swaggerDoc = JSON.parse(fs.readFileSync(path.join(swaggerFilePath, 'swagger.json'), 'utf8'));
+    const swaggerJson = JSON.parse(fs.readFileSync(path.join(swaggerFilePath, 'swagger.json'), 'utf8'));
+
+    /* remove tags, paths and keys */
     if (args.deleteApis) {
       this.log(`swaggerUpdate : deleting swagger apis`);
 
       const {tags, paths, definitions} = args.deleteApis;
+
       if (tags) {
-        swaggerDoc.tags = swaggerDoc.tags.filter(({name}) => tags.find(t => t.name === name))
+        swaggerJson.tags = swaggerJson.tags.filter(({name}) => tags.find(t => t.name === name))
       }
       if (paths) {
-        Object.keys(paths).forEach(path => delete swaggerDoc.tags[path]);
+        Object.keys(paths).forEach(path => delete swaggerJson.tags[path]);
       }
       if (definitions) {
-        Object.keys(definitions).forEach(def => delete swaggerDoc.definitions[def]);
+        Object.keys(definitions).forEach(def => delete swaggerJson.definitions[def]);
       }
     }
-    if (args.deleteTags) {
-      this.log(`swaggerUpdate : deleting swagger tags : %o`, args.deleteTags);
-      for (const tag of args.deleteTags) {
-        swaggerDoc.tags = swaggerDoc.tags.filter(t => t.name !== tag);
-        Object.keys(swaggerDoc.paths).forEach(p => {
-          if (swaggerDoc.paths?.[p]?.[Object.keys(swaggerDoc.paths[p])[0]]?.tags?.includes(tag)) {
-            delete swaggerDoc.paths[p];
-          }
-        })
-      }
-    }
+
+    /* add tags, paths and defnitions */
     if (args.addApis) {
       this.log(`swaggerUpdate : adding swagger apis`);
       const {tags, paths, definitions} = args.addApis;
       if (tags) {
-        swaggerDoc.tags.push(...tags);
+        swaggerJson.tags.push(...tags);
       }
       if (paths) {
-        Object.assign(swaggerDoc.paths, paths);
+        Object.assign(swaggerJson.paths, paths);
       }
       if (definitions) {
-        Object.assign(swaggerDoc.definitions, definitions);
+        Object.assign(swaggerJson.definitions, definitions);
+      }
+    }
+
+    /* remove tags, paths & defnitions */
+    if (args.deleteTags) {
+      this.log(`swaggerUpdate : deleting swagger tags : %o`, args.deleteTags);
+      for (const tag of args.deleteTags) {
+
+        swaggerJson.tags = swaggerJson.tags.filter(t => t.name !== tag);
+
+        Object.keys(swaggerJson.paths).forEach(p => {
+          if (swaggerJson.paths?.[p]?.[Object.keys(swaggerJson.paths[p])[0]]?.tags?.includes(tag)) {
+            delete swaggerJson.paths[p];
+          }
+        })
+
+        if (swaggerJson.definitions) {
+          if(swaggerJson.definitions[tag]) {
+            delete swaggerJson.definitions[tag];
+          }
+          if(swaggerJson.definitions[`${tag}Nested`]) {
+            delete swaggerJson.definitions[`${tag}Nested`];
+          }
+        }
       }
     }
 
 
-    fs.writeFileSync(path.join(swaggerFilePath, 'swagger.json'), JSON.stringify(swaggerDoc));
+      fs.writeFileSync(path.join(swaggerFilePath, 'swagger.json'), JSON.stringify(swaggerJson));
 
   }
 
@@ -1800,7 +1819,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
 
   protected async getManyToManyRelations(args = {}): Promise<Set<any>> {
-    const metas:Set<any> = await super.getManyToManyRelations(args);
+    const metas: Set<any> = await super.getManyToManyRelations(args);
 
     for (const metaObj of metas) {
 

@@ -174,22 +174,18 @@ Cypress.Commands.add('createTable', (name) => {
   cy.get('.add-btn').click();
   cy.get('.nc-create-table-card .nc-table-name input[type="text"]').first().click().clear().type(name)
   cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]').first().should('have.value', name.toLowerCase())
-  cy.wait(5000)
   cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
   cy.get(`.project-tab:contains(${name})`).should('exist')
   cy.url().should('contain', `?name=${name}&`)
+  cy.wait(3000)
 })
 
 Cypress.Commands.add('deleteTable', (name) => {
   cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
     .first().click()
-
   cy.get('.nc-project-tree').contains(name, {timeout: 6000}).first().click({force: true});
-
   cy.get(`.project-tab:contains(${name}):visible`).should('exist')
-
   cy.get('.nc-table-delete-btn:visible').click()
-
   cy.get('button:contains(Submit)').click()
   cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
 })
@@ -197,11 +193,8 @@ Cypress.Commands.add('deleteTable', (name) => {
 Cypress.Commands.add('createColumn', (table, columnName) => {
   cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
     .first().click()
-
   cy.get('.nc-project-tree').contains(table, {timeout: 6000}).first().click({force: true});
-
   cy.get(`.project-tab:contains(${table}):visible`).should('exist')
-
   cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
   cy.get('.nc-column-name-input input').clear().type(columnName)
   cy.get('.nc-col-create-or-edit-card').contains('Save').click()

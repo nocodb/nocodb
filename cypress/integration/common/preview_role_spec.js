@@ -3,9 +3,9 @@
 //      user@nocodb.com signed up as admin
 //      sakilaDb database created already 
 
-import { loginPage, projectsPage } from "../support/page_objects/navigation"
-import { mainPage } from "../support/page_objects/mainPage"
-import { roles } from "../support/page_objects/projectConstants"
+import { loginPage, projectsPage } from "../../support/page_objects/navigation"
+import { mainPage } from "../../support/page_objects/mainPage"
+import { roles } from "../../support/page_objects/projectConstants"
 
 // should we reverify permissions after preview reset?
 const reVerificationAfterReset = false

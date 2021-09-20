@@ -1,35 +1,8 @@
-import { loginPage, projectsPage } from "../support/page_objects/navigation"
-import { mainPage } from "../support/page_objects/mainPage"
-import { roles } from "../support/page_objects/projectConstants"
+import { loginPage } from "../../support/page_objects/navigation"
+import { mainPage } from "../../support/page_objects/mainPage"
+import { roles } from "../../support/page_objects/projectConstants"
 
-describe('Test project creation, user creation', () => {
-
-    let projectName = ''
-
-    it('Create Project', () => {
-
-        loginPage.signUp(roles.owner.credentials)
-
-        const projectParams = { dbType: 1, apiType: 0, name: 'sakilaDb' }
-        const databaseParams = {
-            databaseType: 0,
-            hostAddress: 'localhost',
-            portNumber: '3306',
-            username: 'root',
-            password: 'password',
-            databaseName: 'sakila'
-        }
-
-        projectName = projectsPage.createProject(projectParams, databaseParams)
-    })
-
-    userRoleCreation('creator')
-    userRoleCreation('editor')
-    userRoleCreation('commenter')
-    userRoleCreation('viewer')
-})
-
-const genTest = (roleType) => {
+const genTest = (apiType, roleType) => {
 
     describe(`User role validation`, () => {
 
@@ -188,7 +161,7 @@ const genTest = (roleType) => {
             // Owner, Creator will have two navigation drawer (on each side of center panel)
             if (validationString == 'exist') {
                 navDrawListCnt = 4
-                navDrawListItemCnt = 16
+                navDrawListItemCnt = 13
             }
             cy.get('.v-navigation-drawer__content').eq(1).find('[role="list"]').should('have.length', navDrawListCnt)
             cy.get('.v-navigation-drawer__content').eq(1).find('.v-list-item').should('have.length', navDrawListItemCnt)
@@ -206,9 +179,10 @@ const genTest = (roleType) => {
         ///////////////////////////////////////////////////////
         // Test suite
 
-        it(`[${roles[roleType].name}] SignIn, Open project SakilaDb`, () => {
-            loginPage.signIn(roles[roleType].credentials)
-            projectsPage.openProject('sakilaDb')
+        it(`[${roles[roleType].name}] SignIn, Open project`, () => {
+            //loginPage.signIn(roles[roleType].credentials)
+            //projectsPage.openProject('sakilaDb')
+            loginPage.loginAndOpenProject(apiType)
         })
 
         it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
@@ -249,11 +223,16 @@ const genTest = (roleType) => {
     })
 }
 
-genTest('owner')
-genTest('creator')
-genTest('editor')
-genTest('commenter')
-genTest('viewer')
+genTest('rest', 'owner')
+genTest('rest', 'creator')
+genTest('rest', 'editor')
+genTest('rest', 'commenter')
+genTest('rest', 'viewer')
+genTest('graphql', 'owner')
+genTest('graphql', 'creator')
+genTest('graphql', 'editor')
+genTest('graphql', 'commenter')
+genTest('graphql', 'viewer')
 
 
 /**

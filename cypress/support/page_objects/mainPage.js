@@ -115,6 +115,12 @@ export class _mainPage {
     getRow = (rowIndex) => {
         return cy.get('.xc-row-table').find('tr').eq(rowIndex)
     }
+
+    addColumn = (colName) => {
+      cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
+      cy.get('.nc-column-name-input input', {timeout: 3000}).clear().type(colName)
+      cy.get('.nc-col-create-or-edit-card').contains('Save').click()        
+    }
 }
 
 

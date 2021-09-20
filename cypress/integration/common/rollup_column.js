@@ -1,4 +1,3 @@
-
 const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - RollUp column`, () => {

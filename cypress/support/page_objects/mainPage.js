@@ -33,7 +33,6 @@ export class _mainPage {
         return cy.get('header.v-toolbar').eq(0).find('button').eq(toolBarItem)
     }
 
-
     navigationDraw(item) {
         if (item == this.ROLE_VIEW)
             return cy.get('.nc-nav-drawer').find('.v-list').last()

@@ -176,7 +176,7 @@ Cypress.Commands.add('createTable', (name) => {
   cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]').first().should('have.value', name.toLowerCase())
   cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
   cy.get(`.project-tab:contains(${name})`).should('exist')
-  cy.url().should('contain', `?name=${name}&`)
+  cy.url().should('contain', `name=${name}`)
   cy.wait(3000)
 })
 

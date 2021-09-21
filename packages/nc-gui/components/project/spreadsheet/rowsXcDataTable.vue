@@ -273,6 +273,19 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
+          <template v-else-if="selectedView && selectedView.show_as === 'form' ">
+            <form-view
+              :nodes="nodes"
+              :table="table"
+              :show-fields="showFields"
+              :available-columns="availableColumns"
+              :meta="meta"
+              :data="data"
+              :primary-value-column="primaryValueColumn"
+              :form-params.sync="extraViewParams.formParams"
+              @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+            />
+          </template>
         </div>
         <template v-if="data">
           <pagination
@@ -307,6 +320,7 @@
         :view-status.sync="viewStatus"
         :columns-width.sync="columnsWidth"
         :show-system-fields.sync="showSystemFields"
+        :extra-view-params.sync="extraViewParams"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
         @loadTableData="loadTableData"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
@@ -487,6 +501,7 @@
 
 import { mapActions } from 'vuex'
 import debounce from 'debounce'
+import FormView from './views/formView'
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
 
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
@@ -507,6 +522,7 @@ import ColumnFilter from '~/components/project/spreadsheet/components/columnFilt
 export default {
   name: 'RowsXcDataTable',
   components: {
+    FormView,
     DebugMetas,
     Pagination,
     ExpandedForm,
@@ -535,6 +551,7 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    extraViewParams: {},
     debug: false,
     key: 1,
     dataLoaded: false,

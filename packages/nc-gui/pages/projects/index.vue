@@ -541,8 +541,11 @@
             {{ $t('projects.show_community_us_on_Github') }}
           </v-list-item-title>
         </v-list-item>
-        <v-divider />
+        <v-divider
+          v-if="!_isZh"
+        />
         <v-list-item
+          v-if="!_isZh"
           dense
           target="_blank"
           href="https://calendly.com/nocodb"
@@ -577,7 +580,12 @@
           </v-list-item-title>
         </v-list-item>
         <v-divider />
-        <v-list-item dense href="https://twitter.com/NocoDB" target="_blank">
+        <v-list-item
+          v-if="!_isZh"
+          dense
+          href="https://twitter.com/NocoDB"
+          target="_blank"
+        >
           <v-list-item-icon>
             <v-icon class="ml-2" :color="textColors[1]">
               mdi-twitter
@@ -590,6 +598,51 @@
             }}
           </v-list-item-title>
         </v-list-item>
+        <template v-else>
+          <v-list-item dense class="" @click="$refs.wechat.$el.firstElementChild.click()">
+            <v-list-item-icon>
+              <share-icons
+                ref="wechat"
+                class="small  mr-n2"
+                url="https://github.com/nocodb/nocodb"
+                :social-medias="['wechat']"
+              />
+            </v-list-item-icon>
+            <v-list-item-title>
+              Please share it in Wechat
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item dense class="" @click="$refs.weibo.$el.firstElementChild.click()">
+            <v-list-item-icon>
+              <share-icons
+                ref="weibo"
+                class="small mr-n2"
+                url="https://github.com/nocodb/nocodb"
+                :social-medias="['weibo']"
+              />
+            </v-list-item-icon>
+            <v-list-item-title>
+              Please share it in Weibo
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item
+            dense
+            target="_blank"
+          >
+            <v-list-item-icon>
+              <img class="ml-2" src="vue.svg" width="25">
+            </v-list-item-icon>
+            <!-- Follow NocoDB -->
+            <v-list-item-title>
+              Built with Vue JS
+              <!--              {{-->
+              <!--                $t('projects.show_community_follow_nocodb')-->
+              <!--              }}-->
+            </v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </div>
 
@@ -613,11 +666,13 @@
 
 <script>
 import dlgLabelSubmitCancel from '../../components/utils/dlgLabelSubmitCancel.vue'
+import ShareIcons from '../../components/share-icons'
 import SponsorMini from '@/components/sponsorMini'
 import colors from '~/mixins/colors'
 
 export default {
   components: {
+    ShareIcons,
     SponsorMini,
     dlgLabelSubmitCancel
     // howItWorks,

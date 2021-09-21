@@ -25,12 +25,12 @@ export default {
     parentListeners() {
       const $listeners = {}
 
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
+      // if (this.$listeners.blur) {
+      //   $listeners.blur = this.$listeners.blur
+      // }
+      // if (this.$listeners.focus) {
+      //   $listeners.focus = this.$listeners.focus
+      // }
 
       return $listeners
     }

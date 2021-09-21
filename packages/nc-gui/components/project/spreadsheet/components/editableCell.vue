@@ -21,7 +21,6 @@
       v-model="localState"
       :is-form="isForm"
       v-on="parentListeners"
-      @input="$emit('change');"
     />
 
     <integer-cell
@@ -108,6 +107,7 @@
 </template>
 
 <script>
+import debounce from 'debounce'
 import DatePickerCell from '@/components/project/spreadsheet/components/editableCell/datePickerCell'
 import EditableUrlCell from '@/components/project/spreadsheet/components/editableCell/editableUrlCell'
 import JsonEditableCell from '@/components/project/spreadsheet/components/editableCell/jsonEditableCell'
@@ -124,7 +124,6 @@ import EditableAttachmentCell from '@/components/project/spreadsheet/components/
 import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
 import SetListEditableCell from '@/components/project/spreadsheet/components/editableCell/setListEditableCell'
 import SetListCell from '@/components/project/spreadsheet/components/cell/setListCell'
-import debounce from 'debounce'
 
 export default {
   name: 'EditableCell',

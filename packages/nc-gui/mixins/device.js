@@ -43,6 +43,9 @@ export default {
     _isEE() {
       return process.env.EE
     },
+    _isZh() {
+      return ['zh', 'zh-cn', 'zh-hk', 'zh-mo', 'zh-sg', 'zh-tw'].includes((navigator.language || navigator.userLanguage || 'en').toLowerCase())
+    },
     ...mapGetters({
       _isUIAllowed: 'users/GtrIsUIAllowed'
     })

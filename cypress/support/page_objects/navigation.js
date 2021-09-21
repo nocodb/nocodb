@@ -54,13 +54,21 @@ export class _loginPage {
 
     // standard pre-project activity
     //
-    loginAndOpenProject(apiType) {
+    loginAndOpenProject(apiType, xcdb) {
         loginPage.signIn(roles.owner.credentials)
 
+        if(!xcdb) {
         if ('rest' == apiType) 
             projectsPage.openProject(staticProjects.externalREST.basic.name)
         else
             projectsPage.openProject(staticProjects.externalGQL.basic.name)        
+        }
+        else {
+            if ('rest' == apiType) 
+                projectsPage.openProject(staticProjects.sampleREST.basic.name)
+            else
+                projectsPage.openProject(staticProjects.sampleGQL.basic.name)  
+        }
     }    
 }
 

@@ -1,6 +1,6 @@
-import { loginPage } from "../../support/page_objects/navigation"
+import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
-import { roles } from "../../support/page_objects/projectConstants"
+import { roles, staticProjects } from "../../support/page_objects/projectConstants"
 
 const genTest = (apiType, roleType) => {
 
@@ -20,7 +20,7 @@ const genTest = (apiType, roleType) => {
             mainPage.navigationDraw(mainPage.TEAM_N_AUTH).should(validationString)
             mainPage.navigationDraw(mainPage.PROJ_METADATA).should(validationString)
 
-            mainPage.navigationDraw(mainPage.ROLE_VIEW).should(validationString)
+            // mainPage.navigationDraw(mainPage.ROLE_VIEW).should(validationString)
             if ('exist' == validationString) {
                 mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('editor')
                 mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('commenter')
@@ -28,7 +28,6 @@ const genTest = (apiType, roleType) => {
             }
 
             cy.get('button:contains("New User")').should(validationString)
-
         }
 
 
@@ -81,7 +80,7 @@ const genTest = (apiType, roleType) => {
 
             // update row option (right click)
             //
-            cy.get(`tbody > :nth-child(4) > [data-col="City"]`).rightclick()
+            cy.get(`tbody > :nth-child(8) > [data-col="City"]`).rightclick()
 
             cy.get('.menuable__content__active').should(validationString)
 
@@ -113,7 +112,7 @@ const genTest = (apiType, roleType) => {
 
             // double click cell entries to edit
             //
-            cy.get(`tbody > :nth-child(4) > [data-col="City"]`).dblclick().find('input').should(validationString)
+            cy.get(`tbody > :nth-child(8) > [data-col="City"]`).dblclick().find('input').should(validationString)
         }
 
 
@@ -131,7 +130,7 @@ const genTest = (apiType, roleType) => {
             // click on comment icon & type comment
             //
 
-            cy.get('.v-input.row-checkbox').eq(4).next().next().click({ force: true })
+            cy.get('.v-input.row-checkbox').eq(8).next().next().click({ force: true })
             //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
             cy.getActiveModal().find('.mdi-comment-multiple-outline').should('exist').click()
             cy.getActiveModal().find('.comment-box').type('Comment-1{enter}')
@@ -180,9 +179,11 @@ const genTest = (apiType, roleType) => {
         // Test suite
 
         it(`[${roles[roleType].name}] SignIn, Open project`, () => {
-            //loginPage.signIn(roles[roleType].credentials)
-            //projectsPage.openProject('sakilaDb')
-            loginPage.loginAndOpenProject(apiType)
+            loginPage.signIn(roles[roleType].credentials)
+            if('rest' == apiType)
+                projectsPage.openProject(staticProjects.externalREST.basic.name)
+            else
+                projectsPage.openProject(staticProjects.externalGQL.basic.name)
         })
 
         it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {

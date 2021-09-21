@@ -237,7 +237,7 @@ describe('Role preview validations', () => {
     // Sign in/ open project
     before(() => {
         loginPage.signIn(roles.owner.credentials)
-        projectsPage.openProject('sakilaDb')
+        projectsPage.openProject('externalREST')
     })
 
     const genTest = (roleType) => {

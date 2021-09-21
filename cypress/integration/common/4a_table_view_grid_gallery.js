@@ -1,3 +1,5 @@
+import { loginPage } from "../../support/page_objects/navigation"
+
 const genTest = (dbType) => {
 
   describe(`${dbType.toUpperCase()} api - Table views`, () => {
@@ -7,7 +9,7 @@ const genTest = (dbType) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      loginPage.loginAndOpenProject(type)
+      loginPage.loginAndOpenProject(dbType)
 
       // open a table to work on views
       //

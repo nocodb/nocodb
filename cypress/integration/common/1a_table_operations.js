@@ -1,27 +1,12 @@
 
-import { loginPage, projectsPage } from "../../support/page_objects/navigation";
-import { roles, staticProjects } from "../../support/page_objects/projectConstants";
+import { loginPage } from "../../support/page_objects/navigation";
 
-const genTest = (type, meta) => {
+const genTest = (type, xcdb) => {
 
-  describe(`${meta ? 'Meta - ' : ''}${type.toUpperCase()} api - Table`, () => {
+  describe(`${xcdb ? 'Meta - ' : ''}${type.toUpperCase()} api - Table`, () => {
 
     before(() => {
-      loginPage.signIn(roles.owner.credentials)
-      if(!meta)
-      {
-        if(type=='rest')
-          projectsPage.openProject(staticProjects.externalREST.basic.name)
-        else
-          projectsPage.openProject(staticProjects.externalGQL.basic.name)
-      }
-      else
-      {
-        if(type=='rest')
-          projectsPage.openProject(staticProjects.sampleREST.basic.name)
-        else
-          projectsPage.openProject(staticProjects.sampleGQL.basic.name)
-      }  
+      loginPage.loginAndOpenProject(type, xcdb)
     })
 
     const name = 'Test' + Date.now();
@@ -29,16 +14,20 @@ const genTest = (type, meta) => {
     // create a new random table
     it('Create Table', () => {
       cy.get('.add-btn').click();
-      cy.get('.nc-create-table-card .nc-table-name input[type="text"]').first().click().clear().type(name)
-      if (!meta) {
-        cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]').first().should('have.value', name.toLowerCase())
+      cy.get('.nc-create-table-card .nc-table-name input[type="text"]')
+        .first().click().clear().type(name)
+
+      if (!xcdb) {
+        cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]')
+          .first().should('have.value', name.toLowerCase())
       }
       cy.wait(5000)
+
       cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
       cy.get(`.project-tab:contains(${name})`).should('exist')
       cy.url().should('contain', `?name=${name}&`)
 
-      cy.wait(3000)
+      cy.wait(5000)
     })
 
 
@@ -58,8 +47,8 @@ const genTest = (type, meta) => {
 }
 
 
-genTest('rest')
-genTest('graphql')
+genTest('rest', false)
+genTest('graphql', false)
 genTest('rest', true)
 genTest('graphql', true)
 

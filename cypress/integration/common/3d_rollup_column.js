@@ -1,3 +1,5 @@
+import { loginPage } from "../../support/page_objects/navigation"
+
 const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - RollUp column`, () => {

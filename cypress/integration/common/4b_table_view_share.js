@@ -12,7 +12,7 @@ const shareViewWithPwd = (pwdCorrect, pwd) => {
 
         // copy link text, visit URL
         cy.getActiveModal().find('.share-link-box')
-            .contains('http', {timeout: 2000})
+            .contains('http', {timeout: 10000})
             .then(($obj) => {
 
                 let linkText = $obj.text()

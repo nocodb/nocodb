@@ -49,11 +49,8 @@ const genTest = (type, meta) => {
         .first().click()
 
       cy.get('.nc-project-tree').contains(name, {timeout: 6000}).first().click({force: true});
-
       cy.get(`.project-tab:contains(${name}):visible`).should('exist')
-
       cy.get('.nc-table-delete-btn:visible').click()
-
       cy.get('button:contains(Submit)').click()
       cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
     });

@@ -4,7 +4,7 @@ import { loginPage } from "../../support/page_objects/navigation"
 
 const genTest = (type) => {
 
-  describe(`${type.toUpperCase()} api - Filter, Fields,  Sort`, () => {
+  describe(`${type.toUpperCase()} api - Filter, Fields, Sort`, () => {
     before(() => {
       loginPage.loginAndOpenProject(type)
 
@@ -15,8 +15,8 @@ const genTest = (type) => {
     })
 
     describe(`Pagination`, () => {
-    // check pagination
-    it('Check country table - Pagination', () => {
+      // check pagination
+      it('Check country table - Pagination', () => {
         cy.get('.nc-pagination').should('exist')
 
         // verify > pagination option
@@ -36,14 +36,14 @@ const genTest = (type) => {
       it('Add row using tool header button', () => {
 
         // add a row to end of Country table
-      cy.get('.nc-add-new-row-btn').click();
-      cy.get('#data-table-form-Country > input').first().type('Test Country');
-      cy.contains('Save Row').filter('button').click()
+        cy.get('.nc-add-new-row-btn').click();
+        cy.get('#data-table-form-Country > input').first().type('Test Country');
+        cy.contains('Save Row').filter('button').click()
 
         // verify
         mainPage.getPagination(5).click()
         mainPage.getCell("Country", 10).contains("Test Country").should('exist')
-    })
+      })
 
       // delete slingle row
       //
@@ -94,21 +94,21 @@ const genTest = (type) => {
     describe(`Sort operations`, () => {
       it('Enable sort', () => {
         // Sort menu operations (Country Column, Z->A)
-      cy.get('.nc-sort-menu-btn').click()
-      cy.contains('Add Sort Option').click();
-      cy.get('.nc-sort-field-select div').first().click()
-      cy.get('.menuable__content__active .v-list-item:contains(Country)').click()
-      cy.get('.nc-sort-dir-select div').first().click()
-      cy.get('.menuable__content__active .v-list-item:contains("Z -> A")').click()
+        cy.get('.nc-sort-menu-btn').click()
+        cy.contains('Add Sort Option').click();
+        cy.get('.nc-sort-field-select div').first().click()
+        cy.get('.menuable__content__active .v-list-item:contains(Country)').click()
+        cy.get('.nc-sort-dir-select div').first().click()
+        cy.get('.menuable__content__active .v-list-item:contains("Z -> A")').click()
         
-      cy.contains('Zambia').should('exist')
+        cy.contains('Zambia').should('exist')
       })
 
       it('Disable sort', () => {
         // remove sort and validate
-      cy.get('.nc-sort-item-remove-btn').click()
-      cy.contains('Zambia').should('not.exist')
-    })
+        cy.get('.nc-sort-item-remove-btn').click()
+        cy.contains('Zambia').should('not.exist')
+      })
 
     })
 

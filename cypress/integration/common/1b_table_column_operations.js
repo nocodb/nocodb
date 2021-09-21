@@ -82,7 +82,7 @@ const genTest = (type) => {
 
       cy.get(`th:contains(${updatedColName})`).should('not.exist');
     })
-    })
+  })
 }
 
 genTest('rest')

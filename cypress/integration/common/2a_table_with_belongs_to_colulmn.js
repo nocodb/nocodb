@@ -5,7 +5,7 @@ const genTest = (type) => {
 
   describe(`${type.toUpperCase()} api - Existing table`, () => {
     before(() => loginPage.loginAndOpenProject(type))
-
+    
     it('Table column header, URL validation', () => {
       cy.openTableTab('Country')
 

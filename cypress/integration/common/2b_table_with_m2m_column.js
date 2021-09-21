@@ -8,7 +8,7 @@ const genTest = (type) => {
       loginPage.loginAndOpenProject(type)
       cy.openTableTab('Actor')
     })
-
+    
     it('Table column header, URL validation', () => {
 
       // column name validation

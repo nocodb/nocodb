@@ -1,7 +1,7 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
     <v-toolbar height="32" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
-      <div class="d-flex xc-border align-center search-box">
+      <div v-if="!isForm" class="d-flex xc-border align-center search-box">
         <v-menu bottom offset-y>
           <template #activator="{on}">
             <div v-on="on">
@@ -72,62 +72,65 @@
         </span>
       </v-tooltip>
       <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
-      <x-btn tooltip="Reload view data" outlined small text @click="reload">
-        <v-icon small class="mr-1" color="grey  darken-3">
-          mdi-reload
-        </v-icon>
-      </x-btn>
-      <x-btn
-        v-if="isEditable && relationType !== 'bt'"
-        tooltip="Add new row"
-        :disabled="isLocked"
-        outlined
-        small
-        text
-        btn.class="nc-add-new-row-btn"
-        @click="insertNewRow(true,true)"
-      >
-        <v-icon small class="mr-1" color="grey  darken-3">
-          mdi-plus
-        </v-icon>
-      </x-btn>
-      <x-btn
-        small
-        text
-        outlined
-        tooltip="Save new rows"
-        :disabled="!edited || isLocked"
-        @click="save"
-      >
-        <v-icon small class="mr-1" color="grey  darken-3">
-          save
-        </v-icon>
-        Save
-      </x-btn>
 
-      <fields
-        v-model="showFields"
-        :field-list="fieldList"
-        :meta="meta"
-        :is-locked="isLocked"
-        :fields-order.sync="fieldsOrder"
-        :sql-ui="sqlUi"
-        :show-system-fields.sync="showSystemFields"
-        :cover-image-field.sync="coverImageField"
-        :is-gallery="isGallery"
-      />
+      <template v-if="!isForm">
+        <x-btn tooltip="Reload view data" outlined small text @click="reload">
+          <v-icon small class="mr-1" color="grey  darken-3">
+            mdi-reload
+          </v-icon>
+        </x-btn>
+        <x-btn
+          v-if="isEditable && relationType !== 'bt'"
+          tooltip="Add new row"
+          :disabled="isLocked"
+          outlined
+          small
+          text
+          btn.class="nc-add-new-row-btn"
+          @click="insertNewRow(true,true)"
+        >
+          <v-icon small class="mr-1" color="grey  darken-3">
+            mdi-plus
+          </v-icon>
+        </x-btn>
+        <x-btn
+          small
+          text
+          outlined
+          tooltip="Save new rows"
+          :disabled="!edited || isLocked"
+          @click="save"
+        >
+          <v-icon small class="mr-1" color="grey  darken-3">
+            save
+          </v-icon>
+          Save
+        </x-btn>
 
-      <sort-list
-        v-model="sortList"
-        :is-locked="isLocked"
-        :field-list="[...realFieldList, ...formulaFieldList]"
-      />
-      <column-filter
-        v-model="filters"
-        :is-locked="isLocked"
-        :field-list="[...realFieldList, ...formulaFieldList]"
-        dense
-      />
+        <fields
+          v-model="showFields"
+          :field-list="fieldList"
+          :meta="meta"
+          :is-locked="isLocked"
+          :fields-order.sync="fieldsOrder"
+          :sql-ui="sqlUi"
+          :show-system-fields.sync="showSystemFields"
+          :cover-image-field.sync="coverImageField"
+          :is-gallery="isGallery"
+        />
+
+        <sort-list
+          v-model="sortList"
+          :is-locked="isLocked"
+          :field-list="[...realFieldList, ...formulaFieldList]"
+        />
+        <column-filter
+          v-model="filters"
+          :is-locked="isLocked"
+          :field-list="[...realFieldList, ...formulaFieldList]"
+          dense
+        />
+      </template>
       <v-tooltip
         v-if="_isUIAllowed('table-delete')"
         bottom
@@ -273,8 +276,25 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
+          <template v-else-if="isForm">
+            <form-view
+              :nodes="nodes"
+              :table="table"
+              :available-columns="availableColumns"
+              :meta="meta"
+              :data="data"
+              :show-fields.sync="showFields"
+              :all-columns="allColumns"
+              :field-list="fieldList"
+              :is-locked="isLocked"
+              :fields-order.sync="fieldsOrder"
+              :primary-value-column="primaryValueColumn"
+              :form-params.sync="extraViewParams.formParams"
+              @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+            />
+          </template>
         </div>
-        <template v-if="data">
+        <template v-if="data && !isForm">
           <pagination
             v-model="page"
             :count="count"
@@ -307,6 +327,7 @@
         :view-status.sync="viewStatus"
         :columns-width.sync="columnsWidth"
         :show-system-fields.sync="showSystemFields"
+        :extra-view-params.sync="extraViewParams"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
         @loadTableData="loadTableData"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
@@ -487,6 +508,7 @@
 
 import { mapActions } from 'vuex'
 import debounce from 'debounce'
+import FormView from './views/formView'
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
 
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
@@ -507,6 +529,7 @@ import ColumnFilter from '~/components/project/spreadsheet/components/columnFilt
 export default {
   name: 'RowsXcDataTable',
   components: {
+    FormView,
     DebugMetas,
     Pagination,
     ExpandedForm,
@@ -535,6 +558,7 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    extraViewParams: {},
     debug: false,
     key: 1,
     dataLoaded: false,
@@ -692,7 +716,8 @@ export default {
           fieldsOrder: this.fieldsOrder,
           viewStatus: this.viewStatus,
           columnsWidth: this.columnsWidth,
-          showSystemFields: this.showSystemFields
+          showSystemFields: this.showSystemFields,
+          extraViewParams: this.extraViewParams
         }
 
         if (this.isGallery) {
@@ -1037,6 +1062,9 @@ export default {
     },
     isGallery() {
       return this.selectedView && this.selectedView.show_as === 'gallery'
+    },
+    isForm() {
+      return this.selectedView && this.selectedView.show_as === 'form'
     },
     meta() {
       return this.$store.state.meta.metas[this.table]

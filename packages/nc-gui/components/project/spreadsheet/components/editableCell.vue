@@ -151,7 +151,8 @@ export default {
     meta: Object,
     ignoreFocus: Boolean,
     isForm: Boolean,
-    active: Boolean
+    active: Boolean,
+    dummy: Boolean
   },
   data: () => ({
     changed: false,

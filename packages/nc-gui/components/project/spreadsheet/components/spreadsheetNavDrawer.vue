@@ -247,9 +247,13 @@
               <!--                &lt;!&ndash; Add Kanban View &ndash;&gt;-->
               <!--                {{ $t('nav_drawer.virtual_views.kanban.create') }}-->
               <!--              </v-tooltip>-->
-              <v-tooltip bottom>
+              <v-tooltip
+                v-if="enableDummyFeat"
+                bottom
+              >
                 <template #activator="{ on }">
                   <v-list-item
+                    v-if="enableDummyFeat"
                     dense
                     class="body-2"
                     v-on="on"

@@ -44,7 +44,9 @@ export default {
       return process.env.EE
     },
     _isZh() {
-      return ['zh', 'zh-cn', 'zh-hk', 'zh-mo', 'zh-sg', 'zh-tw'].includes((navigator.language || navigator.userLanguage || 'en').toLowerCase())
+      const zhLan = ['zh', 'zh-cn', 'zh-hk', 'zh-mo', 'zh-sg', 'zh-tw']
+      const browserLan = (navigator.languages || [navigator.language || navigator.userLanguage || 'en']).map(v => v.toLowerCase())
+      return zhLan.some(l => browserLan.includes(l))
     },
     ...mapGetters({
       _isUIAllowed: 'users/GtrIsUIAllowed'

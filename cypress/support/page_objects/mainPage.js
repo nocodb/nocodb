@@ -120,6 +120,11 @@ export class _mainPage {
       cy.get('.nc-column-name-input input', {timeout: 3000}).clear().type(colName)
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()        
     }
+
+    getAuthToken = () => {
+        let obj = JSON.parse(localStorage['vuex'])
+        return obj["users"]["token"]
+    }
 }
 
 

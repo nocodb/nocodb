@@ -44,7 +44,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 ### Using Docker
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb
+docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:0.11.33
 ```
 
 > To persist data you can mount volume at `/usr/app/data/`.

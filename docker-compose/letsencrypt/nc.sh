@@ -50,7 +50,7 @@ docker run -p 8080:8080 -p 8081:8081 -p 8082:8082 -d --name xc-instant  \
 -e LETSENCRYPT_HOST="$domain" \
 -e LETSENCRYPT_EMAIL="$email" \
 -e VIRTUAL_PORT=8080 \
---network=webproxy nocodb/nocodb:latest
+--network=webproxy nocodb/nocodb:0.11.33
 
 
 

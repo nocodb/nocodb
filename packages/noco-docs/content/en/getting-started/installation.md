@@ -227,7 +227,7 @@ Here's the sample Task Definition
 	"networkMode": "awsvpc",
 	"containerDefinitions": [{
 		"name": "<YOUR_CONTAINER_NAME>",
-		"image": "nocodb/nocodb:latest",
+		"image": "nocodb/nocodb:0.11.33",
 		"essential": true,
 		"logConfiguration": {
 			"logDriver": "awslogs",

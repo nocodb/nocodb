@@ -44,7 +44,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 ### Using Docker
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:0.11.33
+docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
 > To persist data you can mount volume at `/usr/app/data/`.
@@ -151,7 +151,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
     -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:0.11.33
+    nocodb/nocodb:latest
 ```
 
 #### Example Postgres
@@ -159,7 +159,7 @@ docker run -d -p 8080:8080 \
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
     -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:0.11.33
+    nocodb/nocodb:latest
 ```
 
 #### Example SQL Server
@@ -167,7 +167,7 @@ docker run -d -p 8080:8080 \
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
     -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:0.11.33
+    nocodb/nocodb:latest
 ```
 
 ## Docker Compose

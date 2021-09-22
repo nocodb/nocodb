@@ -49,7 +49,7 @@ link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme
   <code-block label="Docker" >
 
   ```bash
-  docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:0.11.33
+  docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   ```
 
   </code-block>

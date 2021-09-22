@@ -45,7 +45,7 @@ Simple installation - takes about three minutes!
   <code-block label="Docker" >
 
   ```bash
-  docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:0.11.33
+  docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   ```
 
   </code-block>
@@ -106,7 +106,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   docker run -d -p 8080:8080 \
       -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
       -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-      nocodb/nocodb:0.11.33
+      nocodb/nocodb:latest
   ```
     
   </code-block> 
@@ -117,7 +117,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   docker run -d -p 8080:8080 \
       -e NC_DB="pg://host:port?u=user&p=password&d=database" \
       -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-      nocodb/nocodb:0.11.33
+      nocodb/nocodb:latest
   ```
 
   </code-block> 
@@ -128,7 +128,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   docker run -d -p 8080:8080 \
       -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
       -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-      nocodb/nocodb:0.11.33
+      nocodb/nocodb:latest
   ```
 
   </code-block> 
@@ -227,7 +227,7 @@ Here's the sample Task Definition
 	"networkMode": "awsvpc",
 	"containerDefinitions": [{
 		"name": "<YOUR_CONTAINER_NAME>",
-		"image": "nocodb/nocodb:0.11.33",
+		"image": "nocodb/nocodb:latest",
 		"essential": true,
 		"logConfiguration": {
 			"logDriver": "awslogs",

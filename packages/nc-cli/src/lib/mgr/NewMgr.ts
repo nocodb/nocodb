@@ -256,14 +256,14 @@ class NewMgr {
       const linuxHost = os.type() === 'Linux' ? '--net=host' : '';
       if (os.type() === 'Windows_NT') {
         // tslint:disable-next-line:ban-comma-operator
-        console.log(boxen(`# Please run the following docker commands\n\n${(`docker run -p 8080:8080 ${linuxHost} -d ${env} nocodb/nocodb:0.11.33`).green.bold}\n`, {
+        console.log(boxen(`# Please run the following docker commands\n\n${(`docker run -p 8080:8080 ${linuxHost} -d ${env} nocodb/nocodb:latest`).green.bold}\n`, {
           borderColor: 'green',
           borderStyle: 'round',
           margin: 1,
           padding: 1
         } as any));
       } else {
-        await Util.runCmd(`docker run -p 8080:8080 ${linuxHost} -d ${env} nocodb/nocodb:0.11.33`);
+        await Util.runCmd(`docker run -p 8080:8080 ${linuxHost} -d ${env} nocodb/nocodb:latest`);
       }
     }
   }

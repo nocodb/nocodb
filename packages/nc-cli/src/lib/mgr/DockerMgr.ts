@@ -26,7 +26,7 @@ class DockerMgr extends NewMgr {
   }
 
   private static getDockerfileContent(args) {
-    return `FROM nocodb/nocodb:0.11.33
+    return `FROM nocodb/nocodb:latest
 
 ENV PORT 8080
 ENV NODE_ENV=dev

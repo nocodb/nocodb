@@ -19,7 +19,7 @@ services:
     depends_on:
       root_db:
         condition: service_healthy
-    image: nocodb/nocodb:0.11.33
+    image: nocodb/nocodb:latest
     ports:
       - "8080:8080"
       - "8081:8081"

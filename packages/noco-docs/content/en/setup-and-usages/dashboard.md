@@ -29,7 +29,7 @@ If you are using Docker, it is recommended to mount ``/usr/app/data/`` for persi
 Example:
 
 ```
-docker run -d -p 8080:8080 --name foo -v /local/path:/usr/app/data/ nocodb/nocodb:0.11.33
+docker run -d -p 8080:8080 --name foo -v /local/path:/usr/app/data/ nocodb/nocodb:latest
 ```
 
 ## Initialize your first project 

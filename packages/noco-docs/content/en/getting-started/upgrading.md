@@ -29,7 +29,7 @@ docker rmi YOUR_IMAGE_ID
 docker run -d -p 8080:8080 \
     -e NC_DB="YOUR_NC_DB_URL" \
     -e NC_AUTH_JWT_SECRET="YOUR_NC_AUTH_JWT_SECRET_IF_GIVEN" \
-    nocodb/nocodb:0.11.33
+    nocodb/nocodb:latest
 ```
 
 Updating nocodb docker container is similar to updating [any other docker container](https://www.whitesourcesoftware.com/free-developer-tools/blog/update-docker-images/).
@@ -61,8 +61,8 @@ Use Heroku CLI login
 
 ```
 heroku container:login
-docker pull nocodb/nocodb:0.11.33
-docker tag nocodb/nocodb:0.11.33 registry.heroku.com/<Heroku App Name>/web
+docker pull nocodb/nocodb:latest
+docker tag nocodb/nocodb:latest registry.heroku.com/<Heroku App Name>/web
 docker push registry.heroku.com/<Heroku App Name>/web
 heroku container:release -a <Heroku App Name> web
 ```

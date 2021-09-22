@@ -67,7 +67,7 @@ services:
             
     nocodb:
         container_name: nocodb
-        image: nocodb/nocodb:0.11.33
+        image: nocodb/nocodb:latest
         restart: always
         networks:
           - traefik_proxy

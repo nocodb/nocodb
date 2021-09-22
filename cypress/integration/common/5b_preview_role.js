@@ -358,9 +358,7 @@ describe('Role preview validations', () => {
 
     genTest('editor')
     genTest('commenter')
-
-    // enable post xcAuditModeCommentsCount fix
-    // genTest('viewer')
+    genTest('viewer')
 })
 
 

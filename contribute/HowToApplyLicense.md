@@ -40,24 +40,27 @@ it is and just add your copyright notice and author:
 
 
 ## How to sign your work
-````
-  Signed-off-by: FirstName Initials/Lastname <email@provider.com>
-````
 
-Use your real name (sorry, no pseudonyms or anonymous contributions).
-If you set your `user.name` and `user.email` git configs, you can sign your
-commit automatically with `git commit -s`. 
-You can also use git [aliases](https://git-scm.com/book/tr/v2/Git-Basics-Git-Aliases)
-like `git config --global alias.ci 'commit -s'`. Now you can commit with
-`git ci` and the commit will be signed.
+### First configure your Git username/email : 
+Usually email will be already configured with your github.
 
-### Configure your Git username/email
 ```bash
 git config --global user.name "FirstName LastName"
 git config --global user.email "email@provider.com"
 ```
 Refer [here](https://support.atlassian.com/bitbucket-cloud/docs/configure-your-dvcs-username-for-commits/) for additional details
 
+```bash
+git add .
+git commit -s -m "commit message"
+```
+
+Please note : Use your real name (sorry, no pseudonyms or anonymous contributions).
+
+Once pushed - you should see the commit have the following template in github
+````
+  Signed-off-by: FirstName Initials/Lastname <email@provider.com>
+````
 
 ## How to sign your previous work
 

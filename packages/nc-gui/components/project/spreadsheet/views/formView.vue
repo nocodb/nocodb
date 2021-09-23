@@ -6,8 +6,12 @@
           <div class="d-flex grey--text">
             <span class="">Fields</span>
             <v-spacer />
-            <span class="caption mr-2 font-weight-bold" style="border-bottom: 2px solid grey">add all</span>
-            <span class="caption font-weight-bold" style="border-bottom: 2px solid grey">remove all</span>
+            <span
+              class="pointer caption mr-2 font-weight-bold"
+              style="border-bottom: 2px solid grey"
+              @click="columns=[...allColumns]"
+            >add all</span>
+            <span class="pointer caption font-weight-bold" style="border-bottom: 2px solid grey" @click="columns=[]">remove all</span>
           </div>
           <draggable
             v-model="hiddenColumns"
@@ -47,7 +51,7 @@
                 </v-icon>
               </div>
             </v-card>
-            <div class="nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
+            <div class="mt-1 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
               Drag and drop field here to hide
             </div>
           </draggable>

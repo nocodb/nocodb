@@ -2,7 +2,7 @@
   <v-container fluid class="h-100 backgroundColor">
     <v-row class="h-100">
       <v-col cols="3">
-        <v-card class="h-100 pa-2 backgroundColor elevation-0">
+        <v-card class="h-100 pa-2 backgroundColor elevation-0 nc-form-left-nav">
           <div class="d-flex grey--text">
             <span class="">Fields</span>
             <v-spacer />
@@ -160,6 +160,10 @@
                 </div>
               </div>
               <!--            </v-card>-->
+            </div>
+
+            <div v-if="!columns.length" class="mt-1 nc-drag-n-drop-to-show py-4 text-center grey--text text--lighter-1">
+              Drag and drop field here to add
             </div>
           </draggable>
           <div class="my-10 text-center">
@@ -353,11 +357,15 @@ export default {
   }
 }
 
-.nc-drag-n-drop-to-hide {
+.nc-drag-n-drop-to-hide, .nc-drag-n-drop-to-show {
   border: 2px dotted #a1a1a1;
   border-radius: 4px;
   font-size: .6rem;
   color: grey
+}
+
+.nc-form-left-nav{
+  max-height: 100%;
 }
 
 </style>

@@ -124,6 +124,25 @@ export default {
         columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || []
       }
 
+      if (this.meta && this.meta.v) {
+        columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
+      }
+
+      {
+        const _ref = {}
+        columns.forEach((c) => {
+          if (c.virtual && c.lk) {
+            c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+          } else {
+            c.alias = c._cn
+          }
+          if (c.alias in _ref) {
+            c.alias += _ref[c.alias]++
+          } else {
+            _ref[c.alias] = 1
+          }
+        })
+      }
       if (this.fieldsOrder.length) {
         return [...columns].sort((c1, c2) => {
           const i1 = this.fieldsOrder.indexOf(c1.alias)

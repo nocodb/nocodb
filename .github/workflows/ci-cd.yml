@@ -14,7 +14,14 @@ jobs:
     steps:
      - name: Checkout
        uses: actions/checkout@v2
+       with:
+         fetch-depth: 0
+     - name: Check for update
+       run: |
+          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui]] && echo 'OK')" >> $GITHUB_ENV
+
      - name: Cypress run
+       if: ${{ env.CHANGED == 'OK' }}
        uses: cypress-io/github-action@v2
        with:
          start: docker-compose -f ./docker-compose-cypress.yml up -d
@@ -27,10 +34,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Check for update
+      run: |
+        echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nocodb) = nocodb]] && echo 'OK')" >> $GITHUB_ENV
 
     - name: Test Mysql REST APIs
+      if: ${{ env.CHANGED == 'OK' }}
       run: cd ./packages/nocodb/  && docker-compose run xc-test-mysql
     - name: Test Mysql GraphQL APIs
+      if: ${{ env.CHANGED == 'OK' }}
       run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mysql
 
 #    - name: Test MSSQL REST APIs
@@ -39,8 +53,10 @@ jobs:
 #      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mssql
 #
     - name: Test PostgreSQL REST APIs
+      if: ${{ env.CHANGED == 'OK' }}
       run: cd ./packages/nocodb/  && docker-compose run xc-test-pg
     - name: Test PostgreSQL GraphQL APIs
+      if: ${{ env.CHANGED == 'OK' }}
       run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-pg
 #
 #    - name: Test SQLite3 REST APIs

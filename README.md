@@ -296,6 +296,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/loftwah"><img src="https://avatars.githubusercontent.com/u/19922556?v=4?s=100" width="100px;" alt=""/><br /><sub><b>loftwah</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=loftwah" title="Code">💻</a></td>
     <td align="center"><a href="https://museosabiertos.org"><img src="https://avatars.githubusercontent.com/u/693328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Martin Gersbach</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mrtngrsbch" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/ArjenR"><img src="https://avatars.githubusercontent.com/u/4269186?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ArjenR</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ArjenR" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

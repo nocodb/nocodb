@@ -28,10 +28,7 @@ jobs:
          wait-on: 'http://localhost:3000'
          wait-on-timeout: 900
   docker:
-
     runs-on: ubuntu-latest
-
-
     steps:
     - uses: actions/checkout@v2
       with:

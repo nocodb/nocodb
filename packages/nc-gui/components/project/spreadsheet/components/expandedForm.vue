@@ -45,7 +45,7 @@
         <v-btn small @click="$emit('cancel')">
           Cancel
         </v-btn>
-        <v-btn :disabled="!_isUIAllowed('table-row-update')" small color="primary" @click="save">
+        <v-btn :disabled="!_isUIAllowed('tableRowUpdate')" small color="primary" @click="save">
           Save Row
         </v-btn>
       </div>

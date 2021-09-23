@@ -3,7 +3,7 @@
 //
 
 import { loginPage, projectsPage } from "../../support/page_objects/navigation"
-import { mainPage } from "../../support/page_objects/mainpage"
+import { mainPage } from "../../support/page_objects/mainPage"
 import { staticProjects, roles } from "../../support/page_objects/projectConstants"
 
 describe(`Project pre-configurations`, () => {

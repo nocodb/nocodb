@@ -16,7 +16,7 @@ services:
       timeout: 20s
       retries: 10
     networks:
-      default:
+      - default
 
   nocodb:
     depends_on:
@@ -27,10 +27,27 @@ services:
     environment:
       NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
     networks:
-      default:
-      nginxproxy:
+      - default
+      - nginxproxy
       
+  nginx-proxy-manager:
+    image: jlesage/nginx-proxy-manager
+    restart: always
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Amsterdam
+    ports:
+      - "8181:8181"
+      - "80:8080"
+      - "443:4443"
+    volumes:
+      - nginx-proxy-manager:/config:rw
+    networks:
+      - nginxproxy
+
 volumes:
+  nginx-proxy-manager: {}
   db_data: {}
 
 networks:

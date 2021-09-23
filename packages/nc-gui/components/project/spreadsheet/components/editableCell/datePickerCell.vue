@@ -54,6 +54,9 @@ export default {
   min-height: 20px;
 
 }
+/deep/ .v-date-picker-table{
+  height:auto
+}
 </style>
 <!--
 /**

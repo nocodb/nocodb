@@ -51,13 +51,18 @@ You can also use git [aliases](https://git-scm.com/book/tr/v2/Git-Basics-Git-Ali
 like `git config --global alias.ci 'commit -s'`. Now you can commit with
 `git ci` and the commit will be signed.
 
+### Configure your Git username/email
+git config --global user.name "FirstName LastName"
+git config --global user.email "email@provider.com"
+Refer [here](https://support.atlassian.com/bitbucket-cloud/docs/configure-your-dvcs-username-for-commits/) for additional details
+
 
 ## How to sign your previous work
 
 In case you forget to sign your work, you can do the following:
 
 ```bash
-# sign the last N commits - replace it before executing the command
+# sign the last N commits - replace N before executing the command
 git rebase HEAD~N --signoff
 git push -f
 ```

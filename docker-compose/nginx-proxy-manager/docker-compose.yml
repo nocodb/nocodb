@@ -1,0 +1,38 @@
+version: '3.3'
+
+services:
+  root_db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: root_db
+      MYSQL_USER: noco
+      MYSQL_PASSWORD: password
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    networks:
+      default:
+
+  nocodb:
+    depends_on:
+      root_db:
+        condition: service_healthy
+    image: nocodb/nocodb:latest
+    restart: always
+    environment:
+      NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
+    networks:
+      default:
+      nginxproxy:
+      
+volumes:
+  db_data: {}
+
+networks:
+  default:
+  nginxproxy:

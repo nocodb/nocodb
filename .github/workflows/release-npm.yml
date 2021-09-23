@@ -1,0 +1,54 @@
+name: "Release : NPM packages"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "NocoDB package tag"
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./packages/nocodb
+    strategy:
+      matrix:
+        node-version: [12]
+    steps:
+      - uses: actions/checkout@v2
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: |
+          cd packages/nc-gui
+          npm install
+          npm run build:copy:jsdeliver
+          cd ../..
+          npm install
+          VERSION=${{github.event.inputs.version}} node scripts/upgradeNcGui.js node scripts/upgradeNcGui.js && cd packages/nocodb && npm run obfuscate:build:publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+#          commit-message: Update report
+#          committer: GitHub <noreply@github.com>
+#          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          signoff: true
+          branch: release-patches
+          delete-branch: true
+          title: 'Release ${{github.event.inputs.tag}}'
+          labels: |
+            release
+            automated pr
+
+      - name: Check outputs
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+

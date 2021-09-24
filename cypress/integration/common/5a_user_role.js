@@ -1,8 +1,10 @@
 import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
 import { roles, staticProjects } from "../../support/page_objects/projectConstants"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (apiType, roleType) => {
+const genTest = (type, roleType) => {
+    if(!isTestSuiteActive(type, false)) return;
 
     describe(`User role validation`, () => {
 
@@ -180,7 +182,7 @@ const genTest = (apiType, roleType) => {
 
         it(`[${roles[roleType].name}] SignIn, Open project`, () => {
             loginPage.signIn(roles[roleType].credentials)
-            if('rest' == apiType)
+            if('rest' == type)
                 projectsPage.openProject(staticProjects.externalREST.basic.name)
             else
                 projectsPage.openProject(staticProjects.externalGQL.basic.name)

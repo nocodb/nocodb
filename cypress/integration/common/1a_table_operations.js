@@ -1,7 +1,9 @@
 
 import { loginPage } from "../../support/page_objects/navigation";
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 const genTest = (type, xcdb) => {
+  if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${xcdb ? 'Meta - ' : ''}${type.toUpperCase()} api - Table`, () => {
 

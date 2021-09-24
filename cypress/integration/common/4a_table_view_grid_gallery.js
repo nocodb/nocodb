@@ -1,15 +1,17 @@
 import { loginPage } from "../../support/page_objects/navigation"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (dbType) => {
+const genTest = (type, xcdb) => {
+  if(!isTestSuiteActive(type, xcdb)) return;
 
-  describe(`${dbType.toUpperCase()} api - Table views`, () => {
+  describe(`${type.toUpperCase()} api - Table views`, () => {
 
     const name = 'Test' + Date.now();
 
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      loginPage.loginAndOpenProject(dbType)
+      loginPage.loginAndOpenProject(type)
 
       // open a table to work on views
       //
@@ -73,8 +75,8 @@ const genTest = (dbType) => {
 
 // invoke for different API types supported
 //
-genTest('rest')
-genTest('graphql')
+genTest('rest', false)
+genTest('graphql', false)
 
 
 /**

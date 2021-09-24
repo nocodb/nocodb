@@ -1,4 +1,5 @@
 import { loginPage } from "../../support/page_objects/navigation"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 const shareViewWithPwd = (pwdCorrect, pwd) => {
 
@@ -81,7 +82,8 @@ const deleteCreatedViews = () => {
         })
 }
 
-const genTest = (type) => {
+const genTest = (type, xcdb) => {
+    if(!isTestSuiteActive(type, xcdb)) return;
 
     describe(`${type.toUpperCase()} api - Clipboard access`, () => {
 
@@ -114,8 +116,8 @@ const genTest = (type) => {
     })
 }
 
-genTest('rest')
-genTest('graphql')
+genTest('rest', false)
+genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -63,3 +63,45 @@ export const staticProjects = {
         config: defaultDbParams
     }
 }
+
+// return TRUE if test suite specified is activated from env-variables
+//
+export const isTestSuiteActive = (type, xcdb) => {
+    const env = Cypress.env('testMode')
+    if( !xcdb ) {
+        switch( type ) {
+            case 'rest': return env.includes('extREST')?true:false;
+            case 'graphql': return env.includes('extGQL')?true:false;
+        }
+    } else {
+        switch( type ) {
+            case 'rest': return env.includes('xcdbREST')?true:false;
+            case 'graphql': return env.includes('xcdbGQL')?true:false;
+        }
+    }
+}
+
+// expecting different modes to be seperated by a .
+export const getPrimarySuite = () => {
+    const env = Cypress.env('testMode').split('.')
+    switch(env[0]) {
+        case 'extREST': return staticProjects.externalREST;
+        case 'extGQL': return staticProjects.externalGQL;
+        case 'xcdbREST': return staticProjects.sampleREST;
+        case 'xcdbGQL': return staticProjects.sampleGQL;
+    }
+}
+
+export const isSecondarySuite = (proj, xcdb) => {
+    if(!isTestSuiteActive(proj, xcdb))
+        return false;
+    
+    const env = Cypress.env('testMode').split('.')
+   
+    switch(env[0]) {
+        case 'extREST': return (proj=='rest' && !xcdb)?false:true;
+        case 'extGQL': return (proj=='graphql' && !xcdb)?false:true;
+        case 'xcdbREST': return (proj=='rest' && xcdb)?false:true;
+        case 'xcdbGQL': return (proj=='graphql' && xcdb)?false:true;
+    }    
+}

@@ -1,9 +1,11 @@
 import { loginPage } from "../../support/page_objects/navigation"
 import { roles } from "../../support/page_objects/projectConstants"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type) => {
+const genTest = (type, xcdb) => {
 
   describe(`${type.toUpperCase()} Project operations`, () => {
+    if(!isTestSuiteActive(type, xcdb)) return;
 
     before(() => {
       loginPage.signIn(roles.owner.credentials)
@@ -57,8 +59,8 @@ const genTest = (type) => {
   })
 }
 
-genTest('rest')
-genTest('graphql')
+genTest('rest', false)
+genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

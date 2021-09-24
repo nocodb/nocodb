@@ -1,7 +1,9 @@
 
 import { loginPage } from "../../support/page_objects/navigation"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type) => {
+const genTest = (type, xcdb) => {
+  if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - M2M Column validation`, () => {
     before(() => {
@@ -54,8 +56,8 @@ const genTest = (type) => {
   })
 }
 
-genTest('rest')
-genTest('graphql')
+genTest('rest', false)
+genTest('graphql', false)
 
 
 /**

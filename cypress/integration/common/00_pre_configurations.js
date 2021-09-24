@@ -4,7 +4,7 @@
 
 import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
-import { staticProjects, roles } from "../../support/page_objects/projectConstants"
+import { staticProjects, roles, isTestSuiteActive, getPrimarySuite, isSecondarySuite } from "../../support/page_objects/projectConstants"
 
 describe(`Project pre-configurations`, () => {
 
@@ -24,17 +24,17 @@ describe(`Project pre-configurations`, () => {
         })    
     }
 
-    createProject(staticProjects.sampleREST)
-    createProject(staticProjects.sampleGQL)
-    createProject(staticProjects.externalREST)
-    createProject(staticProjects.externalGQL)
+    if( isTestSuiteActive('rest', true) ) createProject(staticProjects.sampleREST)
+    if( isTestSuiteActive('graphql', true) ) createProject(staticProjects.sampleGQL)
+    if( isTestSuiteActive('rest', false) ) createProject(staticProjects.externalREST)
+    if( isTestSuiteActive('graphql', false) ) createProject(staticProjects.externalGQL)
 })
 
 describe('Static user creations (different roles)', () => {
 
     beforeEach(()=> {
         loginPage.signIn(roles.owner.credentials)
-        projectsPage.openProject(staticProjects.sampleREST.basic.name)
+        projectsPage.openProject(getPrimarySuite().basic.name)
     })
 
     const addUser = (user) => {
@@ -62,10 +62,11 @@ describe('Static users- add to other static projects', () => {
             mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
         })
     }
-    
-    addUserToProject(staticProjects.sampleGQL)
-    addUserToProject(staticProjects.externalREST)
-    addUserToProject(staticProjects.externalGQL)
+
+    if( isSecondarySuite('rest', true) ) addUserToProject(staticProjects.sampleREST)
+    if( isSecondarySuite('graphql', true) ) addUserToProject(staticProjects.sampleGQL)
+    if( isSecondarySuite('rest', false) ) addUserToProject(staticProjects.externalREST)
+    if( isSecondarySuite('graphql', false) ) addUserToProject(staticProjects.externalGQL)    
 })
 
 

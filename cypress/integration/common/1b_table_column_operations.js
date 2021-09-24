@@ -1,8 +1,10 @@
 
 import { loginPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type) => {
+const genTest = (type, xcdb) => {
+  if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Table Column`, () => {
     const name = 'Table' + Date.now();
@@ -85,8 +87,8 @@ const genTest = (type) => {
   })
 }
 
-genTest('rest')
-genTest('graphql')
+genTest('rest', false)
+genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

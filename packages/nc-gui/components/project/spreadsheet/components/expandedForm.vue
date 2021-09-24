@@ -262,6 +262,7 @@
 <script>
 
 import dayjs from 'dayjs'
+import form from '../mixins/form'
 import HeaderCell from '@/components/project/spreadsheet/components/headerCell'
 import EditableCell from '@/components/project/spreadsheet/components/editableCell'
 import colors from '@/mixins/colors'
@@ -275,7 +276,7 @@ dayjs.extend(relativeTime)
 export default {
   name: 'ExpandedForm',
   components: { VirtualHeaderCell, VirtualCell, EditableCell, HeaderCell },
-  mixins: [colors],
+  mixins: [colors, form],
   props: {
     showNextPrev: {
       type: Boolean,
@@ -289,11 +290,8 @@ export default {
     },
     dbAlias: String,
     value: Object,
-    meta: Object,
-    sqlUi: [Object, Function],
     table: String,
     primaryValueColumn: String,
-    api: [Object],
     hasMany: [Object, Array],
     belongsTo: [Object, Array],
     isNew: Boolean,
@@ -303,14 +301,7 @@ export default {
       default: 'primary'
     },
     availableColumns: [Object, Array],
-    nodes: [Object],
-    queryParams: Object,
-    disabledColumns: {
-      type: Object,
-      default() {
-        return {}
-      }
-    }
+    queryParams: Object
   },
   data: () => ({
     showborder: false,
@@ -383,16 +374,6 @@ export default {
     }
   },
   methods: {
-    isRequired(_columnObj, rowObj) {
-      let columnObj = _columnObj
-      if (columnObj.bt) {
-        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
-      }
-
-      return (columnObj.rqd &&
-        (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
-        !columnObj.default)
-    },
     updateCol(_row, _cn, pid) {
       this.$set(this.localState, _cn, pid)
       this.$set(this.changedColumns, _cn, true)

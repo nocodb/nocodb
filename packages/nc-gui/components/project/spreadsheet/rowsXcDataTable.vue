@@ -202,7 +202,11 @@
       class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
-        <div ref="table" style="height : calc(100% - 36px); overflow: auto;width:100%">
+        <div
+          ref="table"
+          :style="{height:isForm ? '100%' : 'calc(100% - 36px)'}"
+          style="overflow: auto;width:100%"
+        >
           <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData)" type="table" />
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
@@ -287,10 +291,13 @@
               :all-columns="allColumns"
               :field-list="fieldList"
               :is-locked="isLocked"
+              :db-alias="dbAlias"
+              :api="api"
+              :sql-ui="sqlUi"
               :fields-order.sync="fieldsOrder"
               :primary-value-column="primaryValueColumn"
               :form-params.sync="extraViewParams.formParams"
-              @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+              @onNewColCreation="loadMeta(false)"
             />
           </template>
         </div>

@@ -24,7 +24,9 @@ export default {
         return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ').replace(/\s\d{2}:\d{2}:[\d:.]+z?$/i, '') : (this.value && new Date(this.value))
       },
       set(val) {
-        this.$emit('input', val && new Date(val).toJSON().slice(0, 10))
+        const v = new Date(val)
+
+        this.$emit('input', v.toString() === 'Invalid Date' ? '' : new Date(val).toJSON().slice(0, 10))
       }
     },
     parentListeners() {

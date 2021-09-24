@@ -110,18 +110,18 @@ export default {
     availableColumns() {
       let columns = []
 
-      if (!this.meta) { return [] }
+      if (!this.meta) {
+        return []
+      }
       // todo: generate hideCols based on default values
       const hideCols = ['created_at', 'updated_at']
 
       if (this.showSystemFields) {
         columns = this.meta.columns || []
-      } else if (this.data && this.data.length) {
+      } else {
         columns = (this.meta.columns.filter(c => !(c.pk && c.ai) &&
           !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn)) &&
           !hideCols.includes(c.cn))) || []
-      } else {
-        columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || []
       }
 
       if (this.meta && this.meta.v) {
@@ -302,12 +302,15 @@ export default {
       },
       deep: true
     },
-    coverImageField(v) {
-      if (!this.loadingMeta || !this.loadingData) {
-        this.syncDataDebounce(this)
-      }
+    extraViewParams: {
+      handler(v) {
+        if (!this.loadingMeta || !this.loadingData) {
+          this.syncDataDebounce(this)
+        }
+      },
+      deep: true
     },
-    extraViewParams(v) {
+    coverImageField(v) {
       if (!this.loadingMeta || !this.loadingData) {
         this.syncDataDebounce(this)
       }

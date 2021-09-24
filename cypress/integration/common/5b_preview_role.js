@@ -14,7 +14,7 @@ const reVerificationAfterReset = false
 // should we verify permissions in owner mode before preview?
 const baseVerificationBeforePreview = false
 
-const genTest = (type, xcdb) => {
+const genTest = (type, xcdb, roleType) => {
     if(!isTestSuiteActive(type, xcdb)) return;
 
     // project configuration settings
@@ -236,36 +236,22 @@ const genTest = (type, xcdb) => {
     //// Test Suite
 
     describe('Role preview validations', () => {
-
         // Sign in/ open project
         before(() => {
             loginPage.signIn(roles.owner.credentials)
             projectsPage.openProject('externalREST')
         })
 
+        after(() => {
+            mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
+            cy.wait(3000)
+
+            mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
+        })
+
         const genTestSub = (roleType) => {
-
-            it(`Role type: ${roleType} > Advanced settings validation`, () => {
-
-                if (true == baseVerificationBeforePreview)
-                    advancedSettings('owner')
-
-                // click on preview <role> & wait for page to switch over
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains(roleType).click()
-                cy.wait(3000)
-
-                advancedSettings(roleType)
-
-                // reset preview to rollback to owner/creator mode
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
-                cy.wait(3000)
-
-                if (reVerificationAfterReset == true)
-                    advancedSettings('owner')
-
-            })
-
-            it(`Role type: ${roleType} >  Edit schema validation`, (done) => {
+        
+            it(`Role type: ${roleType}`, (done) => {
                 // known issue: to be fixed
                 // right click raising alarm 'not allowed' for viewer
                 //
@@ -275,97 +261,26 @@ const genTest = (type, xcdb) => {
                     return false
                 })
 
-                // open existing table-column
-                //
+                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains(roleType).click()
+                cy.wait(3000)
                 cy.openTableTab('City')
 
-                if (true == baseVerificationBeforePreview)
-                    editSchema('owner')
-
-                // click on preview <role> & wait for page to switch over
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains(roleType).click()
-                cy.wait(10000)
-
+                advancedSettings(roleType)
+                editData(roleType)
+                editComment(roleType)
+                viewMenu(roleType)                               
                 editSchema(roleType)
-
-                // reset preview to rollback to owner/creator mode
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
-                cy.wait(10000)
-
-                if (reVerificationAfterReset == true)
-                    editSchema('owner')
 
                 cy.wait(100).then(() => {
                     done()
-                })
-            })
-
-            it(`Role type: ${roleType} > Edit data validations`, () => {
-
-                if (true == baseVerificationBeforePreview)
-                    editData('owner')
-
-                // click on preview <role> & wait for page to switch over
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains(roleType).click()
-                cy.wait(3000)
-
-                editData(roleType)
-
-                // reset preview to rollback to owner/creator mode
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
-                cy.wait(3000)
-
-                if (reVerificationAfterReset == true)
-                    editData('owner')
-            })
-
-
-            it(`Role type: ${roleType} > Edit comment validations`, () => {
-
-                if (true == baseVerificationBeforePreview)
-                    editComment('owner')
-
-                // click on preview <role> & wait for page to switch over
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains(roleType).click()
-                cy.wait(3000)
-
-                editComment(roleType)
-
-                // reset preview to rollback to owner/creator mode
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
-                cy.wait(3000)
-
-                if (reVerificationAfterReset == true)
-                    editComment('owner')
-            })
-
-            it(`Role type: ${roleType} > View menu validations`, () => {
-
-                if (true == baseVerificationBeforePreview)
-                    viewMenu('owner')
-
-                // click on preview <role> & wait for page to switch over
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains(roleType).click()
-                cy.wait(3000)
-
-                viewMenu(roleType)
-
-                // reset preview to rollback to owner/creator mode
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
-                cy.wait(3000)
-
-                if (reVerificationAfterReset == true)
-                    viewMenu('owner')
+                })            
             })
         }
 
         genTestSub('editor')
         genTestSub('commenter')
-
-        // enable post xcAuditModeCommentsCount fix
         // genTestSub('viewer')
     })
-
 }
 
 genTest('rest', false)

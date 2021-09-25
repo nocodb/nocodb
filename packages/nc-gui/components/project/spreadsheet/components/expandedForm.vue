@@ -148,7 +148,7 @@
                       class="xc-input body-2"
                       :meta="meta"
                       :sql-ui="sqlUi"
-                      is-form
+                      :is-form="true"
                       @focus="active = col._cn"
                       @blur="active = ''"
                       @input="$set(changedColumns,col._cn, true)"

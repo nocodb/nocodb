@@ -74,6 +74,7 @@
     <json-editable-cell
       v-else-if="isJSON"
       v-model="localState"
+      :is-form="isForm"
       v-on="parentListeners"
       @input="$emit('save')"
     />

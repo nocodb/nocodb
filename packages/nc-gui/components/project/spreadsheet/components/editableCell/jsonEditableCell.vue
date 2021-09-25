@@ -1,20 +1,35 @@
 <template>
-  <div class="cell-container" @keydown.stop.enter>
-    <div v-if="!isForm" class="d-flex ma-1">
+  <v-dialog :is="expand ? 'v-dialog' : 'div'" :value="true" class="cell-container" @keydown.stop.enter>
+    <div class="d-flex pa-1 " :class="{backgroundColor:expand}">
       <v-spacer />
-      <v-btn outlined x-small class="mr-1" @click="$emit('cancel')">
-        Cancel
-      </v-btn>
-      <v-btn x-small color="primary" @click="save">
-        Save
+      <v-icon small class="mr-2" @click="expand = !expand">
+        {{ expand ? 'mdi-arrow-collapse' : 'mdi-arrow-expand' }}
+      </v-icon>
+      <template v-if="!isForm">
+        <v-btn outlined x-small class="mr-1" @click="$emit('cancel')">
+          Cancel
+        </v-btn>
+        <v-btn x-small color="primary" @click="save">
+          Save
+        </v-btn>
+      </template>
+      <v-btn v-else-if="expand" x-small @click="expand=false">
+        Close
       </v-btn>
     </div>
     <monaco-json-object-editor
+      v-if="expand"
       v-model="localState"
       class="text-left caption"
-      style="width: 300px;min-height: 200px;min-width:100%"
+      style="width: 300px;min-height:500px;min-width:100%"
     />
-  </div>
+    <monaco-json-object-editor
+      v-else
+      v-model="localState"
+      class="text-left caption"
+      style="width: 300px;min-height:200px;min-width:100%"
+    />
+  </v-dialog>
 </template>
 
 <script>
@@ -28,7 +43,8 @@ export default {
     isForm: Boolean
   },
   data: () => ({
-    localState: ''
+    localState: '',
+    expand: false
   }),
   computed: {
 
@@ -70,6 +86,7 @@ export default {
   },
   methods: {
     save() {
+      this.expand = false
       this.$emit('input', JSON.stringify(this.localState))
     }
   }

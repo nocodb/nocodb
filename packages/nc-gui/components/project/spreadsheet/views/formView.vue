@@ -7,11 +7,11 @@
             <span class="">Fields</span>
             <v-spacer />
             <span
-              class="pointer caption mr-2 font-weight-bold"
-              style="border-bottom: 2px solid grey"
+              class="pointer caption mr-2"
+              style="border-bottom: 2px solid rgba(128,128,128,0.67)"
               @click="columns=[...allColumns]"
             >add all</span>
-            <span class="pointer caption font-weight-bold" style="border-bottom: 2px solid grey" @click="columns=[]">remove all</span>
+            <span class="pointer caption" style="border-bottom: 2px solid rgba(128,128,128,0.67)" @click="columns=[]">remove all</span>
           </div>
           <draggable
             v-model="hiddenColumns"
@@ -122,155 +122,153 @@
             @end="drag=false"
           >
             <div
+
               v-for="(col,i) in columns"
               :key="col.alias"
               class="nc-field-wrapper item px-4 py-4"
-              :class="{'nc-editable':isEditable}"
+              :class="{'nc-editable':isEditable , 'active-row': isActiveRow(col)}"
             >
-              <template
-                v-if="_isUIAllowed('editFormView')"
+              <div
+                v-click-outside="() => onClickOutside(col)"
+                @dblclick="activeRow= col.alias"
               >
-                <!--                <v-overlay-->
-                <!--                  :value="true"-->
-                <!--                  absolute-->
-                <!--                  :color="$store.state.windows.darkTheme ? 'black': 'white'"-->
-                <!--                  opacity="0"-->
-                <!--                />-->
-                <v-icon small class="nc-field-remove-icon" @click="columns = columns.filter((_,j) => i !== j)">
-                  mdi-eye-off-outline
-                </v-icon>
-              </template>
-              <!--                <div
-                  v-if="!col.lk"
-                  :key="i"
-                  class="row-col  my-4"
+                <template
+                  v-if="_isUIAllowed('editFormView')"
                 >
-                  <div>
-                    <label :for="`data-table-form-${col._cn}`" class="body-2  mt-n1 text-capitalize">
-                      <virtual-header-cell
-                        v-if="col.virtual"
-                        :column="col"
-                        :nodes="nodes"
-                        :is-form="true"
-                        :meta="meta"
-                      />
-                      <header-cell
-                        v-else
-                        :is-form="true"
-                        :value="col._cn"
-                        :column="col"
-                        :sql-ui="sqlUi"
-                      />
-
-                    </label>
-                    <virtual-cell
-                      v-if="col.virtual"
-                      ref="virtual"
-                      :disabled-columns="{}"
-                      :column="col"
-                      :row="localState"
-                      :nodes="nodes"
-                      :meta="meta"
-                      :api="api"
-                      :active="false"
-                      :sql-ui="sqlUi"
-                      :is-form="true"
-                      :dummy="true"
+                  <v-icon small class="nc-field-remove-icon" @click="columns = columns.filter((_,j) => i !== j)">
+                    mdi-eye-off-outline
+                  </v-icon>
+                </template>
+                <div
+                  :class="{
+                    'active-row' : active === col._cn,
+                    required: isRequired(col, localState)
+                  }"
+                >
+                  <div v-if="isActiveRow(col)">
+                    <editable
+                      style="width:300px"
+                      placeholder=" Enter form input label"
+                      class="caption pa-1 backgroundColor darken-1 mb-2 "
                     />
-                    <editable-cell
-                      v-else
-                      :id="`data-table-form-${col._cn}`"
-                      v-model="localState[col._cn]"
-                      :db-alias="dbAlias"
-                      :column="col"
-                      class="xc-input body-2"
-                      :meta="meta"
-                      :sql-ui="sqlUi"
-                      is-form
-                      :dummy="true"
+                    <editable
+                      style="width:300px"
+                      placeholder=" Add some help text"
+                      class="caption pa-1 backgroundColor darken-1 mb-2"
                     />
                   </div>
-                </div>-->
-              <!--              </template>-->
-              <!--            </v-card>-->
+                  <label v-else :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
+                    <virtual-header-cell
+                      v-if="col.virtual"
+                      :column="col"
+                      :nodes="nodes"
+                      :is-form="true"
+                      :meta="meta"
+                    />
+                    <header-cell
+                      v-else
+                      :is-form="true"
+                      :value="col._cn"
+                      :column="col"
+                      :sql-ui="sqlUi"
+                    />
+
+                  </label>
+                  <virtual-cell
+                    v-if="col.virtual"
+                    ref="virtual"
+                    :disabled-columns="{}"
+                    :column="col"
+                    :row="localState"
+                    :nodes="nodes"
+                    :meta="meta"
+                    :api="api"
+                    :active="true"
+                    :sql-ui="sqlUi"
+                    :is-new="true"
+                    :is-form="true"
+                  />
+
+                  <div
+                    v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
+                    style="height:100%; width:100%"
+                    class="caption xc-input"
+                    @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
+                  >
+                    <input
+                      style="height:100%; width: 100%"
+                      readonly
+                      disabled
+                      :value="localState[col._cn]"
+                    >
+                  </div>
+
+                  <editable-cell
+                    v-else
+                    :id="`data-table-form-${col._cn}`"
+                    v-model="localState[col._cn]"
+                    :db-alias="dbAlias"
+                    :column="col"
+                    class="xc-input body-2"
+                    :meta="meta"
+                    :sql-ui="sqlUi"
+                    is-form
+                    @focus="active = col._cn"
+                    @blur="active = ''"
+                  />
+                </div>
+                <!--              </div>-->
+              </div>
 
               <div
-                :class="{
-                  'active-row' : active === col._cn,
-                  required: isRequired(col, localState)
-                }"
+                v-if="!columns.length"
+                class="mt-1 nc-drag-n-drop-to-show py-4 text-center grey--text text--lighter-1"
               >
-                <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
-                  <virtual-header-cell
-                    v-if="col.virtual"
-                    :column="col"
-                    :nodes="nodes"
-                    :is-form="true"
-                    :meta="meta"
-                  />
-                  <header-cell
-                    v-else
-                    :is-form="true"
-                    :value="col._cn"
-                    :column="col"
-                    :sql-ui="sqlUi"
-                  />
-
-                </label>
-                <virtual-cell
-                  v-if="col.virtual"
-                  ref="virtual"
-                  :disabled-columns="{}"
-                  :column="col"
-                  :row="localState"
-                  :nodes="nodes"
-                  :meta="meta"
-                  :api="api"
-                  :active="true"
-                  :sql-ui="sqlUi"
-                  :is-new="true"
-                  :is-form="true"
-                />
-
-                <div
-                  v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
-                  style="height:100%; width:100%"
-                  class="caption xc-input"
-                  @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
-                >
-                  <input
-                    style="height:100%; width: 100%"
-                    readonly
-                    disabled
-                    :value="localState[col._cn]"
-                  >
-                </div>
-
-                <editable-cell
-                  v-else
-                  :id="`data-table-form-${col._cn}`"
-                  v-model="localState[col._cn]"
-                  :db-alias="dbAlias"
-                  :column="col"
-                  class="xc-input body-2"
-                  :meta="meta"
-                  :sql-ui="sqlUi"
-                  is-form
-                  @focus="active = col._cn"
-                  @blur="active = ''"
-                />
+                Drag and drop field here to add
               </div>
-              <!--              </div>-->
-            </div>
-
-            <div v-if="!columns.length" class="mt-1 nc-drag-n-drop-to-show py-4 text-center grey--text text--lighter-1">
-              Drag and drop field here to add
             </div>
           </draggable>
           <div class="my-10 text-center">
             <v-btn color="primary" @click="save">
               Submit
             </v-btn>
+          </div>
+
+          <div v-if="isEditable" style="max-width: 400px" class="mx-auto">
+            <v-switch dense inset hide-details v-model="localParams.nocoBranding">
+              <template #label>
+                <span class="caption">Show NocoDB branding</span>
+              </template>
+            </v-switch>
+            <v-switch dense inset hide-details v-model="localParams.submitRedirectUrl">
+              <template #label>
+                <span class="caption">Redirect to URL after form submission</span>
+              </template>
+            </v-switch>
+
+            <div class="caption grey--text mt-4 mb-2">
+              After form is submitted:
+            </div>
+            <label class="caption">Show this message:</label>
+            <v-textarea v-model="localParams.submitMessage" rows="3" hide-details solo outlined />
+
+            <v-switch v-model="localParams.submitShowAnotherSubmit" dense inset hide-details>
+              <template #label>
+                <span class="caption">Show "Submit another response" button</span>
+              </template>
+            </v-switch>
+            <v-switch v-model="localParams.submitShowBlankForm" dense inset hide-details>
+              <template #label>
+                <span class="caption">Show a blank form after 5 seconds</span>
+              </template>
+            </v-switch>
+            <v-switch v-model="localParams.submitEmailMe" dense inset hide-details>
+              <template #label>
+                <span class="caption">Email me at <span class="font-eright-bold">{{
+                  $store.state.users.user.email
+                }}</span></span>
+              </template>
+            </v-switch>
           </div>
         </div>
       </v-col>
@@ -298,7 +296,8 @@ export default {
     localState: {},
     moved: false,
     addNewColMenu: false,
-    addNewColModal: false
+    addNewColModal: false,
+    activeRow: null
     // hiddenColumns: []
   }),
   computed: {
@@ -342,6 +341,12 @@ export default {
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
   },
   methods: {
+    isActiveRow(col) {
+      return this.activeRow === col.alias
+    },
+    onClickOutside(col) {
+      this.activeRow = this.activeRow === col.alias ? null : this.activeRow
+    },
     handleMouseUp(col) {
       if (!this.moved) {
         this.columns = [...this.columns, col]
@@ -362,7 +367,8 @@ export default {
         // }, {})
 
         // if (this.isNew) {
-        const data = await this.api.insert(this.localState)
+        //const data =
+        await this.api.insert(this.localState)
         this.localState = {} // { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state
@@ -405,6 +411,11 @@ export default {
 <style scoped lang="scss">
 
 .nc-field-wrapper {
+
+  &.active-row {
+    border-radius: 4px;
+    border: 1px solid var(--v-backgroundColor-darken1);
+  }
 
   position: relative;
 

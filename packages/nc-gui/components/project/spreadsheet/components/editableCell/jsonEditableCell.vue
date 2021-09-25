@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :is="expand ? 'v-dialog' : 'div'" :value="true" class="cell-container" @keydown.stop.enter>
+  <v-dialog :is="expand ? 'v-dialog' : 'div'" :value="true" max-width="800px" class="cell-container" @keydown.stop.enter>
     <div class="d-flex pa-1 " :class="{backgroundColor:expand}">
       <v-spacer />
       <v-icon small class="mr-2" @click="expand = !expand">
@@ -21,13 +21,13 @@
       v-if="expand"
       v-model="localState"
       class="text-left caption"
-      style="width: 300px;min-height:500px;min-width:100%"
+      style="width: 300px;min-height:min(600px,80vh);min-width:100%; "
     />
     <monaco-json-object-editor
       v-else
       v-model="localState"
       class="text-left caption"
-      style="width: 300px;min-height:200px;min-width:100%"
+      style="width: 300px;min-height:200px;min-width:100%;"
     />
   </v-dialog>
 </template>

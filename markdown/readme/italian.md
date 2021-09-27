@@ -246,3 +246,4 @@ La maggior parte delle aziende Internet si arretra con il foglio di calcolo o un
 # ❤ La nostra missione :
 La nostra missione è quella di fornire l'interfaccia no-code più potente per i database che è open source ad ogni singola attività internet nel mondo. Ciò non solo democratizzerebbe l'accesso a uno strumento di calcolo potente ma produrre anche un miliardo di miliardi + persone che avranno abilità radicali armeggiare e costruire capacità su Internet.
 
+

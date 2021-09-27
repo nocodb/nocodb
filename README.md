@@ -35,17 +35,17 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 <div align="center">
 
-[:cn: 读我](markdown/readme/chinese.md) • 
-[:fr: Lisez-moi](markdown/readme/french.md) • 
-[🇩🇪 Liesmich](markdown/readme/german.md) • 
-[🇲🇽 Léame](markdown/readme/spanish.md) • 
-[:portugal: Leia-me](markdown/readme/portuguese.md) • 
-[:it: Leggi](markdown/readme/italian.md) • 
-[:netherlands: Leesmij](markdown/readme/dutch.md) • 
-[:jp: 私を読む](markdown/readme/japanese.md) • 
-[:kr: 나를 읽으십시오](markdown/readme/korean.md) • 
-[:ru: Прочти меня](markdown/readme/russian.md) • 
-[:indonesia: Baca aku](markdown/readme/indonesian.md)
+[:cn: &nbsp; 读我](markdown/readme/chinese.md) • 
+[:fr: &nbsp; Lisez-moi](markdown/readme/french.md) • 
+[🇩🇪  &nbsp; Liesmich](markdown/readme/german.md) • 
+[🇲🇽  &nbsp; Léame](markdown/readme/spanish.md) • 
+[:portugal: &nbsp;  Leia-me](markdown/readme/portuguese.md) • 
+[:it: &nbsp;  Leggi](markdown/readme/italian.md) • 
+[:netherlands: &nbsp;  Leesmij](markdown/readme/dutch.md) • 
+[:jp: &nbsp;  私を読む](markdown/readme/japanese.md) • 
+[:kr: &nbsp;  나를 읽으십시오](markdown/readme/korean.md) • 
+[:ru: &nbsp; Прочти меня](markdown/readme/russian.md) • 
+[:indonesia: &nbsp; Baca aku](markdown/readme/indonesian.md)
 
 </div>
 

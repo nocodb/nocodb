@@ -333,6 +333,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "kunggom",
+      "name": "조진식 (Jo Jinsik)",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32009637?v=4",
+      "profile": "https://github.com/kunggom",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

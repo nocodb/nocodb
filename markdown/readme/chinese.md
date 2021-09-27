@@ -73,7 +73,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 npx create-nocodb-app
 ```
-### Using Git
+### 使用git
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
@@ -83,10 +83,10 @@ npm start
 
 ### GUI
 
-Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+使用仪表板使用 : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 
-# Join Our Community
+# 加入我们的社区
 <a href="https://discord.gg/5RgZmkW">
     <img 
     src="https://invidget.switchblade.xyz/5RgZmkW" 
@@ -95,7 +95,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 </a>
 <br>
 
-# Screenshots
+# 截图
 
 ![2](https://user-images.githubusercontent.com/5435402/133759229-4275b934-873b-4a9b-9f23-96470fec9775.png)
 <br>
@@ -137,32 +137,33 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 
 
 
-# Features
-### Rich Spreadsheet Interface
-- ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
-- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Gantt, Form
-- ⚡ &nbsp;Share Views : public & password protected
-- ⚡ &nbsp;Personal & locked Views
-- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)!!
-- ⚡ &nbsp;Roles : Owner, Creator, Editor, Commenter, Viewer, Commenter, Custom Roles.
-- ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level.
+# 特征
+### 丰富的电子表格接口
 
-### App Store for workflow automations :
-- ⚡ &nbsp;Chat : Microsoft Teams, Slack, Discord, Mattermost
-- ⚡ &nbsp;Email : SMTP, SES, Mailchimp
-- ⚡ &nbsp;SMS : Twilio
-- ⚡ &nbsp;Whatsapp
-- ⚡ &nbsp;Any 3rd Party APIs
+搜索，排序，过滤，隐藏uber轻松的列
+- ⚡创建视图：网格，画廊，卡班，甘特，形式
+- ⚡分享视图：公共和密码保护
+- ⚡个人和锁定视图
+- ⚡将图像上传到单元格（使用S3，Minio，GCP，Azure，Dimitedocean，Linode，OVH，Backblaze）!!
+- ⚡角色：所有者，创建者，编辑器，评论者，查看器，评论者，自定义角色。
+- ⚡访问控制：即使在数据库，表和列级别也是细粒度的访问控制。
 
-### Programmatic API access via :
-- ⚡ &nbsp;REST APIs (Swagger)
-- ⚡ &nbsp;GraphQL APIs.
-- ⚡ &nbsp;Includes JWT Authentication & Social Auth
-- ⚡ &nbsp;API tokens to integrate with Zapier, Integromat.
+### 工作流自动化应用商店：
+- ⚡聊天：微软团队，松弛，不和谐，最重要的
+- ⚡电子邮件：SMTP，SES，MailChimp
+- ⚡短信：Twilio
+- ⚡whatsapp.
+- ⚡任何第三方API
+
+### Programmatic API访问通过：
+- ⚡休息apis（播开）
+- ⚡GraphQLAPI。
+- ⚡包括JWT身份验证和社交验证
+- ⚡与Zapier，Integromat集成的API标记。
+
 
 # Production Setup
-NocoDB requires a database to store metadata of spreadsheets views and external databases.
-And connection params for this database can be specified in `NC_DB` environment variable.
+NoCodb要求数据库存储电子表格视图和外部数据库的元数据。可以在NC_DB环境变量中指定此数据库的连接参数。
 
 ## Docker
 
@@ -258,74 +259,9 @@ npm run cypress:open
 - Please take a look at ./contribute/HowToApplyLicense.md
 - Ignore adding headers for .json or .md or .yml
 
-# 🎯  Why are we building this ?
-Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
+# 🎯  " 为什么我们建立这个？
+大多数互联网业务都配备了电子表格或数据库以解决其业务需求。电子表格每天都会合作地使用十亿+人类。但是，我们在数据库上运行类似速度的方式，这在计算时更强大的工具。用SaaS产品解决此问题的尝试已经意味着可怕的门禁控制，供应商锁定，数据锁定，突然的价格变化，最重要的是将来有可能的玻璃天花板。"
 
-# ❤ Our Mission :
-Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet.
-
-# Contributors : 🌻🌻🌻🐝🐝
-[//]: contributor-faces
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/o1lab"><img src="https://avatars.githubusercontent.com/u/5435402?v=4?s=100" width="100px;" alt=""/><br /><sub><b>o1lab</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=o1lab" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/pranavxc"><img src="https://avatars.githubusercontent.com/u/61551451?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Pranav C</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=pranavxc" title="Code">💻</a></td>
-    <td align="center"><a href="http://bvkatwijk.nl/"><img src="https://avatars.githubusercontent.com/u/18490578?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Boris van Katwijk</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bvkatwijk" title="Code">💻</a></td>
-    <td align="center"><a href="https://stackshare.io/markuman/my-stack"><img src="https://avatars.githubusercontent.com/u/3920157?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Markus Bergholz</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=markuman" title="Code">💻</a></td>
-    <td align="center"><a href="https://daniel-ruf.de/"><img src="https://avatars.githubusercontent.com/u/827205?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Daniel Ruf</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=DanielRuf" title="Code">💻</a></td>
-    <td align="center"><a href="http://bertverhelst.ga/"><img src="https://avatars.githubusercontent.com/u/1710840?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bert Verhelst</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bertyhell" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/chocholand"><img src="https://avatars.githubusercontent.com/u/6572227?v=4?s=100" width="100px;" alt=""/><br /><sub><b>JaeWon</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=chocholand" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/0xflotus"><img src="https://avatars.githubusercontent.com/u/26602940?v=4?s=100" width="100px;" alt=""/><br /><sub><b>0xflotus</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=0xflotus" title="Code">💻</a></td>
-    <td align="center"><a href="http://www.simonguionniere.com/"><img src="https://avatars.githubusercontent.com/u/3633017?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simon Guionniere</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=sguionni" title="Code">💻</a></td>
-    <td align="center"><a href="https://clients.extremeshok.com/"><img src="https://avatars.githubusercontent.com/u/5957328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>eXtremeSHOK</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=extremeshok" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/v2io"><img src="https://avatars.githubusercontent.com/u/48987429?v=4?s=100" width="100px;" alt=""/><br /><sub><b>v2io</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=v2io" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/soaserele"><img src="https://avatars.githubusercontent.com/u/1093368?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Stanislav Oaserele</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=soaserele" title="Code">💻</a></td>
-    <td align="center"><a href="https://ans4175.dev/"><img src="https://avatars.githubusercontent.com/u/3961872?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ahmad Anshorimuslim Syuhada</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ans-4175" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/lotas"><img src="https://avatars.githubusercontent.com/u/83861?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Yaraslau Kurmyza</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=lotas" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="http://stackexchange.com/users/1677570/ferrybig"><img src="https://avatars.githubusercontent.com/u/1576684?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Fernando van Loenhout</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ferrybig" title="Code">💻</a></td>
-    <td align="center"><a href="http://blog.quidquid.fr/"><img src="https://avatars.githubusercontent.com/u/1001585?v=4?s=100" width="100px;" alt=""/><br /><sub><b>jrevault</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=jrevault" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/atilacamurca"><img src="https://avatars.githubusercontent.com/u/508624?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Átila Camurça Alves</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=atilacamurca" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/simonbowen"><img src="https://avatars.githubusercontent.com/u/8931?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simon Bowen</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=simonbowen" title="Code">💻</a></td>
-    <td align="center"><a href="https://wingk-wong.blogspot.com/"><img src="https://avatars.githubusercontent.com/u/35857179?v=4?s=100" width="100px;" alt=""/><br /><sub><b>աɨռɢӄաօռɢ</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=wingkwong" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/ferdiga"><img src="https://avatars.githubusercontent.com/u/6248560?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ferdinand Gassauer</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ferdiga" title="Code">💻</a></td>
-    <td align="center"><a href="https://daneke.ru/"><img src="https://avatars.githubusercontent.com/u/4980165?v=4?s=100" width="100px;" alt=""/><br /><sub><b>George Daneke</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=Flatroy" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://jwillmer.de/"><img src="https://avatars.githubusercontent.com/u/1503577?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jens Willmer</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=jwillmer" title="Code">💻</a></td>
-    <td align="center"><a href="http://bhanu.io/"><img src="https://avatars.githubusercontent.com/u/2958857?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bhanu Pratap Chaudhary</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bhanuc" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/jwetzell"><img src="https://avatars.githubusercontent.com/u/18341515?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Joel Wetzell</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=jwetzell" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/SebGTx"><img src="https://avatars.githubusercontent.com/u/8062146?v=4?s=100" width="100px;" alt=""/><br /><sub><b>SebGTx</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=SebGTx" title="Code">💻</a></td>
-    <td align="center"><a href="https://farazpatankar.com/"><img src="https://avatars.githubusercontent.com/u/10681116?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Faraz Patankar</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=FarazPatankar" title="Code">💻</a></td>
-    <td align="center"><a href="https://pixplix.com/"><img src="https://avatars.githubusercontent.com/u/71349937?v=4?s=100" width="100px;" alt=""/><br /><sub><b>PixPlix</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=pixplix" title="Code">💻</a></td>
-    <td align="center"><a href="http://alejandro.giacometti.me/"><img src="https://avatars.githubusercontent.com/u/31504?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alejandro Giacometti</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=janrito" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://brunomoreira.opo.pt"><img src="https://avatars.githubusercontent.com/u/3017910?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bruno Moreira</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bmscmoreira" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/AztrexDX"><img src="https://avatars.githubusercontent.com/u/86340924?v=4?s=100" width="100px;" alt=""/><br /><sub><b>AztrexDX</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=AztrexDX" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/ejose19"><img src="https://avatars.githubusercontent.com/u/8742215?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ejose19</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ejose19" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/maximeag"><img src="https://avatars.githubusercontent.com/u/3855368?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Maxime</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=maximeag" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/dstala"><img src="https://avatars.githubusercontent.com/u/86527202?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dstala</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dstala" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/loftwah"><img src="https://avatars.githubusercontent.com/u/19922556?v=4?s=100" width="100px;" alt=""/><br /><sub><b>loftwah</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=loftwah" title="Code">💻</a></td>
-    <td align="center"><a href="https://museosabiertos.org"><img src="https://avatars.githubusercontent.com/u/693328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Martin Gersbach</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mrtngrsbch" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/ArjenR"><img src="https://avatars.githubusercontent.com/u/4269186?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ArjenR</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ArjenR" title="Code">💻</a></td>
-  </tr>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-
-
+# ❤ "我们的任务 ：
+我们的使命是为数据库提供最强大的无码界面，该界面是世界上每一个互联网业务的开源。这不仅将民主化进入强大的计算工具，而且还带来了一十亿+人，他们将在互联网上具有根本修补和建筑能力。"
 

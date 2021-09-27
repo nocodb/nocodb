@@ -120,27 +120,26 @@ Zugriff auf dashardboard mit. : [http://localhost:8080/dashboard](http://localho
 # Merkmale
 
 ### Rich-Tabellenschnittstelle
-
-Suchen, sortieren, filtern, Spalten mit Uber-Leichtigkeit ausblenden
-⚡ Ansichten erstellen: Gitter, Galerie, Kanban, Gantt, Form
-⚡ Teilen Ansichten: Öffentliche und Passwort geschützt
-⚡ Persönliche und gesperrte Ansichten
-⚡ Laden Sie Bilder in Zellen hoch (arbeitet mit S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backraze) !!
-⚡ Rollen: Besitzer, Ersteller, Herausgeber, Kommentator, Viewer, Kommentator, benutzerdefinierte Rollen.
-⚡ Zugriffskontrolle: Feinkörnig Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
+- ⚡ Suchen, sortieren, filtern, Spalten mit Uber-Leichtigkeit ausblenden
+- ⚡ Ansichten erstellen: Gitter, Galerie, Kanban, Gantt, Form
+- ⚡ Teilen Ansichten: Öffentliche und Passwort geschützt
+- ⚡ Persönliche und gesperrte Ansichten
+- ⚡ Laden Sie Bilder in Zellen hoch (arbeitet mit S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backraze) !!
+- ⚡ Rollen: Besitzer, Ersteller, Herausgeber, Kommentator, Viewer, Kommentator, benutzerdefinierte Rollen.
+- ⚡ Zugriffskontrolle: Feinkörnig Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
 
 ### App Store für Workflow-Automationen:
-⚡ Chat: Microsoft-Teams, Slack, Discord, Materie
-⚡ E-Mail: SMTP, SES, MailChimp
-⚡ SMS: TWILIO
-⚡ WhatsApp.
-⚡ Jede 3rd-Party-APIs
+- ⚡ Chat: Microsoft-Teams, Slack, Discord, Materie
+- ⚡ E-Mail: SMTP, SES, MailChimp
+- ⚡ SMS: TWILIO
+- ⚡ WhatsApp.
+- ⚡ Jede 3rd-Party-APIs
 
 ### Programmatischer API-Zugriff über:
-⚡ Rest APIs (Swagger)
-⚡ Graphql-APIs.
-⚡ Enthält die JWT-Authentifizierung & Social Auth
-⚡ API-Token, um mit Zapier, Integromat zu integrieren.
+- ⚡ Rest APIs (Swagger)
+- ⚡ Graphql-APIs.
+- ⚡ Enthält die JWT-Authentifizierung & Social Auth
+- ⚡ API-Token, um mit Zapier, Integromat zu integrieren.
 
 
 # Production Setup 

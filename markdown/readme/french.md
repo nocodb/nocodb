@@ -114,26 +114,26 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
 # Caractéristiques
 ### Interface de feuille de calcul riche
 
-⚡ Recherche, trier, filtrer, masquer les colonnes avec Uber Facile
-⚡ Créer des vues: grille, galerie, kanban, gantt, forme
-⚡ Partager des vues: Public & Mot de passe protégé
-⚡ Vues personnelles et verrouillées 
-⚡ Télécharger des images sur les cellules (fonctionne avec S3, Minio, GCP, Azure, DigitalOcean, Linode, Ovh, Backblaze) !!
-⚡ Rôles: propriétaire, créateur, éditeur, commentateur, spectateur, commentateur, rôles personnalisés.
-Contrôle d'accès: contrôle d'accès à grain fin, même à la base de données, au niveau de la table et de la colonne.
+- ⚡ Recherche, trier, filtrer, masquer les colonnes avec Uber Facile
+- ⚡ Créer des vues: grille, galerie, kanban, gantt, forme
+- ⚡ Partager des vues: Public & Mot de passe protégé
+- ⚡ Vues personnelles et verrouillées 
+- ⚡ Télécharger des images sur les cellules (fonctionne avec S3, Minio, GCP, Azure, DigitalOcean, Linode, Ovh, Backblaze) !!
+- ⚡ Rôles: propriétaire, créateur, éditeur, commentateur, spectateur, commentateur, rôles personnalisés.
+- ⚡ Contrôle d'accès: contrôle d'accès à grain fin, même à la base de données, au niveau de la table et de la colonne.
 
 ### App Store for Workflow Automation:
-⚡ Chat: équipes de Microsoft, relais, discorde, la plus grande
-⚡ Email: SMTP, SES, MailChimp
-⚡ SMS: Twilio
-⚡ WhatsApp
-⚡ Toute API tierce
+- ⚡ Chat: équipes de Microsoft, relais, discorde, la plus grande
+- ⚡ Email: SMTP, SES, MailChimp
+- ⚡ SMS: Twilio
+- ⚡ WhatsApp
+- ⚡ Toute API tierce
 
 ### Accès d'API programmatique via:
-⚡ Apis de repos (Swagger)
-⚡ API GraphQL.
-⚡ inclut l'authentification JWT et l'authentification sociale
-⚡ Jetons API à intégrer avec Zapier, Integromat.
+- ⚡ Apis de repos (Swagger)
+- ⚡ API GraphQL.
+- ⚡ inclut l'authentification JWT et l'authentification sociale
+- ⚡ Jetons API à intégrer avec Zapier, Integromat.
 
 
 # Production Setup 

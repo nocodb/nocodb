@@ -1,33 +1,25 @@
 <h1 align="center" style="border-bottom: none">
     <b>
-        <a href="https://www.nocodb.com">NocoDB </a><br>
+        <a href="https://www.nocodb.com">NocoDB</a><br>
     </b>
     ✨ The Open Source Airtable Alternative ✨ <br>
-
 </h1>
+
 <p align="center">
-Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadsheet. 
+Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadsheet.
 </p>
 
-
-
-
 <div align="center">
- 
+
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
 
 </div>
 
-
-
-
-
-
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> • 
+    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
 </p>  
 
@@ -39,11 +31,11 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 [:fr: &nbsp; Lisez-moi](markdown/readme/french.md) • 
 [🇩🇪  &nbsp; Liesmich](markdown/readme/german.md) • 
 [🇲🇽  &nbsp; Léame](markdown/readme/spanish.md) • 
-[:portugal: &nbsp;  Leia-me](markdown/readme/portuguese.md) • 
-[:it: &nbsp;  Leggi](markdown/readme/italian.md) • 
+[:portugal: &nbsp; Leia-me](markdown/readme/portuguese.md) • 
+[:it: &nbsp; Leggi](markdown/readme/italian.md) • 
 [:netherlands: &nbsp;  Leesmij](markdown/readme/dutch.md) • 
-[:jp: &nbsp;  私を読む](markdown/readme/japanese.md) • 
-[:kr: &nbsp;  나를 읽으십시오](markdown/readme/korean.md) • 
+[:jp: &nbsp; 私を読む](markdown/readme/japanese.md) • 
+[:kr: &nbsp; 소개글](markdown/readme/korean.md) • 
 [:ru: &nbsp; Прочти меня](markdown/readme/russian.md) • 
 [:indonesia: &nbsp; Baca aku](markdown/readme/indonesian.md)
 
@@ -88,7 +80,6 @@ npm start
 ```
 
 ### GUI
-
 Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 
@@ -136,21 +127,14 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 ![9](https://user-images.githubusercontent.com/5435402/133759249-8c1a85c2-a55c-48f6-bd58-aa6b4195cce7.png)
 
 
-
-
-
-
-
-
-
 # Features
 ### Rich Spreadsheet Interface
 - ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
 - ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Gantt, Form
 - ⚡ &nbsp;Share Views : public & password protected
 - ⚡ &nbsp;Personal & locked Views 
-- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)!!
-- ⚡ &nbsp;Roles : Owner, Creator, Editor, Commenter, Viewer, Commenter, Custom Roles.
+- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)
+- ⚡ &nbsp;Roles : Owner, Creator, Editor, Viewer, Commenter, Custom Roles.
 - ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level.
 
 ### App Store for workflow automations :
@@ -180,7 +164,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
+#### Example PostgreSQL
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -206,20 +190,20 @@ docker-compose up
 
 
 ## Environment variables 
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+| Variable                             | Mandatory | Comments                                                                                                   | If absent                                     |
+|--------------------------------------|-----------|------------------------------------------------------------------------------------------------------------|-----------------------------------------------|
+| `NC_DB`                              | Yes       | See our database URLs                                                                                      | A local SQLite will be created in root folder |
+| `DATABASE_URL`                       | No        | JDBC URL Format. Can be used instead of `NC_DB`. Used in 1-Click Heroku deployment                         |                                               |
+| `DATABASE_URL_FILE`                  | No        | path to file containing JDBC URL Format. Can be used instead of `NC_DB`. Used in 1-Click Heroku deployment |                                               |
+| `NC_PUBLIC_URL`                      | Yes       | Used for sending Email invitations                                                                         | Best guess from http request params           |
+| `NC_AUTH_JWT_SECRET`                 | Yes       | JWT secret used for auth and storing other secrets                                                         | A Random secret will be generated             |
+| `NC_SENTRY_DSN`                      | No        | For Sentry monitoring                                                                                      |                                               |
+| `NC_CONNECT_TO_EXTERNAL_DB_DISABLED` | No        | Disable Project creation with external database                                                            |                                               |
+| `NC_DISABLE_TELE`                    | No        | Disable telemetry                                                                                          |                                               |
+| `NC_BACKEND_URL`                     | No        | Custom Backend URL                                                                                         | ``http://localhost:8080`` will be used        |
 
 # Development setup 
-```
+```shell
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 
@@ -250,8 +234,6 @@ npm install
 # run required services by using docker compose 
 docker-compose -f ./docker-compose-cypress.yml up
 
-
-
 # wait until both 3000 and 8080 porta are avalable
 # and run cypress test using following command
 npm run cypress:run
@@ -261,13 +243,13 @@ npm run cypress:open
 ```
 
 # Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md 
-- Ignore adding headers for .json or .md or .yml   
+- Please take a look at `./contribute/HowToApplyLicense.md`
+- Ignore adding headers for `.json` or `.md` or `.yml`
 
-# 🎯  Why are we building this ?
+# 🎯 Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
-# ❤ Our Mission :  
+# ❤ Our Mission :
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
 # Contributors : 🌻🌻🌻🐝🐝 

@@ -30,15 +30,17 @@ export default {
 }
 </script>
 <style scoped>
-[contentEditable]{
+[contentEditable] {
   position: relative;
 }
-[contentEditable]:empty:before{
+
+[contentEditable]:empty:before {
   position: absolute;
-  left:0;
-  content:attr(placeholder);
-  color:grey;
-  font-style:italic;
-  width:100%;
-  }
+  left: 4px;
+  right: 4px;
+  content: attr(placeholder);
+  color: grey;
+  font-style: italic;
+  width: 100%;
+}
 </style>

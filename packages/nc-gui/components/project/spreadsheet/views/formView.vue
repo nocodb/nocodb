@@ -32,6 +32,7 @@
                 <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize flex-grow-1">
                   <virtual-header-cell
                     v-if="col.virtual"
+                    class="caption"
                     :column="col"
                     :nodes="nodes"
                     :is-form="true"
@@ -39,6 +40,7 @@
                   />
                   <header-cell
                     v-else
+                    class="caption"
                     :is-form="true"
                     :value="col._cn"
                     :column="col"
@@ -90,10 +92,23 @@
         <!--          <v-chip>Add cover image</v-chip>-->
         <!--        </div>-->
         <div class="my-10 d-flex align-center justify-center flex-column">
+          <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center  d-flex">
+            <div class="d-flex align-center justify-center flex-grow-1">
+              <v-chip small color="backgroundColorDefault caption grey--text">
+                Add cover image
+              </v-chip>
+            </div>
+            <div class="nc-form-logo">
+              <div v-ripple class="nc-form-add-logo text-center caption pointer" @click.stop>
+                Add a logo
+              </div>
+            </div>
+          </div>
+
           <editable
-            :is="isEditable ? 'editable' : 'h3'"
+            :is="isEditable ? 'editable' : 'h2'"
             v-model.lazy="localParams.name"
-            class="title text-center"
+            class="display-1 text-center"
             :class="{'nc-meta-inputs': isEditable}"
             placeholder="Form Title"
           >
@@ -104,7 +119,7 @@
             :is="isEditable ? 'editable' : 'div'"
             v-model.lazy="localParams.description"
             :class="{'nc-meta-inputs': isEditable}"
-            class="caption  text-center"
+            class="body-1  text-center"
             placeholder="Add form description"
           >
             {{ localParams.description }}
@@ -140,18 +155,22 @@
                   </v-icon>
                 </template>
                 <div
+                  v-if="localParams.fields && localParams.fields[col.alias]"
                   :class="{
                     'active-row' : active === col._cn,
                     required: isRequired(col, localState)
                   }"
                 >
                   <div v-if="isActiveRow(col)">
+                    <div><label class="grey--text caption">Required</label><v-switch color="grey" dense inset /></div>
                     <editable
+                      v-model="localParams.fields[col.alias].label"
                       style="width:300px"
                       placeholder=" Enter form input label"
                       class="caption pa-1 backgroundColor darken-1 mb-2 "
                     />
                     <editable
+                      v-model="localParams.fields[col.alias].description"
                       style="width:300px"
                       placeholder=" Add some help text"
                       class="caption pa-1 backgroundColor darken-1 mb-2"
@@ -160,15 +179,17 @@
                   <label v-else :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
                     <virtual-header-cell
                       v-if="col.virtual"
-                      :column="col"
+                      class="caption"
+                      :column="{...col, _cn: localParams.fields[col.alias].label || col._cn}"
                       :nodes="nodes"
                       :is-form="true"
                       :meta="meta"
                     />
                     <header-cell
                       v-else
+                      class="caption"
                       :is-form="true"
-                      :value="col._cn"
+                      :value="localParams.fields[col.alias].label || col._cn"
                       :column="col"
                       :sql-ui="sqlUi"
                     />
@@ -232,37 +253,38 @@
             <v-btn color="primary" @click="save">
               Submit
             </v-btn>
+            <!--            <span class="caption grey&#45;&#45;text pointer">Edit label</span>-->
           </div>
 
-          <div v-if="isEditable" style="max-width: 400px" class="mx-auto">
-            <v-switch dense inset hide-details v-model="localParams.nocoBranding">
+          <div v-if="isEditable && localParams.submit" style="max-width: 400px" class="mx-auto">
+            <!--            <v-switch v-model="localParams.nocoBranding" dense inset hide-details>
               <template #label>
                 <span class="caption">Show NocoDB branding</span>
               </template>
             </v-switch>
-            <v-switch dense inset hide-details v-model="localParams.submitRedirectUrl">
+            <v-switch v-model="localParams.submitRedirectUrl" dense inset hide-details>
               <template #label>
                 <span class="caption">Redirect to URL after form submission</span>
               </template>
-            </v-switch>
+            </v-switch>-->
 
             <div class="caption grey--text mt-4 mb-2">
               After form is submitted:
             </div>
             <label class="caption">Show this message:</label>
-            <v-textarea v-model="localParams.submitMessage" rows="3" hide-details solo outlined />
+            <v-textarea v-model="localParams.submit.message" rows="3" hide-details solo outlined />
 
-            <v-switch v-model="localParams.submitShowAnotherSubmit" dense inset hide-details>
+            <v-switch v-model="localParams.submit.showAnotherSubmit" dense inset hide-details>
               <template #label>
                 <span class="caption">Show "Submit another response" button</span>
               </template>
             </v-switch>
-            <v-switch v-model="localParams.submitShowBlankForm" dense inset hide-details>
+            <v-switch v-model="localParams.submit.showBlankForm" dense inset hide-details>
               <template #label>
                 <span class="caption">Show a blank form after 5 seconds</span>
               </template>
             </v-switch>
-            <v-switch v-model="localParams.submitEmailMe" dense inset hide-details>
+            <v-switch v-model="localParams.submit.emailMe" dense inset hide-details>
               <template #label>
                 <span class="caption">Email me at <span class="font-eright-bold">{{
                   $store.state.users.user.email
@@ -335,8 +357,24 @@ export default {
       }
     }
   },
+  watch: {
+    'meta.columns'() {
+      this.meta.columns.forEach((c) => {
+        this.localParams.fields[c.alias] = this.localParams.fields[c.alias] || {}
+      })
+    }
+  },
   mounted() {
-    this.localParams = Object.assign({ name: this.meta._tn, description: 'Form view description' }, this.localParams)
+    const localParams = Object.assign({
+      name: this.meta._tn,
+      description: 'Form view description',
+      submit: {},
+      fields: {}
+    }, this.localParams)
+    this.meta.columns.forEach((c) => {
+      localParams.fields[c.alias] = localParams.fields[c.alias] || {}
+    })
+    this.localParams = localParams
     // this.columns = [...this.availableColumns]
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
   },
@@ -367,7 +405,7 @@ export default {
         // }, {})
 
         // if (this.isNew) {
-        //const data =
+        // const data =
         await this.api.insert(this.localState)
         this.localState = {} // { ...this.localState, ...data }
 
@@ -539,6 +577,35 @@ export default {
   border: 1px solid red;
   border-radius: 4px;
   background: var(--v-backgroundColorDefault-base);
+}
+
+.nc-form-banner {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+
+  .nc-form-logo {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    width: 70%;
+    padding: 0 20px;
+    background: var(--v-backgroundColorDefault-base);
+
+    .nc-form-add-logo {
+      border-radius: 4px;
+      color: grey;
+      border: 2px dashed var(--v-backgroundColor-darken1);
+      padding: 15px 15px;
+    }
+  }
 }
 
 </style>

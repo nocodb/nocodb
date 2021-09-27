@@ -282,6 +282,7 @@
           </template>
           <template v-else-if="isForm">
             <form-view
+              :key="selectedViewId"
               :nodes="nodes"
               :table="table"
               :available-columns="availableColumns"

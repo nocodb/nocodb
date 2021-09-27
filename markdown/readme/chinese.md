@@ -28,21 +28,6 @@
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
-<div align="center">
-
-[读我 :cn:](markdown/readme/chinese.md) |
-[Lisez-moi :fr:](markdown/readme/french.md) |
-[Liesmich 🇩🇪](markdown/readme/german.md) |  
-[Léame 🇲🇽](/markdown/readme/spanish.md) |
-[Leia-me :portugal:](markdown/readme/portuguese.md) |
-[Leggi :it:](markdown/readme/italian.md) |
-[Leesmij :netherlands:](markdown/readme/dutch.md) |
-[私を読む :jp:](markdown/readme/japanese.md) |
-[나를 읽으십시오 :kr:](markdown/readme/korean.md) |
-[Прочти меня :ru:](markdown/readme/russian.md) |
-[Baca aku :indonesia:](markdown/readme/indonesian.md)
-
-</div>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 

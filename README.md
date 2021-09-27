@@ -8,6 +8,24 @@
 <p align="center">
 Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadsheet. 
 </p>
+
+
+<div align="center">
+
+[:cn: 读我](markdown/readme/chinese.md) • 
+[:fr: Lisez-moi](markdown/readme/french.md) • 
+[🇩🇪 Liesmich](markdown/readme/german.md) • 
+[🇲🇽 Léame](markdown/readme/spanish.md) • 
+[:portugal: Leia-me](markdown/readme/portuguese.md) • 
+[:it: Leggi](markdown/readme/italian.md) • 
+[:netherlands: Leesmij](markdown/readme/dutch.md) • 
+[:jp: 私を読む](markdown/readme/japanese.md) • 
+[:kr: 나를 읽으십시오](markdown/readme/korean.md) • 
+[:ru: Прочти меня](markdown/readme/russian.md) • 
+[:indonesia: Baca aku](markdown/readme/indonesian.md)
+
+</div>
+
 <div align="center">
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
@@ -15,6 +33,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
 
 </div>
+
 
 
 
@@ -28,21 +47,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
-<div align="center">
 
-[读我 :cn:](markdown/readme/chinese.md) |
-[Lisez-moi :fr:](markdown/readme/french.md) |
-[Liesmich 🇩🇪](markdown/readme/german.md) |  
-[Léame 🇲🇽](markdown/readme/spanish.md) |
-[Leia-me :portugal:](markdown/readme/portuguese.md) |
-[Leggi :it:](markdown/readme/italian.md) |
-[Leesmij :netherlands:](markdown/readme/dutch.md) |
-[私を読む :jp:](markdown/readme/japanese.md) |
-[나를 읽으십시오 :kr:](markdown/readme/korean.md) |
-[Прочти меня :ru:](markdown/readme/russian.md) |
-[Baca aku :indonesia:](markdown/readme/indonesian.md) 
-
-</div>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 

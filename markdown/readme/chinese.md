@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ 开源空气替代品 ✨ <br>
+    ✨ 开源 Airtable 替代品 ✨ <br>
 
 </h1>
 <p align="center">
@@ -47,14 +47,14 @@
 </a>
 <br>
 
-### 使用Docker.
+### 使用Docker
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
 > To persist data you can mount volume at `/usr/app/data/`.
 
-### 使用NPM.
+### 使用NPM
 ```
 npx create-nocodb-app
 ```
@@ -125,26 +125,26 @@ npm start
 # 特征
 ### 丰富的电子表格接口
 
-搜索，排序，过滤，隐藏uber轻松的列
-- ⚡创建视图：网格，画廊，卡班，甘特，形式
-- ⚡分享视图：公共和密码保护
-- ⚡个人和锁定视图
-- ⚡将图像上传到单元格（使用S3，Minio，GCP，Azure，Dimitedocean，Linode，OVH，Backblaze）!!
-- ⚡角色：所有者，创建者，编辑器，评论者，查看器，评论者，自定义角色。
-- ⚡访问控制：即使在数据库，表和列级别也是细粒度的访问控制。
+- ⚡ 搜索，排序，过滤，隐藏uber轻松的列
+- ⚡ 创建视图：网格，画廊，卡班，甘特，形式
+- ⚡ 分享视图：公共和密码保护
+- ⚡ 个人和锁定视图
+- ⚡ 将图像上传到单元格（使用S3，Minio，GCP，Azure，Dimitedocean，Linode，OVH，Backblaze）!!
+- ⚡ 角色：所有者，创建者，编辑器，评论者，查看器，评论者，自定义角色。
+- ⚡ 访问控制：即使在数据库，表和列级别也是细粒度的访问控制。
 
 ### 工作流自动化应用商店：
-- ⚡聊天：微软团队，松弛，不和谐，最重要的
-- ⚡电子邮件：SMTP，SES，MailChimp
-- ⚡短信：Twilio
-- ⚡whatsapp.
-- ⚡任何第三方API
+- ⚡ 聊天：微软团队，松弛，不和谐，最重要的
+- ⚡ 电子邮件：SMTP，SES，MailChimp
+- ⚡ 短信：Twilio
+- ⚡ whatsapp
+- ⚡ 任何第三方API
 
 ### Programmatic API访问通过：
-- ⚡休息apis（播开）
-- ⚡GraphQLAPI。
-- ⚡包括JWT身份验证和社交验证
-- ⚡与Zapier，Integromat集成的API标记。
+- ⚡ 休息apis（播开）
+- ⚡ GraphQLAPI。
+- ⚡ 包括JWT身份验证和社交验证
+- ⚡ 与Zapier，Integromat集成的API标记。
 
 
 # Production Setup
@@ -244,9 +244,9 @@ npm run cypress:open
 - Please take a look at ./contribute/HowToApplyLicense.md
 - Ignore adding headers for .json or .md or .yml
 
-# 🎯  " 为什么我们建立这个？
-大多数互联网业务都配备了电子表格或数据库以解决其业务需求。电子表格每天都会合作地使用十亿+人类。但是，我们在数据库上运行类似速度的方式，这在计算时更强大的工具。用SaaS产品解决此问题的尝试已经意味着可怕的门禁控制，供应商锁定，数据锁定，突然的价格变化，最重要的是将来有可能的玻璃天花板。"
+# 🎯  为什么我们建立这个？
+大多数互联网业务都配备了电子表格或数据库以解决其业务需求。电子表格每天都会合作地使用十亿+人类。但是，我们在数据库上运行类似速度的方式，这在计算时更强大的工具。用SaaS产品解决此问题的尝试已经意味着可怕的门禁控制，供应商锁定，数据锁定，突然的价格变化，最重要的是将来有可能的玻璃天花板。
 
-# ❤ "我们的任务 ：
-我们的使命是为数据库提供最强大的无码界面，该界面是世界上每一个互联网业务的开源。这不仅将民主化进入强大的计算工具，而且还带来了一十亿+人，他们将在互联网上具有根本修补和建筑能力。"
+# ❤ 我们的任务 ：
+我们的使命是为数据库提供最强大的无码界面，该界面是世界上每一个互联网业务的开源。这不仅将民主化进入强大的计算工具，而且还带来了一十亿+人，他们将在互联网上具有根本修补和建筑能力。
 

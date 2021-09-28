@@ -2,11 +2,11 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ A alternativa de opção de fonte aberta ✨ <br>
+    ✨ La alternativa de código abierto Airtable ✨ <br>
 
 </h1>
 <p align="center">
-Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma planilha inteligente. 
+Convierte cualquier MySQL, PostgreSQL, SQL Server, SQLite y Mariadb en una hoja de cálculo inteligente. 
 </p>
 <div align="center">
  
@@ -29,7 +29,7 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 
-# Experimente rápida
+# Intento rápido
 ### 1-Click Deploy
 
 #### Heroku
@@ -42,7 +42,7 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
 </a>
 <br>
 
-### Usando o Docker.
+### Usando docker
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
@@ -53,7 +53,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 npx create-nocodb-app
 ```
-### Usando o git.
+### Usando git.
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
@@ -63,10 +63,10 @@ npm start
 
 ### GUI
 
-Acessar o painel usando : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+Tablero de acceso de acceso usando : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 
-# Junte-se a nossa comunidade
+# Únete a nuestra comunidad
 <a href="https://discord.gg/5RgZmkW">
     <img 
     src="https://invidget.switchblade.xyz/5RgZmkW" 
@@ -75,7 +75,7 @@ Acessar o painel usando : [http://localhost:8080/dashboard](http://localhost:808
 </a>
 <br>
 
-# Screenshots
+# Capturas de pantalla
 
 ![2](https://user-images.githubusercontent.com/5435402/133759229-4275b934-873b-4a9b-9f23-96470fec9775.png)
 <br>
@@ -117,32 +117,33 @@ Acessar o painel usando : [http://localhost:8080/dashboard](http://localhost:808
 
 
 
-# Recursos
+# Características
 
-### Interface de planilha rica
-- ⚡ Pesquisar, classificar, filtrar, esconder colunas com uber facilidade
-- ⚡ Criar visualizações: Grade, Galeria, Kanban, Gantt, Formulário
-- ⚡ Compartilhar Visualizações: Public & Senha Protegido
-- ⚡ Vistas pessoais e bloqueadas
-- ⚡ Carregar imagens para as células (funciona com S3, Minio, GCP, Azure, Digitalocean, Linodo, OVH, Backblaze) !!
-- ⚡ Funções: proprietário, criador, editor, comentarista, visualizador, comentador, funções personalizadas.
-- ⚡ Controle de acesso: controle de acesso fino, mesmo no banco de dados, no nível da tabela e da coluna.
+### Interfaz de hoja de cálculo rica
+- ⚡ Buscar, ordenar, filtrar, ocultar columnas con la facilidad Uber
+- ⚡ Crear vistas: Grid, Galería, Kanban, Gantt, Forma
+- ⚡ Compartir Vistas: Public & Contraseña Protected
+- ⚡ Vistas personales y cerradas
+- ⚡ Sube imágenes en celdas (funciona con S3, Minio, GCP, Azure, DigitalCean, Linode, OVH, BackBlaze) !!
+- ⚡ Roles: Propietario, Creador, Editor, Comentarista, Visor, Comentarista, Roles personalizados.
+- ⚡ Control de acceso: Control de acceso de grano fino Incluso en la base de datos, la tabla y el nivel de columna.
 
-### App Store for Workflow Automations:
-- ⚡ Bate-papo: Equipes Microsoft, folga, discórdia, material
-- ⚡ Email: SMTP, SES, MailChimp
+### App Store para Workflow Automations:
+- ⚡ Chat: Microsoft Equips, Slack, Discord, MOSE
+- ⚡ Correo electrónico: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
-- ⚡ whatsapp.
-- ⚡ Qualquer APIs da 3ª parte
+- ⚡ whatsapp
+- ⚡ Cualquier API de terceros
 
-### Acesso programático da API via:
-- ⚡ repouso APIs (Swagger)
-- ⚡ APIs GraphQl.
-- ⚡ Inclui autenticação JWT e autenticação social
-- ⚡ Tokens de API para integrar com Zapier, integromat.
+### Acceso a API programático a través de:
+- ⚡ APIES DE RESTIDO (SWAGGERS)
+- ⚡ GRAPHQL APIES.
+- ⚡ Incluye Autenticación JWT y AUTE SOCIAL
+- ⚡ Tokens API para integrarse con Zapier, Integromat.
+
 
 # Production Setup 
-O NOCODB requer um banco de dados para armazenar metadados de exibições de planilhas e bancos de dados externos. E parâmetros de conexão para este banco de dados podem ser especificados na variável de ambiente NC_DB.
+Nocodb requiere una base de datos para almacenar metadatos de vistas a las hojas de cálculo y bases de datos externas. Y los parámetros de conexión para esta base de datos se pueden especificar en la variable de entorno NC_DB.
 
 
 ## Docker 
@@ -239,8 +240,8 @@ npm run cypress:open
 - Please take a look at ./contribute/HowToApplyLicense.md 
 - Ignore adding headers for .json or .md or .yml   
 
-# 🎯 Por que estamos construindo isso?
-A maioria das empresas da Internet equipar-se com a planilha ou um banco de dados para resolver suas necessidades de negócios. Planilhas são usadas por um bilhão de seres humanos colaborativamente todos os dias. No entanto, estamos longe de trabalhar em velocidades semelhantes em bancos de dados que são muito mais poderosas ferramentas quando se trata de computação. As tentativas de resolver isso com ofertas de SaaS significam controles de acesso horríveis, lockin do fornecedor, lockin de dados, alterações abruptas de preços e mais importante, um teto de vidro no futuro.
+# 🎯 Por qué estamos construyendo esto?
+La mayoría de las empresas de Internet se equipan con una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por mil millones de humanos colaborativamente todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos que son herramientas más poderosas cuando se trata de computar. Los intentos de resolver esto con las ofrendas de SaaS han significado horribles controles de acceso, lockin de proveedores, lockin de datos, cambios abruptos de precios y, lo que es más importante, un techo de vidrio sobre lo que es posible en el futuro."
 
-# ❤ Nossa missão :
-Nossa missão é fornecer a mais poderosa interface de código para bancos de dados que é fonte aberta para cada negócio de Internet no mundo. Isso não apenas democratizaria o acesso a uma poderosa ferramenta de computação, mas também produzirá um bilhão de pessoas que terão habilidades radicais de corda e construção na Internet. 
+# ❤ Nuestra misión :
+Nuestra misión es proporcionar la interfaz de no-código más potente para las bases de datos que sea de origen abierto a cada negocio de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también brindará a mil millones de personas que tendrán habilidades radicales de retención y construcción en Internet."

@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ L'alternativa Abertable Open Source ✨ <br>
+    ✨ L'alternativa Open Source ad Airtable ✨ <br>
 
 </h1>
 <p align="center">
@@ -17,7 +17,7 @@ Trasforma qualsiasi MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in un foglio
 </div>
 
 <p align="center">
-    <a href="http://www.nocodb.com"><b>Website</b></a> •
+    <a href="http://www.nocodb.com"><b>Sito Web</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> • 
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
 </p>  
@@ -29,7 +29,7 @@ Trasforma qualsiasi MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in un foglio
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 
-# Quick try
+# Prova veloce
 ### 1-Click Deploy
 
 #### Heroku
@@ -42,18 +42,18 @@ Trasforma qualsiasi MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in un foglio
 </a>
 <br>
 
-### Usando Docker.
+### Con Docker.
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> To persist data you can mount volume at `/usr/app/data/`.
+> Per rendere persistenti i dati puoi montare il volume su `/usr/app/data/`.
 
-### Usando NPM.
+### Con NPM.
 ```
 npx create-nocodb-app
 ```
-### Usando git.
+### Con git.
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
@@ -63,14 +63,14 @@ npm start
 
 ### GUI
 
-Accesso Dashboard utilizzando : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+Accedi al Pannello di Controllo visitando: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 
 # Unisciti alla nostra comunità
 <a href="https://discord.gg/5RgZmkW">
     <img 
     src="https://invidget.switchblade.xyz/5RgZmkW" 
-    alt="Join NocoDB : Free & Open Source Airtable Alternative"
+    alt="Unisciti a NocoDB: Una alternativa Gratuita e Open Source ad Airtable"
     >
 </a>
 <br>
@@ -119,35 +119,35 @@ Accesso Dashboard utilizzando : [http://localhost:8080/dashboard](http://localho
 
 # Caratteristiche
 
-### Interfaccia foglio di calcolo ricco
-- ⚡ Ricerca, ordina, filtra, nascondi le colonne con facilità di uber
-- ⚡ Creare viste: Grid, Gallery, Kanban, Gantt, Form
-- ⚡ Condividi Visualizzazioni: Protezione pubblica e password
-- ⚡ Viste personali e bloccate
-- ⚡ Carica immagini su celle (funziona con S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, BackBlaze) !!
-- ⚡ Ruoli: proprietario, creatore, editor, commentatore, visualizzatore, commentatore, ruoli personalizzati.
-- ⚡ Controllo accessi: controllo di accesso a grana fine anche a livello di database, tabella e colonna.
+### Interfaccia a foglio di calcolo
+- ⚡ Ricerca, ordina, filtra, nascondi le colonne con super facilità
+- ⚡ Crea Views: Griglie, Gallerie, Kanban, Gantt, Form
+- ⚡ Condividi Views: Pubbliche o protette da password
+- ⚡ Views personali o bloccate
+- ⚡ Carica immagini nelle celle (funziona con S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, BackBlaze) !!
+- ⚡ Ruoli: proprietario, creatore, editor, commentatore, visualizzatore, commentatore o ruoli personalizzati.
+- ⚡ Controllo accessi: controllo di accesso anche a livello di database, tabella e colonna.
 
 ### App store per automazioni del flusso di lavoro:
-- ⚡ Chat: Microsoft Teams, Slack, Discord, Materialmost
+- ⚡ Chat: Microsoft Teams, Slack, Discord, Mattermost
 - ⚡ Email: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
-- ⚡ whatsapp.
+- ⚡ Whatsapp
 - ⚡ Qualsiasi API di terze parti
 
 ### Accesso API programmatico tramite:
-- ⚡ Apis di riposo (spavalderia)
-- ⚡ API graphql.
+- ⚡ REST APIs (Swagger)
+- ⚡ APIs GraphQL.
 - ⚡ Include autenticazione JWT e AUTH
-- ⚡ Token API da integrare con Zapier, Integromat.
+- ⚡ API Token da integrare con Zapier, Integromat.
 
 
-# Production Setup 
-NOCODB richiede un database per memorizzare i metadati delle viste dei fogli di calcolo e dei database esterni. E i parametri di connessione per questo database possono essere specificati nella variabile di ambiente NC_DB.
+# Impostazione in produzione
+NOCODB richiede un database per memorizzare i metadati delle viste dei fogli di calcolo e dei database esterni. I parametri di connessione per questo database possono essere specificati nella variabile di ambiente NC_DB.
 
 ## Docker 
 
-#### Example MySQL
+#### Esempio con MySQL
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -155,7 +155,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
+#### Esempio con Postgres
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -163,7 +163,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
+#### Esempio con SQL Server
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -180,20 +180,20 @@ docker-compose up
 ```
 
 
-## Environment variables 
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
+## Variabili d'ambiente
+| Variabile                | Obbligatoria | Descrizione                                                                         | Se assente                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+| NC_DB                   | Si       | Visualizza gli URLs del nostro database.                                                            | Un BD SQLite verrà creato nella cartella principale  |
+| DATABASE_URL            | No        | Formato URL JDBC. Può essere utilizzato in alternativa a NC_DB. Utilizzato nell'installazione 1-Click con Heroku|   |
+| DATABASE_URL_FILE       | No        | Path per i file contenenti gli URL JDBC. Può essere utilizzato in alternativa a NC_DB. Utilizzato nell'installazione 1-Click con Heroku|   |
+| NC_PUBLIC_URL           | Si       | Per inviare inviti via mail                   | Autogenerato dai parametri delle richieste http        |
+| NC_AUTH_JWT_SECRET      | Si       | Segreto JWT utilizzato per l'autenticazione e la memorizzazione di altri segreti                               | Sarà generato un segreto in maniera randomica          |
+| NC_SENTRY_DSN           | No        | Per il monitoraggio con Sentry                                                     |   |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disabilita la creazione di Progetti con database esterni                              |   |
+| NC_DISABLE_TELE | No | Disabilita la telemetria                              |   |
+| NC_BACKEND_URL | No | URL di Backend Personalizzato                              | Sarà utilizato ``http://localhost:8080``   |
 
-# Development setup 
+# Setup di sviluppo 
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -203,47 +203,46 @@ cd packages/nocodb
 npm install
 npm run watch:run
 
-# open localhost:8080/dashboard in browser
+# apre localhost:8080/dashboard nel browser
 
 # run frontend 
 cd packages/nc-gui
 npm install
 npm run dev
 
-# open localhost:3000/dashboard in browser
+# apre localhost:3000/dashboard nel browser
 ```
 
-Changes made to code automatically restart.
+Modifiche al codice generano un riavvio automatico.
 
 
-## Running Cypress tests locally
+## Utilizzare i test Cypress in locale
 
 ```shell
-# install dependencies(cypress)
+# installa le dipendenze (Cypress)
 npm install
 
-# run required services by using docker compose 
+# esegui i servizi richiesti con Docker Compose 
 docker-compose -f ./docker-compose-cypress.yml up
 
 
 
-# wait until both 3000 and 8080 porta are avalable
-# and run cypress test using following command
+# attendi la disponibilità delle porte 3000 e 8080
+# ed esegui Cypress con il seguente comando:
 npm run cypress:run
 
-# or run following command to run it with GUI
+# o esegui questo comando per avviarlo con l'interfaccia grafica
 npm run cypress:open
 ```
 
-# Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md 
-- Ignore adding headers for .json or .md or .yml   
+# Contributi
+- Leggi ./contribute/HowToApplyLicense.md 
+- Ignora l'aggiunta di header per .json, .md o .yml   
 
 
-#  🎯 Perché stiamo costruendo questo?
-La maggior parte delle aziende Internet si arretra con il foglio di calcolo o un database per risolvere le loro esigenze aziendali. I fogli di calcolo sono utilizzati da un miliardo + umani in collaborazione ogni singolo giorno. Tuttavia, siamo andati via lavorando a velocità simili sui database che sono molto più potenti strumenti quando si tratta di elaborare. I tentativi di risolvere questo con le offerte SAAS hanno significato orribili controlli di accesso, serratura del fornitore, blocco dati, bruschi cambiamenti di prezzo e soprattutto un soffitto di vetro su ciò che è possibile in futuro.
+#  🎯 Perché lo abbiamo creato?
+La maggior parte delle aziende utilizza fogli di calcolo o database per le proprie esigenze aziendali. I fogli di calcolo vengono utilizzati da oltre un miliardo di persone in modo collaborativo ogni singolo giorno. Tuttavia, i database che sono strumenti molto più potenti quando si tratta di elaborazione. I tentativi di risolvere questo problema con le offerte SaaS hanno significato orribili controlli di accesso, blocco del fornitore, blocco dei dati, brusche variazioni di prezzo e, soprattutto, un soffitto di vetro su ciò che è possibile in futuro.
 
-# ❤ La nostra missione :
-La nostra missione è quella di fornire l'interfaccia no-code più potente per i database che è open source ad ogni singola attività internet nel mondo. Ciò non solo democratizzerebbe l'accesso a uno strumento di calcolo potente ma produrre anche un miliardo di miliardi + persone che avranno abilità radicali armeggiare e costruire capacità su Internet.
-
+# ❤ La nostra missione:
+La nostra missione è creare la più potente interfaccia per database "senza codice", disponibile a codice libero per ogni azienda nel mondo. Lo facciamo non solo per democratizzare l'accesso ad un potente strumento di elaborazione, ma anche per supportare i miliardi di persone che creano e costruiscono su Internet.     
 

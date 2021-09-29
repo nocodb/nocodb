@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ L'alternative à air open source ✨ <br>
+    ✨ L'alternative Open Source Airtable ✨ <br>
 
 </h1>
 <p align="center">
@@ -136,13 +136,12 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
 - ⚡ Jetons API à intégrer avec Zapier, Integromat.
 
 
-# Production Setup 
-NocoDB requires a database to store metadata of spreadsheets views and external databases. 
-And connection params for this database can be specified in `NC_DB` environment variable. 
+# Configuration de la production 
+NocoDB nécessite une base de données pour stocker les métadonnées des vues des feuilles de calcul et des bases de données externes. Et les paramètres de connexion pour cette base de données peuvent être spécifiés dans la variable d'environnement `NC_DB`. 
 
 ## Docker 
 
-#### Example MySQL
+#### Exemple MySQL
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -150,7 +149,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
+#### Exemple Postgres
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -158,7 +157,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
+#### Exemple SQL Server
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -175,7 +174,7 @@ docker-compose up
 ```
 
 
-## Environment variables 
+## Variables d'environnement
 | Variable                | Mandatory | Comments                                                                         | If absent                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
 | NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
@@ -188,7 +187,7 @@ docker-compose up
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
 | NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
 
-# Development setup 
+# Paramétrage du développement
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -211,7 +210,7 @@ npm run dev
 Changes made to code automatically restart.
 
 
-## Running Cypress tests locally
+## Exécuter des tests Cypress localement
 
 ```shell
 # install dependencies(cypress)
@@ -230,13 +229,13 @@ npm run cypress:run
 npm run cypress:open
 ```
 
-# Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md 
-- Ignore adding headers for .json or .md or .yml   
+# Contribuant
+- S'il vous plaît jeter un oeil à ./contribute/HowToApplyLicense.md 
+- Ignorer l'ajout d'en-têtes pour .json or .md or .yml   
 
-# 🎯  Why are we building this ?
-Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
+# 🎯  Pourquoi construisons-nous cela ?
+La plupart des entreprises Internet s'équipent d'un tableur ou d'une base de données pour répondre à leurs besoins commerciaux. Les feuilles de calcul sont utilisées par plus d'un milliard d'humains en collaboration chaque jour. Cependant, nous sommes loin de travailler à des vitesses similaires sur des bases de données qui sont des outils beaucoup plus puissants en matière de calcul. Les tentatives pour résoudre ce problème avec les offres SaaS ont entraîné des contrôles d'accès horribles, le verrouillage des fournisseurs, le verrouillage des données, des changements de prix brusques et, surtout, un plafond de verre sur ce qui est possible à l'avenir.
 
-# ❤ Our Mission :  
-Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
+# ❤ Notre mission :  
+Notre mission est de fournir l'interface sans code la plus puissante pour les bases de données qui soit open source pour chaque entreprise Internet dans le monde. Cela démocratiserait non seulement l'accès à un outil informatique puissant, mais ferait également émerger plus d'un milliard de personnes qui auront des capacités radicales de bricolage et de construction sur Internet. 
 

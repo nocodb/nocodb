@@ -142,13 +142,13 @@ Zugriff auf dashardboard mit. : [http://localhost:8080/dashboard](http://localho
 - ⚡ API-Token, um mit Zapier, Integromat zu integrieren.
 
 
-# Production Setup 
+# Produktionseinrichtung 
 NOCODB erfordert eine Datenbank zum Speichern von Metadaten von Tabellenkalkulationen und externen Datenbanken. Und Verbindungsparams für diese Datenbank können in der Umgebungsvariablen der NC_DB angegeben werden.
 
 
 ## Docker 
 
-#### Example MySQL
+#### Beispiel MySQL
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -156,7 +156,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
+#### Beispiel Postgres
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -164,7 +164,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
+#### Beispiel SQL Server
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -181,7 +181,7 @@ docker-compose up
 ```
 
 
-## Environment variables 
+## Umgebungsvariablen
 | Variable                | Mandatory | Comments                                                                         | If absent                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
 | NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
@@ -194,7 +194,7 @@ docker-compose up
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
 | NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
 
-# Development setup 
+# Entwicklungsaufbau 
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -217,7 +217,7 @@ npm run dev
 Changes made to code automatically restart.
 
 
-## Running Cypress tests locally
+## Cypress-Tests lokal ausführen
 
 ```shell
 # install dependencies(cypress)
@@ -236,9 +236,9 @@ npm run cypress:run
 npm run cypress:open
 ```
 
-# Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md 
-- Ignore adding headers for .json or .md or .yml   
+# Beitragen
+- Bitte schau mal rein ./contribute/HowToApplyLicense.md 
+- Ignorieren Sie das Hinzufügen von Überschriften für .json oder .md oder .yml   
 
 # 🎯 Warum bauen wir das auf?
 Die meisten Internet-Unternehmen rüsten sich mit einer Tabelle oder einer Datenbank aus, um ihre Geschäftsanforderungen zu lösen. Die Tabellenkalkulationen werden von einer Milliarde + Menschen mit einem jeden Tag kollaborativ verwendet. Wir arbeiten jedoch mit ähnlichen Geschwindigkeiten in Datenbanken, die in Bezug auf das Berechnen viel stärkere Werkzeuge sind. Versuche, dies mit SaAs-Angeboten zu lösen, bedeutete schreckliche Zugangskontrollen, Anbieter-Lockin, Daten-Lockin, abrupte Preisänderungen und vor allem eine Glasdecke, die in Zukunft möglich ist.

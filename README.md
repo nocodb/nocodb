@@ -35,8 +35,8 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 [<img width="150" src="https://user-images.githubusercontent.com/61551451/135231144-1dbe8b45-3d34-4ad2-a241-5f5e48944f31.png">](markdown/readme/portuguese.md) 
 [<img width="150" src="https://user-images.githubusercontent.com/61551451/135231238-ae63b954-b1f3-471e-a7eb-9f9b7a7e37f7.png">](markdown/readme/italian.md) 
 [<img width="150" src="https://user-images.githubusercontent.com/61551451/135231471-549a045b-5bef-48c0-a4c8-bda1d44702c2.png">](markdown/readme/dutch.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231535-9d144306-b509-4cd3-a7a4-8fd82f3a8b2d.png">](markdown/readme/japanese.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231613-e0d89cca-cb22-4b88-af75-4902886b2f9f.png">](markdown/readme/korean.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135241266-6fc4b991-6c68-4f47-894f-58c29692e846.png">](markdown/readme/japanese.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135241340-27b8abe9-9340-4485-a337-8a22176c635e.png">](markdown/readme/korean.md) 
 [<img width="150" src="https://user-images.githubusercontent.com/61551451/135231700-c586eb79-ca0e-4cb5-8f68-22a960effb30.png">](markdown/readme/russian.md) 
 
 </div>

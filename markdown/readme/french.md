@@ -210,7 +210,7 @@ npm run dev
 Changes made to code automatically restart.
 
 
-## Running Cypress tests locally
+## Exécuter des tests Cypress localement
 
 ```shell
 # install dependencies(cypress)

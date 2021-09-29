@@ -27,18 +27,19 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
 <div align="center">
+<div align="center">
 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135230364-f56b7efb-9ffb-4774-afc1-f405b9d4d995.png">](markdown/readme/chinese.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135230496-81dc8888-7710-4da2-a8dc-edaa7380a112.png">](markdown/readme/french.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135241930-5889249e-78c2-4da9-aa72-ba6f703f1f24.png">](markdown/readme/german.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231048-bd325a99-bbf6-44c1-8d63-9afe89a48f93.png">](markdown/readme/spanish.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231144-1dbe8b45-3d34-4ad2-a241-5f5e48944f31.png">](markdown/readme/portuguese.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231238-ae63b954-b1f3-471e-a7eb-9f9b7a7e37f7.png">](markdown/readme/italian.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231471-549a045b-5bef-48c0-a4c8-bda1d44702c2.png">](markdown/readme/dutch.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135241266-6fc4b991-6c68-4f47-894f-58c29692e846.png">](markdown/readme/japanese.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135241340-27b8abe9-9340-4485-a337-8a22176c635e.png">](markdown/readme/korean.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231700-c586eb79-ca0e-4cb5-8f68-22a960effb30.png">](markdown/readme/russian.md) 
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135259734-002b6da6-6d95-425f-bfbf-388d058776b1.png">](markdown/readme/chinese.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135259875-ac3e257a-061c-40a7-b8f7-3054d3497290.png">](markdown/readme/french.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135260595-4f42b696-5f2e-47a2-8803-c84d95576049.png">](markdown/readme/german.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135259966-2a7851d1-7396-4c15-a4c7-7c6c53bc3793.png">](markdown/readme/spanish.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135260056-58f02626-8bda-41d3-9c1a-c28c74cb4230.png">](markdown/readme/portuguese.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135260129-54b3ca09-2adb-44c0-bc49-1ce654d8b50e.png">](markdown/readme/italian.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135260260-7c0df1b8-e291-41e2-a3c8-e4a6441329cb.png">](markdown/readme/japanese.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135260312-57399602-bcda-4f32-9845-7095036c8512.png">](markdown/readme/korean.md)
+[<img height="50" src="https://user-images.githubusercontent.com/61551451/135260346-086d5439-81b6-48a8-b06d-02a89a3dc99f.png">](markdown/readme/russian.md)
 
+</div>
 </div>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />

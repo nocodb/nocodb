@@ -28,16 +28,16 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 <div align="center">
 
-[<img width="150" src="static/flags/China.png">](markdown/readme/chinese.md) 
-[<img width="150" src="static/flags/France.png">](markdown/readme/french.md) 
-[<img width="150" src="static/flags/Germany.png">](markdown/readme/german.md) 
-[<img width="150" src="static/flags/Spain.png">](markdown/readme/spanish.md) 
-[<img width="150" src="static/flags/Portugal.png">](markdown/readme/portuguese.md) 
-[<img width="150" src="static/flags/Italy.png">](markdown/readme/italian.md) 
-[<img width="150" src="static/flags/netherlands.png">](markdown/readme/dutch.md) 
-[<img width="150" src="static/flags/Japan.png">](markdown/readme/japanese.md) 
-[<img width="150" src="static/flags/SouthKorea.png">](markdown/readme/korean.md) 
-[<img width="150" src="static/flags/Russia.png">](markdown/readme/russian.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220655-8a98c671-c1da-4195-b8b2-a4a35bca4b67.png">](markdown/readme/chinese.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220779-23018bbb-5ddf-4dbd-9c20-123f88c4c264.png">](markdown/readme/french.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220832-6309c23d-9299-403b-9ace-24a094b9aa19.png">](markdown/readme/german.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220893-f8fd1361-8135-4be3-8cd7-e329336efda0.png">](markdown/readme/spanish.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220944-aef7b247-9e1d-44b2-9312-77b71163cef7.png">](markdown/readme/portuguese.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221012-067d3686-17f1-4039-9049-e798c13d9076.png">](markdown/readme/italian.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221079-b3b810db-c9e4-432e-9e49-d544d47457fe.png">](markdown/readme/dutch.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221218-9187c502-b18e-4c0e-971c-a03513f6d2bd.png">](markdown/readme/japanese.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221129-aa821633-0ca9-44cc-9d82-5ccb4c008115.png">](markdown/readme/korean.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221276-ac4376d3-52a7-4115-a14a-86aee29474e0.png">](markdown/readme/russian.md) 
 
 </div>
 

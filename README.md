@@ -28,16 +28,16 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 <div align="center">
 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220655-8a98c671-c1da-4195-b8b2-a4a35bca4b67.png">](markdown/readme/chinese.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220779-23018bbb-5ddf-4dbd-9c20-123f88c4c264.png">](markdown/readme/french.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220832-6309c23d-9299-403b-9ace-24a094b9aa19.png">](markdown/readme/german.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220893-f8fd1361-8135-4be3-8cd7-e329336efda0.png">](markdown/readme/spanish.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135220944-aef7b247-9e1d-44b2-9312-77b71163cef7.png">](markdown/readme/portuguese.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221012-067d3686-17f1-4039-9049-e798c13d9076.png">](markdown/readme/italian.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221079-b3b810db-c9e4-432e-9e49-d544d47457fe.png">](markdown/readme/dutch.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221218-9187c502-b18e-4c0e-971c-a03513f6d2bd.png">](markdown/readme/japanese.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221129-aa821633-0ca9-44cc-9d82-5ccb4c008115.png">](markdown/readme/korean.md) 
-[<img width="150" src="https://user-images.githubusercontent.com/61551451/135221276-ac4376d3-52a7-4115-a14a-86aee29474e0.png">](markdown/readme/russian.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135230364-f56b7efb-9ffb-4774-afc1-f405b9d4d995.png">](markdown/readme/chinese.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135230496-81dc8888-7710-4da2-a8dc-edaa7380a112.png">](markdown/readme/french.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135230983-96418f4a-9e8a-43a3-9130-a43ac7a8c4de.png">](markdown/readme/german.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231048-bd325a99-bbf6-44c1-8d63-9afe89a48f93.png">](markdown/readme/spanish.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231144-1dbe8b45-3d34-4ad2-a241-5f5e48944f31.png">](markdown/readme/portuguese.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231238-ae63b954-b1f3-471e-a7eb-9f9b7a7e37f7.png">](markdown/readme/italian.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231471-549a045b-5bef-48c0-a4c8-bda1d44702c2.png">](markdown/readme/dutch.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231535-9d144306-b509-4cd3-a7a4-8fd82f3a8b2d.png">](markdown/readme/japanese.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231613-e0d89cca-cb22-4b88-af75-4902886b2f9f.png">](markdown/readme/korean.md) 
+[<img width="150" src="https://user-images.githubusercontent.com/61551451/135231700-c586eb79-ca0e-4cb5-8f68-22a960effb30.png">](markdown/readme/russian.md) 
 
 </div>
 

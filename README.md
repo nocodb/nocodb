@@ -9,8 +9,9 @@
 Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadsheet.
 </p>
 
-<div align="center">
 
+<div align="center">
+ 
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
@@ -27,17 +28,16 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 <div align="center">
 
-[:cn: &nbsp; 读我](markdown/readme/chinese.md) • 
-[:fr: &nbsp; Lisez-moi](markdown/readme/french.md) • 
-[🇩🇪  &nbsp; Liesmich](markdown/readme/german.md) • 
-[🇲🇽  &nbsp; Léame](markdown/readme/spanish.md) • 
-[:portugal: &nbsp; Leia-me](markdown/readme/portuguese.md) • 
-[:it: &nbsp; Leggi](markdown/readme/italian.md) • 
-[:netherlands: &nbsp;  Leesmij](markdown/readme/dutch.md) • 
-[:jp: &nbsp; 私を読む](markdown/readme/japanese.md) • 
-[:kr: &nbsp; 소개글](markdown/readme/korean.md) • 
-[:ru: &nbsp; Прочти меня](markdown/readme/russian.md) • 
-[:indonesia: &nbsp; Baca aku](markdown/readme/indonesian.md)
+[<img width="150" src="static/flags/China.png">](markdown/readme/chinese.md) 
+[<img width="150" src="static/flags/France.png">](markdown/readme/french.md) 
+[<img width="150" src="static/flags/Germany.png">](markdown/readme/german.md) 
+[<img width="150" src="static/flags/Spain.png">](markdown/readme/spanish.md) 
+[<img width="150" src="static/flags/Portugal.png">](markdown/readme/portuguese.md) 
+[<img width="150" src="static/flags/Italy.png">](markdown/readme/italian.md) 
+[<img width="150" src="static/flags/netherlands.png">](markdown/readme/dutch.md) 
+[<img width="150" src="static/flags/Japan.png">](markdown/readme/japanese.md) 
+[<img width="150" src="static/flags/SouthKorea.png">](markdown/readme/korean.md) 
+[<img width="150" src="static/flags/Russia.png">](markdown/readme/russian.md) 
 
 </div>
 
@@ -243,8 +243,8 @@ npm run cypress:open
 ```
 
 # Contributing
-- Please take a look at `./contribute/HowToApplyLicense.md`
-- Ignore adding headers for `.json` or `.md` or `.yml`
+- Please take a look at ./contribute/HowToApplyLicense.md 
+- Ignore adding headers for .json or .md or .yml   
 
 # 🎯 Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.

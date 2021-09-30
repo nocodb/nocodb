@@ -311,7 +311,7 @@ export default {
       }
 
       await this.api.update(id, {
-        [_cn]: +pid
+        [_cn]: pid
       }, {
         [_cn]: this.value && this.value[this.parentPrimaryKey]
       })
@@ -389,6 +389,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Md Ishtiaque Zafar <ishtiaque.zafar92@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

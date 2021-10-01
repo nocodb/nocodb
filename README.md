@@ -84,10 +84,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 
 # Join Our Community
 <a href="https://discord.gg/5RgZmkW">
-    <img 
-    src="https://invidget.switchblade.xyz/5RgZmkW" 
-    alt="Join NocoDB : Free & Open Source Airtable Alternative"
-    >
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 <br>
 

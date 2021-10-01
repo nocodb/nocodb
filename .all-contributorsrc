@@ -360,6 +360,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "eevleevs",
+      "name": "Giulio Malventi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5012744?v=4",
+      "profile": "https://github.com/eevleevs",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "dev-z",
+      "name": "Md. Ishtiaque Zafar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8604312?v=4",
+      "profile": "https://dev-z.github.io",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

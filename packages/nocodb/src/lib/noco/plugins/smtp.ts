@@ -27,6 +27,12 @@ const input: XcForm = {
     type: XcType.SingleLineText,
     required: true
   }, {
+    key: 'ignoreTLS',
+    label: 'IgnoreTLS',
+    placeholder: 'IgnoreTLS',
+    type: XcType.SingleLineText,
+    required: true
+  }, {
     key: 'username',
     label: 'Username',
     placeholder: 'Username',

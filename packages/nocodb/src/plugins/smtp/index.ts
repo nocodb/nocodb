@@ -41,7 +41,13 @@ const config: XcPluginConfig ={
       type: XcType.SingleLineText,
       required: true
     }, {
-      key: 'username',
+      key: 'ignoreTLS',
+      label: 'IgnoreTLS',
+      placeholder: 'IgnoreTLS',
+      type: XcType.SingleLineText,
+      required: false
+    }, {
+        key: 'username',
       label: 'Username',
       placeholder: 'Username',
       type: XcType.SingleLineText,

@@ -185,7 +185,7 @@
                       mdi-account-circle
                     </v-icon>
                   </v-list-item-icon>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1" style="min-width: 0">
                     <p class="mb-1 caption edited-text">
                       {{ isYou(log.user) ? 'You' : log.user }} {{
                         log.op_type === 'COMMENT' ? 'commented' : (
@@ -193,10 +193,8 @@
                         )
                       }}
                     </p>
-                    <p v-if="log.op_type === 'COMMENT'" class="caption mb-0">
-                      <v-chip small :color="colors[2]">
-                        {{ log.description }}
-                      </v-chip>
+                    <p v-if="log.op_type === 'COMMENT'" class="caption mb-0 nc-chip" :style="{background :colors[2]}">
+                      {{ log.description }}
                     </p>
 
                     <p v-else class="caption mb-0" style="word-break: break-all;" v-html="log.details" />
@@ -600,6 +598,11 @@ h5 {
   //align-items: center;
   //justify-content: flex-end;
   background: var(--v-backgroundColorDefault-base);
+}
+
+.nc-chip{
+  padding:8px;
+  border-radius: 8px;
 }
 </style>
 <!--

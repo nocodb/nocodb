@@ -68,11 +68,9 @@ Tablero de acceso de acceso usando : [http://localhost:8080/dashboard](http://lo
 
 # Únete a nuestra comunidad
 <a href="https://discord.gg/5RgZmkW">
-    <img 
-    src="https://invidget.switchblade.xyz/5RgZmkW" 
-    alt="Join NocoDB : Free & Open Source Airtable Alternative"
-    >
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
+<br>
 <br>
 
 # Capturas de pantalla

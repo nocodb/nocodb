@@ -68,11 +68,9 @@ npm start
 
 # 私たちのコミュニティに参加する
 <a href="https://discord.gg/5RgZmkW">
-    <img 
-    src="https://invidget.switchblade.xyz/5RgZmkW" 
-    alt="Join NocoDB : Free & Open Source Airtable Alternative"
-    >
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
+<br>
 <br>
 
 # スクリーンショット

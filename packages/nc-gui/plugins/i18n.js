@@ -19,13 +19,18 @@ export default ({ app, store }) => {
     // Associate each locale to a content file
     messages: {
       en: require('~/lang/en.json'),
-      // zh_HK: require('~/lang/zh_HK.json'),
-      // zh_TW: require('~/lang/zh_TW.json'),
-      // zh_CN: require('~/lang/zh_CN.json'),
-      // ja: require("~/lang/ja.json"),
+      zh_HK: require('~/lang/zh_HK.json'),
+      zh_TW: require('~/lang/zh_TW.json'),
+      zh_CN: require('~/lang/zh_CN.json'),
+      ja: require('~/lang/ja.json'),
       fr: require('~/lang/fr.json'),
       es: require('~/lang/es.json'),
-      pt: require('~/lang/pt.json')
+      de: require('~/lang/de.json'),
+      id: require('~/lang/id.json'),
+      it_IT: require('~/lang/it_IT.json'),
+      ko: require('~/lang/ko.json'),
+      nl: require('~/lang/nl.json'),
+      ru: require('~/lang/ru.json')
     }
   })
 

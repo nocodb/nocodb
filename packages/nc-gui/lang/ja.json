@@ -1,246 +1,246 @@
 {
   "projects": {
-    "my_projects": "My Projects",
-    "reload_projects_tooltip": "Refresh projects",
+    "my_projects": "私のプロジェクト",
+    "reload_projects_tooltip": "プロジェクトを更新します",
     "create_new_project_button": {
-      "text": "新しいプロジェクトを作成する",
-      "subtext_1": "Create",
-      "subtext_1_tooltip": "Create a new project",
-      "subtext_2": "Create By Connecting <br>To An External Database",
-      "subtext_2_tooltip": "Supports MySQL, PostgreSQL, SQL Server & SQLite"
+      "text": "新たなプロジェクト",
+      "subtext_1": "作成",
+      "subtext_1_tooltip": "新しいプロジェクトを作成します",
+      "subtext_2": "<br>を外部データベースに接続することで作成します",
+      "subtext_2_tooltip": "MySQL、PostgreSQL、SQL Server＆SQLiteをサポートしています"
     },
-    "search_project": "Search Project",
-    "import_metadata": "Import Metadata",
-    "export_metadata": "Export Metadata",
-    "clear_metadata": "Clear Metadata",
-    "stop_project": "Stop Project",
-    "start_project": "Start Project",
-    "restart_project": "Restart Project",
-    "delete_project": "Delete Project",
-    "project_api_type_tooltip_graphql": "Accessible via GraphQL APIs",
-    "project_api_type_tooltip_rest": "Accessible via REST APIs",
-    "project_empty_message": "Get started by creating a new project",
+    "search_project": "プロジェクトの検索",
+    "import_metadata": "メタデータを輸入する",
+    "export_metadata": "輸出メタデータ",
+    "clear_metadata": "明確なメタデータ",
+    "stop_project": "プロジェクトを停止します",
+    "start_project": "プロジェクトを開始します",
+    "restart_project": "プロジェクトを再開します",
+    "delete_project": "プロジェクトを削除します",
+    "project_api_type_tooltip_graphql": "GraphQL APIを介してアクセス可能",
+    "project_api_type_tooltip_rest": "REST APIを介してアクセス可能",
+    "project_empty_message": "新しいプロジェクトを作成することによって始められる",
     "import_button": {
-      "text": "Import NocoDB Project by uploading metadata zip file"
+      "text": "メタデータzipファイルをアップロードしてNoCoDBプロジェクトをインポートします"
     },
-    "show_community_star": "Star",
-    "show_community_us_on_Github": "us on Github",
-    "show_community_book_a_free_demo": "Book a Free DEMO",
-    "show_community_get_your_questions_answered": "Get your questions answered",
-    "show_community_join_discord": "Join Discord",
-    "show_community_follow_nocodb": "Follow NocoDB",
+    "show_community_star": "星",
+    "show_community_us_on_Github": "Githubの米国",
+    "show_community_book_a_free_demo": "無料のデモを予約する",
+    "show_community_get_your_questions_answered": "あなたの質問に回答しましょう",
+    "show_community_join_discord": "不意に参加してください",
+    "show_community_follow_nocodb": "Nocodbをフォローする",
     "search": {
-      "your_search_found_no_results": "Your search for {search} found no results"
+      "your_search_found_no_results": "{検索}の検索結果が見つかりませんでした"
     },
     "ext_db": {
       "title": {
-        "edit": "Edit Project",
-        "create": "Create Project"
+        "edit": "プロジェクトを編集する",
+        "create": "プロジェクトを作成します"
       },
-      "project_name": "Enter Project Name",
-      "project_type": "Access Project via",
+      "project_name": "プロジェクト名を入力してください",
+      "project_type": "によるアクセスプロジェクト",
       "button": {
-        "save_project": "Save Project",
-        "update_and_restart": "Update & Restart",
-        "cancel": "Cancel",
-        "cancel_tooltip": "Cancel and Return"
+        "save_project": "プロジェクトを保存します",
+        "update_and_restart": "更新と再起動",
+        "cancel": "キャンセル",
+        "cancel_tooltip": "キャンセルして返します"
       },
       "credentials": {
-        "title": "Database Credentials",
-        "db_type": "Database Type",
-        "sqlite_file": "SQLite File",
-        "host_address": "Host Address",
-        "port": "Port Number",
-        "username": "Username",
-        "password": "Password",
-        "db_create_if_not_exists": "Database : create if not exists",
+        "title": "データベース認証情報",
+        "db_type": "データベースタイプ",
+        "sqlite_file": "SQLiteファイル",
+        "host_address": "ホストアドレス",
+        "port": "ポート番号",
+        "username": "ユーザー名",
+        "password": "パスワード",
+        "db_create_if_not_exists": "データベース：存在しない場合は作成します",
         "button": {
-          "test_db_conn": "Test Database Connection",
-          "remove_db_from_env": "Remove Database from environment"
+          "test_db_conn": "データベース接続をテストします",
+          "remove_db_from_env": "環境からデータベースを削除します"
         },
         "advanced": {
-          "title": "SSL & Advanced parameters",
+          "title": "SSL＆高度なパラメータ",
           "ssl": {
             "client_key": {
-              "title": "Client Key",
-              "toolip": "Select .key file"
+              "title": "クライアントキー",
+              "toolip": "。キーファイルを選択してください"
             },
             "client_cert": {
-              "title": "Client Cert",
-              "toolip": "Select .cert file"
+              "title": "クライアント証明書",
+              "toolip": ".certファイルを選択してください"
             },
             "server_ca": {
-              "title": "Server CA",
-              "toolip": "Select CA file"
+              "title": "サーバーCA.",
+              "toolip": "CAファイルを選択してください"
             },
-            "preferred": "Preferred",
+            "preferred": "優先",
             "usage": {
-              "no": "No",
-              "preferred": "Preferred",
-              "required": "Required",
-              "requried_ca": "Required-CA",
-              "requried_identity": "Required-IDENTITY"
+              "no": "番号",
+              "preferred": "優先",
+              "required": "必須",
+              "requried_ca": "必須 -  C.",
+              "requried_identity": "必須アイデンティティ"
             }
           },
           "inflection": {
-            "table_name": "Inflection - Table name",
-            "column_name": "Inflection - Column name"
+            "table_name": "変化 - テーブル名",
+            "column_name": "変曲率 - 列名"
           },
           "button": {
-            "edit_conn_json": "Edit connection JSON"
+            "edit_conn_json": "接続JSONを編集"
           }
         }
       },
       "error": {
-        "invalid_char_in_folder_path": "Invalid character in folder path.",
-        "invalid_db_credentials": "Invalid database credentials.",
-        "unable_to_connect_to_db": "Unable to connect to database, please check your database is up.",
-        "user_doesnt_ve_sufficient_permission": "User does not exist or have sufficient permission to create schema."
+        "invalid_char_in_folder_path": "フォルダパスに無効な文字",
+        "invalid_db_credentials": "無効なデータベース認証情報。",
+        "unable_to_connect_to_db": "データベースに接続できない場合は、データベースが起動していることを確認してください。",
+        "user_doesnt_ve_sufficient_permission": "ユーザーが存在しないか、スキーマを作成するのに十分な権限があります。"
       },
       "head": {
-        "title": "Create Project | NocoDB"
+        "title": "プロジェクトを作成する野手"
       },
       "dialog": {
-        "success": "Connection was successful",
-        "failure": "Connection Failure:"
+        "success": "接続が成功しました",
+        "failure": "接続失敗："
       }
     },
     "notifications": {
-      "no_new": "No new notifications",
-      "clear": "Clear"
+      "no_new": "新しい通知はありません",
+      "clear": "クリア"
     }
   },
   "signin": {
-    "title": "SIGN IN",
-    "enter_your_work_email": "Enter your work email",
-    "enter_your_password": "Enter your password",
-    "forget_password": "Forgot your password ?",
-    "dont_ve_an_account": "Don't have an account ?",
-    "sign_up": "Sign Up",
+    "title": "ログイン",
+    "enter_your_work_email": "あなたの作品Eメールを入力してください",
+    "enter_your_password": "パスワードを入力してください",
+    "forget_password": "パスワードをお忘れですか ？",
+    "dont_ve_an_account": "アカウントを持っていませんか？",
+    "sign_up": "サインアップ",
     "form": {
       "rules": {
-        "email_is_reqd": "E-mail is required",
-        "email_must_be_valid": "E-mail must be valid",
-        "passwd_required": "Password is required",
-        "passwd_must_be_8_chars": "You password must be atleast 8 characters"
+        "email_is_reqd": "電子メールが必要です",
+        "email_must_be_valid": "電子メールは有効でなければなりません",
+        "passwd_required": "パスワードが必要です",
+        "passwd_must_be_8_chars": "あなたのパスワードは少なくとも8文字でなければなりません"
       }
     },
     "head": {
-      "title": "Log In | NocoDB",
+      "title": "ログイン|野手",
       "meta": {
-        "hid": "Log In To NocoDB",
-        "name": "Log In To NocoDB",
-        "content": "Log In To NocoDB"
+        "hid": "Nocodbにログインします",
+        "name": "Nocodbにログインします",
+        "content": "Nocodbにログインします"
       }
     },
     "password": {
       "recovery": {
-        "title": "Reset your password",
-        "message_1": "Please provide the email address you used when you signed up.",
-        "message_2": "We will send you an email with a link to reset your password.",
-        "success": "Please check your email to reset the password",
-        "button": "SEND EMAIL"
+        "title": "あなたのパスワードをリセット",
+        "message_1": "サインアップしたときに使用したメールアドレスを入力してください。",
+        "message_2": "パスワードをリセットするためのリンク付きの電子メールを送信します。",
+        "success": "パスワードをリセットするには、Eメールを確認してください",
+        "button": "メールを送る"
       }
     }
   },
   "signup": {
-    "title": "SIGN UP",
-    "you_will_be_the_super_admin": "You will be the 'Super Admin'",
-    "already_ve_an_account": "Already have an account ?"
+    "title": "サインアップ",
+    "you_will_be_the_super_admin": "あなたは「スーパーアドミン」になります",
+    "already_ve_an_account": "すでにアカウントをお持ちですか ？"
   },
   "treeview": {
     "settings": {
-      "title": "Settings",
-      "tooltip": "Only visible to Creator"
+      "title": "設定",
+      "tooltip": "クリエイターには見えます"
     },
-    "app_store": "App Store",
+    "app_store": "アプリストア",
     "team_n_auth": {
-      "title": "Team & Auth",
-      "tooltip": "Roles & Users Management"
+      "title": "チーム＆auth",
+      "tooltip": "役割とユーザー管理"
     },
     "project_metadata": {
-      "title": "Project Metadata",
-      "tooltip": "Meta Management"
+      "title": "プロジェクトメタデータ",
+      "tooltip": "メタ管理"
     },
-    "preview_as": "Preview as",
-    "reset_review": "Reset Preview"
+    "preview_as": "ASプレビュー",
+    "reset_review": "リセットプレビュー"
   },
   "nav_drawer": {
-    "title": "Views",
+    "title": "ビュー",
     "virtual_views": {
       "action": {
-        "copy": "Copy view",
-        "rename": "Rename view",
-        "delete": "Delete view"
+        "copy": "コピービュー",
+        "rename": "ビューの名前を変更します",
+        "delete": "ビューを削除します"
       },
-      "title": "Create a View",
-      "caption": "Only visible to Creator",
+      "title": "ビューを作成します",
+      "caption": "クリエイターには見えます",
       "grid": {
-        "title": "Grid",
-        "create": "Add Grid View"
+        "title": "グリッド",
+        "create": "グリッドビューを追加します"
       },
       "gallery": {
-        "title": "Gallery",
-        "create": "Add Gallery View"
+        "title": "ギャラリー",
+        "create": "ギャラリービューを追加します"
       },
       "calendar": {
-        "title": "Calendar",
-        "create": "Add Calendar View"
+        "title": "カレンダー",
+        "create": "カレンダービューを追加します"
       },
       "kanban": {
-        "title": "Kanban",
-        "create": "Add Kanban View"
+        "title": "かんばん",
+        "create": "かんばんビューを追加してください"
       },
       "form": {
-        "title": "Form",
-        "create": "Add Form View"
+        "title": "形",
+        "create": "フォームビューを追加します"
       }
     },
     "advanced": {
-      "title1": "Share View",
-      "views_list": "Views List",
-      "copy_api_url": "Copy API URL"
+      "title1": "シェアビュー",
+      "views_list": "ビューリスト",
+      "copy_api_url": "API URLをコピーする"
     },
     "share_view": {
-      "title": "This view is shared via a private link",
-      "body": "People with private link can only see cells visible in this view",
+      "title": "このビューはプライベートリンクを介して共有されています",
+      "body": "プライベートリンクを持つ人々は、このビューで表示されているセルのみを見ることができます",
       "toggle": {
-        "option1": "Restrict access with a password",
-        "option2": "Access is password restricted"
+        "option1": "パスワードによるアクセスを制限します",
+        "option2": "アクセスはパスワード制限です"
       },
       "password": {
-        "caption": "Enter the password",
-        "button": "Save password"
+        "caption": "パスワードを入力してください",
+        "button": "パスワードを保存する"
       }
     }
   },
   "management": {
     "tabs": {
-      "user": "Users Management",
-      "api": "API Tokens Management",
-      "roles": "Roles Management"
+      "user": "ユーザー管理",
+      "api": "APIトークン管理",
+      "roles": "役割管理"
     },
     "meta": {
-      "title": "Metadata Operations",
+      "title": "メタデータ操作",
       "export_to_file": {
-        "title": "Export to file",
-        "desc": "Export all metadata from the meta tables to meta directory."
+        "title": "ファイルにエクスポートします",
+        "desc": "メタテーブルからメタディレクトリにすべてのメタデータをエクスポートします。"
       },
       "import": {
-        "title": "Import",
-        "desc": "Import all metadata from the meta directory to meta tables."
+        "title": "輸入",
+        "desc": "メタデータからメタテーブルへのすべてのメタデータをインポートします。"
       },
       "export_to_zip": {
-        "title": "Export zip",
-        "desc": "Export project meta to zip file and download."
+        "title": "エクスポートジッパー",
+        "desc": "プロジェクトメタをZipファイルにエクスポートしてダウンロードします。"
       },
       "import_zip": {
-        "title": "Import zip",
-        "desc": "Import project meta zip file and restart."
+        "title": "郵便番号をインポートします",
+        "desc": "プロジェクトメタzipファイルをインポートして再起動します。"
       },
       "reset": {
-        "title": "Reset",
-        "desc": "Clear all metadata from meta tables."
+        "title": "リセットする",
+        "desc": "メタテーブルからすべてのメタデータをクリアします。"
       }
     }
   }

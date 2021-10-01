@@ -83,8 +83,8 @@
             }
           },
           "inflection": {
-            "table_name": "Inflection - Table name",
-            "column_name": "Inflection - Column name"
+            "table_name": "Inflexion - Nom de la table",
+            "column_name": "Inflexion - Nom de la colonne"
           },
           "button": {
             "edit_conn_json": "Editer le JSON de la connexion"
@@ -106,8 +106,8 @@
       }
     },
     "notifications": {
-      "no_new": "No new notifications",
-      "clear": "Clear"
+      "no_new": "pas de nouvelles notifications",
+      "clear": "Dégager"
     }
   },
   "signin": {
@@ -135,18 +135,18 @@
     },
     "password": {
       "recovery": {
-        "title": "Reset your password",
-        "message_1": "Please provide the email address you used when you signed up.",
-        "message_2": "We will send you an email with a link to reset your password.",
-        "success": "Please check your email to reset the password",
-        "button": "SEND EMAIL"
+        "title": "réinitialisez votre mot de passe",
+        "message_1": "Veuillez fournir l'adresse e-mail que vous avez utilisée lorsque vous vous êtes inscrit.",
+        "message_2": "Nous vous enverrons un email avec un lien pour réinitialiser votre mot de passe.",
+        "success": "Veuillez vérifier votre email pour réinitialiser le mot de passe",
+        "button": "Envoyer un email"
       }
     }
   },
   "signup": {
-    "title": "SIGN UP",
-    "you_will_be_the_super_admin": "You will be the 'Super Admin'",
-    "already_ve_an_account": "Already have an account ?"
+    "title": "S'INSCRIRE",
+    "you_will_be_the_super_admin": "Vous serez le 'super admin'",
+    "already_ve_an_account": "Vous avez déjà un compte ?"
   },
   "treeview": {
     "settings": {
@@ -216,31 +216,31 @@
   },
   "management": {
     "tabs": {
-      "user": "Users Management",
-      "api": "API Tokens Management",
-      "roles": "Roles Management"
+      "user": "Gestion des utilisateurs",
+      "api": "Gestion des jetons API",
+      "roles": "Gestion des rôles"
     },
     "meta": {
-      "title": "Metadata Operations",
+      "title": "Opérations de métadonnées",
       "export_to_file": {
-        "title": "Export to file",
-        "desc": "Export all metadata from the meta tables to meta directory."
+        "title": "Exporter vers le fichier",
+        "desc": "Exportez toutes les métadonnées des méta-tables vers le répertoire Meta."
       },
       "import": {
-        "title": "Import",
-        "desc": "Import all metadata from the meta directory to meta tables."
+        "title": "Importer",
+        "desc": "Importer toutes les métadonnées du répertoire Meta en méta-tables."
       },
       "export_to_zip": {
-        "title": "Export zip",
-        "desc": "Export project meta to zip file and download."
+        "title": "Exportation zip",
+        "desc": "Export Project Meta vers Zip Fichier et télécharger."
       },
       "import_zip": {
-        "title": "Import zip",
-        "desc": "Import project meta zip file and restart."
+        "title": "Importer zip",
+        "desc": "Importer le projet META ZIP et redémarrer."
       },
       "reset": {
-        "title": "Reset",
-        "desc": "Clear all metadata from meta tables."
+        "title": "Réinitialiser",
+        "desc": "Effacer toutes les métadonnées des méta-tables."
       }
     }
   }

@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Мои проекты",
+    "reload_projects_tooltip": "Обновить проекты",
+    "create_new_project_button": {
+      "text": "Новый проект",
+      "subtext_1": "Создавать",
+      "subtext_1_tooltip": "Создать новый проект",
+      "subtext_2": "Создать, подключение к внешней базе данных",
+      "subtext_2_tooltip": "Поддерживает MySQL, PostgreSQL, SQL Server & Sqlite"
+    },
+    "search_project": "Поиск проекта",
+    "import_metadata": "Импорт метаданных",
+    "export_metadata": "Экспорт метаданных",
+    "clear_metadata": "Очистить метаданные",
+    "stop_project": "Остановить проект",
+    "start_project": "Начать проект",
+    "restart_project": "Перезапустить проект",
+    "delete_project": "Удалить проект",
+    "project_api_type_tooltip_graphql": "Доступно через APIS-APIS",
+    "project_api_type_tooltip_rest": "Доступен через APIS-APIS",
+    "project_empty_message": "Начните, создавая новый проект",
+    "import_button": {
+      "text": "Импортировать проект NOCODB, загрузка ZIP-файла метаданных"
+    },
+    "show_community_star": "Звезда",
+    "show_community_us_on_Github": "США на Github",
+    "show_community_book_a_free_demo": "Забронировать бесплатное демо",
+    "show_community_get_your_questions_answered": "Получите ответы на ваши вопросы",
+    "show_community_join_discord": "Присоединиться к",
+    "show_community_follow_nocodb": "Следуйте NOCODB.",
+    "search": {
+      "your_search_found_no_results": "Ваш поиск {поиск} не нашел результатов"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Редактировать проект",
+        "create": "Создать проект"
+      },
+      "project_name": "Введите название проекта",
+      "project_type": "Доступ проекта через",
+      "button": {
+        "save_project": "Сохранить проект",
+        "update_and_restart": "Обновление и перезапуск",
+        "cancel": "Отмена",
+        "cancel_tooltip": "Отмена и возврата"
+      },
+      "credentials": {
+        "title": "Учетные данные базы данных",
+        "db_type": "Тип базы данных",
+        "sqlite_file": "Sqlite file.",
+        "host_address": "Адрес хоста",
+        "port": "Номер порта",
+        "username": "Имя пользователя",
+        "password": "Пароль",
+        "db_create_if_not_exists": "База данных: создать, если не существует",
+        "button": {
+          "test_db_conn": "Тестовая база данных подключения",
+          "remove_db_from_env": "Удалить базу данных из среды"
+        },
+        "advanced": {
+          "title": "SSL и расширенные параметры",
+          "ssl": {
+            "client_key": {
+              "title": "Ключ клиента",
+              "toolip": "Выберите .key file."
+            },
+            "client_cert": {
+              "title": "Client Cert.",
+              "toolip": "Выберите .cert file."
+            },
+            "server_ca": {
+              "title": "Сервер ca.",
+              "toolip": "Выберите CA файл"
+            },
+            "preferred": "Предпочтительнее",
+            "usage": {
+              "no": "Нет",
+              "preferred": "Предпочтительнее",
+              "required": "Необходимый",
+              "requried_ca": "Требуется-ок",
+              "requried_identity": "Требуемая идентичность"
+            }
+          },
+          "inflection": {
+            "table_name": "Перегиба - имя таблицы",
+            "column_name": "Перегиба - имя столбца"
+          },
+          "button": {
+            "edit_conn_json": "Редактировать соединение JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Неверный символ в пути папки.",
+        "invalid_db_credentials": "Неверные учетные данные базы данных.",
+        "unable_to_connect_to_db": "Невозможно подключиться к базе данных, пожалуйста, проверьте вашу базу данных.",
+        "user_doesnt_ve_sufficient_permission": "Пользователь не существует или имеет достаточное разрешение на создание схемы."
+      },
+      "head": {
+        "title": "Создать проект |. NOCODB"
+      },
+      "dialog": {
+        "success": "Соединение было успешным",
+        "failure": "Сбой соединения:"
+      }
+    },
+    "notifications": {
+      "no_new": "Нет новых уведомлений",
+      "clear": "Прозрачный"
+    }
+  },
+  "signin": {
+    "title": "ВОЙТИ",
+    "enter_your_work_email": "Введите свою работу по электронной почте",
+    "enter_your_password": "Введите ваш пароль",
+    "forget_password": "Забыли свой пароль ?",
+    "dont_ve_an_account": "У вас нет аккаунта?",
+    "sign_up": "Зарегистрироваться",
+    "form": {
+      "rules": {
+        "email_is_reqd": "E-mail требуется",
+        "email_must_be_valid": "Электронная почта должна быть действительной",
+        "passwd_required": "необходим пароль",
+        "passwd_must_be_8_chars": "Вас пароль должен быть по крайней мере 8 символов"
+      }
+    },
+    "head": {
+      "title": "Войти |. NOCODB",
+      "meta": {
+        "hid": "Войдите в NoCodb",
+        "name": "Войдите в NoCodb",
+        "content": "Войдите в NoCodb"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Сбросить пароль",
+        "message_1": "Пожалуйста, укажите адрес электронной почты, который вы использовали, когда вы зарегистрировались.",
+        "message_2": "Мы вышлем вам электронное письмо со ссылкой на сброс вашего пароля.",
+        "success": "Пожалуйста, проверьте вашу электронную почту, чтобы сбросить пароль",
+        "button": "Отправить письмо"
+      }
+    }
+  },
+  "signup": {
+    "title": "ЗАРЕГИСТРИРОВАТЬСЯ",
+    "you_will_be_the_super_admin": "Вы будете «супер админ»",
+    "already_ve_an_account": "Уже есть аккаунт?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Настройки",
+      "tooltip": "Видно только для создателя"
+    },
+    "app_store": "Магазин приложений",
+    "team_n_auth": {
+      "title": "Команда & auth.",
+      "tooltip": "Роли и управление пользователями"
+    },
+    "project_metadata": {
+      "title": "Метаданные проекта",
+      "tooltip": "Мета Управление"
+    },
+    "preview_as": "Предварительный просмотр как",
+    "reset_review": "Сброс предварительного просмотра"
+  },
+  "nav_drawer": {
+    "title": "Просмотры",
+    "virtual_views": {
+      "action": {
+        "copy": "Скопировать просмотр",
+        "rename": "Переименовать Взгляд",
+        "delete": "Удалить просмотр"
+      },
+      "title": "Создать представление",
+      "caption": "Видно только для создателя",
+      "grid": {
+        "title": "Сетка",
+        "create": "Добавить сетку"
+      },
+      "gallery": {
+        "title": "Галерея",
+        "create": "Добавить галерею Взгляд"
+      },
+      "calendar": {
+        "title": "Календарь",
+        "create": "Добавить календарь Взгляд"
+      },
+      "kanban": {
+        "title": "Канбан",
+        "create": "Добавить Kanban View."
+      },
+      "form": {
+        "title": "Форма",
+        "create": "Добавить вид на вид"
+      }
+    },
+    "advanced": {
+      "title1": "Поделиться обзором",
+      "views_list": "Список просмотров",
+      "copy_api_url": "Скопируйте URL API"
+    },
+    "share_view": {
+      "title": "Этот взгляд совместно используется через личную ссылку",
+      "body": "Люди с частной ссылкой могут видеть только видимые клетки в этой точке зрения",
+      "toggle": {
+        "option1": "Ограничить доступ с паролем",
+        "option2": "Доступ - это пароль ограничен"
+      },
+      "password": {
+        "caption": "Введите пароль",
+        "button": "Сохранить пароль"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Управление пользователями",
+      "api": "Управление токенами API",
+      "roles": "Роли управления"
+    },
+    "meta": {
+      "title": "Метаданные операции",
+      "export_to_file": {
+        "title": "Экспорт в файл",
+        "desc": "Экспортируйте все метаданные из металогической таблицы в металворитель META."
+      },
+      "import": {
+        "title": "Импортировать",
+        "desc": "Импортируйте все метаданные из метадата META на металогические таблицы."
+      },
+      "export_to_zip": {
+        "title": "Экспорт молнии",
+        "desc": "Экспорт проекта META на Zip-файл и загрузка."
+      },
+      "import_zip": {
+        "title": "Импорт молнии",
+        "desc": "Импорт проекта META ZIP-файл и перезапуск."
+      },
+      "reset": {
+        "title": "Сброс настроек",
+        "desc": "Очистите все метаданные из металоги."
+      }
+    }
+  }
+}

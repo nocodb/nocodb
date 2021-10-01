@@ -46,14 +46,14 @@
         "cancel_tooltip": "取消及返回"
       },
       "credentials": {
-        "title": "DB Credentials",
-        "db_type": "DB Type",
-        "sqlite_file": "SQLite 文件",
-        "host_address": "Host名",
-        "port": "Port Number",
+        "title": "數據庫憑據",
+        "db_type": "數據庫類型",
+        "sqlite_file": "sqlite 文件",
+        "host_address": "主機地址",
+        "port": "端口號碼",
         "username": "用戶名稱",
         "password": "密碼",
-        "db_create_if_not_exists": "DB : create if not exists",
+        "db_create_if_not_exists": "數據庫：創建如果不存在",
         "button": {
           "test_db_conn": "駁下DB通唔通",
           "remove_db_from_env": "從環境中delete DB"
@@ -70,32 +70,32 @@
               "toolip": "揀 .cert file"
             },
             "server_ca": {
-              "title": "Server CA",
+              "title": "服務器 CA",
               "toolip": "揀 CA file"
             },
-            "preferred": "preferred",
+            "preferred": "首選",
             "usage": {
-              "no": "No",
-              "preferred": "preferred",
+              "no": "不",
+              "preferred": "首選",
               "required": "必填",
-              "requried_ca": "Required-CA",
-              "requried_identity": "Required-IDENTITY"
+              "requried_ca": "必填卡",
+              "requried_identity": "必要的身份"
             }
           },
           "inflection": {
-            "table_name": "Inflection - Table name",
-            "column_name": "Inflection - Column name"
+            "table_name": "拐點 - 表名",
+            "column_name": "拐點 - 列名稱"
           },
           "button": {
-            "edit_conn_json": "Edit connection JSON"
+            "edit_conn_json": "編輯連接 JSON."
           }
         }
       },
       "error": {
-        "invalid_char_in_folder_path": "Invalid character in folder path.",
-        "invalid_db_credentials": "Invalid DB credentials.",
-        "unable_to_connect_to_db": "Unable to connect to DB, please check your DB is up.",
-        "user_doesnt_ve_sufficient_permission": "User does not exist or have sufficient permission to create schema."
+        "invalid_char_in_folder_path": "文件夾路徑中的字符無效。",
+        "invalid_db_credentials": "數據庫憑據無效。",
+        "unable_to_connect_to_db": "無法連接數據庫，請檢查您的數據庫已啟動。",
+        "user_doesnt_ve_sufficient_permission": "用戶不存在或具有足夠的權限來創建架構。"
       },
       "head": {
         "title": "開新Project | NocoDB"
@@ -138,8 +138,8 @@
         "title": "reset你嗰密碼",
         "message_1": "用番你reg果陣果嗰email",
         "message_2": "我們將向您發送一封電子郵件，其中包含重置密碼的鏈接。",
-        "success": "check email去reset password",
-        "button": "send email"
+        "success": "請檢查您的電子郵件以重置密碼",
+        "button": "發電子郵件"
       }
     }
   },
@@ -153,64 +153,64 @@
       "title": "設置",
       "tooltip": "僅創作者可見"
     },
-    "app_store": "App Store",
+    "app_store": "應用商店",
     "team_n_auth": {
-      "title": "Team & Auth",
-      "tooltip": "Roles & Users Management"
+      "title": "團隊＆auth",
+      "tooltip": "角色和用戶管理"
     },
     "project_metadata": {
-      "title": "Projectmetadata",
-      "tooltip": "metadata管理"
+      "title": "項目元數據",
+      "tooltip": "元管理"
     },
-    "preview_as": "preview",
-    "reset_review": "reset嗰preview"
+    "preview_as": "預覽",
+    "reset_review": "重置預覽"
   },
   "nav_drawer": {
-    "title": "Views",
+    "title": "意見",
     "virtual_views": {
       "action": {
-        "copy": "Copy view",
-        "rename": "Rename view",
-        "delete": "Delete view"
+        "copy": "複製視圖",
+        "rename": "重命名視圖",
+        "delete": "刪除視圖"
       },
-      "title": "Create a View",
-      "caption": "Only visible to Creator",
+      "title": "創建一個視圖",
+      "caption": "僅對創造者可見",
       "grid": {
-        "title": "Grid",
-        "create": "Add Grid View"
+        "title": "網格",
+        "create": "添加網格視圖"
       },
       "gallery": {
-        "title": "Gallery",
-        "create": "Add Gallery View"
+        "title": "畫廊",
+        "create": "添加圖庫視圖"
       },
       "calendar": {
-        "title": "Calendar",
-        "create": "Add Calendar View"
+        "title": "日曆",
+        "create": "添加日曆視圖"
       },
       "kanban": {
-        "title": "Kanban",
-        "create": "Add Kanban View"
+        "title": "卡班",
+        "create": "添加Kanban View."
       },
       "form": {
-        "title": "Form",
-        "create": "Add Form View"
+        "title": "形式",
+        "create": "添加表單視圖"
       }
     },
     "advanced": {
-      "title1": "Share View",
-      "views_list": "Views List",
-      "copy_api_url": "Copy API URL"
+      "title1": "分享視圖",
+      "views_list": "觀點列表",
+      "copy_api_url": "複製API URL."
     },
     "share_view": {
-      "title": "This view is shared via a private link",
-      "body": "People with private link can only see cells visible in this view",
+      "title": "此視圖通過私人鏈接共享",
+      "body": "具有私有鏈接的人只能看到此視圖中可見的細胞",
       "toggle": {
-        "option1": "Restrict access with a password",
-        "option2": "Access is password restricted"
+        "option1": "限制密碼訪問權限",
+        "option2": "訪問是受限制的密碼"
       },
       "password": {
-        "caption": "Enter the password",
-        "button": "Save password"
+        "caption": "輸入密碼",
+        "button": "保存密碼"
       }
     }
   },
@@ -221,26 +221,26 @@
       "roles": "Roles 管理"
     },
     "meta": {
-      "title": "Metadata Operations",
+      "title": "元數據操作",
       "export_to_file": {
-        "title": "導出去file",
-        "desc": "Export all metadata from the meta tables to meta directory."
+        "title": "導出到文件",
+        "desc": "將所有元數據從元表導出到Meta目錄。"
       },
       "import": {
-        "title": "import",
-        "desc": "Import all metadata from the meta directory to meta tables."
+        "title": "導出去file",
+        "desc": "將所有元數據從Meta目錄導入元表。"
       },
       "export_to_zip": {
         "title": "export去 zip",
-        "desc": "Export project meta to zip file and download."
+        "desc": "將項目元導出到zip文件和下載。"
       },
       "import_zip": {
         "title": "import去 zip",
-        "desc": "Import project meta zip file and restart."
+        "desc": "導入項目元拉鍊文件並重新啟動。"
       },
       "reset": {
-        "title": "reset",
-        "desc": "Clear all metadata from meta tables."
+        "title": "重啟",
+        "desc": "清除元表中的所有元數據。"
       }
     }
   }

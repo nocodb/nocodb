@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "我的项目",
+    "reload_projects_tooltip": "刷新项目",
+    "create_new_project_button": {
+      "text": "新项目",
+      "subtext_1": "创建",
+      "subtext_1_tooltip": "创建一个新项目",
+      "subtext_2": "通过连接为外部数据库创建",
+      "subtext_2_tooltip": "支持MySQL，PostgreSQL，SQL Server和SQLite"
+    },
+    "search_project": "搜索项目",
+    "import_metadata": "导入元数据",
+    "export_metadata": "导出元数据",
+    "clear_metadata": "清除元数据",
+    "stop_project": "停止项目",
+    "start_project": "启动项目",
+    "restart_project": "重新启动项目",
+    "delete_project": "删除项目",
+    "project_api_type_tooltip_graphql": "通过GraphQL API访问",
+    "project_api_type_tooltip_rest": "通过REST API可访问",
+    "project_empty_message": "通过创建一个新项目开始",
+    "import_button": {
+      "text": "通过上传元数据zip文件导入NoCodb项目"
+    },
+    "show_community_star": "星星",
+    "show_community_us_on_Github": "我们在github上",
+    "show_community_book_a_free_demo": "预订一个免费的演示",
+    "show_community_get_your_questions_answered": "收到您的问题",
+    "show_community_join_discord": "加入不和谐",
+    "show_community_follow_nocodb": "关注Nocodb.",
+    "search": {
+      "your_search_found_no_results": "您的搜索{search}找不到结果"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "编辑项目",
+        "create": "创建项目"
+      },
+      "project_name": "输入项目名称",
+      "project_type": "访问项目通过",
+      "button": {
+        "save_project": "保存项目",
+        "update_and_restart": "更新并重新启动",
+        "cancel": "取消",
+        "cancel_tooltip": "取消并返回"
+      },
+      "credentials": {
+        "title": "数据库凭据",
+        "db_type": "数据库类型",
+        "sqlite_file": "sqlite文件",
+        "host_address": "主机地址",
+        "port": "端口号码",
+        "username": "用户名",
+        "password": "密码",
+        "db_create_if_not_exists": "数据库：创建如果不存在",
+        "button": {
+          "test_db_conn": "测试数据库连接",
+          "remove_db_from_env": "从环境中删除数据库"
+        },
+        "advanced": {
+          "title": "SSL和高级参数",
+          "ssl": {
+            "client_key": {
+              "title": "客户钥匙",
+              "toolip": "选择.key文件"
+            },
+            "client_cert": {
+              "title": "客户证书",
+              "toolip": "选择.cert文件"
+            },
+            "server_ca": {
+              "title": "服务器CA.",
+              "toolip": "选择CA File."
+            },
+            "preferred": "首选",
+            "usage": {
+              "no": "不",
+              "preferred": "首选",
+              "required": "必需的",
+              "requried_ca": "必填卡",
+              "requried_identity": "必要的身份"
+            }
+          },
+          "inflection": {
+            "table_name": "拐点 - 表名",
+            "column_name": "拐点 - 列名称"
+          },
+          "button": {
+            "edit_conn_json": "编辑连接JSON."
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "文件夹路径中的字符无效。",
+        "invalid_db_credentials": "数据库凭据无效。",
+        "unable_to_connect_to_db": "无法连接数据库，请检查您的数据库已启动。",
+        "user_doesnt_ve_sufficient_permission": "用户不存在或具有足够的权限来创建架构。"
+      },
+      "head": {
+        "title": "创建项目| Nocodb."
+      },
+      "dialog": {
+        "success": "连接成功了",
+        "failure": "连接失败："
+      }
+    },
+    "notifications": {
+      "no_new": "没有新的通知",
+      "clear": "清除"
+    }
+  },
+  "signin": {
+    "title": "登入",
+    "enter_your_work_email": "输入您的工作电子邮件",
+    "enter_your_password": "输入您的密码",
+    "forget_password": "忘记密码了吗 ？",
+    "dont_ve_an_account": "没有帐户？",
+    "sign_up": "报名",
+    "form": {
+      "rules": {
+        "email_is_reqd": "电子邮件是必需的",
+        "email_must_be_valid": "电子邮件必须有效",
+        "passwd_required": "密码是必需的",
+        "passwd_must_be_8_chars": "您的密码必须至少为8个字符"
+      }
+    },
+    "head": {
+      "title": "登录| Nocodb.",
+      "meta": {
+        "hid": "登录NoCodb",
+        "name": "登录NoCodb",
+        "content": "登录NoCodb"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "重置您的密码",
+        "message_1": "请提供您注册时使用的电子邮件地址。",
+        "message_2": "我们会向您发送一封带有链接以重置密码的电子邮件。",
+        "success": "请检查您的电子邮件以重置密码",
+        "button": "发电子邮件"
+      }
+    }
+  },
+  "signup": {
+    "title": "报名",
+    "you_will_be_the_super_admin": "你将是'超级管理'",
+    "already_ve_an_account": "已经有一个帐户？"
+  },
+  "treeview": {
+    "settings": {
+      "title": "设置",
+      "tooltip": "仅对创造者可见"
+    },
+    "app_store": "应用商店",
+    "team_n_auth": {
+      "title": "团队＆auth",
+      "tooltip": "角色和用户管理"
+    },
+    "project_metadata": {
+      "title": "项目元数据",
+      "tooltip": "元管理"
+    },
+    "preview_as": "预览",
+    "reset_review": "重置预览"
+  },
+  "nav_drawer": {
+    "title": "意见",
+    "virtual_views": {
+      "action": {
+        "copy": "复制视图",
+        "rename": "重命名视图",
+        "delete": "删除视图"
+      },
+      "title": "创建一个视图",
+      "caption": "仅对创造者可见",
+      "grid": {
+        "title": "网格",
+        "create": "添加网格视图"
+      },
+      "gallery": {
+        "title": "画廊",
+        "create": "添加图库视图"
+      },
+      "calendar": {
+        "title": "日历",
+        "create": "添加日历视图"
+      },
+      "kanban": {
+        "title": "卡班",
+        "create": "添加Kanban View."
+      },
+      "form": {
+        "title": "形式",
+        "create": "添加表单视图"
+      }
+    },
+    "advanced": {
+      "title1": "分享视图",
+      "views_list": "观点列表",
+      "copy_api_url": "复制API URL."
+    },
+    "share_view": {
+      "title": "此视图通过私人链接共享",
+      "body": "具有私有链接的人只能看到此视图中可见的细胞",
+      "toggle": {
+        "option1": "限制密码访问权限",
+        "option2": "访问是受限制的密码"
+      },
+      "password": {
+        "caption": "输入密码",
+        "button": "保存密码"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "用户管理",
+      "api": "API令牌管理",
+      "roles": "角色管理"
+    },
+    "meta": {
+      "title": "元数据操作",
+      "export_to_file": {
+        "title": "导出到文件",
+        "desc": "将所有元数据从元表导出到Meta目录。"
+      },
+      "import": {
+        "title": "进口",
+        "desc": "将所有元数据从Meta目录导入元表。"
+      },
+      "export_to_zip": {
+        "title": "出口邮编",
+        "desc": "将项目元导出到zip文件和下载。"
+      },
+      "import_zip": {
+        "title": "进口邮编",
+        "desc": "导入项目元拉链文件并重新启动。"
+      },
+      "reset": {
+        "title": "重启",
+        "desc": "清除元表中的所有元数据。"
+      }
+    }
+  }
+}

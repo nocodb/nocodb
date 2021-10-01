@@ -49,7 +49,7 @@
         "title": "Credenciales de Base de Datos",
         "db_type": "Tipo de Base de Datos",
         "sqlite_file": "Archivo SQLite",
-        "host_address": "Host Address",
+        "host_address": "Dirección del servidor",
         "port": "Puerto",
         "username": "Usuario",
         "password": "Contraseña",
@@ -153,9 +153,9 @@
       "title": "Configuraciones",
       "tooltip": "Sólo visible por el creador"
     },
-    "app_store": "App Store",
+    "app_store": "Tienda de aplicaciones",
     "team_n_auth": {
-      "title": "Team & Auth",
+      "title": "Equipo y autenticación",
       "tooltip": "Roles y gestión de usuarios"
     },
     "project_metadata": {
@@ -231,7 +231,7 @@
         "desc": "Importar todos los metadata del directorio meta a las tablas meta."
       },
       "export_to_zip": {
-        "title": "Exportar zip",
+        "title": "Exportar a zip",
         "desc": "Exportar proyecto meta a un archivo zip y descargar."
       },
       "import_zip": {

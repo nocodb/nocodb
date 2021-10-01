@@ -11,6 +11,12 @@ class XcLibGui {
   expressMiddleware() {
 
     const router = express.Router();
+    router.get('/', (request, response) => {
+      response.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+      response.header('Expires', '-1');
+      response.header('Pragma', 'no-cache');
+      response.sendFile(path.join(__dirname, 'dist','index.html'));
+    });
     router.use('/', express.static(path.join(__dirname, 'dist')));
     return router;
   }

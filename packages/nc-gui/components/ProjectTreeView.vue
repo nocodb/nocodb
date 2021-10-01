@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
+  <div style="height: 100%" class="nc-tree-view" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
     <!--    :expand-on-hover="mini"-->
     <v-navigation-drawer
       ref="drawer"

@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pa-0 ma-0" style="height: 100%">
+  <v-container fluid class="pa-0 ma-0 nc-table-tab" style="height: 100%">
     <v-alert v-if="error" type="error" class="ma-2">
       {{ error }}
     </v-alert>

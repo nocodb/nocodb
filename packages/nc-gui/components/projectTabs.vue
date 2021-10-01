@@ -6,7 +6,7 @@
       dark
       background-color="primary"
       height="40"
-      class="project-tabs"
+      class="project-tabs nc-project-tabs"
       color=""
       next-icon="mdi-arrow-right-bold-box-outline"
       prev-icon="mdi-arrow-left-bold-box-outline"
@@ -254,17 +254,7 @@
 <script>
 import { mapGetters, mapMutations } from 'vuex'
 // import Roles from '@/components/auth/roles'
-import GlobalAcl from '@/components/globalAcl'
-import GrpcClient from '@/components/project/grpcClient'
-import ProjectSettings from '@/components/project/projectSettings'
 // import CreateOrEditProject from '@/components/createOrEditProject'
-import DisableOrEnableModels from '@/components/project/projectMetadata/disableOrEnableModels'
-import CronJobs from '@/components/project/cronJobs'
-import AuthTab from '@/components/authTab'
-import AppStore from '@/components/project/appStore'
-import DlgTableCreate from '@/components/utils/dlgTableCreate'
-import Screensaver from '@/components/screensaver'
-import SwaggerClient from '@/components/project/swaggerClient'
 import treeViewIcons from '../helpers/treeViewIcons'
 import TableView from './project/table'
 import ViewTab from './project/view'
@@ -284,6 +274,16 @@ import xTerm from './xTerm'
 import ApiClientSwaggerTab from './project/apiClientSwagger'
 import XcMeta from './project/settings/xcMeta'
 import XcInfo from './project/xcInfo'
+import SwaggerClient from '@/components/project/swaggerClient'
+import Screensaver from '@/components/screensaver'
+import DlgTableCreate from '@/components/utils/dlgTableCreate'
+import AppStore from '@/components/project/appStore'
+import AuthTab from '@/components/authTab'
+import CronJobs from '@/components/project/cronJobs'
+import DisableOrEnableModels from '@/components/project/projectMetadata/disableOrEnableModels'
+import ProjectSettings from '@/components/project/projectSettings'
+import GrpcClient from '@/components/project/grpcClient'
+import GlobalAcl from '@/components/globalAcl'
 import AuditTab from '~/components/project/auditTab'
 
 export default {

@@ -1,6 +1,6 @@
 <template>
   <v-row
-    class="welcome-page"
+    class="welcome-page nc-welcome-page"
     style="min-height: 100vh"
     align="center"
     justify="center"

@@ -164,7 +164,9 @@ export default {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
     },
     parentQueryParams() {
-      if (!this.parentMeta) { return {} }
+      if (!this.parentMeta) {
+        return {}
+      }
       // todo: use reduce
       return {
         hm: (this.parentMeta && this.parentMeta.v && this.parentMeta.v.filter(v => v.hm).map(({ hm }) => hm.tn).join()) || '',
@@ -174,7 +176,9 @@ export default {
     },
     parentAvailableColumns() {
       const hideCols = ['created_at', 'updated_at']
-      if (!this.parentMeta) { return [] }
+      if (!this.parentMeta) {
+        return []
+      }
 
       const columns = []
       if (this.parentMeta.columns) {
@@ -299,9 +303,15 @@ export default {
       this.newRecordModal = true
     },
     async addChildToParent(parent) {
-      const pid = this.parentMeta.columns.filter(c => c.pk).map(c => parent[c._cn]).join('___')
+      const pkColumns = this.parentMeta.columns.filter(c => c.pk)
+      const pid = pkColumns.map(c => parent[c._cn]).join('___')
       const id = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
       const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn
+      let isNum = false
+
+      if (pkColumns.length === 1) {
+        isNum = ['float', 'integer'].includes(this.sqlUi.getAbstractType(pkColumns[0]))
+      }
 
       if (this.isNew) {
         this.localState = parent
@@ -311,7 +321,7 @@ export default {
       }
 
       await this.api.update(id, {
-        [_cn]: pid
+        [_cn]: isNum ? +pid : pid
       }, {
         [_cn]: this.value && this.value[this.parentPrimaryKey]
       })

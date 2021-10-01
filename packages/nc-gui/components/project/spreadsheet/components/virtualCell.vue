@@ -83,7 +83,7 @@ import FormulaCell from '@/components/project/spreadsheet/components/virtualCell
 import hasManyCell from '@/components/project/spreadsheet/components/virtualCell/hasManyCell'
 import LookupCell from '@/components/project/spreadsheet/components/virtualCell/lookupCell'
 import manyToManyCell from '@/components/project/spreadsheet/components/virtualCell/manyToManyCell'
-import belongsToCell from '@/components/project/spreadsheet/components/virtualCell/belogsToCell'
+import belongsToCell from '@/components/project/spreadsheet/components/virtualCell/belongsToCell'
 
 // todo: optimize parent/child meta extraction
 

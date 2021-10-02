@@ -1,186 +1,57 @@
 <template>
   <v-container fluid class="h-100 py-0">
-    <v-row class="h-100 my-0">
-      <v-col v-if="isEditable" class="h-100 col-md-4 col-lg-3">
-        <v-card class="h-100 overflow-auto pa-2 backgroundColor elevation-0 nc-form-left-nav">
-          <div class="d-flex grey--text">
-            <span class="">Fields</span>
-            <v-spacer />
-            <span
-              class="pointer caption mr-2"
-              style="border-bottom: 2px solid rgba(128,128,128,0.67)"
-              @click="columns=[...allColumns]"
-            >add all</span>
-            <span class="pointer caption" style="border-bottom: 2px solid rgba(128,128,128,0.67)" @click="columns=[]">remove all</span>
-          </div>
-          <draggable
-            v-model="hiddenColumns"
-            draggable=".item"
-            group="form-inputs"
-            @start="drag=true"
-            @end="drag=false"
-          >
-            <v-card
-              v-for="(col) in hiddenColumns"
-              :key="col.alias"
-              class="pa-2 my-2 item pointer elevation-0"
-              @mousedown="moved=false"
-              @mousemove="moved=false"
-              @mouseup="handleMouseUp(col)"
-            >
-              <div class="d-flex">
-                <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize flex-grow-1">
-                  <virtual-header-cell
-                    v-if="col.virtual"
-                    class="caption"
-                    :column="col"
-                    :nodes="nodes"
-                    :is-form="true"
-                    :meta="meta"
-                  />
-                  <header-cell
-                    v-else
-                    class="caption"
-                    :is-form="true"
-                    :value="col._cn"
-                    :column="col"
-                    :sql-ui="sqlUi"
-                  />
-
-                </label>
-                <v-icon color="grey">
-                  mdi-drag
-                </v-icon>
-              </div>
-            </v-card>
-            <div class="mt-1 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
-              Drag and drop field here to hide
-            </div>
-          </draggable>
-
-          <v-menu
-            v-model="addNewColMenu"
-            fixed
-            z-index="99"
-            content-class="elevation-0"
-          >
-            <template #activator="{on}">
-              <div class="grey--text caption text-center mt-4" v-on="on">
-                <v-icon samll color="grey">
-                  mdi-plus
-                </v-icon>
-                Add new field to this table
-              </div>
-            </template>
-            <edit-column
-              v-if="addNewColMenu"
-              :meta="meta"
-              :nodes="nodes"
-              :sql-ui="sqlUi"
-              @close="addNewColMenu = false"
-              @saved="onNewColCreation"
-            />
-          </v-menu>
-        </v-card>
-      </v-col>
-      <v-col
-        :class="{'col-12' : !isEditable, 'col-lg-9 col-md-8': isEditable}"
-        class="h-100 px-10 "
-        style="overflow-y: auto"
-      >
-        <!--        <div class="my-14 d-flex align-center justify-center">-->
-        <!--          <v-chip>Add cover image</v-chip>-->
-        <!--        </div>-->
-        <div class="my-10 d-flex align-center justify-center flex-column">
-          <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center  d-flex">
-            <div class="d-flex align-center justify-center flex-grow-1">
-              <v-chip small color="backgroundColorDefault caption grey--text">
-                Add cover image
-              </v-chip>
-            </div>
-            <div class="nc-form-logo">
-              <div v-ripple class="nc-form-add-logo text-center caption pointer" @click.stop>
-                Add a logo
-              </div>
+    <v-row class="h-100 my-0" :class="{'d-flex justify-center': submitted}">
+      <template v-if="submitted">
+        <v-col class="d-flex justify-center">
+          <div v-if="localParams && localParams.submit" style="min-width: 350px">
+            <v-alert type="success" outlined>
+              <span class="title">{{ localParams.submit.message || 'Successfully submitted form data' }}</span>
+            </v-alert>
+            <p v-if="localParams.submit.showBlankForm" class="caption grey--text text-center">
+              New form will be loaded after {{ secondsRemain }} seconds
+            </p>
+            <div v-if="localParams.submit.showAnotherSubmit" class=" text-center">
+              <v-btn color="primary" @click="submitted = false">
+                Submit Another Form
+              </v-btn>
             </div>
           </div>
-
-          <editable
-            :is="isEditable ? 'editable' : 'h2'"
-            v-model.lazy="localParams.name"
-            class="display-1 text-center"
-            :class="{'nc-meta-inputs': isEditable}"
-            placeholder="Form Title"
-          >
-            {{ localParams.name }}
-          </editable>
-
-          <editable
-            :is="isEditable ? 'editable' : 'div'"
-            v-model.lazy="localParams.description"
-            :class="{'nc-meta-inputs': isEditable}"
-            class="body-1  text-center"
-            placeholder="Add form description"
-          >
-            {{ localParams.description }}
-          </editable>
-        </div>
-
-        <div style="max-width:600px" class="mx-auto">
-          <draggable
-            :is="_isUIAllowed('editFormView') ? 'draggable' : 'div'"
-            v-model="columns"
-            draggable=".item"
-            group="form-inputs"
-            class="h-100"
-            @start="drag=true"
-            @end="drag=false"
-          >
-            <div
-
-              v-for="(col,i) in columns"
-              :key="col.alias"
-              class="nc-field-wrapper item px-4 py-4"
-              :class="{'nc-editable':isEditable , 'active-row': isActiveRow(col)}"
+        </v-col>
+      </template>
+      <template v-else>
+        <v-col v-if="isEditable" class="h-100 col-md-4 col-lg-3">
+          <v-card class="h-100 overflow-auto pa-2 backgroundColor elevation-0 nc-form-left-nav">
+            <div class="d-flex grey--text">
+              <span class="">Fields</span>
+              <v-spacer />
+              <span
+                class="pointer caption mr-2"
+                style="border-bottom: 2px solid rgba(128,128,128,0.67)"
+                @click="columns=[...allColumns]"
+              >add all</span>
+              <span class="pointer caption" style="border-bottom: 2px solid rgba(128,128,128,0.67)" @click="columns=[]">remove all</span>
+            </div>
+            <draggable
+              v-model="hiddenColumns"
+              draggable=".item"
+              group="form-inputs"
+              @start="drag=true"
+              @end="drag=false"
             >
-              <div
-                v-click-outside="() => onClickOutside(col)"
-                @dblclick="activeRow= col.alias"
+              <v-card
+                v-for="(col) in hiddenColumns"
+                :key="col.alias"
+                class="pa-2 my-2 item pointer elevation-0"
+                @mousedown="moved=false"
+                @mousemove="moved=false"
+                @mouseup="handleMouseUp(col)"
               >
-                <template
-                  v-if="_isUIAllowed('editFormView')"
-                >
-                  <v-icon small class="nc-field-remove-icon" @click="columns = columns.filter((_,j) => i !== j)">
-                    mdi-eye-off-outline
-                  </v-icon>
-                </template>
-                <div
-                  v-if="localParams.fields && localParams.fields[col.alias]"
-                  :class="{
-                    'active-row' : active === col._cn,
-                    required: isRequired(col, localState)
-                  }"
-                >
-                  <div v-if="isActiveRow(col)">
-                    <div><label class="grey--text caption">Required</label><v-switch color="grey" dense inset /></div>
-                    <editable
-                      v-model="localParams.fields[col.alias].label"
-                      style="width:300px"
-                      placeholder=" Enter form input label"
-                      class="caption pa-1 backgroundColor darken-1 mb-2 "
-                    />
-                    <editable
-                      v-model="localParams.fields[col.alias].description"
-                      style="width:300px"
-                      placeholder=" Add some help text"
-                      class="caption pa-1 backgroundColor darken-1 mb-2"
-                    />
-                  </div>
-                  <label v-else :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
+                <div class="d-flex">
+                  <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize flex-grow-1">
                     <virtual-header-cell
                       v-if="col.virtual"
                       class="caption"
-                      :column="{...col, _cn: localParams.fields[col.alias].label || col._cn}"
+                      :column="col"
                       :nodes="nodes"
                       :is-form="true"
                       :meta="meta"
@@ -189,111 +60,298 @@
                       v-else
                       class="caption"
                       :is-form="true"
-                      :value="localParams.fields[col.alias].label || col._cn"
+                      :value="col._cn"
                       :column="col"
                       :sql-ui="sqlUi"
                     />
 
                   </label>
-                  <virtual-cell
-                    v-if="col.virtual"
-                    ref="virtual"
-                    :disabled-columns="{}"
-                    :column="col"
-                    :row="localState"
-                    :nodes="nodes"
-                    :meta="meta"
-                    :api="api"
-                    :active="true"
-                    :sql-ui="sqlUi"
-                    :is-new="true"
-                    :is-form="true"
-                  />
+                  <v-icon color="grey">
+                    mdi-drag
+                  </v-icon>
+                </div>
+              </v-card>
+              <div class="mt-1 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
+                Drag and drop field here to hide
+              </div>
+            </draggable>
 
+            <v-menu
+              v-model="addNewColMenu"
+              fixed
+              z-index="99"
+              content-class="elevation-0"
+            >
+              <template #activator="{on}">
+                <div class="grey--text caption text-center mt-4" v-on="on">
+                  <v-icon samll color="grey">
+                    mdi-plus
+                  </v-icon>
+                  Add new field to this table
+                </div>
+              </template>
+              <edit-column
+                v-if="addNewColMenu"
+                :meta="meta"
+                :nodes="nodes"
+                :sql-ui="sqlUi"
+                @close="addNewColMenu = false"
+                @saved="onNewColCreation"
+              />
+            </v-menu>
+          </v-card>
+        </v-col>
+        <v-col
+          :class="{'col-12' : !isEditable, 'col-lg-9 col-md-8': isEditable}"
+          class="h-100 px-sm-1 px-md-10 "
+          style="overflow-y: auto"
+        >
+          <!--        <div class="my-14 d-flex align-center justify-center">-->
+          <!--          <v-chip>Add cover image</v-chip>-->
+          <!--        </div>-->
+          <div class="nc-form-wrapper elevation-3 ma-3  pb-10">
+            <div class="mt-10 d-flex align-center justify-center flex-column">
+              <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center  d-flex">
+                <div class="d-flex align-center justify-center flex-grow-1">
+                  <!--                  <v-chip small color="backgroundColorDefault caption grey&#45;&#45;text">
+                    Add cover image
+                  </v-chip>-->
+                </div>
+              </div>
+            </div>
+            <div class="mx-auto nc-form elevation-3 pa-2 ">
+              <div class="nc-form-logo py-8">
+                <!--                <div v-ripple class="nc-form-add-logo text-center caption pointer" @click.stop>-->
+                <!--                  Add a logo-->
+                <!--                </div>-->
+              </div>
+              <editable
+                :is="isEditable ? 'editable' : 'h2'"
+                v-model.lazy="localParams.name"
+                class="display-1 font-weight-bold text-center"
+                :class="{'nc-meta-inputs': isEditable}"
+                placeholder="Form Title"
+              >
+                {{ localParams.name }}
+              </editable>
+
+              <editable
+                :is="isEditable ? 'editable' : 'div'"
+                v-model.lazy="localParams.description"
+                :class="{'nc-meta-inputs': isEditable}"
+                class="body-1  text-center"
+                placeholder="Add form description"
+              >
+                {{ localParams.description }}
+              </editable>
+              <draggable
+                :is="_isUIAllowed('editFormView') ? 'draggable' : 'div'"
+                v-model="columns"
+                draggable=".item"
+                group="form-inputs"
+                class="h-100"
+                @start="drag=true"
+                @end="drag=false"
+              >
+                <div
+
+                  v-for="(col,i) in columns"
+                  :key="col.alias"
+                  class="nc-field-wrapper item px-4 my-3 pointer"
+                  :class="{'nc-editable':isEditable , 'active-row': isActiveRow(col) , 'py-4': !isActiveRow(col) , 'pb-4':isActiveRow(col)}"
+                >
                   <div
-                    v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
-                    style="height:100%; width:100%"
-                    class="caption xc-input"
-                    @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
+                    v-click-outside="() => onClickOutside(col)"
+                    @click="activeRow= col.alias"
                   >
-                    <input
-                      style="height:100%; width: 100%"
-                      readonly
-                      disabled
-                      :value="localState[col._cn]"
+                    <template
+                      v-if="_isUIAllowed('editFormView')"
                     >
+                      <v-icon small class="nc-field-remove-icon" @click="columns = columns.filter((_,j) => i !== j)">
+                        mdi-eye-off-outline
+                      </v-icon>
+                    </template>
+
+                    <div
+                      v-if="localParams.fields && localParams.fields[col.alias]"
+                      :class="{
+                        'active-row' : active === col._cn,
+                        required: isRequired(col, localState) || localParams.fields[col.alias].required
+                      }"
+                    >
+                      <div class="nc-field-editables" :class="{'nc-show' : isActiveRow(col)}">
+                        <div class="d-flex align-center pb-2 mt-2">
+                          <v-icon small color="grey">
+                            mdi-drag
+                          </v-icon>
+
+                          <label
+                            class="grey--text caption ml-2"
+                            @click="localParams.fields[col.alias].required= !localParams.fields[col.alias].required"
+                          >Required</label>
+                          <v-switch
+                            v-model="localParams.fields[col.alias].required"
+                            class="nc-required-switch ml-1 mt-0"
+                            hide-details
+                            flat
+                            color="grey"
+                            dense
+                            inset
+                          />
+                        </div>
+                        <editable
+                          v-model="localParams.fields[col.alias].label"
+                          style="width:300px"
+                          placeholder=" Enter form input label"
+                          class="caption pa-1 backgroundColor darken-1 mb-2 "
+                        />
+                        <editable
+                          v-model="localParams.fields[col.alias].description"
+                          style="width:300px"
+                          placeholder=" Add some help text"
+                          class="caption pa-1 backgroundColor darken-1 mb-2"
+                        />
+                      </div>
+                      <label
+                        :class="{'nc-show' : !isActiveRow(col)}"
+                        :for="`data-table-form-${col._cn}`"
+                        class="body-2 text-capitalize nc-field-labels"
+                      >
+                        <virtual-header-cell
+                          v-if="col.virtual"
+                          class="caption"
+                          :column="{...col, _cn: localParams.fields[col.alias].label || col._cn}"
+                          :nodes="nodes"
+                          :is-form="true"
+                          :meta="meta"
+                          :required="localParams.fields[col.alias].required"
+                        />
+                        <header-cell
+                          v-else
+                          class="caption"
+                          :is-form="true"
+                          :value="localParams.fields[col.alias].label || col._cn"
+                          :column="col"
+                          :sql-ui="sqlUi"
+                          :required="localParams.fields[col.alias].required"
+                        />
+
+                      </label>
+
+                      <virtual-cell
+                        v-if="col.virtual"
+                        ref="virtual"
+                        :disabled-columns="{}"
+                        :column="col"
+                        :row="localState"
+                        :nodes="nodes"
+                        :meta="meta"
+                        :api="api"
+                        :active="true"
+                        :sql-ui="sqlUi"
+                        :is-new="true"
+                        :is-form="true"
+                        :hint="localParams.fields[col.alias].description"
+                      />
+
+                      <div
+                        v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
+                        style="height:100%; width:100%"
+                        class="caption xc-input"
+                        @click.stop
+                        @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
+                      >
+                        <input
+                          style="height:100%; width: 100%"
+                          readonly
+                          disabled
+                          :value="localState[col._cn]"
+                        >
+                      </div>
+
+                      <div
+                        v-else
+                        @click.stop
+                      >
+                        <editable-cell
+                          :id="`data-table-form-${col._cn}`"
+                          v-model="localState[col._cn]"
+                          :db-alias="dbAlias"
+                          :column="col"
+                          class="xc-input body-2"
+                          :meta="meta"
+                          :sql-ui="sqlUi"
+                          is-form
+                          :hint="localParams.fields[col.alias].description"
+                          @focus="active = col._cn"
+                          @blur="active = ''"
+                        />
+                      </div>
+                    </div>
+                    <!--              </div>-->
                   </div>
 
-                  <editable-cell
-                    v-else
-                    :id="`data-table-form-${col._cn}`"
-                    v-model="localState[col._cn]"
-                    :db-alias="dbAlias"
-                    :column="col"
-                    class="xc-input body-2"
-                    :meta="meta"
-                    :sql-ui="sqlUi"
-                    is-form
-                    @focus="active = col._cn"
-                    @blur="active = ''"
-                  />
+                  <div
+                    v-if="!columns.length"
+                    class="mt-1 nc-drag-n-drop-to-show py-4 text-center grey--text text--lighter-1"
+                  >
+                    Drag and drop field here to add
+                  </div>
                 </div>
-                <!--              </div>-->
+              </draggable>
+              <div class="my-10 text-center">
+                <v-btn color="primary" :loading="loading" :disabled="loading" @click="save">
+                  Submit
+                </v-btn>
+                <!--            <span class="caption grey&#45;&#45;text pointer">Edit label</span>-->
               </div>
+              <div v-if="isEditable && localParams.submit" style="max-width: 700px" class="mx-auto mt-4 px-4 mb-4">
+                <!--            <v-switch v-model="localParams.nocoBranding" dense inset hide-details>
+                <template #label>
+                  <span class="caption">Show NocoDB branding</span>
+                </template>
+              </v-switch>
+              <v-switch v-model="localParams.submitRedirectUrl" dense inset hide-details>
+                <template #label>
+                  <span class="caption">Redirect to URL after form submission</span>
+                </template>
+              </v-switch>-->
 
-              <div
-                v-if="!columns.length"
-                class="mt-1 nc-drag-n-drop-to-show py-4 text-center grey--text text--lighter-1"
-              >
-                Drag and drop field here to add
+                <div class="caption grey--text  mt-10 mb-2">
+                  After form is submitted:
+                </div>
+                <label class="caption grey--text font-weight-bold">Show this message:</label>
+                <v-textarea
+                  v-model="localParams.submit.message"
+                  rows="3"
+                  hide-details
+                  solo
+
+                  class="caption"
+                />
+
+                <v-switch v-model="localParams.submit.showAnotherSubmit" dense inset hide-details class="nc-switch">
+                  <template #label>
+                    <span class="font-weight-bold grey--text caption">Show "Submit Another Form" button</span>
+                  </template>
+                </v-switch>
+                <v-switch v-model="localParams.submit.showBlankForm" dense inset hide-details class="nc-switch">
+                  <template #label>
+                    <span class="font-weight-bold grey--text caption">Show a blank form after 5 seconds</span>
+                  </template>
+                </v-switch>
+                <!--              <v-switch v-model="localParams.submit.emailMe" dense inset hide-details>
+                  <template #label>
+                    <span class="caption font-weight-bold grey--text ">Email me at <span class="font-eright-bold">{{
+                      $store.state.users.user.email
+                    }}</span></span>
+                  </template>
+                </v-switch>-->
               </div>
             </div>
-          </draggable>
-          <div class="my-10 text-center">
-            <v-btn color="primary" @click="save">
-              Submit
-            </v-btn>
-            <!--            <span class="caption grey&#45;&#45;text pointer">Edit label</span>-->
           </div>
-
-          <div v-if="isEditable && localParams.submit" style="max-width: 400px" class="mx-auto">
-            <!--            <v-switch v-model="localParams.nocoBranding" dense inset hide-details>
-              <template #label>
-                <span class="caption">Show NocoDB branding</span>
-              </template>
-            </v-switch>
-            <v-switch v-model="localParams.submitRedirectUrl" dense inset hide-details>
-              <template #label>
-                <span class="caption">Redirect to URL after form submission</span>
-              </template>
-            </v-switch>-->
-
-            <div class="caption grey--text mt-4 mb-2">
-              After form is submitted:
-            </div>
-            <label class="caption">Show this message:</label>
-            <v-textarea v-model="localParams.submit.message" rows="3" hide-details solo outlined />
-
-            <v-switch v-model="localParams.submit.showAnotherSubmit" dense inset hide-details>
-              <template #label>
-                <span class="caption">Show "Submit another response" button</span>
-              </template>
-            </v-switch>
-            <v-switch v-model="localParams.submit.showBlankForm" dense inset hide-details>
-              <template #label>
-                <span class="caption">Show a blank form after 5 seconds</span>
-              </template>
-            </v-switch>
-            <v-switch v-model="localParams.submit.emailMe" dense inset hide-details>
-              <template #label>
-                <span class="caption">Email me at <span class="font-eright-bold">{{
-                  $store.state.users.user.email
-                }}</span></span>
-              </template>
-            </v-switch>
-          </div>
-        </div>
-      </v-col>
+        </v-col>
+      </template>
     </v-row>
   </v-container>
 </template>
@@ -319,7 +377,12 @@ export default {
     moved: false,
     addNewColMenu: false,
     addNewColModal: false,
-    activeRow: null
+    activeRow: null,
+    active: null,
+    isNew: true,
+    submitted: false,
+    secondsRemain: null,
+    loading: false
     // hiddenColumns: []
   }),
   computed: {
@@ -362,6 +425,17 @@ export default {
       this.meta.columns.forEach((c) => {
         this.localParams.fields[c.alias] = this.localParams.fields[c.alias] || {}
       })
+    },
+    submitted(val) {
+      if (val && this.localParams.submit.showBlankForm) {
+        this.secondsRemain = 5
+        const intvl = setInterval(() => {
+          if (--this.secondsRemain < 0) {
+            this.submitted = false
+            clearInterval(intvl)
+          }
+        }, 1000)
+      }
     }
   },
   mounted() {
@@ -371,7 +445,7 @@ export default {
       submit: {},
       fields: {}
     }, this.localParams)
-    this.meta.columns.forEach((c) => {
+    this.availableColumns.forEach((c) => {
       localParams.fields[c.alias] = localParams.fields[c.alias] || {}
     })
     this.localParams = localParams
@@ -397,6 +471,7 @@ export default {
     },
     async save() {
       try {
+        this.loading = true
         // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
 
         // const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
@@ -417,36 +492,37 @@ export default {
             }
           }
         }
+        this.submitted = true
 
-        //   await this.reload()
-        // }
-        // else if (Object.keys(updatedObj).length) {
-        //   if (!id) {
-        //     return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
-        //   }
-        //   await this.api.update(id, updatedObj, this.oldRow)
-        // } else {
-        //   return this.$toast.info('No columns to update').goAway(3000)
-        // }
-
-        // this.$emit('update:oldRow', { ...this.localState })
-        // this.changedColumns = {}
-        // this.$emit('input', this.localState)
-        // this.$emit('update:isNew', false)
-
-        this.$toast.success(`${this.localState[this.primaryValueColumn]} saved successfully.`, {
+        this.$toast.success(this.localParams.submit.message || 'Saved successfully.', {
           position: 'bottom-right'
         }).goAway(3000)
       } catch (e) {
         console.log(e)
         this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
       }
+      this.loading = false
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
+
+.nc-form-wrapper {
+  border-radius: 4px;
+
+  .nc-form {
+    position: relative;
+    border-radius: 4px;
+    z-index: 2;
+    background: var(--v-backgroundColorDefault-base);
+    width: 80%;
+    max-width: 600px;
+    margin: 0 auto;
+    margin-top: -100px;
+  }
+}
 
 .nc-field-wrapper {
 
@@ -491,6 +567,11 @@ export default {
 }
 
 ::v-deep {
+  .nc-required-switch, .nc-switch {
+    .v-input--selection-controls__input {
+      transform: scale(0.65) !important;
+    }
+  }
 
   .v-breadcrumbs__item:nth-child(odd) {
     font-size: .72rem;
@@ -510,6 +591,21 @@ export default {
   }
 
   .nc-field-wrapper {
+
+    .required {
+      & > input,
+      & > .xc-input > input,
+      & > .xc-input .v-input__slot input,
+      & > .xc-input > div > input,
+      & > select,
+      & > .xc-input > select,
+      textarea:not(.inputarea) {
+        border: 1px solid red;
+        border-radius: 4px;
+        background: var(--v-backgroundColorDefault-base);
+      }
+    }
+
     div > input,
     div > .xc-input > input,
     div > .xc-input > div > input,
@@ -539,14 +635,8 @@ export default {
   }
 }
 
-.required > div > label + * {
-  border: 1px solid red;
-  border-radius: 4px;
-  background: var(--v-backgroundColorDefault-base);
-}
-
 .nc-meta-inputs {
-  width: 400px;
+  //width: 400px;
   min-height: 40px;
   border-radius: 4px;
   display: flex;
@@ -587,6 +677,7 @@ export default {
   justify-content: center;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
+  padding-bottom: 100px;
 
   .nc-form-logo {
     border-top-left-radius: 4px;
@@ -605,6 +696,18 @@ export default {
       border: 2px dashed var(--v-backgroundColor-darken1);
       padding: 15px 15px;
     }
+  }
+}
+
+//.nc-field-labels,
+.nc-field-editables {
+  max-height: 0;
+  transition: .4s max-height linear;
+  overflow: hidden;
+  display: block;
+
+  &.nc-show {
+    max-height: 150px;
   }
 }
 

@@ -104,6 +104,7 @@
     />
 
     <text-cell v-else v-model="localState" v-on="$listeners" />
+    <span v-if="hint" class="nc-hint">{{ hint }}</span>
   </div>
 </template>
 
@@ -153,7 +154,8 @@ export default {
     ignoreFocus: Boolean,
     isForm: Boolean,
     active: Boolean,
-    dummy: Boolean
+    dummy: Boolean,
+    hint: String
   },
   data: () => ({
     changed: false,
@@ -220,6 +222,11 @@ div {
   width: 100%;
   height: 100%;
   color: var(--v-textColor-base);
+}
+
+.nc-hint{
+  font-size: .61rem;
+  color:grey;
 }
 </style>
 <!--

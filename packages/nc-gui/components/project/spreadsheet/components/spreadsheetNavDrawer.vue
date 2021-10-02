@@ -248,19 +248,17 @@
               <!--                {{ $t('nav_drawer.virtual_views.kanban.create') }}-->
               <!--              </v-tooltip>-->
               <v-tooltip
-                v-if="enableDummyFeat"
                 bottom
               >
                 <template #activator="{ on }">
                   <v-list-item
-                    v-if="enableDummyFeat"
                     dense
                     class="body-2"
                     v-on="on"
                     @click="openCreateViewDlg('form')"
                   >
                     <v-list-item-icon class="mr-n1">
-                      <v-icon x-small class="mt-n1">
+                      <v-icon x-small :color="viewIcons['form'].color" class="mt-n1">
                         mdi-form-select
                       </v-icon>
                     </v-list-item-icon>
@@ -544,7 +542,8 @@ export default {
     copyViewRef: null,
     shareLink: {},
     showShareModel: false,
-    showCreateView: false
+    showCreateView: false,
+    loading: false
   }),
   computed: {
     selectedViewIdLocal: {

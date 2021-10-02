@@ -74,6 +74,7 @@
         :column="column"
       />
     </v-lazy>
+    <span v-if="hint" class="nc-hint">{{ hint }}</span>
   </div>
 </template>
 
@@ -119,7 +120,8 @@ export default {
       type: Boolean,
       default: false
     },
-    disabledColumns: Object
+    disabledColumns: Object,
+    hint: String
   },
   computed: {
     hm() {
@@ -155,7 +157,10 @@ export default {
 </script>
 
 <style scoped>
-
+.nc-hint {
+  font-size: .61rem;
+  color: grey;
+}
 </style>
 <!--
 /**

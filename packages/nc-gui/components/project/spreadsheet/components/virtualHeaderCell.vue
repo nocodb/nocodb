@@ -36,9 +36,9 @@
             {{ rollupIcon }}
           </v-icon>
         </template>
-
-        <span class="name  flex-grow-1" :title="column._cn" v-on="on" v-html="alias">
-          <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
+        <span v-on="on">
+          <span class="name  flex-grow-1" :title="column._cn" v-html="alias" />
+          <span v-if="column.rqd || required" class="error--text text--lighten-1">&nbsp;*</span>
         </span>
       </template>
       <span class="caption" v-html="tooltipMsg" />
@@ -133,7 +133,7 @@ import EditVirtualColumn from '@/components/project/spreadsheet/components/editV
 export default {
   name: 'VirtualHeaderCell',
   components: { EditVirtualColumn },
-  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi'],
+  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi', 'required'],
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false,

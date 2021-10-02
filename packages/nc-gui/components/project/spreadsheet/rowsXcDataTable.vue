@@ -62,9 +62,9 @@
       <v-spacer class="h-100" @dblclick="debug=true" />
 
       <debug-metas v-if="debug" class="mr-3" />
-      <v-tooltip bottom>
+      <v-tooltip v-if="!isForm" bottom>
         <template #activator="{on}">
-          <v-icon v-if="!isPkAvail" color="warning" small class="mr-3" v-on="on">
+          <v-icon v-if="!isPkAvail && !isForm" color="warning" small class="mr-3" v-on="on">
             mdi-information-outline
           </v-icon>
         </template>
@@ -292,7 +292,7 @@
               :all-columns="allColumns"
               :field-list="fieldList"
               :is-locked="isLocked"
-              :db-alias="dbAlias"
+              :db-alias="nodes.dbAlias"
               :api="api"
               :sql-ui="sqlUi"
               :fields-order.sync="fieldsOrder"

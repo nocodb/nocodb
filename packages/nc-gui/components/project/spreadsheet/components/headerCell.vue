@@ -43,7 +43,7 @@
 
     <span class="name" :title="value">{{ value }}</span>
 
-    <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
+    <span v-if="column.rqd || required" class="error--text text--lighten-1">&nbsp;*</span>
 
     <v-spacer />
 
@@ -141,7 +141,7 @@ export default {
   name: 'HeaderCell',
   components: { EditColumn },
   mixins: [cell],
-  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView', 'isVirtual'],
+  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView', 'isVirtual', 'required'],
   data: () => ({
     editColumnMenu: false,
     columnDeleteDialog: false

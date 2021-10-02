@@ -17,7 +17,6 @@ export default {
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
       }
-
       return (columnObj.rqd &&
         (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
         !columnObj.default)

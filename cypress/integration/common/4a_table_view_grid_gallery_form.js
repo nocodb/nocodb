@@ -67,8 +67,8 @@ const genTest = (type, xcdb) => {
     }
 
     // below two scenario's will be invoked twice, once for rest & then for graphql
-    // viewTest('grid')
-    // viewTest('gallery')
+    viewTest('grid')
+    viewTest('gallery')
     viewTest('form')
 
   })

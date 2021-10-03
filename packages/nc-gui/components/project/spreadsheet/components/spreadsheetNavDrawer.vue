@@ -253,7 +253,7 @@
                 <template #activator="{ on }">
                   <v-list-item
                     dense
-                    class="body-2"
+                    class="body-2 nc-create-form-view"
                     v-on="on"
                     @click="openCreateViewDlg('form')"
                   >

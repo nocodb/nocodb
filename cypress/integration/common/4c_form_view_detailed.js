@@ -23,7 +23,7 @@ const genTest = (type, xcdb) => {
     // Common routine to create/edit/delete GRID & GALLERY view
     // Input: viewType - 'grid'/'gallery'
     //
-      const viewTest = (viewType) => {
+    const viewTest = (viewType) => {
         
         it(`Create ${viewType} view`, () => {
             // click on 'Grid/Gallery' button on Views bar
@@ -35,6 +35,49 @@ const genTest = (type, xcdb) => {
             // validate if view was creted && contains default name 'Country1'
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').should('exist')
         })
+
+        it(`Validate ${viewType} view: Drag & drop for re-order items`, () => {
+            // default order: Country, LastUpdate, Country => City
+            cy.get('.nc-field-wrapper').eq(0).contains('Country').should('exist')
+            cy.get('.nc-field-wrapper').eq(1).contains('LastUpdate').should('exist')
+
+            // move Country field down (drag, drop)
+            cy.get('#data-table-form-Country').drag('#data-table-form-LastUpdate')
+
+            // Verify if order is: LastUpdate, Country, Country => City
+            cy.get('.nc-field-wrapper').eq(0).contains('LastUpdate').should('exist')
+            cy.get('.nc-field-wrapper').eq(1).contains('Country').should('exist')            
+        })
+          
+        it(`Validate ${viewType} view: Drag & drop for add/remove items`, () => {
+            // default, only one item in menu-bar; ensure LastUpdate field was present in form view
+            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 1)
+            cy.get('.nc-field-wrapper').eq(0).contains('LastUpdate').should('exist')
+            
+            // drag 'LastUpdate' & drop into menu bar drag-drop box
+            cy.get('#data-table-form-LastUpdate').drag('.nc-drag-n-drop-to-hide')
+
+            // validate- fields count in menu bar to be increased by 1 &&
+            // first member in 'formView' is Country
+            cy.get('.nc-field-wrapper').eq(0).contains('Country').should('exist')
+            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 2)
+        })
+        
+        it(`Validate ${viewType} view: Inverted order field member addition from menu`, () => {
+            cy.get('.col-md-4').find('.pointer.caption').contains('remove all').click()
+
+            // click fields in inverted order: CountryId, Country, LastUpdate, Country => City
+            cy.get('.col-md-4').find('.pointer.item').eq(3).click()
+            cy.get('.col-md-4').find('.pointer.item').eq(2).click()
+            cy.get('.col-md-4').find('.pointer.item').eq(1).click()
+            cy.get('.col-md-4').find('.pointer.item').eq(0).click()
+
+            // verify if order of appearance in form is right
+            cy.get('.nc-field-wrapper').eq(0).contains('Country => City').should('exist')
+            cy.get('.nc-field-wrapper').eq(1).contains('LastUpdate').should('exist')
+            cy.get('.nc-field-wrapper').eq(2).contains('Country').should('exist')
+            // hidden: cy.get('.nc-field-wrapper').eq(3).contains('CountryId').should('exist')
+        })        
         
         it(`Validate ${viewType}: Form header & description validation`, () => {
             // Header & description should exist

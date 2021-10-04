@@ -1,6 +1,5 @@
 {
   "name": "root",
-  "private": true,
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^2.0.0",
     "cypress": "^7.3.0",

@@ -1,7 +1,6 @@
 {
   "name": "nc-gui",
   "version": "0.11.35",
-  "private": true,
   "scripts": {
     "dev": "EE=true nuxt",
     "build": "nuxt build",

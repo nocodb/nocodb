@@ -61,19 +61,19 @@
 
       <v-spacer class="h-100" @dblclick="debug=true" />
 
-      <debug-metas v-if="debug" class="mr-3" />
-      <v-tooltip v-if="!isForm" bottom>
-        <template #activator="{on}">
-          <v-icon v-if="!isPkAvail && !isForm" color="warning" small class="mr-3" v-on="on">
-            mdi-information-outline
-          </v-icon>
-        </template>
-        <span class="caption">          Update & Delete not allowed since the table doesn't have any primary key
-        </span>
-      </v-tooltip>
-      <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
-
       <template v-if="!isForm">
+        <debug-metas v-if="debug" class="mr-3" />
+        <v-tooltip bottom>
+          <template #activator="{on}">
+            <v-icon v-if="!isPkAvail && !isForm" color="warning" small class="mr-3" v-on="on">
+              mdi-information-outline
+            </v-icon>
+          </template>
+          <span class="caption">          Update & Delete not allowed since the table doesn't have any primary key
+          </span>
+        </v-tooltip>
+        <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
+
         <x-btn tooltip="Reload view data" outlined small text @click="reload">
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
@@ -130,29 +130,29 @@
           :field-list="[...realFieldList, ...formulaFieldList]"
           dense
         />
+        <v-tooltip
+          v-if="_isUIAllowed('table-delete')"
+          bottom
+        >
+          <template #activator="{on}">
+            <v-btn
+              v-show="_isUIAllowed('table-delete')"
+              class="nc-table-delete-btn"
+              :disabled="isLocked"
+              small
+              outlined
+              text
+              v-on="on"
+              @click="checkAndDeleteTable"
+            >
+              <x-icon small color="red grey">
+                mdi-delete-outline
+              </x-icon>
+            </v-btn>
+          </template>
+          <span class="">Delete table</span>
+        </v-tooltip>
       </template>
-      <v-tooltip
-        v-if="_isUIAllowed('table-delete')"
-        bottom
-      >
-        <template #activator="{on}">
-          <v-btn
-            v-show="_isUIAllowed('table-delete')"
-            class="nc-table-delete-btn"
-            :disabled="isLocked"
-            small
-            outlined
-            text
-            v-on="on"
-            @click="checkAndDeleteTable"
-          >
-            <x-icon small color="red grey">
-              mdi-delete-outline
-            </x-icon>
-          </v-btn>
-        </template>
-        <span class="">Delete table</span>
-      </v-tooltip>
       <!-- Cell height -->
       <!--      <v-menu>
               <template v-slot:activator="{ on, attrs }">
@@ -282,7 +282,7 @@
           </template>
           <template v-else-if="isForm">
             <form-view
-              :key="selectedViewId"
+              :key="selectedViewId + viewKey"
               :nodes="nodes"
               :table="table"
               :available-columns="availableColumns"
@@ -336,6 +336,7 @@
         :columns-width.sync="columnsWidth"
         :show-system-fields.sync="showSystemFields"
         :extra-view-params.sync="extraViewParams"
+        @generateNewViewKey="generateNewViewKey"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
         @loadTableData="loadTableData"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
@@ -517,13 +518,13 @@
 import { mapActions } from 'vuex'
 import debounce from 'debounce'
 import FormView from './views/formView'
+import XcGridView from './views/xcGridView'
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
 
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
 import GalleryView from '@/components/project/spreadsheet/views/galleryView'
 import CalendarView from '@/components/project/spreadsheet/views/calendarView'
 import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
-import XcGridView from '@/components/project/spreadsheet/views/xcGridView'
 import SortList from '@/components/project/spreadsheet/components/sortListMenu'
 import Fields from '@/components/project/spreadsheet/components/fieldsMenu'
 import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
@@ -566,6 +567,7 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    viewKey: 0,
     extraViewParams: {},
     debug: false,
     key: 1,
@@ -677,6 +679,9 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
+    generateNewViewKey() {
+      this.viewKey = Math.random()
+    },
     loadNext() {
       this.selectedExpandRowIndex = ++this.selectedExpandRowIndex % this.data.length
     },

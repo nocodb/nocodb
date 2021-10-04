@@ -20,16 +20,22 @@
       </template>
       <template v-else>
         <v-col v-if="isEditable" class="h-100 col-md-4 col-lg-3">
-          <v-card class="h-100 overflow-auto pa-2 backgroundColor elevation-0 nc-form-left-nav">
+          <v-card class="h-100 overflow-auto pa-4 pa-md-6 backgroundColor elevation-0 nc-form-left-nav">
             <div class="d-flex grey--text">
               <span class="">Fields</span>
               <v-spacer />
               <span
+                v-if="hiddenColumns.length"
                 class="pointer caption mr-2"
-                style="border-bottom: 2px solid rgba(128,128,128,0.67)"
+                style="border-bottom: 2px solid rgb(218,218,218)"
                 @click="columns=[...allColumns]"
               >add all</span>
-              <span class="pointer caption" style="border-bottom: 2px solid rgba(128,128,128,0.67)" @click="columns=[]">remove all</span>
+              <span
+                v-if="columns.length"
+                class="pointer caption"
+                style="border-bottom: 2px solid rgb(218,218,218)"
+                @click="columns=[]"
+              >remove all</span>
             </div>
             <draggable
               v-model="hiddenColumns"
@@ -71,8 +77,8 @@
                   </v-icon>
                 </div>
               </v-card>
-              <div class="mt-1 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
-                Drag and drop field here to hide
+              <div class="mt-4 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
+                Drag and drop fields here to hide
               </div>
             </draggable>
 
@@ -84,7 +90,7 @@
             >
               <template #activator="{on}">
                 <div class="grey--text caption text-center mt-4" v-on="on">
-                  <v-icon samll color="grey">
+                  <v-icon size="20" color="grey">
                     mdi-plus
                   </v-icon>
                   Add new field to this table
@@ -128,7 +134,7 @@
               <editable
                 :is="isEditable ? 'editable' : 'h2'"
                 v-model.lazy="localParams.name"
-                class="display-1 font-weight-bold text-center"
+                class="display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text  text--lighten-1"
                 :class="{'nc-meta-inputs': isEditable}"
                 placeholder="Form Title"
               >
@@ -139,7 +145,7 @@
                 :is="isEditable ? 'editable' : 'div'"
                 v-model.lazy="localParams.description"
                 :class="{'nc-meta-inputs': isEditable}"
-                class="body-1  text-center"
+                class="body-1  text-left mx-4 py-2 px-1 text--text text--lighten-2"
                 placeholder="Add form description"
               >
                 {{ localParams.description }}
@@ -176,7 +182,7 @@
                       v-if="localParams.fields && localParams.fields[col.alias]"
                       :class="{
                         'active-row' : active === col._cn,
-                        required: isRequired(col, localState) || localParams.fields[col.alias].required
+                        required: isRequired(col, localState, localParams.fields[col.alias].required)
                       }"
                     >
                       <div class="nc-field-editables" :class="{'nc-show' : isActiveRow(col)}">
@@ -194,22 +200,23 @@
                             class="nc-required-switch ml-1 mt-0"
                             hide-details
                             flat
-                            color="grey"
+                            color="primary"
                             dense
                             inset
                           />
                         </div>
                         <editable
                           v-model="localParams.fields[col.alias].label"
-                          style="width:300px"
+                          style="width:300px;white-space: pre-wrap"
                           placeholder=" Enter form input label"
                           class="caption pa-1 backgroundColor darken-1 mb-2 "
                         />
                         <editable
                           v-model="localParams.fields[col.alias].description"
-                          style="width:300px"
+                          style="width:300px;white-space: pre-wrap"
                           placeholder=" Add some help text"
                           class="caption pa-1 backgroundColor darken-1 mb-2"
+                          @keydown.enter.prevent
                         />
                       </div>
                       <label
@@ -224,7 +231,7 @@
                           :nodes="nodes"
                           :is-form="true"
                           :meta="meta"
-                          :required="localParams.fields[col.alias].required"
+                          :required="isRequired(col, localState, localParams.fields[col.alias].required)"
                         />
                         <header-cell
                           v-else
@@ -233,70 +240,99 @@
                           :value="localParams.fields[col.alias].label || col._cn"
                           :column="col"
                           :sql-ui="sqlUi"
-                          :required="localParams.fields[col.alias].required"
+                          :required="isRequired(col, localState, localParams.fields[col.alias].required)"
                         />
 
                       </label>
-
-                      <virtual-cell
+                      <div
                         v-if="col.virtual"
-                        ref="virtual"
-                        :disabled-columns="{}"
-                        :column="col"
-                        :row="localState"
-                        :nodes="nodes"
-                        :meta="meta"
-                        :api="api"
-                        :active="true"
-                        :sql-ui="sqlUi"
-                        :is-new="true"
-                        :is-form="true"
-                        :hint="localParams.fields[col.alias].description"
-                      />
-
-                      <div
-                        v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
-                        style="height:100%; width:100%"
-                        class="caption xc-input"
-                        @click.stop
-                        @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
-                      >
-                        <input
-                          style="height:100%; width: 100%"
-                          readonly
-                          disabled
-                          :value="localState[col._cn]"
-                        >
-                      </div>
-
-                      <div
-                        v-else
                         @click.stop
                       >
-                        <editable-cell
-                          :id="`data-table-form-${col._cn}`"
-                          v-model="localState[col._cn]"
-                          :db-alias="dbAlias"
+                        <virtual-cell
+                          ref="virtual"
+                          :disabled-columns="{}"
                           :column="col"
-                          class="xc-input body-2"
+                          :row="localState"
+                          :nodes="nodes"
                           :meta="meta"
+                          :api="api"
+                          :active="true"
                           :sql-ui="sqlUi"
-                          is-form
+                          :is-new="true"
+                          :is-form="true"
                           :hint="localParams.fields[col.alias].description"
-                          @focus="active = col._cn"
-                          @blur="active = ''"
+                          :required="localParams.fields[col.alias].description"
+                          @update:localState="state => $set(virtual,col.alias, state)"
+                          @updateCol="updateCol"
                         />
+                        <div
+                          v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.alias] && (!$v.virtual[col.alias].required || !$v.virtual[col.alias].minLength)"
+                          class="error--text caption"
+                        >
+                          Field is required.
+                        </div>
+
+                        <!-- todo: optimize -->
+                        <template
+                          v-if="col.bt && $v.localState && $v.localState.$dirty && $v.localState[meta.columns.find(c => c.cn === col.bt.cn)._cn]"
+                        >
+                          <div
+                            v-if="!$v.localState[meta.columns.find(c => c.cn === col.bt.cn)._cn].required"
+                            class="error--text caption"
+                          >
+                            Field is required.
+                          </div>
+                        </template>
                       </div>
+                      <template v-else>
+                        <div
+                          v-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
+                          style="height:100%; width:100%"
+                          class="caption xc-input"
+                          @click.stop
+                          @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
+                        >
+                          <input
+                            style="height:100%; width: 100%"
+                            readonly
+                            disabled
+                            :value="localState[col._cn]"
+                          >
+                        </div>
+
+                        <div
+                          v-else
+                          @click.stop
+                        >
+                          <editable-cell
+                            :id="`data-table-form-${col._cn}`"
+                            v-model="localState[col._cn]"
+                            :db-alias="dbAlias"
+                            :column="col"
+                            class="xc-input body-2"
+                            :meta="meta"
+                            :sql-ui="sqlUi"
+                            is-form
+                            :hint="localParams.fields[col.alias].description"
+                            @focus="active = col._cn"
+                            @blur="active = ''"
+                          />
+                        </div>
+                        <template v-if="$v.localState&& $v.localState.$dirty && $v.localState[col._cn] ">
+                          <div v-if="!$v.localState[col._cn].required" class="error--text caption">
+                            Field is required.
+                          </div>
+                        </template>
+                      </template>
                     </div>
                     <!--              </div>-->
                   </div>
-
-                  <div
-                    v-if="!columns.length"
-                    class="mt-1 nc-drag-n-drop-to-show py-4 text-center grey--text text--lighter-1"
-                  >
-                    Drag and drop field here to add
-                  </div>
+                </div>
+                <div
+                  v-if="!columns.length"
+                  class="nc-drag-n-drop-to-show py-4 mx-8  my-10 text-center grey--text text--lighter-1"
+                >
+                  Drag and drop fields here to add
                 </div>
               </draggable>
               <div class="my-10 text-center">
@@ -359,6 +395,8 @@
 <script>
 
 import draggable from 'vuedraggable'
+import { validationMixin } from 'vuelidate'
+import { required, minLength } from 'vuelidate/lib/validators'
 import VirtualHeaderCell from '../components/virtualHeaderCell'
 import HeaderCell from '../components/headerCell'
 import VirtualCell from '../components/virtualCell'
@@ -370,7 +408,7 @@ import form from '../mixins/form'
 export default {
   name: 'FormView',
   components: { EditColumn, Editable, EditableCell, VirtualCell, HeaderCell, VirtualHeaderCell, draggable },
-  mixins: [form],
+  mixins: [form, validationMixin],
   props: ['meta', 'availableColumns', 'nodes', 'sqlUi', 'formParams', 'showFields', 'fieldsOrder', 'allColumns', 'dbAlias', 'api'],
   data: () => ({
     localState: {},
@@ -382,9 +420,27 @@ export default {
     isNew: true,
     submitted: false,
     secondsRemain: null,
-    loading: false
+    loading: false,
+    virtual: {}
     // hiddenColumns: []
   }),
+  validations() {
+    const obj = { localState: {}, virtual: {} }
+    for (const column of this.columns) {
+      if (!column.virtual && ((column.rqd && !column.default) || this.localParams.fields[column.alias].required)) {
+        obj.localState[column._cn] = { required }
+      } else if (column.bt) {
+        const col = this.meta.columns.find(c => c.cn === column.bt.cn)
+        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
+          obj.localState[col._cn] = { required }
+        }
+      } else if (column.virtual && this.localParams.fields[column.alias].required && (column.mm || column.hm)) {
+        obj.virtual[column.alias] = { minLength: minLength(1), required }
+      }
+    }
+
+    return obj
+  },
   computed: {
     isEditable() {
       return this._isUIAllowed('editFormView')
@@ -399,7 +455,7 @@ export default {
     },
     hiddenColumns: {
       get() {
-        return this.allColumns.filter(c => !this.showFields[c.alias])
+        return this.allColumns.filter(c => !this.showFields[c.alias] && !(c.pk && c.ai) && !(this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
       }
     },
     columns: {
@@ -453,6 +509,9 @@ export default {
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
   },
   methods: {
+    updateCol(_, column, id) {
+      this.$set(this.localState, column, id)
+    },
     isActiveRow(col) {
       return this.activeRow === col.alias
     },
@@ -471,6 +530,13 @@ export default {
     },
     async save() {
       try {
+        this.$v.$touch()
+        if (this.$v.localState.$invalid) {
+          this.$toast.error('Provide values of all required field').goAway(3000)
+
+          return
+        }
+
         this.loading = true
         // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
 
@@ -481,8 +547,8 @@ export default {
 
         // if (this.isNew) {
         // const data =
-        await this.api.insert(this.localState)
-        this.localState = {} // { ...this.localState, ...data }
+        const data = await this.api.insert(this.localState)
+        this.localState = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state
         if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
@@ -492,6 +558,9 @@ export default {
             }
           }
         }
+
+        this.virtual = {}
+
         this.submitted = true
 
         this.$toast.success(this.localParams.submit.message || 'Saved successfully.', {
@@ -567,6 +636,11 @@ export default {
 }
 
 ::v-deep {
+
+  .nc-hint {
+    padding-left: 3px;
+  }
+
   .nc-required-switch, .nc-switch {
     .v-input--selection-controls__input {
       transform: scale(0.65) !important;
@@ -592,19 +666,19 @@ export default {
 
   .nc-field-wrapper {
 
-    .required {
-      & > input,
-      & > .xc-input > input,
-      & > .xc-input .v-input__slot input,
-      & > .xc-input > div > input,
-      & > select,
-      & > .xc-input > select,
-      textarea:not(.inputarea) {
-        border: 1px solid red;
-        border-radius: 4px;
-        background: var(--v-backgroundColorDefault-base);
-      }
-    }
+    //.required {
+    //  & > input,
+    //  .xc-input > input,
+    //  .xc-input .v-input__slot input,
+    //  .xc-input > div > input,
+    //  & > select,
+    //  .xc-input > select,
+    //  textarea:not(.inputarea) {
+    //    border: 1px solid rgba(255, 0, 0, 0.98);
+    //    border-radius: 4px;
+    //    background: var(--v-backgroundColorDefault-base);
+    //  }
+    //}
 
     div > input,
     div > .xc-input > input,
@@ -639,9 +713,9 @@ export default {
   //width: 400px;
   min-height: 40px;
   border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  //display: flex;
+  //align-items: center;
+  //justify-content: center;
 
   &:hover {
     background: var(--v-backgroundColor-base);
@@ -653,9 +727,10 @@ export default {
 }
 
 .nc-drag-n-drop-to-hide, .nc-drag-n-drop-to-show {
-  border: 2px dotted #a1a1a1;
+  border: 2px dashed #c4c4c4;
   border-radius: 4px;
-  font-size: .6rem;
+  font-size: .62rem;
+
   color: grey
 }
 
@@ -702,12 +777,12 @@ export default {
 //.nc-field-labels,
 .nc-field-editables {
   max-height: 0;
-  transition: .4s max-height linear;
-  overflow: hidden;
+  transition: .4s max-height;
+  overflow-y: hidden;
   display: block;
 
   &.nc-show {
-    max-height: 150px;
+    max-height: 500px;
   }
 }
 

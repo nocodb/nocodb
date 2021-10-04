@@ -1,5 +1,6 @@
 <template>
   <div
+    class="nc-cell"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up
@@ -105,6 +106,8 @@
 
     <text-cell v-else v-model="localState" v-on="$listeners" />
     <span v-if="hint" class="nc-hint">{{ hint }}</span>
+
+    <div v-if="isLocked" class="nc-locked-overlay" />
   </div>
 </template>
 
@@ -155,7 +158,8 @@ export default {
     isForm: Boolean,
     active: Boolean,
     dummy: Boolean,
-    hint: String
+    hint: String,
+    isLocked: Boolean
   },
   data: () => ({
     changed: false,
@@ -227,6 +231,18 @@ div {
 .nc-hint{
   font-size: .61rem;
   color:grey;
+}
+.nc-cell {
+   position: relative;
+ }
+
+.nc-locked-overlay {
+  position: absolute;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  top:0;
+  left:0;
 }
 </style>
 <!--

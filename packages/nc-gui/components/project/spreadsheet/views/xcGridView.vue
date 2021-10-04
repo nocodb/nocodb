@@ -36,6 +36,7 @@
               :meta="meta"
               :sql-ui="sqlUi"
               :is-public-view="isPublicView"
+              :is-locked="isLocked"
               @saved="onNewColCreation"
             />
 
@@ -50,6 +51,7 @@
               :is-foreign-key="col._cn in belongsTo || col._cn in hasMany"
               :column="col"
               :is-virtual="isVirtual"
+              :is-locked="isLocked"
               @onRelationDelete="$emit('onRelationDelete')"
               @saved="onNewColCreation"
             />
@@ -112,7 +114,7 @@
                 />
                 <v-spacer />
                 <v-icon
-                  v-if="!groupedAggCount[ids[row]]"
+                  v-if="!groupedAggCount[ids[row]] && !isLocked"
                   color="pink"
                   small
                   class="row-expand-icon nc-row-expand-icon  mr-1 pointer"
@@ -149,6 +151,7 @@
           >
             <virtual-cell
               v-if="columnObj.virtual"
+              :is-locked="isLocked"
               :column="columnObj"
               :row="rowObj"
               :nodes="nodes"
@@ -175,6 +178,7 @@
               :active="selected.col === col && selected.row === row"
               :sql-ui="sqlUi"
               :db-alias="nodes.dbAlias"
+              :is-locked="isLocked"
               @save="editEnabled = {}"
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj)"
@@ -225,15 +229,15 @@
 </template>
 
 <script>
-import DynamicStyle from '@/components/dynamicStyle'
-import HeaderCell from '@/components/project/spreadsheet/components/headerCell'
-import EditableCell from '@/components/project/spreadsheet/components/editableCell'
-import EditColumn from '@/components/project/spreadsheet/components/editColumn'
-import TableCell from '@/components/project/spreadsheet/components/cell'
+import HeaderCell from '../components/headerCell'
+import EditableCell from '../components/editableCell'
+import EditColumn from '../components/editColumn'
+import columnStyling from '../helpers/columnStyling'
+import VirtualCell from '../components/virtualCell'
+import VirtualHeaderCell from '../components/virtualHeaderCell'
 import colors from '@/mixins/colors'
-import columnStyling from '@/components/project/spreadsheet/helpers/columnStyling'
-import VirtualCell from '@/components/project/spreadsheet/components/virtualCell'
-import VirtualHeaderCell from '@/components/project/spreadsheet/components/virtualHeaderCell'
+import TableCell from '@/components/project/spreadsheet/components/cell'
+import DynamicStyle from '@/components/dynamicStyle'
 
 export default {
   name: 'XcGridView',

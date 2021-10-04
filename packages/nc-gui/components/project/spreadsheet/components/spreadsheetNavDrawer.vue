@@ -14,7 +14,7 @@
               <!-- Views -->
               <span class="body-2 grey--text">{{ $t('nav_drawer.title') }}</span>
             </v-list-item>
-            <v-list-item-group v-model="selectedViewIdLocal" color="primary">
+            <v-list-item-group v-model="selectedViewIdLocal" mandatory color="primary">
               <v-list-item
                 v-for="(view, i) in viewsList"
                 :key="i"
@@ -23,6 +23,7 @@
                 active-class="x-active--text"
                 class="body-2 text-capitalize view nc-view-item"
                 :class="`nc-${view.show_as}-view-item`"
+                @click="$emit('generateNewViewKey')"
               >
                 <v-list-item-icon class="mr-n1">
                   <v-icon

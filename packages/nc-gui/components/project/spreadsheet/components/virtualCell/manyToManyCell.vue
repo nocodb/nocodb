@@ -9,13 +9,15 @@
             :active="active"
             :item="v"
             :value="getCellValue(v)"
+            :readonly="isLocked"
             @edit="editChild"
             @unlink="unlinkChild"
           />
         </template>
-        <span v-if="value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</span>
+        <span v-if="!isLocked && value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</span>
       </div>
       <div
+        v-if="!isActive && !isLocked"
         class="actions align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >
@@ -128,6 +130,7 @@ export default {
   name: 'ManyToManyCell',
   components: { ListChildItems, ItemChip, ListItems, DlgLabelSubmitCancel, listChildItemsModal },
   props: {
+    isLocked: Boolean,
     breadcrumbs: {
       type: Array,
       default() {
@@ -143,7 +146,8 @@ export default {
     sqlUi: [Object, Function],
     active: Boolean,
     isNew: Boolean,
-    isForm: Boolean
+    isForm: Boolean,
+    required: Boolean
   },
   data: () => ({
     isNewChild: false,
@@ -290,6 +294,7 @@ export default {
     async unlinkChild(child) {
       if (this.isNew) {
         this.localState.splice(this.localState.indexOf(child), 1)
+        this.$emit('update:localState', [...this.localState])
         return
       }
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
@@ -367,6 +372,7 @@ export default {
     async addChildToParent(child) {
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
+        this.$emit('update:localState', [...this.localState])
         this.newRecordModal = false
         return
       }

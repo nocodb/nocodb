@@ -12,13 +12,21 @@ export default {
     api: [Object]
   },
   methods: {
-    isRequired(_columnObj, rowObj) {
+    isValid(_columnObj, rowObj, required = false) {
       let columnObj = _columnObj
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
       }
-      return (columnObj.rqd &&
+      return ((required || columnObj.rqd) &&
         (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
+        !columnObj.default)
+    },
+    isRequired(_columnObj, rowObj, required = false) {
+      let columnObj = _columnObj
+      if (columnObj.bt) {
+        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
+      }
+      return ((required || columnObj.rqd) &&
         !columnObj.default)
     }
   }

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="nc-virtual-cell">
     <v-lazy>
       <has-many-cell
         v-if="hm"
@@ -14,6 +14,8 @@
         :is-new="isNew"
         :is-form="isForm"
         :breadcrumbs="breadcrumbs"
+        :is-locked="isLocked"
+        :required="required"
         v-on="$listeners"
       />
       <many-to-many-cell
@@ -30,6 +32,8 @@
         :api="api"
         :is-form="isForm"
         :breadcrumbs="breadcrumbs"
+        :is-locked="isLocked"
+        :required="required"
         v-on="$listeners"
       />
       <belongs-to-cell
@@ -47,6 +51,7 @@
         :is-new="isNew"
         :is-form="isForm"
         :breadcrumbs="breadcrumbs"
+        :is-locked="isLocked"
         v-on="$listeners"
       />
       <lookup-cell
@@ -61,6 +66,7 @@
         :is-new="isNew"
         :is-form="isForm"
         :column="column"
+        :is-locked="isLocked"
         v-on="$listeners "
       />
       <formula-cell
@@ -75,16 +81,17 @@
       />
     </v-lazy>
     <span v-if="hint" class="nc-hint">{{ hint }}</span>
+    <div v-if="isLocked" class="nc-locked-overlay" />
   </div>
 </template>
 
 <script>
 import RollupCell from './virtualCell/rollupCell'
-import FormulaCell from '@/components/project/spreadsheet/components/virtualCell/formulaCell'
-import hasManyCell from '@/components/project/spreadsheet/components/virtualCell/hasManyCell'
-import LookupCell from '@/components/project/spreadsheet/components/virtualCell/lookupCell'
-import manyToManyCell from '@/components/project/spreadsheet/components/virtualCell/manyToManyCell'
-import belongsToCell from '@/components/project/spreadsheet/components/virtualCell/belongsToCell'
+import FormulaCell from './virtualCell/formulaCell'
+import hasManyCell from './virtualCell/hasManyCell'
+import LookupCell from './virtualCell/lookupCell'
+import manyToManyCell from './virtualCell/manyToManyCell'
+import belongsToCell from './virtualCell/belongsToCell'
 
 // todo: optimize parent/child meta extraction
 
@@ -121,7 +128,9 @@ export default {
       default: false
     },
     disabledColumns: Object,
-    hint: String
+    hint: String,
+    isLocked: Boolean,
+    required: Boolean
   },
   computed: {
     hm() {
@@ -160,6 +169,19 @@ export default {
 .nc-hint {
   font-size: .61rem;
   color: grey;
+}
+
+.nc-virtual-cell {
+  position: relative;
+}
+
+.nc-locked-overlay {
+  position: absolute;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
 }
 </style>
 <!--

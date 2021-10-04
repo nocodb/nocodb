@@ -7,13 +7,14 @@
             :active="active"
             :item="value"
             :value="cellValue"
+            :readonly="isLocked"
             @edit="editParent"
             @unlink="unlink"
           />
         </template>
       </div>
       <div
-        v-if="_isUIAllowed('xcDatatableEditable')"
+        v-if="!isLocked && _isUIAllowed('xcDatatableEditable')"
         class="action align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >
@@ -105,6 +106,7 @@ export default {
   name: 'BelongsToCell',
   components: { ListChildItems, ItemChip, ListItems },
   props: {
+    isLocked: Boolean,
     breadcrumbs: {
       type: Array,
       default() {

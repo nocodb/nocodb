@@ -84,7 +84,7 @@
                   :key="i"
                   :class="{
                     'active-row' : active === col._cn,
-                    required: isRequired(col, localState)
+                    required: isValid(col, localState)
                   }"
                   class="row-col  my-4"
                 >

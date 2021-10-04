@@ -9,12 +9,13 @@
             :active="active"
             :item="ch"
             :value="getCellValue(ch)"
+            :readonly="isLocked"
             @edit="editChild"
             @unlink="unlinkChild"
           />
 
           <span
-            v-if="value && value.length === 10"
+            v-if="!isLocked && value && value.length === 10"
             class="caption pointer ml-1 grey--text"
             @click="showChildListModal"
           >more...
@@ -22,6 +23,7 @@
         </template>
       </div>
       <div
+        v-if="!isLocked"
         class="actions align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >
@@ -149,6 +151,7 @@ export default {
     listChildItemsModal
   },
   props: {
+    isLocked: Boolean,
     breadcrumbs: {
       type: Array,
       default() {
@@ -163,7 +166,8 @@ export default {
     sqlUi: [Object, Function],
     active: Boolean,
     isNew: Boolean,
-    isForm: Boolean
+    isForm: Boolean,
+    required: Boolean
   },
   data: () => ({
     newRecordModal: false,
@@ -288,6 +292,7 @@ export default {
     async unlinkChild(child) {
       if (this.isNew) {
         this.localState.splice(this.localState.indexOf(child), 1)
+        this.$emit('update:localState', [...this.localState])
         return
       }
 
@@ -332,6 +337,7 @@ export default {
     async addChildToParent(child) {
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
+        this.$emit('update:localState', [...this.localState])
         this.newRecordModal = false
         return
       }

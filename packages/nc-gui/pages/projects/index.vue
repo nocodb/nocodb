@@ -1039,7 +1039,7 @@ export default {
               {
                 // dbAlias: 'db',
                 project_id: projectId,
-                env: 'dev'
+                env: '_noco'
               },
               'xcMetaTablesExportDbToZip',
               null,
@@ -1079,7 +1079,7 @@ export default {
             await this.$store.dispatch('sqlMgr/ActSqlOp', [
               {
                 // dbAlias: 'db',
-                env: 'dev',
+                env: '_noco',
                 project_id: projectId
               },
               'xcMetaTablesReset'
@@ -1108,7 +1108,7 @@ export default {
             {
               // dbAlias: 'db',
               project_id: projectId,
-              env: 'dev'
+              env: '_noco'
             },
             'xcMetaTablesImportZipToLocalFsAndDb',
             {},

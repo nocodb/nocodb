@@ -629,14 +629,14 @@ export default class SqlMgr {
       const projectJson = {
         title: '',
         envs: {
-          "dev": {
+          "_noco": {
             db: [],
             apiClient: {
               data: []
             }
           }
         },
-        "workingEnv": "dev",
+        "workingEnv": "_noco",
         meta: {
           version: '0.5',
           seedsFolder: 'seeds',
@@ -667,7 +667,7 @@ export default class SqlMgr {
           config.meta.dbAlias = i > 1 ? `secondary${i}` : `secondary`;
         }
 
-        projectJson.envs.dev.db.push(config);
+        projectJson.envs._noco.db.push(config);
 
       }
 
@@ -921,12 +921,12 @@ export default class SqlMgr {
 
     try {
 
-      const dbs = this.currentProjectJson.envs.dev.db;
+      const dbs = this.currentProjectJson.envs._noco.db;
       const dbType = dbs[0].client;
 
       console.time('Copy and delete auth user migrations');
 
-      const sqlClient = await this.projectGetSqlClient({env: 'dev', dbAlias: 'db'});
+      const sqlClient = await this.projectGetSqlClient({env: '_noco', dbAlias: 'db'});
       const usersTableExists = await sqlClient.hasTable({tn: 'xc_users'});
 
       if (usersTableExists && usersTableExists.data.value) {

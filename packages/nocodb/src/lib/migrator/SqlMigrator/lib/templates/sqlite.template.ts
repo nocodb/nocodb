@@ -5,7 +5,7 @@ const {DOCKER_DB_FILE} = process.env;
 module.exports = {
   title: "default",
   envs: {
-    dev: {
+    _noco: {
       db: [
         {
           client: "sqlite3",
@@ -47,7 +47,7 @@ module.exports = {
       ]
     }
   },
-  workingEnv: "dev",
+  workingEnv: "_noco",
   meta: {
     version: '0.5',
     seedsFolder: 'seeds',

@@ -95,13 +95,13 @@ export const actions = {
         switch (type) {
           case 'table':
             await dispatch('project/_loadTables', {
-              dbKey: '0.projectJson.envs.dev.db.0',
-              key: '0.projectJson.envs.dev.db.0.tables',
+              dbKey: '0.projectJson.envs._noco.db.0',
+              key: '0.projectJson.envs._noco.db.0.tables',
               _nodes: {
                 dbAlias: dbalias,
-                // dbKey: "0.projectJson.envs.dev.db.0",
-                env: 'dev',
-                // key: "0.projectJson.envs.dev.db.0.tables",
+                // dbKey: "0.projectJson.envs._noco.db.0",
+                env: '_noco',
+                // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'tableDir'
               }
             }, { root: true })
@@ -115,13 +115,13 @@ export const actions = {
             break
           case 'view':
             await dispatch('project/_loadViews', {
-              dbKey: '0.projectJson.envs.dev.db.0',
-              key: '0.projectJson.envs.dev.db.0.views',
+              dbKey: '0.projectJson.envs._noco.db.0',
+              key: '0.projectJson.envs._noco.db.0.views',
               _nodes: {
                 dbAlias: dbalias,
-                // dbKey: "0.projectJson.envs.dev.db.0",
-                env: 'dev',
-                // key: "0.projectJson.envs.dev.db.0.tables",
+                // dbKey: "0.projectJson.envs._noco.db.0",
+                env: '_noco',
+                // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'viewDir'
               }
             }, { root: true })
@@ -135,13 +135,13 @@ export const actions = {
             break
           case 'function':
             await dispatch('project/_loadFunctions', {
-              dbKey: '0.projectJson.envs.dev.db.0',
-              key: '0.projectJson.envs.dev.db.0.functions',
+              dbKey: '0.projectJson.envs._noco.db.0',
+              key: '0.projectJson.envs._noco.db.0.functions',
               _nodes: {
                 dbAlias: dbalias,
-                // dbKey: "0.projectJson.envs.dev.db.0",
-                env: 'dev',
-                // key: "0.projectJson.envs.dev.db.0.tables",
+                // dbKey: "0.projectJson.envs._noco.db.0",
+                env: '_noco',
+                // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'functionDir'
               }
             }, { root: true })
@@ -159,13 +159,13 @@ export const actions = {
             break
           case 'procedure':
             await dispatch('project/_loadProcedures', {
-              dbKey: '0.projectJson.envs.dev.db.0',
-              key: '0.projectJson.envs.dev.db.0.procedures',
+              dbKey: '0.projectJson.envs._noco.db.0',
+              key: '0.projectJson.envs._noco.db.0.procedures',
               _nodes: {
                 dbAlias: dbalias,
-                // dbKey: "0.projectJson.envs.dev.db.0",
-                env: 'dev',
-                // key: "0.projectJson.envs.dev.db.0.tables",
+                // dbKey: "0.projectJson.envs._noco.db.0",
+                env: '_noco',
+                // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'procedureDir'
               }
             }, { root: true })
@@ -178,13 +178,13 @@ export const actions = {
             break
           case 'sequence':
             await dispatch('project/_loadFunctions', {
-              dbKey: '0.projectJson.envs.dev.db.0',
-              key: '0.projectJson.envs.dev.db.0.sequences',
+              dbKey: '0.projectJson.envs._noco.db.0',
+              key: '0.projectJson.envs._noco.db.0.sequences',
               _nodes: {
                 dbAlias: dbalias,
-                // dbKey: "0.projectJson.envs.dev.db.0",
-                env: 'dev',
-                // key: "0.projectJson.envs.dev.db.0.tables",
+                // dbKey: "0.projectJson.envs._noco.db.0",
+                env: '_noco',
+                // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'sequenceDir'
               }
             }, { root: true })
@@ -213,7 +213,7 @@ export const actions = {
           name: 'gRPC Client',
           key: 'grpcClient',
           _nodes: {
-            env: 'dev',
+            env: '_noco',
             type: 'grpcClient'
           }
         }
@@ -223,7 +223,7 @@ export const actions = {
           name: 'Graphql Client',
           key: 'graphqlClientDir',
           _nodes: {
-            env: 'dev',
+            env: '_noco',
             type: 'graphqlClientDir'
           }
         }
@@ -234,7 +234,7 @@ export const actions = {
         name: 'Team & Auth ',
         key: 'roles',
         _nodes: {
-          env: 'dev',
+          env: '_noco',
           type: 'roles'
         }
       })

@@ -607,10 +607,10 @@ export default {
     error: null,
     dialogErrorShow: false,
     dialogDebug: false,
-    migrationsMenu: [
-      { name: 'dev', children: [{ name: 'db-1' }, { name: 'db-2' }] },
-      { name: 'test', children: [{ name: 'db-1' }, { name: 'db-2' }] }
-    ],
+    // migrationsMenu: [
+    //   { name: 'dev', children: [{ name: 'db-1' }, { name: 'db-2' }] },
+    //   { name: 'test', children: [{ name: 'db-1' }, { name: 'db-2' }] }
+    // ],
     clipped: false,
     drawer: null,
     fixed: false,
@@ -801,7 +801,7 @@ export default {
       } else {
         console.log('add terminal tab')
         const item = { name: 'API Client', key: 'apiClientDir' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'apiClientDir'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -817,7 +817,7 @@ export default {
       } else {
         console.log('add terminal tab')
         const item = { name: 'API Client', key: 'apiClientSwaggerDir' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'apiClientSwaggerDir'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -832,7 +832,7 @@ export default {
       } else {
         console.log('add project info tab')
         const item = { name: 'Info', key: 'projectInfo' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'projectInfo'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -844,7 +844,7 @@ export default {
         this.changeActiveTab(tabIndex)
       } else {
         const item = { name: 'Meta', key: 'meta' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'meta'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -888,7 +888,7 @@ export default {
       } else {
         console.log('add grpc tab')
         const item = { name: 'gRPC Client', key: 'grpcClient' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'grpcClient'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -900,7 +900,7 @@ export default {
       } else {
         console.log('add roles tab')
         const item = { name: 'Team & Auth ', key: 'roles' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'roles'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -915,7 +915,7 @@ export default {
       } else {
         console.log('add roles tab')
         const item = { name: 'Themes', key: 'projectSettings' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'projectSettings'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -927,7 +927,7 @@ export default {
       } else {
         console.log('add acl tab')
         const item = { name: 'ACL', key: 'acl' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'acl'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -939,7 +939,7 @@ export default {
       } else {
         console.log('add acl tab')
         const item = { name: 'Meta Management', key: 'disableOrEnableModel' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'disableOrEnableModel'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -951,7 +951,7 @@ export default {
       } else {
         console.log('add cron job tab')
         const item = { name: 'Cron Jobs', key: 'cronJobs' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'cronJobs'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -963,7 +963,7 @@ export default {
       } else {
         console.log('add app store tab')
         const item = { name: 'App Store', key: 'appStore' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'appStore'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -971,7 +971,7 @@ export default {
     async codeGenerateMvc() {
       try {
         await this.sqlMgr.projectGenerateBackend({
-          env: 'dev'
+          env: '_noco'
         })
         this.$toast.success('Yay, REST APIs with MVC generated').goAway(4000)
       } catch (e) {

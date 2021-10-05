@@ -3,7 +3,6 @@ import {nanoid} from 'nanoid';
 
 import {NcConfig} from "../../../interface/config";
 import {Knex, XKnex} from "../../dataMapper";
-import NcHelp from "../../utils/NcHelp";
 import Noco from "../Noco";
 import XcMigrationSource from "../common/XcMigrationSource";
 
@@ -80,7 +79,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     NcConnectionMgr.setXcMeta(this);
   }
 
-  private get knexConnection(): XKnex {
+  public get knexConnection(): XKnex {
     return (this.trx || this.connection) as any;
   }
 
@@ -95,279 +94,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
     });
     return true;
   }
-
-
-  public async metaInitOld(): Promise<boolean> {
-
-
-    let freshlyStarted = false;
-
-
-    if (!(await this.knexConnection.schema.hasTable('nc_projects'))) {
-      await this.knexConnection.schema.createTable('nc_projects', table => {
-        table.increments();
-        table.string('title');
-        table.text('description');
-        table.text('meta');
-        table.timestamps();
-      })
-    }
-
-
-    if (!(await this.knexConnection.schema.hasTable('nc_roles'))) {
-      freshlyStarted = true;
-      await this.knexConnection.schema.createTable('nc_roles', table => {
-        table.increments();
-        table.string('project_id').defaultTo('default');
-        table.string('db_alias').defaultTo('db');
-        table.string('title');
-        table.string('type').defaultTo('CUSTOM');
-        table.string('description');
-        table.timestamps();
-      });
-
-      await this.knexConnection('nc_roles').insert([
-        {db_alias: '', title: 'owner', description: 'Super Admin user of the app', type: 'SYSTEM'},
-        {db_alias: '', title: 'creator', description: 'Admin user of the app', type: 'SYSTEM'},
-        {db_alias: '', title: 'editor', description: 'Registered app users', type: 'SYSTEM'},
-        {db_alias: '', title: 'guest', description: 'Unauthenticated public user', type: 'SYSTEM'},
-      ])
-    }
-
-    if (!(await this.knexConnection.schema.hasTable('nc_hooks'))) {
-      await this.knexConnection.schema.createTable('nc_hooks', table => {
-        table.increments();
-        table.string('project_id').defaultTo('default');
-        table.string('db_alias').defaultTo('db')
-        table.string('title');
-        table.string('description', 255);
-        table.string('env').defaultTo('all');
-        table.string('tn');
-        table.string('event');
-
-        table.string('operation');
-        table.boolean('async').defaultTo(false);
-        table.boolean('payload').defaultTo(true);
-
-        table.text('url', 'text');
-        table.text('headers', 'text');
-        table.integer('retries').defaultTo(0);
-        table.integer('retry_interval').defaultTo(60000);
-        table.integer('timeout').defaultTo(60000);
-        table.boolean('active').defaultTo(true);
-        table.timestamps();
-      })
-    }
-
-
-    if (!(await this.knexConnection.schema.hasTable('nc_store'))) {
-      await this.knexConnection.schema.createTable('nc_store', table => {
-        table.increments();
-        table.string('project_id').defaultTo('default')
-        table.string('db_alias').defaultTo('db')
-        table.string('key').index();
-        table.text('value', 'text');
-        table.string('type');
-        table.string('env');
-        table.string('tag');
-        table.timestamps();
-      })
-
-
-      await this.knexConnection('nc_store').insert({
-        key: 'NC_DEBUG',
-        value: JSON.stringify({
-          'nc:app': false,
-          'nc:api:rest': false,
-          'nc:api:base': false,
-          'nc:api:gql': false,
-          'nc:api:grpc': false,
-          'nc:migrator': false,
-          'nc:datamapper': false,
-        }),
-        db_alias: ''
-      })
-
-    }
-
-    if (!(await this.knexConnection.schema.hasTable('nc_cron'))) {
-      await this.knexConnection.schema.createTable('nc_cron', table => {
-        table.increments();
-        table.string('project_id').defaultTo('default')
-        table.string('db_alias').defaultTo('db')
-        table.string('title');
-        table.string('description', 255);
-        table.string('env');
-        table.string('pattern');
-        table.string('webhook');
-        table.string('timezone').defaultTo('America/Los_Angeles');
-        table.boolean('active').defaultTo(true);
-        table.text('cron_handler');
-        table.text('payload');
-        table.text('headers');
-        table.integer('retries').defaultTo(0);
-        table.integer('retry_interval').defaultTo(60000);
-        table.integer('timeout').defaultTo(60000);
-
-        table.timestamps();
-      })
-    }
-
-
-    if (!(await this.knexConnection.schema.hasTable('nc_acl'))) {
-      await this.knexConnection.schema.createTable('nc_acl', table => {
-        table.increments();
-        table.string('project_id').defaultTo('default')
-        table.string('db_alias').defaultTo('db')
-        table.string('tn');
-        table.text('acl');
-        table.string('type').defaultTo('table');
-        table.timestamps();
-      })
-    }
-
-
-    if (!(await this.knexConnection.schema.hasTable('nc_models'))) {
-      await this.knexConnection.schema.createTable('nc_models', table => {
-        table.increments();
-        table.string('project_id').defaultTo('default')
-        table.string('db_alias').defaultTo('db')
-        table.string('title');
-        table.string('type').defaultTo('table');
-        table.text('meta', 'mediumtext');
-        table.text('schema', 'text');
-        table.text('schema_previous', 'text')
-        table.text('services', 'mediumtext');
-        table.text('messages', 'text');
-        table.boolean('enabled').defaultTo(true);
-        table.timestamps();
-        table.index(['db_alias', 'title'])
-      })
-    }
-
-
-    if (!(await this.knexConnection.schema.hasTable('nc_relations'))) {
-      await this.knexConnection.schema.createTable('nc_relations', table => {
-        table.increments();
-        table.string('project_id').defaultTo('default')
-        table.string('db_alias')
-        table.string('tn');
-        table.string('rtn');
-        table.string('cn');
-        table.string('rcn');
-        table.string('referenced_db_alias');
-        table.string('type');
-        table.string('db_type');
-        table.string('ur');
-        table.string('dr');
-
-        table.timestamps();
-        table.index(['db_alias', 'tn'])
-      })
-    }
-
-    if (this.config.projectType === 'rest' || this.isRest) {
-      if (!(await this.knexConnection.schema.hasTable('nc_routes'))) {
-        await this.knexConnection.schema.createTable('nc_routes', table => {
-          table.increments();
-          table.string('project_id').defaultTo('default')
-          table.string('db_alias').defaultTo('db')
-          table.string('title');
-          table.string('tn');
-          table.string('tnp');
-          table.string('tnc');
-          table.string('relation_type');
-          table.text('path', 'text');
-          table.string('type');
-          table.text('handler', 'text');
-          table.text('acl', 'text');
-          table.integer('order');
-          table.text('functions');
-          table.integer('handler_type').defaultTo(1);
-          table.boolean('is_custom');
-          // table.text('placeholder', 'longtext');
-          table.timestamps();
-          table.index(['db_alias', 'title', 'tn'])
-        })
-      }
-    }
-
-    if (this.config.projectType === 'graphql' || this.isGql) {
-      if (!(await this.knexConnection.schema.hasTable('nc_resolvers'))) {
-        await this.knexConnection.schema.createTable('nc_resolvers', (table) => {
-          table.increments();
-          table.string('project_id').defaultTo('default')
-          table.string('db_alias').defaultTo('db')
-          table.string('title');
-          table.text('resolver', 'text');
-          table.string('type');
-          table.text('acl', 'text');
-          table.text('functions');
-          table.integer('handler_type').defaultTo(1);
-          // table.text('placeholder', 'text');
-          table.timestamps();
-        })
-      }
-
-      if (!(await this.knexConnection.schema.hasTable('nc_loaders'))) {
-        await this.knexConnection.schema.createTable('nc_loaders', table => {
-          table.increments();
-          table.string('project_id').defaultTo('default')
-          table.string('db_alias').defaultTo('db')
-          table.string('title');
-          table.string('parent');
-          table.string('child');
-          table.string('relation');
-          table.string('resolver');
-          table.text('functions');
-          table.timestamps();
-        })
-      }
-    }
-
-    if (this.config.projectType === 'grpc' || this.isGrpc) {
-      if (!(await this.knexConnection.schema.hasTable('nc_rpc'))) {
-        await this.knexConnection.schema.createTable('nc_rpc', (table) => {
-          table.increments();
-          table.string('project_id').defaultTo('default')
-          table.string('db_alias').defaultTo('db')
-          table.string('title');
-          table.string('tn');
-          table.text('service', 'text');
-
-          table.string('tnp');
-          table.string('tnc');
-          table.string('relation_type');
-          table.integer('order');
-
-          table.string('type');
-          table.text('acl', 'text');
-          table.text('functions', 'text');
-          table.integer('handler_type').defaultTo(1);
-          // table.text('placeholder', 'text');
-          table.timestamps();
-        })
-      }
-    }
-
-    try {
-      const debugEnabled = await this.metaGet('', '', 'nc_store', {
-        key: 'NC_DEBUG'
-      });
-
-      NcHelp.enableOrDisableDebugLog(JSON.parse(debugEnabled.value));
-    } catch (_e) {
-      console.log(_e)
-    }
-
-    if (!freshlyStarted) {
-      freshlyStarted = !(await this.knexConnection('nc_models').first());
-    }
-
-
-    return freshlyStarted;
-  }
-
 
   public async metaDelete(
     project_id: string,
@@ -530,16 +256,16 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return !!data;
   }
 
-  commit() {
+  async commit() {
     if (this.trx) {
-      this.trx.commit();
+    await  this.trx.commit();
     }
     this.trx = null;
   }
 
-  rollback(e?) {
+  async rollback(e?) {
     if (this.trx) {
-      this.trx.rollback(e);
+     await this.trx.rollback(e);
     }
     this.trx = null;
   }
@@ -579,7 +305,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         config: CryptoJS.AES.encrypt(JSON.stringify(config), this.config?.auth?.jwt?.secret).toString()
       };
       // todo: check project name used or not
-      await this.connection('nc_projects').insert({
+      await this.knexConnection('nc_projects').insert({
         ...project,
         created_at: this.knexConnection?.fn?.now(),
         updated_at: this.knexConnection?.fn?.now(),
@@ -597,7 +323,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         config: CryptoJS.AES.encrypt(JSON.stringify(config, null, 2), this.config?.auth?.jwt?.secret).toString()
       };
       // todo: check project name used or not
-      await this.connection('nc_projects').update(project).where({
+      await this.knexConnection('nc_projects').update(project).where({
         id: projectId
       });
     } catch (e) {
@@ -606,14 +332,14 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectList(): Promise<any[]> {
-    return (await this.connection('nc_projects').select()).map(p => {
+    return (await this.knexConnection('nc_projects').select()).map(p => {
       p.config = CryptoJS.AES.decrypt(p.config, this.config?.auth?.jwt?.secret).toString(CryptoJS.enc.Utf8)
       return p;
     });
   }
 
   public async userProjectList(userId: any): Promise<any[]> {
-    return (await this.connection('nc_projects')
+    return (await this.knexConnection('nc_projects')
       .innerJoin('nc_projects_users', 'nc_projects_users.project_id', 'nc_projects.id')
       .select('nc_projects.*')
       .where(`nc_projects_users.user_id`, userId)).map(p => {
@@ -623,14 +349,14 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async isUserHaveAccessToProject(projectId: string, userId: any): Promise<boolean> {
-    return !!(await this.connection('nc_projects_users').where({
+    return !!(await this.knexConnection('nc_projects_users').where({
       project_id: projectId,
       user_id: userId
     }).first());
   }
 
   public async projectGet(projectName: string, encrypt ?): Promise<any> {
-    const project = await this.connection('nc_projects').where({
+    const project = await this.knexConnection('nc_projects').where({
       title: projectName
     }).first();
 
@@ -641,7 +367,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectGetById(projectId: string, encrypt ?): Promise<any> {
-    const project = await this.connection('nc_projects').where({
+    const project = await this.knexConnection('nc_projects').where({
       id: projectId
     }).first();
     if (project && !encrypt) {
@@ -652,19 +378,19 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
 
   public projectDelete(title: string): Promise<any> {
-    return this.connection('nc_projects').where({
+    return this.knexConnection('nc_projects').where({
       title
     }).delete();
   }
 
   public projectDeleteById(id: string): Promise<any> {
-    return this.connection('nc_projects').where({
+    return this.knexConnection('nc_projects').where({
       id
     }).delete();
   }
 
   public async projectStatusUpdate(projectName: string, status: string): Promise<any> {
-    return this.connection('nc_projects').update({
+    return this.knexConnection('nc_projects').update({
       status
     }).where({
       title: projectName
@@ -672,13 +398,13 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectAddUser(projectId: string, userId: any, roles: string): Promise<any> {
-    if (await this.connection('nc_projects_users').where({
+    if (await this.knexConnection('nc_projects_users').where({
       user_id: userId,
       project_id: projectId
     }).first()) {
       return {}
     }
-    return this.connection('nc_projects_users').insert({
+    return this.knexConnection('nc_projects_users').insert({
       user_id: userId,
       project_id: projectId,
       roles
@@ -686,7 +412,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public projectRemoveUser(projectId: string, userId: any): Promise<any> {
-    return this.connection('nc_projects_users').where({
+    return this.knexConnection('nc_projects_users').where({
       user_id: userId,
       project_id: projectId
     }).delete();

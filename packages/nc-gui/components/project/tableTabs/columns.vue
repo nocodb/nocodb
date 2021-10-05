@@ -709,12 +709,12 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import JSON5 from 'json5'
-import uiTypes from '@/components/project/spreadsheet/helpers/uiTypes'
 import addRelationDlg from '../dlgs/dlgAddRelation.vue'
 import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel.vue'
 
 import { SqlUI } from '../../../helpers/sqlUi/SqlUiFactory'
 import jsonToColumn from './columnActions/jsonToColumn'
+import uiTypes from '@/components/project/spreadsheet/helpers/uiTypes'
 
 // const {path} = require("electron").remote.require(
 //   "./libs"
@@ -793,7 +793,7 @@ export default {
           null,
           'projectGenerateBackend',
           {
-            env: 'dev',
+            env: '_noco',
             tn: this.nodes.tn,
             scaffold
           }
@@ -816,7 +816,7 @@ export default {
           null,
           'projectGenerateBackendGql',
           {
-            env: 'dev',
+            env: '_noco',
             tn: this.nodes.tn,
             scaffold
           }

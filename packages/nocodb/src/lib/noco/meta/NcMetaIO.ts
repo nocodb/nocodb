@@ -1,5 +1,6 @@
 import {NcConfig} from "../../../interface/config";
 import Noco from "../Noco";
+import {XKnex} from "../../dataMapper";
 
 const META_TABLES = {
   graphql: ['nc_models', 'nc_resolvers', 'nc_loaders', 'nc_store', 'nc_hooks', 'nc_roles', 'nc_acl', 'nc_api_tokens', 'nc_relations', 'nc_migrations',
@@ -18,6 +19,8 @@ export default abstract class NcMetaIO {
 
   protected app: Noco;
   protected config: NcConfig;
+
+  public abstract get knexConnection(): XKnex ;
 
   constructor(app: Noco, config: NcConfig) {
     this.app = app;

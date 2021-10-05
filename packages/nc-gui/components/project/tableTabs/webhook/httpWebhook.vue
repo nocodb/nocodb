@@ -118,8 +118,8 @@ export default {
         color: 'info'
       }
     },
-    selectedEnv: 'dev',
-    environmentList: ['dev'],
+    selectedEnv: '_noco',
+    environmentList: ['_noco'],
     // current api
     api: {
       method: 'GET',

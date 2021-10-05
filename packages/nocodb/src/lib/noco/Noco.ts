@@ -33,6 +33,7 @@ import RestAuthCtrlCE from "./rest/RestAuthCtrl";
 import RestAuthCtrlEE from "./rest/RestAuthCtrlEE";
 import mkdirp from 'mkdirp';
 import MetaAPILogger from "./meta/MetaAPILogger";
+import NcUpgrader from "./upgrader/NcUpgrader";
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -45,8 +46,11 @@ export default class Noco {
 
   public static get dashboardUrl(): string {
     let siteUrl = `http://localhost:${process.env.PORT || 8080}`;
-    if (Noco._this?.config?.envs?.[Noco._this?.env]?.publicUrl) {
-      siteUrl = Noco._this?.config?.envs?.[Noco._this?.env]?.publicUrl;
+    // if (Noco._this?.config?.envs?.[Noco._this?.env]?.publicUrl) {
+    //   siteUrl = Noco._this?.config?.envs?.[Noco._this?.env]?.publicUrl;
+    // }
+    if (Noco._this?.config?.envs?.['_noco']?.publicUrl) {
+      siteUrl = Noco._this?.config?.envs?.['_noco']?.publicUrl;
     }
 
     return `${siteUrl}${Noco._this?.config?.dashboardPath}`
@@ -86,7 +90,7 @@ export default class Noco {
 
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0009044';
+    process.env.NC_VERSION = '0011043';
 
     this.router = express.Router();
     this.projectRouter = express.Router();
@@ -95,7 +99,7 @@ export default class Noco {
     this.config = NcConfigFactory.make();
 
     /******************* setup : start *******************/
-    this.env = process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
+    this.env = '_noco';//process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
     this.config.workingEnv = this.env;
 
     this.config.type = 'docker';
@@ -152,6 +156,7 @@ export default class Noco {
 
     log('Initializing app');
 
+
     // create tool directory if missing
     mkdirp.sync(this.config.toolDir);
 
@@ -171,6 +176,8 @@ export default class Noco {
     await this.ncMeta.metaInit();
 
     await this.readOrGenJwtSecret();
+
+    await NcUpgrader.upgrade({ncMeta: this.ncMeta})
 
     if (args?.afterMetaMigrationInit) {
       await args.afterMetaMigrationInit();

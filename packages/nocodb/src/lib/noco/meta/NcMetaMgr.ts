@@ -2792,12 +2792,12 @@ export default class NcMetaMgr {
 
   protected getDbClientType(project_id: string, dbAlias: string) {
     const config = this.app?.projectBuilders?.find(pb => pb?.id === project_id)?.config;
-    return config?.envs?.[this.config?.workingEnv || 'dev']?.db?.find(db => db?.meta?.dbAlias === dbAlias)?.client;
+    return config?.envs?.[this.config?.workingEnv || '_noco']?.db?.find(db => db?.meta?.dbAlias === dbAlias)?.client;
   }
 
 
   protected getDbAliasList(project_id: string): string[] {
-    return this.projectConfigs?.[project_id]?.envs?.[this.config?.workingEnv || 'dev']?.db?.map(db => db?.meta?.dbAlias);
+    return this.projectConfigs?.[project_id]?.envs?.[this.config?.workingEnv || '_noco']?.db?.map(db => db?.meta?.dbAlias);
   }
 
 
@@ -3583,7 +3583,7 @@ export default class NcMetaMgr {
       Arch: process.arch,
       Platform: process.platform,
       Docker: isDocker(),
-      Database: config.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]?.client,
+      Database: config.envs?.[process.env.NODE_ENV || '_noco']?.db?.[0]?.client,
       'ProjectOnRootDB': !!config?.prefix,
       'RootDB': this.config?.meta?.db?.client,
       'PackageVersion': packageVersion

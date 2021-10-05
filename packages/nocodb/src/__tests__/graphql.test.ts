@@ -19,13 +19,13 @@ const projectCreateReqBody = {
       "title": "sebulba",
       "version": "0.6",
       "envs": {
-        "dev": {
+        "_noco": {
           "db": [
             dbConfig
           ], "apiClient": {"data": []}
         }
       },
-      "workingEnv": "dev",
+      "workingEnv": "_noco",
       "meta": {
         "version": "0.6",
         "seedsFolder": "seeds",

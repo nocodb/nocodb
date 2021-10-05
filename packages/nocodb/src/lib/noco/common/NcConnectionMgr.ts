@@ -24,7 +24,7 @@ export default class NcConnectionMgr {
 
   public static delete({
                          dbAlias = 'db',
-                         env = 'dev',
+                         env = '_noco',
                          projectId
                        }: {
     dbAlias: string,
@@ -45,7 +45,7 @@ export default class NcConnectionMgr {
 
   public static get({
                       dbAlias = 'db',
-                      env = 'dev',
+                      env = '_noco',
                       config,
                       projectId
                     }: {
@@ -120,7 +120,7 @@ export default class NcConnectionMgr {
   public static getSqlClient({
                                projectId,
                                dbAlias = 'db',
-                               env = 'dev',
+                               env = '_noco',
                                config
                              }: {
     dbAlias: string,

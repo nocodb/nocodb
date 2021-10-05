@@ -3,7 +3,7 @@ const {DOCKER_DB_HOST, DOCKER_DB_PORT} = process.env;
 module.exports = {
   title: "default",
   envs: {
-    dev: {
+    _noco: {
       db: [
         {
           client: "pg",
@@ -40,7 +40,7 @@ module.exports = {
       ]
     }
   },
-  workingEnv: "dev",
+  workingEnv: "_noco",
   meta: {
     version: '0.5',
     seedsFolder: 'seeds',

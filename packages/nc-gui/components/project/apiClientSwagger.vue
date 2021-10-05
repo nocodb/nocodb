@@ -558,7 +558,7 @@
         </splitpanes>
       </pane>
     </splitpanes>
-    <environment v-model="environmentDialog" env="dev" />
+    <environment v-model="environmentDialog" env="_noco" />
 
     <v-dialog v-model="bookmarkApiDialog" max-width="500">
       <v-card>

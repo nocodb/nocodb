@@ -44,7 +44,7 @@ import axios from 'axios'
 export default {
   name: 'ChangeEnv',
   data: () => ({
-    selectedEnv: 'dev',
+    selectedEnv: '_noco',
     progressbar: false
   }),
   computed: {
@@ -64,12 +64,12 @@ export default {
     const unserializedList = this.$store.state.project.unserializedList
     this.selectedEnv = (unserializedList[0] &&
         unserializedList[0].projectJson &&
-        unserializedList[0].projectJson.workingEnv) || 'dev'
+        unserializedList[0].projectJson.workingEnv) || '_noco'
     this.$store.watch((state) => {
       const unserializedList = state.project.unserializedList
       return (unserializedList[0] &&
           unserializedList[0].projectJson &&
-          unserializedList[0].projectJson.workingEnv) || 'dev'
+          unserializedList[0].projectJson.workingEnv) || '_noco'
     }, (value) => { this.selectedEnv = value })
   },
   methods: {

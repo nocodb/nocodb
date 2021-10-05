@@ -49,7 +49,13 @@ export default {
       zh_TW: 'Zh_TW',
       sv: 'Svenska',
       da: 'Dansk',
-      vi: 'Tiếng Việt'
+      vi: 'Tiếng Việt',
+      no: 'Norsk',
+      iw: 'עִברִית',
+      fi: 'Suomalainen',
+      uk: 'Українська',
+      hr: 'Hrvatski',
+      th: 'ไทย'
     }
   }),
   computed: {

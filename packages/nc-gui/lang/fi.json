@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Omat hankkeet",
+    "reload_projects_tooltip": "Päivitä projekteja",
+    "create_new_project_button": {
+      "text": "Uusi projekti",
+      "subtext_1": "Luoda",
+      "subtext_1_tooltip": "Luo uusi projekti",
+      "subtext_2": "Luo liittämällä <br> ulkoiseen tietokantaan",
+      "subtext_2_tooltip": "Tukee MySQL, PostgreSQL, SQL Server & Sqlite"
+    },
+    "search_project": "Hakuprojekti",
+    "import_metadata": "Tuo metatieto",
+    "export_metadata": "Vie Metatieto",
+    "clear_metadata": "Selkeä metatieto",
+    "stop_project": "Pysäytä projekti",
+    "start_project": "Käynnistä projekti",
+    "restart_project": "Käynnistä projekti uudelleen",
+    "delete_project": "Poista projekti",
+    "project_api_type_tooltip_graphql": "Pääsee GraphQL API: n kautta",
+    "project_api_type_tooltip_rest": "Pääsee lepoa varten",
+    "project_empty_message": "Aloita luomalla uusi projekti",
+    "import_button": {
+      "text": "Tuo NocoDB-projekti lataamalla metatiedot zip-tiedosto"
+    },
+    "show_community_star": "Tähti",
+    "show_community_us_on_Github": "Me Githubissa",
+    "show_community_book_a_free_demo": "Varaa ilmainen demo",
+    "show_community_get_your_questions_answered": "Hanki kysymyksesi vastasi",
+    "show_community_join_discord": "Liity discordiin",
+    "show_community_follow_nocodb": "Seuraa NOCODB",
+    "search": {
+      "your_search_found_no_results": "Hakusi {haku} ei löytänyt tuloksia"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Muokkaa projektia",
+        "create": "Luo projekti"
+      },
+      "project_name": "Anna projektin nimi",
+      "project_type": "Access Project kautta",
+      "button": {
+        "save_project": "Tallenna projekti",
+        "update_and_restart": "Päivitä ja käynnistä uudelleen",
+        "cancel": "Peruuttaa",
+        "cancel_tooltip": "Peruuta ja palaa"
+      },
+      "credentials": {
+        "title": "Tietokannan valtakirjat",
+        "db_type": "Tietokantatyyppi",
+        "sqlite_file": "SQLite-tiedosto",
+        "host_address": "Isäntäosoite",
+        "port": "Porttinumero",
+        "username": "Käyttäjätunnus",
+        "password": "Salasana",
+        "db_create_if_not_exists": "Tietokanta: Luo jos ei ole olemassa",
+        "button": {
+          "test_db_conn": "Testitietokantayhteys",
+          "remove_db_from_env": "Poista tietokanta ympäristöstä"
+        },
+        "advanced": {
+          "title": "SSL & Advanced Parameters",
+          "ssl": {
+            "client_key": {
+              "title": "Asiakasnäppäin",
+              "toolip": "Valitse .key-tiedosto"
+            },
+            "client_cert": {
+              "title": "Asiakassuhde",
+              "toolip": "Valitse .cert-tiedosto"
+            },
+            "server_ca": {
+              "title": "Palvelin ca",
+              "toolip": "Valitse CA-tiedosto"
+            },
+            "preferred": "Edullinen",
+            "usage": {
+              "no": "Ei",
+              "preferred": "Edullinen",
+              "required": "Vaaditaan",
+              "requried_ca": "Vaaditaan",
+              "requried_identity": "Vaadittu identiteetti"
+            }
+          },
+          "inflection": {
+            "table_name": "Taivutus - Taulukon nimi",
+            "column_name": "Taivutus - sarakkeen nimi"
+          },
+          "button": {
+            "edit_conn_json": "Muokkaa yhteyttä JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Virheellinen merkki kansioreitillä.",
+        "invalid_db_credentials": "Virheelliset tietokannan tunnistetiedot.",
+        "unable_to_connect_to_db": "Tietokantaan ei voi muodostaa yhteyttä, tarkista tietokantaasi.",
+        "user_doesnt_ve_sufficient_permission": "Käyttäjää ei ole olemassa tai jolla on riittävä lupa luoda kaavio."
+      },
+      "head": {
+        "title": "Luo projekti Nokodb"
+      },
+      "dialog": {
+        "success": "Yhteys onnistui",
+        "failure": "Yhteys epäonnistuminen:"
+      }
+    },
+    "notifications": {
+      "no_new": "Ei uusia ilmoituksia",
+      "clear": "Asia selvä"
+    }
+  },
+  "signin": {
+    "title": "KIRJAUDU SISÄÄN",
+    "enter_your_work_email": "Anna työsi sähköpostiosoite",
+    "enter_your_password": "Syötä salasanasi",
+    "forget_password": "Unohditko salasanasi ?",
+    "dont_ve_an_account": "Eikö sinulla ole tiliä?",
+    "sign_up": "Kirjaudu",
+    "form": {
+      "rules": {
+        "email_is_reqd": "Sähköposti vaaditaan",
+        "email_must_be_valid": "Sähköpostin on oltava voimassa",
+        "passwd_required": "salasana tarvitaan",
+        "passwd_must_be_8_chars": "Salasanan on oltava vähintään 8 merkkiä"
+      }
+    },
+    "head": {
+      "title": "Kirjaudu sisään | Nokodb",
+      "meta": {
+        "hid": "Kirjaudu sisään NOCODB",
+        "name": "Kirjaudu sisään NOCODB",
+        "content": "Kirjaudu sisään NOCODB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Nollaa salasana",
+        "message_1": "Anna sähköpostiosoite, jota käytit, kun olet rekisteröitynyt.",
+        "message_2": "Lähetämme sinulle sähköpostiviestin, jossa on linkki salasanan palauttamiseksi.",
+        "success": "Tarkista sähköpostisi salasanan palauttamiseksi",
+        "button": "LÄHETTÄÄ SÄHKÖPOSTIA"
+      }
+    }
+  },
+  "signup": {
+    "title": "KIRJAUDU",
+    "you_will_be_the_super_admin": "Olet \"super admin\"",
+    "already_ve_an_account": "Onko sinulla jo tili ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "asetukset",
+      "tooltip": "Näkyy vain Luojalle"
+    },
+    "app_store": "Sovelluskauppa",
+    "team_n_auth": {
+      "title": "Team & Auth",
+      "tooltip": "Roolit ja käyttäjien hallinta"
+    },
+    "project_metadata": {
+      "title": "Project Metadata",
+      "tooltip": "Meta Management"
+    },
+    "preview_as": "Esikatselua jksk",
+    "reset_review": "Nollaa esikatselu"
+  },
+  "nav_drawer": {
+    "title": "Näkymät",
+    "virtual_views": {
+      "action": {
+        "copy": "Kopionä näkymä",
+        "rename": "Nimeä näkymä uudelleen",
+        "delete": "Poista näkymä"
+      },
+      "title": "Luo näkymä",
+      "caption": "Näkyy vain Luojalle",
+      "grid": {
+        "title": "Ruudukko",
+        "create": "Lisää verkkokuva"
+      },
+      "gallery": {
+        "title": "Galleria",
+        "create": "Lisää galleria-näkymä"
+      },
+      "calendar": {
+        "title": "Kalenteri",
+        "create": "Lisää kalenteri-näkymä"
+      },
+      "kanban": {
+        "title": "Kanban",
+        "create": "Lisää Kanban View"
+      },
+      "form": {
+        "title": "Lomake",
+        "create": "Lisää lomake"
+      }
+    },
+    "advanced": {
+      "title1": "Jaa näkymä",
+      "views_list": "Näkymät",
+      "copy_api_url": "Kopioi API URL"
+    },
+    "share_view": {
+      "title": "Tämä näkymä on jaettu yksityisen linkin kautta",
+      "body": "Ihmiset, joilla on oma linkki, voivat nähdä vain tässä näkymässä näkyviä soluja",
+      "toggle": {
+        "option1": "Rajoita pääsy salasanalla",
+        "option2": "Pääsy on salasana rajoitettu"
+      },
+      "password": {
+        "caption": "Anna salasana",
+        "button": "Tallenna salasana"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Käyttäjien hallinta",
+      "api": "API Tokensin hallinta",
+      "roles": "Roolit hallinta"
+    },
+    "meta": {
+      "title": "Metatietotoiminta",
+      "export_to_file": {
+        "title": "Vie tiedostoon",
+        "desc": "Vie kaikki metatiedot metapöydistä Meta-hakemistoon."
+      },
+      "import": {
+        "title": "Tuonti",
+        "desc": "Tuo kaikki metatiedot Meta-hakemistosta Meta-pöydille."
+      },
+      "export_to_zip": {
+        "title": "Vie Zip",
+        "desc": "Vie Project Meta Zip-tiedostoon ja ladata."
+      },
+      "import_zip": {
+        "title": "Tuo zip",
+        "desc": "Tuo projekti Meta Zip-tiedosto ja käynnistä uudelleen."
+      },
+      "reset": {
+        "title": "Nollata",
+        "desc": "Tyhjennä kaikki metatiedot metapöydistä."
+      }
+    }
+  }
+}

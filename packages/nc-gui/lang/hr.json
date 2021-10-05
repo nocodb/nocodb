@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Moji projekti",
+    "reload_projects_tooltip": "Osvježi projekti",
+    "create_new_project_button": {
+      "text": "Novi projekt",
+      "subtext_1": "Stvoriti",
+      "subtext_1_tooltip": "Stvoriti novi projekt",
+      "subtext_2": "Stvoriti povezivanjem u vanjskoj bazi podataka",
+      "subtext_2_tooltip": "Podržava MySQL, PostgreSQL, SQL Server & Sqlite"
+    },
+    "search_project": "Projekt pretraživanja",
+    "import_metadata": "Uvoz metapodataka",
+    "export_metadata": "Izvoz metapodataka",
+    "clear_metadata": "Jasne metapodatke",
+    "stop_project": "Zaustaviti projekt",
+    "start_project": "Pokrenuti projekt",
+    "restart_project": "Ponovno pokretanje projekta",
+    "delete_project": "Izbriši projekt",
+    "project_api_type_tooltip_graphql": "Dostupan putem Graphql API-ja",
+    "project_api_type_tooltip_rest": "Dostupan putem API-ja",
+    "project_empty_message": "Započnite stvaranjem novog projekta",
+    "import_button": {
+      "text": "Uvoz NoCodb projekt upload Metapodata zip datoteku"
+    },
+    "show_community_star": "Zvijezda",
+    "show_community_us_on_Github": "nas na Github",
+    "show_community_book_a_free_demo": "Rezervirajte besplatni demo",
+    "show_community_get_your_questions_answered": "Odgovorite na vaša pitanja",
+    "show_community_join_discord": "Pridružite se nesloga",
+    "show_community_follow_nocodb": "Slijedite NoCodb",
+    "search": {
+      "your_search_found_no_results": "Vaša potraga za {Search} nije pronašla rezultate"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Projekt uređivanja",
+        "create": "Stvoriti projekt"
+      },
+      "project_name": "Unesite naziv projekta",
+      "project_type": "Projekt pristupa putem",
+      "button": {
+        "save_project": "Spremi projekt",
+        "update_and_restart": "Ažuriranje i ponovno pokretanje",
+        "cancel": "Otkazati",
+        "cancel_tooltip": "Otkazati i vratiti"
+      },
+      "credentials": {
+        "title": "Vjerodajnice baze podataka",
+        "db_type": "Vrsta baze podataka",
+        "sqlite_file": "SQLite datoteka",
+        "host_address": "Adresa domaćina",
+        "port": "Broj porta",
+        "username": "Korisničko ime",
+        "password": "Lozinka",
+        "db_create_if_not_exists": "Baza podataka: stvoriti ako ne postoji",
+        "button": {
+          "test_db_conn": "Povezivanje baze podataka test",
+          "remove_db_from_env": "Uklonite bazu podataka iz okruženja"
+        },
+        "advanced": {
+          "title": "SSL i napredni parametri",
+          "ssl": {
+            "client_key": {
+              "title": "Ključ klijenta",
+              "toolip": "Odaberite .Kekey datoteku"
+            },
+            "client_cert": {
+              "title": "Klijent cert",
+              "toolip": "Odaberite .cert datoteku"
+            },
+            "server_ca": {
+              "title": "Poslužitelj ca",
+              "toolip": "Odaberite CA datoteku"
+            },
+            "preferred": "Preferiran",
+            "usage": {
+              "no": "Ne",
+              "preferred": "Preferiran",
+              "required": "Potreban",
+              "requried_ca": "Obavezno-ca",
+              "requried_identity": "Obavezan identitet"
+            }
+          },
+          "inflection": {
+            "table_name": "Inflegija - Ime tablice",
+            "column_name": "Inflegija - Naziv stupaca"
+          },
+          "button": {
+            "edit_conn_json": "Uredi priključak JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Nevažeći znak u mapi.",
+        "invalid_db_credentials": "Nevažeće vjerodajnice baze podataka.",
+        "unable_to_connect_to_db": "Nije moguće povezati se s bazom podataka, provjerite je li vaša baza podataka gore.",
+        "user_doesnt_ve_sufficient_permission": "Korisnik ne postoji ili ima dovoljno dopuštenje za stvaranje sheme."
+      },
+      "head": {
+        "title": "Stvoriti projekt | Nocodb"
+      },
+      "dialog": {
+        "success": "Veza je bila uspješna",
+        "failure": "Neuspjeh veze:"
+      }
+    },
+    "notifications": {
+      "no_new": "Nema novih obavijesti",
+      "clear": "Čisto"
+    }
+  },
+  "signin": {
+    "title": "PRIJAVITI SE",
+    "enter_your_work_email": "Unesite svoju radnu e-poštu",
+    "enter_your_password": "Unesite svoju lozinku",
+    "forget_password": "Zaboravili ste zaporku ?",
+    "dont_ve_an_account": "Nemate račun?",
+    "sign_up": "Prijaviti se",
+    "form": {
+      "rules": {
+        "email_is_reqd": "Potrebna je e-pošta",
+        "email_must_be_valid": "E-pošta mora biti valjana",
+        "passwd_required": "potrebna je lozinka",
+        "passwd_must_be_8_chars": "Vi lozinka mora biti najmanje 8 znakova"
+      }
+    },
+    "head": {
+      "title": "Prijavite se | Nocodb",
+      "meta": {
+        "hid": "Prijavite se u Nocodb",
+        "name": "Prijavite se u Nocodb",
+        "content": "Prijavite se u Nocodb"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Vraćanje izvorne lozinke",
+        "message_1": "Navedite adresu e-pošte koju ste koristili kada ste se prijavili.",
+        "message_2": "Poslat ćemo vam poruku e-pošte s linkom za resetiranje zaporke.",
+        "success": "Provjerite svoju e-poštu za poništavanje zaporke",
+        "button": "POŠALJI E-MAIL"
+      }
+    }
+  },
+  "signup": {
+    "title": "Prijaviti se",
+    "you_will_be_the_super_admin": "Bit ćete 'Super admin'",
+    "already_ve_an_account": "Već imate račun ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Postavke",
+      "tooltip": "Samo vidljivo kreatoru"
+    },
+    "app_store": "Trgovina aplikacijama",
+    "team_n_auth": {
+      "title": "Tima",
+      "tooltip": "Upravce i korisnici"
+    },
+    "project_metadata": {
+      "title": "Projektni metapodaci",
+      "tooltip": "Meta upravljanje"
+    },
+    "preview_as": "Pregled kao",
+    "reset_review": "Resetirajte pregled"
+  },
+  "nav_drawer": {
+    "title": "Pogleda",
+    "virtual_views": {
+      "action": {
+        "copy": "Prikaz kopiranja",
+        "rename": "Preimenovati pogled",
+        "delete": "Brisanje prikaza"
+      },
+      "title": "Stvorite pogled",
+      "caption": "Samo vidljivo kreatoru",
+      "grid": {
+        "title": "Grid",
+        "create": "Dodajte pogled na mrežu"
+      },
+      "gallery": {
+        "title": "Galerija",
+        "create": "Dodajte pogled na galeriju"
+      },
+      "calendar": {
+        "title": "Kalendar",
+        "create": "Dodajte prikaz kalendara"
+      },
+      "kanban": {
+        "title": "Kanban",
+        "create": "Dodajte Kanban pogled"
+      },
+      "form": {
+        "title": "Oblik",
+        "create": "Dodajte prikaz obrasca"
+      }
+    },
+    "advanced": {
+      "title1": "Dionički prikaz",
+      "views_list": "Popis pregleda",
+      "copy_api_url": "Kopirajte API URL"
+    },
+    "share_view": {
+      "title": "Ovaj prikaz se dijeli putem privatne veze",
+      "body": "Osobe s privatnom vezom mogu vidjeti samo ćelije vidljive u ovom pogledu",
+      "toggle": {
+        "option1": "Ograničite pristup s lozinkom",
+        "option2": "Pristup je ograničen lozinkom"
+      },
+      "password": {
+        "caption": "Unesite zaporku",
+        "button": "Spremi lozinku"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Upravljanje korisnicima",
+      "api": "Upravljanje API tokena",
+      "roles": "Upravljanje ulogama"
+    },
+    "meta": {
+      "title": "Operacije metapodataka",
+      "export_to_file": {
+        "title": "Izvoz u datoteku",
+        "desc": "Izvezite sve metapodatke iz meta tablica u Meta direktorij."
+      },
+      "import": {
+        "title": "Uvoz",
+        "desc": "Uvezite sve metapodatke iz Meta katalog u Meta tablice."
+      },
+      "export_to_zip": {
+        "title": "Izvoz zip",
+        "desc": "Izvoz Project Meta na zip datoteku i preuzimanje."
+      },
+      "import_zip": {
+        "title": "Uvoz zip",
+        "desc": "Uvoz Project Meta Zip datoteka i ponovno pokrenite."
+      },
+      "reset": {
+        "title": "Resetirati",
+        "desc": "Obrišite sve metapodatke iz meta stolova."
+      }
+    }
+  }
+}

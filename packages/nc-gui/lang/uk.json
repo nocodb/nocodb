@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Мої проекти",
+    "reload_projects_tooltip": "Оновити проекти",
+    "create_new_project_button": {
+      "text": "Новий проект",
+      "subtext_1": "Створювати",
+      "subtext_1_tooltip": "Створіть новий проект",
+      "subtext_2": "Створити шляхом підключення - до зовнішньої бази даних",
+      "subtext_2_tooltip": "Підтримує MySQL, PostgreSQL, SQL Server & Sqlite"
+    },
+    "search_project": "Пошуковий проект",
+    "import_metadata": "Імпорт метаданих",
+    "export_metadata": "Експортні метадані",
+    "clear_metadata": "Очистити метадані",
+    "stop_project": "Зупинити проект",
+    "start_project": "Запуск проекту",
+    "restart_project": "Restart Project",
+    "delete_project": "Видалити проект",
+    "project_api_type_tooltip_graphql": "Доступно через Apis GraphQL",
+    "project_api_type_tooltip_rest": "Доступні за допомогою Apis",
+    "project_empty_message": "Початок роботи, створюючи новий проект",
+    "import_button": {
+      "text": "Імпортуйте проект NOCODB за допомогою завантаження ZIP-файлу METADATA"
+    },
+    "show_community_star": "Зірка",
+    "show_community_us_on_Github": "нас на github",
+    "show_community_book_a_free_demo": "Забронюйте безкоштовну демонстрацію",
+    "show_community_get_your_questions_answered": "Отримайте відповіді на запитання",
+    "show_community_join_discord": "Приєднуватися",
+    "show_community_follow_nocodb": "Слідувати nocodb",
+    "search": {
+      "your_search_found_no_results": "Ваш пошук {пошук} не знайдено жодних результатів"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Редагувати проект",
+        "create": "Створити проект"
+      },
+      "project_name": "Введіть назву проекту",
+      "project_type": "Доступ до проекту через",
+      "button": {
+        "save_project": "Зберегти проект",
+        "update_and_restart": "Оновлення та перезавантаження",
+        "cancel": "Скасувати",
+        "cancel_tooltip": "Скасувати і повернутися"
+      },
+      "credentials": {
+        "title": "Дані бази даних",
+        "db_type": "Тип бази даних",
+        "sqlite_file": "Файл sqlite",
+        "host_address": "Адреса хоста",
+        "port": "Номер порту",
+        "username": "Ім'я користувача",
+        "password": "Пароль",
+        "db_create_if_not_exists": "База даних: створити, якщо не існує",
+        "button": {
+          "test_db_conn": "Тестова база даних",
+          "remove_db_from_env": "Видалити базу даних з навколишнього середовища"
+        },
+        "advanced": {
+          "title": "SSL і розширені параметри",
+          "ssl": {
+            "client_key": {
+              "title": "Клієнтський ключ",
+              "toolip": "Виберіть файл .Key"
+            },
+            "client_cert": {
+              "title": "Клієнтський сертифікат",
+              "toolip": "Виберіть файл .cert"
+            },
+            "server_ca": {
+              "title": "Сервер",
+              "toolip": "Виберіть файл CA"
+            },
+            "preferred": "Переважний",
+            "usage": {
+              "no": "Немає",
+              "preferred": "Переважний",
+              "required": "вимагається",
+              "requried_ca": "Необхідний",
+              "requried_identity": "Обов'язкова ідентичність"
+            }
+          },
+          "inflection": {
+            "table_name": "Перехрестя - Назва таблиці",
+            "column_name": "Перехрестя - Назва стовпців"
+          },
+          "button": {
+            "edit_conn_json": "Редагувати підключення JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Недійсний символ у папці.",
+        "invalid_db_credentials": "Неправильні облікові дані бази даних.",
+        "unable_to_connect_to_db": "Неможливо підключитися до бази даних, перевірте свою базу даних.",
+        "user_doesnt_ve_sufficient_permission": "Користувач не існує або має достатній дозвіл на створення схеми."
+      },
+      "head": {
+        "title": "Створити проект | Нокодб"
+      },
+      "dialog": {
+        "success": "З'єднання було успішним",
+        "failure": "Невдача з'єднання:"
+      }
+    },
+    "notifications": {
+      "no_new": "Немає нових повідомлень",
+      "clear": "Ясний"
+    }
+  },
+  "signin": {
+    "title": "УВІЙТИ",
+    "enter_your_work_email": "Введіть свою роботу електронної пошти",
+    "enter_your_password": "Введіть ваш пароль",
+    "forget_password": "Забули свій пароль ?",
+    "dont_ve_an_account": "Не маєте облікового запису?",
+    "sign_up": "Зареєструватися",
+    "form": {
+      "rules": {
+        "email_is_reqd": "Потрібна електронна пошта",
+        "email_must_be_valid": "Електронна пошта повинна бути дійсним",
+        "passwd_required": "Необхідний пароль",
+        "passwd_must_be_8_chars": "Пароль повинен бути принаймні 8 символів"
+      }
+    },
+    "head": {
+      "title": "Вхід | Нокодб",
+      "meta": {
+        "hid": "Увійдіть до Nocodb",
+        "name": "Увійдіть до Nocodb",
+        "content": "Увійдіть до Nocodb"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Скинути пароль",
+        "message_1": "Вкажіть адресу електронної пошти, яку ви використовували, коли ви зареєструвалися.",
+        "message_2": "Ми надішлемо вам електронний лист із посиланням, щоб скинути пароль.",
+        "success": "Перевірте свою електронну пошту, щоб скинути пароль",
+        "button": "ВІДПРАВИТИ ЛИСТ"
+      }
+    }
+  },
+  "signup": {
+    "title": "Зареєструватися",
+    "you_will_be_the_super_admin": "Ви будете \"супер адміністратором\"",
+    "already_ve_an_account": "Вже є аккаунт ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Налаштування",
+      "tooltip": "Тільки видимий Творець"
+    },
+    "app_store": "App Store",
+    "team_n_auth": {
+      "title": "Команда та автор",
+      "tooltip": "Ролі та управління користувачами"
+    },
+    "project_metadata": {
+      "title": "Метадані проекту",
+      "tooltip": "Метаерство"
+    },
+    "preview_as": "Попередній перегляд як",
+    "reset_review": "Скидання попереднього перегляду"
+  },
+  "nav_drawer": {
+    "title": "Вигляд",
+    "virtual_views": {
+      "action": {
+        "copy": "Перегляд копіювання",
+        "rename": "Перейменування перегляду",
+        "delete": "Видалити вигляд"
+      },
+      "title": "Створіть вигляд",
+      "caption": "Тільки видимий Творець",
+      "grid": {
+        "title": "Сітка",
+        "create": "Додайте вигляд сітки"
+      },
+      "gallery": {
+        "title": "Галерея",
+        "create": "Додайте вигляд галереї"
+      },
+      "calendar": {
+        "title": "Календар",
+        "create": "Додайте вигляд календаря"
+      },
+      "kanban": {
+        "title": "Канбан",
+        "create": "Додати Kanban View"
+      },
+      "form": {
+        "title": "Форма",
+        "create": "Додайте вид форми"
+      }
+    },
+    "advanced": {
+      "title1": "Вид",
+      "views_list": "Перегляди переглядів",
+      "copy_api_url": "Копіювати URL-адресу API"
+    },
+    "share_view": {
+      "title": "Цей вигляд поділяється за допомогою приватного посилання",
+      "body": "Люди з приватним посиланням можуть бачити лише клітини, видимі на цій точці",
+      "toggle": {
+        "option1": "Обмежити доступ за допомогою пароля",
+        "option2": "Доступ - це обмежений пароль"
+      },
+      "password": {
+        "caption": "Введіть пароль",
+        "button": "Зберегти пароль"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Управління користувачами",
+      "api": "Управління токенами API",
+      "roles": "Ролі управління"
+    },
+    "meta": {
+      "title": "Операції метаданих",
+      "export_to_file": {
+        "title": "Експортувати до файлу",
+        "desc": "Експортуйте всі метадані з мета-таблиць до каталогу Meta."
+      },
+      "import": {
+        "title": "Імпортувати",
+        "desc": "Імпортуйте всі метадані з мета-каталогу до металів."
+      },
+      "export_to_zip": {
+        "title": "Експорт Zip",
+        "desc": "Експортувати проект Meta до ZIP-файлу та завантаження."
+      },
+      "import_zip": {
+        "title": "Імпорт ZIP",
+        "desc": "Імпортувати проект Meta Zip-файл та перезапустіть."
+      },
+      "reset": {
+        "title": "Скидання",
+        "desc": "Очистити всі метадані з мета-таблиць."
+      }
+    }
+  }
+}

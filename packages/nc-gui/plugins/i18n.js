@@ -33,7 +33,13 @@ export default ({ app, store }) => {
       ru: require('~/lang/ru.json'),
       sv: require('~/lang/sv.json'),
       da: require('~/lang/da.json'),
-      vi: require('~/lang/vi.json')
+      vi: require('~/lang/vi.json'),
+      no: require('~/lang/no.json'),
+      iw: require('~/lang/iw.json'),
+      fi: require('~/lang/fi.json'),
+      uk: require('~/lang/uk.json'),
+      hr: require('~/lang/hr.json'),
+      th: require('~/lang/th.json')
     }
   })
 

@@ -40,7 +40,9 @@
           slug="nocodb/nocodb"
           show-count
           class="mr-3 align-self-center"
-        />
+        >
+          {{ ghStarText }}
+        </gh-btns-star>
         <a class="caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
@@ -586,6 +588,7 @@ export default {
     xTerm
   },
   data: () => ({
+    ghStarText: 'Star',
     swaggerOrGraphiqlUrl: null,
     showScreensaver: false,
     roleIcon: {
@@ -630,8 +633,8 @@ export default {
       brandName: 'plugins/brandName',
       projects: 'project/list',
       tabs: 'tabs/list',
-      sqlMgr: 'sqlMgr/sqlMgr',
-      GetPendingStatus: 'notification/GetPendingStatus',
+      sqldMgr: 'sqlMgr/sqlMgr',
+      GetPeningStatus: 'notification/GetPendingStatus',
       isAuthenticated: 'users/GtrIsAuthenticated',
       isAdmin: 'users/GtrIsAdmin',
       isDocker: 'project/GtrIsDocker',
@@ -674,6 +677,7 @@ export default {
   mounted() {
     this.selectedEnv = this.$store.getters['project/GtrActiveEnv']
     this.loadProjectInfo()
+    setInterval(() => this.ghStarText = this.ghStarText === 'Star' ? 'Fork' : 'Star', 60000)
   },
   // errorCaptured(err, vm, info) {
   //   console.log("errorCaptured", err, vm, info);

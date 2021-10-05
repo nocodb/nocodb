@@ -18,8 +18,6 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB ke dalam lembar-spreads
 
 
 
-
-
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> • 
@@ -83,41 +81,38 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 
 # Screenshots
 
-![2](https://user-images.githubusercontent.com/5435402/133759229-4275b934-873b-4a9b-9f23-96470fec9775.png)
+![1](https://user-images.githubusercontent.com/86527202/136074228-f52e181b-e65d-44ce-afca-0447eb506e90.png)
 <br>
 
-![1](https://user-images.githubusercontent.com/5435402/133759218-f8b0bffc-707f-451c-82f2-b5ba2573d6a6.png)
+![2](https://user-images.githubusercontent.com/86527202/136074239-a180d0c9-129a-4819-974f-e18a8a2260fe.png)
 <br>
 
-![7](https://user-images.githubusercontent.com/5435402/133759245-a536165b-55f1-46a8-a74e-1964e7e481c6.png)
+![5](https://user-images.githubusercontent.com/86527202/136074246-7c01d499-0086-42c6-a9b1-2ce474ece54e.png)
 <br>
 
-![5](https://user-images.githubusercontent.com/5435402/133759240-dd3f2509-aab7-4bd1-9a58-4c2dff08f2f2.png)
+![6](https://user-images.githubusercontent.com/86527202/136074251-7da52d76-7e18-41bb-bb29-e678306c2a45.png)
 <br>
 
-![6](https://user-images.githubusercontent.com/5435402/133759242-2311a127-17c8-406c-b865-1a2e9c8ee398.png)
+![7](https://user-images.githubusercontent.com/86527202/136074254-6e4a7d39-0b34-4246-99c4-3eff0ae26ec0.png)
 <br>
 
-![3](https://user-images.githubusercontent.com/5435402/133759234-9b539029-be36-4a35-b55a-bee3ebd0e010.png)
+![8](https://user-images.githubusercontent.com/86527202/136074258-7fa78660-b42e-4be4-95d8-faf6576ce5f1.png)
 <br>
 
-![4](https://user-images.githubusercontent.com/5435402/133759236-dc182129-3768-4e23-874e-98f5f32e962c.png)
+![9](https://user-images.githubusercontent.com/86527202/136074261-aede8e3d-e30c-4d6d-ac07-39b90baf2f5a.png)
 <br>
 
-![11](https://user-images.githubusercontent.com/5435402/133759253-bb9bc729-ee28-4f86-ab95-7d112c0815f2.png)
+![9a](https://user-images.githubusercontent.com/86527202/136074269-c6db140f-156c-49f5-a6a3-82dcc48b714b.png)
 <br>
 
-![10](https://user-images.githubusercontent.com/5435402/133759250-ebd75ecf-31db-4a17-b2d7-2c43af78a54e.png)
+![9b](https://user-images.githubusercontent.com/86527202/136074272-4b212227-f3d6-4714-aea0-630e9ec482a9.png)
 <br>
 
-![8](https://user-images.githubusercontent.com/5435402/133759248-3a7141e0-4b7d-4079-a5f9-cf8611d00bc5.png)
+![10](https://user-images.githubusercontent.com/86527202/136074279-a51373f3-88e8-417d-b641-a49949feabae.png)
 <br>
 
-![9](https://user-images.githubusercontent.com/5435402/133759249-8c1a85c2-a55c-48f6-bd58-aa6b4195cce7.png)
-
-
-
-
+![11](https://user-images.githubusercontent.com/86527202/136074285-b5d1dc5c-fac3-43af-b9fc-1a5d1d41d071.png)
+<br>
 
 
 

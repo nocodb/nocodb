@@ -63,7 +63,7 @@ npm start
 
 ### GUI
 
-Zugriff auf dashardboard mit. : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 
 # Tritt unserer Gemeinschaft bei
@@ -117,11 +117,11 @@ Zugriff auf dashardboard mit. : [http://localhost:8080/dashboard](http://localho
 ### Rich-Tabellenschnittstelle
 - ⚡ Suchen, sortieren, filtern, Spalten mit Uber-Leichtigkeit ausblenden
 - ⚡ Ansichten erstellen: Gitter, Galerie, Kanban, Gantt, Form
-- ⚡ Teilen Ansichten: Öffentliche und Passwort geschützt
+- ⚡ Teilen von Ansichten: Öffentliche und Passwort geschützt
 - ⚡ Persönliche und gesperrte Ansichten
-- ⚡ Laden Sie Bilder in Zellen hoch (arbeitet mit S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backraze) !!
+- ⚡ Laden Sie Bilder in Zellen hoch (funktioniert mit S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backraze) !!
 - ⚡ Rollen: Besitzer, Ersteller, Herausgeber, Kommentator, Viewer, Kommentator, benutzerdefinierte Rollen.
-- ⚡ Zugriffskontrolle: Feinkörnig Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
+- ⚡ Zugriffskontrolle: Granulare Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
 
 ### App Store für Workflow-Automationen:
 - ⚡ Chat: Microsoft-Teams, Slack, Discord, Materie
@@ -138,7 +138,7 @@ Zugriff auf dashardboard mit. : [http://localhost:8080/dashboard](http://localho
 
 
 # Produktionseinrichtung 
-NOCODB erfordert eine Datenbank zum Speichern von Metadaten von Tabellenkalkulationen und externen Datenbanken. Und Verbindungsparams für diese Datenbank können in der Umgebungsvariablen der NC_DB angegeben werden.
+NOCODB erfordert eine Datenbank zum Speichern von Metadaten, Tabellenkalkulationen und externen Datenbanken. Verbindungsparameter für diese Datenbank können in der Umgebungsvariablen der NC_DB angegeben werden.
 
 
 ## Docker 
@@ -180,9 +180,9 @@ docker-compose up
 | Variable                | Mandatory | Comments                                                                         | If absent                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
 | NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
+| DATABASE_URL            | No        | JDBC URL Format. Kann statt NC_DB genutzt werden. Wird im 1-Click Heroku deployment genutzt.|   |
 | DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
+| NC_PUBLIC_URL           | Yes       | Wird für Einladungen per Mail genutzt                   | Best guess from http request params        |
 | NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
 | NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
@@ -236,8 +236,8 @@ npm run cypress:open
 - Ignorieren Sie das Hinzufügen von Überschriften für .json oder .md oder .yml   
 
 # 🎯 Warum bauen wir das auf?
-Die meisten Internet-Unternehmen rüsten sich mit einer Tabelle oder einer Datenbank aus, um ihre Geschäftsanforderungen zu lösen. Die Tabellenkalkulationen werden von einer Milliarde + Menschen mit einem jeden Tag kollaborativ verwendet. Wir arbeiten jedoch mit ähnlichen Geschwindigkeiten in Datenbanken, die in Bezug auf das Berechnen viel stärkere Werkzeuge sind. Versuche, dies mit SaAs-Angeboten zu lösen, bedeutete schreckliche Zugangskontrollen, Anbieter-Lockin, Daten-Lockin, abrupte Preisänderungen und vor allem eine Glasdecke, die in Zukunft möglich ist.
+Die meisten Internet-Unternehmen rüsten sich mit einer Tabelle oder einer Datenbank aus, um ihre Geschäftsanforderungen zu lösen. Die Tabellenkalkulationen werden von einer Milliarde + Menschen mit einem jeden Tag kollaborativ verwendet. Wir arbeiten jedoch mit ähnlichen Geschwindigkeiten in Datenbanken, die in Bezug auf das Berechnen viel stärkere Werkzeuge sind. Versuche, dies mit SaaS-Angeboten zu lösen, bedeutete schreckliche Zugangskontrollen, Anbieter-Lockin, Daten-Lockin, abrupte Preisänderungen und vor allem eine Glaskugel, was in Zukunft möglich ist.
 
 # ❤ Unsere Aufgabe :
-Unsere Mission ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken bereitzustellen, die für jedes einzelne Internetgeschäft der Welt offen ist. Dies würde nicht nur den Zugang zu einem leistungsstarken Computing-Tool demokratisieren, sondern auch eine Milliarde + Menschen hervorbringen, die im Internet radikale Bastel- und Baufähigkeiten haben werden. 
+Unsere Mission ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken bereitzustellen, die für jedes einzelne Internetgeschäft der Welt nutzbar ist. Dies würde nicht nur den Zugang zu einem leistungsstarken Computing-Tool demokratisieren, sondern auch eine Milliarde + Menschen hervorbringen, die im Internet radikale Bastel- und Baufähigkeiten haben werden. 
 

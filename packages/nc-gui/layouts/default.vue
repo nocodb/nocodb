@@ -97,7 +97,7 @@
       <v-spacer />
 
       <v-toolbar-items class="hidden-sm-and-down">
-        <release-info class="mr-2 py-0" />
+        <release-info />
 
         <template v-if="isDashboard">
           <div>
@@ -320,7 +320,7 @@
 
                               </v-list-item-title>
                             </v-list-item>-->
-              <v-list-item  v-ge="['Sign Out','']" dense>
+              <v-list-item v-ge="['Sign Out','']" dense>
                 <v-list-item-title>
                   <v-icon small>
                     mdi-at
@@ -328,14 +328,14 @@
                 </v-list-item-title>
               </v-list-item>
 
-              <v-divider></v-divider>
+              <v-divider />
 
-              <v-list-item v-if="isDashboard"
+              <v-list-item
+                v-if="isDashboard"
                 v-clipboard="$store.state.users.token"
                 dense
                 @click.stop="$toast.success('Auth token copied to clipboard').goAway(3000)"
               >
-
                 <v-list-item-title>
                   <v-icon key="terminal-dash" small>
                     mdi-content-copy
@@ -368,7 +368,7 @@
                     {{ isGql ? 'GraphQL APIs' : 'Swagger APIs Doc' }}</span>
                 </v-list-item-title>
               </v-list-item>
-              <v-divider></v-divider>
+              <v-divider />
               <v-list-item v-if="isDashboard" v-ge="['Sign Out','']" dense @click="copyProjectInfo">
                 <v-list-item-title>
                   <v-icon small>
@@ -377,7 +377,7 @@
                 </v-list-item-title>
               </v-list-item>
 
-              <v-list-item dense @click.stop="settingsTabAdd" v-if="isDashboard">
+              <v-list-item v-if="isDashboard" dense @click.stop="settingsTabAdd">
                 <v-list-item-title>
                   <v-icon key="terminal-dash" small>
                     mdi-palette
@@ -386,7 +386,7 @@
                 </v-list-item-title>
               </v-list-item>
 
-              <v-divider v-if="isDashboard"></v-divider>
+              <v-divider v-if="isDashboard" />
 
               <v-list-item v-ge="['Sign Out','']" dense @click="MtdSignOut">
                 <v-list-item-title>
@@ -563,13 +563,13 @@
 import ReleaseInfo from '@/components/releaseInfo'
 import { mapGetters, mapActions, mapMutations } from 'vuex'
 import 'splitpanes/dist/splitpanes.css'
-import { copyTextToClipboard } from '@/helpers/xutils'
 import ChangeEnv from '../components/changeEnv'
 import XBtn from '../components/global/xBtn'
 import dlgUnexpectedError from '../components/utils/dlgUnexpectedError'
 import notification from '../components/notification.vue'
 import settings from '../components/settings'
 import xTerm from '../components/xTerm'
+import { copyTextToClipboard } from '@/helpers/xutils'
 import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
 

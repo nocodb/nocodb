@@ -1,23 +1,43 @@
 <template>
-  <transition name="release">
-    <v-alert
-      v-if="releaseAlert"
-      class="mb-0"
-      border="left"
-      colored-border
-      outlined
-      type="info"
-      :icon="false"
-      dense
-    >
-      <a href="https://github.com/nocodb/nocodb/releases" target="_blank" class="white--text text-decoration-none"><span class="caption">New version is available (<strong>{{
-        releaseVersion
-      }}</strong>)</span></a>
-      <x-icon x-small :color="['grey lighten-2']" btnclass="mr-n2" @click="releaseAlert =false">
-        mdi-close
-      </x-icon>
-    </v-alert>
-  </transition>
+  <v-menu bottom offset-y>
+    <template #activator="{on}">
+      <transition name="release">
+        <v-btn
+          v-if="releaseAlert"
+          text
+          small
+          class="mb-0 mr-2 py-0 "
+          v-on="on"
+        >
+          Upgrade available
+          <v-icon small>
+            mdi-menu-down
+          </v-icon>
+        </v-btn>
+      </transition>
+    </template>
+    <v-list dense>
+      <v-list-item dense href="https://github.com/nocodb/nocodb/releases" target="_blank">
+        <v-icon small class="mr-2">
+          mdi-script-text-outline
+        </v-icon>
+        <span class="caption">{{ releaseVersion }} Release notes</span>
+      </v-list-item>
+      <v-list-item dense href="https://docs.nocodb.com/getting-started/upgrading" target="_blank">
+        <v-icon small class="mr-2">
+          mdi-rocket-launch-outline
+        </v-icon>
+        <span class="caption">How to upgrade ?</span>
+      </v-list-item>
+      <v-list-item @click="releaseAlert = false">
+        <v-icon small class="mr-2">
+          mdi-close
+        </v-icon>
+
+        <span class="caption">Hide menu</span>
+      </v-list-item>
+    </v-list>
+  </v-menu>
 </template>
 
 <script>

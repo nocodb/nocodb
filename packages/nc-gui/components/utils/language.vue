@@ -23,6 +23,10 @@
             </v-list-item-subtitle>
           </v-list-item>
         </v-list-item-group>
+        <v-divider />
+        <v-list-item>
+          <a href="https://github.com/nocodb/nocodb/tree/master/packages/nc-gui/lang" target="_blank" class="caption">Help translate</a>
+        </v-list-item>
       </v-list>
     </v-menu>
   </div>

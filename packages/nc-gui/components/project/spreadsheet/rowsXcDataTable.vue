@@ -74,7 +74,14 @@
         </v-tooltip>
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
 
-        <x-btn tooltip="Reload view data" outlined small text @click="reload">
+        <x-btn
+        	tooltip="Reload view data"
+        	outlined
+        	small
+        	text
+        	btn.class="nc-table-reload-btn"
+        	@click="reload"
+        >
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
           </v-icon>
@@ -96,6 +103,7 @@
         <x-btn
           small
           text
+          btn.class="nc-save-new-row-btn"
           outlined
           tooltip="Save new rows"
           :disabled="!edited || isLocked"
@@ -184,7 +192,7 @@
         outlined
         small
         text
-        :btn-class="{ 'primary lighten-5' : !toggleDrawer}"
+        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer' : !toggleDrawer}"
         @click="toggleDrawer = !toggleDrawer"
       >
         <v-icon

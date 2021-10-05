@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Những dự án của tôi",
+    "reload_projects_tooltip": "Làm mới các dự án",
+    "create_new_project_button": {
+      "text": "Dự án mới",
+      "subtext_1": "Tạo ra",
+      "subtext_1_tooltip": "Tạo một dự án mới",
+      "subtext_2": "Tạo bằng cách kết nối <br> vào cơ sở dữ liệu bên ngoài",
+      "subtext_2_tooltip": "Hỗ trợ MySQL, PostgreSQL, SQL Server & SQLite"
+    },
+    "search_project": "Dự án tìm kiếm",
+    "import_metadata": "Nhập siêu dữ liệu",
+    "export_metadata": "XUẤT KHẨU METADATA.",
+    "clear_metadata": "Siêu dữ liệu rõ ràng",
+    "stop_project": "Dừng dự án",
+    "start_project": "Dự án bắt đầu",
+    "restart_project": "Dự án khởi động lại",
+    "delete_project": "Xóa dự án",
+    "project_api_type_tooltip_graphql": "Có thể truy cập thông qua API GRAPHQL",
+    "project_api_type_tooltip_rest": "Có thể truy cập thông qua API REST",
+    "project_empty_message": "Bắt đầu bằng cách tạo một dự án mới",
+    "import_button": {
+      "text": "Nhập dự án NOCODB bằng cách tải lên tập tin zip siêu dữ liệu"
+    },
+    "show_community_star": "Ngôi sao",
+    "show_community_us_on_Github": "chúng tôi trên GitHub.",
+    "show_community_book_a_free_demo": "Đặt một bản demo miễn phí",
+    "show_community_get_your_questions_answered": "Nhận câu hỏi của bạn được trả lời",
+    "show_community_join_discord": "Tham gia thông minh",
+    "show_community_follow_nocodb": "Theo dõi NOCODB.",
+    "search": {
+      "your_search_found_no_results": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Chỉnh sửa dự án",
+        "create": "Tạo dự án"
+      },
+      "project_name": "Nhập tên dự án.",
+      "project_type": "Dự án truy cập thông qua",
+      "button": {
+        "save_project": "Lưu dự án",
+        "update_and_restart": "Cập nhật & khởi động lại",
+        "cancel": "Hủy bỏ",
+        "cancel_tooltip": "Hủy bỏ và trả lại"
+      },
+      "credentials": {
+        "title": "Thông tin cơ sở dữ liệu",
+        "db_type": "Loại cơ sở dữ liệu",
+        "sqlite_file": "Tập tin sqlite.",
+        "host_address": "Địa chỉ máy chủ",
+        "port": "Cổng số",
+        "username": "tên tài khoản",
+        "password": "Mật khẩu",
+        "db_create_if_not_exists": "Cơ sở dữ liệu: Tạo nếu không tồn tại",
+        "button": {
+          "test_db_conn": "Kiểm tra cơ sở dữ liệu kết nối.",
+          "remove_db_from_env": "Xóa cơ sở dữ liệu khỏi môi trường"
+        },
+        "advanced": {
+          "title": "SSL & Tham số nâng cao",
+          "ssl": {
+            "client_key": {
+              "title": "Khóa khách",
+              "toolip": "Chọn tệp .key."
+            },
+            "client_cert": {
+              "title": "Chứng chỉ khách hàng.",
+              "toolip": "Chọn tệp .cert"
+            },
+            "server_ca": {
+              "title": "Máy chủ ca.",
+              "toolip": "Chọn CA Tệp"
+            },
+            "preferred": "Ưu tiên",
+            "usage": {
+              "no": "Không",
+              "preferred": "Ưu tiên",
+              "required": "Yêu cầu",
+              "requried_ca": "Bắt buộc-ca.",
+              "requried_identity": "Yêu cầu-Nhận dạng."
+            }
+          },
+          "inflection": {
+            "table_name": "Thay đổi - Tên bảng",
+            "column_name": "Thay đổi - Tên cột"
+          },
+          "button": {
+            "edit_conn_json": "Chỉnh sửa kết nối JSON."
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Ký tự không hợp lệ trong đường dẫn thư mục.",
+        "invalid_db_credentials": "Thông tin cơ sở dữ liệu không hợp lệ.",
+        "unable_to_connect_to_db": "Không thể kết nối với cơ sở dữ liệu, vui lòng kiểm tra cơ sở dữ liệu của bạn là lên.",
+        "user_doesnt_ve_sufficient_permission": "Người dùng không tồn tại hoặc có đủ quyền để tạo lược đồ."
+      },
+      "head": {
+        "title": "Tạo dự án |. NOCODB."
+      },
+      "dialog": {
+        "success": "Kết nối đã thành công",
+        "failure": "Kết nối thất bại:"
+      }
+    },
+    "notifications": {
+      "no_new": "không có thông báo mới",
+      "clear": "Sạch"
+    }
+  },
+  "signin": {
+    "title": "ĐĂNG NHẬP",
+    "enter_your_work_email": "Nhập email công việc của bạn",
+    "enter_your_password": "Nhập mật khẩu của bạn",
+    "forget_password": "Quên mật khẩu ?",
+    "dont_ve_an_account": "Không có tài khoản?",
+    "sign_up": "Đăng ký",
+    "form": {
+      "rules": {
+        "email_is_reqd": "Email thì cần thiết",
+        "email_must_be_valid": "Email phải hợp lệ",
+        "passwd_required": "Mật khẩu là bắt buộc",
+        "passwd_must_be_8_chars": "Mật khẩu của bạn phải có ít nhất 8 ký tự"
+      }
+    },
+    "head": {
+      "title": "Đăng nhập |. NOCODB.",
+      "meta": {
+        "hid": "Đăng nhập vào NOCODB",
+        "name": "Đăng nhập vào NOCODB",
+        "content": "Đăng nhập vào NOCODB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Đặt lại mật khẩu của bạn",
+        "message_1": "Vui lòng cung cấp địa chỉ email bạn đã sử dụng khi bạn đăng ký.",
+        "message_2": "Chúng tôi sẽ gửi cho bạn một email với một liên kết để đặt lại mật khẩu của bạn.",
+        "success": "Vui lòng kiểm tra email của bạn để đặt lại mật khẩu",
+        "button": "GỬI EMAIL"
+      }
+    }
+  },
+  "signup": {
+    "title": "ĐĂNG KÝ",
+    "you_will_be_the_super_admin": "Bạn sẽ là 'Siêu quản trị viên'",
+    "already_ve_an_account": "Bạn co săn san để tạo một tai khoản ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Cài đặt",
+      "tooltip": "Chỉ có thể nhìn thấy để tạo"
+    },
+    "app_store": "Cửa hàng ứng dụng",
+    "team_n_auth": {
+      "title": "Đội & auth.",
+      "tooltip": "Vai trò & Quản lý người dùng"
+    },
+    "project_metadata": {
+      "title": "Siêu dữ liệu dự án.",
+      "tooltip": "Quản lý Meta"
+    },
+    "preview_as": "Xem trước như",
+    "reset_review": "Đặt lại xem trước"
+  },
+  "nav_drawer": {
+    "title": "Lượt xem",
+    "virtual_views": {
+      "action": {
+        "copy": "Sao chép View.",
+        "rename": "Đổi tên xem.",
+        "delete": "XÓA View."
+      },
+      "title": "Tạo một cái nhìn",
+      "caption": "Chỉ có thể nhìn thấy để tạo",
+      "grid": {
+        "title": "Lưới",
+        "create": "Thêm Chế độ xem lưới"
+      },
+      "gallery": {
+        "title": "Bộ sưu tập",
+        "create": "Thêm Gallery View."
+      },
+      "calendar": {
+        "title": "Lịch",
+        "create": "Thêm chế độ xem lịch"
+      },
+      "kanban": {
+        "title": "Kanban.",
+        "create": "Thêm tầm nhìn Kanban"
+      },
+      "form": {
+        "title": "Mẫu đơn",
+        "create": "Thêm hình thức xem"
+      }
+    },
+    "advanced": {
+      "title1": "Chia sẻ lượt xem.",
+      "views_list": "Lượt xem danh sách",
+      "copy_api_url": "Sao chép URL API."
+    },
+    "share_view": {
+      "title": "Chế độ xem này được chia sẻ thông qua một liên kết riêng tư",
+      "body": "Những người có liên kết riêng tư chỉ có thể nhìn thấy các ô có thể nhìn thấy trong chế độ xem này",
+      "toggle": {
+        "option1": "Hạn chế quyền truy cập bằng mật khẩu",
+        "option2": "Truy cập là mật khẩu bị hạn chế"
+      },
+      "password": {
+        "caption": "Nhập mật khẩu",
+        "button": "Lưu mật khẩu"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Quản lý người dùng",
+      "api": "Quản lý Token API",
+      "roles": "Vai trò quản lý"
+    },
+    "meta": {
+      "title": "Hoạt động siêu dữ liệu",
+      "export_to_file": {
+        "title": "Xuất thành Tệp",
+        "desc": "Xuất tất cả siêu dữ liệu từ các bảng meta sang thư mục meta."
+      },
+      "import": {
+        "title": "Nhập khẩu",
+        "desc": "Nhập tất cả siêu dữ liệu từ thư mục meta vào bảng meta."
+      },
+      "export_to_zip": {
+        "title": "Xuất khẩu ZIP.",
+        "desc": "Xuất meta dự án sang tệp zip và tải xuống."
+      },
+      "import_zip": {
+        "title": "Nhập khẩu zip.",
+        "desc": "Nhập tệp Meta Zip dự án và khởi động lại."
+      },
+      "reset": {
+        "title": "Cài lại",
+        "desc": "Xóa tất cả siêu dữ liệu khỏi bảng meta."
+      }
+    }
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Mina projekt",
+    "reload_projects_tooltip": "Uppdatera projekt",
+    "create_new_project_button": {
+      "text": "Nytt projekt",
+      "subtext_1": "Skapa",
+      "subtext_1_tooltip": "Skapa ett nytt projekt",
+      "subtext_2": "Skapa genom att ansluta <br> till en extern databas",
+      "subtext_2_tooltip": "Stödjer MySQL, PostgreSQL, SQL Server & SQLite"
+    },
+    "search_project": "Sökprojekt",
+    "import_metadata": "Importera metadata",
+    "export_metadata": "Exportera metadata",
+    "clear_metadata": "Rensa metadata",
+    "stop_project": "Stoppa projektet",
+    "start_project": "Startprojekt",
+    "restart_project": "Starta om projektet",
+    "delete_project": "Radera projekt",
+    "project_api_type_tooltip_graphql": "Tillgänglig via GraphQL API",
+    "project_api_type_tooltip_rest": "Tillgänglig via REST API",
+    "project_empty_message": "Kom igång med att skapa ett nytt projekt",
+    "import_button": {
+      "text": "Importera NOCODB-projektet genom att ladda upp metadata zip-filen"
+    },
+    "show_community_star": "Stjärna",
+    "show_community_us_on_Github": "oss på github",
+    "show_community_book_a_free_demo": "Boka en gratis demo",
+    "show_community_get_your_questions_answered": "Få dina frågor besvarade",
+    "show_community_join_discord": "Gå med i Discord",
+    "show_community_follow_nocodb": "Följ nocodb",
+    "search": {
+      "your_search_found_no_results": "Din sökning efter {Sök} har inga resultat"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Redigera projekt",
+        "create": "Skapa projekt"
+      },
+      "project_name": "Ange projektnamn",
+      "project_type": "Åtkomstprojekt via",
+      "button": {
+        "save_project": "Spara projekt",
+        "update_and_restart": "Uppdatering och omstart",
+        "cancel": "Avbryt",
+        "cancel_tooltip": "Avbryt och returnera"
+      },
+      "credentials": {
+        "title": "Databasuppgifter",
+        "db_type": "Databas typ",
+        "sqlite_file": "Sqlite-fil",
+        "host_address": "Värdadress",
+        "port": "Portnummer",
+        "username": "Användarnamn",
+        "password": "Lösenord",
+        "db_create_if_not_exists": "Databas: Skapa om det inte finns",
+        "button": {
+          "test_db_conn": "Testdatabasanslutning",
+          "remove_db_from_env": "Ta bort databasen från miljö"
+        },
+        "advanced": {
+          "title": "SSL och avancerade parametrar",
+          "ssl": {
+            "client_key": {
+              "title": "Klientnyckel",
+              "toolip": "Välj. Key-filen"
+            },
+            "client_cert": {
+              "title": "Klientcert",
+              "toolip": "Välj .cert-fil"
+            },
+            "server_ca": {
+              "title": "Server ca",
+              "toolip": "Välj CA-fil"
+            },
+            "preferred": "Föredraget",
+            "usage": {
+              "no": "Nej",
+              "preferred": "Föredraget",
+              "required": "Nödvändig",
+              "requried_ca": "Krävs-ca",
+              "requried_identity": "Obligatorisk identitet"
+            }
+          },
+          "inflection": {
+            "table_name": "Böjning - tabellnamn",
+            "column_name": "Böjning - Kolumnnamn"
+          },
+          "button": {
+            "edit_conn_json": "Redigera anslutning JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Ogiltigt tecken i mappbanan.",
+        "invalid_db_credentials": "Ogiltiga databasuppgifter.",
+        "unable_to_connect_to_db": "Det går inte att ansluta till databasen, kolla din databas är upp.",
+        "user_doesnt_ve_sufficient_permission": "Användaren existerar inte eller har tillräcklig tillåtelse att skapa schema."
+      },
+      "head": {
+        "title": "Skapa projekt | Nocodb"
+      },
+      "dialog": {
+        "success": "Anslutningen var framgångsrik",
+        "failure": "Anslutningsfel:"
+      }
+    },
+    "notifications": {
+      "no_new": "Inga nya meddelanden",
+      "clear": "Klar"
+    }
+  },
+  "signin": {
+    "title": "LOGGA IN",
+    "enter_your_work_email": "Ange ditt jobb E-post",
+    "enter_your_password": "Ange ditt lösenord",
+    "forget_password": "Glömt ditt lösenord ?",
+    "dont_ve_an_account": "Har du inget konto?",
+    "sign_up": "Bli Medlem",
+    "form": {
+      "rules": {
+        "email_is_reqd": "E-post krävs",
+        "email_must_be_valid": "Email måste vara giltig",
+        "passwd_required": "lösenord krävs",
+        "passwd_must_be_8_chars": "Du lösenord måste vara minst 8 tecken"
+      }
+    },
+    "head": {
+      "title": "Logga in | Nocodb",
+      "meta": {
+        "hid": "Logga in på NocodB",
+        "name": "Logga in på NocodB",
+        "content": "Logga in på NocodB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Återställ ditt lösenord",
+        "message_1": "Vänligen ange den e-postadress du använde när du anmält dig.",
+        "message_2": "Vi skickar dig ett mail med en länk för att återställa ditt lösenord.",
+        "success": "Kontrollera din email för att återställa lösenordet",
+        "button": "SKICKA EPOST"
+      }
+    }
+  },
+  "signup": {
+    "title": "BLI MEDLEM",
+    "you_will_be_the_super_admin": "Du kommer att vara \"Super Admin\"",
+    "already_ve_an_account": "Har du redan ett konto ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "inställningar",
+      "tooltip": "Bara synlig för skaparen"
+    },
+    "app_store": "Appbutik",
+    "team_n_auth": {
+      "title": "Team & Auth",
+      "tooltip": "Roller och användarhantering"
+    },
+    "project_metadata": {
+      "title": "Projektmetadata",
+      "tooltip": "Metahantering"
+    },
+    "preview_as": "Förhandsgranskning som",
+    "reset_review": "Återställ förhandsgranskning"
+  },
+  "nav_drawer": {
+    "title": "Åsikter",
+    "virtual_views": {
+      "action": {
+        "copy": "Kopiera",
+        "rename": "Byt namn på",
+        "delete": "Radera syn"
+      },
+      "title": "Skapa en vy",
+      "caption": "Bara synlig för skaparen",
+      "grid": {
+        "title": "Rutnät",
+        "create": "Lägg till rutnät"
+      },
+      "gallery": {
+        "title": "Galleri",
+        "create": "Lägg till Gallery View"
+      },
+      "calendar": {
+        "title": "Kalender",
+        "create": "Lägg till kalendervisning"
+      },
+      "kanban": {
+        "title": "Kanban",
+        "create": "Lägg till Kanban View"
+      },
+      "form": {
+        "title": "Form",
+        "create": "Lägg till formulärvy"
+      }
+    },
+    "advanced": {
+      "title1": "Visa vy",
+      "views_list": "Visningar lista",
+      "copy_api_url": "Kopiera API-URL"
+    },
+    "share_view": {
+      "title": "Denna uppfattning delas via en privat länk",
+      "body": "Människor med privat länk kan bara se celler synliga i den här vyn",
+      "toggle": {
+        "option1": "Begränsa åtkomsten med ett lösenord",
+        "option2": "Åtkomst är lösenordsbegränsad"
+      },
+      "password": {
+        "caption": "Ange lösenordet",
+        "button": "Spara lösenord"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Användarhantering",
+      "api": "API Tokens Management",
+      "roles": "Roller hantering"
+    },
+    "meta": {
+      "title": "Metadataoperationer",
+      "export_to_file": {
+        "title": "Exportera till fil",
+        "desc": "Exportera alla metadata från meta-tabellerna till metakatalogen."
+      },
+      "import": {
+        "title": "Importera",
+        "desc": "Importera alla metadata från metakatalogen till meta-tabeller."
+      },
+      "export_to_zip": {
+        "title": "Exportera zip",
+        "desc": "Exportera projekt Meta till ZIP-fil och nedladdning."
+      },
+      "import_zip": {
+        "title": "Importera zip",
+        "desc": "Importera projekt Meta Zip-fil och starta om."
+      },
+      "reset": {
+        "title": "Återställa",
+        "desc": "Rensa alla metadata från meta-tabeller."
+      }
+    }
+  }
+}

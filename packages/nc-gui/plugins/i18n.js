@@ -30,7 +30,10 @@ export default ({ app, store }) => {
       it_IT: require('~/lang/it_IT.json'),
       ko: require('~/lang/ko.json'),
       nl: require('~/lang/nl.json'),
-      ru: require('~/lang/ru.json')
+      ru: require('~/lang/ru.json'),
+      sv: require('~/lang/sv.json'),
+      da: require('~/lang/da.json'),
+      vi: require('~/lang/vi.json')
     }
   })
 

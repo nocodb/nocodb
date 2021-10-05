@@ -37,16 +37,19 @@ export default {
       de: 'Deutsch',
       en: 'English',
       es: 'Española',
-      fr: 'français',
-      id: 'bahasa Indonesia',
+      fr: 'Français',
+      id: 'Bahasa Indonesia',
       it_IT: 'Italiana',
       ja: '日本語',
       ko: '한국인',
       nl: 'Nederlandse',
-      ru: 'русский',
+      ru: 'Pусский',
       zh_CN: '中国人',
-      zh_HK: 'zh_HK',
-      zh_TW: 'zh_TW'
+      zh_HK: 'Zh_HK',
+      zh_TW: 'Zh_TW',
+      sv: 'Svenska',
+      da: 'Dansk',
+      vi: 'Tiếng Việt'
     }
   }),
   computed: {

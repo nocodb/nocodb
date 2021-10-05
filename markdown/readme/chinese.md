@@ -221,14 +221,12 @@ npm run dev
 
 ## 在本地运行 Cypress 测试
 
-```shell
+```bash
 # 安装开发依赖(cypress)
 npm install
 
 # 使用 docker compose 运行所需的服务
 docker-compose -f ./docker-compose-cypress.yml up
-
-
 
 # 等到 3000 和 8080 端口都可用时，使用以下命令运行Cypress测试
 npm run cypress:run

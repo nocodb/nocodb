@@ -6,7 +6,7 @@
 
 </h1>
 <p align="center">
-将任何MySQL，PostgreSQL，SQL Server，SQLite＆MariaDB转换为智能电子表格。. 
+将任何MySQL，PostgreSQL，SQL Server，SQLite＆MariaDB转换为智能电子表格。
 </p>
 <div align="center">
 
@@ -35,7 +35,7 @@
 
 
 # 快速尝试
-### 1-Click Deploy
+### 一键式部署
 
 #### Heroku
 <a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
@@ -52,7 +52,7 @@
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> To persist data you can mount volume at `/usr/app/data/`.
+> 为了持久化数据，你可以挂载`/usr/app/data/`。
 
 ### 使用NPM
 ```
@@ -145,29 +145,29 @@ npm start
 - ⚡ 与Zapier，Integromat集成的API标记。
 
 
-# Production Setup
+# 生产安装
 NoCodb要求数据库存储电子表格视图和外部数据库的元数据。可以在NC_DB环境变量中指定此数据库的连接参数。
 
 ## Docker
 
-#### Example MySQL
-```
+#### MySQL 示例
+```bash
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
     -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
-```
+#### Postgres 示例
+```bash
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
     -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
-```
+#### SQL Server 示例
+```bash
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
     -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
@@ -175,7 +175,7 @@ docker run -d -p 8080:8080 \
 ```
 
 ## Docker Compose
-```
+```bash
 git clone https://github.com/nocodb/nocodb
 cd docker-compose
 cd mysql or pg or mssql
@@ -183,68 +183,69 @@ docker-compose up
 ```
 
 
-## Environment variables
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
+## 环境变量
+| 变量                | 强制 | 注释                                                                         | 如果缺少                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+| NC_DB                   | Yes       | 查看我们的数据库 URL                                                | 将在根文件夹中创建本地 SQLite  |
+| DATABASE_URL            | No        | JDBC URL 格式。 可以代替 NC_DB 使用。 用于一键式 Heroku 部署|   |
+| DATABASE_URL_FILE       | No        | 包含 JDBC URL 格式的文件的路径。 可以代替 NC_DB 使用。 用于一键式 Heroku 部署|   |
+| NC_PUBLIC_URL           | Yes       | 用于发送电子邮件邀请                   | 从 http 请求参数的最佳猜测        |
+| NC_AUTH_JWT_SECRET      | Yes       | 用于认证和存储其他 secret 的 JWT secret                           | 将会产生一个随机的 secret          |
+| NC_SENTRY_DSN           | No        | 用于 Sentry 监控                                                     |   |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | 禁止使用外部数据库创建项目                              |   |
+| NC_DISABLE_TELE | No | 禁用 telemetry                              |   |
+| NC_BACKEND_URL | No | 自定义后端URL                              | 将使用`http://localhost:8080`  |
 
-# Development setup
-```
+# 开发安装
+
+```bash
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 
-# run backend
+# 运行后端
 cd packages/nocodb
 npm install
 npm run watch:run
 
-# open localhost:8080/dashboard in browser
+# 在浏览器打开 localhost:8080/dashboard
 
-# run frontend 
+# 运行前端
 cd packages/nc-gui
 npm install
 npm run dev
 
-# open localhost:3000/dashboard in browser
+# 在浏览器打开 localhost:3000/dashboard
 ```
 
-Changes made to code automatically restart.
+对代码所做的更改会自动重新启动。
 
-
-## Running Cypress tests locally
+## 在本地运行 Cypress 测试
 
 ```shell
-# install dependencies(cypress)
+# 安装开发依赖(cypress)
 npm install
 
-# run required services by using docker compose 
+# 使用 docker compose 运行所需的服务
 docker-compose -f ./docker-compose-cypress.yml up
 
 
 
-# wait until both 3000 and 8080 porta are avalable
-# and run cypress test using following command
+# 等到 3000 和 8080 端口都可用时，使用以下命令运行Cypress测试
 npm run cypress:run
 
-# or run following command to run it with GUI
+# 或运行以下命令在图形用户界面上运行它
 npm run cypress:open
 ```
 
-# Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md
-- Ignore adding headers for .json or .md or .yml
+# 贡献
+
+- 请看一下 ./contribute/HowToApplyLicense.md
+- 忽略为 .json 或 .md 或 .yml 添加标头
 
 # 🎯  为什么我们建立这个？
+
 大多数互联网业务都配备了电子表格或数据库以解决其业务需求。电子表格每天都会合作地使用十亿+人类。但是，我们在数据库上运行类似速度的方式，这在计算时更强大的工具。用SaaS产品解决此问题的尝试已经意味着可怕的门禁控制，供应商锁定，数据锁定，突然的价格变化，最重要的是将来有可能的玻璃天花板。
 
 # ❤ 我们的任务 ：
-我们的使命是为数据库提供最强大的无码界面，该界面是世界上每一个互联网业务的开源。这不仅将民主化进入强大的计算工具，而且还带来了一十亿+人，他们将在互联网上具有根本修补和建筑能力。
 
+我们的使命是为数据库提供最强大的无码界面，该界面是世界上每一个互联网业务的开源。这不仅将民主化进入强大的计算工具，而且还带来了一十亿+人，他们将在互联网上具有根本修补和建筑能力。

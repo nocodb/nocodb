@@ -80,42 +80,38 @@ Toegang tot dashboard met behulp van : [http://localhost:8080/dashboard](http://
 
 # Screenshots
 
-![2](https://user-images.githubusercontent.com/5435402/133759229-4275b934-873b-4a9b-9f23-96470fec9775.png)
+![1](https://user-images.githubusercontent.com/86527202/136073796-3a7e14b3-74a3-484f-812c-2885f3e50245.png)
 <br>
 
-![1](https://user-images.githubusercontent.com/5435402/133759218-f8b0bffc-707f-451c-82f2-b5ba2573d6a6.png)
+![2](https://user-images.githubusercontent.com/86527202/136073805-40b59a3f-8156-4cc7-8d5c-dfd611a7785e.png)
 <br>
 
-![7](https://user-images.githubusercontent.com/5435402/133759245-a536165b-55f1-46a8-a74e-1964e7e481c6.png)
+![5](https://user-images.githubusercontent.com/86527202/136073808-27f211b6-eaf9-4162-961d-f0d1a4cf6db7.png)
 <br>
 
-![5](https://user-images.githubusercontent.com/5435402/133759240-dd3f2509-aab7-4bd1-9a58-4c2dff08f2f2.png)
+![6](https://user-images.githubusercontent.com/86527202/136073811-515405fe-ae36-44c4-adf7-7d400c5a3705.png)
 <br>
 
-![6](https://user-images.githubusercontent.com/5435402/133759242-2311a127-17c8-406c-b865-1a2e9c8ee398.png)
+![7](https://user-images.githubusercontent.com/86527202/136073813-2a95e935-2632-4516-8eed-15d1a9b8437e.png)
 <br>
 
-![3](https://user-images.githubusercontent.com/5435402/133759234-9b539029-be36-4a35-b55a-bee3ebd0e010.png)
+![8](https://user-images.githubusercontent.com/86527202/136073815-830941bb-c534-42f0-8a2a-37a6220c5f57.png)
 <br>
 
-![4](https://user-images.githubusercontent.com/5435402/133759236-dc182129-3768-4e23-874e-98f5f32e962c.png)
+![9](https://user-images.githubusercontent.com/86527202/136073816-a0875c02-f6e5-4b44-83a4-333a03b8c7a3.png)
 <br>
 
-![11](https://user-images.githubusercontent.com/5435402/133759253-bb9bc729-ee28-4f86-ab95-7d112c0815f2.png)
+![9a](https://user-images.githubusercontent.com/86527202/136073818-99a0602b-e49d-41b6-bba5-389a4997d504.png)
 <br>
 
-![10](https://user-images.githubusercontent.com/5435402/133759250-ebd75ecf-31db-4a17-b2d7-2c43af78a54e.png)
+![9b](https://user-images.githubusercontent.com/86527202/136073821-84cdd755-3753-43ce-a00f-a138cae11797.png)
 <br>
 
-![8](https://user-images.githubusercontent.com/5435402/133759248-3a7141e0-4b7d-4079-a5f9-cf8611d00bc5.png)
+![10](https://user-images.githubusercontent.com/86527202/136073823-03a76b37-e72b-4499-9925-a8ee24ce7053.png)
 <br>
 
-![9](https://user-images.githubusercontent.com/5435402/133759249-8c1a85c2-a55c-48f6-bd58-aa6b4195cce7.png)
-
-
-
-
-
+![11](https://user-images.githubusercontent.com/86527202/136073826-561f9a17-8d68-4c7a-830d-1e40e0892246.png)
+<br>
 
 
 

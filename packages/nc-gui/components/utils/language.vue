@@ -2,7 +2,7 @@
   <div>
     <v-menu bottom offset-y>
       <template #activator="{on}">
-        <v-icon size="20" class="ml-2" v-on="on">
+        <v-icon size="20" class="ml-2 nc-menu-translate" v-on="on">
           mdi-translate
         </v-icon>
       </template>

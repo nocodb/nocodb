@@ -79,37 +79,38 @@ npm start
 <br>
 
 # 截图
-![1](https://user-images.githubusercontent.com/86527202/136062975-51ec671f-c44a-423c-8c7a-037d6ed77401.png)
+
+![1](https://user-images.githubusercontent.com/86527202/136064527-86ef8e8c-0f54-4779-aa05-c187ba1faa3e.png)
 <br>
 
-![2](https://user-images.githubusercontent.com/86527202/136062985-de58eb6c-097a-4ea0-9eef-dd06c50ff954.png)
+![2](https://user-images.githubusercontent.com/86527202/136064539-2a6cc35f-7c0b-47bc-8b15-22dc51768c55.png)
 <br>
 
-![5](https://user-images.githubusercontent.com/86527202/136062994-3b51e33e-59f3-4a28-81ef-929aa2f20c13.png)
+![5](https://user-images.githubusercontent.com/86527202/136064547-a6c9255b-f7e0-4b77-a37d-320e8ed92481.png)
 <br>
 
-![6](https://user-images.githubusercontent.com/86527202/136062997-0eebf497-246f-4d5b-b46e-75bebbb87a6f.png)
+![6](https://user-images.githubusercontent.com/86527202/136064551-58edf778-7e50-49ed-b64a-57d87d3a767e.png)
 <br>
 
-![7](https://user-images.githubusercontent.com/86527202/136063001-a6f54f9d-723f-475a-b392-a11cefb38bcc.png)
+![7](https://user-images.githubusercontent.com/86527202/136064557-1d38e2fd-708d-4898-82f1-0abe961178fe.png)
 <br>
 
-![8](https://user-images.githubusercontent.com/86527202/136063003-21708997-3724-441a-a4d9-1e0a7da3af7f.png)
+![8](https://user-images.githubusercontent.com/86527202/136064560-4ecf7b08-8d22-483d-9067-1f78993440cd.png)
 <br>
 
-![9](https://user-images.githubusercontent.com/86527202/136063005-e213de28-47ab-4768-8fe8-8c6ba3fd5c3e.png)
+![9](https://user-images.githubusercontent.com/86527202/136064561-298da35a-eee6-4f89-b219-e187d1b550a0.png)
 <br>
 
-![9a](https://user-images.githubusercontent.com/86527202/136063007-e2fd3cef-6a44-4405-8b3e-b2ea20f33050.png)
+![9a](https://user-images.githubusercontent.com/86527202/136064563-5eb52802-1708-48be-ad6f-5b315246946f.png)
 <br>
 
-![9b](https://user-images.githubusercontent.com/86527202/136063011-48285c34-7cf2-47db-823f-b1c81504afb9.png)
+![9b](https://user-images.githubusercontent.com/86527202/136064568-5ce388b8-b1ff-4243-8d60-0e67ce680d37.png)
 <br>
 
-![10](https://user-images.githubusercontent.com/86527202/136063013-faca39fe-fc73-4a4f-b695-997d9c6eef02.png)
+![10](https://user-images.githubusercontent.com/86527202/136064571-2b2b4c03-575b-4038-bb33-457b79437791.png)
 <br>
 
-![11](https://user-images.githubusercontent.com/86527202/136063014-6a17c676-8d03-4212-8fa0-f537ddb1aa38.png)
+![11](https://user-images.githubusercontent.com/86527202/136064574-dc88669e-c893-4379-8e4a-38a8016db89e.png)
 <br>
 
 

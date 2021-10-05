@@ -1,7 +1,7 @@
 const { loginPage } = require("../../support/page_objects/navigation")
 const { roles } = require("../../support/page_objects/projectConstants")
 
-describe(`Swagger API - Test preparation`, () => {
+describe(`Language support`, () => {
 
     before(()=> {
         loginPage.signIn(roles.owner.credentials)
@@ -37,17 +37,23 @@ describe(`Swagger API - Test preparation`, () => {
     langVerification(2, 'da.json')
     langVerification(3, 'de.json')
     langVerification(4, 'es.json')
-    langVerification(5, 'fr.json')
-    langVerification(6, 'it_IT.json')
-    langVerification(7, 'ja.json')
-    langVerification(8, 'ko.json')
-    langVerification(9, 'nl.json')
-    langVerification(10, 'ru.json')
-    langVerification(11, 'sv.json')
-    langVerification(12, 'vi.json')
-    langVerification(13, 'zh_HK.json')
-    langVerification(14, 'zh_TW.json')
-    langVerification(15, 'id.json') 
+    langVerification(5, 'fi.json')
+    langVerification(6, 'fr.json')
+    langVerification(7, 'hr.json')
+    langVerification(8, 'it_IT.json')
+    langVerification(9, 'iw.json')
+    langVerification(10, 'ja.json')
+    langVerification(11, 'ko.json')
+    langVerification(12, 'nl.json')
+    langVerification(13, 'no.json')
+    langVerification(14, 'ru.json')
+    langVerification(15, 'sv.json')
+    langVerification(16, 'th.json')
+    langVerification(17, 'uk.json')
+    langVerification(18, 'vi.json')
+    langVerification(19, 'zh_HK.json')
+    langVerification(20, 'zh_TW.json')
+    langVerification(21, 'id.json') 
 })
 
 /**

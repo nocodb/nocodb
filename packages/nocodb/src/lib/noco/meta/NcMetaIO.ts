@@ -102,7 +102,8 @@ export default abstract class NcMetaIO {
 
   public abstract projectCreate(projectName: string,
                                 config: any,
-                                description?: string): Promise<any>;
+                                description?: string,
+                                meta?:boolean): Promise<any>;
 
   public abstract projectUpdate(projectId: string,
                                 config: any): Promise<any>;

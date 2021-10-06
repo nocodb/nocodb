@@ -375,7 +375,7 @@ export default class KnexMigrator extends SqlMigrator {
     // await sqlClient.createTableIfNotExists({tn: connectionConfig.meta.tn});
   }
 
-  async _initEnvDbsWithSql(env, dbAlias = null, sqlClient =null) {
+  async _initEnvDbsWithSql(env, dbAlias = null, sqlClient = null) {
 
     const {envs} = this.project;
 
@@ -470,8 +470,8 @@ export default class KnexMigrator extends SqlMigrator {
       if (!migrationSteps && !args.file) {
         result.code = -1;
         result.message =
-          "Neither num of steps nor file is specified for migartion";
-        log.debug("Neither num of steps nor file is specified for migartion");
+          "Neither num of steps nor file is specified for migration";
+        log.debug("Neither num of steps nor file is specified for migration");
         log.debug("See help");
         return result;
       }
@@ -501,7 +501,13 @@ export default class KnexMigrator extends SqlMigrator {
         args.env
       );
       const sqlClient = args.sqlClient || SqlClientFactory.create(connection);
-      const migrations = await sqlClient.selectAll(sqlClient.getTnPath(connection.meta.tn));
+
+      let migrations = await sqlClient.selectAll(sqlClient.getTnPath(connection.meta.tn));
+
+      if (this.suffix) {
+        migrations = migrations.filter(m => m.title.includes(this.suffix))
+      }
+
       /** ************** END : get files and migrations *************** */
 
       if (files.length === migrations.length) {
@@ -971,7 +977,7 @@ export default class KnexMigrator extends SqlMigrator {
       // }
 
       // create filenames
-      const prefix = fileHelp.getUniqFilenamePrefix();
+      const prefix = `${fileHelp.getUniqFilenamePrefix()}${this.suffix}`;
       const upFileName = fileHelp.getFilenameForUp(prefix);
       const downFileName = fileHelp.getFilenameForDown(prefix);
       if (this.metaDb) {
@@ -1069,7 +1075,7 @@ export default class KnexMigrator extends SqlMigrator {
    *                  and only filenames are migrated to _evolution table
    * @memberof KnexMigrator
    */
-   async migrationsUp(args: any = {}) {
+  async migrationsUp(args: any = {}) {
 
     const func = this.migrationsUp.name;
     // const result = new Result();
@@ -1621,6 +1627,13 @@ export default class KnexMigrator extends SqlMigrator {
       return config.meta.tn
     }
     return 'nc_evolutions';
+  }
+
+
+  private get suffix(): string {
+    if (this.project?.prefix)
+      return `_${this.project?.prefix.slice(3,7)}`
+    return '';
   }
 
 }

@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import {nanoid} from 'nanoid';
+import {customAlphabet} from 'nanoid'
 
 import {NcConfig} from "../../../interface/config";
 import {Knex, XKnex} from "../../dataMapper";
@@ -8,6 +8,9 @@ import XcMigrationSource from "../common/XcMigrationSource";
 
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
 import NcConnectionMgr from "../common/NcConnectionMgr";
+
+
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4)
 
 
 export default class NcMetaIOImpl extends NcMetaIO {
@@ -258,14 +261,14 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
   async commit() {
     if (this.trx) {
-    await  this.trx.commit();
+      await this.trx.commit();
     }
     this.trx = null;
   }
 
   async rollback(e?) {
     if (this.trx) {
-     await this.trx.rollback(e);
+      await this.trx.rollback(e);
     }
     this.trx = null;
   }
@@ -294,9 +297,17 @@ export default class NcMetaIOImpl extends NcMetaIO {
     }
   }
 
-  public async projectCreate(projectName: string, config: any, description?: string): Promise<any> {
+  public async projectCreate(projectName: string, config: any, description?: string,
+                             meta?: boolean): Promise<any> {
     try {
-      const id = this.getProjectId(projectName);
+      const ranId = this.getNanoId();
+      const id = `${projectName.toLowerCase().replace(/\W+/g, '_')}_${ranId}`;
+      if (meta) {
+        config.prefix = `nc_${ranId}__`
+        // if(config.envs._noco?.db?.[0]?.meta?.tn){
+        //   config.envs._noco.db[0].meta.tn += `_${prefix}`
+        // }
+      }
       config.id = id;
       const project = {
         id,
@@ -435,8 +446,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return this.knexConnection;
   }
 
-  private getProjectId(projectName: string) {
-    return `${projectName.toLowerCase().replace(/\W+/g, '_')}_${nanoid(4)}`
+  private getNanoId() {
+    return nanoid()
   }
 
   public async audit(project_id: string, dbAlias: string, target: string, data: any): Promise<any> {

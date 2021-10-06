@@ -30,7 +30,16 @@ import axios from 'axios';
 import IEmailAdapter from "../../../interface/IEmailAdapter";
 import XcCache from "../plugins/adapters/cache/XcCache";
 
-passport.serializeUser(function ({id, email, email_verified, roles, provider, firstname, lastname, isAuthorized}, done) {
+passport.serializeUser(function ({
+                                   id,
+                                   email,
+                                   email_verified,
+                                   roles,
+                                   provider,
+                                   firstname,
+                                   lastname,
+                                   isAuthorized
+                                 }, done) {
   done(null, {
     isAuthorized,
     id,
@@ -651,7 +660,7 @@ export default class RestAuthCtrl {
     console.log('token refresh')
     try {
 
-      if(!req?.cookies?.refresh_token){
+      if (!req?.cookies?.refresh_token) {
         return res.status(400).json({msg: 'Missing refresh token'});
       }
 
@@ -682,7 +691,7 @@ export default class RestAuthCtrl {
           roles: user.roles
         }, this.config.auth.jwt.secret, this.config.auth.jwt.options)
       } as any);
-    }catch (e) {
+    } catch (e) {
       return res.status(400).json({msg: e.message});
     }
   }
@@ -1037,7 +1046,7 @@ export default class RestAuthCtrl {
     }
 
 
-    Tele.emit('evt', {evt_type: 'project:invite', count:count?.count})
+    Tele.emit('evt', {evt_type: 'project:invite', count: count?.count})
     this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
       op_type: 'AUTHENTICATION',
       op_sub_type: 'INVITE',
@@ -1265,9 +1274,9 @@ export default class RestAuthCtrl {
                     }, aclRow.id);
                   }
                 }
-                this.xcMeta.commit();
+                await this.xcMeta.commit();
               } catch (e) {
-                this.xcMeta.rollback(e);
+                await this.xcMeta.rollback(e);
               }
             }
           }
@@ -1293,9 +1302,9 @@ export default class RestAuthCtrl {
                   });
                 }
               }
-              this.xcMeta.commit();
+              await this.xcMeta.commit();
             } catch (e) {
-              this.xcMeta.rollback(e);
+              await this.xcMeta.rollback(e);
             }
           }
         }

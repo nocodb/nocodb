@@ -353,6 +353,10 @@ export default class NcMetaMgr {
           const data = JSON.parse(fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8'));
           for (const row of data) {
             delete row.id;
+
+            row.created_at = row.created_at ? new Date(row.created_at) : null;
+            row.updated_at = row.updated_at ? new Date(row.updated_at) : null;
+
             await this.xcMeta.metaInsert(projectId, dbAlias, tn, {
               ...row,
               db_alias: dbAlias,
@@ -361,7 +365,7 @@ export default class NcMetaMgr {
           }
         }
       }
-      this.xcMeta.commit();
+      await this.xcMeta.commit();
 
       this.xcMeta.audit(projectId, dbAlias, 'nc_audit', {
         // created_at: (Knex as any).fn.now(),
@@ -374,7 +378,7 @@ export default class NcMetaMgr {
 
     } catch (e) {
       console.log(e);
-      this.xcMeta.rollback(e);
+      await this.xcMeta.rollback(e);
     }
   }
 
@@ -410,6 +414,14 @@ export default class NcMetaMgr {
       } else {
         // decrypt with old key and encrypt again with latest key
         const projectConfig = JSON.parse(CryptoJS.AES.decrypt(projectDetails.config, projectDetails.key).toString(CryptoJS.enc.Utf8))
+
+
+        if (projectConfig?.prefix) {
+          const metaProjConfig = NcConfigFactory.makeProjectConfigFromConnection(this.config?.meta?.db, args.args.projectType);
+          projectConfig.envs._noco = metaProjConfig.envs._noco
+        }
+
+
         // delete projectDetails.key;
         projectDetails.config = projectConfig;
 
@@ -708,9 +720,9 @@ export default class NcMetaMgr {
           id: row.id
         })
       }
-      trx.commit();
+      await trx.commit();
     } catch (e) {
-      trx.rollback();
+      await trx.rollback();
       throw e;
     }
   }
@@ -1315,28 +1327,30 @@ export default class NcMetaMgr {
           config.title = args.args.title;
           config.projectType = args.args.projectType;
 
-          const metaProjectsCount = await this.xcMeta.metaGet(null, null, 'nc_store', {
-            key: 'NC_PROJECT_COUNT'
-          });
-          // todo: populate unique prefix dynamically
-          config.prefix = `xb${Object.keys(this.projectConfigs).length}__`;
-          if (metaProjectsCount) {
-            // todo: populate unique prefix dynamically
-            config.prefix = `xa${(+metaProjectsCount.value || 0) + 1}__`;
-          }
+          // const metaProjectsCount = await this.xcMeta.metaGet(null, null, 'nc_store', {
+          //   key: 'NC_PROJECT_COUNT'
+          // });
+          // // todo: populate unique prefix dynamically
+          // config.prefix = `xb${Object.keys(this.projectConfigs).length}__`;
+          // if (metaProjectsCount) {
+          //   // todo: populate unique prefix dynamically
+          //   config.prefix = `xa${(+metaProjectsCount.value || 0) + 1}__`;
+          // }
 
 
-          result = await this.xcMeta.projectCreate(config.title, config);
+          result = await this.xcMeta.projectCreate(config.title, config, null, true);
           await this.xcMeta.projectAddUser(result.id, req?.session?.passport?.user?.id, 'owner,creator');
           await this.projectMgr.getSqlMgr({
             ...result,
             config,
             metaDb: this.xcMeta?.knex
           }).projectOpenByWeb(config);
+
+
           this.projectConfigs[result.id] = config;
-          this.xcMeta.metaUpdate(null, null, 'nc_store', {
-            value: ((metaProjectsCount && +metaProjectsCount.value) || 0) + 1
-          }, {key: 'NC_PROJECT_COUNT'})
+          // this.xcMeta.metaUpdate(null, null, 'nc_store', {
+          //   value: ((metaProjectsCount && +metaProjectsCount.value) || 0) + 1
+          // }, {key: 'NC_PROJECT_COUNT'})
 
           this.xcMeta.audit(result?.id, null, 'nc_audit', {
             op_type: 'PROJECT',
@@ -1352,7 +1366,7 @@ export default class NcMetaMgr {
         case 'projectList':
           result = await this.xcMeta.userProjectList(req?.session?.passport?.user?.id);
           result.forEach(p => {
-            const config =JSON.parse(p.config);
+            const config = JSON.parse(p.config);
             p.projectType = config?.projectType;
             p.prefix = config?.prefix
             delete p.config

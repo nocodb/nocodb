@@ -24,7 +24,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
 </p>  
 
-![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
+<p align="center"><img src="https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png" alt="The Open Source Airtable Alternative - works on MySQL, Postgres SQL Server & MariaDB" width="1000px" /></p>
 
 <div align="center">
 

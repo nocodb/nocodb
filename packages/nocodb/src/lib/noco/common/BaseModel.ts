@@ -1,13 +1,14 @@
 import Handlebars from "handlebars";
 import {IWebhookNotificationAdapter} from "nc-plugin";
-
+import ejs from "ejs";
 import IEmailAdapter from "../../../interface/IEmailAdapter";
 import {BaseModelSql} from "../../dataMapper";
 
 // import axios from "axios";
 import BaseApiBuilder from "./BaseApiBuilder";
+import formSubmissionEmailTemplate from "./formSubmissionEmailTemplate";
 
-Handlebars.registerHelper('json', function(context) {
+Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
 });
 
@@ -84,19 +85,51 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     // const data = _data;
 
 
+    // handle form view data submission
+    if (hookName === 'after.insert' && req?.query?.form && this.builder?.formViews?.[this.tn]?.[req.query.form]) {
+      const formView = this.builder?.formViews?.[this.tn]?.[req.query.form];
+      const emails = Object.entries(formView?.query_params?.extraViewParams?.formParams?.emailMe || {}).filter(a => a[1]).map(a => a[0])
+      if (emails?.length) {
+        const transformedData = data;
+        for (const col of this.columns) {
+          if (col.uidt === 'Attachment') {
+            if (typeof transformedData[col._cn] === 'string') {
+              transformedData[col._cn] = JSON.parse(transformedData[col._cn]);
+            }
+            transformedData[col._cn] = (transformedData[col._cn] || []).map((attachment) => {
+              if (['jpeg', 'gif', 'png', 'apng', 'svg', 'bmp', 'ico', 'jpg'].includes(attachment.title.split('.').pop())) {
+                return `<a href="${attachment.url}" target="_blank"><img height="50px" src="${attachment.url}"/></a>`
+              }
+              return `<a href="${attachment.url}" target="_blank">${attachment.title}</a>`
+            }).join('&nbsp;');
+          }
+        }
+        // todo: notification template
+        this.emailAdapter?.mailSend({
+          to: emails.join(','),
+          subject: this.parseBody('NocoDB Form', req, data, {}),
+          html: ejs.render(formSubmissionEmailTemplate, {
+            data: transformedData,
+            tn: this.tn,
+            _tn: this._tn
+          })
+        })
+      }
+    }
+
     try {
       if (this.tn in this.builder.hooks
         && hookName in this.builder.hooks[this.tn]
         && this.builder.hooks[this.tn][hookName]
       ) {
 
-/*        if (hookName === 'after.update') {
-          try {
-            data = await this.nestedRead(req.params.id, this.defaultNestedQueryParams)
-          } catch (_) {
-            /!* ignore *!/
-          }
-        }*/
+        /*        if (hookName === 'after.update') {
+                  try {
+                    data = await this.nestedRead(req.params.id, this.defaultNestedQueryParams)
+                  } catch (_) {
+                    /!* ignore *!/
+                  }
+                }*/
 
 
         for (const hook of this.builder.hooks[this.tn][hookName]) {

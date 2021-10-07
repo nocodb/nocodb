@@ -35,7 +35,7 @@ export default class RestApi {
     }
   }
 
-  get(url, params={}, extras = {}) {
+  get(url, params = {}, extras = {}) {
     return this.$axios({
       url,
       params,
@@ -57,7 +57,10 @@ export default class RestApi {
     /// api/v1/Film/m2mNotChildren/film_actor/44
     // const list = await this.list(params);
     // const count = (await this.count({where: params.where || ''})).count;
-    const { list, info: { count } } = (await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
+    const {
+      list,
+      info: { count }
+    } = (await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
     return { list, count }
   }
 
@@ -79,11 +82,14 @@ export default class RestApi {
     return res.data
   }
 
-  async insert(data) {
+  async insert(data, {
+    params = {}
+  } = {}) {
     return (await this.$axios({
       method: 'post',
       url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}`,
-      data
+      data,
+      params
     })).data
   }
 

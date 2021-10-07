@@ -75,12 +75,12 @@
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
 
         <x-btn
-        	tooltip="Reload view data"
-        	outlined
-        	small
-        	text
-        	btn.class="nc-table-reload-btn"
-        	@click="reload"
+          tooltip="Reload view data"
+          outlined
+          small
+          text
+          btn.class="nc-table-reload-btn"
+          @click="reload"
         >
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
@@ -296,6 +296,7 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
+              :id="selectedViewId"
               :show-fields.sync="showFields"
               :all-columns="allColumns"
               :field-list="fieldList"

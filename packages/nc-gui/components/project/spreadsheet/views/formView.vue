@@ -376,13 +376,21 @@
                     <span class="font-weight-bold grey--text caption">Show a blank form after 5 seconds</span>
                   </template>
                 </v-switch>
-                <!--              <v-switch v-model="localParams.submit.emailMe" dense inset hide-details>
+                <v-switch
+                  v-if="localParams.emailMe"
+                  v-model="localParams.emailMe[$store.state.users.user.email]"
+                  dense
+                  inset
+                  hide-details
+                  class="nc-switch"
+                  @change="checkSMTPStatus"
+                >
                   <template #label>
                     <span class="caption font-weight-bold grey--text ">Email me at <span class="font-eright-bold">{{
                       $store.state.users.user.email
                     }}</span></span>
                   </template>
-                </v-switch>-->
+                </v-switch>
               </div>
             </div>
           </div>
@@ -405,11 +413,14 @@ import Editable from '../components/editable'
 import EditColumn from '../components/editColumn'
 import form from '../mixins/form'
 
+// todo: generate hideCols based on default values
+const hiddenCols = ['created_at', 'updated_at']
+
 export default {
   name: 'FormView',
   components: { EditColumn, Editable, EditableCell, VirtualCell, HeaderCell, VirtualHeaderCell, draggable },
   mixins: [form, validationMixin],
-  props: ['meta', 'availableColumns', 'nodes', 'sqlUi', 'formParams', 'showFields', 'fieldsOrder', 'allColumns', 'dbAlias', 'api'],
+  props: ['meta', 'availableColumns', 'nodes', 'sqlUi', 'formParams', 'showFields', 'fieldsOrder', 'allColumns', 'dbAlias', 'api', 'id'],
   data: () => ({
     localState: {},
     moved: false,
@@ -427,6 +438,9 @@ export default {
   validations() {
     const obj = { localState: {}, virtual: {} }
     for (const column of this.columns) {
+      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
+        continue
+      }
       if (!column.virtual && ((column.rqd && !column.default) || this.localParams.fields[column.alias].required)) {
         obj.localState[column._cn] = { required }
       } else if (column.bt) {
@@ -455,12 +469,12 @@ export default {
     },
     hiddenColumns: {
       get() {
-        return this.allColumns.filter(c => !this.showFields[c.alias] && !(c.pk && c.ai) && !(this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        return this.allColumns.filter(c => !this.showFields[c.alias] && !hiddenCols.includes(c.cn) && !(c.pk && c.ai) && !(this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
       }
     },
     columns: {
       get() {
-        return this.allColumns.filter(c => this.showFields[c.alias]).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
+        return this.allColumns.filter(c => this.showFields[c.alias] && !hiddenCols.includes(c.cn)).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
       },
       set(val) {
         const showFields = val.reduce((o, v) => {
@@ -499,6 +513,7 @@ export default {
       name: this.meta._tn,
       description: 'Form view description',
       submit: {},
+      emailMe: {},
       fields: {}
     }, this.localParams)
     this.availableColumns.forEach((c) => {
@@ -509,6 +524,15 @@ export default {
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
   },
   methods: {
+    async checkSMTPStatus() {
+      if (this.localParams.emailMe[this.$store.state.users.user.email]) {
+        const emailPlugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', { title: 'SMTP' }])
+        if (!emailPlugin.active) {
+          this.$set(this.localParams.emailMe, this.$store.state.users.user.email, false)
+          this.$toast.info('Please activate SMTP plugin in App store for enabling email notification').goAway(5000)
+        }
+      }
+    },
     updateCol(_, column, id) {
       this.$set(this.localState, column, id)
     },
@@ -546,20 +570,22 @@ export default {
         // }, {})
 
         // if (this.isNew) {
-        // const data =
-        const data = await this.api.insert(this.localState)
-        this.localState = { ...this.localState, ...data }
+
+        // todo: add params option in GraphQL
+        let data = await this.api.insert(this.localState, { params: { form: this.id } })
+        data = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state
         if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
           for (const vcell of this.$refs.virtual) {
             if (vcell.save) {
-              await vcell.save(this.localState)
+              await vcell.save(data)
             }
           }
         }
 
         this.virtual = {}
+        this.localState = {}
 
         this.submitted = true
 

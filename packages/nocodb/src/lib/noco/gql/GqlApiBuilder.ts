@@ -213,6 +213,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     }
 
     await this.loadHooks();
+    await this.loadFormViews();
     await this.initGraphqlRoute();
     await super.loadCommon();
 

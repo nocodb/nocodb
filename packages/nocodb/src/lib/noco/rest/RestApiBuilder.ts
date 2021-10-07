@@ -79,6 +79,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     }
 
     await this.loadHooks();
+    await this.loadFormViews();
     await super.loadCommon();
 
     const t1 = process.hrtime(t);

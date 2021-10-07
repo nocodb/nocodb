@@ -107,7 +107,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   public readonly app: T;
 
   public hooks: {
-    [key: string]: {
+    [tableName: string]: {
       [key: string]: Array<{
         event: string;
         url: string;
@@ -115,6 +115,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       }>
     }
   }
+
+  public formViews: {
+    [tableName: string]: any
+  }
+
   protected tablesCount = 0;
   protected relationsCount = 0;
   protected viewsCount = 0;
@@ -151,6 +156,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.acls = {};
     this.procedureOrFunctionAcls = {};
     this.hooks = {};
+    this.formViews = {};
     this.projectBuilder = projectBuilder;
 
   }
@@ -305,6 +311,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }, {'parent_model_title': oldTableName, type: 'vtable'})
 
     await this.loadHooks();
+    await this.loadFormViews();
 
     await this.modifyTableNameInACL(oldTableName, newTableName);
   }
@@ -1221,6 +1228,29 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
   }
 
+
+  // NOTE: xc-meta
+  public async loadFormViews(): Promise<void> {
+    this.baseLog(`loadFormViews :`);
+    this.formViews = {};
+    const formViewList = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models', {
+      condition: {
+        show_as: 'form'
+      }
+    });
+
+    for (const formView of formViewList) {
+      if (!(formView.parent_model_title in this.formViews)) {
+        this.formViews[formView.parent_model_title] = {};
+      }
+      try {
+        formView.query_params = formView.query_params && JSON.parse(formView.query_params);
+      } catch (e) {
+      }
+      this.formViews[formView.parent_model_title][formView.id] = formView;
+    }
+  }
+
   protected async generateAndSaveAcl(name: string, type = 'table'): Promise<void> {
     this.baseLog(`generateAndSaveAcl : '%s' %s`, name, type);
 
@@ -1338,7 +1368,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // todo: insert parallelly
     for (const relation of relations) {
       relation.enabled = true;
-      relation.fkn=  relation?.cstn ;
+      relation.fkn = relation?.cstn;
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_relations', {
         tn: relation.tn,
         _tn: this.getTableNameAlias(relation.tn),
@@ -1389,7 +1419,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           continue;
         }
 
-        const tableMetaA = this.  metas[meta.belongsTo[0].rtn];
+        const tableMetaA = this.metas[meta.belongsTo[0].rtn];
         const tableMetaB = this.metas[meta.belongsTo[1].rtn];
 
         /*        // remove hasmany relation with associate table from tables
@@ -1928,6 +1958,9 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     if (meta && meta.id === args.id) {
       XcCache.del([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
       // todo: update meta and model
+    }
+    if (args?.query_params?.extraViewParams?.formParams) {
+      this.formViews[args.tn][args.id].query_params = args.query_params
     }
   }
 }

@@ -634,7 +634,7 @@ export default {
       projects: 'project/list',
       tabs: 'tabs/list',
       sqldMgr: 'sqlMgr/sqlMgr',
-      GetPeningStatus: 'notification/GetPendingStatus',
+      GetPendingStatus: 'notification/GetPendingStatus',
       isAuthenticated: 'users/GtrIsAuthenticated',
       isAdmin: 'users/GtrIsAdmin',
       isDocker: 'project/GtrIsDocker',

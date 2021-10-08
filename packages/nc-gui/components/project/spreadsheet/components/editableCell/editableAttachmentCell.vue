@@ -18,13 +18,16 @@
     </div>
 
     <div class="d-flex align-center img-container">
-      <div v-for="(item,i) in localState" :key="i" class="thumbnail align-center justify-center d-flex">
+      <div
+        v-for="(item,i) in localState"
+        :key="item.url"
+        class="thumbnail align-center justify-center d-flex"
+      >
         <v-tooltip bottom>
           <template #activator="{on}">
             <!--            <img alt="#" v-if="isImage(item.title)" :src="item.url" v-on="on" @click="selectImage(item.url,i)">-->
             <v-img
               v-if="isImage(item.title)"
-              :key="item.url"
               lazy-src="https://via.placeholder.com/60.png?text=Loading..."
               alt="#"
               max-height="33px"
@@ -89,7 +92,11 @@
 
           <div class="d-flex flex-wrap h-100">
             <v-container fluid style="max-height:calc(90vh - 80px);overflow-y: auto">
-              <v-row>
+              <draggable
+                v-model="localState"
+                class="row"
+                @update="onOrderUpdate"
+              >
                 <v-col v-for="(item,i) in localState" :key="i" cols="4">
                   <v-card
                     class="modal-thumbnail-card align-center justify-center d-flex"
@@ -125,7 +132,7 @@
                     {{ item.title }}
                   </p>
                 </v-col>
-              </v-row>
+              </draggable>
             </v-container>
           </div>
         </v-card-text>
@@ -216,9 +223,12 @@
 
 <script>
 import FileSaver from 'file-saver'
+import draggable from 'vuedraggable'
 import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
+
 export default {
   name: 'EditableAttachmentCell',
+  components: { draggable },
   props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column'],
   data: () => ({
     carousel: null,
@@ -298,6 +308,10 @@ export default {
       }
 
       this.uploading = false
+      this.$emit('input', JSON.stringify(this.localState))
+      this.$emit('update')
+    },
+    onOrderUpdate() {
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
@@ -394,18 +408,19 @@ export default {
   top: 5px;
   right: 5px
 }
-.modal-thumbnail-card{
+
+.modal-thumbnail-card {
 
   .download-icon {
     position: absolute;
     bottom: 5px;
     right: 5px;
-    opacity:0;
-    transition:.4s opacity;
+    opacity: 0;
+    transition: .4s opacity;
   }
 
-  &:hover .download-icon{
-    opacity:1
+  &:hover .download-icon {
+    opacity: 1
   }
 }
 

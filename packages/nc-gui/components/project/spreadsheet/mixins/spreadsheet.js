@@ -85,6 +85,8 @@ export default {
     },
 
     allColumns() {
+      if (!this.meta) { return [] }
+
       let columns = this.meta.columns
       if (this.meta && this.meta.v) {
         columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]

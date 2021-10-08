@@ -215,7 +215,7 @@
           :style="{height:isForm ? '100%' : 'calc(100% - 36px)'}"
           style="overflow: auto;width:100%"
         >
-          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData)" type="table" />
+          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData) || !meta" type="table" />
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
               :key="key"
@@ -290,13 +290,13 @@
           </template>
           <template v-else-if="isForm">
             <form-view
+              :id="selectedViewId"
               :key="selectedViewId + viewKey"
               :nodes="nodes"
               :table="table"
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
-              :id="selectedViewId"
               :show-fields.sync="showFields"
               :all-columns="allColumns"
               :field-list="fieldList"

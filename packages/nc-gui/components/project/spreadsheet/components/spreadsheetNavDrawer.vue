@@ -9,7 +9,7 @@
     <v-container fluid class="h-100 py-0">
       <div class="d-flex flex-column h-100">
         <div class="flex-grow-1" style="overflow: auto; min-height: 350px">
-          <v-list dense>
+          <v-list v-if="viewsList && viewsList.length" dense>
             <v-list-item dense>
               <!-- Views -->
               <span class="body-2 grey--text">{{ $t('nav_drawer.title') }}</span>
@@ -17,7 +17,7 @@
             <v-list-item-group v-model="selectedViewIdLocal" mandatory color="primary">
               <v-list-item
                 v-for="(view, i) in viewsList"
-                :key="i"
+                :key="view.id"
                 dense
                 :value="view.id"
                 active-class="x-active--text"
@@ -47,10 +47,10 @@
                         <input
                           v-if="view.edit"
                           :ref="`input${i}`"
-                          v-model="view.title"
+                          v-model="view.title_temp"
                           @click.stop
-                          @keydown.enter.stop="updateViewName(view)"
-                          @blur="updateViewName(view)"
+                          @keydown.enter.stop="updateViewName(view, i)"
+                          @blur="updateViewName(view, i)"
                         >
                         <template
                           v-else
@@ -166,7 +166,12 @@
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2 nc-create-gallery-view" v-on="on" @click="openCreateViewDlg('gallery')">
+                  <v-list-item
+                    dense
+                    class="body-2 nc-create-gallery-view"
+                    v-on="on"
+                    @click="openCreateViewDlg('gallery')"
+                  >
                     <v-list-item-icon class="mr-n1">
                       <v-icon color="orange" x-small>
                         mdi-camera-image
@@ -548,37 +553,22 @@ export default {
   }),
   computed: {
     selectedViewIdLocal: {
-      get() {
-        return this.selectedViewId
+      set(val) {
+        const view = (this.viewsList || []).find(v => v.id === val)
+        this.$router.push({
+          query: {
+            ...this.$route.query,
+            view: view && (view.alias || view.title)
+          }
+        })
       },
-      set(id) {
-        const selectedView = this.viewsList && this.viewsList.find(v => v.id === id)
-        let queryParams = {}
-
-        this.$emit('update:selectedViewId', id)
-        this.$emit('update:selectedView', selectedView)
-        // if (selectedView.type === 'table') {
-        //   return;
-        // }
-        try {
-          queryParams = JSON.parse(selectedView.query_params) || {}
-        } catch (e) {
-          // console.log(e)
+      get() {
+        let id
+        if (this.viewsList) {
+          const view = this.viewsList.find(v => (v.alias ? v.alias : v.title) === this.$route.query.view)
+          id = (view && view.id) || (this.viewsList[0] && this.viewsList[0].id)
         }
-        this.$emit('update:filters', queryParams.filters || [])
-        this.$emit('update:sortList', queryParams.sortList || [])
-        this.$emit('update:fieldsOrder', queryParams.fieldsOrder || [])
-        this.$emit('update:viewStatus', queryParams.viewStatus || {})
-        this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
-        this.$emit('update:extraViewParams', queryParams.extraViewParams || {})
-        this.$emit('update:coverImageField', queryParams.coverImageField)
-        this.$emit('update:showSystemFields', queryParams.showSystemFields)
-        if (queryParams.showFields) {
-          this.$emit('update:showFields', queryParams.showFields)
-        } else {
-          this.$emit('mapFieldsAndShowFields')
-        }
-        this.$emit('loadTableData')
+        return id
       }
     }
   },
@@ -586,7 +576,11 @@ export default {
     async load(v) {
       if (v) {
         await this.loadViews()
+        this.onViewIdChange(this.selectedViewIdLocal)
       }
+    },
+    selectedViewIdLocal(id) {
+      this.onViewIdChange(id)
     }
   },
   async created() {
@@ -595,6 +589,34 @@ export default {
     }
   },
   methods: {
+    onViewIdChange(id) {
+      const selectedView = this.viewsList && this.viewsList.find(v => v.id === id)
+      let queryParams = {}
+      this.$emit('update:selectedViewId', id)
+      this.$emit('update:selectedView', selectedView)
+      // if (selectedView.type === 'table') {
+      //   return;
+      // }
+      try {
+        queryParams = JSON.parse(selectedView.query_params) || {}
+      } catch (e) {
+        // console.log(e)
+      }
+      this.$emit('update:filters', queryParams.filters || [])
+      this.$emit('update:sortList', queryParams.sortList || [])
+      this.$emit('update:fieldsOrder', queryParams.fieldsOrder || [])
+      this.$emit('update:viewStatus', queryParams.viewStatus || {})
+      this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
+      this.$emit('update:extraViewParams', queryParams.extraViewParams || {})
+      this.$emit('update:coverImageField', queryParams.coverImageField)
+      this.$emit('update:showSystemFields', queryParams.showSystemFields)
+      if (queryParams.showFields) {
+        this.$emit('update:showFields', queryParams.showFields)
+      } else {
+        this.$emit('mapFieldsAndShowFields')
+      }
+      this.$emit('loadTableData')
+    },
     hideMiniSponsorCard() {
       this.$store.commit('windows/MutMiniSponsorCard', Date.now())
     },
@@ -647,7 +669,7 @@ export default {
           tn: this.table
         }
       )
-      this.selectedViewIdLocal = this.viewsList && this.viewsList[0] && this.viewsList[0].id
+      // this.selectedViewIdLocal = this.viewsList && this.viewsList[0] && this.viewsList[0].id
     },
     // async onViewChange() {
     //   let query_params = {}
@@ -670,11 +692,26 @@ export default {
       this.$clipboard(this.currentApiUrl)
       this.clipboardSuccessHandler()
     },
-    async updateViewName(view) {
+    async updateViewName(view, index) {
+      if (view.title_temp === view.title || !view.edit) { return }
+      if (this.viewsList.some((v, i) => i !== index && (v.alias || v.title) === view.title_temp)) {
+        this.$toast.info('View name should be unique').goAway(3000)
+        this.$set(view, 'edit', false)
+        return
+      }
       try {
+        if (this.selectedViewIdLocal === view.id) {
+          this.$set(view, 'title', view.title_temp)
+          await this.$router.push({
+            query: {
+              ...this.$route.query,
+              view: view.title_temp
+            }
+          })
+        }
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
           id: view.id,
-          title: view.title,
+          title: view.title_temp,
           alias: view.alias,
           parent_model_title: this.meta._tn
         })
@@ -682,10 +719,11 @@ export default {
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
-      await this.loadViews()
+      // await this.loadViews()
     },
     showRenameTextBox(view, i) {
       this.$set(view, 'edit', true)
+      this.$set(view, 'title_temp', view.title)
       this.$nextTick(() => {
         const input = this.$refs[`input${i}`][0]
         input.focus()

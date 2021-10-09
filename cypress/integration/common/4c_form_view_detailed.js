@@ -2,6 +2,8 @@ import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
+let formViewURL
+
 const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
@@ -19,6 +21,14 @@ const genTest = (type, xcdb) => {
       cy.openTableTab('Country');
     })
 
+    beforeEach(() => {
+      cy.restoreLocalStorage();
+    })
+
+    afterEach(() => {
+      cy.saveLocalStorage();
+    })
+      
 
     // Common routine to create/edit/delete GRID & GALLERY view
     // Input: viewType - 'grid'/'gallery'
@@ -239,7 +249,7 @@ const genTest = (type, xcdb) => {
             mainPage.navigationDraw(mainPage.APPSTORE).click()
             mainPage.resetSMTP()
             cy.openTableTab('Country');
-        })        
+        })
 
         it(`Validate ${viewType}: Add/ remove field verification"`, () => {
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
@@ -253,8 +263,33 @@ const genTest = (type, xcdb) => {
             // add it back
             cy.get('.col-md-4').find('.pointer.item').contains('Country').click()
             cy.get('#data-table-form-Country').should('exist')
+        })        
+        
+        it(`Validate ${viewType}: URL verification`, () => {
+            cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
+            // verify URL & copy it for subsequent test
+            cy.url().should('contain', `&view=Country1`)
+            cy.url().then((url) => {
+                cy.log(url)
+                formViewURL = url
+            })
         })
 
+        it(`Validate ${viewType}: URL validation after re-access`, () => {
+            // visit URL
+            cy.log(formViewURL)
+            cy.visit(formViewURL)
+
+            // New form appeared? Header & description should exist
+            cy.get('.nc-form', { timeout: 10000 })
+                .find('[placeholder="Form Title"]')
+                .contains('A B C D')
+                .should('exist')
+            cy.get('.nc-form', { timeout: 10000 })
+                .find('[placeholder="Add form description"]')
+                .contains('Some description about form comes here')
+                .should('exist')
+        })
 
         it(`Delete ${viewType} view`, () => {
             // number of view entries should be 2 before we delete
@@ -285,6 +320,8 @@ const genTest = (type, xcdb) => {
     viewTest('form')
 
   })
+    
+  
 }
 
 // invoke for different API types supported

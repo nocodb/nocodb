@@ -7,7 +7,7 @@
 // commands please read more here:
 // https://on.cypress.io/custom-commands
 // ***********************************************
-//
+// @author Roman Rezinkin roman.rezinkin@hotmail.com
 //
 // -- This is a parent command --
 // Cypress.Commands.add('login', (email, password) => { ... })

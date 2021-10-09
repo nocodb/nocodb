@@ -64,7 +64,7 @@ export default {
   }),
   computed: {
     languages() {
-      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort((a, b) => order(b) - order(a))
+      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort()
     },
     language: {
       get() {

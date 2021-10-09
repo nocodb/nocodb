@@ -43,7 +43,7 @@ export default {
       es: 'Española',
       fr: 'Français',
       id: 'Bahasa Indonesia',
-      it_IT: 'Italiana',
+      it_IT: 'Italiano',
       ja: '日本語',
       ko: '한국인',
       nl: 'Nederlandse',

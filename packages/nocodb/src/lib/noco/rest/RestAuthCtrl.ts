@@ -751,13 +751,16 @@ export default class RestAuthCtrl {
       } else {
 
 
-        const roles = 'user';
+        let roles = 'user';
 
         if (!(await this.users.first())) {
           // roles = 'owner,creator,editor'
         } else {
-          // todo : opening up signup for timebeing
-          return next(new Error('Not allowed to signup, contact super admin.'));
+          if (process.env.NC_INVITE_ONLY_SIGNUP) {
+            return next(new Error('Not allowed to signup, contact super admin.'));
+          } else {
+            roles = 'user_new';
+          }
         }
 
         await this.users.insert({

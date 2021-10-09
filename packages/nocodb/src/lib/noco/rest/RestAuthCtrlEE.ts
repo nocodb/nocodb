@@ -38,6 +38,11 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
       // add user to project if user already exist
       const user = await this.users.where({email}).first();
       if (user) {
+
+        await this.users.update({
+          roles: 'user'
+        }).where({roles: 'user_new', email});
+
         if (!await this.xcMeta.isUserHaveAccessToProject(req.body.project_id, user.id)) {
           await this.xcMeta.projectAddUser(req.body.project_id, user.id, 'editor');
         }

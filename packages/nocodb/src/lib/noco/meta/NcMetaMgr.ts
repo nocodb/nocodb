@@ -144,10 +144,12 @@ export default class NcMetaMgr {
         // auth to admin
         if (this.config.auth) {
           if (this.config.auth.jwt) {
-            if (!(req?.session?.passport?.user?.roles?.creator || req?.session?.passport?.user?.roles?.editor
-              || req?.session?.passport?.user?.roles?.viewer
-              || req?.session?.passport?.user?.roles?.commenter
-              || req?.session?.passport?.user?.roles?.user
+            const roles = req?.session?.passport?.user?.roles;
+            if (!(roles?.creator || roles?.editor
+              || roles?.viewer
+              || roles?.commenter
+              || roles?.user
+              || roles?.user_new
             )) {
               return res.status(401).json({
                 msg: 'Unauthorized access : xc-auth does not have admin permission'

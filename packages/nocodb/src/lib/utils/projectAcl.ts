@@ -209,6 +209,9 @@ export default {
     'indexList': true,
     'list': true,
   },
+  user_new: {
+    projectList: true,
+  },
   user: {
     projectList: true,
     testConnection: true,

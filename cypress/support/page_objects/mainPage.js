@@ -125,6 +125,30 @@ export class _mainPage {
         let obj = JSON.parse(localStorage['vuex'])
         return obj["users"]["token"]
     }
+
+    configureSMTP = (from, host, port, secure) => {
+        cy.get('.v-card__title.title')
+            .contains('SMTP')
+            .parents('.elevatio')
+            .find('button')
+            .contains(" Install ")
+            .click({ force: true })
+        cy.getActiveModal().find('[placeholder="eg: admin@example.com"]').click().type(from)
+        cy.getActiveModal().find('[placeholder="eg: smtp.example.com"]').click().type(host)
+        cy.getActiveModal().find('[placeholder="Port"]').click().type(port)
+        cy.getActiveModal().find('[placeholder="Secure"]').click().type(secure)
+        cy.getActiveModal().find('button').contains('Save').click()        
+    }
+
+    resetSMTP = () => {
+        cy.get('.v-card__title.title')
+            .contains('SMTP')
+            .parents('.elevatio')
+            .find('button')
+            .contains(" Reset ")
+            .click({ force: true })
+        cy.getActiveModal().find('button').contains('Submit').click()    
+    }
 }
 
 

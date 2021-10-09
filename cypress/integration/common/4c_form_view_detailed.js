@@ -51,7 +51,7 @@ const genTest = (type, xcdb) => {
           
         it(`Validate ${viewType} view: Drag & drop for add/remove items`, () => {
             // default, only one item in menu-bar; ensure LastUpdate field was present in form view
-            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 1)
+            cy.get('.col-md-4').find('.pointer.item').should('not.exist')
             cy.get('.nc-field-wrapper').eq(0).contains('LastUpdate').should('exist')
             
             // drag 'LastUpdate' & drop into menu bar drag-drop box
@@ -60,14 +60,13 @@ const genTest = (type, xcdb) => {
             // validate- fields count in menu bar to be increased by 1 &&
             // first member in 'formView' is Country
             cy.get('.nc-field-wrapper').eq(0).contains('Country').should('exist')
-            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 2)
+            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 1)
         })
         
         it(`Validate ${viewType} view: Inverted order field member addition from menu`, () => {
             cy.get('.col-md-4').find('.pointer.caption').contains('remove all').click()
 
-            // click fields in inverted order: CountryId, Country, LastUpdate, Country => City
-            cy.get('.col-md-4').find('.pointer.item').eq(3).click()
+            // click fields in inverted order: Country, LastUpdate, Country => City
             cy.get('.col-md-4').find('.pointer.item').eq(2).click()
             cy.get('.col-md-4').find('.pointer.item').eq(1).click()
             cy.get('.col-md-4').find('.pointer.item').eq(0).click()
@@ -76,7 +75,6 @@ const genTest = (type, xcdb) => {
             cy.get('.nc-field-wrapper').eq(0).contains('Country => City').should('exist')
             cy.get('.nc-field-wrapper').eq(1).contains('LastUpdate').should('exist')
             cy.get('.nc-field-wrapper').eq(2).contains('Country').should('exist')
-            // hidden: cy.get('.nc-field-wrapper').eq(3).contains('CountryId').should('exist')
         })        
         
         it(`Validate ${viewType}: Form header & description validation`, () => {
@@ -98,20 +96,23 @@ const genTest = (type, xcdb) => {
             // .nc-form : form view (right hand side)
 
             // ensure buttons exist on left hand menu
-            cy.get('.col-md-4').find('.pointer.caption').contains('add all').should('exist')
+            cy.get('.col-md-4').find('.pointer.caption').contains('add all').should('not.exist')
             cy.get('.col-md-4').find('.pointer.caption').contains('remove all').should('exist')
 
             // click: remove-all
             cy.get('.col-md-4').find('.pointer.caption').contains('remove all').click()
             // form should not contain any "field remove icons" -- all fields removed
             cy.get('.nc-form').find('.nc-field-remove-icon').should('not.exist')
-            // menu bar should contain 4 .pointer.item (countryId, Country, LastUpdate, County->City)
-            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 4)
+            // menu bar should contain 3 .pointer.item (Country, LastUpdate, County->City)
+            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 3)
 
             // click: add all
+            cy.get('.col-md-4').find('.pointer.caption').contains('remove all').should('not.exist')
             cy.get('.col-md-4').find('.pointer.caption').contains('add all').click()
+            cy.get('.col-md-4').find('.pointer.caption').contains('remove all').should('exist')
             // form should contain "field remove icons"
             cy.get('.nc-form').find('.nc-field-remove-icon').should('exist')
+            // Fix me: a dummy remove icon is left over on screen
             cy.get('.nc-form').find('.nc-field-remove-icon').its('length').should('eq', 4)
             // menu bar should not contain .pointer.item (column name/ field name add options)
             cy.get('.col-md-4').find('.pointer.item').should('not.exist')
@@ -135,7 +136,7 @@ const genTest = (type, xcdb) => {
 
         it(`Validate ${viewType}: Submit default, with valid Show message entry`, () => {
             // clicking again on view name shows blank still. work around- toggling between two views
-            cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
+            // cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
 
             // fill up mandatory fields
@@ -156,7 +157,7 @@ const genTest = (type, xcdb) => {
 
         it(`Validate ${viewType}: Submit default, Enable checkbox "Submit another form`, () => {
             // clicking again on view name shows blank still. work around- toggling between two views
-            cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
+            // cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
 
             // fill up mandatory fields
@@ -211,7 +212,38 @@ const genTest = (type, xcdb) => {
             // end of test removes newly added rows from table. that step validates if row was successfully added.
         })
 
+        it(`Validate ${viewType}: Email me verification, without SMTP configuration`, () => {
+            // open formview & enable "email me" option
+            cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
+            cy.get('.nc-form > .mx-auto').find('[type="checkbox"]').eq(2).click({ force: true })
+            // validate if toaster pops up requesting to activate SMTP
+            cy.get('.toasted:visible', { timout: 6000 })
+                .contains('Please activate SMTP plugin in App store for enabling email notification')
+                .should('exist')
+        })
+
+        it(`Validate ${viewType}: Email me verification, with SMTP configuration`, () => {
+            // activate SMTP, dummy profile
+            mainPage.navigationDraw(mainPage.APPSTORE).click()
+            mainPage.configureSMTP('admin@ex.com', 'smtp.ex.com', '8080', 'TLS')
+
+            // open form view & enable "email me" option
+            cy.openTableTab('Country');
+            cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
+            cy.get('.nc-form > .mx-auto').find('[type="checkbox"]').eq(2).click({ force: true })
+            // validate if toaster pops up informing installation of email notification
+            cy.get('.toasted:visible', { timout: 6000 })
+                .contains('Successfully installed and email notification will use SMTP configuration')
+                .should('exist')
+            // reset SMPT config's
+            mainPage.navigationDraw(mainPage.APPSTORE).click()
+            mainPage.resetSMTP()
+            cy.openTableTab('Country');
+        })        
+
         it(`Validate ${viewType}: Add/ remove field verification"`, () => {
+            cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
+
             cy.get('#data-table-form-Country').should('exist')
             // remove "country field"
             cy.get('.nc-form').find('.nc-field-remove-icon').eq(1).click()
@@ -222,6 +254,7 @@ const genTest = (type, xcdb) => {
             cy.get('.col-md-4').find('.pointer.item').contains('Country').click()
             cy.get('#data-table-form-Country').should('exist')
         })
+
 
         it(`Delete ${viewType} view`, () => {
             // number of view entries should be 2 before we delete

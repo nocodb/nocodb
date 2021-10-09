@@ -38,10 +38,10 @@ export default {
       return this.abstractType === 'date' || this.column.uidt === 'Date'
     },
     isTime() {
-      return this.abstractType === 'time'
+      return this.abstractType === 'time' || this.column.uidt === 'Time'
     },
     isDateTime() {
-      return this.abstractType === 'datetime'
+      return this.abstractType === 'datetime' || this.column.uidt === 'DateTime'
     },
     isJSON() {
       return this.abstractType === 'json' || this.column.uidt === 'JSON'

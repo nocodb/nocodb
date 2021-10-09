@@ -36,7 +36,7 @@ export default class NcProjectBuilderEE extends NcProjectBuilder {
         break;
       case 'tableMetaCreate':
         // await curBuilder.onTableCreate(data.req.args.tn)
-        await curBuilder.xcTablesPopulate({tableNames: data.req.args.tableNames.map(tn => ({tn}))});
+        await curBuilder.xcTablesPopulate({tableNames: data.req.args.tableNames.map(tn => ({tn})), type:'table'});
         break;
 
       case 'viewMetaCreate':

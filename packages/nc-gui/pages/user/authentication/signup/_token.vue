@@ -195,7 +195,7 @@
             <v-row justify="center">
               <p class="text-right grey--text font-weight-light caption">
                 By signing up, you agree to
-                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/terms-of-service')"><u>Terms of service</u></span>
+                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"><u>Terms of service</u></span>
               </p> &nbsp;
 
               <div class="d-flex align-center mb-4 justify-center">

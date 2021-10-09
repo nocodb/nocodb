@@ -57,7 +57,11 @@ const IGNORE_TABLES = [
 // Base class of GQL type
 class XCType {
   constructor(o) {
-    Object.assign(this, o)
+    for (const k in o) {
+      if (!this[k]) {
+        this[k] = o[k]
+      }
+    }
   }
 }
 
@@ -89,7 +93,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   public async init(): Promise<void> {
     await super.init();
-    await this.loadResolvers(null);
+    return await this.loadResolvers(null);
   }
 
   public async onToggleModelRelation(relationInModels: any): Promise<void> {
@@ -108,7 +112,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       }
     });
 
-    for (const {meta, id, title, schema_previous} of metas) {
+    for (const {meta, id, title,
+      // schema_previous
+    } of metas) {
       const metaObj = JSON.parse(meta);
       /* filter relation where this table is present */
       const hasMany = metaObj.hasMany.filter(({enabled}) => enabled)
@@ -123,15 +129,15 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const newSchema = this.schemas[title] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
       if (oldSchema !== this.schemas[title]) {
         // keep upto 5 schema backup on table update
-        let previousSchemas = [oldSchema]
-        if (schema_previous) {
-          previousSchemas = [...JSON.parse(schema_previous), oldSchema].slice(-5);
-        }
+        // const previousSchemas = [oldSchema]
+        // if (schema_previous) {
+        //   previousSchemas = [...JSON.parse(schema_previous), oldSchema].slice(-5);
+        // }
         this.log(`onToggleModelRelation : Updating and taking backup of schema for '%s' table`, title)
 
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           schema: newSchema,
-          schema_previous: JSON.stringify(previousSchemas)
+          // schema_previous: JSON.stringify(previousSchemas)
         }, {
           id
         });
@@ -207,6 +213,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     }
 
     await this.loadHooks();
+    await this.loadFormViews();
     await this.initGraphqlRoute();
     await super.loadCommon();
 
@@ -238,7 +245,13 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     // todo: load procedure and functions
     await this.loadXcAcl();
 
-    const {metaArr, enabledModels, tableAndViewArr, functionArr, procedureArr} = await this.readXcModelsAndGroupByType();
+    const {
+      metaArr,
+      enabledModels,
+      tableAndViewArr,
+      functionArr,
+      procedureArr
+    } = await this.readXcModelsAndGroupByType();
 
 
     const procedureResolver = new GqlProcedureResolver(this, functionArr, procedureArr, this.procedureOrFunctionAcls);
@@ -286,12 +299,18 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       };
 
       this.schemas[meta.title] = meta.schema;
-      this.policies[meta.title] = resolversArr.filter(({title}) => title === meta.title).reduce((aclObj, {acl, resolver}) => {
+      this.policies[meta.title] = resolversArr.filter(({title}) => title === meta.title).reduce((aclObj, {
+        acl,
+        resolver
+      }) => {
         aclObj[resolver] = JSON.parse(acl);
         return aclObj;
       }, {});
 
-      const functions = resolversArr.filter(({title}) => title === meta.title).reduce((fnObj, {functions, resolver}) => {
+      const functions = resolversArr.filter(({title}) => title === meta.title).reduce((fnObj, {
+        functions,
+        resolver
+      }) => {
         fnObj[resolver] = JSON.parse(functions);
         return fnObj;
       }, {});
@@ -536,20 +555,32 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
 
     if (args?.tableNames?.length) {
+      const relatedTableList = []
+      // extract tables which have relation with the tables in list
+      for (const r of relations) {
+        if (args.tableNames.some(t => t.tn === r.tn)) {
+          if (!relatedTableList.includes(r.rtn)) {
+            relatedTableList.push(r.rtn)
+            await this.onTableDelete(r.rtn)
+          }
+        } else if (args.tableNames.some(t => t.tn === r.rtn)) {
+          if (!relatedTableList.includes(r.tn)) {
+            relatedTableList.push(r.tn)
+            await this.onTableDelete(r.tn)
+          }
+        }
+      }
+
       tables = args.tableNames.map(({tn, _tn}) => ({
         tn,
         _tn,
         type: args.type
       }));
+
+      tables.push(...relatedTableList.map(t => ({tn: t})))
     } else {
       tables = (await this.sqlClient.tableList())?.data?.list?.filter(({tn}) => !IGNORE_TABLES.includes(tn));
 
-      /* filter based on prefix */
-      if (this.projectBuilder?.prefix) {
-        tables = tables.filter(t => t.tn.startsWith(this.projectBuilder?.prefix))
-      }
-
-      this.tablesCount = tables.length;
       // enable extra
       // tables.push(...(await this.sqlClient.viewList())?.data?.list?.map(v => {
       //   this.viewsCount++;
@@ -605,6 +636,17 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       //   }
       // }
     }
+
+
+    /* filter based on prefix */
+    if (this.projectBuilder?.prefix) {
+      tables = tables.filter(t => {
+        t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '')
+        return t.tn.startsWith(this.projectBuilder?.prefix)
+      })
+    }
+
+    this.tablesCount = tables.length;
 
 
     if (tables.length) {
@@ -1462,7 +1504,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   public async onTableUpdate(changeObj: any): Promise<void> {
     this.log(`onTableUpdate :  '%s'`, changeObj.tn);
-    await super.onTableUpdate(changeObj, async ({ctx, meta}) => {
+    await super.onTableUpdate(changeObj, async ({ctx}) => {
 
 
       const tn = changeObj.tn;
@@ -1480,23 +1522,23 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       const oldSchema = this.schemas[tn];
       this.log(`onTableUpdate :  Populating new schema for '%s' table`, changeObj.tn);
-      meta.schema = this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(enabledModelCtx)).getString();
+      this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(enabledModelCtx)).getString();
       if (oldSchema !== this.schemas[tn]) {
         this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, changeObj.tn);
 
-        const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-          title: tn
-        });
+        // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        //   title: tn
+        // });
 
         // keep upto 5 schema backup on table update
-        let previousSchemas = [oldSchema]
-        if (oldModel.schema_previous) {
-          previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
-        }
+        // let previousSchemas = [oldSchema]
+        // if (oldModel.schema_previous) {
+        //   previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+        // }
 
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          schema: meta.schema,
-          schema_previous: JSON.stringify(previousSchemas)
+          schema: this.schemas[tn],
+          // schema_previous: JSON.stringify(previousSchemas)
         }, {
           title: tn
         });
@@ -1528,19 +1570,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
         this.log(`onViewUpdate :  Updating and taking backup of schema - '%s' view`, viewName);
 
-        const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-          title: viewName
-        });
+        // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+        //   title: viewName
+        // });
 
-        // keep upto 5 schema backup on table update
-        let previousSchemas = [oldSchema]
-        if (oldModel.schema_previous) {
-          previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
-        }
+        // // keep upto 5 schema backup on table update
+        // let previousSchemas = [oldSchema]
+        // if (oldModel.schema_previous) {
+        //   previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+        // }
 
         await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
           schema: meta.schema,
-          schema_previous: JSON.stringify(previousSchemas)
+          // schema_previous: JSON.stringify(previousSchemas)
         }, {
           title: viewName
         });
@@ -1602,19 +1644,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         const newSchemaa = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getString();
 
         if (newSchemaa !== this.schemas[tn]) {
-          const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-            title: tn
-          });
+          // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+          //   title: tn
+          // });
 
-          this.log(`onToggleModels : Updating and taking backup of schema for '%s'`, tn);
-          let previousSchemas = [this.schemas[tn]];
-          if (oldModel.schema_previous) {
-            previousSchemas = [...JSON.parse(oldModel.schema_previous), [this.schemas[tn]]].slice(-5);
-          }
+          // this.log(`onToggleModels : Updating and taking backup of schema for '%s'`, tn);
+          // let previousSchemas = [this.schemas[tn]];
+          // if (oldModel.schema_previous) {
+          //   previousSchemas = [...JSON.parse(oldModel.schema_previous), [this.schemas[tn]]].slice(-5);
+          // }
           this.schemas[tn] = newSchemaa;
           await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
             schema: this.schemas[tn],
-            schema_previous: JSON.stringify(previousSchemas)
+            // schema_previous: JSON.stringify(previousSchemas)
           }, {
             title: tn
           })
@@ -1750,7 +1792,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       }, ...Object.values(this.resolvers).map(r => r.mapResolvers(this.customResolver))]);
 
       this.log(`initGraphqlRoute : Building graphql schema`);
-      const schemaStr = mergeTypeDefs([...Object.values(this.schemas).filter(Boolean), ` ${this.customResolver?.schema || ''} \n ${commonSchema}`], {
+      const schemaStr = mergeTypeDefs([
+        ...Object.values(this.schemas).filter(Boolean),
+        ` ${this.customResolver?.schema || ''} \n ${commonSchema}`,
+        // ...this.typesWithFormulaProps
+      ], {
         commentDescriptions: true,
         forceSchemaDefinition: true,
         reverseDirectives: true,
@@ -1817,8 +1863,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     log(`${this.dbAlias} : ${str}`, ...args);
   }
 
-  public async onManyToManyRelationCreate(parent: string, child: string, args?: any) {
-    await super.onManyToManyRelationCreate(parent, child, args);
+  public async onManyToManyRelationCreate(parent: string, child: string, args?: any): Promise<Set<any>> {
+    const res = await super.onManyToManyRelationCreate(parent, child, args);
     for (const tn of [parent, child]) {
       const meta = this.metas[tn];
       const {columns, hasMany, belongsTo, manyToMany} = meta;
@@ -1865,7 +1911,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     });
 
     await this.reInitializeGraphqlEndpoint();
-
+    return res;
   }
 
   public async onManyToManyRelationDelete(parent: string, child: string, args?: any) {
@@ -1937,7 +1983,68 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   }
 
+  /*  // todo: dump it in db
+    // extending types for formula column
+    private get typesWithFormulaProps(): string[] {
+      const schemas = [];
 
+      for (const meta of Object.values(this.metas)) {
+        const props = [];
+        for (const v of meta.v) {
+          if (!v.formula) continue
+          props.push(`${v._cn}: JSON`)
+        }
+        if (props.length) {
+          schemas.push(`type ${meta._tn} {\n${props.join('\n')}\n}`)
+        }
+      }
+      return schemas;
+    }*/
+
+
+  async onMetaUpdate(tn: string): Promise<void> {
+    await super.onMetaUpdate(tn);
+    const meta = this.metas[tn];
+
+    const ctx = this.generateContextForTable(tn, meta.columns,
+      [...meta.belongsTo, meta.hasMany],
+      meta.hasMany,
+      meta.belongsTo
+    )
+
+    const oldSchema = this.schemas[tn];
+    // this.log(`onTableUpdate :  Populating new schema for '%s' table`, changeObj.tn);
+    // meta.schema =
+    this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, this.generateRendererArgs({
+      ...meta,
+      ...ctx
+    })).getString();
+    if (oldSchema !== this.schemas[tn]) {
+      // this.log(`onTableUpdate :  Updating and taking backup of schema - '%s' table`, tn);
+
+      // const oldModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
+      //   title: tn
+      // });
+
+      // // keep upto 5 schema backup on table update
+      // let previousSchemas = [oldSchema]
+      // if (oldModel.schema_previous) {
+      //   previousSchemas = [...JSON.parse(oldModel.schema_previous), oldSchema].slice(-5);
+      // }
+
+      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
+        schema: this.schemas[tn],
+        // schema_previous: JSON.stringify(previousSchemas)
+      }, {
+        title: tn,
+        type: 'table'
+      });
+
+    }
+
+
+    return this.reInitializeGraphqlEndpoint();
+  }
 }
 
 /**

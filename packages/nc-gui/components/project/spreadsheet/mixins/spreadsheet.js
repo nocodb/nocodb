@@ -72,23 +72,58 @@ export default {
         return c._cn
       })
     },
+    formulaFieldList() {
+      return this.availableColumns.reduce((arr, c) => {
+        if (c.formula) {
+          arr.push(c._cn)
+        }
+        return arr
+      }, [])
+    },
     availableRealColumns() {
       return this.availableColumns && this.availableColumns.filter(c => !c.virtual)
+    },
+
+    allColumns() {
+      if (!this.meta) { return [] }
+
+      let columns = this.meta.columns
+      if (this.meta && this.meta.v) {
+        columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
+      }
+
+      {
+        const _ref = {}
+        columns.forEach((c) => {
+          if (c.virtual && c.lk) {
+            c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+          } else {
+            c.alias = c._cn
+          }
+          if (c.alias in _ref) {
+            c.alias += _ref[c.alias]++
+          } else {
+            _ref[c.alias] = 1
+          }
+        })
+      }
+      return columns
     },
     availableColumns() {
       let columns = []
 
+      if (!this.meta) {
+        return []
+      }
       // todo: generate hideCols based on default values
       const hideCols = ['created_at', 'updated_at']
 
       if (this.showSystemFields) {
         columns = this.meta.columns || []
-      } else if (this.data && this.data.length) {
+      } else {
         columns = (this.meta.columns.filter(c => !(c.pk && c.ai) &&
           !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn)) &&
           !hideCols.includes(c.cn))) || []
-      } else {
-        columns = (this.meta && this.meta.columns && this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn))) || []
       }
 
       if (this.meta && this.meta.v) {
@@ -269,6 +304,19 @@ export default {
       },
       deep: true
     },
+    extraViewParams: {
+      handler(v) {
+        if (!this.loadingMeta || !this.loadingData) {
+          this.syncDataDebounce(this)
+        }
+      },
+      deep: true
+    },
+    coverImageField(v) {
+      if (!this.loadingMeta || !this.loadingData) {
+        this.syncDataDebounce(this)
+      }
+    },
     fieldsOrder: {
       handler(v) {
         if (!this.loadingMeta || !this.loadingData) {
@@ -276,6 +324,11 @@ export default {
         }
       },
       deep: true
+    },
+    showSystemFields(v) {
+      if (!this.loadingMeta || !this.loadingData) {
+        this.syncDataDebounce(this)
+      }
     },
     filters: {
       async handler(filter) {

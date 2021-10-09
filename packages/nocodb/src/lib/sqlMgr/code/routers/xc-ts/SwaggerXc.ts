@@ -63,11 +63,14 @@ class SwaggerXc extends BaseRender {
       [args._tn]: {
         type: 'object',
         properties: {}
+      },
+      [`${args._tn}Nested`]: {
+        type: 'object',
+        properties: {}
       }
-
     };
 
-    const properties = obj[args._tn].properties;
+    let properties = obj[args._tn].properties;
 
     for (const column of args.columns) {
       const field: any = {};
@@ -84,6 +87,35 @@ class SwaggerXc extends BaseRender {
 
       properties[column._cn] = field;
     }
+
+    properties = Object.assign(obj[`${args._tn}Nested`].properties, properties)
+    for (const column of (args.v || [])) {
+      const field: any = {};
+      field.readOnly = true;
+      let _cn = column._cn;
+
+      if (column.mm) {
+        field.type = 'array';
+        field.items = {
+          $ref: `#/definitions/${column.mm?._rtn}`
+        };
+        _cn = `${column.mm?._rtn}MMList`;
+      } else if (column.hm) {
+        field.type = 'array';
+        field.items = {
+          $ref: `#/definitions/${column.hm?._tn}`
+        };
+        field.$ref = `#/definitions/${column.hm?._tn}`
+        _cn = `${column.hm?._tn}List`;
+      } else if (column.bt) {
+        field.$ref = `#/definitions/${column.bt?._rtn}`
+        _cn = `${column.bt?._rtn}Read`;
+      }
+
+      properties[_cn] = field;
+
+    }
+
     return obj;
   }
 
@@ -146,31 +178,31 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "fields",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated fields from the model"
               },
               {
                 "in": "query",
                 "name": "bt",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated parent table names(Belongs To)"
               },
               {
                 "in": "query",
                 "name": "hm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Has Many)"
               },
               {
                 "in": "query",
                 "name": "mm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Many to Many)"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -190,7 +222,8 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "sort",
-                "description": "Comma separated sort fields",
+                "description":
+                  "Comma separated sort fields",
                 "type": "string"
               }
 
@@ -198,7 +231,16 @@ class SwaggerXc extends BaseRender {
             "responses": {
               "405": {
                 "description": "Invalid input"
-              }
+              },
+              "200": {
+                "description": "successful operation",
+                "schema": {
+                  type: "array",
+                  items: {
+                    "$ref": `#/definitions/${this.ctx._tn}Nested`
+                  }
+                }
+              },
             }
           }
         },
@@ -217,27 +259,26 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn} to return`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               },
               {
                 "in": "query",
                 "name": "bt",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated parent table names(Belongs To)"
               },
               {
                 "in": "query",
                 "name": "hm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Has Many)"
               },
               {
                 "in": "query",
                 "name": "mm",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated child table names(Many to Many)"
               },
             ],
@@ -245,7 +286,7 @@ class SwaggerXc extends BaseRender {
               "200": {
                 "description": "successful operation",
                 "schema": {
-                  "$ref": `#/definitions/${this.ctx._tn}`
+                  "$ref": `#/definitions/${this.ctx._tn}Nested`
                 }
               },
               "400": {
@@ -273,10 +314,9 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn} to return`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               },
               {
                 "in": "body",
@@ -308,10 +348,9 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn} to return`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               }
             ],
             "responses": {
@@ -445,13 +484,13 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "fields",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated fields from the model"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -503,10 +542,9 @@ class SwaggerXc extends BaseRender {
               {
                 "name": `${this.ctx._tn}Id`,
                 "in": "path",
-                "description": `ID of ${this.ctx._tn}`,
+                "description": `ID of ${this.ctx._tn} to return. In case of composite key provide keys separated by ___`,
                 "required": true,
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               }
             ],
             "responses": {
@@ -536,7 +574,7 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               }
             ],
@@ -571,13 +609,13 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -632,7 +670,7 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               }, {
                 "in": "query",
@@ -699,13 +737,13 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               },
               {
                 "in": "query",
                 "name": "where",
-                "type": "String",
+                "type": "string",
                 "description": "Where expression"
               },
               {
@@ -763,25 +801,25 @@ class SwaggerXc extends BaseRender {
               {
                 "in": "query",
                 "name": "column_name",
-                "type": "String",
+                "type": "string",
                 "description": "Column name"
               },
               {
                 "in": "query",
                 "name": "func",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated aggregate functions"
               },
               {
                 "in": "query",
                 "name": "having",
-                "type": "String",
+                "type": "string",
                 "description": "Having expression"
               },
               {
                 "in": "query",
                 "name": "fields",
-                "type": "String",
+                "type": "string",
                 "description": "Comma separated fields from the model"
               },
               {

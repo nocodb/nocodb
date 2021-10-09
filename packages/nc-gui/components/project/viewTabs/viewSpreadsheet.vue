@@ -222,7 +222,7 @@
 import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 // import Table from '@/components/project/table'
 // import EditableCell from "@/components/project/spreadsheet/editableCell";
-import { SqlUI } from '@/helpers/SqlUiFactory'
+import { SqlUI } from '@/helpers/sqlUi/SqlUiFactory'
 import FieldsMenu from '@/components/project/spreadsheet/components/fieldsMenu'
 import SortListMenu from '@/components/project/spreadsheet/components/sortListMenu'
 import ColumnFilterMenu from '@/components/project/spreadsheet/components/columnFilterMenu'

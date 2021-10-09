@@ -19,13 +19,13 @@ const projectCreateReqBody = {
       "title": "sebulba",
       "version": "0.6",
       "envs": {
-        "dev": {
+        "_noco": {
           "db": [
             dbConfig
           ], "apiClient": {"data": []}
         }
       },
-      "workingEnv": "dev",
+      "workingEnv": "_noco",
       "meta": {
         "version": "0.6",
         "seedsFolder": "seeds",
@@ -811,12 +811,12 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
 
             .set('xc-auth', token)
             .send({
-              query: `mutation{ countryUpdate( id : "${COUNTRY_ID}", data : { country: "abcd" })  } `
+              query: `mutation{ countryUpdate( id : "${COUNTRY_ID}", data : { country: "abcd" }){ country }  } `
             })
             .expect(200, function (err, res) {
               if (err) done(err);
               const data = res.body.data.countryUpdate;
-              expect(data).to.be.a('number');
+              expect(data).to.be.a('object');
               // todo:
               done();
             })

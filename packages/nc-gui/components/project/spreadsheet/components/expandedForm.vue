@@ -6,7 +6,14 @@
           <v-icon :color="iconColor">
             mdi-table-arrow-right
           </v-icon>
-          {{ table }} : {{ localState[primaryValueColumn] }}
+
+          <template v-if="meta">
+            {{ meta._tn }}
+          </template>
+          <template v-else>
+            {{ table }}
+          </template>
+          : {{ localState[primaryValueColumn] }}
         </h5>
         <v-spacer />
         <v-btn small text @click="reload">
@@ -38,7 +45,7 @@
         <v-btn small @click="$emit('cancel')">
           Cancel
         </v-btn>
-        <v-btn small color="primary" @click="save">
+        <v-btn :disabled="!_isUIAllowed('tableRowUpdate')" small color="primary" @click="save">
           Save Row
         </v-btn>
       </div>
@@ -59,6 +66,16 @@
         <v-container fluid style="height:70vh" class="py-0">
           <v-row class="h-100">
             <v-col class="h-100 px-10" style="overflow-y: auto" cols="8" :offset="isNew || !toggleDrawer ? 2 : 0">
+              <div v-if="showNextPrev" class="d-flex my-4">
+                <x-icon tooltip="Previous record" small outlined @click="$emit('prev', localState)">
+                  mdi-arrow-left-bold-outline
+                </x-icon>
+                <span class="flex-grow-1" />
+                <x-icon tooltip="Next record" small outlined @click="$emit('next', localState)">
+                  mdi-arrow-right-bold-outline
+                </x-icon>
+              </div>
+
               <template
                 v-for="(col,i) in fields"
               >
@@ -67,7 +84,7 @@
                   :key="i"
                   :class="{
                     'active-row' : active === col._cn,
-                    required: isRequired(col, localState)
+                    required: isValid(col, localState)
                   }"
                   class="row-col  my-4"
                 >
@@ -131,7 +148,7 @@
                       class="xc-input body-2"
                       :meta="meta"
                       :sql-ui="sqlUi"
-                      is-form
+                      :is-form="true"
                       @focus="active = col._cn"
                       @blur="active = ''"
                       @input="$set(changedColumns,col._cn, true)"
@@ -149,7 +166,7 @@
                 'darken-4':$vuetify.theme.dark
               }"
             >
-              <v-skeleton-loader v-if="loadingLogs" type="list-item-avatar-two-line@8" />
+              <v-skeleton-loader v-if="loadingLogs && !logs" type="list-item-avatar-two-line@8" />
 
               <v-list
                 v-else
@@ -162,13 +179,13 @@
                   'darken-4':$vuetify.theme.dark
                 }"
               >
-                <v-list-item v-for="(log,i) in logs" :key="i" class="d-flex">
+                <v-list-item v-for="log in logs" :key="log.id" class="d-flex">
                   <v-list-item-icon class="ma-0 mr-2">
                     <v-icon :color="isYou(log.user) ? 'pink lighten-2' : 'blue lighten-2'">
                       mdi-account-circle
                     </v-icon>
                   </v-list-item-icon>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1" style="min-width: 0">
                     <p class="mb-1 caption edited-text">
                       {{ isYou(log.user) ? 'You' : log.user }} {{
                         log.op_type === 'COMMENT' ? 'commented' : (
@@ -176,10 +193,8 @@
                         )
                       }}
                     </p>
-                    <p v-if="log.op_type === 'COMMENT'" class="caption mb-0">
-                      <v-chip small :color="colors[2]">
-                        {{ log.description }}
-                      </v-chip>
+                    <p v-if="log.op_type === 'COMMENT'" class="caption mb-0 nc-chip" :style="{background :colors[2]}">
+                      {{ log.description }}
                     </p>
 
                     <p v-else class="caption mb-0" style="word-break: break-all;" v-html="log.details" />
@@ -193,6 +208,13 @@
 
               <v-spacer />
               <v-divider />
+              <div class="d-flex align-center justify-center">
+                <v-switch v-model="commentsOnly" class="mt-1" dense hide-details @change="getAuditsAndComments">
+                  <template #label>
+                    <span class="caption grey--text">Comments only</span>
+                  </template>
+                </v-switch>
+              </div>
               <div class="flex-shrink-1 mt-2 d-flex pl-4">
                 <v-icon color="pink lighten-2" class="mr-2">
                   mdi-account-circle
@@ -237,9 +259,10 @@
 
 <script>
 
+import dayjs from 'dayjs'
+import form from '../mixins/form'
 import HeaderCell from '@/components/project/spreadsheet/components/headerCell'
 import EditableCell from '@/components/project/spreadsheet/components/editableCell'
-import dayjs from 'dayjs'
 import colors from '@/mixins/colors'
 import VirtualCell from '@/components/project/spreadsheet/components/virtualCell'
 import VirtualHeaderCell from '@/components/project/spreadsheet/components/virtualHeaderCell'
@@ -251,8 +274,12 @@ dayjs.extend(relativeTime)
 export default {
   name: 'ExpandedForm',
   components: { VirtualHeaderCell, VirtualCell, EditableCell, HeaderCell },
-  mixins: [colors],
+  mixins: [colors, form],
   props: {
+    showNextPrev: {
+      type: Boolean,
+      default: false
+    },
     breadcrumbs: {
       type: Array,
       default() {
@@ -261,11 +288,8 @@ export default {
     },
     dbAlias: String,
     value: Object,
-    meta: Object,
-    sqlUi: [Object, Function],
     table: String,
     primaryValueColumn: String,
-    api: [Object],
     hasMany: [Object, Array],
     belongsTo: [Object, Array],
     isNew: Boolean,
@@ -275,14 +299,7 @@ export default {
       default: 'primary'
     },
     availableColumns: [Object, Array],
-    nodes: [Object],
-    queryParams: Object,
-    disabledColumns: {
-      type: Object,
-      default() {
-        return {}
-      }
-    }
+    queryParams: Object
   },
   data: () => ({
     showborder: false,
@@ -293,7 +310,8 @@ export default {
     localState: {},
     changedColumns: {},
     comment: null,
-    showSystemFields: false
+    showSystemFields: false,
+    commentsOnly: false
   }),
   computed: {
     primaryKey() {
@@ -303,7 +321,9 @@ export default {
       return !!Object.keys(this.changedColumns).length
     },
     fields() {
-      if (this.availableColumns) { return this.availableColumns }
+      if (this.availableColumns) {
+        return this.availableColumns
+      }
 
       const hideCols = ['created_at', 'updated_at']
 
@@ -319,7 +339,7 @@ export default {
       return Object.values(this.changedColumns).some(Boolean)
     },
     localBreadcrumbs() {
-      return [...this.breadcrumbs, `${this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
+      return [...this.breadcrumbs, `${this.meta ? this.meta._tn : this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
     }
   },
   watch: {
@@ -352,16 +372,6 @@ export default {
     }
   },
   methods: {
-    isRequired(_columnObj, rowObj) {
-      let columnObj = _columnObj
-      if (columnObj.bt) {
-        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
-      }
-
-      return (columnObj.rqd &&
-        (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
-        !columnObj.default)
-    },
     updateCol(_row, _cn, pid) {
       this.$set(this.localState, _cn, pid)
       this.$set(this.changedColumns, _cn, true)
@@ -373,7 +383,8 @@ export default {
       this.loadingLogs = true
       const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.dbAlias }, 'xcModelRowAuditAndCommentList', {
         model_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___'),
-        model_name: this.meta._tn
+        model_name: this.meta._tn,
+        comments: this.commentsOnly
       }])
       this.logs = data.list
       this.loadingLogs = false
@@ -394,12 +405,17 @@ export default {
           // save hasmany and manytomany relations from local state
           if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
             for (const vcell of this.$refs.virtual) {
-              if (vcell.save) { await vcell.save(this.localState) }
+              if (vcell.save) {
+                await vcell.save(this.localState)
+              }
             }
           }
 
           await this.reload()
         } else if (Object.keys(updatedObj).length) {
+          if (!id) {
+            return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
+          }
           await this.api.update(id, updatedObj, this.oldRow)
         } else {
           return this.$toast.info('No columns to update').goAway(3000)
@@ -461,6 +477,12 @@ export default {
 
 .row-col:focus > label, .active-row > label {
   color: var(--v-primary-base);
+}
+
+.title.text-center {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 ::v-deep {
@@ -577,6 +599,11 @@ h5 {
   //justify-content: flex-end;
   background: var(--v-backgroundColorDefault-base);
 }
+
+.nc-chip{
+  padding:8px;
+  border-radius: 8px;
+}
 </style>
 <!--
 /**
@@ -584,6 +611,7 @@ h5 {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Ayush Sahu <aztrexdx@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

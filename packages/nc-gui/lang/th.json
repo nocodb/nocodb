@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "โครงการของฉัน",
+    "reload_projects_tooltip": "โครงการรีเฟรช",
+    "create_new_project_button": {
+      "text": "โครงการใหม่",
+      "subtext_1": "สร้าง",
+      "subtext_1_tooltip": "สร้างโครงการใหม่",
+      "subtext_2": "สร้างโดยเชื่อมต่อ <br> ฐานข้อมูลภายนอก",
+      "subtext_2_tooltip": "รองรับ MySQL, POSTGRESQL, SQL Server & SQLite"
+    },
+    "search_project": "ค้นหาโครงการ",
+    "import_metadata": "เมทาดานำเข้า",
+    "export_metadata": "ข้อมูลเมตาส่งออก",
+    "clear_metadata": "ข้อมูลเมตาที่ชัดเจน",
+    "stop_project": "หยุดโครงการ",
+    "start_project": "เริ่มโครงการ",
+    "restart_project": "โครงการรีสตาร์ท",
+    "delete_project": "ลบโครงการ",
+    "project_api_type_tooltip_graphql": "เข้าถึงได้ผ่าน Graphql APIs",
+    "project_api_type_tooltip_rest": "เข้าถึงได้ผ่านส่วนที่เหลือ apis",
+    "project_empty_message": "เริ่มต้นด้วยการสร้างโครงการใหม่",
+    "import_button": {
+      "text": "นำเข้าโครงการ NOCODB โดยการอัพโหลดไฟล์ zip ข้อมูลเมตา"
+    },
+    "show_community_star": "ดาว",
+    "show_community_us_on_Github": "เราใน GitHub",
+    "show_community_book_a_free_demo": "จองการสาธิตฟรี",
+    "show_community_get_your_questions_answered": "รับคำถามของคุณตอบ",
+    "show_community_join_discord": "เข้าร่วมกับความไม่ลงรอยกัน",
+    "show_community_follow_nocodb": "ติดตาม NOCODB",
+    "search": {
+      "your_search_found_no_results": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "แก้ไขโครงการ",
+        "create": "สร้างโครงการ"
+      },
+      "project_name": "ป้อนชื่อโครงการ",
+      "project_type": "เข้าถึงโครงการผ่านทาง",
+      "button": {
+        "save_project": "บันทึกโครงการ",
+        "update_and_restart": "อัปเดตและรีสตาร์ท",
+        "cancel": "ยกเลิก",
+        "cancel_tooltip": "ยกเลิกและส่งคืน"
+      },
+      "credentials": {
+        "title": "ข้อมูลรับรองฐานข้อมูล",
+        "db_type": "ประเภทฐานข้อมูล",
+        "sqlite_file": "ไฟล์ sqlite",
+        "host_address": "ที่อยู่โฮสต์",
+        "port": "หมายเลขพอร์ต",
+        "username": "ชื่อผู้ใช้",
+        "password": "รหัสผ่าน",
+        "db_create_if_not_exists": "ฐานข้อมูล: สร้างถ้าไม่มีอยู่",
+        "button": {
+          "test_db_conn": "ทดสอบการเชื่อมต่อฐานข้อมูล",
+          "remove_db_from_env": "ลบฐานข้อมูลออกจากสภาพแวดล้อม"
+        },
+        "advanced": {
+          "title": "พารามิเตอร์ SSL และขั้นสูง",
+          "ssl": {
+            "client_key": {
+              "title": "รหัสลูกค้า",
+              "toolip": "เลือก. ไฟล์. คีย์"
+            },
+            "client_cert": {
+              "title": "ใบรับรองลูกค้า",
+              "toolip": "เลือกไฟล์ .cert"
+            },
+            "server_ca": {
+              "title": "เซิร์ฟเวอร์ CA",
+              "toolip": "เลือกไฟล์ CA"
+            },
+            "preferred": "ที่ชอบ",
+            "usage": {
+              "no": "เลขที่",
+              "preferred": "ที่ชอบ",
+              "required": "ที่จำเป็น",
+              "requried_ca": "ต้องใช้ -a",
+              "requried_identity": "ข้อมูลประจำตัวที่จำเป็น"
+            }
+          },
+          "inflection": {
+            "table_name": "การผัน - ชื่อตาราง",
+            "column_name": "การผัน - ชื่อคอลัมน์"
+          },
+          "button": {
+            "edit_conn_json": "แก้ไขการเชื่อมต่อ JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "อักขระไม่ถูกต้องในเส้นทางโฟลเดอร์",
+        "invalid_db_credentials": "ข้อมูลรับรองฐานข้อมูลไม่ถูกต้อง",
+        "unable_to_connect_to_db": "ไม่สามารถเชื่อมต่อกับฐานข้อมูลโปรดตรวจสอบฐานข้อมูลของคุณขึ้น",
+        "user_doesnt_ve_sufficient_permission": "ผู้ใช้ไม่มีอยู่หรือมีสิทธิ์เพียงพอในการสร้างสคีมา"
+      },
+      "head": {
+        "title": "สร้างโครงการ | nocodb"
+      },
+      "dialog": {
+        "success": "การเชื่อมต่อสำเร็จ",
+        "failure": "การเชื่อมต่อล้มเหลว:"
+      }
+    },
+    "notifications": {
+      "no_new": "ไม่มีการแจ้งเตือนใหม่",
+      "clear": "ชัดเจน"
+    }
+  },
+  "signin": {
+    "title": "เข้าสู่ระบบ",
+    "enter_your_work_email": "ป้อนอีเมลงานของคุณ",
+    "enter_your_password": "ป้อนรหัสผ่านของคุณ",
+    "forget_password": "ลืมรหัสผ่านหรือไม่ ?",
+    "dont_ve_an_account": "ไม่มีบัญชี?",
+    "sign_up": "ลงชื่อ",
+    "form": {
+      "rules": {
+        "email_is_reqd": "จำเป็นต้องใช้อีเมล",
+        "email_must_be_valid": "อีเมลจะต้องถูกต้อง",
+        "passwd_required": "ต้องการรหัสผ่าน",
+        "passwd_must_be_8_chars": "รหัสผ่านของคุณต้องมีอักขระอย่างน้อย 8 ตัว"
+      }
+    },
+    "head": {
+      "title": "เข้าสู่ระบบ nocodb",
+      "meta": {
+        "hid": "เข้าสู่ระบบ NOCODB",
+        "name": "เข้าสู่ระบบ NOCODB",
+        "content": "เข้าสู่ระบบ NOCODB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "รีเซ็ตรหัสผ่านของคุณ",
+        "message_1": "โปรดระบุที่อยู่อีเมลที่คุณใช้เมื่อคุณสมัครใช้งาน",
+        "message_2": "เราจะส่งอีเมลพร้อมลิงค์เพื่อรีเซ็ตรหัสผ่านของคุณ",
+        "success": "โปรดตรวจสอบอีเมลของคุณเพื่อรีเซ็ตรหัสผ่าน",
+        "button": "ส่งอีเมล"
+      }
+    }
+  },
+  "signup": {
+    "title": "ลงชื่อ",
+    "you_will_be_the_super_admin": "คุณจะเป็น 'super admin'",
+    "already_ve_an_account": "มีบัญชีแล้วหรือยัง"
+  },
+  "treeview": {
+    "settings": {
+      "title": "การตั้งค่า",
+      "tooltip": "มองเห็นเฉพาะกับผู้สร้างเท่านั้น"
+    },
+    "app_store": "แอพสโตร์",
+    "team_n_auth": {
+      "title": "ทีม & Auth",
+      "tooltip": "บทบาทและผู้ใช้การจัดการ"
+    },
+    "project_metadata": {
+      "title": "ข้อมูลเมตาโครงการ",
+      "tooltip": "การจัดการ Meta"
+    },
+    "preview_as": "ดูตัวอย่างเป็น",
+    "reset_review": "รีเซ็ตดูตัวอย่าง"
+  },
+  "nav_drawer": {
+    "title": "มุมมอง",
+    "virtual_views": {
+      "action": {
+        "copy": "คัดลอกมุมมอง",
+        "rename": "เปลี่ยนชื่อดู",
+        "delete": "ลบมุมมอง"
+      },
+      "title": "สร้างมุมมอง",
+      "caption": "มองเห็นเฉพาะกับผู้สร้างเท่านั้น",
+      "grid": {
+        "title": "กริด",
+        "create": "เพิ่มมุมมองกริด"
+      },
+      "gallery": {
+        "title": "แกลลอรี่",
+        "create": "เพิ่มมุมมองแกลลอรี่"
+      },
+      "calendar": {
+        "title": "ปฏิทิน",
+        "create": "เพิ่มมุมมองปฏิทิน"
+      },
+      "kanban": {
+        "title": "ภาษาคณาตา",
+        "create": "เพิ่มมุมมอง Kanban"
+      },
+      "form": {
+        "title": "รูปร่าง",
+        "create": "เพิ่มมุมมองแบบฟอร์ม"
+      }
+    },
+    "advanced": {
+      "title1": "แบ่งปันมุมมอง",
+      "views_list": "รายการมุมมอง",
+      "copy_api_url": "คัดลอก URL API"
+    },
+    "share_view": {
+      "title": "มุมมองนี้ใช้ร่วมกันผ่านลิงค์ส่วนตัว",
+      "body": "ผู้ที่มีลิงค์ส่วนตัวสามารถเห็นเซลล์ที่มองเห็นได้ในมุมมองนี้เท่านั้น",
+      "toggle": {
+        "option1": "จำกัด การเข้าถึงด้วยรหัสผ่าน",
+        "option2": "การเข้าถึงคือรหัสผ่านที่ จำกัด"
+      },
+      "password": {
+        "caption": "ป้อนรหัสผ่าน",
+        "button": "บันทึกรหัสผ่าน"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "การจัดการผู้ใช้",
+      "api": "การจัดการโทเค็น API",
+      "roles": "การจัดการบทบาท"
+    },
+    "meta": {
+      "title": "การดำเนินงานของเมตาดาต้า",
+      "export_to_file": {
+        "title": "ส่งออกไปยังไฟล์",
+        "desc": "ส่งออกข้อมูลเมตาทั้งหมดจากตาราง META ไปยังไดเรกทอรี Meta"
+      },
+      "import": {
+        "title": "นำเข้า",
+        "desc": "นำเข้าเมตาดาต้าทั้งหมดจากไดเรกทอรี Meta ไปยังตาราง Meta"
+      },
+      "export_to_zip": {
+        "title": "ส่งออกซิป",
+        "desc": "ส่งออกโครงการเมตาเป็นไฟล์ซิปและดาวน์โหลด"
+      },
+      "import_zip": {
+        "title": "zip นำเข้า",
+        "desc": "นำเข้าโครงการ Meta Zip ของโครงการและรีสตาร์ท"
+      },
+      "reset": {
+        "title": "รีเซ็ต",
+        "desc": "ล้างข้อมูลเมตาทั้งหมดจากตาราง Meta"
+      }
+    }
+  }
+}

@@ -7,8 +7,9 @@
     :color="isDark ? '' : 'primary lighten-5'"
     @click="!readonly && active && $emit('edit',item)"
   >
-    <span class="name" :title="value">{{ value }}</span>
-    <div v-show="active" v-if="!readonly" class="mr-n1 ml-2">
+    <!--    <span class="name" :title="value">{{ value }}</span>-->
+    <slot><span class="name" :title="value">{{ value }}</span></slot>
+    <div v-show="active" v-if="!readonly && _isUIAllowed('table-remove-linked-record')" class="mr-n1 ml-2">
       <x-icon
         :color="['text' , 'textLight']"
         x-small

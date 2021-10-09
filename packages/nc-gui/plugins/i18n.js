@@ -18,12 +18,28 @@ export default ({ app, store }) => {
 
     // Associate each locale to a content file
     messages: {
-      en: require('~/static/lang/en.json'),
-      zh: require('~/static/lang/zh.json'),
-      // ja: require("~/static/lang/ja.json"),
-      fr: require('~/static/lang/fr.json'),
-      es: require('~/static/lang/es.json'),
-      pt: require('~/static/lang/pt.json')
+      en: require('~/lang/en.json'),
+      zh_HK: require('~/lang/zh_HK.json'),
+      zh_TW: require('~/lang/zh_TW.json'),
+      zh_CN: require('~/lang/zh_CN.json'),
+      ja: require('~/lang/ja.json'),
+      fr: require('~/lang/fr.json'),
+      es: require('~/lang/es.json'),
+      de: require('~/lang/de.json'),
+      id: require('~/lang/id.json'),
+      it_IT: require('~/lang/it_IT.json'),
+      ko: require('~/lang/ko.json'),
+      nl: require('~/lang/nl.json'),
+      ru: require('~/lang/ru.json'),
+      sv: require('~/lang/sv.json'),
+      da: require('~/lang/da.json'),
+      vi: require('~/lang/vi.json'),
+      no: require('~/lang/no.json'),
+      iw: require('~/lang/iw.json'),
+      fi: require('~/lang/fi.json'),
+      uk: require('~/lang/uk.json'),
+      hr: require('~/lang/hr.json'),
+      th: require('~/lang/th.json')
     }
   })
 

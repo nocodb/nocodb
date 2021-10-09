@@ -671,7 +671,7 @@ export default {
         title: '',
         folder: homeDir,
         envs: {
-          dev: {
+          _noco: {
             db: [
               {
                 client: 'pg',
@@ -715,10 +715,10 @@ export default {
             }
           }
         },
-        workingEnv: 'dev',
+        workingEnv: '_noco',
         ui: {
           envs: {
-            dev: {}
+            _noco: {}
 
           }
         },
@@ -1031,7 +1031,7 @@ export default {
 
       p.ui = {
         envs: {
-          dev: {}
+          _noco: {}
         }
       }
       for (const env in p.envs) {
@@ -1306,7 +1306,7 @@ export default {
       console.log(this.project.envs[env][0])
       if (db.connection.host === 'localhost' &&
         !this.edit &&
-        env === 'dev' &&
+        env === '_noco' &&
         this.project.envs[env].db.length === 1 &&
         this.project.envs[env].db[0].connection.user === 'postgres' &&
         this.project.envs[env].db[0].connection.database === `${this.project.title}_${env}_${this.project.envs[env].length}`) {

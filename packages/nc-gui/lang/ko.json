@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "내 프로젝트",
+    "reload_projects_tooltip": "프로젝트 새로 고침",
+    "create_new_project_button": {
+      "text": "새로운 과제",
+      "subtext_1": "창조하다",
+      "subtext_1_tooltip": "새 프로젝트를 만듭니다",
+      "subtext_2": "외부 데이터베이스에 <br>을 연결하여 작성하십시오",
+      "subtext_2_tooltip": "MySQL, PostgreSQL, SQL Server 및 SQLite를 지원합니다"
+    },
+    "search_project": "검색 프로젝트",
+    "import_metadata": "메타 데이터 가져 오기",
+    "export_metadata": "수출 메타 데이터",
+    "clear_metadata": "메타 데이터 지우기",
+    "stop_project": "프로젝트 중지",
+    "start_project": "프로젝트 시작",
+    "restart_project": "프로젝트를 다시 시작하십시오",
+    "delete_project": "프로젝트 삭제",
+    "project_api_type_tooltip_graphql": "Graphql Apis를 통해 액세스 가능",
+    "project_api_type_tooltip_rest": "REST API를 통해 액세스 가능",
+    "project_empty_message": "새 프로젝트를 만들어 시작하십시오",
+    "import_button": {
+      "text": "메타 데이터 zip 파일을 업로드하여 NoCodB 프로젝트를 가져옵니다"
+    },
+    "show_community_star": "별",
+    "show_community_us_on_Github": "우리는 github에 있습니다",
+    "show_community_book_a_free_demo": "무료 데모를 예약하십시오",
+    "show_community_get_your_questions_answered": "귀하의 질문에 답변 해주십시오",
+    "show_community_join_discord": "불화에 합류하십시오",
+    "show_community_follow_nocodb": "nocodb을 따르십시오",
+    "search": {
+      "your_search_found_no_results": "{검색} 검색 결과가 없습니다"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "프로젝트 편집",
+        "create": "프로젝트 만들기"
+      },
+      "project_name": "프로젝트 이름을 입력하십시오",
+      "project_type": "프로젝트 비아에 액세스하십시오",
+      "button": {
+        "save_project": "프로젝트를 저장하다",
+        "update_and_restart": "업데이트 및 다시 시작",
+        "cancel": "취소",
+        "cancel_tooltip": "취소 및 반품"
+      },
+      "credentials": {
+        "title": "데이터베이스 자격 증명",
+        "db_type": "데이터베이스 유형",
+        "sqlite_file": "SQLite 파일",
+        "host_address": "호스트 주소",
+        "port": "포트 번호",
+        "username": "사용자 이름",
+        "password": "비밀번호",
+        "db_create_if_not_exists": "데이터베이스 : 존재하지 않는 경우 생성",
+        "button": {
+          "test_db_conn": "데이터베이스 연결 테스트",
+          "remove_db_from_env": "환경에서 데이터베이스를 제거하십시오"
+        },
+        "advanced": {
+          "title": "SSL 및 고급 매개 변수",
+          "ssl": {
+            "client_key": {
+              "title": "클라이언트 키",
+              "toolip": "키 파일을 선택하십시오"
+            },
+            "client_cert": {
+              "title": "클라이언트 Cert.",
+              "toolip": ".cert 파일을 선택하십시오"
+            },
+            "server_ca": {
+              "title": "서버 CA.",
+              "toolip": "CA 파일을 선택하십시오"
+            },
+            "preferred": "우선의",
+            "usage": {
+              "no": "아니요",
+              "preferred": "우선의",
+              "required": "필수의",
+              "requried_ca": "필수 -",
+              "requried_identity": "필수 - 신원"
+            }
+          },
+          "inflection": {
+            "table_name": "굴절 - 표 이름",
+            "column_name": "굴절 - 열 이름"
+          },
+          "button": {
+            "edit_conn_json": "연결 편집 JSON."
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "폴더 경로에 문자가 잘못되었습니다.",
+        "invalid_db_credentials": "잘못된 데이터베이스 자격 증명.",
+        "unable_to_connect_to_db": "데이터베이스에 연결할 수 없으므로 데이터베이스가 작동을 확인하십시오.",
+        "user_doesnt_ve_sufficient_permission": "사용자가 존재하지 않거나 스키마를 만들 수있는 충분한 권한이 있습니다."
+      },
+      "head": {
+        "title": "프로젝트 만들기 | nocodb."
+      },
+      "dialog": {
+        "success": "연결이 성공했습니다",
+        "failure": "연결 실패 :"
+      }
+    },
+    "notifications": {
+      "no_new": "새로운 알림 없음",
+      "clear": "분명한"
+    }
+  },
+  "signin": {
+    "title": "로그인",
+    "enter_your_work_email": "작업 이메일을 입력하십시오",
+    "enter_your_password": "암호를 입력하십시오",
+    "forget_password": "비밀번호를 잊어 버렸습니까 ?",
+    "dont_ve_an_account": "계정이 없습니까?",
+    "sign_up": "가입하기",
+    "form": {
+      "rules": {
+        "email_is_reqd": "전자 메일이 필요합니다",
+        "email_must_be_valid": "전자 메일이 유효해야합니다",
+        "passwd_required": "암호가 필요합니다",
+        "passwd_must_be_8_chars": "암호는 적어도 8 자 여야합니다"
+      }
+    },
+    "head": {
+      "title": "로그인 | nocodb.",
+      "meta": {
+        "hid": "Nocodb에 로그인하십시오",
+        "name": "Nocodb에 로그인하십시오",
+        "content": "Nocodb에 로그인하십시오"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "비밀번호를 재설정",
+        "message_1": "가입 할 때 사용한 이메일 주소를 입력하십시오.",
+        "message_2": "암호를 재설정 할 링크가있는 이메일을 보내 드리겠습니다.",
+        "success": "이메일을 확인하여 암호를 재설정하십시오",
+        "button": "이메일을 보내"
+      }
+    }
+  },
+  "signup": {
+    "title": "가입하기",
+    "you_will_be_the_super_admin": "당신은 '슈퍼 관리자'가 될 것입니다.",
+    "already_ve_an_account": "이미 계정이 있습니까?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "설정",
+      "tooltip": "창조자에게만 표시됩니다"
+    },
+    "app_store": "앱 스토어",
+    "team_n_auth": {
+      "title": "팀 및 인증",
+      "tooltip": "역할 및 사용자 관리"
+    },
+    "project_metadata": {
+      "title": "프로젝트 메타 데이터",
+      "tooltip": "메타 관리"
+    },
+    "preview_as": "미리보기",
+    "reset_review": "미리보기 재설정"
+  },
+  "nav_drawer": {
+    "title": "견해",
+    "virtual_views": {
+      "action": {
+        "copy": "보기를 복사하십시오",
+        "rename": "보기 이름 바꾸기",
+        "delete": "삭제보기"
+      },
+      "title": "보기를 만드십시오",
+      "caption": "창조자에게만 표시됩니다",
+      "grid": {
+        "title": "그리드",
+        "create": "그리드보기를 추가하십시오"
+      },
+      "gallery": {
+        "title": "갤러리",
+        "create": "갤러리보기를 추가하십시오"
+      },
+      "calendar": {
+        "title": "달력",
+        "create": "달력보기를 추가하십시오"
+      },
+      "kanban": {
+        "title": "칸반",
+        "create": "Kanban보기를 추가하십시오"
+      },
+      "form": {
+        "title": "형태",
+        "create": "양식보기를 추가하십시오"
+      }
+    },
+    "advanced": {
+      "title1": "쇼보기",
+      "views_list": "보기 목록",
+      "copy_api_url": "복사 API URL."
+    },
+    "share_view": {
+      "title": "이보기는 개인 링크를 통해 공유됩니다",
+      "body": "개인 링크가있는 사람들은이보기에서 볼 수있는 셀만 볼 수 있습니다.",
+      "toggle": {
+        "option1": "암호로 액세스를 제한하십시오",
+        "option2": "액세스는 암호가 제한됩니다"
+      },
+      "password": {
+        "caption": "암호를 입력하십시오",
+        "button": "암호 저장"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "사용자 관리",
+      "api": "API 토큰 관리",
+      "roles": "역할 관리"
+    },
+    "meta": {
+      "title": "메타 데이터 작업",
+      "export_to_file": {
+        "title": "파일로 내보내기",
+        "desc": "메타 테이블에서 Meta 디렉토리로 모든 메타 데이터를 내 보냅니다."
+      },
+      "import": {
+        "title": "수입",
+        "desc": "모든 메타 데이터를 메타 디렉토리에서 메타 테이블로 가져옵니다."
+      },
+      "export_to_zip": {
+        "title": "수출 지퍼",
+        "desc": "프로젝트 메타를 zip 파일로 내보내고 다운로드하십시오."
+      },
+      "import_zip": {
+        "title": "가져 오기 우편 번호",
+        "desc": "프로젝트 메타 zip 파일을 가져 와서 다시 시작하십시오."
+      },
+      "reset": {
+        "title": "초기화",
+        "desc": "메타 테이블에서 모든 메타 데이터를 지우십시오."
+      }
+    }
+  }
+}

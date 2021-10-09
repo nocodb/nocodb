@@ -2,11 +2,11 @@
   <div>
     <table
       v-if="data"
-      class="xc-row-table"
+      class="xc-row-table nc-grid"
       style=" "
     >
       <thead>
-        <tr class="text-left">
+        <tr class="text-left nc-grid-header-row">
           <th
             class="grey-border caption"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4 grey--text text--darken-2'"
@@ -19,7 +19,7 @@
             v-show="showFields[col.alias]"
             :key="col.alias"
             v-xc-ver-resize
-            class="grey-border caption font-wight-regular"
+            class="grey-border caption font-wight-regular  nc-grid-header-cell"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
             :data-col="col.alias"
             @xcresize="onresize(col.alias,$event)"
@@ -27,13 +27,16 @@
             @xcresized="resizingCol = null"
           >
             <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
-    -->
+-->
 
             <virtual-header-cell
               v-if="col.virtual"
               :column="col"
               :nodes="nodes"
               :meta="meta"
+              :sql-ui="sqlUi"
+              :is-public-view="isPublicView"
+              :is-locked="isLocked"
               @saved="onNewColCreation"
             />
 
@@ -48,6 +51,7 @@
               :is-foreign-key="col._cn in belongsTo || col._cn in hasMany"
               :column="col"
               :is-virtual="isVirtual"
+              :is-locked="isLocked"
               @onRelationDelete="$emit('onRelationDelete')"
               @saved="onNewColCreation"
             />
@@ -56,7 +60,7 @@
           <th
             v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
-            class="grey-border new-column-header pointer"
+            class="grey-border new-column-header pointer  nc-grid-header-cell"
             @click="addNewColMenu = true"
           >
             <v-menu
@@ -87,10 +91,11 @@
         <tr
           v-for="({row:rowObj, rowMeta},row) in data"
           :key="row"
+          class=" nc-grid-row"
         >
           <td
             style="width: 65px"
-            class="caption"
+            class="caption nc-grid-cell"
             @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row)"
           >
             <div class="d-flex align-center">
@@ -109,10 +114,10 @@
                 />
                 <v-spacer />
                 <v-icon
-                  v-if="!groupedAggCount[ids[row]]"
+                  v-if="!groupedAggCount[ids[row]] && !isLocked"
                   color="pink"
                   small
-                  class="row-expand-icon mr-1 pointer"
+                  class="row-expand-icon nc-row-expand-icon  mr-1 pointer"
                   @click="expandRow(row,rowMeta)"
                 >
                   mdi-arrow-expand
@@ -132,20 +137,21 @@
             v-for="(columnObj,col) in availableColumns"
             v-show="showFields[columnObj.alias]"
             :key="row + columnObj.alias"
-            class="cell pointer"
+            class="cell pointer nc-grid-cell"
             :class="{
-              'active' : !isPublicView && selected.col === col && selected.row === row && isEditable ,
+              'active' :!isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,
               'text-center': isCentrallyAligned(columnObj),
               'required': isRequired(columnObj,rowObj)
             }"
             :data-col="columnObj.alias"
-            @dblclick="makeEditable(col,row,columnObj.ai)"
+            @dblclick="makeEditable(col,row,columnObj.ai,rowMeta)"
             @click="makeSelected(col,row);"
             @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row,col, columnObj)"
           >
             <virtual-cell
               v-if="columnObj.virtual"
+              :is-locked="isLocked"
               :column="columnObj"
               :row="rowObj"
               :nodes="nodes"
@@ -160,7 +166,8 @@
 
             <editable-cell
               v-else-if="
-                !isLocked
+                (isPkAvail ||rowMeta.new) &&
+                  !isLocked
                   && !isPublicView
                   && (editEnabled.col === col && editEnabled.row === row)
                   || enableEditable(columnObj)
@@ -171,6 +178,7 @@
               :active="selected.col === col && selected.row === row"
               :sql-ui="sqlUi"
               :db-alias="nodes.dbAlias"
+              :is-locked="isLocked"
               @save="editEnabled = {}"
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj)"
@@ -188,12 +196,12 @@
               :db-alias="nodes.dbAlias"
               :value="rowObj[columnObj._cn]"
               :sql-ui="sqlUi"
-              @enableedit="makeSelected(col,row);makeEditable(col,row,columnObj.ai)"
+              @enableedit="makeSelected(col,row);makeEditable(col,row,columnObj.ai, rowMeta)"
             />
           </td>
         </tr>
-        <tr v-if="!isLocked && !isPublicView && isEditable && relationType !== 'bt'">
-          <td :colspan="visibleColLength + 1" class="text-left pointer" @click="insertNewRow(true)">
+        <tr v-if="isPkAvail && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
+          <td :colspan="visibleColLength + 1" class="text-left pointer nc-grid-add-new-cell" @click="insertNewRow(true)">
             <v-tooltip top>
               <template #activator="{on}">
                 <v-icon small color="pink" v-on="on">
@@ -212,22 +220,24 @@
     <!--    <div is="style" v-html="resizeColStyle" />-->
     <dynamic-style>
       <template v-if="resizingCol">
-        [data-col="{{ resizingCol }}"]{min-width:{{ resizingColWidth }};max-width:{{ resizingColWidth }};width:{{ resizingColWidth }};}
+        [data-col="{{ resizingCol }}"]{min-width:{{ resizingColWidth }};max-width:{{
+          resizingColWidth
+        }};width:{{ resizingColWidth }};}
       </template>
     </dynamic-style>
   </div>
 </template>
 
 <script>
-import DynamicStyle from '@/components/dynamicStyle'
-import HeaderCell from '@/components/project/spreadsheet/components/headerCell'
-import EditableCell from '@/components/project/spreadsheet/components/editableCell'
-import EditColumn from '@/components/project/spreadsheet/components/editColumn'
-import TableCell from '@/components/project/spreadsheet/components/cell'
+import HeaderCell from '../components/headerCell'
+import EditableCell from '../components/editableCell'
+import EditColumn from '../components/editColumn'
+import columnStyling from '../helpers/columnStyling'
+import VirtualCell from '../components/virtualCell'
+import VirtualHeaderCell from '../components/virtualHeaderCell'
 import colors from '@/mixins/colors'
-import columnStyling from '@/components/project/spreadsheet/helpers/columnStyling'
-import VirtualCell from '@/components/project/spreadsheet/components/virtualCell'
-import VirtualHeaderCell from '@/components/project/spreadsheet/components/virtualHeaderCell'
+import TableCell from '@/components/project/spreadsheet/components/cell'
+import DynamicStyle from '@/components/dynamicStyle'
 
 export default {
   name: 'XcGridView',
@@ -259,7 +269,8 @@ export default {
     table: String,
     isVirtual: Boolean,
     isLocked: Boolean,
-    columnsWidth: { type: Object }
+    columnsWidth: { type: Object },
+    isPkAvail: Boolean
   },
   data: () => ({
     resizingCol: null,
@@ -424,6 +435,10 @@ export default {
             return
           }
           if (e.key && e.key.length === 1) {
+            if (!this.isPkAvail && !this.data[this.selected.row].rowMeta.new) {
+              return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
+            }
+
             this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, '')
             this.editEnabled = { ...this.selected }
           }
@@ -464,9 +479,13 @@ export default {
         this.editEnabled = {}
       }
     },
-    makeEditable(col, row) {
+    makeEditable(col, row, _, rowMeta) {
       if (this.isPublicView || !this.isEditable) {
         return
+      }
+
+      if (!this.isPkAvail && !rowMeta.new) {
+        return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
       }
       if (this.availableColumns[col].ai) {
         return this.$toast.info('Auto Increment field is not editable').goAway(3000)

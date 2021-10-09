@@ -383,6 +383,10 @@ td .v-input--selection-controls {
   height: 100%;
 }
 
+.scroll-auto{
+  overflow: auto;
+}
+
 
 .xc-tabs .v-tabs-bar {
   border-bottom: solid 1px var(--v-primary-lighten2);

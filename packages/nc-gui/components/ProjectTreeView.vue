@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
+  <div style="height: 100%" class="nc-tree-view" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
     <!--    :expand-on-hover="mini"-->
     <v-navigation-drawer
       ref="drawer"
@@ -8,7 +8,7 @@
       mini-variant-width="50"
       :mini-variant.sync="mini"
       mini
-      class="pl-2"
+      class="pl-2 nc-nav-drawer"
       style="min-width: 100%; height: 100%"
     >
       <div class="h-100 d-flex flex-column">
@@ -45,7 +45,7 @@
           <v-treeview
             v-else-if="isTreeView"
             v-model="tree"
-            class="mt-5 project-tree"
+            class="mt-5 project-tree nc-project-tree"
             dense
             :open.sync="open"
             :active.sync="active"
@@ -109,7 +109,7 @@
             </template>
           </v-treeview>
           <v-container v-else fluid class="px-1">
-            <v-list dense expand>
+            <v-list dense expand class="nc-project-tree nc-single-env-project-tree">
               <template v-for="item in listViewArr">
                 <!--                   v-if="item.children && item.children.length"-->
                 <v-list-group
@@ -286,6 +286,7 @@
                   :value="`${(item._nodes && item._nodes).type || ''}||${
                     (item._nodes && item._nodes.dbAlias) || ''
                   }||${item.name}`"
+                  :class="`nc-treeview-item-${item.name}`"
                   @click.stop="addTab({ ...item }, false, false)"
                   @contextmenu.prevent="showCTXMenu($event, item, false, false)"
                 >
@@ -348,7 +349,7 @@
             <v-list-item>
               <v-list-item-title>
                 <!-- Settings -->
-                <span class="body-2 grey--text">{{ $t('treeview.settings') }}</span>
+                <span class="body-2 grey--text">{{ $t('treeview.settings.title') }}</span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
@@ -401,7 +402,7 @@
                     <!-- Team & Auth -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.team_n_auth')
+                        $t('treeview.team_n_auth.title')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
@@ -420,7 +421,7 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.project_metadata')
+                        $t('treeview.project_metadata.title')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
@@ -836,7 +837,7 @@ export default {
       } else {
         console.log('add app store tab');
         let item = { name: 'App Store', key: `appStore` };
-        item._nodes = { env: 'dev' };
+        item._nodes = { env: '_noco' };
         item._nodes.type = 'appStore';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
@@ -872,7 +873,7 @@ export default {
       } else {
         console.log('add roles tab');
         let item = { name: 'Team & Auth ', key: `roles` };
-        item._nodes = { env: 'dev' };
+        item._nodes = { env: '_noco' };
         item._nodes.type = 'roles';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
@@ -884,7 +885,7 @@ export default {
       } else {
         console.log('add acl tab');
         let item = { name: 'Meta Management', key: `disableOrEnableModel` };
-        item._nodes = { env: 'dev' };
+        item._nodes = { env: '_noco' };
         item._nodes.type = 'disableOrEnableModel';
         this.$store.dispatch('tabs/ActAddTab', item);
       }

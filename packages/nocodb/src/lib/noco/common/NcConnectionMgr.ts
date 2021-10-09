@@ -5,6 +5,7 @@ import Knex from "knex";
 
 import {SqlClientFactory} from 'nc-help';
 import NcMetaIO from "../meta/NcMetaIO";
+import {defaultConnectionConfig} from "../../utils/NcConfigFactory";
 
 export default class NcConnectionMgr {
   private static connectionRefs: {
@@ -21,9 +22,30 @@ export default class NcConnectionMgr {
     this.metaKnex = ncMeta;
   }
 
+  public static delete({
+                         dbAlias = 'db',
+                         env = '_noco',
+                         projectId
+                       }: {
+    dbAlias: string,
+    env: string,
+    projectId: string
+  }) {
+    // todo: ignore meta projects
+    if (this.connectionRefs?.[projectId]?.[env]?.[dbAlias]) {
+      try {
+        const conn = this.connectionRefs[projectId][env][dbAlias];
+        conn.destroy();
+        delete this.connectionRefs[projectId][env][dbAlias];
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
+
   public static get({
                       dbAlias = 'db',
-                      env = 'dev',
+                      env = '_noco',
                       config,
                       projectId
                     }: {
@@ -60,13 +82,18 @@ export default class NcConnectionMgr {
         }
       }
 
-      const isSqlite = connectionConfig.client === 'sqlite3';
+      const isSqlite = connectionConfig?.client === 'sqlite3';
+
+      if (connectionConfig?.connection?.port) {
+        connectionConfig.connection.port = +connectionConfig.connection.port
+      }
 
       this.connectionRefs[projectId][env][dbAlias] = XKnex(isSqlite ?
         connectionConfig.connection as Knex.Config :
         {
           ...connectionConfig,
           connection: {
+            ...defaultConnectionConfig,
             ...connectionConfig.connection,
             typeCast(_field, next) {
               const res = next();
@@ -93,7 +120,7 @@ export default class NcConnectionMgr {
   public static getSqlClient({
                                projectId,
                                dbAlias = 'db',
-                               env = 'dev',
+                               env = '_noco',
                                config
                              }: {
     dbAlias: string,

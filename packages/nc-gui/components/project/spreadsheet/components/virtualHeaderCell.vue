@@ -11,6 +11,9 @@
         <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
           mdi-table-network
         </v-icon>
+        <v-icon v-else-if="column.formula" x-small class="mr-1" v-on="on">
+          mdi-math-integral
+        </v-icon>
         <template v-else-if="column.lk">
           <v-icon v-if="column.lk.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
@@ -22,25 +25,40 @@
             mdi-table-column-plus-before
           </v-icon>
         </template>
-
-        <span class="name  flex-grow-1" :title="column._cn" v-on="on" v-html="alias">
-
-          <span v-if="column.rqd" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
+        <template v-else-if="column.rl">
+          <v-icon v-if="column.rl.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+            {{ rollupIcon }}
+          </v-icon>
+          <v-icon v-else-if="column.rl.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+            {{ rollupIcon }}
+          </v-icon>
+          <v-icon v-else-if="column.rl.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+            {{ rollupIcon }}
+          </v-icon>
+        </template>
+        <span v-on="on">
+          <span class="name  flex-grow-1" style="white-space: pre-wrap" :title="column._cn" v-html="alias" />
+          <span v-if="column.rqd || required" class="error--text text--lighten-1">&nbsp;*</span>
         </span>
       </template>
       <span class="caption" v-html="tooltipMsg" />
     </v-tooltip>
     <v-spacer />
 
-    <v-menu offset-y open-on-hover left>
+    <v-menu
+      v-if="!isLocked && !isPublicView && _isUIAllowed('edit-column') && !isForm"
+      offset-y
+      open-on-hover
+      left
+    >
       <template #activator="{on}">
-        <v-icon v-if="!isForm" small v-on="on">
+        <v-icon v-if="!isLocked && !isForm" small v-on="on">
           mdi-menu-down
         </v-icon>
       </template>
       <v-list dense>
         <v-list-item v-if="!column.lk" dense @click="editColumnMenu = true">
-          <x-icon small class="mr-1" color="primary">
+          <x-icon small class="mr-1 nc-column-edit" color="primary">
             mdi-pencil
           </x-icon>
           <span class="caption">Edit</span>
@@ -55,7 +73,7 @@
             </v-tooltip>
           </v-list-item> -->
         <v-list-item @click="columnDeleteDialog = true">
-          <x-icon small class="mr-1" color="error">
+          <x-icon small class="mr-1 nc-column-delete" color="error">
             mdi-delete-outline
           </x-icon>
           <span class="caption">Delete</span>
@@ -75,7 +93,7 @@
         <v-divider />
         <v-card-text class="mt-4 title">
           Do you want to delete <span class="font-weight-bold">'{{
-            column.cn
+            column._cn
           }}'</span> column ?
         </v-card-text>
         <v-divider />
@@ -102,21 +120,24 @@
         :edit-column="true"
         :column="column"
         :meta="meta"
+        :sql-ui="sqlUi"
         v-on="$listeners"
       />
     </v-menu>
   </div>
 </template>
 <script>
+import { getUIDTIcon } from '../helpers/uiTypes'
 import EditVirtualColumn from '@/components/project/spreadsheet/components/editVirtualColumn'
 
 export default {
   name: 'VirtualHeaderCell',
   components: { EditVirtualColumn },
-  props: ['column', 'nodes', 'meta', 'isForm'],
+  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi', 'required', 'isLocked'],
   data: () => ({
     columnDeleteDialog: false,
-    editColumnMenu: false
+    editColumnMenu: false,
+    rollupIcon: getUIDTIcon('Rollup')
   }),
   computed: {
     alias() {
@@ -194,6 +215,10 @@ export default {
         return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
       } else if (this.column.lk) {
         return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
+      } else if (this.column.formula) {
+        return `Formula - ${this.column.formula.value}`
+      } else if (this.column.rl) {
+        return `${this.column.rl.fn} of ${this.column.rl._rlcn} (${this.column.rl._rltn})`
       }
       return ''
     }
@@ -247,9 +272,64 @@ export default {
         console.log(e)
       }
     },
+    async deleteFormulaColumn() {
+      try {
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.nodes.dbAlias,
+          env: this.nodes.env,
+          tn: this.meta.tn,
+          force: true
+        })
+        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
+        // remove formula from virtual columns
+        meta.v = meta.v.filter(cl => !cl.formula || cl._cn !== this.column._cn)
+
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcModelSet', {
+          tn: this.nodes.tn,
+          meta
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    async deleteRollupColumn() {
+      try {
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          dbAlias: this.nodes.dbAlias,
+          env: this.nodes.env,
+          tn: this.meta.tn,
+          force: true
+        })
+        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
+
+        // remove rollup from virtual columns
+        meta.v = meta.v.filter(cl => !cl.rl || cl._cn !== this.column._cn)
+
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias
+        }, 'xcModelSet', {
+          tn: this.nodes.tn,
+          meta
+        }])
+        this.$emit('saved')
+        this.columnDeleteDialog = false
+      } catch (e) {
+        console.log(e)
+      }
+    },
     async deleteColumn() {
       if (this.column.lk) {
         await this.deleteLookupColumn()
+      } else if (this.column.formula) {
+        await this.deleteFormulaColumn()
+      } else if (this.column.rl) {
+        await this.deleteRollupColumn()
       } else {
         await this.deleteRelation()
       }

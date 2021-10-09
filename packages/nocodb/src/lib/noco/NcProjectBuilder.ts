@@ -21,7 +21,7 @@ export default class NcProjectBuilder {
   public readonly description: string;
   public readonly router: Router;
   public readonly apiBuilders: Array<RestApiBuilder | GqlApiBuilder> = [];
-  public readonly config: any;
+  private _config: any;
 
   protected startTime;
   protected app: Noco;
@@ -38,7 +38,7 @@ export default class NcProjectBuilder {
       this.id = project.id;
       this.title = project.title;
       this.description = project.description;
-      this.config = {...this.appConfig, ...JSON.parse(project.config)};
+      this._config = {...this.appConfig, ...JSON.parse(project.config)};
       this.router = Router();
     }
   }
@@ -150,6 +150,9 @@ export default class NcProjectBuilder {
       case 'xcVirtualTableUpdate':
         await curBuilder.onVirtualTableUpdate(data.req.args);
         break;
+      case 'xcVirtualTableCreate':
+        await curBuilder.loadFormViews();
+        break;
 
 
       case 'tableCreate':
@@ -229,7 +232,7 @@ export default class NcProjectBuilder {
         break;
 
       case 'xcModelSet':
-        await curBuilder.onValidationUpdate(data.req.args.tn);
+        await curBuilder.onMetaUpdate(data.req.args.tn);
         console.log(`Updated validations for table : ${data.req.args.tn}`)
         break;
       case 'xcUpdateVirtualKeyAlias':
@@ -436,7 +439,7 @@ export default class NcProjectBuilder {
       case 'projectDelete':
         this.router.stack.splice(0, this.router.stack.length);
         this.apiBuilders.splice(0, this.apiBuilders.length);
-        await this.app.ncMeta.projectDelete(this.title);
+        await this.app.ncMeta.projectDeleteById(this.id);
         await this.app.ncMeta.knex('nc_projects_users').where({project_id: this.id}).del();
         for (const db of (this.config?.envs?.[this.appConfig?.workingEnv]?.db || [])) {
           const dbAlias = db?.meta?.dbAlias;
@@ -455,11 +458,7 @@ export default class NcProjectBuilder {
       case 'xcMetaTablesImportLocalFsToDb':
       case 'xcMetaTablesImportZipToLocalFsAndDb':
       case 'projectRestart':
-        this.router.stack.splice(0, this.router.stack.length);
-        this.apiBuilders.splice(0, this.apiBuilders.length);
-        await this.app.ncMeta.projectStatusUpdate(this.title, 'stopped');
-        await this.init();
-        NcProjectBuilder.triggerGarbageCollect();
+        await this.reInit();
         this.app.ncMeta.audit(this.id, null, 'nc_audit', {
           op_type: 'PROJECT',
           op_sub_type: 'RESTARTED',
@@ -718,13 +717,15 @@ export default class NcProjectBuilder {
         }
       }
 
-      res.json({
+      const result = {
         info,
         aggregatedInfo: {
           list: this.apiInfInfoList,
           aggregated: this.aggregatedApiInfo
         }
-      });
+      }
+
+      res.json(result);
     });
   }
 
@@ -782,6 +783,34 @@ export default class NcProjectBuilder {
     return this.config?.prefix;
   }
 
+  public get config(): any {
+    return this._config;
+  }
+
+  public updateConfig(config: string) {
+    this._config = {...this.appConfig, ...JSON.parse(config)};
+  }
+
+  public async reInit() {
+    this.router.stack.splice(0, this.router.stack.length);
+    this.apiBuilders.splice(0, this.apiBuilders.length);
+    await this.app.ncMeta.projectStatusUpdate(this.title, 'stopped');
+    const dbs = this.config?.envs?.[this.appConfig.workingEnv]?.db
+
+    if (!dbs || !dbs.length) {
+      return;
+    }
+
+    for (const connectionConfig of dbs) {
+      NcConnectionMgr.delete({
+        dbAlias: connectionConfig?.mets?.dbAlias,
+        env: this.config.env,
+        projectId: this.id
+      })
+    }
+    NcProjectBuilder.triggerGarbageCollect();
+    await this.init();
+  }
 
 }
 

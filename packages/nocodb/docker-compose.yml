@@ -139,7 +139,7 @@ services:
     #     - ./sqlite-sakila-db:/root/db/
     #     # - ./sqlite-sakila-db:/root/db/
     mssql:
-     image: microsoft/mssql-server-linux:latest
+     image: mcr.microsoft.com/mssql/server:2019-CU11-ubuntu-20.04
      # restart: always
      environment:
        ACCEPT_EULA: Y

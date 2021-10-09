@@ -357,7 +357,7 @@
         </splitpanes>
       </pane>
     </splitpanes>
-    <environment v-if="$store.getters['project/GtrProjectJson']" v-model="environmentDialog" env="dev" />
+    <environment v-if="$store.getters['project/GtrProjectJson']" v-model="environmentDialog" env="_noco" />
   </v-container>
 </template>
 <script>

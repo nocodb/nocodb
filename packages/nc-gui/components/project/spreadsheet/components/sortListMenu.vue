@@ -8,6 +8,7 @@
         overlap
       >
         <v-btn
+          class="nc-sort-menu-btn"
           :disabled="isLocked"
           small
           text
@@ -28,14 +29,14 @@
     <div class="backgroundColor pa-2" style="min-width: 330px">
       <div class="sort-grid" @click.stop>
         <template v-for="(sort,i) in sortList" dense>
-          <v-icon :key="i + 'icon'" small @click.stop="sortList.splice(i,1)">
+          <v-icon :key="i + 'icon'" class="nc-sort-item-remove-btn" small @click.stop="sortList.splice(i,1)">
             mdi-close-box
           </v-icon>
 
           <v-select
             :key="i + 'sel1'"
             v-model="sort.field"
-            class="caption"
+            class="caption nc-sort-field-select"
             :items="fieldList"
             label="Field"
             solo
@@ -51,7 +52,7 @@
           <v-select
             :key="i + 'sel2'"
             v-model="sort.order"
-            class="flex-shrink-1 flex-grow-0 caption"
+            class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
             :items="[{text : 'A -> Z', value: ''},{text : 'Z -> A', value: '-'}]"
             label="Operation"
             solo

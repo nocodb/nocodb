@@ -4,7 +4,7 @@
     max-width="400px"
     max-height="95vh"
     style="overflow: auto"
-    class="elevation-0 card"
+    class="elevation-0 card nc-col-create-or-edit-card"
   >
     <v-form ref="form" v-model="valid">
       <v-container fluid @click.stop.prevent>
@@ -29,331 +29,361 @@
                 v => !!v || 'Required',
                 v => !meta || !meta.columns || meta.columns.every(c => column && c.cn === column.cn || v !== c.cn ) && meta.v.every(c => v !== c._cn ) || 'Duplicate column name'
               ]"
-              class="caption"
+              class="caption nc-column-name-input"
               label="Column name"
               dense
               outlined
               @input="newColumn.altered = newColumn.altered || 8"
             />
           </v-col>
-          <div
+          <v-container
+            fluid
             :class="{
               editDisabled :isEditDisabled
             }"
           >
-            <v-col v-if="relation" cols="12">
-              <div class="caption">
-                <p class="mb-1">
-                  Foreign Key
-                </p>
+            <v-row>
+              <v-col v-if="relation" cols="12">
+                <div class="caption">
+                  <p class="mb-1">
+                    Foreign Key
+                  </p>
 
-                <v-icon small class="mt-n1">
-                  mdi-table
-                </v-icon>
-                <span class="text-capitalize font-weight-bold body-1"> {{ relation._rtn }}</span>
-                <v-icon
-                  v-ge="['columns','fk-delete']"
-                  small
-                  class="ml-3 mt-n1"
-                  color="error"
-                  @click="deleteRelation('showDialog', column)"
-                >
-                  mdi-delete-forever
-                </v-icon>
-                <span v-if="relation.type=== 'virtual'" class="caption">(v)</span>
-              </div>
-            </v-col>
-            <template v-else>
-              <v-col cols="12">
-                <v-autocomplete
-                  v-model="newColumn.uidt"
-                  hide-details
-                  item-value="name"
-                  item-text="name"
-                  class="caption ui-type"
-                  :class="{'primary lighten-5' : newColumn.uidt }"
-                  label="Column type"
-                  dense
-                  outlined
-                  :items="uiTypes"
-                  @change="onUiTypeChange"
-                >
-                  <template #selection="{item}">
-                    <div>
-                      <v-icon color="grey darken-4" small class="mr-1">
-                        {{ item.icon }}
-                      </v-icon>
-                      <span class="caption  grey--text text--darken-4"> {{ item.name }}</span>
-                    </div>
-                  </template>
-
-                  <template #item="{item}">
-                    <div class="caption">
-                      <v-icon small class="mr-1">
-                        {{ item.icon }}
-                      </v-icon>
-                      {{ item.name }}
-                    </div>
-                  </template>
-                </v-autocomplete>
-
-                <!--                        <v-list dense max-height="calc(100vh - 300px)" style="overflow: auto">-->
-                <!--                          <v-list-item v-for="item in uiTypes" @click.stop :key="item">-->
-                <!--                            <span class="caption">{{ item }}</span>-->
-                <!--                          </v-list-item>-->
-                <!--                        </v-list>-->
+                  <v-icon small class="mt-n1">
+                    mdi-table
+                  </v-icon>
+                  <span class="text-capitalize font-weight-bold body-1"> {{ relation._rtn }}</span>
+                  <v-icon
+                    v-ge="['columns','fk-delete']"
+                    small
+                    class="ml-3 mt-n1"
+                    color="error"
+                    @click="deleteRelation('showDialog', column)"
+                  >
+                    mdi-delete-forever
+                  </v-icon>
+                  <span v-if="relation.type=== 'virtual'" class="caption">(v)</span>
+                </div>
               </v-col>
+              <template v-else>
+                <v-col cols="12">
+                  <v-autocomplete
+                    v-model="newColumn.uidt"
+                    hide-details
+                    item-value="name"
+                    item-text="name"
+                    class="caption ui-type nc-ui-dt-dropdown"
+                    :class="{'primary lighten-5' : newColumn.uidt }"
+                    label="Column type"
+                    dense
+                    outlined
+                    :items="uiTypes"
+                    @change="onUiTypeChange"
+                  >
+                    <template #selection="{item}">
+                      <div>
+                        <v-icon color="grey darken-4" small class="mr-1">
+                          {{ item.icon }}
+                        </v-icon>
+                        <span class="caption  grey--text text--darken-4"> {{ item.name }}</span>
+                      </div>
+                    </template>
 
-              <template v-if="newColumn.uidt !== 'Formula'">
-                <v-col
-                  v-if="isLookup"
-                  cols="12"
-                >
-                  <lookup-options
-                    ref="lookup"
-                    :column="newColumn"
-                    :nodes="nodes"
-                    :meta="meta"
-                    :is-s-q-lite="isSQLite"
-                    :alias="newColumn.cn"
-                    :is-m-s-s-q-l="isMSSQL"
-                    v-on="$listeners"
-                  />
-                </v-col>
-                <v-col
-                  v-if="isLinkToAnotherRecord"
-                  cols="12"
-                >
-                  <linked-to-another-options
-                    ref="relation"
-                    :column="newColumn"
-                    :nodes="nodes"
-                    :meta="meta"
-                    :is-s-q-lite="isSQLite"
-                    :alias="newColumn.cn"
-                    :is-m-s-s-q-l="isMSSQL"
-                    @onColumnSelect="onRelColumnSelect"
-                  />
-                </v-col>
-                <v-col
-                  v-if="isRelation"
-                  cols="12"
-                >
-                  <relation-options
-                    ref="relation"
-                    :column="newColumn"
-                    :nodes="nodes"
-                    :is-m-s-s-q-l="isMSSQL"
-                    :is-s-q-lite="isSQLite"
-                    @onColumnSelect="onRelColumnSelect"
-                  />
+                    <template #item="{item}">
+                      <div class="caption">
+                        <v-icon small class="mr-1">
+                          {{ item.icon }}
+                        </v-icon>
+                        {{ item.name }}
+                      </div>
+                    </template>
+                  </v-autocomplete>
+
+                  <!--                        <v-list dense max-height="calc(100vh - 300px)" style="overflow: auto">-->
+                  <!--                          <v-list-item v-for="item in uiTypes" @click.stop :key="item">-->
+                  <!--                            <span class="caption">{{ item }}</span>-->
+                  <!--                          </v-list-item>-->
+                  <!--                        </v-list>-->
                 </v-col>
 
-                <v-col v-if="isSelect" cols="12">
-                  <custom-select-options
-                    v-model="newColumn.dtxp"
-                    @input="newColumn.altered = newColumn.altered || 2"
-                  />
-                </v-col>
+                <template v-if="newColumn.uidt !== 'Formula'">
+                  <v-col
+                    v-if="isLookup"
+                    cols="12"
+                  >
+                    <lookup-options
+                      ref="lookup"
+                      :column="newColumn"
+                      :nodes="nodes"
+                      :meta="meta"
+                      :is-s-q-lite="isSQLite"
+                      :alias="newColumn.cn"
+                      :is-m-s-s-q-l="isMSSQL"
+                      v-on="$listeners"
+                    />
+                  </v-col>
+                  <v-col
+                    v-if="isRollup"
+                    cols="12"
+                  >
+                    <rollup-options
+                      ref="rollup"
+                      :column="newColumn"
+                      :nodes="nodes"
+                      :meta="meta"
+                      :is-s-q-lite="isSQLite"
+                      :alias="newColumn.cn"
+                      :is-m-s-s-q-l="isMSSQL"
+                      v-on="$listeners"
+                    />
+                  </v-col>
+                  <v-col
+                    v-if="isLinkToAnotherRecord"
+                    cols="12"
+                  >
+                    <linked-to-another-options
+                      ref="relation"
+                      :column="newColumn"
+                      :nodes="nodes"
+                      :meta="meta"
+                      :is-s-q-lite="isSQLite"
+                      :alias="newColumn.cn"
+                      :is-m-s-s-q-l="isMSSQL"
+                      @onColumnSelect="onRelColumnSelect"
+                    />
+                  </v-col>
+                  <v-col
+                    v-if="isRelation"
+                    cols="12"
+                  >
+                    <relation-options
+                      ref="relation"
+                      :column="newColumn"
+                      :nodes="nodes"
+                      :is-m-s-s-q-l="isMSSQL"
+                      :is-s-q-lite="isSQLite"
+                      @onColumnSelect="onRelColumnSelect"
+                    />
+                  </v-col>
 
-                <template v-if="newColumn.cn && newColumn.uidt && !isLinkToAnotherRecord && !isLookup">
+                  <v-col v-if="isSelect" cols="12">
+                    <custom-select-options
+                      v-model="newColumn.dtxp"
+                      @input="newColumn.altered = newColumn.altered || 2"
+                    />
+                  </v-col>
+
+                  <template v-if="newColumn.cn && newColumn.uidt && !isVirtual">
+                    <v-col cols="12">
+                      <v-container fluid class="wrapper">
+                        <v-row>
+                          <v-col cols="12">
+                            <div class="d-flex justify-space-between caption">
+                              <v-tooltip bottom z-index="99999">
+                                <template #activator="{on}">
+                                  <div v-on="on">
+                                    <v-checkbox
+                                      v-model="newColumn.rqd"
+                                      :disabled="newColumn.pk || !sqlUi.columnEditable(newColumn)"
+                                      class="mr-2 mt-0"
+                                      dense
+                                      hide-details
+                                      label="NN"
+                                      @input="newColumn.altered = newColumn.altered || 2"
+                                    >
+                                      <template #label>
+                                        <span class="caption font-weight-bold">NN</span>
+                                      </template>
+                                    </v-checkbox>
+                                  </div>
+                                </template>
+                                <span>Not Null</span>
+                              </v-tooltip>
+                              <v-tooltip bottom z-index="99999">
+                                <template #activator="{on}">
+                                  <div v-on="on">
+                                    <v-checkbox
+
+                                      v-model="newColumn.pk"
+                                      :disabled="!sqlUi.columnEditable(newColumn)"
+                                      class="mr-2 mt-0"
+                                      dense
+                                      hide-details
+                                      label="PK"
+                                      @input="newColumn.altered = newColumn.altered || 2"
+                                    >
+                                      <template #label>
+                                        <span class="caption font-weight-bold">PK</span>
+                                      </template>
+                                    </v-checkbox>
+                                  </div>
+                                </template>
+                                <span>Primary Key</span>
+                              </v-tooltip>
+
+                              <v-tooltip bottom z-index="99999">
+                                <template #activator="{on}">
+                                  <div v-on="on">
+                                    <v-checkbox
+
+                                      v-model="newColumn.ai"
+                                      :disabled="sqlUi.colPropUNDisabled(newColumn) || !sqlUi.columnEditable(newColumn)"
+                                      class="mr-2 mt-0"
+                                      dense
+                                      hide-details
+                                      label="AI"
+                                      @input="newColumn.altered = newColumn.altered || 2"
+                                    >
+                                      <template #label>
+                                        <span class="caption font-weight-bold">AI</span>
+                                      </template>
+                                    </v-checkbox>
+                                  </div>
+                                </template>
+                                <span>Auto Increment</span>
+                              </v-tooltip>
+
+                              <v-tooltip bottom z-index="99999">
+                                <template #activator="{on}">
+                                  <div v-on="on">
+                                    <v-checkbox
+                                      v-model="newColumn.un"
+                                      class="mr-2 mt-0"
+                                      dense
+                                      hide-details
+                                      label="UN"
+                                      :disabled="sqlUi.colPropUNDisabled(newColumn) || !sqlUi.columnEditable(newColumn)"
+                                      @input="newColumn.altered = newColumn.altered || 2"
+                                    >
+                                      <template #label>
+                                        <span class="caption font-weight-bold">UN</span>
+                                      </template>
+                                    </v-checkbox>
+                                  </div>
+                                </template>
+                                <span>Unsigned</span>
+                              </v-tooltip>
+
+                              <v-tooltip bottom z-index="99999">
+                                <template #activator="{on}">
+                                  <div v-on="on">
+                                    <v-checkbox
+                                      v-model="newColumn.au"
+                                      class="mr-2 mt-0"
+                                      dense
+                                      hide-details
+                                      label="UN"
+                                      :disabled=" sqlUi.colPropAuDisabled(newColumn) || !sqlUi.columnEditable(newColumn)"
+                                      @input="newColumn.altered = newColumn.altered || 2"
+                                    >
+                                      <template #label>
+                                        <span class="caption font-weight-bold">AU</span>
+                                      </template>
+                                    </v-checkbox>
+                                  </div>
+                                </template>
+                                <span>Auto Update Timestamp</span>
+                              </v-tooltip>
+                            </div>
+                          </v-col>
+                          <v-col cols="12">
+                            <v-autocomplete
+                              v-model="newColumn.dt"
+                              hide-details
+                              class="caption data-type"
+                              label="Type in Database"
+                              dense
+                              outlined
+                              :items="dataTypes"
+                              @change="onDataTypeChange"
+                            />
+                          </v-col>
+
+                          <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
+                            <v-text-field
+                              v-if="!isSelect"
+                              v-model="newColumn.dtxp"
+                              dense
+                              :disabled="sqlUi.getDefaultLengthIsDisabled(newColumn.dt) || !sqlUi.columnEditable(newColumn)"
+                              class="caption"
+                              label="Length / Values"
+                              outlined
+                              hide-details
+                              @input="newColumn.altered = newColumn.altered || 2"
+                            />
+                          </v-col>
+                          <v-col v-if="sqlUi.showScale(newColumn)" :cols="isSelect ?12 : 6">
+                            <v-text-field
+                              v-model="newColumn.dtxs"
+                              dense
+                              :disabled=" !sqlUi.columnEditable(newColumn)"
+                              class="caption"
+                              label="Scale"
+                              outlined
+                              hide-details
+                              @input="newColumn.altered = newColumn.altered || 2"
+                            />
+                          </v-col>
+
+                          <v-col cols="12">
+                            <v-textarea
+                              v-model="newColumn.cdf"
+                              label="Default value"
+                              :hint="sqlUi.getDefaultValueForDatatype(newColumn.dt)"
+                              persistent-hint
+                              rows="3"
+                              outlined
+                              dense
+                              class="caption"
+                              @input="newColumn.altered = newColumn.altered || 2"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-col>
+                  </template>
+                </template>
+                <template v-else>
                   <v-col cols="12">
-                    <v-container fluid class="wrapper">
-                      <v-row>
-                        <v-col cols="12">
-                          <div class="d-flex justify-space-between caption">
-                            <v-tooltip bottom z-index="99999">
-                              <template #activator="{on}">
-                                <div v-on="on">
-                                  <v-checkbox
-                                    v-model="newColumn.rqd"
-                                    :disabled="newColumn.pk || !sqlUi.columnEditable(newColumn)"
-                                    class="mr-2 mt-0"
-                                    dense
-                                    hide-details
-                                    label="NN"
-                                    @input="newColumn.altered = newColumn.altered || 2"
-                                  >
-                                    <template #label>
-                                      <span class="caption font-weight-bold">NN</span>
-                                    </template>
-                                  </v-checkbox>
-                                </div>
-                              </template>
-                              <span>Not Null</span>
-                            </v-tooltip>
-                            <v-tooltip bottom z-index="99999">
-                              <template #activator="{on}">
-                                <div v-on="on">
-                                  <v-checkbox
+                    <formula-options
+                      ref="formula"
+                      :column="newColumn"
+                      :nodes="nodes"
+                      :meta="meta"
+                      :is-s-q-lite="isSQLite"
+                      :alias="newColumn.cn"
+                      :is-m-s-s-q-l="isMSSQL"
+                      :sql-ui="sqlUi"
+                      v-on="$listeners"
+                    />
 
-                                    v-model="newColumn.pk"
-                                    :disabled="!sqlUi.columnEditable(newColumn)"
-                                    class="mr-2 mt-0"
-                                    dense
-                                    hide-details
-                                    label="PK"
-                                    @input="newColumn.altered = newColumn.altered || 2"
-                                  >
-                                    <template #label>
-                                      <span class="caption font-weight-bold">PK</span>
-                                    </template>
-                                  </v-checkbox>
-                                </div>
-                              </template>
-                              <span>Primary Key</span>
-                            </v-tooltip>
-
-                            <v-tooltip bottom z-index="99999">
-                              <template #activator="{on}">
-                                <div v-on="on">
-                                  <v-checkbox
-
-                                    v-model="newColumn.ai"
-                                    :disabled="sqlUi.colPropUNDisabled(newColumn) || !sqlUi.columnEditable(newColumn)"
-                                    class="mr-2 mt-0"
-                                    dense
-                                    hide-details
-                                    label="AI"
-                                    @input="newColumn.altered = newColumn.altered || 2"
-                                  >
-                                    <template #label>
-                                      <span class="caption font-weight-bold">AI</span>
-                                    </template>
-                                  </v-checkbox>
-                                </div>
-                              </template>
-                              <span>Auto Increment</span>
-                            </v-tooltip>
-
-                            <v-tooltip bottom z-index="99999">
-                              <template #activator="{on}">
-                                <div v-on="on">
-                                  <v-checkbox
-                                    v-model="newColumn.un"
-                                    class="mr-2 mt-0"
-                                    dense
-                                    hide-details
-                                    label="UN"
-                                    :disabled="sqlUi.colPropUNDisabled(newColumn) || !sqlUi.columnEditable(newColumn)"
-                                    @input="newColumn.altered = newColumn.altered || 2"
-                                  >
-                                    <template #label>
-                                      <span class="caption font-weight-bold">UN</span>
-                                    </template>
-                                  </v-checkbox>
-                                </div>
-                              </template>
-                              <span>Unsigned</span>
-                            </v-tooltip>
-
-                            <v-tooltip bottom z-index="99999">
-                              <template #activator="{on}">
-                                <div v-on="on">
-                                  <v-checkbox
-                                    v-model="newColumn.au"
-                                    class="mr-2 mt-0"
-                                    dense
-                                    hide-details
-                                    label="UN"
-                                    :disabled=" sqlUi.colPropAuDisabled(newColumn) || !sqlUi.columnEditable(newColumn)"
-                                    @input="newColumn.altered = newColumn.altered || 2"
-                                  >
-                                    <template #label>
-                                      <span class="caption font-weight-bold">AU</span>
-                                    </template>
-                                  </v-checkbox>
-                                </div>
-                              </template>
-                              <span>Auto Update Timestamp</span>
-                            </v-tooltip>
-                          </div>
-                        </v-col>
-                        <v-col cols="12">
-                          <v-autocomplete
-                            v-model="newColumn.dt"
-                            hide-details
-                            class="caption data-type"
-                            label="Type in Database"
-                            dense
-                            outlined
-                            :items="dataTypes"
-                            @change="onDataTypeChange"
-                          />
-                        </v-col>
-
-                        <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
-                          <v-text-field
-                            v-if="!isSelect"
-                            v-model="newColumn.dtxp"
-                            dense
-                            :disabled="sqlUi.getDefaultLengthIsDisabled(newColumn.dt) || !sqlUi.columnEditable(newColumn)"
-                            class="caption"
-                            label="Length / Values"
-                            outlined
-                            hide-details
-                            @input="newColumn.altered = newColumn.altered || 2"
-                          />
-                        </v-col>
-                        <v-col v-if="sqlUi.showScale(newColumn)" :cols="isSelect ?12 : 6">
-                          <v-text-field
-                            v-model="newColumn.dtxs"
-                            dense
-                            :disabled=" !sqlUi.columnEditable(newColumn)"
-                            class="caption"
-                            label="Scale"
-                            outlined
-                            hide-details
-                            @input="newColumn.altered = newColumn.altered || 2"
-                          />
-                        </v-col>
-
-                        <v-col cols="12">
-                          <v-textarea
-                            v-model="newColumn.cdf"
-                            label="Default value"
-                            :hint="sqlUi.getDefaultValueForDatatype(newColumn.dt)"
-                            persistent-hint
-                            rows="3"
-                            outlined
-                            dense
-                            class="caption"
-                            @input="newColumn.altered = newColumn.altered || 2"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
+                    <!--                  <v-autocomplete
+                      label="Formula"
+                      hide-details
+                      class="caption formula-type"
+                      outlined
+                      dense
+                      :items="formulas"
+                    >
+                      <template #item="{item}">
+                        <span class="green&#45;&#45;text text&#45;&#45;darken-2 caption font-weight-regular">{{ item }}</span>
+                      </template>
+                    </v-autocomplete>-->
                   </v-col>
                 </template>
               </template>
-              <template v-else>
-                <v-col cols12>
-                  <v-autocomplete
-                    label="Formula"
-                    hide-details
-                    class="caption formula-type"
-                    outlined
-                    dense
-                    :items="formulas"
-                  >
-                    <template #item="{item}">
-                      <span class="green--text text--darken-2 caption font-weight-regular">{{ item }}</span>
-                    </template>
-                  </v-autocomplete>
-                </v-col>
-              </template>
-            </template>
 
-            <div class="disabled-info" :class="{'d-none':!isEditDisabled}">
-              <v-alert dense type="warning" icon="info" class="caption mx-2" outlined>
-                This spreadsheet is connected to an SQLite DB.<br>
-                For production please see <a
-                  href="https://github.com/nocodb/nocodb#production-setup"
-                  target="_blank"
-                >here</a>.
-              </v-alert>
-            </div>
-          </div>
+              <div class="disabled-info" :class="{'d-none':!isEditDisabled}">
+                <v-alert dense type="warning" icon="info" class="caption mx-2" outlined>
+                  This spreadsheet is connected to an SQLite DB.<br>
+                  For production please see <a
+                    href="https://github.com/nocodb/nocodb#production-setup"
+                    target="_blank"
+                  >here</a>.
+                </v-alert>
+              </div>
+            </v-row>
+          </v-container>
         </v-row>
       </v-container>
     </v-form>
@@ -368,18 +398,27 @@
 </template>
 
 <script>
+import RollupOptions from './editColumn/rollupOptions'
+import FormulaOptions from '@/components/project/spreadsheet/components/editColumn/formulaOptions'
 import LookupOptions from '@/components/project/spreadsheet/components/editColumn/lookupOptions'
 import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 import CustomSelectOptions from '@/components/project/spreadsheet/components/editColumn/customSelectOptions'
 import RelationOptions from '@/components/project/spreadsheet/components/editColumn/relationOptions'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
 import LinkedToAnotherOptions from '@/components/project/spreadsheet/components/editColumn/linkedToAnotherOptions'
-import { SqliteUi } from '@/helpers/SqliteUi'
-import { MssqlUi } from '@/helpers/MssqlUi'
+import { SqliteUi, MssqlUi } from '@/helpers/sqlUi'
 
 export default {
   name: 'EditColumn',
-  components: { LookupOptions, LinkedToAnotherOptions, DlgLabelSubmitCancel, RelationOptions, CustomSelectOptions },
+  components: {
+    RollupOptions,
+    FormulaOptions,
+    LookupOptions,
+    LinkedToAnotherOptions,
+    DlgLabelSubmitCancel,
+    RelationOptions,
+    CustomSelectOptions
+  },
   props: {
     nodes: Object,
     sqlUi: [Object, Function],
@@ -393,9 +432,7 @@ export default {
     valid: false,
     relationDeleteDlg: false,
     newColumn: {},
-    uiTypes,
-    // dataTypes: [],
-    formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
+    uiTypes
   }),
   computed: {
     isEditDisabled() {
@@ -423,8 +460,14 @@ export default {
     isLookup() {
       return this.newColumn && this.newColumn.uidt === 'Lookup'
     },
+    isRollup() {
+      return this.newColumn && this.newColumn.uidt === 'Rollup'
+    },
     relation() {
       return this.meta && this.column && this.meta.belongsTo && this.meta.belongsTo.find(bt => bt.cn === this.column.cn)
+    },
+    isVirtual() {
+      return this.isLinkToAnotherRecord || this.isLookup || this.isRollup
     }
   },
   watch: {
@@ -476,9 +519,9 @@ export default {
         return
       }
       try {
-        if (this.newColumn.uidt === 'Formula') {
-          return this.$toast.info('Coming Soon...').goAway(3000)
-        }
+        // if (this.newColumn.uidt === 'Formula') {
+        //   return this.$toast.info('Coming Soon...').goAway(3000)
+        // }
 
         if (this.isLinkToAnotherRecord && this.$refs.relation) {
           await this.$refs.relation.saveRelation()
@@ -486,6 +529,12 @@ export default {
         }
         if (this.isLookup && this.$refs.lookup) {
           return await this.$refs.lookup.save()
+        }
+        if (this.isRollup && this.$refs.rollup) {
+          return await this.$refs.rollup.save()
+        }
+        if (this.newColumn.uidt === 'Formula' && this.$refs.formula) {
+          return await this.$refs.formula.save()
         }
 
         this.newColumn.tn = this.nodes.tn

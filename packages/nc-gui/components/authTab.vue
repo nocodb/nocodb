@@ -1,5 +1,5 @@
 <template>
-  <div class="h-100">
+  <div class="h-100 nc-auth-tab">
     <div class="h-100" style="width: 100%">
       <v-tabs height="30" color="x-active">
         <v-tab>

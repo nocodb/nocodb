@@ -4,7 +4,7 @@ export default {
   guest: {},
   editor: {
     xcAuditCreate: true,
-    xcAttachmentUpload:true,
+    xcAttachmentUpload: true,
     xcVirtualTableList: true,
     xcMetaTablesImportZipToLocalFsAndDb: false,
     // testConnection:true,
@@ -164,7 +164,7 @@ export default {
 
     xcModelRowAuditAndCommentList: true,
     xcAuditCommentInsert: true,
-    xcAuditModelCommentsCount:true
+    xcAuditModelCommentsCount: true
   },
   commenter: {
     xcVirtualTableList: true,
@@ -188,7 +188,7 @@ export default {
 
     xcModelRowAuditAndCommentList: true,
     xcAuditCommentInsert: true,
-    xcAuditModelCommentsCount:true
+    xcAuditModelCommentsCount: true
   }, viewer: {
     xcVirtualTableList: true,
     projectList: true,
@@ -219,6 +219,8 @@ export default {
     projectDelete: false,
     projectRestart: false,
     projectStart: false,
+    xcMetaTablesImportZipToLocalFsAndDb: true,
+    xcMetaTablesExportDbToZip: true
   }
 }
 

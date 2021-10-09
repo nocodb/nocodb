@@ -39,7 +39,7 @@ export default ({ store, $axios, redirect, $toast }) => {
     }
 
     // Logout user if token refresh didn't work or user is disabled
-    if (error.config.url === '/api/v1/auth/refresh-token') {
+    if (error.config.url === '/auth/refresh-token') {
       store.dispatch('users/ActSignOut')
 
       return new Promise((resolve, reject) => {
@@ -48,7 +48,7 @@ export default ({ store, $axios, redirect, $toast }) => {
     }
 
     // Try request again with new token
-    return $axios.post('/api/v1/auth/refresh-token', null, {
+    return $axios.post('/auth/refresh-token', null, {
       withCredentials: true
     })
       .then((token) => {

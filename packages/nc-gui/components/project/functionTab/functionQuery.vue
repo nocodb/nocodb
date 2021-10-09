@@ -75,7 +75,7 @@ import { mapGetters, mapActions } from 'vuex'
 import MonacoEditor from '../../monaco/Monaco'
 import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
 
-import { SqlUI } from '../../../helpers/SqlUiFactory'
+import { SqlUI } from '../../../helpers/sqlUi/SqlUiFactory'
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },

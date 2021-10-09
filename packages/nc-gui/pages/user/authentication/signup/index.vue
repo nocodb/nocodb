@@ -174,7 +174,7 @@
             <div class="text-center">
               <p class="grey--text font-weight-light caption">
                 By signing up, you agree to
-                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/terms-of-service')"><u>Terms of service</u></span>
+                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"><u>Terms of service</u></span>
               </p>
               <div class="d-flex align-center mb-4 justify-center">
                 <v-checkbox v-model="subscribe" color="grey" dense hide-details class="mt-0  pt-0" />

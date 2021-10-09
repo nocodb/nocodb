@@ -14,7 +14,7 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
 
 
   public app: any;
-  public routes: Route[];
+  // public routes: Route[];
 
   private models: { [key: string]: BaseModelSql };
   private acls: Acls;

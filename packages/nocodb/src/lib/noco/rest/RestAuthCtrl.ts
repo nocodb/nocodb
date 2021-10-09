@@ -30,7 +30,16 @@ import axios from 'axios';
 import IEmailAdapter from "../../../interface/IEmailAdapter";
 import XcCache from "../plugins/adapters/cache/XcCache";
 
-passport.serializeUser(function ({id, email, email_verified, roles, provider, firstname, lastname, isAuthorized}, done) {
+passport.serializeUser(function ({
+                                   id,
+                                   email,
+                                   email_verified,
+                                   roles,
+                                   provider,
+                                   firstname,
+                                   lastname,
+                                   isAuthorized
+                                 }, done) {
   done(null, {
     isAuthorized,
     id,
@@ -492,11 +501,9 @@ export default class RestAuthCtrl {
 
   protected initJwtStrategy() {
     passport.use(new Strategy(this.jwtOptions, (jwtPayload, done) => {
-      console.time('fetch user')
       this.users.where({
         email: jwtPayload?.email
       }).first().then(user => {
-        console.timeEnd('fetch user')
         if (user) {
           user.roles = 'owner,creator'
           return done(null, user);
@@ -651,33 +658,42 @@ export default class RestAuthCtrl {
 
   protected async refreshToken(req, res): Promise<any> {
     console.log('token refresh')
-    const user = await this.users.where({
-      refresh_token: req.cookies.refresh_token
-    }).first();
+    try {
 
-    if (!user) {
-      return res.status(400).json({msg: 'Invalid refresh token'});
+      if (!req?.cookies?.refresh_token) {
+        return res.status(400).json({msg: 'Missing refresh token'});
+      }
+
+      const user = await this.users.where({
+        refresh_token: req.cookies.refresh_token
+      }).first();
+
+      if (!user) {
+        return res.status(400).json({msg: 'Invalid refresh token'});
+      }
+
+      const refreshToken = this.randomTokenString();
+
+      await this.users.update({
+        refresh_token: refreshToken
+      }).where({
+        id: user.id
+      });
+
+      this.setTokenCookie(res, refreshToken);
+
+      res.json({
+        token: jwt.sign({
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          id: user.id,
+          roles: user.roles
+        }, this.config.auth.jwt.secret, this.config.auth.jwt.options)
+      } as any);
+    } catch (e) {
+      return res.status(400).json({msg: e.message});
     }
-
-    const refreshToken = this.randomTokenString();
-
-    await this.users.update({
-      refresh_token: refreshToken
-    }).where({
-      id: user.id
-    });
-
-    this.setTokenCookie(res, refreshToken);
-
-    res.json({
-      token: jwt.sign({
-        email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        id: user.id,
-        roles: user.roles
-      }, this.config.auth.jwt.secret, this.config.auth.jwt.options)
-    } as any);
   }
 
   protected async signup(req, res, next): Promise<any> {
@@ -1030,7 +1046,7 @@ export default class RestAuthCtrl {
     }
 
 
-    Tele.emit('evt', {evt_type: 'project:invite', count:count?.count})
+    Tele.emit('evt', {evt_type: 'project:invite', count: count?.count})
     this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
       op_type: 'AUTHENTICATION',
       op_sub_type: 'INVITE',
@@ -1143,7 +1159,7 @@ export default class RestAuthCtrl {
       });
 
       if (!req.session?.passport?.user?.roles?.owner) {
-        queryBuilder.whereNot('roles', 'like', '%owner%')
+        queryBuilder.whereNot('nc_projects_users.roles', 'like', '%owner%')
         count = (await this.users.count('id as count').whereNot('roles', 'like', '%owner%').first()).count;
       } else {
         count = (await this.users.count('id as count').where('email', 'like', `%${query}%`).first()).count;
@@ -1258,9 +1274,9 @@ export default class RestAuthCtrl {
                     }, aclRow.id);
                   }
                 }
-                this.xcMeta.commit();
+                await this.xcMeta.commit();
               } catch (e) {
-                this.xcMeta.rollback(e);
+                await this.xcMeta.rollback(e);
               }
             }
           }
@@ -1286,9 +1302,9 @@ export default class RestAuthCtrl {
                   });
                 }
               }
-              this.xcMeta.commit();
+              await this.xcMeta.commit();
             } catch (e) {
-              this.xcMeta.rollback(e);
+              await this.xcMeta.rollback(e);
             }
           }
         }

@@ -15,6 +15,7 @@ import {
 } from 'nc-help'
 import slash from 'slash';
 import {v4 as uuidv4} from 'uuid';
+import {ncp} from 'ncp';
 
 import IEmailAdapter from "../../../interface/IEmailAdapter";
 import IStorageAdapter from "../../../interface/IStorageAdapter";
@@ -37,7 +38,7 @@ import {RestApiBuilder} from "../rest/RestApiBuilder";
 import RestAuthCtrl from "../rest/RestAuthCtrlEE";
 import {packageVersion} from 'nc-help';
 import NcMetaIO, {META_TABLES} from "./NcMetaIO";
-// import NcConnectionMgr from "../common/NcConnectionMgr";
+import {promisify} from "util";
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -57,7 +58,6 @@ export default class NcMetaMgr {
   protected projectMgr: any;
   // @ts-ignore
   protected isEe = false;
-  4
 
   constructor(app: Noco, config: NcConfig, xcMeta: NcMetaIO) {
     this.app = app;
@@ -92,10 +92,12 @@ export default class NcMetaMgr {
 
 
     // todo: acl
-    router.get('/dl/:projectId/:dbAlias/:fileName', async (req, res) => {
+    router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
       try {
-        const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
-        const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+        // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
+        const type = mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] || 'text/plain';
+        // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+        const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params[0], req.params[1], 'uploads', ...req.params[2].split('/'))));
         res.writeHead(200, {'Content-Type': type});
         res.end(img, 'binary');
       } catch (e) {
@@ -210,8 +212,7 @@ export default class NcMetaMgr {
 
             let projectHasAdmin = false;
             projectHasAdmin = !!(await knex('xc_users').first())
-
-            return res.json({
+            const result = {
               authType: 'jwt',
               projectHasAdmin,
               firstUser: !projectHasAdmin,
@@ -223,7 +224,8 @@ export default class NcMetaMgr {
               oneClick: !!process.env.NC_ONE_CLICK,
               connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
               version: packageVersion
-            })
+            };
+            return res.json(result)
           }
           if (this.config.auth.masterKey) {
             return res.json({
@@ -290,6 +292,7 @@ export default class NcMetaMgr {
       return res.status(400).json({msg: e.message})
     }
 
+
     if (this.listener) {
       await this.listener({
         req: req.body,
@@ -300,6 +303,7 @@ export default class NcMetaMgr {
         }
       });
     }
+
 
     return res.json(result);
   }
@@ -349,11 +353,19 @@ export default class NcMetaMgr {
           const data = JSON.parse(fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8'));
           for (const row of data) {
             delete row.id;
-            await this.xcMeta.metaInsert(projectId, dbAlias, tn, row)
+
+            row.created_at = row.created_at ? new Date(row.created_at) : null;
+            row.updated_at = row.updated_at ? new Date(row.updated_at) : null;
+
+            await this.xcMeta.metaInsert(projectId, dbAlias, tn, {
+              ...row,
+              db_alias: dbAlias,
+              project_id: projectId
+            })
           }
         }
       }
-      this.xcMeta.commit();
+      await this.xcMeta.commit();
 
       this.xcMeta.audit(projectId, dbAlias, 'nc_audit', {
         // created_at: (Knex as any).fn.now(),
@@ -366,13 +378,113 @@ export default class NcMetaMgr {
 
     } catch (e) {
       console.log(e);
-      this.xcMeta.rollback(e);
+      await this.xcMeta.rollback(e);
     }
   }
 
   // NOTE: xc-meta
   // Extract and import metadata and config from zip file
   public async xcMetaTablesImportZipToLocalFsAndDb(args, file, req) {
+    try {
+      await this.xcMetaTablesReset(args);
+      let projectConfigPath;
+      // let storeFilePath;
+      await extract(file.path, {
+        dir: path.join(this.config.toolDir, 'uploads'),
+        onEntry(entry, _zipfile) {
+          // extract xc_project.json file path
+          if (entry.fileName?.endsWith('nc_project.json')) {
+            projectConfigPath = entry.fileName;
+          }
+        }
+      });
+      // delete temporary upload file
+      fs.unlinkSync(file.path);
+
+      let projectId = this.getProjectId(args)
+      if (!projectConfigPath) {
+        throw new Error('Missing project config file')
+      }
+
+      const projectDetailsJSON: any = fs.readFileSync(path.join(this.config.toolDir, 'uploads', projectConfigPath), 'utf8');
+      const projectDetails = projectDetailsJSON && JSON.parse(projectDetailsJSON);
+
+      if (args.args.importsToCurrentProject) {
+        await promisify(ncp)(path.join(this.config.toolDir, 'uploads', 'nc', projectDetails.id), path.join(this.config.toolDir, 'nc', projectId), {clobber: true})
+      } else {
+        // decrypt with old key and encrypt again with latest key
+        const projectConfig = JSON.parse(CryptoJS.AES.decrypt(projectDetails.config, projectDetails.key).toString(CryptoJS.enc.Utf8))
+
+
+        if (projectConfig?.prefix) {
+          const metaProjConfig = NcConfigFactory.makeProjectConfigFromConnection(this.config?.meta?.db, args.args.projectType);
+          projectConfig.envs._noco = metaProjConfig.envs._noco
+        }
+
+
+        // delete projectDetails.key;
+        projectDetails.config = projectConfig;
+
+
+        // create new project and import
+        const project = await this.xcMeta.projectCreate(projectDetails.title, projectConfig, projectDetails.description);
+        projectId = project.id;
+
+        // move files to newly created project meta folder
+        await promisify(ncp)(path.join(this.config.toolDir, 'uploads', 'nc', projectDetails.id), path.join(this.config.toolDir, 'nc', projectId))
+
+        await this.xcMeta.projectAddUser(projectId, req?.session?.passport?.user?.id, 'owner,creator');
+        await this.projectMgr.getSqlMgr({
+          ...projectConfig,
+          metaDb: this.xcMeta?.knex
+        }).projectOpenByWeb(projectConfig);
+        this.projectConfigs[projectId] = projectConfig;
+        args.freshImport = true;
+      }
+
+
+      //   const importProjectId = projectConfig?.id;
+      //
+      //   // check project already exist
+      //   if (await this.xcMeta.projectGetById(importProjectId)) {
+      //     // todo:
+      //     throw new Error(`Project with id '${importProjectId}' already exist, it's not allowed at the moment`)
+      //   } else {
+      //     // create the project if not found
+      //     await this.xcMeta.knex('nc_projects').insert(projectConfig);
+      //     projectConfig = JSON.parse((await this.xcMeta.projectGetById(importProjectId))?.config);
+      //
+      //     // duplicated code from project create - see projectCreateByWeb
+      //     await this.xcMeta.projectAddUser(importProjectId, req?.session?.passport?.user?.id, 'owner,creator');
+      //     await this.projectMgr.getSqlMgr({
+      //       ...projectConfig,
+      //       metaDb: this.xcMeta?.knex
+      //     }).projectOpenByWeb(projectConfig);
+      //     this.projectConfigs[importProjectId] = projectConfig;
+      //
+      //     args.freshImport = true;
+      //   }
+      //   args.project_id = importProjectId;
+      // }
+
+      args.project_id = projectId
+
+      await this.xcMetaTablesImportLocalFsToDb(args, req);
+      this.xcMeta.audit(projectId, null, 'nc_audit', {
+        op_type: 'META',
+        op_sub_type: 'IMPORT_FROM_ZIP',
+        user: req.user.email,
+        description: `imported ${projectId} from zip file uploaded `, ip: req.clientIp
+      })
+
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // NOTE: xc-meta
+  // Extract and import metadata and config from zip file
+  public async xcMetaTablesImportZipToLocalFsAndDbV1(args, file, req) {
     try {
       await this.xcMetaTablesReset(args);
       let projectConfigPath;
@@ -405,7 +517,7 @@ export default class NcMetaMgr {
         // check project already exist
         if (await this.xcMeta.projectGetById(importProjectId)) {
           // todo:
-          throw new Error(`Project with id '${importProjectId}' already exist`)
+          throw new Error(`Project with id '${importProjectId}' already exist, it's not allowed at the moment`)
         } else {
           // create the project if not found
           await this.xcMeta.knex('nc_projects').insert(projectConfig);
@@ -608,9 +720,9 @@ export default class NcMetaMgr {
           id: row.id
         })
       }
-      trx.commit();
+      await trx.commit();
     } catch (e) {
-      trx.rollback();
+      await trx.rollback();
       throw e;
     }
   }
@@ -942,19 +1054,21 @@ export default class NcMetaMgr {
 
   public async xcAttachmentUpload(req, args, file) {
     try {
-      const fileName = `${nanoid(6)}${path.extname(file.originalname)}`
+      const appendPath = args.args.appendPath || [];
+      const prependName = args.args.prependName?.length ? args.args.prependName.join('_') + '_' : '';
+      const fileName = `${prependName}${nanoid(6)}_${file.originalname}`
       let destPath;
       if (args?.args?.public) {
-        destPath = path.join('nc', 'public', 'files', 'uploads');
+        destPath = path.join('nc', 'public', 'files', 'uploads', ...appendPath);
       } else {
-        destPath = path.join('nc', this.getProjectId(args), this.getDbAlias(args), 'uploads');
+        destPath = path.join('nc', this.getProjectId(args), this.getDbAlias(args), 'uploads', ...appendPath);
       }
       let url = await this.storageAdapter.fileCreate(slash(path.join(destPath, fileName)), file);
       if (!url) {
         if (args?.args?.public) {
-          url = `${req.ncSiteUrl}/dl/public/files/${fileName}`;
+          url = `${req.ncSiteUrl}/dl/public/files/${appendPath?.length ? appendPath.join('/') + '/' : ''}${fileName}`;
         } else {
-          url = `${req.ncSiteUrl}/dl/${this.getProjectId(args)}/${this.getDbAlias(args)}/${fileName}`;
+          url = `${req.ncSiteUrl}/dl/${this.getProjectId(args)}/${this.getDbAlias(args)}/${appendPath?.length ? appendPath.join('/') + '/' : ''}${fileName}`;
         }
       }
       return {
@@ -1015,6 +1129,7 @@ export default class NcMetaMgr {
     } catch (e) {
       return next(e);
     }
+
     res.json(result);
   }
 
@@ -1212,28 +1327,30 @@ export default class NcMetaMgr {
           config.title = args.args.title;
           config.projectType = args.args.projectType;
 
-          const metaProjectsCount = await this.xcMeta.metaGet(null, null, 'nc_store', {
-            key: 'NC_PROJECT_COUNT'
-          });
-          // todo: populate unique prefix dynamically
-          config.prefix = `xb${Object.keys(this.projectConfigs).length}__`;
-          if (metaProjectsCount) {
-            // todo: populate unique prefix dynamically
-            config.prefix = `xa${(+metaProjectsCount.value || 0) + 1}__`;
-          }
+          // const metaProjectsCount = await this.xcMeta.metaGet(null, null, 'nc_store', {
+          //   key: 'NC_PROJECT_COUNT'
+          // });
+          // // todo: populate unique prefix dynamically
+          // config.prefix = `xb${Object.keys(this.projectConfigs).length}__`;
+          // if (metaProjectsCount) {
+          //   // todo: populate unique prefix dynamically
+          //   config.prefix = `xa${(+metaProjectsCount.value || 0) + 1}__`;
+          // }
 
 
-          result = await this.xcMeta.projectCreate(config.title, config);
+          result = await this.xcMeta.projectCreate(config.title, config, null, true);
           await this.xcMeta.projectAddUser(result.id, req?.session?.passport?.user?.id, 'owner,creator');
           await this.projectMgr.getSqlMgr({
             ...result,
             config,
             metaDb: this.xcMeta?.knex
           }).projectOpenByWeb(config);
+
+
           this.projectConfigs[result.id] = config;
-          this.xcMeta.metaUpdate(null, null, 'nc_store', {
-            value: ((metaProjectsCount && +metaProjectsCount.value) || 0) + 1
-          }, {key: 'NC_PROJECT_COUNT'})
+          // this.xcMeta.metaUpdate(null, null, 'nc_store', {
+          //   value: ((metaProjectsCount && +metaProjectsCount.value) || 0) + 1
+          // }, {key: 'NC_PROJECT_COUNT'})
 
           this.xcMeta.audit(result?.id, null, 'nc_audit', {
             op_type: 'PROJECT',
@@ -1249,7 +1366,9 @@ export default class NcMetaMgr {
         case 'projectList':
           result = await this.xcMeta.userProjectList(req?.session?.passport?.user?.id);
           result.forEach(p => {
-            p.projectType = JSON.parse(p.config)?.projectType;
+            const config = JSON.parse(p.config);
+            p.projectType = config?.projectType;
+            p.prefix = config?.prefix
             delete p.config
           })
           break;
@@ -1492,7 +1611,6 @@ export default class NcMetaMgr {
         default:
           return next();
       }
-
       if (this.listener) {
         await this.listener({
           user: req.user,
@@ -2311,6 +2429,7 @@ export default class NcMetaMgr {
   }
 
 
+  // todo: transaction
   protected async xcM2MRelationCreate(args: any, req): Promise<any> {
     const dbAlias = this.getDbAlias(args);
     const projectId = this.getProjectId(args);
@@ -2396,6 +2515,7 @@ export default class NcMetaMgr {
         childColumn: `${parentMeta.tn}_p_id`,
         parentTable: parentMeta.tn,
         parentColumn: parentPK.cn,
+        foreignKeyName: `${parentMeta.tn.slice(0, 3)}_${childMeta.tn.slice(0, 3)}_${nanoid(6)}_p_fk`,
         type: 'real'
       };
       const rel2Args = {
@@ -2404,6 +2524,7 @@ export default class NcMetaMgr {
         childColumn: `${childMeta.tn}_c_id`,
         parentTable: childMeta.tn,
         parentColumn: childPK.cn,
+        foreignKeyName: `${parentMeta.tn.slice(0, 3)}_${childMeta.tn.slice(0, 3)}_${nanoid(6)}_c_fk`,
         type: 'real'
       };
       if (args.args.type === 'real') {
@@ -2512,7 +2633,8 @@ export default class NcMetaMgr {
               childColumn: relation.cn,
               childTable: relation.tn,
               parentTable: relation.rtn,
-              parentColumn: relation.rcn
+              parentColumn: relation.rcn,
+              foreignKeyName: relation.fkn
             },
             api: 'relationDelete',
             sqlOpPlus: true,
@@ -2572,43 +2694,54 @@ export default class NcMetaMgr {
         const assocMeta = JSON.parse(assoc.meta);
         const rel1 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.parentTable)
         const rel2 = assocMeta.belongsTo.find(bt => bt.rtn === args.args.childTable)
-        await this.xcRelationColumnDelete({
-          ...args,
-          args: {
-            parentTable: rel1.rtn,
-            parentColumn: rel1.rcn,
-            childTable: rel1.tn,
-            childColumn: rel1.cn,
-            type: 'bt',
+        if (rel1) {
+          await this.xcRelationColumnDelete({
+            ...args,
+            args: {
+              parentTable: rel1.rtn,
+              parentColumn: rel1.rcn,
+              childTable: rel1.tn,
+              childColumn: rel1.cn,
+              foreignKeyName: rel1.fkn,
+              type: 'bt',
+            }
+          }, req, false)
+        }
+        if (rel2) {
+          await this.xcRelationColumnDelete({
+            ...args,
+            args: {
+              parentTable: rel2.rtn,
+              parentColumn: rel2.rcn,
+              childTable: rel2.tn,
+              childColumn: rel2.cn,
+              foreignKeyName: rel2.fkn,
+              type: 'bt',
+            }
+          }, req, false);
+        }
+
+        // ignore deleting table if it have more than 2 columns
+        if (assocMeta.columns.length === 2) {
+
+
+          const opArgs = {
+            ...args,
+            args: assocMeta,
+            api: 'tableDelete',
+            sqlOpPlus: true,
+          };
+
+          const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
+
+          if (this.listener) {
+            await this.listener({
+              req: opArgs,
+              res: out,
+              user: req.user,
+              ctx: {req}
+            });
           }
-        }, req, false)
-        await this.xcRelationColumnDelete({
-          ...args,
-          args: {
-            parentTable: rel2.rtn,
-            parentColumn: rel2.rcn,
-            childTable: rel2.tn,
-            childColumn: rel2.cn,
-            type: 'bt',
-          }
-        }, req, false);
-
-
-        const opArgs = {
-          ...args,
-          args: assocMeta,
-          api: 'tableDelete',
-          sqlOpPlus: true,
-        };
-        const out = await this.projectMgr.getSqlMgr({id: projectId}).handleRequest('tableDelete', opArgs);
-
-        if (this.listener) {
-          await this.listener({
-            req: opArgs,
-            res: out,
-            user: req.user,
-            ctx: {req}
-          });
         }
 
       }
@@ -2673,12 +2806,12 @@ export default class NcMetaMgr {
 
   protected getDbClientType(project_id: string, dbAlias: string) {
     const config = this.app?.projectBuilders?.find(pb => pb?.id === project_id)?.config;
-    return config?.envs?.[this.config?.workingEnv || 'dev']?.db?.find(db => db?.meta?.dbAlias === dbAlias)?.client;
+    return config?.envs?.[this.config?.workingEnv || '_noco']?.db?.find(db => db?.meta?.dbAlias === dbAlias)?.client;
   }
 
 
   protected getDbAliasList(project_id: string): string[] {
-    return this.projectConfigs?.[project_id]?.envs?.[this.config?.workingEnv || 'dev']?.db?.map(db => db?.meta?.dbAlias);
+    return this.projectConfigs?.[project_id]?.envs?.[this.config?.workingEnv || '_noco']?.db?.map(db => db?.meta?.dbAlias);
   }
 
 
@@ -2960,6 +3093,11 @@ export default class NcMetaMgr {
             tables = (await sqlClient.tableList())?.data?.list?.map(table => {
               return tables.find(mod => mod.title === table.tn) ?? {title: table.tn, alias: table.tn};
             });
+            const config = this.projectConfigs[this.getProjectId(args)]
+            tables = config?.prefix ? tables.filter(t => {
+              t.alias = t.title.replace(config?.prefix, '')
+              return t.title.startsWith(config?.prefix)
+            }) : tables;
           }
 
           const result = tables.reduce((obj, table) => {
@@ -3347,6 +3485,7 @@ export default class NcMetaMgr {
       condition: {
         model_id: args.args.model_id,
         model_name: args.args.model_name,
+        ...(args.args.comments ? {op_type: "COMMENT"} : {})
       }
     });
 
@@ -3458,7 +3597,7 @@ export default class NcMetaMgr {
       Arch: process.arch,
       Platform: process.platform,
       Docker: isDocker(),
-      Database: config.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]?.client,
+      Database: config.envs?.[process.env.NODE_ENV || '_noco']?.db?.[0]?.client,
       'ProjectOnRootDB': !!config?.prefix,
       'RootDB': this.config?.meta?.db?.client,
       'PackageVersion': packageVersion

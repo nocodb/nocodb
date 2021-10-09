@@ -1,5 +1,6 @@
 <template>
   <v-row
+    class="welcome-page nc-welcome-page"
     style="min-height: 100vh"
     align="center"
     justify="center"
@@ -93,7 +94,7 @@
     <div v-else>
       <p class="display-4 text-center font-weight-bold textColor--text text--lighten-1 welcome-msg">
         <vue-typer
-          repeat="0"
+          :repeat="0"
           text="Every once in a while,
 a revolutionary tech comes
  along that changes everything."

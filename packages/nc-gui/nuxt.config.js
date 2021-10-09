@@ -210,6 +210,16 @@ export default {
   ],
   env: {
     EE: !!process.env.EE
+  },
+  pwa: {
+    workbox: {
+      /* workbox options */
+      assetsURLPattern: './_nuxt/',
+      pagesURLPattern: './'
+    },
+    manifest: {
+      publicPath: './'
+    }
   }
 }
 /**

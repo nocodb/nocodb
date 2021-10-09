@@ -1,5 +1,6 @@
 <template>
   <div
+    class="nc-cell"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up
@@ -11,6 +12,8 @@
       v-model="localState"
       :active="active"
       :db-alias="dbAlias"
+      :meta="meta"
+      :column="column"
       v-on="$listeners"
     />
 
@@ -19,7 +22,6 @@
       v-model="localState"
       :is-form="isForm"
       v-on="parentListeners"
-      @input="$emit('change');"
     />
 
     <integer-cell
@@ -73,6 +75,7 @@
     <json-editable-cell
       v-else-if="isJSON"
       v-model="localState"
+      :is-form="isForm"
       v-on="parentListeners"
       @input="$emit('save')"
     />
@@ -102,10 +105,14 @@
     />
 
     <text-cell v-else v-model="localState" v-on="$listeners" />
+    <span v-if="hint" class="nc-hint">{{ hint }}</span>
+
+    <div v-if="isLocked" class="nc-locked-overlay" />
   </div>
 </template>
 
 <script>
+import debounce from 'debounce'
 import DatePickerCell from '@/components/project/spreadsheet/components/editableCell/datePickerCell'
 import EditableUrlCell from '@/components/project/spreadsheet/components/editableCell/editableUrlCell'
 import JsonEditableCell from '@/components/project/spreadsheet/components/editableCell/jsonEditableCell'
@@ -122,7 +129,6 @@ import EditableAttachmentCell from '@/components/project/spreadsheet/components/
 import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
 import SetListEditableCell from '@/components/project/spreadsheet/components/editableCell/setListEditableCell'
 import SetListCell from '@/components/project/spreadsheet/components/cell/setListCell'
-import debounce from 'debounce'
 
 export default {
   name: 'EditableCell',
@@ -150,7 +156,10 @@ export default {
     meta: Object,
     ignoreFocus: Boolean,
     isForm: Boolean,
-    active: Boolean
+    active: Boolean,
+    dummy: Boolean,
+    hint: String,
+    isLocked: Boolean
   },
   data: () => ({
     changed: false,
@@ -217,6 +226,23 @@ div {
   width: 100%;
   height: 100%;
   color: var(--v-textColor-base);
+}
+
+.nc-hint{
+  font-size: .61rem;
+  color:grey;
+}
+.nc-cell {
+   position: relative;
+ }
+
+.nc-locked-overlay {
+  position: absolute;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  top:0;
+  left:0;
 }
 </style>
 <!--

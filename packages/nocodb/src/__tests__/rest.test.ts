@@ -19,7 +19,7 @@ const projectCreateReqBody = {
       "title": "sebulba",
       "version": "0.6",
       "envs": {
-        "dev": {
+        "_noco": {
           "db": [
             dbConfig
             //   {
@@ -42,7 +42,7 @@ const projectCreateReqBody = {
           ], "apiClient": {"data": []}
         }
       },
-      "workingEnv": "dev",
+      "workingEnv": "_noco",
       "meta": {
         "version": "0.6",
         "seedsFolder": "seeds",
@@ -355,8 +355,8 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .expect(200, (err, res) => {
             if (err) done(err)
             expect(res.body).to.be.a('array');
-            expect(Object.keys(res.body[0]).length).to.be.equal(2);
-            expect(res.body[0]).to.have.all.keys('country_id', 'country');
+            expect(Object.keys(res.body[0]).length).to.be.equal(3);
+            expect(res.body[0]).to.have.all.keys('country_id', 'country','cityList');
             done();
           });
       });
@@ -425,7 +425,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({country: COUNTRY_NAME + 'a'})
             .expect(200, (err, res) => {
               if (err) done(err)
-              expect(res.body).to.be.equal(1);
+              expect(res.body).to.be.a('object');
               request(app)
                 .get(`/nc/${projectId}/api/v1/country/` + (dbConfig.client === 'mssql' ? COUNTRY_ID_RET :COUNTRY_ID))
                 .set('xc-auth', token)

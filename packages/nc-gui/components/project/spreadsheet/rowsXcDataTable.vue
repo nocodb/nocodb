@@ -1,7 +1,7 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
     <v-toolbar height="32" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
-      <div class="d-flex xc-border align-center search-box">
+      <div v-if="!isForm" class="d-flex xc-border align-center search-box">
         <v-menu bottom offset-y>
           <template #activator="{on}">
             <div v-on="on">
@@ -61,79 +61,106 @@
 
       <v-spacer class="h-100" @dblclick="debug=true" />
 
-      <debug-metas v-if="debug" class="mr-3" />
+      <template v-if="!isForm">
+        <debug-metas v-if="debug" class="mr-3" />
+        <v-tooltip bottom>
+          <template #activator="{on}">
+            <v-icon v-if="!isPkAvail && !isForm" color="warning" small class="mr-3" v-on="on">
+              mdi-information-outline
+            </v-icon>
+          </template>
+          <span class="caption">          Update & Delete not allowed since the table doesn't have any primary key
+          </span>
+        </v-tooltip>
+        <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
 
-      <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
-      <x-btn tooltip="Reload view data" outlined small text @click="reload">
-        <v-icon small class="mr-1" color="grey  darken-3">
-          mdi-reload
-        </v-icon>
-      </x-btn>
-      <x-btn
-        v-if="relationType !== 'bt'"
-        tooltip="Add new row"
-        :disabled="isLocked"
-        outlined
-        small
-        text
-        @click="insertNewRow(true,true)"
-      >
-        <v-icon small class="mr-1" color="grey  darken-3">
-          mdi-plus
-        </v-icon>
-      </x-btn>
-      <x-btn
-        small
-        text
-        outlined
-        tooltip="Save new rows"
-        :disabled="!edited || isLocked"
-        @click="save"
-      >
-        <v-icon small class="mr-1" color="grey  darken-3">
-          save
-        </v-icon>
-        Save
-      </x-btn>
+        <x-btn
+          tooltip="Reload view data"
+          outlined
+          small
+          text
+          btn.class="nc-table-reload-btn"
+          @click="reload"
+        >
+          <v-icon small class="mr-1" color="grey  darken-3">
+            mdi-reload
+          </v-icon>
+        </x-btn>
+        <x-btn
+          v-if="isEditable && relationType !== 'bt'"
+          tooltip="Add new row"
+          :disabled="isLocked"
+          outlined
+          small
+          text
+          btn.class="nc-add-new-row-btn"
+          @click="insertNewRow(true,true)"
+        >
+          <v-icon small class="mr-1" color="grey  darken-3">
+            mdi-plus
+          </v-icon>
+        </x-btn>
+        <x-btn
+          small
+          text
+          btn.class="nc-save-new-row-btn"
+          outlined
+          tooltip="Save new rows"
+          :disabled="!edited || isLocked"
+          @click="save"
+        >
+          <v-icon small class="mr-1" color="grey  darken-3">
+            save
+          </v-icon>
+          Save
+        </x-btn>
 
-      <fields
-        v-model="showFields"
-        :field-list="fieldList"
-        :meta="meta"
-        :is-locked="isLocked"
-        :fields-order.sync="fieldsOrder"
-        :sql-ui="sqlUi"
-        :show-system-fields.sync="showSystemFields"
-      />
+        <fields
+          v-model="showFields"
+          :field-list="fieldList"
+          :meta="meta"
+          :is-locked="isLocked"
+          :fields-order.sync="fieldsOrder"
+          :sql-ui="sqlUi"
+          :show-system-fields.sync="showSystemFields"
+          :cover-image-field.sync="coverImageField"
+          :is-gallery="isGallery"
+        />
 
-      <sort-list
-        v-model="sortList"
-        :is-locked="isLocked"
-        :field-list="realFieldList"
-      />
-      <column-filter
-        v-model="filters"
-        :is-locked="isLocked"
-        :field-list="realFieldList"
-        dense
-      />
-      <v-tooltip bottom>
-        <template #activator="{on}">
-          <v-btn
-            :disabled="isLocked"
-            small
-            outlined
-            text
-            v-on="on"
-            @click="checkAndDeleteTable"
-          >
-            <x-icon small color="red grey">
-              mdi-delete-outline
-            </x-icon>
-          </v-btn>
-        </template>
-        <span class="">Delete table</span>
-      </v-tooltip>
+        <sort-list
+          v-model="sortList"
+          :is-locked="isLocked"
+          :field-list="[...realFieldList, ...formulaFieldList]"
+        />
+        <column-filter
+          v-model="filters"
+          :is-locked="isLocked"
+          :field-list="[...realFieldList, ...formulaFieldList]"
+          dense
+        />
+        <v-tooltip
+          v-if="_isUIAllowed('table-delete')"
+          bottom
+        >
+          <template #activator="{on}">
+            <v-btn
+              v-show="_isUIAllowed('table-delete')"
+              class="nc-table-delete-btn"
+              :disabled="isLocked"
+              small
+              outlined
+              text
+              v-on="on"
+              @click="checkAndDeleteTable"
+            >
+              <x-icon small color="red grey">
+                mdi-delete-outline
+              </x-icon>
+            </v-btn>
+          </template>
+          <span class="">Delete table</span>
+        </v-tooltip>
+      </template>
       <!-- Cell height -->
       <!--      <v-menu>
               <template v-slot:activator="{ on, attrs }">
@@ -165,7 +192,7 @@
         outlined
         small
         text
-        :btn-class="{ 'primary lighten-5' : !toggleDrawer}"
+        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer' : !toggleDrawer}"
         @click="toggleDrawer = !toggleDrawer"
       >
         <v-icon
@@ -183,8 +210,12 @@
       class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
-        <div ref="table" style="height : calc(100% - 36px); overflow: auto;width:100%">
-          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData)" type="table" />
+        <div
+          ref="table"
+          :style="{height:isForm ? '100%' : 'calc(100% - 36px)'}"
+          style="overflow: auto;width:100%"
+        >
+          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData) || !meta" type="table" />
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
               :key="key"
@@ -206,6 +237,7 @@
               :meta="meta"
               :is-virtual="selectedView.type === 'vtable'"
               :api="api"
+              :is-pk-avail="isPkAvail"
               @onNewColCreation="onNewColCreation"
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
@@ -217,7 +249,7 @@
               @loadMeta="loadMeta"
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">
+          <template v-else-if="isGallery ">
             <gallery-view
               :nodes="nodes"
               :table="table"
@@ -225,7 +257,9 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
+              :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
+              :cover-image-field="coverImageField"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
@@ -237,6 +271,7 @@
               :available-columns="availableColumns"
               :meta="meta"
               :data="data"
+              :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
@@ -253,8 +288,30 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
+          <template v-else-if="isForm">
+            <form-view
+              :id="selectedViewId"
+              :key="selectedViewId + viewKey"
+              :nodes="nodes"
+              :table="table"
+              :available-columns="availableColumns"
+              :meta="meta"
+              :data="data"
+              :show-fields.sync="showFields"
+              :all-columns="allColumns"
+              :field-list="fieldList"
+              :is-locked="isLocked"
+              :db-alias="nodes.dbAlias"
+              :api="api"
+              :sql-ui="sqlUi"
+              :fields-order.sync="fieldsOrder"
+              :primary-value-column="primaryValueColumn"
+              :form-params.sync="extraViewParams.formParams"
+              @onNewColCreation="loadMeta(false)"
+            />
+          </template>
         </div>
-        <template v-if="data">
+        <template v-if="data && !isForm">
           <pagination
             v-model="page"
             :count="count"
@@ -272,6 +329,7 @@
         :table="table"
         :meta="meta"
         :selected-view-id.sync="selectedViewId"
+        :cover-image-field.sync="coverImageField"
         :selected-view.sync="selectedView"
         :primary-value-column="primaryValueColumn"
         :concatenated-x-where="concatenatedXWhere"
@@ -285,6 +343,9 @@
         :fields-order.sync="fieldsOrder"
         :view-status.sync="viewStatus"
         :columns-width.sync="columnsWidth"
+        :show-system-fields.sync="showSystemFields"
+        :extra-view-params.sync="extraViewParams"
+        @generateNewViewKey="generateNewViewKey"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
         @loadTableData="loadTableData"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
@@ -441,10 +502,13 @@
         :available-columns="availableColumns"
         :nodes="nodes"
         :query-params="queryParams"
+        :show-next-prev="true"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"
         @loadTableData="loadTableData"
+        @next="loadNext"
+        @prev="loadPrev"
       />
     </v-dialog>
 
@@ -460,16 +524,16 @@
 
 <script>
 
-import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
-import { SqlUI } from '@/helpers/SqlUiFactory'
-
 import { mapActions } from 'vuex'
-import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
 import debounce from 'debounce'
+import FormView from './views/formView'
+import XcGridView from './views/xcGridView'
+import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
+
+import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
 import GalleryView from '@/components/project/spreadsheet/views/galleryView'
 import CalendarView from '@/components/project/spreadsheet/views/calendarView'
 import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
-import XcGridView from '@/components/project/spreadsheet/views/xcGridView'
 import SortList from '@/components/project/spreadsheet/components/sortListMenu'
 import Fields from '@/components/project/spreadsheet/components/fieldsMenu'
 import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
@@ -477,11 +541,13 @@ import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
 import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
 import Pagination from '@/components/project/spreadsheet/components/pagination'
+import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
 
 export default {
   name: 'RowsXcDataTable',
   components: {
+    FormView,
     DebugMetas,
     Pagination,
     ExpandedForm,
@@ -510,6 +576,8 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    viewKey: 0,
+    extraViewParams: {},
     debug: false,
     key: 1,
     dataLoaded: false,
@@ -519,6 +587,7 @@ export default {
       type: null
     },
     fieldsOrder: [],
+    coverImageField: null,
     showSystemFields: false,
     showAdvanceOptions: false,
     loadViews: false,
@@ -619,12 +688,21 @@ export default {
     ...mapActions({
       loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
+    generateNewViewKey() {
+      this.viewKey = Math.random()
+    },
+    loadNext() {
+      this.selectedExpandRowIndex = ++this.selectedExpandRowIndex % this.data.length
+    },
+    loadPrev() {
+      this.selectedExpandRowIndex = --this.selectedExpandRowIndex === -1 ? this.data.length - 1 : this.selectedExpandRowIndex
+    },
     checkAndDeleteTable() {
       if (
-        (!this.meta) && (
+        !this.meta || (
           (this.meta.hasMany && this.meta.hasMany.length) ||
-        (this.meta.manyToMany && this.meta.manyToMany.length) ||
-        (this.meta.belongsTo && this.meta.belongsTo.length))
+          (this.meta.manyToMany && this.meta.manyToMany.length) ||
+          (this.meta.belongsTo && this.meta.belongsTo.length))
       ) {
         return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
       }
@@ -659,7 +737,13 @@ export default {
           showFields: this.showFields,
           fieldsOrder: this.fieldsOrder,
           viewStatus: this.viewStatus,
-          columnsWidth: this.columnsWidth
+          columnsWidth: this.columnsWidth,
+          showSystemFields: this.showSystemFields,
+          extraViewParams: this.extraViewParams
+        }
+
+        if (this.isGallery) {
+          queryParams.coverImageField = this.coverImageField
         }
 
         this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
@@ -699,7 +783,7 @@ export default {
             ...this.nodes
           }
         })
-        delete this.nodes.newTable
+        // delete this.nodes.newTable
       }
 
       this.loadViews = true
@@ -803,9 +887,17 @@ export default {
           }
 
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
-          await this.api.update(id, {
+
+          if (!id) {
+            return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
+          }
+
+          const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
           }, { [column._cn]: oldRow[column._cn] })
+
+          this.$set(this.data[row], 'row', { ...rowObj, ...newData })
+
           this.$set(oldRow, column._cn, rowObj[column._cn])
           this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
             position: 'bottom-center'
@@ -824,6 +916,11 @@ export default {
         const rowObj = this.rowContextMenu.row
         if (!this.rowContextMenu.rowMeta.new) {
           const id = this.meta && this.meta.columns && this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+
+          if (!id) {
+            return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
+          }
+
           await this.api.delete(id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
@@ -842,6 +939,11 @@ export default {
           }
           if (!rowMeta.new) {
             const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+
+            if (!id) {
+              return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
+            }
+
             await this.api.delete(id)
           }
           this.data.splice(row, 1)
@@ -946,6 +1048,9 @@ export default {
       this.loadingData = false
     },
     showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
+      if (!this.isEditable) {
+        return
+      }
       e.preventDefault()
       this.rowContextMenu = false
       this.$nextTick(() => {
@@ -974,6 +1079,15 @@ export default {
     }
   },
   computed: {
+    isPkAvail() {
+      return this.meta && this.meta.columns.some(c => c.pk)
+    },
+    isGallery() {
+      return this.selectedView && this.selectedView.show_as === 'gallery'
+    },
+    isForm() {
+      return this.selectedView && this.selectedView.show_as === 'form'
+    },
     meta() {
       return this.$store.state.meta.metas[this.table]
     },

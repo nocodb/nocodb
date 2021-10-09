@@ -40,7 +40,9 @@
           slug="nocodb/nocodb"
           show-count
           class="mr-3 align-self-center"
-        />
+        >
+          {{ ghStarText }}
+        </gh-btns-star>
         <a class="caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
@@ -97,7 +99,7 @@
       <v-spacer />
 
       <v-toolbar-items class="hidden-sm-and-down">
-        <release-info class="mr-2 py-0" />
+        <release-info />
 
         <template v-if="isDashboard">
           <div>
@@ -320,19 +322,30 @@
 
                               </v-list-item-title>
                             </v-list-item>-->
+              <v-list-item v-ge="['Sign Out','']" dense>
+                <v-list-item-title>
+                  <v-icon small>
+                    mdi-at
+                  </v-icon>&nbsp; <span class="font-weight-bold">{{ userEmail }}</span>
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-divider />
 
               <v-list-item
+                v-if="isDashboard"
                 v-clipboard="$store.state.users.token"
                 dense
                 @click.stop="$toast.success('Auth token copied to clipboard').goAway(3000)"
               >
                 <v-list-item-title>
                   <v-icon key="terminal-dash" small>
-                    mdi-console
+                    mdi-content-copy
                   </v-icon>&nbsp;
                   <span class="font-weight-regular">Copy auth token</span>
                 </v-list-item-title>
               </v-list-item>
+
               <!--
                             <v-list-item dense @click.stop="projectInfoTabAdd">
                               <v-list-item-title>
@@ -357,23 +370,25 @@
                     {{ isGql ? 'GraphQL APIs' : 'Swagger APIs Doc' }}</span>
                 </v-list-item-title>
               </v-list-item>
+              <v-divider />
+              <v-list-item v-if="isDashboard" v-ge="['Sign Out','']" dense @click="copyProjectInfo">
+                <v-list-item-title>
+                  <v-icon small>
+                    mdi-information-outline
+                  </v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
+                </v-list-item-title>
+              </v-list-item>
 
-              <v-list-item dense @click.stop="settingsTabAdd">
+              <v-list-item v-if="isDashboard" dense @click.stop="settingsTabAdd">
                 <v-list-item-title>
                   <v-icon key="terminal-dash" small>
-                    mdi-cog
+                    mdi-palette
                   </v-icon>&nbsp;
                   <span class="font-weight-regular">Themes</span>
                 </v-list-item-title>
               </v-list-item>
 
-              <v-list-item v-if="isDashboard" v-ge="['Sign Out','']" dense @click="copyProjectInfo">
-                <v-list-item-title>
-                  <v-icon small>
-                    info
-                  </v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
-                </v-list-item-title>
-              </v-list-item>
+              <v-divider v-if="isDashboard" />
 
               <v-list-item v-ge="['Sign Out','']" dense @click="MtdSignOut">
                 <v-list-item-title>
@@ -550,13 +565,13 @@
 import ReleaseInfo from '@/components/releaseInfo'
 import { mapGetters, mapActions, mapMutations } from 'vuex'
 import 'splitpanes/dist/splitpanes.css'
-import { copyTextToClipboard } from '@/helpers/xutils'
 import ChangeEnv from '../components/changeEnv'
 import XBtn from '../components/global/xBtn'
 import dlgUnexpectedError from '../components/utils/dlgUnexpectedError'
 import notification from '../components/notification.vue'
 import settings from '../components/settings'
 import xTerm from '../components/xTerm'
+import { copyTextToClipboard } from '@/helpers/xutils'
 import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
 
@@ -573,6 +588,7 @@ export default {
     xTerm
   },
   data: () => ({
+    ghStarText: 'Star',
     swaggerOrGraphiqlUrl: null,
     showScreensaver: false,
     roleIcon: {
@@ -594,10 +610,10 @@ export default {
     error: null,
     dialogErrorShow: false,
     dialogDebug: false,
-    migrationsMenu: [
-      { name: 'dev', children: [{ name: 'db-1' }, { name: 'db-2' }] },
-      { name: 'test', children: [{ name: 'db-1' }, { name: 'db-2' }] }
-    ],
+    // migrationsMenu: [
+    //   { name: 'dev', children: [{ name: 'db-1' }, { name: 'db-2' }] },
+    //   { name: 'test', children: [{ name: 'db-1' }, { name: 'db-2' }] }
+    // ],
     clipped: false,
     drawer: null,
     fixed: false,
@@ -617,7 +633,7 @@ export default {
       brandName: 'plugins/brandName',
       projects: 'project/list',
       tabs: 'tabs/list',
-      sqlMgr: 'sqlMgr/sqlMgr',
+      sqldMgr: 'sqlMgr/sqlMgr',
       GetPendingStatus: 'notification/GetPendingStatus',
       isAuthenticated: 'users/GtrIsAuthenticated',
       isAdmin: 'users/GtrIsAdmin',
@@ -626,7 +642,8 @@ export default {
       isGql: 'project/GtrProjectIsGraphql',
       isRest: 'project/GtrProjectIsRest',
       isGrpc: 'project/GtrProjectIsGrpc',
-      role: 'users/GtrRole'
+      role: 'users/GtrRole',
+      userEmail: 'users/GtrUserEmail'
     }),
     user() {
       return this.$store.getters['users/GtrUser']
@@ -660,6 +677,7 @@ export default {
   mounted() {
     this.selectedEnv = this.$store.getters['project/GtrActiveEnv']
     this.loadProjectInfo()
+    setInterval(() => this.ghStarText = this.ghStarText === 'Star' ? 'Fork' : 'Star', 60000)
   },
   // errorCaptured(err, vm, info) {
   //   console.log("errorCaptured", err, vm, info);
@@ -677,7 +695,7 @@ export default {
     async loadProjectInfo() {
       if (this.$route.params.project_id) {
         try {
-          const { info } = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
+          const { info } = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
             headers: {
               'xc-auth': this.$store.state.users.token
             }
@@ -787,7 +805,7 @@ export default {
       } else {
         console.log('add terminal tab')
         const item = { name: 'API Client', key: 'apiClientDir' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'apiClientDir'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -803,7 +821,7 @@ export default {
       } else {
         console.log('add terminal tab')
         const item = { name: 'API Client', key: 'apiClientSwaggerDir' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'apiClientSwaggerDir'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -818,7 +836,7 @@ export default {
       } else {
         console.log('add project info tab')
         const item = { name: 'Info', key: 'projectInfo' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'projectInfo'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -830,7 +848,7 @@ export default {
         this.changeActiveTab(tabIndex)
       } else {
         const item = { name: 'Meta', key: 'meta' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'meta'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -874,7 +892,7 @@ export default {
       } else {
         console.log('add grpc tab')
         const item = { name: 'gRPC Client', key: 'grpcClient' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'grpcClient'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -886,7 +904,7 @@ export default {
       } else {
         console.log('add roles tab')
         const item = { name: 'Team & Auth ', key: 'roles' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'roles'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -901,7 +919,7 @@ export default {
       } else {
         console.log('add roles tab')
         const item = { name: 'Themes', key: 'projectSettings' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'projectSettings'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -913,7 +931,7 @@ export default {
       } else {
         console.log('add acl tab')
         const item = { name: 'ACL', key: 'acl' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'acl'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -925,7 +943,7 @@ export default {
       } else {
         console.log('add acl tab')
         const item = { name: 'Meta Management', key: 'disableOrEnableModel' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'disableOrEnableModel'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -937,7 +955,7 @@ export default {
       } else {
         console.log('add cron job tab')
         const item = { name: 'Cron Jobs', key: 'cronJobs' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'cronJobs'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -949,7 +967,7 @@ export default {
       } else {
         console.log('add app store tab')
         const item = { name: 'App Store', key: 'appStore' }
-        item._nodes = { env: 'dev' }
+        item._nodes = { env: '_noco' }
         item._nodes.type = 'appStore'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -957,7 +975,7 @@ export default {
     async codeGenerateMvc() {
       try {
         await this.sqlMgr.projectGenerateBackend({
-          env: 'dev'
+          env: '_noco'
         })
         this.$toast.success('Yay, REST APIs with MVC generated').goAway(4000)
       } catch (e) {

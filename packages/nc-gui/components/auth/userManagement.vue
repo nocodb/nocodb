@@ -147,6 +147,7 @@
                         </td>
                         <td>
                           <x-icon
+                            v-if="item.project_id"
                             tooltip="Edit User"
                             icon-class=""
                             color="primary"
@@ -446,7 +447,7 @@
           <!--          todo: show error message if failed-->
         </div>
         <template v-else>
-          <v-form v-model="valid" @submit.prevent="saveUser">
+          <v-form ref="form" v-model="valid" @submit.prevent="saveUser">
             <v-row class="mt-4">
               <v-col cols="12">
                 <v-text-field
@@ -490,7 +491,7 @@
               v-ge="['rows','save']"
               tooltip="Save Changes"
               color="primary"
-              btn.class="mt-5  mb-3 pr-5"
+              btn.class="mt-5  mb-3 pr-5 nc-invite-or-save-btn"
               @click="saveUser"
             >
               <v-icon small left>
@@ -752,7 +753,7 @@ export default {
       }
     },
     async saveUser() {
-      if (this.loading || !this.valid || !this.selectedUser) {
+      if (this.loading || !this.$refs.form.validate() || !this.selectedUser) {
         return
       }
 

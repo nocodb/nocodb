@@ -8,7 +8,7 @@
     @dragend="dragOver = false"
     @drop.prevent="onFileDrop"
   >
-    <div v-show="dragOver" class="drop-overlay">
+    <div v-show="_isUIAllowed('tableAttachment') && dragOver" class="drop-overlay">
       <div>
         <v-icon small>
           mdi-cloud-upload-outline
@@ -18,13 +18,16 @@
     </div>
 
     <div class="d-flex align-center img-container">
-      <div v-for="(item,i) in localState" :key="i" class="thumbnail align-center justify-center d-flex">
+      <div
+        v-for="(item,i) in localState"
+        :key="item.url"
+        class="thumbnail align-center justify-center d-flex"
+      >
         <v-tooltip bottom>
           <template #activator="{on}">
             <!--            <img alt="#" v-if="isImage(item.title)" :src="item.url" v-on="on" @click="selectImage(item.url,i)">-->
             <v-img
               v-if="isImage(item.title)"
-              :key="item.url"
               lazy-src="https://via.placeholder.com/60.png?text=Loading..."
               alt="#"
               max-height="33px"
@@ -58,7 +61,7 @@
         <v-icon v-if="uploading" small color="primary">
           mdi-loading mdi-spin
         </v-icon>
-        <v-icon v-else v-show="active" small color="primary">
+        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary">
           mdi-plus
         </v-icon>
       </div>
@@ -78,24 +81,33 @@
     >
       <v-card class="h-100 images-modal">
         <v-card-text class="h-100 backgroundColor">
-          <v-btn small class="my-4" :loading="uploading" @click="addFile">
-            <v-icon small class="mr-2">
-              mdi-link-variant
-            </v-icon>
-            Attach File
-          </v-btn>
+          <div class="d-flex mx-2">
+            <v-btn v-if="_isUIAllowed('tableAttachment')" small class="my-4 " :loading="uploading" @click="addFile">
+              <v-icon small class="mr-2">
+                mdi-link-variant
+              </v-icon>
+              <span class="caption">Attach File</span>
+            </v-btn>
+          </div>
 
           <div class="d-flex flex-wrap h-100">
             <v-container fluid style="max-height:calc(90vh - 80px);overflow-y: auto">
-              <v-row>
+              <draggable
+                v-model="localState"
+                class="row"
+                @update="onOrderUpdate"
+              >
                 <v-col v-for="(item,i) in localState" :key="i" cols="4">
                   <v-card
                     class="modal-thumbnail-card align-center justify-center d-flex"
                     height="200px"
                     style="position: relative"
                   >
-                    <v-icon small class="remove-icon" @click="removeItem(i)">
+                    <v-icon v-if="_isUIAllowed('tableAttachment')" small class="remove-icon" @click="removeItem(i)">
                       mdi-close-circle
+                    </v-icon>
+                    <v-icon color="grey" class="download-icon" @click.stop="downloadItem(item,i)">
+                      mdi-download
                     </v-icon>
                     <div class="pa-2 d-flex align-center" style="height:200px">
                       <img
@@ -120,7 +132,7 @@
                     {{ item.title }}
                   </p>
                 </v-col>
-              </v-row>
+              </draggable>
             </v-container>
           </div>
         </v-card-text>
@@ -138,8 +150,10 @@
               <div class="mx-auto d-flex flex-column justify-center align-center" style="min-height:100px">
                 <p class="title text-center">
                   {{ item.title }}
+                  <v-icon class="ml-3" color="grey" @click.stop="downloadItem(item,i)">
+                    mdi-download
+                  </v-icon>
                 </p>
-
                 <div style="width:90vh;height:calc(100vh - 150px)" class="d-flex align-center justify-center">
                   <img
                     v-if="isImage(item.title)"
@@ -208,11 +222,14 @@
 </template>
 
 <script>
+import FileSaver from 'file-saver'
+import draggable from 'vuedraggable'
 import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
 
 export default {
   name: 'EditableAttachmentCell',
-  props: ['dbAlias', 'value', 'active', 'isLocked'],
+  components: { draggable },
+  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column'],
   data: () => ({
     carousel: null,
     uploading: false,
@@ -265,7 +282,9 @@ export default {
       this.showImage = true
     },
     addFile() {
-      if (!this.isLocked) { this.$refs.file.click() }
+      if (!this.isLocked) {
+        this.$refs.file.click()
+      }
     },
     async onFileSelection() {
       if (!this.$refs.file.files || !this.$refs.file.files.length) {
@@ -276,7 +295,10 @@ export default {
         try {
           const item = await this.$store.dispatch('sqlMgr/ActUpload', [{
             dbAlias: this.dbAlias
-          }, 'xcAttachmentUpload', {}, file])
+          }, 'xcAttachmentUpload', {
+            appendPath: [this.meta.tn],
+            prependName: [this.column.cn]
+          }, file])
           this.localState.push(item)
         } catch (e) {
           this.$toast.error((e.message) || 'Some internal error occurred').goAway(3000)
@@ -289,13 +311,22 @@ export default {
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
+    onOrderUpdate() {
+      this.$emit('input', JSON.stringify(this.localState))
+      this.$emit('update')
+    },
     removeItem(i) {
       this.localState.splice(i, 1)
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
+    downloadItem(item) {
+      FileSaver.saveAs(item.url, item.title)
+    },
     onArrowDown(e) {
-      if (!this.showImage) { return }
+      if (!this.showImage) {
+        return
+      }
       e = e || window.event
       // eslint-disable-next-line eqeqeq
       if (e.keyCode == '37') {
@@ -314,7 +345,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .img-container {
   margin: 0 -2px;
 }
@@ -376,6 +407,21 @@ export default {
   position: absolute;
   top: 5px;
   right: 5px
+}
+
+.modal-thumbnail-card {
+
+  .download-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    opacity: 0;
+    transition: .4s opacity;
+  }
+
+  &:hover .download-icon {
+    opacity: 1
+  }
 }
 
 .image-overlay-container {
@@ -465,7 +511,4 @@ export default {
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
--->
+ * along with this p

@@ -1,0 +1,18 @@
+name: "On Event : Issue Closed"
+
+on:
+  issues:
+    types: [closed]
+
+
+jobs:
+  notify:
+    name: 'Discord'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord notify
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: info
+          details: 'Closed : ${{ github.event.issue.title }}(#${{ github.event.issue.number }}) :  ${{ github.event.issue.html_url }}'
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}

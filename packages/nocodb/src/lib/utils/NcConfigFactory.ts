@@ -22,6 +22,11 @@ const defaultClientPortMapping = {
   mssql: 1433,
 }
 
+const defaultConnectionConfig = {
+  // timezone: 'UTC',
+  // dateStrings: true
+}
+
 
 export default class NcConfigFactory implements NcConfig {
 
@@ -41,8 +46,8 @@ export default class NcConfigFactory implements NcConfig {
 
 
     config.port = +(process?.env?.PORT ?? 8080);
-    config.env = process.env?.NODE_ENV || 'dev';
-    config.workingEnv = process.env?.NODE_ENV || 'dev';
+    config.env = '_noco'; // process.env?.NODE_ENV || 'dev';
+    config.workingEnv = '_noco'; // process.env?.NODE_ENV || 'dev';
     config.toolDir = this.getToolDir();
     config.projectType = config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
@@ -50,8 +55,18 @@ export default class NcConfigFactory implements NcConfig {
       config.meta.db.connection.filename = path.join(config.toolDir, config.meta.db.connection.filename)
     }
 
+    if (process.env.NC_DB_JSON) {
+      config.meta.db = JSON.parse(process.env.NC_DB_JSON);
+    } else if (process.env.NC_DB_JSON_FILE) {
+      const filePath = process.env.NC_DB_JSON_FILE;
 
-    if (process.env.NC_DB) {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`NC_DB_JSON_FILE not found: ${filePath}`);
+      }
+
+      const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
+      config.meta.db = JSON.parse(fileContent);
+    } else if (process.env.NC_DB) {
       config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB)
     }
 
@@ -72,7 +87,8 @@ export default class NcConfigFactory implements NcConfig {
 
 
     if (process.env.NC_PUBLIC_URL) {
-      config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
+      // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
       config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
@@ -95,7 +111,8 @@ export default class NcConfigFactory implements NcConfig {
 
     for (const key of dbUrls.sort()) {
       const dbConfig = this.urlToDbConfig(process?.env?.[key], key.slice(9), config);
-      config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
+      config.envs['_noco'].db.push(dbConfig);
+      // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
     }
 
 
@@ -109,10 +126,12 @@ export default class NcConfigFactory implements NcConfig {
       config.auth = {
         disabled: true
       };
-    } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
+    // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
+    } else if (config?.envs?.['_noco']?.db?.[0]) {
       config.auth = {
         jwt: {
-          dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
+          // dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
+          dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs['_noco'].db[0].meta.dbAlias,
           secret: process.env.NC_AUTH_JWT_SECRET
         }
       };
@@ -156,14 +175,17 @@ export default class NcConfigFactory implements NcConfig {
 
 
     if (process.env.NC_PUBLIC_URL) {
-      config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
+      // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
       config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
 
     config.port = +(process?.env?.PORT ?? 8080);
-    config.env = process.env?.NODE_ENV || 'dev';
-    config.workingEnv = process.env?.NODE_ENV || 'dev';
+    // config.env = process.env?.NODE_ENV || 'dev';
+    // config.workingEnv = process.env?.NODE_ENV || 'dev';
+    config.env = '_noco';
+    config.workingEnv = '_noco';
     config.toolDir = this.getToolDir();
     config.projectType = config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
@@ -181,9 +203,11 @@ export default class NcConfigFactory implements NcConfig {
   public static makeFromUrls(urls: string[]): NcConfig {
     const config = new NcConfigFactory();
 
-    config.envs[process.env.NODE_ENV || 'dev'].db = [];
+    // config.envs[process.env.NODE_ENV || 'dev'].db = [];
+    config.envs['_noco'].db = [];
     for (const [i, url] of Object.entries(urls)) {
-      config.envs[process.env.NODE_ENV || 'dev'].db.push(this.urlToDbConfig(url, i));
+      // config.envs[process.env.NODE_ENV || 'dev'].db.push(this.urlToDbConfig(url, i));
+      config.envs['_noco'].db.push(this.urlToDbConfig(url, i));
     }
 
     return config;
@@ -200,7 +224,7 @@ export default class NcConfigFactory implements NcConfig {
         client: 'sqlite3',
         "connection": {
           "client": "sqlite3",
-          "connection": {
+          "connection": {          
             "filename": url.searchParams.get('d') || url.searchParams.get('database')
           },
           "database": url.searchParams.get('d') || url.searchParams.get('database'),
@@ -211,6 +235,7 @@ export default class NcConfigFactory implements NcConfig {
       dbConfig = {
         client: url.protocol.replace(':', ''),
         "connection": {
+          ...defaultConnectionConfig,
           database: url.searchParams.get('d') || url.searchParams.get('database'),
           "host": url.hostname,
           "password": url.searchParams.get('p') || url.searchParams.get('password'),
@@ -297,16 +322,13 @@ export default class NcConfigFactory implements NcConfig {
       dbConfig = {
         client: url.protocol.replace(':', ''),
         "connection": {
+          ...defaultConnectionConfig,
           database: url.searchParams.get('d') || url.searchParams.get('database'),
           "host": url.hostname,
           "password": url.searchParams.get('p') || url.searchParams.get('password'),
           "port": +url.port,
           'user': url.searchParams.get('u') || url.searchParams.get('user'),
         },
-        // pool: {
-        //   min: 1,
-        //   max: 2
-        // },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path') ? {
           searchPath: url.searchParams.get('search_path').split(',')
@@ -316,6 +338,24 @@ export default class NcConfigFactory implements NcConfig {
         dbConfig.connection.ssl = true;
       }
     }
+    url.searchParams.forEach((_value, key) => {
+      let value: any = _value;
+      if (value === 'true') {
+        value = true;
+      } else if (value === 'false') {
+        value = false;
+      } else if (/^\d+$/.test(value)) {
+        value = +value;
+      }
+      // todo: implement config read from JSON file or JSON env val read
+      if (!['password', 'p', 'database', 'd', 'user', 'u', 'search_path'].includes(key)) {
+        key.split('.').reduce((obj, k, i, arr) => {
+          return obj[k] = i === arr.length - 1 ? value : (obj[k] || {})
+        }, dbConfig);
+      }
+    })
+
+
     return dbConfig
   }
 
@@ -323,7 +363,8 @@ export default class NcConfigFactory implements NcConfig {
   public static makeProjectConfigFromUrl(url, type?: string): NcConfig {
     const config = new NcConfigFactory();
     const dbConfig = this.urlToDbConfig(url, '', config, type);
-    config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
+    // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
+    config.envs['_noco'].db.push(dbConfig);
 
 
     if (process.env.NC_AUTH_ADMIN_SECRET) {
@@ -336,10 +377,12 @@ export default class NcConfigFactory implements NcConfig {
       config.auth = {
         disabled: true
       };
-    } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
+    // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
+    } else if (config?.envs?.['_noco']?.db?.[0]) {
       config.auth = {
         jwt: {
-          dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
+          // dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
+          dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs['_noco'].db[0].meta.dbAlias,
           secret: process.env.NC_AUTH_JWT_SECRET
         }
       };
@@ -383,14 +426,17 @@ export default class NcConfigFactory implements NcConfig {
 
 
     if (process.env.NC_PUBLIC_URL) {
-      config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
       config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
 
     config.port = +(process?.env?.PORT ?? 8080);
-    config.env = process.env?.NODE_ENV || 'dev';
-    config.workingEnv = process.env?.NODE_ENV || 'dev';
+    // config.env = process.env?.NODE_ENV || 'dev';
+    // config.workingEnv = process.env?.NODE_ENV || 'dev';
+    config.env = '_noco';
+    config.workingEnv = '_noco';
     config.toolDir = this.getToolDir();
     config.projectType = type || config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
@@ -433,7 +479,8 @@ export default class NcConfigFactory implements NcConfig {
     })
 
 
-    config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
+    // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
+    config.envs['_noco'].db.push(dbConfig);
 
 
     if (process.env.NC_AUTH_ADMIN_SECRET) {
@@ -446,10 +493,12 @@ export default class NcConfigFactory implements NcConfig {
       config.auth = {
         disabled: true
       };
-    } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
+    // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
+    } else if (config?.envs?.['_noco']?.db?.[0]) {
       config.auth = {
         jwt: {
-          dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
+          // dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
+          dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs['_noco'].db[0].meta.dbAlias,
           secret: process.env.NC_AUTH_JWT_SECRET
         }
       };
@@ -493,14 +542,17 @@ export default class NcConfigFactory implements NcConfig {
 
 
     if (process.env.NC_PUBLIC_URL) {
-      config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
       config.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
 
     config.port = +(process?.env?.PORT ?? 8080);
-    config.env = process.env?.NODE_ENV || 'dev';
-    config.workingEnv = process.env?.NODE_ENV || 'dev';
+    // config.env = process.env?.NODE_ENV || 'dev';
+    // config.workingEnv = process.env?.NODE_ENV || 'dev';
+    config.env = '_noco';
+    config.workingEnv = '_noco';
     config.toolDir = process.env.NC_TOOL_DIR || process.cwd();
     config.projectType = type || config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
@@ -560,7 +612,7 @@ export default class NcConfigFactory implements NcConfig {
   public dashboardPath = '/dashboard'
 
   constructor() {
-    this.envs = {dev: {db: []}};
+    this.envs = {_noco: {db: []}};
   }
 
 
@@ -592,6 +644,11 @@ export default class NcConfigFactory implements NcConfig {
   // }
 
 }
+
+export {
+  defaultConnectionConfig
+}
+
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

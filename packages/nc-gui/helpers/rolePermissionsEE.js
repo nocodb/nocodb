@@ -4,7 +4,10 @@ export default {
   guest: {},
   editor: {
     airTable: true,
-    column: true
+    xcDatatableEditable: true,
+    column: true,
+    tableAttachment: true,
+    tableRowUpdate: true
   },
   commenter: {
     airTable: true,
@@ -15,7 +18,8 @@ export default {
     column: true
   },
   user: {
-    projectCreate: true
+    projectCreate: true,
+    projectActions: true
   }
 }
 /**

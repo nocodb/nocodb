@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex h-100">
+  <div class="d-flex h-100 nc-app-store-tab">
     <v-dialog v-model="pluginInstallOverlay" min-width="400px" max-width="700px" min-height="300">
       <v-card
         v-if="installPlugin && pluginInstallOverlay"

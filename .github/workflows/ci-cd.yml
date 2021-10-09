@@ -1,0 +1,62 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: "CI/CD"
+on:
+  push:
+    branches: [ master, cypress ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-20.04
+    steps:
+     - name: Checkout
+       uses: actions/checkout@v2
+       with:
+         fetch-depth: 0
+     - name: Check for update
+       run: |
+          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
+
+     - name: Cypress run
+       if: ${{ env.CHANGED == 'OK' }}
+       uses: cypress-io/github-action@v2
+       with:
+         start: docker-compose -f ./docker-compose-cypress.yml up -d
+         wait-on: 'http://localhost:3000'
+         wait-on-timeout: 900
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Check for update
+      run: |
+        echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nocodb) = nocodb ]] && echo 'OK')" >> $GITHUB_ENV
+
+    - name: Test Mysql REST APIs
+      if: ${{ env.CHANGED == 'OK' }}
+      run: cd ./packages/nocodb/  && docker-compose run xc-test-mysql
+    - name: Test Mysql GraphQL APIs
+      if: ${{ env.CHANGED == 'OK' }}
+      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mysql
+
+#    - name: Test MSSQL REST APIs
+#      run: cd ./packages/nocodb/  && docker-compose run xc-test-mssql
+#    - name: Test MSSQL GraphQL APIs
+#      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mssql
+#
+    - name: Test PostgreSQL REST APIs
+      if: ${{ env.CHANGED == 'OK' }}
+      run: cd ./packages/nocodb/  && docker-compose run xc-test-pg
+    - name: Test PostgreSQL GraphQL APIs
+      if: ${{ env.CHANGED == 'OK' }}
+      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-pg
+#
+#    - name: Test SQLite3 REST APIs
+#      run: cd ./packages/nocodb/  && docker-compose run xc-test-sqlite
+#    - name: Test SQLite3 GraphQL APIs
+#      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-sqlite

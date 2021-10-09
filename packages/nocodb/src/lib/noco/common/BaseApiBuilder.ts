@@ -24,6 +24,8 @@ import XcCache from "../plugins/adapters/cache/XcCache";
 import BaseModel from "./BaseModel";
 import {XcCron} from "./XcCron";
 import NcConnectionMgr from "./NcConnectionMgr";
+import updateColumnNameInFormula from "./helpers/updateColumnNameInFormula";
+import addErrorOnColumnDeleteInFormula from "./helpers/addErrorOnColumnDeleteInFormula";
 
 const log = debug('nc:api:base');
 
@@ -105,7 +107,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   public readonly app: T;
 
   public hooks: {
-    [key: string]: {
+    [tableName: string]: {
       [key: string]: Array<{
         event: string;
         url: string;
@@ -113,6 +115,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       }>
     }
   }
+
+  public formViews: {
+    [tableName: string]: any
+  }
+
   protected tablesCount = 0;
   protected relationsCount = 0;
   protected viewsCount = 0;
@@ -149,6 +156,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.acls = {};
     this.procedureOrFunctionAcls = {};
     this.hooks = {};
+    this.formViews = {};
     this.projectBuilder = projectBuilder;
 
   }
@@ -216,7 +224,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       onDelete,
       onUpdate,
       parentColumn,
-      virtual
+      virtual,
+      foreignKeyName: fkn
     } = args;
 
     XcCache.del([this.projectId, this.dbAlias, 'table', tnp].join('::'));
@@ -234,6 +243,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         db_type: this.connectionConfig?.client,
         dr: onDelete,
         ur: onUpdate,
+        fkn
       })
     } else {
       await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
@@ -246,7 +256,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         rcn: parentColumn,
       })
     }
-
     Tele.emit('evt', {evt_type: 'relation:created'})
   }
 
@@ -302,6 +311,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }, {'parent_model_title': oldTableName, type: 'vtable'})
 
     await this.loadHooks();
+    await this.loadFormViews();
 
     await this.modifyTableNameInACL(oldTableName, newTableName);
   }
@@ -310,10 +320,12 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     throw new Error('`onGqlSchemaUpdate` not implemented')
   }
 
-  public async onValidationUpdate(tn: string): Promise<void> {
+  // todo: change name to meta uodate
+  public async onMetaUpdate(tn: string): Promise<void> {
     this.baseLog(`onValidationUpdate : '%s'`, tn);
     const modelRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-      title: tn
+      title: tn,
+      type: 'table'
     });
 
     if (!modelRow) {
@@ -324,6 +336,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.metas[tn] = metaObj;
     this.baseLog(`onValidationUpdate : Generating model instance for '%s' table`, tn)
     this.models[modelRow.title] = this.getBaseModel(metaObj);
+
+    XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
 
     // todo: check tableAlias changed or not
     // todo:
@@ -415,7 +429,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           newCol.validate = oldCol.validate;
         }
 
+        // column rename
         if (column.cno !== column.cn) {
+
+          updateColumnNameInFormula({
+            virtualColumns: newMeta.v,
+            oldColumnName: oldCol.cn,
+            newColumnName: newCol.cn,
+          })
 
           // todo: populate alias
           newCol._cn = newCol.cn;
@@ -572,6 +593,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           }
         }
 
+        addErrorOnColumnDeleteInFormula({
+          virtualColumns: newMeta.v,
+          columnName: column.cno
+        })
+
         aclOper.push(async () => this.deleteColumnNameInACL(tn, column.cno));
 
 
@@ -708,7 +734,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       });
     }
     this.baseLog(`onTableUpdate : Generating model instance for '%s' table`, tn)
-
 
 
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
@@ -910,11 +935,17 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     childMeta.manyToMany = childMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
 
     // filter lookup and relation virtual columns
-    parentMeta.v = parentMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    parentMeta.v = parentMeta.v.filter(({
+                                          mm,
+                                          ...rest
+                                        }) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
       // check for lookup
       && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
     )
-    childMeta.v = childMeta.v.filter(({mm, ...rest}) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    childMeta.v = childMeta.v.filter(({
+                                        mm,
+                                        ...rest
+                                      }) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
       // check for lookup
       && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
     )
@@ -952,17 +983,17 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
 
   protected initDbDriver(): void {
-    this.dbDriver =  NcConnectionMgr.get({
-      dbAlias:this.dbAlias,
-      env:this.config.env,
-      config:this.config,
-      projectId:this.projectId
+    this.dbDriver = NcConnectionMgr.get({
+      dbAlias: this.dbAlias,
+      env: this.config.env,
+      config: this.config,
+      projectId: this.projectId
     });
     this.sqlClient = NcConnectionMgr.getSqlClient({
-      dbAlias:this.dbAlias,
-      env:this.config.env,
-      config:this.config,
-      projectId:this.projectId
+      dbAlias: this.dbAlias,
+      env: this.config.env,
+      config: this.config,
+      projectId: this.projectId
     })
     // if (!this.dbDriver) {
     //   if(this.projectBuilder?.prefix){
@@ -1092,10 +1123,16 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return ctx;
   }
 
-  protected getTableNameAlias(tn: string) {
+  protected getTableNameAlias(tableName: string) {
+    let tn = tableName;
     if (this.metas?.[tn]?._tn) {
       return this.metas?.[tn]?._tn;
     }
+
+    if (this.projectBuilder?.prefix) {
+      tn = tn.replace(this.projectBuilder?.prefix, '')
+    }
+
     const modifiedTableName = tn?.replace(/^(?=\d+)/, 'ISN___')
     return this.getInflectedName(modifiedTableName, this.connectionConfig?.meta?.inflection?.tn);
   }
@@ -1104,8 +1141,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.baseLog(`generateContextForHasMany : '%s' => '%s'`, ctx.tn, tnc);
     return {
       ...ctx,
-      _tn: this.metas[ctx.tn]._tn,
-      _ctn: this.metas[tnc]._tn,
+      _tn: this.metas[ctx.tn]?._tn,
+      _ctn: this.metas[tnc]?._tn,
       ctn: tnc,
       project_id: this.projectId
     };
@@ -1188,6 +1225,29 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       const key = `${hook.event}.${hook.operation}`;
       this.hooks[hook.tn][key] = this.hooks[hook.tn][key] || [];
       this.hooks[hook.tn][key].push(hook);
+    }
+  }
+
+
+  // NOTE: xc-meta
+  public async loadFormViews(): Promise<void> {
+    this.baseLog(`loadFormViews :`);
+    this.formViews = {};
+    const formViewList = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models', {
+      condition: {
+        show_as: 'form'
+      }
+    });
+
+    for (const formView of formViewList) {
+      if (!(formView.parent_model_title in this.formViews)) {
+        this.formViews[formView.parent_model_title] = {};
+      }
+      try {
+        formView.query_params = formView.query_params && JSON.parse(formView.query_params);
+      } catch (e) {
+      }
+      this.formViews[formView.parent_model_title][formView.id] = formView;
     }
   }
 
@@ -1286,7 +1346,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         '_rtn',
         'type',
         'db_type',
-        'dr'
+        'dr',
+        'fkn'
       ]
     });
 
@@ -1307,6 +1368,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // todo: insert parallelly
     for (const relation of relations) {
       relation.enabled = true;
+      relation.fkn = relation?.cstn;
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_relations', {
         tn: relation.tn,
         _tn: this.getTableNameAlias(relation.tn),
@@ -1320,6 +1382,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         db_type: this.connectionConfig?.client,
         dr: relation?.dr,
         ur: relation?.ur,
+        fkn: relation?.cstn
       })
     }
     return relations;
@@ -1336,7 +1399,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
 
-  protected async getManyToManyRelations({parent = null, child = null, localMetas = null} = {}) {
+  protected async getManyToManyRelations({parent = null, child = null, localMetas = null} = {}): Promise<Set<any>> {
     const metas = new Set<any>();
     const assocMetas = new Set<any>();
 
@@ -1426,10 +1489,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         // todo: ignore duplicate m2m relations
         // todo: optimize, just compare associative table(Vtn)
         ...meta.manyToMany.filter((v, i) => !meta.v.some(v1 => v1.mm
-          && (
-            v1.mm.tn === v.tn && v.rtn === v1.mm.rtn
-            || v1.mm.rtn === v.tn && v.tn === v1.mm.rtn
-          ) && v.vtn === v1.mm.vtn)
+            && (
+              v1.mm.tn === v.tn && v.rtn === v1.mm.rtn
+              || v1.mm.rtn === v.tn && v.tn === v1.mm.rtn
+            ) && v.vtn === v1.mm.vtn)
           // ignore duplicate
           && !meta.manyToMany.some((v1, i1) => i1 !== i && v1.tn === v.tn && v.rtn === v1.rtn && v.vtn === v1.vtn)
         ).map(mm => {
@@ -1463,6 +1526,8 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         this.models[meta.tn] = this.getBaseModel(meta)
       }
     }
+
+    return metas;
   }
 
 
@@ -1893,6 +1958,9 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     if (meta && meta.id === args.id) {
       XcCache.del([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
       // todo: update meta and model
+    }
+    if (args?.query_params?.extraViewParams?.formParams) {
+      this.formViews[args.tn][args.id].query_params = args.query_params
     }
   }
 }

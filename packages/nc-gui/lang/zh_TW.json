@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "我的專案",
+    "reload_projects_tooltip": "重新整理",
+    "create_new_project_button": {
+      "text": "建立新專案",
+      "subtext_1": "建立",
+      "subtext_1_tooltip": "建立新專案",
+      "subtext_2": "連接外部數據庫來創建",
+      "subtext_2_tooltip": "支援 MySQL, PostgreSQL, SQL Server & SQLite"
+    },
+    "search_project": "搜尋專案",
+    "import_metadata": "導入元數據",
+    "export_metadata": "導出元數據",
+    "clear_metadata": "清除元數據",
+    "stop_project": "停止專案",
+    "start_project": "啟動專案",
+    "restart_project": "重啟專案",
+    "delete_project": "刪除專案",
+    "project_api_type_tooltip_graphql": "可通過 GraphQL API 訪問",
+    "project_api_type_tooltip_rest": "可通過 REST API 訪問",
+    "project_empty_message": "開始建立新專案",
+    "import_button": {
+      "text": "通過上傳元數據 zip 文件導入 NocoDB 專案"
+    },
+    "show_community_star": "星星",
+    "show_community_us_on_Github": "us on Github",
+    "show_community_book_a_free_demo": "預訂免費演示",
+    "show_community_get_your_questions_answered": "讓您的問題得到解答",
+    "show_community_join_discord": "加入 Discord",
+    "show_community_follow_nocodb": "追蹤 NocoDB",
+    "search": {
+      "your_search_found_no_results": "您的搜索 {search} 找不到結果"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "編輯專案",
+        "create": "建立新專案"
+      },
+      "project_name": "輸入專案名稱",
+      "project_type": "訪問項目通過",
+      "button": {
+        "save_project": "存儲專案",
+        "update_and_restart": "更新及重啟",
+        "cancel": "取消",
+        "cancel_tooltip": "取消及返回"
+      },
+      "credentials": {
+        "title": "數據庫憑據",
+        "db_type": "數據庫類型",
+        "sqlite_file": "SQLite 文件",
+        "host_address": "主機地址",
+        "port": "端口號碼",
+        "username": "用戶名稱",
+        "password": "密碼",
+        "db_create_if_not_exists": "數據庫：創建如果不存在",
+        "button": {
+          "test_db_conn": "測試數據庫連接",
+          "remove_db_from_env": "從環境中刪除數據庫"
+        },
+        "advanced": {
+          "title": "安全證書及高級參數",
+          "ssl": {
+            "client_key": {
+              "title": "客戶鑰匙",
+              "toolip": "選擇 .key 文件"
+            },
+            "client_cert": {
+              "title": "客戶證書",
+              "toolip": "選擇 .cert 文件"
+            },
+            "server_ca": {
+              "title": "服務器CA",
+              "toolip": "選擇CA File."
+            },
+            "preferred": "首選",
+            "usage": {
+              "no": "不",
+              "preferred": "首選",
+              "required": "必需的",
+              "requried_ca": "必填卡",
+              "requried_identity": "必要的身份"
+            }
+          },
+          "inflection": {
+            "table_name": "拐點 - 表名",
+            "column_name": "拐點 - 列名稱"
+          },
+          "button": {
+            "edit_conn_json": "編輯連接 JSON."
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "文件夾路徑中的字符無效。",
+        "invalid_db_credentials": "數據庫憑據無效。",
+        "unable_to_connect_to_db": "無法連接數據庫，請檢查您的數據庫已啟動。",
+        "user_doesnt_ve_sufficient_permission": "用戶不存在或具有足夠的權限來創建架構。"
+      },
+      "head": {
+        "title": "建立新專案 | NocoDB"
+      },
+      "dialog": {
+        "success": "連接成功",
+        "failure": "連接失敗："
+      }
+    },
+    "notifications": {
+      "no_new": "沒有新的通知",
+      "clear": "清除"
+    }
+  },
+  "signin": {
+    "title": "登入",
+    "enter_your_work_email": "輸入您的工作電子郵件",
+    "enter_your_password": "輸入您的密碼",
+    "forget_password": "忘記密碼？",
+    "dont_ve_an_account": "沒有賬戶?",
+    "sign_up": "註冊",
+    "form": {
+      "rules": {
+        "email_is_reqd": "電子郵件是必需的",
+        "email_must_be_valid": "電子郵件必須有效",
+        "passwd_required": "密碼是必需的",
+        "passwd_must_be_8_chars": "您的密碼必須至少為8個字符"
+      }
+    },
+    "head": {
+      "title": "登入 | NocoDB",
+      "meta": {
+        "hid": "登入 NocoDB",
+        "name": "登入 NocoDB",
+        "content": "登入 NocoDB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "重置您的密碼",
+        "message_1": "請提供您註冊時使用的電子郵件地址。",
+        "message_2": "我們將向您發送一封電子郵件，其中包含重置密碼的鏈接。",
+        "success": "請檢查您的電子郵件以重置密碼",
+        "button": "發送電子郵件"
+      }
+    }
+  },
+  "signup": {
+    "title": "報名",
+    "you_will_be_the_super_admin": "你將是'超級管理'",
+    "already_ve_an_account": "已經有一個帳戶？"
+  },
+  "treeview": {
+    "settings": {
+      "title": "設置",
+      "tooltip": "僅創作者可見"
+    },
+    "app_store": "應用商店",
+    "team_n_auth": {
+      "title": "團隊＆auth",
+      "tooltip": "角色和用戶管理"
+    },
+    "project_metadata": {
+      "title": "專案元數據",
+      "tooltip": "元數據管理"
+    },
+    "preview_as": "預覽為",
+    "reset_review": "重置預覽"
+  },
+  "nav_drawer": {
+    "title": "意見",
+    "virtual_views": {
+      "action": {
+        "copy": "複製視圖",
+        "rename": "重命名視圖",
+        "delete": "刪除視圖"
+      },
+      "title": "創建一個視圖",
+      "caption": "僅對創造者可見",
+      "grid": {
+        "title": "網格",
+        "create": "添加網格視圖"
+      },
+      "gallery": {
+        "title": "畫廊",
+        "create": "添加圖庫視圖"
+      },
+      "calendar": {
+        "title": "日曆",
+        "create": "添加日曆視圖"
+      },
+      "kanban": {
+        "title": "卡班",
+        "create": "添加Kanban View."
+      },
+      "form": {
+        "title": "形式",
+        "create": "添加表單視圖"
+      }
+    },
+    "advanced": {
+      "title1": "分享視圖",
+      "views_list": "觀點列表",
+      "copy_api_url": "複製API URL."
+    },
+    "share_view": {
+      "title": "此視圖通過私人鏈接共享",
+      "body": "具有私有鏈接的人只能看到此視圖中可見的細胞",
+      "toggle": {
+        "option1": "限制密碼訪問權限",
+        "option2": "訪問是受限制的密碼"
+      },
+      "password": {
+        "caption": "輸入密碼",
+        "button": "保存密碼"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "用戶管理",
+      "api": "API Tokens 管理",
+      "roles": "Roles 管理"
+    },
+    "meta": {
+      "title": "元數據操作",
+      "export_to_file": {
+        "title": "導出文件",
+        "desc": "將所有元數據從元表導出到Meta目錄。"
+      },
+      "import": {
+        "title": "導入",
+        "desc": "將所有元數據從Meta目錄導入元表。"
+      },
+      "export_to_zip": {
+        "title": "導出 zip",
+        "desc": "將項目元導出到zip文件和下載。"
+      },
+      "import_zip": {
+        "title": "導入 zip",
+        "desc": "導入項目元拉鍊文件並重新啟動。"
+      },
+      "reset": {
+        "title": "重置",
+        "desc": "清除元表中的所有元數據。"
+      }
+    }
+  }
+}

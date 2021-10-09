@@ -75,7 +75,7 @@
               </x-btn>
               <!--              <x-btn
                               btn.class="pl-1"
-                              v-if="_isUIAllowed('projectCreate')"
+                              v-if="_isUIAllowed('projectCreate',true)"
                               outlined
                               data-v-step="1"
                               color="primary"
@@ -87,7 +87,7 @@
                             </x-btn>
                             <x-btn
                               btn.class="pl-1"
-                              v-if="_isUIAllowed('projectCreate')"
+                              v-if="_isUIAllowed('projectCreate',true)"
                               outlined
                               data-v-step="1"
                               color="primary"
@@ -103,7 +103,7 @@
                   <template #activator="{ on }">
                     <div>
                       <x-btn
-                        v-if="_isUIAllowed('projectCreate')"
+                        v-if="_isUIAllowed('projectCreate',true)"
                         v-ge="['home', 'project-new']"
                         outlined
                         data-v-step="1"
@@ -120,7 +120,7 @@
                   </template>
                   <v-list dense>
                     <v-list-item
-                      class="create-xc-db-project"
+                      class="create-xc-db-project nc-create-xc-db-project"
                       @click="onCreateProject('xcdb')"
                     >
                       <v-list-item-icon class="mr-2">
@@ -130,7 +130,7 @@
                       </v-list-item-icon>
                       <v-list-item-title>
                         <!-- Create -->
-                        <span class="caption font-weight-regular">{{
+                        <span class="caption font-weight-regular ">{{
                           $t('projects.create_new_project_button.subtext_1')
                         }}</span>
                       </v-list-item-title>
@@ -155,7 +155,7 @@
                     <v-divider />
                     <v-list-item
                       title
-                      class="pt-2 create-external-db-project"
+                      class="pt-2 create-external-db-project nc-create-external-db-project"
                       @click="onCreateProject()"
                     >
                       <v-list-item-icon class="mr-2">
@@ -194,7 +194,7 @@
                 </v-menu>
               </template>
               <x-btn
-                v-else-if="_isUIAllowed('projectCreate')"
+                v-else-if="_isUIAllowed('projectCreate',true)"
                 v-ge="['home', 'project-new']"
                 outlined
                 data-v-step="1"
@@ -219,11 +219,17 @@
                 :footer-props="{
                   'items-per-page-options': [20, -1],
                 }"
-                class="pa-4 text-left mx-auto"
+                class="pa-4 text-left mx-auto "
                 style="cursor: pointer"
               >
                 <template #item="props">
-                  <tr @click="projectRouteHandler(props.item)">
+                  <tr
+                    class="project-row"
+                    :class="[`nc-${props.item.projectType}-project-row`,{
+                      'nc-meta-project-row': props.item.prefix
+                    }]"
+                    @click="projectRouteHandler(props.item)"
+                  >
                     <td data-v-step="2">
                       <v-icon
                         x-small
@@ -266,7 +272,7 @@
                     </td>
                     <td>
                       <div
-                        v-if="_isUIAllowed('project.actions')"
+                        v-if="_isUIAllowed('projectActions',true)"
                         :class="{
                           'action-icons': !(
                             projectStatusUpdating &&
@@ -535,8 +541,11 @@
             {{ $t('projects.show_community_us_on_Github') }}
           </v-list-item-title>
         </v-list-item>
-        <v-divider />
+        <v-divider
+          v-if="!_isZh"
+        />
         <v-list-item
+          v-if="!_isZh"
           dense
           target="_blank"
           href="https://calendly.com/nocodb"
@@ -571,7 +580,12 @@
           </v-list-item-title>
         </v-list-item>
         <v-divider />
-        <v-list-item dense href="https://twitter.com/NocoDB" target="_blank">
+        <v-list-item
+          v-if="!_isZh"
+          dense
+          href="https://twitter.com/NocoDB"
+          target="_blank"
+        >
           <v-list-item-icon>
             <v-icon class="ml-2" :color="textColors[1]">
               mdi-twitter
@@ -584,6 +598,51 @@
             }}
           </v-list-item-title>
         </v-list-item>
+        <template v-else>
+          <v-list-item dense class="" @click="$refs.wechat.$el.firstElementChild.click()">
+            <v-list-item-icon>
+              <share-icons
+                ref="wechat"
+                class="small  mr-n2"
+                url="https://github.com/nocodb/nocodb"
+                :social-medias="['wechat']"
+              />
+            </v-list-item-icon>
+            <v-list-item-title>
+              Please share it in Wechat
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item dense class="" @click="$refs.weibo.$el.firstElementChild.click()">
+            <v-list-item-icon>
+              <share-icons
+                ref="weibo"
+                class="small mr-n2"
+                url="https://github.com/nocodb/nocodb"
+                :social-medias="['weibo']"
+              />
+            </v-list-item-icon>
+            <v-list-item-title>
+              Please share it in Weibo
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item
+            dense
+            target="_blank"
+          >
+            <v-list-item-icon>
+              <img class="ml-2" src="vue.svg" width="25">
+            </v-list-item-icon>
+            <!-- Follow NocoDB -->
+            <v-list-item-title>
+              Built with Vue JS
+              <!--              {{-->
+              <!--                $t('projects.show_community_follow_nocodb')-->
+              <!--              }}-->
+            </v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </div>
 
@@ -606,12 +665,14 @@
 </template>
 
 <script>
-import SponsorMini from '@/components/sponsorMini'
 import dlgLabelSubmitCancel from '../../components/utils/dlgLabelSubmitCancel.vue'
+import ShareIcons from '../../components/share-icons'
+import SponsorMini from '@/components/sponsorMini'
 import colors from '~/mixins/colors'
 
 export default {
   components: {
+    ShareIcons,
     SponsorMini,
     dlgLabelSubmitCancel
     // howItWorks,
@@ -978,7 +1039,7 @@ export default {
               {
                 // dbAlias: 'db',
                 project_id: projectId,
-                env: 'dev'
+                env: '_noco'
               },
               'xcMetaTablesExportDbToZip',
               null,
@@ -999,7 +1060,7 @@ export default {
               .success('Successfully exported metadata')
               .goAway(3000)
           } catch (e) {
-            this.$toast.error('Some internal error occurred').goAway(3000)
+            this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
           this.loading = null
@@ -1018,14 +1079,14 @@ export default {
             await this.$store.dispatch('sqlMgr/ActSqlOp', [
               {
                 // dbAlias: 'db',
-                env: 'dev',
+                env: '_noco',
                 project_id: projectId
               },
               'xcMetaTablesReset'
             ])
             this.$toast.success('Metadata cleared successfully').goAway(3000)
           } catch (e) {
-            this.$toast.error('Some internal error occurred').goAway(3000)
+            this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
           this.loading = null
@@ -1047,7 +1108,7 @@ export default {
             {
               // dbAlias: 'db',
               project_id: projectId,
-              env: 'dev'
+              env: '_noco'
             },
             'xcMetaTablesImportZipToLocalFsAndDb',
             {},
@@ -1056,7 +1117,7 @@ export default {
           this.$toast.success('Successfully imported metadata').goAway(3000)
           await this.projectsLoad()
         } catch (e) {
-          this.$toast.error('Some internal error occurred').goAway(3000)
+          this.$toast.error(e.message).goAway(3000)
         }
         this.dialogShow = false
         this.loading = null

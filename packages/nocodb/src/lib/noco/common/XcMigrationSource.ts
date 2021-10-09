@@ -1,5 +1,6 @@
 import * as project from '../migrations/nc_001_init';
 import * as m2m from '../migrations/nc_002_add_m2m';
+import * as fkn from '../migrations/nc_003_add_fkn_column';
 
 // Create a custom migration source class
 export default class XcMigrationSource{
@@ -8,7 +9,7 @@ export default class XcMigrationSource{
   // arguments to getMigrationName and getMigration
   public getMigrations(): Promise<any> {
     // In this example we are just returning migration names
-    return Promise.resolve(['project','m2m'])
+    return Promise.resolve(['project','m2m', 'fkn'])
   }
 
   public getMigrationName(migration): string {
@@ -21,6 +22,8 @@ export default class XcMigrationSource{
         return project;
       case 'm2m':
         return m2m;
+      case 'fkn':
+        return fkn;
     }
   }
 }

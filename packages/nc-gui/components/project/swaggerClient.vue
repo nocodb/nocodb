@@ -57,7 +57,7 @@ export default {
     // if (this.$store.state.graphqlClient.list && this.$store.state.graphqlClient.list[0])
     //   this.webViewUrl = this.url = this.$store.state.graphqlClient.list[0].url;
     try {
-      const { info } = (await this.$axios.get(`${this.$axios.defaults.baseURL}/nc/${this.$route.params.project_id}/projectApiInfo`, {
+      const { info } = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
         headers: {
           'xc-auth': this.$store.state.users.token
         }

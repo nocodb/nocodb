@@ -41,25 +41,25 @@
       mdi-card-text-outline
     </v-icon>
 
-    <span class="name" :title="value">{{ value }}</span>
+    <span class="name" style="white-space: pre-wrap" :title="value">{{ value }}</span>
 
-    <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
+    <span v-if="(column.rqd && !column.default) || required" class="error--text text--lighten-1">&nbsp;*</span>
 
     <v-spacer />
 
     <v-menu
-      v-if="!isPublicView && _isUIAllowed('edit-column') && !isForm"
+      v-if="!isLocked &&!isPublicView && _isUIAllowed('edit-column') && !isForm"
       offset-y
       open-on-hover
       left
     >
       <template #activator="{on}">
-        <v-icon v-if="!isVirtual" small v-on="on">
+        <v-icon v-if="!isLocked && !isVirtual" small v-on="on">
           mdi-menu-down
         </v-icon>
       </template>
       <v-list dense>
-        <v-list-item dense @click="editColumnMenu = true">
+        <v-list-item class="nc-column-edit" dense @click="editColumnMenu = true">
           <x-icon small class="mr-1" color="primary">
             mdi-pencil
           </x-icon>
@@ -76,7 +76,7 @@
             <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
           </v-tooltip>
         </v-list-item>
-        <v-list-item @click="columnDeleteDialog = true">
+        <v-list-item class="nc-column-delete" @click="columnDeleteDialog = true">
           <x-icon small class="mr-1" color="error">
             mdi-delete-outline
           </x-icon>
@@ -108,14 +108,14 @@
       max-width="500"
       persistent
     >
-      <v-card>
+      <v-card class="nc-delete-dialog-card">
         <v-card-title class="grey darken-2 subheading white--text">
           Confirm
         </v-card-title>
         <v-divider />
         <v-card-text class="mt-4 title">
           Do you want to delete <span class="font-weight-bold">'{{
-            column.cn
+            column._cn
           }}'</span> column ?
         </v-card-text>
         <v-divider />
@@ -141,7 +141,7 @@ export default {
   name: 'HeaderCell',
   components: { EditColumn },
   mixins: [cell],
-  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView', 'isVirtual'],
+  props: ['value', 'column', 'isForeignKey', 'meta', 'nodes', 'columnIndex', 'isForm', 'isPublicView', 'isVirtual', 'required', 'isLocked'],
   data: () => ({
     editColumnMenu: false,
     columnDeleteDialog: false
@@ -158,6 +158,7 @@ export default {
           dbAlias: this.nodes.dbAlias
         }, 'tableUpdate', {
           tn: this.nodes.tn,
+          _tn: this.meta._tn,
           originalColumns: this.meta.columns,
           columns
         }])
@@ -200,7 +201,7 @@ export default {
 </script>
 
 <style scoped>
-.name{
+.name {
   max-width: calc(100% - 40px);
   overflow: hidden;
   text-overflow: ellipsis;

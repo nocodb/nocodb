@@ -1,8 +1,8 @@
 ---
 title: 'Audit'
 description: 'Audit log'
-position: 13
-category: 'Setup and Usages'
+position: 50
+category: 'Usage'
 menuTitle: 'Audit'
 ---
 

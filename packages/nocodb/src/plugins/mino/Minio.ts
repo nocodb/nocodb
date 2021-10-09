@@ -58,11 +58,11 @@ export default class Minio implements IStorageAdapter {
   }
 
   public async init(): Promise<any> {
-
-
     // todo:  update in ui(checkbox and number field)
     this.input.port = +this.input.port || 9000;
     this.input.useSSL = this.input.useSSL ==='true';
+    this.input.accessKey = this.input.access_key;
+    this.input.secretKey = this.input.access_secret;
 
     this.minioClient = new MinioClient(this.input);
   }

@@ -22,7 +22,7 @@ jobs:
         if: ${{ env.CHANGED == 'OK' }}
         with:
           node-version: 14
-      - name: Build docs
+      - name: Build noco-i18n
         if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         run: |
           cd packages/noco-i18n
@@ -38,7 +38,7 @@ jobs:
         with:
           source_file: 'packages/noco-i18n/dist/'
           destination_repo: 'nocodb/noco-i18n'
-          destination_folder: ''
+          destination_folder: 'docs'
           user_email: 'oof1lab@gmail.com'
           user_name: 'o1lab'
           commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-i18n'

@@ -183,7 +183,7 @@ export default {
       return this.metas ? this.metas[this.mm.rtn] : this.$store.state.meta.metas[this.mm.rtn]
     },
     assocMeta() {
-      return this.metas ? this.metas[this.bt.vtn] : this.$store.state.meta.metas[this.mm.vtn]
+      return this.metas ? this.metas[this.mm.vtn] : this.$store.state.meta.metas[this.mm.vtn]
     },
     // todo : optimize
     childApi() {

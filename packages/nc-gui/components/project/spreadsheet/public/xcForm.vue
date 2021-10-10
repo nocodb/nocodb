@@ -355,7 +355,6 @@ export default {
       this.submitting = false
     },
     updateCol(_, column, id) {
-      debugger
       this.$set(this.localState, column, id)
     }
   },

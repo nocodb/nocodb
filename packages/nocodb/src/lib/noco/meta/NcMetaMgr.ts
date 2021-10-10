@@ -3491,7 +3491,7 @@ export default class NcMetaMgr {
       .first();
 
     const queryParams = JSON.parse(viewMeta.query_params);
-    const meta = JSON.parse(viewMeta.meta);
+    // const meta = JSON.parse(viewMeta.meta);
 
     const fields: string[] = queryParams?.fields.split(',');
 
@@ -3511,21 +3511,23 @@ export default class NcMetaMgr {
 
     for (const [key, obj] of Object.entries(args.args.nested)) {
       if (fields.includes(key)) {
-        const colMeta = meta.v.find(c => c._cn === key);
-        if (colMeta.bt) {
-          insertObject[colMeta.bt.cn] = obj[colMeta.bt._rcn || colMeta.bt.rcn];
-        } else if (colMeta.hm) {
-          // todo:
-        } else if (colMeta.mm) {
-          // todo:
-        }
+        // const colMeta = meta.v.find(c => c._cn === key);
+        // if (colMeta.bt) {
+        //   insertObject[colMeta.bt.cn] = obj[colMeta.bt._rcn || colMeta.bt.rcn];
+        // } else if (colMeta.hm) {
+        //   // todo:
+        insertObject[key] = obj;
+        // } else if (colMeta.mm) {
+        //   // todo:
+        //   insertObject[key] = obj;
+        // }
       }
     }
 
     const model = apiBuilder?.xcModels?.[viewMeta.model_name];
     if (model) {
       // req.query.form = viewMeta.form_id
-      await model.insert(insertObject, null, req);
+      await model.nestedInsert(insertObject, null, req);
 
       // todo: map nested data
     }

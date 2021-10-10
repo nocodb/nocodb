@@ -21,7 +21,7 @@ class BaseModelSql extends BaseModel {
   private _selectFormulas: any;
   private _selectFormulasObj: any;
   private _defaultNestedQueryParams: any;
-  private _nestedProps:{[prop:string]:any};
+  private _nestedProps: { [prop: string]: any };
 
   /**
    *
@@ -203,7 +203,7 @@ class BaseModelSql extends BaseModel {
   _extractPksValues(obj): string {
     const objCopy = this.mapAliasToColumn(obj);
     for (const key in objCopy) {
-      if (this.pks.filter(pk => pk._cn === key).length === 0) {
+      if (this.pks.filter(pk => pk._cn === key || pk.cn === key).length === 0) {
         delete objCopy[key];
       }
     }
@@ -706,11 +706,12 @@ class BaseModelSql extends BaseModel {
    * @param {String} id - primary key separated by ___
    * @returns {Promise<Object>} Table row data
    */
-  async readByPk(id, args?: { conditionGraph?: any }) {
+  async readByPk(id, args?: { conditionGraph?: any }, trx = null) {
     try {
+      const driver = trx || this.dbDriver;
       return (
         (await this._run(
-          this.$db
+          driver(this.tn)
             .select(this.selectQuery('*'))
             .select(...this.selectFormulas)
             .select(...this.selectRollups)
@@ -1244,7 +1245,9 @@ class BaseModelSql extends BaseModel {
    * @returns {Promise<void>}
    * @private
    */
-  async _getChildListInParent({ parent, child }, rest = {}, index) {
+  async _getChildListInParent({ parent, child }, rest = {}, index, trx = null) {
+    const driver = trx || this.dbDriver;
+
     const { where, limit, offset, sort, ...restArgs } = this._getChildListArgs(
       rest,
       index,
@@ -1260,18 +1263,18 @@ class BaseModelSql extends BaseModel {
     }
 
     const childs = await this._run(
-      this.dbDriver.union(
+      driver.union(
         parent.map(p => {
           const id =
             p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] ||
             p[this.pks[0].cn];
-          const query = this.dbDriver(this.dbModels[child].tnPath)
+          const query = driver(this.dbModels[child].tnPath)
             .where(cn, id)
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select(this.dbModels[child].selectQuery(fields)); // ...fields.split(','));
 
           this._paginateAndSort(query, { sort, limit, offset }, null, true);
-          return this.isSqlite() ? this.dbDriver.select().from(query) : query;
+          return this.isSqlite() ? driver.select().from(query) : query;
         }),
         !this.isSqlite()
       )
@@ -1294,32 +1297,34 @@ class BaseModelSql extends BaseModel {
    * @returns {Promise<void>}
    * @private
    */
-  async _getManyToManyList({ parent, child }, rest = {}, index) {
-    const gs = await this._getGroupedManyToManyList({
-      rest,
-      index,
-      child,
-      parentIds: parent.map(
-        p => p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn]
-      )
-    });
+  async _getManyToManyList({ parent, child }, rest = {}, index, trx = null) {
+    const gs = await this._getGroupedManyToManyList(
+      {
+        rest,
+        index,
+        child,
+        parentIds: parent.map(
+          p => p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn]
+        )
+      },
+      trx
+    );
     parent.forEach((row, i) => {
       row[`${this.dbModels?.[child]?._tn || child}MMList`] = gs[i] || [];
     });
   }
 
-  public async _getGroupedManyToManyList({
-    rest = {},
-    index = 0,
-    child,
-    parentIds
-  }) {
+  public async _getGroupedManyToManyList(
+    { rest = {}, index = 0, child, parentIds },
+    trx = null
+  ) {
     const { where, limit, offset, sort, ...restArgs } = this._getChildListArgs(
       rest,
       index,
       child,
       'm'
     );
+    const driver = trx || this.dbDriver;
     let { fields } = restArgs;
     const { tn, cn, vtn, vcn, vrcn, rtn, rcn } =
       this.manyToManyRelations.find(({ rtn }) => rtn === child) || {};
@@ -1331,9 +1336,9 @@ class BaseModelSql extends BaseModel {
     }
 
     const childs = await this._run(
-      this.dbDriver.union(
+      driver.union(
         parentIds.map(id => {
-          const query = this.dbDriver(this.dbModels[child].tnPath)
+          const query = driver(this.dbModels[child].tnPath)
             .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
             .where(`${vtn}.${vcn}`, id) // p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
             .xwhere(where, this.dbModels[child].selectQuery(''))
@@ -1343,7 +1348,7 @@ class BaseModelSql extends BaseModel {
             }); // ...fields.split(','));
 
           this._paginateAndSort(query, { sort, limit, offset }, null, true);
-          return this.isSqlite() ? this.dbDriver.select().from(query) : query;
+          return this.isSqlite() ? driver.select().from(query) : query;
         }),
         !this.isSqlite()
       )
@@ -1551,7 +1556,7 @@ class BaseModelSql extends BaseModel {
     }
   }
 
-  async nestedRead(id, { where, fields: fields1, f, ...rest }) {
+  async nestedRead(id, { where, fields: fields1, f, ...rest }, trx = null) {
     rest = Object.assign({}, this.defaultNestedQueryParams, rest);
 
     const { hm: childs = '', bt: parents = '', mm: many = '' } = rest;
@@ -1567,7 +1572,7 @@ class BaseModelSql extends BaseModel {
         fields += ',' + this.pks[0].cn;
       }
 
-      const item = await this.readByPk(id);
+      const item = await this.readByPk(id, {}, trx);
       if (!item) return item;
 
       for (const parent of parents.split(',')) {
@@ -1579,7 +1584,14 @@ class BaseModelSql extends BaseModel {
       }
 
       const items = Object.keys(item).length ? [item] : [];
-      await this._extractedNestedChilds(items, childs, rest, parents, many);
+      await this._extractedNestedChilds(
+        items,
+        childs,
+        rest,
+        parents,
+        many,
+        trx
+      );
 
       return item;
     } catch (e) {
@@ -1589,24 +1601,51 @@ class BaseModelSql extends BaseModel {
   }
 
   async nestedInsert(data, trx = null, cookie?: any) {
+    let driver;
     try {
+      driver = trx ? trx : await this.dbDriver.transaction();
       const insertObj = this.mapAliasToColumn(data);
+      let rowId = null;
+      const postInsertOps = [];
+      for (const [nestedProp, meta] of Object.entries(this.nestedProps)) {
+        if (nestedProp in data || meta._cn in data) {
+          const nestedData = data[nestedProp] ?? data[meta._cn];
 
-
-      // for(){
-      //
-      // }
-
-
-
+          if (meta.bt) {
+            insertObj[meta.bt.cn] =
+              nestedData?.[
+                this.dbModels[meta.bt.rtn].columnToAlias[meta.bt.rcn]
+              ] ?? nestedData?.[meta.bt.rcn];
+          } else if (meta.hm) {
+            postInsertOps.push(async () => {
+              const childModel = this.dbModels[meta.hm.tn];
+              await driver(meta.hm.tn)
+                .update({
+                  [meta.hm.cn]: rowId
+                })
+                .whereIn(
+                  childModel.pks[0].cn,
+                  nestedData?.map(r => childModel._extractPksValues(r))
+                );
+            });
+          } else if (meta.mm) {
+            postInsertOps.push(async () => {
+              const childModel = this.dbModels[meta.mm.rtn];
+              const rows = nestedData.map(r => ({
+                [meta.mm.vcn]: rowId,
+                [meta.mm.vrcn]: childModel._extractPksValues(r)
+              }));
+              await driver(meta.mm.vtn).insert(rows);
+            });
+          }
+        }
+      }
 
       if ('beforeInsert' in this) {
-        await this.beforeInsert(insertObj, trx, cookie);
+        await this.beforeInsert(insertObj, driver, cookie);
       }
 
       let response;
-      const driver = trx ? trx : this.dbDriver;
-
       await this.validate(insertObj);
 
       const query = driver(this.tnPath).insert(insertObj);
@@ -1625,74 +1664,67 @@ class BaseModelSql extends BaseModel {
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
       ) {
-        let id;
         if (response?.length) {
-          id = response[0];
+          rowId = response[0];
         } else {
-          id = (await this._run(query))[0];
+          rowId = (await this._run(query))[0];
         }
 
         if (ai) {
           // response = await this.readByPk(id)
-          response = await this.nestedRead(id, this.defaultNestedBtQueryParams);
+          // response = await this.nestedRead(
+          //   rowId,
+          //   this.defaultNestedBtQueryParams,
+          //   driver
+          // );
         } else {
           response = data;
         }
       } else if (ai) {
-        response = await this.nestedRead(
-          Array.isArray(response)
-            ? response?.[0]?.[ai._cn]
-            : response?.[ai._cn],
-          this.defaultNestedBtQueryParams
-        );
+        rowId =  Array.isArray(response)
+          ? response?.[0]?.[ai._cn]
+          : response?.[ai._cn];
+        // response = await this.nestedRead(
+        //   Array.isArray(response)
+        //     ? response?.[0]?.[ai._cn]
+        //     : response?.[ai._cn],
+        //   this.defaultNestedBtQueryParams,
+        //   driver
+        // );
       }
 
       if (Array.isArray(response)) {
         response = response[0];
       }
 
-      await this.afterInsert(response, trx, cookie);
+      rowId = this._extractPksValues(response);
+
+      await Promise.all(postInsertOps.map(f => f()));
+
+
+      if(rowId){
+        response = await this.nestedRead(
+          rowId,
+          this.defaultNestedBtQueryParams,
+          driver
+        );
+      }
+
+      await this.afterInsert(response, driver, cookie);
+
+      if (!trx) {
+        await driver.commit();
+      }
+
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
       console.log(e);
       await this.errorInsert(e, data, trx, cookie);
+      if (!trx) {
+        await driver.rollback(e);
+      }
       throw e;
     }
-
-    // rest = Object.assign({}, this.defaultNestedQueryParams, rest);
-    //
-    // const { hm: childs = '', bt: parents = '', mm: many = '' } = rest;
-    //
-    // let fields = fields1 || f || '*';
-    // try {
-    //   // todo: use fields in readbyPk
-    //   if (
-    //     fields !== '*' &&
-    //     this.pks[0] &&
-    //     fields.split(',').indexOf(this.pks[0].cn) === -1
-    //   ) {
-    //     fields += ',' + this.pks[0].cn;
-    //   }
-    //
-    //   const item = await this.readByPk(id);
-    //   if (!item) return item;
-    //
-    //   for (const parent of parents.split(',')) {
-    //     const { cn } =
-    //       this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-    //     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-    //       fields += ',' + cn;
-    //     }
-    //   }
-    //
-    //   const items = Object.keys(item).length ? [item] : [];
-    //   await this._extractedNestedChilds(items, childs, rest, parents, many);
-    //
-    //   return item;
-    // } catch (e) {
-    //   console.log(e);
-    //   throw e;
-    // }
   }
 
   private async _extractedNestedChilds(
@@ -1700,7 +1732,8 @@ class BaseModelSql extends BaseModel {
     childs: string,
     rest,
     parents: string,
-    many: string
+    many: string,
+    trx = null
   ) {
     if (items && items.length) {
       await Promise.all(
@@ -1713,7 +1746,8 @@ class BaseModelSql extends BaseModel {
                 child
               },
               rest,
-              index
+              index,
+              trx
             )
         )
       );
@@ -1731,7 +1765,8 @@ class BaseModelSql extends BaseModel {
         ];
         return this._belongsTo(
           { parent, rcn, parentIds, childs: items, cn, ...rest },
-          index
+          index,
+          trx
         );
       })
     );
@@ -1747,7 +1782,8 @@ class BaseModelSql extends BaseModel {
                 child
               },
               rest,
-              index
+              index,
+              trx
             )
         )
       );
@@ -1888,14 +1924,19 @@ class BaseModelSql extends BaseModel {
    * @returns {Promise<void>}
    * @private
    */
-  async _belongsTo({ parent, rcn, parentIds, childs, cn, ...rest }, index) {
+  async _belongsTo(
+    { parent, rcn, parentIds, childs, cn, ...rest },
+    index,
+    trx = null
+  ) {
+    const driver = trx || this.dbDriver;
     let { fields } = this._getChildListArgs(rest, index, parent, 'b');
     if (fields !== '*' && fields.split(',').indexOf(rcn) === -1) {
       fields += ',' + rcn;
     }
 
     const parents = await this._run(
-      this.dbDriver(this.dbModels[parent].tnPath)
+      driver(this.dbModels[parent].tnPath)
         // .select(...fields.split(',')
         .select(this.dbModels[parent].selectQuery(fields))
         .whereIn(rcn, parentIds)
@@ -2287,26 +2328,23 @@ class BaseModelSql extends BaseModel {
     return this._defaultNestedQueryParams;
   }
 
-  protected get nestedProps():{[prop:string]:any} {
+  protected get nestedProps(): { [prop: string]: any } {
     if (!this._nestedProps) {
-      this._nestedProps = (this.virtualColumns || [])?.reduce((arr, v) => {
-        if (v.formula?.value && !v.formula?.error?.length) {
-          arr.push(
-            formulaQueryBuilder(
-              v.formula?.tree,
-              v._cn,
-              this.dbDriver,
-              this.aliasToColumn
-            )
-          );
+      this._nestedProps = (this.virtualColumns || [])?.reduce((obj, v) => {
+        if (v.bt) {
+          obj[`${this.dbModels[v.bt.rtn]._tn}Read`] = v;
+        } else if (v.hm) {
+          obj[`${this.dbModels[v.hm.tn]._tn}List`] = v;
+        } else if (v.mm) {
+          obj[`${this.dbModels[v.mm.rtn]._tn}MMList`] = v;
         }
-        return arr;
-      }, []);
+        return obj;
+      }, {});
     }
-    return this._nestedProps
+    return this._nestedProps;
   }
 
-    protected get selectFormulas() {
+  protected get selectFormulas() {
     if (!this._selectFormulas) {
       this._selectFormulas = (this.virtualColumns || [])?.reduce((arr, v) => {
         if (v.formula?.value && !v.formula?.error?.length) {

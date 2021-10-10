@@ -48,6 +48,6 @@ npm run lint
   
     - automatically copy the translated values to clipboard.
     - automatically show the respective file to open and edit in our github. Example: [fr.json](https://github.com/nocodb/nocodb/edit/master/packages/nc-gui/lang/fr.json).
-    - Github will ask you to fork the repo - please do so if you haven't forked the repository and then paste the values from clipboard to the file. Alternatively you can just paste the updated JSON value to corresponing files
+    - Github will ask you to fork the repo - please do so if you haven't forked the repository and then paste the values from clipboard to the file. Alternatively you can just paste the updated JSON value to corresponding files
 
 7. Submit PR with a link to your spreadsheet from step 1

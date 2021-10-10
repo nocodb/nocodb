@@ -3380,7 +3380,7 @@ export default class NcMetaMgr {
         condition: {
           model_name: args.args.model_name
         },
-        fields: ['id', 'view_id', 'password', 'model_name']
+        fields: ['id', 'view_id', 'password', 'model_name', 'view_type']
       }
     );
   }
@@ -3474,7 +3474,7 @@ export default class NcMetaMgr {
           limit: args.args.limit,
           offset: args.args.offset
         }),
-        count: await model?.countByPk({})
+        count: (await model?.countByPk({}))?.count
       };
     } catch (e) {
       console.log(e);

@@ -30,20 +30,21 @@
             <div class="mt-10 d-flex align-center justify-center flex-column">
               <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center  d-flex">
                 <div class="d-flex align-center justify-center flex-grow-1">
-                <!--                  <v-chip small color="backgroundColorDefault caption grey--text">
+                  <!--                  <v-chip small color="backgroundColorDefault caption grey--text">
                   Add cover image
                 </v-chip>-->
+                  <v-img src="./icon.png" width="50" class="mx-4" /> <span class="display-1 font-weight-bold">NocoDB</span>
                 </div>
               </div>
             </div>
             <div class="mx-auto nc-form elevation-3 pa-2  mb-10">
-              <div class="nc-form-logo py-8">
+              <div class="nc-form-logo py-8" style="display: none">
               <!--                <div v-ripple class="nc-form-add-logo text-center caption pointer" @click.stop>-->
               <!--                  Add a logo-->
               <!--                </div>-->
               </div>
               <h2
-                class="display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text  text--lighten-1"
+                class="mt-4 display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text  text--lighten-1"
               >
                 {{ localParams.name }}
               </h2>

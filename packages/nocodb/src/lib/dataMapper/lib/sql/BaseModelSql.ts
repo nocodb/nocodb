@@ -1681,7 +1681,7 @@ class BaseModelSql extends BaseModel {
           response = data;
         }
       } else if (ai) {
-        rowId =  Array.isArray(response)
+        rowId = Array.isArray(response)
           ? response?.[0]?.[ai._cn]
           : response?.[ai._cn];
         // response = await this.nestedRead(
@@ -1697,12 +1697,11 @@ class BaseModelSql extends BaseModel {
         response = response[0];
       }
 
-      rowId = this._extractPksValues(response);
+      if (response) rowId = this._extractPksValues(response);
 
       await Promise.all(postInsertOps.map(f => f()));
 
-
-      if(rowId){
+      if (rowId) {
         response = await this.nestedRead(
           rowId,
           this.defaultNestedBtQueryParams,

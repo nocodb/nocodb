@@ -282,7 +282,11 @@ export default {
       if (this.searchField && this.searchQuery.trim()) {
         if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.meta.columns.find(({ cn }) => cn === this.searchField)))) {
           where = `(${this.searchField},like,%${this.searchQuery.trim()}%)`
-        } else {
+        } 
+        else if (['number'].includes(this.sqlUi.getAbstractType(this.meta.columns.find(({ cn }) => cn === this.searchField)))) {
+          where = `(cast(${this.searchField},as,TEXT),like,%${this.searchQuery.trim()}%)`
+        }
+        else {
           where = `(${this.searchField},eq,${this.searchQuery.trim()})`
         }
       }
@@ -629,6 +633,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Jonathan Ma <jcema@connect.ust.hk>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -646,4 +651,5 @@ export default {
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 -->

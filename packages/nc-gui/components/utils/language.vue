@@ -43,7 +43,7 @@ export default {
       es: 'Española',
       fr: 'Français',
       id: 'Bahasa Indonesia',
-      it_IT: 'Italiana',
+      it_IT: 'Italiano',
       ja: '日本語',
       ko: '한국인',
       nl: 'Nederlandse',
@@ -64,7 +64,7 @@ export default {
   }),
   computed: {
     languages() {
-      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort((a, b) => order(b) - order(a))
+      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort()
     },
     language: {
       get() {

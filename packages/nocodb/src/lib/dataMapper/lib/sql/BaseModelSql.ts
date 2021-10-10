@@ -914,7 +914,12 @@ class BaseModelSql extends BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async countByPk({ where = '', conditionGraph = null, having = '' }) {
+  async countByPk({
+    where = '',
+    conditionGraph = null,
+    having = '',
+    condition
+  }) {
     try {
       if (this.isPg() && !conditionGraph && !where && !having) {
         const res = (
@@ -935,6 +940,7 @@ class BaseModelSql extends BaseModel {
       return await this._run(
         this.$db
           .conditionGraph(conditionGraph)
+          .condition(condition, this.selectQuery(''))
           .count(`${this.tn}.${(this.pks[0] || this.columns[0]).cn} as count`)
           .xwhere(where, { ...this.selectQuery(''), ...this.selectFormulasObj })
           .xhaving(having, this.selectQuery(''))

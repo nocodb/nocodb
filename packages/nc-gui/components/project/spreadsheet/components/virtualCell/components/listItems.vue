@@ -142,7 +142,8 @@ export default {
           limit: this.size,
           tn: this.tn,
           view_id: this.$route.params.id,
-          offset: this.size * (this.page - 1)
+          offset: this.size * (this.page - 1),
+          query: this.query
         }])
       } else {
         if (!this.api) {

@@ -3455,7 +3455,7 @@ export default class NcMetaMgr {
       const tn = args.args?.tn;
 
       // @ts-ignore
-      const queryParams = JSON.parse(viewMeta.query_params);
+      // const queryParams = JSON.parse(viewMeta.query_params);
 
       const apiBuilder = this.app?.projectBuilders
         ?.find(pb => pb.id === viewMeta.project_id)
@@ -3468,13 +3468,27 @@ export default class NcMetaMgr {
 
       const model = apiBuilder.xcModels?.[tn];
 
+      const primaryCol = apiBuilder?.getMeta(tn)?.columns?.find(c => c.pv)?.cn;
+
+      const commonParams =
+        primaryCol && args.args.query
+          ? {
+              condition: {
+                [primaryCol]: {
+                  like: `%${args.args.query}%`
+                }
+              }
+            }
+          : {};
+
       return {
         list: await model?.list({
           fields: model.getTablePKandPVFields(),
           limit: args.args.limit,
-          offset: args.args.offset
+          offset: args.args.offset,
+          ...commonParams
         }),
-        count: (await model?.countByPk({}))?.count
+        count: (await model?.countByPk(commonParams as any))?.count
       };
     } catch (e) {
       console.log(e);

@@ -159,7 +159,8 @@ export default {
     active: Boolean,
     dummy: Boolean,
     hint: String,
-    isLocked: Boolean
+    isLocked: Boolean,
+    isPublic: Boolean
   },
   data: () => ({
     changed: false,

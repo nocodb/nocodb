@@ -441,7 +441,7 @@ export default {
       if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
         continue
       }
-      if (!column.virtual && ((column.rqd && !column.default) || this.localParams.fields[column.alias].required)) {
+      if (!column.virtual && (((column.rqd || column.notnull) && !column.default) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.alias].required)) {
         obj.localState[column._cn] = { required }
       } else if (column.bt) {
         const col = this.meta.columns.find(c => c.cn === column.bt.cn)

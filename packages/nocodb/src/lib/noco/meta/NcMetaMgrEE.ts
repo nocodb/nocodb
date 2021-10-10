@@ -5,63 +5,63 @@ import NcMetaMgr from "./NcMetaMgr";
 
 export default class NcMetaMgrEE extends NcMetaMgr {
 
-/*  protected async handlePublicRequest(req, res, next) {
-    const args = req.body;
-    // let result;
-    try {
-      switch (args.api) {
-
-        default:
-          return super.handlePublicRequest(req, res, next)
-
-      }
-    } catch (e) {
-      return next(e);
-    }
-  }
-
-  protected async handleRequest(req, res, next) {
-    try {
+  /*  protected async handlePublicRequest(req, res, next) {
       const args = req.body;
-      let result;
+      // let result;
+      try {
+        switch (args.api) {
 
-      switch (args.api) {
+          default:
+            return super.handlePublicRequest(req, res, next)
 
-
-        default:
-          return this.handleRequest(req, res, next);
-      }
-      if (this.listener) {
-        await this.listener({
-          user: req.user,
-          req: req.body,
-          res: result,
-          ctx: {
-            req, res
-          }
-        });
-      }
-
-      if (result && typeof result === 'object' && 'download' in result && 'filePath' in result && result.download === true) {
-        return res.download(result.filePath);
-      }
-
-
-      res.json(result);
-
-    } catch (e) {
-      console.log(e);
-      if (e instanceof XCEeError) {
-        res.status(402).json({
-          msg: e.message
-        })
-      } else {
-        res.status(400).json({
-          msg: e.message
-        })
+        }
+      } catch (e) {
+        return next(e);
       }
     }
-  }*/
+
+    protected async handleRequest(req, res, next) {
+      try {
+        const args = req.body;
+        let result;
+
+        switch (args.api) {
+
+
+          default:
+            return this.handleRequest(req, res, next);
+        }
+        if (this.listener) {
+          await this.listener({
+            user: req.user,
+            req: req.body,
+            res: result,
+            ctx: {
+              req, res
+            }
+          });
+        }
+
+        if (result && typeof result === 'object' && 'download' in result && 'filePath' in result && result.download === true) {
+          return res.download(result.filePath);
+        }
+
+
+        res.json(result);
+
+      } catch (e) {
+        console.log(e);
+        if (e instanceof XCEeError) {
+          res.status(402).json({
+            msg: e.message
+          })
+        } else {
+          res.status(400).json({
+            msg: e.message
+          })
+        }
+      }
+    }*/
 
 
   protected async xcTableList(req, args): Promise<any> {
@@ -167,7 +167,8 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
   protected async createSharedViewLink(req, args: any): Promise<any> {
     try {
-      if (args.args.query_params?.fields) {
+      // todo: keep belongs to column if belongs to virtual column present
+      if (args.args.query_params?.fields && args.args.show_as !== 'form') {
         const fields = args.args.query_params?.fields.split(',');
         args.args.meta.columns = args.args.meta.columns.filter(c => fields.includes(c._cn))
       }
@@ -185,7 +186,13 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
       await this.xcMeta.metaInsert(args.project_id, this.getDbAlias(args), 'nc_shared_views', insertData);
       const res = await this.xcMeta.metaGet(this.getProjectId(args), this.getDbAlias(args), 'nc_shared_views', insertData, ['id', 'view_id']);
-      res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${res.view_id}`;
+      if (args.args.show_as === 'form') {
+        res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/form/${res.view_id}`;
+      } else if (args.args.show_as === 'gallery') {
+        res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/gallery/${res.view_id}`;
+      } else {
+        res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${res.view_id}`;
+      }
       Tele.emit('evt', {evt_type: 'sharedView:generated-link'})
       return res;
     } catch (e) {
@@ -206,7 +213,6 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       console.log(e)
     }
   }
-
 
 
   protected async xcVisibilityMetaSet(args) {
@@ -286,7 +292,6 @@ export default class NcMetaMgrEE extends NcMetaMgr {
   }
 
 
-
   protected async xcAuditList(args): Promise<any> {
     return this.xcMeta.metaPaginatedList(this.getProjectId(args), null, 'nc_audit', {
       limit: args.args.limit,
@@ -297,6 +302,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       }
     });
   }
+
   protected async xcTableModelsEnable(args): Promise<any> {
 
     const dbAlias = this.getDbAlias(args);

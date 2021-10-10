@@ -1963,6 +1963,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       this.formViews[args.tn][args.id].query_params = args.query_params
     }
   }
+
+  public getMeta(tableName:string):any{
+    return this.metas?.[tableName]
+  }
 }
 
 export {IGNORE_TABLES};

@@ -35,6 +35,8 @@
       :primary-key="parentPrimaryKey"
       :api="parentApi"
       :query-params="parentQueryParams"
+      :is-public="isPublic"
+      :tn="bt && bt.rtn"
       @add-new-record="insertAndMapNewParentRecord"
       @add="addChildToParent"
     />
@@ -56,13 +58,14 @@
         where: `(${parentPrimaryKey},eq,${parentId})`
       }"
       :bt="value"
+      :is-public="isPublic"
       @new-record="showNewRecordModal"
       @edit="editParent"
       @unlink="unlink"
     />
 
     <v-dialog
-      v-if="selectedParent"
+      v-if="!isPublic && selectedParent"
       v-model="expandFormModal"
       :overlay-opacity="0.8"
       width="1000px"
@@ -123,7 +126,9 @@ export default {
     sqlUi: [Object, Function],
     active: Boolean,
     isNew: Boolean,
-    disabledColumns: Object
+    disabledColumns: Object,
+    isPublic: Boolean,
+    metas: Object
   },
   data: () => ({
     newRecordModal: false,
@@ -142,7 +147,7 @@ export default {
   }),
   computed: {
     parentMeta() {
-      return this.$store.state.meta.metas[this.bt.rtn]
+      return this.metas ? this.metas[this.bt.rtn] : this.$store.state.meta.metas[this.bt.rtn]
     },
     // todo : optimize
     parentApi() {
@@ -193,7 +198,7 @@ export default {
     },
     // todo:
     form() {
-      return this.selectedParent ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
+      return this.selectedParent && !this.isPublic ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
     },
     cellValue() {
       if (this.value || this.localState) {
@@ -209,6 +214,7 @@ export default {
     isNew(n, o) {
       if (!n && o) {
         this.localState = null
+        this.$emit('update:localState', this.localState)
       }
     }
   },
@@ -242,6 +248,7 @@ export default {
       if (this.isNew) {
         this.$emit('updateCol', this.row, _cn, null)
         this.localState = null
+        this.$emit('update:localState', this.localState)
         return
       }
       if (column.rqd) {
@@ -317,6 +324,7 @@ export default {
 
       if (this.isNew) {
         this.localState = parent
+        this.$emit('update:localState', this.localState)
         this.$emit('updateCol', this.row, _cn, +pid || pid)
         this.newRecordModal = false
         return

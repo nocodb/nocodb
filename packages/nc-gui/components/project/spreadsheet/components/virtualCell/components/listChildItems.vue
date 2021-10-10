@@ -61,7 +61,7 @@
                 mdi-link-variant-remove
               </x-icon>
               <x-icon
-                v-if="!mm && !bt && !readOnly&& _isUIAllowed('xcDatatableEditable')"
+                v-if="!isPublic && !mm && !bt && !readOnly&& _isUIAllowed('xcDatatableEditable')"
                 :tooltip="`Delete row in '${meta._tn}'`"
                 :color="['error','grey']"
                 small
@@ -143,7 +143,8 @@ export default {
     parentMeta: Object,
     size: Number,
     api: [Object, Function],
-    mm: [Object, Boolean]
+    mm: [Object, Boolean],
+    isPublic: Boolean
   },
   data: () => ({
     data: null,

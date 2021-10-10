@@ -352,9 +352,10 @@
             <!--              <template v-slot:activator="{on}">-->
             <!--            <v-menu offset-x left>-->
             <!--              <template v-slot:activator="{on}">-->
+
             <v-list-item
               v-show="
-                selectedView && (selectedView.type === 'view' || selectedView.type === 'table')
+                selectedView && (selectedView.show_as === 'form' || selectedView.type === 'view' || selectedView.type === 'table')
               "
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"
@@ -756,8 +757,11 @@ export default {
             sort: this.sort,
             fields: Object.keys(this.showFields)
               .filter(f => this.showFields[f])
-              .join(',')
+              .join(','),
+            extraViewParams: this.extraViewParams
           },
+          type: this.selectedView.type,
+          show_as: this.selectedView.show_as,
           password: this.sharedViewPassword
         }
       ])

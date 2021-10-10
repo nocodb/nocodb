@@ -17,6 +17,7 @@
       :query-params="queryParams"
       v-bind="$attrs"
       :read-only="readOnly"
+      :is-public="isPublic"
       v-on="$listeners"
     />
   </v-dialog>
@@ -49,7 +50,8 @@ export default {
     parentMeta: Object,
     size: Number,
     api: [Object, Function],
-    mm: [Object, Boolean]
+    mm: [Object, Boolean],
+    isPublic: Boolean
   },
   data: () => ({
     data: null,

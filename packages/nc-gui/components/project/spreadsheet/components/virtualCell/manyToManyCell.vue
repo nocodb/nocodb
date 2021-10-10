@@ -45,7 +45,9 @@
       :primary-key="childPrimaryKey"
       :api="api"
       :mm="mm"
+      :tn="mm && mm.rtn"
       :parent-id="row && row[parentPrimaryKey]"
+      :is-public="isPublic"
       :query-params="childQueryParams"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
@@ -68,6 +70,7 @@
       :parent-id="row && row[parentPrimaryKey]"
       :query-params="{...childQueryParams, conditionGraph }"
       :local-state="localState"
+      :is-public="isPublic"
       @new-record="showNewRecordModal"
       @edit="editChild"
       @unlink="unlinkChild"
@@ -82,7 +85,7 @@
 
     <!-- todo : move to listitem component -->
     <v-dialog
-      v-if="selectedChild"
+      v-if="selectedChild && !isPublic"
       v-model="expandFormModal"
       :overlay-opacity="0.8"
       width="1000px"
@@ -147,7 +150,9 @@ export default {
     active: Boolean,
     isNew: Boolean,
     isForm: Boolean,
-    required: Boolean
+    required: Boolean,
+    isPublic: Boolean,
+    metas: Object
   },
   data: () => ({
     isNewChild: false,
@@ -175,10 +180,10 @@ export default {
       }
     },
     childMeta() {
-      return this.$store.state.meta.metas[this.mm.rtn]
+      return this.metas ? this.metas[this.mm.rtn] : this.$store.state.meta.metas[this.mm.rtn]
     },
     assocMeta() {
-      return this.$store.state.meta.metas[this.mm.vtn]
+      return this.metas ? this.metas[this.bt.vtn] : this.$store.state.meta.metas[this.mm.vtn]
     },
     // todo : optimize
     childApi() {
@@ -259,7 +264,7 @@ export default {
     },
     // todo:
     form() {
-      return this.selectedChild ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
+      return this.selectedChild && !this.isPublic ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
     }
   },
   watch: {

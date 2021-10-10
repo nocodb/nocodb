@@ -1,13 +1,13 @@
 <template>
-  <xc-table />
+  <xc-form />
 </template>
 
 <script>
-import XcTable from '../../../components/project/spreadsheet/public/xcTable'
+import XcForm from '../../../components/project/spreadsheet/public/xcForm'
 
 export default {
   name: 'View',
-  components: { XcTable },
+  components: { XcForm },
   layout: 'public',
   data: () => ({
     data: null

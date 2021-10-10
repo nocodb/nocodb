@@ -16,11 +16,14 @@
         :breadcrumbs="breadcrumbs"
         :is-locked="isLocked"
         :required="required"
+        :is-public="isPublic"
+        :metas="metas"
         v-on="$listeners"
       />
       <many-to-many-cell
         v-else-if="mm"
         ref="cell"
+        :is-public="isPublic"
         :row="row"
         :value="row[`${mm._rtn}MMList`]"
         :meta="meta"
@@ -34,11 +37,13 @@
         :breadcrumbs="breadcrumbs"
         :is-locked="isLocked"
         :required="required"
+        :metas="metas"
         v-on="$listeners"
       />
       <belongs-to-cell
         v-else-if="bt"
         ref="cell"
+        :is-public="isPublic"
         :disabled-columns="disabledColumns"
         :active="active"
         :row="row"
@@ -52,6 +57,7 @@
         :is-form="isForm"
         :breadcrumbs="breadcrumbs"
         :is-locked="isLocked"
+        :metas="metas"
         v-on="$listeners"
       />
       <lookup-cell
@@ -130,7 +136,9 @@ export default {
     disabledColumns: Object,
     hint: String,
     isLocked: Boolean,
-    required: Boolean
+    required: Boolean,
+    isPublic: Boolean,
+    metas: Object
   },
   computed: {
     hm() {

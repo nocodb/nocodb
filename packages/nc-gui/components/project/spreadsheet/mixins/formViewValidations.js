@@ -6,6 +6,7 @@ export default {
         return {}
       }
     },
+    meta: Object,
     sqlUi: [Object, Function],
     nodes: [Object],
     api: [Object]

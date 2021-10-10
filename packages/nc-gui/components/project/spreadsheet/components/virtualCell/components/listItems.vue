@@ -29,7 +29,7 @@
         <v-icon small class="mr-1" @click="loadData()">
           mdi-reload
         </v-icon>
-        <v-btn small class="caption mr-2" color="primary" @click="$emit('add-new-record')">
+        <v-btn v-if="!isPublic" small class="caption mr-2" color="primary" @click="$emit('add-new-record')">
           <v-icon small>
             mdi-plus
           </v-icon>&nbsp;
@@ -89,6 +89,7 @@ export default {
   components: { Pagination },
   props: {
     value: Boolean,
+    tn: String,
     hm: [Object, Function, Boolean],
     title: {
       type: String,
@@ -107,7 +108,8 @@ export default {
     api: [Object, Function],
     mm: [Object, Function],
     parentId: [String, Number],
-    parentMeta: [Object]
+    parentMeta: [Object],
+    isPublic: Boolean
   },
   data: () => ({
     data: null,
@@ -134,27 +136,39 @@ export default {
   },
   methods: {
     async loadData() {
-      if (!this.api) { return }
-
-      let where = this.queryParams.where || ''
-      if (this.query) {
-        where += (where ? '~and' : '') + `(${this.primaryCol},like,%${this.query}%)`
-      }
-
-      if (this.mm) {
-        this.data = await this.api.paginatedM2mNotChildrenList({
+      if (this.isPublic) {
+        this.data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewNestedDataGet', {
+          password: this.password,
           limit: this.size,
-          offset: this.size * (this.page - 1),
-          ...this.queryParams,
-          where
-        }, this.mm.vtn, this.parentId)
+          tn: this.tn,
+          view_id: this.$route.params.id,
+          offset: this.size * (this.page - 1)
+        }])
       } else {
-        this.data = await this.api.paginatedList({
-          limit: this.size,
-          offset: this.size * (this.page - 1),
-          ...this.queryParams,
-          where
-        })
+        if (!this.api) {
+          return
+        }
+
+        let where = this.queryParams.where || ''
+        if (this.query) {
+          where += (where ? '~and' : '') + `(${this.primaryCol},like,%${this.query}%)`
+        }
+
+        if (this.mm) {
+          this.data = await this.api.paginatedM2mNotChildrenList({
+            limit: this.size,
+            offset: this.size * (this.page - 1),
+            ...this.queryParams,
+            where
+          }, this.mm.vtn, this.parentId)
+        } else {
+          this.data = await this.api.paginatedList({
+            limit: this.size,
+            offset: this.size * (this.page - 1),
+            ...this.queryParams,
+            where
+          })
+        }
       }
     }
   }

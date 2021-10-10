@@ -488,7 +488,6 @@ export default {
 
         this.fieldList = this.meta.columns.map(c => c._cn)
 
-        // const {list, count} = await thi(this.queryParams);
         this.count = count
         this.data = list.map(row => ({
           row,

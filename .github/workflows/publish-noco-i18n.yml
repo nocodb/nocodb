@@ -1,0 +1,44 @@
+name: "Publish : noco-i18n"
+
+on:
+  push:
+    branches: [ master ]
+  release:
+    types: [ published ]
+
+jobs:
+  copy-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Check for update
+        run: |
+          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep noco-i18n) = noco-i18n ]] && echo 'OK')" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v2
+        if: ${{ env.CHANGED == 'OK' }}
+        with:
+          node-version: 14
+      - name: Build docs
+        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
+        run: |
+          cd packages/noco-i18n
+          npm install
+          npm run generate
+
+
+      - name: Pushes generated output
+        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
+        with:
+          source_file: 'packages/noco-i18n/dist/'
+          destination_repo: 'nocodb/noco-i18n'
+          destination_folder: ''
+          user_email: 'oof1lab@gmail.com'
+          user_name: 'o1lab'
+          commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-i18n'

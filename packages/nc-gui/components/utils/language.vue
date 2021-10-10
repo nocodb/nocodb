@@ -59,7 +59,8 @@ export default {
       fi: 'Suomalainen',
       uk: 'Українська',
       hr: 'Hrvatski',
-      th: 'ไทย'
+      th: 'ไทย',
+      pt_BR: 'Português (Brasil)'
     }
   }),
   computed: {

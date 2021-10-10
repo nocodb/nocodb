@@ -21,7 +21,8 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
+    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
+    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>  
 
 <p align="center"><img src="https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png" alt="The Open Source Airtable Alternative - works on MySQL, Postgres SQL Server & MariaDB" width="1000px" /></p>
@@ -219,6 +220,8 @@ npm run dev
 ```
 
 Changes made to code automatically restart.
+
+> nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
 
 
 ## Running Cypress tests locally

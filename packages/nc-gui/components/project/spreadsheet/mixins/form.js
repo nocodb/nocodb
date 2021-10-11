@@ -12,6 +12,7 @@ export default {
   },
   methods: {
     isValid(_columnObj, rowObj, required = false) {
+      if (!this.meta) { return }
       let columnObj = _columnObj
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)

@@ -299,7 +299,8 @@ export default {
       default: 'primary'
     },
     availableColumns: [Object, Array],
-    queryParams: Object
+    queryParams: Object,
+    meta: Object
   },
   data: () => ({
     showborder: false,

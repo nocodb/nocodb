@@ -19,7 +19,7 @@
           <tr v-for="link of viewsList" :key="link.id">
             <td class="caption">
               <nuxt-link :to="`/nc/${link.view_type || 'view'}/${link.view_id}`">
-                {{ `${origin}/dashboard#/xc/${link.view_type || 'view'}/${link.view_id}` }}
+                {{ `${dashboardUrl}#/nc/${link.view_type || 'view'}/${link.view_id}` }}
               </nuxt-link>
             </td>
             <td class="caption">

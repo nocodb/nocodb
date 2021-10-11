@@ -434,9 +434,9 @@
             <!-- People with private link can only see cells visible in this view -->
           </p>
           <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
-            {{ shareLink.url }}
+            {{ `${dashboardUrl}#/nc/${shareLink.view_type || 'view'}/${shareLink.view_id}` }}
             <v-spacer />
-            <a :href="shareLink.url" style="text-decoration: none" target="_blank">
+            <a :href=" `${dashboardUrl}#/nc/${shareLink.view_type || 'view'}/${shareLink.view_id}`" style="text-decoration: none" target="_blank">
               <v-icon small class="mx-2">mdi-open-in-new</v-icon>
             </a>
             <v-icon
@@ -791,7 +791,7 @@ export default {
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
     copyShareUrlToClipboard() {
-      this.clipboard(this.shareLink.url)
+      this.clipboard(`${this.dashboardUrl}#/nc/${this.shareLink.view_type || 'view'}/${this.shareLink.view_id}`)
       this.clipboardSuccessHandler()
     }
   }

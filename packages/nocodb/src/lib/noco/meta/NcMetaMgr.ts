@@ -3318,7 +3318,7 @@ export default class NcMetaMgr {
         this.getDbAlias(args),
         'nc_shared_views',
         insertData,
-        ['id', 'view_id']
+        ['id', 'view_id', 'view_type']
       );
       res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${res.view_id}`;
       Tele.emit('evt', { evt_type: 'sharedView:generated-link' });

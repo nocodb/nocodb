@@ -202,7 +202,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         this.getDbAlias(args),
         'nc_shared_views',
         insertData,
-        ['id', 'view_id']
+        ['id', 'view_id', 'view_type']
       );
       if (args.args.show_as === 'form') {
         res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/form/${res.view_id}`;

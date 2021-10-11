@@ -205,10 +205,8 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
       return res.json(data);
     }
 
-    // @ts-ignore
     const {
       allowedChildCols,
-      operation,
       allowedParentCols,
       parentColumns,
       childColumns

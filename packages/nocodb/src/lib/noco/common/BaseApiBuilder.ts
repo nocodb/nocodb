@@ -1529,7 +1529,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
         formView.query_params =
           formView.query_params && JSON.parse(formView.query_params);
       } catch (e) {}
-      this.formViews[formView.parent_model_title][formView.id] = formView;
+      // this.formViews[formView.parent_model_title][formView.id] = formView;
+      this.formViews[formView.parent_model_title][formView.title] = formView;
     }
   }
 
@@ -2435,9 +2436,16 @@ export default abstract class BaseApiBuilder<T extends Noco>
       XcCache.del([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
       // todo: update meta and model
     }
-    if (args?.query_params?.extraViewParams?.formParams) {
-      this.formViews[args.tn][args.id].query_params = args.query_params;
+    if (
+      args?.query_params?.extraViewParams?.formParams &&
+      this.formViews[args.tn]?.[args.view_name]
+    ) {
+      this.formViews[args.tn][args.view_name].query_params = args.query_params;
     }
+  }
+
+  public async onVirtualTableRename(_args: any) {
+    await this.loadFormViews();
   }
 
   public getMeta(tableName: string): any {

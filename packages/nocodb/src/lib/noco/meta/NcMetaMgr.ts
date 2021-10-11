@@ -3525,25 +3525,14 @@ export default class NcMetaMgr {
 
     for (const [key, obj] of Object.entries(args.args.nested)) {
       if (fields.includes(key)) {
-        // const colMeta = meta.v.find(c => c._cn === key);
-        // if (colMeta.bt) {
-        //   insertObject[colMeta.bt.cn] = obj[colMeta.bt._rcn || colMeta.bt.rcn];
-        // } else if (colMeta.hm) {
-        //   // todo:
         insertObject[key] = obj;
-        // } else if (colMeta.mm) {
-        //   // todo:
-        //   insertObject[key] = obj;
-        // }
       }
     }
 
     const model = apiBuilder?.xcModels?.[viewMeta.model_name];
     if (model) {
-      req.query.form = queryParams?.selectedViewId;
+      req.query.form = viewMeta.view_name;
       await model.nestedInsert(insertObject, null, req);
-
-      // todo: map nested data
     }
   }
 
@@ -4305,6 +4294,19 @@ export default class NcMetaMgr {
       args.args.id
     );
 
+    await this.xcMeta.metaUpdate(
+      projectId,
+      dbAlias,
+      'nc_shared_views',
+      {
+        view_name: args.args.title
+      },
+      {
+        view_name: args.args.old_title,
+        model_name: args.args.parent_model_title
+      }
+    );
+
     this.xcMeta.audit(projectId, dbAlias, 'nc_audit', {
       op_type: 'TABLE_VIEW',
       op_sub_type: 'RENAMED',
@@ -4396,6 +4398,12 @@ export default class NcMetaMgr {
       parent_model_title: args.args.parent_model_title,
       id: args.args.id
     });
+
+    await this.xcMeta.metaDelete(projectId, dbAlias, 'nc_shared_views', {
+      model_name: args.args.parent_model_title,
+      view_name: args.args.view_name
+    });
+
     this.xcMeta.audit(projectId, dbAlias, 'nc_audit', {
       op_type: 'TABLE_VIEW',
       op_sub_type: 'DELETED',

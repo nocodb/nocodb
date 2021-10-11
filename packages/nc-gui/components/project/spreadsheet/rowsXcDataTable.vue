@@ -754,7 +754,8 @@ export default {
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
           query_params: queryParams,
-          tn: this.meta.tn
+          tn: this.meta.tn,
+          view_name: this.$route.query.view
         })
       } catch (e) {
         // this.$toast.error(e.message).goAway(3000);

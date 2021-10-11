@@ -695,10 +695,10 @@ export default {
       this.clipboardSuccessHandler()
     },
     async updateViewName(view, index) {
-      if (view.title_temp === view.title || !view.edit) { this.$set(view, 'edit', false); return }
+      if (view.title_temp === view.title || !view.edit) { return }
+      this.$set(view, 'edit', false)
       if (this.viewsList.some((v, i) => i !== index && (v.alias || v.title) === view.title_temp)) {
         this.$toast.info('View name should be unique').goAway(3000)
-        this.$set(view, 'edit', false)
         return
       }
       try {
@@ -713,12 +713,12 @@ export default {
         }
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
           id: view.id,
+          old_title: view.title,
           title: view.title_temp,
           alias: view.alias,
           parent_model_title: this.meta._tn
         })
         this.$toast.success('View renamed successfully').goAway(3000)
-        this.$set(view, 'edit', false)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
@@ -738,6 +738,7 @@ export default {
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableDelete', {
           id: view.id,
           title: view.alias || view.title,
+          view_name: view.alias || view.title,
           parent_model_title: this.table
         })
         this.$toast.success('View deleted successfully').goAway(3000)

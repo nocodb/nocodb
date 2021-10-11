@@ -186,6 +186,9 @@ export default class NcProjectBuilder {
       case 'xcVirtualTableUpdate':
         await curBuilder.onVirtualTableUpdate(data.req.args);
         break;
+      case 'xcVirtualTableRename':
+        await curBuilder.onVirtualTableRename(data.req.args);
+        break;
       case 'xcVirtualTableCreate':
         await curBuilder.loadFormViews();
         break;

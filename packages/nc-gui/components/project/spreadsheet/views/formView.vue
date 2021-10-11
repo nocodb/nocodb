@@ -455,6 +455,9 @@ export default {
     return obj
   },
   computed: {
+    allColumnsLoc() {
+      return this.allColumns.filter(c => !hiddenCols.includes(c.cn) && !(c.pk && c.ai) && this.meta.belongsTo.every(bt => c.cn !== bt.cn))
+    },
     isEditable() {
       return this._isUIAllowed('editFormView')
     },
@@ -473,13 +476,13 @@ export default {
     },
     columns: {
       get() {
-        return this.allColumns.filter(c => this.showFields[c.alias] && !hiddenCols.includes(c.cn)).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
+        return this.allColumnsLoc.filter(c => this.showFields[c.alias] && !hiddenCols.includes(c.cn)).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
       },
       set(val) {
         const showFields = val.reduce((o, v) => {
           o[v.alias] = true
           return o
-        }, this.allColumns.reduce((o, v) => {
+        }, this.allColumnsLoc.reduce((o, v) => {
           o[v.alias] = this.isDbRequired(v)
           return o
         }, {}))
@@ -524,9 +527,10 @@ export default {
   },
   methods: {
     addAllColumns() {
-      this.columns = [...this.allColumns.filter(c => !hiddenCols.includes(c.cn))]
+      this.columns = [...this.allColumnsLoc]
     },
     isDbRequired(column) {
+      if (hiddenCols.includes(column.cn)) { return true }
       let isRequired = (!column.virtual && column.rqd && !column.default && this.meta.belongsTo.every(bt => column.cn !== bt.cn)) ||
         (column.pk && !(column.ai || column.default))
 
@@ -587,7 +591,7 @@ export default {
         // if (this.isNew) {
 
         // todo: add params option in GraphQL
-        let data = await this.api.insert(this.localState, { params: { form: this.id } })
+        let data = await this.api.insert(this.localState, { params: { form: this.$route.query.view } })
         data = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state

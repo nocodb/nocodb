@@ -2054,10 +2054,10 @@ class BaseModelSql extends BaseModel {
         this.dbDriver.unionAll(
           ids.map(p => {
             const query = this.dbDriver(this.dbModels[child].tnPath)
+              .count(`${cn} as count`)
               .where({ [cn]: p })
               .xwhere(where, this.selectQuery(''))
               .conditionGraph(conditionGraph)
-              .count(`${cn} as count`)
               .first();
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
           }),
@@ -2212,6 +2212,8 @@ class BaseModelSql extends BaseModel {
           !fields ||
           fieldsArr.includes('*') ||
           fieldsArr.includes(`${this.tn}.*`) ||
+          fieldsArr.includes(`${this.tn}.${col._cn}`) ||
+          fieldsArr.includes(`${this.tn}.${col.cn}`) ||
           fieldsArr.includes(col._cn) ||
           fieldsArr.includes(col.cn)
         ) {

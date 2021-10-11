@@ -746,7 +746,6 @@ export default {
     },
     async genShareLink() {
       this.showShareModel = true
-      debugger
       const sharedViewUrl = await this.$store.dispatch('sqlMgr/ActSqlOp', [
         { dbAlias: this.nodes.dbAlias },
         'createSharedViewLink',

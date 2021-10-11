@@ -38,6 +38,7 @@
               >remove all</span>
             </div>
             <draggable
+              v-if="showFields "
               v-model="hiddenColumns"
               draggable=".item"
               group="form-inputs"
@@ -151,7 +152,6 @@
                 {{ localParams.description }}
               </editable>
               <draggable
-                :is="_isUIAllowed('editFormView') ? 'draggable' : 'div'"
                 v-model="columns"
                 draggable=".item"
                 group="form-inputs"
@@ -477,6 +477,7 @@ export default {
         return this.allColumns.filter(c => this.showFields[c.alias] && !hiddenCols.includes(c.cn)).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
       },
       set(val) {
+        debugger
         const showFields = val.reduce((o, v) => {
           o[v.alias] = true
           return o

@@ -528,6 +528,7 @@ import { mapActions } from 'vuex'
 import debounce from 'debounce'
 import FormView from './views/formView'
 import XcGridView from './views/xcGridView'
+import spreadsheet from './mixins/spreadsheet'
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
 
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
@@ -537,7 +538,6 @@ import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
 import SortList from '@/components/project/spreadsheet/components/sortListMenu'
 import Fields from '@/components/project/spreadsheet/components/fieldsMenu'
 import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
-import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
 import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
 import Pagination from '@/components/project/spreadsheet/components/pagination'
@@ -653,7 +653,7 @@ export default {
     try {
       await this.createTableIfNewTable()
       this.loadingMeta = true
-      await this.loadMeta()
+      await this.loadMeta(false)
       this.loadingMeta = false
 
       if (this.relationType === 'hm') {
@@ -675,7 +675,7 @@ export default {
         // await this.$refs.drawer.loadViews();
         await this.loadTableData()
       }
-      this.mapFieldsAndShowFields()
+      // this.mapFieldsAndShowFields()
     } catch (e) {
       console.log(e)
     }

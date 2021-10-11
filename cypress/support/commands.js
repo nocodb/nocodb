@@ -52,13 +52,13 @@ Cypress.Commands.add('signinOrSignup', (_args) => {
           cy.wait(8000);
           cy.get('body').trigger('mousemove');
           cy.contains('Let\'s Begin').click();
-          cy.get('input[type="text"]', { timeout: 12000 }).type(args.username);
+          cy.get('input[type="email"]', { timeout: 12000 }).type(args.username);
           cy.get('input[type="password"]').type(args.password);
           cy.get('button:contains("SIGN UP")').click()
 
           // handle signin
         } else {
-          cy.get('input[type="text"]', { timeout: 12000 }).type(args.username);
+          cy.get('input[type="email"]', { timeout: 12000 }).type(args.username);
           cy.get('input[type="password"]').type(args.password);
           cy.get('button:contains("SIGN IN")').click()
         }

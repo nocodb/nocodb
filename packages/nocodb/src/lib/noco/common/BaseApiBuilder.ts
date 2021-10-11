@@ -1044,6 +1044,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   // table alias functions
   protected getInflectedName(name: string, inflectionFns: string): string {
+    // Hotfix: Ignore inflection on id_
+    if (name === 'id_') {
+      return name;
+    }
+
     if (inflectionFns && inflectionFns !== 'none') {
       return inflectionFns.split(',').reduce((out, fn) => inflection[fn](out), name);
     }

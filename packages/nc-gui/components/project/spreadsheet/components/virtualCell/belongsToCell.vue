@@ -322,11 +322,15 @@ export default {
         return
       }
 
-      await this.api.update(id, {
+      const data = {
         [_cn]: isNum ? +pid : pid
-      }, {
+      }
+
+      const oldData = {
         [_cn]: this.value && this.value[this.parentPrimaryKey]
-      })
+      }
+
+      await this.api.update(id, data, oldData)
       this.pid = pid
 
       this.newRecordModal = false

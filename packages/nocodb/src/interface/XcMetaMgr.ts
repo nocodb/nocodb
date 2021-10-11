@@ -1,9 +1,5 @@
-
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export default interface XcMetaMgr {
-
-
-}
+export default interface XcMetaMgr {}
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

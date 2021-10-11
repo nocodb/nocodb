@@ -1,22 +1,22 @@
-const {DOCKER_DB_HOST, DOCKER_DB_PORT} = process.env;
+const { DOCKER_DB_HOST, DOCKER_DB_PORT } = process.env;
 
 module.exports = {
-  title: "default",
+  title: 'default',
   envs: {
     _noco: {
       db: [
         {
-          client: "pg",
+          client: 'pg',
           connection: {
-            host: DOCKER_DB_HOST || "localhost",
+            host: DOCKER_DB_HOST || 'localhost',
             port: DOCKER_DB_PORT || 5432,
-            user: "postgres",
-            password: "password",
-            database: "default_dev"
+            user: 'postgres',
+            password: 'password',
+            database: 'default_dev'
           },
           meta: {
-            tn: "nc_evolutions",
-            dbAlias: "primary"
+            tn: 'nc_evolutions',
+            dbAlias: 'primary'
           }
         }
       ]
@@ -24,23 +24,23 @@ module.exports = {
     test: {
       db: [
         {
-          client: "pg",
+          client: 'pg',
           connection: {
-            host: DOCKER_DB_HOST || "localhost",
+            host: DOCKER_DB_HOST || 'localhost',
             port: DOCKER_DB_PORT || 5432,
-            user: "postgres",
-            password: "password",
-            database: "default_test"
+            user: 'postgres',
+            password: 'password',
+            database: 'default_test'
           },
           meta: {
-            tn: "nc_evolutions",
-            dbAlias: "primary"
+            tn: 'nc_evolutions',
+            dbAlias: 'primary'
           }
         }
       ]
     }
   },
-  workingEnv: "_noco",
+  workingEnv: '_noco',
   meta: {
     version: '0.5',
     seedsFolder: 'seeds',

@@ -1,11 +1,10 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
-import AWS from "aws-sdk";
-import {IStorageAdapter, XcFile} from "nc-plugin";
+import AWS from 'aws-sdk';
+import { IStorageAdapter, XcFile } from 'nc-plugin';
 
 export default class LinodeObjectStorage implements IStorageAdapter {
-
   private s3Client: AWS.S3;
   private input: any;
 
@@ -13,16 +12,14 @@ export default class LinodeObjectStorage implements IStorageAdapter {
     this.input = input;
   }
 
-
   async fileCreate(key: string, file: XcFile): Promise<any> {
-
     const uploadParams: any = {
       ACL: 'public-read'
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
       const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', (err) => {
+      fileStream.on('error', err => {
         console.log('File Error', err);
         reject(err);
       });
@@ -33,7 +30,7 @@ export default class LinodeObjectStorage implements IStorageAdapter {
       // call S3 to retrieve upload file to specified bucket
       this.s3Client.upload(uploadParams, (err, data) => {
         if (err) {
-          console.log("Error", err);
+          console.log('Error', err);
           reject(err);
         }
         if (data) {
@@ -49,7 +46,7 @@ export default class LinodeObjectStorage implements IStorageAdapter {
 
   public async fileRead(key: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.s3Client.getObject({Key: key} as any, (err, data) => {
+      this.s3Client.getObject({ Key: key } as any, (err, data) => {
         if (err) {
           return reject(err);
         }
@@ -63,14 +60,16 @@ export default class LinodeObjectStorage implements IStorageAdapter {
 
   public async init(): Promise<any> {
     const s3Options: any = {
-      params: {Bucket: this.input.bucket},
+      params: { Bucket: this.input.bucket },
       region: this.input.region
     };
 
-    s3Options.accessKeyId = this.input.access_key
+    s3Options.accessKeyId = this.input.access_key;
     s3Options.secretAccessKey = this.input.access_secret;
 
-    s3Options.endpoint = new AWS.Endpoint(`${this.input.region}.linodeobjects.com`);
+    s3Options.endpoint = new AWS.Endpoint(
+      `${this.input.region}.linodeobjects.com`
+    );
 
     this.s3Client = new AWS.S3(s3Options);
   }
@@ -92,9 +91,7 @@ export default class LinodeObjectStorage implements IStorageAdapter {
       throw e;
     }
   }
-
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

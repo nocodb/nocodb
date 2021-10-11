@@ -1,11 +1,10 @@
 export default interface IStorageAdapter {
-  init(): Promise<any>
-  fileCreate(destPath: string, file: XcFile): Promise<any>
-  fileDelete(filePath: string): Promise<any>
-  fileRead(filePath: string): Promise<any>
-  test(): Promise<boolean>
+  init(): Promise<any>;
+  fileCreate(destPath: string, file: XcFile): Promise<any>;
+  fileDelete(filePath: string): Promise<any>;
+  fileRead(filePath: string): Promise<any>;
+  test(): Promise<boolean>;
 }
-
 
 interface XcFile {
   originalname: string;
@@ -14,9 +13,7 @@ interface XcFile {
   size: number | string;
 }
 
-export {
-  XcFile
-}
+export { XcFile };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

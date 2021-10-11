@@ -1,16 +1,23 @@
-import {BaseModelSql} from "../../dataMapper";
+import { BaseModelSql } from '../../dataMapper';
 
-export const m2mNotChildren = ({models = {}}: { models: { [key: string]: BaseModelSql } }) => {
-  return async (args) => {
+export const m2mNotChildren = ({
+  models = {}
+}: {
+  models: { [key: string]: BaseModelSql };
+}) => {
+  return async args => {
     return models[args?.parent]?.m2mNotChildren(args);
-  }
-}
-export const m2mNotChildrenCount = ({models = {}}: { models: { [key: string]: BaseModelSql } }) => {
-  return async (args) => {
+  };
+};
+export const m2mNotChildrenCount = ({
+  models = {}
+}: {
+  models: { [key: string]: BaseModelSql };
+}) => {
+  return async args => {
     return models[args?.parent]?.m2mNotChildrenCount(args);
-  }
-}
-
+  };
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

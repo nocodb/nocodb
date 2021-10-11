@@ -169,7 +169,7 @@ table[class=body] .article {
 </table>
 </body>
 </html>
-`
+`;
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

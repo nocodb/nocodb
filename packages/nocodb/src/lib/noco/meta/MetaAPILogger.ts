@@ -1,8 +1,7 @@
-import {XKnex} from "../../dataMapper";
-import {Request} from 'express';
+import { XKnex } from '../../dataMapper';
+import { Request } from 'express';
 
 export default class MetaAPILogger {
-
   static _instance: MetaAPILogger;
   knex: XKnex;
 
@@ -13,7 +12,7 @@ export default class MetaAPILogger {
         filename: 'noco_log.db'
       },
       useNullAsDefault: true
-    })
+    });
   }
 
   async init() {
@@ -23,29 +22,26 @@ export default class MetaAPILogger {
     });
   }
 
-
   static async mw(req, res, next) {
-
     if (process.env.NC_LOGGER) {
       const oldWrite = res.write,
         oldEnd = res.end;
 
       const chunks = [];
 
-      res.write = function (chunk) {
+      res.write = function(chunk) {
         chunks.push(chunk);
 
         // eslint-disable-next-line prefer-rest-params
         oldWrite.apply(res, arguments);
       };
 
-      res.end = function (chunk) {
-        if (chunk)
-          chunks.push(chunk);
+      res.end = function(chunk) {
+        if (chunk) chunks.push(chunk);
 
         const body = Buffer.concat(chunks).toString('utf8');
 
-        MetaAPILogger.log(req, body)
+        MetaAPILogger.log(req, body);
         // eslint-disable-next-line prefer-rest-params
         oldEnd.apply(res, arguments);
       };
@@ -59,7 +55,7 @@ export default class MetaAPILogger {
     }
     if (!this._instance) {
       this._instance = new MetaAPILogger();
-      await this._instance.init()
+      await this._instance.init();
     }
     await this._instance.knex('nc_log').insert({
       path: req.url,
@@ -69,10 +65,8 @@ export default class MetaAPILogger {
       method: req.method,
       operation: req.body?.api,
       response: typeof res === 'string' ? res : JSON.stringify(res)
-    })
+    });
   }
-
-
 }
 
 class XcLoggerMigrationSource {
@@ -81,7 +75,7 @@ class XcLoggerMigrationSource {
   // arguments to getMigrationName and getMigration
   public getMigrations(): Promise<any> {
     // In this example we are just returning migration names
-    return Promise.resolve(['logger'])
+    return Promise.resolve(['logger']);
   }
 
   public getMigrationName(migration): string {
@@ -104,10 +98,10 @@ class XcLoggerMigrationSource {
               table.text('response');
               table.text('comments');
               table.timestamps(true, true);
-            })
+            });
           },
           async down(knex) {
-            await knex.schema.dropTable('nc_log')
+            await knex.schema.dropTable('nc_log');
           }
         };
     }

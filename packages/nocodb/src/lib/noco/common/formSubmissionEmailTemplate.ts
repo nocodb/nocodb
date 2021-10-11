@@ -193,7 +193,7 @@ export default `<!doctype html>
 </table>
 </body>
 </html>
-`
+`;
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

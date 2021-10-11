@@ -1,4 +1,4 @@
-export default  `<!DOCTYPE html>
+export default `<!DOCTYPE html>
 <html>
 <head>
     <title>Welcome to Vue</title>
@@ -94,7 +94,8 @@ export default  `<!DOCTYPE html>
   })
 </script>
 </body>
-</html>`/**
+</html>`;
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

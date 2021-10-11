@@ -1,49 +1,59 @@
 import fs from 'fs';
 import path from 'path';
 
-import autoBind from "auto-bind";
+import autoBind from 'auto-bind';
 import debug from 'debug';
 import * as ejs from 'ejs';
-import {Router} from "express";
-import {glob} from "glob";
+import { Router } from 'express';
+import { glob } from 'glob';
 import mkdirp from 'mkdirp';
 
-import {DbConfig, NcConfig} from "../../../interface/config";
-import ModelXcMetaFactory from "../../sqlMgr/code/models/xc/ModelXcMetaFactory";
-import SwaggerXc from "../../sqlMgr/code/routers/xc-ts/SwaggerXc";
-import SwaggerXcBt from "../../sqlMgr/code/routers/xc-ts/SwaggerXcBt";
-import SwaggerXcHm from "../../sqlMgr/code/routers/xc-ts/SwaggerXcHm";
-import ExpressXcTsRoutes from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes";
-import ExpressXcTsRoutesBt from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt";
-import ExpressXcTsRoutesHm from "../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesHm";
-import NcHelp from "../../utils/NcHelp";
-import NcProjectBuilder from "../NcProjectBuilder";
-import Noco from "../Noco";
-import BaseApiBuilder, {IGNORE_TABLES} from "../common/BaseApiBuilder";
-import NcMetaIO from "../meta/NcMetaIO";
+import { DbConfig, NcConfig } from '../../../interface/config';
+import ModelXcMetaFactory from '../../sqlMgr/code/models/xc/ModelXcMetaFactory';
+import SwaggerXc from '../../sqlMgr/code/routers/xc-ts/SwaggerXc';
+import SwaggerXcBt from '../../sqlMgr/code/routers/xc-ts/SwaggerXcBt';
+import SwaggerXcHm from '../../sqlMgr/code/routers/xc-ts/SwaggerXcHm';
+import ExpressXcTsRoutes from '../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutes';
+import ExpressXcTsRoutesBt from '../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesBt';
+import ExpressXcTsRoutesHm from '../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoutesHm';
+import NcHelp from '../../utils/NcHelp';
+import NcProjectBuilder from '../NcProjectBuilder';
+import Noco from '../Noco';
+import BaseApiBuilder, { IGNORE_TABLES } from '../common/BaseApiBuilder';
+import NcMetaIO from '../meta/NcMetaIO';
 
-import {RestCtrl} from "./RestCtrl";
-import {RestCtrlBelongsTo} from "./RestCtrlBelongsTo";
-import {RestCtrlCustom} from "./RestCtrlCustom";
-import {RestCtrlHasMany} from "./RestCtrlHasMany";
-import {RestCtrlProcedure} from "./RestCtrlProcedure";
-
+import { RestCtrl } from './RestCtrl';
+import { RestCtrlBelongsTo } from './RestCtrlBelongsTo';
+import { RestCtrlCustom } from './RestCtrlCustom';
+import { RestCtrlHasMany } from './RestCtrlHasMany';
+import { RestCtrlProcedure } from './RestCtrlProcedure';
 
 const log = debug('nc:api:rest');
 const NC_CUSTOM_ROUTE_KEY = '__xc_custom';
 
 export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public readonly type = 'rest';
-  private controllers: { [key: string]: RestCtrlBelongsTo | RestCtrl | RestCtrlHasMany | RestCtrlCustom };
+  private controllers: {
+    [key: string]:
+      | RestCtrlBelongsTo
+      | RestCtrl
+      | RestCtrlHasMany
+      | RestCtrlCustom;
+  };
   private procedureCtrl: RestCtrlProcedure;
   private routers: { [key: string]: Router };
   private apiCount = 0;
   private customRoutes: any;
 
-
-  constructor(app: Noco, projectBuilder: NcProjectBuilder, config: NcConfig, connectionConfig: DbConfig, xcMeta?: NcMetaIO) {
+  constructor(
+    app: Noco,
+    projectBuilder: NcProjectBuilder,
+    config: NcConfig,
+    connectionConfig: DbConfig,
+    xcMeta?: NcMetaIO
+  ) {
     super(app, projectBuilder, config, connectionConfig);
-    autoBind(this)
+    autoBind(this);
     this.controllers = {};
     this.routers = {};
     this.hooks = {};
@@ -58,7 +68,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public async loadRoutes(customRoutes: any): Promise<any> {
     this.customRoutes = customRoutes;
 
-    this.log('loadRoutes')
+    this.log('loadRoutes');
     const t = process.hrtime();
 
     this.initDbDriver();
@@ -66,16 +76,16 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     // todo: change condition
     if (this.connectionConfig.meta.reset) {
       await this.xcMeta.metaReset(this.projectId, this.dbAlias);
-      this.log('loadRoutes : Metadata reset completed')
+      this.log('loadRoutes : Metadata reset completed');
     }
 
-    if (!await this.xcMeta.isMetaDataExists(this.projectId, this.dbAlias)) {
-      await this.xcTablesPopulate({})
-      this.log('loadRoutes : Populated metadata from database')
+    if (!(await this.xcMeta.isMetaDataExists(this.projectId, this.dbAlias))) {
+      await this.xcTablesPopulate({});
+      this.log('loadRoutes : Populated metadata from database');
     } else {
       // NOTE: xc-meta
       await this.xcTablesRead();
-      this.log('loadRoutes : App initialized from metadata')
+      this.log('loadRoutes : App initialized from metadata');
     }
 
     await this.loadHooks();
@@ -86,7 +96,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     const t2 = t1[0] + t1[1] / 1000000000;
 
     return {
-      type: "rest",
+      type: 'rest',
       apiCount: this.apiCount,
       dbType: this.connectionConfig.client,
       apiEndpoint: `/nc/${this.projectId}/${this.dbAlias}/swagger`,
@@ -101,76 +111,94 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     };
   }
 
-
   public async xcTablesRead(tables?: string[]): Promise<any> {
-    this.log('xcTablesRead : %o', tables)
+    this.log('xcTablesRead : %o', tables);
     const swagger = [];
-    const {enabledModels, tableAndViewArr, functionArr, procedureArr} = await this.readXcModelsAndGroupByType();
+    const {
+      enabledModels,
+      tableAndViewArr,
+      functionArr,
+      procedureArr
+    } = await this.readXcModelsAndGroupByType();
 
-    const router = this.routers.___procedure = Router();
-    this.procedureCtrl = new RestCtrlProcedure(this, functionArr, procedureArr, this.procedureOrFunctionAcls);
+    const router = (this.routers.___procedure = Router());
+    this.procedureCtrl = new RestCtrlProcedure(
+      this,
+      functionArr,
+      procedureArr,
+      this.procedureOrFunctionAcls
+    );
     this.procedureCtrl.mapRoutes(router, this.customRoutes);
-    swagger.push(this.procedureCtrl.getSwaggerObj())
+    swagger.push(this.procedureCtrl.getSwaggerObj());
     this.router.use('/api/' + this.routeVersionLetter, router);
 
+    const routesArr = (
+      await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_routes', {
+        condition: {
+          handler_type: 1
+        },
+        xcCondition: {
+          _not: {
+            is_custom: true
+          }
+        }
+      })
+    )
+      .sort((a, b) => a.order - b.order)
+      .map(it => ({
+        ...it,
+        acl: JSON.parse(it.acl),
+        functions: it.functions && JSON.parse(it.functions),
+        handler: JSON.parse(it.handler)
+      }));
 
-    const routesArr = (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_routes', {
-      condition: {
-        handler_type: 1
-      },
-      xcCondition: {
-        _not: {
+    const middlewaresArr = (
+      await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_routes', {
+        condition: { handler_type: 2 },
+        xcCondition: {
+          _not: {
+            is_custom: true
+          }
+        }
+      })
+    )
+      .sort((a, b) => a.order - b.order)
+      .map(it => ({
+        ...it,
+        functions: it.functions && JSON.parse(it.functions)
+      }));
+
+    const customRoutes = (
+      await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_routes', {
+        condition: {
           is_custom: true
         }
-      },
-    }))
+      })
+    )
       .sort((a, b) => a.order - b.order)
       .map(it => ({
-          ...it,
-          acl: JSON.parse(it.acl),
-          functions: it.functions && JSON.parse(it.functions),
-          handler: JSON.parse(it.handler)
-        })
-      );
-
-    const middlewaresArr = (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_routes', {
-      condition: {handler_type: 2},
-      xcCondition: {
-        _not: {
-          is_custom: true
-        }
-      },
-    }))
-      .sort((a, b) => a.order - b.order)
-      .map(it => ({
-          ...it,
-          functions: it.functions && JSON.parse(it.functions),
-        })
-      );
-
-    const customRoutes = (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_routes', {
-      condition: {
-        is_custom: true
-      },
-    }))
-      .sort((a, b) => a.order - b.order)
-      .map(it => ({
-          ...it,
-          functions: it.functions && JSON.parse(it.functions),
-        })
-      );
-
+        ...it,
+        functions: it.functions && JSON.parse(it.functions)
+      }));
 
     const relationRoutes = [];
-
 
     await this.loadXcAcl();
 
     for (const meta of tableAndViewArr) {
-      this.log('xcTablesRead : Adding routes for \'%s\' - %s', meta.title, meta.type);
-      const middlewareBody = middlewaresArr.find(({title}) => title === meta.title)?.functions?.[0];
+      this.log(
+        "xcTablesRead : Adding routes for '%s' - %s",
+        meta.title,
+        meta.type
+      );
+      const middlewareBody = middlewaresArr.find(
+        ({ title }) => title === meta.title
+      )?.functions?.[0];
 
-      if (!enabledModels.includes(meta.title) || (tables && !tables.includes(meta.title))) {
+      if (
+        !enabledModels.includes(meta.title) ||
+        (tables && !tables.includes(meta.title))
+      ) {
         continue;
       }
 
@@ -179,13 +207,19 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       this.metas[meta.title] = metaObj;
       this.models[meta.title] = this.getBaseModel(metaObj);
       try {
-        this.log('xcTablesRead : Parsing swagger doc of \'%s\' %s', meta.title, meta.type);
-        swagger.push(JSON.parse(meta.schema))
+        this.log(
+          "xcTablesRead : Parsing swagger doc of '%s' %s",
+          meta.title,
+          meta.type
+        );
+        swagger.push(JSON.parse(meta.schema));
       } catch (e) {
-        console.log('Failed swagger doc parsing of \'' + meta.title + "' " + meta.type)
+        console.log(
+          "Failed swagger doc parsing of '" + meta.title + "' " + meta.type
+        );
       }
-      const routes = routesArr.filter(({title}) => title === meta.title);
-      const router = this.routers[meta.title] = Router();
+      const routes = routesArr.filter(({ title }) => title === meta.title);
+      const router = (this.routers[meta.title] = Router());
       const rootPath = routes?.[0]?.path?.match(/\/api\/[^/]+\/[^/]+/)?.[0];
       if (!rootPath) {
         continue;
@@ -193,9 +227,16 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       this.router.use(encodeURI(rootPath), router);
 
       this.apiCount += routes.length;
-      this.controllers[meta.title] = new RestCtrl(this.app, this.models, meta.title, routes, rootPath, this.acls, middlewareBody);
+      this.controllers[meta.title] = new RestCtrl(
+        this.app,
+        this.models,
+        meta.title,
+        routes,
+        rootPath,
+        this.acls,
+        middlewareBody
+      );
       this.controllers[meta.title].mapRoutes(router, this.customRoutes);
-
 
       relationRoutes.push(async () => {
         for (const hm of metaObj.hasMany) {
@@ -204,11 +245,22 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           }
 
           const name = `${meta.title}Hm${hm.tn}`;
-          const hmRoutes = routesArr.filter(({title}) => title === name);
-          const hmMiddlewareBody = middlewaresArr.find(({title}) => title === name)?.functions?.[0];
+          const hmRoutes = routesArr.filter(({ title }) => title === name);
+          const hmMiddlewareBody = middlewaresArr.find(
+            ({ title }) => title === name
+          )?.functions?.[0];
 
           this.apiCount += hmRoutes.length;
-          this.controllers[name] = new RestCtrlHasMany(this.app, this.models, meta.title, hm.tn, hmRoutes, rootPath, this.acls, hmMiddlewareBody);
+          this.controllers[name] = new RestCtrlHasMany(
+            this.app,
+            this.models,
+            meta.title,
+            hm.tn,
+            hmRoutes,
+            rootPath,
+            this.acls,
+            hmMiddlewareBody
+          );
           this.controllers[name].mapRoutes(router, this.customRoutes);
         }
         for (const bt of metaObj.belongsTo) {
@@ -219,13 +271,24 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
           const name = `${meta.title}Bt${bt.rtn}`;
 
-          this.log('xcTablesRead : Adding routes for \'%s\' - relation', name);
+          this.log("xcTablesRead : Adding routes for '%s' - relation", name);
 
-          const btRoutes = routesArr.filter(({title}) => title === name);
-          const btMiddlewareBody = middlewaresArr.find(({title}) => title === name)?.functions?.[0];
+          const btRoutes = routesArr.filter(({ title }) => title === name);
+          const btMiddlewareBody = middlewaresArr.find(
+            ({ title }) => title === name
+          )?.functions?.[0];
 
           this.apiCount += btRoutes.length;
-          this.controllers[name] = new RestCtrlBelongsTo(this.app, this.models, bt.rtn, bt.tn, btRoutes, rootPath, this.acls, btMiddlewareBody);
+          this.controllers[name] = new RestCtrlBelongsTo(
+            this.app,
+            this.models,
+            bt.rtn,
+            bt.tn,
+            btRoutes,
+            rootPath,
+            this.acls,
+            btMiddlewareBody
+          );
           this.controllers[name].mapRoutes(router, this.customRoutes);
         }
       });
@@ -233,19 +296,25 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     await Promise.all(relationRoutes.map(async f => f()));
 
-
     if (customRoutes.length) {
-      const customRouter = this.routers[NC_CUSTOM_ROUTE_KEY] = Router();
-      this.router.use(customRouter)
-      this.controllers[NC_CUSTOM_ROUTE_KEY] = new RestCtrlCustom(this.app, this.models, customRoutes);
-      this.controllers[NC_CUSTOM_ROUTE_KEY].mapRoutes(customRouter, this.customRoutes);
+      const customRouter = (this.routers[NC_CUSTOM_ROUTE_KEY] = Router());
+      this.router.use(customRouter);
+      this.controllers[NC_CUSTOM_ROUTE_KEY] = new RestCtrlCustom(
+        this.app,
+        this.models,
+        customRoutes
+      );
+      this.controllers[NC_CUSTOM_ROUTE_KEY].mapRoutes(
+        customRouter,
+        this.customRoutes
+      );
     }
 
     const swaggerDoc = {
       tags: [],
       paths: {},
       definitions: {}
-    }
+    };
 
     swagger.forEach(swaggerJson => {
       if (swaggerJson) {
@@ -258,7 +327,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     if (tables?.length) {
       this.swaggerUpdate({
         addApis: swaggerDoc
-      })
+      });
     } else {
       /* generate swagger docs */
       await this.generateSwaggerJson(swaggerDoc);
@@ -266,21 +335,23 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     // const minRouter = new RestCtrlMin(this.app,this.models,this.acls);
     // minRouter.mapRoutes(this.router)
-
   }
-
 
   public async xcTablesPopulate(args?: {
     tableNames?: Array<{
       tn: string;
       _tn?: string;
     }>;
-    type?: 'table' | 'view' | 'function' | 'procedure',
+    type?: 'table' | 'view' | 'function' | 'procedure';
     columns?: {
-      [tn: string]: any
-    }
+      [tn: string]: any;
+    };
   }): Promise<any> {
-    this.log(`xcTablesPopulate : tables - %o , type - %s`, args?.tableNames, args?.type);
+    this.log(
+      `xcTablesPopulate : tables - %o , type - %s`,
+      args?.tableNames,
+      args?.type
+    );
     let tables;
     const swaggerRefs: { [table: string]: any[] } = {};
 
@@ -289,11 +360,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     // set table name alias
     relations.forEach(r => {
-      r._rtn = args?.tableNames?.find(t => t.tn === r.rtn)?._tn || this.getTableNameAlias(r.rtn);
-      r._tn = args?.tableNames?.find(t => t.tn === r.tn)?._tn || this.getTableNameAlias(r.tn);
+      r._rtn =
+        args?.tableNames?.find(t => t.tn === r.rtn)?._tn ||
+        this.getTableNameAlias(r.rtn);
+      r._tn =
+        args?.tableNames?.find(t => t.tn === r.tn)?._tn ||
+        this.getTableNameAlias(r.tn);
       r.enabled = true;
     });
-
 
     this.relationsCount = relations.length;
 
@@ -304,22 +378,27 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       for (const r of relations) {
         if (args.tableNames.some(t => t.tn === r.tn)) {
           if (!relatedTableList.includes(r.rtn)) {
-            relatedTableList.push(r.rtn)
-            await this.onTableDelete(r.rtn)
+            relatedTableList.push(r.rtn);
+            await this.onTableDelete(r.rtn);
           }
         } else if (args.tableNames.some(t => t.tn === r.rtn)) {
           if (!relatedTableList.includes(r.tn)) {
-            relatedTableList.push(r.tn)
-            await this.onTableDelete(r.tn)
+            relatedTableList.push(r.tn);
+            await this.onTableDelete(r.tn);
           }
         }
       }
 
-      tables = args.tableNames.map(({tn, _tn}) => ({tn, type: args.type, _tn}));
-      tables.push(...relatedTableList.map(t => ({tn: t})))
+      tables = args.tableNames.map(({ tn, _tn }) => ({
+        tn,
+        type: args.type,
+        _tn
+      }));
+      tables.push(...relatedTableList.map(t => ({ tn: t })));
     } else {
-      tables = (await this.sqlClient.tableList())?.data?.list?.filter(({tn}) => !IGNORE_TABLES.includes(tn));
-
+      tables = (await this.sqlClient.tableList())?.data?.list?.filter(
+        ({ tn }) => !IGNORE_TABLES.includes(tn)
+      );
 
       // enable extra
       /*      tables.push(...(await this.sqlClient.viewList())?.data?.list?.map(v => {
@@ -339,13 +418,12 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       await this.populteProcedureAndFunctionRoutes();
     }
 
-
     /* filter based on prefix */
     if (this.projectBuilder?.prefix) {
       tables = tables.filter(t => {
-        t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '')
-        return t?.tn?.startsWith(this.projectBuilder?.prefix)
-      })
+        t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '');
+        return t?.tn?.startsWith(this.projectBuilder?.prefix);
+      });
     }
 
     this.tablesCount = tables.length;
@@ -354,88 +432,162 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     relations.forEach(r => {
       r._tn = this.getTableNameAlias(r.tn);
-      r._rtn = this.getTableNameAlias(r.rtn)
+      r._rtn = this.getTableNameAlias(r.rtn);
     });
-
 
     const tableRoutes = tables.map(table => {
       return async () => {
         swaggerRefs[table.tn] = [];
-        this.log('xcTablesPopulate : Generating metadata for \'%s\' - %s', table.tn, table.type)
-
-        /* filter relation where this table is present */
-        const tableRelations = relations.filter(r => (
-          r.tn === table.tn || r.rtn === table.tn)
+        this.log(
+          "xcTablesPopulate : Generating metadata for '%s' - %s",
+          table.tn,
+          table.type
         );
 
+        /* filter relation where this table is present */
+        const tableRelations = relations.filter(
+          r => r.tn === table.tn || r.rtn === table.tn
+        );
 
-        const columns = args?.columns?.[table.tn] || (await this.sqlClient.columnList({tn: table.tn}))?.data?.list;
+        const columns =
+          args?.columns?.[table.tn] ||
+          (await this.sqlClient.columnList({ tn: table.tn }))?.data?.list;
 
-        const hasMany = table.type === 'view' ? [] : JSON.parse(JSON.stringify(tableRelations.filter(r => (r.rtn === table.tn))));
-        const belongsTo = table.type === 'view' ? [] : JSON.parse(JSON.stringify(tableRelations.filter(r => (r.tn === table.tn))));
+        const hasMany =
+          table.type === 'view'
+            ? []
+            : JSON.parse(
+                JSON.stringify(tableRelations.filter(r => r.rtn === table.tn))
+              );
+        const belongsTo =
+          table.type === 'view'
+            ? []
+            : JSON.parse(
+                JSON.stringify(tableRelations.filter(r => r.tn === table.tn))
+              );
 
-        const ctx = this.generateContextForTable(table.tn, columns, table.type === 'view' ? [] : relations, hasMany, belongsTo, table.type, args.tableNames?.find(t => t.tn === table.tn)?._tn);
+        const ctx = this.generateContextForTable(
+          table.tn,
+          columns,
+          table.type === 'view' ? [] : relations,
+          hasMany,
+          belongsTo,
+          table.type,
+          args.tableNames?.find(t => t.tn === table.tn)?._tn
+        );
 
         // ctx._tn = args.tableNames?.find(t => t.tn === table.tn)?._tn || ctx._tn;
 
         /* create models from table metadata */
-        const meta = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
+        const meta = ModelXcMetaFactory.create(this.connectionConfig, {
+          dir: '',
+          ctx,
+          filename: ''
+        }).getObject();
 
         /* create nc_models and its rows if it doesn't exists  */
-        if (!(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {title: table.tn}))) {
-          this.log('xcTablesPopulate : Inserting model metadata for \'%s\' - %s', table.tn, table.type)
-          await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
-            title: table.tn,
-            alias: meta._tn,
-            meta: JSON.stringify(meta),
-            type: table.type || 'table'
-          })
+        if (
+          !(await this.xcMeta.metaGet(
+            this.projectId,
+            this.dbAlias,
+            'nc_models',
+            { title: table.tn }
+          ))
+        ) {
+          this.log(
+            "xcTablesPopulate : Inserting model metadata for '%s' - %s",
+            table.tn,
+            table.type
+          );
+          await this.xcMeta.metaInsert(
+            this.projectId,
+            this.dbAlias,
+            'nc_models',
+            {
+              title: table.tn,
+              alias: meta._tn,
+              meta: JSON.stringify(meta),
+              type: table.type || 'table'
+            }
+          );
         }
 
-
         /* create routes for table */
-        const routes = new ExpressXcTsRoutes({dir: '', ctx, filename: ''}).getObjectWithoutFunctions();
-
-
-        this.log('xcTablesPopulate : Generating swagger apis for \'%s\' - %s', table.tn, table.type)
-        /* create swagger json for table */
-        swaggerRefs[table.tn].push(await new SwaggerXc({
+        const routes = new ExpressXcTsRoutes({
           dir: '',
-          ctx: {
-            ...ctx,
-            v: meta.v
-          }, filename: ''
-        }).getObject())
+          ctx,
+          filename: ''
+        }).getObjectWithoutFunctions();
+
+        this.log(
+          "xcTablesPopulate : Generating swagger apis for '%s' - %s",
+          table.tn,
+          table.type
+        );
+        /* create swagger json for table */
+        swaggerRefs[table.tn].push(
+          await new SwaggerXc({
+            dir: '',
+            ctx: {
+              ...ctx,
+              v: meta.v
+            },
+            filename: ''
+          }).getObject()
+        );
 
         await this.generateAndSaveAcl(table.tn, table.type);
 
         /* create nc_routes and its rows if it doesn't exists  */
-        if (!(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_routes', {'title': table.tn}))) {
+        if (
+          !(await this.xcMeta.metaGet(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            { title: table.tn }
+          ))
+        ) {
           const routesInsertion = routes.map((route, i) => {
             return async () => {
-              await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-                acl: JSON.stringify(route.acl),
-                handler: JSON.stringify(route.handler),
-                order: i,
-                path: route.path,
-                tn: table.tn,
-                title: table.tn,
-                type: route.type,
-              })
-            }
+              await this.xcMeta.metaInsert(
+                this.projectId,
+                this.dbAlias,
+                'nc_routes',
+                {
+                  acl: JSON.stringify(route.acl),
+                  handler: JSON.stringify(route.handler),
+                  order: i,
+                  path: route.path,
+                  tn: table.tn,
+                  title: table.tn,
+                  type: route.type
+                }
+              );
+            };
           });
 
           routesInsertion.push(async () => {
-            await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-              tn: table.tn,
-              title: table.tn,
-              handler_type: 2
-            })
-          })
+            await this.xcMeta.metaInsert(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                tn: table.tn,
+                title: table.tn,
+                handler_type: 2
+              }
+            );
+          });
 
-          this.log('xcTablesPopulate : Inserting routes and middleware metadata for \'%s\' - %s', table.tn, table.type)
-          await NcHelp.executeOperations(routesInsertion, this.connectionConfig.client);
-
+          this.log(
+            "xcTablesPopulate : Inserting routes and middleware metadata for '%s' - %s",
+            table.tn,
+            table.type
+          );
+          await NcHelp.executeOperations(
+            routesInsertion,
+            this.connectionConfig.client
+          );
         }
 
         this.metas[table.tn] = meta;
@@ -444,139 +596,208 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         this.apiCount += routes.length;
 
-        const router = this.routers[table.tn] = Router();
+        const router = (this.routers[table.tn] = Router());
         const rootPath = `/api/${ctx.routeVersionLetter}/${ctx._tn}`;
 
-
         /* create table controllers and map the routes */
-        this.controllers[table.tn] = new RestCtrl(this.app, this.models, table.tn, routes, rootPath, this.acls, null);
+        this.controllers[table.tn] = new RestCtrl(
+          this.app,
+          this.models,
+          table.tn,
+          routes,
+          rootPath,
+          this.acls,
+          null
+        );
         this.controllers[table.tn].mapRoutes(router, this.customRoutes);
         this.router.use(encodeURI(rootPath), router);
 
         /* handle relational routes  */
         relationRoutes.push(async () => {
           for (const hm of meta.hasMany) {
-
             const hmCtx = this.generateContextForHasMany(ctx, hm.tn);
-            const hmRoutes = new ExpressXcTsRoutesHm(this.generateRendererArgs(hmCtx)).getObjectWithoutFunctions();
+            const hmRoutes = new ExpressXcTsRoutesHm(
+              this.generateRendererArgs(hmCtx)
+            ).getObjectWithoutFunctions();
 
             /* create swagger json for hasmany  */
-            swaggerRefs[table.tn].push(await new SwaggerXcHm(this.generateRendererArgs(this.generateContextForHasMany(hmCtx, hm.tn))).getObject());
-
+            swaggerRefs[table.tn].push(
+              await new SwaggerXcHm(
+                this.generateRendererArgs(
+                  this.generateContextForHasMany(hmCtx, hm.tn)
+                )
+              ).getObject()
+            );
 
             const name = `${table.tn}Hm${hm.tn}`;
 
             /* handle has many relational routes  */
             const hmRoutesInsertion = hmRoutes.map((route, i) => {
               return async () => {
-                await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-                  title: name,
-                  tn: table.tn,
-                  order: i,
-                  path: route.path,
-                  type: route.type,
-                  handler: JSON.stringify(route.handler),
-                  acl: JSON.stringify(route.acl),
-                  relation_type: 'hasMany',
-                  tnc: hm.tn
-                })
-              }
+                await this.xcMeta.metaInsert(
+                  this.projectId,
+                  this.dbAlias,
+                  'nc_routes',
+                  {
+                    title: name,
+                    tn: table.tn,
+                    order: i,
+                    path: route.path,
+                    type: route.type,
+                    handler: JSON.stringify(route.handler),
+                    acl: JSON.stringify(route.acl),
+                    relation_type: 'hasMany',
+                    tnc: hm.tn
+                  }
+                );
+              };
             });
 
             this.apiCount += hmRoutes.length;
 
             hmRoutesInsertion.push(async () => {
-              await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-                tn: table.tn,
-                title: name,
-                handler_type: 2,
-                relation_type: 'hasMany',
-                tnc: hm.tn
-              })
+              await this.xcMeta.metaInsert(
+                this.projectId,
+                this.dbAlias,
+                'nc_routes',
+                {
+                  tn: table.tn,
+                  title: name,
+                  handler_type: 2,
+                  relation_type: 'hasMany',
+                  tnc: hm.tn
+                }
+              );
             });
 
-            await NcHelp.executeOperations(hmRoutesInsertion, this.connectionConfig.client);
+            await NcHelp.executeOperations(
+              hmRoutesInsertion,
+              this.connectionConfig.client
+            );
 
             if (!hm.enabled) {
               continue;
             }
             /* create and map has many routes */
-            this.controllers[name] = new RestCtrlHasMany(this.app, this.models, table.tn, hm.tn, hmRoutes, rootPath, this.acls);
+            this.controllers[name] = new RestCtrlHasMany(
+              this.app,
+              this.models,
+              table.tn,
+              hm.tn,
+              hmRoutes,
+              rootPath,
+              this.acls
+            );
             this.controllers[name].mapRoutes(router, this.customRoutes);
           }
 
           /* handle belongs tou routes and controllers */
           for (const bt of meta.belongsTo) {
-
-
             const btCtx = this.generateContextForBelongsTo(ctx, bt.rtn);
-            const btRoutes = new ExpressXcTsRoutesBt(this.generateRendererArgs(btCtx)).getObjectWithoutFunctions();
+            const btRoutes = new ExpressXcTsRoutesBt(
+              this.generateRendererArgs(btCtx)
+            ).getObjectWithoutFunctions();
 
             /* create swagger json for hasmany  */
-            swaggerRefs[table.tn].push(await new SwaggerXcBt(this.generateRendererArgs(this.generateContextForBelongsTo(btCtx, bt.rtn))).getObject());
-
+            swaggerRefs[table.tn].push(
+              await new SwaggerXcBt(
+                this.generateRendererArgs(
+                  this.generateContextForBelongsTo(btCtx, bt.rtn)
+                )
+              ).getObject()
+            );
 
             const name = `${table.tn}Bt${bt.rtn}`;
             this.apiCount += btRoutes.length;
 
             const btRoutesInsertion = btRoutes.map((route, i) => {
               return async () => {
-                await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-                  tn: table.tn,
-                  title: name,
-                  order: i,
-                  path: route.path,
-                  type: route.type,
-                  handler: JSON.stringify(route.handler),
-                  acl: JSON.stringify(route.acl),
-                  relation_type: 'belongsTo',
-                  tnp: bt.rtn
-                })
-              }
+                await this.xcMeta.metaInsert(
+                  this.projectId,
+                  this.dbAlias,
+                  'nc_routes',
+                  {
+                    tn: table.tn,
+                    title: name,
+                    order: i,
+                    path: route.path,
+                    type: route.type,
+                    handler: JSON.stringify(route.handler),
+                    acl: JSON.stringify(route.acl),
+                    relation_type: 'belongsTo',
+                    tnp: bt.rtn
+                  }
+                );
+              };
             });
 
             btRoutesInsertion.push(async () => {
-              await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-                tn: table.tn,
-                title: name,
-                handler_type: 2,
-                relation_type: 'belongsTo',
-                tnp: bt.rtn
-              })
+              await this.xcMeta.metaInsert(
+                this.projectId,
+                this.dbAlias,
+                'nc_routes',
+                {
+                  tn: table.tn,
+                  title: name,
+                  handler_type: 2,
+                  relation_type: 'belongsTo',
+                  tnp: bt.rtn
+                }
+              );
             });
 
-            await NcHelp.executeOperations(btRoutesInsertion, this.connectionConfig.client);
-
+            await NcHelp.executeOperations(
+              btRoutesInsertion,
+              this.connectionConfig.client
+            );
 
             if (!bt.enabled) {
               continue;
             }
 
             /* create and map belongs to routes */
-            this.controllers[name] = new RestCtrlBelongsTo(this.app, this.models, bt.rtn, bt.tn, btRoutes, rootPath, this.acls);
+            this.controllers[name] = new RestCtrlBelongsTo(
+              this.app,
+              this.models,
+              bt.rtn,
+              bt.tn,
+              btRoutes,
+              rootPath,
+              this.acls
+            );
             this.controllers[name].mapRoutes(router, this.customRoutes);
           }
         });
-      }
+      };
     });
 
     /* handle xc_tables update in parallel */
     await NcHelp.executeOperations(tableRoutes, this.connectionConfig.client);
-    await NcHelp.executeOperations(relationRoutes, this.connectionConfig.client);
-
+    await NcHelp.executeOperations(
+      relationRoutes,
+      this.connectionConfig.client
+    );
 
     const swaggerDoc = {
       tags: [],
       paths: {},
       definitions: {}
-    }
+    };
 
-    this.log('xcTablesPopulate : Merging and saving all the swagger objects')
+    this.log('xcTablesPopulate : Merging and saving all the swagger objects');
 
-    for (const [table, swagger] of [...Object.entries(swaggerRefs), [null, [this.procedureCtrl?.getSwaggerObj() || {
-      tags: [],
-      path: {}
-    }]]]) {
+    for (const [table, swagger] of [
+      ...Object.entries(swaggerRefs),
+      [
+        null,
+        [
+          this.procedureCtrl?.getSwaggerObj() || {
+            tags: [],
+            path: {}
+          }
+        ]
+      ]
+    ]) {
       if (table) {
         await this.mergeAndUpdateSwagger(table as string, swagger);
       }
@@ -591,17 +812,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     if (args.tableNames && args.tableNames.length) {
       this.swaggerUpdate({
         addApis: swaggerDoc
-      })
+      });
     } else {
       /* generate swagger docs */
       await this.generateSwaggerJson(swaggerDoc);
     }
 
-
     await this.getManyToManyRelations();
-
   }
-
 
   // NOTE: xc-meta
   public async xcTablesRowDelete(tn: string): Promise<void> {
@@ -612,105 +830,129 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   public async onTableCreate(tn: string, args?: any): Promise<void> {
-
     await super.onTableCreate(tn, args);
 
-    const columns = args.columns ? {
-      [tn]: args.columns?.map(({altered: _al, ...rest}) => rest)
-    } : {}
+    const columns = args.columns
+      ? {
+          [tn]: args.columns?.map(({ altered: _al, ...rest }) => rest)
+        }
+      : {};
 
-
-    await this.xcTablesPopulate({tableNames: [{tn, _tn: args._tn}], columns});
+    await this.xcTablesPopulate({
+      tableNames: [{ tn, _tn: args._tn }],
+      columns
+    });
   }
 
   public async onTableDelete(tn: string): Promise<void> {
     await super.onTableDelete(tn);
-    this.log('onTableDelete : \'%s\'', tn)
+    this.log("onTableDelete : '%s'", tn);
     try {
       const ctrlIndex = this.router.stack.findIndex(r => {
         return r.handle === this.routers[tn];
-      })
+      });
       if (ctrlIndex > -1) {
-        this.router.stack.splice(ctrlIndex, 1)
+        this.router.stack.splice(ctrlIndex, 1);
       }
       delete this.models[tn];
 
-      await this.xcTablesRowDelete(tn)
+      await this.xcTablesRowDelete(tn);
 
       delete this.routers[tn];
       this.swaggerUpdate({
         deleteTags: [tn]
-      })
+      });
     } catch (e) {
       console.log(e);
     }
   }
 
-
   public async onViewDelete(viewName: string): Promise<void> {
-    this.log('onViewDelete : \'%s\'', viewName)
+    this.log("onViewDelete : '%s'", viewName);
     try {
       const ctrlIndex = this.router.stack.findIndex(r => {
         return r.handle === this.routers[viewName];
-      })
+      });
       if (ctrlIndex > -1) {
-        this.router.stack.splice(ctrlIndex, 1)
+        this.router.stack.splice(ctrlIndex, 1);
       }
       delete this.models[viewName];
 
-      await this.xcTablesRowDelete(viewName)
-
+      await this.xcTablesRowDelete(viewName);
 
       delete this.routers[viewName];
 
       this.swaggerUpdate({
         deleteTags: [viewName]
-      })
+      });
     } catch (e) {
       console.log(e);
     }
   }
 
-
   public async onHandlerCodeUpdate(tn: string): Promise<void> {
-    this.log('onHandlerCodeUpdate : \'%s\'', tn)
-    const index = this.router.stack.findIndex(r => r.handle === this.routers[tn]);
+    this.log("onHandlerCodeUpdate : '%s'", tn);
+    const index = this.router.stack.findIndex(
+      r => r.handle === this.routers[tn]
+    );
     if (index > -1) {
       this.router.stack.splice(index, 1);
     }
     await this.xcTablesRead([tn]);
   }
 
-
-  public async onTableRename(oldTableName: string, newTableName: string): Promise<void> {
-    this.log('onTableRename : \'%s\' => \'%s\'', oldTableName, newTableName)
+  public async onTableRename(
+    oldTableName: string,
+    newTableName: string
+  ): Promise<void> {
+    this.log("onTableRename : '%s' => '%s'", oldTableName, newTableName);
     await super.onTableRename(oldTableName, newTableName);
     await this.xcTableRename(oldTableName, newTableName);
     // await this.onTableDelete(oldTableName);
     // await this.xcTablesPopulate({tableNames: [newTableName]});
   }
 
-
   // NOTE: xc-meta
-  public async xcTableRename(oldTablename: string, newTablename: string): Promise<any> {
-
-    this.log('xcTableRename : \'%s\' => \'%s\' ', oldTablename, newTablename)
+  public async xcTableRename(
+    oldTablename: string,
+    newTablename: string
+  ): Promise<any> {
+    this.log("xcTableRename : '%s' => '%s' ", oldTablename, newTablename);
 
     const tables = [];
     const newSwagger = [];
 
-
     /* Get all relations */
     const relations = await this.getRelationList();
-    const relatedTableList = this.getRelationTableNames(relations, newTablename);
+    const relatedTableList = this.getRelationTableNames(
+      relations,
+      newTablename
+    );
     /* filter relation where this table is present */
-    const tableRelations = this.filterRelationsForTable(relations, newTablename);
-    const hasMany = this.extractHasManyRelationsOfTable(tableRelations, newTablename);
-    const belongsTo = this.extractBelongsToRelationsOfTable(tableRelations, newTablename);
+    const tableRelations = this.filterRelationsForTable(
+      relations,
+      newTablename
+    );
+    const hasMany = this.extractHasManyRelationsOfTable(
+      tableRelations,
+      newTablename
+    );
+    const belongsTo = this.extractBelongsToRelationsOfTable(
+      tableRelations,
+      newTablename
+    );
     const columns = await this.getColumnList(newTablename);
-    const ctx = this.generateContextForTable(newTablename, columns, relations, hasMany, belongsTo);
+    const ctx = this.generateContextForTable(
+      newTablename,
+      columns,
+      relations,
+      hasMany,
+      belongsTo
+    );
 
-    newSwagger.push(await new SwaggerXc({dir: '', ctx, filename: ''}).getObject());
+    newSwagger.push(
+      await new SwaggerXc({ dir: '', ctx, filename: '' }).getObject()
+    );
     this.deleteRoutesForTables([oldTablename, ...relatedTableList]);
 
     // delete old model
@@ -722,27 +964,42 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       // const rootPath = `/api/${ctx.routeVersionLetter}/${ctx._tn}`
 
       /* create models from table */
-      meta = ModelXcMetaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getObject();
+      meta = ModelXcMetaFactory.create(
+        this.connectionConfig,
+        this.generateRendererArgs(ctx)
+      ).getObject();
 
       // update old model meta with new details
       // const existingModel = await this.sqlClient.knex('nc_models').where('title', oldTablename).first();
-      const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': oldTablename});
-
+      const existingModel = await this.xcMeta.metaGet(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        { title: oldTablename }
+      );
 
       if (existingModel) {
         // todo: persisting old table_alias and columnAlias
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(meta, {
-          columns: oldMeta.columns,
+          columns: oldMeta.columns
         });
-        this.log('Updating table name in \'nc_models\' metatable - \'%s\' => \'%s\'', oldTablename, newTablename)
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          title: newTablename,
-          meta: JSON.stringify(meta),
-          alias: meta._tn,
-        }, {'title': oldTablename})
-
-
+        this.log(
+          "Updating table name in 'nc_models' metatable - '%s' => '%s'",
+          oldTablename,
+          newTablename
+        );
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          {
+            title: newTablename,
+            meta: JSON.stringify(meta),
+            alias: meta._tn
+          },
+          { title: oldTablename }
+        );
       }
       this.metas[newTablename] = meta;
 
@@ -750,42 +1007,68 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     }
 
     // update tn in nc_acl
-    this.log('xcTableRename : Updating table name in \'nc_acl\' metatable - \'%s\' => \'%s\'', oldTablename, newTablename)
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
-      tn: newTablename
-    }, {
-      tn: oldTablename
-    });
-
+    this.log(
+      "xcTableRename : Updating table name in 'nc_acl' metatable - '%s' => '%s'",
+      oldTablename,
+      newTablename
+    );
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      {
+        tn: newTablename
+      },
+      {
+        tn: oldTablename
+      }
+    );
 
     /* create routes from table */
-    const routes = new ExpressXcTsRoutes({dir: '', ctx, filename: ''}).getObjectWithoutFunctions();
+    const routes = new ExpressXcTsRoutes({
+      dir: '',
+      ctx,
+      filename: ''
+    }).getObjectWithoutFunctions();
 
     const routesUpdate = routes.map((route, i) => {
       return async () => {
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-          path: route.path,
-          tn: newTablename,
-          title: newTablename
-        }, {
-          handler: JSON.stringify(route.handler),
-          tn: oldTablename,
-          title: oldTablename,
-          type: route.type,
-          order: i,
-        })
-      }
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_routes',
+          {
+            path: route.path,
+            tn: newTablename,
+            title: newTablename
+          },
+          {
+            handler: JSON.stringify(route.handler),
+            tn: oldTablename,
+            title: oldTablename,
+            type: route.type,
+            order: i
+          }
+        );
+      };
     });
 
-    this.log('xcTableRename : Updating table name and route path in \'nc_routes\' metatable - \'%s\' => \'%s\'', oldTablename, newTablename)
+    this.log(
+      "xcTableRename : Updating table name and route path in 'nc_routes' metatable - '%s' => '%s'",
+      oldTablename,
+      newTablename
+    );
     await NcHelp.executeOperations(routesUpdate, this.connectionConfig.client);
 
     /* handle relational routes  */
     routesUpdate.push(async () => {
       for (const hm of meta.hasMany) {
-
-        const rendererArgs = this.generateRendererArgs(this.generateContextForHasMany(ctx, hm.tn));
-        const hmRoutes = new ExpressXcTsRoutesHm(rendererArgs).getObjectWithoutFunctions();
+        const rendererArgs = this.generateRendererArgs(
+          this.generateContextForHasMany(ctx, hm.tn)
+        );
+        const hmRoutes = new ExpressXcTsRoutesHm(
+          rendererArgs
+        ).getObjectWithoutFunctions();
         newSwagger.push(new SwaggerXcHm(rendererArgs).getObject());
 
         const oldName = `${oldTablename}Hm${hm.tn}`;
@@ -794,50 +1077,71 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         /* handle has many relational routes  */
         const hmRoutesInsertion = hmRoutes.map((route, i) => {
           return async () => {
-
-            this.log('xcTableRename : Updating table name and route path in \'nc_routes\' metatable - \'%s\' => \'%s\' (HasMany relation)', oldTablename, newTablename)
-            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-              path: route.path,
-              tn: newTablename,
-              title: name,
-            }, {
-              title: oldName,
-              handler: JSON.stringify(route.handler),
-              tn: oldTablename,
-              type: route.type,
-              relation_type: 'hasMany',
-              order: i,
-              tnc: hm.tn,
-              handler_type: 1
-            });
-
-          }
+            this.log(
+              "xcTableRename : Updating table name and route path in 'nc_routes' metatable - '%s' => '%s' (HasMany relation)",
+              oldTablename,
+              newTablename
+            );
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                path: route.path,
+                tn: newTablename,
+                title: name
+              },
+              {
+                title: oldName,
+                handler: JSON.stringify(route.handler),
+                tn: oldTablename,
+                type: route.type,
+                relation_type: 'hasMany',
+                order: i,
+                tnc: hm.tn,
+                handler_type: 1
+              }
+            );
+          };
         });
-
 
         hmRoutesInsertion.push(async () => {
-          await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-            tn: newTablename,
-            title: name
-          }, {
-            tn: oldTablename,
-            title: oldName,
-            handler_type: 2
-          })
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            {
+              tn: newTablename,
+              title: name
+            },
+            {
+              tn: oldTablename,
+              title: oldName,
+              handler_type: 2
+            }
+          );
         });
 
-
-        await NcHelp.executeOperations(hmRoutesInsertion, this.connectionConfig.client);
-
+        await NcHelp.executeOperations(
+          hmRoutesInsertion,
+          this.connectionConfig.client
+        );
       }
 
       /* handle belongs to routes and controllers */
       for (const bt of meta.belongsTo) {
-        const rendererArgs1 = this.generateRendererArgs(this.generateContextForBelongsTo({
-          ...ctx,
-          tn: bt.tn
-        }, bt.rtn));
-        const btRoutes = new ExpressXcTsRoutesBt(rendererArgs1).getObjectWithoutFunctions();
+        const rendererArgs1 = this.generateRendererArgs(
+          this.generateContextForBelongsTo(
+            {
+              ...ctx,
+              tn: bt.tn
+            },
+            bt.rtn
+          )
+        );
+        const btRoutes = new ExpressXcTsRoutesBt(
+          rendererArgs1
+        ).getObjectWithoutFunctions();
         newSwagger.push(new SwaggerXcBt(rendererArgs1).getObject());
 
         const oldName = `${oldTablename}Bt${bt.rtn}`;
@@ -845,40 +1149,58 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         const btRoutesInsertion = btRoutes.map((route, i) => {
           return async () => {
+            this.log(
+              "xcTableRename : Updating table name and route path in 'nc_routes' metatable - '%s' => '%s' (BelongsTo relation)",
+              oldTablename,
+              newTablename
+            );
 
-            this.log('xcTableRename : Updating table name and route path in \'nc_routes\' metatable - \'%s\' => \'%s\' (BelongsTo relation)', oldTablename, newTablename)
-
-            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-              path: route.path,
-              tn: newTablename,
-              title: name,
-            }, {
-              tn: oldTablename,
-              title: oldName,
-              order: i,
-              type: route.type,
-              handler: JSON.stringify(route.handler),
-              relation_type: 'belongsTo',
-              tnp: bt.rtn,
-              handler_type: 1
-            })
-          }
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                path: route.path,
+                tn: newTablename,
+                title: name
+              },
+              {
+                tn: oldTablename,
+                title: oldName,
+                order: i,
+                type: route.type,
+                handler: JSON.stringify(route.handler),
+                relation_type: 'belongsTo',
+                tnp: bt.rtn,
+                handler_type: 1
+              }
+            );
+          };
         });
 
         btRoutesInsertion.push(async () => {
-          await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-            tn: newTablename,
-            title: name
-          }, {
-            tn: oldTablename,
-            title: oldName,
-            handler_type: 2,
-            relation_type: 'belongsTo',
-            tnp: bt.rtn,
-          })
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            {
+              tn: newTablename,
+              title: name
+            },
+            {
+              tn: oldTablename,
+              title: oldName,
+              handler_type: 2,
+              relation_type: 'belongsTo',
+              tnp: bt.rtn
+            }
+          );
         });
 
-        await NcHelp.executeOperations(btRoutesInsertion, this.connectionConfig.client);
+        await NcHelp.executeOperations(
+          btRoutesInsertion,
+          this.connectionConfig.client
+        );
       }
     });
 
@@ -890,36 +1212,64 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     // reload routes and update meta  for relation tables
     for (const relationTable of relatedTableList) {
       const newRelatedTableSwagger = [];
-      const rHasMany = this.extractHasManyRelationsOfTable(relations, relationTable);
-      const rBelongsTo = this.extractBelongsToRelationsOfTable(relations, relationTable);
-      const rCtx = this.generateContextForTable(relationTable, [], relations, rHasMany, rBelongsTo);
-      newRelatedTableSwagger.push(new SwaggerXc({ctx: rCtx}).getObject());
+      const rHasMany = this.extractHasManyRelationsOfTable(
+        relations,
+        relationTable
+      );
+      const rBelongsTo = this.extractBelongsToRelationsOfTable(
+        relations,
+        relationTable
+      );
+      const rCtx = this.generateContextForTable(
+        relationTable,
+        [],
+        relations,
+        rHasMany,
+        rBelongsTo
+      );
+      newRelatedTableSwagger.push(new SwaggerXc({ ctx: rCtx }).getObject());
       if (oldTablename !== newTablename) {
         /* create models from table */
-        const rMeta = ModelXcMetaFactory.create(this.connectionConfig, this.generateRendererArgs(rCtx)).getObject();
+        const rMeta = ModelXcMetaFactory.create(
+          this.connectionConfig,
+          this.generateRendererArgs(rCtx)
+        ).getObject();
 
         // update existing model meta with new details(relation tables)
-        const rExistingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': relationTable});
+        const rExistingModel = await this.xcMeta.metaGet(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          { title: relationTable }
+        );
 
         if (rExistingModel) {
-
-
-          this.log('xcTableRename : Updating meta for relation table \'%s\' on behalf of table rename  - \'%s\' => \'%s\' (BelongsTo relation)', relationTable, oldTablename, newTablename)
-
+          this.log(
+            "xcTableRename : Updating meta for relation table '%s' on behalf of table rename  - '%s' => '%s' (BelongsTo relation)",
+            relationTable,
+            oldTablename,
+            newTablename
+          );
 
           // todo: persisting old table_alias and columnAlias
           const oldMeta = JSON.parse(rExistingModel.meta);
           Object.assign(oldMeta, {
             hasMany: rMeta.hasMany,
-            belongsTo: rMeta.belongsTo,
+            belongsTo: rMeta.belongsTo
           });
           // await this.sqlClient.knex('nc_models').update({
           //   meta: JSON.stringify(oldMeta)
           // }).where('title', relationTable)
 
-          await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-            meta: JSON.stringify(oldMeta)
-          }, {'title': relationTable})
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_models',
+            {
+              meta: JSON.stringify(oldMeta)
+            },
+            { title: relationTable }
+          );
 
           this.metas[relationTable] = oldMeta;
         }
@@ -928,83 +1278,141 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       // update has many to routes
       for (const hmRelation of rHasMany) {
-        newRelatedTableSwagger.push(new SwaggerXcHm({ctx: this.generateContextForHasMany(rCtx, hmRelation.tn)}).getObject());
+        newRelatedTableSwagger.push(
+          new SwaggerXcHm({
+            ctx: this.generateContextForHasMany(rCtx, hmRelation.tn)
+          }).getObject()
+        );
 
         if (hmRelation.tn === newTablename) {
-
-          const oldHmRoutes: any[] = new ExpressXcTsRoutesHm(this.generateRendererArgs(this.generateContextForHasMany(rCtx, oldTablename))).getObjectWithoutFunctions();
-          const hmRoutes: any[] = new ExpressXcTsRoutesHm(this.generateRendererArgs(this.generateContextForHasMany(rCtx, newTablename))).getObjectWithoutFunctions();
+          const oldHmRoutes: any[] = new ExpressXcTsRoutesHm(
+            this.generateRendererArgs(
+              this.generateContextForHasMany(rCtx, oldTablename)
+            )
+          ).getObjectWithoutFunctions();
+          const hmRoutes: any[] = new ExpressXcTsRoutesHm(
+            this.generateRendererArgs(
+              this.generateContextForHasMany(rCtx, newTablename)
+            )
+          ).getObjectWithoutFunctions();
 
           for (const [i, newHmRoute] of Object.entries(hmRoutes)) {
             const oldHmRoute: any = oldHmRoutes[i];
-            this.log(`xcTableRename : Updating routes for ${relationTable}Hm${newTablename} on behalf of '%table rename'  - '%s' => '%s' (HasMany relation)`, relationTable, oldTablename, newTablename)
+            this.log(
+              `xcTableRename : Updating routes for ${relationTable}Hm${newTablename} on behalf of '%table rename'  - '%s' => '%s' (HasMany relation)`,
+              relationTable,
+              oldTablename,
+              newTablename
+            );
 
-
-            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-              title: `${relationTable}Hm${newTablename}`,
-              path: newHmRoute.path,
-              tnc: newTablename
-            }, {
-              path: oldHmRoute.path,
-              type: oldHmRoute.type, tnc: oldTablename
-            })
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                title: `${relationTable}Hm${newTablename}`,
+                path: newHmRoute.path,
+                tnc: newTablename
+              },
+              {
+                path: oldHmRoute.path,
+                type: oldHmRoute.type,
+                tnc: oldTablename
+              }
+            );
           }
 
-          await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-            title: `${relationTable}Hm${newTablename}`,
-          }, {
-            title: `${relationTable}Hm${oldTablename}`,
-          })
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            {
+              title: `${relationTable}Hm${newTablename}`
+            },
+            {
+              title: `${relationTable}Hm${oldTablename}`
+            }
+          );
         }
       }
 
       // update belongs to routes
       for (const btRelation of rBelongsTo) {
-        newRelatedTableSwagger.push(new SwaggerXcBt({ctx: this.generateContextForBelongsTo(rCtx, btRelation.rtn)}).getObject());
+        newRelatedTableSwagger.push(
+          new SwaggerXcBt({
+            ctx: this.generateContextForBelongsTo(rCtx, btRelation.rtn)
+          }).getObject()
+        );
         if (btRelation.rtn === newTablename) {
-          const newBtRoutes: any[] = new ExpressXcTsRoutesBt(this.generateRendererArgs(this.generateContextForBelongsTo(rCtx, newTablename))).getObjectWithoutFunctions();
-          const oldBtRoutes: any[] = new ExpressXcTsRoutesBt(this.generateRendererArgs(this.generateContextForBelongsTo(rCtx, oldTablename))).getObjectWithoutFunctions();
+          const newBtRoutes: any[] = new ExpressXcTsRoutesBt(
+            this.generateRendererArgs(
+              this.generateContextForBelongsTo(rCtx, newTablename)
+            )
+          ).getObjectWithoutFunctions();
+          const oldBtRoutes: any[] = new ExpressXcTsRoutesBt(
+            this.generateRendererArgs(
+              this.generateContextForBelongsTo(rCtx, oldTablename)
+            )
+          ).getObjectWithoutFunctions();
 
           for (const [i, newBtRoute] of Object.entries(newBtRoutes)) {
             const oldBtRoute: any = oldBtRoutes[i];
-            this.log(`xcTableRename : Updating routes for ${relationTable}Bt${oldTablename} on behalf of '%table rename'  - '%s' => '%s' (BelongsTo relation)`, relationTable, oldTablename, newTablename)
-            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-              title: `${relationTable}Bt${newTablename}`,
-              path: newBtRoute.path,
-              tnp: newTablename
-            }, {
-              title: `${relationTable}Bt${oldTablename}`,
-              type: oldBtRoute.type,
-              tnp: oldTablename
-            })
+            this.log(
+              `xcTableRename : Updating routes for ${relationTable}Bt${oldTablename} on behalf of '%table rename'  - '%s' => '%s' (BelongsTo relation)`,
+              relationTable,
+              oldTablename,
+              newTablename
+            );
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                title: `${relationTable}Bt${newTablename}`,
+                path: newBtRoute.path,
+                tnp: newTablename
+              },
+              {
+                title: `${relationTable}Bt${oldTablename}`,
+                type: oldBtRoute.type,
+                tnp: oldTablename
+              }
+            );
           }
 
-          await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-            title: `${relationTable}Bt${newTablename}`,
-          }, {
-            title: `${relationTable}Bt${oldTablename}`,
-          })
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            {
+              title: `${relationTable}Bt${newTablename}`
+            },
+            {
+              title: `${relationTable}Bt${oldTablename}`
+            }
+          );
         }
       }
 
       /* Reload relation tables : end */
-      await this.mergeAndUpdateSwagger(relationTable as string, newRelatedTableSwagger);
-
+      await this.mergeAndUpdateSwagger(
+        relationTable as string,
+        newRelatedTableSwagger
+      );
     }
 
     // load routes and models from db
-    await this.xcTablesRead([...relatedTableList, newTablename])
+    await this.xcTablesRead([...relatedTableList, newTablename]);
     await this.onSwaggerDocUpdate(newTablename);
-
   }
 
   // NOTE: xc-meta
   public async onRelationCreate(tnp: string, tnc: string, args): Promise<void> {
-    await super.onRelationCreate(tnp, tnc, args)
+    await super.onRelationCreate(tnp, tnc, args);
     // const newRelatedTableSwagger = [];
-    this.log('onRelationCreate : \'%s\' ==> \'%s\'', tnp, tnc)
+    this.log("onRelationCreate : '%s' ==> '%s'", tnp, tnc);
 
-    this.deleteRoutesForTables([tnp, tnc])
+    this.deleteRoutesForTables([tnp, tnc]);
     const relations = await this.getXcRelationList();
     {
       const swaggerArr = [];
@@ -1016,58 +1424,90 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       hasMany.forEach(r => {
         r._rtn = this.getTableNameAlias(r.rtn);
         r._tn = this.getTableNameAlias(r.tn);
-      })
+      });
 
-      const ctx = this.generateContextForTable(tnp, columns, relations, hasMany, belongsTo);
-      const meta = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
-
+      const ctx = this.generateContextForTable(
+        tnp,
+        columns,
+        relations,
+        hasMany,
+        belongsTo
+      );
+      const meta = ModelXcMetaFactory.create(this.connectionConfig, {
+        dir: '',
+        ctx,
+        filename: ''
+      }).getObject();
 
       // update old model meta with new details
-      const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnp});
+      const existingModel = await this.xcMeta.metaGet(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        { title: tnp }
+      );
       let queryParams;
       try {
         queryParams = JSON.parse(existingModel.query_params);
-      } catch (e) { /* */
+      } catch (e) {
+        /* */
       }
-
 
       // swaggerArr.push(JSON.parse(existingModel.schema));
       if (existingModel) {
-        this.log(`onRelationCreate : Updating model metadata for parent table '%s'`, tnp);
+        this.log(
+          `onRelationCreate : Updating model metadata for parent table '%s'`,
+          tnp
+        );
         // todo: persisting old table_alias and columnAlias
         // todo: get enable state of other relations
         const oldMeta = JSON.parse(existingModel.meta);
         meta.hasMany.forEach(hm => {
           hm.enabled = true;
-        })
-        Object.assign(oldMeta, {
-          hasMany: meta.hasMany,
         });
-
+        Object.assign(oldMeta, {
+          hasMany: meta.hasMany
+        });
 
         /* Add new has many relation to virtual columns */
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
           hm: meta.hasMany.find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
-        })
+          _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(
+            tnc
+          )}`
+        });
 
-        swaggerArr.push(new SwaggerXc({ctx: {...ctx, v: oldMeta.v}}).getObject());
-
+        swaggerArr.push(
+          new SwaggerXc({ ctx: { ...ctx, v: oldMeta.v } }).getObject()
+        );
 
         if (queryParams?.showFields) {
-          queryParams.showFields[`${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`] = true;
+          queryParams.showFields[
+            `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
+          ] = true;
         }
 
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          meta: JSON.stringify(oldMeta),
-          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
-        }, {'title': tnp})
-
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          {
+            meta: JSON.stringify(oldMeta),
+            ...(queryParams
+              ? { query_params: JSON.stringify(queryParams) }
+              : {})
+          },
+          { title: tnp }
+        );
       }
 
-      const rendererArgs = this.generateRendererArgs(this.generateContextForHasMany(ctx, tnc));
-      const hmRoutes: any[] = new ExpressXcTsRoutesHm(rendererArgs).getObjectWithoutFunctions();
+      const rendererArgs = this.generateRendererArgs(
+        this.generateContextForHasMany(ctx, tnc)
+      );
+      const hmRoutes: any[] = new ExpressXcTsRoutesHm(
+        rendererArgs
+      ).getObjectWithoutFunctions();
       swaggerArr.push(new SwaggerXcHm(rendererArgs).getObject());
 
       const name = `${tnp}Hm${tnc}`;
@@ -1075,154 +1515,230 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       /* handle has many relational routes  */
       const hmRoutesInsertion = hmRoutes.map((route, i) => {
         return async () => {
-          await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-            title: name,
-            tn: tnp,
-            order: i,
-            path: route.path,
-            type: route.type,
-            handler: JSON.stringify(route.handler),
-            acl: JSON.stringify(route.acl),
-            relation_type: 'hasMany',
-            tnc: tnc
-          })
-        }
+          await this.xcMeta.metaInsert(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            {
+              title: name,
+              tn: tnp,
+              order: i,
+              path: route.path,
+              type: route.type,
+              handler: JSON.stringify(route.handler),
+              acl: JSON.stringify(route.acl),
+              relation_type: 'hasMany',
+              tnc: tnc
+            }
+          );
+        };
       });
 
       hmRoutesInsertion.push(async () => {
-        await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-          tn: tnp,
-          title: name,
-          handler_type: 2,
-          relation_type: 'hasMany',
-          tnc: tnc
-        })
+        await this.xcMeta.metaInsert(
+          this.projectId,
+          this.dbAlias,
+          'nc_routes',
+          {
+            tn: tnp,
+            title: name,
+            handler_type: 2,
+            relation_type: 'hasMany',
+            tnc: tnc
+          }
+        );
       });
 
-      this.log(`onRelationCreate : Creating and inserting routes metadata of  %s relation`, name);
-      await NcHelp.executeOperations(hmRoutesInsertion, this.connectionConfig.client);
+      this.log(
+        `onRelationCreate : Creating and inserting routes metadata of  %s relation`,
+        name
+      );
+      await NcHelp.executeOperations(
+        hmRoutesInsertion,
+        this.connectionConfig.client
+      );
       await this.mergeAndUpdateSwagger(tnp, swaggerArr);
-
     }
     {
       const swaggerArr = [];
       const columns = this.metas[tnc]?.columns;
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnc);
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnc);
-      const ctx = this.generateContextForTable(tnc, columns, relations, hasMany, belongsTo);
-      const meta = ModelXcMetaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getObject();
-
+      const ctx = this.generateContextForTable(
+        tnc,
+        columns,
+        relations,
+        hasMany,
+        belongsTo
+      );
+      const meta = ModelXcMetaFactory.create(
+        this.connectionConfig,
+        this.generateRendererArgs(ctx)
+      ).getObject();
 
       // set table name alias
       belongsTo.forEach(r => {
         r._rtn = this.getTableNameAlias(r.rtn);
         r._tn = this.getTableNameAlias(r.tn);
-      })
-
+      });
 
       // update old model meta with new details
-      const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnc});
+      const existingModel = await this.xcMeta.metaGet(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        { title: tnc }
+      );
 
       let queryParams;
       try {
         queryParams = JSON.parse(existingModel.query_params);
-      } catch (e) { /* */
+      } catch (e) {
+        /* */
       }
-
 
       // swaggerArr.push(JSON.parse(existingModel.schema))
       if (existingModel) {
         meta.belongsTo.forEach(hm => {
           hm.enabled = true;
-        })
-        this.log(`onRelationCreate : Updating model metadata for child table '%s'`, tnc);
+        });
+        this.log(
+          `onRelationCreate : Updating model metadata for child table '%s'`,
+          tnc
+        );
         // todo: persisting old table_alias and columnAlias
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
-          belongsTo: meta.belongsTo,
+          belongsTo: meta.belongsTo
         });
 
         /* Add new belongs to relation to virtual columns */
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
           bt: meta.belongsTo.find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
-        })
+          _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(
+            tnc
+          )}`
+        });
 
-        swaggerArr.push(new SwaggerXc({ctx: {...ctx, v: oldMeta.v}}).getObject());
-
+        swaggerArr.push(
+          new SwaggerXc({ ctx: { ...ctx, v: oldMeta.v } }).getObject()
+        );
 
         if (queryParams?.showFields) {
-          queryParams.showFields[`${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`] = true;
+          queryParams.showFields[
+            `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
+          ] = true;
         }
 
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          meta: JSON.stringify(oldMeta),
-          ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
-        }, {'title': tnc})
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          {
+            meta: JSON.stringify(oldMeta),
+            ...(queryParams
+              ? { query_params: JSON.stringify(queryParams) }
+              : {})
+          },
+          { title: tnc }
+        );
       }
 
-
-      const rendererArgs = this.generateRendererArgs(this.generateContextForBelongsTo(ctx, tnp));
-      const btRoutes = new ExpressXcTsRoutesBt(rendererArgs).getObjectWithoutFunctions();
+      const rendererArgs = this.generateRendererArgs(
+        this.generateContextForBelongsTo(ctx, tnp)
+      );
+      const btRoutes = new ExpressXcTsRoutesBt(
+        rendererArgs
+      ).getObjectWithoutFunctions();
       swaggerArr.push(new SwaggerXcBt(rendererArgs).getObject());
 
       const name = `${tnc}Bt${tnp}`;
 
       const btRoutesInsertion = btRoutes.map((route, i) => {
         return async () => {
-          await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-            tn: tnc,
-            title: name,
-            order: i,
-            path: route.path,
-            type: route.type,
-            handler: JSON.stringify(route.handler),
-            acl: JSON.stringify(route.acl),
-            relation_type: 'belongsTo',
-            tnp: tnp
-          })
-        }
+          await this.xcMeta.metaInsert(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            {
+              tn: tnc,
+              title: name,
+              order: i,
+              path: route.path,
+              type: route.type,
+              handler: JSON.stringify(route.handler),
+              acl: JSON.stringify(route.acl),
+              relation_type: 'belongsTo',
+              tnp: tnp
+            }
+          );
+        };
       });
       btRoutesInsertion.push(async () => {
-        await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-          tn: tnc,
-          title: name,
-          handler_type: 2,
-          relation_type: 'belongsTo',
-          tnp: tnp
-        })
+        await this.xcMeta.metaInsert(
+          this.projectId,
+          this.dbAlias,
+          'nc_routes',
+          {
+            tn: tnc,
+            title: name,
+            handler_type: 2,
+            relation_type: 'belongsTo',
+            tnp: tnp
+          }
+        );
       });
 
-      this.log(`onRelationCreate : Creating and inserting routes metadata of  %s relation`, name);
-      await NcHelp.executeOperations(btRoutesInsertion, this.connectionConfig.client);
+      this.log(
+        `onRelationCreate : Creating and inserting routes metadata of  %s relation`,
+        name
+      );
+      await NcHelp.executeOperations(
+        btRoutesInsertion,
+        this.connectionConfig.client
+      );
 
       await this.mergeAndUpdateSwagger(tnc, swaggerArr);
-
     }
 
     await this.xcTablesRead([tnp, tnc]);
     await this.onSwaggerDocUpdate(tnp);
-
   }
 
-  public async onRelationDelete(tnp: string, tnc: string, args: any): Promise<void> {
+  public async onRelationDelete(
+    tnp: string,
+    tnc: string,
+    args: any
+  ): Promise<void> {
     await super.onRelationDelete(tnp, tnc, args);
 
-    this.log('Within relation delete event - \'%s\' ==> \'%s\'', tnp, tnc)
-    this.deleteRoutesForTables([tnp, tnc])
+    this.log("Within relation delete event - '%s' ==> '%s'", tnp, tnc);
+    this.deleteRoutesForTables([tnp, tnc]);
 
     const relations = await this.getXcRelationList();
 
     {
       const hasMany = this.extractHasManyRelationsOfTable(relations, tnp);
       const ctx = this.generateContextForTable(tnp, [], relations, hasMany, []);
-      const meta = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
+      const meta = ModelXcMetaFactory.create(this.connectionConfig, {
+        dir: '',
+        ctx,
+        filename: ''
+      }).getObject();
 
       // update old model meta with new details
-      const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnp});
+      const existingModel = await this.xcMeta.metaGet(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        { title: tnp }
+      );
       const tagName = `${tnp}HasMany${tnc}`;
-      const swaggerObj = this.deleteTagFromSwaggerObj(existingModel.schema, tagName);
+      const swaggerObj = this.deleteTagFromSwaggerObj(
+        existingModel.schema,
+        tagName
+      );
 
       if (existingModel) {
         this.log(`Updating model metadata for parent table '%s'`, tnp);
@@ -1231,35 +1747,64 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
           hasMany: meta.hasMany,
-          v: oldMeta.v.filter(({hm, lk}) => (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
-            !(lk && lk.type === 'hm' && lk.rtn === tnp && lk.tn === tnc))
+          v: oldMeta.v.filter(
+            ({ hm, lk }) =>
+              (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
+              !(lk && lk.type === 'hm' && lk.rtn === tnp && lk.tn === tnc)
+          )
         });
 
         // todo: delete from query_params
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          title: tnp,
-          meta: JSON.stringify(oldMeta),
-          schema: JSON.stringify(swaggerObj)
-        }, {'title': tnp})
-
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          {
+            title: tnp,
+            meta: JSON.stringify(oldMeta),
+            schema: JSON.stringify(swaggerObj)
+          },
+          { title: tnp }
+        );
       }
 
       const name = `${tnp}Hm${tnc}`;
 
-
-      this.log(`Deleting routes metadata of  %s relation`, name); /* handle has many relational routes  */
-      await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_routes', {'title': name});
+      this.log(
+        `Deleting routes metadata of  %s relation`,
+        name
+      ); /* handle has many relational routes  */
+      await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_routes', {
+        title: name
+      });
     }
 
     {
       const belongsTo = this.extractBelongsToRelationsOfTable(relations, tnc);
-      const ctx = this.generateContextForTable(tnc, [], relations, [], belongsTo);
-      const meta = ModelXcMetaFactory.create(this.connectionConfig, this.generateRendererArgs(ctx)).getObject();
+      const ctx = this.generateContextForTable(
+        tnc,
+        [],
+        relations,
+        [],
+        belongsTo
+      );
+      const meta = ModelXcMetaFactory.create(
+        this.connectionConfig,
+        this.generateRendererArgs(ctx)
+      ).getObject();
 
       // update old model meta with new details
-      const existingModel = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {'title': tnc});
+      const existingModel = await this.xcMeta.metaGet(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        { title: tnc }
+      );
       const tagName = `${tnc}BelongsTo${tnp}`;
-      const swaggerObj = this.deleteTagFromSwaggerObj(existingModel.schema, tagName);
+      const swaggerObj = this.deleteTagFromSwaggerObj(
+        existingModel.schema,
+        tagName
+      );
 
       if (existingModel) {
         this.log(`Updating model metadata for child table '%s'`, tnc);
@@ -1268,25 +1813,34 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         Object.assign(oldMeta, {
           belongsTo: meta.belongsTo,
-          v: oldMeta.v.filter(({bt, lk}) => (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
-            !(lk && lk.type === 'bt' && lk.rtn === tnp && lk.tn === tnc))
+          v: oldMeta.v.filter(
+            ({ bt, lk }) =>
+              (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
+              !(lk && lk.type === 'bt' && lk.rtn === tnp && lk.tn === tnc)
+          )
         });
         // todo: delete from query_params
-        await this.xcMeta.metaUpdate(this.projectId,
+        await this.xcMeta.metaUpdate(
+          this.projectId,
           this.dbAlias,
-          'nc_models', {
+          'nc_models',
+          {
             title: tnc,
             meta: JSON.stringify(oldMeta),
             schema: JSON.stringify(swaggerObj)
-          }, {'title': tnc})
+          },
+          { title: tnc }
+        );
       }
       const name = `${tnc}Bt${tnp}`;
 
       this.log(`Deleting routes metadata of  %s relation`, name);
-      await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_routes', {'title': name});
+      await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_routes', {
+        title: name
+      });
     }
 
-    await this.xcTablesRead([tnp, tnc])
+    await this.xcTablesRead([tnp, tnc]);
     await this.onSwaggerDocUpdate(tnp);
   }
 
@@ -1296,39 +1850,44 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     await this.xcTablesRead([tn]);
   }
 
-
   // NOTE: xc-meta
   public async onMiddlewareCodeUpdate(tn: string): Promise<void> {
     this.log(`onMiddlewareCodeUpdate : %s`, tn);
-    const routes = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_routes', {
-      condition: {
-        tn: tn,
-        handler_type: 2
+    const routes = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_routes',
+      {
+        condition: {
+          tn: tn,
+          handler_type: 2
+        }
       }
-    });
+    );
 
     const router = this.routers[tn];
-    router.stack.splice(0, router.stack.length)
+    router.stack.splice(0, router.stack.length);
     for (const route of routes) {
       let middlewareBody = null;
       if (route.functions) {
         try {
           middlewareBody = JSON.parse(route.functions)[0];
         } catch (e) {
-          console.log(e.message)
+          console.log(e.message);
         }
       }
 
-      this.log(`onMiddlewareCodeUpdate : Reloading routes with new middleware body for %s table`, tn);
+      this.log(
+        `onMiddlewareCodeUpdate : Reloading routes with new middleware body for %s table`,
+        tn
+      );
       this.controllers[route.title]
         .updateMiddleware(middlewareBody)
         .remapRouters(router);
     }
   }
 
-
   public async onToggleModels(enabledModels: string[]): Promise<void> {
-
     this.log(`onToggleModels : %o`, enabledModels);
     for (const handler of Object.values(this.routers)) {
       const index = this.router.stack.findIndex(r => r.handle === handler);
@@ -1340,15 +1899,20 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   public async onToggleModelRelation(relationInModels: any): Promise<void> {
-    this.log(`onToggleModelRelation :`)
+    this.log(`onToggleModelRelation :`);
     // filter out model names which toggled
-    const modelNames: string[] = [...new Set(relationInModels.map(rel => {
-      return rel.relationType === 'hm' ? rel.rtn : rel.tn
-    }))] as string[];
+    const modelNames: string[] = [
+      ...new Set(
+        relationInModels.map(rel => {
+          return rel.relationType === 'hm' ? rel.rtn : rel.tn;
+        })
+      )
+    ] as string[];
 
     for (const modelName of modelNames) {
-
-      const index = this.router.stack.findIndex(r => r.handle === this.routers[modelName]);
+      const index = this.router.stack.findIndex(
+        r => r.handle === this.routers[modelName]
+      );
       if (index > -1) {
         this.router.stack.splice(index, 1);
       }
@@ -1357,32 +1921,42 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   public async onViewCreate(viewName: string, args?: any): Promise<void> {
-    this.log(`onViewCreate : '%s'`, viewName)
-    await this.xcTablesPopulate({tableNames: [{tn: viewName, _tn: args._tn}], type: 'view'});
+    this.log(`onViewCreate : '%s'`, viewName);
+    await this.xcTablesPopulate({
+      tableNames: [{ tn: viewName, _tn: args._tn }],
+      type: 'view'
+    });
   }
-
 
   public async onFunctionCreate(functionName: string): Promise<void> {
     this.log(`onFunctionCreate : '%s'`, functionName);
     const functions = (await this.sqlClient.functionList())?.data?.list;
-    this.routers.___procedure.stack.splice(0, this.routers.___procedure.stack.length);
+    this.routers.___procedure.stack.splice(
+      0,
+      this.routers.___procedure.stack.length
+    );
     // do insertion parallelly
-    const functionObj = functions.find(f => f.function_name === functionName)
+    const functionObj = functions.find(f => f.function_name === functionName);
     if (functionObj) {
-      this.log(`onFunctionCreate : Generating and inserting '%s' function meta and acl`, functionName);
+      this.log(
+        `onFunctionCreate : Generating and inserting '%s' function meta and acl`,
+        functionName
+      );
       await this.generateAndSaveAcl(functionObj.function_name, 'function');
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
         title: functionObj.function_name,
-        meta: JSON.stringify({...functionObj, type: 'function'}),
+        meta: JSON.stringify({ ...functionObj, type: 'function' }),
         type: 'function'
-      })
+      });
     }
     this.generateAndSaveAcl(functionName, 'function');
 
     this.log(`onFunctionCreate : Update function and procedure routes`);
     this.procedureCtrl.functionsSet(functions);
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({addApis: {paths: this.procedureCtrl.getSwaggerObj().paths}})
+    this.swaggerUpdate({
+      addApis: { paths: this.procedureCtrl.getSwaggerObj().paths }
+    });
   }
 
   // NOTE: xc-meta
@@ -1394,34 +1968,50 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       type: 'function'
     });
     this.log(`onFunctionDelete : Update function and procedure routes`);
-    this.procedureCtrl.functionDelete(functionName)
-    this.routers.___procedure.stack.splice(0, this.routers.___procedure.stack.length);
+    this.procedureCtrl.functionDelete(functionName);
+    this.routers.___procedure.stack.splice(
+      0,
+      this.routers.___procedure.stack.length
+    );
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({addApis: this.procedureCtrl.getSwaggerObj(), deleteTags: ['Procedures', 'Functions']})
+    this.swaggerUpdate({
+      addApis: this.procedureCtrl.getSwaggerObj(),
+      deleteTags: ['Procedures', 'Functions']
+    });
   }
 
   // NOTE: xc-meta
   public async onProcedureCreate(procedureName: string): Promise<void> {
     this.log(`onProcedureCreate : '%s'`, procedureName);
     const procedures = (await this.sqlClient.procedureList())?.data?.list;
-    this.routers.___procedure.stack.splice(0, this.routers.___procedure.stack.length);
+    this.routers.___procedure.stack.splice(
+      0,
+      this.routers.___procedure.stack.length
+    );
     // do insertion parallelly
-    const procedureObj = procedures.find(f => f.procedure_name === procedureName)
+    const procedureObj = procedures.find(
+      f => f.procedure_name === procedureName
+    );
     if (procedureObj) {
-      this.log(`onProcedureCreate : Generating and inserting '%s' procedure meta and acl`, procedureName);
+      this.log(
+        `onProcedureCreate : Generating and inserting '%s' procedure meta and acl`,
+        procedureName
+      );
       await this.generateAndSaveAcl(procedureObj.procedure_name, 'procedure');
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
         title: procedureObj.procedure_name,
-        meta: JSON.stringify({...procedureObj, type: 'procedure'}),
+        meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
         type: 'procedure'
-      })
+      });
     }
 
     this.generateAndSaveAcl(procedureName, 'procedure');
     this.log(`onProcedureCreate : Update function and procedure routes`);
     this.procedureCtrl.proceduresSet(procedures);
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({addApis: {paths: this.procedureCtrl.getSwaggerObj().paths}})
+    this.swaggerUpdate({
+      addApis: { paths: this.procedureCtrl.getSwaggerObj().paths }
+    });
   }
 
   // NOTE: xc-meta
@@ -1434,22 +2024,31 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     });
     this.log(`onProcedureDelete : Update function and procedure routes`);
     this.procedureCtrl.procedureDelete(procedureName);
-    this.routers.___procedure.stack.splice(0, this.routers.___procedure.stack.length);
+    this.routers.___procedure.stack.splice(
+      0,
+      this.routers.___procedure.stack.length
+    );
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({addApis: this.procedureCtrl.getSwaggerObj(), deleteTags: ['Procedures', 'Functions']})
+    this.swaggerUpdate({
+      addApis: this.procedureCtrl.getSwaggerObj(),
+      deleteTags: ['Procedures', 'Functions']
+    });
   }
 
   public async onSwaggerDocUpdate(tn: any): Promise<void> {
     this.log(`onSwaggerDocUpdate : '%s'`, tn);
-    const swaggerDocs = (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models'))
-      .filter(m => m.schema).map(m => JSON.parse(m.schema));
+    const swaggerDocs = (
+      await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models')
+    )
+      .filter(m => m.schema)
+      .map(m => JSON.parse(m.schema));
     swaggerDocs.push(this.procedureCtrl.getSwaggerObj());
 
     const swaggerDoc = {
       tags: [],
       paths: {},
       definitions: {}
-    }
+    };
 
     swaggerDocs.forEach(swaggerJson => {
       swaggerDoc.tags.push(...(swaggerJson.tags || []));
@@ -1463,13 +2062,22 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
   public async onTableUpdate(changeObj: any): Promise<void> {
     this.log(`onTableUpdate : '%s'`, changeObj.tn);
-    await super.onTableUpdate(changeObj, async ({ctx}) => {
+    await super.onTableUpdate(changeObj, async ({ ctx }) => {
       // todo: take backup
-      const swaggerDoc = await new SwaggerXc({dir: '', ctx, filename: ''}).getObject();
-      const meta = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-        title: changeObj.tn,
-        type: 'table'
-      });
+      const swaggerDoc = await new SwaggerXc({
+        dir: '',
+        ctx,
+        filename: ''
+      }).getObject();
+      const meta = await this.xcMeta.metaGet(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          title: changeObj.tn,
+          type: 'table'
+        }
+      );
       const oldSwaggerDoc = JSON.parse(meta.schema);
 
       // // keep upto 5 schema backup on table update
@@ -1478,31 +2086,33 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       //   previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
       // }
 
-
       oldSwaggerDoc.definitions = swaggerDoc.definitions;
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        schema: JSON.stringify(oldSwaggerDoc),
-        // schema_previous: JSON.stringify(previousSchemas)
-      }, {
-        title: changeObj.tn,
-        type: 'table'
-      });
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          schema: JSON.stringify(oldSwaggerDoc)
+          // schema_previous: JSON.stringify(previousSchemas)
+        },
+        {
+          title: changeObj.tn,
+          type: 'table'
+        }
+      );
 
       await this.onSwaggerDocUpdate(changeObj.tn);
     });
-
-
   }
 
   // NOTE: xc-meta
   // @ts-ignore
   private async populteProcedureAndFunctionRoutes(_args?: {
-    functions?: string[],
-    procedures?: string[],
+    functions?: string[];
+    procedures?: string[];
   }) {
-
     this.log('populteProcedureAndFunctionRoutes');
-    const router = this.routers.___procedure = Router();
+    const router = (this.routers.___procedure = Router());
 
     const functions = [];
     const procedures = [];
@@ -1519,102 +2129,166 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     //     this.apiCount += this.proceduresCount;
     // } catch (e) {
     // }
-    this.procedureCtrl = new RestCtrlProcedure(this, functions, procedures, this.procedureOrFunctionAcls);
+    this.procedureCtrl = new RestCtrlProcedure(
+      this,
+      functions,
+      procedures,
+      this.procedureOrFunctionAcls
+    );
     this.procedureCtrl.mapRoutes(router, this.customRoutes);
     this.router.use(`/api/${this.routeVersionLetter}`, router);
 
     // do insertion parallelly
     if (functions) {
       for (const functionObj of functions) {
-
-        this.log('populteProcedureAndFunctionRoutes : Inserting metadata and acl for \'%s\' - function', functionObj.function_name);
+        this.log(
+          "populteProcedureAndFunctionRoutes : Inserting metadata and acl for '%s' - function",
+          functionObj.function_name
+        );
         await this.generateAndSaveAcl(functionObj.function_name, 'function');
-        await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
-          title: functionObj.function_name,
-          meta: JSON.stringify({...functionObj, type: 'function'}),
-          type: 'function'
-        })
+        await this.xcMeta.metaInsert(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          {
+            title: functionObj.function_name,
+            meta: JSON.stringify({ ...functionObj, type: 'function' }),
+            type: 'function'
+          }
+        );
       }
     }
     if (procedures) {
       for (const procedureObj of procedures) {
-        this.log('populteProcedureAndFunctionRoutes : Inserting metadata and acl for \'%s\' - procedure', procedureObj.procedure_name);
+        this.log(
+          "populteProcedureAndFunctionRoutes : Inserting metadata and acl for '%s' - procedure",
+          procedureObj.procedure_name
+        );
         await this.generateAndSaveAcl(procedureObj.procedure_name, 'procedure');
-        await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
-          title: procedureObj.procedure_name,
-          meta: JSON.stringify({...procedureObj, type: 'procedure'}),
-          type: 'procedure'
-        })
+        await this.xcMeta.metaInsert(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          {
+            title: procedureObj.procedure_name,
+            meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
+            type: 'procedure'
+          }
+        );
       }
     }
   }
 
   private async generateSwaggerJson(swaggerDoc) {
     if (!this.config.try) {
-      this.log('generateSwaggerJson : Generating swagger.json')
-      const swaggerFilePath = path.join(this.config.toolDir, 'nc', this.projectId, this.getDbAlias(), 'swagger');
+      this.log('generateSwaggerJson : Generating swagger.json');
+      const swaggerFilePath = path.join(
+        this.config.toolDir,
+        'nc',
+        this.projectId,
+        this.getDbAlias(),
+        'swagger'
+      );
       mkdirp.sync(swaggerFilePath);
-      fs.writeFileSync(path.join(swaggerFilePath, 'swagger.json'), JSON.stringify(swaggerDoc));
+      fs.writeFileSync(
+        path.join(swaggerFilePath, 'swagger.json'),
+        JSON.stringify(swaggerDoc)
+      );
     }
 
     this.router.get(`/${this.getDbAlias()}/swagger`, async (_req, res) => {
-      res.send(ejs.render((await import('./ui/auth/swagger')).default, {
-        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
-        baseUrl: `/`,
-        dbAlias: this.getDbAlias(),
-        projectId: this.projectId
-      }));
+      res.send(
+        ejs.render((await import('./ui/auth/swagger')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
+          baseUrl: `/`,
+          dbAlias: this.getDbAlias(),
+          projectId: this.projectId
+        })
+      );
     });
 
     this.router.get(`/${this.getDbAlias()}/swagger.json`, async (req, res) => {
       // todo: optimize
-      let swaggerBaseDocument: any = JSON.parse(JSON.stringify(await import('./ui/auth/swagger-base.xc.json')));
+      let swaggerBaseDocument: any = JSON.parse(
+        JSON.stringify(await import('./ui/auth/swagger-base.xc.json'))
+      );
 
-      if (this.config?.auth?.jwt?.dbAlias !== this.connectionConfig.meta.dbAlias) {
-        swaggerBaseDocument = {...swaggerBaseDocument, tags: [], definitions: {}, paths: {}};
+      if (
+        this.config?.auth?.jwt?.dbAlias !== this.connectionConfig.meta.dbAlias
+      ) {
+        swaggerBaseDocument = {
+          ...swaggerBaseDocument,
+          tags: [],
+          definitions: {},
+          paths: {}
+        };
       }
 
-      const host = process.env.NC_PUBLIC_URL ? new URL(process.env.NC_PUBLIC_URL)?.host : req.get('host');
-      const scheme = process.env.NC_PUBLIC_URL ? new URL(process.env.NC_PUBLIC_URL)?.protocol.slice(0, -1) : req.protocol;
+      const host = process.env.NC_PUBLIC_URL
+        ? new URL(process.env.NC_PUBLIC_URL)?.host
+        : req.get('host');
+      const scheme = process.env.NC_PUBLIC_URL
+        ? new URL(process.env.NC_PUBLIC_URL)?.protocol.slice(0, -1)
+        : req.protocol;
       swaggerBaseDocument.host = host;
-      swaggerBaseDocument.schemes = [scheme, scheme === 'http' ? 'https' : 'http'];
-      glob.sync(path.join(this.config.toolDir, 'nc', this.projectId, this.getDbAlias(), 'swagger', 'swagger.json')).forEach(jsonFile => {
-        const swaggerJson = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
-        swaggerBaseDocument.tags.push(...swaggerJson.tags);
-        Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
-        Object.assign(swaggerBaseDocument.definitions, swaggerJson.definitions);
-      });
-      res.json(swaggerBaseDocument)
+      swaggerBaseDocument.schemes = [
+        scheme,
+        scheme === 'http' ? 'https' : 'http'
+      ];
+      glob
+        .sync(
+          path.join(
+            this.config.toolDir,
+            'nc',
+            this.projectId,
+            this.getDbAlias(),
+            'swagger',
+            'swagger.json'
+          )
+        )
+        .forEach(jsonFile => {
+          const swaggerJson = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+          swaggerBaseDocument.tags.push(...swaggerJson.tags);
+          Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
+          Object.assign(
+            swaggerBaseDocument.definitions,
+            swaggerJson.definitions
+          );
+        });
+      res.json(swaggerBaseDocument);
     });
-
-
   }
 
-  private deleteTagFromSwaggerObj(swaggerObjOrString: any | string, tagName: string): any {
+  private deleteTagFromSwaggerObj(
+    swaggerObjOrString: any | string,
+    tagName: string
+  ): any {
     let swaggerObj = swaggerObjOrString;
     if (typeof swaggerObj === 'string') {
       swaggerObj = JSON.parse(swaggerObj);
     }
     swaggerObj.tags = swaggerObj.tags.filter(t => t.name !== tagName);
     for (const routePath of Object.keys(swaggerObj.paths)) {
-      if ((Object.values(swaggerObj.paths[routePath])[0] as any).tags.includes(tagName)) {
+      if (
+        (Object.values(swaggerObj.paths[routePath])[0] as any).tags.includes(
+          tagName
+        )
+      ) {
         delete swaggerObj.paths[routePath];
       }
     }
     return swaggerObj;
   }
 
-
   private deleteRoutesForTables(tableNames: any[]): void {
-    this.log(`deleteRoutesForTables : %o`, tableNames)
+    this.log(`deleteRoutesForTables : %o`, tableNames);
     // delete routes and models for table and it's relation tables
     for (const table of tableNames) {
-
       const ctrlIndex = this.router.stack.findIndex(r => {
         return r.handle === this.routers[table];
-      })
+      });
       if (ctrlIndex > -1) {
-        this.router.stack.splice(ctrlIndex, 1)
+        this.router.stack.splice(ctrlIndex, 1);
       }
 
       delete this.routers[table];
@@ -1623,42 +2297,53 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
   // @ts-ignore
   private swaggerUpdate(args: {
-    deleteApis?: any,
-    addApis?: any,
-    deleteTags?: string[]
+    deleteApis?: any;
+    addApis?: any;
+    deleteTags?: string[];
   }) {
-
-    this.log(`swaggerUpdate :`,);
+    this.log(`swaggerUpdate :`);
 
     if (!args.deleteApis && !args.addApis && !args.deleteTags) {
       return;
     }
 
     /* load swagger JSON */
-    const swaggerFilePath = path.join(this.config.toolDir, 'nc', this.projectId, this.getDbAlias(), 'swagger');
-    const swaggerJson = JSON.parse(fs.readFileSync(path.join(swaggerFilePath, 'swagger.json'), 'utf8'));
+    const swaggerFilePath = path.join(
+      this.config.toolDir,
+      'nc',
+      this.projectId,
+      this.getDbAlias(),
+      'swagger'
+    );
+    const swaggerJson = JSON.parse(
+      fs.readFileSync(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
+    );
 
     /* remove tags, paths and keys */
     if (args.deleteApis) {
       this.log(`swaggerUpdate : deleting swagger apis`);
 
-      const {tags, paths, definitions} = args.deleteApis;
+      const { tags, paths, definitions } = args.deleteApis;
 
       if (tags) {
-        swaggerJson.tags = swaggerJson.tags.filter(({name}) => tags.find(t => t.name === name))
+        swaggerJson.tags = swaggerJson.tags.filter(({ name }) =>
+          tags.find(t => t.name === name)
+        );
       }
       if (paths) {
         Object.keys(paths).forEach(path => delete swaggerJson.tags[path]);
       }
       if (definitions) {
-        Object.keys(definitions).forEach(def => delete swaggerJson.definitions[def]);
+        Object.keys(definitions).forEach(
+          def => delete swaggerJson.definitions[def]
+        );
       }
     }
 
     /* add tags, paths and defnitions */
     if (args.addApis) {
       this.log(`swaggerUpdate : adding swagger apis`);
-      const {tags, paths, definitions} = args.addApis;
+      const { tags, paths, definitions } = args.addApis;
       if (tags) {
         swaggerJson.tags.push(...tags);
       }
@@ -1674,29 +2359,33 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     if (args.deleteTags) {
       this.log(`swaggerUpdate : deleting swagger tags : %o`, args.deleteTags);
       for (const tag of args.deleteTags) {
-
         swaggerJson.tags = swaggerJson.tags.filter(t => t.name !== tag);
 
         Object.keys(swaggerJson.paths).forEach(p => {
-          if (swaggerJson.paths?.[p]?.[Object.keys(swaggerJson.paths[p])[0]]?.tags?.includes(tag)) {
+          if (
+            swaggerJson.paths?.[p]?.[
+              Object.keys(swaggerJson.paths[p])[0]
+            ]?.tags?.includes(tag)
+          ) {
             delete swaggerJson.paths[p];
           }
-        })
+        });
 
         if (swaggerJson.definitions) {
-          if(swaggerJson.definitions[tag]) {
+          if (swaggerJson.definitions[tag]) {
             delete swaggerJson.definitions[tag];
           }
-          if(swaggerJson.definitions[`${tag}Nested`]) {
+          if (swaggerJson.definitions[`${tag}Nested`]) {
             delete swaggerJson.definitions[`${tag}Nested`];
           }
         }
       }
     }
 
-
-      fs.writeFileSync(path.join(swaggerFilePath, 'swagger.json'), JSON.stringify(swaggerJson));
-
+    fs.writeFileSync(
+      path.join(swaggerFilePath, 'swagger.json'),
+      JSON.stringify(swaggerJson)
+    );
   }
 
   private log(str, ...args) {
@@ -1709,23 +2398,34 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       tags: [],
       paths: {},
       definitions: {}
-    }
+    };
 
-    this.log(`mergeAndUpdateSwagger : Merging all the swagger docs object of '%s' table`, tn);
+    this.log(
+      `mergeAndUpdateSwagger : Merging all the swagger docs object of '%s' table`,
+      tn
+    );
     swaggerDefs.forEach(swaggerJson => {
       swaggerDoc.tags.push(...swaggerJson.tags);
       Object.assign(swaggerDoc.paths, swaggerJson.paths);
       Object.assign(swaggerDoc.definitions, swaggerJson.definitions);
     });
 
-    this.log(`mergeAndUpdateSwagger : Saving swagger JSON to metatable - '%s' table`, tn);
-    this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-      schema: JSON.stringify(swaggerDoc)
-    }, {
-      title: tn
-    })
+    this.log(
+      `mergeAndUpdateSwagger : Saving swagger JSON to metatable - '%s' table`,
+      tn
+    );
+    this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        schema: JSON.stringify(swaggerDoc)
+      },
+      {
+        title: tn
+      }
+    );
   }
-
 
   protected async ncUpManyToMany(): Promise<any> {
     const metas = await super.ncUpManyToMany();
@@ -1733,48 +2433,79 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       return;
     }
     for (const meta of metas) {
-      const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
+      const ctx = this.generateContextForTable(
+        meta.tn,
+        meta.columns,
+        [],
+        meta.hasMany,
+        meta.belongsTo,
+        meta.type,
+        meta._tn
+      );
 
       /* create routes for table */
-      const routes = new ExpressXcTsRoutes({dir: '', ctx, filename: ''}).getObjectWithoutFunctions();
+      const routes = new ExpressXcTsRoutes({
+        dir: '',
+        ctx,
+        filename: ''
+      }).getObjectWithoutFunctions();
 
       /* create nc_routes, add new routes or update order */
       const routesInsertion = routes.map((route, i) => {
         return async () => {
-          if (!await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_routes', {
-            path: route.path,
-            tn: meta.tn,
-            title: meta.tn,
-            type: route.type
-          })) {
-            await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_routes', {
-              acl: JSON.stringify(route.acl),
-              handler: JSON.stringify(route.handler),
-              order: i,
-              path: route.path,
-              tn: meta.tn,
-              title: meta.tn,
-              type: route.type,
-            })
+          if (
+            !(await this.xcMeta.metaGet(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                path: route.path,
+                tn: meta.tn,
+                title: meta.tn,
+                type: route.type
+              }
+            ))
+          ) {
+            await this.xcMeta.metaInsert(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                acl: JSON.stringify(route.acl),
+                handler: JSON.stringify(route.handler),
+                order: i,
+                path: route.path,
+                tn: meta.tn,
+                title: meta.tn,
+                type: route.type
+              }
+            );
           } else {
-            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_routes', {
-              order: i,
-            }, {
-              path: route.path,
-              tn: meta.tn,
-              title: meta.tn,
-              type: route.type
-            })
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                order: i
+              },
+              {
+                path: route.path,
+                tn: meta.tn,
+                title: meta.tn,
+                type: route.type
+              }
+            );
           }
-        }
+        };
       });
 
-      await NcHelp.executeOperations(routesInsertion, this.connectionConfig.client);
-
+      await NcHelp.executeOperations(
+        routesInsertion,
+        this.connectionConfig.client
+      );
     }
 
     // add new routes
-
   }
 
   public async onMetaUpdate(tn: string) {
@@ -1788,15 +2519,22 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     );
 
     const swaggerDoc = await new SwaggerXc({
-      dir: '', ctx: {
+      dir: '',
+      ctx: {
         ...ctx,
         v: this.metas[tn].v
-      }, filename: ''
+      },
+      filename: ''
     }).getObject();
-    const meta = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-      title: tn,
-      type: 'table'
-    });
+    const meta = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        title: tn,
+        type: 'table'
+      }
+    );
     const oldSwaggerDoc = JSON.parse(meta.schema);
 
     // // keep upto 5 schema backup on table update
@@ -1805,25 +2543,28 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     //   previousSchemas = [...JSON.parse(meta.schema_previous), oldSwaggerDoc].slice(-5);
     // }
 
-
     oldSwaggerDoc.definitions = swaggerDoc.definitions;
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-      schema: JSON.stringify(oldSwaggerDoc),
-      // schema_previous: JSON.stringify(previousSchemas)
-    }, {
-      title: tn,
-      type: 'table'
-    });
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        schema: JSON.stringify(oldSwaggerDoc)
+        // schema_previous: JSON.stringify(previousSchemas)
+      },
+      {
+        title: tn,
+        type: 'table'
+      }
+    );
 
     await this.onSwaggerDocUpdate(tn);
   }
-
 
   protected async getManyToManyRelations(args = {}): Promise<Set<any>> {
     const metas: Set<any> = await super.getManyToManyRelations(args);
 
     for (const metaObj of metas) {
-
       const ctx = this.generateContextForTable(
         metaObj.tn,
         metaObj.columns,
@@ -1833,16 +2574,23 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       );
 
       const swaggerDoc = await new SwaggerXc({
-        dir: '', ctx: {
+        dir: '',
+        ctx: {
           ...ctx,
           v: metaObj.v
-        }, filename: ''
+        },
+        filename: ''
       }).getObject();
 
-      const meta = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-        title: metaObj.tn,
-        type: 'table'
-      });
+      const meta = await this.xcMeta.metaGet(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          title: metaObj.tn,
+          type: 'table'
+        }
+      );
       const oldSwaggerDoc = JSON.parse(meta.schema);
 
       // // keep upto 5 schema backup on table update
@@ -1852,20 +2600,24 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       // }
 
       oldSwaggerDoc.definitions = swaggerDoc.definitions;
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        schema: JSON.stringify(oldSwaggerDoc),
-        // schema_previous: JSON.stringify(previousSchemas)
-      }, {
-        title: metaObj.tn,
-        type: 'table'
-      });
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          schema: JSON.stringify(oldSwaggerDoc)
+          // schema_previous: JSON.stringify(previousSchemas)
+        },
+        {
+          title: metaObj.tn,
+          type: 'table'
+        }
+      );
     }
 
-    return metas
+    return metas;
   }
-
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

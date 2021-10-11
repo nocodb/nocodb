@@ -1,22 +1,20 @@
-
-
 module.exports = {
-  title: "default",
+  title: 'default',
   envs: {
     _noco: {
       db: [
         {
-          client: "mysql2",
+          client: 'mysql2',
           connection: {
-            host: process.env.DOCKER_DB_HOST || "localhost",
+            host: process.env.DOCKER_DB_HOST || 'localhost',
             port: process.env.DOCKER_DB_PORT || 3306,
-            user: "root",
-            password: "password",
-            database: "default_dev"
+            user: 'root',
+            password: 'password',
+            database: 'default_dev'
           },
           meta: {
-            tn: "nc_evolutions",
-            dbAlias: "primary"
+            tn: 'nc_evolutions',
+            dbAlias: 'primary'
           }
         }
       ]
@@ -25,23 +23,23 @@ module.exports = {
       api: {},
       db: [
         {
-          client: "mysql2",
+          client: 'mysql2',
           connection: {
-            host: DOCKER_DB_HOST || "localhost",
+            host: DOCKER_DB_HOST || 'localhost',
             port: DOCKER_DB_PORT || 3306,
-            user: "root",
-            password: "password",
-            database: "default_test"
+            user: 'root',
+            password: 'password',
+            database: 'default_test'
           },
           meta: {
-            tn: "nc_evolutions",
-            dbAlias: "primary"
+            tn: 'nc_evolutions',
+            dbAlias: 'primary'
           }
         }
       ]
     }
   },
-  workingEnv: "_noco",
+  workingEnv: '_noco',
   meta: {
     version: '0.5',
     seedsFolder: 'seeds',

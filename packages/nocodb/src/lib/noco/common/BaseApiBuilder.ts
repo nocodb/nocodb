@@ -1,31 +1,33 @@
 // import * as fs from "fs";
 
 import debug from 'debug';
-import {Router} from "express";
-import inflection from "inflection";
+import { Router } from 'express';
+import inflection from 'inflection';
 // import Knex from "knex";
 import {
-  MysqlClient, PgClient, SqlClient,
+  MysqlClient,
+  PgClient,
+  SqlClient,
   // SqlClientFactory,
   Tele
 } from 'nc-help';
 
-import XcDynamicChanges from "../../../interface/XcDynamicChanges";
-import {Acls, DbConfig, NcConfig} from "../../../interface/config";
-import {BaseModelSql, XKnex} from "../../dataMapper";
-import ModelXcMetaFactory from "../../sqlMgr/code/models/xc/ModelXcMetaFactory";
+import XcDynamicChanges from '../../../interface/XcDynamicChanges';
+import { Acls, DbConfig, NcConfig } from '../../../interface/config';
+import { BaseModelSql, XKnex } from '../../dataMapper';
+import ModelXcMetaFactory from '../../sqlMgr/code/models/xc/ModelXcMetaFactory';
 import ExpressXcPolicy from '../../sqlMgr/code/policies/xc/ExpressXcPolicy';
-import NcHelp from "../../utils/NcHelp";
-import NcProjectBuilder from "../NcProjectBuilder";
-import Noco from "../Noco";
-import NcMetaIO from "../meta/NcMetaIO";
-import XcCache from "../plugins/adapters/cache/XcCache";
+import NcHelp from '../../utils/NcHelp';
+import NcProjectBuilder from '../NcProjectBuilder';
+import Noco from '../Noco';
+import NcMetaIO from '../meta/NcMetaIO';
+import XcCache from '../plugins/adapters/cache/XcCache';
 
-import BaseModel from "./BaseModel";
-import {XcCron} from "./XcCron";
-import NcConnectionMgr from "./NcConnectionMgr";
-import updateColumnNameInFormula from "./helpers/updateColumnNameInFormula";
-import addErrorOnColumnDeleteInFormula from "./helpers/addErrorOnColumnDeleteInFormula";
+import BaseModel from './BaseModel';
+import { XcCron } from './XcCron';
+import NcConnectionMgr from './NcConnectionMgr';
+import updateColumnNameInFormula from './helpers/updateColumnNameInFormula';
+import addErrorOnColumnDeleteInFormula from './helpers/addErrorOnColumnDeleteInFormula';
 
 const log = debug('nc:api:base');
 
@@ -56,8 +58,8 @@ const IGNORE_TABLES = [
   'nc_shared_views'
 ];
 
-
-export default abstract class BaseApiBuilder<T extends Noco> implements XcDynamicChanges {
+export default abstract class BaseApiBuilder<T extends Noco>
+  implements XcDynamicChanges {
   public abstract readonly type: string;
 
   public get knex(): XKnex {
@@ -78,23 +80,21 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   public get router(): Router {
     if (!this.apiRouter) {
-      this.baseLog(`router : Initializing builder router`)
+      this.baseLog(`router : Initializing builder router`);
       this.apiRouter = Router();
       // (this.app as any).router.use('/', this.apiRouter)
-      (this.projectBuilder as any).router.use('/', this.apiRouter)
+      (this.projectBuilder as any).router.use('/', this.apiRouter);
     }
     return this.apiRouter;
   }
 
   public get routeVersionLetter(): string {
-    return this.connectionConfig?.meta?.api?.prefix || 'v1'
+    return this.connectionConfig?.meta?.api?.prefix || 'v1';
   }
-
 
   protected get projectId(): string {
     return this.projectBuilder?.id;
   }
-
 
   public get xcModels() {
     return this.models;
@@ -112,13 +112,13 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         event: string;
         url: string;
         [key: string]: any;
-      }>
-    }
-  }
+      }>;
+    };
+  };
 
   public formViews: {
-    [tableName: string]: any
-  }
+    [tableName: string]: any;
+  };
 
   protected tablesCount = 0;
   protected relationsCount = 0;
@@ -141,13 +141,18 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
   protected acls: Acls;
   protected procedureOrFunctionAcls: {
-    [name: string]: { [role: string]: boolean }
+    [name: string]: { [role: string]: boolean };
   };
   protected xcMeta: NcMetaIO;
 
   private apiRouter: Router;
 
-  constructor(app: T, projectBuilder: NcProjectBuilder, config: NcConfig, connectionConfig: DbConfig) {
+  constructor(
+    app: T,
+    projectBuilder: NcProjectBuilder,
+    config: NcConfig,
+    connectionConfig: DbConfig
+  ) {
     this.models = {};
     this.app = app;
     this.config = config;
@@ -158,7 +163,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.hooks = {};
     this.formViews = {};
     this.projectBuilder = projectBuilder;
-
   }
 
   public getDbType(): any {
@@ -177,48 +181,59 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return this.sqlClient;
   }
 
-  public abstract onViewCreate(viewName: string): Promise<void>  ;
+  public abstract onViewCreate(viewName: string): Promise<void>;
 
-  public abstract onFunctionCreate(functionName: string): Promise<void>  ;
+  public abstract onFunctionCreate(functionName: string): Promise<void>;
 
-  public abstract onProcedureCreate(procedureName: string): Promise<void>  ;
+  public abstract onProcedureCreate(procedureName: string): Promise<void>;
 
-  public abstract onViewDelete(viewName: string): Promise<void> ;
+  public abstract onViewDelete(viewName: string): Promise<void>;
 
-  public abstract onProcedureDelete(procedureName: string): Promise<void> ;
+  public abstract onProcedureDelete(procedureName: string): Promise<void>;
 
-  public abstract onFunctionDelete(functionName: string): Promise<void> ;
+  public abstract onFunctionDelete(functionName: string): Promise<void>;
 
-  public abstract onPolicyUpdate(tn: string): Promise<void> ;
+  public abstract onPolicyUpdate(tn: string): Promise<void>;
 
-  public abstract onHandlerCodeUpdate(tn: string): Promise<void> ;
+  public abstract onHandlerCodeUpdate(tn: string): Promise<void>;
 
-  public abstract onMiddlewareCodeUpdate(tn: string): Promise<void> ;
+  public abstract onMiddlewareCodeUpdate(tn: string): Promise<void>;
 
-  public abstract onToggleModels(enabledModels: string[]): Promise<void> ;
+  public abstract onToggleModels(enabledModels: string[]): Promise<void>;
 
-  public abstract onToggleModelRelation(relationInModels: any): Promise<void> ;
+  public abstract onToggleModelRelation(relationInModels: any): Promise<void>;
 
   public async onTableDelete(tn: string): Promise<void> {
-    this.baseLog(`onTableDelete : '%s'`, tn)
+    this.baseLog(`onTableDelete : '%s'`, tn);
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
-    return this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_relations', null, {
-      _or: [{
-        tn: {
-          eq: tn
-        }
-      }, {
-        rtn: {
-          eq: tn
-        }
-      },]
-    })
-    await this.deleteTableNameInACL(tn)
+    return this.xcMeta.metaDelete(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      null,
+      {
+        _or: [
+          {
+            tn: {
+              eq: tn
+            }
+          },
+          {
+            rtn: {
+              eq: tn
+            }
+          }
+        ]
+      }
+    );
+    await this.deleteTableNameInACL(tn);
   }
 
-
-  public async onRelationCreate(tnp: string, tnc: string, args?: any): Promise<void> {
-
+  public async onRelationCreate(
+    tnp: string,
+    tnc: string,
+    args?: any
+  ): Promise<void> {
     const {
       childColumn,
       onDelete,
@@ -232,40 +247,56 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     XcCache.del([this.projectId, this.dbAlias, 'table', tnc].join('::'));
 
     if (!virtual) {
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_relations', {
-        tn: tnc,
-        _tn: this.getTableNameAlias(tnc),
-        cn: childColumn,
-        rtn: tnp,
-        _rtn: this.getTableNameAlias(tnp),
-        rcn: parentColumn,
-        type: 'real',
-        db_type: this.connectionConfig?.client,
-        dr: onDelete,
-        ur: onUpdate,
-        fkn
-      })
+      await this.xcMeta.metaInsert(
+        this.projectId,
+        this.dbAlias,
+        'nc_relations',
+        {
+          tn: tnc,
+          _tn: this.getTableNameAlias(tnc),
+          cn: childColumn,
+          rtn: tnp,
+          _rtn: this.getTableNameAlias(tnp),
+          rcn: parentColumn,
+          type: 'real',
+          db_type: this.connectionConfig?.client,
+          dr: onDelete,
+          ur: onUpdate,
+          fkn
+        }
+      );
     } else {
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-        _tn: this.getTableNameAlias(tnc),
-        _rtn: this.getTableNameAlias(tnp),
-      }, {
-        tn: tnc,
-        cn: childColumn,
-        rtn: tnp,
-        rcn: parentColumn,
-      })
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_relations',
+        {
+          _tn: this.getTableNameAlias(tnc),
+          _rtn: this.getTableNameAlias(tnp)
+        },
+        {
+          tn: tnc,
+          cn: childColumn,
+          rtn: tnp,
+          rcn: parentColumn
+        }
+      );
     }
-    Tele.emit('evt', {evt_type: 'relation:created'})
+    Tele.emit('evt', { evt_type: 'relation:created' });
   }
 
-  public async onRelationDelete(tnp: string, tnc: string, args: any): Promise<void> {
-    this.baseLog(`onRelationDelete : Within relation delete handler of '%s' => '%s'`, tnp, tnc);
+  public async onRelationDelete(
+    tnp: string,
+    tnc: string,
+    args: any
+  ): Promise<void> {
+    this.baseLog(
+      `onRelationDelete : Within relation delete handler of '%s' => '%s'`,
+      tnp,
+      tnc
+    );
 
-    const {
-      childColumn,
-      parentColumn,
-    } = args;
+    const { childColumn, parentColumn } = args;
 
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_relations', {
       tn: tnc,
@@ -274,7 +305,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       rcn: parentColumn,
       type: 'real',
       db_type: this.connectionConfig?.client
-    })
+    });
 
     await this.deleteRelationInACL(tnp, tnc);
 
@@ -282,33 +313,64 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     XcCache.del([this.projectId, this.dbAlias, 'table', tnp].join('::'));
   }
 
-
-  public async onTableRename(oldTableName: string, newTableName: string): Promise<void> {
+  public async onTableRename(
+    oldTableName: string,
+    newTableName: string
+  ): Promise<void> {
     this.baseLog(`onTableRename : '%s' => '%s'`, oldTableName, newTableName);
-    this.baseLog(`onTableRename : updating table name in hooks meta table - '%s' => '%s'`, oldTableName, newTableName);
-    XcCache.del([this.projectId, this.dbAlias, 'table', oldTableName].join('::'));
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-      tn: newTableName
-    }, {
-      tn: oldTableName
-    })
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-      rtn: newTableName
-    }, {
-      rtn: oldTableName
-    })
+    this.baseLog(
+      `onTableRename : updating table name in hooks meta table - '%s' => '%s'`,
+      oldTableName,
+      newTableName
+    );
+    XcCache.del(
+      [this.projectId, this.dbAlias, 'table', oldTableName].join('::')
+    );
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        tn: newTableName
+      },
+      {
+        tn: oldTableName
+      }
+    );
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        rtn: newTableName
+      },
+      {
+        rtn: oldTableName
+      }
+    );
 
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_hooks', {
-      tn: newTableName
-    }, {
-      tn: oldTableName
-    })
-
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_hooks',
+      {
+        tn: newTableName
+      },
+      {
+        tn: oldTableName
+      }
+    );
 
     /* Update virtual views */
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-      parent_model_title: newTableName,
-    }, {'parent_model_title': oldTableName, type: 'vtable'})
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        parent_model_title: newTableName
+      },
+      { parent_model_title: oldTableName, type: 'vtable' }
+    );
 
     await this.loadHooks();
     await this.loadFormViews();
@@ -316,17 +378,25 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     await this.modifyTableNameInACL(oldTableName, newTableName);
   }
 
-  public async onGqlSchemaUpdate(_tableName: string, _schema: string): Promise<void> {
-    throw new Error('`onGqlSchemaUpdate` not implemented')
+  public async onGqlSchemaUpdate(
+    _tableName: string,
+    _schema: string
+  ): Promise<void> {
+    throw new Error('`onGqlSchemaUpdate` not implemented');
   }
 
   // todo: change name to meta uodate
   public async onMetaUpdate(tn: string): Promise<void> {
     this.baseLog(`onValidationUpdate : '%s'`, tn);
-    const modelRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-      title: tn,
-      type: 'table'
-    });
+    const modelRow = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        title: tn,
+        type: 'table'
+      }
+    );
 
     if (!modelRow) {
       return;
@@ -334,7 +404,10 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
     const metaObj = JSON.parse(modelRow.meta);
     this.metas[tn] = metaObj;
-    this.baseLog(`onValidationUpdate : Generating model instance for '%s' table`, tn)
+    this.baseLog(
+      `onValidationUpdate : Generating model instance for '%s' table`,
+      tn
+    );
     this.models[modelRow.title] = this.getBaseModel(metaObj);
 
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
@@ -344,67 +417,95 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // await this.onTableRename(tn, tn)
   }
 
-
-  public async onTableUpdate(changeObj: any, beforeMetaUpdate?: (args: any) => Promise<void>): Promise<void> {
+  public async onTableUpdate(
+    changeObj: any,
+    beforeMetaUpdate?: (args: any) => Promise<void>
+  ): Promise<void> {
     const tn = changeObj.tn;
     this.baseLog(`onTableUpdate : '%s'`, tn);
-    this.baseLog(`onTableUpdate : Getting old model meta for '%s'`, tn)
+    this.baseLog(`onTableUpdate : Getting old model meta for '%s'`, tn);
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
 
     const relationTableMetas: Set<any> = new Set();
 
-    const oldModelRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-      title: tn
-    })
+    const oldModelRow = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        title: tn
+      }
+    );
 
     let queryParams: any;
     try {
       queryParams = JSON.parse(oldModelRow.query_params);
     } catch (e) {
-      queryParams = {}
+      queryParams = {};
     }
-
 
     if (!oldModelRow) {
       return;
     }
 
     // todo : optimize db operations
-    const columns = changeObj.columns
-      .filter(c => c.altered !== 4)
-      .map(({altered: _al, ...rest}) => rest) || await this.getColumnList(tn);
+    const columns =
+      changeObj.columns
+        .filter(c => c.altered !== 4)
+        .map(({ altered: _al, ...rest }) => rest) ||
+      (await this.getColumnList(tn));
 
     /* Get all relations */
     const relations = await this.relationsSyncAndGet();
     const belongsTo = this.extractBelongsToRelationsOfTable(relations, tn);
     const hasMany = this.extractHasManyRelationsOfTable(relations, tn);
 
-
-    const virtualViews = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models', {
-      condition: {
-        type: 'vtable',
-        parent_model_title: tn
+    const virtualViews = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        condition: {
+          type: 'vtable',
+          parent_model_title: tn
+        }
       }
-    });
+    );
 
     const virtualViewsParamsArr = virtualViews.map(v => {
       try {
         return JSON.parse(v.query_params);
-      } catch (e) {
-      }
-      return {}
-    })
+      } catch (e) {}
+      return {};
+    });
 
-    const ctx = this.generateContextForTable(tn, columns, [...hasMany, ...belongsTo], hasMany, belongsTo);
+    const ctx = this.generateContextForTable(
+      tn,
+      columns,
+      [...hasMany, ...belongsTo],
+      hasMany,
+      belongsTo
+    );
 
-    this.baseLog(`onTableUpdate : Generating new model meta for '%s' table`, tn)
+    this.baseLog(
+      `onTableUpdate : Generating new model meta for '%s' table`,
+      tn
+    );
 
     /* create models from table */
-    const newMeta: any = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
-
+    const newMeta: any = ModelXcMetaFactory.create(this.connectionConfig, {
+      dir: '',
+      ctx,
+      filename: ''
+    }).getObject();
 
     /* get ACL row  */
-    const aclRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {tn});
+    const aclRow = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      { tn }
+    );
 
     const acl = JSON.parse(aclRow.acl);
     const oldMeta = JSON.parse(oldModelRow.meta);
@@ -415,52 +516,71 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
 
     const aclOper = [];
 
-    this.baseLog(`onTableUpdate : Comparing and updating new metadata of '%s' table`, tn)
+    this.baseLog(
+      `onTableUpdate : Comparing and updating new metadata of '%s' table`,
+      tn
+    );
     for (const column of changeObj.columns) {
       let oldCol;
       let newCol;
       // column update
       if (column.altered === 8 || column.altered === 2) {
-
-
         oldCol = oldMeta.columns.find(c => c.cn === column.cno);
         newCol = newMeta.columns.find(c => c.cn === column.cn);
-        if (newCol && oldCol && column.dt === oldCol.dt && !newCol?.validate?.func?.length) {
+        if (
+          newCol &&
+          oldCol &&
+          column.dt === oldCol.dt &&
+          !newCol?.validate?.func?.length
+        ) {
           newCol.validate = oldCol.validate;
         }
 
         // column rename
         if (column.cno !== column.cn) {
-
           updateColumnNameInFormula({
             virtualColumns: newMeta.v,
             oldColumnName: oldCol.cn,
-            newColumnName: newCol.cn,
-          })
+            newColumnName: newCol.cn
+          });
 
           // todo: populate alias
           newCol._cn = newCol.cn;
 
-          await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-            cn: column.cn
-          }, {
-            cn: column.cno,
-            tn
-          })
-          await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-            rcn: column.cn
-          }, {
-            rcn: column.cno,
-            rtn: tn
-          })
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_relations',
+            {
+              cn: column.cn
+            },
+            {
+              cn: column.cno,
+              tn
+            }
+          );
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_relations',
+            {
+              rcn: column.cn
+            },
+            {
+              rcn: column.cno,
+              rtn: tn
+            }
+          );
 
-          aclOper.push(async () => this.modifyColumnNameInACL(tn, column.cno, column.cn));
+          aclOper.push(async () =>
+            this.modifyColumnNameInACL(tn, column.cno, column.cn)
+          );
 
           // virtual views param update
           for (const qp of [queryParams, ...virtualViewsParamsArr]) {
-            if (!qp) continue
+            if (!qp) continue;
             // @ts-ignore
-            const {filters, sortList, showFields} = qp;
+            const { filters, sortList, showFields } = qp;
             /* update sort field */
             const s = sortList.find(v => v.field === column.cno);
             if (s) {
@@ -486,7 +606,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 bt._cn = column._cn;
 
                 // update column name in parent table metadata
-                relationTableMetas.add(this.metas[bt.rtn])
+                relationTableMetas.add(this.metas[bt.rtn]);
                 for (const pHm of this.metas[bt.rtn]?.hasMany) {
                   if (pHm.cn === column.cno && pHm.tn === tn) {
                     pHm.cn = column.cn;
@@ -495,18 +615,16 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 }
               }
 
-
               // update lookup columns
               this.metas[bt.rtn].v?.forEach(v => {
                 if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
-                  relationTableMetas.add(this.metas[bt.rtn])
+                  relationTableMetas.add(this.metas[bt.rtn]);
                   v.lk.lcn = column.cn;
                   v.lk._lcn = column._cn;
                 }
-              })
+              });
             }
           }
-
 
           // update column name in has many
           if (newMeta.hasMany?.length) {
@@ -516,7 +634,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 hm._rcn = column._cn;
 
                 // update column name in child table metadata
-                relationTableMetas.add(this.metas[hm.tn])
+                relationTableMetas.add(this.metas[hm.tn]);
                 for (const cBt of this.metas[hm.tn]?.belongsTo) {
                   if (cBt.rcn === column.cno && cBt.rtn === tn) {
                     cBt.rcn = column.cn;
@@ -528,12 +646,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
               // update lookup columns
               this.metas[hm.tn].v?.forEach(v => {
                 if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
-                  relationTableMetas.add(this.metas[hm.tn])
+                  relationTableMetas.add(this.metas[hm.tn]);
                   v.lk.lcn = column.cn;
                   v.lk._lcn = column._cn;
                 }
-              })
-
+              });
             }
           }
 
@@ -545,7 +662,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 mm._cn = column._cn;
 
                 // update column name in child table metadata
-                relationTableMetas.add(this.metas[mm.rtn])
+                relationTableMetas.add(this.metas[mm.rtn]);
                 for (const cMm of this.metas[mm.rtn]?.manyToMany) {
                   if (cMm.rcn === column.cno && cMm.rtn === tn) {
                     cMm.rcn = column.cn;
@@ -554,16 +671,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 }
               }
 
-
               // update lookup columns
               this.metas[mm.rtn].v?.forEach(v => {
                 if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
-                  relationTableMetas.add(this.metas[mm.rtn])
+                  relationTableMetas.add(this.metas[mm.rtn]);
                   v.lk.lcn = column.cn;
                   v.lk._lcn = column._cn;
                 }
-              })
-
+              });
             }
           }
         }
@@ -579,7 +694,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             }
           }
         }
-
       } else if (column.altered === 4) {
         // handle delete col -- no change
         for (const permObj of Object.values(acl)) {
@@ -596,15 +710,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         addErrorOnColumnDeleteInFormula({
           virtualColumns: newMeta.v,
           columnName: column.cno
-        })
+        });
 
         aclOper.push(async () => this.deleteColumnNameInACL(tn, column.cno));
-
 
         // virtual views param update
         for (const qp of virtualViewsParamsArr) {
           // @ts-ignore
-          const {filters, sortList, showFields} = qp;
+          const { filters, sortList, showFields } = qp;
           /* update sort field */
           const sIndex = sortList.findIndex(v => v.field === column.cno);
           if (sIndex > -1) {
@@ -620,7 +733,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           }
         }
 
-
         // Delete lookup columns mapping to current column
         // update column name in belongs to
         if (newMeta.belongsTo?.length) {
@@ -628,14 +740,13 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             // filter out lookup columns which maps to current col
             this.metas[bt.rtn].v = this.metas[bt.rtn].v?.filter(v => {
               if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
-                relationTableMetas.add(this.metas[bt.rtn])
+                relationTableMetas.add(this.metas[bt.rtn]);
                 return false;
               }
               return true;
-            })
+            });
           }
         }
-
 
         // update column name in has many
         if (newMeta.hasMany?.length) {
@@ -643,11 +754,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             // filter out lookup columns which maps to current col
             this.metas[hm.tn].v = this.metas[hm.tn].v?.filter(v => {
               if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
-                relationTableMetas.add(this.metas[hm.tn])
+                relationTableMetas.add(this.metas[hm.tn]);
                 return false;
               }
-              return true
-            })
+              return true;
+            });
           }
         }
 
@@ -657,15 +768,13 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             // filter out lookup columns which maps to current col
             this.metas[mm.rtn].v = this.metas[mm.rtn].v?.filter(v => {
               if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
-                relationTableMetas.add(this.metas[mm.rtn])
+                relationTableMetas.add(this.metas[mm.rtn]);
                 return false;
               }
               return true;
-            })
+            });
           }
         }
-
-
       } else if (column.altered === 1) {
         // handle new col -- no change
         for (const permObj of Object.values(acl)) {
@@ -680,8 +789,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         if (queryParams?.showFields) {
           queryParams.showFields[column.cno] = true;
         }
-
-
       } else {
         oldCol = oldMeta.columns.find(c => c.cn === column.cn);
         newCol = newMeta.columns.find(c => c.cn === column.cn);
@@ -691,39 +798,64 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       }
 
       for (let i = 0; i < virtualViewsParamsArr.length; i++) {
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-          query_params: JSON.stringify(virtualViewsParamsArr[i])
-        }, virtualViews[i].id);
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_models',
+          {
+            query_params: JSON.stringify(virtualViewsParamsArr[i])
+          },
+          virtualViews[i].id
+        );
       }
     }
 
-
     // update relation tables metadata
     for (const relMeta of relationTableMetas) {
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        meta: JSON.stringify(relMeta)
-      }, {
-        title: relMeta.tn
-      });
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          meta: JSON.stringify(relMeta)
+        },
+        {
+          title: relMeta.tn
+        }
+      );
       this.models[relMeta.tn] = this.getBaseModel(relMeta);
-      XcCache.del([this.projectId, this.dbAlias, 'table', relMeta.tn].join('::'));
+      XcCache.del(
+        [this.projectId, this.dbAlias, 'table', relMeta.tn].join('::')
+      );
     }
 
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-      meta: JSON.stringify(newMeta),
-      ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
-    }, {
-      title: tn
-    });
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        meta: JSON.stringify(newMeta),
+        ...(queryParams ? { query_params: JSON.stringify(queryParams) } : {})
+      },
+      {
+        title: tn
+      }
+    );
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
 
     this.models[tn] = this.getBaseModel(newMeta);
 
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
-      acl: JSON.stringify(acl)
-    }, {
-      tn
-    });
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      {
+        acl: JSON.stringify(acl)
+      },
+      {
+        tn
+      }
+    );
 
     this.acls[tn] = acl;
 
@@ -733,22 +865,32 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         meta: newMeta
       });
     }
-    this.baseLog(`onTableUpdate : Generating model instance for '%s' table`, tn)
-
+    this.baseLog(
+      `onTableUpdate : Generating model instance for '%s' table`,
+      tn
+    );
 
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
-
-
   }
 
-
-  public async onViewUpdate(viewName: string, beforeMetaUpdate?: (args: any) => Promise<void>): Promise<void> {
+  public async onViewUpdate(
+    viewName: string,
+    beforeMetaUpdate?: (args: any) => Promise<void>
+  ): Promise<void> {
     this.baseLog(`onViewUpdate : '%s'`, viewName);
-    this.baseLog(`onViewUpdate : Getting old model meta of '%s' view`, viewName)
+    this.baseLog(
+      `onViewUpdate : Getting old model meta of '%s' view`,
+      viewName
+    );
 
-    const oldModelRow = this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {
-      title: viewName
-    });
+    const oldModelRow = this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        title: viewName
+      }
+    );
 
     if (!oldModelRow) {
       return;
@@ -757,21 +899,40 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // todo : optimize db operations
     const columns = await this.getColumnList(viewName);
 
+    const ctx = this.generateContextForTable(
+      viewName,
+      columns,
+      [],
+      [],
+      [],
+      'view'
+    );
 
-    const ctx = this.generateContextForTable(viewName, columns, [], [], [], 'view');
-
-    this.baseLog(`onViewUpdate : Generating new model meta of '%s' view`, viewName)
+    this.baseLog(
+      `onViewUpdate : Generating new model meta of '%s' view`,
+      viewName
+    );
 
     /* create models from table */
-    const newMeta = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getObject();
+    const newMeta = ModelXcMetaFactory.create(this.connectionConfig, {
+      dir: '',
+      ctx,
+      filename: ''
+    }).getObject();
 
-    this.baseLog(`onViewUpdate : Updating model meta of '%s' view`, viewName)
+    this.baseLog(`onViewUpdate : Updating model meta of '%s' view`, viewName);
 
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-      meta: JSON.stringify(newMeta)
-    }, {
-      title: viewName
-    });
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        meta: JSON.stringify(newMeta)
+      },
+      {
+        title: viewName
+      }
+    );
 
     if (beforeMetaUpdate) {
       await beforeMetaUpdate({
@@ -779,50 +940,52 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         meta: newMeta
       });
     }
-    this.baseLog(`onViewUpdate : Generating model instance for '%s' table`, viewName)
+    this.baseLog(
+      `onViewUpdate : Generating model instance for '%s' table`,
+      viewName
+    );
 
     this.models[viewName] = this.getBaseModel(newMeta);
-
-
   }
-
 
   public getDbDriver(): XKnex {
     this.initDbDriver();
     return this.dbDriver;
   }
 
-
   public async onHooksUpdate(tn?: string): Promise<void> {
-    this.baseLog(`onHooksUpdate : %s`, tn)
+    this.baseLog(`onHooksUpdate : %s`, tn);
     await this.loadHooks();
   }
 
   public async restartCron(args): Promise<any> {
-    this.baseLog(`restartCron :`,)
+    this.baseLog(`restartCron :`);
     await this.cronJob.restartCron(args);
   }
 
   public async removeCron(args): Promise<any> {
-    this.baseLog(`removeCron :`,)
+    this.baseLog(`removeCron :`);
     await this.cronJob.removeCron(args);
   }
 
-
   public async xcUpgrade(): Promise<any> {
-    this.baseLog(`xcUpgrade :`,)
-
+    this.baseLog(`xcUpgrade :`);
 
     const NC_VERSIONS = [
-      {name: '0009000', handler: null},
-      {name: '0009044', handler: this.ncUpManyToMany.bind(this)}
-    ]
-    if (!await this.xcMeta?.knex?.schema?.hasTable?.('nc_store')) {
+      { name: '0009000', handler: null },
+      { name: '0009044', handler: this.ncUpManyToMany.bind(this) }
+    ];
+    if (!(await this.xcMeta?.knex?.schema?.hasTable?.('nc_store'))) {
       return;
     }
-    this.baseLog(`xcUpgrade : Getting configuration from meta database`,)
+    this.baseLog(`xcUpgrade : Getting configuration from meta database`);
 
-    const config = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_store', {key: 'NC_CONFIG'});
+    const config = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_store',
+      { key: 'NC_CONFIG' }
+    );
 
     if (config) {
       const configObj: NcConfig = JSON.parse(config.value);
@@ -830,19 +993,28 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         for (const version of NC_VERSIONS) {
           // compare current version and old version
           if (version.name > configObj.version) {
-            this.baseLog(`xcUpgrade : Upgrading '%s' => '%s'`, configObj.version, version.name)
+            this.baseLog(
+              `xcUpgrade : Upgrading '%s' => '%s'`,
+              configObj.version,
+              version.name
+            );
             await version?.handler?.();
 
             // update version in meta after each upgrade
             config.version = version.name;
-            await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_store', {
-              value: JSON.stringify(config)
-            }, {
-              key: 'NC_CONFIG',
-            });
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_store',
+              {
+                value: JSON.stringify(config)
+              },
+              {
+                key: 'NC_CONFIG'
+              }
+            );
 
             // todo: backup data
-
           }
           if (version.name === process.env.NC_VERSION) {
             break;
@@ -855,10 +1027,12 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         });
       }
     } else {
-      this.baseLog(`xcUpgrade : Inserting config to meta database`,)
+      this.baseLog(`xcUpgrade : Inserting config to meta database`);
       const configObj: NcConfig = JSON.parse(JSON.stringify(this.config));
       delete configObj.envs;
-      const isOld = (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models'))?.length;
+      const isOld = (
+        await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models')
+      )?.length;
       configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
         key: 'NC_CONFIG',
@@ -870,11 +1044,15 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
   }
 
-
   public async onAclUpdate(tn: string): Promise<any> {
     this.baseLog(`onAclUpdate : '%s'`, tn);
-    this.baseLog(`onAclUpdate : Loading latest acl for '%s'`, tn)
-    const aclRow = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {'tn': tn});
+    this.baseLog(`onAclUpdate : Loading latest acl for '%s'`, tn);
+    const aclRow = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      { tn: tn }
+    );
     if (aclRow) {
       if (aclRow.type === 'procedure' || aclRow.type === 'function') {
         this.procedureOrFunctionAcls[tn] = JSON.parse(aclRow.acl);
@@ -887,8 +1065,12 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   // NOTE: xc-meta
   public async loadXcAcl(): Promise<any> {
     this.baseLog(`loadXcAcl :`);
-    const aclRows = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_acl');
-    for (const {acl, tn, type} of aclRows) {
+    const aclRows = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl'
+    );
+    for (const { acl, tn, type } of aclRows) {
       if (type === 'procedure' || type === 'function') {
         this.procedureOrFunctionAcls[tn] = JSON.parse(acl);
       } else {
@@ -901,7 +1083,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     return this.xcMeta;
   }
 
-
   public async xcTablesRowDelete(tn: string): Promise<void> {
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
       title: tn
@@ -911,51 +1092,100 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     });
   }
 
-  public async onVirtualRelationCreate(parentTable: string, childTable: string): Promise<any> {
-    return this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-      _tn: this.getTableNameAlias(childTable),
-      _rtn: this.getTableNameAlias(parentTable),
-    }, {
-      tn: childTable,
-      rtn: parentTable,
-    });
+  public async onVirtualRelationCreate(
+    parentTable: string,
+    childTable: string
+  ): Promise<any> {
+    return this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        _tn: this.getTableNameAlias(childTable),
+        _rtn: this.getTableNameAlias(parentTable)
+      },
+      {
+        tn: childTable,
+        rtn: parentTable
+      }
+    );
   }
 
-
-  public async onManyToManyRelationCreate(parent: string, child: string, _args?: any) {
-    return this.getManyToManyRelations({parent, child})
+  public async onManyToManyRelationCreate(
+    parent: string,
+    child: string,
+    _args?: any
+  ) {
+    return this.getManyToManyRelations({ parent, child });
   }
 
-  public async onManyToManyRelationDelete(parent: string, child: string, _args?: any) {
-
+  public async onManyToManyRelationDelete(
+    parent: string,
+    child: string,
+    _args?: any
+  ) {
     const parentMeta = this.metas[parent];
     const childMeta = this.metas[child];
 
-    parentMeta.manyToMany = parentMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
-    childMeta.manyToMany = childMeta.manyToMany.filter(mm => !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
+    parentMeta.manyToMany = parentMeta.manyToMany.filter(
+      mm =>
+        !(
+          (mm.tn === parent && mm.rtn === child) ||
+          (mm.tn === child && mm.rtn === parent)
+        )
+    );
+    childMeta.manyToMany = childMeta.manyToMany.filter(
+      mm =>
+        !(
+          (mm.tn === parent && mm.rtn === child) ||
+          (mm.tn === child && mm.rtn === parent)
+        )
+    );
 
     // filter lookup and relation virtual columns
-    parentMeta.v = parentMeta.v.filter(({
-                                          mm,
-                                          ...rest
-                                        }) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
-      // check for lookup
-      && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
-    )
-    childMeta.v = childMeta.v.filter(({
-                                        mm,
-                                        ...rest
-                                      }) => (!mm || !(mm.tn === parent && mm.rtn === child || mm.tn === child && mm.rtn === parent))
-      // check for lookup
-      && !(rest.lk && rest.lk.type === 'mm' && (rest.lk.tn === parent && rest.lk.rtn === child || rest.lk.tn === child && rest.lk.rtn === parent))
-    )
+    parentMeta.v = parentMeta.v.filter(
+      ({ mm, ...rest }) =>
+        (!mm ||
+          !(
+            (mm.tn === parent && mm.rtn === child) ||
+            (mm.tn === child && mm.rtn === parent)
+          )) &&
+        // check for lookup
+        !(
+          rest.lk &&
+          rest.lk.type === 'mm' &&
+          ((rest.lk.tn === parent && rest.lk.rtn === child) ||
+            (rest.lk.tn === child && rest.lk.rtn === parent))
+        )
+    );
+    childMeta.v = childMeta.v.filter(
+      ({ mm, ...rest }) =>
+        (!mm ||
+          !(
+            (mm.tn === parent && mm.rtn === child) ||
+            (mm.tn === child && mm.rtn === parent)
+          )) &&
+        // check for lookup
+        !(
+          rest.lk &&
+          rest.lk.type === 'mm' &&
+          ((rest.lk.tn === parent && rest.lk.rtn === child) ||
+            (rest.lk.tn === child && rest.lk.rtn === parent))
+        )
+    );
 
     for (const meta of [parentMeta, childMeta]) {
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        meta: JSON.stringify(meta)
-      }, {title: meta.tn})
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          meta: JSON.stringify(meta)
+        },
+        { title: meta.tn }
+      );
       XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
-      this.models[meta.tn] = this.getBaseModel(meta)
+      this.models[meta.tn] = this.getBaseModel(meta);
     }
   }
 
@@ -968,11 +1198,15 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   }
 
   public async onVirtualColumnAliasUpdate(tableName: string): Promise<void> {
-    const model = await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {title: tableName});
+    const model = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      { title: tableName }
+    );
     const meta = JSON.parse(model.meta);
     this.models[tableName] = this.getBaseModel(meta);
   }
-
 
   protected async loadCommon(): Promise<any> {
     this.baseLog(`loadCommon :`);
@@ -980,7 +1214,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.cronJob = new XcCron(this.config, this as any, this.app as any);
     await this.cronJob.init();
   }
-
 
   protected initDbDriver(): void {
     this.dbDriver = NcConnectionMgr.get({
@@ -994,7 +1227,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       env: this.config.env,
       config: this.config,
       projectId: this.projectId
-    })
+    });
     // if (!this.dbDriver) {
     //   if(this.projectBuilder?.prefix){
     //     this.dbDriver = this.xcMeta.knex
@@ -1048,22 +1281,22 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     // }
   }
 
-
   // table alias functions
   protected getInflectedName(name: string, inflectionFns: string): string {
     if (inflectionFns && inflectionFns !== 'none') {
-      return inflectionFns.split(',').reduce((out, fn) => inflection[fn](out), name);
+      return inflectionFns
+        .split(',')
+        .reduce((out, fn) => inflection[fn](out), name);
     }
     return name;
   }
 
   protected async getColumnList(tn: string): Promise<any[]> {
     this.baseLog(`getColumnList : '%s'`, tn);
-    let columns = await this.sqlClient.columnList({tn});
+    let columns = await this.sqlClient.columnList({ tn });
     columns = columns.data.list;
     return columns;
   }
-
 
   protected async getRelationList(): Promise<any[]> {
     this.baseLog(`getRelationList :`);
@@ -1076,26 +1309,52 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
   protected async getXcRelationList(): Promise<any[]> {
     this.baseLog(`getRelationList :`);
 
-    const relations = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_relations');
+    const relations = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations'
+    );
     return relations;
   }
 
-  protected extractHasManyRelationsOfTable(relations, tn: string, enabledModels?: string[]): any[] {
+  protected extractHasManyRelationsOfTable(
+    relations,
+    tn: string,
+    enabledModels?: string[]
+  ): any[] {
     this.baseLog(`extractHasManyRelationsOfTable : '%s'`, tn);
-    const hasManyRel = relations.filter(r => (r.rtn === tn && (!enabledModels || enabledModels.includes(r.tn))));
+    const hasManyRel = relations.filter(
+      r => r.rtn === tn && (!enabledModels || enabledModels.includes(r.tn))
+    );
     const hasMany = JSON.parse(JSON.stringify(hasManyRel));
     return hasMany;
   }
 
-
-  protected extractBelongsToRelationsOfTable(relations: any[], tn: string, enabledModels?: string[]): any[] {
+  protected extractBelongsToRelationsOfTable(
+    relations: any[],
+    tn: string,
+    enabledModels?: string[]
+  ): any[] {
     this.baseLog(`extractBelongsToRelationsOfTable : '%s'`, tn);
-    const belongsTo = JSON.parse(JSON.stringify(relations.filter(r => (r.tn === tn) && (!enabledModels || enabledModels.includes(r.rtn)))));
+    const belongsTo = JSON.parse(
+      JSON.stringify(
+        relations.filter(
+          r => r.tn === tn && (!enabledModels || enabledModels.includes(r.rtn))
+        )
+      )
+    );
     return belongsTo;
   }
 
-
-  protected generateContextForTable(tn: string, columns: any[], relations, hasMany: any[], belongsTo: any[], type = 'table', tableNameAlias?: string): any {
+  protected generateContextForTable(
+    tn: string,
+    columns: any[],
+    relations,
+    hasMany: any[],
+    belongsTo: any[],
+    type = 'table',
+    tableNameAlias?: string
+  ): any {
     this.baseLog(`generateContextForTable : '%s' %s`, tn, type);
 
     for (const col of columns) {
@@ -1103,7 +1362,7 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
 
     // tslint:disable-next-line:variable-name
-    const _tn = tableNameAlias || this.getTableNameAlias(tn)
+    const _tn = tableNameAlias || this.getTableNameAlias(tn);
 
     const ctx = {
       dbType: this.connectionConfig.client,
@@ -1130,11 +1389,14 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
 
     if (this.projectBuilder?.prefix) {
-      tn = tn.replace(this.projectBuilder?.prefix, '')
+      tn = tn.replace(this.projectBuilder?.prefix, '');
     }
 
-    const modifiedTableName = tn?.replace(/^(?=\d+)/, 'ISN___')
-    return this.getInflectedName(modifiedTableName, this.connectionConfig?.meta?.inflection?.tn);
+    const modifiedTableName = tn?.replace(/^(?=\d+)/, 'ISN___');
+    return this.getInflectedName(
+      modifiedTableName,
+      this.connectionConfig?.meta?.inflection?.tn
+    );
   }
 
   protected generateContextForHasMany(ctx, tnc: string): any {
@@ -1148,7 +1410,6 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     };
   }
 
-
   protected generateContextForBelongsTo(ctx: any, rtn: string): any {
     this.baseLog(`generateContextForBelongsTo : '%s' => '%s'`, rtn, ctx.tn);
     return {
@@ -1160,58 +1421,76 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     };
   }
 
-
   protected generateRendererArgs(ctx: any): any {
     this.baseLog(`generateRendererArgs : '%s'`, ctx.tn);
-    return {dir: '', ctx, filename: ''};
+    return { dir: '', ctx, filename: '' };
   }
 
-
-  protected getRelationTableNames(relations, newTablename: string, enabledTableList?: string[]): string[] {
+  protected getRelationTableNames(
+    relations,
+    newTablename: string,
+    enabledTableList?: string[]
+  ): string[] {
     this.baseLog(`getRelationTableNames : '%s'`, newTablename);
     const relatedTableList = [];
 
     // get all relation table names
     for (const r of relations) {
-      if (newTablename === r.tn && (!enabledTableList || enabledTableList.includes(r.rtn))) {
+      if (
+        newTablename === r.tn &&
+        (!enabledTableList || enabledTableList.includes(r.rtn))
+      ) {
         if (!relatedTableList.includes(r.rtn)) {
-          relatedTableList.push(r.rtn)
+          relatedTableList.push(r.rtn);
         }
-      } else if (newTablename === r.rtn && (!enabledTableList || enabledTableList.includes(r.tn))) {
+      } else if (
+        newTablename === r.rtn &&
+        (!enabledTableList || enabledTableList.includes(r.tn))
+      ) {
         if (!relatedTableList.includes(r.tn)) {
-          relatedTableList.push(r.tn)
+          relatedTableList.push(r.tn);
         }
       }
     }
     return relatedTableList;
   }
 
-  protected filterRelationsForTable(relations: any[], tn: string, enabledModels?: string[]): any[] {
+  protected filterRelationsForTable(
+    relations: any[],
+    tn: string,
+    enabledModels?: string[]
+  ): any[] {
     this.baseLog(`filterRelationsForTable : '%s'`, tn);
-    const tableRelations = relations.filter(r => (
-        (r.tn === tn && (!enabledModels || enabledModels.includes(r.rtn)))
-        || (r.rtn === tn && (!enabledModels || enabledModels.includes(r.tn)))
-      )
+    const tableRelations = relations.filter(
+      r =>
+        (r.tn === tn && (!enabledModels || enabledModels.includes(r.rtn))) ||
+        (r.rtn === tn && (!enabledModels || enabledModels.includes(r.tn)))
     );
     return tableRelations;
   }
 
-
   protected getBaseModel(meta): BaseModelSql {
     this.baseLog(`getBaseModel : '%s'`);
     this.metas[meta.tn] = meta;
-    return new BaseModel({
-      dbDriver: this.dbDriver,
-      ...meta,
-      dbModels: this.models
-    }, this);
+    return new BaseModel(
+      {
+        dbDriver: this.dbDriver,
+        ...meta,
+        dbModels: this.models
+      },
+      this
+    );
   }
 
   // NOTE: xc-meta
   protected async loadHooks(): Promise<void> {
     this.baseLog(`loadHooks :`);
     this.hooks = {};
-    const hooksList = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_hooks');
+    const hooksList = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_hooks'
+    );
 
     for (const hook of hooksList) {
       if (!(hook.tn in this.hooks)) {
@@ -1220,46 +1499,64 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
       try {
         hook.condition = hook.condition && JSON.parse(hook.condition);
         hook.notification = hook.notification && JSON.parse(hook.notification);
-      } catch (e) {
-      }
+      } catch (e) {}
       const key = `${hook.event}.${hook.operation}`;
       this.hooks[hook.tn][key] = this.hooks[hook.tn][key] || [];
       this.hooks[hook.tn][key].push(hook);
     }
   }
 
-
   // NOTE: xc-meta
   public async loadFormViews(): Promise<void> {
     this.baseLog(`loadFormViews :`);
     this.formViews = {};
-    const formViewList = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models', {
-      condition: {
-        show_as: 'form'
+    const formViewList = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        condition: {
+          show_as: 'form'
+        }
       }
-    });
+    );
 
     for (const formView of formViewList) {
       if (!(formView.parent_model_title in this.formViews)) {
         this.formViews[formView.parent_model_title] = {};
       }
       try {
-        formView.query_params = formView.query_params && JSON.parse(formView.query_params);
-      } catch (e) {
-      }
+        formView.query_params =
+          formView.query_params && JSON.parse(formView.query_params);
+      } catch (e) {}
       this.formViews[formView.parent_model_title][formView.id] = formView;
     }
   }
 
-  protected async generateAndSaveAcl(name: string, type = 'table'): Promise<void> {
+  protected async generateAndSaveAcl(
+    name: string,
+    type = 'table'
+  ): Promise<void> {
     this.baseLog(`generateAndSaveAcl : '%s' %s`, name, type);
 
     if (type === 'procedure' || type === 'function') {
-      this.baseLog(`generateAndSaveAcl : Generating and inserting '%s' %s acl`, name, type);
+      this.baseLog(
+        `generateAndSaveAcl : Generating and inserting '%s' %s acl`,
+        name,
+        type
+      );
 
-      this.procedureOrFunctionAcls[name] = {creator: true, editor: true, guest: false};
+      this.procedureOrFunctionAcls[name] = {
+        creator: true,
+        editor: true,
+        guest: false
+      };
       /* create nc_models and its rows if it doesn't exists  */
-      if (!(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {'tn': name}))) {
+      if (
+        !(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {
+          tn: name
+        }))
+      ) {
         await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_acl', {
           tn: name,
           acl: JSON.stringify(this.procedureOrFunctionAcls[name]),
@@ -1267,25 +1564,40 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         });
       }
     } else {
-      this.baseLog(`generateAndSaveAcl : Generating and inserting '%s' %s acl`, name, type);
-      this.acls[name] = new ExpressXcPolicy({dir: '', ctx: {type}, filename: ''}).getObject();
+      this.baseLog(
+        `generateAndSaveAcl : Generating and inserting '%s' %s acl`,
+        name,
+        type
+      );
+      this.acls[name] = new ExpressXcPolicy({
+        dir: '',
+        ctx: { type },
+        filename: ''
+      }).getObject();
 
       /* create nc_models and its rows if it doesn't exists  */
-      if (!(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {'tn': name}))) {
+      if (
+        !(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {
+          tn: name
+        }))
+      ) {
         await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_acl', {
           tn: name,
           acl: JSON.stringify(this.acls[name]),
           type
-        })
+        });
       }
     }
   }
 
   // NOTE: xc-meta
   protected async readXcModelsAndGroupByType() {
-
     this.baseLog(`readXcModelsAndGroupByType : `);
-    const metaArr = (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models'))
+    const metaArr = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_models'
+    );
 
     const enabledModels = [];
 
@@ -1299,10 +1611,11 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     this.viewsCount = 0;
     this.relationsCount = 0;
 
-    this.baseLog(`readXcModelsAndGroupByType : Iterating and grouping enabled models`)
+    this.baseLog(
+      `readXcModelsAndGroupByType : Iterating and grouping enabled models`
+    );
 
     for (const obj of metaArr) {
-
       if (obj.type === 'procedure') {
         if (obj.enabled) {
           procedureArr.push(JSON.parse(obj.meta));
@@ -1326,80 +1639,115 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         }
       }
     }
-    return {metaArr, enabledModels, tableAndViewArr, functionArr, procedureArr};
+    return {
+      metaArr,
+      enabledModels,
+      tableAndViewArr,
+      functionArr,
+      procedureArr
+    };
   }
 
-
   protected async relationsSyncAndGet(): Promise<any> {
-
     // check if relations already synced
-    let relations = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_relations', {
-      fields: [
-        'ur',
-        'tn',
-        '_tn',
-        'cn',
-        '_cn',
-        'rtn',
-        'rcn',
-        '_rcn',
-        '_rtn',
-        'type',
-        'db_type',
-        'dr',
-        'fkn'
-      ]
-    });
+    let relations = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        fields: [
+          'ur',
+          'tn',
+          '_tn',
+          'cn',
+          '_cn',
+          'rtn',
+          'rcn',
+          '_rcn',
+          '_rtn',
+          'type',
+          'db_type',
+          'dr',
+          'fkn'
+        ]
+      }
+    );
 
     // check if relations already synced
     if (relations.length) {
       this.relationsCount = relations.length;
-      return relations
+      return relations;
     }
 
     relations = (await this.sqlClient.relationListAll())?.data?.list;
     this.relationsCount = relations.length;
 
     // check if relations already synced
-    if ((await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_relations')).length) {
-      return relations
+    if (
+      (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_relations'))
+        .length
+    ) {
+      return relations;
     }
 
     // todo: insert parallelly
     for (const relation of relations) {
       relation.enabled = true;
       relation.fkn = relation?.cstn;
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_relations', {
-        tn: relation.tn,
-        _tn: this.getTableNameAlias(relation.tn),
-        cn: relation.cn,
-        _cn: this.getColumnNameAlias({cn: relation.cn}, relation.tn),
-        rtn: relation.rtn,
-        _rtn: this.getTableNameAlias(relation.rtn),
-        rcn: relation.rcn,
-        _rcn: this.getColumnNameAlias({cn: relation.rcn}, relation.rtn),
-        type: 'real',
-        db_type: this.connectionConfig?.client,
-        dr: relation?.dr,
-        ur: relation?.ur,
-        fkn: relation?.cstn
-      })
+      await this.xcMeta.metaInsert(
+        this.projectId,
+        this.dbAlias,
+        'nc_relations',
+        {
+          tn: relation.tn,
+          _tn: this.getTableNameAlias(relation.tn),
+          cn: relation.cn,
+          _cn: this.getColumnNameAlias({ cn: relation.cn }, relation.tn),
+          rtn: relation.rtn,
+          _rtn: this.getTableNameAlias(relation.rtn),
+          rcn: relation.rcn,
+          _rcn: this.getColumnNameAlias({ cn: relation.rcn }, relation.rtn),
+          type: 'real',
+          db_type: this.connectionConfig?.client,
+          dr: relation?.dr,
+          ur: relation?.ur,
+          fkn: relation?.cstn
+        }
+      );
     }
     return relations;
   }
 
-  protected async renameTableNameInXcRelations(oldTableName: string, newTableName: string): Promise<any> {
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-      tn: newTableName
-    }, {tn: oldTableName});
+  protected async renameTableNameInXcRelations(
+    oldTableName: string,
+    newTableName: string
+  ): Promise<any> {
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        tn: newTableName
+      },
+      { tn: oldTableName }
+    );
 
-    await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_relations', {
-      rtn: newTableName
-    }, {rtn: oldTableName});
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        rtn: newTableName
+      },
+      { rtn: oldTableName }
+    );
   }
 
-
-  protected async getManyToManyRelations({parent = null, child = null, localMetas = null} = {}): Promise<Set<any>> {
+  protected async getManyToManyRelations({
+    parent = null,
+    child = null,
+    localMetas = null
+  } = {}): Promise<Set<any>> {
     const metas = new Set<any>();
     const assocMetas = new Set<any>();
 
@@ -1410,12 +1758,17 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     }
 
     for (const meta of Object.values(this.metas)) {
-
       // check if table is a Bridge table(or Associative Table) by checking
       // number of foreign keys and columns
       if (meta.belongsTo?.length === 2 && meta.columns.length < 5) {
-
-        if (parent && child && !([parent, child].includes(meta.belongsTo[0].rtn) && [parent, child].includes(meta.belongsTo[1].rtn))) {
+        if (
+          parent &&
+          child &&
+          !(
+            [parent, child].includes(meta.belongsTo[0].rtn) &&
+            [parent, child].includes(meta.belongsTo[1].rtn)
+          )
+        ) {
           continue;
         }
 
@@ -1426,164 +1779,231 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
                 tableMetaA.hasMany.splice(tableMetaA.hasMany.findIndex(hm => hm.tn === meta.tn), 1)
                 tableMetaB.hasMany.splice(tableMetaB.hasMany.findIndex(hm => hm.tn === meta.tn), 1)*/
 
-
         // add manytomany data under metadata of both linked tables
         tableMetaA.manyToMany = tableMetaA.manyToMany || [];
         if (tableMetaA.manyToMany.every(mm => mm.vtn !== meta.tn)) {
           tableMetaA.manyToMany.push({
-            "tn": tableMetaA.tn,
-            "cn": meta.belongsTo[0].rcn,
-            "vtn": meta.tn,
-            "vcn": meta.belongsTo[0].cn,
-            "vrcn": meta.belongsTo[1].cn,
-            "rtn": meta.belongsTo[1].rtn,
-            "rcn": meta.belongsTo[1].rcn,
-            "_tn": tableMetaA._tn,
-            "_cn": meta.belongsTo[0]._rcn,
-            "_rtn": meta.belongsTo[1]._rtn,
-            "_rcn": meta.belongsTo[1]._rcn
-          })
-          metas.add(tableMetaA)
+            tn: tableMetaA.tn,
+            cn: meta.belongsTo[0].rcn,
+            vtn: meta.tn,
+            vcn: meta.belongsTo[0].cn,
+            vrcn: meta.belongsTo[1].cn,
+            rtn: meta.belongsTo[1].rtn,
+            rcn: meta.belongsTo[1].rcn,
+            _tn: tableMetaA._tn,
+            _cn: meta.belongsTo[0]._rcn,
+            _rtn: meta.belongsTo[1]._rtn,
+            _rcn: meta.belongsTo[1]._rcn
+          });
+          metas.add(tableMetaA);
         }
         // ignore if A & B are same table
         if (tableMetaB !== tableMetaA) {
           tableMetaB.manyToMany = tableMetaB.manyToMany || [];
           if (tableMetaB.manyToMany.every(mm => mm.vtn !== meta.tn)) {
             tableMetaB.manyToMany.push({
-              "tn": tableMetaB.tn,
-              "cn": meta.belongsTo[1].rcn,
-              "vtn": meta.tn,
-              "vcn": meta.belongsTo[1].cn,
-              "vrcn": meta.belongsTo[0].cn,
-              "rtn": meta.belongsTo[0].rtn,
-              "rcn": meta.belongsTo[0].rcn,
-              "_tn": tableMetaB._tn,
-              "_cn": meta.belongsTo[1]._rcn,
-              "_rtn": meta.belongsTo[0]._rtn,
-              "_rcn": meta.belongsTo[0]._rcn
-            })
-            metas.add(tableMetaB)
+              tn: tableMetaB.tn,
+              cn: meta.belongsTo[1].rcn,
+              vtn: meta.tn,
+              vcn: meta.belongsTo[1].cn,
+              vrcn: meta.belongsTo[0].cn,
+              rtn: meta.belongsTo[0].rtn,
+              rcn: meta.belongsTo[0].rcn,
+              _tn: tableMetaB._tn,
+              _cn: meta.belongsTo[1]._rcn,
+              _rtn: meta.belongsTo[0]._rtn,
+              _rcn: meta.belongsTo[0]._rcn
+            });
+            metas.add(tableMetaB);
           }
         }
-        assocMetas.add(meta)
+        assocMetas.add(meta);
       }
     }
 
     // Update metadata of tables which have manytomany relation
     // and recreate basemodel with new meta information
     for (const meta of metas) {
-
       let queryParams;
 
       // update showfields on new many to many relation create
       if (parent && child) {
         try {
-          queryParams = JSON.parse((await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_models', {title: meta.tn})).query_params)
+          queryParams = JSON.parse(
+            (
+              await this.xcMeta.metaGet(
+                this.projectId,
+                this.dbAlias,
+                'nc_models',
+                { title: meta.tn }
+              )
+            ).query_params
+          );
         } catch (e) {
           //  ignore
         }
       }
 
       meta.v = [
-        ...meta.v.filter(vc => !(vc.hm && meta.manyToMany.some(mm => vc.hm.tn === mm.vtn))),
+        ...meta.v.filter(
+          vc => !(vc.hm && meta.manyToMany.some(mm => vc.hm.tn === mm.vtn))
+        ),
         // todo: ignore duplicate m2m relations
         // todo: optimize, just compare associative table(Vtn)
-        ...meta.manyToMany.filter((v, i) => !meta.v.some(v1 => v1.mm
-            && (
-              v1.mm.tn === v.tn && v.rtn === v1.mm.rtn
-              || v1.mm.rtn === v.tn && v.tn === v1.mm.rtn
-            ) && v.vtn === v1.mm.vtn)
-          // ignore duplicate
-          && !meta.manyToMany.some((v1, i1) => i1 !== i && v1.tn === v.tn && v.rtn === v1.rtn && v.vtn === v1.vtn)
-        ).map(mm => {
-          if (queryParams?.showFields && !(`${mm._tn} <=> ${mm._rtn}` in queryParams.showFields)) {
-            queryParams.showFields[`${mm._tn} <=> ${mm._rtn}`] = true;
-          }
+        ...meta.manyToMany
+          .filter(
+            (v, i) =>
+              !meta.v.some(
+                v1 =>
+                  v1.mm &&
+                  ((v1.mm.tn === v.tn && v.rtn === v1.mm.rtn) ||
+                    (v1.mm.rtn === v.tn && v.tn === v1.mm.rtn)) &&
+                  v.vtn === v1.mm.vtn
+              ) &&
+              // ignore duplicate
+              !meta.manyToMany.some(
+                (v1, i1) =>
+                  i1 !== i &&
+                  v1.tn === v.tn &&
+                  v.rtn === v1.rtn &&
+                  v.vtn === v1.vtn
+              )
+          )
+          .map(mm => {
+            if (
+              queryParams?.showFields &&
+              !(`${mm._tn} <=> ${mm._rtn}` in queryParams.showFields)
+            ) {
+              queryParams.showFields[`${mm._tn} <=> ${mm._rtn}`] = true;
+            }
 
-          return {
-            mm,
-            _cn: `${mm._tn} <=> ${mm._rtn}`
-          }
-
-        })]
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        meta: JSON.stringify(meta),
-        ...(queryParams ? {query_params: JSON.stringify(queryParams)} : {})
-      }, {title: meta.tn})
+            return {
+              mm,
+              _cn: `${mm._tn} <=> ${mm._rtn}`
+            };
+          })
+      ];
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          meta: JSON.stringify(meta),
+          ...(queryParams ? { query_params: JSON.stringify(queryParams) } : {})
+        },
+        { title: meta.tn }
+      );
       XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
       if (!localMetas) {
-        this.models[meta.tn] = this.getBaseModel(meta)
+        this.models[meta.tn] = this.getBaseModel(meta);
       }
     }
 
     // Update metadata of associative table
     for (const meta of assocMetas) {
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        mm: 1,
-      }, {title: meta.tn})
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          mm: 1
+        },
+        { title: meta.tn }
+      );
       if (!localMetas) {
-        XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
-        this.models[meta.tn] = this.getBaseModel(meta)
+        XcCache.del(
+          [this.projectId, this.dbAlias, 'table', meta.tn].join('::')
+        );
+        this.models[meta.tn] = this.getBaseModel(meta);
       }
     }
 
     return metas;
   }
 
-
   protected async ncUpManyToMany(): Promise<any> {
-    const models = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models', {
-      fields: ['meta'],
-      condition: {
-        type: 'table'
+    const models = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        fields: ['meta'],
+        condition: {
+          type: 'table'
+        }
       }
-    });
+    );
     if (!models.length) {
-      return
+      return;
     }
     const metas = [];
     // add virtual columns for relations
     for (const metaObj of models) {
       const meta = JSON.parse(metaObj.meta);
       metas.push(meta);
-      const ctx = this.generateContextForTable(meta.tn, meta.columns, [], meta.hasMany, meta.belongsTo, meta.type, meta._tn);
+      const ctx = this.generateContextForTable(
+        meta.tn,
+        meta.columns,
+        [],
+        meta.hasMany,
+        meta.belongsTo,
+        meta.type,
+        meta._tn
+      );
       // generate virtual columns
-      meta.v = ModelXcMetaFactory.create(this.connectionConfig, {dir: '', ctx, filename: ''}).getVitualColumns();
+      meta.v = ModelXcMetaFactory.create(this.connectionConfig, {
+        dir: '',
+        ctx,
+        filename: ''
+      }).getVitualColumns();
       // set default primary values
-      ModelXcMetaFactory.create(this.connectionConfig, {}).mapDefaultPrimaryValue(meta.columns);
+      ModelXcMetaFactory.create(
+        this.connectionConfig,
+        {}
+      ).mapDefaultPrimaryValue(meta.columns);
       // update meta
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_models', {
-        meta: JSON.stringify(meta)
-      }, {title: meta.tn})
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          meta: JSON.stringify(meta)
+        },
+        { title: meta.tn }
+      );
     }
 
     // generate many to many relations an columns
-    await this.getManyToManyRelations({localMetas: metas});
+    await this.getManyToManyRelations({ localMetas: metas });
     return metas;
   }
 
-
   private getColumnNameAlias(col, tableName?: string) {
-    return this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?._cn || col._cn || this.getInflectedName(col.cn, this.connectionConfig?.meta?.inflection?.cn);
+    return (
+      this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?._cn ||
+      col._cn ||
+      this.getInflectedName(col.cn, this.connectionConfig?.meta?.inflection?.cn)
+    );
   }
 
   private baseLog(str, ...args): void {
     log(`${this.dbAlias} : ${str}`, ...args);
   }
 
-
-  private async modifyTableNameInACL(oldName: string, newName: string): Promise<void> {
+  private async modifyTableNameInACL(
+    oldName: string,
+    newName: string
+  ): Promise<void> {
     if (oldName === newName) {
       return;
     }
 
-
-    const replaceTableName = (obj) => {
+    const replaceTableName = obj => {
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
         return;
       }
 
-      for (const [key, value] of (Object.entries(obj) as any)) {
+      for (const [key, value] of Object.entries(obj) as any) {
         if (!value || typeof value !== 'object') {
           continue;
         }
@@ -1593,19 +2013,23 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             obj[newName] = value;
           }
 
-          replaceTableName(value)
+          replaceTableName(value);
         }
       }
     };
 
-
-    const acls = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_acl', {
-      xcCondition: {
-        acl: {
-          like: '%"custom":%'
+    const acls = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      {
+        xcCondition: {
+          acl: {
+            like: '%"custom":%'
+          }
         }
       }
-    })
+    );
 
     for (const aclRow of acls) {
       const aclObj = JSON.parse(aclRow.acl);
@@ -1614,36 +2038,39 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           continue;
         }
 
-        for (const acl of (Object.values(aclOps) as any[])) {
+        for (const acl of Object.values(aclOps) as any[]) {
           if (typeof acl === 'boolean') {
             continue;
           }
 
           if ('custom' in acl) {
-            replaceTableName(acl.custom)
+            replaceTableName(acl.custom);
           }
         }
       }
 
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
-        acl: JSON.stringify(aclObj)
-      }, {
-        id: aclRow.id
-      });
-
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_acl',
+        {
+          acl: JSON.stringify(aclObj)
+        },
+        {
+          id: aclRow.id
+        }
+      );
     }
-
-
   }
 
   // @ts-ignore
   private async deleteTableNameInACL(table: string) {
-    const replaceTableName = (obj) => {
+    const replaceTableName = obj => {
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
         return;
       }
 
-      for (const [key, value] of (Object.entries(obj) as any)) {
+      for (const [key, value] of Object.entries(obj) as any) {
         if (!value || typeof value !== 'object') {
           continue;
         }
@@ -1651,19 +2078,23 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
           if (key === table) {
             delete obj[key];
           }
-          replaceTableName(value)
+          replaceTableName(value);
         }
       }
     };
 
-
-    const acls = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_acl', {
-      xcCondition: {
-        acl: {
-          like: '%"custom":%'
+    const acls = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      {
+        xcCondition: {
+          acl: {
+            like: '%"custom":%'
+          }
         }
       }
-    })
+    );
 
     for (const aclRow of acls) {
       const aclObj = JSON.parse(aclRow.acl);
@@ -1671,63 +2102,73 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
         if (typeof aclOps === 'boolean') {
           continue;
         }
-        for (const acl of (Object.values(aclOps) as any[])) {
+        for (const acl of Object.values(aclOps) as any[]) {
           if (typeof acl === 'boolean') {
             continue;
           }
           if ('custom' in acl) {
-            replaceTableName(acl.custom)
+            replaceTableName(acl.custom);
           }
         }
       }
 
-      await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
-        acl: JSON.stringify(aclObj)
-      }, {
-        id: aclRow.id
-      });
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_acl',
+        {
+          acl: JSON.stringify(aclObj)
+        },
+        {
+          id: aclRow.id
+        }
+      );
     }
   }
 
-
-  private async modifyColumnNameInACL(table: string, oldName: string, newName: string): Promise<void> {
-    this.baseLog(`modifyColumnNameInACL : '${oldName}' =>  '${newName}',  table : '${table}'`)
+  private async modifyColumnNameInACL(
+    table: string,
+    oldName: string,
+    newName: string
+  ): Promise<void> {
+    this.baseLog(
+      `modifyColumnNameInACL : '${oldName}' =>  '${newName}',  table : '${table}'`
+    );
 
     if (oldName === newName) {
       return;
     }
 
-    const findColumnAndRename = (obj) => {
+    const findColumnAndRename = obj => {
       if (!obj) {
         return;
       }
       if ('_and' in obj) {
         for (const o of obj._and) {
-          findColumnAndRename(o)
+          findColumnAndRename(o);
         }
       }
       if ('_or' in obj) {
         for (const o of obj._or) {
-          findColumnAndRename(o)
+          findColumnAndRename(o);
         }
       }
       if ('_not' in obj) {
-        findColumnAndRename(obj._not)
+        findColumnAndRename(obj._not);
       }
 
       if (oldName in obj) {
         obj[newName] = obj[oldName];
         delete obj[oldName];
       }
-    }
+    };
 
-    const replaceColumnName = (obj) => {
-
+    const replaceColumnName = obj => {
       if (!obj || typeof obj !== 'object') {
         return;
       }
 
-      for (const [key, value] of (Object.entries(obj) as any)) {
+      for (const [key, value] of Object.entries(obj) as any) {
         if (!value || typeof value !== 'object') {
           continue;
         }
@@ -1736,30 +2177,32 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             findColumnAndRename(value);
           }
         }
-        replaceColumnName(value)
+        replaceColumnName(value);
       }
     };
 
-
-    const acls = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_acl', {
-      xcCondition: {
-        acl: {
-          like: '%"custom":%'
+    const acls = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      {
+        xcCondition: {
+          acl: {
+            like: '%"custom":%'
+          }
         }
       }
-    });
+    );
 
     for (const aclRow of acls) {
       try {
         const aclObj = JSON.parse(aclRow.acl);
         for (const aclOps of Object.values(aclObj)) {
-
           if (typeof aclOps === 'boolean') {
             continue;
           }
 
-          for (const acl of (Object.values(aclOps) as any[])) {
-
+          for (const acl of Object.values(aclOps) as any[]) {
             if (typeof acl === 'boolean') {
               continue;
             }
@@ -1768,16 +2211,20 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
               replaceColumnName(acl.custom);
               findColumnAndRename(acl.custom);
             }
-
           }
         }
 
-
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
-          acl: JSON.stringify(aclObj)
-        }, {
-          id: aclRow.id
-        });
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_acl',
+          {
+            acl: JSON.stringify(aclObj)
+          },
+          {
+            id: aclRow.id
+          }
+        );
       } catch (e) {
         console.log('modifyColumnNameInACL : error : ', e);
       }
@@ -1786,39 +2233,41 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
     await this.loadXcAcl();
   }
 
-  private async deleteColumnNameInACL(table: string, cn: string): Promise<void> {
-    this.baseLog(`deleteColumnNameInACL : '${cn}' in '${table}'`)
+  private async deleteColumnNameInACL(
+    table: string,
+    cn: string
+  ): Promise<void> {
+    this.baseLog(`deleteColumnNameInACL : '${cn}' in '${table}'`);
 
-    const findColumnAndRename = (obj) => {
+    const findColumnAndRename = obj => {
       if (!obj) {
         return;
       }
       if ('_and' in obj) {
         for (const o of obj._and) {
-          findColumnAndRename(o)
+          findColumnAndRename(o);
         }
       }
       if ('_or' in obj) {
         for (const o of obj._or) {
-          findColumnAndRename(o)
+          findColumnAndRename(o);
         }
       }
       if ('_not' in obj) {
-        findColumnAndRename(obj._not)
+        findColumnAndRename(obj._not);
       }
 
       if (cn in obj) {
         delete obj[cn];
       }
-    }
+    };
 
-    const replaceColumnName = (obj) => {
-
+    const replaceColumnName = obj => {
       if (!obj || typeof obj !== 'object') {
         return;
       }
 
-      for (const [key, value] of (Object.entries(obj) as any)) {
+      for (const [key, value] of Object.entries(obj) as any) {
         if (!value || typeof value !== 'object') {
           continue;
         }
@@ -1827,30 +2276,32 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             findColumnAndRename(value);
           }
         }
-        replaceColumnName(value)
+        replaceColumnName(value);
       }
     };
 
-
-    const acls = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_acl', {
-      xcCondition: {
-        acl: {
-          like: '%"custom":%'
+    const acls = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      {
+        xcCondition: {
+          acl: {
+            like: '%"custom":%'
+          }
         }
       }
-    });
+    );
 
     for (const aclRow of acls) {
       try {
         const aclObj = JSON.parse(aclRow.acl);
         for (const aclOps of Object.values(aclObj)) {
-
           if (typeof aclOps === 'boolean') {
             continue;
           }
 
-          for (const acl of (Object.values(aclOps) as any[])) {
-
+          for (const acl of Object.values(aclOps) as any[]) {
             if (typeof acl === 'boolean') {
               continue;
             }
@@ -1859,72 +2310,91 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
               replaceColumnName(acl.custom);
               findColumnAndRename(acl.custom);
             }
-
           }
         }
 
-
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
-          acl: JSON.stringify(aclObj)
-        }, {
-          id: aclRow.id
-        });
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_acl',
+          {
+            acl: JSON.stringify(aclObj)
+          },
+          {
+            id: aclRow.id
+          }
+        );
       } catch (e) {
         console.log('modifyColumnNameInACL : error : ', e);
       }
     }
 
-    await this.loadXcAcl()
+    await this.loadXcAcl();
   }
 
-  private async deleteRelationInACL(parentTable: string, childTable: string): Promise<void> {
-
-    this.baseLog(`deleteRelationInACL : '${parentTable}' => '${childTable}'`)
+  private async deleteRelationInACL(
+    parentTable: string,
+    childTable: string
+  ): Promise<void> {
+    this.baseLog(`deleteRelationInACL : '${parentTable}' => '${childTable}'`);
     const relationExist = (ancestor, obj, exist = false) => {
-
       if (!obj || typeof obj !== 'object') {
         return exist;
       }
 
-      for (const [key, value] of (Object.entries(obj) as any)) {
+      for (const [key, value] of Object.entries(obj) as any) {
         if (!value || typeof value !== 'object') {
           continue;
         }
         if ('relationType' in value) {
-          if (ancestor === parentTable && key === childTable && value.relationType === 'hm') {
-            return true
-          }
-          if (ancestor === childTable && key === parentTable && value.relationType === 'bt') {
+          if (
+            ancestor === parentTable &&
+            key === childTable &&
+            value.relationType === 'hm'
+          ) {
             return true;
           }
-          return exist || relationExist(value.relationType ? key : ancestor, value, exist);
+          if (
+            ancestor === childTable &&
+            key === parentTable &&
+            value.relationType === 'bt'
+          ) {
+            return true;
+          }
+          return (
+            exist ||
+            relationExist(value.relationType ? key : ancestor, value, exist)
+          );
         } else {
-          return exist || relationExist(ancestor, value, exist)
+          return exist || relationExist(ancestor, value, exist);
         }
       }
 
       return exist;
-    }
+    };
 
-    const acls = await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_acl', {
-      xcCondition: {
-        acl: {
-          like: '%"custom":%'
+    const acls = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_acl',
+      {
+        xcCondition: {
+          acl: {
+            like: '%"custom":%'
+          }
         }
       }
-    });
+    );
 
     for (const aclRow of acls) {
       try {
         const aclObj = JSON.parse(aclRow.acl);
         for (const aclOps of Object.values(aclObj)) {
-
           if (typeof aclOps === 'boolean') {
             continue;
           }
 
-          for (const acl of (Object.values(aclOps) as any[])) {
-
+          for (const acl of Object.values(aclOps) as any[]) {
             if (typeof acl === 'boolean') {
               continue;
             }
@@ -1932,44 +2402,50 @@ export default abstract class BaseApiBuilder<T extends Noco> implements XcDynami
             if ('custom' in acl && relationExist(aclRow.tn, acl.custom)) {
               delete acl.custom;
             }
-
           }
         }
 
-
-        await this.xcMeta.metaUpdate(this.projectId, this.dbAlias, 'nc_acl', {
-          acl: JSON.stringify(aclObj)
-        }, {
-          id: aclRow.id
-        });
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_acl',
+          {
+            acl: JSON.stringify(aclObj)
+          },
+          {
+            id: aclRow.id
+          }
+        );
       } catch (e) {
         console.log('modifyColumnNameInACL : error : ', e);
       }
     }
-    await this.loadXcAcl()
+    await this.loadXcAcl();
   }
 
   public async onTableCreate(_tn: string, _args?: any) {
-    Tele.emit('evt', {evt_type: 'table:created'})
+    Tele.emit('evt', { evt_type: 'table:created' });
   }
 
   public onVirtualTableUpdate(args: any) {
-    const meta = XcCache.get([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
+    const meta = XcCache.get(
+      [this.projectId, this.dbAlias, 'table', args.tn].join('::')
+    );
     if (meta && meta.id === args.id) {
       XcCache.del([this.projectId, this.dbAlias, 'table', args.tn].join('::'));
       // todo: update meta and model
     }
     if (args?.query_params?.extraViewParams?.formParams) {
-      this.formViews[args.tn][args.id].query_params = args.query_params
+      this.formViews[args.tn][args.id].query_params = args.query_params;
     }
   }
 
-  public getMeta(tableName:string):any{
-    return this.metas?.[tableName]
+  public getMeta(tableName: string): any {
+    return this.metas?.[tableName];
   }
 }
 
-export {IGNORE_TABLES};
+export { IGNORE_TABLES };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

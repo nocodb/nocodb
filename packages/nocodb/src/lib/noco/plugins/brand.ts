@@ -1,4 +1,4 @@
-import {XcActionType, XcForm, XcType} from "nc-common";
+import { XcActionType, XcForm, XcType } from 'nc-common';
 
 const input: XcForm = {
   title: 'Branding',
@@ -9,13 +9,15 @@ const input: XcForm = {
       placeholder: 'Title',
       type: XcType.SingleLineText,
       required: true
-    }, {
+    },
+    {
       key: 'logo',
       label: 'Logo',
       placeholder: 'Logo',
       type: XcType.Attachment,
       required: true
-    }, {
+    },
+    {
       key: 'favicon',
       label: 'Favicon',
       placeholder: 'Favicon',
@@ -49,17 +51,20 @@ const input: XcForm = {
       placeholder: 'Youtube',
       type: XcType.URL,
       required: false
-    },],
-  actions: [{
-    label: 'Save',
-    key: 'save',
-    actionType: XcActionType.SUBMIT,
-    type: XcType.Button
-  },],
-  msgOnInstall: 'Successfully installed and hard refresh the browser to reflect the changes',
-  msgOnUninstall: '',
+    }
+  ],
+  actions: [
+    {
+      label: 'Save',
+      key: 'save',
+      actionType: XcActionType.SUBMIT,
+      type: XcType.Button
+    }
+  ],
+  msgOnInstall:
+    'Successfully installed and hard refresh the browser to reflect the changes',
+  msgOnUninstall: ''
 };
-
 
 export default {
   title: 'Branding',
@@ -69,5 +74,5 @@ export default {
   price: 'Free',
   tags: 'Brand',
   category: 'Brand',
-  input_schema: JSON.stringify(input),
+  input_schema: JSON.stringify(input)
 };

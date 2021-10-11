@@ -1,15 +1,10 @@
-import Noco from './noco/Noco'
+import Noco from './noco/Noco';
 import XcTry from './noco/nc.try';
 import NcConfigFactory from './utils/NcConfigFactory';
 
-
 export default Noco;
 
-export {
-  Noco,
-  NcConfigFactory,
-  XcTry
-};
+export { Noco, NcConfigFactory, XcTry };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

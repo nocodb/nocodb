@@ -1,76 +1,77 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import 'mocha';
 import express from 'express';
 import request from 'supertest';
 
-import {Noco} from "../lib";
-import NcConfigFactory from "../lib/utils/NcConfigFactory";
+import { Noco } from '../lib';
+import NcConfigFactory from '../lib/utils/NcConfigFactory';
 
 process.env.TEST = 'test';
 
-
-const dbConfig = NcConfigFactory.urlToDbConfig(NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`]), null, null, 'graphql');
+const dbConfig = NcConfigFactory.urlToDbConfig(
+  NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`]),
+  null,
+  null,
+  'graphql'
+);
 const projectCreateReqBody = {
-  "api": "projectCreateByWeb",
-  "query": {"skipProjectHasDb": 1},
-  "args": {
-    "project": {"title": "sebulba", "folder": "config.xc.json", "type": "pg"},
-    "projectJson": {
-      "title": "sebulba",
-      "version": "0.6",
-      "envs": {
-        "_noco": {
-          "db": [
-            dbConfig
-          ], "apiClient": {"data": []}
+  api: 'projectCreateByWeb',
+  query: { skipProjectHasDb: 1 },
+  args: {
+    project: { title: 'sebulba', folder: 'config.xc.json', type: 'pg' },
+    projectJson: {
+      title: 'sebulba',
+      version: '0.6',
+      envs: {
+        _noco: {
+          db: [dbConfig],
+          apiClient: { data: [] }
         }
       },
-      "workingEnv": "_noco",
-      "meta": {
-        "version": "0.6",
-        "seedsFolder": "seeds",
-        "queriesFolder": "queries",
-        "apisFolder": "apis",
-        "projectType": "graphql",
-        "type": "mvc",
-        "language": "ts",
-        "db": {"client": "sqlite3", "connection": {"filename": "noco.db"}}
+      workingEnv: '_noco',
+      meta: {
+        version: '0.6',
+        seedsFolder: 'seeds',
+        queriesFolder: 'queries',
+        apisFolder: 'apis',
+        projectType: 'graphql',
+        type: 'mvc',
+        language: 'ts',
+        db: { client: 'sqlite3', connection: { filename: 'noco.db' } }
       },
-      "seedsFolder": "seeds",
-      "queriesFolder": "queries",
-      "apisFolder": "apis",
-      "projectType": "graphql",
-      "type": "docker",
-      "language": "ts",
-      "apiClient": {"data": []},
-      "auth": {"jwt": {"secret": "b8ed266d-4475-4028-8c3d-590f58bee867", "dbAlias": "db"}}
+      seedsFolder: 'seeds',
+      queriesFolder: 'queries',
+      apisFolder: 'apis',
+      projectType: 'graphql',
+      type: 'docker',
+      language: 'ts',
+      apiClient: { data: [] },
+      auth: {
+        jwt: { secret: 'b8ed266d-4475-4028-8c3d-590f58bee867', dbAlias: 'db' }
+      }
     }
   }
-}
-
+};
 
 describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
-
   let app;
   let token;
   let projectId;
 
-
   // Called once before any of the tests in this block begin.
-  before(function (done) {
+  before(function(done) {
     this.timeout(10000);
     (async () => {
-
       const server = express();
 
       server.use(await Noco.init({}));
       app = server;
-
-    })().then(done).catch(done);
+    })()
+      .then(done)
+      .catch(done);
   });
 
-
-  after((done) => {
+  after(done => {
     done();
     // process.exit();
   });
@@ -233,39 +234,39 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   // /**** Authentication : END ****/
 
   /**************** START : Auth ****************/
-  describe('Authentication', function () {
+  describe('Authentication', function() {
     this.timeout(10000);
-    const EMAIL_ID = 'abc@g.com'
+    const EMAIL_ID = 'abc@g.com';
     const VALID_PASSWORD = '1234566778';
 
-    it('Signup with valid email', function (done) {
-      this.timeout(20000)
+    it('Signup with valid email', function(done) {
+      this.timeout(20000);
       request(app)
         .post('/auth/signup')
-        .send({email: EMAIL_ID, password: VALID_PASSWORD})
+        .send({ email: EMAIL_ID, password: VALID_PASSWORD })
         .expect(200, (err, res) => {
           if (err) {
-            expect(res.status).to.equal(400)
+            expect(res.status).to.equal(400);
           } else {
             const token = res.body.token;
-            expect(token).to.be.a("string")
+            expect(token).to.be.a('string');
           }
           done();
         });
     });
 
-    it('Signup with invalid email', (done) => {
+    it('Signup with invalid email', done => {
       request(app)
         .post('/auth/signup')
-        .send({email: 'test', password: VALID_PASSWORD})
+        .send({ email: 'test', password: VALID_PASSWORD })
         .expect(400, done);
     });
 
-    it('Signin with valid credentials', function (done) {
+    it('Signin with valid credentials', function(done) {
       request(app)
         .post('/auth/signin')
-        .send({email: EMAIL_ID, password: VALID_PASSWORD})
-        .expect(200, async function (err, res) {
+        .send({ email: EMAIL_ID, password: VALID_PASSWORD })
+        .expect(200, async function(err, res) {
           if (err) {
             return done(err);
           }
@@ -279,11 +280,11 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
         });
     });
 
-    it('me', function (done) {
+    it('me', function(done) {
       request(app)
         .get('/user/me')
         .set('xc-auth', token)
-        .expect(200, function (err, res) {
+        .expect(200, function(err, res) {
           if (err) {
             return done(err);
           }
@@ -293,68 +294,62 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
         });
     });
 
-
-    it('Change password', function (done) {
+    it('Change password', function(done) {
       request(app)
         .post('/user/password/change')
         .set('xc-auth', token)
-        .send({currentPassword: 'password', newPassword: 'password'})
+        .send({ currentPassword: 'password', newPassword: 'password' })
         .expect(400, done);
     });
 
-
-    it('Change password - after logout', function (done) {
+    it('Change password - after logout', function(done) {
       // todo:
       request(app)
         .post('/user/password/change')
-        .send({currentPassword: 'password', newPassword: 'password'})
-        .expect(500, function (_err, _res) {
-          done()
+        .send({ currentPassword: 'password', newPassword: 'password' })
+        .expect(500, function(_err, _res) {
+          done();
         });
     });
 
-
-    it('Signin with invalid credentials', function (done) {
+    it('Signin with invalid credentials', function(done) {
       request(app)
         .post('/auth/signin')
-        .send({email: 'abc@abc.com', password: VALID_PASSWORD})
+        .send({ email: 'abc@abc.com', password: VALID_PASSWORD })
         .expect(400, done);
     });
 
-    it('Signin with invalid password', function (done) {
+    it('Signin with invalid password', function(done) {
       request(app)
         .post('/auth/signin')
-        .send({email: EMAIL_ID, password: 'wrongPassword'})
+        .send({ email: EMAIL_ID, password: 'wrongPassword' })
         .expect(400, done);
     });
 
-
-    it('Forgot password with a non-existing email id', function (done) {
+    it('Forgot password with a non-existing email id', function(done) {
       request(app)
         .post('/auth/password/forgot')
-        .send({email: 'abc@abc.com'})
+        .send({ email: 'abc@abc.com' })
         .expect(400, done);
     });
 
-    it('Forgot password with an existing email id', function (done) {
-      this.timeout(10000)
+    it('Forgot password with an existing email id', function(done) {
+      this.timeout(10000);
       request(app)
         .post('/auth/password/forgot')
-        .send({email: EMAIL_ID})
+        .send({ email: EMAIL_ID })
         .expect(200, done);
     });
 
-    it('Email validate with an invalid token', function (done) {
+    it('Email validate with an invalid token', function(done) {
       request(app)
         .post('/auth/email/validate/someRandomValue')
-        .send({email: EMAIL_ID})
+        .send({ email: EMAIL_ID })
         .expect(400, done);
     });
 
-    it('Email validate with a valid token', function (done) {
-
-      console.log('eeee')
-
+    it('Email validate with a valid token', function(done) {
+      console.log('eeee');
 
       // todo :
       done();
@@ -365,18 +360,17 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       //   .expect(500, done);
     });
 
-
-    it('Forgot password validate with an invalid token', function (done) {
+    it('Forgot password validate with an invalid token', function(done) {
       request(app)
         .post('/auth/token/validate/someRandomValue')
-        .send({email: EMAIL_ID})
+        .send({ email: EMAIL_ID })
         .expect(400, done);
     });
 
-    it('Forgot password validate with a valid token', function (done) {
+    it('Forgot password validate with a valid token', function(done) {
       // todo
 
-      done()
+      done();
 
       // request(app)
       //   .post('/auth/token/validate/someRandomValue')
@@ -384,38 +378,34 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       //   .expect(500, done);
     });
 
-
-    it('Reset Password with an invalid token', function (done) {
+    it('Reset Password with an invalid token', function(done) {
       request(app)
         .post('/auth/password/reset/someRandomValue')
-        .send({password: 'anewpassword'})
+        .send({ password: 'anewpassword' })
         .expect(400, done);
     });
 
-    it('Reset Password with an valid token', function (done) {
+    it('Reset Password with an valid token', function(done) {
       //todo
-      done()
+      done();
 
       // request(app)
       //   .post('/auth/password/reset/someRandomValue')
       //   .send({password: 'anewpassword'})
       //   .expect(500, done);
     });
-
-
   });
 
-  describe('Project', function () {
-    const EMAIL_ID = 'abc@g.com'
+  describe('Project', function() {
+    const EMAIL_ID = 'abc@g.com';
     const VALID_PASSWORD = '1234566778';
 
-
-    before(function (done) {
-      this.timeout(120000)
+    before(function(done) {
+      this.timeout(120000);
       request(app)
         .post('/auth/signin')
-        .send({email: EMAIL_ID, password: VALID_PASSWORD})
-        .expect(200, async function (_err, res) {
+        .send({ email: EMAIL_ID, password: VALID_PASSWORD })
+        .expect(200, async function(_err, res) {
           token = res.body.token;
           request(app)
             .post('/dashboard')
@@ -423,34 +413,33 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send(projectCreateReqBody)
             .expect(200, (err, res) => {
               if (err) {
-                return done(err)
+                return done(err);
               }
               projectId = res.body.id;
               done();
-            })
+            });
         });
-    })
+    });
     /**** country : START ****/
-    describe('country', function () {
-
+    describe('country', function() {
       /**** Query : START ****/
-      it('countryList', function (done) {
+      it('countryList', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
           .set('xc-auth', token)
           .send({
             query: `{ countryList(limit:5){ country_id country } }`
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const list = res.body.data.countryList;
-            expect(list).length.to.be.most(5)
-            expect(list[0]).to.have.all.keys(['country_id', 'country'])
-            done()
-          })
+            expect(list).length.to.be.most(5);
+            expect(list[0]).to.have.all.keys(['country_id', 'country']);
+            done();
+          });
       });
 
-      it('countryList - with sort', function (done) {
+      it('countryList - with sort', function(done) {
         // todo: order -> sort
 
         request(app)
@@ -460,24 +449,24 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryList(sort:"-country_id"){ country_id country } }`
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const list = res.body.data.countryList;
-            expect(list[0]).to.have.all.keys(['country_id', 'country'])
+            expect(list[0]).to.have.all.keys(['country_id', 'country']);
 
             expect(list).satisfy(array => {
               let i = array.length;
               while (--i) {
                 if (array[i].country_id > array[i - 1].country_id) return false;
               }
-              return true
-            }, 'Should be in descending order')
+              return true;
+            }, 'Should be in descending order');
 
-            done()
-          })
+            done();
+          });
       });
 
-      it('countryList - with limit', function (done) {
+      it('countryList - with limit', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -485,16 +474,16 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryList(limit:6){ country_id country } }`
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const list = res.body.data.countryList;
-            expect(list[0]).to.have.all.keys(['country_id', 'country'])
-            expect(list).to.have.length.most(6)
-            done()
-          })
+            expect(list[0]).to.have.all.keys(['country_id', 'country']);
+            expect(list).to.have.length.most(6);
+            done();
+          });
       });
 
-      it('countryList - with offset', function (done) {
+      it('countryList - with offset', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -502,10 +491,10 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryList(offset:0,limit:6){ country_id country } }`
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const list1 = res.body.data.countryList;
-            expect(list1[0]).to.have.all.keys(['country_id', 'country'])
+            expect(list1[0]).to.have.all.keys(['country_id', 'country']);
             request(app)
               .post(`/nc/${projectId}/v1/graphql`)
 
@@ -513,20 +502,26 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
               .send({
                 query: `{ countryList(offset:1,limit:5){ country_id country } }`
               })
-              .expect(200, function (err, res1) {
+              .expect(200, function(err, res1) {
                 if (err) done(err);
                 const list2 = res1.body.data.countryList;
-                expect(list2[0]).to.have.all.keys(['country_id', 'country'])
-                expect(list2).satisfy(arr => arr.every(({country, country_id}, i) =>
-                  country === list1[i + 1].country && country_id === list1[i + 1].country_id
-                ), 'Both data should need to be equal where offset vary with 1')
+                expect(list2[0]).to.have.all.keys(['country_id', 'country']);
+                expect(list2).satisfy(
+                  arr =>
+                    arr.every(
+                      ({ country, country_id }, i) =>
+                        country === list1[i + 1].country &&
+                        country_id === list1[i + 1].country_id
+                    ),
+                  'Both data should need to be equal where offset vary with 1'
+                );
 
-                done()
+                done();
               });
-          })
+          });
       });
 
-      it('countryList - nested count', function (done) {
+      it('countryList - nested count', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -534,17 +529,21 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryList{ country_id country cityCount} }`
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const list = res.body.data.countryList;
-            expect(list[0]).to.have.all.keys(['country_id', 'country', 'cityCount'])
-            expect(list[0].cityCount).to.be.a('number')
+            expect(list[0]).to.have.all.keys([
+              'country_id',
+              'country',
+              'cityCount'
+            ]);
+            expect(list[0].cityCount).to.be.a('number');
             expect(list[0].cityCount % 1).to.be.equal(0);
-            done()
-          })
+            done();
+          });
       });
 
-      it('countryList - nested cityList', function (done) {
+      it('countryList - nested cityList', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -552,22 +551,31 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryList{ country_id country cityList { city country_id }} }`
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const list = res.body.data.countryList;
-            expect(list[0]).to.have.all.keys(['country_id', 'country', 'cityList'])
-            expect(list[0].cityList).to.be.a('Array')
+            expect(list[0]).to.have.all.keys([
+              'country_id',
+              'country',
+              'cityList'
+            ]);
+            expect(list[0].cityList).to.be.a('Array');
             if (dbConfig.client !== 'mssql') {
               expect(list[0].cityList[0]).to.be.a('object');
-              expect(list[0].cityList[0]).to.have.all.keys(['country_id', 'city'])
-              expect(Object.keys(list[0].cityList[0])).to.have.length(2)
-              expect(list[0].cityList[0].country_id).to.be.equal(list[0].country_id)
+              expect(list[0].cityList[0]).to.have.all.keys([
+                'country_id',
+                'city'
+              ]);
+              expect(Object.keys(list[0].cityList[0])).to.have.length(2);
+              expect(list[0].cityList[0].country_id).to.be.equal(
+                list[0].country_id
+              );
             }
-            done()
-          })
+            done();
+          });
       });
 
-      it('countryRead', function (done) {
+      it('countryRead', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -575,17 +583,17 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryRead(id: "1"){ country_id country } } `
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const data = res.body.data.countryRead;
-            expect(data).to.be.a('object')
-            expect(data).to.have.all.keys(['country_id', 'country'])
+            expect(data).to.be.a('object');
+            expect(data).to.have.all.keys(['country_id', 'country']);
 
-            done()
-          })
+            done();
+          });
       });
 
-      it('countryExists', function (done) {
+      it('countryExists', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -593,16 +601,16 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryExists(id: "1") } `
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const data = res.body.data.countryExists;
-            expect(data).to.be.a('boolean')
-            expect(data).to.be.equal(true)
-            done()
-          })
+            expect(data).to.be.a('boolean');
+            expect(data).to.be.equal(true);
+            done();
+          });
       });
 
-      it('countryExists - with non-existing id', function (done) {
+      it('countryExists - with non-existing id', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -610,16 +618,16 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryExists(id: "30000") } `
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const data = res.body.data.countryExists;
-            expect(data).to.be.a('boolean')
-            expect(data).to.be.equal(false)
-            done()
-          })
+            expect(data).to.be.a('boolean');
+            expect(data).to.be.equal(false);
+            done();
+          });
       });
 
-      it('countryFindOne', function (done) {
+      it('countryFindOne', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -627,17 +635,17 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryFindOne (where: "(country_id,eq,1)"){ country country_id } } `
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const data = res.body.data.countryFindOne;
-            expect(data).to.be.a('object')
-            expect(data).to.have.all.keys(['country', 'country_id'])
+            expect(data).to.be.a('object');
+            expect(data).to.have.all.keys(['country', 'country_id']);
             expect(data.country_id).to.be.equal(1);
-            done()
-          })
+            done();
+          });
       });
 
-      it('countryCount - filter by id', function (done) {
+      it('countryCount - filter by id', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -645,16 +653,16 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryCount (where: "(country_id,eq,1)") } `
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const data = res.body.data.countryCount;
-            expect(data).to.be.a('number')
+            expect(data).to.be.a('number');
             expect(data).to.be.equal(1);
-            done()
-          })
+            done();
+          });
       });
 
-      it('countryDistinct', function (done) {
+      it('countryDistinct', function(done) {
         request(app)
           .post(`/nc/${projectId}/v1/graphql`)
 
@@ -662,19 +670,19 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
           .send({
             query: `{ countryDistinct(column_name: "last_update") { last_update } } `
           })
-          .expect(200, function (err, res) {
+          .expect(200, function(err, res) {
             if (err) done(err);
             const data = res.body.data.countryDistinct;
-            expect(data).to.be.a('array')
-            expect(data[0]).to.be.a('object')
-            expect(data[0]).to.have.all.keys(['last_update'])
+            expect(data).to.be.a('array');
+            expect(data[0]).to.be.a('object');
+            expect(data[0]).to.have.all.keys(['last_update']);
             expect(data[0].last_update).to.be.match(/\d+/);
-            done()
-          })
+            done();
+          });
       });
 
       if (dbConfig.client !== 'mssql') {
-        it('countryGroupBy', function (done) {
+        it('countryGroupBy', function(done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
@@ -682,18 +690,18 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({
               query: `{ countryGroupBy(fields: "last_update",limit:5) { last_update count  } } `
             })
-            .expect(200, function (err, res) {
+            .expect(200, function(err, res) {
               if (err) done(err);
               const data = res.body.data.countryGroupBy;
               expect(data.length).to.be.most(5);
               expect(data[0].count).to.be.greaterThan(0);
               expect(data[0].last_update).to.be.a('string');
               expect(Object.keys(data[0]).length).to.be.equal(2);
-              done()
-            })
+              done();
+            });
         });
 
-        it('countryGroupBy - Multiple', function (done) {
+        it('countryGroupBy - Multiple', function(done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
@@ -701,7 +709,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({
               query: `{ countryGroupBy(fields: "last_update,country",limit:5) { last_update country count  } } `
             })
-            .expect(200, function (err, res) {
+            .expect(200, function(err, res) {
               if (err) done(err);
               const data = res.body.data.countryGroupBy;
               expect(data.length).to.be.most(5);
@@ -709,11 +717,11 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
               expect(data[0].last_update).to.be.a('string');
               expect(data[0].country).to.be.a('string');
               expect(Object.keys(data[0]).length).to.be.equal(3);
-              done()
-            })
+              done();
+            });
         });
 
-        it('countryAggregate', function (done) {
+        it('countryAggregate', function(done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
@@ -721,7 +729,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({
               query: `{ countryAggregate(func: "sum,avg,min,max,count", column_name : "country_id") { sum avg min max count  } } `
             })
-            .expect(200, function (err, res) {
+            .expect(200, function(err, res) {
               if (err) done(err);
               const data = res.body.data.countryAggregate;
               expect(data).to.be.a('array');
@@ -730,14 +738,19 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
                 expect(data[0].max).to.be.a('number');
                 expect(data[0].avg).to.be.a('number');
                 expect(data[0].sum).to.be.a('number');
-                expect(data[0].count).to.be.a('number').and.satisfy(num => num === parseInt(num), 'count should be an integer');
+                expect(data[0].count)
+                  .to.be.a('number')
+                  .and.satisfy(
+                    num => num === parseInt(num),
+                    'count should be an integer'
+                  );
                 expect(Object.keys(data[0]).length).to.be.equal(5);
               }
               done();
-            })
+            });
         });
 
-        it('countryDistribution', function (done) {
+        it('countryDistribution', function(done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
@@ -745,67 +758,71 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({
               query: `{ countryDistribution(column_name : "country_id") { range count  } } `
             })
-            .expect(200, function (err, res) {
+            .expect(200, function(err, res) {
               if (err) done(err);
               const data = res.body.data.countryDistribution;
               expect(data).to.be.a('array');
               expect(data[0].count).to.be.a('number');
-              expect(data[0].count).satisfies(num => num === parseInt(num) && num >= 0, 'should be a positive integer');
+              expect(data[0].count).satisfies(
+                num => num === parseInt(num) && num >= 0,
+                'should be a positive integer'
+              );
               expect(data[0].range).to.be.a('string');
-              expect(data[0].range).to.be.match(/^\d+-\d+$/, 'should match {num start}-{num end} format')
+              expect(data[0].range).to.be.match(
+                /^\d+-\d+$/,
+                'should match {num start}-{num end} format'
+              );
               done();
-            })
+            });
         });
       }
       /**** Query : END ****/
 
       /**** Mutation : START ****/
-      describe('Mutation', function () {
-
+      describe('Mutation', function() {
         const COUNTRY_ID = 9999;
         // const COUNTRY_CREATE_ID = 9998;
         // const COUNTRY_NAME = 'test-name';
 
-
-        before(function (done) {
+        before(function(done) {
           // create table entry for update and delete
           // let db = knex(config.envs.dev.db[0])('country');
           // db.insert({
           //   country_id: COUNTRY_ID,
           //   country: COUNTRY_NAME
           // }).finally(() => done())
-          done()
-        })
+          done();
+        });
 
-        after(function (done) {
-
+        after(function(done) {
           // delete table entries which is created for the test
           // let db = knex(config.envs.dev.db[0])('country');
           // db.whereIn('country_id', [COUNTRY_ID, COUNTRY_CREATE_ID])
           //   .del()
           //   .finally(() => done())
-          done()
-        })
+          done();
+        });
 
-        it('countryCreate', function (done) {
+        it('countryCreate', function(done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
             .set('xc-auth', token)
             .send({
-              query: `mutation{ countryCreate( data : { country: "abcd" ${dbConfig.client === 'sqlite3' ? ' country_id : 999 ' : ''} }) { country_id country } } `
+              query: `mutation{ countryCreate( data : { country: "abcd" ${
+                dbConfig.client === 'sqlite3' ? ' country_id : 999 ' : ''
+              } }) { country_id country } } `
             })
-            .expect(200, function (err, res) {
+            .expect(200, function(err, res) {
               if (err) done(err);
               const data = res.body.data.countryCreate;
               expect(data).to.be.a('object');
               expect(data.country_id).to.be.a('number');
               expect(data.country).to.be.equal('abcd');
               done();
-            })
+            });
         });
 
-
-        it('countryUpdate', function (done) {
+        it('countryUpdate', function(done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
@@ -813,16 +830,16 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({
               query: `mutation{ countryUpdate( id : "${COUNTRY_ID}", data : { country: "abcd" }){ country }  } `
             })
-            .expect(200, function (err, res) {
+            .expect(200, function(err, res) {
               if (err) done(err);
               const data = res.body.data.countryUpdate;
               expect(data).to.be.a('object');
               // todo:
               done();
-            })
+            });
         });
 
-        it('countryDelete', function (done) {
+        it('countryDelete', function(done) {
           request(app)
             .post(`/nc/${projectId}/v1/graphql`)
 
@@ -830,16 +847,15 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             .send({
               query: `mutation{ countryDelete( id : "${COUNTRY_ID}") }  `
             })
-            .expect(200, function (err, res) {
+            .expect(200, function(err, res) {
               if (err) done(err);
               const data = res.body.data.countryDelete;
-              expect(data).to.be.a('number')
+              expect(data).to.be.a('number');
               // todo:
               done();
-            })
+            });
         });
-      })
-
+      });
 
       /**** Mutation : END ****/
       // 		countryCreateBulk(data: [countryInput]): [Int]
@@ -849,7 +865,8 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
     });
     /**** country : END ****/
   });
-});/**
+});
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

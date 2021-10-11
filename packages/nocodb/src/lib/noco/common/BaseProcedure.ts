@@ -1,15 +1,13 @@
-import {GqlApiBuilder} from "../gql/GqlApiBuilder";
-import {RestApiBuilder} from "../rest/RestApiBuilder";
+import { GqlApiBuilder } from '../gql/GqlApiBuilder';
+import { RestApiBuilder } from '../rest/RestApiBuilder';
 
-import XcProcedure from "./XcProcedure";
+import XcProcedure from './XcProcedure';
 
 export default class BaseProcedure {
-
-  protected builder: GqlApiBuilder  | RestApiBuilder;
+  protected builder: GqlApiBuilder | RestApiBuilder;
   protected procedures: any[];
-  protected functions: any[]
+  protected functions: any[];
   protected xcProcedure: XcProcedure;
-
 
   public functionsSet(functions): void {
     this.functions = functions;
@@ -30,17 +28,16 @@ export default class BaseProcedure {
   public functionDelete(name: string): void {
     const index = this.functions.findIndex(f => f.function_name === name);
     if (index > -1) {
-      this.functions.splice(index, 1)
+      this.functions.splice(index, 1);
     }
   }
 
   public procedureDelete(name: string): void {
     const index = this.procedures.findIndex(f => f.procedure_name === name);
     if (index > -1) {
-      this.procedures.splice(index, 1)
+      this.procedures.splice(index, 1);
     }
   }
-
 }
 
 /**

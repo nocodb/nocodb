@@ -1,7 +1,6 @@
-import BaseModelXcMeta from "./BaseModelXcMeta";
+import BaseModelXcMeta from './BaseModelXcMeta';
 
 class ModelXcMetaOracle extends BaseModelXcMeta {
-
   /**
    * @param dir
    * @param filename
@@ -10,17 +9,15 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
-
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
   /**
    *  Prepare variables used in code template
    */
   prepare() {
-
-    const data:any = {};
+    const data: any = {};
 
     /* example of simple variable */
     data.tn = this.ctx.tn;
@@ -58,9 +55,7 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
     };
 
     return data;
-
   }
-
 
   _renderXcHasMany(args) {
     return JSON.stringify(args.hasMany);
@@ -69,7 +64,6 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
   _renderXcBelongsTo(args) {
     return JSON.stringify(args.belongsTo);
   }
-
 
   /**
    *
@@ -80,37 +74,29 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
    * @private
    */
   _renderXcColumns(args) {
-
     let str = '[\r\n';
 
     for (let i = 0; i < args.columns.length; ++i) {
-
       str += `{\r\n`;
       str += `cn: '${args.columns[i].cn}',\r\n`;
       str += `type: '${this._getAbstractType(args.columns[i])}',\r\n`;
       str += `dt: '${args.columns[i].dt}',\r\n`;
-      if (args.columns[i].rqd)
-        str += `rqd: ${args.columns[i].rqd},\r\n`;
+      if (args.columns[i].rqd) str += `rqd: ${args.columns[i].rqd},\r\n`;
 
       if (args.columns[i].cdf) {
         str += `default: "${args.columns[i].cdf}",\r\n`;
         str += `columnDefault: "${args.columns[i].cdf}",\r\n`;
       }
 
-      if (args.columns[i].un)
-        str += `un: ${args.columns[i].un},\r\n`;
+      if (args.columns[i].un) str += `un: ${args.columns[i].un},\r\n`;
 
-      if (args.columns[i].pk)
-        str += `pk: ${args.columns[i].pk},\r\n`;
+      if (args.columns[i].pk) str += `pk: ${args.columns[i].pk},\r\n`;
 
-      if (args.columns[i].ai)
-        str += `ai: ${args.columns[i].ai},\r\n`;
+      if (args.columns[i].ai) str += `ai: ${args.columns[i].ai},\r\n`;
 
-      if (args.columns[i].dtxp)
-        str += `dtxp: "${args.columns[i].dtxp}",\r\n`;
+      if (args.columns[i].dtxp) str += `dtxp: "${args.columns[i].dtxp}",\r\n`;
 
-      if (args.columns[i].dtxs)
-        str += `dtxs: ${args.columns[i].dtxs},\r\n`;
+      if (args.columns[i].dtxs) str += `dtxs: ${args.columns[i].dtxs},\r\n`;
 
       str += `validate: {
                 func: [],
@@ -118,18 +104,14 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
                 msg: []
               },`;
       str += `},\r\n`;
-
     }
 
     str += ']\r\n';
 
     return str;
-
   }
 
-
   getXcColumnsObject(args) {
-
     const columnsArr = [];
 
     for (const column of args.columns) {
@@ -140,13 +122,13 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
           msg: []
         },
         cn: column.cn,
-        _cn: column._cn ||  column.cn,
+        _cn: column._cn || column.cn,
         type: this._getAbstractType(column),
         dt: column.dt,
         uidt: column.uidt || this._getUIDataType(column),
         uip: column.uip,
         uicn: column.uicn,
-        ...column,
+        ...column
       };
 
       if (column.rqd) {
@@ -178,108 +160,104 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
         columnObj.dtxs = column.dtxs;
       }
 
-      columnsArr.push(columnObj)
+      columnsArr.push(columnObj);
     }
-
 
     this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
-
   }
 
-
   _getAbstractType(column) {
-
     let str = '';
     switch (column.dt) {
-      case "char":
-        str = 'string'
+      case 'char':
+        str = 'string';
         break;
-      case "nchar":
-        str = 'string'
+      case 'nchar':
+        str = 'string';
         break;
-      case "nvarchar2":
-        str = 'string'
+      case 'nvarchar2':
+        str = 'string';
         break;
-      case "varchar2":
-        str = 'string'
+      case 'varchar2':
+        str = 'string';
         break;
-      case "long":
-        str = 'string'
+      case 'long':
+        str = 'string';
         break;
-      case "raw":
+      case 'raw':
         // todo: map correct datatype
-        str = 'string'
+        str = 'string';
         break;
-      case "long raw":
+      case 'long raw':
         // todo: map correct datatype
-        str = 'string'
+        str = 'string';
         break;
-      case "number":
-        str = 'float'
+      case 'number':
+        str = 'float';
         break;
-      case "numeric":
-        str = 'float'
+      case 'numeric':
+        str = 'float';
         break;
-      case "float":
-        str = 'float'
+      case 'float':
+        str = 'float';
         break;
-      case "dec":
-        str = 'float'
+      case 'dec':
+        str = 'float';
         break;
-      case "decimal":
-        str = 'float'
+      case 'decimal':
+        str = 'float';
         break;
-      case "integer":
-        str = 'integer'
+      case 'integer':
+        str = 'integer';
         break;
-      case "int":
-        str = 'integer'
+      case 'int':
+        str = 'integer';
         break;
-      case "smallint":
-        str = 'integer'
+      case 'smallint':
+        str = 'integer';
         break;
-      case "real":
-        str = 'float'
+      case 'real':
+        str = 'float';
         break;
-      case "double precision":
-        str = 'float'
+      case 'double precision':
+        str = 'float';
         break;
-      case "date":
-        str = 'date'
+      case 'date':
+        str = 'date';
         break;
-      case "timestamp":
-        str = 'timestamp'
+      case 'timestamp':
+        str = 'timestamp';
         break;
-      case "timestamp with time zone":
-        str = 'timestamp'
+      case 'timestamp with time zone':
+        str = 'timestamp';
         break;
-      case "timestamp with local time zone":
-        str = 'timestamp'
+      case 'timestamp with local time zone':
+        str = 'timestamp';
         break;
-      case "interval year to month":
-        str = "string";
+      case 'interval year to month':
+        str = 'string';
         break;
-      case "interval day to second":
-        str = "string";
+      case 'interval day to second':
+        str = 'string';
         break;
-      case "bfile":
-        str = "blob";
+      case 'bfile':
+        str = 'blob';
         break;
-      case "blob":
-        str = "blob";
+      case 'blob':
+        str = 'blob';
         break;
-      case "clob":
-        str = "string";
+      case 'clob':
+        str = 'string';
         break;
-      case "nclob":
-        str = "string";
+      case 'nclob':
+        str = 'string';
         break;
-      case "rowid":
-        str = "bigInteger";
+      case 'rowid':
+        str = 'bigInteger';
         break;
-      case "urowid":
-        str = "bigInteger";
+      case 'urowid':
+        str = 'bigInteger';
         break;
       default:
         str += `"${column.dt}"`;
@@ -290,8 +268,7 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
     return str;
   }
 
-
-  getAbstractType(col):any {
+  getAbstractType(col): any {
     switch ((col.dt || col.dt).toLowerCase()) {
       case 'integer':
         return 'integer';
@@ -308,225 +285,223 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
       case 'clob':
       case 'content pointer':
       case 'contigous array':
-        return 'string'
+        return 'string';
       case 'date':
         return 'date';
       case 'decimal':
       case 'double precision':
       case 'float':
-        return 'float'
+        return 'float';
       case 'interval day to second':
       case 'interval year to month':
-        return 'string'
+        return 'string';
       case 'lob pointer':
-        return 'string'
+        return 'string';
       case 'long':
-        return 'integer'
+        return 'integer';
       case 'long raw':
-        return 'string'
+        return 'string';
       case 'named collection':
       case 'named object':
       case 'nchar':
       case 'nclob':
-        return 'string'
+        return 'string';
       case 'nvarchar2':
       case 'oid':
       case 'pointer':
       case 'raw':
-        return 'string'
+        return 'string';
       case 'real':
       case 'number':
-        return 'float'
+        return 'float';
       case 'ref':
       case 'ref cursor':
       case 'rowid':
       case 'signed binary integer':
-        return 'string'
+        return 'string';
       case 'smallint':
-        return 'integer'
+        return 'integer';
       case 'table':
-        return 'string'
+        return 'string';
       case 'time':
       case 'time with tz':
-        return 'time'
+        return 'time';
       case 'timestamp':
       case 'timestamp with local time zone':
       case 'timestamp with local tz':
       case 'timestamp with timezone':
       case 'timestamp with tz':
-        return 'datetime'
+        return 'datetime';
       case 'unsigned binary integer':
       case 'urowid':
       case 'varchar':
       case 'varchar2':
-        return 'string'
+        return 'string';
       case 'varray':
       case 'varying array':
-        return 'string'
+        return 'string';
     }
   }
 
-
-  _getUIDataType(col):any {
+  _getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';
-      case "boolean":
+      case 'boolean':
         return 'Checkbox';
-      case  'float':
+      case 'float':
         return 'Decimal';
-      case "date":
+      case 'date':
         return 'Date';
-      case "datetime":
+      case 'datetime':
         return 'DateTime';
-      case "time":
+      case 'time':
         return 'Time';
       case 'year':
         return 'Year';
-      case   'string':
+      case 'string':
         return 'SingleLineText';
-      case "text":
+      case 'text':
         return 'LongText';
       case 'blob':
-        return 'Attachment'
-      case "enum":
+        return 'Attachment';
+      case 'enum':
         return 'SingleSelect';
-      case "set":
+      case 'set':
         return 'MultiSelect';
-      case "json":
+      case 'json':
         return 'LongText';
     }
-
   }
 
   _sequelizeGetDefault(column) {
     let str = '';
     switch (column.dt) {
-      case "int":
+      case 'int':
         str += `'${column.cdf}'`;
         break;
-      case "tinyint":
+      case 'tinyint':
         str += `'${column.cdf}'`;
         break;
-      case "smallint":
+      case 'smallint':
         str += `'${column.cdf}'`;
         break;
-      case "mediumint":
+      case 'mediumint':
         str += `'${column.cdf}'`;
         break;
-      case "bigint":
+      case 'bigint':
         str += `'${column.cdf}'`;
         break;
-      case "float":
+      case 'float':
         str += `'${column.cdf}'`;
         break;
-      case "decimal":
+      case 'decimal':
         str += `'${column.cdf}'`;
         break;
-      case "double":
+      case 'double':
         str += `'${column.cdf}'`;
         break;
-      case "real":
+      case 'real':
         str += `'${column.cdf}'`;
         break;
-      case "bit":
+      case 'bit':
         str += column.cdf ? column.cdf.split('b')[1] : column.cdf;
         break;
-      case "boolean":
+      case 'boolean':
         str += column.cdf;
         break;
-      case "serial":
+      case 'serial':
         str += column.cdf;
         break;
-      case "date":
+      case 'date':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "datetime":
+      case 'datetime':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "timestamp":
+      case 'timestamp':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "time":
+      case 'time':
         str += `'${column.cdf}'`;
         break;
-      case "year":
+      case 'year':
         str += `'${column.cdf}'`;
         break;
-      case "char":
+      case 'char':
         str += `'${column.cdf}'`;
         break;
-      case "varchar":
+      case 'varchar':
         str += `'${column.cdf}'`;
         break;
-      case "nchar":
+      case 'nchar':
         str += `'${column.cdf}'`;
         break;
-      case "text":
+      case 'text':
         str += column.cdf;
         break;
-      case "tinytext":
+      case 'tinytext':
         str += column.cdf;
         break;
-      case "mediumtext":
+      case 'mediumtext':
         str += column.cdf;
         break;
-      case "longtext":
+      case 'longtext':
         str += column.cdf;
         break;
-      case "binary":
+      case 'binary':
         str += column.cdf;
         break;
-      case "varbinary":
+      case 'varbinary':
         str += column.cdf;
         break;
-      case "blob":
+      case 'blob':
         str += column.cdf;
         break;
-      case "tinyblob":
+      case 'tinyblob':
         str += column.cdf;
         break;
-      case "mediumblob":
+      case 'mediumblob':
         str += column.cdf;
         break;
-      case "longblob":
+      case 'longblob':
         str += column.cdf;
         break;
-      case "enum":
+      case 'enum':
         str += `'${column.cdf}'`;
         break;
-      case "set":
+      case 'set':
         str += `'${column.cdf}'`;
         break;
-      case "geometry":
+      case 'geometry':
         str += `'${column.cdf}'`;
         break;
-      case "point":
+      case 'point':
         str += `'${column.cdf}'`;
         break;
-      case "linestring":
+      case 'linestring':
         str += `'${column.cdf}'`;
         break;
-      case "polygon":
+      case 'polygon':
         str += `'${column.cdf}'`;
         break;
-      case "multipoint":
+      case 'multipoint':
         str += `'${column.cdf}'`;
         break;
-      case "multilinestring":
+      case 'multilinestring':
         str += `'${column.cdf}'`;
         break;
-      case "multipolygon":
+      case 'multipolygon':
         str += `'${column.cdf}'`;
         break;
-      case "json":
+      case 'json':
         str += column.cdf;
         break;
     }
     return str;
   }
 
-/*
+  /*
   getObject() {
     return {
       tn: this.ctx.tn,
@@ -540,7 +515,6 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
     }
 
   }*/
-
 }
 
 export default ModelXcMetaOracle;

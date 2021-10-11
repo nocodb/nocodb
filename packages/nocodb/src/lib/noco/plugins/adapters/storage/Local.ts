@@ -1,15 +1,15 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
-import mkdirp from "mkdirp";
+import mkdirp from 'mkdirp';
 
-import IStorageAdapter, {XcFile} from "../../../../../interface/IStorageAdapter";
-import NcConfigFactory from "../../../../utils/NcConfigFactory";
+import IStorageAdapter, {
+  XcFile
+} from '../../../../../interface/IStorageAdapter';
+import NcConfigFactory from '../../../../utils/NcConfigFactory';
 
 export default class Local implements IStorageAdapter {
-
-  constructor() {
-  }
+  constructor() {}
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
@@ -28,7 +28,9 @@ export default class Local implements IStorageAdapter {
 
   public async fileRead(filePath: string): Promise<any> {
     try {
-      const fileData = await fs.promises.readFile(path.join(NcConfigFactory.getToolDir(), ...filePath.split('/')));
+      const fileData = await fs.promises.readFile(
+        path.join(NcConfigFactory.getToolDir(), ...filePath.split('/'))
+      );
       return fileData;
     } catch (e) {
       throw e;
@@ -42,8 +44,8 @@ export default class Local implements IStorageAdapter {
   test(): Promise<boolean> {
     return Promise.resolve(false);
   }
-
-}/**
+}
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

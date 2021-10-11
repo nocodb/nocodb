@@ -1,7 +1,6 @@
-import twilio from "twilio";
+import twilio from 'twilio';
 
 export default class Twilio {
-
   private static instance: Twilio;
 
   private input: any;
@@ -17,7 +16,6 @@ export default class Twilio {
 
   // tslint:disable-next-line:typedef
   public static create(config: any, overwrite = false): Twilio {
-
     if (this.instance && !overwrite) {
       return this.instance;
     }
@@ -32,16 +30,14 @@ export default class Twilio {
   public async sendMessage(content: string, numbers: string[]): Promise<any> {
     for (const num of numbers) {
       try {
-        await this.client.messages
-          .create({
-            body: content,
-            from: this.input.from,
-            to: num
-          })
+        await this.client.messages.create({
+          body: content,
+          from: this.input.from,
+          to: num
+        });
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     }
   }
-
 }

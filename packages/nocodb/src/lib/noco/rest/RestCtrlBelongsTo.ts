@@ -1,17 +1,14 @@
 import autoBind from 'auto-bind';
-import {NextFunction, Request, Response} from "express";
+import { NextFunction, Request, Response } from 'express';
 
-import {Acl, Acls, Route} from "../../../interface/config";
-import {BaseModelSql} from "../../dataMapper";
+import { Acl, Acls, Route } from '../../../interface/config';
+import { BaseModelSql } from '../../dataMapper';
 
-
-import {RestBaseCtrl} from "./RestBaseCtrl";
+import { RestBaseCtrl } from './RestBaseCtrl';
 
 export class RestCtrlBelongsTo extends RestBaseCtrl {
-
   public parentTable: string;
   public childTable: string;
-
 
   public app: any;
   // public routes: Route[];
@@ -19,7 +16,16 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
   private models: { [key: string]: BaseModelSql };
   private acls: Acls;
 
-  constructor(app: any, models: { [key: string]: BaseModelSql }, parentTable: string, childTable: string, routes: Route[], rootPath: string, acls: Acls, middlewareBody?: string) {
+  constructor(
+    app: any,
+    models: { [key: string]: BaseModelSql },
+    parentTable: string,
+    childTable: string,
+    routes: Route[],
+    rootPath: string,
+    acls: Acls,
+    middlewareBody?: string
+  ) {
     super();
     autoBind(this);
     this.app = app;
@@ -42,7 +48,6 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
     return this.models?.[this.childTable];
   }
 
-
   private get parentAcl(): Acl {
     return this.acls?.[this.parentTable];
   }
@@ -59,7 +64,11 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
     res.xcJson(data);
   }
 
-  protected async middleware(req: Request | any, res: Response, next: NextFunction): Promise<any> {
+  protected async middleware(
+    req: Request | any,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
     req.childModel = this.childModel;
     req.parentModel = this.parentModel;
     req.parentTable = this.parentTable;
@@ -69,31 +78,45 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
       get: 'read',
       post: 'create',
       put: 'update',
-      delete: 'delete',
-    }
+      delete: 'delete'
+    };
 
     const roleOperationPossible = (roles, operation, object) => {
       const errors = [];
-      res.locals.xcAcl = {operation};
+      res.locals.xcAcl = { operation };
 
       for (const [roleName, isAllowed] of Object.entries(roles)) {
-
         // todo: handling conditions from multiple roles
         if (this.childAcl?.[roleName]?.[operation]?.custom) {
           // req.query.condition = replaceEnvVarRec(this.acl?.[roleName]?.[operation]?.custom)
-          const condition = this.replaceEnvVarRec(this.childAcl?.[roleName]?.[operation]?.custom,req);
-          (req as any).query.childNestedCondition = {condition, models: this.models};
+          const condition = this.replaceEnvVarRec(
+            this.childAcl?.[roleName]?.[operation]?.custom,
+            req
+          );
+          (req as any).query.childNestedCondition = {
+            condition,
+            models: this.models
+          };
         }
         if (this.parentAcl?.[roleName]?.[operation]?.custom) {
           // req.query.condition = replaceEnvVarRec(this.acl?.[roleName]?.[operation]?.custom)
-          const condition = this.replaceEnvVarRec(this.parentAcl?.[roleName]?.[operation]?.custom,req);
-          (req as any).query.conditionGraph = {condition, models: this.models};
+          const condition = this.replaceEnvVarRec(
+            this.parentAcl?.[roleName]?.[operation]?.custom,
+            req
+          );
+          (req as any).query.conditionGraph = {
+            condition,
+            models: this.models
+          };
         }
 
         const childColumns = this.childAcl[roleName]?.[operation]?.columns;
         if (childColumns) {
-          const allowedChildCols = Object.keys(childColumns).filter(col => childColumns[col]);
-          res.locals.xcAcl.allowedChildCols = res.locals.xcAcl.allowedChildCols || [];
+          const allowedChildCols = Object.keys(childColumns).filter(
+            col => childColumns[col]
+          );
+          res.locals.xcAcl.allowedChildCols =
+            res.locals.xcAcl.allowedChildCols || [];
           res.locals.xcAcl.allowedChildCols.push(...allowedChildCols);
           res.locals.xcAcl.childColumns = childColumns;
         }
@@ -107,7 +130,10 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
             if (this.parentAcl[roleName][operation]) {
               return true;
             }
-          } else if (this.parentAcl?.[roleName]?.[operation] && roleOperationObjectGet(roleName, operation, object)) {
+          } else if (
+            this.parentAcl?.[roleName]?.[operation] &&
+            roleOperationObjectGet(roleName, operation, object)
+          ) {
             return true;
           }
         } catch (e) {
@@ -115,10 +141,10 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
         }
       }
       if (errors?.length) {
-        throw errors[0]
+        throw errors[0];
       }
       return false;
-    }
+    };
 
     // @ts-ignore
     const roleOperationObjectGet = (role, operation, object) => {
@@ -126,28 +152,38 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
 
       if (columns) {
         // todo: merge allowed columns if multiple roles
-        const allowedParentCols = Object.keys(columns).filter(col => columns[col]);
-        Object.assign(res.locals.xcAcl, {allowedParentCols, parentColumns: columns})
+        const allowedParentCols = Object.keys(columns).filter(
+          col => columns[col]
+        );
+        Object.assign(res.locals.xcAcl, {
+          allowedParentCols,
+          parentColumns: columns
+        });
         return Object.values(columns).some(Boolean);
       }
-    }
-
-
-    console.log(`${this.parentModel.tn}Hm${this.childModel.tn} middleware`)
-
-
-    const roles = (req as any)?.locals?.user?.roles ?? (req as any)?.session?.passport?.user?.roles ?? {
-      guest: true
     };
 
+    console.log(`${this.parentModel.tn}Hm${this.childModel.tn} middleware`);
+
+    const roles = (req as any)?.locals?.user?.roles ??
+      (req as any)?.session?.passport?.user?.roles ?? {
+        guest: true
+      };
+
     try {
-      const allowed = roleOperationPossible(roles, methodOperationMap[req.method.toLowerCase()], req.body);
+      const allowed = roleOperationPossible(
+        roles,
+        methodOperationMap[req.method.toLowerCase()],
+        req.body
+      );
 
       if (allowed) {
         // any additional rules can be made here
         return next();
       } else {
-        const msg = roles.guest ? `Access Denied : Please Login or Signup for a new account` : `Access Denied for this account`;
+        const msg = roles.guest
+          ? `Access Denied : Please Login or Signup for a new account`
+          : `Access Denied for this account`;
         return res.status(403).json({
           msg
         });
@@ -159,20 +195,28 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
     }
   }
 
-
-  protected async postMiddleware(req: Request, res: Response, _next: NextFunction): Promise<any> {
-
-
+  protected async postMiddleware(
+    req: Request,
+    res: Response,
+    _next: NextFunction
+  ): Promise<any> {
     const data = res.locals.responseData;
     if (!res.locals.xcAcl) {
       return res.json(data);
     }
 
     // @ts-ignore
-    const {allowedChildCols, operation, allowedParentCols, parentColumns, childColumns} = res.locals.xcAcl;
+    const {
+      allowedChildCols,
+      operation,
+      allowedParentCols,
+      parentColumns,
+      childColumns
+    } = res.locals.xcAcl;
 
-    const isBt = req.url.toLowerCase().startsWith('/belongs/' + this.parentTable.toLowerCase());
-
+    const isBt = req.url
+      .toLowerCase()
+      .startsWith('/belongs/' + this.parentTable.toLowerCase());
 
     if ((!allowedChildCols || !isBt) && !allowedParentCols) {
       return res.json(data);
@@ -191,10 +235,18 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
                   delete row[colInRes][colInChild];
                 }
               }
-            } else if (childColumns && colInRes in childColumns && !childColumns[colInRes]) {
+            } else if (
+              childColumns &&
+              colInRes in childColumns &&
+              !childColumns[colInRes]
+            ) {
               delete row[colInRes];
             }
-          } else if (childColumns && colInRes in childColumns && !childColumns[colInRes]) {
+          } else if (
+            childColumns &&
+            colInRes in childColumns &&
+            !childColumns[colInRes]
+          ) {
             delete row[colInRes];
           }
         }
@@ -208,7 +260,6 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
     }
     return res.json(data);
   }
-
 
   get controllerName(): string {
     return `${this.childTable}.bt.${this.parentTable}`;

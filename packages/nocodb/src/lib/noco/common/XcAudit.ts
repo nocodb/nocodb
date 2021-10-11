@@ -1,20 +1,13 @@
-import Noco from "../Noco";
+import Noco from '../Noco';
 
-export default class XcAudit{
-
-  public static init(app:Noco){
+export default class XcAudit {
+  public static init(app: Noco) {
     this.app = app;
   }
 
   // @ts-ignore
-  private static app:Noco;
+  private static app: Noco;
 
   // @ts-ignore
-  public static async log(data:{
-    project
-  }){
-
-  }
-
-
+  public static async log(data: { project }) {}
 }

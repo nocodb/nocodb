@@ -5,9 +5,7 @@ export default class SqlMigrator {
     this.project = null;
   }
 
-  init(_project = null) {
-
-  }
+  init(_project = null) {}
 
   // migrationsInit() {
   //
@@ -36,7 +34,6 @@ export default class SqlMigrator {
   // migrationsDelete() {
   //
   // }
-
 }
 
 /**

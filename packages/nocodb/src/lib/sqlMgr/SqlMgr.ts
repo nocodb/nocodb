@@ -1,19 +1,18 @@
-import fs from "fs";
-import path from "path";
-import url from 'url'
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
 
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
 import inflection from 'inflection';
-import {Debug, Result, SqlClientFactory} from "nc-help";
+import { Debug, Result, SqlClientFactory } from 'nc-help';
 import slash from 'slash';
 // import debug from 'debug';
 
-const log = new Debug("SqlMgr");
-import KnexMigrator from '../migrator/SqlMigrator/lib/KnexMigrator'
+const log = new Debug('SqlMgr');
+import KnexMigrator from '../migrator/SqlMigrator/lib/KnexMigrator';
 // import {XKnex} from "../dataMapper";
-import NcConnectionMgr from "../noco/common/NcConnectionMgr";
-
+import NcConnectionMgr from '../noco/common/NcConnectionMgr';
 
 const ToolOps = {
   DB_TABLE_LIST: 'tableList',
@@ -63,7 +62,6 @@ const ToolOps = {
   DB_TABLE_INDEX_DELETE: 'indexDelete',
   DB_TABLE_ROW_DELETE: 'delete',
 
-
   DB_GET_KNEX_DATA_TYPES: 'getKnexDataTypes',
   DB_PROJECT_OPEN_BY_WEB: 'DB_PROJECT_OPEN_BY_WEB',
   PROJECT_READ_BY_WEB: 'PROJECT_READ_BY_WEB',
@@ -84,14 +82,11 @@ const ToolOps = {
 
   TEST_CONNECTION: 'testConnection',
 
-
   PROJECT_CREATE_BY_WEB: 'projectCreateByWeb',
   PROJECT_CHANGE_ENV: 'projectChangeEnv',
 
-  PROJECT_UPDATE_BY_WEB: 'projectUpdateByWeb',
-
+  PROJECT_UPDATE_BY_WEB: 'projectUpdateByWeb'
 };
-
 
 export default class SqlMgr {
   // @ts-ignore
@@ -123,13 +118,12 @@ export default class SqlMgr {
    * @memberof SqlMgr
    */
   constructor(args: any = {}) {
-    const func = "constructor";
+    const func = 'constructor';
     log.api(`${func}:args:`, args);
     this.project = args;
     this.metaDb = args.metaDb;
     this.project_id = args.project_id = args.id;
     this._migrator = new KnexMigrator(args);
-
 
     this.currentProjectJson = {};
     this.currentProjectConnections = {};
@@ -168,24 +162,30 @@ export default class SqlMgr {
 
     // todo: read it from config or env
     // this.currentProjectFolder = process.cwd();
-    this.currentProjectFolder = this.currentProjectJson.toolDir || process.cwd();
+    this.currentProjectFolder =
+      this.currentProjectJson.toolDir || process.cwd();
 
     args.folder = slash(this.currentProjectFolder);
-    const projectJson = {...this.currentProjectJson, envs: {...this.currentProjectJson.envs}};
+    const projectJson = {
+      ...this.currentProjectJson,
+      envs: { ...this.currentProjectJson.envs }
+    };
 
     // delete db credentials
     for (const env of Object.keys(projectJson.envs)) {
-      projectJson.envs[env] = {...projectJson.envs[env], db: [...projectJson.envs[env].db]}
+      projectJson.envs[env] = {
+        ...projectJson.envs[env],
+        db: [...projectJson.envs[env].db]
+      };
       for (let i = 0; i < projectJson.envs[env].db.length; i++) {
         projectJson.envs[env].db[i] = {
           ...projectJson.envs[env].db[i],
           connection: {
             database: projectJson.envs[env].db[i].connection.database
           }
-        }
+        };
       }
     }
-
 
     // remove meta db credentials
     if (projectJson.meta?.db) delete projectJson.meta.db;
@@ -212,16 +212,23 @@ export default class SqlMgr {
     //   log.ppe(e, _func);
     //   throw e;
     // }
-    result.data.list = [{
-      folder: args.folder
-    }];
+    result.data.list = [
+      {
+        folder: args.folder
+      }
+    ];
     log.api(`${_func}: result`, result);
     return result;
-
   }
 
   public projectGetFolder(args) {
-    return path.join(this.currentProjectFolder, 'server', 'tool', args.dbAlias, 'seeds');
+    return path.join(
+      this.currentProjectFolder,
+      'server',
+      'tool',
+      args.dbAlias,
+      'seeds'
+    );
   }
 
   public getRouteVersionLetter(args) {
@@ -232,23 +239,31 @@ export default class SqlMgr {
         if (db.meta && db.meta.api && db.meta.api.prefix) {
           return db.meta.api.prefix;
         }
-        return this.genVer(index)
+        return this.genVer(index);
       }
     }
   }
 
   public genVer(i) {
     const l = 'vwxyzabcdefghijklmnopqrstu';
-    return i
-      .toString(26)
-      .split('')
-      .map(v => l[parseInt(v, 26)])
-      .join('') + '1';
+    return (
+      i
+        .toString(26)
+        .split('')
+        .map(v => l[parseInt(v, 26)])
+        .join('') + '1'
+    );
   }
 
-
   public projectGetGqlPolicyPath(args) {
-    return path.join(this.currentProjectFolder, 'server', 'resolvers', args.dbAlias, args.tn, `${args.tn}.policy.js`);
+    return path.join(
+      this.currentProjectFolder,
+      'server',
+      'resolvers',
+      args.dbAlias,
+      args.tn,
+      `${args.tn}.policy.js`
+    );
   }
 
   public async projectOpenByWeb(args) {
@@ -260,10 +275,8 @@ export default class SqlMgr {
       const data = new Result();
       data.data.list = [];
 
-
       // todo: read it from config or env
       this.currentProjectFolder = args.toolDir || process.cwd();
-
 
       this.currentProjectJson = args;
 
@@ -276,42 +289,39 @@ export default class SqlMgr {
             JSON.stringify(this.currentProjectJson.envs[env].db[i])
           );
 
-          const connectionKey = `${env}_${
-            this.currentProjectJson.envs[env].db[i].meta.dbAlias
-          }`;
+          const connectionKey = `${env}_${this.currentProjectJson.envs[env].db[i].meta.dbAlias}`;
 
-          this.currentProjectConnections[connectionKey] = SqlClientFactory.create(
-            {...connectionConfig, knex: NcConnectionMgr.get({
-                dbAlias:this.currentProjectJson.envs[env].db[i].meta.dbAlias,
-                env:env,
-                config:args,
-                projectId:args.id
-              })}
-          );
+          this.currentProjectConnections[
+            connectionKey
+          ] = SqlClientFactory.create({
+            ...connectionConfig,
+            knex: NcConnectionMgr.get({
+              dbAlias: this.currentProjectJson.envs[env].db[i].meta.dbAlias,
+              env: env,
+              config: args,
+              projectId: args.id
+            })
+          });
 
           this.currentProjectServers[connectionKey] = {
             xserver: null,
             input: {},
             output: {}
           };
-
         }
       }
 
       // args.projectJson = JSON.parse(JSON.stringify(this.currentProjectJson));
       data.data.list[0] = args;
 
-
       this.projectOpenData = args;
 
       return data;
-
     } catch (e) {
       console.log('projectOpen::error', e);
       throw e;
     }
   }
-
 
   /**
    *
@@ -332,7 +342,6 @@ export default class SqlMgr {
       return this.currentProjectConnections[connectionKey];
     }
 
-
     let connectionConfig = {};
     const dbs = this.currentProjectJson.envs[args.env].db;
 
@@ -343,7 +352,7 @@ export default class SqlMgr {
       }
     }
 
-    if ("client" in connectionConfig) {
+    if ('client' in connectionConfig) {
       const data = SqlClientFactory.create(connectionConfig);
       this.currentProjectConnections[connectionKey] = data;
       // console.log(data);
@@ -353,9 +362,7 @@ export default class SqlMgr {
     throw new Error(`Could not find connectionconfig ${args}`);
   }
 
-
   public async projectGetSchemaKey(args) {
-
     const func = this.projectGetSqlClient.name;
     log.api(`${func}:args:`, args);
 
@@ -378,17 +385,18 @@ export default class SqlMgr {
     if (connectionConfig.client === 'sqlite3') {
       schemaKey = connectionConfig.connection.connection.filename;
     } else {
-      schemaKey = connectionConfig.connection.host + '_' +
-        connectionConfig.connection.port + '_' +
+      schemaKey =
+        connectionConfig.connection.host +
+        '_' +
+        connectionConfig.connection.port +
+        '_' +
         connectionConfig.connection.database;
     }
 
     return schemaKey;
 
     throw new Error(`Could not find connectionconfig ${args}`);
-
   }
-
 
   public async projectCreateByWeb(args) {
     const func = this.projectCreateByWeb.name;
@@ -398,7 +406,6 @@ export default class SqlMgr {
     console.log(args);
 
     try {
-
       args.folder = args.folder || args.project.folder;
       args.folder = path.dirname(args.folder);
       args.title = args.title || args.project.title;
@@ -412,7 +419,6 @@ export default class SqlMgr {
       }
 
       this.projectOpenByWeb(args.projectJson);
-
     } catch (error) {
       log.ppe(error, func);
     }
@@ -420,10 +426,8 @@ export default class SqlMgr {
     return result;
   }
 
-
   public async projectUpdateByWeb(args) {
     const func = this.projectUpdateByWeb.name;
-
 
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -431,8 +435,7 @@ export default class SqlMgr {
     console.log(args);
 
     try {
-
-      fs.unlinkSync(path.join(this.currentProjectFolder, 'config.xc.json'))
+      fs.unlinkSync(path.join(this.currentProjectFolder, 'config.xc.json'));
 
       args.folder = args.folder || args.project.folder;
       args.folder = path.dirname(args.folder);
@@ -440,21 +443,18 @@ export default class SqlMgr {
       args.type = args.type || args.project.type;
 
       if (this.isDbConnectionProject(args.projectJson)) {
-
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);
       }
 
       this.projectOpenByWeb(args.projectJson);
-
     } catch (error) {
       log.ppe(error, func);
     }
     log.api(`${func} :result: ${result}`);
     return result;
   }
-
 
   public async projectUpdateWeb(args) {
     const func = this.projectUpdateWeb.name;
@@ -468,14 +468,12 @@ export default class SqlMgr {
       args.type = args.type || args.project.type;
 
       if (this.isDbConnectionProject(args.projectJson)) {
-
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);
       }
 
       this.projectOpenByWeb(args.project);
-
     } catch (error) {
       log.ppe(error, func);
     }
@@ -507,15 +505,14 @@ export default class SqlMgr {
         return 'pg';
         break;
       default:
-        return 'mysql'
+        return 'mysql';
     }
   }
 
   public _getKnexInitObject(sqlConfig) {
-
     // console.log(sqlConfig);
 
-    const ORACLE_PORT = 1521
+    const ORACLE_PORT = 1521;
 
     if (sqlConfig.typeOfDatabase === 'sqlite3') {
       return {
@@ -524,7 +521,7 @@ export default class SqlMgr {
           // filename: "./db/sakila-sqlite"
           filename: sqlConfig.database
         }
-      }
+      };
     } else if (sqlConfig.typeOfDatabase === 'oracledb') {
       return {
         client: sqlConfig.typeOfDatabase,
@@ -534,27 +531,27 @@ export default class SqlMgr {
           password: sqlConfig.password,
           database: sqlConfig.database,
           port: sqlConfig.port,
-          connectString: `localhost:${ORACLE_PORT}/xe`,
+          connectString: `localhost:${ORACLE_PORT}/xe`
           // connectString: `${sqlConfig.host}:${sqlConfig.port}/${sqlConfig.database}`,
         }
-      }
+      };
     } else if (sqlConfig.typeOfDatabase === 'mariadb') {
       sqlConfig.typeOfDatabase = 'mysql2';
       return {
         client: sqlConfig.typeOfDatabase,
         connection: sqlConfig
-      }
+      };
     } else if (sqlConfig.typeOfDatabase === 'cockroachdb') {
       sqlConfig.typeOfDatabase = 'pg';
       return {
         client: sqlConfig.typeOfDatabase,
         connection: sqlConfig
-      }
+      };
     } else {
       return {
         client: sqlConfig.typeOfDatabase,
-        connection: {...sqlConfig}
-      }
+        connection: { ...sqlConfig }
+      };
     }
   }
 
@@ -577,21 +574,19 @@ export default class SqlMgr {
         return 0;
         break;
       default:
-        return 'mysql'
+        return 'mysql';
     }
   }
 
   public _parseUrlToConnection(dbUrl) {
-
     try {
-
       const config: any = {};
 
       config.connection = {};
       config.meta = {
         tn: 'nc_evolutions',
         dbAlias: 'db'
-      }
+      };
 
       const urlParts = url.parse(dbUrl, true);
 
@@ -599,7 +594,8 @@ export default class SqlMgr {
 
       config.client = this._getDatabaseType(urlParts.protocol) || 'mysql';
       config.connection.host = urlParts.hostname || 'localhost';
-      config.connection.port = +urlParts.port || this._getDbPort(config.typeOfDatabase);
+      config.connection.port =
+        +urlParts.port || this._getDbPort(config.typeOfDatabase);
       config.connection.user = queryParams.u || null;
       config.connection.password = queryParams.p || null;
       config.connection.database = queryParams.d || null;
@@ -615,7 +611,6 @@ export default class SqlMgr {
       }
 
       return config;
-
     } catch (e) {
       console.log(e);
       throw e;
@@ -623,20 +618,18 @@ export default class SqlMgr {
   }
 
   public _createProjectJsonFromDbUrls(args) {
-
     try {
-
       const projectJson = {
         title: '',
         envs: {
-          "_noco": {
+          _noco: {
             db: [],
             apiClient: {
               data: []
             }
           }
         },
-        "workingEnv": "_noco",
+        workingEnv: '_noco',
         meta: {
           version: '0.5',
           seedsFolder: 'seeds',
@@ -656,23 +649,19 @@ export default class SqlMgr {
         apiClient: {
           data: []
         }
-      }
-
+      };
 
       for (let i = 0; i < args.url.length; ++i) {
-
-        const config = this._parseUrlToConnection(args.url[i])
+        const config = this._parseUrlToConnection(args.url[i]);
 
         if (i) {
           config.meta.dbAlias = i > 1 ? `secondary${i}` : `secondary`;
         }
 
         projectJson.envs._noco.db.push(config);
-
       }
 
       return projectJson;
-
     } catch (e) {
       console.log(e);
       throw e;
@@ -712,20 +701,17 @@ export default class SqlMgr {
       args.type = args.type || args.project.type;
 
       if (this.isDbConnectionProject(args.projectJson)) {
-
       } else {
         await this.migrator().init(args);
         await this.migrator().sync(args);
       }
       // this.projectOpen(args.project);
-
     } catch (error) {
       log.ppe(error, func);
     }
     log.api(`${func} :result: ${result}`);
     return result;
   }
-
 
   /**
    *
@@ -756,7 +742,6 @@ export default class SqlMgr {
    * @memberof SqlMgr
    */
   public async sqlOp(args, op, opArgs) {
-
     const func = this.sqlOp.name;
     log.api(`${func}:args:`, args, op, opArgs);
 
@@ -768,10 +753,8 @@ export default class SqlMgr {
     // do sql operation
     const data = await client[op](opArgs);
 
-    return data
-
+    return data;
   }
-
 
   /**
    *
@@ -784,7 +767,6 @@ export default class SqlMgr {
    * @memberof SqlMgr
    */
   public async sqlOpPlus(args, op, opArgs) {
-
     const func = this.sqlOpPlus.name;
     log.api(`${func}:args:`, args, op, opArgs);
 
@@ -803,7 +785,6 @@ export default class SqlMgr {
     args.folder = this.currentProjectFolder;
 
     if (this.isProjectDbConnection()) {
-
     } else {
       // create sql migration files
       const sqlMigrationFiles = await this.migrator().migrationsCreate(args);
@@ -838,18 +819,16 @@ export default class SqlMgr {
       await this.migrator().migrationsUp(migrationArgs);
     }
 
-
     return sqlMigrationStatements;
   }
 
   public createExpressRoutes(tables, relations, router = 'express') {
     const routes = [];
 
-    const id = router === 'express' ? ':id' : '{id}'
-    const parentId = router === 'express' ? ':parentId' : '{parentId}'
+    const id = router === 'express' ? ':id' : '{id}';
+    const parentId = router === 'express' ? ':parentId' : '{parentId}';
 
     for (let i = 0; i < tables.length; ++i) {
-
       /**************** START : express routes ****************/
       routes.push({
         type: 'get',
@@ -891,7 +870,6 @@ export default class SqlMgr {
         enabled: true
       });
 
-
       const hasManyRelations = relations.filter(r => r.tn === tables[i].tn);
 
       for (let j = 0; j < hasManyRelations.length; ++j) {
@@ -911,41 +889,58 @@ export default class SqlMgr {
     return routes;
   }
 
-
-  public getDbType({env, dbAlias}) {
-    const db = this.currentProjectJson.envs[env].db.find(db => db.meta.dbAlias === dbAlias)
+  public getDbType({ env, dbAlias }) {
+    const db = this.currentProjectJson.envs[env].db.find(
+      db => db.meta.dbAlias === dbAlias
+    );
     return db.client;
   }
 
   public async copyAuthMigrations(args) {
-
     try {
-
       const dbs = this.currentProjectJson.envs._noco.db;
       const dbType = dbs[0].client;
 
       console.time('Copy and delete auth user migrations');
 
-      const sqlClient = await this.projectGetSqlClient({env: '_noco', dbAlias: 'db'});
-      const usersTableExists = await sqlClient.hasTable({tn: 'xc_users'});
+      const sqlClient = await this.projectGetSqlClient({
+        env: '_noco',
+        dbAlias: 'db'
+      });
+      const usersTableExists = await sqlClient.hasTable({ tn: 'xc_users' });
 
       if (usersTableExists && usersTableExists.data.value) {
         console.log('A users table already exists, skip auth migrations');
         return;
       }
 
-
       if (!args.noauth) {
-        await fsExtra.copy(path.join(this.currentProjectFolder, 'server', 'tool', 'misc', 'auth', dbType), path.join(this.currentProjectFolder, 'server', 'tool', 'db', 'migrations'))
-        await fsExtra.remove(path.join(this.currentProjectFolder, 'server', 'tool', 'misc'))
+        await fsExtra.copy(
+          path.join(
+            this.currentProjectFolder,
+            'server',
+            'tool',
+            'misc',
+            'auth',
+            dbType
+          ),
+          path.join(
+            this.currentProjectFolder,
+            'server',
+            'tool',
+            'db',
+            'migrations'
+          )
+        );
+        await fsExtra.remove(
+          path.join(this.currentProjectFolder, 'server', 'tool', 'misc')
+        );
       }
       console.timeEnd('Copy and delete auth user migrations');
     } catch (e) {
-      console.log('auth migration copying', e)
+      console.log('auth migration copying', e);
     }
-
   }
-
 
   public isProjectRest() {
     return this.currentProjectJson.projectType.toLowerCase() === 'rest';
@@ -968,8 +963,10 @@ export default class SqlMgr {
   }
 
   public isProjectNoApis() {
-    return this.currentProjectJson.projectType.toLowerCase() === 'dbconnection'
-      || this.currentProjectJson.projectType.toLowerCase() === 'migrations';
+    return (
+      this.currentProjectJson.projectType.toLowerCase() === 'dbconnection' ||
+      this.currentProjectJson.projectType.toLowerCase() === 'migrations'
+    );
   }
 
   public isRestProject(projectJson) {
@@ -977,7 +974,10 @@ export default class SqlMgr {
   }
 
   public isMvc() {
-    return this.currentProjectJson.type && this.currentProjectJson.type.toLowerCase() === 'mvc';
+    return (
+      this.currentProjectJson.type &&
+      this.currentProjectJson.type.toLowerCase() === 'mvc'
+    );
   }
 
   public isGraphqlProject(projectJson) {
@@ -993,10 +993,11 @@ export default class SqlMgr {
   }
 
   public isNoApisProject(projectJson) {
-    return projectJson.projectType.toLowerCase() === 'dbConnection'
-      || projectJson.projectType.toLowerCase() === 'migrations';
+    return (
+      projectJson.projectType.toLowerCase() === 'dbConnection' ||
+      projectJson.projectType.toLowerCase() === 'migrations'
+    );
   }
-
 
   public async handleApiCall(apiMeta) {
     const req = this.axiosRequestMake(apiMeta);
@@ -1037,21 +1038,25 @@ export default class SqlMgr {
 
     apiMeta.response = {};
     const req = {
-      params: apiMeta.parameters ? apiMeta.parameters.reduce((paramsObj, param) => {
-        if (param.name && param.enabled) {
-          paramsObj[param.name] = param.value;
-        }
-        return paramsObj;
-      }, {}) : {},
+      params: apiMeta.parameters
+        ? apiMeta.parameters.reduce((paramsObj, param) => {
+            if (param.name && param.enabled) {
+              paramsObj[param.name] = param.value;
+            }
+            return paramsObj;
+          }, {})
+        : {},
       url: apiMeta.path,
       method: apiMeta.method,
       data: apiMeta.body,
-      headers: apiMeta.headers ? apiMeta.headers.reduce((headersObj, header) => {
-        if (header.name && header.enabled) {
-          headersObj[header.name] = header.value;
-        }
-        return headersObj;
-      }, {}) : {},
+      headers: apiMeta.headers
+        ? apiMeta.headers.reduce((headersObj, header) => {
+            if (header.name && header.enabled) {
+              headersObj[header.name] = header.value;
+            }
+            return headersObj;
+          }, {})
+        : {},
       withCredentials: true
     };
     return req;
@@ -1078,267 +1083,272 @@ export default class SqlMgr {
     return client.raw(query);
   }
 
-
   public async projectChangeEnv(args) {
     try {
-      const xcConfig = JSON.parse(fs.readFileSync(path.join(this.currentProjectFolder, 'config.xc.json'), 'utf8'));
+      const xcConfig = JSON.parse(
+        fs.readFileSync(
+          path.join(this.currentProjectFolder, 'config.xc.json'),
+          'utf8'
+        )
+      );
       xcConfig.workingEnv = args.env;
-      fs.writeFileSync(path.join(this.currentProjectFolder, 'config.xc.json'), JSON.stringify(xcConfig, null, 2));
+      fs.writeFileSync(
+        path.join(this.currentProjectFolder, 'config.xc.json'),
+        JSON.stringify(xcConfig, null, 2)
+      );
     } catch (e) {
       console.log(e);
       throw e;
     }
   }
 
-
   // table alias functions
 
-  public async getTableNameAlias({inflectionFn, tn}) {
+  public async getTableNameAlias({ inflectionFn, tn }) {
     if (inflectionFn) {
       return inflection[inflectionFn](tn);
     }
     return tn;
   }
 
-  public async getColumnNameAlias({inflectionFn, cn}) {
+  public async getColumnNameAlias({ inflectionFn, cn }) {
     if (inflectionFn) {
       return inflection[inflectionFn](cn);
     }
     return cn;
   }
 
-
   public async handleRequest(operation, args) {
     let result;
 
     try {
-
-
-      const op = (args.sqlOpPlus && !process.env.NC_TRY && !('NC_MIGRATIONS_DISABLED' in process.env) ? this.sqlOpPlus : this.sqlOp).bind(this);
+      const op = (args.sqlOpPlus &&
+      !process.env.NC_TRY &&
+      !('NC_MIGRATIONS_DISABLED' in process.env)
+        ? this.sqlOpPlus
+        : this.sqlOp
+      ).bind(this);
 
       switch (operation) {
-        case  'tableCreateStatement':
+        case 'tableCreateStatement':
           console.log('Within tableCreateStatement handler', args);
           result = await op(args, 'tableCreateStatement', args.args);
           break;
-        case  'tableInsertStatement':
+        case 'tableInsertStatement':
           console.log('Within tableInsertStatement handler', args);
           result = await op(args, 'tableInsertStatement', args.args);
           break;
-        case  'tableUpdateStatement':
+        case 'tableUpdateStatement':
           console.log('Within tableUpdateStatement handler', args);
           result = await op(args, 'tableUpdateStatement', args.args);
           break;
-        case  'tableSelectStatement':
+        case 'tableSelectStatement':
           console.log('Within tableSelectStatement handler', args);
           result = await op(args, 'tableSelectStatement', args.args);
           break;
-        case  'tableDeleteStatement':
+        case 'tableDeleteStatement':
           console.log('Within tableDeleteStatement handler', args);
           result = await op(args, 'tableDeleteStatement', args.args);
           break;
-        case  ToolOps.DB_TABLE_LIST:
+        case ToolOps.DB_TABLE_LIST:
           console.log('Within DB_TABLE_LIST handler', args);
           result = await op(args, 'tableList', args.args);
           break;
-        case  ToolOps.DB_VIEW_LIST:
+        case ToolOps.DB_VIEW_LIST:
           console.log('Within DB_VIEW_LIST handler', args);
           result = await op(args, 'viewList', args.args);
           break;
-        case  ToolOps.DB_FUNCTION_LIST:
+        case ToolOps.DB_FUNCTION_LIST:
           console.log('Within DB_FUNCTION_LIST handler', args);
           result = await op(args, 'functionList', args.args);
           break;
-        case  ToolOps.DB_SEQUENCE_LIST:
+        case ToolOps.DB_SEQUENCE_LIST:
           console.log('Within DB_SEQUENCE_LIST handler', args);
           result = await op(args, 'sequenceList', args.args);
           break;
-        case  ToolOps.DB_PROCEDURE_LIST:
+        case ToolOps.DB_PROCEDURE_LIST:
           console.log('Within DB_PROCEDURE_LIST handler', args);
           result = await op(args, 'procedureList', args.args);
           break;
-        case  ToolOps.DB_TABLE_COLUMN_LIST:
+        case ToolOps.DB_TABLE_COLUMN_LIST:
           console.log('Within DB_TABLE_COLUMN_LIST handler', args);
           result = await op(args, 'columnList', args.args);
           break;
-        case  ToolOps.DB_TABLE_TRIGGER_LIST:
+        case ToolOps.DB_TABLE_TRIGGER_LIST:
           console.log('Within DB_TABLE_TRIGGER_LIST handler', args);
           result = await op(args, 'triggerList', args.args);
           break;
-        case  ToolOps.DB_TABLE_RELATION_LIST:
+        case ToolOps.DB_TABLE_RELATION_LIST:
           console.log('Within DB_TABLE_RELATION_LIST handler', args);
           result = await op(args, 'relationList', args.args);
           break;
-        case  ToolOps.DB_TABLE_RELATION_LIST_ALL:
+        case ToolOps.DB_TABLE_RELATION_LIST_ALL:
           console.log('Within DB_TABLE_RELATION_LIST_ALL handler', args);
           result = await op(args, 'relationListAll', args.args);
           break;
-        case  ToolOps.DB_TABLE_INDEX_LIST:
+        case ToolOps.DB_TABLE_INDEX_LIST:
           console.log('Within DB_TABLE_INDEX_LIST handler', args);
           result = await op(args, 'indexList', args.args);
           break;
-        case  ToolOps.DB_TABLE_ROW_LIST:
+        case ToolOps.DB_TABLE_ROW_LIST:
           console.log('Within DB_TABLE_ROW_LIST handler', args);
           result = await op(args, 'list', args.args);
           break;
 
-        case  ToolOps.DB_TABLE_RENAME:
+        case ToolOps.DB_TABLE_RENAME:
           console.log('Within DB_TABLE_RENAME handler', args);
           result = await op(args, 'tableRename', args.args);
           break;
 
-        case  ToolOps.DB_TABLE_CREATE:
+        case ToolOps.DB_TABLE_CREATE:
           console.log('Within DB_TABLE_CREATE handler', args);
           result = await op(args, 'tableCreate', args.args);
           break;
-        case  ToolOps.DB_VIEW_CREATE:
+        case ToolOps.DB_VIEW_CREATE:
           console.log('Within DB_VIEW_CREATE handler', args);
           result = await op(args, 'viewCreate', args.args);
           break;
-        case  ToolOps.DB_FUNCTION_CREATE:
+        case ToolOps.DB_FUNCTION_CREATE:
           console.log('Within DB_FUNCTION_CREATE handler', args);
           result = await op(args, 'functionCreate', args.args);
           break;
-        case  ToolOps.DB_SEQUENCE_CREATE:
+        case ToolOps.DB_SEQUENCE_CREATE:
           console.log('Within DB_SEQUENCE_CREATE handler', args);
           result = await op(args, 'sequenceCreate', args.args);
           break;
-        case  ToolOps.DB_PROCEDURE_CREATE:
+        case ToolOps.DB_PROCEDURE_CREATE:
           console.log('Within DB_PROCEDURE_CREATE handler', args);
           result = await op(args, 'procedureCreate', args.args);
           break;
 
-        case  ToolOps.DB_TABLE_TRIGGER_CREATE:
+        case ToolOps.DB_TABLE_TRIGGER_CREATE:
           console.log('Within DB_TABLE_TRIGGER_CREATE handler', args);
           result = await op(args, 'triggerCreate', args.args);
           break;
-        case  ToolOps.DB_TABLE_RELATION_CREATE:
+        case ToolOps.DB_TABLE_RELATION_CREATE:
           console.log('Within DB_TABLE_RELATION_CREATE handler', args);
           result = await op(args, 'relationCreate', args.args);
           break;
-        case  ToolOps.DB_TABLE_INDEX_CREATE:
+        case ToolOps.DB_TABLE_INDEX_CREATE:
           console.log('Within DB_TABLE_INDEX_CREATE handler', args);
           result = await op(args, 'indexCreate', args.args);
           break;
-        case  ToolOps.DB_TABLE_ROW_CREATE:
+        case ToolOps.DB_TABLE_ROW_CREATE:
           console.log('Within DB_TABLE_ROW_CREATE handler', args);
           result = await op(args, 'insert', args.args);
           break;
-        case  ToolOps.DB_TABLE_UPDATE:
+        case ToolOps.DB_TABLE_UPDATE:
           console.log('Within DB_TABLE_UPDATE handler', args);
           result = await op(args, 'tableUpdate', args.args);
           break;
-        case  ToolOps.DB_VIEW_UPDATE:
+        case ToolOps.DB_VIEW_UPDATE:
           console.log('Within DB_VIEW_UPDATE handler', args);
           result = await op(args, 'viewUpdate', args.args);
           break;
-        case  ToolOps.DB_FUNCTION_UPDATE:
+        case ToolOps.DB_FUNCTION_UPDATE:
           console.log('Within DB_FUNCTION_UPDATE handler', args);
           result = await op(args, 'functionUpdate', args.args);
           break;
-        case  ToolOps.DB_SEQUENCE_UPDATE:
+        case ToolOps.DB_SEQUENCE_UPDATE:
           console.log('Within DB_SEQUENCE_UPDATE handler', args);
           result = await op(args, 'sequenceUpdate', args.args);
           break;
-        case  ToolOps.DB_PROCEDURE_UPDATE:
+        case ToolOps.DB_PROCEDURE_UPDATE:
           console.log('Within DB_PROCEDURE_UPDATE handler', args);
           result = await op(args, 'procedureUpdate', args.args);
           break;
 
-        case  ToolOps.DB_TABLE_TRIGGER_UPDATE:
+        case ToolOps.DB_TABLE_TRIGGER_UPDATE:
           console.log('Within DB_TABLE_TRIGGER_UPDATE handler', args);
           result = await op(args, 'triggerUpdate', args.args);
           break;
-        case  ToolOps.DB_TABLE_RELATION_UPDATE:
+        case ToolOps.DB_TABLE_RELATION_UPDATE:
           console.log('Within DB_TABLE_RELATION_UPDATE handler', args);
           result = await op(args, 'relationUpdate', args.args);
           break;
-        case  ToolOps.DB_TABLE_INDEX_UPDATE:
+        case ToolOps.DB_TABLE_INDEX_UPDATE:
           console.log('Within DB_TABLE_INDEX_UPDATE handler', args);
           result = await op(args, 'indexUpdate', args.args);
           break;
-        case  ToolOps.DB_TABLE_ROW_UPDATE:
+        case ToolOps.DB_TABLE_ROW_UPDATE:
           console.log('Within DB_TABLE_ROW_UPDATE handler', args);
           result = await op(args, 'update', args.args);
           break;
-        case  ToolOps.DB_TABLE_DELETE:
+        case ToolOps.DB_TABLE_DELETE:
           console.log('Within DB_TABLE_DELETE handler', args);
           result = await op(args, 'tableDelete', args.args);
           break;
-        case  ToolOps.DB_VIEW_DELETE:
+        case ToolOps.DB_VIEW_DELETE:
           console.log('Within DB_VIEW_DELETE handler', args);
           result = await op(args, 'viewDelete', args.args);
           break;
-        case  ToolOps.DB_FUNCTION_DELETE:
+        case ToolOps.DB_FUNCTION_DELETE:
           console.log('Within DB_FUNCTION_DELETE handler', args);
           result = await op(args, 'functionDelete', args.args);
           break;
-        case  ToolOps.DB_SEQUENCE_DELETE:
+        case ToolOps.DB_SEQUENCE_DELETE:
           console.log('Within DB_SEQUENCE_DELETE handler', args);
           result = await op(args, 'sequenceDelete', args.args);
           break;
-        case  ToolOps.DB_PROCEDURE_DELETE:
+        case ToolOps.DB_PROCEDURE_DELETE:
           console.log('Within DB_PROCEDURE_DELETE handler', args);
           result = await op(args, 'procedureDelete', args.args);
           break;
 
-        case  ToolOps.DB_TABLE_TRIGGER_DELETE:
+        case ToolOps.DB_TABLE_TRIGGER_DELETE:
           console.log('Within DB_TABLE_TRIGGER_DELETE handler', args);
           result = await op(args, 'triggerDelete', args.args);
           break;
-        case  ToolOps.DB_TABLE_RELATION_DELETE:
+        case ToolOps.DB_TABLE_RELATION_DELETE:
           console.log('Within DB_TABLE_RELATION_DELETE handler', args);
           result = await op(args, 'relationDelete', args.args);
           break;
-        case  ToolOps.DB_TABLE_INDEX_DELETE:
+        case ToolOps.DB_TABLE_INDEX_DELETE:
           console.log('Within DB_TABLE_INDEX_DELETE handler', args);
           result = await op(args, 'indexDelete', args.args);
           break;
-        case  ToolOps.DB_TABLE_ROW_DELETE:
+        case ToolOps.DB_TABLE_ROW_DELETE:
           console.log('Within DB_TABLE_ROW_DELETE handler', args);
           result = await op(args, 'delete', args.args);
           break;
-        case  ToolOps.DB_GET_KNEX_DATA_TYPES:
+        case ToolOps.DB_GET_KNEX_DATA_TYPES:
           console.log('Within DB_TABLE_ROW_DELETE handler', args);
           result = await op(args, 'getKnexDataTypes', args.args);
           break;
-        case  ToolOps.DB_PROJECT_OPEN_BY_WEB:
+        case ToolOps.DB_PROJECT_OPEN_BY_WEB:
           console.log('Within DB_PROJECT_OPEN handler', args);
           result = '';
           break;
-        case  ToolOps.PROJECT_READ_BY_WEB:
+        case ToolOps.PROJECT_READ_BY_WEB:
           console.log('Within PROJECT_READ_BY_WEB handler', args);
           result = this.projectReadByWeb({});
           break;
-        case  ToolOps.DB_VIEW_READ:
+        case ToolOps.DB_VIEW_READ:
           console.log('Within DB_VIEW_READ handler', args);
           result = await op(args, 'viewRead', args.args);
           break;
-        case  ToolOps.DB_FUNCTION_READ:
+        case ToolOps.DB_FUNCTION_READ:
           console.log('Within DB_FUNCTION_READ handler', args);
           result = await op(args, 'functionRead', args.args);
           break;
-        case  ToolOps.DB_PROCEDURE_READ:
+        case ToolOps.DB_PROCEDURE_READ:
           console.log('Within DB_FUNCTION_READ handler', args);
           result = await op(args, 'procedureRead', args.args);
           break;
 
-
-        case  ToolOps.IMPORT_FRESH:
+        case ToolOps.IMPORT_FRESH:
           console.log('Within IMPORT_FRESH handler', args);
           result = await importFresh(args.args.path);
           break;
-        case  ToolOps.WRITE_FILE:
+        case ToolOps.WRITE_FILE:
           console.log('Within WRITE_FILE handler', args);
           result = fs.writeFileSync(args.args.path, args.args.data);
           break;
 
-
-        case  ToolOps.REST_API_CALL:
+        case ToolOps.REST_API_CALL:
           console.log('Within REST_API_CALL handler', args);
           result = this.handleApiCall(args.args);
           break;
-
 
         case ToolOps.PROJECT_MIGRATIONS_LIST:
           console.log('Within PROJECT_MIGRATIONS_LIST handler', args);
@@ -1362,12 +1372,10 @@ export default class SqlMgr {
           result = await this.executeRawQuery(args, args.args);
           break;
 
-
         case ToolOps.PROJECT_HAS_DB:
           console.log('Within PROJECT_HAS_DB handler', args);
           result = await this.projectHasDb();
           break;
-
 
         case ToolOps.TEST_CONNECTION:
           console.log('Within TEST_CONNECTION handler', args);
@@ -1379,7 +1387,6 @@ export default class SqlMgr {
           result = await this.projectCreateByWeb(args.args);
           break;
 
-
         case ToolOps.PROJECT_UPDATE_BY_WEB:
           console.log('Within PROJECT_UPDATE_BY_WEB handler', args);
           result = await this.projectUpdateByWeb(args.args);
@@ -1389,7 +1396,6 @@ export default class SqlMgr {
           console.log('Within PROJECT_CHANGE_ENV handler', args);
           result = await this.projectChangeEnv(args.args);
           break;
-
 
         case 'tableMetaCreate':
         case 'tableMetaDelete':
@@ -1403,11 +1409,11 @@ export default class SqlMgr {
         case 'functionMetaCreate':
         case 'functionMetaDelete':
         case 'functionMetaRecreate':
-          result = {msg: 'success'};
+          result = { msg: 'success' };
           break;
 
         default:
-          throw new Error('Operation not found')
+          throw new Error('Operation not found');
           break;
       }
     } catch (e) {
@@ -1420,18 +1426,14 @@ export default class SqlMgr {
   public async handleRequestWithFile(operation, _args, _file) {
     let result;
 
-
     try {
       // console.log(operation, args);
-
 
       // const op = (args.sqlOpPlus ? this.sqlOpPlus : this.sqlOp).bind(this);
 
       switch (operation) {
-
-
         default:
-          throw new Error('Operation not found')
+          throw new Error('Operation not found');
           break;
       }
     } catch (e) {
@@ -1441,9 +1443,8 @@ export default class SqlMgr {
     return result;
   }
 
-
   public projectHasDb() {
-    for (const env of (Object.values(this.currentProjectJson.envs) as any[])) {
+    for (const env of Object.values(this.currentProjectJson.envs) as any[]) {
       if (env.db.length) {
         return true;
       }
@@ -1452,11 +1453,6 @@ export default class SqlMgr {
   }
 
   public static stats: any;
-
 }
 
 SqlMgr.stats = SqlMgr.stats || {};
-
-
-
-

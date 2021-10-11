@@ -1,8 +1,6 @@
 import BaseRender from '../../BaseRender';
 
-
 class SwaggerXcBt extends BaseRender {
-
   /**
    *
    * @param dir
@@ -12,16 +10,15 @@ class SwaggerXcBt extends BaseRender {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}:any) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }: any) {
+    super({ dir, filename, ctx });
   }
 
   /**
    *  Prepare variables used in code template
    */
   prepare() {
-
-    let data:any = {};
+    let data: any = {};
 
     /* example of simple variable */
     data = this.ctx;
@@ -36,7 +33,6 @@ class SwaggerXcBt extends BaseRender {
     };
 
     return data;
-
   }
 
   /**
@@ -48,70 +44,65 @@ class SwaggerXcBt extends BaseRender {
    * @private
    */
   _renderDefinitions(_args) {
-
     const obj = {};
 
     return JSON.stringify(obj);
-
   }
 
-
   getObject() {
-
     return {
-      "tags": [
+      tags: [
         {
-          "name": `${this.ctx._tn}BelongsTo${this.ctx._rtn || this.ctx.rtn}`,
-          "description": "Everything about belongs to relation"
+          name: `${this.ctx._tn}BelongsTo${this.ctx._rtn || this.ctx.rtn}`,
+          description: 'Everything about belongs to relation'
         }
       ],
-      "paths": {
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${this.ctx._tn}/belongs/${this.ctx._rtn || this.ctx.rtn}`]: {
-          "get": {
-            "tags": [
-              `${this.ctx._tn}BelongsTo${this.ctx._rtn || this.ctx.rtn}`
-            ],
-            "summary": `Get ${this.ctx._tn} list with ${this.ctx._rtn || this.ctx.rtn} parent`,
-            "description": "",
-            "operationId": `${this.ctx._tn}WithParent`,
-            "produces": [
-              "application/json"
-            ],
-            "parameters": [
+      paths: {
+        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${
+          this.ctx._tn
+        }/belongs/${this.ctx._rtn || this.ctx.rtn}`]: {
+          get: {
+            tags: [`${this.ctx._tn}BelongsTo${this.ctx._rtn || this.ctx.rtn}`],
+            summary: `Get ${this.ctx._tn} list with ${this.ctx._rtn ||
+              this.ctx.rtn} parent`,
+            description: '',
+            operationId: `${this.ctx._tn}WithParent`,
+            produces: ['application/json'],
+            parameters: [
               {
-                "in": "query",
-                "name": "where",
-                "type": "String",
-                "description": "Where expression"
+                in: 'query',
+                name: 'where',
+                type: 'String',
+                description: 'Where expression'
               },
               {
-                "in": "query",
-                "name": "limit",
-                "description": "Page size limit",
-                "type": "integer",
-                "format": "int64"
+                in: 'query',
+                name: 'limit',
+                description: 'Page size limit',
+                type: 'integer',
+                format: 'int64'
               },
               {
-                "in": "query",
-                "name": "offset",
-                "description": "Pagination offset",
-                "type": "integer",
-                "format": "int64"
+                in: 'query',
+                name: 'offset',
+                description: 'Pagination offset',
+                type: 'integer',
+                format: 'int64'
               },
               {
-                "in": "query",
-                "name": "sort",
-                "description": "Sort parameter",
-                "type": "string"
+                in: 'query',
+                name: 'sort',
+                description: 'Sort parameter',
+                type: 'string'
               }
             ],
-            "responses": {
-              "200": {
-                "description": "successful operation",
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
+            responses: {
+              '200': {
+                description: 'successful operation',
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object'
                   }
                 }
               }
@@ -119,13 +110,9 @@ class SwaggerXcBt extends BaseRender {
           }
         }
       },
-      "definitions": {}
-    }
-
+      definitions: {}
+    };
   }
-
-
 }
-
 
 export default SwaggerXcBt;

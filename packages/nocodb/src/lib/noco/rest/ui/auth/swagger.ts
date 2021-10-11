@@ -23,7 +23,8 @@ export default `<!DOCTYPE html>
 </script>
 </body>
 </html>
-`/**
+`;
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

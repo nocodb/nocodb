@@ -1,11 +1,9 @@
-import {IEmailAdapter} from "nc-plugin";
-import MailerSend, {EmailParams, Recipient} from "mailersend";
+import { IEmailAdapter } from 'nc-plugin';
+import MailerSend, { EmailParams, Recipient } from 'mailersend';
 
-
-import {XcEmail} from "../../interface/IEmailAdapter";
+import { XcEmail } from '../../interface/IEmailAdapter';
 
 export default class Mailer implements IEmailAdapter {
-
   private mailersend: MailerSend;
   private input: any;
 
@@ -15,15 +13,12 @@ export default class Mailer implements IEmailAdapter {
 
   public async init(): Promise<any> {
     this.mailersend = new MailerSend({
-      api_key: this.input?.api_key,
-    })
+      api_key: this.input?.api_key
+    });
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
-
-    const recipients = [
-      new Recipient(mail.to)
-    ];
+    const recipients = [new Recipient(mail.to)];
 
     const emailParams = new EmailParams()
       .setFrom(this.input.from)
@@ -33,9 +28,9 @@ export default class Mailer implements IEmailAdapter {
       .setHtml(mail.html)
       .setText(mail.text);
 
-    const res = await this.mailersend.send(emailParams)
+    const res = await this.mailersend.send(emailParams);
     if (res.status === 401) {
-      throw new Error(res.status)
+      throw new Error(res.status);
     }
   }
 
@@ -43,17 +38,15 @@ export default class Mailer implements IEmailAdapter {
     try {
       await this.mailSend({
         to: email,
-        subject: "Test email",
+        subject: 'Test email',
         html: 'Test email'
-      } as any)
+      } as any);
       return true;
     } catch (e) {
       throw e;
     }
   }
-
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

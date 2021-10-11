@@ -1,47 +1,48 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import fs from "fs";
+import fs from 'fs';
 import path from 'path';
 
 import * as Sentry from '@sentry/node';
-import bodyParser from "body-parser";
+import bodyParser from 'body-parser';
 import clear from 'clear';
 import cookieParser from 'cookie-parser';
 import debug from 'debug';
-import * as express from 'express'
-import {Router} from "express";
-import importFresh from "import-fresh";
-import morgan from "morgan";
-import {Tele} from "nc-help";
-import NcToolGui from "nc-lib-gui";
+import * as express from 'express';
+import { Router } from 'express';
+import importFresh from 'import-fresh';
+import morgan from 'morgan';
+import { Tele } from 'nc-help';
+import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
-import {NcConfig} from "../../interface/config";
+import { NcConfig } from '../../interface/config';
 import Migrator from '../migrator/SqlMigrator/lib/KnexMigrator';
-import NcConfigFactory from "../utils/NcConfigFactory";
+import NcConfigFactory from '../utils/NcConfigFactory';
 
-import NcProjectBuilderCE from "./NcProjectBuilder";
-import NcProjectBuilderEE from "./NcProjectBuilderEE";
-import {GqlApiBuilder} from "./gql/GqlApiBuilder";
-import NcMetaIO from "./meta/NcMetaIO";
-import NcMetaImplCE from "./meta/NcMetaIOImpl";
-import NcMetaImplEE from "./meta/NcMetaIOImplEE";
-import NcMetaMgrCE from "./meta/NcMetaMgr";
-import NcMetaMgrEE from "./meta/NcMetaMgrEE";
-import {RestApiBuilder} from "./rest/RestApiBuilder";
-import RestAuthCtrlCE from "./rest/RestAuthCtrl";
-import RestAuthCtrlEE from "./rest/RestAuthCtrlEE";
+import NcProjectBuilderCE from './NcProjectBuilder';
+import NcProjectBuilderEE from './NcProjectBuilderEE';
+import { GqlApiBuilder } from './gql/GqlApiBuilder';
+import NcMetaIO from './meta/NcMetaIO';
+import NcMetaImplCE from './meta/NcMetaIOImpl';
+import NcMetaImplEE from './meta/NcMetaIOImplEE';
+import NcMetaMgrCE from './meta/NcMetaMgr';
+import NcMetaMgrEE from './meta/NcMetaMgrEE';
+import { RestApiBuilder } from './rest/RestApiBuilder';
+import RestAuthCtrlCE from './rest/RestAuthCtrl';
+import RestAuthCtrlEE from './rest/RestAuthCtrlEE';
 import mkdirp from 'mkdirp';
-import MetaAPILogger from "./meta/MetaAPILogger";
-import NcUpgrader from "./upgrader/NcUpgrader";
+import MetaAPILogger from './meta/MetaAPILogger';
+import NcUpgrader from './upgrader/NcUpgrader';
 
 const log = debug('nc:app');
 require('dotenv').config();
 
-const NcProjectBuilder = process.env.EE ? NcProjectBuilderEE : NcProjectBuilderCE;
+const NcProjectBuilder = process.env.EE
+  ? NcProjectBuilderEE
+  : NcProjectBuilderCE;
 
 export default class Noco {
-
   private static _this: Noco;
 
   public static get dashboardUrl(): string {
@@ -53,15 +54,15 @@ export default class Noco {
       siteUrl = Noco._this?.config?.envs?.['_noco']?.publicUrl;
     }
 
-    return `${siteUrl}${Noco._this?.config?.dashboardPath}`
+    return `${siteUrl}${Noco._this?.config?.dashboardPath}`;
   }
 
   public static async init(args?: {
-    progressCallback?: Function,
-    registerRoutes?: Function,
-    registerGql?: Function,
-    registerContext?: Function,
-    afterMetaMigrationInit?: Function
+    progressCallback?: Function;
+    registerRoutes?: Function;
+    registerGql?: Function;
+    registerContext?: Function;
+    afterMetaMigrationInit?: Function;
   }): Promise<Router> {
     if (Noco._this) {
       return Noco._this.router;
@@ -87,7 +88,6 @@ export default class Noco {
   private socketClient: any;
 
   constructor() {
-
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
     process.env.NC_VERSION = '0011043';
@@ -99,7 +99,7 @@ export default class Noco {
     this.config = NcConfigFactory.make();
 
     /******************* setup : start *******************/
-    this.env = '_noco';//process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
+    this.env = '_noco'; //process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
     this.config.workingEnv = this.env;
 
     this.config.type = 'docker';
@@ -136,26 +136,23 @@ export default class Noco {
     // });
     clear();
     /******************* prints : end *******************/
-
   }
 
   public async init(args?: {
-    progressCallback?: Function,
-    registerRoutes?: Function,
-    registerGql?: Function,
-    registerContext?: Function,
-    afterMetaMigrationInit?: Function
+    progressCallback?: Function;
+    registerRoutes?: Function;
+    registerGql?: Function;
+    registerContext?: Function;
+    afterMetaMigrationInit?: Function;
   }) {
-
     const {
-      progressCallback,
+      progressCallback
       // registerRoutes,
       // registerContext,
       // registerGql
     } = args || {};
 
     log('Initializing app');
-
 
     // create tool directory if missing
     mkdirp.sync(this.config.toolDir);
@@ -177,7 +174,7 @@ export default class Noco {
 
     await this.readOrGenJwtSecret();
 
-    await NcUpgrader.upgrade({ncMeta: this.ncMeta})
+    await NcUpgrader.upgrade({ ncMeta: this.ncMeta });
 
     if (args?.afterMetaMigrationInit) {
       await args.afterMetaMigrationInit();
@@ -186,26 +183,30 @@ export default class Noco {
     /******************* Middlewares : start *******************/
     this.router.use((req: any, _res, next) => {
       req.nc = this.requestContext;
-      req.ncSiteUrl = this.config?.envs?.[this.env]?.publicUrl || this.config?.publicUrl || (req.protocol + '://' + req.get('host'));
+      req.ncSiteUrl =
+        this.config?.envs?.[this.env]?.publicUrl ||
+        this.config?.publicUrl ||
+        req.protocol + '://' + req.get('host');
       req.ncFullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
       next();
     });
 
-
     // to get ip addresses
 
-    this.router.use(requestIp.mw())
+    this.router.use(requestIp.mw());
     this.router.use(cookieParser());
-    this.router.use(bodyParser.json({
-      limit: process.env.NC_REQUEST_BODY_SIZE || 1024 * 1024
-    }));
+    this.router.use(
+      bodyParser.json({
+        limit: process.env.NC_REQUEST_BODY_SIZE || 1024 * 1024
+      })
+    );
     this.router.use(morgan('tiny'));
     this.router.use(express.static(path.join(__dirname, './public')));
 
     this.router.use((req: any, _res, next) => {
       req.ncProjectId = req?.query?.project_id || req?.body?.project_id;
       next();
-    })
+    });
     /*    this.router.use(this.config.dashboardPath, (req: any, _res, next) => {
           req.ncProjectId = req?.body?.project_id;
           next();
@@ -213,7 +214,7 @@ export default class Noco {
     this.router.use(`/nc/:project_id/*`, (req: any, _res, next) => {
       req.ncProjectId = req.ncProjectId || req.params.project_id;
       next();
-    })
+    });
     this.router.use(MetaAPILogger.mw);
 
     /******************* Middlewares : end *******************/
@@ -225,21 +226,25 @@ export default class Noco {
     this.ncToolApi.addListener(runTimeHandler);
     this.metaMgr.setListener(runTimeHandler);
     await this.metaMgr.initHandler(this.router);
-    this.router.use(this.config.dashboardPath, await this.ncToolApi.expressMiddleware());
-    this.router.get('/', (_req, res) => res.redirect(this.config.dashboardPath));
+    this.router.use(
+      this.config.dashboardPath,
+      await this.ncToolApi.expressMiddleware()
+    );
+    this.router.get('/', (_req, res) =>
+      res.redirect(this.config.dashboardPath)
+    );
 
     this.initSentryErrorHandler();
 
     /* catch error */
     this.router.use((err, _req, res, next) => {
       if (err) {
-        return res.status(400).json({msg: err.message});
+        return res.status(400).json({ msg: err.message });
       }
       next();
     });
 
-
-    Tele.emit('evt_app_started', {})
+    Tele.emit('evt_app_started', {});
 
     return this.router;
   }
@@ -252,17 +257,14 @@ export default class Noco {
 
   private initSentry() {
     if (process.env.NC_SENTRY_DSN) {
-      Sentry.init({dsn: process.env.NC_SENTRY_DSN});
+      Sentry.init({ dsn: process.env.NC_SENTRY_DSN });
 
-// The request handler must be the first middleware on the app
+      // The request handler must be the first middleware on the app
       this.router.use(Sentry.Handlers.requestHandler());
     }
   }
 
-  async initServerless() {
-
-  }
-
+  async initServerless() {}
 
   public getBuilders(): Array<RestApiBuilder | GqlApiBuilder> {
     return this.apiBuilders;
@@ -276,128 +278,150 @@ export default class Noco {
     this.requestContext = context;
   }
 
-
   private handleRuntimeChanges(_progressCallback: Function) {
-
     return async (data): Promise<any> => {
-
       switch (data?.req?.api) {
-
         case 'projectCreateByWeb':
         case 'projectCreateByOneClick':
-        case 'projectCreateByWebWithXCDB': {
-          //  || data?.req?.args?.project?.title || data?.req?.args?.title
-          const project = await this.ncMeta.projectGetById(data?.res?.id)
-          const builder = new NcProjectBuilder(this, this.config, project);
-          this.projectBuilders.push(builder)
-          await builder.init(true);
-        }
+        case 'projectCreateByWebWithXCDB':
+          {
+            //  || data?.req?.args?.project?.title || data?.req?.args?.title
+            const project = await this.ncMeta.projectGetById(data?.res?.id);
+            const builder = new NcProjectBuilder(this, this.config, project);
+            this.projectBuilders.push(builder);
+            await builder.init(true);
+          }
           break;
         // create project builder for newly imported project
         // duplicated code - projectCreateByWeb
-        case 'xcMetaTablesImportZipToLocalFsAndDb': {
-          if (data.req?.freshImport) {
-            const project = await this.ncMeta.projectGetById(data?.req?.project_id)
-            const builder = new NcProjectBuilder(this, this.config, project);
-            this.projectBuilders.push(builder)
-            await builder.init(true);
-          } else {
-            const projectBuilder = this.projectBuilders.find(pb => pb.id == data.req?.project_id);
-            return projectBuilder?.handleRunTimeChanges(data);
+        case 'xcMetaTablesImportZipToLocalFsAndDb':
+          {
+            if (data.req?.freshImport) {
+              const project = await this.ncMeta.projectGetById(
+                data?.req?.project_id
+              );
+              const builder = new NcProjectBuilder(this, this.config, project);
+              this.projectBuilders.push(builder);
+              await builder.init(true);
+            } else {
+              const projectBuilder = this.projectBuilders.find(
+                pb => pb.id == data.req?.project_id
+              );
+              return projectBuilder?.handleRunTimeChanges(data);
+            }
           }
-        }
           break;
 
-        case 'projectUpdateByWeb': {
-          const projectId = data.req?.project_id;
-          const project = await this.ncMeta.projectGetById(data?.req?.project_id)
-          const projectBuilder = this.projectBuilders.find(pb => pb.id === projectId);
+        case 'projectUpdateByWeb':
+          {
+            const projectId = data.req?.project_id;
+            const project = await this.ncMeta.projectGetById(
+              data?.req?.project_id
+            );
+            const projectBuilder = this.projectBuilders.find(
+              pb => pb.id === projectId
+            );
 
-          projectBuilder.updateConfig(project.config)
-          await projectBuilder.reInit()
-          console.log(`Project updated: ${projectId}`)
-        }
+            projectBuilder.updateConfig(project.config);
+            await projectBuilder.reInit();
+            console.log(`Project updated: ${projectId}`);
+          }
           break;
 
         case 'projectChangeEnv':
           try {
-            this.config = importFresh(path.join(process.cwd(), 'config.xc.json')) as NcConfig;
+            this.config = importFresh(
+              path.join(process.cwd(), 'config.xc.json')
+            ) as NcConfig;
             this.config.toolDir = this.config.toolDir || process.cwd();
             this.ncMeta.setConfig(this.config);
             this.metaMgr.setConfig(this.config);
-            Object.assign(process.env, {NODE_ENV: this.env = this.config.workingEnv});
+            Object.assign(process.env, {
+              NODE_ENV: this.env = this.config.workingEnv
+            });
             this.router.stack.splice(0, this.router.stack.length);
             this.ncToolApi.destroy();
             this.ncToolApi.reInitialize(this.config);
             // await this.init({progressCallback});
-            console.log(`Loaded env : ${data.req.args.env}`)
+            console.log(`Loaded env : ${data.req.args.env}`);
           } catch (e) {
             console.log(e);
           }
           break;
 
         default: {
-          const projectBuilder = this.projectBuilders.find(pb => pb.id == data.req?.project_id);
+          const projectBuilder = this.projectBuilders.find(
+            pb => pb.id == data.req?.project_id
+          );
           return projectBuilder?.handleRunTimeChanges(data);
         }
       }
-
     };
   }
 
-
   private async initProjectBuilders() {
-
     const RestAuthCtrl = process.env.EE ? RestAuthCtrlEE : RestAuthCtrlCE;
 
     this.projectBuilders.splice(0, this.projectBuilders.length);
 
-    await new RestAuthCtrl(this as any,
+    await new RestAuthCtrl(
+      this as any,
       this.ncMeta?.knex,
       this.config?.meta?.db,
-      this.config, this.ncMeta).init();
+      this.config,
+      this.ncMeta
+    ).init();
 
     this.router.use(this.projectRouter);
     const projects = await this.ncMeta.projectList();
 
     for (const project of projects) {
       const projectBuilder = new NcProjectBuilder(this, this.config, project);
-      this.projectBuilders.push(projectBuilder)
+      this.projectBuilders.push(projectBuilder);
     }
     let i = 0;
     for (const builder of this.projectBuilders) {
-      if (projects[i].status === 'started' || projects[i].status === 'starting') {
+      if (
+        projects[i].status === 'started' ||
+        projects[i].status === 'starting'
+      ) {
         await builder.init();
       }
       i++;
     }
   }
 
-
   private async syncMigration(): Promise<void> {
-
-    if (this.config?.toolDir
+    if (
+      this.config?.toolDir
       // && !('NC_MIGRATIONS_DISABLED' in process.env)
     ) {
-
-      const dbs = this.config?.envs?.[this.env]?.db
+      const dbs = this.config?.envs?.[this.env]?.db;
 
       if (!dbs || !dbs.length) {
-        log(`'${this.env}' environment doesn't have any database configuration.`)
+        log(
+          `'${this.env}' environment doesn't have any database configuration.`
+        );
         return;
       }
 
       for (const connectionConfig of dbs) {
-
-        log(`Migrations start >> ${connectionConfig?.connection?.['database']} (${connectionConfig.meta?.dbAlias})`)
+        log(
+          `Migrations start >> ${connectionConfig?.connection?.['database']} (${connectionConfig.meta?.dbAlias})`
+        );
 
         try {
-
           /* Update database migrations */
           const migrator = new Migrator();
 
           /* initialize migration if folder doesn't exist */
-          const migrationFolder = path.join(this.config.toolDir, 'server', 'tool', connectionConfig.meta.dbAlias, 'migrations');
+          const migrationFolder = path.join(
+            this.config.toolDir,
+            'server',
+            'tool',
+            connectionConfig.meta.dbAlias,
+            'migrations'
+          );
           if (!fs.existsSync(migrationFolder)) {
             await migrator.init({
               folder: this.config?.toolDir,
@@ -417,38 +441,40 @@ export default class Noco {
             env: this.env,
             dbAlias: connectionConfig.meta.dbAlias,
             migrationSteps: 99999,
-            sqlContentMigrate: 1,
+            sqlContentMigrate: 1
           });
 
-          log(`Migrations end << ${connectionConfig?.connection?.['database']} (${connectionConfig.meta?.dbAlias})`)
-
+          log(
+            `Migrations end << ${connectionConfig?.connection?.['database']} (${connectionConfig.meta?.dbAlias})`
+          );
         } catch (e) {
-          log(`Migrations Failed !! ${connectionConfig?.connection?.['database']} (${connectionConfig.meta?.dbAlias})`)
+          log(
+            `Migrations Failed !! ${connectionConfig?.connection?.['database']} (${connectionConfig.meta?.dbAlias})`
+          );
           console.log(e);
           // throw e;
         }
       }
     } else {
-      log('Warning : ignoring migrations on boot since tools directory not defined')
+      log(
+        'Warning : ignoring migrations on boot since tools directory not defined'
+      );
     }
   }
 
   private initWebSocket(): void {
-
     // todo: Auth
 
-
     this.router.get(`${this.config.dashboardPath}/demo`, (_req, res) => {
-
       (this.ncMeta as any).updateKnex({
-        "client": "sqlite3",
-        "connection": {
-          "filename": "xcDemo.db"
+        client: 'sqlite3',
+        connection: {
+          filename: 'xcDemo.db'
         }
       });
 
-      res.json({msg: 'done'});
-    })
+      res.json({ msg: 'done' });
+    });
 
     this.io = require('socket.io')();
     this.io.listen(8083);
@@ -459,7 +485,6 @@ export default class Noco {
         console.log('Disconnected');
         this.socketClient = null;
       });
-
     });
 
     const statusMonitor = require('express-status-monitor')({
@@ -468,8 +493,10 @@ export default class Noco {
     });
 
     this.router.use(statusMonitor);
-    this.router.get(`${this.config.dashboardPath}/status`, statusMonitor.pageRoute)
-
+    this.router.get(
+      `${this.config.dashboardPath}/status`,
+      statusMonitor.pageRoute
+    );
 
     /*
         title: 'Express Status',  // Default title
@@ -499,27 +526,24 @@ export default class Noco {
         },
         healthChecks: [],
           ignoreStartsWith: '/admin'*/
-
-
   }
-
 
   private async readOrGenJwtSecret(): Promise<any> {
     if (this.config?.auth?.jwt && !this.config.auth.jwt.secret) {
-      let secret = (await this.ncMeta.metaGet('', '', 'nc_store', {
-        key: 'nc_auth_jwt_secret'
-      }))?.value;
+      let secret = (
+        await this.ncMeta.metaGet('', '', 'nc_store', {
+          key: 'nc_auth_jwt_secret'
+        })
+      )?.value;
       if (!secret) {
-        (await this.ncMeta.metaInsert('', '', 'nc_store', {
+        await this.ncMeta.metaInsert('', '', 'nc_store', {
           key: 'nc_auth_jwt_secret',
           value: secret = uuidv4()
-        }))
+        });
       }
       this.config.auth.jwt.secret = secret;
     }
   }
-
-
 }
 
 /**

@@ -1,24 +1,30 @@
 import debug from 'debug';
 
 export default class NcHelp {
-
-  public static async executeOperations(fns: Array<() => Promise<any>>, dbType: string): Promise<any> {
+  public static async executeOperations(
+    fns: Array<() => Promise<any>>,
+    dbType: string
+  ): Promise<any> {
     if (dbType === 'oracledb') {
       for (const fn of fns) {
         await fn();
       }
     } else {
-      await Promise.all(fns.map(async f => {
-        await f();
-      }))
+      await Promise.all(
+        fns.map(async f => {
+          await f();
+        })
+      );
     }
   }
 
-
   public static enableOrDisableDebugLog(args: {
-    [key: string]: boolean
+    [key: string]: boolean;
   }): void {
-    const enabledKeys = debug.disable().split(',').filter(v => v.trim());
+    const enabledKeys = debug
+      .disable()
+      .split(',')
+      .filter(v => v.trim());
     for (const [key, enabled] of Object.entries(args)) {
       if (enabled) {
         if (!enabledKeys.includes(key)) {
@@ -31,11 +37,11 @@ export default class NcHelp {
         }
       }
     }
- 
-    debug.enable(enabledKeys.join(','))
-  }
 
-}/**
+    debug.enable(enabledKeys.join(','));
+  }
+}
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

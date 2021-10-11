@@ -1,7 +1,6 @@
-import BaseModelXcMeta from "./BaseModelXcMeta";
+import BaseModelXcMeta from './BaseModelXcMeta';
 
 class ModelXcMetaSqlite extends BaseModelXcMeta {
-
   /**
    * @param dir
    * @param filename
@@ -10,15 +9,14 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
   /**
    *  Prepare variables used in code template
    */
   prepare() {
-
     const data: any = {};
 
     /* example of simple variable */
@@ -56,9 +54,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
     };
 
     return data;
-
   }
-
 
   _renderXcHasMany(args) {
     return JSON.stringify(args.hasMany);
@@ -67,7 +63,6 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
   _renderXcBelongsTo(args) {
     return JSON.stringify(args.belongsTo);
   }
-
 
   /**
    *
@@ -78,38 +73,29 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
    * @private
    */
   _renderXcColumns(args) {
-
     let str = '[\r\n';
 
     for (let i = 0; i < args.columns.length; ++i) {
-
       str += `{\r\n`;
       str += `cn: '${args.columns[i].cn}',\r\n`;
       str += `type: '${this._getAbstractType(args.columns[i])}',\r\n`;
       str += `dt: '${args.columns[i].dt}',\r\n`;
-      if (args.columns[i].rqd)
-        str += `rqd: ${args.columns[i].rqd},\r\n`;
+      if (args.columns[i].rqd) str += `rqd: ${args.columns[i].rqd},\r\n`;
 
       if (args.columns[i].cdf) {
         str += `default: "${args.columns[i].cdf}",\r\n`;
         str += `columnDefault: "${args.columns[i].cdf}",\r\n`;
       }
 
-      if (args.columns[i].un)
-        str += `un: ${args.columns[i].un},\r\n`;
+      if (args.columns[i].un) str += `un: ${args.columns[i].un},\r\n`;
 
-      if (args.columns[i].pk)
-        str += `pk: ${args.columns[i].pk},\r\n`;
+      if (args.columns[i].pk) str += `pk: ${args.columns[i].pk},\r\n`;
 
-      if (args.columns[i].ai)
-        str += `ai: ${args.columns[i].ai},\r\n`;
+      if (args.columns[i].ai) str += `ai: ${args.columns[i].ai},\r\n`;
 
-      if (args.columns[i].dtxp)
-        str += `dtxp: "${args.columns[i].dtxp}",\r\n`;
+      if (args.columns[i].dtxp) str += `dtxp: "${args.columns[i].dtxp}",\r\n`;
 
-      if (args.columns[i].dtxs)
-        str += `dtxs: ${args.columns[i].dtxs},\r\n`;
-
+      if (args.columns[i].dtxs) str += `dtxs: ${args.columns[i].dtxs},\r\n`;
 
       str += `validate: {
                 func: [],
@@ -117,83 +103,80 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
                 msg: []
               },`;
       str += `},\r\n`;
-
     }
 
     str += ']\r\n';
 
     return str;
-
   }
-
 
   _getAbstractType(column) {
     let str = '';
     switch (column.dt) {
-      case  'int':
+      case 'int':
         str = 'integer';
         break;
-      case  'integer':
+      case 'integer':
         str = 'integer';
         break;
-      case  'tinyint':
+      case 'tinyint':
         str = 'integer';
         break;
-      case  'smallint':
+      case 'smallint':
         str = 'integer';
         break;
-      case  'mediumint':
+      case 'mediumint':
         str = 'integer';
         break;
-      case  'bigint':
+      case 'bigint':
         str = 'bigInteger';
         break;
-      case  'int2':
+      case 'int2':
         str = 'integer';
         break;
-      case  'int8':
+      case 'int8':
         str = 'integer';
         break;
-      case  'character':
+      case 'character':
         str = 'string';
         break;
-      case  'blob sub_type text':
+      case 'blob sub_type text':
         str = 'text';
         break;
-      case  'numeric':
+      case 'numeric':
         str = 'float';
         break;
-      case  'blob':
+      case 'blob':
         str = 'blob';
         break;
-      case  'real':
+      case 'real':
         str = 'float';
         break;
-      case  'double':
+      case 'double':
         str = 'decimal';
         break;
-      case  'double precision':
+      case 'double precision':
         str = 'decimal';
         break;
-      case  'float':
+      case 'float':
         str = 'float';
         break;
-      case  'boolean':
+      case 'boolean':
         str = 'boolean';
         break;
-      case  'date':
+      case 'date':
         str = 'date';
         break;
-      case  'datetime':
+      case 'datetime':
         str = 'datetime';
         break;
-      case  'text':
+      case 'text':
         str = 'text';
         break;
-      case  'varchar':
+      case 'varchar':
         str = 'string';
         break;
-      case  'timestamp':
+      case 'timestamp':
         str = 'timestamp';
         break;
       default:
@@ -206,138 +189,133 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
   _sequelizeGetType(column) {
     let str = '';
     switch (column.dt) {
-      case "int":
+      case 'int':
         str += `DataTypes.INTEGER(${column.dtxp})`;
-        if (column.un)
-          str += `.UNSIGNED`;
+        if (column.un) str += `.UNSIGNED`;
         break;
-      case "tinyint":
+      case 'tinyint':
         str += `DataTypes.INTEGER(${column.dtxp})`;
-        if (column.un)
-          str += `.UNSIGNED`;
+        if (column.un) str += `.UNSIGNED`;
 
         break;
-      case "smallint":
+      case 'smallint':
         str += `DataTypes.INTEGER(${column.dtxp})`;
-        if (column.un)
-          str += `.UNSIGNED`;
+        if (column.un) str += `.UNSIGNED`;
 
         break;
-      case "mediumint":
+      case 'mediumint':
         str += `DataTypes.INTEGER(${column.dtxp})`;
-        if (column.un)
-          str += `.UNSIGNED`;
+        if (column.un) str += `.UNSIGNED`;
 
         break;
-      case "bigint":
+      case 'bigint':
         str += `DataTypes.BIGINT`;
-        if (column.un)
-          str += `.UNSIGNED`;
+        if (column.un) str += `.UNSIGNED`;
 
         break;
-      case "float":
+      case 'float':
         str += `DataTypes.FLOAT`;
         break;
-      case "decimal":
+      case 'decimal':
         str += `DataTypes.DECIMAL`;
         break;
-      case "double":
+      case 'double':
         str += `"DOUBLE(${column.dtxp},${column.ns})"`;
         break;
-      case "real":
+      case 'real':
         str += `DataTypes.FLOAT`;
         break;
-      case "bit":
+      case 'bit':
         str += `DataTypes.BOOLEAN`;
         break;
-      case "boolean":
+      case 'boolean':
         str += `DataTypes.STRING(45)`;
         break;
-      case "serial":
+      case 'serial':
         str += `DataTypes.BIGINT`;
         break;
-      case "date":
+      case 'date':
         str += `DataTypes.DATEONLY`;
         break;
-      case "datetime":
+      case 'datetime':
         str += `DataTypes.DATE`;
         break;
-      case "timestamp":
+      case 'timestamp':
         str += `DataTypes.DATE`;
         break;
-      case "time":
+      case 'time':
         str += `DataTypes.TIME`;
         break;
-      case "year":
+      case 'year':
         str += `"YEAR"`;
         break;
-      case "char":
+      case 'char':
         str += `DataTypes.CHAR(${column.dtxp})`;
         break;
-      case "varchar":
+      case 'varchar':
         str += `DataTypes.STRING(${column.dtxp})`;
         break;
-      case "nchar":
+      case 'nchar':
         str += `DataTypes.CHAR(${column.dtxp})`;
         break;
-      case "text":
+      case 'text':
         str += `DataTypes.TEXT`;
         break;
-      case "tinytext":
+      case 'tinytext':
         str += `DataTypes.TEXT`;
         break;
-      case "mediumtext":
+      case 'mediumtext':
         str += `DataTypes.TEXT`;
         break;
-      case "longtext":
+      case 'longtext':
         str += `DataTypes.TEXT`;
         break;
-      case "binary":
+      case 'binary':
         str += `"BINARY(${column.dtxp})"`;
         break;
-      case "varbinary":
+      case 'varbinary':
         str += `"VARBINARY(${column.dtxp})"`;
         break;
-      case "blob":
+      case 'blob':
         str += `"BLOB"`;
         break;
-      case "tinyblob":
+      case 'tinyblob':
         str += `"TINYBLOB"`;
         break;
-      case "mediumblob":
+      case 'mediumblob':
         str += `"MEDIUMBLOB"`;
         break;
-      case "longblob":
+      case 'longblob':
         str += `"LONGBLOB"`;
         break;
-      case "enum":
+      case 'enum':
         str += `DataTypes.ENUM(${column.dtxp})`;
         break;
-      case "set":
+      case 'set':
         str += `"SET(${column.dtxp})"`;
         break;
-      case "geometry":
+      case 'geometry':
         str += `DataTypes.GEOMETRY`;
         break;
-      case "point":
+      case 'point':
         str += `"POINT"`;
         break;
-      case "linestring":
+      case 'linestring':
         str += `"LINESTRING"`;
         break;
-      case "polygon":
+      case 'polygon':
         str += `"POLYGON"`;
         break;
-      case "multipoint":
+      case 'multipoint':
         str += `"MULTIPOINT"`;
         break;
-      case "multilinestring":
+      case 'multilinestring':
         str += `"MULTILINESTRING"`;
         break;
-      case "multipolygon":
+      case 'multipolygon':
         str += `"MULTIPOLYGON"`;
         break;
-      case "json":
+      case 'json':
         str += `DataTypes.JSON`;
         break;
       default:
@@ -350,133 +328,131 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
   _sequelizeGetDefault(column) {
     let str = '';
     switch (column.dt) {
-      case "int":
+      case 'int':
         str += `'${column.cdf}'`;
         break;
-      case "tinyint":
+      case 'tinyint':
         str += `'${column.cdf}'`;
         break;
-      case "smallint":
+      case 'smallint':
         str += `'${column.cdf}'`;
         break;
-      case "mediumint":
+      case 'mediumint':
         str += `'${column.cdf}'`;
         break;
-      case "bigint":
+      case 'bigint':
         str += `'${column.cdf}'`;
         break;
-      case "float":
+      case 'float':
         str += `'${column.cdf}'`;
         break;
-      case "decimal":
+      case 'decimal':
         str += `'${column.cdf}'`;
         break;
-      case "double":
+      case 'double':
         str += `'${column.cdf}'`;
         break;
-      case "real":
+      case 'real':
         str += `'${column.cdf}'`;
         break;
-      case "bit":
+      case 'bit':
         str += column.cdf ? column.cdf.split('b')[1] : column.cdf;
         break;
-      case "boolean":
+      case 'boolean':
         str += column.cdf;
         break;
-      case "serial":
+      case 'serial':
         str += column.cdf;
         break;
-      case "date":
+      case 'date':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "datetime":
+      case 'datetime':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "timestamp":
+      case 'timestamp':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "time":
+      case 'time':
         str += `'${column.cdf}'`;
         break;
-      case "year":
+      case 'year':
         str += `'${column.cdf}'`;
         break;
-      case "char":
+      case 'char':
         str += `'${column.cdf}'`;
         break;
-      case "varchar":
+      case 'varchar':
         str += `'${column.cdf}'`;
         break;
-      case "nchar":
+      case 'nchar':
         str += `'${column.cdf}'`;
         break;
-      case "text":
+      case 'text':
         str += column.cdf;
         break;
-      case "tinytext":
+      case 'tinytext':
         str += column.cdf;
         break;
-      case "mediumtext":
+      case 'mediumtext':
         str += column.cdf;
         break;
-      case "longtext":
+      case 'longtext':
         str += column.cdf;
         break;
-      case "binary":
+      case 'binary':
         str += column.cdf;
         break;
-      case "varbinary":
+      case 'varbinary':
         str += column.cdf;
         break;
-      case "blob":
+      case 'blob':
         str += column.cdf;
         break;
-      case "tinyblob":
+      case 'tinyblob':
         str += column.cdf;
         break;
-      case "mediumblob":
+      case 'mediumblob':
         str += column.cdf;
         break;
-      case "longblob":
+      case 'longblob':
         str += column.cdf;
         break;
-      case "enum":
+      case 'enum':
         str += `'${column.cdf}'`;
         break;
-      case "set":
+      case 'set':
         str += `'${column.cdf}'`;
         break;
-      case "geometry":
+      case 'geometry':
         str += `'${column.cdf}'`;
         break;
-      case "point":
+      case 'point':
         str += `'${column.cdf}'`;
         break;
-      case "linestring":
+      case 'linestring':
         str += `'${column.cdf}'`;
         break;
-      case "polygon":
+      case 'polygon':
         str += `'${column.cdf}'`;
         break;
-      case "multipoint":
+      case 'multipoint':
         str += `'${column.cdf}'`;
         break;
-      case "multilinestring":
+      case 'multilinestring':
         str += `'${column.cdf}'`;
         break;
-      case "multipolygon":
+      case 'multipolygon':
         str += `'${column.cdf}'`;
         break;
-      case "json":
+      case 'json':
         str += column.cdf;
         break;
     }
     return str;
   }
 
-
   public getXcColumnsObject(args): any {
-
     const columnsArr = [];
 
     for (const column of args.columns) {
@@ -493,7 +469,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
         uidt: column.uidt || this._getUIDataType(column),
         uip: column.uip,
         uicn: column.uicn,
-        ...column,
+        ...column
       };
 
       if (column.rqd) {
@@ -525,13 +501,13 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
         columnObj.dtxs = column.dtxs;
       }
 
-      columnsArr.push(columnObj)
+      columnsArr.push(columnObj);
     }
     this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
   }
 
-/*  public getObject(): any {
+  /*  public getObject(): any {
     return {
       tn: this.ctx.tn,
       _tn: this.ctx._tn,
@@ -549,57 +525,56 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';
-      case "boolean":
+      case 'boolean':
         return 'Checkbox';
-      case  'float':
+      case 'float':
         return 'Decimal';
-      case "date":
+      case 'date':
         return 'Date';
-      case "datetime":
+      case 'datetime':
         return 'DateTime';
-      case "time":
+      case 'time':
         return 'Time';
       case 'year':
         return 'Year';
-      case   'string':
+      case 'string':
         return 'SingleLineText';
-      case "text":
+      case 'text':
         return 'LongText';
-      case "enum":
+      case 'enum':
         return 'SingleSelect';
-      case "set":
+      case 'set':
         return 'MultiSelect';
-      case "json":
+      case 'json':
         return 'LongText';
       case 'blob':
-        return 'LongText'
+        return 'LongText';
       case 'geometry':
-        return 'Geometry'
+        return 'Geometry';
       default:
-        return 'SpecificDBType'
+        return 'SpecificDBType';
     }
-
   }
 
   private getAbstractType(col): any {
     switch ((col.dt || col.dt).toLowerCase()) {
       case 'date':
         return 'date';
-      case    'datetime':
+      case 'datetime':
       case 'timestamp':
         return 'datetime';
-      case "integer":
-      case        'int':
-      case        'tinyint':
-      case        'smallint':
-      case        'mediumint':
-      case        'bigint':
-      case        'int2':
-      case        'int8':
-        return 'integer'
-      case "text":
-        return 'text'
-      case           'boolean':
+      case 'integer':
+      case 'int':
+      case 'tinyint':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'int2':
+      case 'int8':
+        return 'integer';
+      case 'text':
+        return 'text';
+      case 'boolean':
         return 'boolean';
       case 'real':
       case 'double':
@@ -610,17 +585,13 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
 
       case 'blob sub_type text':
       case 'blob':
-        return 'blob'
+        return 'blob';
 
       case 'character':
       case 'varchar':
-        return 'string'
-
+        return 'string';
     }
   }
-
-
 }
-
 
 export default ModelXcMetaSqlite;

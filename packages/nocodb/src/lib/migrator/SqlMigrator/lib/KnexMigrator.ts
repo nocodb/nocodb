@@ -1,25 +1,23 @@
-import fs from "fs";
-import path from "path";
-import {promisify} from "util";
+import fs from 'fs';
+import path from 'path';
+import { promisify } from 'util';
 
-import glob from "glob";
-import Handlebars from "handlebars";
-import mkdirp from "mkdirp";
-import {SqlClientFactory} from 'nc-help';
-import rmdir from "rmdir";
+import glob from 'glob';
+import Handlebars from 'handlebars';
+import mkdirp from 'mkdirp';
+import { SqlClientFactory } from 'nc-help';
+import rmdir from 'rmdir';
 
+import Debug from '../../util/Debug';
+import Result from '../../util/Result';
+import Emit from '../../util/emit';
+import * as fileHelp from '../../util/file.help';
 
-import Debug from "../../util/Debug";
-import Result from "../../util/Result";
-import Emit from "../../util/emit";
-import * as fileHelp from "../../util/file.help";
-
-
-import SqlMigrator from "./SqlMigrator";
-import NcConfigFactory from "../../../utils/NcConfigFactory";
+import SqlMigrator from './SqlMigrator';
+import NcConfigFactory from '../../../utils/NcConfigFactory';
 
 const evt = new Emit();
-const log = new Debug("KnexMigrator");
+const log = new Debug('KnexMigrator');
 /**
  * Class to create an instance of KnexMigrator
  *
@@ -27,7 +25,6 @@ const log = new Debug("KnexMigrator");
  * @extends {SqlMigrator}
  */
 export default class KnexMigrator extends SqlMigrator {
-
   // @ts-ignore
   private projectObj: any;
   // @ts-ignore
@@ -50,7 +47,7 @@ export default class KnexMigrator extends SqlMigrator {
 
   emit(data, _args?) {
     log.api(data);
-    evt.evt.emit("UI", {
+    evt.evt.emit('UI', {
       status: 0,
       data: `Migrator : ${data}`
     });
@@ -58,7 +55,7 @@ export default class KnexMigrator extends SqlMigrator {
 
   emitW(data, _args?) {
     log.warn(data);
-    evt.evt.emit("UI", {
+    evt.evt.emit('UI', {
       status: 1,
       data
     });
@@ -66,7 +63,7 @@ export default class KnexMigrator extends SqlMigrator {
 
   emitE(data, _args?) {
     log.error(data);
-    evt.evt.emit("UI", {
+    evt.evt.emit('UI', {
       status: -1,
       data
     });
@@ -80,17 +77,23 @@ export default class KnexMigrator extends SqlMigrator {
    * @memberof KnexMigrator
    */
   _getWorkingEnvDir(args) {
-    return path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations');
+    return path.join(
+      this.toolDir,
+      'nc',
+      this.project.id,
+      args.dbAlias,
+      'migrations'
+    );
   }
 
   async _initAllEnvOnFilesystem() {
-    const {envs} = this.project;
+    const { envs } = this.project;
 
     // working env will have all databases
-    const {workingEnv} = this.project;
+    const { workingEnv } = this.project;
 
     for (let i = 0; i < envs[workingEnv].db.length; ++i) {
-      const {dbAlias} = envs[workingEnv].db[i].meta;
+      const { dbAlias } = envs[workingEnv].db[i].meta;
       await this._initDbOnFs({
         dbAlias
       });
@@ -98,13 +101,13 @@ export default class KnexMigrator extends SqlMigrator {
   }
 
   async _cleanDbAliasOnFilesystem(args) {
-    const {envs} = this.project;
+    const { envs } = this.project;
 
     // working env will have all databases
     const toCleanEnv = args.env || this.project.workingEnv;
 
     for (let i = 0; i < envs[toCleanEnv].db.length; ++i) {
-      const {dbAlias} = envs[toCleanEnv].db[i].meta;
+      const { dbAlias } = envs[toCleanEnv].db[i].meta;
 
       await this._cleanFs({
         dbAlias
@@ -114,74 +117,147 @@ export default class KnexMigrator extends SqlMigrator {
 
   async _initDbOnFs(args) {
     this.emit(
-      "Creating folder: ",
+      'Creating folder: ',
       path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
     );
 
     try {
       await promisify(mkdirp)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          'migrations'
+        )
       );
       // @ts-ignore
       const dirStat = await promisify(fs.stat)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          'migrations'
+        )
       );
 
       await promisify(mkdirp)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          this.project.meta.metaFolder || 'meta'
+        )
       );
 
       this.emit(
-        "Creating folder: ",
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.seedsFolder)
+        'Creating folder: ',
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          this.project.meta.seedsFolder
+        )
       );
 
       await promisify(mkdirp)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.seedsFolder)
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          this.project.meta.seedsFolder
+        )
       );
       this.emit(
-        "Creating folder: ",
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.queriesFolder)
+        'Creating folder: ',
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          this.project.meta.queriesFolder
+        )
       );
 
       await promisify(mkdirp)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.queriesFolder)
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          this.project.meta.queriesFolder
+        )
       );
       this.emit(
-        "Creating folder: ",
-        path.join(this.toolDir, 'nc', this.project.id, this.project.meta.apisFolder)
+        'Creating folder: ',
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          this.project.meta.apisFolder
+        )
       );
 
       await promisify(mkdirp)(
-        path.join(this.toolDir, 'nc', this.project.id, this.project.meta.apisFolder)
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          this.project.meta.apisFolder
+        )
       );
 
-
       await promisify(mkdirp)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          this.project.meta.metaFolder || 'meta'
+        )
       );
 
       // @ts-ignore
       const metaStat = await promisify(fs.stat)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, this.project.meta.metaFolder || 'meta')
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          this.project.meta.metaFolder || 'meta'
+        )
       );
-
     } catch (e) {
       log.debug(
-        "Error creating folders (migrations, apis, seeds, queries):",
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
+        'Error creating folders (migrations, apis, seeds, queries):',
+        path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          'migrations'
+        )
       );
     }
   }
 
   async _cleanFs(args) {
-    this.emit("Removing folder: ", path.join(this.toolDir, 'nc', this.project.id, args.dbAlias));
+    this.emit(
+      'Removing folder: ',
+      path.join(this.toolDir, 'nc', this.project.id, args.dbAlias)
+    );
 
     try {
-      await promisify(rmdir)(path.join(this.toolDir, 'nc', this.project.id, args.dbAlias));
+      await promisify(rmdir)(
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias)
+      );
     } catch (e) {
       log.debug(
-        "Error removing folder:",
+        'Error removing folder:',
         path.join(this.toolDir, 'nc', this.project.id, args.dbAlias),
         e
       );
@@ -192,24 +268,23 @@ export default class KnexMigrator extends SqlMigrator {
     try {
       // projJsonFilePath = `${path.join(this.toolDir, "config.xc.json")}`;
 
-      log.debug("_readProjectJson", projJsonFilePath);
+      log.debug('_readProjectJson', projJsonFilePath);
       const exists = await promisify(fs.exists)(projJsonFilePath);
 
       if (exists) {
         // this.project = await promisify(jsonfile.readFile)(projJsonFilePath);
-        this.project = await promisify(fs.readFile)(
-          projJsonFilePath,
-          "utf8"
-        );
+        this.project = await promisify(fs.readFile)(projJsonFilePath, 'utf8');
         this.project = JSON.parse(this.project, (_key, value) => {
-          return typeof value === 'string' ? Handlebars.compile(value, {noEscape: true})(process.env) : value;
+          return typeof value === 'string'
+            ? Handlebars.compile(value, { noEscape: true })(process.env)
+            : value;
         });
-        this.project.folder = this.toolDir || path.dirname(projJsonFilePath)
+        this.project.folder = this.toolDir || path.dirname(projJsonFilePath);
       } else {
-        throw new Error("Project file should have got created");
+        throw new Error('Project file should have got created');
       }
     } catch (e) {
-      log.debug("error in _readProjectJson: ", e);
+      log.debug('error in _readProjectJson: ', e);
     }
   }
 
@@ -219,48 +294,48 @@ export default class KnexMigrator extends SqlMigrator {
         args.folder = this.toolDir;
       }
 
-      const projJsonFilePath = `${path.join(args.folder, "config.xc.json")}`;
+      const projJsonFilePath = `${path.join(args.folder, 'config.xc.json')}`;
       log.debug(args, projJsonFilePath);
 
       const exists = await promisify(fs.exists)(projJsonFilePath);
 
       if (exists) {
         await this._readProjectJson(projJsonFilePath);
-        this.emit("Migrator for project initalised successfully");
+        this.emit('Migrator for project initalised successfully');
       } else if (NcConfigFactory.hasDbUrl()) {
         this.project = NcConfigFactory.make();
       } else {
-        args.type = args.type || "sqlite";
+        args.type = args.type || 'sqlite';
 
-        let freshProject = require("./templates/sqlite.template");
+        let freshProject = require('./templates/sqlite.template');
 
         if (args.projectJson) {
           freshProject = args.projectJson;
         } else {
           switch (args.type) {
-            case "mysql":
-            case "mysql2":
-              freshProject = require("./templates/mysql.template.js");
+            case 'mysql':
+            case 'mysql2':
+              freshProject = require('./templates/mysql.template.js');
               break;
 
-            case "pg":
-              freshProject = require("./templates/pg.template.js");
+            case 'pg':
+              freshProject = require('./templates/pg.template.js');
               break;
 
-            case "mssql":
-              freshProject = require("./templates/mssql.template.js");
+            case 'mssql':
+              freshProject = require('./templates/mssql.template.js');
               break;
 
-            case "oracle":
-              freshProject = require("./templates/oracle.template.js");
+            case 'oracle':
+              freshProject = require('./templates/oracle.template.js');
               break;
 
-            case "sqlite":
-              freshProject = require("./templates/sqlite.template.js");
+            case 'sqlite':
+              freshProject = require('./templates/sqlite.template.js');
               break;
 
             default:
-              throw new Error("Unknown database option provided");
+              throw new Error('Unknown database option provided');
               break;
           }
         }
@@ -275,7 +350,7 @@ export default class KnexMigrator extends SqlMigrator {
 
         this.emit(`Project folder created successfully: ${args.folder}`);
 
-        const newProjectJsonPath = path.join(args.folder, "config.xc.json");
+        const newProjectJsonPath = path.join(args.folder, 'config.xc.json');
 
         if (args.title) {
           freshProject.title = args.title;
@@ -284,7 +359,7 @@ export default class KnexMigrator extends SqlMigrator {
         await promisify(fs.writeFile)(
           newProjectJsonPath,
           JSON.stringify(freshProject, null, 2),
-          "utf-8"
+          'utf-8'
         );
 
         this.emit(`Project json created successfully: ${newProjectJsonPath}`);
@@ -298,39 +373,32 @@ export default class KnexMigrator extends SqlMigrator {
   }
 
   async _initDbWithSql(connectionConfig) {
-    const sqlClient = connectionConfig.sqlClient || SqlClientFactory.create(connectionConfig);
-    if (connectionConfig.client === "oracledb") {
+    const sqlClient =
+      connectionConfig.sqlClient || SqlClientFactory.create(connectionConfig);
+    if (connectionConfig.client === 'oracledb') {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${
-          connectionConfig.connection.user
-        }`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.user
       });
-    } else if (connectionConfig.client !== "sqlite3") {
+    } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${
-          connectionConfig.connection.database
-        }`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.database
       });
     } else {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${
-          connectionConfig.connection.connection.filename
-        }`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.connection.filename}`
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.connection.filename
       });
     }
 
-    this.emit(
-      `Creating Table if not exists in ${connectionConfig.meta.tn}`
-    );
+    this.emit(`Creating Table if not exists in ${connectionConfig.meta.tn}`);
 
     if (!('NC_MIGRATIONS_DISABLED' in process.env)) {
       await sqlClient.createTableIfNotExists({
@@ -353,12 +421,12 @@ export default class KnexMigrator extends SqlMigrator {
 
   async _cleanDbWithSql(connectionConfig) {
     const sqlClient = SqlClientFactory.create(connectionConfig);
-    if (connectionConfig.client === "oracledb") {
+    if (connectionConfig.client === 'oracledb') {
       this.emit(`Dropping DB : ${connectionConfig.connection.user}`);
       await sqlClient.dropDatabase({
         database: connectionConfig.connection.user
       });
-    } else if (connectionConfig.client === "sqlite3") {
+    } else if (connectionConfig.client === 'sqlite3') {
       this.emit(
         `Dropping DB : ${connectionConfig.connection.connection.filename}`
       );
@@ -376,35 +444,30 @@ export default class KnexMigrator extends SqlMigrator {
   }
 
   async _initEnvDbsWithSql(env, dbAlias = null, sqlClient = null) {
-
-    const {envs} = this.project;
+    const { envs } = this.project;
 
     this.emit(`Initialising env: ${env}`);
 
     for (let i = 0; i < this.project.envs[env].db.length; ++i) {
-
       const connectionConfig = envs[env].db[i];
 
       /* if no dbAlias - init all dbs in env. Else check if it matches the one sent in args */
       if (!dbAlias || dbAlias === envs[env].db[i].meta.dbAlias) {
-        await this._initDbWithSql({...connectionConfig, sqlClient});
+        await this._initDbWithSql({ ...connectionConfig, sqlClient });
       }
     }
   }
 
-
   async _initAllEnvDbsWithSql(_args) {
-
     // const env = '';
 
     for (const env in this.project.envs) {
-      await this._initEnvDbsWithSql(env, null)
+      await this._initEnvDbsWithSql(env, null);
     }
-
   }
 
   async _cleanAllEnvDbs() {
-    const {envs} = this.project;
+    const { envs } = this.project;
     // removes all envs
     for (const env in envs) {
       for (let i = 0; i < envs[env].db.length; ++i) {
@@ -412,16 +475,14 @@ export default class KnexMigrator extends SqlMigrator {
         await this._cleanDbWithSql(connectionConfig);
       }
     }
-
   }
 
-
   async _cleanEnvDbsWithSql(args) {
-    const {envs} = this.project;
+    const { envs } = this.project;
 
     if (args.env) {
       // remove environment from argument
-      const {env} = args;
+      const { env } = args;
 
       for (let i = 0; i < envs[env].db.length; ++i) {
         const connectionConfig = envs[env].db[i];
@@ -437,7 +498,7 @@ export default class KnexMigrator extends SqlMigrator {
         }
       }
     } else {
-      this._cleanAllEnvDbs()
+      this._cleanAllEnvDbs();
     }
   }
 
@@ -453,8 +514,6 @@ export default class KnexMigrator extends SqlMigrator {
   }
 
   async _migrationsUp(args): Promise<any> {
-
-
     const result = new Result();
 
     result.data.object = {};
@@ -464,36 +523,37 @@ export default class KnexMigrator extends SqlMigrator {
       return result;
     }
     try {
-      const {onlyList} = args;
-      let {migrationSteps} = args;
+      const { onlyList } = args;
+      let { migrationSteps } = args;
 
       if (!migrationSteps && !args.file) {
         result.code = -1;
         result.message =
-          "Neither num of steps nor file is specified for migration";
-        log.debug("Neither num of steps nor file is specified for migration");
-        log.debug("See help");
+          'Neither num of steps nor file is specified for migration';
+        log.debug('Neither num of steps nor file is specified for migration');
+        log.debug('See help');
         return result;
       }
 
       /** ************** START : get files and migrations *************** */
-        // get all evolutions from fs
-        // const files = await promisify(glob)(args.upFilesPattern);
-        // const filesDown = await promisify(glob)(args.downFilesPattern);
+      // get all evolutions from fs
+      // const files = await promisify(glob)(args.upFilesPattern);
+      // const filesDown = await promisify(glob)(args.downFilesPattern);
 
       let files;
       let filesDown;
 
       if (this.metaDb) {
-        filesDown = files = await this.metaDb('nc_migrations').where({
-          project_id: this.project_id,
-          db_alias: args.dbAlias
-        }).orderBy('id', 'asc')
+        filesDown = files = await this.metaDb('nc_migrations')
+          .where({
+            project_id: this.project_id,
+            db_alias: args.dbAlias
+          })
+          .orderBy('id', 'asc');
       } else {
         files = await promisify(glob)(args.upFilesPattern);
         filesDown = await promisify(glob)(args.downFilesPattern);
       }
-
 
       // get evolutions from sql
       const connection = this._getSqlConnectionFromDbAlias(
@@ -502,16 +562,20 @@ export default class KnexMigrator extends SqlMigrator {
       );
       const sqlClient = args.sqlClient || SqlClientFactory.create(connection);
 
-      let migrations = await sqlClient.selectAll(sqlClient.getTnPath(connection.meta.tn));
+      let migrations = await sqlClient.selectAll(
+        sqlClient.getTnPath(connection.meta.tn)
+      );
 
       if (this.suffix) {
-        migrations = migrations.filter(m => m.title.includes(this.suffix))
+        migrations = migrations.filter(m => m.title.includes(this.suffix));
       }
 
       /** ************** END : get files and migrations *************** */
 
       if (files.length === migrations.length) {
-        this.emit(`Evolutions are upto date for ' ${args.env} : ${args.dbAlias} '`);
+        this.emit(
+          `Evolutions are upto date for ' ${args.env} : ${args.dbAlias} '`
+        );
         for (let i = 0; i < migrations.length; ++i) {
           result.data.object.list.push({
             title: migrations[i].title,
@@ -523,7 +587,9 @@ export default class KnexMigrator extends SqlMigrator {
         result.data.object.pending = files.length - migrations.length;
       } else if (files.length > migrations.length || onlyList) {
         this.emit(
-          `Number of evolutions pending for '${args.env}:${args.dbAlias}': '${files.length - migrations.length}'`
+          `Number of evolutions pending for '${args.env}:${
+            args.dbAlias
+          }': '${files.length - migrations.length}'`
         );
         result.data.object.pending = files.length - migrations.length;
 
@@ -533,7 +599,7 @@ export default class KnexMigrator extends SqlMigrator {
         if (migrations.length !== 0) {
           // get last evolution that was made
           const lastEvolution = migrations[migrations.length - 1];
-          let i = 0
+          let i = 0;
           // find the index of the last evolution in evolution list of files
           for (; i < files.length; ++i) {
             if (this.metaDb) {
@@ -554,7 +620,6 @@ export default class KnexMigrator extends SqlMigrator {
         /** ************** END : Find file index to begin migrations *************** */
 
         try {
-
           /** ************** START : calculate migration steps from filename *************** */
           if (!migrationSteps) {
             let fileFound = 0;
@@ -592,8 +657,8 @@ export default class KnexMigrator extends SqlMigrator {
               }
             } else {
               for (let i = 0; i < fileIndex; ++i) {
-                const fileParts = files[i].split("/");
-                const downFileParts = filesDown[i].split("/");
+                const fileParts = files[i].split('/');
+                const downFileParts = filesDown[i].split('/');
                 result.data.object.list.push({
                   title: fileParts[fileParts.length - 1],
                   titleDown: downFileParts[fileParts.length - 1],
@@ -619,10 +684,10 @@ export default class KnexMigrator extends SqlMigrator {
               fileName = files[i].title;
               fileNameDown = files[i].title_down;
             } else {
-              const splits = files[i].split("/");
+              const splits = files[i].split('/');
               fileName = splits[splits.length - 1];
 
-              const splitsDown = filesDown[i].split("/");
+              const splitsDown = filesDown[i].split('/');
               fileNameDown = splitsDown[splitsDown.length - 1];
             }
 
@@ -639,15 +704,15 @@ export default class KnexMigrator extends SqlMigrator {
               if (this.metaDb) {
                 upStatement = files[i].up;
               } else {
-                upStatement = await promisify(fs.readFile)(
-                  files[i],
-                  "utf8"
-                );
+                upStatement = await promisify(fs.readFile)(files[i], 'utf8');
               }
               if (args.sqlContentMigrate) {
                 // Split base on comments which starts with `xc` , eg : /* xc :test */ , /*xc*/
-                upStatements.push(...upStatement.split(/\/\*\s*xc[\s\S]*?\s*\*\//).filter(s => s.trim()));
-
+                upStatements.push(
+                  ...upStatement
+                    .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
+                    .filter(s => s.trim())
+                );
               }
 
               metaTableInserts.push({
@@ -661,36 +726,35 @@ export default class KnexMigrator extends SqlMigrator {
           }
 
           if (onlyList) {
-
           } else {
             const vm = this;
 
             const trx = await sqlClient.knex.transaction();
             try {
-
               for (const query of upStatements) {
                 await trx.raw(query);
                 vm.emit(`'${query}' : Executed SQL query`);
               }
               for (const data of metaTableInserts) {
                 await trx(sqlClient.getTnPath(connection.meta.tn)).insert(data);
-                vm.emit(`'${data.title}' : Updating bookkeeping of SQL UP migration - done`);
+                vm.emit(
+                  `'${data.title}' : Updating bookkeeping of SQL UP migration - done`
+                );
               }
               await trx.commit();
 
               //console.log('========== success ')
-
             } catch (error) {
               await trx.rollback();
-              vm.emitW(`Migration operation failed, Database restored to previous state`);
+              vm.emitW(
+                `Migration operation failed, Database restored to previous state`
+              );
               log.ppe(error, '');
               throw error;
             }
           }
 
-
           /** ************** END : Apply migrations *************** */
-
         } catch (e) {
           this.emitE(`Error while migrating up : ${e.code} and ${e.message}`);
           log.debug(e);
@@ -698,10 +762,10 @@ export default class KnexMigrator extends SqlMigrator {
         }
       } else {
         result.data.object.pending = -1;
-        this.emitE("Evolutions are dirty - reset the whole thing please");
+        this.emitE('Evolutions are dirty - reset the whole thing please');
       }
     } catch (e) {
-      log.debug("Error in evolutionUp", e);
+      log.debug('Error in evolutionUp', e);
       result.code = -1;
       result.message = e.message;
       throw e;
@@ -711,34 +775,35 @@ export default class KnexMigrator extends SqlMigrator {
   }
 
   async _migrationsDown(args) {
-
     if (process.env.NC_MIGRATIONS_DISABLED) {
-      return
+      return;
     }
 
     // const {env} = args;
-    let {migrationSteps} = args;
-    const {onlyList} = args;
+    let { migrationSteps } = args;
+    const { onlyList } = args;
 
     if (!migrationSteps && !args.file) {
-      log.debug("Neither num of steps nor file is specified for migartion");
-      log.debug("See help");
+      log.debug('Neither num of steps nor file is specified for migartion');
+      log.debug('See help');
       return;
     }
 
     if (args.onlyList) {
-      log.debug("Pending migration list:");
+      log.debug('Pending migration list:');
     } else {
-      log.debug("Migrating Down:");
+      log.debug('Migrating Down:');
     }
 
     try {
       let files;
       if (this.metaDb) {
-        files = await this.metaDb('nc_migrations').where({
-          project_id: this.project_id,
-          db_alias: args.dbAlias
-        }).orderBy('title', 'asc')
+        files = await this.metaDb('nc_migrations')
+          .where({
+            project_id: this.project_id,
+            db_alias: args.dbAlias
+          })
+          .orderBy('title', 'asc');
       } else {
         // get all evolutions from fs
         files = await promisify(glob)(args.downFilesPattern);
@@ -749,11 +814,12 @@ export default class KnexMigrator extends SqlMigrator {
         args.env
       );
       const sqlClient = SqlClientFactory.create(connection);
-      const migrations = await sqlClient.selectAll(sqlClient.getTnPath(connection.meta.tn));
+      const migrations = await sqlClient.selectAll(
+        sqlClient.getTnPath(connection.meta.tn)
+      );
 
       if (migrations.length) {
         try {
-
           if (!migrationSteps) {
             let fileFound = 0;
             for (let i = migrations.length - 1; i >= 0; --i) {
@@ -789,7 +855,7 @@ export default class KnexMigrator extends SqlMigrator {
             if (this.metaDb) {
               fileName = files[i].title_down;
             } else {
-              const splits = files[i].split("/");
+              const splits = files[i].split('/');
               fileName = splits[splits.length - 1];
             }
             if (onlyList) {
@@ -800,18 +866,18 @@ export default class KnexMigrator extends SqlMigrator {
               if (this.metaDb) {
                 downStatement = files[i].down;
               } else {
-                downStatement = await promisify(fs.readFile)(
-                  files[i],
-                  "utf8"
-                );
+                downStatement = await promisify(fs.readFile)(files[i], 'utf8');
               }
               if (args.sqlContentMigrate)
-                downStatements.push(...downStatement.split(/\/\*\s*xc[\s\S]*?\s*\*\//).filter(s => s.trim()));
+                downStatements.push(
+                  ...downStatement
+                    .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
+                    .filter(s => s.trim())
+                );
 
               metaDownDeletes.push({
                 titleDown: fileName
               });
-
             }
           }
 
@@ -819,20 +885,21 @@ export default class KnexMigrator extends SqlMigrator {
 
           const trx = await sqlClient.knex.transaction();
           try {
-
             for (const query of downStatements) {
               await trx.raw(query).transacting(trx);
               vm.emit(`'${query}' : Executed SQL query`);
             }
             for (const condition of metaDownDeletes) {
-              vm.emit(`'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`);
-              await trx(sqlClient.getTnPath(connection.meta.tn)).where(condition).del();
+              vm.emit(
+                `'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`
+              );
+              await trx(sqlClient.getTnPath(connection.meta.tn))
+                .where(condition)
+                .del();
             }
-
 
             await trx.commit();
             //console.log('========== success ');
-
           } catch (error) {
             await trx.rollback();
             vm.emitW(
@@ -846,7 +913,7 @@ export default class KnexMigrator extends SqlMigrator {
         }
       }
     } catch (e) {
-      log.debug("Error in evolutionUp", e);
+      log.debug('Error in evolutionUp', e);
     }
   }
 
@@ -862,7 +929,6 @@ export default class KnexMigrator extends SqlMigrator {
    * @memberof KnexMigrator
    */
   async init(args) {
-
     // if (this.metaDb) {
     //   return;
     // }
@@ -876,7 +942,7 @@ export default class KnexMigrator extends SqlMigrator {
       // await this._initProjectJsonFile(args);
       await this._initAllEnvOnFilesystem();
     } catch (e) {
-      log.debug("Error in creating migration project:", e);
+      log.debug('Error in creating migration project:', e);
       throw e;
     }
   }
@@ -888,12 +954,10 @@ export default class KnexMigrator extends SqlMigrator {
    * @memberof KnexMigrator
    */
   async sync(args: any = {}) {
-
     const func = this.sync.name;
     log.api(`${func}:args:`, args);
 
     try {
-
       // if (!this.project) {
       //   await this._readProjectJson(path.join(args.folder, "config.xc.json"));
       // }
@@ -912,9 +976,8 @@ export default class KnexMigrator extends SqlMigrator {
       } else {
         await this._initEnvDbsWithSql(args.env, args.dbAlias, args.sqlClient);
       }
-
     } catch (e) {
-      log.debug("Error in creating migration project:", e);
+      log.debug('Error in creating migration project:', e);
       throw e;
     }
   }
@@ -946,9 +1009,9 @@ export default class KnexMigrator extends SqlMigrator {
 
       await this._cleanEnvDbsWithSql(args);
 
-      log.debug("Cleaning all Databases");
+      log.debug('Cleaning all Databases');
     } catch (e) {
-      log.debug("Error in cleaning migration project:", e);
+      log.debug('Error in cleaning migration project:', e);
       throw e;
     }
   }
@@ -981,7 +1044,6 @@ export default class KnexMigrator extends SqlMigrator {
       const upFileName = fileHelp.getFilenameForUp(prefix);
       const downFileName = fileHelp.getFilenameForDown(prefix);
       if (this.metaDb) {
-
         await this.metaDb('nc_migrations').insert({
           project_id: this.project_id,
           db_alias: args.dbAlias,
@@ -989,19 +1051,18 @@ export default class KnexMigrator extends SqlMigrator {
           down: '',
           title: upFileName,
           title_down: downFileName
-        })
-
+        });
       } else {
         // create files
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), upFileName),
-          "",
-          "utf-8"
+          '',
+          'utf-8'
         );
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), downFileName),
-          "",
-          "utf-8"
+          '',
+          'utf-8'
         );
       }
 
@@ -1019,7 +1080,6 @@ export default class KnexMigrator extends SqlMigrator {
     }
   }
 
-
   /**
    * Creates up and down migration files within migration folders
    *
@@ -1036,7 +1096,6 @@ export default class KnexMigrator extends SqlMigrator {
     log.api(`${func}:args:`, args);
 
     try {
-
       // if (!this.project) {
       //   await this._readProjectJson(path.join(args.folder, "config.xc.json"));
       // }
@@ -1044,7 +1103,6 @@ export default class KnexMigrator extends SqlMigrator {
       // if (NcConfigFactory.hasDbUrl()) {
       //   this.project = NcConfigFactory.make();
       // }
-
       /**
        *
        * Call migrationsDown() here
@@ -1052,7 +1110,6 @@ export default class KnexMigrator extends SqlMigrator {
        *  Then delete the records
        *
        */
-
     } catch (e) {
       log.debug(e);
       throw e;
@@ -1076,7 +1133,6 @@ export default class KnexMigrator extends SqlMigrator {
    * @memberof KnexMigrator
    */
   async migrationsUp(args: any = {}) {
-
     const func = this.migrationsUp.name;
     // const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1095,9 +1151,23 @@ export default class KnexMigrator extends SqlMigrator {
       migrationSteps: args.migrationSteps,
       file: args.file,
       onlyList: args.onlyList,
-      upFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.up.sql'),
-      downFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.down.sql'),
-      tn: this._getEvolutionsTablename(args),//`${this.toolDir}`,
+      upFilesPattern: path.join(
+        this.toolDir,
+        'nc',
+        this.project.id,
+        args.dbAlias,
+        'migrations',
+        '*.up.sql'
+      ),
+      downFilesPattern: path.join(
+        this.toolDir,
+        'nc',
+        this.project.id,
+        args.dbAlias,
+        'migrations',
+        '*.down.sql'
+      ),
+      tn: this._getEvolutionsTablename(args), //`${this.toolDir}`,
       sqlContentMigrate: args.sqlContentMigrate,
       sqlClient: args.sqlClient
     });
@@ -1136,9 +1206,23 @@ export default class KnexMigrator extends SqlMigrator {
       migrationSteps: args.migrationSteps,
       onlyList: args.onlyList,
       file: args.file,
-      upFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.up.sql'),
-      downFilesPattern: path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', '*.down.sql'),
-      tn: this._getEvolutionsTablename(args),//`_evolutions`,
+      upFilesPattern: path.join(
+        this.toolDir,
+        'nc',
+        this.project.id,
+        args.dbAlias,
+        'migrations',
+        '*.up.sql'
+      ),
+      downFilesPattern: path.join(
+        this.toolDir,
+        'nc',
+        this.project.id,
+        args.dbAlias,
+        'migrations',
+        '*.down.sql'
+      ),
+      tn: this._getEvolutionsTablename(args), //`_evolutions`,
       sqlContentMigrate: args.sqlContentMigrate
     });
   }
@@ -1172,32 +1256,38 @@ export default class KnexMigrator extends SqlMigrator {
       //   this.project = NcConfigFactory.make();
       // }
 
-      let upStatement = "";
-      let downStatement = "";
+      let upStatement = '';
+      let downStatement = '';
 
       for (let i = 0; i < args.upStatement.length; i++) {
         upStatement = `${upStatement + args.upStatement[i].sql};`;
       }
-      log.debug("migrationsWrite: created up statement", upStatement);
+      log.debug('migrationsWrite: created up statement', upStatement);
 
       for (let i = 0; i < args.downStatement.length; i++) {
         downStatement = `${downStatement + args.downStatement[i].sql};`;
       }
-      log.debug("migrationsWrite: created downStatement", downStatement);
+      log.debug('migrationsWrite: created downStatement', downStatement);
       if (this.metaDb) {
-        if (await this.metaDb('nc_migrations').where({
-          project_id: this.project_id,
-          db_alias: args.dbAlias,
-          title: args.up
-        }).first()) {
-          await this.metaDb('nc_migrations').update({
-            up: upStatement,
-            down: downStatement,
-          }).where({
-            project_id: this.project_id,
-            db_alias: args.dbAlias,
-            title: args.up,
-          })
+        if (
+          await this.metaDb('nc_migrations')
+            .where({
+              project_id: this.project_id,
+              db_alias: args.dbAlias,
+              title: args.up
+            })
+            .first()
+        ) {
+          await this.metaDb('nc_migrations')
+            .update({
+              up: upStatement,
+              down: downStatement
+            })
+            .where({
+              project_id: this.project_id,
+              db_alias: args.dbAlias,
+              title: args.up
+            });
         } else {
           await this.metaDb('nc_migrations').insert({
             project_id: this.project_id,
@@ -1206,25 +1296,25 @@ export default class KnexMigrator extends SqlMigrator {
             down: downStatement,
             title: args.up,
             title_down: args.down
-          })
+          });
         }
       } else {
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), args.up),
           upStatement,
-          "utf-8"
+          'utf-8'
         );
-        log.debug("migrationsWrite: wrote to file", args.up);
+        log.debug('migrationsWrite: wrote to file', args.up);
 
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), args.down),
           downStatement,
-          "utf-8"
+          'utf-8'
         );
       }
-      log.debug("migrationsWrite: wrote to file", args.down);
+      log.debug('migrationsWrite: wrote to file', args.down);
     } catch (error) {
-      log.debug("migrationsWrite error: ", error);
+      log.debug('migrationsWrite error: ', error);
     }
   }
 
@@ -1267,8 +1357,8 @@ export default class KnexMigrator extends SqlMigrator {
 
     try {
       result.data.object = {
-        up: "",
-        down: ""
+        up: '',
+        down: ''
       };
 
       // if (!this.project) {
@@ -1279,28 +1369,46 @@ export default class KnexMigrator extends SqlMigrator {
       //   this.project = NcConfigFactory.make();
       // }
       if (this.metaDb) {
-        const migration = await this.metaDb('nc_migrations').where({
-          db_alias: args.dbAlias,
-          project_id: this.project.id,
-          title: args.title
-        }).first();
-
+        const migration = await this.metaDb('nc_migrations')
+          .where({
+            db_alias: args.dbAlias,
+            project_id: this.project.id,
+            title: args.title
+          })
+          .first();
 
         result.data.object.up = migration.up;
         result.data.object.down = migration.down;
       } else {
-        const upFilePath = path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', args.title);
-        const downFilePath = path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations', args.titleDown);
+        const upFilePath = path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          'migrations',
+          args.title
+        );
+        const downFilePath = path.join(
+          this.toolDir,
+          'nc',
+          this.project.id,
+          args.dbAlias,
+          'migrations',
+          args.titleDown
+        );
 
-        result.data.object.up = await promisify(fs.readFile)(upFilePath, "utf8");
+        result.data.object.up = await promisify(fs.readFile)(
+          upFilePath,
+          'utf8'
+        );
         result.data.object.down = await promisify(fs.readFile)(
           downFilePath,
-          "utf8"
+          'utf8'
         );
       }
-      console.log("migrationsToSql", result.data.object);
+      console.log('migrationsToSql', result.data.object);
     } catch (e) {
-      console.log("migrationsToSql", e);
+      console.log('migrationsToSql', e);
     }
 
     return result;
@@ -1320,8 +1428,7 @@ export default class KnexMigrator extends SqlMigrator {
    * @param {String} args.down
    * @memberof KnexMigrator
    */
-  async migrationsSquash() {
-  }
+  async migrationsSquash() {}
 
   /**
    * Migrations Create Manual
@@ -1336,19 +1443,17 @@ export default class KnexMigrator extends SqlMigrator {
    * @param {String} args.down
    * @memberof KnexMigrator
    */
-  async migrationsCreateManually() {
-  }
+  async migrationsCreateManually() {}
 
   async _writeProjectJson(folder, _json) {
     const freshProject = '';
-    const newProjectJsonPath = path.join(folder, "config.xc.json");
+    const newProjectJsonPath = path.join(folder, 'config.xc.json');
 
     await promisify(fs.writeFile)(
       newProjectJsonPath,
       JSON.stringify(freshProject, null, 2),
-      "utf-8"
+      'utf-8'
     );
-
   }
 
   // async _getProjectJson(args) {
@@ -1376,13 +1481,11 @@ export default class KnexMigrator extends SqlMigrator {
    * @returns {Result}
    */
   async migrationsRenameProjectKey(args) {
-
     const func = this.migrationsRenameProjectKey.name;
     const result: any = new Result();
     log.api(`${func}:args:`, args);
 
     try {
-
       if (args.key && args.value) {
         result.code = -1;
         result.message = `Insufficient number of arguments`;
@@ -1396,8 +1499,9 @@ export default class KnexMigrator extends SqlMigrator {
         await this._writeProjectJson(this.toolDir, this.project);
       }
 
-      this.emitE(`Project key('${args.key}') is set to value successfully ${args.value}`);
-
+      this.emitE(
+        `Project key('${args.key}') is set to value successfully ${args.value}`
+      );
     } catch (e) {
       result.code = -1;
       result.object = e;
@@ -1407,9 +1511,7 @@ export default class KnexMigrator extends SqlMigrator {
     log.api(`${func}:result:`, result);
 
     return result;
-
   }
-
 
   /**
    * update json
@@ -1428,7 +1530,6 @@ export default class KnexMigrator extends SqlMigrator {
     log.api(`${func}:args:`, args);
 
     try {
-
       if (args.folder && args.env) {
         result.code = -1;
         result.message = 'Insufficient number of arguments';
@@ -1448,8 +1549,10 @@ export default class KnexMigrator extends SqlMigrator {
         }
 
         await this._writeProjectJson(this.toolDir, this.project);
-        await this._initEnvDbsWithSql(args.env)
-        this.emitE(`Environment ' ${args.env} ' created succesfully in project.`);
+        await this._initEnvDbsWithSql(args.env);
+        this.emitE(
+          `Environment ' ${args.env} ' created succesfully in project.`
+        );
       }
     } catch (e) {
       result.code = -1;
@@ -1461,10 +1564,7 @@ export default class KnexMigrator extends SqlMigrator {
     return result;
   }
 
-  async migrationsRenameEnv(_sargs) {
-
-  }
-
+  async migrationsRenameEnv(_sargs) {}
 
   /**
    * update json
@@ -1477,13 +1577,11 @@ export default class KnexMigrator extends SqlMigrator {
    * @returns {Promise<void>}
    */
   async migrationsDeleteEnv(args) {
-
     const func = this.migrationsDeleteEnv.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
 
     try {
-
       if (args.folder && args.env) {
         result.code = -1;
         result.message = 'Insufficient number of arguments';
@@ -1492,18 +1590,14 @@ export default class KnexMigrator extends SqlMigrator {
       // await this._getProjectJson(args);
 
       if (args.env in this.project.envs) {
-
-        await this._cleanEnvDbsWithSql(args)
+        await this._cleanEnvDbsWithSql(args);
         delete this.project.envs[args.env];
         await this._writeProjectJson(this.toolDir, this.project);
         this.emitE(`${args.env} deleted`);
-
       } else {
-
         result.code = -1;
         result.message = `${args.env} doesn't exist in project json`;
         this.emitE(`${args.env} doesn't exist in project json`);
-
       }
     } catch (e) {
       result.code = -1;
@@ -1524,13 +1618,11 @@ export default class KnexMigrator extends SqlMigrator {
    * @returns {Result}
    */
   async migrationsCreateEnvDb(args) {
-
     const func = this.migrationsRenameProjectKey.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
 
     try {
-
       if (args.folder && args.env && args.dbAlias) {
         result.code = -1;
         result.message = 'Insufficient number of arguments';
@@ -1551,17 +1643,18 @@ export default class KnexMigrator extends SqlMigrator {
         }
 
         if (!found) {
-
           if (args.env === this.project.workingEnv) {
             // is the input env === dev environment - then push it to last
-            this.project.envs[args.env].db.push(args.db)
+            this.project.envs[args.env].db.push(args.db);
             // TODO : init fs and db
           } else {
-
             let foundInWorkingEnv = 0;
-            let i = 0
-            for (; i < this.project.envs[this.project.workingEnv].db.length; ++i) {
-
+            let i = 0;
+            for (
+              ;
+              i < this.project.envs[this.project.workingEnv].db.length;
+              ++i
+            ) {
               const db = this.project.envs[this.project.workingEnv].db[i];
 
               if (db.meta.alias === args.db.meta.alias) {
@@ -1572,22 +1665,21 @@ export default class KnexMigrator extends SqlMigrator {
 
             if (foundInWorkingEnv) {
               // in this working env index - place it at the right position
-              this.project.envs[args.env].db.splice(i, 0, args.db)
+              this.project.envs[args.env].db.splice(i, 0, args.db);
             } else {
-              this.project.envs[args.env].db.push(args.db)
+              this.project.envs[args.env].db.push(args.db);
             }
-
           }
 
           // TODO : init db for this dbAlias
 
           await this._writeProjectJson(this.toolDir, this.project);
-
-
         } else {
           result.code = -1;
           result.message = 'Database connection already exists with DbAlias';
-          this.emitE(`Database connection already exists with DbAlias : ${args.db.meta.dbAlias}`);
+          this.emitE(
+            `Database connection already exists with DbAlias : ${args.db.meta.dbAlias}`
+          );
         }
       } else {
         result.code = -1;
@@ -1620,22 +1712,18 @@ export default class KnexMigrator extends SqlMigrator {
     throw new Error('Not implemented');
   }
 
-
-  _getEvolutionsTablename({env, dbAlias}) {
-    const config = this._getSqlConnectionFromDbAlias({env, dbAlias});
+  _getEvolutionsTablename({ env, dbAlias }) {
+    const config = this._getSqlConnectionFromDbAlias({ env, dbAlias });
     if (config && config.meta && config.meta.tn) {
-      return config.meta.tn
+      return config.meta.tn;
     }
     return 'nc_evolutions';
   }
 
-
   private get suffix(): string {
-    if (this.project?.prefix)
-      return `_${this.project?.prefix.slice(3,7)}`
+    if (this.project?.prefix) return `_${this.project?.prefix.slice(3, 7)}`;
     return '';
   }
-
 }
 
 /**

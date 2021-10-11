@@ -1,48 +1,48 @@
-
-
 module.exports = {
-  title: "default",
+  title: 'default',
   envs: {
     _noco: {
-      api:{},
+      api: {},
       db: [
         {
-          client: "mssql",
+          client: 'mssql',
           connection: {
-            host: process.env.DOCKER_DB_HOST || "localhost",
-            port: process.env.DOCKER_DB_PORT ? parseInt(process.env.DOCKER_DB_PORT,10) : null || 1433,
-            user: "sa",
-            password: "Password123.",
-            database: "default_dev"
+            host: process.env.DOCKER_DB_HOST || 'localhost',
+            port: process.env.DOCKER_DB_PORT
+              ? parseInt(process.env.DOCKER_DB_PORT, 10)
+              : null || 1433,
+            user: 'sa',
+            password: 'Password123.',
+            database: 'default_dev'
           },
           meta: {
-            tn: "nc_evolutions",
-            dbAlias: "primary"
+            tn: 'nc_evolutions',
+            dbAlias: 'primary'
           }
         }
       ]
     },
     test: {
-      api:{},
+      api: {},
       db: [
         {
-          client: "mssql",
+          client: 'mssql',
           connection: {
-            host: DOCKER_DB_HOST || "localhost",
+            host: DOCKER_DB_HOST || 'localhost',
             port: DOCKER_DB_PORT ? parseInt(DOCKER_DB_PORT) : null || 1433,
-            user: "sa",
-            password: "Password123.",
-            database: "default_test"
+            user: 'sa',
+            password: 'Password123.',
+            database: 'default_test'
           },
           meta: {
-            tn: "nc_evolutions",
-            dbAlias: "primary"
+            tn: 'nc_evolutions',
+            dbAlias: 'primary'
           }
         }
       ]
     }
   },
-  workingEnv: "_noco",
+  workingEnv: '_noco',
   meta: {
     version: '0.5',
     seedsFolder: 'seeds',

@@ -28,7 +28,7 @@
                 v-if="hiddenColumns.length"
                 class="pointer caption mr-2"
                 style="border-bottom: 2px solid rgb(218,218,218)"
-                @click="columns=[...allColumns]"
+                @click="addAllColumns()"
               >add all</span>
               <span
                 v-if="columns.length"
@@ -160,7 +160,6 @@
                 @end="drag=false"
               >
                 <div
-
                   v-for="(col,i) in columns"
                   :key="col.alias"
                   class="nc-field-wrapper item px-4 my-3 pointer"
@@ -481,7 +480,7 @@ export default {
           o[v.alias] = true
           return o
         }, this.allColumns.reduce((o, v) => {
-          o[v.alias] = false
+          o[v.alias] = this.isDbRequired(v)
           return o
         }, {}))
         const fieldsOrder = val.map(v => v.alias)
@@ -524,6 +523,22 @@ export default {
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
   },
   methods: {
+    addAllColumns() {
+      this.columns = [...this.allColumns.filter(c => !hiddenCols.includes(c.cn))]
+    },
+    isDbRequired(column) {
+      let isRequired = (!column.virtual && column.rqd && !column.default && this.meta.belongsTo.every(bt => column.cn !== bt.cn)) ||
+        (column.pk && !(column.ai || column.default))
+
+      if (column.bt) {
+        const col = this.meta.columns.find(c => c.cn === column.bt.cn)
+        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
+          isRequired = true
+        }
+      }
+
+      return isRequired
+    },
     async checkSMTPStatus() {
       if (this.localParams.emailMe[this.$store.state.users.user.email]) {
         const emailPlugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', { title: 'SMTP' }])

@@ -184,6 +184,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         project_id: args.project_id,
         db_alias: this.getDbAlias(args),
         model_name: args.args.model_name,
+        view_name: args.args.view_name,
         meta: JSON.stringify(args.args.meta),
         query_params: JSON.stringify(args.args.query_params),
         view_id: uuidv4(),

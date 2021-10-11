@@ -420,6 +420,7 @@
       :meta="meta"
       :copy-view="copyViewRef"
       :alias="meta._tn"
+      :views-list="viewsList"
       @created="onViewCreate"
     />
 
@@ -717,6 +718,7 @@ export default {
           parent_model_title: this.meta._tn
         })
         this.$toast.success('View renamed successfully').goAway(3000)
+        this.$set(view, 'edit', false)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
@@ -762,6 +764,7 @@ export default {
             extraViewParams: this.extraViewParams,
             selectedViewId: this.selectedViewId
           },
+          view_name: this.selectedView.title,
           type: this.selectedView.type,
           show_as: this.selectedView.show_as,
           password: this.sharedViewPassword

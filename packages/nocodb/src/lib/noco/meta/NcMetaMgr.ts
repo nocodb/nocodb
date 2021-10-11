@@ -3540,7 +3540,7 @@ export default class NcMetaMgr {
 
     const model = apiBuilder?.xcModels?.[viewMeta.model_name];
     if (model) {
-      // req.query.form = viewMeta.form_id
+      req.query.form = queryParams?.selectedViewId;
       await model.nestedInsert(insertObject, null, req);
 
       // todo: map nested data

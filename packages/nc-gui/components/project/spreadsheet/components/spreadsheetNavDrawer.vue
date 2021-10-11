@@ -758,7 +758,8 @@ export default {
             fields: Object.keys(this.showFields)
               .filter(f => this.showFields[f])
               .join(','),
-            extraViewParams: this.extraViewParams
+            extraViewParams: this.extraViewParams,
+            selectedViewId: this.selectedViewId
           },
           type: this.selectedView.type,
           show_as: this.selectedView.show_as,

@@ -694,7 +694,7 @@ export default {
       this.clipboardSuccessHandler()
     },
     async updateViewName(view, index) {
-      if (view.title_temp === view.title || !view.edit) { return }
+      if (view.title_temp === view.title || !view.edit) { this.$set(view, 'edit', false); return }
       if (this.viewsList.some((v, i) => i !== index && (v.alias || v.title) === view.title_temp)) {
         this.$toast.info('View name should be unique').goAway(3000)
         this.$set(view, 'edit', false)

@@ -6,7 +6,6 @@
 import XcForm from '../../../components/project/spreadsheet/public/xcForm'
 
 export default {
-  name: 'View',
   components: { XcForm },
   layout: 'public',
   data: () => ({

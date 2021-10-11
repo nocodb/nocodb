@@ -6,7 +6,6 @@
 import XcTable from '../../../components/project/spreadsheet/public/xcTable'
 
 export default {
-  name: 'View',
   components: { XcTable },
   layout: 'public',
   data: () => ({

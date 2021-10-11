@@ -89,7 +89,7 @@
                             :is-form="true"
                             :value="localParams.fields[col.alias].label || col._cn"
                             :column="col"
-                            :sql-ui="sqlUi"
+                            :sql-ui="sqlUiLoc"
                             :required="isRequired(col, localState, localParams.fields[col.alias].required)"
                           />
 
@@ -107,7 +107,7 @@
                             :meta="meta"
                             :api="api"
                             :active="true"
-                            :sql-ui="sqlUi"
+                            :sql-ui="sqlUiLoc"
                             :is-new="true"
                             is-form
                             is-public
@@ -163,7 +163,7 @@
                               :column="col"
                               class="xc-input body-2"
                               :meta="meta"
-                              :sql-ui="sqlUi"
+                              :sql-ui="sqlUiLoc"
                               is-form
                               :hint="localParams.fields[col.alias].description"
                               @focus="active = col._cn"
@@ -215,6 +215,7 @@ export default {
       active: null,
       loading: false,
       submitting: false,
+      submitted: false,
       client: null,
       meta: null,
       columns: [],
@@ -223,14 +224,28 @@ export default {
       localState: {},
       dbAlias: '',
       virtual: {},
-      metas: {}
+      metas: {},
+      secondsRemain: null
     }
   },
   computed: {
 
-    sqlUi() {
+    sqlUiLoc() {
       // todo: replace with correct client
       return this.client && SqlUI.create({ client: this.client })
+    }
+  },
+  watch: {
+    submitted(val) {
+      if (val && this.localParams.submit.showBlankForm) {
+        this.secondsRemain = 5
+        const intvl = setInterval(() => {
+          if (--this.secondsRemain < 0) {
+            this.submitted = false
+            clearInterval(intvl)
+          }
+        }, 1000)
+      }
     }
   },
   async mounted() {
@@ -291,9 +306,9 @@ export default {
             }
           })
         }
-
+        debugger
         // this.modelName = model_name
-        this.columns = columns.filter(c => fields.includes(c.alias))
+        this.columns = columns.filter(c => fields.includes(c.alias)).sort((a, b) => fields.indexOf(a.alias) - fields.indexOf(b.alias))
 
         this.localParams = (this.query_params.extraViewParams && this.query_params.extraViewParams.formParams) || {}
       } catch (e) {

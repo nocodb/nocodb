@@ -33,15 +33,16 @@
                   <!--                  <v-chip small color="backgroundColorDefault caption grey--text">
                   Add cover image
                 </v-chip>-->
-                  <v-img src="./icon.png" width="50" class="mx-4" /> <span class="display-1 font-weight-bold">NocoDB</span>
+                  <v-img src="./icon.png" width="50" class="mx-4" />
+                  <span class="display-1 font-weight-bold">NocoDB</span>
                 </div>
               </div>
             </div>
             <div class="mx-auto nc-form elevation-3 pa-2  mb-10">
               <div class="nc-form-logo py-8" style="display: none">
-              <!--                <div v-ripple class="nc-form-add-logo text-center caption pointer" @click.stop>-->
-              <!--                  Add a logo-->
-              <!--                </div>-->
+                <!--                <div v-ripple class="nc-form-add-logo text-center caption pointer" @click.stop>-->
+                <!--                  Add a logo-->
+                <!--                </div>-->
               </div>
               <h2
                 class="mt-4 display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text  text--lighten-1"
@@ -177,7 +178,7 @@
                           </template>
                         </template>
                       </div>
-                    <!--              </div>-->
+                      <!--              </div>-->
                     </div>
                   </div>
                 </div>
@@ -273,7 +274,7 @@ export default {
         this.dbAlias = dbAlias
         this.metas = relatedTableMetas
 
-        const fields = this.query_params.fields.split(',')
+        const fields = this.query_params.fieldsOrder || []
         // eslint-disable-next-line camelcase
 
         let columns = this.meta.columns
@@ -306,7 +307,6 @@ export default {
             }
           })
         }
-        debugger
         // this.modelName = model_name
         this.columns = columns.filter(c => fields.includes(c.alias)).sort((a, b) => fields.indexOf(a.alias) - fields.indexOf(b.alias))
 

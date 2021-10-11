@@ -387,19 +387,19 @@
               </v-menu>
             </v-list-item>
 
-            <v-tooltip bottom>
-              <template #activator="{ on }">
-                <v-list-item v-on="on" @click="copyapiUrlToClipboard">
-                  <v-icon x-small class="mr-2">
-                    mdi-content-copy
-                  </v-icon>
-                  <!-- Copy API URL -->
-                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>
-                </v-list-item>
-              </template>
-              <!-- Copy API URL -->
-              {{ $t('nav_drawer.advanced.views_list') }}
-            </v-tooltip>
+<!--            <v-tooltip bottom>-->
+<!--              <template #activator="{ on }">-->
+<!--                <v-list-item v-on="on" @click="copyapiUrlToClipboard">-->
+<!--                  <v-icon x-small class="mr-2">-->
+<!--                    mdi-content-copy-->
+<!--                  </v-icon>-->
+<!--                  &lt;!&ndash; Copy API URL &ndash;&gt;-->
+<!--                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>-->
+<!--                </v-list-item>-->
+<!--              </template>-->
+<!--              &lt;!&ndash; Copy API URL &ndash;&gt;-->
+<!--              {{ $t('nav_drawer.advanced.views_list') }}-->
+<!--            </v-tooltip>-->
             <template v-if="_isUIAllowed('model')">
               <v-divider class="advance-menu-divider" />
               <slot />

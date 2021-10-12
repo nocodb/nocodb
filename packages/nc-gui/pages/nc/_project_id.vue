@@ -1,10 +1,13 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
-    <splitpanes style="height:calc(100vh - 40px)" class="xc-theme">
-      <pane min-size="10" :size="paneSize" max-size="50" style="overflow: auto">
-        <ProjectTreeView ref="treeview" />
+    <splitpanes style="height:calc(100vh - 40px); position: relative;" class="xc-theme">
+      <pane :min-size="showProjectTree? 10 : 1.5" :size="showProjectTree ? paneSize : 1.5" :max-size="showProjectTree? 50 : 1.5" style="overflow: auto;">
+        <ProjectTreeView v-show="showProjectTree" ref="treeview" />
+        <v-btn icon color="grey" class="pane-toggle" :style="'transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);' + (showProjectTree?`left: calc(${paneSize}% - 1.25rem);`:'left: calc(1.5% - 1.25rem);')" :class="{'pane-toggle-active': showProjectTree}" @click="toggleTreeView">
+          <v-icon small>{{ showProjectTree ? 'mdi-arrow-expand-left' : 'mdi-arrow-expand-right' }}</v-icon>
+        </v-btn>
       </pane>
-      <pane :size="100 - paneSize">
+      <pane :size="showProjectTree ? 100 - paneSize : 100">
         <ProjectTabs :key="pid" @tableCreate="tableCreate" />
       </pane>
     </splitpanes>
@@ -26,7 +29,8 @@ export default {
   data() {
     return {
       paneSize: 18,
-      mainPanelSize: 82
+      mainPanelSize: 82,
+      showProjectTree: true
     }
   },
   computed: {
@@ -92,6 +96,9 @@ export default {
         spread: 120,
         startVelocity: 45
       })
+    },
+    toggleTreeView() {
+      this.showProjectTree = !this.showProjectTree
     }
   }
 }
@@ -101,6 +108,27 @@ export default {
   background: #7f828b33 !important;
   border: #7f828b33 !important;
 }
+.pane-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  bottom: 50%;
+  z-index: 2;
+  transition: 0.3s cubic-bezier(0.25, 0.8, 0.5, 1), all 0s;
+}
+
+.pane-toggle-active {
+
+}
+
+.theme--light .pane-toggle {
+  background-color: #FFFFFF;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+}
+
+.theme--dark .pane-toggle {
+  background-color: #363636;
+}
 </style>
 <!--
 /**
@@ -109,6 +137,7 @@ export default {
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Wing-Kam Wong <wingkwong.code@gmail.com>
+ * @author Liel Fridman <lielft@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

@@ -98,35 +98,10 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
         .filter(a => a[1])
         .map(a => a[0]);
       if (emails?.length) {
-        const transformedData = data;
-        for (const col of this.columns) {
-          if (col.uidt === 'Attachment') {
-            if (typeof transformedData[col._cn] === 'string') {
-              transformedData[col._cn] = JSON.parse(transformedData[col._cn]);
-            }
-            transformedData[col._cn] = (transformedData[col._cn] || [])
-              .map(attachment => {
-                if (
-                  [
-                    'jpeg',
-                    'gif',
-                    'png',
-                    'apng',
-                    'svg',
-                    'bmp',
-                    'ico',
-                    'jpg'
-                  ].includes(attachment.title.split('.').pop())
-                ) {
-                  return `<a href="${attachment.url}" target="_blank"><img height="50px" src="${attachment.url}"/></a>`;
-                }
-                return `<a href="${attachment.url}" target="_blank">${attachment.title}</a>`;
-              })
-              .join('&nbsp;');
-          } else if (typeof transformedData[col._cn] === 'object') {
-            transformedData[col._cn] = JSON.stringify(transformedData[col._cn]);
-          }
-        }
+        const transformedData = this._transformSubmittedFormDataForEmail(
+          data,
+          formView
+        );
         // todo: notification template
         this.emailAdapter?.mailSend({
           to: emails.join(','),
@@ -223,6 +198,96 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     } catch (e) {
       console.log('hooks :: error', hookName, e.message);
     }
+  }
+
+  private _transformSubmittedFormDataForEmail(data, formView) {
+    const transformedData = { ...data };
+    for (const col of this.columns) {
+      if (!formView.query_params?.showFields?.[col._cn]) {
+        delete transformedData[col._cn];
+        continue;
+      }
+
+      if (col.uidt === 'Attachment') {
+        if (typeof transformedData[col._cn] === 'string') {
+          transformedData[col._cn] = JSON.parse(transformedData[col._cn]);
+        }
+        transformedData[col._cn] = (transformedData[col._cn] || [])
+          .map(attachment => {
+            if (
+              [
+                'jpeg',
+                'gif',
+                'png',
+                'apng',
+                'svg',
+                'bmp',
+                'ico',
+                'jpg'
+              ].includes(attachment.title.split('.').pop())
+            ) {
+              return `<a href="${attachment.url}" target="_blank"><img height="50px" src="${attachment.url}"/></a>`;
+            }
+            return `<a href="${attachment.url}" target="_blank">${attachment.title}</a>`;
+          })
+          .join('&nbsp;');
+      } else if (
+        transformedData[col._cn] &&
+        typeof transformedData[col._cn] === 'object'
+      ) {
+        transformedData[col._cn] = JSON.stringify(transformedData[col._cn]);
+      }
+    }
+
+    for (const virtual of this.virtualColumns) {
+      const hidden = !formView.query_params?.showFields?.[virtual._cn];
+
+      if (virtual.bt) {
+        const prop = `${virtual.bt._rtn}Read`;
+        if (hidden) {
+          delete transformedData[prop];
+        } else {
+          transformedData[prop] =
+            transformedData?.[prop]?.[
+              this.builder
+                .getMeta(virtual.bt.rtn)
+                ?.columns?.find(c => c.pv)?._cn
+            ];
+        }
+      } else if (virtual.hm) {
+        const prop = `${virtual.hm._tn}List`;
+        if (hidden) {
+          delete transformedData[prop];
+        } else {
+          transformedData[prop] = transformedData?.[prop]
+            ?.map(
+              r =>
+                r[
+                  this.builder.getMeta(virtual.hm.tn)?.columns?.find(c => c.pv)
+                    ?._cn
+                ]
+            )
+            .join(', ');
+        }
+      } else if (virtual.mm) {
+        const prop = `${virtual.mm._rtn}MMList`;
+        if (hidden) {
+          delete transformedData[prop];
+        } else {
+          transformedData[prop] = transformedData?.[prop]
+            ?.map(
+              r =>
+                r[
+                  this.builder.getMeta(virtual.mm.tn)?.columns?.find(c => c.pv)
+                    ?._cn
+                ]
+            )
+            .join(', ');
+        }
+      }
+    }
+
+    return transformedData;
   }
 
   private async handleHttpWebHook(apiMeta, apiReq, data) {

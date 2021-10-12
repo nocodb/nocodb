@@ -129,7 +129,7 @@ export default `<!doctype html>
                                    
                                    <tr>
                                    <td style="font-family: sans-serif; font-size: 14px;padding: 20px 5px 10px 5px; " colspan="2">
-                                     <a href="https://www.nocodb.com/" target="_blank">
+                                     <a href="https://github.com/nocodb/nocodb" target="_blank">
                                         <img src="https://www.nocodb.com/brand/x1.png" alt="NocoDB" width="70" style=" vertical-align: middle"> <h2 style="margin-left: 10px;display: inline-block">NocoDB</h2>
                                      </a>
                                    </td>
@@ -140,7 +140,9 @@ export default `<!doctype html>
                                    </td>
                                    </tr>
                                    
-                                <% Object.keys(data).forEach(function(prop) { %>
+                                <% Object.keys(data).forEach(function(prop) { 
+                                if(data[prop] !== null && data[prop] !== undefined && data[prop] !== ''){
+                                %>
                                   <tr>
                                       <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;padding: 20px 5px 20px 5px;text-transform: capitalize "
                                           valign="top">
@@ -151,7 +153,8 @@ export default `<!doctype html>
                                             <%- data[prop] %>
                                       </td>
                                   </tr>
-                                <% }); %>
+                                <% }
+                                }); %>
                             </table>
                         </td>
                     </tr>
@@ -178,7 +181,7 @@ export default `<!doctype html>
                             <td class="content-block powered-by"
                                 style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;"
                                 valign="top" align="center">
-                                <a href="http://nocodb.com/">NocoDB</a>
+                                <a href="https://github.com/nocodb/nocodb">NocoDB</a>
                                 <!--                Powered by <a href="http://htmlemail.io">HTMLemail</a>.-->
                             </td>
                         </tr>

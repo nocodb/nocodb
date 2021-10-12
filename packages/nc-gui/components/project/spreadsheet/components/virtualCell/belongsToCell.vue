@@ -37,6 +37,7 @@
       :query-params="parentQueryParams"
       :is-public="isPublic"
       :tn="bt && bt.rtn"
+      :password="password"
       @add-new-record="insertAndMapNewParentRecord"
       @add="addChildToParent"
     />
@@ -128,7 +129,8 @@ export default {
     isNew: Boolean,
     disabledColumns: Object,
     isPublic: Boolean,
-    metas: Object
+    metas: Object,
+    password: String
   },
   data: () => ({
     newRecordModal: false,

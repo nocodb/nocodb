@@ -127,7 +127,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         viewMeta.password &&
         viewMeta.password !== args.args.password
       ) {
-        throw new Error('Invalid password');
+        throw new Error(this.INVALID_PASSWORD_ERROR);
       }
 
       const apiBuilder = this.app?.projectBuilders

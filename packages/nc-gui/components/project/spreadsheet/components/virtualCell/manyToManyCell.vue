@@ -49,6 +49,7 @@
       :parent-id="row && row[parentPrimaryKey]"
       :is-public="isPublic"
       :query-params="childQueryParams"
+      :password="password"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
     />
@@ -152,7 +153,8 @@ export default {
     isForm: Boolean,
     required: Boolean,
     isPublic: Boolean,
-    metas: Object
+    metas: Object,
+    password: String
   },
   data: () => ({
     isNewChild: false,

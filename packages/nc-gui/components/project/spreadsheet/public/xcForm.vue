@@ -119,6 +119,7 @@
                             :hint="localParams.fields[col.alias].description"
                             :required="localParams.fields[col.alias].description"
                             :metas="metas"
+                            :password="password"
                             @update:localState="state => $set(virtual,col._cn, state)"
                             @updateCol="updateCol"
                           />
@@ -197,6 +198,28 @@
         </v-col>
       </template>
     </v-row>
+
+    <v-dialog v-model="showPasswordModal" width="400">
+      <v-card width="400" class="backgroundColor">
+        <v-container fluid>
+          <v-text-field
+            v-model="password"
+            dense
+            type="password"
+            solo
+            flat
+            hint="Enter the password"
+            persistent-hint
+          />
+
+          <div class="text-center">
+            <v-btn small color="primary" @click="loadMetaData(); showPasswordModal =false">
+              Unlock
+            </v-btn>
+          </div>
+        </v-container>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -219,6 +242,7 @@ export default {
     return {
       active: null,
       loading: false,
+      showPasswordModal: false,
       submitting: false,
       submitted: false,
       client: null,
@@ -321,7 +345,7 @@ export default {
       } catch (e) {
         if (e.message === 'Not found') {
           this.notFound = true
-        } else {
+        } else if (e.message === 'Invalid password') {
           this.showPasswordModal = true
         }
       }

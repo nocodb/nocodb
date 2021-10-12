@@ -57,6 +57,7 @@
         where: isNew ? null :`~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
       }"
       :is-public="isPublic"
+      :password="password"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
     />
@@ -172,7 +173,8 @@ export default {
     isForm: Boolean,
     required: Boolean,
     isPublic: Boolean,
-    metas: Object
+    metas: Object,
+    password: String
   },
   data: () => ({
     newRecordModal: false,

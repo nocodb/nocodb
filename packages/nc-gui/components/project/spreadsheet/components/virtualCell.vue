@@ -18,6 +18,7 @@
         :required="required"
         :is-public="isPublic"
         :metas="metas"
+        :password="password"
         v-on="$listeners"
       />
       <many-to-many-cell
@@ -38,6 +39,7 @@
         :is-locked="isLocked"
         :required="required"
         :metas="metas"
+        :password="password"
         v-on="$listeners"
       />
       <belongs-to-cell
@@ -58,6 +60,7 @@
         :breadcrumbs="breadcrumbs"
         :is-locked="isLocked"
         :metas="metas"
+        :password="password"
         v-on="$listeners"
       />
       <lookup-cell
@@ -138,7 +141,8 @@ export default {
     isLocked: Boolean,
     required: Boolean,
     isPublic: Boolean,
-    metas: Object
+    metas: Object,
+    password: String
   },
   computed: {
     hm() {

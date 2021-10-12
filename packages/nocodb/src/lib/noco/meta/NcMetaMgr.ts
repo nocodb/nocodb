@@ -44,18 +44,19 @@ const NOCO_RELEASE = 'NOCO_RELEASE';
 
 export default class NcMetaMgr {
   public projectConfigs = {};
-
   public readonly pluginMgr: NcPluginMgr;
 
   public twilioInstance: Twilio;
 
   protected app: Noco;
+
   protected config: NcConfig;
   protected listener: (data) => Promise<any>;
   protected xcMeta: NcMetaIO;
   protected projectMgr: any;
   // @ts-ignore
   protected isEe = false;
+  protected readonly INVALID_PASSWORD_ERROR = 'Invalid password';
 
   constructor(app: Noco, config: NcConfig, xcMeta: NcMetaIO) {
     this.app = app;
@@ -3452,6 +3453,14 @@ export default class NcMetaMgr {
         throw new Error('Not found');
       }
 
+      if (
+        viewMeta &&
+        viewMeta.password &&
+        viewMeta.password !== args.args.password
+      ) {
+        throw new Error(this.INVALID_PASSWORD_ERROR);
+      }
+
       const tn = args.args?.tn;
 
       // @ts-ignore
@@ -3504,6 +3513,18 @@ export default class NcMetaMgr {
       })
       .first();
 
+    if (!viewMeta) {
+      throw new Error('Not found');
+    }
+
+    if (
+      viewMeta &&
+      viewMeta.password &&
+      viewMeta.password !== args.args.password
+    ) {
+      throw new Error(this.INVALID_PASSWORD_ERROR);
+    }
+
     const queryParams = JSON.parse(viewMeta.query_params);
     // const meta = JSON.parse(viewMeta.meta);
 
@@ -3546,6 +3567,14 @@ export default class NcMetaMgr {
 
     if (!viewMeta) {
       throw new Error('Not found');
+    }
+
+    if (
+      viewMeta &&
+      viewMeta.password &&
+      viewMeta.password !== args.args.password
+    ) {
+      throw new Error(this.INVALID_PASSWORD_ERROR);
     }
 
     // todo : filter out columns of related table

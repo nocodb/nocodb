@@ -109,7 +109,8 @@ export default {
     mm: [Object, Function],
     parentId: [String, Number],
     parentMeta: [Object],
-    isPublic: Boolean
+    isPublic: Boolean,
+    password: String
   },
   data: () => ({
     data: null,

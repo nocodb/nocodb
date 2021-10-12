@@ -355,7 +355,7 @@
 
             <v-list-item
               v-show="
-                selectedView && (selectedView.show_as === 'form' || selectedView.type === 'view' || selectedView.type === 'table')
+                selectedView && selectedView.show_as === 'form'
               "
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"

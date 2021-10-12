@@ -172,7 +172,7 @@
                     <template
                       v-if="_isUIAllowed('editFormView')"
                     >
-                      <v-icon small class="nc-field-remove-icon" @click="columns = columns.filter((_,j) => i !== j)">
+                      <v-icon small class="nc-field-remove-icon" @click.stop="hideColumn(i)">
                         mdi-eye-off-outline
                       </v-icon>
                     </template>
@@ -526,11 +526,20 @@ export default {
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
   },
   methods: {
+    hideColumn(i) {
+      if (this.isDbRequired(this.columns[i])) {
+        this.$toast.info('Required field can\'t be removed').goAway(3000)
+        return
+      }
+      this.columns = this.columns.filter((_, j) => i !== j)
+    },
     addAllColumns() {
       this.columns = [...this.allColumnsLoc]
     },
     isDbRequired(column) {
-      if (hiddenCols.includes(column.cn)) { return true }
+      if (hiddenCols.includes(column.cn)) {
+        return true
+      }
       let isRequired = (!column.virtual && column.rqd && !column.default && this.meta.belongsTo.every(bt => column.cn !== bt.cn)) ||
         (column.pk && !(column.ai || column.default))
 

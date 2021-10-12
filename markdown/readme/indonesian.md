@@ -2,11 +2,11 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ Alternatif sumber udara terbuka ✨ <br>
+    ✨ Sebuah Alternatif AirTable Open Source ✨ <br>
 
 </h1>
 <p align="center">
-Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB ke dalam lembar-spreadsheet. 
+Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB apapun menjadi spreadsheet pintar. 
 </p>
 <div align="center">
 
@@ -33,8 +33,8 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB ke dalam lembar-spreads
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 
-# Coba Cepat
-### 1-Click Deploy
+# Mulai Cepat
+### 1-Klik Deploy
 
 #### Heroku
 <a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
@@ -72,14 +72,11 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 
 # Bergabunglah dengan komunitas kami
 <a href="https://discord.gg/5RgZmkW">
-    <img 
-    src="https://invidget.switchblade.xyz/5RgZmkW" 
-    alt="Join NocoDB : Free & Open Source Airtable Alternative"
-    >
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 <br>
 
-# Screenshots
+# Tangkapan Layar
 
 ![1](https://user-images.githubusercontent.com/86527202/136074228-f52e181b-e65d-44ce-afca-0447eb506e90.png)
 <br>
@@ -137,19 +134,19 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 - ⚡ API Pihak ke-3
 
 ### Akses API Programmatik melalui:
-- ⚡ Istirahat API (Kesombongan)
+- ⚡ Rest API (Swagger)
 - ⚡ Apis Graphql.
 - ⚡ Termasuk Otentikasi JWT & Auth Sosial
 - ⚡ Token API untuk berintegrasi dengan Zapier, Integromat.
 
 
-# Production Setup
+# Pengaturan Produksi
 NOCODB membutuhkan database untuk menyimpan metadata tampilan spreadsheet dan database eksternal. Dan params koneksi untuk basis data ini dapat ditentukan dalam variabel lingkungan NC_DB.
 
 
 ## Docker
 
-#### Example MySQL
+#### Contoh MySQL
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -157,7 +154,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
+#### Contoh Postgres
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -165,7 +162,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
+#### Contoh SQL Server
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -183,19 +180,19 @@ docker-compose up
 
 
 ## Environment variables
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
+| Variabel                |   Wajib   | Komentar                                                                         | Jika Tidak Ada                                 |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+| NC_DB                   | Iya      | Lihat URL basis data kami                                                            | SQLite lokal akan dibuat di folder root  |
+| DATABASE_URL            | Tidak       | Format JDBC URL. Dapat digunakan sebagai pengganti NC_DB. Digunakan dalam 1-Klik Deployment|   |
+| DATABASE_URL_FILE       | Tidak       | path ke file yang berisi Format URL JDBC. Dapat digunakan sebagai pengganti NC_DB. Digunakan dalam penyebaran 1-Klik Heroku Deployment |   |
+| NC_PUBLIC_URL           | Iya       | Digunakan untuk mengirim undangan Email                   | Tebakan terbaik dari params permintaan http        |
+| NC_AUTH_JWT_SECRET      | Iya       | Rahasia JWT digunakan untuk auth dan menyimpan rahasia lainnya                               | Rahasia acak akan dibuat          |
+| NC_SENTRY_DSN           | Tidak        | Untuk pemantauan Penjaga                                                     |   |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | Tidak | Nonaktifkan pembuatan Proyek dengan database eksternal                              |   |
+| NC_DISABLE_TELE | Tidak | Nonaktifkan telemetry                              |   |
+| NC_BACKEND_URL | Tidak |  Backend URL Khusus                             | ``http://localhost:8080`` akan digunakan  |
 
-# Development setup
+# Pengaturan Pengembangan
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -215,10 +212,10 @@ npm run dev
 # open localhost:3000/dashboard in browser
 ```
 
-Changes made to code automatically restart.
+Perubahan yang dibuat pada kode akan dimulai ulang secara otomatis.
 
 
-## Running Cypress tests locally
+## Menjalankan tes Cypress secara Lokal
 
 ```shell
 # install dependencies(cypress)
@@ -237,9 +234,9 @@ npm run cypress:run
 npm run cypress:open
 ```
 
-# Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md
-- Ignore adding headers for .json or .md or .yml
+# Berkontribusi
+- Silahkan lihat ./contribute/HowToApplyLicense.md
+- Abaikan penambahan headers untuk .json or .md or .yml
 
 # 🎯  Kenapa kita membangun ini?
 Sebagian besar bisnis internet melengkapi diri mereka dengan spreadsheet atau database untuk menyelesaikan kebutuhan bisnis mereka. Spreadsheet digunakan oleh satu miliar + manusia secara kolaboratif setiap hari. Namun, kami jauh bekerja dengan kecepatan yang sama pada basis data yang merupakan alat yang lebih kuat ketika datang ke komputasi. Upaya untuk menyelesaikan ini dengan persembahan SaaS berarti kontrol akses yang mengerikan, vendor lockin, data lockin, perubahan harga mendadak & paling penting plafon kaca pada apa yang mungkin di masa depan.

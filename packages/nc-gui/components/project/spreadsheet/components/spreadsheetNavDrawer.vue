@@ -387,19 +387,19 @@
               </v-menu>
             </v-list-item>
 
-<!--            <v-tooltip bottom>-->
-<!--              <template #activator="{ on }">-->
-<!--                <v-list-item v-on="on" @click="copyapiUrlToClipboard">-->
-<!--                  <v-icon x-small class="mr-2">-->
-<!--                    mdi-content-copy-->
-<!--                  </v-icon>-->
-<!--                  &lt;!&ndash; Copy API URL &ndash;&gt;-->
-<!--                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>-->
-<!--                </v-list-item>-->
-<!--              </template>-->
-<!--              &lt;!&ndash; Copy API URL &ndash;&gt;-->
-<!--              {{ $t('nav_drawer.advanced.views_list') }}-->
-<!--            </v-tooltip>-->
+            <!--            <v-tooltip bottom>-->
+            <!--              <template #activator="{ on }">-->
+            <!--                <v-list-item v-on="on" @click="copyapiUrlToClipboard">-->
+            <!--                  <v-icon x-small class="mr-2">-->
+            <!--                    mdi-content-copy-->
+            <!--                  </v-icon>-->
+            <!--                  &lt;!&ndash; Copy API URL &ndash;&gt;-->
+            <!--                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>-->
+            <!--                </v-list-item>-->
+            <!--              </template>-->
+            <!--              &lt;!&ndash; Copy API URL &ndash;&gt;-->
+            <!--              {{ $t('nav_drawer.advanced.views_list') }}-->
+            <!--            </v-tooltip>-->
             <template v-if="_isUIAllowed('model')">
               <v-divider class="advance-menu-divider" />
               <slot />
@@ -437,7 +437,11 @@
           <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
             {{ `${dashboardUrl}#/nc/${shareLink.view_type || 'view'}/${shareLink.view_id}` }}
             <v-spacer />
-            <a :href=" `${dashboardUrl}#/nc/${shareLink.view_type || 'view'}/${shareLink.view_id}`" style="text-decoration: none" target="_blank">
+            <a
+              :href=" `${dashboardUrl}#/nc/${shareLink.view_type || 'view'}/${shareLink.view_id}`"
+              style="text-decoration: none"
+              target="_blank"
+            >
               <v-icon small class="mx-2">mdi-open-in-new</v-icon>
             </a>
             <v-icon
@@ -695,15 +699,17 @@ export default {
       this.clipboardSuccessHandler()
     },
     async updateViewName(view, index) {
-      if (view.title_temp === view.title || !view.edit) { return }
+      if (!view.edit) {
+        return
+      }
       this.$set(view, 'edit', false)
+      if (view.title_temp === view.title) { return }
       if (this.viewsList.some((v, i) => i !== index && (v.alias || v.title) === view.title_temp)) {
         this.$toast.info('View name should be unique').goAway(3000)
         return
       }
       try {
         if (this.selectedViewIdLocal === view.id) {
-          this.$set(view, 'title', view.title_temp)
           await this.$router.push({
             query: {
               ...this.$route.query,
@@ -711,6 +717,7 @@ export default {
             }
           })
         }
+        this.$set(view, 'title', view.title_temp)
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
           id: view.id,
           old_title: view.title,
@@ -722,7 +729,6 @@ export default {
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
-      // await this.loadViews()
     },
     showRenameTextBox(view, i) {
       this.$set(view, 'edit', true)

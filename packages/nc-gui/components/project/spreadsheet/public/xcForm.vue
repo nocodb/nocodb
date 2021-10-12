@@ -1,6 +1,10 @@
 <template>
   <v-container class="h-100 j-excel-container">
-    <v-row :class="{'d-flex justify-center': submitted}">
+    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300">
+      Not found
+    </v-alert>
+
+    <v-row v-else :class="{'d-flex justify-center': submitted}">
       <template v-if="submitted">
         <v-col class="d-flex justify-center">
           <div v-if="localParams && localParams.submit" style="min-width: 350px">
@@ -226,7 +230,8 @@ export default {
       dbAlias: '',
       virtual: {},
       metas: {},
-      secondsRemain: null
+      secondsRemain: null,
+      notFound: false
     }
   },
   computed: {
@@ -314,8 +319,11 @@ export default {
 
         this.localParams = (this.query_params.extraViewParams && this.query_params.extraViewParams.formParams) || {}
       } catch (e) {
-        console.log(e)
-        this.showPasswordModal = true
+        if (e.message === 'Not found') {
+          this.notFound = true
+        } else {
+          this.showPasswordModal = true
+        }
       }
 
       this.loadingData = false

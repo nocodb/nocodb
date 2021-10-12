@@ -3537,48 +3537,48 @@ export default class NcMetaMgr {
   }
 
   protected async sharedViewGet(_req, args: any): Promise<any> {
+    const viewMeta = await this.xcMeta
+      .knex('nc_shared_views')
+      .where({
+        view_id: args.args.view_id
+      })
+      .first();
+
+    if (!viewMeta) {
+      throw new Error('Not found');
+    }
+
+    // todo : filter out columns of related table
     try {
-      const viewMeta = await this.xcMeta
-        .knex('nc_shared_views')
-        .where({
-          view_id: args.args.view_id
-        })
-        .first();
+      const apiBuilder = this.app?.projectBuilders
+        ?.find(pb => pb.id === viewMeta.project_id)
+        ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
 
-      // todo : filter out columns of related table
-      try {
-        const apiBuilder = this.app?.projectBuilders
-          ?.find(pb => pb.id === viewMeta.project_id)
-          ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
+      const tableMeta = JSON.parse(viewMeta.meta);
 
-        const tableMeta = JSON.parse(viewMeta.meta);
+      const relatedTableMetas = {};
 
-        const relatedTableMetas = {};
-
-        for (const v of tableMeta.v) {
-          let tn;
-          if (v.bt) {
-            tn = v.bt.rtn;
-          } else if (v.hm) {
-            tn = v.hm.tn;
-          } else if (v.mm) {
-            tn = v.mm.rtn;
-            relatedTableMetas[v.mm.vtn] = apiBuilder?.getMeta(v.mm.vtn);
-          }
-          relatedTableMetas[tn] = apiBuilder?.getMeta(tn);
+      for (const v of tableMeta.v) {
+        let tn;
+        if (v.bt) {
+          tn = v.bt.rtn;
+        } else if (v.hm) {
+          tn = v.hm.tn;
+        } else if (v.mm) {
+          tn = v.mm.rtn;
+          relatedTableMetas[v.mm.vtn] = apiBuilder?.getMeta(v.mm.vtn);
         }
-
-        viewMeta.client = apiBuilder?.client;
-
-        viewMeta.relatedTableMetas = relatedTableMetas;
-      } catch (e) {
-        console.log(e);
+        relatedTableMetas[tn] = apiBuilder?.getMeta(tn);
       }
 
-      return viewMeta;
+      viewMeta.client = apiBuilder?.client;
+
+      viewMeta.relatedTableMetas = relatedTableMetas;
     } catch (e) {
-      throw e;
+      console.log(e);
     }
+
+    return viewMeta;
   }
 
   protected async xcAuthHookGet(args: any): Promise<any> {

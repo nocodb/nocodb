@@ -26,7 +26,7 @@ export class _loginPage {
     signIn(userCredentials) {
         this.go(urlPool.ncUrlSignIn)
 
-        cy.get('input[type="text"]', {timeout: 6000}).type(userCredentials.username)
+        cy.get('input[type="email"]', {timeout: 6000}).type(userCredentials.username)
         cy.get('input[type="password"]').type(userCredentials.password)
         cy.get('button:contains("SIGN IN")').click()
 
@@ -38,7 +38,7 @@ export class _loginPage {
     signUp(userCredentials) {
         this.go(urlPool.ncUrlSignUp)
 
-        cy.get('input[type="text"]', {timeout: 6000}).type(userCredentials.username)
+        cy.get('input[type="email"]', {timeout: 6000}).type(userCredentials.username)
         cy.get('input[type="password"]').type(userCredentials.password)
         cy.get('button:contains("SIGN UP")').click()
 

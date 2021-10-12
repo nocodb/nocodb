@@ -71,7 +71,7 @@ export class _mainPage {
 
             // Redirected to new URL, feed details
             //
-            cy.get('input[type="text"]').type(userCred.username)
+            cy.get('input[type="email"]').type(userCred.username)
             cy.get('input[type="password"]').type(userCred.password)
             cy.get('button:contains("SIGN UP")').click()
 

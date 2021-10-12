@@ -10,7 +10,10 @@ import RestAuthCtrl from './RestAuthCtrl';
 
 export default class RestAuthCtrlEE extends RestAuthCtrl {
   protected async addAdmin(req, res, next): Promise<any> {
-    const emails = (req.body.email || '').split(/\s*,\s*/).map(v => v.trim());
+    const emails = (req.body.email || '')
+      .toLowerCase()
+      .split(/\s*,\s*/)
+      .map(v => v.trim());
 
     // check for invalid emails
     const invalidEmails = emails.filter(v => !validator.isEmail(v));

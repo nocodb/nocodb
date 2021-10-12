@@ -784,12 +784,20 @@ export default class RestAuthCtrl {
 
   protected async signup(req, res, next): Promise<any> {
     try {
-      const { email, firstname, lastname, token, ignore_subscribe } = req.body;
+      const {
+        email: _email,
+        firstname,
+        lastname,
+        token,
+        ignore_subscribe
+      } = req.body;
       let { password } = req.body;
 
-      if (!isEmail(email)) {
+      if (!isEmail(_email)) {
         return next(new Error(`Invalid email`));
       }
+
+      const email = _email.toLowerCase();
 
       let user = await this.users
         .where({
@@ -928,10 +936,12 @@ export default class RestAuthCtrl {
   }
 
   protected async passwordForgot(req, res, next): Promise<any> {
-    const email = req.body.email;
-    if (!email) {
+    const _email = req.body.email;
+    if (!_email) {
       return next(new Error('Please enter your email address.'));
     }
+
+    const email = _email.toLowerCase();
 
     const user = await this.users.where({ email }).first();
     if (!user) {
@@ -1135,12 +1145,12 @@ export default class RestAuthCtrl {
     //   return next(new Error('SMTP config is not found'));
     // }
 
-    const email = req.body.email;
+    const _email = req.body.email;
 
-    if (!email || !validator.isEmail(email)) {
+    if (!_email || !validator.isEmail(_email)) {
       return next(new Error('Invalid email address'));
     }
-
+    const email = _email.toLowerCase();
     // todo: handle roles which contains super
     if (
       !req.session?.passport?.user?.roles?.owner &&

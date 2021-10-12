@@ -761,6 +761,7 @@ export default {
             fields: Object.keys(this.showFields)
               .filter(f => this.showFields[f])
               .join(','),
+            showFields: this.showFields,
             fieldsOrder: this.fieldsOrder,
             extraViewParams: this.extraViewParams,
             selectedViewId: this.selectedViewId

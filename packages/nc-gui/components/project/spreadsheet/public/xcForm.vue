@@ -274,7 +274,9 @@ export default {
         this.dbAlias = dbAlias
         this.metas = relatedTableMetas
 
-        const fields = this.query_params.fieldsOrder || []
+        const showFields = this.query_params.showFields || {}
+        let fields = this.query_params.fieldsOrder || []
+        if (!fields.length) { fields = Object.keys(showFields) }
         // eslint-disable-next-line camelcase
 
         let columns = this.meta.columns
@@ -308,7 +310,7 @@ export default {
           })
         }
         // this.modelName = model_name
-        this.columns = columns.filter(c => fields.includes(c.alias)).sort((a, b) => fields.indexOf(a.alias) - fields.indexOf(b.alias))
+        this.columns = columns.filter(c => showFields[c.alias]).sort((a, b) => fields.indexOf(a.alias) - fields.indexOf(b.alias))
 
         this.localParams = (this.query_params.extraViewParams && this.query_params.extraViewParams.formParams) || {}
       } catch (e) {

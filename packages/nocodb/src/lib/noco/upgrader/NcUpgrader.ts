@@ -3,6 +3,7 @@ import { NcConfig } from '../../../interface/config';
 import debug from 'debug';
 import NcMetaIO from '../meta/NcMetaIO';
 import ncProjectEnvUpgrader from './jobs/ncProjectEnvUpgrader';
+import ncProjectEnvUpgrader0011045 from './jobs/ncProjectEnvUpgrader0011045';
 
 const log = debug('nc:upgrader');
 
@@ -23,7 +24,8 @@ export default class NcUpgrader {
       const NC_VERSIONS: any[] = [
         { name: '0009000', handler: null },
         { name: '0009044', handler: null },
-        { name: '0011043', handler: ncProjectEnvUpgrader }
+        { name: '0011043', handler: ncProjectEnvUpgrader },
+        { name: '0011045', handler: ncProjectEnvUpgrader0011045 }
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;

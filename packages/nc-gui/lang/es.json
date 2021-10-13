@@ -83,8 +83,8 @@
             }
           },
           "inflection": {
-            "table_name": "Inflección - Nombre de tabla",
-            "column_name": "Inflección - Nombre de columna"
+            "table_name": "Inflexión - Nombre de tabla",
+            "column_name": "Inflexión - Nombre de columna"
           },
           "button": {
             "edit_conn_json": "Editar conexión JSON"
@@ -176,8 +176,8 @@
       "title": "Crear una Vista",
       "caption": "Sólo visible por el creador",
       "grid": {
-        "title": "Grilla",
-        "create": "Agregar vista de grilla"
+        "title": "Campos",
+        "create": "Agregar vista de campos"
       },
       "gallery": {
         "title": "Galeria",

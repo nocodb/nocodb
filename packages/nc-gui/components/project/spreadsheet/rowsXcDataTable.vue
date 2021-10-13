@@ -1196,6 +1196,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Alejandro Moreno <amoreno@pixplix.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

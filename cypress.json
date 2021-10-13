@@ -13,7 +13,6 @@
       "common/3c_lookup_column.js",
       "common/3d_rollup_column.js",
       "common/4a_table_view_grid_gallery_form.js",
-      "common/4b_table_view_share.js",
       "common/4c_form_view_detailed.js",
       "common/4d_table_view_grid_locked.js",
       "common/4e_form_view_share.js",
@@ -22,6 +21,9 @@
       "common/6a_audit.js",
       "common/6c_swagger_api.js",
       "common/6d_language_validation.js"
+  ],
+  "onholdFiles": [
+    "cypress/integration/common/4c_form_view_detailed.js"
   ],  
   "defaultCommandTimeout": 13000,
   "pageLoadTimeout": 600000,

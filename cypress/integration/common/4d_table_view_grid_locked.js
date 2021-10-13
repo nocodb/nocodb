@@ -2,22 +2,26 @@ import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
     describe(`${type.toUpperCase()} api - Table views`, () => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            loginPage.loginAndOpenProject(type)
+            // loginPage.loginAndOpenProject(type)
 
             // open a table to work on views
             //
             cy.openTableTab('Country');
         })
 
+        after(() => {
+            cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+        })    
+
         const lockViewTest = (enabled) => {
-            it.only(`Grid: lock view set to ${enabled}: validation`, () => {
+            it(`Grid: lock view set to ${enabled}: validation`, () => {
                 let vString = enabled ? 'not.' : ''
                 let menuOption = enabled ? 1 : 0
                 
@@ -66,8 +70,8 @@ const genTest = (type, xcdb) => {
 
 // invoke for different API types supported
 //
-genTest('rest', false)
-genTest('graphql', false)
+// genTest('rest', false)
+// genTest('graphql', false)
 
 
 /**

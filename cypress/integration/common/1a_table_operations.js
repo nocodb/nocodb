@@ -2,7 +2,7 @@
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${xcdb ? 'Meta - ' : ''}${type.toUpperCase()} api - Table`, () => {
@@ -49,10 +49,10 @@ const genTest = (type, xcdb) => {
 }
 
 
-genTest('rest', false)
-genTest('graphql', false)
-genTest('rest', true)
-genTest('graphql', true)
+// genTest('rest', false)
+// genTest('graphql', false)
+// genTest('rest', true)
+// genTest('graphql', true)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

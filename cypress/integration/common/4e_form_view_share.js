@@ -4,7 +4,7 @@ import { mainPage } from "../../support/page_objects/mainPage"
 
 let baseURL = ''
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Table views`, () => {
@@ -14,7 +14,7 @@ const genTest = (type, xcdb) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      loginPage.loginAndOpenProject(type)
+      // loginPage.loginAndOpenProject(type)
 
       // open a table to work on views
       //
@@ -28,6 +28,10 @@ const genTest = (type, xcdb) => {
     afterEach(() => {
       cy.saveLocalStorage();
     })
+      
+    after(() => {
+      cy.get('[href="#table||db||City"]').find('button.mdi-close').click()
+    })      
       
 
     // Common routine to create/edit/delete GRID & GALLERY view
@@ -161,8 +165,8 @@ const genTest = (type, xcdb) => {
 
 // invoke for different API types supported
 //
-genTest('rest', false)
-genTest('graphql', false)
+// genTest('rest', false)
+// genTest('graphql', false)
 
 
 /**

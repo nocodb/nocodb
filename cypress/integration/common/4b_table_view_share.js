@@ -82,7 +82,7 @@ const deleteCreatedViews = () => {
         })
 }
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
     if(!isTestSuiteActive(type, xcdb)) return;
 
     describe(`${type.toUpperCase()} api - Clipboard access`, () => {
@@ -90,7 +90,7 @@ const genTest = (type, xcdb) => {
         // Run once before test- create project (rest/graphql)
         //
         beforeEach(() => {
-            loginPage.loginAndOpenProject(type)
+            // loginPage.loginAndOpenProject(type)
             cy.openTableTab('City');
         })
 
@@ -108,6 +108,9 @@ const genTest = (type, xcdb) => {
 
         it('Delete view', deleteCreatedViews )
 
+        after(() => {
+            cy.get('[href="#table||db||City"]').find('button.mdi-close').click()
+        })            
         // // clean up
         // after( () => {
         //     loginPage.signIn({ username: 'user@nocodb.com', password: 'Password123.' })
@@ -116,8 +119,8 @@ const genTest = (type, xcdb) => {
     })
 }
 
-genTest('rest', false)
-genTest('graphql', false)
+// genTest('rest', false)
+// genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -3,7 +3,7 @@ import { mainPage } from "../../support/page_objects/mainPage"
 import { roles, staticProjects } from "../../support/page_objects/projectConstants"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type, roleType) => {
+export const genTest = (type, roleType) => {
     if(!isTestSuiteActive(type, false)) return;
 
     describe(`User role validation`, () => {
@@ -223,19 +223,23 @@ const genTest = (type, roleType) => {
         it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
             viewMenu(roleType)
         })
+
+        after(() => {
+            loginPage.loginAndOpenProject(type)
+        })
     })
 }
 
-genTest('rest', 'owner')
-genTest('rest', 'creator')
-genTest('rest', 'editor')
-genTest('rest', 'commenter')
-genTest('rest', 'viewer')
-genTest('graphql', 'owner')
-genTest('graphql', 'creator')
-genTest('graphql', 'editor')
-genTest('graphql', 'commenter')
-genTest('graphql', 'viewer')
+// genTest('rest', 'owner')
+// genTest('rest', 'creator')
+// genTest('rest', 'editor')
+// genTest('rest', 'commenter')
+// genTest('rest', 'viewer')
+// genTest('graphql', 'owner')
+// genTest('graphql', 'creator')
+// genTest('graphql', 'editor')
+// genTest('graphql', 'commenter')
+// genTest('graphql', 'viewer')
 
 
 /**

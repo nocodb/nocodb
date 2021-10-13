@@ -6,70 +6,72 @@ import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
 import { staticProjects, roles, isTestSuiteActive, getPrimarySuite, isSecondarySuite } from "../../support/page_objects/projectConstants"
 
-describe(`Project pre-configurations`, () => {
+export const genTest = () => {
 
-    it('Admin SignUp', ()=> {
-        cy.waitForSpinners();
-        cy.signinOrSignup(roles.owner.credentials)
-        cy.wait(2000)
-    })
+    describe(`Project pre-configurations`, () => {
 
-    const createProject = (proj) => {
-        it(`Create ${proj.basic.name} project`, () => {
-
-            // click home button
-            mainPage.toolBarTopLeft(mainPage.HOME).click()
-            // create requested project
-            projectsPage.createProject( proj.basic, proj.config )
-        })    
-    }
-
-    if( isTestSuiteActive('rest', true) ) createProject(staticProjects.sampleREST)
-    if( isTestSuiteActive('graphql', true) ) createProject(staticProjects.sampleGQL)
-    if( isTestSuiteActive('rest', false) ) createProject(staticProjects.externalREST)
-    if( isTestSuiteActive('graphql', false) ) createProject(staticProjects.externalGQL)
-})
-
-describe('Static user creations (different roles)', () => {
-
-    beforeEach(()=> {
-        loginPage.signIn(roles.owner.credentials)
-        projectsPage.openProject(getPrimarySuite().basic.name)
-    })
-
-    const addUser = (user) => {
-        it(`RoleType: ${user.name}`, () => {
-            mainPage.addNewUserToProject(user.credentials, user.name)
+        it('Admin SignUp', () => {
+            cy.waitForSpinners();
+            cy.signinOrSignup(roles.owner.credentials)
+            cy.wait(2000)
         })
-    }
 
-    addUser(roles.creator)
-    addUser(roles.editor)
-    addUser(roles.commenter)
-    addUser(roles.viewer) 
-})
+        const createProject = (proj) => {
+            it(`Create ${proj.basic.name} project`, () => {
 
-describe('Static users- add to other static projects', () => {
+                // click home button
+                mainPage.toolBarTopLeft(mainPage.HOME).click()
+                // create requested project
+                projectsPage.createProject(proj.basic, proj.config)
+            })
+        }
 
-    const addUserToProject = (proj) => {
-        it(`Add users to ${proj.basic.name}`, () => {
+        if (isTestSuiteActive('rest', true)) createProject(staticProjects.sampleREST)
+        if (isTestSuiteActive('graphql', true)) createProject(staticProjects.sampleGQL)
+        if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
+        if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
+    })
+
+    describe('Static user creations (different roles)', () => {
+
+        beforeEach(() => {
             loginPage.signIn(roles.owner.credentials)
-            projectsPage.openProject(proj.basic.name)
-
-            mainPage.addExistingUserToProject(roles.creator.credentials.username, roles.creator.name)
-            mainPage.addExistingUserToProject(roles.editor.credentials.username, roles.editor.name)
-            mainPage.addExistingUserToProject(roles.commenter.credentials.username, roles.commenter.name)
-            mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
+            projectsPage.openProject(getPrimarySuite().basic.name)
         })
-    }
 
-    if( isSecondarySuite('rest', true) ) addUserToProject(staticProjects.sampleREST)
-    if( isSecondarySuite('graphql', true) ) addUserToProject(staticProjects.sampleGQL)
-    if( isSecondarySuite('rest', false) ) addUserToProject(staticProjects.externalREST)
-    if( isSecondarySuite('graphql', false) ) addUserToProject(staticProjects.externalGQL)    
-})
+        const addUser = (user) => {
+            it(`RoleType: ${user.name}`, () => {
+                mainPage.addNewUserToProject(user.credentials, user.name)
+            })
+        }
 
+        addUser(roles.creator)
+        addUser(roles.editor)
+        addUser(roles.commenter)
+        addUser(roles.viewer)
+    })
 
+    describe('Static users- add to other static projects', () => {
+
+        const addUserToProject = (proj) => {
+            it(`Add users to ${proj.basic.name}`, () => {
+                loginPage.signIn(roles.owner.credentials)
+                projectsPage.openProject(proj.basic.name)
+
+                mainPage.addExistingUserToProject(roles.creator.credentials.username, roles.creator.name)
+                mainPage.addExistingUserToProject(roles.editor.credentials.username, roles.editor.name)
+                mainPage.addExistingUserToProject(roles.commenter.credentials.username, roles.commenter.name)
+                mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
+            })
+        }
+
+        if (isSecondarySuite('rest', true)) addUserToProject(staticProjects.sampleREST)
+        if (isSecondarySuite('graphql', true)) addUserToProject(staticProjects.sampleGQL)
+        if (isSecondarySuite('rest', false)) addUserToProject(staticProjects.externalREST)
+        if (isSecondarySuite('graphql', false)) addUserToProject(staticProjects.externalGQL)
+    })
+
+}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

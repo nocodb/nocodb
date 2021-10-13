@@ -14,7 +14,7 @@ const reVerificationAfterReset = false
 // should we verify permissions in owner mode before preview?
 const baseVerificationBeforePreview = false
 
-const genTest = (type, xcdb, roleType) => {
+export const genTest = (type, xcdb, roleType) => {
     if(!isTestSuiteActive(type, xcdb)) return;
 
     // project configuration settings
@@ -237,16 +237,17 @@ const genTest = (type, xcdb, roleType) => {
 
     describe('Role preview validations', () => {
         // Sign in/ open project
-        before(() => {
-            loginPage.signIn(roles.owner.credentials)
-            projectsPage.openProject('externalREST')
-        })
+        // before(() => {
+        //     loginPage.signIn(roles.owner.credentials)
+        //     projectsPage.openProject('externalREST')
+        // })
 
         after(() => {
             mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
             cy.wait(3000)
 
             mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
+            cy.get('[href="#table||db||City"]').find('button.mdi-close').click()
         })
 
         const genTestSub = (roleType) => {
@@ -283,7 +284,7 @@ const genTest = (type, xcdb, roleType) => {
     })
 }
 
-genTest('rest', false)
+// genTest('rest', false)
 
 
 

@@ -4,7 +4,7 @@ import { mainPage } from "../../support/page_objects/mainPage"
 import { roles } from "../../support/page_objects/projectConstants"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
     if(!isTestSuiteActive(type, xcdb)) return;
 
     describe(`Swagger API - Test preparation`, () => {
@@ -169,4 +169,4 @@ const genTest = (type, xcdb) => {
     })
 }
 
-genTest('rest', false)
+// genTest('rest', false)

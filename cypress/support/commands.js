@@ -102,14 +102,23 @@ Cypress.Commands.add('openOrCreateRestProject', (_args) => {
 
 
 Cypress.Commands.add('openTableTab', (tn) => {
-  cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
+  cy.get('.nc-project-tree')
+    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
     .first().click()
 
-  cy.get('.nc-project-tree').contains(tn, {timeout: 6000}).first().click({force: true});
+  cy.get('.nc-project-tree')
+    .contains(tn, { timeout: 6000 })
+    .first()
+    .click({ force: true });
 
-  cy.get(`.project-tab:contains(${tn}):visible`).should('exist')
+  cy.get(`.project-tab:contains(${tn}):visible`)
+    .should('exist')
 
-});
+  cy.get('.nc-project-tree')
+    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+    .first().click()
+})
+
 Cypress.Commands.add('openOrCreateGqlProject', (_args) => {
   const args = Object.assign({new: false, meta: false}, _args)
 

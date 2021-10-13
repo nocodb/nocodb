@@ -2,13 +2,17 @@
 import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - M2M Column validation`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(type)
+      // loginPage.loginAndOpenProject(type)
       cy.openTableTab('Actor')
+    })
+
+    after(() => {
+      cy.get('[href="#table||db||Actor"]').find('button.mdi-close').click()
     })
     
     it('Table column header, URL validation', () => {
@@ -52,12 +56,15 @@ const genTest = (type, xcdb) => {
       cy.getActiveModal().find('h5').contains("ACADEMY DINOSAUR").should('exist')
       cy.getActiveModal().find('button:contains("Save Row")').should('exist')
       cy.getActiveModal().find('button:contains("Cancel")').should('exist')
+
+      cy.getActiveModal().find('button:contains("Cancel")').click()
+      cy.getActiveModal().find('button.mdi-close').click()      
     })
   })
 }
 
-genTest('rest', false)
-genTest('graphql', false)
+// genTest('rest', false)
+// genTest('graphql', false)
 
 
 /**

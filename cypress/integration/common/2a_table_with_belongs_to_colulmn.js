@@ -2,11 +2,11 @@
 import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Existing table`, () => {
-    before(() => loginPage.loginAndOpenProject(type))
+    // before(() => loginPage.loginAndOpenProject(type))
     
     it('Table column header, URL validation', () => {
       cy.openTableTab('Country')
@@ -33,12 +33,16 @@ const genTest = (type, xcdb) => {
       cy.getActiveModal().find('button.mdi-reload').should('exist')
       cy.getActiveModal().find('button:contains("New Record")').should('exist')
       cy.getActiveModal().find('.child-card').eq(0).contains('Batna').should('exist')
+
+      cy.getActiveModal().find('button.mdi-close').click()
+      cy.wait(200)
+      cy.getActiveModal().find('button.mdi-close').click()
     })
   })
 }
 
-genTest('rest')
-genTest('graphql')
+// genTest('rest')
+// genTest('graphql')
 
 
 /**

@@ -4,7 +4,7 @@ import { mainPage } from "../../support/page_objects/mainPage"
 
 let formViewURL
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Table views`, () => {
@@ -14,7 +14,7 @@ const genTest = (type, xcdb) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      loginPage.loginAndOpenProject(type)
+      // loginPage.loginAndOpenProject(type)
 
       // open a table to work on views
       //
@@ -28,7 +28,10 @@ const genTest = (type, xcdb) => {
     afterEach(() => {
       cy.saveLocalStorage();
     })
-      
+
+    after(() => {
+      cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+    })          
 
     // Common routine to create/edit/delete GRID & GALLERY view
     // Input: viewType - 'grid'/'gallery'
@@ -242,9 +245,9 @@ const genTest = (type, xcdb) => {
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
             cy.get('.nc-form > .mx-auto').find('[type="checkbox"]').eq(2).click({ force: true })
             // validate if toaster pops up informing installation of email notification
-            cy.get('.toasted:visible', { timout: 6000 })
-                .contains('Successfully installed and email notification will use SMTP configuration')
-                .should('exist')
+            // cy.get('.toasted:visible', { timout: 6000 })
+            //     .contains('Successfully installed and email notification will use SMTP configuration')
+            //     .should('exist')
             // reset SMPT config's
             mainPage.navigationDraw(mainPage.APPSTORE).click()
             mainPage.resetSMTP()
@@ -326,8 +329,8 @@ const genTest = (type, xcdb) => {
 
 // invoke for different API types supported
 //
-genTest('rest', false)
-genTest('graphql', false)
+// genTest('rest', false)
+// genTest('graphql', false)
 
 
 /**

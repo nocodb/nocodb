@@ -1,7 +1,7 @@
 import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-const genTest = (type, xcdb) => {
+export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Table views`, () => {
@@ -11,13 +11,16 @@ const genTest = (type, xcdb) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      loginPage.loginAndOpenProject(type)
+      // loginPage.loginAndOpenProject(type)
 
       // open a table to work on views
       //
       cy.openTableTab('Country');
     })
 
+    after(() => {
+      cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+    })    
 
     // Common routine to create/edit/delete GRID & GALLERY view
     // Input: viewType - 'grid'/'gallery'
@@ -76,8 +79,8 @@ const genTest = (type, xcdb) => {
 
 // invoke for different API types supported
 //
-genTest('rest', false)
-genTest('graphql', false)
+// genTest('rest', false)
+// genTest('graphql', false)
 
 
 /**

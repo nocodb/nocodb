@@ -88,6 +88,11 @@
           },
           "button": {
             "edit_conn_json": "Edit connection JSON"
+          },
+          "sql": {
+            "sql_columns": "SQL Columns",
+            "sql_indexes": "SQL Indexes",
+            "sql_triggers": "SQL Triggers"
           }
         }
       },
@@ -199,7 +204,18 @@
     "advanced": {
       "title1": "Share View",
       "views_list": "Views List",
-      "copy_api_url": "Copy API URL"
+      "copy_api_url": "Copy API URL",
+      "delete_row": "Delete Row",
+      "delete_selected_row": "Delete Selected Rows",
+      "clear": "Clear",
+      "set_column_value": "Set column value to",
+      "delete_table": "Delete table",
+      "has_many": "Has Many",
+      "caption1": "Update & Delete not allowed since the table doesn't have any primary key",
+      "save": "Save",
+      "create_automations": "Create Automations or API Webhooks",
+      "create_webhooks": "Create / Edit API Webhooks",
+      "api_validators": "Api Validators"
     },
     "share_view": {
       "title": "This view is shared via a private link",

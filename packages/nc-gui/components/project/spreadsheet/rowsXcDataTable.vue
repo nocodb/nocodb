@@ -69,7 +69,7 @@
               mdi-information-outline
             </v-icon>
           </template>
-          <span class="caption">          Update & Delete not allowed since the table doesn't have any primary key
+          <span class="caption">          {{ $t('nav_drawer.advanced.caption1') }}
           </span>
         </v-tooltip>
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
@@ -112,7 +112,7 @@
           <v-icon small class="mr-1" color="grey  darken-3">
             save
           </v-icon>
-          Save
+          {{ $t('nav_drawer.advanced.save') }}
         </x-btn>
 
         <fields
@@ -158,7 +158,7 @@
               </x-icon>
             </v-btn>
           </template>
-          <span class="">Delete table</span>
+          <span class="">{{ $t('nav_drawer.advanced.delete_table') }}</span>
         </v-tooltip>
       </template>
       <!-- Cell height -->
@@ -362,7 +362,7 @@
               <span class="caption"> Automations</span>
             </v-list-item>
           </template>
-          Create Automations or API Webhooks
+          {{ $t('nav_drawer.advanced.create_automations') }}
         </v-tooltip>
         <v-tooltip bottom>
           <template #activator="{on}">
@@ -376,7 +376,7 @@
               <span class="caption"> API ACL</span>
             </v-list-item>
           </template>
-          Create / Edit API Webhooks
+          {{ $t('nav_drawer.advanced.create_webhooks') }}
         </v-tooltip>
         <v-list-item
           v-if="showAdvanceOptions"
@@ -385,7 +385,7 @@
           <v-icon x-small class="mr-2">
             mdi-sticker-check-outline
           </v-icon>
-          <span class="caption"> API Validators</span>
+          <span class="caption"> {{ $t('nav_drawer.advanced.api_validators') }}</span>
         </v-list-item>
         <v-divider
           v-if="showAdvanceOptions"
@@ -399,7 +399,7 @@
           <v-icon x-small class="mr-2">
             mdi-view-column
           </v-icon>
-          <span class="caption font-weight-light">SQL Columns</span>
+          <span class="caption font-weight-light">{{ $t('projects.ext_db.credentials.advanced.sql.sql_columns') }}</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
@@ -408,7 +408,7 @@
           <v-icon x-small class="mr-2">
             mdi-blur
           </v-icon>
-          <span class="caption font-weight-light">SQL Indexes</span>
+          <span class="caption font-weight-light">{{ $t('projects.ext_db.credentials.advanced.sql.sql_indexes') }}</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
@@ -417,7 +417,7 @@
           <v-icon x-small class="mr-2">
             mdi-shield-edit-outline
           </v-icon>
-          <span class="caption font-weight-light">SQL Triggers</span>
+          <span class="caption font-weight-light">{{ $t('projects.ext_db.credentials.advanced.sql.sql_triggers') }}</span>
         </v-list-item>
       </spreadsheet-nav-drawer>
     </div>
@@ -439,27 +439,27 @@
             <span class="caption">Insert New Row</span>
           </v-list-item>
           <v-list-item @click="deleteRow">
-            <span class="caption">Delete Row</span>
+            <span class="caption">{{ $t('nav_drawer.advanced.delete_row') }}</span>
           </v-list-item>
           <v-list-item @click="deleteSelectedRows">
-            <span class="caption">Delete Selected Rows</span>
+            <span class="caption">{{ $t('nav_drawer.advanced.delete_selected_row') }}</span>
           </v-list-item>
         </template>
         <template v-if="rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
           <v-tooltip bottom>
             <template #activator="{on}">
               <v-list-item v-on="on" @click="clearCellValue">
-                <span class="caption">Clear</span>
+                <span class="caption">{{ $t('nav_drawer.advanced.clear') }}</span>
               </v-list-item>
             </template>
 
-            <span class="caption">Set column value to <strong>null</strong></span>
+            <span class="caption">{{ $t('nav_drawer.advanced.set_column_value') }} <strong>null</strong></span>
           </v-tooltip>
         </template>
 
         <!--        <template v-if="meta.hasMany && meta.hasMany.length">
           <v-divider v-if="isEditable && !isLocked" />
-          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Has Many</span>
+          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">{{ $t('nav_drawer.advanced.has_many') }}</span>
 
           <v-list-item v-for="(hm,i) in meta.hasMany" :key="i" @click="addNewRelationTabCtxMenu(hm,'hm')">
             <span class="caption text-capitalize">{{ hm._tn }}</span>

@@ -76,15 +76,15 @@ const genTest = (type, xcdb) => {
         it(`Validate ${viewType} view: Inverted order field member addition from menu`, () => {
             cy.get('.col-md-4').find('.pointer.caption').contains('remove all').click()
 
-            // click fields in inverted order: Country, LastUpdate, Country => City
-            cy.get('.col-md-4').find('.pointer.item').eq(2).click()
+            // click fields in inverted order: LastUpdate, Country => City
             cy.get('.col-md-4').find('.pointer.item').eq(1).click()
             cy.get('.col-md-4').find('.pointer.item').eq(0).click()
 
             // verify if order of appearance in form is right
-            cy.get('.nc-field-wrapper').eq(0).contains('Country => City').should('exist')
-            cy.get('.nc-field-wrapper').eq(1).contains('LastUpdate').should('exist')
-            cy.get('.nc-field-wrapper').eq(2).contains('Country').should('exist')
+            // Country was never removed as its required field. Other two will appear in inverted order
+            cy.get('.nc-field-wrapper').eq(0).contains('Country').should('exist')            
+            cy.get('.nc-field-wrapper').eq(1).contains('Country => City').should('exist')
+            cy.get('.nc-field-wrapper').eq(2).contains('LastUpdate').should('exist')
         })        
         
         it(`Validate ${viewType}: Form header & description validation`, () => {
@@ -111,19 +111,19 @@ const genTest = (type, xcdb) => {
 
             // click: remove-all
             cy.get('.col-md-4').find('.pointer.caption').contains('remove all').click()
-            // form should not contain any "field remove icons" -- all fields removed
-            cy.get('.nc-form').find('.nc-field-remove-icon').should('not.exist')
-            // menu bar should contain 3 .pointer.item (Country, LastUpdate, County->City)
-            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 3)
+            // form should not contain any "field remove icons" -- except for mandatory field (Country)
+            cy.get('.nc-form').find('.nc-field-remove-icon').its('length').should('eq', 1)
+            // menu bar should contain 3 .pointer.item (LastUpdate, County->City)
+            cy.get('.col-md-4').find('.pointer.item').its('length').should('eq', 2)
 
             // click: add all
-            cy.get('.col-md-4').find('.pointer.caption').contains('remove all').should('not.exist')
+            // cy.get('.col-md-4').find('.pointer.caption').contains('remove all').should('not.exist')
             cy.get('.col-md-4').find('.pointer.caption').contains('add all').click()
             cy.get('.col-md-4').find('.pointer.caption').contains('remove all').should('exist')
             // form should contain "field remove icons"
             cy.get('.nc-form').find('.nc-field-remove-icon').should('exist')
             // Fix me: a dummy remove icon is left over on screen
-            cy.get('.nc-form').find('.nc-field-remove-icon').its('length').should('eq', 4)
+            cy.get('.nc-form').find('.nc-field-remove-icon').its('length').should('eq', 3)
             // menu bar should not contain .pointer.item (column name/ field name add options)
             cy.get('.col-md-4').find('.pointer.item').should('not.exist')
         })
@@ -254,15 +254,15 @@ const genTest = (type, xcdb) => {
         it(`Validate ${viewType}: Add/ remove field verification"`, () => {
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
 
-            cy.get('#data-table-form-Country').should('exist')
-            // remove "country field"
+            cy.get('#data-table-form-LastUpdate').should('exist')
+            // remove "LastUpdate field"
             cy.get('.nc-form').find('.nc-field-remove-icon').eq(1).click()
-            cy.get('#data-table-form-Country').should('not.exist')
-            cy.get('.col-md-4').find('.pointer.item').contains('Country').should('exist')
+            cy.get('#data-table-form-lastUpdate').should('not.exist')
+            cy.get('.col-md-4').find('.pointer.item').contains('LastUpdate').should('exist')
 
             // add it back
-            cy.get('.col-md-4').find('.pointer.item').contains('Country').click()
-            cy.get('#data-table-form-Country').should('exist')
+            cy.get('.col-md-4').find('.pointer.item').contains('LastUpdate').click()
+            cy.get('#data-table-form-LastUpdate').should('exist')
         })        
         
         it(`Validate ${viewType}: URL verification`, () => {

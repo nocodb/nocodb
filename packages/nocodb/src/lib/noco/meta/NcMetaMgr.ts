@@ -3421,7 +3421,7 @@ export default class NcMetaMgr {
 
         return {
           model_name: viewMeta.model_name,
-          meta: JSON.parse(viewMeta.meta),
+          meta: apiBuilder?.getMeta(viewMeta.model_name), //JSON.parse(viewMeta.meta),
           data: await model.list({
             ...req.query,
             where,
@@ -3583,7 +3583,9 @@ export default class NcMetaMgr {
         ?.find(pb => pb.id === viewMeta.project_id)
         ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
 
-      const tableMeta = JSON.parse(viewMeta.meta);
+      const tableMeta = (viewMeta.meta = apiBuilder?.getMeta(
+        viewMeta.model_name
+      ));
 
       const relatedTableMetas = {};
 

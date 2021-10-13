@@ -760,7 +760,7 @@ export default {
         'createSharedViewLink',
         {
           model_name: this.table,
-          meta: this.meta,
+          // meta: this.meta,
           query_params: {
             where: this.concatenatedXWhere,
             sort: this.sort,

@@ -206,7 +206,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   public async onTableDelete(tn: string): Promise<void> {
     this.baseLog(`onTableDelete : '%s'`, tn);
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
-    return this.xcMeta.metaDelete(
+    await this.xcMeta.metaDelete(
       this.projectId,
       this.dbAlias,
       'nc_relations',
@@ -227,6 +227,15 @@ export default abstract class BaseApiBuilder<T extends Noco>
       }
     );
     await this.deleteTableNameInACL(tn);
+
+    await this.xcMeta.metaDelete(
+      this.projectId,
+      this.dbAlias,
+      'nc_shared_views',
+      {
+        model_name: tn
+      }
+    );
   }
 
   public async onRelationCreate(
@@ -311,6 +320,127 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     XcCache.del([this.projectId, this.dbAlias, 'table', tnc].join('::'));
     XcCache.del([this.projectId, this.dbAlias, 'table', tnp].join('::'));
+
+    for (const tn of [tnc, tnp]) {
+      const {
+        virtualViews,
+        sharedViews,
+        virtualViewsParamsArr,
+        sharedViewsParamsArr
+      } = await this.extractSharedAndVirtualViewsParams(tn);
+
+      // extract alias of relation virtual column
+      const relation = tnc === tn ? 'bt' : 'hm';
+      const alias = this.getMeta(tn)?.v?.find(
+        v => v?.[relation]?.tn === tnc && v?.[relation]?.rtn === tnp
+      )?._cn;
+
+      // virtual views param update
+      for (const qp of [...virtualViewsParamsArr, ...sharedViewsParamsArr]) {
+        // @ts-ignore
+        const { showFields = {}, fieldsOrder, extraViewParams = {} } = qp;
+
+        /* update show field */
+        if (alias in showFields) {
+          delete showFields[alias];
+        }
+
+        /* update fieldsOrder */
+        const index = fieldsOrder.indexOf(alias);
+        if (index > -1) {
+          fieldsOrder.splice(index, 0);
+        }
+
+        /* update formView params */
+        //  extraViewParams.formParams.fields
+        if (extraViewParams?.formParams?.fields?.[alias]) {
+          delete extraViewParams.formParams.fields[alias];
+        }
+      }
+      await this.updateSharedAndVirtualViewsParams(
+        virtualViewsParamsArr,
+        virtualViews,
+        sharedViewsParamsArr,
+        sharedViews
+      );
+    }
+  }
+
+  private async updateSharedAndVirtualViewsParams(
+    virtualViewsParamsArr: any[],
+    virtualViews: any[],
+    sharedViewsParamsArr: any[],
+    sharedViews: any[]
+  ) {
+    // update virtual views params
+    for (let i = 0; i < virtualViewsParamsArr.length; i++) {
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          query_params: JSON.stringify(virtualViewsParamsArr[i])
+        },
+        virtualViews[i].id
+      );
+    }
+
+    // update shared views params
+    for (let i = 0; i < sharedViewsParamsArr.length; i++) {
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_shared_views',
+        {
+          query_params: JSON.stringify(sharedViewsParamsArr[i])
+        },
+        sharedViews[i].id
+      );
+    }
+  }
+
+  private async extractSharedAndVirtualViewsParams(tn: string) {
+    const virtualViews = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        condition: {
+          type: 'vtable',
+          parent_model_title: tn
+        }
+      }
+    );
+    const sharedViews = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_shared_views',
+      {
+        condition: {
+          model_name: tn
+        }
+      }
+    );
+    const virtualViewsParamsArr = virtualViews.map(v => {
+      try {
+        return JSON.parse(v.query_params);
+      } catch (e) {}
+      return {};
+    });
+
+    // @ts-ignore
+    const sharedViewsParamsArr = sharedViews.map(v => {
+      try {
+        return JSON.parse(v.query_params);
+      } catch (e) {}
+      return {};
+    });
+    return {
+      virtualViews,
+      sharedViews,
+      virtualViewsParamsArr,
+      sharedViewsParamsArr
+    };
   }
 
   public async onTableRename(
@@ -460,24 +590,12 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const belongsTo = this.extractBelongsToRelationsOfTable(relations, tn);
     const hasMany = this.extractHasManyRelationsOfTable(relations, tn);
 
-    const virtualViews = await this.xcMeta.metaList(
-      this.projectId,
-      this.dbAlias,
-      'nc_models',
-      {
-        condition: {
-          type: 'vtable',
-          parent_model_title: tn
-        }
-      }
-    );
-
-    const virtualViewsParamsArr = virtualViews.map(v => {
-      try {
-        return JSON.parse(v.query_params);
-      } catch (e) {}
-      return {};
-    });
+    const {
+      virtualViews,
+      sharedViews,
+      virtualViewsParamsArr,
+      sharedViewsParamsArr
+    } = await this.extractSharedAndVirtualViewsParams(tn);
 
     const ctx = this.generateContextForTable(
       tn,
@@ -577,12 +695,22 @@ export default abstract class BaseApiBuilder<T extends Noco>
           );
 
           // virtual views param update
-          for (const qp of [queryParams, ...virtualViewsParamsArr]) {
+          for (const qp of [
+            queryParams,
+            ...virtualViewsParamsArr,
+            ...sharedViewsParamsArr
+          ]) {
             if (!qp) continue;
             // @ts-ignore
-            const { filters, sortList, showFields } = qp;
+            const {
+              filters,
+              sortList,
+              showFields = {},
+              fieldsOrder,
+              extraViewParams = {}
+            } = qp;
             /* update sort field */
-            const s = sortList.find(v => v.field === column.cno);
+            const s = sortList?.find(v => v.field === column.cno);
             if (s) {
               s.field = column.cn;
             }
@@ -592,8 +720,25 @@ export default abstract class BaseApiBuilder<T extends Noco>
               delete showFields[column.cno];
             }
             /* update filters */
-            if (JSON.stringify(filters).includes(`"${column.cno}"`)) {
+            if (
+              filters &&
+              JSON.stringify(filters).includes(`"${column.cno}"`)
+            ) {
               filters.splice(0, filters.length);
+            }
+
+            /* update fieldsOrder */
+            const index = fieldsOrder.indexOf(column.cno);
+            if (index > -1) {
+              fieldsOrder[index] = column.cn;
+            }
+
+            /* update formView params */
+            //  extraViewParams.formParams.fields
+            if (extraViewParams?.formParams?.fields?.[column.cno]) {
+              extraViewParams.formParams.fields[column.cn] =
+                extraViewParams.formParams.fields[column.cno];
+              delete extraViewParams.formParams.fields[column.cno];
             }
           }
 
@@ -715,11 +860,19 @@ export default abstract class BaseApiBuilder<T extends Noco>
         aclOper.push(async () => this.deleteColumnNameInACL(tn, column.cno));
 
         // virtual views param update
-        for (const qp of virtualViewsParamsArr) {
+        for (const qp of [...virtualViewsParamsArr, ...sharedViewsParamsArr]) {
           // @ts-ignore
-          const { filters, sortList, showFields } = qp;
+          const {
+            filters,
+            sortList,
+            showFields = {},
+            fieldsOrder,
+            extraViewParams = {}
+          } = qp;
           /* update sort field */
-          const sIndex = sortList.findIndex(v => v.field === column.cno);
+          const sIndex = (sortList || []).findIndex(
+            v => v.field === column.cno
+          );
           if (sIndex > -1) {
             sortList.splice(sIndex, 1);
           }
@@ -728,8 +881,20 @@ export default abstract class BaseApiBuilder<T extends Noco>
             delete showFields[column.cno];
           }
           /* update filters */
-          if (JSON.stringify(filters).includes(`"${column.cno}"`)) {
+          if (filters && JSON.stringify(filters)?.includes(`"${column.cno}"`)) {
             filters.splice(0, filters.length);
+          }
+
+          /* update fieldsOrder */
+          const index = fieldsOrder.indexOf(column.cno);
+          if (index > -1) {
+            fieldsOrder.splice(index, 0);
+          }
+
+          /* update formView params */
+          //  extraViewParams.formParams.fields
+          if (extraViewParams?.formParams?.fields?.[column.cno]) {
+            delete extraViewParams.formParams.fields[column.cno];
           }
         }
 
@@ -789,6 +954,20 @@ export default abstract class BaseApiBuilder<T extends Noco>
         if (queryParams?.showFields) {
           queryParams.showFields[column.cno] = true;
         }
+
+        for (const qp of sharedViewsParamsArr) {
+          if (!qp) continue;
+          // @ts-ignore
+          const { showFields = {}, extraViewParams = {} } = qp;
+
+          if (column.rqd) {
+            showFields[column.cn] = true;
+            extraViewParams.formParams = extraViewParams.formParams || {};
+            extraViewParams.formParams.fields =
+              extraViewParams.formParams.fields || {};
+            extraViewParams.formParams.fields[column.cn] = {};
+          }
+        }
       } else {
         oldCol = oldMeta.columns.find(c => c.cn === column.cn);
         newCol = newMeta.columns.find(c => c.cn === column.cn);
@@ -796,19 +975,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
           newCol.validate = oldCol.validate;
         }
       }
-
-      for (let i = 0; i < virtualViewsParamsArr.length; i++) {
-        await this.xcMeta.metaUpdate(
-          this.projectId,
-          this.dbAlias,
-          'nc_models',
-          {
-            query_params: JSON.stringify(virtualViewsParamsArr[i])
-          },
-          virtualViews[i].id
-        );
-      }
     }
+
+    await this.updateSharedAndVirtualViewsParams(
+      virtualViewsParamsArr,
+      virtualViews,
+      sharedViewsParamsArr,
+      sharedViews
+    );
 
     // update relation tables metadata
     for (const relMeta of relationTableMetas) {
@@ -1187,6 +1361,54 @@ export default abstract class BaseApiBuilder<T extends Noco>
       XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
       this.models[meta.tn] = this.getBaseModel(meta);
     }
+
+    // todo: many to many form view field update
+
+    for (const [tnp, tnc] of [
+      [parent, child],
+      [child, parent]
+    ]) {
+      const {
+        virtualViews,
+        sharedViews,
+        virtualViewsParamsArr,
+        sharedViewsParamsArr
+      } = await this.extractSharedAndVirtualViewsParams(tnp);
+
+      const alias = this.getMeta(tnp)?.v?.find(
+        v => v?.tn === tnp && v?.mm?.rtn === tnc
+      )?._cn;
+
+      // virtual views param update
+      for (const qp of [...virtualViewsParamsArr, ...sharedViewsParamsArr]) {
+        // @ts-ignore
+        const { showFields = {}, fieldsOrder, extraViewParams = {} } = qp;
+
+        /* update show field */
+        if (alias in showFields) {
+          delete showFields[alias];
+        }
+
+        /* update fieldsOrder */
+        const index = fieldsOrder.indexOf(alias);
+        if (index > -1) {
+          fieldsOrder.splice(index, 0);
+        }
+
+        /* update formView params */
+        //  extraViewParams.formParams.fields
+        if (extraViewParams?.formParams?.fields?.[alias]) {
+          delete extraViewParams.formParams.fields[alias];
+        }
+      }
+
+      await this.updateSharedAndVirtualViewsParams(
+        virtualViewsParamsArr,
+        virtualViews,
+        sharedViewsParamsArr,
+        sharedViews
+      );
+    }
   }
 
   public getProjectId(): string {
@@ -1197,15 +1419,88 @@ export default abstract class BaseApiBuilder<T extends Noco>
     await this.xcUpgrade();
   }
 
-  public async onVirtualColumnAliasUpdate(tableName: string): Promise<void> {
+  public async onVirtualColumnAliasUpdate({
+    tn,
+    oldAlias,
+    newAlias
+  }: any): Promise<void> {
     const model = await this.xcMeta.metaGet(
       this.projectId,
       this.dbAlias,
       'nc_models',
-      { title: tableName }
+      { title: tn }
     );
     const meta = JSON.parse(model.meta);
-    this.models[tableName] = this.getBaseModel(meta);
+    this.models[tn] = this.getBaseModel(meta);
+
+    const virtualViews = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        condition: {
+          type: 'vtable',
+          parent_model_title: tn
+        }
+      }
+    );
+    const sharedViews = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_shared_views',
+      {
+        condition: {
+          model_name: tn
+        }
+      }
+    );
+
+    const virtualViewsParamsArr = virtualViews.map(v => {
+      try {
+        return JSON.parse(v.query_params);
+      } catch (e) {}
+      return {};
+    });
+
+    // @ts-ignore
+    const sharedViewsParamsArr = sharedViews.map(v => {
+      try {
+        return JSON.parse(v.query_params);
+      } catch (e) {}
+      return {};
+    });
+
+    for (const qp of [...sharedViewsParamsArr, ...virtualViewsParamsArr]) {
+      if (!qp) continue;
+      // @ts-ignore
+      const { showFields = {}, fieldsOrder, extraViewParams = {} } = qp;
+      /* update show field */
+      if (oldAlias in showFields) {
+        showFields[newAlias] = showFields[oldAlias];
+        delete showFields[oldAlias];
+      }
+
+      /* update fieldsOrder */
+      const index = fieldsOrder.indexOf(oldAlias);
+      if (index > -1) {
+        fieldsOrder[index] = newAlias;
+      }
+
+      /* update formView params */
+      //  extraViewParams.formParams.fields
+      if (extraViewParams?.formParams?.fields?.[oldAlias]) {
+        extraViewParams.formParams.fields[newAlias] =
+          extraViewParams.formParams.fields[oldAlias];
+        delete extraViewParams.formParams.fields[oldAlias];
+      }
+    }
+
+    await this.updateSharedAndVirtualViewsParams(
+      virtualViewsParamsArr,
+      virtualViews,
+      sharedViewsParamsArr,
+      sharedViews
+    );
   }
 
   protected async loadCommon(): Promise<any> {

@@ -275,7 +275,7 @@ export default class NcProjectBuilder {
         console.log(`Updated validations for table : ${data.req.args.tn}`);
         break;
       case 'xcUpdateVirtualKeyAlias':
-        await curBuilder.onVirtualColumnAliasUpdate(data.req.args.tn);
+        await curBuilder.onVirtualColumnAliasUpdate(data.req.args);
         console.log(`Updated validations for table : ${data.req.args.tn}`);
         break;
 

@@ -298,7 +298,7 @@ export default {
           password: this.password
         }])
         this.client = client
-        this.meta = JSON.parse(meta)
+        this.meta = meta
         this.query_params = JSON.parse(qp)
         this.dbAlias = dbAlias
         this.metas = relatedTableMetas

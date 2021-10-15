@@ -353,10 +353,11 @@
             <!--            <v-menu offset-x left>-->
             <!--              <template v-slot:activator="{on}">-->
 
+            <!--            v-show="-->
+            <!--            selectedView && selectedView.show_as === 'form'-->
+            <!--            "-->
             <v-list-item
-              v-show="
-                selectedView && selectedView.show_as === 'form'
-              "
+
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"
             >

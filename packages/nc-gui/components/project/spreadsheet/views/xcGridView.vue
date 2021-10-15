@@ -151,7 +151,9 @@
           >
             <virtual-cell
               v-if="columnObj.virtual"
-              :is-locked="isLocked"
+              :is-public="isPublicView"
+              :metas="metas"
+              :is-locked="isLocked "
               :column="columnObj"
               :row="rowObj"
               :nodes="nodes"
@@ -252,6 +254,7 @@ export default {
   },
   mixins: [colors],
   props: {
+    metas: Object,
     relationType: String,
     availableColumns: [Object, Array],
     showFields: Object,

@@ -28,7 +28,7 @@
         :class="{'d-none': !active, 'd-flex':active }"
       >
         <x-icon
-          v-if="_isUIAllowed('xcDatatableEditable')"
+          v-if="_isUIAllowed('xcDatatableEditable') && !isPublic"
           small
           :color="['primary','grey']"
           @click="showNewRecordModal"
@@ -76,11 +76,14 @@
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
       :api="childApi"
+      :column="column"
       :query-params="{
         ...childQueryParams,
         where: `(${childForeignKey},eq,${parentId})`
       }"
       :is-public="isPublic"
+      :row-id="parentId"
+      type="hm"
       @new-record="showNewRecordModal"
       @edit="editChild"
       @unlink="unlinkChild"
@@ -174,7 +177,8 @@ export default {
     required: Boolean,
     isPublic: Boolean,
     metas: Object,
-    password: String
+    password: String,
+    column: Object
   },
   data: () => ({
     newRecordModal: false,

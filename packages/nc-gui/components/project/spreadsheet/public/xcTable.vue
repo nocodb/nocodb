@@ -4,7 +4,7 @@
       <span class="font-weight-bold"> {{ modelName }}</span> <span class="font-weight-regular ml-1">( Main View )</span>
     </div>
 
-    <v-toolbar height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
+    <v-toolbar v-if="meta" height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
       <div class="d-flex xc-border align-center search-box">
         <v-menu bottom offset-y>
           <template #activator="{on}">
@@ -107,6 +107,7 @@
     </v-toolbar>
 
     <div
+      v-if="meta"
       :class="`cell-height-${cellHeight}`"
       style="overflow:auto;transition: width 500ms "
       class="d-flex"
@@ -117,13 +118,14 @@
 
           <xc-grid-view
             v-else
+            is-public-view
             :meta="meta"
+            :metas="metas"
             :data="data"
             :available-columns="availableColumns"
             :show-fields="showFields"
             :belongs-to="belongsTo"
             :has-many="hasMany"
-            :is-public-view="true"
             :nodes="{dbAlias:''}"
             :sql-ui="sqlUi"
           />
@@ -170,22 +172,21 @@
 
 <script>
 
-import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
-// import EditableCell from "@/components/project/spreadsheet/editableCell";
+import spreadsheet from '../mixins/spreadsheet'
+import ApiFactory from '../apis/apiFactory'
+// import EditableCell from "../editableCell";
+import FieldsMenu from '../components/fieldsMenu'
+import SortListMenu from '../components/sortListMenu'
+import ColumnFilterMenu from '../components/columnFilterMenu'
+import XcGridView from '../views/xcGridView'
 import { SqlUI } from '@/helpers/sqlUi'
-import FieldsMenu from '@/components/project/spreadsheet/components/fieldsMenu'
-import SortListMenu from '@/components/project/spreadsheet/components/sortListMenu'
-import ColumnFilterMenu from '@/components/project/spreadsheet/components/columnFilterMenu'
-import XcGridView from '@/components/project/spreadsheet/views/xcGridView'
-import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
-// import ExpandedForm from "@/components/project/spreadsheet/expandedForm";
+// import ExpandedForm from "../expandedForm";
 
 export default {
   name: 'XcTable',
   components: { XcGridView, ColumnFilterMenu, SortListMenu, FieldsMenu },
   mixins: [spreadsheet],
   props: {
-    dbAlias: String,
     env: String,
     nodes: Object,
     addNewRelationTab: Function,
@@ -196,6 +197,7 @@ export default {
     relationPrimaryValue: [String, Number]
   },
   data: () => ({
+    metas: {},
     fieldsOrder: [],
     password: null,
     showPasswordModal: false,
@@ -211,7 +213,7 @@ export default {
     showExpandModal: false,
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
-    meta: [],
+    meta: null,
     navDrawer: true,
     selected: {
       row: null,
@@ -361,7 +363,7 @@ export default {
   },
   async mounted() {
     try {
-      // await this.loadMeta();
+      await this.loadMetaData()
       await this.loadTableData()
       // const {list, count} = await this.api.paginatedList(this.queryParams);
       // this.count = count;
@@ -471,22 +473,93 @@ export default {
       })
       this.filters = this.filters.slice()
     },
-    async loadTableData() {
-      this.loadingData = true
+    async loadMetaData() {
+      this.loading = true
       try {
         // eslint-disable-next-line camelcase
-        const { data: list, count, meta, model_name, client } = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          query: this.queryParams
-        }, 'getSharedViewData', {
+        const {
+          meta,
+          // model_name,
+          client,
+          query_params: qp,
+          db_alias: dbAlias,
+          relatedTableMetas
+        } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewGet', {
           view_id: this.$route.params.id,
           password: this.password
         }])
         this.client = client
         this.meta = meta
+        this.query_params = JSON.parse(qp)
+        this.dbAlias = dbAlias
+        this.metas = relatedTableMetas
+
+        this.showFields = this.query_params.showFields || {}
+
+        this.fieldList = Object.keys(this.showFields)
+
+        let fields = this.query_params.fieldsOrder || []
+        if (!fields.length) { fields = Object.keys(this.showFields) }
+        // eslint-disable-next-line camelcase
+
+        let columns = this.meta.columns
+        if (this.meta && this.meta.v) {
+          columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
+        }
+
+        {
+          const _ref = {}
+          columns.forEach((c) => {
+            if (c.virtual && c.bt) {
+              c.prop = `${c.bt.rtn}Read`
+            }
+            if (c.virtual && c.mm) {
+              c.prop = `${c.mm.rtn}MMList`
+            }
+            if (c.virtual && c.hm) {
+              c.prop = `${c.hm.tn}List`
+            }
+
+            if (c.virtual && c.lk) {
+              c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+            } else {
+              c.alias = c._cn
+            }
+            if (c.alias in _ref) {
+              c.alias += _ref[c.alias]++
+            } else {
+              _ref[c.alias] = 1
+            }
+          })
+        }
+      } catch (e) {
+        if (e.message === 'Not found') {
+          this.notFound = true
+        } else if (e.message === 'Invalid password') {
+          this.showPasswordModal = true
+        }
+      }
+
+      this.loadingData = false
+    },
+
+    async loadTableData() {
+      this.loadingData = true
+      try {
+        // eslint-disable-next-line camelcase
+        const { data: list, count, meta, model_name, client, queryParams } = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          query: this.queryParams
+        }, 'getSharedViewData', {
+          view_id: this.$route.params.id,
+          password: this.password
+        }])
+
+        this.client = client
+
+        // this.showFields = queryParams && queryParams.showFields
+        // this.meta = meta
         // eslint-disable-next-line camelcase
         this.modelName = model_name
-
-        this.fieldList = this.meta.columns.map(c => c._cn)
 
         this.count = count
         this.data = list.map(row => ({
@@ -494,11 +567,6 @@ export default {
           oldRow: { ...row },
           rowMeta: {}
         }))
-
-        this.showFields = this.fieldList.reduce((obj, k) => {
-          obj[k] = true
-          return obj
-        }, {})
       } catch (e) {
         this.showPasswordModal = true
       }

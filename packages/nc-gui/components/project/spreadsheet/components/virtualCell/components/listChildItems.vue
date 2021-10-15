@@ -1,6 +1,9 @@
 <template>
   <!--  <v-dialog v-model="show" width="600">-->
   <v-card width="600" color="">
+    <pre class="caption">{{ parentMeta }}</pre>
+    <pre class="caption">{{ meta }}</pre>
+
     <v-card-title v-if="!isForm" class="textColor--text mx-2" :class="{'py-2':isForm}">
       <span v-if="!isForm">{{ meta ? meta._tn : 'Children' }}</span>
       <v-spacer />
@@ -144,7 +147,10 @@ export default {
     size: Number,
     api: [Object, Function],
     mm: [Object, Boolean],
-    isPublic: Boolean
+    isPublic: Boolean,
+    rowId: [String, Number],
+    column: Object,
+    type: String
   },
   data: () => ({
     data: null,
@@ -173,6 +179,23 @@ export default {
   },
   methods: {
     async loadData() {
+      if (this.isPublic && this.$route.params.id) {
+        this.data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewNestedChildDataGet', {
+          password: this.password,
+          limit: this.size,
+          tn: this.tn,
+          view_id: this.$route.params.id,
+          row_id: this.rowId,
+          offset: this.size * (this.page - 1),
+          query: this.query,
+          _cn: this.column._cn,
+          ptn: this.parentMeta.tn,
+          ctn: this.meta.tn,
+          type: this.type
+        }])
+        return
+      }
+
       if (!this.api || this.isNew) { return }
       this.data = await this.api.paginatedList({
         limit: this.size,

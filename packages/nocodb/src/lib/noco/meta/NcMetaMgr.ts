@@ -1314,6 +1314,9 @@ export default class NcMetaMgr {
         case 'sharedViewNestedDataGet':
           result = await this.sharedViewNestedDataGet(req, args);
           break;
+        case 'sharedViewNestedChildDataGet':
+          result = await this.sharedViewNestedChildDataGet(req, args);
+          break;
 
         // case 'submitSharedViewFormData':
         //   result = await this.submitSharedViewFormData(req, args);
@@ -3291,18 +3294,18 @@ export default class NcMetaMgr {
 
   protected async createSharedViewLink(req, args: any): Promise<any> {
     try {
-      if (args.args.query_params?.fields) {
-        const fields = args.args.query_params?.fields.split(',');
-        args.args.meta.columns = args.args.meta.columns.filter(c =>
-          fields.includes(c._cn)
-        );
-      }
+      // if (args.args.query_params?.fields) {
+      //   const fields = args.args.query_params?.fields.split(',');
+      //   args.args.meta.columns = args.args.meta.columns.filter(c =>
+      //     fields.includes(c._cn)
+      //   );
+      // }
 
       const insertData = {
         project_id: args.project_id,
         db_alias: this.getDbAlias(args),
         model_name: args.args.model_name,
-        meta: JSON.stringify(args.args.meta),
+        // meta: JSON.stringify(args.args.meta),
         query_params: JSON.stringify(args.args.query_params),
         view_id: uuidv4()
         // password: args.args.password
@@ -3505,6 +3508,104 @@ export default class NcMetaMgr {
     }
   }
 
+  protected async sharedViewNestedChildDataGet(_req, args: any): Promise<any> {
+    try {
+      const viewMeta = await this.xcMeta
+        .knex('nc_shared_views')
+        .where({
+          view_id: args.args.view_id
+        })
+        .first();
+
+      if (!viewMeta) {
+        throw new Error('Not found');
+      }
+
+      if (
+        viewMeta &&
+        viewMeta.password &&
+        viewMeta.password !== args.args.password
+      ) {
+        throw new Error(this.INVALID_PASSWORD_ERROR);
+      }
+
+      const tn = args.args?.ctn;
+
+      // @ts-ignore
+      // const queryParams = JSON.parse(viewMeta.query_params);
+
+      const apiBuilder = this.app?.projectBuilders
+        ?.find(pb => pb.id === viewMeta.project_id)
+        ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
+
+      // todo: only allow related table
+      // if(tn &&){
+      //
+      // }
+
+      const model = apiBuilder.xcModels?.[tn];
+      const meta = apiBuilder.getMeta(tn);
+
+      const primaryCol = apiBuilder?.getMeta(tn)?.columns?.find(c => c.pv)?.cn;
+
+      const commonParams: any =
+        primaryCol && args.args.query
+          ? {
+              condition: {
+                [primaryCol]: {
+                  like: `%${args.args.query}%`
+                }
+              }
+            }
+          : {};
+
+      switch (args.args?.type) {
+        case 'mm':
+          {
+            const mm = meta.v.find(v => v.mm && v._cn === args.args._cn)?.mm;
+            const assocMeta = apiBuilder.getMeta(mm.vtn);
+
+            commonParams.conditionGraph = {
+              condition: {
+                [assocMeta.tn]: {
+                  relationType: 'hm',
+                  [assocMeta.columns.find(c => c.cn === mm.vcn).cn]: {
+                    eq: args.arags.row_id
+                  }
+                }
+              },
+              models: apiBuilder?.xcModels
+            };
+          }
+          break;
+        case 'hm':
+          {
+            const hm = meta.v.find(v => v.hm && v._cn === args.args._cn)?.hm;
+            // const childMeta = apiBuilder.getMeta(hm.rtn);
+            commonParams.condition = {
+              [hm.rcn]: {
+                eq: args.arags.row_id
+              }
+            };
+          }
+          break;
+      }
+
+      return {
+        list: await model?.list({
+          fields: model.getTablePKandPVFields(),
+          limit: args.args.limit,
+          offset: args.args.offset,
+          ...commonParams
+        }),
+        count: (await model?.countByPk(commonParams as any))?.count
+      };
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
+
   protected async sharedViewInsert(req, args: any): Promise<any> {
     const viewMeta = await this.xcMeta
       .knex('nc_shared_views')
@@ -3598,6 +3699,10 @@ export default class NcMetaMgr {
         } else if (v.mm) {
           tn = v.mm.rtn;
           relatedTableMetas[v.mm.vtn] = apiBuilder?.getMeta(v.mm.vtn);
+        } else if (v.lk) {
+          tn = v.lk.ltn;
+          if (v.lk.vtn)
+            relatedTableMetas[v.lk.vtn] = apiBuilder?.getMeta(v.lk.vtn);
         }
         relatedTableMetas[tn] = apiBuilder?.getMeta(tn);
       }

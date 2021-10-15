@@ -18,6 +18,7 @@
         :required="required"
         :is-public="isPublic"
         :metas="metas"
+        :column="column"
         :password="password"
         v-on="$listeners"
       />
@@ -38,6 +39,7 @@
         :breadcrumbs="breadcrumbs"
         :is-locked="isLocked"
         :required="required"
+        :column="column"
         :metas="metas"
         :password="password"
         v-on="$listeners"
@@ -60,6 +62,7 @@
         :breadcrumbs="breadcrumbs"
         :is-locked="isLocked"
         :metas="metas"
+        :column="column"
         :password="password"
         v-on="$listeners"
       />
@@ -69,6 +72,7 @@
         :active="active"
         :row="row"
         :meta="meta"
+        :metas="metas"
         :nodes="nodes"
         :api="api"
         :sql-ui="sqlUi"

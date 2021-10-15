@@ -14,7 +14,7 @@
         </template>
       </div>
       <div
-        v-if="!isLocked && _isUIAllowed('xcDatatableEditable')"
+        v-if="!isLocked && _isUIAllowed('xcDatatableEditable') && !isPublic"
         class="action align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >
@@ -60,6 +60,7 @@
       }"
       :bt="value"
       :is-public="isPublic"
+      :row-id="parentId"
       @new-record="showNewRecordModal"
       @edit="editParent"
       @unlink="unlink"

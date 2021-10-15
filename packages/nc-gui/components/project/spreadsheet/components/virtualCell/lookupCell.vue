@@ -44,16 +44,17 @@
 
 <script>
 // import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import TableCell from '../cell'
 import ItemChip from '@/components/project/spreadsheet/components/virtualCell/components/itemChip'
 import ListChildItemsModal
   from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
-import TableCell from '../cell'
 
 export default {
   name: 'LookupCell',
   components: { TableCell, ListChildItemsModal, ItemChip },
   props: {
     meta: [Object],
+    metas: [Object],
     column: [Object],
     nodes: [Object],
     row: [Object],
@@ -76,22 +77,22 @@ export default {
       })
     },
     lookUpMeta() {
-      return this.$store.state.meta.metas[this.column.lk.ltn]
+      return this.metas ? this.metas[this.column.lk.ltn] : this.$store.state.meta.metas[this.column.lk.ltn]
     },
     assocMeta() {
-      return this.column.lk.type === 'mm' && this.$store.state.meta.metas[this.column.lk.vtn]
+      return this.column.lk.type === 'mm' && (this.metas ? this.metas[this.column.lk.vtn] : this.$store.state.meta.metas[this.column.lk.vtn])
     },
     lookUpColumnAlias() {
       if (!this.lookUpMeta || !this.column.lk.lcn) {
         return
       }
-      return (this.$store.state.meta.metas[this.column.lk.ltn].columns.find(cl => cl.cn === this.column.lk.lcn) || {})._cn
+      return (this.lookUpMeta.columns.find(cl => cl.cn === this.column.lk.lcn) || {})._cn
     },
     lookUpColumn() {
       if (!this.lookUpMeta || !this.column.lk.lcn) {
         return
       }
-      return (this.$store.state.meta.metas[this.column.lk.ltn].columns.find(cl => cl.cn === this.column.lk.lcn) || {})
+      return (this.lookUpMeta.columns.find(cl => cl.cn === this.column.lk.lcn) || {})
     },
     localValueObj() {
       if (!this.column || !this.row) {
@@ -146,14 +147,14 @@ export default {
   },
   methods: {
     async loadLookupMeta() {
-      if (!this.lookUpMeta) {
+      if (!this.metas && !this.lookUpMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
           tn: this.column.lk.ltn
         })
       }
-      if (this.column.lk.type === 'mm' && !this.assocMeta) {
+      if (!this.metas && this.column.lk.type === 'mm' && !this.assocMeta) {
         await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,

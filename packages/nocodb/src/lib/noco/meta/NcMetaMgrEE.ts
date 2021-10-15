@@ -142,7 +142,10 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       }
       const queryParams = JSON.parse(viewMeta.query_params);
 
-      if (!meta) throw new Error('Meta not found');
+      if (!meta) {
+        throw new Error('Meta not found');
+      }
+
       meta = {
         ...meta,
         columns: meta.columns.filter(c => queryParams?.showFields?.[c._cn])
@@ -163,7 +166,8 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       return {
         model_name: viewMeta.model_name,
         meta,
-        data: await model.list({
+        queryParams,
+        data: await model.nestedList({
           ...req.query,
           where,
           fields

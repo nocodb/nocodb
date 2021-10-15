@@ -450,7 +450,11 @@ declare module 'knex' {
     _and: XcXonditionObj[];
     _not: XcXonditionObj;
 
-    [key: string]: XcXonditionObj | XcXonditionObj[];
+    [key: string]:
+      | XcXonditionObj
+      | XcXonditionObj[]
+      | XcConditionObjVal
+      | XcConditionObjVal[];
   }
 
   interface QueryBuilder {

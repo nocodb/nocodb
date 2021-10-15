@@ -22,7 +22,7 @@
         :class="{'d-none': !active, 'd-flex':active }"
       >
         <x-icon
-          v-if="_isUIAllowed('xcDatatableEditable')"
+          v-if="_isUIAllowed('xcDatatableEditable') && !isPublic"
           small
           :color="['primary','grey']"
           @click="showNewRecordModal"
@@ -72,6 +72,8 @@
       :query-params="{...childQueryParams, conditionGraph }"
       :local-state="localState"
       :is-public="isPublic"
+      :row-id="parentPrimaryKey"
+      type="mm"
       @new-record="showNewRecordModal"
       @edit="editChild"
       @unlink="unlinkChild"
@@ -84,7 +86,7 @@
       :heading="confirmMessage"
     />
 
-    <!-- todo : move to listitem component -->
+    <!-- todo : move to list item component -->
     <v-dialog
       v-if="selectedChild && !isPublic"
       v-model="expandFormModal"

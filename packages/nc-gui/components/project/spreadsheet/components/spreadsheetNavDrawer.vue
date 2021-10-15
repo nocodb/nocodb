@@ -353,11 +353,10 @@
             <!--            <v-menu offset-x left>-->
             <!--              <template v-slot:activator="{on}">-->
 
-            <!--            v-show="-->
-            <!--            selectedView && selectedView.show_as === 'form'-->
-            <!--            "-->
             <v-list-item
-
+              v-show="
+                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' ||selectedView.show_as === 'grid' )
+              "
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"
             >
@@ -436,10 +435,10 @@
             <!-- People with private link can only see cells visible in this view -->
           </p>
           <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
-            {{ `${dashboardUrl}#/nc/${shareLink.view_type || 'view'}/${shareLink.view_id}` }}
+            {{ `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view' }/${shareLink.view_id}` }}
             <v-spacer />
             <a
-              :href=" `${dashboardUrl}#/nc/${shareLink.view_type || 'view'}/${shareLink.view_id}`"
+              :href=" `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view'}/${shareLink.view_id}`"
               style="text-decoration: none"
               target="_blank"
             >

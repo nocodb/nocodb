@@ -3530,6 +3530,11 @@ export default class NcMetaMgr {
       }
 
       const tn = args.args?.ctn;
+      const ptn = args.args?.ptn;
+
+      if (!tn || !ptn) {
+        throw new Error('Parent/Child not found');
+      }
 
       // @ts-ignore
       // const queryParams = JSON.parse(viewMeta.query_params);
@@ -3538,13 +3543,9 @@ export default class NcMetaMgr {
         ?.find(pb => pb.id === viewMeta.project_id)
         ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
 
-      // todo: only allow related table
-      // if(tn &&){
-      //
-      // }
-
       const model = apiBuilder.xcModels?.[tn];
-      const meta = apiBuilder.getMeta(tn);
+      const parentMeta = apiBuilder.getMeta(ptn);
+      // const meta = apiBuilder.getMeta(tn);
 
       const primaryCol = apiBuilder?.getMeta(tn)?.columns?.find(c => c.pv)?.cn;
 
@@ -3562,7 +3563,8 @@ export default class NcMetaMgr {
       switch (args.args?.type) {
         case 'mm':
           {
-            const mm = meta.v.find(v => v.mm && v._cn === args.args._cn)?.mm;
+            const mm = parentMeta.v.find(v => v.mm && v._cn === args.args._cn)
+              ?.mm;
             const assocMeta = apiBuilder.getMeta(mm.vtn);
 
             commonParams.conditionGraph = {
@@ -3570,7 +3572,7 @@ export default class NcMetaMgr {
                 [assocMeta.tn]: {
                   relationType: 'hm',
                   [assocMeta.columns.find(c => c.cn === mm.vcn).cn]: {
-                    eq: args.arags.row_id
+                    eq: args.args.row_id
                   }
                 }
               },
@@ -3580,11 +3582,12 @@ export default class NcMetaMgr {
           break;
         case 'hm':
           {
-            const hm = meta.v.find(v => v.hm && v._cn === args.args._cn)?.hm;
+            const hm = parentMeta.v.find(v => v.hm && v._cn === args.args._cn)
+              ?.hm;
             // const childMeta = apiBuilder.getMeta(hm.rtn);
             commonParams.condition = {
               [hm.rcn]: {
-                eq: args.arags.row_id
+                eq: args.args.row_id
               }
             };
           }

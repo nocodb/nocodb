@@ -9,7 +9,7 @@
             :active="active"
             :item="ch"
             :value="getCellValue(ch)"
-            :readonly="isLocked"
+            :readonly="isLocked || isPublic"
             @edit="editChild"
             @unlink="unlinkChild"
           />
@@ -28,7 +28,7 @@
         :class="{'d-none': !active, 'd-flex':active }"
       >
         <x-icon
-          v-if="_isUIAllowed('xcDatatableEditable') && !isPublic"
+          v-if="_isUIAllowed('xcDatatableEditable') && (isForm || !isPublic)"
           small
           :color="['primary','grey']"
           @click="showNewRecordModal"

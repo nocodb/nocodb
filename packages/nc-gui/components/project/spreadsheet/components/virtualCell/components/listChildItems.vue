@@ -1,9 +1,6 @@
 <template>
   <!--  <v-dialog v-model="show" width="600">-->
   <v-card width="600" color="">
-    <pre class="caption">{{ parentMeta }}</pre>
-    <pre class="caption">{{ meta }}</pre>
-
     <v-card-title v-if="!isForm" class="textColor--text mx-2" :class="{'py-2':isForm}">
       <span v-if="!isForm">{{ meta ? meta._tn : 'Children' }}</span>
       <v-spacer />
@@ -11,7 +8,7 @@
         mdi-reload
       </v-icon>
       <v-btn
-        v-if="!readOnly && _isUIAllowed('xcDatatableEditable')"
+        v-if="(isForm || !isPublic) && !readOnly && _isUIAllowed('xcDatatableEditable')"
         small
         class="caption"
         color="primary"
@@ -54,7 +51,7 @@
           >
             <div class="remove-child-icon d-flex align-center">
               <x-icon
-                v-if="!readOnly&& _isUIAllowed('xcDatatableEditable')"
+                v-if="(isForm || !isPublic) && !readOnly && _isUIAllowed('xcDatatableEditable')"
                 :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
                 :color="['error','grey']"
                 small
@@ -179,7 +176,7 @@ export default {
   },
   methods: {
     async loadData() {
-      if (this.isPublic && this.$route.params.id) {
+      if ((!this.isForm && this.isPublic) && this.$route.params.id) {
         this.data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewNestedChildDataGet', {
           password: this.password,
           limit: this.size,

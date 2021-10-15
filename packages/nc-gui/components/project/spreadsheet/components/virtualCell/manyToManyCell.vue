@@ -9,7 +9,7 @@
             :active="active"
             :item="v"
             :value="getCellValue(v)"
-            :readonly="isLocked"
+            :readonly="isLocked || isPublic"
             @edit="editChild"
             @unlink="unlinkChild"
           />
@@ -22,7 +22,7 @@
         :class="{'d-none': !active, 'd-flex':active }"
       >
         <x-icon
-          v-if="_isUIAllowed('xcDatatableEditable') && !isPublic"
+          v-if="_isUIAllowed('xcDatatableEditable') && (isForm || !isPublic)"
           small
           :color="['primary','grey']"
           @click="showNewRecordModal"
@@ -72,7 +72,8 @@
       :query-params="{...childQueryParams, conditionGraph }"
       :local-state="localState"
       :is-public="isPublic"
-      :row-id="parentPrimaryKey"
+      :row-id="row && row[parentPrimaryKey]"
+      :column="column"
       type="mm"
       @new-record="showNewRecordModal"
       @edit="editChild"
@@ -156,7 +157,8 @@ export default {
     required: Boolean,
     isPublic: Boolean,
     metas: Object,
-    password: String
+    password: String,
+    column: Object
   },
   data: () => ({
     isNewChild: false,

@@ -20,7 +20,7 @@
       v-bind="$attrs"
       :read-only="readOnly"
       :is-public="isPublic"
-      column="column"
+      :column="column"
       v-on="$listeners"
     />
   </v-dialog>

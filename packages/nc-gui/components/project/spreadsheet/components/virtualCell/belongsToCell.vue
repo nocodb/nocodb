@@ -14,7 +14,7 @@
         </template>
       </div>
       <div
-        v-if="!isLocked && _isUIAllowed('xcDatatableEditable') && !isPublic"
+        v-if="!isLocked && _isUIAllowed('xcDatatableEditable') && (isForm || !isPublic)"
         class="action align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >

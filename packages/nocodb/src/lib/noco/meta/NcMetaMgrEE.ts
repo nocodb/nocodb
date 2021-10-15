@@ -135,36 +135,46 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
       const model = apiBuilder?.xcModels?.[viewMeta.model_name];
 
-      if (model) {
-        const queryParams = JSON.parse(viewMeta.query_params);
-        let where = '';
+      let meta = apiBuilder?.getMeta(viewMeta.model_name);
 
-        if (req.query.where) {
-          where += req.query.where;
-        }
-
-        if (queryParams.where) {
-          where += where ? `~and(${queryParams.where})` : queryParams.where;
-        }
-
-        const fields = queryParams?.fields || '*';
-
-        return {
-          model_name: viewMeta.model_name,
-          meta: JSON.parse(viewMeta.meta),
-          data: await model.list({
-            ...req.query,
-            where,
-            fields
-          }),
-          ...(await model.countByPk({
-            ...req.query,
-            where,
-            fields
-          })),
-          client: apiBuilder?.client
-        };
+      if (!model) {
+        throw new Error('Meta not found');
       }
+      const queryParams = JSON.parse(viewMeta.query_params);
+
+      if (!meta) throw new Error('Meta not found');
+      meta = {
+        ...meta,
+        columns: meta.columns.filter(c => queryParams?.showFields?.[c._cn])
+      };
+
+      let where = '';
+
+      if (req.query.where) {
+        where += req.query.where;
+      }
+
+      if (queryParams.where) {
+        where += where ? `~and(${queryParams.where})` : queryParams.where;
+      }
+
+      const fields = queryParams?.fields || '*';
+
+      return {
+        model_name: viewMeta.model_name,
+        meta,
+        data: await model.list({
+          ...req.query,
+          where,
+          fields
+        }),
+        ...(await model.countByPk({
+          ...req.query,
+          where,
+          fields
+        })),
+        client: apiBuilder?.client
+      };
     } catch (e) {
       throw e;
     }
@@ -173,12 +183,12 @@ export default class NcMetaMgrEE extends NcMetaMgr {
   protected async createSharedViewLink(req, args: any): Promise<any> {
     try {
       // todo: keep belongs to column if belongs to virtual column present
-      if (args.args.query_params?.fields && args.args.show_as !== 'form') {
-        const fields = args.args.query_params?.fields.split(',');
-        args.args.meta.columns = args.args.meta.columns.filter(c =>
-          fields.includes(c._cn)
-        );
-      }
+      // if (args.args.query_params?.fields && args.args.show_as !== 'form') {
+      //   const fields = args.args.query_params?.fields.split(',');
+      //   args.args.meta.columns = args.args.meta.columns.filter(c =>
+      //     fields.includes(c._cn)
+      //   );
+      // }
 
       const insertData = {
         project_id: args.project_id,

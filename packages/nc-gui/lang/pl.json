@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Moje projekty",
+    "reload_projects_tooltip": "Odśwież projekty",
+    "create_new_project_button": {
+      "text": "Nowy projekt",
+      "subtext_1": "Tworzyć",
+      "subtext_1_tooltip": "Utwórz nowy projekt",
+      "subtext_2": "Utwórz przez podłączenie <br> do zewnętrznej bazy danych",
+      "subtext_2_tooltip": "Obsługuje MySQL, PostgreSQL, SQL Server & Sqlite"
+    },
+    "search_project": "Szukaj projektu.",
+    "import_metadata": "Importuj metadane",
+    "export_metadata": "Eksportuj metadane",
+    "clear_metadata": "Wyczyść metadane",
+    "stop_project": "Zatrzymaj projekt",
+    "start_project": "Rozpocznij projekt.",
+    "restart_project": "Restart Project.",
+    "delete_project": "Usuń Projekt.",
+    "project_api_type_tooltip_graphql": "Dostępne przez API Graphql",
+    "project_api_type_tooltip_rest": "Dostępne przez API REST",
+    "project_empty_message": "Zacznij od tworzenia nowego projektu",
+    "import_button": {
+      "text": "Importuj projekt NOCODB, przesyłając plik zip metadanych"
+    },
+    "show_community_star": "Gwiazda",
+    "show_community_us_on_Github": "USA na Github.",
+    "show_community_book_a_free_demo": "Zarezerwuj darmowy demo",
+    "show_community_get_your_questions_answered": "Odpowiedział na pytania",
+    "show_community_join_discord": "Dołącz do Discord.",
+    "show_community_follow_nocodb": "Śledź NOCODB.",
+    "search": {
+      "your_search_found_no_results": "Twoje wyszukiwanie dla {search} nie znaleziono żadnych wyników"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Edytuj projekt.",
+        "create": "Utwórz projekt"
+      },
+      "project_name": "Wprowadź nazwę projektu.",
+      "project_type": "Dostęp do projektu VIA.",
+      "button": {
+        "save_project": "Zapisz Projekt",
+        "update_and_restart": "Aktualizacja i uruchom ponownie",
+        "cancel": "Anulować",
+        "cancel_tooltip": "Anuluj i wróć"
+      },
+      "credentials": {
+        "title": "Poświadczenia bazy danych.",
+        "db_type": "Typ bazy danych.",
+        "sqlite_file": "Plik sqlite.",
+        "host_address": "Adres hosta",
+        "port": "Numer portu",
+        "username": "Nazwa użytkownika",
+        "password": "Hasło",
+        "db_create_if_not_exists": "Baza danych: Utwórz, jeśli nie istnieje",
+        "button": {
+          "test_db_conn": "Testowe połączenie bazy danych.",
+          "remove_db_from_env": "Usuń bazę danych ze środowiska"
+        },
+        "advanced": {
+          "title": "Parametry SSL i zaawansowane",
+          "ssl": {
+            "client_key": {
+              "title": "Klient klienta",
+              "toolip": "Wybierz plik .key."
+            },
+            "client_cert": {
+              "title": "Cert Client.",
+              "toolip": "Wybierz plik .Cert."
+            },
+            "server_ca": {
+              "title": "Serwer ca.",
+              "toolip": "Wybierz plik CA."
+            },
+            "preferred": "Preferowany",
+            "usage": {
+              "no": "Nie",
+              "preferred": "Preferowany",
+              "required": "Wymagany",
+              "requried_ca": "Wymagany-ca.",
+              "requried_identity": "Wymagana tożsamość"
+            }
+          },
+          "inflection": {
+            "table_name": "Nazwa tabeli",
+            "column_name": "Fleksja - Nazwa kolumny"
+          },
+          "button": {
+            "edit_conn_json": "Edytuj połączenie JSON."
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Nieprawidłowy znak na ścieżce folderu.",
+        "invalid_db_credentials": "Nieprawidłowe poświadczenia bazy danych.",
+        "unable_to_connect_to_db": "Nie można połączyć się z bazą danych, sprawdź swoją bazę danych.",
+        "user_doesnt_ve_sufficient_permission": "Użytkownik nie istnieje ani nie ma wystarczającej zgody na tworzenie schematu."
+      },
+      "head": {
+        "title": "Utwórz projekt |. NOCODB."
+      },
+      "dialog": {
+        "success": "Połączenie było udane",
+        "failure": "Błąd połączenia:"
+      }
+    },
+    "notifications": {
+      "no_new": "brak nowych powiadomień",
+      "clear": "Jasne"
+    }
+  },
+  "signin": {
+    "title": "ZALOGUJ SIĘ",
+    "enter_your_work_email": "Wpisz swój adres e-mail",
+    "enter_your_password": "Wprowadź hasło",
+    "forget_password": "Zapomniałeś hasła ?",
+    "dont_ve_an_account": "Nie masz konta?",
+    "sign_up": "Zapisać się",
+    "form": {
+      "rules": {
+        "email_is_reqd": "Email jest wymagany",
+        "email_must_be_valid": "Adres email musi być poprawny",
+        "passwd_required": "Wymagane jest hasło",
+        "passwd_must_be_8_chars": "Użytkownik musi być co najmniej 8 znaków"
+      }
+    },
+    "head": {
+      "title": "Zaloguj się | NOCODB.",
+      "meta": {
+        "hid": "Zaloguj się do NOCODB",
+        "name": "Zaloguj się do NOCODB",
+        "content": "Zaloguj się do NOCODB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Zresetuj swoje hasło",
+        "message_1": "Podaj adres e-mail użyty podczas podpisania.",
+        "message_2": "Wyślemy Ci wiadomość e-mail z linkiem, aby zresetować hasło.",
+        "success": "Sprawdź swój adres e-mail, aby zresetować hasło",
+        "button": "WYSŁAĆ EMAIL"
+      }
+    }
+  },
+  "signup": {
+    "title": "ZAPISZ SIĘ",
+    "you_will_be_the_super_admin": "Będziesz \"super admin\"",
+    "already_ve_an_account": "Posiadasz już konto ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Ustawienia",
+      "tooltip": "Tylko widoczne dla twórcy"
+    },
+    "app_store": "Sklep z aplikacjami",
+    "team_n_auth": {
+      "title": "Team & Auth.",
+      "tooltip": "Role i zarządzanie użytkownikami"
+    },
+    "project_metadata": {
+      "title": "Metadane projektu.",
+      "tooltip": "Meta Management."
+    },
+    "preview_as": "Podgląd AS.",
+    "reset_review": "Zresetuj podgląd"
+  },
+  "nav_drawer": {
+    "title": "Wyświetlenia",
+    "virtual_views": {
+      "action": {
+        "copy": "Widok kopiowania",
+        "rename": "Zmień nazwę",
+        "delete": "Usuń widok."
+      },
+      "title": "Utwórz widok",
+      "caption": "Tylko widoczne dla twórcy",
+      "grid": {
+        "title": "Siatka",
+        "create": "Dodaj widok siatki"
+      },
+      "gallery": {
+        "title": "Galeria",
+        "create": "Dodaj widok galerii."
+      },
+      "calendar": {
+        "title": "Kalendarz",
+        "create": "Dodaj widok kalendarza"
+      },
+      "kanban": {
+        "title": "Kanban.",
+        "create": "Dodaj widok Kanban."
+      },
+      "form": {
+        "title": "Formularz",
+        "create": "Dodaj widok formy"
+      }
+    },
+    "advanced": {
+      "title1": "Widok udostępniania",
+      "views_list": "Lista widoków",
+      "copy_api_url": "Kopiuj adres URL API."
+    },
+    "share_view": {
+      "title": "Ten widok jest współdzielony przez prywatny link",
+      "body": "Ludzie z prywatnym ogniwem mogą widzieć tylko komórki widoczne w tym widoku",
+      "toggle": {
+        "option1": "Ogranicz dostęp do hasła",
+        "option2": "Dostęp jest ograniczony hasłem"
+      },
+      "password": {
+        "caption": "Podaj hasło",
+        "button": "Zapisz hasło"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Zarządzanie użytkownikami",
+      "api": "Zarządzanie Tokeny API.",
+      "roles": "Zarządzanie rólami"
+    },
+    "meta": {
+      "title": "Operacje metadanych",
+      "export_to_file": {
+        "title": "Eksportuj do pliku.",
+        "desc": "Eksportuj wszystkie metadane z tabel meta do meta katalogu."
+      },
+      "import": {
+        "title": "Import",
+        "desc": "Importuj wszystkie metadane z meta katalogu do tabel meta."
+      },
+      "export_to_zip": {
+        "title": "Eksportuj Zip.",
+        "desc": "Eksportuj projekt Meta do pliku zip i pobrać."
+      },
+      "import_zip": {
+        "title": "Importuj Zip.",
+        "desc": "Importuj projekt Meta Meta Zip i uruchom ponownie."
+      },
+      "reset": {
+        "title": "Resetowanie",
+        "desc": "Wyczyść wszystkie metadane z stołów meta."
+      }
+    }
+  }
+}

@@ -319,6 +319,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/AllanSiqueira"><img src="https://avatars.githubusercontent.com/u/14025084?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Allan Siqueira</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=AllanSiqueira" title="Code">💻</a></td>
     <td align="center"><a href="https://creatify.my.id/"><img src="https://avatars.githubusercontent.com/u/54095238?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Fatih</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ahmadfatihin" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/roman-rezinkin"><img src="https://avatars.githubusercontent.com/u/17882264?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Roman Rezinkin</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=roman-rezinkin" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/fragalcer"><img src="https://avatars.githubusercontent.com/u/31025299?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Francisco Gallardo</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=fragalcer" title="Code">💻</a></td>
   </tr>
 </table>
 

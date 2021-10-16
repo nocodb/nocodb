@@ -128,6 +128,7 @@
             :has-many="hasMany"
             :nodes="{dbAlias:''}"
             :sql-ui="sqlUi"
+            :columns-width="columnsWidth"
           />
         </div>
 
@@ -197,6 +198,7 @@ export default {
     relationPrimaryValue: [String, Number]
   },
   data: () => ({
+    columnsWidth: {},
     metas: {},
     fieldsOrder: [],
     password: null,
@@ -246,7 +248,7 @@ export default {
     },
     filteredData: [],
     showFields: {},
-    fieldList: [],
+    // fieldList: [],
 
     cellHeights: [{
       size: 'small',
@@ -488,6 +490,9 @@ export default {
           view_id: this.$route.params.id,
           password: this.password
         }])
+
+        this.columnsWidth = qp.columnsWidth || {}
+
         this.client = client
         this.meta = meta
         this.query_params = JSON.parse(qp)
@@ -496,7 +501,7 @@ export default {
 
         this.showFields = this.query_params.showFields || {}
 
-        this.fieldList = Object.keys(this.showFields)
+        // this.fieldList = Object.keys(this.showFields)
 
         let fields = this.query_params.fieldsOrder || []
         if (!fields.length) { fields = Object.keys(this.showFields) }
@@ -547,7 +552,7 @@ export default {
       this.loadingData = true
       try {
         // eslint-disable-next-line camelcase
-        const { data: list, count, meta, model_name, client, queryParams } = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        const { data: list, count, model_name, client } = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           query: this.queryParams
         }, 'getSharedViewData', {
           view_id: this.$route.params.id,

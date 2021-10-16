@@ -41,7 +41,7 @@
       mdi-card-text-outline
     </v-icon>
 
-    <span class="name" style="white-space: pre-wrap" :title="value">{{ value }}</span>
+    <span class="name" style="white-space: nowrap" :title="value">{{ value }}</span>
 
     <span v-if="(column.rqd && !column.default) || required" class="error--text text--lighten-1">&nbsp;*</span>
 

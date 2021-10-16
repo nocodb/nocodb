@@ -37,7 +37,7 @@
           </v-icon>
         </template>
         <span v-on="on">
-          <span class="name  flex-grow-1" style="white-space: pre-wrap" :title="column._cn" v-html="alias" />
+          <span class="name  flex-grow-1" style="white-space: nowrap" :title="column._cn" v-html="alias" />
           <span v-if="column.rqd || required" class="error--text text--lighten-1">&nbsp;*</span>
         </span>
       </template>

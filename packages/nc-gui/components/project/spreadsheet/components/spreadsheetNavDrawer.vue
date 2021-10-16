@@ -770,7 +770,8 @@ export default {
             showFields: this.showFields,
             fieldsOrder: this.fieldsOrder,
             extraViewParams: this.extraViewParams,
-            selectedViewId: this.selectedViewId
+            selectedViewId: this.selectedViewId,
+            columnsWidth: this.columnsWidth
           },
           view_name: this.selectedView.title,
           type: this.selectedView.type,

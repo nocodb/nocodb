@@ -163,6 +163,45 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
       const fields = meta.columns.map(c => c._cn).join(',');
 
+      const nestedParams: any = {
+        hm: [],
+        mm: [],
+        bt: []
+      };
+
+      for (const v of meta.v) {
+        if (!queryParams?.showFields?.[v._cn]) continue;
+        if (v.bt || v.lk?.type === 'bt') {
+          const tn = v.bt?.rtn || v.lk?.rtn;
+          if (!nestedParams.bt.includes(tn)) nestedParams.bt.push(tn);
+          if (v.lk) {
+            const key = `bf${nestedParams.bt.indexOf(tn)}`;
+            nestedParams[key] =
+              (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
+          }
+        } else if (v.hm || v.lk?.type === 'hm') {
+          const tn = v.hm?.tn || v.lk?.tn;
+          if (!nestedParams.hm.includes(tn)) nestedParams.hm.push(tn);
+          if (v.lk) {
+            const key = `hf${nestedParams.hm.indexOf(tn)}`;
+            nestedParams[key] =
+              (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
+          }
+        } else if (v.mm || v.lk?.type === 'mm') {
+          const tn = v.mm?.rtn || v.lk?.rtn;
+          if (!nestedParams.mm.includes(tn)) nestedParams.mm.push(tn);
+          if (v.lk) {
+            const key = `mf${nestedParams.mm.indexOf(tn)}`;
+            nestedParams[key] =
+              (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
+          }
+        }
+      }
+
+      nestedParams.mm = nestedParams.mm.join(',');
+      nestedParams.hm = nestedParams.hm.join(',');
+      nestedParams.bt = nestedParams.bt.join(',');
+
       return {
         model_name: viewMeta.model_name,
         // meta,
@@ -170,7 +209,8 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         data: await model.nestedList({
           ...req.query,
           where,
-          fields
+          fields,
+          ...nestedParams
         }),
         ...(await model.countByPk({
           ...req.query,
@@ -180,6 +220,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         client: apiBuilder?.client
       };
     } catch (e) {
+      console.log(e);
       throw e;
     }
   }

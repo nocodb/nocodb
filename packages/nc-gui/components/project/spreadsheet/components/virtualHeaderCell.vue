@@ -57,7 +57,7 @@
         </v-icon>
       </template>
       <v-list dense>
-        <v-list-item v-if="!column.lk" dense @click="editColumnMenu = true">
+        <v-list-item dense @click="editColumnMenu = true">
           <x-icon small class="mr-1 nc-column-edit" color="primary">
             mdi-pencil
           </x-icon>
@@ -141,7 +141,8 @@ export default {
   }),
   computed: {
     alias() {
-      return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column._cn
+      // return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column._cn
+      return this.column._cn
     },
     type() {
       if (this.column.bt) {

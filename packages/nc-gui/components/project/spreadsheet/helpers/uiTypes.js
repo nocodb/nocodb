@@ -5,15 +5,18 @@ const uiTypes = [
   },
   {
     name: 'LinkToAnotherRecord',
-    icon: 'mdi-link-variant'
+    icon: 'mdi-link-variant',
+    virtual: 1
   },
   {
     name: 'ForeignKey',
-    icon: 'mdi-link-variant'
+    icon: 'mdi-link-variant',
+    virtual: 1
   },
   {
     name: 'Lookup',
-    icon: 'mdi-table-column-plus-before'
+    icon: 'mdi-table-column-plus-before',
+    virtual: 1
   },
   {
     name: 'SingleLineText',
@@ -93,11 +96,13 @@ const uiTypes = [
   },
   {
     name: 'Formula',
-    icon: 'mdi-math-integral'
+    icon: 'mdi-math-integral',
+    virtual: 1
   },
   {
     name: 'Rollup',
-    icon: 'mdi-movie-roll'
+    icon: 'mdi-movie-roll',
+    virtual: 1
   },
   {
     name: 'Count',

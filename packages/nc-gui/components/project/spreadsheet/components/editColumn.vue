@@ -20,7 +20,6 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-if="!isLookup"
               ref="column"
               v-model="newColumn.cn"
               hide-details="auto"
@@ -158,6 +157,7 @@
                   >
                     <relation-options
                       ref="relation"
+                      :alias="alias"
                       :column="newColumn"
                       :nodes="nodes"
                       :is-m-s-s-q-l="isMSSQL"
@@ -225,7 +225,6 @@
                                 <template #activator="{on}">
                                   <div v-on="on">
                                     <v-checkbox
-
                                       v-model="newColumn.ai"
                                       :disabled="sqlUi.colPropUNDisabled(newColumn) || !sqlUi.columnEditable(newColumn)"
                                       class="mr-2 mt-0"
@@ -398,10 +397,10 @@
 </template>
 
 <script>
+import { uiTypes } from '../helpers/uiTypes'
 import RollupOptions from './editColumn/rollupOptions'
 import FormulaOptions from '@/components/project/spreadsheet/components/editColumn/formulaOptions'
 import LookupOptions from '@/components/project/spreadsheet/components/editColumn/lookupOptions'
-import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 import CustomSelectOptions from '@/components/project/spreadsheet/components/editColumn/customSelectOptions'
 import RelationOptions from '@/components/project/spreadsheet/components/editColumn/relationOptions'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
@@ -431,10 +430,12 @@ export default {
   data: () => ({
     valid: false,
     relationDeleteDlg: false,
-    newColumn: {},
-    uiTypes
+    newColumn: {}
   }),
   computed: {
+    uiTypes() {
+      return uiTypes.filter(t => !this.editColumn || !t.virtual)
+    },
     isEditDisabled() {
       return this.editColumn && this.sqlUi === SqliteUi
     },

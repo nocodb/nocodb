@@ -211,7 +211,8 @@ export default {
           ...this.relation,
           type: this.isSQLite || this.relation.type === 'virtual' ? 'virtual' : 'real',
           parentTable: this.meta.tn,
-          updateRelation: !!this.column.rtn
+          updateRelation: !!this.column.rtn,
+          alias: this.alias
         }
       ])
       // } catch (e) {
@@ -274,7 +275,8 @@ export default {
           parentTable: this.meta.tn,
           parentColumn: parentPK.cn,
           updateRelation: !!this.column.rtn,
-          type: 'real'
+          type: 'real',
+          alias: this.alias
         }
       ])
       // } catch (e) {

@@ -95,11 +95,11 @@ export default {
       {
         const _ref = {}
         columns.forEach((c) => {
-          if (c.virtual && c.lk) {
-            c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-          } else {
-            c.alias = c._cn
-          }
+          // if (c.virtual && c.lk) {
+          //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+          // } else {
+          c.alias = c._cn
+          // }
           if (c.alias in _ref) {
             c.alias += _ref[c.alias]++
           } else {
@@ -133,11 +133,11 @@ export default {
       {
         const _ref = {}
         columns.forEach((c) => {
-          if (c.virtual && c.lk) {
-            c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-          } else {
-            c.alias = c._cn
-          }
+          // if (c.virtual && c.lk) {
+          //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+          // } else {
+          c.alias = c._cn
+          // }
           if (c.alias in _ref) {
             c.alias += _ref[c.alias]++
           } else {

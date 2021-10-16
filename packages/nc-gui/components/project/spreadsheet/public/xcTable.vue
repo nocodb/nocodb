@@ -525,11 +525,11 @@ export default {
               c.prop = `${c.hm.tn}List`
             }
 
-            if (c.virtual && c.lk) {
-              c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-            } else {
-              c.alias = c._cn
-            }
+            // if (c.virtual && c.lk) {
+            //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+            // } else {
+            c.alias = c._cn
+            // }
             if (c.alias in _ref) {
               c.alias += _ref[c.alias]++
             } else {

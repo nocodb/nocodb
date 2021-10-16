@@ -92,7 +92,7 @@
 <script>
 export default {
   name: 'RelationOptions',
-  props: ['nodes', 'column', 'isSQLite', 'isMSSQL'],
+  props: ['nodes', 'column', 'isSQLite', 'isMSSQL', 'alias'],
   data: () => ({
     refTables: [],
     refColumns: [],
@@ -185,7 +185,7 @@ export default {
           dbAlias: this.nodes.dbAlias
         },
         this.relation.type === 'real' && !this.isSQLite ? 'relationCreate' : 'xcVirtualRelationCreate',
-        this.relation
+        { alias: this.alias, ...this.relation }
       ])
       // } catch (e) {
       //   throw e

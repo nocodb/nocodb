@@ -33,7 +33,7 @@ jobs:
       - name: Pushes generated output
         if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         # uses: dmnemec/copy_file_to_another_repo_action@main
-        uses: dmnemec/copy_file_to_another_repo_action@3fe42250d47e0764da9de9939b151b09a26e5857        
+        uses: dmnemec/copy_file_to_another_repo_action@3fe42250d47e0764da9de9939b151b09a26e5857
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:

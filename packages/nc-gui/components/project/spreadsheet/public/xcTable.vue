@@ -72,7 +72,7 @@
         Reload
       </v-btn>
 
-      <fields-menu v-model="showFields" :field-list="fieldList" />
+      <!--      <fields-menu v-model="showFields" :field-list="fieldList" />-->
 
       <sort-list-menu v-model="sortList" :field-list="fieldList" />
 

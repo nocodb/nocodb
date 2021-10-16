@@ -116,9 +116,9 @@ Tablero de acceso de acceso usando : [http://localhost:8080/dashboard](http://lo
 # Características
 
 ### Interfaz de hoja de cálculo rica
-- ⚡ Buscar, ordenar, filtrar, ocultar columnas con la facilidad Uber
+- ⚡ Buscar, ordenar, filtrar, ocultar columnas con la facilidad de Uber
 - ⚡ Crear vistas: Grid, Galería, Kanban, Gantt, Forma
-- ⚡ Compartir Vistas: Public & Contraseña Protected
+- ⚡ Compartir Vistas: Publicas & Protegidas por contraseña
 - ⚡ Vistas personales y cerradas
 - ⚡ Sube imágenes en celdas (funciona con S3, Minio, GCP, Azure, DigitalCean, Linode, OVH, BackBlaze) !!
 - ⚡ Roles: Propietario, Creador, Editor, Comentarista, Visor, Comentarista, Roles personalizados.
@@ -177,14 +177,14 @@ docker-compose up
 ```
 
 
-## Environment variables 
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
+## Variables de entorno
+| Variable                | Obligatorio | Comentarios                                                                         | If absent                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
+| NC_DB                   | Si       | Ver nuestras URLs de bases de datos                                                            | A local SQLite will be created in root folder  |
 | DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
 | DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
+| NC_PUBLIC_URL           | Si       | Used for sending Email invitations                   | Best guess from http request params        |
+| NC_AUTH_JWT_SECRET      | Si       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
 | NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |
@@ -213,7 +213,7 @@ npm run dev
 Changes made to code automatically restart.
 
 
-## Running Cypress tests locally
+## Correr los tests de Cypress localmente
 
 ```shell
 # install dependencies(cypress)
@@ -232,12 +232,12 @@ npm run cypress:run
 npm run cypress:open
 ```
 
-# Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md 
+# Contribuciones
+- Por favor vea ./contribute/HowToApplyLicense.md 
 - Ignore adding headers for .json or .md or .yml   
 
 # 🎯 Por qué estamos construyendo esto?
-La mayoría de las empresas de Internet se equipan con una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por mil millones de humanos colaborativamente todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos que son herramientas más poderosas cuando se trata de computar. Los intentos de resolver esto con las ofrendas de SaaS han significado horribles controles de acceso, lockin de proveedores, lockin de datos, cambios abruptos de precios y, lo que es más importante, un techo de vidrio sobre lo que es posible en el futuro."
+La mayoría de las empresas de Internet emplean una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por mil millones de personas colaborativamente todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos, ya que son herramientas computacionalmente más poderosas. Los intentos de resolver esto con las ofrendas de SaaS han significado horribles controles de acceso, lockin de proveedores, lockin de datos, cambios abruptos de precios y, lo que es más importante, un techo de vidrio sobre lo que es posible en el futuro."
 
 # ❤ Nuestra misión :
-Nuestra misión es proporcionar la interfaz de no-código más potente para las bases de datos que sea de origen abierto a cada negocio de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también brindará a mil millones de personas que tendrán habilidades radicales de retención y construcción en Internet."
+Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también brindará a mil millones de personas que tendrán habilidades radicales de retención y construcción en Internet."

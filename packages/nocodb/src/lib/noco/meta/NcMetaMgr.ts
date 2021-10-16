@@ -3716,6 +3716,18 @@ export default class NcMetaMgr {
     } catch (e) {
       console.log(e);
     }
+    viewMeta.query_params = JSON.parse(viewMeta.query_params);
+
+    viewMeta.meta = {
+      ...viewMeta.meta,
+      columns: viewMeta.meta.columns.filter(
+        c => viewMeta.query_params?.showFields?.[c._cn]
+      ),
+
+      v: viewMeta.meta.v?.filter(
+        c => viewMeta.query_params?.showFields?.[c._cn]
+      )
+    };
 
     return viewMeta;
   }

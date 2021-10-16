@@ -17,7 +17,7 @@
         <span v-if="!isLocked && value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal">more...</span>
       </div>
       <div
-        v-if="!active && !isLocked"
+        v-if="!isLocked"
         class="actions align-center justify-center px-1 flex-shrink-1"
         :class="{'d-none': !active, 'd-flex':active }"
       >

@@ -161,12 +161,12 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         where += where ? `~and(${queryParams.where})` : queryParams.where;
       }
 
-      const fields = queryParams?.fields || '*';
+      const fields = meta.columns.map(c => c._cn).join(',');
 
       return {
         model_name: viewMeta.model_name,
-        meta,
-        queryParams,
+        // meta,
+        // queryParams,
         data: await model.nestedList({
           ...req.query,
           where,

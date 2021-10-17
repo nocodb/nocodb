@@ -459,6 +459,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "lielfr",
+      "name": "Liel Fridman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/360928?v=4",
+      "profile": "https://github.com/lielfr",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

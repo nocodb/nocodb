@@ -60,6 +60,7 @@ export default {
       uk: 'Українська',
       hr: 'Hrvatski',
       th: 'ไทย',
+      sl: 'Slovenščina',
       pt_BR: 'Português (Brasil)'
     }
   }),

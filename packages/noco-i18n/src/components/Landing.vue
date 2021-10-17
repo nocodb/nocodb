@@ -28,7 +28,7 @@
             <option value="fr">Français</option>
             <option value="de">Deutsch</option>
             <option value="es">Española</option>
-            <option value="pt">Portuguese</option>
+            <option value="pt">Português</option>
             <option value="it_IT">Italiano</option>
             <option value="nl">Nederlandse</option>
             <option value="ja">日本語</option>
@@ -47,7 +47,8 @@
             <option value="no">Українська</option>
             <option value="th">Hrvatski</option>
             <option value="uk">ไทย</option>
-            <option value="pl">Polish</option>
+            <option value="pl">Polskie</option>
+            <option value="sl">Slovenščina</option>
 
           </select>
         </div>

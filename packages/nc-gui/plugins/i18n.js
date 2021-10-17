@@ -40,6 +40,7 @@ export default ({ app, store }) => {
       uk: require('~/lang/uk.json'),
       hr: require('~/lang/hr.json'),
       th: require('~/lang/th.json'),
+      sl: require('~/lang/sl.json'),
       pt_BR: require('~/lang/pt_BR.json')
     }
   })

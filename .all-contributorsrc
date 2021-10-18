@@ -486,6 +486,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dahawk",
+      "name": "Christof Horschitz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10920640?v=4",
+      "profile": "https://nimbusec.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

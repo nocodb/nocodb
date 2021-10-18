@@ -1,4 +1,4 @@
-// For single file tests-
+// // For single file tests-
 
 // let t0 = require('./explicitLogin')
 // t0.genTest('rest', false)
@@ -19,6 +19,7 @@ let t4a = require('../common/4a_table_view_grid_gallery_form')
 let t4c = require('../common/4c_form_view_detailed')
 let t4d = require('../common/4d_table_view_grid_locked')
 let t4e = require('../common/4e_form_view_share')
+let t4f = require('../common/4f_grid_view_share')
 let t5a = require('../common/5a_user_role')
 let t5b = require('../common/5b_preview_role')
 let t6a = require('../common/6a_audit')
@@ -42,6 +43,7 @@ const nocoTestSuite = (type, xcdb) => {
     t4c.genTest(type, xcdb)
     t4d.genTest(type, xcdb)
     t4e.genTest(type, xcdb)
+    t4f.genTest(type, xcdb)
 
     t5a.genTest(type, 'owner')
     t5a.genTest(type, 'creator')

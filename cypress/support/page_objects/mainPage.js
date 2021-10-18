@@ -76,15 +76,15 @@ export class _mainPage {
             cy.get('button:contains("SIGN UP")').click()
 
             cy.url({ timeout: 6000 }).should('contain', '#/project')
-            cy.wait(1000)            
+            cy.wait(1000)
         })
     }
 
     addExistingUserToProject = (emailId, role) => {
 
         cy.get('.v-list-item:contains("Team & Auth")').click()
-        cy.get(`tr:contains(${emailId})`).find('.mdi-plus', {timeout: 2000}).click()
-        cy.get(`tr:contains(${emailId})`).find('.mdi-pencil-outline', {timeout: 2000}).click()
+        cy.get(`tr:contains(${emailId})`).find('.mdi-plus', { timeout: 2000 }).click()
+        cy.get(`tr:contains(${emailId})`).find('.mdi-pencil-outline', { timeout: 2000 }).click()
 
         cy.get('label:contains(Select User roles)').click()
 
@@ -94,8 +94,8 @@ export class _mainPage {
         cy.getActiveMenu().contains(role).click()
         cy.getActiveMenu().contains('editor').click()
         cy.get('.mdi-menu-down').click()
-        cy.get('.nc-invite-or-save-btn').click()  
-        cy.wait(1000)       
+        cy.get('.nc-invite-or-save-btn').click()
+        cy.wait(1000)
     }
 
     getCell = (columnHeader, cellNumber) => {
@@ -103,9 +103,9 @@ export class _mainPage {
     }
 
     getPagination = (pageNumber) => {
-        if(pageNumber == '<')
+        if (pageNumber == '<')
             return cy.get('.nc-pagination .v-pagination > li:first-child')
-        if(pageNumber == '>')
+        if (pageNumber == '>')
             return cy.get('.nc-pagination .v-pagination > li:last-child')
             
         return cy.get(`.nc-pagination .v-pagination > li:contains(${pageNumber}) button`)
@@ -116,9 +116,9 @@ export class _mainPage {
     }
 
     addColumn = (colName) => {
-      cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
-      cy.get('.nc-column-name-input input', {timeout: 3000}).clear().type(colName)
-      cy.get('.nc-col-create-or-edit-card').contains('Save').click()        
+        cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({ force: true });
+        cy.get('.nc-column-name-input input', { timeout: 3000 }).clear().type(colName)
+        cy.get('.nc-col-create-or-edit-card').contains('Save').click()
     }
 
     getAuthToken = () => {
@@ -137,7 +137,7 @@ export class _mainPage {
         cy.getActiveModal().find('[placeholder="eg: smtp.example.com"]').click().type(host)
         cy.getActiveModal().find('[placeholder="Port"]').click().type(port)
         cy.getActiveModal().find('[placeholder="Secure"]').click().type(secure)
-        cy.getActiveModal().find('button').contains('Save').click()        
+        cy.getActiveModal().find('button').contains('Save').click()
     }
 
     resetSMTP = () => {
@@ -147,7 +147,44 @@ export class _mainPage {
             .find('button')
             .contains(" Reset ")
             .click({ force: true })
-        cy.getActiveModal().find('button').contains('Submit').click()    
+        cy.getActiveModal().find('button').contains('Submit').click()
+    }
+
+    hideUnhideField = (field) => {
+        cy.get('.nc-fields-menu-btn').click()
+        cy.get(`.menuable__content__active .v-list-item label:contains(${field})`).click()
+        cy.get('.nc-fields-menu-btn').click()
+    }
+
+    sortField = (field, criteria) => {
+        cy.get('.nc-sort-menu-btn').click()
+        cy.contains('Add Sort Option').click();
+        cy.get('.nc-sort-field-select div').first().click()
+        cy.get(`.menuable__content__active .v-list-item:contains(${field})`).click()
+        cy.get('.nc-sort-dir-select div').first().click()
+        cy.get(`.menuable__content__active .v-list-item:contains(${criteria})`).click()    
+    }
+
+    clearSort = () => {
+        cy.get('.nc-sort-item-remove-btn').click()
+    }
+
+    filterField = (field, operation, value) => {
+        cy.get('.nc-filter-menu-btn').click()
+        cy.contains('Add Filter').click();
+
+        cy.get('.nc-filter-field-select').last().click();
+        cy.getActiveMenu().find(`.v-list-item:contains(${field})`).click()
+        cy.get('.nc-filter-operation-select').last().click();
+        cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click()
+        cy.get('.nc-filter-value-select input:text').last().type(`${value}`);
+        cy.get('.nc-filter-menu-btn').click()
+    }
+
+    filterReset = () => {
+        cy.get('.nc-filter-menu-btn').click()
+        cy.get('.nc-filter-item-remove-btn').click()
+        cy.get('.nc-filter-menu-btn').click()          
     }
 }
 

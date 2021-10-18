@@ -7,7 +7,7 @@
             :active="active"
             :item="value"
             :value="cellValue"
-            :readonly="isLocked"
+            :readonly="isLocked || (isPublic && !isForm)"
             @edit="editParent"
             @unlink="unlink"
           />

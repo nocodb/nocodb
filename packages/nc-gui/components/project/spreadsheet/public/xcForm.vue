@@ -243,6 +243,7 @@ export default {
       active: null,
       loading: false,
       showPasswordModal: false,
+      password: '',
       submitting: false,
       submitted: false,
       client: null,

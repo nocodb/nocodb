@@ -72,7 +72,9 @@
       :is-new="isNew"
       :size="10"
       :meta="childMeta"
-      :parent-meta="meta"
+      :parent-meta="meta
+      :password="
+      password"
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
       :api="childApi"

@@ -151,6 +151,7 @@
           >
             <virtual-cell
               v-if="columnObj.virtual"
+              :password="password"
               :is-public="isPublicView"
               :metas="metas"
               :is-locked="isLocked "
@@ -273,7 +274,8 @@ export default {
     isVirtual: Boolean,
     isLocked: Boolean,
     columnsWidth: { type: Object },
-    isPkAvail: Boolean
+    isPkAvail: Boolean,
+    password: String
   },
   data: () => ({
     resizingCol: null,

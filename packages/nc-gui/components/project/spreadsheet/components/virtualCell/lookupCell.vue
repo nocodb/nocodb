@@ -36,6 +36,7 @@
       :parent-meta="meta"
       :primary-col="lookUpColumnAlias"
       :api="lookupApi"
+      :password="password"
       :read-only="true"
       :query-params="queryParams"
     />

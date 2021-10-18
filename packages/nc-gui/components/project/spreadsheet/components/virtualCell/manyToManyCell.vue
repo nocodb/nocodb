@@ -75,6 +75,7 @@
       :row-id="row && row[parentPrimaryKey]"
       :column="column"
       type="mm"
+      :password="password"
       @new-record="showNewRecordModal"
       @edit="editChild"
       @unlink="unlinkChild"

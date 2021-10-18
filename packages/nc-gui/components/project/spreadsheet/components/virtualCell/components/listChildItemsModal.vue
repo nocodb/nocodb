@@ -12,6 +12,7 @@
       :is-new="isNew"
       :size="10"
       :meta="meta"
+      :password="password"
       :parent-meta="parentMeta"
       :primary-col="primaryCol"
       :primary-key="primaryKey"
@@ -37,6 +38,7 @@ export default {
     readOnly: Boolean,
     localState: Array,
     isNew: Boolean,
+    password: String,
     value: Boolean,
     title: {
       type: String,

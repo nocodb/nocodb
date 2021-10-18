@@ -147,7 +147,8 @@ export default {
     isPublic: Boolean,
     rowId: [String, Number],
     column: Object,
-    type: String
+    type: String,
+    password: String
   },
   data: () => ({
     data: null,

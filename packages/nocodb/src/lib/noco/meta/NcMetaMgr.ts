@@ -3391,7 +3391,6 @@ export default class NcMetaMgr {
 
   protected async getSharedViewData(req, args: any): Promise<any> {
     try {
-      console.log(args);
       const viewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
@@ -3402,6 +3401,14 @@ export default class NcMetaMgr {
       // if (viewMeta && viewMeta.password && viewMeta.password !== args.args.password) {
       //   throw new Error('Invalid password')
       // }
+
+      if (
+        viewMeta &&
+        viewMeta.password &&
+        viewMeta.password !== args.args.password
+      ) {
+        throw new Error(this.INVALID_PASSWORD_ERROR);
+      }
 
       const apiBuilder = this.app?.projectBuilders
         ?.find(pb => pb.id === viewMeta.project_id)

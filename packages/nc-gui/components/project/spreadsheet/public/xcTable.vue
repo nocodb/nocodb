@@ -5,6 +5,7 @@
     </div>
 
     <v-toolbar v-if="meta" height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
+      <!--
       <div class="d-flex xc-border align-center search-box">
         <v-menu bottom offset-y>
           <template #activator="{on}">
@@ -58,10 +59,11 @@
 
       <span
         v-if="relationType && false"
-        class="caption grey--text"
+        class="caption grey&#45;&#45;text"
       >{{ refTable }}({{
         relationPrimaryValue
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
+-->
 
       <v-spacer />
 
@@ -74,11 +76,11 @@
 
       <!--      <fields-menu v-model="showFields" :field-list="fieldList" />-->
 
-      <sort-list-menu v-model="sortList" :field-list="fieldList" />
+      <sort-list-menu v-model="sortList" :field-list="realFieldList" />
 
-      <column-filter-menu v-model="filters" :field-list="fieldList" />
+      <column-filter-menu v-model="filters" :field-list="realFieldList" />
 
-      <v-menu>
+      <!--      <v-menu>
         <template #activator="{ on, attrs }">
           <v-icon
             v-bind="attrs"
@@ -98,12 +100,12 @@
                 {{ h.icon }}
               </v-icon>
             </v-list-item-icon>
-            <v-list-item-title :class="{'primary--text' : cellHeight === h.size}" style="text-transform: capitalize">
+            <v-list-item-title :class="{'primary&#45;&#45;text' : cellHeight === h.size}" style="text-transform: capitalize">
               {{ h.size }}
             </v-list-item-title>
           </v-list-item>
         </v-list>
-      </v-menu>
+      </v-menu>-->
     </v-toolbar>
 
     <div
@@ -129,6 +131,7 @@
             :nodes="{dbAlias:''}"
             :sql-ui="sqlUi"
             :columns-width="columnsWidth"
+            :password="password"
           />
         </div>
 

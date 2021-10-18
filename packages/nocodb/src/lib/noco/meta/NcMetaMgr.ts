@@ -3728,7 +3728,7 @@ export default class NcMetaMgr {
     viewMeta.meta = {
       ...viewMeta.meta,
       columns: viewMeta.meta.columns.filter(
-        c => viewMeta.query_params?.showFields?.[c._cn]
+        c => viewMeta.query_params?.showFields?.[c._cn] || c.pk
       ),
 
       v: viewMeta.meta.v?.filter(

@@ -326,6 +326,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/lielfr"><img src="https://avatars.githubusercontent.com/u/360928?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Liel Fridman</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=lielfr" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/rubjo"><img src="https://avatars.githubusercontent.com/u/42270947?v=4?s=100" width="100px;" alt=""/><br /><sub><b>rubjo</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=rubjo" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/kinga-marszalkowska"><img src="https://avatars.githubusercontent.com/u/64398325?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kinga Marszałkowska</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=kinga-marszalkowska" title="Code">💻</a></td>
+    <td align="center"><a href="https://nimbusec.com"><img src="https://avatars.githubusercontent.com/u/10920640?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christof Horschitz</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dahawk" title="Code">💻</a></td>
   </tr>
 </table>
 

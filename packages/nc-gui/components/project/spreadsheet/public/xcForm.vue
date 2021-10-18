@@ -299,7 +299,7 @@ export default {
         }])
         this.client = client
         this.meta = meta
-        this.query_params = JSON.parse(qp)
+        this.query_params = qp
         this.dbAlias = dbAlias
         this.metas = relatedTableMetas
 

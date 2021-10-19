@@ -805,7 +805,7 @@ export default {
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
     copyShareUrlToClipboard() {
-      this.clipboard(`${this.dashboardUrl}#/nc/${this.shareLink.view_type || 'view'}/${this.shareLink.view_id}`)
+      this.clipboard(`${this.dashboardUrl}#/nc/${this.shareLink.view_type === 'form' ? 'form' : 'view'}/${this.shareLink.view_id}`)
       this.clipboardSuccessHandler()
     }
   }

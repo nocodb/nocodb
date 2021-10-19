@@ -186,6 +186,28 @@ export class _mainPage {
         cy.get('.nc-filter-item-remove-btn').click()
         cy.get('.nc-filter-menu-btn').click()          
     }
+
+    // delete created views
+    //
+    deleteCreatedViews = () => {
+        cy.get('.v-navigation-drawer__content > .container')
+            .find('.v-list > .v-list-item')
+            .contains('Share View')
+            .parent().find('button.mdi-dots-vertical').click()
+
+        cy.getActiveMenu().find('.v-list-item').contains('Views List').click()
+
+        cy.get(1000)
+
+        cy.get('th:contains("View Link")').parent().parent()
+            .next().find('tr').each((tableRow) => {
+                cy.wrap(tableRow).find('button').last().click()
+                cy.wait(1000)
+            })
+            .then(() => {
+            cy.get('.v-overlay__content > .d-flex > .v-icon').click()
+        })
+    }    
 }
 
 

@@ -173,8 +173,14 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       if (queryParams.where) {
         where += where ? `~and(${queryParams.where})` : queryParams.where;
       }
-      if (queryParams.sort) {
-        sort.push(...queryParams.sort.split(','));
+      if (queryParams.sortList) {
+        sort.push(
+          ...(queryParams?.sortList
+            ?.map(sort => {
+              return sort.field ? `${sort.order}${sort.field}` : '';
+            })
+            .filter(Boolean) || [])
+        );
       }
 
       if (req.query.sort) {

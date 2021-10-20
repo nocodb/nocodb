@@ -564,7 +564,7 @@ export default {
           })
         }
       } catch (e) {
-        if (e.message === 'Not found') {
+        if (e.message === 'Not found' || e.message === 'Meta not found') {
           this.notFound = true
         } else if (e.message === 'Invalid password') {
           this.showPasswordModal = true

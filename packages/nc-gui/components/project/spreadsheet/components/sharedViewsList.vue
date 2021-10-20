@@ -8,6 +8,9 @@
               View Link
             </th>
             <th class="caption">
+              View name
+            </th>
+            <th class="caption">
               Password
             </th>
             <th class="caption">
@@ -21,6 +24,9 @@
               <nuxt-link :to="`/nc/${link.view_type === 'form' ? 'form' : 'view'}/${link.view_id}`">
                 {{ `${dashboardUrl}#/nc/${link.view_type === 'form' ? 'form' : 'view'}/${link.view_id}` }}
               </nuxt-link>
+            </td>
+            <td class="caption">
+              {{ link.view_name }}
             </td>
             <td class="caption">
               <template v-if="link.password">
@@ -79,5 +85,7 @@ export default {
 </script>
 
 <style scoped>
-
+th,td{
+  padding:  0 5px;
+}
 </style>

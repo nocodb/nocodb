@@ -3384,36 +3384,56 @@ export default class NcMetaMgr {
         condition: {
           model_name: args.args.model_name
         },
-        fields: ['id', 'view_id', 'password', 'model_name', 'view_type']
+        fields: [
+          'id',
+          'view_id',
+          'password',
+          'model_name',
+          'view_type',
+          'view_name'
+        ]
       }
     );
   }
 
   protected async getSharedViewData(req, args: any): Promise<any> {
     try {
-      const viewMeta = await this.xcMeta
+      const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
           view_id: args.args.view_id
         })
         .first();
 
+      if (!sharedViewMeta) {
+        throw new Error('Meta not found');
+      }
+
+      const viewMeta = await this.xcMeta.metaGet(
+        sharedViewMeta.project_id,
+        sharedViewMeta.db_alias,
+        'nc_models',
+        {
+          title: sharedViewMeta.view_name
+        }
+      );
+
       // if (viewMeta && viewMeta.password && viewMeta.password !== args.args.password) {
       //   throw new Error('Invalid password')
       // }
 
       if (
-        viewMeta &&
-        viewMeta.password &&
-        viewMeta.password !== args.args.password
+        sharedViewMeta &&
+        sharedViewMeta.password &&
+        sharedViewMeta.password !== args.args.password
       ) {
         throw new Error(this.INVALID_PASSWORD_ERROR);
       }
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === viewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
-      const model = apiBuilder?.xcModels?.[viewMeta.model_name];
+        ?.find(pb => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+      const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
 
       if (model) {
         const queryParams = JSON.parse(viewMeta.query_params);
@@ -3430,8 +3450,8 @@ export default class NcMetaMgr {
         const fields = queryParams?.fields || '*';
 
         return {
-          model_name: viewMeta.model_name,
-          meta: apiBuilder?.getMeta(viewMeta.model_name), //JSON.parse(viewMeta.meta),
+          model_name: sharedViewMeta.model_name,
+          meta: apiBuilder?.getMeta(sharedViewMeta.model_name), //JSON.parse(viewMeta.meta),
           data: await model.list({
             ...req.query,
             where,
@@ -3452,21 +3472,34 @@ export default class NcMetaMgr {
 
   protected async sharedViewNestedDataGet(_req, args: any): Promise<any> {
     try {
-      const viewMeta = await this.xcMeta
+      const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
           view_id: args.args.view_id
         })
         .first();
 
+      if (!sharedViewMeta) {
+        throw new Error('Meta not found');
+      }
+
+      const viewMeta = await this.xcMeta.metaGet(
+        sharedViewMeta.project_id,
+        sharedViewMeta.db_alias,
+        'nc_models',
+        {
+          title: sharedViewMeta.view_name
+        }
+      );
+
       if (!viewMeta) {
         throw new Error('Not found');
       }
 
       if (
-        viewMeta &&
-        viewMeta.password &&
-        viewMeta.password !== args.args.password
+        sharedViewMeta &&
+        sharedViewMeta.password &&
+        sharedViewMeta.password !== args.args.password
       ) {
         throw new Error(this.INVALID_PASSWORD_ERROR);
       }
@@ -3477,8 +3510,8 @@ export default class NcMetaMgr {
       // const queryParams = JSON.parse(viewMeta.query_params);
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === viewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
+        ?.find(pb => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
 
       // todo: only allow related table
       // if(tn &&){
@@ -3517,21 +3550,36 @@ export default class NcMetaMgr {
 
   protected async sharedViewNestedChildDataGet(_req, args: any): Promise<any> {
     try {
-      const viewMeta = await this.xcMeta
+      // todo: replace with join query
+
+      const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
           view_id: args.args.view_id
         })
         .first();
 
+      if (!sharedViewMeta) {
+        throw new Error('Meta not found');
+      }
+
+      const viewMeta = await this.xcMeta.metaGet(
+        sharedViewMeta.project_id,
+        sharedViewMeta.db_alias,
+        'nc_models',
+        {
+          title: sharedViewMeta.view_name
+        }
+      );
+
       if (!viewMeta) {
         throw new Error('Not found');
       }
 
       if (
-        viewMeta &&
-        viewMeta.password &&
-        viewMeta.password !== args.args.password
+        sharedViewMeta &&
+        sharedViewMeta.password &&
+        sharedViewMeta.password !== args.args.password
       ) {
         throw new Error(this.INVALID_PASSWORD_ERROR);
       }
@@ -3547,8 +3595,8 @@ export default class NcMetaMgr {
       // const queryParams = JSON.parse(viewMeta.query_params);
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === viewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
+        ?.find(pb => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
 
       const model = apiBuilder.xcModels?.[tn];
       const parentMeta = apiBuilder.getMeta(ptn);
@@ -3617,21 +3665,33 @@ export default class NcMetaMgr {
   }
 
   protected async sharedViewInsert(req, args: any): Promise<any> {
-    const viewMeta = await this.xcMeta
+    const sharedViewMeta = await this.xcMeta
       .knex('nc_shared_views')
       .where({
         view_id: args.args.view_id
       })
       .first();
 
+    if (!sharedViewMeta) {
+      throw new Error('Meta not found');
+    }
+
+    const viewMeta = await this.xcMeta.metaGet(
+      sharedViewMeta.project_id,
+      sharedViewMeta.db_alias,
+      'nc_models',
+      {
+        title: sharedViewMeta.view_name
+      }
+    );
     if (!viewMeta) {
       throw new Error('Not found');
     }
 
     if (
-      viewMeta &&
-      viewMeta.password &&
-      viewMeta.password !== args.args.password
+      sharedViewMeta &&
+      sharedViewMeta.password &&
+      sharedViewMeta.password !== args.args.password
     ) {
       throw new Error(this.INVALID_PASSWORD_ERROR);
     }
@@ -3642,8 +3702,8 @@ export default class NcMetaMgr {
     const fields: string[] = queryParams?.fields.split(',');
 
     const apiBuilder = this.app?.projectBuilders
-      ?.find(pb => pb.id === viewMeta.project_id)
-      ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
+      ?.find(pb => pb.id === sharedViewMeta.project_id)
+      ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
 
     const insertObject = Object.entries(args.args.data).reduce(
       (obj, [key, val]) => {
@@ -3661,7 +3721,7 @@ export default class NcMetaMgr {
       }
     }
 
-    const model = apiBuilder?.xcModels?.[viewMeta.model_name];
+    const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
     if (model) {
       req.query.form = viewMeta.view_name;
       await model.nestedInsert(insertObject, null, req);
@@ -3669,21 +3729,34 @@ export default class NcMetaMgr {
   }
 
   protected async sharedViewGet(_req, args: any): Promise<any> {
-    const viewMeta = await this.xcMeta
+    const sharedViewMeta = await this.xcMeta
       .knex('nc_shared_views')
       .where({
         view_id: args.args.view_id
       })
       .first();
 
+    if (!sharedViewMeta) {
+      throw new Error('Meta not found');
+    }
+
+    const viewMeta = await this.xcMeta.metaGet(
+      sharedViewMeta.project_id,
+      sharedViewMeta.db_alias,
+      'nc_models',
+      {
+        title: sharedViewMeta.view_name
+      }
+    );
+
     if (!viewMeta) {
       throw new Error('Not found');
     }
 
     if (
-      viewMeta &&
-      viewMeta.password &&
-      viewMeta.password !== args.args.password
+      sharedViewMeta &&
+      sharedViewMeta.password &&
+      sharedViewMeta.password !== args.args.password
     ) {
       throw new Error(this.INVALID_PASSWORD_ERROR);
     }
@@ -3691,11 +3764,11 @@ export default class NcMetaMgr {
     // todo : filter out columns of related table
     try {
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === viewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
+        ?.find(pb => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
 
       const tableMeta = (viewMeta.meta = apiBuilder?.getMeta(
-        viewMeta.model_name
+        sharedViewMeta.model_name
       ));
 
       const relatedTableMetas = {};

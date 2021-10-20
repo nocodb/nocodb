@@ -396,6 +396,7 @@ export default {
     } catch (e) {
       console.log(e)
     }
+
     if (this.data.length) {
       // eslint-disable-next-line no-unused-vars
       const options = {
@@ -567,6 +568,8 @@ export default {
           this.notFound = true
         } else if (e.message === 'Invalid password') {
           this.showPasswordModal = true
+        } else {
+          console.log(e)
         }
       }
 

@@ -114,13 +114,25 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
   protected async getSharedViewData(req, args: any): Promise<any> {
     try {
-      console.log(args);
-      const viewMeta = await this.xcMeta
+      const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
           view_id: args.args.view_id
         })
         .first();
+
+      if (!sharedViewMeta) {
+        throw new Error('Meta not found');
+      }
+
+      const viewMeta = await this.xcMeta.metaGet(
+        sharedViewMeta.project_id,
+        sharedViewMeta.db_alias,
+        'nc_models',
+        {
+          title: sharedViewMeta.view_name
+        }
+      );
 
       if (
         viewMeta &&
@@ -131,11 +143,11 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       }
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === viewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === viewMeta.db_alias);
-      const model = apiBuilder?.xcModels?.[viewMeta.model_name];
+        ?.find(pb => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+      const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
 
-      let meta = apiBuilder?.getMeta(viewMeta.model_name);
+      let meta = apiBuilder?.getMeta(sharedViewMeta.model_name);
 
       if (!model) {
         throw new Error('Meta not found');
@@ -211,7 +223,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       nestedParams.bt = nestedParams.bt.join(',');
 
       return {
-        model_name: viewMeta.model_name,
+        model_name: sharedViewMeta.model_name,
         // meta,
         // queryParams,
         data: await model.nestedList({
@@ -244,40 +256,58 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       //   );
       // }
 
-      const insertData = {
-        project_id: args.project_id,
-        db_alias: this.getDbAlias(args),
-        model_name: args.args.model_name,
-        view_name: args.args.view_name,
-        // meta: JSON.stringify(args.args.meta),
-        query_params: JSON.stringify(args.args.query_params),
-        view_id: uuidv4(),
-        password: args.args.password,
-        view_type: args.args.show_as
-      };
+      // get existing shared view data if exist
 
-      await this.xcMeta.metaInsert(
-        args.project_id,
-        this.getDbAlias(args),
-        'nc_shared_views',
-        insertData
-      );
-      const res = await this.xcMeta.metaGet(
+      let sharedView = await this.xcMeta.metaGet(
         this.getProjectId(args),
         this.getDbAlias(args),
         'nc_shared_views',
-        insertData,
+        {
+          model_name: args.args.model_name,
+          view_name: args.args.view_name,
+          view_type: args.args.show_as
+        },
         ['id', 'view_id', 'view_type']
       );
-      if (args.args.show_as === 'form') {
-        res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/form/${res.view_id}`;
-      } else if (args.args.show_as === 'gallery') {
-        res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/gallery/${res.view_id}`;
-      } else {
-        res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${res.view_id}`;
+
+      if (!sharedView) {
+        const insertData = {
+          project_id: args.project_id,
+          db_alias: this.getDbAlias(args),
+          model_name: args.args.model_name,
+          view_name: args.args.view_name,
+          // meta: JSON.stringify(args.args.meta),
+          // query_params: JSON.stringify(args.args.query_params),
+          view_id: uuidv4(),
+          password: args.args.password,
+          view_type: args.args.show_as
+        };
+
+        await this.xcMeta.metaInsert(
+          args.project_id,
+          this.getDbAlias(args),
+          'nc_shared_views',
+          insertData
+        );
+        sharedView = await this.xcMeta.metaGet(
+          this.getProjectId(args),
+          this.getDbAlias(args),
+          'nc_shared_views',
+          insertData,
+          ['id', 'view_id', 'view_type']
+        );
       }
+
+      if (args.args.show_as === 'form') {
+        sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/form/${sharedView.view_id}`;
+      } else if (args.args.show_as === 'gallery') {
+        sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/gallery/${sharedView.view_id}`;
+      } else {
+        sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${sharedView.view_id}`;
+      }
+
       Tele.emit('evt', { evt_type: 'sharedView:generated-link' });
-      return res;
+      return sharedView;
     } catch (e) {
       console.log(e);
     }

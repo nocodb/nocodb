@@ -1,11 +1,22 @@
 <template>
-  <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
-    <div v-if="viewName" class="model-name text-capitalize">
-      <span class="font-weight-bold"> {{ viewName }}</span> <span class="font-weight-regular ml-1" />
-    </div>
+  <v-container
+    class="h-100 j-excel-container "
+    :class="{
+      'pa-0 ma-0': ! notFound
+    }"
+    fluid
+  >
+    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300">
+      Not found
+    </v-alert>
 
-    <v-toolbar v-if="meta" height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
-      <!--
+    <template v-else>
+      <div v-if="viewName" class="model-name text-capitalize">
+        <span class="font-weight-bold"> {{ viewName }}</span> <span class="font-weight-regular ml-1" />
+      </div>
+
+      <v-toolbar v-if="meta" height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
+        <!--
       <div class="d-flex xc-border align-center search-box">
         <v-menu bottom offset-y>
           <template #activator="{on}">
@@ -65,20 +76,20 @@
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
 -->
 
-      <v-spacer />
+        <v-spacer />
 
-      <v-btn outlined small text @click="loadTableData">
-        <v-icon small class="mr-1" color="grey  darken-3">
-          mdi-reload
-        </v-icon>
-        Reload
-      </v-btn>
+        <v-btn outlined small text @click="loadTableData">
+          <v-icon small class="mr-1" color="grey  darken-3">
+            mdi-reload
+          </v-icon>
+          Reload
+        </v-btn>
 
-      <!--      <fields-menu v-model="showFields" :field-list="fieldList" />-->
+        <!--      <fields-menu v-model="showFields" :field-list="fieldList" />-->
 
-      <sort-list-menu v-model="sortList" :field-list="realFieldList" />
+        <sort-list-menu v-model="sortList" :field-list="realFieldList" />
 
-      <column-filter-menu v-model="filters" :field-list="realFieldList" />
+        <column-filter-menu v-model="filters" :field-list="realFieldList" />
 
       <!--      <v-menu>
         <template #activator="{ on, attrs }">
@@ -106,50 +117,50 @@
           </v-list-item>
         </v-list>
       </v-menu>-->
-    </v-toolbar>
+      </v-toolbar>
 
-    <div
-      v-if="meta"
-      :class="`cell-height-${cellHeight}`"
-      style="overflow:auto;transition: width 500ms "
-      class="d-flex"
-    >
-      <div class="flex-grow-1 h-100" style="overflow-y: auto">
-        <div ref="table" style=" overflow: auto;width:100%">
-          <v-skeleton-loader v-if="loadingData" type="table" />
+      <div
+        v-if="meta"
+        :class="`cell-height-${cellHeight}`"
+        style="overflow:auto;transition: width 500ms "
+        class="d-flex"
+      >
+        <div class="flex-grow-1 h-100" style="overflow-y: auto">
+          <div ref="table" style=" overflow: auto;width:100%">
+            <v-skeleton-loader v-if="loadingData" type="table" />
 
-          <xc-grid-view
-            v-else
-            is-public-view
-            :meta="meta"
-            :metas="metas"
-            :data="data"
-            :available-columns="availableColumns"
-            :show-fields="showFields"
-            :belongs-to="belongsTo"
-            :has-many="hasMany"
-            :nodes="{dbAlias:''}"
-            :sql-ui="sqlUi"
-            :columns-width="columnsWidth"
-            :password="password"
+            <xc-grid-view
+              v-else
+              is-public-view
+              :meta="meta"
+              :metas="metas"
+              :data="data"
+              :available-columns="availableColumns"
+              :show-fields="showFields"
+              :belongs-to="belongsTo"
+              :has-many="hasMany"
+              :nodes="{dbAlias:''}"
+              :sql-ui="sqlUi"
+              :columns-width="columnsWidth"
+              :password="password"
+            />
+          </div>
+
+          <v-pagination
+            v-if="data"
+            v-model="page"
+            style="max-width: 100%"
+            :length="Math.ceil(count / size)"
+            :total-visible="8"
+            color="primary lighten-2"
+            @input="loadTableData"
           />
-        </div>
-
-        <v-pagination
-          v-if="data"
-          v-model="page"
-          style="max-width: 100%"
-          :length="Math.ceil(count / size)"
-          :total-visible="8"
-          color="primary lighten-2"
-          @input="loadTableData"
-        />
         <!--      <div v-else class="d-flex justify-center py-4">-->
         <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
         <!--      </div>-->
+        </div>
       </div>
-    </div>
-
+    </template>
     <v-dialog v-model="showPasswordModal" width="400">
       <v-card width="400" class="backgroundColor">
         <v-container fluid>
@@ -201,6 +212,7 @@ export default {
     relationPrimaryValue: [String, Number]
   },
   data: () => ({
+    notFound: false,
     viewName: null,
     viewType: null,
     columnsWidth: {},
@@ -371,7 +383,9 @@ export default {
   async mounted() {
     try {
       await this.loadMetaData()
-      await this.loadTableData()
+      if (!this.showPasswordModal && !this.notFound) {
+        await this.loadTableData()
+      }
       // const {list, count} = await this.api.paginatedList(this.queryParams);
       // this.count = count;
       // this.data = list.map(row => ({

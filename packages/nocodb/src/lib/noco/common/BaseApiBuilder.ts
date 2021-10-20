@@ -324,9 +324,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     for (const tn of [tnc, tnp]) {
       const {
         virtualViews,
-        sharedViews,
-        virtualViewsParamsArr,
-        sharedViewsParamsArr
+        virtualViewsParamsArr
       } = await this.extractSharedAndVirtualViewsParams(tn);
 
       // extract alias of relation virtual column
@@ -336,7 +334,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       )?._cn;
 
       // virtual views param update
-      for (const qp of [...virtualViewsParamsArr, ...sharedViewsParamsArr]) {
+      for (const qp of virtualViewsParamsArr) {
         // @ts-ignore
         const { showFields = {}, fieldsOrder, extraViewParams = {} } = qp;
 
@@ -359,18 +357,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
       }
       await this.updateSharedAndVirtualViewsParams(
         virtualViewsParamsArr,
-        virtualViews,
-        sharedViewsParamsArr,
-        sharedViews
+        virtualViews
       );
     }
   }
 
   private async updateSharedAndVirtualViewsParams(
     virtualViewsParamsArr: any[],
-    virtualViews: any[],
-    sharedViewsParamsArr: any[],
-    sharedViews: any[]
+    virtualViews: any[]
   ) {
     // update virtual views params
     for (let i = 0; i < virtualViewsParamsArr.length; i++) {
@@ -382,19 +376,6 @@ export default abstract class BaseApiBuilder<T extends Noco>
           query_params: JSON.stringify(virtualViewsParamsArr[i])
         },
         virtualViews[i].id
-      );
-    }
-
-    // update shared views params
-    for (let i = 0; i < sharedViewsParamsArr.length; i++) {
-      await this.xcMeta.metaUpdate(
-        this.projectId,
-        this.dbAlias,
-        'nc_shared_views',
-        {
-          query_params: JSON.stringify(sharedViewsParamsArr[i])
-        },
-        sharedViews[i].id
       );
     }
   }
@@ -411,16 +392,6 @@ export default abstract class BaseApiBuilder<T extends Noco>
         }
       }
     );
-    const sharedViews = await this.xcMeta.metaList(
-      this.projectId,
-      this.dbAlias,
-      'nc_shared_views',
-      {
-        condition: {
-          model_name: tn
-        }
-      }
-    );
     const virtualViewsParamsArr = virtualViews.map(v => {
       try {
         return JSON.parse(v.query_params);
@@ -428,18 +399,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       return {};
     });
 
-    // @ts-ignore
-    const sharedViewsParamsArr = sharedViews.map(v => {
-      try {
-        return JSON.parse(v.query_params);
-      } catch (e) {}
-      return {};
-    });
     return {
       virtualViews,
-      sharedViews,
-      virtualViewsParamsArr,
-      sharedViewsParamsArr
+      virtualViewsParamsArr
     };
   }
 
@@ -592,9 +554,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     const {
       virtualViews,
-      sharedViews,
-      virtualViewsParamsArr,
-      sharedViewsParamsArr
+      virtualViewsParamsArr
     } = await this.extractSharedAndVirtualViewsParams(tn);
 
     const ctx = this.generateContextForTable(
@@ -695,11 +655,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           );
 
           // virtual views param update
-          for (const qp of [
-            queryParams,
-            ...virtualViewsParamsArr,
-            ...sharedViewsParamsArr
-          ]) {
+          for (const qp of [queryParams, ...virtualViewsParamsArr]) {
             if (!qp) continue;
             // @ts-ignore
             const {
@@ -860,7 +816,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         aclOper.push(async () => this.deleteColumnNameInACL(tn, column.cno));
 
         // virtual views param update
-        for (const qp of [...virtualViewsParamsArr, ...sharedViewsParamsArr]) {
+        for (const qp of [...virtualViewsParamsArr]) {
           // @ts-ignore
           const {
             filters,
@@ -954,20 +910,6 @@ export default abstract class BaseApiBuilder<T extends Noco>
         if (queryParams?.showFields) {
           queryParams.showFields[column.cno] = true;
         }
-
-        for (const qp of sharedViewsParamsArr) {
-          if (!qp) continue;
-          // @ts-ignore
-          const { showFields = {}, extraViewParams = {} } = qp;
-
-          if (column.rqd) {
-            showFields[column.cn] = true;
-            extraViewParams.formParams = extraViewParams.formParams || {};
-            extraViewParams.formParams.fields =
-              extraViewParams.formParams.fields || {};
-            extraViewParams.formParams.fields[column.cn] = {};
-          }
-        }
       } else {
         oldCol = oldMeta.columns.find(c => c.cn === column.cn);
         newCol = newMeta.columns.find(c => c.cn === column.cn);
@@ -979,9 +921,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     await this.updateSharedAndVirtualViewsParams(
       virtualViewsParamsArr,
-      virtualViews,
-      sharedViewsParamsArr,
-      sharedViews
+      virtualViews
     );
 
     // update relation tables metadata
@@ -1370,9 +1310,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     ]) {
       const {
         virtualViews,
-        sharedViews,
-        virtualViewsParamsArr,
-        sharedViewsParamsArr
+        virtualViewsParamsArr
       } = await this.extractSharedAndVirtualViewsParams(tnp);
 
       const alias = this.getMeta(tnp)?.v?.find(
@@ -1380,7 +1318,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       )?._cn;
 
       // virtual views param update
-      for (const qp of [...virtualViewsParamsArr, ...sharedViewsParamsArr]) {
+      for (const qp of virtualViewsParamsArr) {
         // @ts-ignore
         const { showFields = {}, fieldsOrder, extraViewParams = {} } = qp;
 
@@ -1404,9 +1342,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
       await this.updateSharedAndVirtualViewsParams(
         virtualViewsParamsArr,
-        virtualViews,
-        sharedViewsParamsArr,
-        sharedViews
+        virtualViews
       );
     }
   }
@@ -1444,17 +1380,6 @@ export default abstract class BaseApiBuilder<T extends Noco>
         }
       }
     );
-    const sharedViews = await this.xcMeta.metaList(
-      this.projectId,
-      this.dbAlias,
-      'nc_shared_views',
-      {
-        condition: {
-          model_name: tn
-        }
-      }
-    );
-
     const virtualViewsParamsArr = virtualViews.map(v => {
       try {
         return JSON.parse(v.query_params);
@@ -1462,15 +1387,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       return {};
     });
 
-    // @ts-ignore
-    const sharedViewsParamsArr = sharedViews.map(v => {
-      try {
-        return JSON.parse(v.query_params);
-      } catch (e) {}
-      return {};
-    });
-
-    for (const qp of [...sharedViewsParamsArr, ...virtualViewsParamsArr]) {
+    for (const qp of [...virtualViewsParamsArr]) {
       if (!qp) continue;
       // @ts-ignore
       const { showFields = {}, fieldsOrder, extraViewParams = {} } = qp;
@@ -1497,9 +1414,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     await this.updateSharedAndVirtualViewsParams(
       virtualViewsParamsArr,
-      virtualViews,
-      sharedViewsParamsArr,
-      sharedViews
+      virtualViews
     );
   }
 

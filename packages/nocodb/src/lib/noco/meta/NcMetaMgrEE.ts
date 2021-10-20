@@ -170,8 +170,50 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         where += req.query.where;
       }
 
-      if (queryParams.where) {
-        where += where ? `~and(${queryParams.where})` : queryParams.where;
+      // todo: move  this logic to a common library
+      const privateViewWhere = queryParams.filters?.reduce?.(
+        (condition, filt, i) => {
+          if (!i && !filt.logicOp) {
+            return condition;
+          }
+          if (!(filt.field && filt.op)) {
+            return condition;
+          }
+
+          condition += i ? `~${filt.logicOp}` : '';
+          switch (filt.op) {
+            case 'is equal':
+              return condition + `(${filt.field},eq,${filt.value})`;
+            case 'is not equal':
+              return condition + `~not(${filt.field},eq,${filt.value})`;
+            case 'is like':
+              return condition + `(${filt.field},like,%${filt.value}%)`;
+            case 'is not like':
+              return condition + `~not(${filt.field},like,%${filt.value}%)`;
+            case 'is empty':
+              return condition + `(${filt.field},in,)`;
+            case 'is not empty':
+              return condition + `~not(${filt.field},in,)`;
+            case 'is null':
+              return condition + `(${filt.field},is,null)`;
+            case 'is not null':
+              return condition + `~not(${filt.field},is,null)`;
+            case '<':
+              return condition + `(${filt.field},lt,${filt.value})`;
+            case '<=':
+              return condition + `(${filt.field},le,${filt.value})`;
+            case '>':
+              return condition + `(${filt.field},gt,${filt.value})`;
+            case '>=':
+              return condition + `(${filt.field},ge,${filt.value})`;
+          }
+          return condition;
+        },
+        ''
+      );
+
+      if (privateViewWhere) {
+        where += where ? `~and(${privateViewWhere})` : privateViewWhere;
       }
       if (queryParams.sortList) {
         sort.push(

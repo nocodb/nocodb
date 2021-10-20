@@ -3699,7 +3699,7 @@ export default class NcMetaMgr {
     const queryParams = JSON.parse(viewMeta.query_params);
     // const meta = JSON.parse(viewMeta.meta);
 
-    const fields: string[] = queryParams?.fields.split(',');
+    const fields: string[] = Object.keys(queryParams.showFields);
 
     const apiBuilder = this.app?.projectBuilders
       ?.find(pb => pb.id === sharedViewMeta.project_id)

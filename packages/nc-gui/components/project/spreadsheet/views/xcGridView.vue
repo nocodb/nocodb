@@ -182,6 +182,7 @@
               :sql-ui="sqlUi"
               :db-alias="nodes.dbAlias"
               :is-locked="isLocked"
+              :is-public="isPublicView"
               @save="editEnabled = {}"
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj)"

@@ -3812,7 +3812,7 @@ export default class NcMetaMgr {
       )
     };
 
-    return viewMeta;
+    return { ...sharedViewMeta, ...viewMeta };
   }
 
   protected async xcAuthHookGet(args: any): Promise<any> {

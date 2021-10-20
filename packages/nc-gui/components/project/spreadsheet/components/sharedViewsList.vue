@@ -65,9 +65,16 @@ export default {
   },
   methods: {
     async loadSharedViewsList() {
-      this.viewsList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'listSharedViewLinks', {
+      const viewsList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'listSharedViewLinks', {
         model_name: this.modelName
       }])
+
+      const index = viewsList.findIndex(v => (v.view_name || '').toLowerCase() === (this.$route.query.view || '').toLowerCase())
+      if (index > -1) {
+        viewsList.unshift(...viewsList.splice(index, 1))
+      }
+
+      this.viewsList = viewsList
     },
     async deleteLink(id) {
       try {
@@ -75,7 +82,7 @@ export default {
           id
         }])
         this.$toast.success('Deleted shared view successfully').goAway(3000)
-        this.loadSharedViewsList()
+        await this.loadSharedViewsList()
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
@@ -85,7 +92,7 @@ export default {
 </script>
 
 <style scoped>
-th,td{
-  padding:  0 5px;
+th, td {
+  padding: 0 5px;
 }
 </style>

@@ -512,6 +512,7 @@ export default {
           password: this.password
         }])
 
+        this.fieldsOrder = qp.fieldsOrder || []
         this.viewName = view_name
         this.viewType = view_type
 

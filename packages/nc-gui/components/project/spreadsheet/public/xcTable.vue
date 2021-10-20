@@ -1,7 +1,7 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
-    <div v-if="modelName" class="model-name text-capitalize">
-      <span class="font-weight-bold"> {{ modelName }}</span> <span class="font-weight-regular ml-1">( Main View )</span>
+    <div v-if="viewName" class="model-name text-capitalize">
+      <span class="font-weight-bold"> {{ viewName }}</span> <span class="font-weight-regular ml-1" />
     </div>
 
     <v-toolbar v-if="meta" height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
@@ -201,6 +201,8 @@ export default {
     relationPrimaryValue: [String, Number]
   },
   data: () => ({
+    viewName: null,
+    viewType: null,
     columnsWidth: {},
     metas: {},
     fieldsOrder: [],
@@ -485,6 +487,8 @@ export default {
         const {
           meta,
           // model_name,
+          view_name,
+          view_type,
           client,
           query_params: qp,
           db_alias: dbAlias,
@@ -493,6 +497,9 @@ export default {
           view_id: this.$route.params.id,
           password: this.password
         }])
+
+        this.viewName = view_name
+        this.viewType = view_type
 
         this.columnsWidth = qp.columnsWidth || {}
 

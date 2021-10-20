@@ -152,6 +152,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       };
 
       let where = '';
+      const sort = [];
 
       if (req.query.where) {
         where += req.query.where;
@@ -159,6 +160,13 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
       if (queryParams.where) {
         where += where ? `~and(${queryParams.where})` : queryParams.where;
+      }
+      if (queryParams.sort) {
+        sort.push(...queryParams.sort.split(','));
+      }
+
+      if (req.query.sort) {
+        sort.push(...req.query.sort.split(','));
       }
 
       const fields = meta.columns.map(c => c._cn).join(',');
@@ -210,6 +218,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
           ...req.query,
           where,
           fields,
+          sort: sort.join(','),
           ...nestedParams
         }),
         ...(await model.countByPk({

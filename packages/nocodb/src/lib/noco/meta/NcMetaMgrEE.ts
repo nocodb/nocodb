@@ -171,6 +171,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       }
 
       // todo: move  this logic to a common library
+      // todo: replace with condition prop
       const privateViewWhere = queryParams.filters?.reduce?.(
         (condition, filt, i) => {
           if (!i && !filt.logicOp) {

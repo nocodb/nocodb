@@ -39,6 +39,7 @@
       :password="password"
       :read-only="true"
       :query-params="queryParams"
+      :metas="metas"
     />
   </div>
 </template>

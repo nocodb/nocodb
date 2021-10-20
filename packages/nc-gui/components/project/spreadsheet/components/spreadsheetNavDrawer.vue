@@ -499,6 +499,7 @@
 <script>
 import CreateViewDialog from '@/components/project/spreadsheet/dialog/createViewDialog'
 import Extras from '~/components/project/spreadsheet/components/extras'
+import viewIcons from '~/helpers/viewIcons'
 
 export default {
   name: 'SpreadsheetNavDrawer',
@@ -544,13 +545,7 @@ export default {
     overAdvShieldIcon: false,
     overShieldIcon: false,
     viewsList: [],
-    viewIcons: {
-      grid: { icon: 'mdi-grid-large', color: 'blue' },
-      form: { icon: 'mdi-form-select', color: 'pink' },
-      calendar: { icon: 'mdi-calendar', color: 'purple' },
-      gallery: { icon: 'mdi-camera-image', color: 'orange' },
-      kanban: { icon: 'mdi-tablet-dashboard', color: 'green' }
-    },
+    viewIcons,
     copyViewRef: null,
     shareLink: {},
     showShareModel: false,

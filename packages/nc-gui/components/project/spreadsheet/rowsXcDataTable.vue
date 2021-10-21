@@ -514,6 +514,7 @@
 
     <additional-features
       v-model="showAddFeatOverlay"
+      :selected-view="selectedView"
       :delete-table="deleteTable"
       :nodes="nodes"
       :type="featureType"

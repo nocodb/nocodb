@@ -109,7 +109,7 @@ import viewIcons from '~/helpers/viewIcons'
 
 export default {
   name: 'SharedViewsList',
-  props: ['modelName', 'nodes'],
+  props: ['modelName', 'nodes', 'selectedView'],
   data: () => ({
     viewsList: null,
     currentView: null,
@@ -136,7 +136,15 @@ export default {
         model_name: this.modelName
       }])
 
-      const index = viewsList.findIndex(v => (v.view_name || '').toLowerCase() === (this.$route.query.view || '').toLowerCase())
+      const index = viewsList.findIndex((v) => {
+        if (this.selectedView) {
+          // if current view is main view compare with model name
+          return (['table', 'view'].includes(this.selectedView.type) ? this.modelName : this.selectedView.title) === v.view_name
+        } else {
+          return (v.view_name || '').toLowerCase() === (this.$route.query.view || '').toLowerCase()
+        }
+      })
+
       if (index > -1) {
         this.currentView = viewsList.splice(index, 1)[0]
       } else {
@@ -164,7 +172,8 @@ export default {
 th, td {
   padding: 0 5px;
 }
-/deep/ .nc-switch-show-all  .v-input--selection-controls__input {
+
+/deep/ .nc-switch-show-all .v-input--selection-controls__input {
   transform: scale(0.5) !important;
 }
 

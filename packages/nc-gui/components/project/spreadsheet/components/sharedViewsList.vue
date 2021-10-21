@@ -34,7 +34,7 @@
             </td>
             <td class="caption">
               <template v-if="currentView.password">
-                <span>{{ currentView.showPassword ? link.password : '***************************' }}</span>
+                <span>{{ currentView.showPassword ? currentView.password : '***************************' }}</span>
                 <v-icon small @click="$set(currentView, 'showPassword' , !currentView.showPassword)">
                   {{ currentView.showPassword ? 'visibility_off' : 'visibility' }}
                 </v-icon>

@@ -1977,10 +1977,12 @@ class BaseModelSql extends BaseModel {
         limit,
         offset,
         conditionGraph,
-        sort,
-        ...restArgs
-      } = this._getChildListArgs(rest);
-      let { fields } = restArgs;
+        sort
+        // ...restArgs
+      } = this.dbModels[child]._getChildListArgs(rest);
+      // let { fields } = restArgs;
+      // todo: get only required fields
+      let fields = '*';
 
       const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
 

@@ -21,7 +21,7 @@
                 dense
                 :value="view.id"
                 active-class="x-active--text"
-                class="body-2 text-capitalize view nc-view-item"
+                class="body-2  view nc-view-item"
                 :class="`nc-${view.show_as}-view-item`"
                 @click="$emit('generateNewViewKey')"
               >

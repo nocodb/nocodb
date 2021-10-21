@@ -11,7 +11,7 @@
     </v-alert>
 
     <template v-else>
-      <div v-if="viewName" class="model-name text-capitalize">
+      <div v-if="viewName" class="model-name">
         <span class="font-weight-bold"> {{ viewName }}</span> <span class="font-weight-regular ml-1" />
       </div>
 
@@ -118,7 +118,6 @@
         </v-list>
       </v-menu>-->
       </v-toolbar>
-
       <div
         v-if="meta"
         class="nc-grid-wrapper d-flex"
@@ -466,9 +465,9 @@ export default {
           view_name,
           view_type,
           client,
-          query_params: qp,
-          db_alias: dbAlias,
-          relatedTableMetas
+          query_params: qp = {},
+          db_alias: dbAlias = '_noco',
+          relatedTableMetas = {}
         } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewGet', {
           view_id: this.$route.params.id,
           password: this.password
@@ -485,6 +484,7 @@ export default {
         this.query_params = qp
         this.dbAlias = dbAlias
         this.metas = relatedTableMetas
+        this.sortList = qp.sortList || []
 
         this.showFields = this.query_params.showFields || {}
 

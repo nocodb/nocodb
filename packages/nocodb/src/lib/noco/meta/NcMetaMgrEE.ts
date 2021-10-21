@@ -216,15 +216,15 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       if (privateViewWhere) {
         where += where ? `~and(${privateViewWhere})` : privateViewWhere;
       }
-      if (queryParams.sortList) {
-        sort.push(
-          ...(queryParams?.sortList
-            ?.map(sort => {
-              return sort.field ? `${sort.order}${sort.field}` : '';
-            })
-            .filter(Boolean) || [])
-        );
-      }
+      // if (queryParams.sortList) {
+      //   sort.push(
+      //     ...(queryParams?.sortList
+      //       ?.map(sort => {
+      //         return sort.field ? `${sort.order}${sort.field}` : '';
+      //       })
+      //       .filter(Boolean) || [])
+      //   );
+      // }
 
       if (req.query.sort) {
         sort.push(...req.query.sort.split(','));

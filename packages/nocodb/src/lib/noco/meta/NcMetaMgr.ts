@@ -3796,7 +3796,7 @@ export default class NcMetaMgr {
     } catch (e) {
       console.log(e);
     }
-    viewMeta.query_params = JSON.parse(viewMeta.query_params);
+    viewMeta.query_params = JSON.parse(viewMeta.query_params) || {};
 
     viewMeta.meta = {
       ...viewMeta.meta,

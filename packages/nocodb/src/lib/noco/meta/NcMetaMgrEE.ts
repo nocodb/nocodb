@@ -152,7 +152,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       if (!model) {
         throw new Error('Meta not found');
       }
-      const queryParams = JSON.parse(viewMeta.query_params);
+      const queryParams = JSON.parse(viewMeta.query_params) || {};
 
       if (!meta) {
         throw new Error('Meta not found');
@@ -172,7 +172,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
       // todo: move  this logic to a common library
       // todo: replace with condition prop
-      const privateViewWhere = queryParams.filters?.reduce?.(
+      const privateViewWhere = queryParams?.filters?.reduce?.(
         (condition, filt, i) => {
           if (!i && !filt.logicOp) {
             return condition;

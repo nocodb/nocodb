@@ -121,12 +121,12 @@
 
       <div
         v-if="meta"
+        class="nc-grid-wrapper d-flex"
         :class="`cell-height-${cellHeight}`"
         style="overflow:auto;transition: width 500ms "
-        class="d-flex"
       >
         <div class="flex-grow-1 h-100" style="overflow-y: auto">
-          <div ref="table" style=" overflow: auto;width:100%">
+          <div ref="table" class="nc-grid" style=" overflow: auto;width:100%">
             <v-skeleton-loader v-if="loadingData" type="table" />
 
             <xc-grid-view
@@ -374,24 +374,6 @@ export default {
       }
     } catch (e) {
       console.log(e)
-    }
-
-    if (this.data.length) {
-      // eslint-disable-next-line no-unused-vars
-      const options = {
-        ...this.options,
-        columns: [...this.meta.columns.map((col) => {
-          return {
-            readOnly: col.ai,
-            type: typeof this.data[0][col._cn],
-            title: col._cn,
-            width: '150px'
-          }
-        }), {
-          type: 'hidden',
-          key: ''
-        }]
-      }
     }
     this.searchField = this.primaryValueColumn
   },
@@ -704,6 +686,14 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.nc-grid-wrapper{
+  height:calc(100vh - 120px)
+}
+
+.nc-grid{
+  height: calc(100% - 34px)
 }
 
 </style>

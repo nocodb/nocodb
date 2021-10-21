@@ -697,6 +697,9 @@ export default {
       if (!view.edit) {
         return
       }
+
+      const old_title = view.title
+
       this.$set(view, 'edit', false)
       if (view.title_temp === view.title) { return }
       if (this.viewsList.some((v, i) => i !== index && (v.alias || v.title) === view.title_temp)) {
@@ -715,10 +718,10 @@ export default {
         this.$set(view, 'title', view.title_temp)
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
           id: view.id,
-          old_title: view.title,
+          old_title,
           title: view.title_temp,
           alias: view.alias,
-          parent_model_title: this.meta._tn
+          parent_model_title: this.meta.tn
         })
         this.$toast.success('View renamed successfully').goAway(3000)
       } catch (e) {

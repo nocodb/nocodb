@@ -127,6 +127,8 @@ export default {
       const index = viewsList.findIndex(v => (v.view_name || '').toLowerCase() === (this.$route.query.view || '').toLowerCase())
       if (index > -1) {
         this.currentView = viewsList.splice(index, 1)[0]
+      } else {
+        this.currentView = null
       }
 
       this.viewsList = viewsList

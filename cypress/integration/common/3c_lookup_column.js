@@ -96,7 +96,7 @@ export const genTest = (type, xcdb) => {
             addLookUpColumn('Address', 'District')
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-            cy.get(`tbody > :nth-child(1) > [data-col="District (from Address)"]`)
+            cy.get(`tbody > :nth-child(1) > [data-col="District"]`)
                 .contains('Galicia')
                 .should('exist')
 
@@ -109,7 +109,7 @@ export const genTest = (type, xcdb) => {
             addLookUpColumn('Country', 'CountryId')
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-            cy.get(`tbody > :nth-child(1) > [data-col="CountryId (from Country)"]`)
+            cy.get(`tbody > :nth-child(1) > [data-col="CountryId"]`)
                 .contains('87')
                 .should('exist')
 

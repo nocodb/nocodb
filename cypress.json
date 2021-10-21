@@ -12,5 +12,11 @@
   "screenshotOnRunFailure": false,
   "numTestsKeptInMemory": 0,
   "env": { 
-	"testMode": "extREST" }
+	"testMode": "extREST" },
+  "supportedOptionsForTestModes": [
+    "extGQL", 
+    "extREST", 
+    "xcdbREST", 
+    "xcdbREST", 
+    "can configure multiple too, seperated by a . as in extREST.extGQL"]
 }

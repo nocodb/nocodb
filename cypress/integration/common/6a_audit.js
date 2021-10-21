@@ -17,8 +17,8 @@ export const genTest = (type, xcdb) => {
         }
 
         it('Open Audit tab', ()=> {
-            cy.createTable('Table-x')
-            cy.deleteTable('Table-x')
+            cy.createTable('tablex')
+            cy.deleteTable('tablex')
             cy.wait(2000)
 
             mainPage.navigationDraw(mainPage.AUDIT).click()

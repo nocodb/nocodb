@@ -6,8 +6,8 @@ import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
 import { staticProjects, roles, isTestSuiteActive, getPrimarySuite, isSecondarySuite } from "../../support/page_objects/projectConstants"
 
-export const genTest = () => {
-
+export const genTest = (type, xcdb) => {
+    if(!isTestSuiteActive(type, xcdb)) return;
     describe(`Project pre-configurations`, () => {
 
         it('Admin SignUp', () => {

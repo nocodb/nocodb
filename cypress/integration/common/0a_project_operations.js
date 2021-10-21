@@ -30,7 +30,7 @@ export const genTest = (type, xcdb) => {
       cy.get('.database-field input').click().clear().type('dummy_db')
       cy.contains('Test Database Connection').click()
       cy.contains('Ok & Save Project', {timeout: 3000}).click()
-      cy.url({timeout: 12000}).should('contain', '#/nc/')
+      cy.url({timeout: 50000}).should('contain', '#/nc/')
     });
 
     it('Stop Project', () => {

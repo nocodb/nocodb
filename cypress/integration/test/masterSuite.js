@@ -30,9 +30,9 @@ const executionMode = 1
 const nocoTestSuite = (type, xcdb) => {
 
     if (0 == executionMode) {
-        t0.genTest('rest', false)
+        t0.genTest(type, xcdb)
     } else {
-        t00.genTest()
+        t00.genTest(type, xcdb)
     }    
 
     t0a.genTest(type, xcdb)
@@ -65,6 +65,7 @@ const nocoTestSuite = (type, xcdb) => {
 }
 
 nocoTestSuite('rest', false)
+nocoTestSuite('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

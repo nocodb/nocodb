@@ -1,9 +1,10 @@
 const { mainPage } = require("../../support/page_objects/mainPage")
 const { loginPage } = require("../../support/page_objects/navigation")
 const { roles } = require("../../support/page_objects/projectConstants")
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 export const genTest = (type, xcdb) => {
-
+    if(!isTestSuiteActive(type, xcdb)) return;
     describe(`Language support`, () => {
 
         before(() => {

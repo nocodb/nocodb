@@ -59,7 +59,7 @@
     />
 
     <enum-cell
-      v-else-if="isEnum && !isForm && !active"
+      v-else-if="isEnum && (( !isForm && !active) || isLocked || (isPublic && !isForm))"
       v-model="localState"
       :column="column"
       v-on="parentListeners"
@@ -81,7 +81,7 @@
     />
 
     <set-list-editable-cell
-      v-else-if="isSet && (active || isForm)"
+      v-else-if="isSet && (active || isForm) && !isLocked && !(isPublic && !isForm)"
       v-model="localState"
       :column="column"
       v-on="parentListeners"

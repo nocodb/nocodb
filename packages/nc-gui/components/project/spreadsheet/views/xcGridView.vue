@@ -346,6 +346,8 @@ export default {
   },
   methods: {
     isRequired(_columnObj, rowObj) {
+      if (this.isPublicView) { return false }
+
       let columnObj = _columnObj
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
@@ -504,13 +506,14 @@ export default {
       }
     },
     enableEditable(column) {
-      return (column && column.uidt === 'Attachment') ||
+      return ((column && column.uidt === 'Attachment') ||
         (column && column.uidt === 'SingleSelect') ||
         (column && column.uidt === 'MultiSelect') ||
         (column && column.uidt === 'DateTime') ||
         (column && column.uidt === 'Date') ||
         (column && column.uidt === 'Time') ||
         (this.sqlUi && this.sqlUi.getAbstractType(column) === 'boolean')
+      )
     },
     insertNewRow(atEnd = false, expand = false) {
       this.$emit('insertNewRow', atEnd, expand)

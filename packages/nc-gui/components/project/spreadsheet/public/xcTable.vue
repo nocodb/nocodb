@@ -78,7 +78,7 @@
 
         <v-spacer />
 
-        <v-btn outlined small text @click="loadTableData">
+        <v-btn outlined small text @click="reload">
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
           </v-icon>
@@ -622,6 +622,9 @@ export default {
     },
     async unlock() {
       this.showPasswordModal = false
+      await this.reload()
+    },
+    async reload() {
       await this.loadMetaData()
       await this.loadTableData()
     }

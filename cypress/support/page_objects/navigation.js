@@ -263,7 +263,7 @@ export class _projectsPage {
     }
 
     waitHomePageLoad() {
-        cy.url({ timeout: 25000 }).should('contain', '?type=roles')
+        cy.url({ timeout: 50000 }).should('contain', '?type=roles')
     }
 
     waitDeletePageLoad() {

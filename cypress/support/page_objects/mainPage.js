@@ -197,12 +197,19 @@ export class _mainPage {
 
         cy.getActiveMenu().find('.v-list-item').contains('Views List').click()
 
-        cy.get(1000)
+        cy.wait(1000)
+
+        // cy.get('.container').find('button.mdi-delete-outline')
 
         cy.get('th:contains("View Link")').parent().parent()
-            .next().find('tr').each((tableRow) => {
-                cy.wrap(tableRow).find('button').last().click()
-                cy.wait(1000)
+            .next().find('tr').each(($tableRow) => {
+                cy.log($tableRow[0].childElementCount)
+
+                // one of the row would contain seggregation header ('other views)
+                if (4 == $tableRow[0].childElementCount) {
+                    cy.wrap($tableRow).find('button').last().click()
+                    cy.wait(1000)                
+                }
             })
             .then(() => {
             cy.get('.v-overlay__content > .d-flex > .v-icon').click()

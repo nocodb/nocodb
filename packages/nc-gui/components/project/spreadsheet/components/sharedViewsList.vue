@@ -1,19 +1,19 @@
 <template>
   <v-card max-width="900">
     <v-container>
-      <v-simple-tables dense>
+      <v-simple-table dense style="min-width: 600px;">
         <thead>
-          <tr>
-            <th class="caption">
+          <tr class="">
+            <th class="caption grey--text">
               View name
             </th>
-            <th class="caption">
+            <th class="caption grey--text">
               View Link
             </th>
-            <th class="caption">
+            <th class="caption grey--text">
               Password
             </th>
-            <th class="caption">
+            <th class="caption grey--text">
               Actions
             </th>
           </tr>
@@ -50,12 +50,12 @@
             </td>
           </tr>
 
-          <tr>
-            <td colspan="4" class="text-center caption text--grey">
-              Other views
+          <tr v-else>
+            <td colspan="4" class="text-center caption info--text">
+              Current view is not shared!
             </td>
           </tr>
-          <template>
+          <template v-if="allSharedLinks">
             <tr v-for="link of viewsList" :key="link.id">
               <td class="caption text-left">
                 <v-icon v-if="viewIcons[link.view_type]" small :color="viewIcons[link.view_type].color">
@@ -88,7 +88,18 @@
             </tr>
           </template>
         </tbody>
-      </v-simple-tables>
+      </v-simple-table>
+      <div class="mt-1 pl-2">
+        <v-switch
+          v-model="allSharedLinks"
+          class="nc-switch-show-all"
+          hide-details
+        >
+          <template #label>
+            <span class="caption"> Show all shared views of this table</span>
+          </template>
+        </v-switch>
+      </div>
     </v-container>
   </v-card>
 </template>
@@ -102,7 +113,8 @@ export default {
   data: () => ({
     viewsList: null,
     currentView: null,
-    viewIcons
+    viewIcons,
+    allSharedLinks: false
   }),
   computed: {
     origin() {
@@ -152,4 +164,8 @@ export default {
 th, td {
   padding: 0 5px;
 }
+/deep/ .nc-switch-show-all  .v-input--selection-controls__input {
+  transform: scale(0.5) !important;
+}
+
 </style>

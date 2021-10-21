@@ -123,6 +123,9 @@ export const genTest = (type, xcdb) => {
                 // wait for public view page to load!
                 cy.wait(5000)
 
+                // verify title
+                cy.get('div.model-name').contains('Country2').should('exist')
+
                 // verify column headers
                 cy.get('[data-col="Country"]').should('exist')
                 cy.get('[data-col="LastUpdate"]').should('not.exist')
@@ -134,12 +137,15 @@ export const genTest = (type, xcdb) => {
                 mainPage.getCell("Country", 3).contains("American Samoa").should('exist')
             })
             
-            it.skip(`Share ${viewType} view : Access URL with a field sorted`, () => {
+            it(`Share ${viewType} view : Access URL with a field sorted`, () => {
                 // visit public view
                 cy.visit(viewURL['sort'])
         
                 // wait for public view page to load!
                 cy.wait(5000)
+
+                // verify title
+                cy.get('div.model-name').contains('Country3').should('exist')                
 
                 // verify column headers
                 cy.get('[data-col="Country"]').should('exist')
@@ -157,6 +163,9 @@ export const genTest = (type, xcdb) => {
                 // wait for public view page to load!
                 cy.wait(5000)
 
+                // verify title
+                cy.get('div.model-name').contains('Country4').should('exist')                
+
                 // verify column headers
                 cy.get('[data-col="Country"]').should('exist')
                 cy.get('[data-col="LastUpdate"]').should('exist')
@@ -172,6 +181,9 @@ export const genTest = (type, xcdb) => {
         
                 // wait for public view page to load!
                 cy.wait(5000)
+
+                // verify title
+                cy.get('div.model-name').contains('Country1').should('exist')                
 
                 // verify column headers
                 cy.get('[data-col="Country"]').should('exist')
@@ -350,6 +362,30 @@ export const genTest = (type, xcdb) => {
             cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
         })
 
+        it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {
+            // generate view link multiple times
+            generateViewLink('rowColUpdate')
+            generateViewLink('rowColUpdate')
+
+            // verify if only one link exists in table
+            cy.get('.v-navigation-drawer__content > .container')
+                .find('.v-list > .v-list-item')
+                .contains('Share View')
+                .parent().find('button.mdi-dots-vertical').click()
+
+            cy.getActiveMenu().find('.v-list-item').contains('Views List').click()
+
+            cy.wait(1000)
+
+            // cy.get('.container').find('button.mdi-delete-outline')
+
+            cy.get('th:contains("View Link")').parent().parent()
+                .next().find('tr').its('length').should('eq', 1)
+                .then(() => {
+                    cy.get('.v-overlay__content > .d-flex > .v-icon').click()
+                })
+        })           
+
         it(`Generate default Shared GRID view URL`, () => {
             // add row
             cy.get('.nc-add-new-row-btn').click({force: true})
@@ -379,7 +415,7 @@ export const genTest = (type, xcdb) => {
         it.skip(`Share GRID view : new column visible`, () => {
             // verify column headers
             cy.get('[data-col="dummy"]').should('exist')
-        })        
+        })
     })
 }
 

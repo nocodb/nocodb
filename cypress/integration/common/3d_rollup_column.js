@@ -138,7 +138,7 @@ export const genTest = (type, xcdb) => {
 
     })
 
-    it('Add Rollup column (City, CountryId, count) & Delete', () => {
+    it.skip('Add Rollup column (City, CountryId, count) & Delete', () => {
 
       addLookUpColumn('RollUpCol_1', 'City', 'CountryId', 'count')
 

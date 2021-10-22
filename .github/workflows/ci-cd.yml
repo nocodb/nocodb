@@ -19,19 +19,19 @@ jobs:
        uses: actions/checkout@v2
        with:
          fetch-depth: 0
-#     - name: Check for update
-#       run: |
-#          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
+     - name: Check for update
+       run: |
+          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
 
      - name: Cypress run
-#       if: ${{ env.CHANGED == 'OK' }}
+       if: ${{ env.CHANGED == 'OK' }}
        uses: cypress-io/github-action@v2
        with:
          start: |
            npm run start:api
            npm run start:web
            docker-compose -f ./docker-compose-cypress.yml up -d
-#         spec: 'cypress/integration/test/{{ matrix.spec }}.js'
+         spec: 'cypress/integration/test/{{ matrix.spec }}.js'
          wait-on: 'http://localhost:8080, http://localhost:3000/_nuxt/runtime.js'
          wait-on-timeout: 1200
   docker:

@@ -28,7 +28,7 @@ jobs:
            npm run start:api
            npm run start:web
            docker-compose -f ./docker-compose-cypress.yml up -d
-         wait-on: 'http://localhost:8080, http://localhost:3000'
+         wait-on: 'http://localhost:8080, http://localhost:3000/_nuxt/runtime.js'
          wait-on-timeout: 900
   docker:
     runs-on: ubuntu-latest

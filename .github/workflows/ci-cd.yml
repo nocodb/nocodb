@@ -25,8 +25,8 @@ jobs:
        uses: cypress-io/github-action@v2
        with:
          start: |
-           npm run api
-           npm run web
+           npm run start:api
+           npm run start:web
            docker-compose -f ./docker-compose-cypress.yml up -d
          wait-on: 'http://localhost:3000, http://localhost:8080'
          wait-on-timeout: 900

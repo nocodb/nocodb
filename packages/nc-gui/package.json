@@ -29,7 +29,6 @@
     "monaco-editor": "^0.18.1",
     "monaco-themes": "^0.2.5",
     "nano-assign": "^1.0.1",
-    "nc-lib-gui": "^0.1.192",
     "nuxt": "^2.14.0",
     "odometer": "^0.4.8",
     "secure-ls": "^1.2.6",
@@ -67,7 +66,6 @@
     "eslint": "^7.31.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
     "sass": "~1.32.12",
-    "vue-eslint-parser": "^7.9.0",
-    "webpack-obfuscator": "^1.9.0"
+    "vue-eslint-parser": "^7.9.0"
   }
 }

@@ -14,7 +14,7 @@ export const genTest = (type, xcdb) => {
       // column name validation
       cy.get(`.project-tab:contains(Country):visible`).should('exist')
       // URL validation
-      cy.url().should('contain', `?name=Country&`)
+      cy.url().should('contain', `name=Country`)
     })
 
     it('Expand belongs-to column', () => {

@@ -32,44 +32,44 @@ export const genTest = (type, xcdb) => {
         if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
     })
 
-    describe('Static user creations (different roles)', () => {
+    // describe('Static user creations (different roles)', () => {
 
-        beforeEach(() => {
-            loginPage.signIn(roles.owner.credentials)
-            projectsPage.openProject(getPrimarySuite().basic.name)
-        })
+    //     beforeEach(() => {
+    //         loginPage.signIn(roles.owner.credentials)
+    //         projectsPage.openProject(getPrimarySuite().basic.name)
+    //     })
 
-        const addUser = (user) => {
-            it(`RoleType: ${user.name}`, () => {
-                mainPage.addNewUserToProject(user.credentials, user.name)
-            })
-        }
+    //     const addUser = (user) => {
+    //         it(`RoleType: ${user.name}`, () => {
+    //             mainPage.addNewUserToProject(user.credentials, user.name)
+    //         })
+    //     }
 
-        addUser(roles.creator)
-        addUser(roles.editor)
-        addUser(roles.commenter)
-        addUser(roles.viewer)
-    })
+    //     addUser(roles.creator)
+    //     addUser(roles.editor)
+    //     addUser(roles.commenter)
+    //     addUser(roles.viewer)
+    // })
 
-    describe('Static users- add to other static projects', () => {
+    // describe('Static users- add to other static projects', () => {
 
-        const addUserToProject = (proj) => {
-            it(`Add users to ${proj.basic.name}`, () => {
-                loginPage.signIn(roles.owner.credentials)
-                projectsPage.openProject(proj.basic.name)
+    //     const addUserToProject = (proj) => {
+    //         it(`Add users to ${proj.basic.name}`, () => {
+    //             loginPage.signIn(roles.owner.credentials)
+    //             projectsPage.openProject(proj.basic.name)
 
-                mainPage.addExistingUserToProject(roles.creator.credentials.username, roles.creator.name)
-                mainPage.addExistingUserToProject(roles.editor.credentials.username, roles.editor.name)
-                mainPage.addExistingUserToProject(roles.commenter.credentials.username, roles.commenter.name)
-                mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
-            })
-        }
+    //             mainPage.addExistingUserToProject(roles.creator.credentials.username, roles.creator.name)
+    //             mainPage.addExistingUserToProject(roles.editor.credentials.username, roles.editor.name)
+    //             mainPage.addExistingUserToProject(roles.commenter.credentials.username, roles.commenter.name)
+    //             mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
+    //         })
+    //     }
 
-        if (isSecondarySuite('rest', true)) addUserToProject(staticProjects.sampleREST)
-        if (isSecondarySuite('graphql', true)) addUserToProject(staticProjects.sampleGQL)
-        if (isSecondarySuite('rest', false)) addUserToProject(staticProjects.externalREST)
-        if (isSecondarySuite('graphql', false)) addUserToProject(staticProjects.externalGQL)
-    })
+    //     if (isSecondarySuite('rest', true)) addUserToProject(staticProjects.sampleREST)
+    //     if (isSecondarySuite('graphql', true)) addUserToProject(staticProjects.sampleGQL)
+    //     if (isSecondarySuite('rest', false)) addUserToProject(staticProjects.externalREST)
+    //     if (isSecondarySuite('graphql', false)) addUserToProject(staticProjects.externalGQL)
+    // })
 
 }
 

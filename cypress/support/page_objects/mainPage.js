@@ -23,7 +23,11 @@ export class _mainPage {
         this.TEAM_N_AUTH = 3
         this.PROJ_METADATA = 4
         this.ROLE_VIEW = 5
+
+        this.roleURL = {}
     }
+
+
 
     toolBarTopLeft(toolBarItem) {
         return cy.get('header.v-toolbar').eq(0).find('a').eq(toolBarItem)
@@ -64,19 +68,22 @@ export class _mainPage {
         cy.getActiveModal().find('.v-alert').then(($obj) => {
             linkText = $obj.text()
             cy.log(linkText)
+            this.roleURL[roleType] = linkText
 
-            cy.visit(linkText)
+            cy.get('body').click('right')
 
-            cy.wait(3000)
+            // cy.visit(linkText)
 
-            // Redirected to new URL, feed details
-            //
-            cy.get('input[type="text"]').type(userCred.username)
-            cy.get('input[type="password"]').type(userCred.password)
-            cy.get('button:contains("SIGN UP")').click()
+            // cy.wait(3000)
 
-            cy.url({ timeout: 6000 }).should('contain', '#/project')
-            cy.wait(1000)
+            // // Redirected to new URL, feed details
+            // //
+            // cy.get('input[type="text"]').type(userCred.username)
+            // cy.get('input[type="password"]').type(userCred.password)
+            // cy.get('button:contains("SIGN UP")').click()
+
+            // cy.url({ timeout: 6000 }).should('contain', '#/project')
+            // cy.wait(1000)
         })
     }
 

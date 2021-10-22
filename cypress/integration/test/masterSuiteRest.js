@@ -51,13 +51,7 @@ const nocoTestSuite = (type, xcdb) => {
     t4d.genTest(type, xcdb)
     t4e.genTest(type, xcdb)
     t4f.genTest(type, xcdb)
-
-    t5a.genTest(type, 'owner')
-    t5a.genTest(type, 'creator')
-    t5a.genTest(type, 'editor')
-    t5a.genTest(type, 'commenter')
-    t5a.genTest(type, 'viewer')
-
+    t5a.genTest(type, xcdb)
     t5b.genTest(type, xcdb)
     // merged with t1a: t6a.genTest(type, xcdb)
     t6c.genTest(type, xcdb)

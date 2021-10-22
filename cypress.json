@@ -13,7 +13,7 @@
   "screenshotOnRunFailure": false,
   "numTestsKeptInMemory": 0,
   "env": {
-    "testMode": "extREST"
+    "testMode": "extREST,extGQL"
   },
   "supportedOptionsForTestModes": [
     "extGQL",

@@ -1,6 +1,7 @@
 
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { mainPage } from "../../support/page_objects/mainPage";
 
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
@@ -9,9 +10,14 @@ export const genTest = (type, xcdb) => {
 
     before(() => {
       loginPage.loginAndOpenProject(type, xcdb)
+      cy.get('.mdi-close').click({ multiple: true })
+    })
+      
+    after(() => {
+      cy.get('.mdi-close').click({ multiple: true })
     })
 
-    const name = 'Test' + Date.now();
+    const name = 'tablex'
 
     // create a new random table
     it('Create Table', () => {
@@ -23,13 +29,13 @@ export const genTest = (type, xcdb) => {
         cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]')
           .first().should('have.value', name.toLowerCase())
       }
-      cy.wait(5000)
+      //cy.wait(5000)
 
       cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
       cy.get(`.project-tab:contains(${name})`).should('exist')
-      cy.url().should('contain', `?name=${name}&`)
+      cy.url().should('contain', `name=${name}`)
 
-      cy.wait(5000)
+      //cy.wait(5000)
     })
 
 
@@ -44,7 +50,29 @@ export const genTest = (type, xcdb) => {
       cy.get('.nc-table-delete-btn:visible').click()
       cy.get('button:contains(Submit)').click()
       cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
-    });
+    })
+
+    const getAuditCell = (row, col) => {
+        return cy.get('table > tbody > tr').eq(row).find('td').eq(col)
+    }
+
+    it('Open Audit tab', ()=> {
+        mainPage.navigationDraw(mainPage.AUDIT).click()
+        cy.wait(2000)
+
+        // Audit table entries
+        //  [Header] Operation Type, Operation Sub Type, Description, User, Created
+        //  [0] TABLE, DELETED, delete table table-x, user@nocodb.com, ...
+        //  [1] TABLE, Created, created table table-x, user@nocodb.com, ...
+
+        getAuditCell(0,0).contains('TABLE').should('exist')
+        getAuditCell(0,1).contains('DELETED').should('exist')
+        getAuditCell(0,3).contains('user@nocodb.com').should('exist')
+
+        getAuditCell(1,0).contains('TABLE').should('exist')
+        getAuditCell(1,1).contains('CREATED').should('exist')
+        getAuditCell(1,3).contains('user@nocodb.com').should('exist')        
+    })    
   })
 }
 

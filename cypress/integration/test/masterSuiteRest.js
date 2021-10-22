@@ -19,7 +19,7 @@ let t4e = require('../common/4e_form_view_share')
 let t4f = require('../common/4f_grid_view_share')
 let t5a = require('../common/5a_user_role')
 let t5b = require('../common/5b_preview_role')
-let t6a = require('../common/6a_audit')
+// merged with t1a: let t6a = require('../common/6a_audit')
 let t6c = require('../common/6c_swagger_api')
 let t6d = require('../common/6d_language_validation')
 
@@ -59,7 +59,7 @@ const nocoTestSuite = (type, xcdb) => {
     t5a.genTest(type, 'viewer')
 
     t5b.genTest(type, xcdb)
-    t6a.genTest(type, xcdb)
+    // merged with t1a: t6a.genTest(type, xcdb)
     t6c.genTest(type, xcdb)
     t6d.genTest(type, xcdb)
 }

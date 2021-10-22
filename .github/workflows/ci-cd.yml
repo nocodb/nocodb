@@ -11,6 +11,9 @@ on:
 jobs:
   cypress-run:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        spec: ['masterSuiteRest', 'masterSuiteGql']
     steps:
      - name: Checkout
        uses: actions/checkout@v2
@@ -28,6 +31,7 @@ jobs:
            npm run start:api
            npm run start:web
            docker-compose -f ./docker-compose-cypress.yml up -d
+         spec: cypress/integration/test/{{ matix.spec }}.js
          wait-on: 'http://localhost:8080, http://localhost:3000/_nuxt/runtime.js'
          wait-on-timeout: 900
   docker:

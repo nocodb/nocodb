@@ -7,6 +7,8 @@
     "lerna": "^3.20.1"
   },
   "scripts": {
+    "start:api": "cd ./packages/nocodb; npm install; npm run watch:run",
+    "start:web": "cd ./packages/nc-gui; npm install; npm run dev",
     "cypress:run": "cypress run",
     "cypress:open": "cypress open",
     "test:travis": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna run test:travis --since",

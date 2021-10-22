@@ -65,7 +65,7 @@ const nocoTestSuite = (type, xcdb) => {
 }
 
 nocoTestSuite('rest', false)
-nocoTestSuite('graphql', false)
+// nocoTestSuite('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

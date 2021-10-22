@@ -19,12 +19,12 @@ jobs:
        uses: actions/checkout@v2
        with:
          fetch-depth: 0
-#     - name: Check for update
-#       run: |
-#          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
+     - name: Check for update
+       run: |
+          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
 
      - name: Cypress run
-#       if: ${{ env.CHANGED == 'OK' }}
+       if: ${{ env.CHANGED == 'OK' }}
        uses: cypress-io/github-action@v2
        with:
          start: |

@@ -31,8 +31,8 @@ jobs:
            npm run start:api
            npm run start:web
            docker-compose -f ./docker-compose-cypress.yml up -d
-         spec: 'cypress/integration/test/{{ matrix.spec }}.js'
-         wait-on: 'npx wait-on --timeout 1200000 http://localhost:3000/_nuxt/runtime.js'
+#         spec: 'cypress/integration/test/{{ matrix.spec }}.js'
+         wait-on: 'http://localhost:8080, http://localhost:3000/_nuxt/runtime.js'
          wait-on-timeout: 1200
   docker:
     runs-on: ubuntu-latest

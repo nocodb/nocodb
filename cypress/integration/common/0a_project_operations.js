@@ -23,7 +23,7 @@ export const genTest = (type, xcdb) => {
     it('Create Project', () => {
       cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
       cy.get('.create-external-db-project').click()
-      cy.url({timeout: 6000}).should('contain', '#/project/')
+      cy.url({timeout: 50000}).should('contain', '#/project/')
       if (type === 'graphql') {
         cy.contains('GRAPHQL APIs').closest('label').click()
       }

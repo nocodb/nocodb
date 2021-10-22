@@ -104,7 +104,7 @@ export const genTest = (type, xcdb) => {
 
         })
 
-        it('Add Lookup column (Country, CountryId) & Delete', () => {
+        it.skip('Add Lookup column (Country, CountryId) & Delete', () => {
 
             addLookUpColumn('Country', 'CountryId')
 

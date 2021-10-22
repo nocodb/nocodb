@@ -8,7 +8,7 @@
   "viewportWidth": 1980,
   "viewportHeight": 1000,
   "video": false,
-  "retries": 2,
+  "retries": 0,
   "screenshotOnRunFailure": false,
   "numTestsKeptInMemory": 0,
   "env": { 

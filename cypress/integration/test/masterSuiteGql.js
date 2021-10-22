@@ -64,7 +64,7 @@ const nocoTestSuite = (type, xcdb) => {
     t6d.genTest(type, xcdb)
 }
 
-nocoTestSuite('rest', false)
+// nocoTestSuite('rest', false)
 nocoTestSuite('graphql', false)
 
 /**

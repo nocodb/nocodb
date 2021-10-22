@@ -1,22 +1,25 @@
 {
   "baseUrl": "http://localhost:3000/",
   "testFiles": [
-      "test/masterSuite.js"     
+    "test/masterSuiteRest.js",
+    "test/masterSuiteGql.js"
   ],
   "defaultCommandTimeout": 13000,
   "pageLoadTimeout": 600000,
   "viewportWidth": 1980,
   "viewportHeight": 1000,
   "video": false,
-  "retries": 2,
+  "retries": 0,
   "screenshotOnRunFailure": false,
   "numTestsKeptInMemory": 0,
-  "env": { 
-	"testMode": "extREST" },
+  "env": {
+    "testMode": "extREST"
+  },
   "supportedOptionsForTestModes": [
-    "extGQL", 
-    "extREST", 
-    "xcdbREST", 
-    "xcdbREST", 
-    "can configure multiple too, seperated by a . as in extREST.extGQL"]
+    "extGQL",
+    "extREST",
+    "xcdbREST",
+    "xcdbREST",
+    "can configure multiple too, seperated by a . as in extREST.extGQL"
+  ]
 }

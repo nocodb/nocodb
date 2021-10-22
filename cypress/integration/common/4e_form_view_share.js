@@ -7,7 +7,7 @@ let baseURL = ''
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
-  describe(`${type.toUpperCase()} api - Table views`, () => {
+  describe(`${type.toUpperCase()} api - FORM view (Share)`, () => {
 
     const name = 'Test' + Date.now();
 

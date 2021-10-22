@@ -5,7 +5,7 @@ import { mainPage } from "../../support/page_objects/mainPage"
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
-    describe(`${type.toUpperCase()} api - Table views`, () => {
+    describe(`${type.toUpperCase()} api - Lock view`, () => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {

@@ -7,7 +7,7 @@ let formViewURL
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
-  describe(`${type.toUpperCase()} api - Table views`, () => {
+  describe(`${type.toUpperCase()} api - FORM view`, () => {
 
     const name = 'Test' + Date.now();
 

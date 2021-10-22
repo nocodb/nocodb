@@ -4,7 +4,7 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
-  describe(`${type.toUpperCase()} api - Table views`, () => {
+  describe(`${type.toUpperCase()} api - Table views: Create/Edit/Delete`, () => {
 
     const name = 'Test' + Date.now();
 

@@ -7,12 +7,12 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 export const genTest = (type, xcdb) => {
     if(!isTestSuiteActive(type, xcdb)) return;
 
-    describe(`Swagger API - Test preparation`, () => {
+    describe(`${type.toUpperCase()} : API List - Test preparation`, () => {
         before(()=> {
             loginPage.loginAndOpenProject(type, false)
         })
 
-        it("[REST] open project & record swagger URL, AuthToken", () => {
+        it("Open project & record swagger URL, AuthToken", () => {
             let authToken = mainPage.getAuthToken()
             cy.url().then( (url) => {
                 // retrieve project name from URL & use it to construct Swagger URL

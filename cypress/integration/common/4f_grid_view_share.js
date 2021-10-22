@@ -36,7 +36,7 @@ export const genTest = (type, xcdb) => {
             })
     }    
 
-    describe(`${type.toUpperCase()} api - GRID VIEW`, () => {
+    describe(`${type.toUpperCase()} api - GRID view (Share)`, () => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {

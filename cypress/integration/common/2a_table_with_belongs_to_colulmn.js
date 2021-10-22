@@ -5,7 +5,7 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
-  describe(`${type.toUpperCase()} api - Existing table`, () => {
+  describe(`${type.toUpperCase()} api - Table: belongs to, link record`, () => {
     // before(() => loginPage.loginAndOpenProject(type))
     
     it('Table column header, URL validation', () => {

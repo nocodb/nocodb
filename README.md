@@ -197,6 +197,8 @@ docker-compose up
 | `NC_SENTRY_DSN`                      | No        | For Sentry monitoring                                                                                      |                                               |
 | `NC_CONNECT_TO_EXTERNAL_DB_DISABLED` | No        | Disable Project creation with external database                                                            |                                               |
 | `NC_DISABLE_TELE`                    | No        | Disable telemetry                                                                                          |                                               |
+| `NC_CAMELIZE_TABLE_NAMES`            | No        | Used to inflect table names with 'camelize' function. Set to `false` to preserve original table names      | default is `true`                             |
+| `NC_CAMELIZE_COLUMN_NAMES`           | No        | Used to inflect column names with 'camelize' function. Set to `false` to preserve original column names    | default is `true`                             |
 | `NC_BACKEND_URL`                     | No        | Custom Backend URL                                                                                         | ``http://localhost:8080`` will be used        |
 
 # Development setup 

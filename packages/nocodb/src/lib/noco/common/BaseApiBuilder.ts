@@ -31,6 +31,9 @@ import addErrorOnColumnDeleteInFormula from './helpers/addErrorOnColumnDeleteInF
 
 const log = debug('nc:api:base');
 
+const CAMELIZE_TABLE_NAMES = Boolean(JSON.parse(process.env.NC_CAMELIZE_TABLE_NAMES || 'true'));
+const CAMELIZE_COLUMN_NAMES = Boolean(JSON.parse(process.env.NC_CAMELIZE_COLUMN_NAMES || 'true'));
+
 const IGNORE_TABLES = [
   'nc_models',
   'nc_roles',
@@ -1603,10 +1606,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
     }
 
     const modifiedTableName = tn?.replace(/^(?=\d+)/, 'ISN___');
-    return this.getInflectedName(
-      modifiedTableName,
-      this.connectionConfig?.meta?.inflection?.tn
-    );
+    if (CAMELIZE_TABLE_NAMES) {
+      return this.getInflectedName(
+          modifiedTableName,
+          this.connectionConfig?.meta?.inflection?.tn
+      );
+    } else {
+      return modifiedTableName;
+    }
   }
 
   protected generateContextForHasMany(ctx, tnc: string): any {
@@ -2190,11 +2197,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   private getColumnNameAlias(col, tableName?: string) {
-    return (
-      this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?._cn ||
+    if (CAMELIZE_COLUMN_NAMES) {
+      return this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?._cn ||
       col._cn ||
       this.getInflectedName(col.cn, this.connectionConfig?.meta?.inflection?.cn)
-    );
+    } else {
+      return this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?.cn ||
+      col.cn
+    }
   }
 
   private baseLog(str, ...args): void {
@@ -2664,6 +2674,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
 }
 
 export { IGNORE_TABLES };
+export { CAMELIZE_TABLE_NAMES };
+export { CAMELIZE_COLUMN_NAMES };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

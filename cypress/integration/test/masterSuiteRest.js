@@ -1,7 +1,7 @@
 
 let t0 = require('./explicitLogin')
 let t00 = require('../common/00_pre_configurations')
-let t0a = require('../common/0a_project_operations')
+let t0a = require('../common/6e_project_operations')
 let t1a = require('../common/1a_table_operations')
 let t1b = require('../common/1b_table_column_operations')
 let t1c = require('../common/1c_table_row_operations')
@@ -35,10 +35,9 @@ const nocoTestSuite = (type, xcdb) => {
         t00.genTest(type, xcdb)
     }    
 
-    t0a.genTest(type, xcdb)
     t1a.genTest(type, xcdb)
     t1b.genTest(type, xcdb)
-    t1c.genTest(type, xcdb)
+    // merged with t1b: t1c.genTest(type, xcdb)
     t2a.genTest(type, xcdb)
     t2b.genTest(type, xcdb)
     t3a.genTest(type, xcdb)
@@ -56,6 +55,8 @@ const nocoTestSuite = (type, xcdb) => {
     // merged with t1a: t6a.genTest(type, xcdb)
     t6c.genTest(type, xcdb)
     t6d.genTest(type, xcdb)
+    // **deletes created project, hence place it @ end
+    t6e.genTest(type, xcdb)    
 }
 
 nocoTestSuite('rest', false)

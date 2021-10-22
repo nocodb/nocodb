@@ -7,9 +7,11 @@ export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Table Column`, () => {
-    const name = 'Table' + Date.now();
-    const colName = 'column_name' + Date.now();
+    const name = 'tablex'
+    const colName = 'column_name_a'
     const updatedColName = 'updated_column_name'
+    const randVal = 'Test'
+    const updatedRandVal = 'Updated'    
 
     before(() => {
       // loginPage.loginAndOpenProject(type)
@@ -83,6 +85,37 @@ export const genTest = (type, xcdb) => {
       cy.get('button:contains(Confirm)').click()
 
       cy.get(`th:contains(${updatedColName})`).should('not.exist');
+    })
+
+    it('Add new row', () => {
+      cy.wait(2000)
+      cy.get('.nc-add-new-row-btn').click({force: true});
+      cy.get('#data-table-form-Title > input').first().type(randVal);
+      cy.contains('Save Row').filter('button').click({force: true})
+      cy.get('td', {timeout: 10000}).contains(randVal).should('exist');
+    })
+
+    it('Update row', () => {
+      cy.get('td').contains(randVal)
+        .closest('tr')
+        .find('.nc-row-expand-icon')
+        .click({force: true});
+
+      cy.get('#data-table-form-Title > input').first().clear().type(updatedRandVal);
+      cy.contains('Save Row').filter('button').click({force: true})
+
+      cy.wait(3000)
+      cy.get('td').contains(randVal).should('not.exist');
+      cy.get('td').contains(updatedRandVal).should('exist');
+    })
+
+    it('Delete row', () => {
+      cy.get('td').contains(updatedRandVal).rightclick({force: true})
+
+      // delete row
+      cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click({force: true})
+      cy.wait(1000)
+      cy.get('td').contains(randVal).should('not.exist');
     })
   })
 }

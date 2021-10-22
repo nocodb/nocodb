@@ -9,7 +9,7 @@ export const genTest = (type, xcdb) => {
   describe(`${xcdb ? 'Meta - ' : ''}${type.toUpperCase()} api - Table`, () => {
 
     before(() => {
-      loginPage.loginAndOpenProject(type, xcdb)
+      //loginPage.loginAndOpenProject(type, xcdb)
       cy.get('.mdi-close').click({ multiple: true })
     })
       

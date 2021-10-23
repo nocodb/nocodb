@@ -26,10 +26,18 @@ export const genTest = (type, xcdb) => {
             })
         }
 
-        if (isTestSuiteActive('rest', true)) createProject(staticProjects.sampleREST)
-        if (isTestSuiteActive('graphql', true)) createProject(staticProjects.sampleGQL)
-        if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
-        if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
+        // if (isTestSuiteActive('rest', true)) createProject(staticProjects.sampleREST)
+        // if (isTestSuiteActive('graphql', true)) createProject(staticProjects.sampleGQL)
+        // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
+        // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
+
+        // tbd: add case for xcdb 
+        if ('rest' == type) {
+            createProject(staticProjects.externalREST)
+        }
+        else if ('graphql' == type) {
+            createProject(staticProjects.externalGQL)
+        }
     })
 
     // describe('Static user creations (different roles)', () => {

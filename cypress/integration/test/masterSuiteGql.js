@@ -1,7 +1,6 @@
 
 let t0 = require('./explicitLogin')
 let t00 = require('../common/00_pre_configurations')
-let t0a = require('../common/6e_project_operations')
 let t1a = require('../common/1a_table_operations')
 let t1b = require('../common/1b_table_column_operations')
 let t1c = require('../common/1c_table_row_operations')
@@ -22,6 +21,7 @@ let t5b = require('../common/5b_preview_role')
 // merged with t1a: let t6a = require('../common/6a_audit')
 let t6c = require('../common/6c_swagger_api')
 let t6d = require('../common/6d_language_validation')
+let t6e = require('../common/6e_project_operations')
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)

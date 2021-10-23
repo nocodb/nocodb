@@ -70,12 +70,26 @@ export const genTest = (type, xcdb) => {
             //         projectsPage.openProject(staticProjects.externalGQL.basic.name)
             // })
 
-            it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
+            it(`[${roles[roleType].name}] Left navigation menu, New User add`, (done) => {
+                cy.on('uncaught:exception', (err, runnable) => {
+                    expect(err.message).to.include('Not allowed')
+                    done()
+                    return false
+                })                
                 advancedSettings(roleType)
+
+                done()
             })
 
-            it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
+            it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, (done) => {
+                cy.on('uncaught:exception', (err, runnable) => {
+                    expect(err.message).to.include('Not allowed')
+                    done()
+                    return false
+                })                
                 editSchema(roleType)
+
+                done()
             })
 
             it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, (done) => {
@@ -95,22 +109,43 @@ export const genTest = (type, xcdb) => {
                 done()
             })
 
-            it(`[${roles[roleType].name}] Comments: view/add`, () => {
-
+            it(`[${roles[roleType].name}] Comments: view/add`, (done) => {
+                cy.on('uncaught:exception', (err, runnable) => {
+                    expect(err.message).to.include('Not allowed')
+                    done()
+                    return false
+                })
                 // Fix me!
                 if (roleType != 'viewer')
                     editComment(roleType)
+
+                done()
             })
 
-            it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
+            it(`[${roles[roleType].name}] Right navigation menu, share view`, (done) => {
+
+                cy.on('uncaught:exception', (err, runnable) => {
+                    expect(err.message).to.include('Not allowed')
+                    done()
+                    return false
+                })
+                
                 viewMenu(roleType)
+
+                done()
             })
 
-            after(() => {
-                if ('viewer' == roleType) {
-                    loginPage.loginAndOpenProject(type)                    
-                }
-            })
+            // after(() => {
+            //     if ('viewer' == roleType) {
+            //         loginPage.loginAndOpenProject('graphql', false)
+            //     }
+            // })              
+
+            // it(`Reset`, () => {
+            //     if ('viewer' == roleType) {
+            //         loginPage.loginAndOpenProject('graphql', false)
+            //     }
+            // })
         })        
     }
 

@@ -173,11 +173,11 @@ export const genTest = (type, xcdb) => {
             })
 
             // clean-up created file (shared.json)
-            after(() => {
-                cy.exec("del shared.json").then(()=> {
-                    cy.log("file cleaned up!")
-                })
-            })
+            // after(() => {
+            //     cy.exec("del shared.json").then(()=> {
+            //         cy.log("file cleaned up!")
+            //     })
+            // })
         })        
     }
 }

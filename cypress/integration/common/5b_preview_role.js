@@ -237,6 +237,9 @@ export const genTest = (type, xcdb, roleType) => {
 
     describe('Role preview validations', () => {
         // Sign in/ open project
+        before(() => {
+            loginPage.loginAndOpenProject(type, xcdb)
+        })
         // before(() => {
         //     loginPage.signIn(roles.owner.credentials)
         //     projectsPage.openProject('externalREST')

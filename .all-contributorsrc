@@ -495,6 +495,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "bebora",
+      "name": "Simone",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32399075?v=4",
+      "profile": "https://github.com/bebora",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

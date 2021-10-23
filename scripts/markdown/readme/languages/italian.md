@@ -234,7 +234,7 @@ npm run cypress:open
 ```
 
 # Contributi
-- Leggi ./contribute/HowToApplyLicense.md 
+- Leggi ./scripts/contribute/HowToApplyLicense.md 
 - Ignora l'aggiunta di header per .json, .md o .yml   
 
 

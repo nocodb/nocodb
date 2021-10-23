@@ -229,7 +229,7 @@ npm run cypress:open
 ```
 
 # Contribuant
-- S'il vous plaît jeter un oeil à ./contribute/HowToApplyLicense.md 
+- S'il vous plaît jeter un oeil à ./scripts/contribute/HowToApplyLicense.md 
 - Ignorer l'ajout d'en-têtes pour .json or .md or .yml   
 
 # 🎯  Pourquoi construisons-nous cela ?

@@ -232,7 +232,7 @@ npm run cypress:open
 ```
 
 # Beitragen
-- Bitte schau mal rein ./contribute/HowToApplyLicense.md 
+- Bitte schau mal rein ./scripts/contribute/HowToApplyLicense.md 
 - Ignorieren Sie das Hinzufügen von Überschriften für .json oder .md oder .yml   
 
 # 🎯 Warum bauen wir das auf?

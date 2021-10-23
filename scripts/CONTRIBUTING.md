@@ -1,3 +1,3 @@
 ```
-See ./contribute folder
+See ./scripts/contribute folder
 ```

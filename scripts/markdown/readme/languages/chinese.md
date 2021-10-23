@@ -235,7 +235,7 @@ npm run cypress:open
 
 # 贡献
 
-- 请看一下 ./contribute/HowToApplyLicense.md
+- 请看一下 ./scripts/contribute/HowToApplyLicense.md
 - 忽略为 .json 或 .md 或 .yml 添加标头
 
 # 🎯  为什么我们建立这个？

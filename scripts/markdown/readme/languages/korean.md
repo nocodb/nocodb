@@ -230,7 +230,7 @@ npm run cypress:open
 ```
 
 # 기여하기
-- 먼저 `./contribute/HowToApplyLicense.md`를 읽기
+- 먼저 `./scripts/contribute/HowToApplyLicense.md`를 읽기
 - `.json`, `.md`, `.yml` 파일에는 헤더를 추가하지 않아도 됨
 
 # 🎯 왜 이걸 만들었나요?

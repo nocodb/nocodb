@@ -57,20 +57,24 @@ export const genTest = (type, xcdb) => {
                     let URL = jsonPayload.SWAGGER_URL
                     Token = jsonPayload.AUTH_TOKEN
 
-                    cy.visit(URL)
-                    cy.log(Token)
+                    cy.visit(URL).then(() => {
 
-                    // validate; API order assumed
-                    cy.get('#operations-tag-Authentication').next().find('.opblock').should('has.length', 9)
-                    getSwaggerButton("Authentication", 0, "User login").should('exist')
-                    getSwaggerButton("Authentication", 1, "User signup").should('exist')
-                    getSwaggerButton("Authentication", 2, "Password Forgot").should('exist')
-                    getSwaggerButton("Authentication", 3, "Email validate link").should('exist')
-                    getSwaggerButton("Authentication", 4, "Validate password reset token").should('exist')
-                    getSwaggerButton("Authentication", 5, "Password reset").should('exist')
-                    getSwaggerButton("Authentication", 6, "User details").should('exist')
-                    getSwaggerButton("Authentication", 7, "Update user details").should('exist')
-                    getSwaggerButton("Authentication", 8, "Update user details").should('exist')
+                        // wait to allow time for SWAGGER Library loading to finish
+                        cy.wait(5000)
+                        cy.log(Token)
+
+                        // validate; API order assumed
+                        cy.get('#operations-tag-Authentication', {timeout: 10000}).next().find('.opblock').should('has.length', 9)
+                        getSwaggerButton("Authentication", 0, "User login").should('exist')
+                        getSwaggerButton("Authentication", 1, "User signup").should('exist')
+                        getSwaggerButton("Authentication", 2, "Password Forgot").should('exist')
+                        getSwaggerButton("Authentication", 3, "Email validate link").should('exist')
+                        getSwaggerButton("Authentication", 4, "Validate password reset token").should('exist')
+                        getSwaggerButton("Authentication", 5, "Password reset").should('exist')
+                        getSwaggerButton("Authentication", 6, "User details").should('exist')
+                        getSwaggerButton("Authentication", 7, "Update user details").should('exist')
+                        getSwaggerButton("Authentication", 8, "Update user details").should('exist')                        
+                    })
                 })
             })
 

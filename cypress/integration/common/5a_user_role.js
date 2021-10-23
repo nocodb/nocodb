@@ -78,21 +78,21 @@ export const genTest = (type, xcdb) => {
                 editSchema(roleType)
             })
 
-            it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, (/*done*/) => {
+            it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, (done) => {
 
                 // known issue: to be fixed
                 // right click raising alarm 'not allowed' for viewer
                 //
-                // cy.on('uncaught:exception', (err, runnable) => {
-                //     expect(err.message).to.include('Not allowed')
-                //     done()
-                //     return false
-                // })
+                cy.on('uncaught:exception', (err, runnable) => {
+                    expect(err.message).to.include('Not allowed')
+                    done()
+                    return false
+                })
 
                 if (roleType != 'editor')
                     editData(roleType)
 
-                // done()
+                done()
             })
 
             it(`[${roles[roleType].name}] Comments: view/add`, () => {

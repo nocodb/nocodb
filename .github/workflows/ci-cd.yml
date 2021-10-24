@@ -9,19 +9,29 @@ on:
     branches: [ master ]
 
 jobs:
-  cypress-run:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        spec: ['masterSuiteRest', 'masterSuiteGql']
-    steps:
+  cypress-rest--run:
+    runs-on: ubuntu-20.04. 
+    steps: 
      - name: Checkout
-       uses: actions/checkout@v2
+       uses: actions/checkout@v2 
        with:
          fetch-depth: 0
-     - name: Check for update
+     - name: Check for update     
        run: |
           echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
+     -  name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
      - name: Cypress run
        if: ${{ env.CHANGED == 'OK' }}
@@ -31,7 +41,41 @@ jobs:
            npm run start:api
            npm run start:web
            docker-compose -f ./docker-compose-cypress.yml up -d
-         spec: 'cypress/integration/test/${{ matrix.spec }}.js'
+         spec: 'cypress/integration/test/masterSuiteRest.js'
+         wait-on: 'http://localhost:8080, http://localhost:3000/_nuxt/runtime.js'
+         wait-on-timeout: 1200
+  cypress-graphql-run:
+    runs-on: ubuntu-20.04
+    steps:
+     - name: Checkout
+       uses: actions/checkout@v2
+       with:
+         fetch-depth: 0
+     - name: Check for update     
+       run: |
+          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
+     -  name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+     - name: Cypress run
+       if: ${{ env.CHANGED == 'OK' }}
+       uses: cypress-io/github-action@v2
+       with:
+         start: |
+           npm run start:api
+           npm run start:web
+           docker-compose -f ./docker-compose-cypress.yml up -d
+         spec: 'cypress/integration/test/masterSuiteGql.js'
          wait-on: 'http://localhost:8080, http://localhost:3000/_nuxt/runtime.js'
          wait-on-timeout: 1200
   docker:
@@ -51,7 +95,7 @@ jobs:
       if: ${{ env.CHANGED == 'OK' }}
       run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mysql
 
-#    - name: Test MSSQL REST APIs
+#    - name: Test MSSQL REST APIs 
 #      run: cd ./packages/nocodb/  && docker-compose run xc-test-mssql
 #    - name: Test MSSQL GraphQL APIs
 #      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mssql

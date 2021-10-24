@@ -58,7 +58,9 @@ export const genTest = (type, xcdb) => {
             cy.get('#data-table-form-City').drag('#data-table-form-LastUpdate')
             cy.get('[title="City => Address"]').drag('.nc-drag-n-drop-to-hide')
             cy.get('.nc-form > .mx-auto').find('[type="checkbox"]').eq(1).click()
-
+            
+            cy.wait(2000)
+          
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
                 baseURL = url

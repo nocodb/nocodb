@@ -19,20 +19,29 @@ export const genTest = (type, xcdb) => {
 
         const addUser = (user) => {
             it(`RoleType: ${user.name}`, () => {
-                //let cred = { username: 'user4@nocodb.com', password: 'Password123.' }
-                //mainPage.addNewUserToProject(cred, user.name)
-                mainPage.addNewUserToProject(user.credentials, user.name)
+                // for first project, users need to be added explicitly using "New User" button
+                // for subsequent projects, they will be required to just add to this project
+                // using ROW count to identify if its former or latter scenario
+                // 5 users (owner, creator, editor, viewer, commenter) + row header = 6
+                cy.get(`tr`).then((obj) => {
+                    cy.log(obj.length)
+                    if (obj.length == 6) {
+                        mainPage.addExistingUserToProject(user.credentials.username, user.name)
+                    } else {
+                        mainPage.addNewUserToProject(user.credentials, user.name)
+                    }
+                })
             })
         }
 
         addUser(roles.creator)
         addUser(roles.editor)
         addUser(roles.commenter)
-        addUser(roles.viewer)
+        addUser(roles.viewer)                
 
-        it(`Logging purpose`, () => {
-            cy.log(mainPage.roleURL)
-        })
+        // it(`Logging purpose`, () => {
+        //     cy.log(mainPage.roleURL)
+        // })
     })    
     
     const roleValidation = (roleType) => {

@@ -15,7 +15,7 @@ export const genTest = (type, xcdb) => {
         const langVerification = (idx, lang) => {
             // pick json from the file specified
             it(`Language verification: ${lang} > Projects page`, () => {
-                let json = require(`../../../packages/nc-gui/lang/${lang}`);
+                let json = require(`../../../../packages/nc-gui/lang/${lang}`);
             
                 // toggle menu as per index
                 cy.get('.nc-menu-translate').click()

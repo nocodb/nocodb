@@ -61,7 +61,7 @@ export class _mainPage {
         //
         cy.getActiveMenu().contains(roleType).click()
         cy.getActiveMenu().contains('editor').click()
-        cy.get('.mdi-menu-down').click()
+        cy.get('.mdi-menu-down').last().click()
         cy.get('.nc-invite-or-save-btn').click()
 
         // get URL, invoke

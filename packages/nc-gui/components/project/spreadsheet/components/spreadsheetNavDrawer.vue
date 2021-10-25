@@ -1,5 +1,6 @@
 <template>
   <v-navigation-drawer
+    permanent
     class="views-navigation-drawer"
     :style="{
       maxWidth: toggleDrawer ? '0' : '220px',

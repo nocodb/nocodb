@@ -112,7 +112,7 @@ export default {
   ** See https://nuxtjs.org/api/configuration-build/
   */
   build: {
-    cache: true,
+    parallel: true,
     plugins: [
       new MonacoEditorWebpackPlugin({
         // https://github.com/Microsoft/monaco-editor-webpack-plugin#options

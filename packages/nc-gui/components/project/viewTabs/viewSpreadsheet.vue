@@ -303,7 +303,6 @@ export default {
     },
     filteredData: [],
     showFields: {},
-    fieldList: [],
 
     cellHeights: [{
       size: 'small',
@@ -373,7 +372,6 @@ export default {
       }
     },
     mapFieldsAndShowFields() {
-      this.fieldList = this.availableColumns.map(c => c._cn)
       this.showFields = this.fieldList.reduce((obj, k) => {
         obj[k] = true
         return obj

@@ -4,7 +4,7 @@
       <div v-if="!isForm" class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
-            <div v-on="on" style="min-width: 56px">
+            <div style="min-width: 56px" v-on="on">
               <v-icon
                 class="pa-1 pr-0 ml-2"
                 small
@@ -60,6 +60,14 @@
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
 
       <v-spacer class="h-100" @dblclick="debug=true" />
+
+      <csv-export
+        :available-columns="availableColumns"
+        :data="data"
+        :meta="meta"
+        :nodes="nodes"
+        class="mr-1"
+      />
 
       <template v-if="!isForm">
         <debug-metas v-if="debug" class="mr-3" />
@@ -544,10 +552,12 @@ import ExpandedForm from '@/components/project/spreadsheet/components/expandedFo
 import Pagination from '@/components/project/spreadsheet/components/pagination'
 import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
+import CsvExport from '~/components/project/spreadsheet/components/csvExport'
 
 export default {
   name: 'RowsXcDataTable',
   components: {
+    CsvExport,
     FormView,
     DebugMetas,
     Pagination,

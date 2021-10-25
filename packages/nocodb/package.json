@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.80.1",
+  "version": "0.80.0",
   "description": "xc-cli",
   "main": "dist/bundle.js",
   "repository": "https://github.com/nocodb/nocodb",
@@ -147,7 +147,7 @@
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
     "nc-help": "^0.2.16",
-    "nc-lib-gui": "^0.80.1",
+    "nc-lib-gui": "0.80.1",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
     "nodemailer": "^6.4.10",

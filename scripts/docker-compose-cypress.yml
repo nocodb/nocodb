@@ -8,7 +8,7 @@ services:
      environment:
        MYSQL_ROOT_PASSWORD: password
      volumes:
-       - ./packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+       - ../packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
 #  xc-cypress-nocodb:
 #    network_mode: host
 #    image: node:14-alpine

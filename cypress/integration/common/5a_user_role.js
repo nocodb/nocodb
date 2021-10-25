@@ -49,6 +49,7 @@ export const genTest = (type, xcdb) => {
 
             if (roleType != 'owner') {
                 it(`[${roles[roleType].name}] SignIn, Open project`, () => {
+                    cy.log(mainPage.roleURL[roleType])
                     cy.visit(mainPage.roleURL[roleType])
                     cy.wait(3000)
 
@@ -56,7 +57,7 @@ export const genTest = (type, xcdb) => {
                     //
                     cy.get('input[type="text"]').type(roles[roleType].credentials.username)
                     cy.get('input[type="password"]').type(roles[roleType].credentials.password)
-                    cy.get('button:contains("SIGN UP")').click()
+                    cy.get('button:contains("SIGN")').click()
 
                     cy.url({ timeout: 6000 }).should('contain', '#/project')
                     cy.wait(1000)
@@ -85,9 +86,9 @@ export const genTest = (type, xcdb) => {
                     done()
                     return false
                 })                
-                advancedSettings(roleType)
+                advancedSettings(roleType, done)
 
-                done()
+                //done()
             })
 
             it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, (done) => {
@@ -96,9 +97,9 @@ export const genTest = (type, xcdb) => {
                     done()
                     return false
                 })                
-                editSchema(roleType)
+                editSchema(roleType, done)
 
-                done()
+                // done()
             })
 
             it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, (done) => {
@@ -113,9 +114,9 @@ export const genTest = (type, xcdb) => {
                 })
 
                 if (roleType != 'editor')
-                    editData(roleType)
-
-                done()
+                    editData(roleType, done)
+                else
+                    done()
             })
 
             it(`[${roles[roleType].name}] Comments: view/add`, (done) => {
@@ -126,9 +127,9 @@ export const genTest = (type, xcdb) => {
                 })
                 // Fix me!
                 if (roleType != 'viewer')
-                    editComment(roleType)
-
-                done()
+                    editComment(roleType, done)
+                else
+                    done()
             })
 
             it(`[${roles[roleType].name}] Right navigation menu, share view`, (done) => {
@@ -139,9 +140,9 @@ export const genTest = (type, xcdb) => {
                     return false
                 })
                 
-                viewMenu(roleType)
+                viewMenu(roleType, done)
 
-                done()
+                //done()
             })
 
             // after(() => {
@@ -168,7 +169,7 @@ export const genTest = (type, xcdb) => {
 
 // project configuration settings
 //
-const advancedSettings = (roleType) => {
+const advancedSettings = (roleType, done) => {
 
     // let validationString = (true == roleValidation[roleIdx].advSettings) ? 'exist' : 'not.exist'
     let validationString = (true == roles[roleType].validations.advSettings) ? 'exist' : 'not.exist'
@@ -188,6 +189,9 @@ const advancedSettings = (roleType) => {
     }
 
     cy.get('button:contains("New User")').should(validationString)
+    cy.wait(2000).then(() => {
+        done()
+    })
 }
 
 
@@ -195,7 +199,7 @@ const advancedSettings = (roleType) => {
 //  - Add/delete table
 //  - Add/Update/delete column
 //
-const editSchema = (roleType) => {
+const editSchema = (roleType, done) => {
 
     let columnName = 'City'
     let validationString = (true == roles[roleType].validations.editSchema) ? 'exist' : 'not.exist'
@@ -221,13 +225,17 @@ const editSchema = (roleType) => {
     //
     cy.get(`th:contains(${columnName}) .mdi-menu-down`).should(validationString)
 
+    cy.wait(2000).then(() => {
+        done()
+    })    
+
 }
 
 
 // Table data related validations
 //  - Add/delete/modify row
 //
-const editData = (roleType) => {
+const editData = (roleType, done) => {
 
     let columnName = 'City'
     let validationString = (true == roles[roleType].validations.editData) ? 'exist' : 'not.exist'
@@ -273,6 +281,10 @@ const editData = (roleType) => {
     // double click cell entries to edit
     //
     cy.get(`tbody > :nth-child(8) > [data-col="City"]`).dblclick().find('input').should(validationString)
+
+    cy.wait(2000).then(() => {
+        done()
+    })    
 }
 
 
@@ -280,7 +292,7 @@ const editData = (roleType) => {
 //      Viewer: only allowed to read
 //      Everyone else: read &/ update
 //
-const editComment = (roleType) => {
+const editComment = (roleType, done) => {
 
     let columnName = 'City'
     let validationString = (true == roles[roleType].validations.editComment) ? 'Comment added successfully' : 'Not allowed'
@@ -301,12 +313,16 @@ const editComment = (roleType) => {
     //
     cy.get('body').contains(validationString, { timeout: 2000 }).should('exist')
     cy.get('body').type('{esc}')
+
+    cy.wait(2000).then(() => {
+        done()
+    })    
 }
 
 // right navigation menu bar
 //      Editor/Viewer/Commenter : can only view 'existing' views
 //      Rest: can create/edit
-const viewMenu = (roleType) => {
+const viewMenu = (roleType, done) => {
 
     let columnName = 'City'
     let navDrawListCnt = 2
@@ -331,6 +347,10 @@ const viewMenu = (roleType) => {
 
     // cy.get(`.nc-create-grid-view`).should(validationString)
     // cy.get(`.nc-create-gallery-view`).should(validationString)
+
+    cy.wait(2000).then(() => {
+        done()
+    })
 }
 
 /**

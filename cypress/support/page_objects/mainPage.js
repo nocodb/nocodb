@@ -103,6 +103,8 @@ export class _mainPage {
         cy.get('.mdi-menu-down').click()
         cy.get('.nc-invite-or-save-btn').click()
         cy.wait(1000)
+
+        this.roleURL[role] = "http://localhost:3000/#/user/authentication/signin"
     }
 
     getCell = (columnHeader, cellNumber) => {

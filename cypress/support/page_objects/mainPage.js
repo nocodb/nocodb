@@ -30,11 +30,11 @@ export class _mainPage {
 
 
     toolBarTopLeft(toolBarItem) {
-        return cy.get('header.v-toolbar').eq(0).find('a').eq(toolBarItem)
+        return cy.get('header.v-toolbar', {timeout: 20000}).eq(0).find('a').eq(toolBarItem)
     }
 
     toolBarTopRight(toolBarItem) {
-        return cy.get('header.v-toolbar').eq(0).find('button').eq(toolBarItem)
+        return cy.get('header.v-toolbar', {timeout: 20000}).eq(0).find('button').eq(toolBarItem)
     }
 
     navigationDraw(item) {

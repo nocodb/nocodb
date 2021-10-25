@@ -114,15 +114,15 @@ export class _projectsPage {
             projectName = 'test_proj' + Date.now()
 
         // click on "New Project" 
-        cy.get(':nth-child(5) > .v-btn').click()
+        cy.get(':nth-child(5) > .v-btn', {timeout: 20000}).click()
 
         if ('none' == projectData.dbType) {
 
             // Subsequent form, select (+ Create) option
-            cy.get('.nc-create-xc-db-project').click({ force: true })
+            cy.get('.nc-create-xc-db-project', {timeout: 20000}).click({ force: true })
 
             // feed project name
-            cy.get('.nc-metadb-project-name').type(projectName)
+            cy.get('.nc-metadb-project-name', {timeout: 20000}).type(projectName)
 
             // Radio button: defaults to NC_REST
             if ('GQL' == projectData.apiType) {
@@ -130,7 +130,7 @@ export class _projectsPage {
             }
 
             // Submit
-            cy.contains('button', 'Create', { timeout: 3000 }).click()
+            cy.contains('button', 'Create', { timeout: 20000 }).click()
 
             // takes a while to load project
             this.waitHomePageLoad()
@@ -142,11 +142,11 @@ export class _projectsPage {
         else {
 
             // Subsequent form, select (+ Create by connection to external database) option
-            cy.get('.nc-create-external-db-project').click({ force: true })
+            cy.get('.nc-create-external-db-project', {timeout: 20000}).click({ force: true })
 
             // feed project name
             //cy.get('.nc-metadb-project-name').type(projectName)
-            cy.contains('Enter Project Name').parent().find('input').clear().type(projectName)
+            cy.contains('Enter Project Name', {timeout: 20000}).parent().find('input').clear().type(projectName)
 
             // Radio button: defaults to NC_REST
             if ('GQL' == projectData.apiType) {
@@ -165,10 +165,10 @@ export class _projectsPage {
             if (cred.databaseName != '') cy.contains('Database : create if not exists').parent().find('input').clear().type(cred.databaseName)
 
             // Test database connection
-            cy.contains('Test Database Connection').click()
+            cy.contains('Test Database Connection', {timeout: 20000}).click()
 
             // Create project
-            cy.contains('Ok & Save Project', { timeout: 6000 }).click()
+            cy.contains('Ok & Save Project', { timeout: 20000 }).click()
 
             // takes a while to load project
             this.waitHomePageLoad()

@@ -232,8 +232,14 @@ Changes made to code automatically restart.
 # install dependencies(cypress)
 npm install
 
-# run required services by using docker compose 
-docker-compose -f ./docker-compose-cypress.yml up
+# run mysql database with required database using docker compose
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# Run backend api using following command
+npm run start:api
+
+# Run frontend web UI using following command
+npm run start:web
 
 # wait until both 3000 and 8080 porta are avalable
 # and run cypress test using following command

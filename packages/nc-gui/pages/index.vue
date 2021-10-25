@@ -96,7 +96,7 @@
         <vue-typer
           :repeat="0"
           text="Every once in a while,
-a revolutionary tech comes
+revolutionary tech comes
  along that changes everything."
           @typed="typed = true; moved = false"
         />

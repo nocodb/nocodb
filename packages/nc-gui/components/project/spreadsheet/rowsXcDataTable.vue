@@ -1,10 +1,10 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
     <v-toolbar height="32" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
-      <div v-if="!isForm" class="d-flex xc-border align-center search-box">
+      <div v-if="!isForm" class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
-            <div v-on="on">
+            <div v-on="on" style="min-width: 56px">
               <v-icon
                 class="pa-1 pr-0 ml-2"
                 small
@@ -40,7 +40,7 @@
         <v-text-field
           v-model="searchQueryVal"
           autocomplete="off"
-          style="min-width: 300px"
+          style="min-width: 100px ; width: 300px"
           flat
           dense
           solo

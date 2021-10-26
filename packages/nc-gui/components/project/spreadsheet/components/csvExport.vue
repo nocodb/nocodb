@@ -29,47 +29,55 @@ export default {
       return Promise.all(this.data.map(async(r) => {
         const row = {}
         for (const col of this.availableColumns) {
-          console.log(col)
           if (col.virtual) {
-            let prop, primCol
-            if (col.mm) {
+            let prop, cn
+            if (col.mm || (col.lk && col.lk.type === 'mm')) {
+              const tn = col.mm ? col.mm.rtn : col.lk.ltn
+              const _tn = col.mm ? col.mm._rtn : col.lk._ltn
               await this.$store.dispatch('meta/ActLoadMeta', {
                 env: this.nodes.env,
                 dbAlias: this.nodes.dbAlias,
-                tn: col.mm.rtn
+                tn
               })
 
-              prop = `${col.mm._rtn}MMList`
-              primCol = this.$store.state.meta.metas[col.mm.rtn].columns.find(c => c.pv) ||
-                this.$store.state.meta.metas[col.mm.rtn].columns.find(c => c.pk)
+              prop = `${_tn}MMList`
+              cn = col.lk
+                ? col.lk._lcn
+                : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) || this.$store.state.meta.metas[tn].columns.find(c => c.pk) || {})._cn
 
-              row[col._cn] = r.row[prop] && r.row[prop].map(r => primCol && primCol._cn && r[primCol._cn])
-            } else if (col.hm) {
+              row[col._cn] = r.row[prop] && r.row[prop].map(r => cn && r[cn])
+            } else if (col.hm || (col.lk && col.lk.type === 'hm')) {
+              const tn = col.hm ? col.hm.tn : col.lk.ltn
+              const _tn = col.hm ? col.hm._tn : col.lk._ltn
+
               await this.$store.dispatch('meta/ActLoadMeta', {
                 env: this.nodes.env,
                 dbAlias: this.nodes.dbAlias,
-                tn: col.hm.tn
+                tn
               })
 
-              prop = `${col.hm._tn}List`
-              primCol = this.$store.state.meta.metas[col.hm.tn].columns.find(c => c.pv) ||
-                this.$store.state.meta.metas[col.hm.tn].columns.find(c => c.pk)
-              row[col._cn] = r.row[prop] && r.row[prop].map(r => primCol && primCol._cn && r[primCol._cn])
-            } else if (col.bt) {
+              prop = `${_tn}List`
+              cn = col.lk
+                ? col.lk._lcn
+                : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||
+                this.$store.state.meta.metas[tn].columns.find(c => c.pk))._cn
+              row[col._cn] = r.row[prop] && r.row[prop].map(r => cn && r[cn])
+            } else if (col.bt || (col.lk && col.lk.type === 'bt')) {
+              const tn = col.bt ? col.bt.rtn : col.lk.ltn
+              const _tn = col.bt ? col.bt._rtn : col.lk._ltn
               await this.$store.dispatch('meta/ActLoadMeta', {
                 env: this.nodes.env,
                 dbAlias: this.nodes.dbAlias,
-                tn: col.bt.rtn
+                tn
               })
 
-              prop = `${col.bt._rtn}Read`
-              primCol = this.$store.state.meta.metas[col.bt.rtn].columns.find(c => c.pv) ||
-                this.$store.state.meta.metas[col.bt.rtn].columns.find(c => c.pk)
+              prop = `${_tn}Read`
+              cn = col.lk
+                ? col.lk._lcn
+                : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||
+                this.$store.state.meta.metas[tn].columns.find(c => c.pk) || {})._cn
               row[col._cn] = r.row[prop] &&
-                r.row[prop] && primCol && primCol._cn && r.row[prop][primCol._cn]
-            } else if (col.lk) {
-              // todo:
-              row[col._cn] = r.row[col._cn]
+                r.row[prop] && cn && r.row[prop][cn]
             } else {
               row[col._cn] = r.row[col._cn]
             }

@@ -21,5 +21,12 @@
     "xcdbREST",
     "xcdbREST",
     "can configure multiple too, seperated by a . as in extREST.extGQL"
-  ]
+  ],
+  "fixturesFolder": "scripts/cypress/fixtures",
+  "integrationFolder": "scripts/cypress/integration",
+  "pluginsFile": "scripts/cypress/plugins/index.js",
+  "screenshotsFolder": "scripts/cypress/screenshots",
+  "videosFolder": "scripts/cypress/videos",
+  "downloadsFolder": "scripts/cypress/downloads",
+  "supportFile": "scripts/cypress/support/index.js"  
 }

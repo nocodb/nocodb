@@ -44,6 +44,7 @@ jobs:
           spec: "./scripts/cypress/integration/test/masterSuiteRest.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
           wait-on-timeout: 1200
+          config-file: scripts/cypress.json
   cypress-graphql-run:
     runs-on: ubuntu-20.04
     steps:
@@ -78,6 +79,7 @@ jobs:
           spec: "./scripts/cypress/integration/test/masterSuiteGql.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
           wait-on-timeout: 1200
+          config-file: scripts/cypress.json
   docker:
     runs-on: ubuntu-latest
     steps:

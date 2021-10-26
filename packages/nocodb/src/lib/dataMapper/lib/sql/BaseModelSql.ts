@@ -5,6 +5,7 @@ import Validator from 'validator';
 import BaseModel, { XcFilter, XcFilterWithAlias } from '../BaseModel';
 import formulaQueryBuilder from './formulaQueryBuilderFromString';
 import genRollupSelect from './genRollupSelect';
+import Papaparse from 'papaparse';
 
 /**
  * Base class for models
@@ -22,6 +23,7 @@ class BaseModelSql extends BaseModel {
   private _selectFormulasObj: any;
   private _defaultNestedQueryParams: any;
   private _nestedProps: { [prop: string]: any };
+  private readonly _primaryCol: any;
 
   /**
    *
@@ -66,6 +68,7 @@ class BaseModelSql extends BaseModel {
     this.columns = columns;
 
     this.pks = columns.filter(c => c.pk === true);
+    this.primaryCol = columns.find(c => c.pv)?._cn;
     this.hasManyRelations = hasMany;
     this.belongsToRelations = belongsTo;
     this.manyToManyRelations = manyToMany;
@@ -2402,6 +2405,161 @@ class BaseModelSql extends BaseModel {
       }
       return arr;
     }, []);
+  }
+
+  public async extractCsvData(args) {
+    const rows = await this.nestedList(args);
+
+    const csvRows = [];
+
+    for (const row of rows) {
+      const csvRow = {};
+
+      for (const column of this.columns) {
+        if (column._cn in row) {
+          csvRow[column._cn] = this.serializeCellValue({
+            value: row[column._cn],
+            column
+          });
+        }
+      }
+
+      for (const vColumn of this.virtualColumns) {
+        if (vColumn._cn in row && !vColumn.bt && !vColumn.hm && !vColumn.mm) {
+          if (vColumn.lk) {
+          } else {
+            csvRow[vColumn._cn] = row[vColumn._cn];
+          }
+        }
+      }
+
+      for (const [prop, vColumn] of Object.entries(this.nestedProps)) {
+        if (prop in row) {
+          if (Array.is) csvRow[prop] = row.map;
+        }
+      }
+
+      csvRows.push(csvRow);
+    }
+
+    return Papaparse.unparse(csvRows);
+    //
+    //
+    // return Promise.all(this.data.map(async (r) => {
+    //     const row = {}
+    //     for (const col of this.availableColumns) {
+    //         if (col.virtual) {
+    //             let prop, cn
+    //             if (col.mm || (col.lk && col.lk.type === 'mm')) {
+    //                 const tn = col.mm ? col.mm.rtn : col.lk.ltn
+    //                 const _tn = col.mm ? col.mm._rtn : col.lk._ltn
+    //                 await this.$store.dispatch('meta/ActLoadMeta', {
+    //                     env: this.nodes.env,
+    //                     dbAlias: this.nodes.dbAlias,
+    //                     tn
+    //                 })
+    //
+    //                 prop = `${_tn}MMList`
+    //                 cn = col.lk
+    //                     ? col.lk._lcn
+    //                     : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) || this.$store.state.meta.metas[tn].columns.find(c => c.pk) || {})._cn
+    //
+    //                 row[col._cn] = r.row[prop] && r.row[prop].map(r => cn && r[cn])
+    //             } else if (col.hm || (col.lk && col.lk.type === 'hm')) {
+    //                 const tn = col.hm ? col.hm.tn : col.lk.ltn
+    //                 const _tn = col.hm ? col.hm._tn : col.lk._ltn
+    //
+    //                 await this.$store.dispatch('meta/ActLoadMeta', {
+    //                     env: this.nodes.env,
+    //                     dbAlias: this.nodes.dbAlias,
+    //                     tn
+    //                 })
+    //
+    //                 prop = `${_tn}List`
+    //                 cn = col.lk
+    //                     ? col.lk._lcn
+    //                     : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||
+    //                         this.$store.state.meta.metas[tn].columns.find(c => c.pk))._cn
+    //                 row[col._cn] = r.row[prop] && r.row[prop].map(r => cn && r[cn])
+    //             } else if (col.bt || (col.lk && col.lk.type === 'bt')) {
+    //                 const tn = col.bt ? col.bt.rtn : col.lk.ltn
+    //                 const _tn = col.bt ? col.bt._rtn : col.lk._ltn
+    //                 await this.$store.dispatch('meta/ActLoadMeta', {
+    //                     env: this.nodes.env,
+    //                     dbAlias: this.nodes.dbAlias,
+    //                     tn
+    //                 })
+    //
+    //                 prop = `${_tn}Read`
+    //                 cn = col.lk
+    //                     ? col.lk._lcn
+    //                     : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||
+    //                         this.$store.state.meta.metas[tn].columns.find(c => c.pk) || {})._cn
+    //                 row[col._cn] = r.row[prop] &&
+    //                     r.row[prop] && cn && r.row[prop][cn]
+    //             } else {
+    //                 row[col._cn] = r.row[col._cn]
+    //             }
+    //         } else if (col.uidt === 'Attachment') {
+    //             let data = []
+    //             try {
+    //                 if (typeof r.row[col._cn] === 'string') {
+    //                     data = JSON.parse(r.row[col._cn])
+    //                 } else if (r.row[col._cn]) {
+    //                     data = r.row[col._cn]
+    //                 }
+    //             } catch {
+    //             }
+    //             row[col._cn] = (data || []).map(a => `${a.title}(${a.url})`)
+    //         } else {
+    //             row[col._cn] = r.row[col._cn]
+    //         }
+    //     }
+    //     return row
+    // }))
+  }
+
+  // async exportCsv() {
+  //     const blob = new Blob([Papaparse.unparse(await this.extractCsvData())], {type: 'text/plain;charset=utf-8'})
+  //     FileSaver.saveAs(blob, `${this.meta._tn}_exported.csv`)
+  // }
+  private serializeCellValue({
+    value,
+    ...args
+  }: {
+    column?: any;
+    value: any;
+    columnName?: string;
+  }) {
+    if (!args.column || !args.columnName) {
+      return value;
+    }
+    const column =
+      args.column || this.columns.find(c => c._cn === this.columnToAlias);
+
+    switch (column?.uidt) {
+      case 'Attachment': {
+        let data = value;
+        try {
+          if (typeof value === 'string') {
+            data = JSON.parse(value);
+          }
+        } catch {}
+
+        return (data || []).map(
+          attachment => `${attachment.title}(${encodeURI(attachment.url)})`
+        );
+      }
+      default:
+        return value;
+    }
+  }
+
+  public get primaryCol(): string {
+    return this._primaryCol?.cn;
+  }
+  public get primaryColAlias(): string {
+    return this._primaryCol?._cn;
   }
 }
 

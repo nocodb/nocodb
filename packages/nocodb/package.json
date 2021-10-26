@@ -153,6 +153,7 @@
     "nodemailer": "^6.4.10",
     "ora": "^4.0.4",
     "os-locale": "^5.0.0",
+    "papaparse": "^5.3.1",
     "parse-database-url": "^0.3.0",
     "passport": "^0.4.1",
     "passport-auth-token": "^1.0.1",

@@ -223,14 +223,21 @@ npm run dev
 # 安装开发依赖(cypress)
 npm install
 
-# 使用 docker compose 运行所需的服务
-docker-compose -f ./docker-compose-cypress.yml up
+# 使用 docker compose 使用所需的数据库运行 mysql 数据库
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# 使用以下命令运行后端 api
+npm run start:api
+
+# 使用以下命令运行前端 Web UI
+npm run start:web
 
 # 等到 3000 和 8080 端口都可用时，使用以下命令运行Cypress测试
 npm run cypress:run
 
-# 或运行以下命令在图形用户界面上运行它
+# or run following command to run it with GUI
 npm run cypress:open
+
 ```
 
 # 贡献

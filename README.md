@@ -241,7 +241,7 @@ npm run start:api
 # Run frontend web UI using following command
 npm run start:web
 
-# wait until both 3000 and 8080 porta are avalable
+# wait until both 3000 and 8080 ports are available
 # and run cypress test using following command
 npm run cypress:run
 

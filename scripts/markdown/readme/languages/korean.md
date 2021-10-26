@@ -218,8 +218,15 @@ npm run dev
 # 의존성(cypress) 설치
 npm install
 
-# docker compose로 필요한 서비스 실행
-docker-compose -f ./docker-compose-cypress.yml up
+# docker compose를 사용하여 필요한 데이터베이스로 mysql 데이터베이스 실행
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# 다음 명령을 사용하여 백엔드 API 실행
+npm run start:api
+
+# 다음 명령을 사용하여 프론트엔드 웹 UI 실행
+npm run start:web
+
 
 # 3000 포트와 8080 포트가 모두 열릴 때까지 대기
 # 이후 다음 명령으로 cypress 실행

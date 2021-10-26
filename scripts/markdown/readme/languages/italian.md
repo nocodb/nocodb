@@ -220,10 +220,14 @@ Modifiche al codice generano un riavvio automatico.
 # installa le dipendenze (Cypress)
 npm install
 
-# esegui i servizi richiesti con Docker Compose 
-docker-compose -f ./docker-compose-cypress.yml up
+# eseguire il database mysql con il database richiesto utilizzando docker compose
+docker-compose -f ./scripts/docker-compose-cypress.yml up
 
+# Esegui l'API di backend usando il seguente comando
+npm run start:api
 
+# Esegui l'interfaccia utente web frontend usando il seguente comando
+npm run start:web
 
 # attendi la disponibilità delle porte 3000 e 8080
 # ed esegui Cypress con il seguente comando:

@@ -223,10 +223,17 @@ npm run dev
 # установить зависимости (cypress)
 npm install
 
-# запустить необходимые службы с помощью docker compose 
-docker-compose -f ./docker-compose-cypress.yml up
+# install dependencies(cypress)
+npm install
 
+# запустить базу данных mysql с необходимой базой данных, используя docker compose
+docker-compose -f ./scripts/docker-compose-cypress.yml up
 
+# Запустите backend api, используя следующую команду
+npm run start:api
+
+# Запустите интерфейсный веб-интерфейс, используя следующую команду
+npm run start:web
 
 # подождите, пока станут доступны порты 3000 и 8080
 # и запустите тест cypress, используя следующую команду

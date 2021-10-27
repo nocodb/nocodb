@@ -21,8 +21,21 @@ export const genTest = (type, xcdb) => {
 
                 // click home button
                 mainPage.toolBarTopLeft(mainPage.HOME).click()
-                // create requested project
-                projectsPage.createProject(proj.basic, proj.config)
+
+                cy.get('.nc-container').then((obj) => {
+                    cy.log(obj)
+
+                    // if project already created, open
+                    // else, create a new one
+                    if (true == obj[0].innerHTML.includes(proj.basic.name)) {
+                        projectsPage.openProject(proj.basic.name)
+                    } else {
+                        projectsPage.createProject(proj.basic, proj.config)                    
+                    }
+
+                    // create requested project
+                    // projectsPage.createProject(proj.basic, proj.config)
+                })
             })
         }
 

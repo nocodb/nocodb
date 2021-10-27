@@ -1,8 +1,14 @@
 {
   "baseUrl": "http://localhost:3000/",
   "testFiles": [
-    "test/masterSuiteRest.js",
-    "test/masterSuiteGql.js"
+    "test/restTableOps.js",
+    "test/restViews.js",
+    "test/restRoles.js",
+    "test/restMisc.js",
+    "test/gqlTableOps.js",
+    "test/gqlViews.js",
+    "test/gqlRoles.js",
+    "test/gqlMisc.js"
   ],
   "defaultCommandTimeout": 13000,
   "pageLoadTimeout": 600000,

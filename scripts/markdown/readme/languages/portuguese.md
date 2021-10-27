@@ -18,9 +18,11 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> • 
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
-</p>  
+    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
+    <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
+    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
+</p>
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
@@ -28,11 +30,12 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
 
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-
 # Experimente rápida
+
 ### 1-Click Deploy
 
 #### Heroku
+
 <a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -43,6 +46,7 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
 <br>
 
 ### Usando o Docker.
+
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
@@ -50,10 +54,13 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 > To persist data you can mount volume at `/usr/app/data/`.
 
 ### Usando npm.
+
 ```
 npx create-nocodb-app
 ```
+
 ### Usando o git.
+
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
@@ -65,8 +72,8 @@ npm start
 
 Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-
 # Junte-se a nossa comunidade
+
 <a href="https://discord.gg/5RgZmkW">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
@@ -108,11 +115,10 @@ Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080
 ![11](https://user-images.githubusercontent.com/86527202/136070417-7fd60c3b-8dd2-4cdb-a6dd-1eec80e636ac.png)
 <br>
 
-
-
-
 # Recursos
+
 ### Interface de planilha rica
+
 - ⚡ Pesquisar, classificar, filtrar, esconder colunas com uber facilidade
 - ⚡ Criar visualizações: Grade, Galeria, Kanban, Gantt, Formulário
 - ⚡ Compartilhar Visualizações: Public & Senha Protegido
@@ -122,6 +128,7 @@ Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080
 - ⚡ Controle de acesso: controle de acesso fino, mesmo no banco de dados, no nível da tabela e da coluna.
 
 ### App Store for Workflow Automations:
+
 - ⚡ Bate-papo: Equipes Microsoft, folga, discórdia, material
 - ⚡ Email: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
@@ -129,18 +136,20 @@ Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080
 - ⚡ Qualquer APIs da 3ª parte
 
 ### Acesso programático da API via:
+
 - ⚡ repouso APIs (Swagger)
 - ⚡ APIs GraphQl.
 - ⚡ Inclui autenticação JWT e autenticação social
 - ⚡ Tokens de API para integrar com Zapier, integromat.
 
+# Production Setup
 
-# Production Setup 
 O NOCODB requer um banco de dados para armazenar metadados de exibições de planilhas e bancos de dados externos. E parâmetros de conexão para este banco de dados podem ser especificados na variável de ambiente NC_DB.
 
-## Docker 
+## Docker
 
 #### Example MySQL
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -149,6 +158,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### Example Postgres
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -157,6 +167,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### Example SQL Server
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -165,6 +176,7 @@ docker run -d -p 8080:8080 \
 ```
 
 ## Docker Compose
+
 ```
 git clone https://github.com/nocodb/nocodb
 cd docker-compose
@@ -172,21 +184,22 @@ cd mysql or pg or mssql
 docker-compose up
 ```
 
+## Environment variables
 
-## Environment variables 
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+| Variable                           | Mandatory | Comments                                                                                                 | If absent                                     |
+| ---------------------------------- | --------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| NC_DB                              | Yes       | See our database URLs                                                                                    | A local SQLite will be created in root folder |
+| DATABASE_URL                       | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                         |                                               |
+| DATABASE_URL_FILE                  | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment |                                               |
+| NC_PUBLIC_URL                      | Yes       | Used for sending Email invitations                                                                       | Best guess from http request params           |
+| NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                       | A Random secret will be generated             |
+| NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                    |                                               |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                          |                                               |
+| NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                        |                                               |
+| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                       | `http://localhost:8080` will be used          |
 
-# Development setup 
+# Development setup
+
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -198,7 +211,7 @@ npm run watch:run
 
 # open localhost:8080/dashboard in browser
 
-# run frontend 
+# run frontend
 cd packages/nc-gui
 npm install
 npm run dev
@@ -207,7 +220,6 @@ npm run dev
 ```
 
 Changes made to code automatically restart.
-
 
 ## Running Cypress tests locally
 
@@ -233,12 +245,14 @@ npm run cypress:open
 ```
 
 # Contributing
-- Please take a look at ./scripts/contribute/HowToApplyLicense.md 
-- Ignore adding headers for .json or .md or .yml   
+
+- Please take a look at ./scripts/contribute/HowToApplyLicense.md
+- Ignore adding headers for .json or .md or .yml
 
 # 🎯 Por que estamos construindo isso?
-A maioria das empresas da Internet equipar-se com a planilha ou um banco de dados para resolver suas necessidades de negócios. Planilhas são usadas por um bilhão de seres humanos colaborativamente todos os dias. No entanto, estamos longe de trabalhar em velocidades semelhantes em bancos de dados que são muito mais poderosas ferramentas quando se trata de computação. As tentativas de resolver isso com ofertas de SaaS significam controles de acesso horríveis, lockin do fornecedor, lockin de dados, alterações abruptas de preços e mais importante, um teto de vidro no futuro.
-  
-# ❤ Nossa missão :
-Nossa missão é fornecer a mais poderosa interface de código para bancos de dados que é fonte aberta para cada negócio de Internet no mundo. Isso não apenas democratizaria o acesso a uma poderosa ferramenta de computação, mas também produzirá um bilhão de pessoas que terão habilidades radicais de corda e construção na Internet."
 
+A maioria das empresas da Internet equipar-se com a planilha ou um banco de dados para resolver suas necessidades de negócios. Planilhas são usadas por um bilhão de seres humanos colaborativamente todos os dias. No entanto, estamos longe de trabalhar em velocidades semelhantes em bancos de dados que são muito mais poderosas ferramentas quando se trata de computação. As tentativas de resolver isso com ofertas de SaaS significam controles de acesso horríveis, lockin do fornecedor, lockin de dados, alterações abruptas de preços e mais importante, um teto de vidro no futuro.
+
+# ❤ Nossa missão :
+
+Nossa missão é fornecer a mais poderosa interface de código para bancos de dados que é fonte aberta para cada negócio de Internet no mundo. Isso não apenas democratizaria o acesso a uma poderosa ferramenta de computação, mas também produzirá um bilhão de pessoas que terão habilidades radicais de corda e construção na Internet."

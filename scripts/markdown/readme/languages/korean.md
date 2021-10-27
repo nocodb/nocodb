@@ -20,8 +20,10 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
-</p>  
+    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
+    <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
+    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
+</p>
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
@@ -29,11 +31,12 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-
 # 바로 써보기
+
 ### 원클릭 배포
 
 #### Heroku
+
 <a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -44,6 +47,7 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 <br>
 
 ### Docker 사용
+
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
@@ -51,10 +55,13 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 > 데이터를 계속 저장하려면 반드시 `/usr/app/data/`에 볼륨을 마운트해야 합니다..
 
 ### npm 사용
+
 ```
 npx create-nocodb-app
 ```
+
 ### Git 사용
+
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
@@ -63,10 +70,11 @@ npm start
 ```
 
 ### GUI
+
 대시보드 접근하기 : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-
 # 커뮤니티 가입
+
 <a href="https://discord.gg/5RgZmkW">
     <img 
     src="https://invidget.switchblade.xyz/5RgZmkW" 
@@ -110,9 +118,8 @@ npm start
 ![11](https://user-images.githubusercontent.com/86527202/136069971-402bb0fe-af19-439b-9fb8-c2a882f5d35a.png)
 <br>
 
-
-
 # 기능
+
 ### 스프레드시트같은 인터페이스
 
 - ⚡ 정말 쉬운 검색, 정렬, 필터링, 열 숨기기
@@ -124,6 +131,7 @@ npm start
 - ⚡ 접근 통제: 데이터베이스, 테이블 및 열 수준까지도 상세한 통제 가능
 
 ### 워크플로 자동화를 위한 앱스토어:
+
 - ⚡ 채팅: MS 팀즈, 슬랙, 디스코드, 매터모스트
 - ⚡ 이메일: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
@@ -131,19 +139,21 @@ npm start
 - ⚡ 그 외에 여러 서드파티 API
 
 ### 외부 API 접근 :
+
 - ⚡ REST API (Swagger)
 - ⚡ GraphQL API
 - ⚡ JWT 인증 및 SNS 로그인
 - ⚡ Zapier 및 Integromat 통합을 위한 API 토큰
 
-
 # 운영 환경에 설치하기
+
 NocoDB는 스프레드시트 뷰 메타데이터와 외부 데이터베이스 정보를 저장하기 위한 데이터베이스를 필요로 합니다.
 그리고 이 데이터베이스 연결을 위한 정보는 `NC_DB` 환경변수에 담습니다.
 
 ## Docker
 
 #### MySQL 예제
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -152,6 +162,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### PostgreSQL 예제
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -160,6 +171,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### SQL Server 예제
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -168,6 +180,7 @@ docker run -d -p 8080:8080 \
 ```
 
 ## Docker Compose
+
 ```
 git clone https://github.com/nocodb/nocodb
 cd docker-compose
@@ -175,21 +188,22 @@ cd mysql or pg or mssql
 docker-compose up
 ```
 
-
 ## 환경변수
-| 변수명                               | 필수 여부 | 설명                                                                           | 미설정된 경우                              |
-|--------------------------------------|-----------|--------------------------------------------------------------------------------|--------------------------------------------|
-| `NC_DB`                              | Yes       | 제품이 사용할 데이터베이스 URL                                                 | 루트 디렉터리에 SQLite DB 생성             |
-| `DATABASE_URL`                       | No        | JDBC URL 형식. `NC_DB` 대신 사용 가능. Heroku 원클릭 배포에 사용               |                                            |
-| `DATABASE_URL_FILE`                  | No        | JDBC URL을 담은 파일의 경로. `NC_DB` 대신 사용 가능. Heroku 원클릭 배포에 사용 |                                            |
-| `NC_PUBLIC_URL`                      | Yes       | 이메일 초대에 사용                                                             | HTTP 요청 파라미터를 통해 추정             |
-| `NC_AUTH_JWT_SECRET`                 | Yes       | 인증 및 다른 비밀 값을 저장할 때 사용할 JWT 시크릿 키                          | 임의의 시크릿 키 생성                      |
-| `NC_SENTRY_DSN`                      | No        | Sentry 모니터링용                                                              |                                            |
-| `NC_CONNECT_TO_EXTERNAL_DB_DISABLED` | No        | 외부 데이터베이스와 연동된 프로젝트를 생성하지 않음                            |                                            |
-| `NC_DISABLE_TELE`                    | No        | 사용 정보를 수집하지 않음                                                      |                                            |
-| `NC_BACKEND_URL`                     | No        | 커스텀 백엔드 URL                                                              | `http://localhost:8080` 사용               |
+
+| 변수명                               | 필수 여부 | 설명                                                                           | 미설정된 경우                  |
+| ------------------------------------ | --------- | ------------------------------------------------------------------------------ | ------------------------------ |
+| `NC_DB`                              | Yes       | 제품이 사용할 데이터베이스 URL                                                 | 루트 디렉터리에 SQLite DB 생성 |
+| `DATABASE_URL`                       | No        | JDBC URL 형식. `NC_DB` 대신 사용 가능. Heroku 원클릭 배포에 사용               |                                |
+| `DATABASE_URL_FILE`                  | No        | JDBC URL을 담은 파일의 경로. `NC_DB` 대신 사용 가능. Heroku 원클릭 배포에 사용 |                                |
+| `NC_PUBLIC_URL`                      | Yes       | 이메일 초대에 사용                                                             | HTTP 요청 파라미터를 통해 추정 |
+| `NC_AUTH_JWT_SECRET`                 | Yes       | 인증 및 다른 비밀 값을 저장할 때 사용할 JWT 시크릿 키                          | 임의의 시크릿 키 생성          |
+| `NC_SENTRY_DSN`                      | No        | Sentry 모니터링용                                                              |                                |
+| `NC_CONNECT_TO_EXTERNAL_DB_DISABLED` | No        | 외부 데이터베이스와 연동된 프로젝트를 생성하지 않음                            |                                |
+| `NC_DISABLE_TELE`                    | No        | 사용 정보를 수집하지 않음                                                      |                                |
+| `NC_BACKEND_URL`                     | No        | 커스텀 백엔드 URL                                                              | `http://localhost:8080` 사용   |
 
 # 개발 환경에 설치하기
+
 ```shell
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -210,7 +224,6 @@ npm run dev
 ```
 
 코드 변경후 자동으로 재시작됩니다.
-
 
 ## 로컬에서 Cypress 테스트 돌리기
 
@@ -237,11 +250,14 @@ npm run cypress:open
 ```
 
 # 기여하기
+
 - 먼저 `./scripts/contribute/HowToApplyLicense.md`를 읽기
 - `.json`, `.md`, `.yml` 파일에는 헤더를 추가하지 않아도 됨
 
 # 🎯 왜 이걸 만들었나요?
+
 대부분의 인터넷 비즈니스는 업무상의 요구사항을 해결하기 위해 스프레드시트 또는 데이터베이스를 사용합니다. 스프레드시트는 매일 하루에 수십억 명 이상이 함께 사용합니다. 그러나 우리는 컴퓨팅에 관한 한 훨씬 강력한 도구인 데이터베이스는 별로 그만큼 사용하고 있지 않습니다. 이 문제를 SaaS로 해결하려는 시도는 끔찍한 접근 통제, 특정 업체 종속, 데이터 종속, 급격한 가격 변동, 그리고 무엇보다도 미래의 가능성을 스스로 가둬버리는 것을 의미합니다.
 
 # ❤ 우리의 사명
+
 우리의 사명은 이 세상의 모든 인터넷 비즈니스를 위해 가장 강력한 노코드(No-Code) 데이터베이스 인터페이스를 오픈소스로 제공하는 것입니다. 이는 단지 강력한 컴퓨팅 도구를 대중화하는 데 그치는 것이 아니라, 인터넷 상에서 뭐든 이어붙이고 만들 수 있는 급진적인 능력을 수십억 사람들에게 가져다주게 될 것입니다.

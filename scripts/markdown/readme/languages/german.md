@@ -18,9 +18,11 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> • 
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
-</p>  
+    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
+    <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
+    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
+</p>
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
@@ -28,11 +30,12 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
 
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-
 # Schneller Try.
+
 ### 1-Click Deploy
 
 #### Heroku
+
 <a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -43,6 +46,7 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
 <br>
 
 ### Verwenden von Docker.
+
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
@@ -50,10 +54,13 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 > To persist data you can mount volume at `/usr/app/data/`.
 
 ### Verwenden von NPM.
+
 ```
 npx create-nocodb-app
 ```
+
 ### Mit git.
+
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
@@ -65,8 +72,8 @@ npm start
 
 Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-
 # Tritt unserer Gemeinschaft bei
+
 <a href="https://discord.gg/5RgZmkW">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
@@ -108,13 +115,10 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 ![11](https://user-images.githubusercontent.com/86527202/136068635-d9ac5165-7800-402d-b4e3-2e21d3d36027.png)
 <br>
 
-
-
-
-
 # Merkmale
 
 ### Rich-Tabellenschnittstelle
+
 - ⚡ Suchen, sortieren, filtern, Spalten mit Uber-Leichtigkeit ausblenden
 - ⚡ Ansichten erstellen: Gitter, Galerie, Kanban, Gantt, Form
 - ⚡ Teilen von Ansichten: Öffentliche und Passwort geschützt
@@ -124,6 +128,7 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 - ⚡ Zugriffskontrolle: Granulare Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
 
 ### App Store für Workflow-Automationen:
+
 - ⚡ Chat: Microsoft-Teams, Slack, Discord, Materie
 - ⚡ E-Mail: SMTP, SES, MailChimp
 - ⚡ SMS: TWILIO
@@ -131,19 +136,20 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 - ⚡ Jede 3rd-Party-APIs
 
 ### Programmatischer API-Zugriff über:
+
 - ⚡ Rest APIs (Swagger)
 - ⚡ Graphql-APIs.
 - ⚡ Enthält die JWT-Authentifizierung & Social Auth
 - ⚡ API-Token, um mit Zapier, Integromat zu integrieren.
 
+# Produktionseinrichtung
 
-# Produktionseinrichtung 
 NOCODB erfordert eine Datenbank zum Speichern von Metadaten, Tabellenkalkulationen und externen Datenbanken. Verbindungsparameter für diese Datenbank können in der Umgebungsvariablen der NC_DB angegeben werden.
 
-
-## Docker 
+## Docker
 
 #### Beispiel MySQL
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -152,6 +158,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### Beispiel Postgres
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -160,6 +167,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### Beispiel SQL Server
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -168,6 +176,7 @@ docker run -d -p 8080:8080 \
 ```
 
 ## Docker Compose
+
 ```
 git clone https://github.com/nocodb/nocodb
 cd docker-compose
@@ -175,21 +184,22 @@ cd mysql or pg or mssql
 docker-compose up
 ```
 
-
 ## Umgebungsvariablen
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Kann statt NC_DB genutzt werden. Wird im 1-Click Heroku deployment genutzt.|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Wird für Einladungen per Mail genutzt                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
 
-# Entwicklungsaufbau 
+| Variable                           | Mandatory | Comments                                                                                                 | If absent                                     |
+| ---------------------------------- | --------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| NC_DB                              | Yes       | See our database URLs                                                                                    | A local SQLite will be created in root folder |
+| DATABASE_URL                       | No        | JDBC URL Format. Kann statt NC_DB genutzt werden. Wird im 1-Click Heroku deployment genutzt.             |                                               |
+| DATABASE_URL_FILE                  | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment |                                               |
+| NC_PUBLIC_URL                      | Yes       | Wird für Einladungen per Mail genutzt                                                                    | Best guess from http request params           |
+| NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                       | A Random secret will be generated             |
+| NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                    |                                               |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                          |                                               |
+| NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                        |                                               |
+| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                       | `http://localhost:8080` will be used          |
+
+# Entwicklungsaufbau
+
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -201,7 +211,7 @@ npm run watch:run
 
 # open localhost:8080/dashboard in browser
 
-# run frontend 
+# run frontend
 cd packages/nc-gui
 npm install
 npm run dev
@@ -210,7 +220,6 @@ npm run dev
 ```
 
 Changes made to code automatically restart.
-
 
 ## Cypress-Tests lokal ausführen
 
@@ -236,12 +245,14 @@ npm run cypress:open
 ```
 
 # Beitragen
-- Bitte schau mal rein ./scripts/contribute/HowToApplyLicense.md 
-- Ignorieren Sie das Hinzufügen von Überschriften für .json oder .md oder .yml   
+
+- Bitte schau mal rein ./scripts/contribute/HowToApplyLicense.md
+- Ignorieren Sie das Hinzufügen von Überschriften für .json oder .md oder .yml
 
 # 🎯 Warum bauen wir das auf?
+
 Die meisten Internet-Unternehmen rüsten sich mit einer Tabelle oder einer Datenbank aus, um ihre Geschäftsanforderungen zu lösen. Die Tabellenkalkulationen werden von einer Milliarde + Menschen mit einem jeden Tag kollaborativ verwendet. Wir arbeiten jedoch mit ähnlichen Geschwindigkeiten in Datenbanken, die in Bezug auf das Berechnen viel stärkere Werkzeuge sind. Versuche, dies mit SaaS-Angeboten zu lösen, bedeutete schreckliche Zugangskontrollen, Anbieter-Lockin, Daten-Lockin, abrupte Preisänderungen und vor allem eine Glaskugel, was in Zukunft möglich ist.
 
 # ❤ Unsere Aufgabe :
-Unsere Mission ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken bereitzustellen, die für jedes einzelne Internetgeschäft der Welt nutzbar ist. Dies würde nicht nur den Zugang zu einem leistungsstarken Computing-Tool demokratisieren, sondern auch eine Milliarde + Menschen hervorbringen, die im Internet radikale Bastel- und Baufähigkeiten haben werden. 
 
+Unsere Mission ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken bereitzustellen, die für jedes einzelne Internetgeschäft der Welt nutzbar ist. Dies würde nicht nur den Zugang zu einem leistungsstarken Computing-Tool demokratisieren, sondern auch eine Milliarde + Menschen hervorbringen, die im Internet radikale Bastel- und Baufähigkeiten haben werden.

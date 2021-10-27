@@ -16,28 +16,26 @@ Draait elke MySQL, PostgreSQL, SQL Server, SQLITE & MARIADB in een Smart-Spreads
 
 </div>
 
-
-
-
-
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> • 
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
-</p>  
+    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
+    <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
+    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
+</p>
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
-
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-
 # Snel proberen
+
 ### 1-Click Deploy
 
 #### Heroku
+
 <a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -48,6 +46,7 @@ Draait elke MySQL, PostgreSQL, SQL Server, SQLITE & MARIADB in een Smart-Spreads
 <br>
 
 ### Docker gebruiken
+
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
@@ -55,10 +54,13 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 > To persist data you can mount volume at `/usr/app/data/`.
 
 ### Gebruik van NPM
+
 ```
 npx create-nocodb-app
 ```
+
 ### Git gebruiken
+
 ```
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
@@ -70,8 +72,8 @@ npm start
 
 Toegang tot dashboard met behulp van : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-
 # sluit je aan bij onze gemeenschap
+
 <a href="https://discord.gg/5RgZmkW">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
@@ -113,10 +115,8 @@ Toegang tot dashboard met behulp van : [http://localhost:8080/dashboard](http://
 ![11](https://user-images.githubusercontent.com/86527202/136073826-561f9a17-8d68-4c7a-830d-1e40e0892246.png)
 <br>
 
-
-
-
 # Functies
+
 ### Rich Spreadsheet Interface
 
 - ⚡ Zoeken, sorteren, filteren, kolommen verbergen met uber gemak
@@ -128,6 +128,7 @@ Toegang tot dashboard met behulp van : [http://localhost:8080/dashboard](http://
 - ⚡ Toegangscontrole: fijnkorrelige toegangscontrole, zelfs bij database, tabel- en kolomniveau.
 
 ### App Store voor Workflow Automations:
+
 - ⚡ Chat: Microsoft-teams, Slack, Discord, Meet
 - ⚡ E-mail: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
@@ -135,18 +136,20 @@ Toegang tot dashboard met behulp van : [http://localhost:8080/dashboard](http://
 - ⚡ elke 3e partij-API's
 
 ### Programmatische API-toegang via:
+
 - ⚡ Rust API's (Swagger)
 - ⚡ Grafiek API's.
 - ⚡ Inclusief JWT-authenticatie en sociale auth
 - ⚡ API-tokens om te integreren met zapier, integromat.
 
-
 # Production Setup
+
 NOCODB vereist een database om metadata van spreadsheets weergaven en externe databases op te slaan. En verbindingsparamumenten voor deze database kunnen worden opgegeven in de variabele NC_DB-omgeving.
 
 ## Docker
 
 #### Example MySQL
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -155,6 +158,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### Example Postgres
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -163,6 +167,7 @@ docker run -d -p 8080:8080 \
 ```
 
 #### Example SQL Server
+
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -171,6 +176,7 @@ docker run -d -p 8080:8080 \
 ```
 
 ## Docker Compose
+
 ```
 git clone https://github.com/nocodb/nocodb
 cd docker-compose
@@ -178,21 +184,22 @@ cd mysql or pg or mssql
 docker-compose up
 ```
 
-
 ## Environment variables
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+
+| Variable                           | Mandatory | Comments                                                                                                 | If absent                                     |
+| ---------------------------------- | --------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| NC_DB                              | Yes       | See our database URLs                                                                                    | A local SQLite will be created in root folder |
+| DATABASE_URL                       | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                         |                                               |
+| DATABASE_URL_FILE                  | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment |                                               |
+| NC_PUBLIC_URL                      | Yes       | Used for sending Email invitations                                                                       | Best guess from http request params           |
+| NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                       | A Random secret will be generated             |
+| NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                    |                                               |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                          |                                               |
+| NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                        |                                               |
+| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                       | `http://localhost:8080` will be used          |
 
 # Development setup
+
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
@@ -204,7 +211,7 @@ npm run watch:run
 
 # open localhost:8080/dashboard in browser
 
-# run frontend 
+# run frontend
 cd packages/nc-gui
 npm install
 npm run dev
@@ -213,7 +220,6 @@ npm run dev
 ```
 
 Changes made to code automatically restart.
-
 
 ## Running Cypress tests locally
 
@@ -240,14 +246,14 @@ npm run cypress:open
 ```
 
 # Contributing
+
 - Please take a look at ./scripts/contribute/HowToApplyLicense.md
 - Ignore adding headers for .json or .md or .yml
 
-# 🎯  Waarom bouwen we dit?
+# 🎯 Waarom bouwen we dit?
+
 De meeste internetbedrijven stellen zich uit met een spreadsheet of een database om hun bedrijfsbehoeften op te lossen. Spreadsheets worden gebruikt door een miljard + mensen die elke dag samenwerken. We zijn echter ver weg bij vergelijkbare snelheden op databases die veel krachtigere hulpmiddelen zijn als het gaat om het berekenen. Pogingen om dit op te lossen met SaaS-aanbiedingen heeft verschrikkelijke toegangscontroles, leverancierslongin, gegevensvergrendeling, abrupte prijsveranderingen en vooral een glazen plafond op wat in de toekomst mogelijk is.
 
 # ❤ Onze missie :
+
 Onze missie is om de krachtigste NO-CODE-interface voor databases te bieden die open source is voor elke afzonderlijke internetactiviteiten in de wereld. Dit zou niet alleen de toegang tot een krachtige rekengereedschap democratiseren, maar ook een miljard + mensen voortbrengen die radicaal tinkerende en bouwmogelijkheden op internet hebben.
-
-
-

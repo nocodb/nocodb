@@ -10,7 +10,7 @@
     "start:api": "cd ./packages/nocodb; npm install; npm run watch:run",
     "start:web": "cd ./packages/nc-gui; npm install; npm run dev",
     "cypress:run": "cypress run --config-file ./scripts/cypress/cypress.json",
-    "cypress:open": "cypress open",
+    "cypress:open": "cypress open --config-file ./scripts/cypress/cypress.json",
     "test:travis": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna run test:travis --since",
     "lerna:install": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna bootstrap --ignore nc-cli --since",
     "updated:xc-migrator": "lerna run publish --scope xc-migrator && lerna run xc && lerna publish && npm install -f xc-cli",

@@ -31,6 +31,7 @@
     "nano-assign": "^1.0.1",
     "nuxt": "^2.14.0",
     "odometer": "^0.4.8",
+    "papaparse": "^5.3.1",
     "secure-ls": "^1.2.6",
     "socket.io-client": "^2.3.0",
     "splitpanes": "^2.2.1",

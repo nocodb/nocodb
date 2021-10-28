@@ -5,6 +5,7 @@ import Validator from 'validator';
 import BaseModel, { XcFilter, XcFilterWithAlias } from '../BaseModel';
 import formulaQueryBuilder from './formulaQueryBuilderFromString';
 import genRollupSelect from './genRollupSelect';
+import Papaparse from 'papaparse';
 
 /**
  * Base class for models
@@ -22,6 +23,8 @@ class BaseModelSql extends BaseModel {
   private _selectFormulasObj: any;
   private _defaultNestedQueryParams: any;
   private _nestedProps: { [prop: string]: any };
+  private _nestedPropsModels: { [prop: string]: BaseModelSql } = {};
+  private readonly _primaryColRef: any;
 
   /**
    *
@@ -66,6 +69,7 @@ class BaseModelSql extends BaseModel {
     this.columns = columns;
 
     this.pks = columns.filter(c => c.pk === true);
+    this._primaryColRef = columns.find(c => c.pv);
     this.hasManyRelations = hasMany;
     this.belongsToRelations = belongsTo;
     this.manyToManyRelations = manyToMany;
@@ -2341,11 +2345,17 @@ class BaseModelSql extends BaseModel {
     if (!this._nestedProps) {
       this._nestedProps = (this.virtualColumns || [])?.reduce((obj, v) => {
         if (v.bt) {
-          obj[`${this.dbModels[v.bt.rtn]._tn}Read`] = v;
+          const prop = `${this.dbModels[v.bt.rtn]._tn}Read`;
+          obj[prop] = v;
+          this._nestedPropsModels[prop] = this.dbModels[v.bt?.rtn];
         } else if (v.hm) {
-          obj[`${this.dbModels[v.hm.tn]._tn}List`] = v;
+          const prop = `${this.dbModels[v.hm.tn]._tn}List`;
+          obj[prop] = v;
+          this._nestedPropsModels[prop] = this.dbModels[v.hm?.tn];
         } else if (v.mm) {
-          obj[`${this.dbModels[v.mm.rtn]._tn}MMList`] = v;
+          const prop = `${this.dbModels[v.mm.rtn]._tn}MMList`;
+          obj[prop] = v;
+          this._nestedPropsModels[prop] = this.dbModels[v.mm?.rtn];
         }
         return obj;
       }, {});
@@ -2402,6 +2412,162 @@ class BaseModelSql extends BaseModel {
       }
       return arr;
     }, []);
+  }
+
+  // todo: optimize
+  public async extractCsvData(args: any = {}, fields = null) {
+    const defaultNestedQueryParams = { ...this.defaultNestedQueryParams };
+
+    // // get all nested props by default
+    // for (const key of Object.keys(defaultNestedQueryParams)) {
+    //   if (key.indexOf('fields') > -1) {
+    //     defaultNestedQueryParams[key] = '*';
+    //   }
+    // }
+
+    let offset = +args.offset || 0;
+    const limit = 100;
+    // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
+    const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 500;
+    const csvRows = [];
+    const startTime = process.hrtime();
+    let elapsed, temp;
+
+    for (
+      elapsed = 0;
+      elapsed < timeout;
+      offset += limit,
+        temp = process.hrtime(startTime),
+        elapsed = temp[0] * 1000 + temp[1] / 1000000
+    ) {
+      const rows = await this.nestedList({
+        ...defaultNestedQueryParams,
+        ...args,
+        offset,
+        limit
+      });
+
+      if (!rows?.length) {
+        offset = -1;
+        break;
+      }
+
+      for (const row of rows) {
+        const csvRow = {};
+
+        for (const column of this.columns) {
+          if (column._cn in row) {
+            csvRow[column._cn] = this.serializeCellValue({
+              value: row[column._cn],
+              column
+            });
+          }
+        }
+
+        for (const vColumn of this.virtualColumns) {
+          if (vColumn._cn in row && !vColumn.bt && !vColumn.hm && !vColumn.mm) {
+            if (vColumn.lk) {
+            } else {
+              csvRow[vColumn._cn] = row[vColumn._cn];
+            }
+          }
+        }
+
+        for (const [prop, col] of Object.entries(this.nestedProps)) {
+          const refModel = this._nestedPropsModels[prop];
+
+          const mapPropFn = (alias, colAlias) => {
+            if (Array.isArray(row[prop])) {
+              csvRow[alias] = row[prop].map(r =>
+                refModel.serializeCellValue({
+                  value: r[colAlias],
+                  columnName: colAlias
+                })
+              );
+            } else if (row[prop]) {
+              csvRow[alias] = refModel.serializeCellValue({
+                value: row?.[prop]?.[colAlias],
+                columnName: colAlias
+              });
+            }
+          };
+
+          if (prop in row) {
+            // todo: optimize
+            for (const vColumn of this.virtualColumns) {
+              if (vColumn.lk) {
+                if (
+                  col.hm &&
+                  vColumn.lk.type === 'hm' &&
+                  col.hm.tn === vColumn.lk.ltn
+                ) {
+                  mapPropFn(vColumn._cn, vColumn.lk._lcn);
+                } else if (
+                  col.mm &&
+                  vColumn.lk.type === 'mm' &&
+                  col.mm.rtn === vColumn.lk.ltn
+                ) {
+                  mapPropFn(vColumn._cn, vColumn.lk._lcn);
+                }
+                if (
+                  col.bt &&
+                  vColumn.lk.type === 'bt' &&
+                  col.bt.rtn === vColumn.lk.ltn
+                ) {
+                  mapPropFn(vColumn._cn, vColumn.lk._lcn);
+                }
+              }
+            }
+          }
+          mapPropFn(col._cn, refModel.primaryColAlias);
+        }
+        csvRows.push(csvRow);
+      }
+    }
+
+    const data = Papaparse.unparse({ fields, data: csvRows });
+    return { data, offset, elapsed };
+  }
+
+  public serializeCellValue({
+    value,
+    ...args
+  }: {
+    column?: any;
+    value: any;
+    columnName?: string;
+  }) {
+    if (!args.column && !args.columnName) {
+      return value;
+    }
+    const column =
+      args.column || this.columns.find(c => c._cn === args.columnName);
+
+    switch (column?.uidt) {
+      case 'Attachment': {
+        let data = value;
+        try {
+          if (typeof value === 'string') {
+            data = JSON.parse(value);
+          }
+        } catch {}
+
+        return (data || []).map(
+          attachment =>
+            `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
+        );
+      }
+      default:
+        return value;
+    }
+  }
+
+  public get primaryColRef(): string {
+    return this._primaryColRef?.cn;
+  }
+
+  public get primaryColAlias(): string {
+    return this._primaryColRef?._cn;
   }
 }
 

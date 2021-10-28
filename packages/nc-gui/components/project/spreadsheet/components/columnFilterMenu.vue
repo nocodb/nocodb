@@ -17,7 +17,7 @@
           v-on="on"
         >
           <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-filter
+            mdi-filter-outline
           </v-icon>
           Filter
           <v-icon small color="#777">

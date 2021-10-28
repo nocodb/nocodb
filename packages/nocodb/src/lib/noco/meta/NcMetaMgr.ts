@@ -5,7 +5,7 @@ import path from 'path';
 import archiver from 'archiver';
 import axios from 'axios';
 import bodyParser from 'body-parser';
-import { Handler, Router } from 'express';
+import express, { Handler, Router } from 'express';
 import extract from 'extract-zip';
 import isDocker from 'is-docker';
 import multer from 'multer';
@@ -1307,6 +1307,9 @@ export default class NcMetaMgr {
         case 'sharedViewGet':
           result = await this.sharedViewGet(req, args);
           break;
+        case 'sharedViewExportAsCsv':
+          result = await this.sharedViewExportAsCsv(req, args, res);
+          break;
 
         case 'sharedViewInsert':
           result = await this.sharedViewInsert(req, args);
@@ -1331,6 +1334,10 @@ export default class NcMetaMgr {
       }
     } catch (e) {
       return next(e);
+    }
+
+    if (typeof result?.cb === 'function') {
+      return await result.cb();
     }
 
     res.json(result);
@@ -1417,6 +1424,9 @@ export default class NcMetaMgr {
 
         case 'xcVisibilityMetaGet':
           result = await this.xcVisibilityMetaGet(args);
+          break;
+        case 'xcExportAsCsv':
+          result = await this.xcExportAsCsv(args, req, res);
           break;
 
         case 'xcVisibilityMetaSet':
@@ -1865,6 +1875,10 @@ export default class NcMetaMgr {
         result.download === true
       ) {
         return res.download(result.filePath);
+      }
+
+      if (typeof result?.cb === 'function') {
+        return await result.cb();
       }
 
       res.json(result);
@@ -2764,7 +2778,12 @@ export default class NcMetaMgr {
   }
 
   protected getDbAlias(args): string {
-    return args?.dbAlias || args?.args?.dbAlias;
+    return (
+      args?.dbAlias ||
+      args?.args?.dbAlias ||
+      args?.db_alias ||
+      args?.args?.db_alias
+    );
   }
 
   protected isProjectRest() {
@@ -3815,6 +3834,49 @@ export default class NcMetaMgr {
     return { ...sharedViewMeta, ...viewMeta };
   }
 
+  protected async sharedViewExportAsCsv(_req, args: any, res): Promise<any> {
+    const sharedViewMeta = await this.xcMeta
+      .knex('nc_shared_views')
+      .where({
+        view_id: args.args.view_id
+      })
+      .first();
+
+    if (!sharedViewMeta) {
+      throw new Error('Meta not found');
+    }
+
+    const viewMeta = await this.xcMeta.metaGet(
+      sharedViewMeta.project_id,
+      sharedViewMeta.db_alias,
+      'nc_models',
+      {
+        title: sharedViewMeta.view_name
+      }
+    );
+
+    if (!viewMeta) {
+      throw new Error('Not found');
+    }
+
+    if (
+      sharedViewMeta &&
+      sharedViewMeta.password &&
+      sharedViewMeta.password !== args.args.password
+    ) {
+      throw new Error(this.INVALID_PASSWORD_ERROR);
+    }
+
+    return this.xcExportAsCsv(
+      {
+        ...sharedViewMeta,
+        args: { ...sharedViewMeta, offset: 0 }
+      },
+      _req,
+      res
+    );
+  }
+
   protected async xcAuthHookGet(args: any): Promise<any> {
     try {
       return await this.xcMeta.metaGet(args.project_id, 'db', 'nc_hooks', {
@@ -3935,6 +3997,78 @@ export default class NcMetaMgr {
     });
 
     return { data: { list: procedures } };
+  }
+
+  protected async xcExportAsCsv(args, _req, res: express.Response) {
+    const projectId = this.getProjectId(args);
+    const dbAlias = this.getDbAlias(args);
+    const apiBuilder = this.app?.projectBuilders
+      ?.find(pb => pb.id === projectId)
+      ?.apiBuilders?.find(ab => ab.dbAlias === dbAlias);
+
+    const model = apiBuilder?.xcModels?.[args.args.model_name];
+
+    const meta = apiBuilder?.getMeta(args.args.model_name);
+
+    const selectedView = await this.xcMeta.metaGet(
+      projectId,
+      dbAlias,
+      'nc_models',
+      {
+        title: args.args.view_name
+      }
+    );
+
+    const queryParams = JSON.parse(selectedView.query_params);
+    const sort = this.serializeSortParam(queryParams);
+
+    const csvData = await model.extractCsvData(
+      {
+        ...(args.args.query || {}),
+        fields: meta.columns
+          .filter(c => queryParams?.showFields?.[c._cn])
+          .map(c => c._cn)
+          .join(','),
+        sort: sort,
+        where: this.serializeToXwhere(queryParams?.filters),
+        ...this.serializeNestedParams(meta, queryParams)
+      },
+      // filter only visible columns
+      Object.entries(queryParams?.showFields || {})
+        .filter(v => v[1])
+        .map(v => v[0])
+        .sort(
+          (a, b) =>
+            queryParams?.fieldsOrder?.indexOf(a) -
+            queryParams?.fieldsOrder?.indexOf(b)
+        )
+    );
+
+    return {
+      cb: async () => {
+        res.set({
+          'Access-Control-Expose-Headers': 'nc-export-offset',
+          'nc-export-offset': csvData.offset,
+          'nc-export-elapsed-time': csvData.elapsed,
+          'Content-Disposition': `attachment; filename="${args.args.model_name}-export.csv"`
+        });
+        res.send(csvData.data);
+      }
+    };
+  }
+
+  private serializeSortParam(queryParams) {
+    const sort = [];
+    if (queryParams.sortList) {
+      sort.push(
+        ...(queryParams?.sortList
+          ?.map(sort => {
+            return sort.field ? `${sort.order}${sort.field}` : '';
+          })
+          .filter(Boolean) || [])
+      );
+    }
+    return sort.join(',');
   }
 
   // @ts-ignore
@@ -4761,6 +4895,91 @@ export default class NcMetaMgr {
     }
 
     return result;
+  }
+
+  protected serializeToXwhere(filters) {
+    // todo: move  this logic to a common library
+    // todo: replace with condition prop
+    const privateViewWhere = filters?.reduce?.((condition, filt, i) => {
+      if (!i && !filt.logicOp) {
+        return condition;
+      }
+      if (!(filt.field && filt.op)) {
+        return condition;
+      }
+
+      condition += i ? `~${filt.logicOp}` : '';
+      switch (filt.op) {
+        case 'is equal':
+          return condition + `(${filt.field},eq,${filt.value})`;
+        case 'is not equal':
+          return condition + `~not(${filt.field},eq,${filt.value})`;
+        case 'is like':
+          return condition + `(${filt.field},like,%${filt.value}%)`;
+        case 'is not like':
+          return condition + `~not(${filt.field},like,%${filt.value}%)`;
+        case 'is empty':
+          return condition + `(${filt.field},in,)`;
+        case 'is not empty':
+          return condition + `~not(${filt.field},in,)`;
+        case 'is null':
+          return condition + `(${filt.field},is,null)`;
+        case 'is not null':
+          return condition + `~not(${filt.field},is,null)`;
+        case '<':
+          return condition + `(${filt.field},lt,${filt.value})`;
+        case '<=':
+          return condition + `(${filt.field},le,${filt.value})`;
+        case '>':
+          return condition + `(${filt.field},gt,${filt.value})`;
+        case '>=':
+          return condition + `(${filt.field},ge,${filt.value})`;
+      }
+      return condition;
+    }, '');
+    return privateViewWhere;
+  }
+
+  protected serializeNestedParams(meta, queryParams) {
+    const nestedParams: any = {
+      hm: [],
+      mm: [],
+      bt: []
+    };
+
+    for (const v of meta.v) {
+      if (!queryParams?.showFields?.[v._cn]) continue;
+      if (v.bt || v.lk?.type === 'bt') {
+        const tn = v.bt?.rtn || v.lk?.rtn;
+        if (!nestedParams.bt.includes(tn)) nestedParams.bt.push(tn);
+        if (v.lk) {
+          const key = `bf${nestedParams.bt.indexOf(tn)}`;
+          nestedParams[key] =
+            (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
+        }
+      } else if (v.hm || v.lk?.type === 'hm') {
+        const tn = v.hm?.tn || v.lk?.tn;
+        if (!nestedParams.hm.includes(tn)) nestedParams.hm.push(tn);
+        if (v.lk) {
+          const key = `hf${nestedParams.hm.indexOf(tn)}`;
+          nestedParams[key] =
+            (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
+        }
+      } else if (v.mm || v.lk?.type === 'mm') {
+        const tn = v.mm?.rtn || v.lk?.rtn;
+        if (!nestedParams.mm.includes(tn)) nestedParams.mm.push(tn);
+        if (v.lk) {
+          const key = `mf${nestedParams.mm.indexOf(tn)}`;
+          nestedParams[key] =
+            (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
+        }
+      }
+    }
+
+    nestedParams.mm = nestedParams.mm.join(',');
+    nestedParams.hm = nestedParams.hm.join(',');
+    nestedParams.bt = nestedParams.bt.join(',');
+    return nestedParams;
   }
 }
 

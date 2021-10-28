@@ -354,7 +354,7 @@ export const actions = {
     }
   },
 
-  async ActSqlOp({ commit, state, rootState, dispatch }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams]) {
+  async ActSqlOp({ commit, state, rootState, dispatch }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams, returnResponse]) {
     const params = {}
     if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
       params.project_id = this.$router.currentRoute.params.project_id
@@ -370,7 +370,7 @@ export const actions = {
       if (cusHeaders) {
         Object.assign(headers, cusHeaders)
       }
-      const data = (await this.$axios({
+      const res = (await this.$axios({
         url: '?q=sqlOp_' + op,
         baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
         data: { api: op, ...args, ...params, args: opArgs },
@@ -379,7 +379,9 @@ export const actions = {
         params: (args && args.query) || {},
         ...(cusAxiosOptions || {})
 
-      })).data
+      }))
+
+      const data = res.data
 
       // clear meta cache on relation create/delete
       // todo: clear only necessary metas
@@ -399,6 +401,10 @@ export const actions = {
         if (opArgs.childTable) {
           dispatch('meta/ActLoadMeta', { ...args, ...params, tn: opArgs.childTable, force: true }, { root: true })
         }
+      }
+
+      if (returnResponse) {
+        return res
       }
 
       return data

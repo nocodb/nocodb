@@ -2414,84 +2414,119 @@ class BaseModelSql extends BaseModel {
     }, []);
   }
 
-  public async extractCsvData(args: any = {}) {
-    const rows = await this.nestedList(args);
+  // todo: optimize
+  public async extractCsvData(args: any = {}, fields = null) {
+    const defaultNestedQueryParams = { ...this.defaultNestedQueryParams };
 
+    // // get all nested props by default
+    // for (const key of Object.keys(defaultNestedQueryParams)) {
+    //   if (key.indexOf('fields') > -1) {
+    //     defaultNestedQueryParams[key] = '*';
+    //   }
+    // }
+
+    let offset = +args.offset || 0;
+    const limit = 100;
+    // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
+    const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 500;
     const csvRows = [];
+    const startTime = process.hrtime();
+    let elapsed, temp;
 
-    for (const row of rows) {
-      const csvRow = {};
+    for (
+      elapsed = 0;
+      elapsed < timeout;
+      offset += limit,
+        temp = process.hrtime(startTime),
+        elapsed = temp[0] * 1000 + temp[1] / 1000000
+    ) {
+      const rows = await this.nestedList({
+        ...defaultNestedQueryParams,
+        ...args,
+        offset,
+        limit
+      });
 
-      for (const column of this.columns) {
-        if (column._cn in row) {
-          csvRow[column._cn] = this.serializeCellValue({
-            value: row[column._cn],
-            column
-          });
-        }
+      if (!rows?.length) {
+        offset = -1;
+        break;
       }
 
-      for (const vColumn of this.virtualColumns) {
-        if (vColumn._cn in row && !vColumn.bt && !vColumn.hm && !vColumn.mm) {
-          if (vColumn.lk) {
-          } else {
-            csvRow[vColumn._cn] = row[vColumn._cn];
-          }
-        }
-      }
+      for (const row of rows) {
+        const csvRow = {};
 
-      for (const [prop, col] of Object.entries(this.nestedProps)) {
-        const refModel = this._nestedPropsModels[prop];
-
-        const mapPropFn = (alias, colAlias) => {
-          if (Array.isArray(row[prop])) {
-            csvRow[alias] = row[prop].map(r =>
-              refModel.serializeCellValue({
-                value: r[colAlias],
-                columnName: colAlias
-              })
-            );
-          } else if (row[prop]) {
-            csvRow[alias] = refModel.serializeCellValue({
-              value: row[colAlias],
-              columnName: colAlias
+        for (const column of this.columns) {
+          if (column._cn in row) {
+            csvRow[column._cn] = this.serializeCellValue({
+              value: row[column._cn],
+              column
             });
           }
-        };
+        }
 
-        if (prop in row) {
-          // todo: optimize
-          for (const vColumn of this.virtualColumns) {
+        for (const vColumn of this.virtualColumns) {
+          if (vColumn._cn in row && !vColumn.bt && !vColumn.hm && !vColumn.mm) {
             if (vColumn.lk) {
-              if (
-                col.hm &&
-                vColumn.lk.type === 'hm' &&
-                col.hm.tn === vColumn.lk.ltn
-              ) {
-                mapPropFn(col._cn, vColumn.lk._lcn);
-              } else if (
-                col.mm &&
-                vColumn.lk.type === 'mm' &&
-                col.mm.rtn === vColumn.lk.ltn
-              ) {
-                mapPropFn(col._cn, vColumn.lk._lcn);
-              }
-              if (
-                col.bt &&
-                vColumn.lk.type === 'bt' &&
-                col.bt.rtn === vColumn.lk.ltn
-              ) {
-                mapPropFn(col._cn, vColumn.lk._lcn);
-              }
+            } else {
+              csvRow[vColumn._cn] = row[vColumn._cn];
             }
           }
         }
-        mapPropFn(col._cn, refModel.primaryColAlias);
+
+        for (const [prop, col] of Object.entries(this.nestedProps)) {
+          const refModel = this._nestedPropsModels[prop];
+
+          const mapPropFn = (alias, colAlias) => {
+            if (Array.isArray(row[prop])) {
+              csvRow[alias] = row[prop].map(r =>
+                refModel.serializeCellValue({
+                  value: r[colAlias],
+                  columnName: colAlias
+                })
+              );
+            } else if (row[prop]) {
+              csvRow[alias] = refModel.serializeCellValue({
+                value: row?.[prop]?.[colAlias],
+                columnName: colAlias
+              });
+            }
+          };
+
+          if (prop in row) {
+            // todo: optimize
+            for (const vColumn of this.virtualColumns) {
+              if (vColumn.lk) {
+                if (
+                  col.hm &&
+                  vColumn.lk.type === 'hm' &&
+                  col.hm.tn === vColumn.lk.ltn
+                ) {
+                  mapPropFn(vColumn._cn, vColumn.lk._lcn);
+                } else if (
+                  col.mm &&
+                  vColumn.lk.type === 'mm' &&
+                  col.mm.rtn === vColumn.lk.ltn
+                ) {
+                  mapPropFn(vColumn._cn, vColumn.lk._lcn);
+                }
+                if (
+                  col.bt &&
+                  vColumn.lk.type === 'bt' &&
+                  col.bt.rtn === vColumn.lk.ltn
+                ) {
+                  mapPropFn(vColumn._cn, vColumn.lk._lcn);
+                }
+              }
+            }
+          }
+          mapPropFn(col._cn, refModel.primaryColAlias);
+        }
+        csvRows.push(csvRow);
       }
-      csvRows.push(csvRow);
     }
 
-    return Papaparse.unparse(csvRows);
+    const data = Papaparse.unparse({ fields, data: csvRows });
+    return { data, offset, elapsed };
   }
 
   public serializeCellValue({
@@ -2506,7 +2541,7 @@ class BaseModelSql extends BaseModel {
       return value;
     }
     const column =
-      args.column || this.columns.find(c => c._cn === this.columnToAlias);
+      args.column || this.columns.find(c => c._cn === args.columnName);
 
     switch (column?.uidt) {
       case 'Attachment': {
@@ -2518,7 +2553,8 @@ class BaseModelSql extends BaseModel {
         } catch {}
 
         return (data || []).map(
-          attachment => `${attachment.title}(${encodeURI(attachment.url)})`
+          attachment =>
+            `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
         );
       }
       default:

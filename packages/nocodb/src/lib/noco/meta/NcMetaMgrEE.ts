@@ -169,49 +169,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       if (req.query.where) {
         where += req.query.where;
       }
-
-      // todo: move  this logic to a common library
-      // todo: replace with condition prop
-      const privateViewWhere = queryParams?.filters?.reduce?.(
-        (condition, filt, i) => {
-          if (!i && !filt.logicOp) {
-            return condition;
-          }
-          if (!(filt.field && filt.op)) {
-            return condition;
-          }
-
-          condition += i ? `~${filt.logicOp}` : '';
-          switch (filt.op) {
-            case 'is equal':
-              return condition + `(${filt.field},eq,${filt.value})`;
-            case 'is not equal':
-              return condition + `~not(${filt.field},eq,${filt.value})`;
-            case 'is like':
-              return condition + `(${filt.field},like,%${filt.value}%)`;
-            case 'is not like':
-              return condition + `~not(${filt.field},like,%${filt.value}%)`;
-            case 'is empty':
-              return condition + `(${filt.field},in,)`;
-            case 'is not empty':
-              return condition + `~not(${filt.field},in,)`;
-            case 'is null':
-              return condition + `(${filt.field},is,null)`;
-            case 'is not null':
-              return condition + `~not(${filt.field},is,null)`;
-            case '<':
-              return condition + `(${filt.field},lt,${filt.value})`;
-            case '<=':
-              return condition + `(${filt.field},le,${filt.value})`;
-            case '>':
-              return condition + `(${filt.field},gt,${filt.value})`;
-            case '>=':
-              return condition + `(${filt.field},ge,${filt.value})`;
-          }
-          return condition;
-        },
-        ''
-      );
+      const privateViewWhere = this.serializeToXwhere(queryParams?.filters);
 
       if (privateViewWhere) {
         where += where ? `~and(${privateViewWhere})` : privateViewWhere;
@@ -231,45 +189,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       }
 
       const fields = meta.columns.map(c => c._cn).join(',');
-
-      const nestedParams: any = {
-        hm: [],
-        mm: [],
-        bt: []
-      };
-
-      for (const v of meta.v) {
-        if (!queryParams?.showFields?.[v._cn]) continue;
-        if (v.bt || v.lk?.type === 'bt') {
-          const tn = v.bt?.rtn || v.lk?.rtn;
-          if (!nestedParams.bt.includes(tn)) nestedParams.bt.push(tn);
-          if (v.lk) {
-            const key = `bf${nestedParams.bt.indexOf(tn)}`;
-            nestedParams[key] =
-              (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
-          }
-        } else if (v.hm || v.lk?.type === 'hm') {
-          const tn = v.hm?.tn || v.lk?.tn;
-          if (!nestedParams.hm.includes(tn)) nestedParams.hm.push(tn);
-          if (v.lk) {
-            const key = `hf${nestedParams.hm.indexOf(tn)}`;
-            nestedParams[key] =
-              (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
-          }
-        } else if (v.mm || v.lk?.type === 'mm') {
-          const tn = v.mm?.rtn || v.lk?.rtn;
-          if (!nestedParams.mm.includes(tn)) nestedParams.mm.push(tn);
-          if (v.lk) {
-            const key = `mf${nestedParams.mm.indexOf(tn)}`;
-            nestedParams[key] =
-              (nestedParams[key] ? `${nestedParams[key]},` : '') + tn;
-          }
-        }
-      }
-
-      nestedParams.mm = nestedParams.mm.join(',');
-      nestedParams.hm = nestedParams.hm.join(',');
-      nestedParams.bt = nestedParams.bt.join(',');
+      const nestedParams = this.serializeNestedParams(meta, queryParams);
 
       return {
         model_name: sharedViewMeta.model_name,

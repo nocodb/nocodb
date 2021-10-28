@@ -61,14 +61,6 @@
 
       <v-spacer class="h-100" @dblclick="debug=true" />
 
-      <csv-export
-        :available-columns="availableColumns"
-        :data="data"
-        :meta="meta"
-        :nodes="nodes"
-        class="mr-1"
-      />
-
       <template v-if="!isForm">
         <debug-metas v-if="debug" class="mr-3" />
         <v-tooltip bottom>
@@ -146,6 +138,14 @@
           :field-list="[...realFieldList, ...formulaFieldList]"
           dense
         />
+
+        <csv-export
+          :meta="meta"
+          :nodes="nodes"
+          :selected-view="selectedView"
+          class="mr-1"
+        />
+
         <v-tooltip
           v-if="_isUIAllowed('table-delete')"
           bottom

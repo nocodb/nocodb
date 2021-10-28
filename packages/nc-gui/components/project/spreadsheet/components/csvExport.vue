@@ -1,27 +1,71 @@
 <template>
-  <v-btn
-    outlined
-    class="caption"
-    small
-    text
-    @click="exportCsv"
+  <v-menu
+    open-on-hover
+    bottom
+    offset-y
   >
-    Export
-  </v-btn>
+    <template #activator="{on}">
+      <v-btn
+        outlined
+        class="caption"
+        small
+        text
+        v-on="on"
+      >
+        <v-icon small color="#777">
+          mdi-flash-outline
+        </v-icon>
+        Actions
+
+        <v-icon small color="#777">
+          mdi-menu-down
+        </v-icon>
+      </v-btn>
+    </template>
+
+    <v-list dense>
+      <v-list-item
+        dense
+        @click="exportCsv"
+      >
+        <v-list-item-title>
+          <v-icon small class="mr-1">
+            mdi-download-outline
+          </v-icon>
+          <span class="caption">
+            Download as CSV
+          </span>
+        </v-list-item-title>
+      </v-list-item>
+      <v-list-item
+        dense
+        @click="comingSoon"
+      >
+        <v-list-item-title>
+          <v-icon small class="mr-1" color="grey">
+            mdi-upload-outline
+          </v-icon>
+          <span class="caption grey--text">
+            Upload CSV
+          </span>
+        </v-list-item-title>
+      </v-list-item>
+    </v-list>
+  </v-menu>
 </template>
 
 <script>
 
-import Papaparse from 'papaparse'
+// import Papaparse from 'papaparse'
 import FileSaver from 'file-saver'
 
 export default {
   name: 'CsvExport',
   props: {
-    data: Array,
     meta: Object,
     nodes: Object,
-    availableColumns: Array
+    selectedView: Object,
+    publicViewId: String
   },
 
   methods: {
@@ -100,37 +144,55 @@ export default {
       }))
     },
     async exportCsv() {
+      // const fields = this.availableColumns.map(c => c._cn)
       // const blob = new Blob([Papaparse.unparse(await this.extractCsvData())], { type: 'text/plain;charset=utf-8' })
 
+      let offset = 0
+      let c = 1
+
       try {
-        const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-          {
-            dbAlias: this.nodes.dbAlias,
-            env: '_noco'
-          },
-          'xcExportAsCsv',
-          {
-            query: {},
-            model_name: this.meta.tn
-          },
-          null,
-          {
-            responseType: 'blob'
+        while (!isNaN(offset) && offset > -1) {
+          const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+            this.publicViewId
+              ? null
+              : {
+                  dbAlias: this.nodes.dbAlias,
+                  env: '_noco'
+                },
+            this.publicViewId ? 'sharedViewExportAsCsv' : 'xcExportAsCsv',
+            {
+              query: { offset },
+              ...(this.publicViewId
+                ? {
+                    view_id: this.publicViewId
+                  }
+                : {
+                    view_name: this.selectedView.title,
+                    model_name: this.meta.tn
+                  })
+            },
+            null,
+            {
+              responseType: 'blob'
+            },
+            null,
+            true
+          ])
+          const data = res.data
+          offset = +res.headers['nc-export-offset']
+          const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+          FileSaver.saveAs(blob, `${this.meta._tn}_exported_${c++}.csv`)
+          if (offset > -1) {
+            this.$toast.info('Downloading more files').goAway(3000)
+          } else {
+            this.$toast.success('Successfully exported all table data').goAway(3000)
           }
-        ])
-        // const url = window.URL.createObjectURL(new Blob([data], { type: 'application/zip' }))
-        // const link = document.createElement('a')
-        // link.href = url
-        // link.setAttribute('download', 'meta.zip') // or any other extension
-        // document.body.appendChild(link)
-        // link.click()
-        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
-        FileSaver.saveAs(blob, `${this.meta._tn}_exported.csv`)
-        this.$toast.success('Successfully exported metadata').goAway(3000)
+        }
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
     }
+
   }
 
 }

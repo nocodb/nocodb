@@ -2347,15 +2347,15 @@ class BaseModelSql extends BaseModel {
         if (v.bt) {
           const prop = `${this.dbModels[v.bt.rtn]._tn}Read`;
           obj[prop] = v;
-          this._nestedPropsModels[v] = this.dbModels[v.bt?.rtn];
+          this._nestedPropsModels[prop] = this.dbModels[v.bt?.rtn];
         } else if (v.hm) {
           const prop = `${this.dbModels[v.hm.tn]._tn}List`;
           obj[prop] = v;
-          this._nestedPropsModels[v] = this.dbModels[v.hm?.tn];
+          this._nestedPropsModels[prop] = this.dbModels[v.hm?.tn];
         } else if (v.mm) {
           const prop = `${this.dbModels[v.mm.rtn]._tn}MMList`;
           obj[prop] = v;
-          this._nestedPropsModels[v] = this.dbModels[v.bt?.rtn];
+          this._nestedPropsModels[prop] = this.dbModels[v.mm?.rtn];
         }
         return obj;
       }, {});
@@ -2414,7 +2414,7 @@ class BaseModelSql extends BaseModel {
     }, []);
   }
 
-  public async extractCsvData(args) {
+  public async extractCsvData(args: any = {}) {
     const rows = await this.nestedList(args);
 
     const csvRows = [];
@@ -2440,26 +2440,54 @@ class BaseModelSql extends BaseModel {
         }
       }
 
-      for (const prop of Object.keys(this.nestedProps)) {
+      for (const [prop, col] of Object.entries(this.nestedProps)) {
         const refModel = this._nestedPropsModels[prop];
 
-        if (prop in row) {
+        const mapPropFn = (alias, colAlias) => {
           if (Array.isArray(row[prop])) {
-            csvRow[prop] = row.map(r =>
+            csvRow[alias] = row[prop].map(r =>
               refModel.serializeCellValue({
-                value: r[refModel.primaryColAlias],
-                columnName: refModel.primaryColAlias
+                value: r[colAlias],
+                columnName: colAlias
               })
             );
           } else if (row[prop]) {
-            csvRow[prop] = refModel.serializeCellValue({
-              value: row[refModel.primaryColAlias],
-              columnName: refModel.primaryColAlias
+            csvRow[alias] = refModel.serializeCellValue({
+              value: row[colAlias],
+              columnName: colAlias
             });
           }
-        }
-      }
+        };
 
+        if (prop in row) {
+          // todo: optimize
+          for (const vColumn of this.virtualColumns) {
+            if (vColumn.lk) {
+              if (
+                col.hm &&
+                vColumn.lk.type === 'hm' &&
+                col.hm.tn === vColumn.lk.ltn
+              ) {
+                mapPropFn(col._cn, vColumn.lk._lcn);
+              } else if (
+                col.mm &&
+                vColumn.lk.type === 'mm' &&
+                col.mm.rtn === vColumn.lk.ltn
+              ) {
+                mapPropFn(col._cn, vColumn.lk._lcn);
+              }
+              if (
+                col.bt &&
+                vColumn.lk.type === 'bt' &&
+                col.bt.rtn === vColumn.lk.ltn
+              ) {
+                mapPropFn(col._cn, vColumn.lk._lcn);
+              }
+            }
+          }
+        }
+        mapPropFn(col._cn, refModel.primaryColAlias);
+      }
       csvRows.push(csvRow);
     }
 
@@ -2474,7 +2502,7 @@ class BaseModelSql extends BaseModel {
     value: any;
     columnName?: string;
   }) {
-    if (!args.column || !args.columnName) {
+    if (!args.column && !args.columnName) {
       return value;
     }
     const column =

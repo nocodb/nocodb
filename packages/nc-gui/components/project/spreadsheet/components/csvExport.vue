@@ -60,7 +60,7 @@ export default {
               cn = col.lk
                 ? col.lk._lcn
                 : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||
-                this.$store.state.meta.metas[tn].columns.find(c => c.pk))._cn
+                  this.$store.state.meta.metas[tn].columns.find(c => c.pk))._cn
               row[col._cn] = r.row[prop] && r.row[prop].map(r => cn && r[cn])
             } else if (col.bt || (col.lk && col.lk.type === 'bt')) {
               const tn = col.bt ? col.bt.rtn : col.lk.ltn
@@ -75,7 +75,7 @@ export default {
               cn = col.lk
                 ? col.lk._lcn
                 : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||
-                this.$store.state.meta.metas[tn].columns.find(c => c.pk) || {})._cn
+                  this.$store.state.meta.metas[tn].columns.find(c => c.pk) || {})._cn
               row[col._cn] = r.row[prop] &&
                 r.row[prop] && cn && r.row[prop][cn]
             } else {
@@ -100,8 +100,36 @@ export default {
       }))
     },
     async exportCsv() {
-      const blob = new Blob([Papaparse.unparse(await this.extractCsvData())], { type: 'text/plain;charset=utf-8' })
-      FileSaver.saveAs(blob, `${this.meta._tn}_exported.csv`)
+      // const blob = new Blob([Papaparse.unparse(await this.extractCsvData())], { type: 'text/plain;charset=utf-8' })
+
+      try {
+        const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.nodes.dbAlias,
+            env: '_noco'
+          },
+          'xcExportAsCsv',
+          {
+            query: {},
+            model_name: this.meta.tn
+          },
+          null,
+          {
+            responseType: 'blob'
+          }
+        ])
+        // const url = window.URL.createObjectURL(new Blob([data], { type: 'application/zip' }))
+        // const link = document.createElement('a')
+        // link.href = url
+        // link.setAttribute('download', 'meta.zip') // or any other extension
+        // document.body.appendChild(link)
+        // link.click()
+        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+        FileSaver.saveAs(blob, `${this.meta._tn}_exported.csv`)
+        this.$toast.success('Successfully exported metadata').goAway(3000)
+      } catch (e) {
+        this.$toast.error(e.message).goAway(3000)
+      }
     }
   }
 

@@ -1418,6 +1418,9 @@ export default class NcMetaMgr {
         case 'xcVisibilityMetaGet':
           result = await this.xcVisibilityMetaGet(args);
           break;
+        case 'xcExportAsCsv':
+          result = await this.xcExportAsCsv(args, req, res);
+          break;
 
         case 'xcVisibilityMetaSet':
           result = await this.xcVisibilityMetaSet(args);
@@ -1865,6 +1868,10 @@ export default class NcMetaMgr {
         result.download === true
       ) {
         return res.download(result.filePath);
+      }
+
+      if (typeof result?.cb === 'function') {
+        return await result.cb();
       }
 
       res.json(result);
@@ -3937,6 +3944,24 @@ export default class NcMetaMgr {
     return { data: { list: procedures } };
   }
 
+  protected async xcExportAsCsv(args, _req, res) {
+    const apiBuilder = this.app?.projectBuilders
+      ?.find(pb => pb.id === this.getProjectId(args))
+      ?.apiBuilders?.find(ab => ab.dbAlias === this.getDbAlias(args));
+
+    const model = apiBuilder?.xcModels?.[args.args.model_name];
+
+    const csvData = await model.extractCsvData(args.args.query || {});
+
+    return {
+      cb: async () => {
+        res.set({
+          'Content-Disposition': `attachment; filename="${args.args.model_name}-export.csv"`
+        });
+        res.send(csvData);
+      }
+    };
+  }
   // @ts-ignore
   protected async xcVisibilityMetaGet(args) {
     try {

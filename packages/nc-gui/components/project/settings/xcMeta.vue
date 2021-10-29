@@ -145,20 +145,20 @@
       :heading="confirmMessage"
     />
 
-    <import-template
-      :nodes="{dbAlias: 'db'}"
-    />
+    <!--    <import-template-->
+    <!--      :nodes="{dbAlias: 'db'}"-->
+    <!--    />-->
   </div>
 </template>
 
 <script>
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
-import ImportTemplate from '~/components/project/settings/importTemplate'
+// import ImportTemplate from '~/components/project/settings/importTemplate'
 
 export default {
   name: 'XcMeta',
   components: {
-    ImportTemplate,
+    // ImportTemplate,
     DlgLabelSubmitCancel
   },
   data: () => ({

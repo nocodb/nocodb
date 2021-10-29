@@ -8,7 +8,7 @@ export const genTest = (type, xcdb) => {
 
     describe(`${type.toUpperCase()} Upload/ Download CSV`, () => {
         before(() => {
-            loginPage.loginAndOpenProject(type)
+            // loginPage.loginAndOpenProject(type)
             cy.openTableTab('Country');
         })
 

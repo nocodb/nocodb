@@ -1,6 +1,7 @@
 
 let t0 = require('./explicitLogin')
 let t01 = require('../common/00_pre_configurations')
+let t6b = require('../common/6b_downloadCsv')
 let t6c = require('../common/6c_swagger_api')
 let t6d = require('../common/6d_language_validation')
 let t6e = require('../common/6e_project_operations')
@@ -17,6 +18,7 @@ const nocoTestSuite = (type, xcdb) => {
         t01.genTest(type, xcdb)
     }    
 
+    t6b.genTest(type, xcdb)
     t6c.genTest(type, xcdb)
     t6d.genTest(type, xcdb)
     // **deletes created project, hence place it @ end

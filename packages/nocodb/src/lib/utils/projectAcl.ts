@@ -161,7 +161,8 @@ export default {
 
     xcModelRowAuditAndCommentList: true,
     xcAuditCommentInsert: true,
-    xcAuditModelCommentsCount: true
+    xcAuditModelCommentsCount: true,
+    xcExportAsCsv: true
   },
   commenter: {
     xcVirtualTableList: true,
@@ -184,7 +185,8 @@ export default {
 
     xcModelRowAuditAndCommentList: true,
     xcAuditCommentInsert: true,
-    xcAuditModelCommentsCount: true
+    xcAuditModelCommentsCount: true,
+    xcExportAsCsv: true
   },
   viewer: {
     xcVirtualTableList: true,
@@ -203,7 +205,8 @@ export default {
     relationList: true,
     relationListAll: true,
     indexList: true,
-    list: true
+    list: true,
+    xcExportAsCsv: true
   },
   user_new: {
     projectList: true

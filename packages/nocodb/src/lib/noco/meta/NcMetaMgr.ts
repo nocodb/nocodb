@@ -3870,7 +3870,7 @@ export default class NcMetaMgr {
     return this.xcExportAsCsv(
       {
         ...sharedViewMeta,
-        args: { ...sharedViewMeta, offset: 0 }
+        args: { ...args.args, ...sharedViewMeta }
       },
       _req,
       res
@@ -4019,8 +4019,25 @@ export default class NcMetaMgr {
       }
     );
 
+    const localQuery = args.args.localQuery;
+
     const queryParams = JSON.parse(selectedView.query_params);
-    const sort = this.serializeSortParam(queryParams);
+    let sort = this.serializeSortParam(queryParams);
+
+    let where = '';
+    if (localQuery.sort) {
+      sort = localQuery.sort;
+    }
+
+    if (localQuery.where) {
+      where += localQuery.where;
+    }
+
+    const privateViewFilter = this.serializeToXwhere(queryParams?.filters);
+
+    if (privateViewFilter) {
+      where += where ? `~and(${privateViewFilter})` : privateViewFilter;
+    }
 
     const csvData = await model.extractCsvData(
       {
@@ -4029,12 +4046,12 @@ export default class NcMetaMgr {
           .filter(c => queryParams?.showFields?.[c._cn])
           .map(c => c._cn)
           .join(','),
-        sort: sort,
-        where: this.serializeToXwhere(queryParams?.filters),
+        sort,
+        where,
         ...this.serializeNestedParams(meta, queryParams)
       },
       // filter only visible columns
-      Object.entries(queryParams?.showFields || {})
+      Object.entries(localQuery?.showFields || queryParams?.showFields || {})
         .filter(v => v[1])
         .map(v => v[0])
         .sort(
@@ -4057,7 +4074,7 @@ export default class NcMetaMgr {
     };
   }
 
-  private serializeSortParam(queryParams) {
+  private serializeSortParam(queryParams, returnArray = false) {
     const sort = [];
     if (queryParams.sortList) {
       sort.push(
@@ -4068,6 +4085,7 @@ export default class NcMetaMgr {
           .filter(Boolean) || [])
       );
     }
+    if (returnArray) return sort;
     return sort.join(',');
   }
 

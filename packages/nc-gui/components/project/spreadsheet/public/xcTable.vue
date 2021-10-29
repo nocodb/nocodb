@@ -91,7 +91,7 @@
 
         <column-filter-menu v-model="filters" :field-list="realFieldList" />
 
-        <csv-export :public-view-id="$route.params.id" :meta="meta" />
+        <csv-export :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
 
       <!--      <v-menu>
         <template #activator="{ on, attrs }">
@@ -187,6 +187,7 @@
 </template>
 
 <script>
+/* eslint-disable camelcase */
 
 import spreadsheet from '../mixins/spreadsheet'
 import ApiFactory from '../apis/apiFactory'

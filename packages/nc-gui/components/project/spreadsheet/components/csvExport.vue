@@ -65,7 +65,8 @@ export default {
     meta: Object,
     nodes: Object,
     selectedView: Object,
-    publicViewId: String
+    publicViewId: String,
+    queryParams: Object
   },
 
   methods: {
@@ -162,6 +163,7 @@ export default {
             this.publicViewId ? 'sharedViewExportAsCsv' : 'xcExportAsCsv',
             {
               query: { offset },
+              localQuery: this.queryParams || {},
               ...(this.publicViewId
                 ? {
                     view_id: this.publicViewId

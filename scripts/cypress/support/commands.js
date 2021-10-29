@@ -117,6 +117,9 @@ Cypress.Commands.add('openTableTab', (tn) => {
   cy.get('.nc-project-tree')
     .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
     .first().click()
+  
+  // wait for page to load
+  cy.wait(500)
 })
 
 Cypress.Commands.add('openOrCreateGqlProject', (_args) => {

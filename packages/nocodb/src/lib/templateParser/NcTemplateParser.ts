@@ -6,6 +6,7 @@ import {
   SqliteUi,
   SqlUiFactory
 } from '../sqlUi';
+import UITypes from '../sqlUi/UITypes';
 
 export default class NcTemplateParser {
   sqlUi:
@@ -15,18 +16,24 @@ export default class NcTemplateParser {
     | typeof OracleUi
     | typeof SqliteUi;
 
-  constructor(client) {
+  private _tables: any[];
+  private _relations: any[];
+  private template: any;
+
+  constructor({ client, template }) {
     this.sqlUi = SqlUiFactory.create({ client });
+    this.template = template;
   }
 
-  public parse(template: any): any {
+  public parse(template?: any): any {
     const tables = [];
-    for (const tableTemplate of template.tables) {
+    this.template = template || this.template;
+    for (const tableTemplate of this.template._tables) {
       const table = this.extractTable(tableTemplate);
       tables.push(table);
     }
 
-    return { tables };
+    this._tables = tables;
   }
 
   private extractTable(tableTemplate) {
@@ -58,17 +65,35 @@ export default class NcTemplateParser {
       if (!tableColumn?.cn) {
         throw Error('Missing column name in template');
       }
-      const column = {
-        ...this.sqlUi.getNewColumn(''),
-        cn: tableColumn.cn,
-        _cn: tableColumn.cn,
-        uidt: tableColumn.uidt,
-        ...this.sqlUi.getDataTypeForUiType(tableColumn)
-      };
-      columns.push(column);
+
+      if (
+        tableColumn.uidt === UITypes.LinkToAnotherRecord ||
+        tableColumn.uidt === UITypes.ForeignKey
+      ) {
+        // todo :
+      } else {
+        const column = {
+          ...this.sqlUi.getNewColumn(''),
+          cn: tableColumn.cn,
+          _cn: tableColumn.cn,
+          uidt: tableColumn.uidt,
+          ...this.sqlUi.getDataTypeForUiType(tableColumn)
+        };
+        columns.push(column);
+      }
     }
     return columns;
   }
 
-  private ex;
+  protected extractRelations(_columnTemplate) {
+    if (!this._relations) this._relations = [];
+  }
+
+  get tables(): any[] {
+    return this._tables;
+  }
+
+  get relations(): any[] {
+    return this._relations;
+  }
 }

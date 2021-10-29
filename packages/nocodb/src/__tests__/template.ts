@@ -12,6 +12,16 @@ export default {
           cn: 'body',
           uidt: 'LongText'
         }
+      ],
+      hasMany: [
+        {
+          tn: 'comment'
+        }
+      ],
+      manyToMany: [
+        {
+          rtn: 'tag'
+        }
       ]
     },
     {
@@ -20,11 +30,6 @@ export default {
         {
           cn: 'body',
           uidt: 'LongText'
-        },
-        {
-          cn: 'blog_id',
-          uidt: 'ForeignKey',
-          rtn: 'blog'
         }
       ]
     },
@@ -34,11 +39,6 @@ export default {
         {
           cn: 'title',
           uidt: 'SingleLineText'
-        },
-        {
-          cn: 'blog_id',
-          uidt: 'LinkToAnotherRecord',
-          rtn: 'blog'
         }
       ]
     }

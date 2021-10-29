@@ -4015,11 +4015,13 @@ export default class NcMetaMgr {
       d => d?.meta?.dbAlias === dbAlias
     );
 
-    const { tables } = new NcTemplateParser(connectionConfig?.client).parse(
+    const parser = new NcTemplateParser({
+      client: connectionConfig?.client,
       template
-    );
+    });
+    parser.parse();
 
-    for (const table of tables) {
+    for (const table of parser.tables) {
       console.log(table);
 
       // create table and trigger listener
@@ -4044,23 +4046,81 @@ export default class NcMetaMgr {
           }
         });
       }
-
-      // create table
     }
-
-    // iterate over tables
-
-    // iterate over tables
-
-    // map column datatypes
-
-    // group relations
-
-    // create tables
 
     // create relations
 
-    //
+    for (const relation of parser.relations) {
+      // if (args.args.type === 'real') {
+      const outrel = await this.projectMgr
+        .getSqlMgr({ id: projectId })
+        .handleRequest('relationCreate', {
+          ...args,
+          args: relation
+        });
+      if (this.listener) {
+        await this.listener({
+          req: {
+            ...args,
+            args: relation,
+            api: 'relationCreate'
+          },
+          res: outrel,
+          user: req.user,
+          ctx: {
+            req
+          }
+        });
+      }
+      // } else {
+      //   const outrel = await this.xcVirtualRelationCreate(
+      //     {...args, args: rel1Args},
+      //     req
+      //   );
+      //   if (this.listener) {
+      //     await this.listener({
+      //       req: {
+      //         ...args,
+      //         args: rel1Args,
+      //         api: 'xcVirtualRelationCreate'
+      //       },
+      //       res: outrel,
+      //       user: req.user,
+      //       ctx: {
+      //         req
+      //       }
+      //     });
+      //   }
+
+      // }
+    }
+
+    //create m2m relations
+
+    for (const m2mRelation of parser.m2mRelations) {
+      // if (args.args.type === 'real') {
+      const outrel = await this.xcM2MRelationCreate(
+        {
+          ...args,
+          args: m2mRelation
+        },
+        req
+      );
+      if (this.listener) {
+        await this.listener({
+          req: {
+            ...args,
+            args: m2mRelation,
+            api: 'xcM2MRelationCreate'
+          },
+          res: outrel,
+          user: req.user,
+          ctx: {
+            req
+          }
+        });
+      }
+    }
   }
 
   protected async xcExportAsCsv(args, _req, res: express.Response) {

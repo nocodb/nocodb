@@ -37,6 +37,7 @@ import RestAuthCtrl from '../rest/RestAuthCtrlEE';
 import { packageVersion } from 'nc-help';
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import { promisify } from 'util';
+import NcTemplateParser from '../../templateParser/NcTemplateParser';
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -1427,6 +1428,10 @@ export default class NcMetaMgr {
           break;
         case 'xcExportAsCsv':
           result = await this.xcExportAsCsv(args, req, res);
+          break;
+
+        case 'xcModelsCreateFromTemplate':
+          result = await this.xcModelsCreateFromTemplate(args, req);
           break;
 
         case 'xcVisibilityMetaSet':
@@ -3997,6 +4002,65 @@ export default class NcMetaMgr {
     });
 
     return { data: { list: procedures } };
+  }
+
+  protected async xcModelsCreateFromTemplate(args, req) {
+    const template = args.args.template;
+
+    const projectId = this.getProjectId(args);
+    const dbAlias = this.getDbAlias(args);
+
+    const projectConfig = this.projectConfigs[projectId];
+    const connectionConfig = projectConfig.envs?.['_noco']?.db?.find(
+      d => d?.meta?.dbAlias === dbAlias
+    );
+
+    const { tables } = new NcTemplateParser(connectionConfig?.client).parse(
+      template
+    );
+
+    for (const table of tables) {
+      console.log(table);
+
+      // create table and trigger listener
+      const out = await this.projectMgr
+        .getSqlMgr({ id: projectId })
+        .handleRequest('tableCreate', {
+          ...args,
+          args: table
+        });
+
+      if (this.listener) {
+        await this.listener({
+          req: {
+            ...args,
+            args: table,
+            api: 'tableCreate'
+          },
+          res: out,
+          user: req.user,
+          ctx: {
+            req
+          }
+        });
+      }
+
+      // create table
+    }
+
+    // iterate over tables
+
+    // iterate over tables
+
+    // map column datatypes
+
+    // group relations
+
+    // create tables
+
+    // create relations
+
+    //
   }
 
   protected async xcExportAsCsv(args, _req, res: express.Response) {

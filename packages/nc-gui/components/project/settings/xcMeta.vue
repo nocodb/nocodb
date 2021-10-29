@@ -112,28 +112,28 @@
             >
           </td>
         </tr>
-        <!--        <tr>-->
-        <!--          <td>-->
-        <!--            &lt;!&ndash; Clear all metadata from meta tables. &ndash;&gt;-->
-        <!--            {{ $t('management.meta.reset.desc') }}-->
-        <!--          </td>-->
-        <!--          <td>-->
-        <!--            <v-btn-->
-        <!--              :loading="loading === 'reset-metadata'"-->
-        <!--              min-width="150"-->
-        <!--              color="error"-->
-        <!--              small-->
-        <!--              outlined-->
-        <!--              @click="resetMeta"-->
-        <!--            >-->
-        <!--              <v-icon small>-->
-        <!--                mdi-delete-variant-->
-        <!--              </v-icon>&nbsp;-->
-        <!--              &lt;!&ndash; Reset &ndash;&gt;-->
-        <!--              {{ $t('management.meta.reset.title') }}-->
-        <!--            </v-btn>-->
-        <!--          </td>-->
-        <!--        </tr>-->
+      <!--        <tr>-->
+      <!--          <td>-->
+      <!--            &lt;!&ndash; Clear all metadata from meta tables. &ndash;&gt;-->
+      <!--            {{ $t('management.meta.reset.desc') }}-->
+      <!--          </td>-->
+      <!--          <td>-->
+      <!--            <v-btn-->
+      <!--              :loading="loading === 'reset-metadata'"-->
+      <!--              min-width="150"-->
+      <!--              color="error"-->
+      <!--              small-->
+      <!--              outlined-->
+      <!--              @click="resetMeta"-->
+      <!--            >-->
+      <!--              <v-icon small>-->
+      <!--                mdi-delete-variant-->
+      <!--              </v-icon>&nbsp;-->
+      <!--              &lt;!&ndash; Reset &ndash;&gt;-->
+      <!--              {{ $t('management.meta.reset.title') }}-->
+      <!--            </v-btn>-->
+      <!--          </td>-->
+      <!--        </tr>-->
       </tbody>
     </v-simple-table>
 
@@ -144,15 +144,21 @@
       :dialog-show="dialogShow"
       :heading="confirmMessage"
     />
+
+    <import-template
+      :nodes="{dbAlias: 'db'}"
+    />
   </div>
 </template>
 
 <script>
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
+import ImportTemplate from '~/components/project/settings/importTemplate'
 
 export default {
   name: 'XcMeta',
   components: {
+    ImportTemplate,
     DlgLabelSubmitCancel
   },
   data: () => ({

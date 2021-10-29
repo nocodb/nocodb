@@ -8,8 +8,8 @@ export const genTest = (type, xcdb) => {
     describe(`Language support`, () => {
 
         before(() => {
-            loginPage.signIn(roles.owner.credentials)
-            //mainPage.toolBarTopLeft(mainPage.HOME).click()
+            //loginPage.signIn(roles.owner.credentials)
+            mainPage.toolBarTopLeft(mainPage.HOME).click()
         })
 
         const langVerification = (idx, lang) => {

@@ -19,8 +19,8 @@ const nocoTestSuite = (type, xcdb) => {
     }    
 
     t6b.genTest(type, xcdb)
-    t6c.genTest(type, xcdb)
     t6d.genTest(type, xcdb)
+    t6c.genTest(type, xcdb)
     // **deletes created project, hence place it @ end
     t6e.genTest(type, xcdb)    
 }

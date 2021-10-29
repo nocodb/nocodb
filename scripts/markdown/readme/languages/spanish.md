@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ La alternativa de código abierto Airtable ✨ <br>
+    ✨ La alternativa open-source de Airtable ✨ <br>
 
 </h1>
 <p align="center">
@@ -30,9 +30,9 @@ Convierte cualquier MySQL, PostgreSQL, SQL Server, SQLite y Mariadb en una hoja 
 
 <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-# Intento rápido
+# Prueba rápida
 
-### 1-Click Deploy
+### Implementación en 1-Click
 
 #### Heroku
 
@@ -51,7 +51,7 @@ Convierte cualquier MySQL, PostgreSQL, SQL Server, SQLite y Mariadb en una hoja 
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> To persist data you can mount volume at `/usr/app/data/`.
+> Para habilitar datos no perecederos se puede usar `/usr/app/data/`.
 
 ### Usando npm.
 
@@ -70,7 +70,7 @@ npm start
 
 ### GUI
 
-Tablero de acceso de acceso usando : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+Para accesar al dashboard: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Únete a nuestra comunidad
 
@@ -117,7 +117,7 @@ Tablero de acceso de acceso usando : [http://localhost:8080/dashboard](http://lo
 
 # Características
 
-### Interfaz de hoja de cálculo rica
+### Atractiva interfaz de hoja de cálculo
 
 - ⚡ Buscar, ordenar, filtrar, ocultar columnas con la facilidad de Uber
 - ⚡ Crear vistas: Grid, Galería, Kanban, Gantt, Forma
@@ -127,13 +127,13 @@ Tablero de acceso de acceso usando : [http://localhost:8080/dashboard](http://lo
 - ⚡ Roles: Propietario, Creador, Editor, Comentarista, Visor, Comentarista, Roles personalizados.
 - ⚡ Control de acceso: Control de acceso de grano fino Incluso en la base de datos, la tabla y el nivel de columna.
 
-### App Store para Workflow Automations:
+### App Store para Automatización de Flujos de Trabajo:
 
 - ⚡ Chat: Microsoft Equips, Slack, Discord, MOSE
 - ⚡ Correo electrónico: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
 - ⚡ whatsapp
-- ⚡ Cualquier API de terceros
+- ⚡ Cualquier API externa
 
 ### Acceso a API programático a través de:
 
@@ -142,13 +142,13 @@ Tablero de acceso de acceso usando : [http://localhost:8080/dashboard](http://lo
 - ⚡ Incluye Autenticación JWT y AUTE SOCIAL
 - ⚡ Tokens API para integrarse con Zapier, Integromat.
 
-# Production Setup
+# Setup para Entorno de Producción:
 
 Nocodb requiere una base de datos para almacenar metadatos de vistas a las hojas de cálculo y bases de datos externas. Y los parámetros de conexión para esta base de datos se pueden especificar en la variable de entorno NC_DB.
 
 ## Docker
 
-#### Example MySQL
+#### Ejemplo MySQL
 
 ```
 docker run -d -p 8080:8080 \
@@ -157,7 +157,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
+#### Ejemplo Postgres
 
 ```
 docker run -d -p 8080:8080 \
@@ -166,7 +166,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
+#### Ejemplo SQL Server
 
 ```
 docker run -d -p 8080:8080 \
@@ -186,17 +186,17 @@ docker-compose up
 
 ## Variables de entorno
 
-| Variable                           | Obligatorio | Comentarios                                                                                              | If absent                                     |
+| Variable                           | Obligatorio | Comentarios                                                                                              | Si no esta presente                                     |
 | ---------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| NC_DB                              | Si          | Ver nuestras URLs de bases de datos                                                                      | A local SQLite will be created in root folder |
-| DATABASE_URL                       | No          | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                         |                                               |
+| NC_DB                              | Si          | Ver nuestras URLs de bases de datos                                                                      | Un SQLite local será creada en el directorio raíz (root) |
+| DATABASE_URL                       | No          | Formato JDBC URL. Puede ser usado en lugar de NC_DB. Usada en la implementación de 1-Click en Heroku                         |                                               |
 | DATABASE_URL_FILE                  | No          | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment |                                               |
-| NC_PUBLIC_URL                      | Si          | Used for sending Email invitations                                                                       | Best guess from http request params           |
-| NC_AUTH_JWT_SECRET                 | Si          | JWT secret used for auth and storing other secrets                                                       | A Random secret will be generated             |
-| NC_SENTRY_DSN                      | No          | For Sentry monitoring                                                                                    |                                               |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No          | Disable Project creation with external database                                                          |                                               |
-| NC_DISABLE_TELE                    | No          | Disable telemetry                                                                                        |                                               |
-| NC_BACKEND_URL                     | No          | Custom Backend URL                                                                                       | `http://localhost:8080` will be used          |
+| NC_PUBLIC_URL                      | Si          | Usada para mandar invitaciones por email.                                                                       | Best guess from http request params           |
+| NC_AUTH_JWT_SECRET                 | Si          | JWT secret usado para authenticación y para alacenar otros "secrets"                                                    | Un "secret" random será generado automaticamente.            |
+| NC_SENTRY_DSN                      | No          | Para monitoreo de Sentry                                                                                    |                                               |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No          | Desactiva creación de Projecto con base de datos externa                                                   |                                               |
+| NC_DISABLE_TELE                    | No          | Deshabilitar telemetría                                                                                        |                                               |
+| NC_BACKEND_URL                     | No          | Custom Backend URL                                                                                       | Se usará `http://localhost:8080` por default          |
 
 # Development setup
 
@@ -204,19 +204,19 @@ docker-compose up
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 
-# run backend
+# corre el backend
 cd packages/nocodb
 npm install
 npm run watch:run
 
-# open localhost:8080/dashboard in browser
+# abre localhost:8080/dashboard en tu navegador
 
-# run frontend
+# corre el frontend
 cd packages/nc-gui
 npm install
 npm run dev
 
-# open localhost:3000/dashboard in browser
+# abre localhost:3000/dashboard en tu navegador
 ```
 
 Changes made to code automatically restart.
@@ -247,7 +247,7 @@ npm run cypress:open
 # Contribuciones
 
 - Por favor vea ./scripts/contribute/HowToApplyLicense.md
-- Ignore adding headers for .json or .md or .yml
+- Ignore añadir headers para .json, .md o .yml
 
 # 🎯 Por qué estamos construyendo esto?
 

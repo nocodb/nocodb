@@ -1,6 +1,16 @@
 
 const path = require("path");
 
+/**
+ * Delete the downloads folder to make sure the test has "clean"
+ * slate before starting.
+ */
+export const deleteDownloadsFolder = () => {
+  const downloadsFolder = Cypress.config('downloadsFolder')
+
+  cy.task('deleteFolder', downloadsFolder)
+}
+
 // main page
 export class _mainPage {
 
@@ -250,9 +260,10 @@ export class _mainPage {
 
                 // download folder path, read from config file
                 const downloadsFolder = Cypress.config("downloadsFolder")
+                let filePath = path.join(downloadsFolder, filename)
                 
                 // append download folder path with filename to generate full file path, retrieve file
-                cy.readFile(path.join(downloadsFolder, filename))
+                cy.readFile(filePath)
                     .then((fileData) => {
 
                         // from CSV, split into records (rows)
@@ -263,6 +274,8 @@ export class _mainPage {
                             expect(rows[i]).to.be.equal(expectedRecords[i])
                             //cy.log(rows[i])
                         }
+
+                        deleteDownloadsFolder()
                 })
             })        
     }

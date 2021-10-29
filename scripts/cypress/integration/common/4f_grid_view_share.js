@@ -288,11 +288,9 @@ export const genTest = (type, xcdb) => {
                 mainPage.getCell("District", 1).contains("Tamil").should('exist')
             })
 
-            it.skip(`Share ${viewType.toUpperCase()} view : verify download CSV after local filter`, () => {
+            it(`Share ${viewType.toUpperCase()} view : verify download CSV after local filter`, () => {
                 let storedRecords = [
                     `Address,District,PostalCode,Phone,Location,LastUpdate,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
-                    `1013 Tabuk Boulevard,West Bengali,96203,158399646978,[object Object],2014-09-25T17:01:19.000Z,2,,Kanchrapara,`,
-                    `1892 Nabereznyje Telny Lane,Tutuila,28396,478229987054,[object Object],2014-09-25T17:00:02.000Z,2,,Tafuna,`,
                     `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2014-09-25T17:01:27.000Z,2,,Tambaram,`,
                     `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],2014-09-25T17:01:23.000Z,1,,Pudukkottai,`
                 ]

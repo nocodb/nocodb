@@ -1,4 +1,6 @@
 
+const path = require("path");
+
 // main page
 export class _mainPage {
 
@@ -226,7 +228,44 @@ export class _mainPage {
             .then(() => {
             cy.get('.v-overlay__content > .d-flex > .v-icon').click()
         })
-    }    
+    }
+    
+    // download CSV & verify
+    // download folder is configurable in cypress.
+    //      trigger download
+    //      wait for a while & check in configured download folder for the intended file
+    //      if it exists, verify it against 'expectedRecords' passed in as parameter
+    //
+    downloadAndVerifyCsv = (filename, expectedRecords) => {
+        cy.get('.nc-actions-menu-btn').click()
+        cy.get(`.menuable__content__active .v-list-item span:contains("Download as CSV")`).click()
+
+        // Toast verification disabled as for larger table, multiple toasts appear before success one
+        // for each partitioned file
+        // cy.get('.toasted', { timeout: 5000 })
+        //     .contains('Successfully exported all table data')
+        //     .should('exist')
+        cy.wait(5000)
+            .then(() => {
+
+                // download folder path, read from config file
+                const downloadsFolder = Cypress.config("downloadsFolder")
+                
+                // append download folder path with filename to generate full file path, retrieve file
+                cy.readFile(path.join(downloadsFolder, filename))
+                    .then((fileData) => {
+
+                        // from CSV, split into records (rows)
+                        const rows = fileData.replace(/\r\n/g, '\n').split('\n');
+
+                        // verify records against intended contents
+                        for (let i = 0; i < expectedRecords.length; i++) {
+                            expect(rows[i]).to.be.equal(expectedRecords[i])
+                            //cy.log(rows[i])
+                        }
+                })
+            })        
+    }
 }
 
 

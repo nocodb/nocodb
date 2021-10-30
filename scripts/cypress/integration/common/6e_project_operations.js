@@ -7,9 +7,9 @@ export const genTest = (type, xcdb) => {
   describe(`${type.toUpperCase()} Project operations`, () => {
     if(!isTestSuiteActive(type, xcdb)) return;
 
-    // before(() => {
-    //   loginPage.signIn(roles.owner.credentials)
-    // })
+    before(() => {
+      loginPage.signIn(roles.owner.credentials)
+    })
 
     // beforeEach(() => {
     //   cy.restoreLocalStorage();

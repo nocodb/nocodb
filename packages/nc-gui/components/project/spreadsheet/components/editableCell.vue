@@ -13,8 +13,10 @@
       :active="active"
       :db-alias="dbAlias"
       :meta="meta"
+      :is-form="isForm"
       :column="column"
       :is-public-grid="isPublic && !isForm"
+      :is-public-form="isPublic && isForm"
       v-on="$listeners"
     />
 

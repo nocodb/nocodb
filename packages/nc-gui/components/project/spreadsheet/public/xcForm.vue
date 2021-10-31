@@ -171,6 +171,7 @@
                               :meta="meta"
                               :sql-ui="sqlUiLoc"
                               is-form
+                              is-public
                               :hint="localParams.fields[col.alias].description"
                               @focus="active = col._cn"
                               @blur="active = ''"
@@ -306,7 +307,9 @@ export default {
 
         const showFields = this.query_params.showFields || {}
         let fields = this.query_params.fieldsOrder || []
-        if (!fields.length) { fields = Object.keys(showFields) }
+        if (!fields.length) {
+          fields = Object.keys(showFields)
+        }
         // eslint-disable-next-line camelcase
 
         let columns = this.meta.columns
@@ -371,12 +374,29 @@ export default {
 
         // if (this.isNew) {
 
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewInsert', {
-          view_id: this.$route.params.id,
-          password: this.password,
-          data: this.localState,
-          nested: this.virtual
-        }])
+        const formData = new FormData()
+        const data = { ...this.localState }
+
+        for (const col of this.meta.columns) {
+          if (col.uidt === 'Attachment') {
+            const files = data[col._cn]
+            delete data[col._cn]
+            for (const file of (files || [])) {
+              formData.append(`${col._cn}`, file)
+            }
+          }
+        }
+
+        await this.$store.dispatch('sqlMgr/ActUpload', {
+          op: 'sharedViewInsert',
+          opArgs: {
+            view_id: this.$route.params.id,
+            password: this.password,
+            data,
+            nested: this.virtual
+          },
+          formData
+        })
 
         //
         // data = { ...this.localState, ...data }
@@ -399,7 +419,8 @@ export default {
         this.$toast.success(this.localParams.submit.message || 'Saved successfully.', {
           position: 'bottom-right'
         }).goAway(3000)
-      } catch (e) {
+      } catch
+      (e) {
         console.log(e)
         this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
       }

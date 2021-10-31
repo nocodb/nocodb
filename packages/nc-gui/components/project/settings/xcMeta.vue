@@ -288,7 +288,7 @@ export default {
         this.loading = 'import-zip'
         try {
           this.$refs.importFile.value = ''
-          await this.$store.dispatch('sqlMgr/ActUpload', [
+          await this.$store.dispatch('sqlMgr/ActUploadOld', [
             {
               env: '_noco'
             },

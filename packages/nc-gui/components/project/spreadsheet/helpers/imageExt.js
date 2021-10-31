@@ -1,4 +1,4 @@
-const imageExt = ['jpeg', 'gif', 'png', 'apng', 'svg', 'bmp', 'ico', 'jpg']
+const imageExt = ['jpeg', 'gif', 'png', 'png', 'svg', 'bmp', 'ico', 'jpg']
 
 export default imageExt
 

@@ -246,7 +246,7 @@ export default {
       }
       this.uploading = true
       for (const file of this.$refs.file.files) {
-        const item = await this.$store.dispatch('sqlMgr/ActUpload', [{
+        const item = await this.$store.dispatch('sqlMgr/ActUploadOld', [{
           dbAlias: this.dbAlias
         }, 'xcAttachmentUpload', { public: true }, file])
         this.localState.push(item)

@@ -11,6 +11,7 @@ interface XcFile {
   path: string;
   mimetype: string;
   size: number | string;
+  buffer?: any;
 }
 
 export { XcFile };

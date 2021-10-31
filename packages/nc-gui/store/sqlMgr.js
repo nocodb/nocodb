@@ -354,7 +354,12 @@ export const actions = {
     }
   },
 
-  async ActSqlOp({ commit, state, rootState, dispatch }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams, returnResponse]) {
+  async ActSqlOp({
+    commit,
+    state,
+    rootState,
+    dispatch
+  }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams, returnResponse]) {
     const params = {}
     if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
       params.project_id = this.$router.currentRoute.params.project_id
@@ -415,7 +420,24 @@ export const actions = {
     }
   },
 
-  async ActUpload({ commit, state, rootState }, [args, op, opArgs, file, cusHeaders, cusAxiosOptions]) {
+  async ActUploadOld({
+    commit,
+    state,
+    rootState,
+    dispatch
+  }, [args, op, opArgs, file, cusHeaders, cusAxiosOptions, formData]) {
+    return await dispatch('ActUpload', { args, op, opArgs, file, cusHeaders, cusAxiosOptions, formData })
+  },
+
+  async ActUpload({ commit, state, rootState }, {
+    args = {},
+    op,
+    opArgs,
+    file,
+    cusHeaders = {},
+    cusAxiosOptions = {},
+    formData = new FormData()
+  }) {
     try {
       const params = {}
       if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
@@ -435,9 +457,10 @@ export const actions = {
         Object.assign(headers, cusHeaders)
       }
 
-      const formData = new FormData()
+      if (file) {
+        formData.append('file', file)
+      }
 
-      formData.append('file', file)
       formData.append('json', JSON.stringify({ api: op, ...params, ...args, args: opArgs }))
       // formData.append('project_id', params.project_id);
 

@@ -38,6 +38,7 @@ import { packageVersion } from 'nc-help';
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import { promisify } from 'util';
 import NcTemplateParser from '../../templateParser/NcTemplateParser';
+import UITypes from '../../sqlUi/UITypes';
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -128,19 +129,24 @@ export default class NcMetaMgr {
       })
     );
 
+    // todo: add multer middleware only for certain api calls
     if (!process.env.NC_SERVERLESS_TYPE && !this.config.try) {
       const upload = multer({
-        dest: path.join(this.config.toolDir, 'uploads')
+        storage: multer.diskStorage({
+          // dest: path.join(this.config.toolDir, 'uploads')
+        })
       });
-      router.post(this.config.dashboardPath, upload.single('file'));
+      // router.post(this.config.dashboardPath, upload.single('file'));
+      router.post(this.config.dashboardPath, upload.any());
     }
 
     router.post(this.config.dashboardPath, (req, res, next) =>
       this.handlePublicRequest(req, res, next)
     );
+
     // @ts-ignore
     router.post(this.config.dashboardPath, async (req: any, res, next) => {
-      if (req.file && req.body.json) {
+      if (req.files && req.body.json) {
         req.body = JSON.parse(req.body.json);
       }
       if (req?.session?.passport?.user?.isAuthorized) {
@@ -209,7 +215,7 @@ export default class NcMetaMgr {
           }
         }
 
-        if (req.file) {
+        if (req.files) {
           await this.handleRequestWithFile(req, res, next);
         } else {
           await this.handleRequest(req, res, next);
@@ -219,11 +225,11 @@ export default class NcMetaMgr {
       async (req: any, res) => {
         try {
           let output;
-          if (req.file) {
+          if (req.files && req.body.json) {
             req.body = JSON.parse(req.body.json);
             output = await this.projectMgr
               .getSqlMgr({ id: req.body.project_id })
-              .handleRequestWithFile(req.body.api, req.body, req.file);
+              .handleRequestWithFile(req.body.api, req.body, req.files);
           } else {
             output = await this.projectMgr
               .getSqlMgr({ id: req.body.project_id })
@@ -336,7 +342,7 @@ export default class NcMetaMgr {
   }
 
   public async handleRequestWithFile(req, res, next) {
-    const [operation, args, file] = [req.body.api, req.body, req.file];
+    const [operation, args, file] = [req.body.api, req.body, req.files?.[0]];
     let result;
     try {
       switch (operation) {
@@ -1230,48 +1236,68 @@ export default class NcMetaMgr {
       const prependName = args.args.prependName?.length
         ? args.args.prependName.join('_') + '_'
         : '';
-      const fileName = `${prependName}${nanoid(6)}_${file.originalname}`;
-      let destPath;
-      if (args?.args?.public) {
-        destPath = path.join('nc', 'public', 'files', 'uploads', ...appendPath);
-      } else {
-        destPath = path.join(
-          'nc',
-          this.getProjectId(args),
-          this.getDbAlias(args),
-          'uploads',
-          ...appendPath
-        );
-      }
-      let url = await this.storageAdapter.fileCreate(
-        slash(path.join(destPath, fileName)),
-        file
-      );
-      if (!url) {
-        if (args?.args?.public) {
-          url = `${req.ncSiteUrl}/dl/public/files/${
-            appendPath?.length ? appendPath.join('/') + '/' : ''
-          }${fileName}`;
-        } else {
-          url = `${req.ncSiteUrl}/dl/${this.getProjectId(
-            args
-          )}/${this.getDbAlias(args)}/${
-            appendPath?.length ? appendPath.join('/') + '/' : ''
-          }${fileName}`;
-        }
-      }
-      return {
-        url,
-        title: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
-      };
+      return await this._uploadFile({
+        prependName,
+        file,
+        storeInPublicFolder: args?.args?.public,
+        appendPath,
+        req,
+        dbAlias: this.getDbAlias(args),
+        projectId: this.getProjectId(args)
+      });
     } catch (e) {
       throw e;
     } finally {
       Tele.emit('evt', { evt_type: 'image:uploaded' });
     }
+  }
+
+  private async _uploadFile({
+    prependName = '',
+    file,
+    storeInPublicFolder = false,
+    appendPath = [],
+    req,
+    projectId,
+    dbAlias
+  }: {
+    prependName?: string;
+    file: any;
+    storeInPublicFolder: boolean;
+    appendPath?: string[];
+    req: express.Request & any;
+    projectId?: string;
+    dbAlias?: string;
+  }) {
+    const fileName = `${prependName}${nanoid(6)}_${file.originalname}`;
+    let destPath;
+    if (storeInPublicFolder) {
+      destPath = path.join('nc', 'public', 'files', 'uploads', ...appendPath);
+    } else {
+      destPath = path.join('nc', projectId, dbAlias, 'uploads', ...appendPath);
+    }
+    let url = await this.storageAdapter.fileCreate(
+      slash(path.join(destPath, fileName)),
+      file
+    );
+    if (!url) {
+      if (storeInPublicFolder) {
+        url = `${req.ncSiteUrl}/dl/public/files/${
+          appendPath?.length ? appendPath.join('/') + '/' : ''
+        }${fileName}`;
+      } else {
+        url = `${req.ncSiteUrl}/dl/${projectId}/${dbAlias}/${
+          appendPath?.length ? appendPath.join('/') + '/' : ''
+        }${fileName}`;
+      }
+    }
+    return {
+      url,
+      title: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+    };
   }
 
   protected async initTwilio(overwrite = false): Promise<void> {
@@ -1294,7 +1320,11 @@ export default class NcMetaMgr {
   }
 
   protected async handlePublicRequest(req, res, next) {
-    const args = req.body;
+    let args = req.body;
+
+    try {
+      if (req.body.json) args = JSON.parse(req.body.json);
+    } catch {}
     let result;
     try {
       switch (args.api) {
@@ -1304,7 +1334,6 @@ export default class NcMetaMgr {
         case 'getSharedViewData':
           result = await this.getSharedViewData(req, args);
           break;
-
         case 'sharedViewGet':
           result = await this.sharedViewGet(req, args);
           break;
@@ -3723,11 +3752,17 @@ export default class NcMetaMgr {
     const queryParams = JSON.parse(viewMeta.query_params);
     // const meta = JSON.parse(viewMeta.meta);
 
-    const fields: string[] = Object.keys(queryParams.showFields);
+    const fields: string[] = Object.keys(queryParams.showFields).filter(
+      k => queryParams.showFields[k]
+    );
 
     const apiBuilder = this.app?.projectBuilders
       ?.find(pb => pb.id === sharedViewMeta.project_id)
       ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+
+    const tableMeta = (viewMeta.meta = apiBuilder?.getMeta(
+      sharedViewMeta.model_name
+    ));
 
     const insertObject = Object.entries(args.args.data).reduce(
       (obj, [key, val]) => {
@@ -3745,7 +3780,31 @@ export default class NcMetaMgr {
       }
     }
 
+    const attachments = {};
+    for (const file of req.files || []) {
+      if (
+        fields.includes(file?.fieldname) &&
+        tableMeta.columns.find(
+          c => c._cn === file?.fieldname && c.uidt === UITypes.Attachment
+        )
+      ) {
+        attachments[file.fieldname] = attachments[file.fieldname] || [];
+        attachments[file.fieldname].push(
+          await this._uploadFile({
+            file,
+            storeInPublicFolder: true,
+            req
+          })
+        );
+      }
+    }
+
+    for (const [column, data] of Object.entries(attachments)) {
+      insertObject[column] = JSON.stringify(data);
+    }
+
     const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
+
     if (model) {
       req.query.form = viewMeta.view_name;
       await model.nestedInsert(insertObject, null, req);

@@ -14,6 +14,7 @@
       :db-alias="dbAlias"
       :meta="meta"
       :column="column"
+      :is-public-grid="isPublic && !isForm"
       v-on="$listeners"
     />
 
@@ -107,7 +108,7 @@
     <text-cell v-else v-model="localState" v-on="$listeners" />
     <span v-if="hint" class="nc-hint">{{ hint }}</span>
 
-    <div v-if="isLocked || (isPublic && !isForm)" class="nc-locked-overlay" />
+    <div v-if="(isLocked || (isPublic && !isForm)) && !isAttachment" class="nc-locked-overlay" />
   </div>
 </template>
 

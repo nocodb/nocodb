@@ -57,7 +57,7 @@
         </v-tooltip>
       </div>
 
-      <div v-if="active" class="add d-flex align-center justify-center px-1" @click="addFile">
+      <div v-if="active && !isPublicGrid" class="add d-flex align-center justify-center px-1" @click="addFile">
         <v-icon v-if="uploading" small color="primary">
           mdi-loading mdi-spin
         </v-icon>
@@ -82,7 +82,7 @@
       <v-card class="h-100 images-modal">
         <v-card-text class="h-100 backgroundColor">
           <div class="d-flex mx-2">
-            <v-btn v-if="_isUIAllowed('tableAttachment')" small class="my-4 " :loading="uploading" @click="addFile">
+            <v-btn v-if="_isUIAllowed('tableAttachment') && !isPublicGrid" small class="my-4 " :loading="uploading" @click="addFile">
               <v-icon small class="mr-2">
                 mdi-link-variant
               </v-icon>
@@ -103,7 +103,7 @@
                     height="200px"
                     style="position: relative"
                   >
-                    <v-icon v-if="_isUIAllowed('tableAttachment')" small class="remove-icon" @click="removeItem(i)">
+                    <v-icon v-if="_isUIAllowed('tableAttachment') && !isPublicGrid" small class="remove-icon" @click="removeItem(i)">
                       mdi-close-circle
                     </v-icon>
                     <v-icon color="grey" class="download-icon" @click.stop="downloadItem(item,i)">
@@ -229,7 +229,7 @@ import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
 export default {
   name: 'EditableAttachmentCell',
   components: { draggable },
-  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column'],
+  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column', 'isPublicGrid'],
   data: () => ({
     carousel: null,
     uploading: false,
@@ -287,6 +287,7 @@ export default {
       }
     },
     async onFileSelection() {
+      if (this.isPublicGrid) { return }
       if (!this.$refs.file.files || !this.$refs.file.files.length) {
         return
       }

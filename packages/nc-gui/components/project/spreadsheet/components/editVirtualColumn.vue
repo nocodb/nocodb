@@ -106,7 +106,7 @@ export default {
         console.log(e)
         this.$toast.error('Failed to update column alias').goAway(3000)
       }
-      this.$emit('saved', this.newColumn._cn)
+      this.$emit('saved', this.newColumn._cn, this.column._cn)
       this.$emit('input', false)
     },
 

@@ -37,6 +37,7 @@
               :sql-ui="sqlUi"
               :is-public-view="isPublicView"
               :is-locked="isLocked"
+              :is-virtual="isVirtual"
               @saved="onNewColCreation"
             />
 
@@ -464,10 +465,10 @@ export default {
       this.selected.col = null
       this.selected.row = null
     },
-    onNewColCreation(col) {
+    onNewColCreation(col, oldCol) {
       this.addNewColMenu = false
       this.addNewColModal = false
-      this.$emit('onNewColCreation', col)
+      this.$emit('onNewColCreation', col, oldCol)
     },
     expandRow(...args) {
       this.$emit('expandRow', ...args)

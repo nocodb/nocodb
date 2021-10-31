@@ -223,10 +223,10 @@
           :style="{height:isForm ? '100%' : 'calc(100% - 36px)'}"
           style="overflow: auto;width:100%"
         >
-          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData) || !meta" type="table" />
+          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
-              :key="key"
+              :key="key + selectedViewId"
               ref="ncgridview"
               :relation-type="relationType"
               :columns-width.sync="columnsWidth"
@@ -372,7 +372,7 @@
           </template>
           Create Automations or API Webhooks
         </v-tooltip>
-        <v-tooltip bottom>
+        <!--        <v-tooltip bottom>
           <template #activator="{on}">
             <v-list-item
               v-on="on"
@@ -385,7 +385,7 @@
             </v-list-item>
           </template>
           Create / Edit API Webhooks
-        </v-tooltip>
+        </v-tooltip>-->
         <v-list-item
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('validators')"
@@ -519,7 +519,6 @@
         @prev="loadPrev"
       />
     </v-dialog>
-
     <additional-features
       v-model="showAddFeatOverlay"
       :selected-view="selectedView"
@@ -1016,15 +1015,26 @@ export default {
           break
       }
     },
-    async loadMeta(updateShowFields = true, col) {
-      this.loadingMeta = true
+    async loadMeta(updateShowFields = true, col, oldCol) {
+      // update column name in column meta data
+      if (oldCol && col) {
+        this.$set(this.columnsWidth, col, this.columnsWidth[oldCol])
+        this.$set(this.showFields, col, this.showFields[oldCol])
+        const i = (this.fieldsOrder || []).indexOf(oldCol)
+        if (i > -1) {
+          this.$set(this.fieldsOrder, i, col)
+        }
+      }
+
+      // load latest table meta
       const tableMeta = await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         tn: this.table,
         force: true
       })
-      this.loadingMeta = false
+
+      // update column visibility
       if (updateShowFields) {
         try {
           const qp = JSON.parse(tableMeta.query_params)
@@ -1082,8 +1092,8 @@ export default {
       this.selectedExpandRowIndex = row
       this.selectedExpandRowMeta = rowMeta
     },
-    async onNewColCreation(col) {
-      await this.loadMeta(true, col)
+    async onNewColCreation(col, oldCol) {
+      await this.loadMeta(true, col, oldCol)
       this.$nextTick(async() => {
         await this.loadTableData()
         // this.mapFieldsAndShowFields();

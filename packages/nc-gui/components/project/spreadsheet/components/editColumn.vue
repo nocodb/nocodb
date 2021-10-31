@@ -567,7 +567,7 @@ export default {
           await this.$refs.relation.saveRelation()
         }
 
-        this.$emit('saved', this.newColumn._cn)
+        this.$emit('saved', this.newColumn._cn, this.editColumn ? this.meta.columns[this.columnIndex]._cn : null)
       } catch (e) {
         console.log(e)
       }

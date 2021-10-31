@@ -46,7 +46,7 @@
     <v-spacer />
 
     <v-menu
-      v-if="!isLocked && !isPublicView && _isUIAllowed('edit-column') && !isForm"
+      v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('edit-column') && !isForm"
       offset-y
       open-on-hover
       left
@@ -133,7 +133,7 @@ import EditVirtualColumn from '@/components/project/spreadsheet/components/editV
 export default {
   name: 'VirtualHeaderCell',
   components: { EditVirtualColumn },
-  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi', 'required', 'isLocked'],
+  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi', 'required', 'isLocked', 'isVirtual'],
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false,

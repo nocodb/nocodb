@@ -623,6 +623,14 @@ export default {
       this.$store.commit('windows/MutMiniSponsorCard', Date.now())
     },
     openCreateViewDlg(type) {
+      const mainView = this.viewsList.find(v => v.type === 'table' || v.type === 'view')
+      try {
+        this.copyViewRef = this.copyViewRef || {
+          query_params: JSON.stringify({
+            fieldsOrder: JSON.parse(mainView.query_params).fieldsOrder
+          })
+        }
+      } catch {}
       this.createViewType = type
       this.showCreateView = true
     },

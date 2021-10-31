@@ -98,7 +98,7 @@
         :column="column"
         :column-index="columnIndex"
         @onRelationDelete="$emit('onRelationDelete')"
-        @saved="$emit('saved')"
+        @saved="(_cn,_cno) => $emit('saved',_cn,_cno)"
         @close="editColumnMenu = false"
       />
     </v-menu>

@@ -146,14 +146,16 @@ export const genTest = (type, xcdb) => {
             })
 
             it(`[${roles[roleType].name}] Download files`, () => {
+                mainPage.hideUnhideField('LastUpdate')
                 let storedRecords = [
-                    `City,LastUpdate,City => Address,Country <= City`,
-                    `A Corua (La Corua),2006-02-14T23:15:25.000Z,939 Probolinggo Loop,Spain`,
-                    `Abha,2006-02-14T23:15:25.000Z,733 Mandaluyong Place,Saudi Arabia`,
-                    `Abu Dhabi,2006-02-14T23:15:25.000Z,535 Ahmadnagar Manor,United Arab Emirates`,
-                    `Acua,2006-02-14T23:15:25.000Z,1789 Saint-Denis Parkway,Mexico`
+                    `City,City => Address,Country <= City`,
+                    `A Corua (La Corua),939 Probolinggo Loop,Spain`,
+                    `Abha,733 Mandaluyong Place,Saudi Arabia`,
+                    `Abu Dhabi,535 Ahmadnagar Manor,United Arab Emirates`,
+                    `Acua,1789 Saint-Denis Parkway,Mexico`
                 ]
                 mainPage.downloadAndVerifyCsv(`City_exported_1.csv`, storedRecords)
+                mainPage.hideUnhideField('LastUpdate')
             })            
 
             // after(() => {

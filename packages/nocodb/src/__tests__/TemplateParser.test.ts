@@ -15,9 +15,9 @@ describe('Template parser', () => {
 
   describe('Parse blog templates', function() {
     it('Simple formula', function() {
-      const parser = new NcTemplateParser('mysql');
+      const parser = new NcTemplateParser({ client: 'mysql', template });
 
-      const { tables } = parser.parse(template);
+      const { tables } = parser.parse();
       expect(tables).length(3);
     });
   });

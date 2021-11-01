@@ -13,7 +13,7 @@
           >
             <v-radio value="hm" label="Has Many" />
             <v-radio value="mm" label="Many To Many" />
-            <v-radio disabled value="oo" label="One To One" />
+            <!--            <v-radio disabled value="oo" label="One To One" />-->
           </v-radio-group>
         </v-col>
       </v-row>

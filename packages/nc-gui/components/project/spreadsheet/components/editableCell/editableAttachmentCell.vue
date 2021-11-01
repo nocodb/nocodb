@@ -34,7 +34,7 @@
               contain
               :src="item.url || item.data"
               v-on="on"
-              @click="selectImage(item.url || item.data,i)"
+              @click="selectImage(item.url || item.data, i)"
             >
               <template #placeholder>
                 <v-skeleton-loader

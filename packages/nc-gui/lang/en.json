@@ -28,6 +28,7 @@
     "show_community_book_a_free_demo": "Book a Free DEMO",
     "show_community_get_your_questions_answered": "Get your questions answered",
     "show_community_join_discord": "Join Discord",
+    "show_community_join_reddit": "Join /r/NocoDB",
     "show_community_follow_nocodb": "Follow NocoDB",
     "search": {
       "your_search_found_no_results": "Your search for {search} found no results"

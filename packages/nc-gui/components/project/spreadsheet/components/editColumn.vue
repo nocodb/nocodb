@@ -109,9 +109,9 @@
                     class="pointer grey--text text-right caption nc-more-options"
                     @click="advanceOptions = !advanceOptions"
                   >
-                    More options
-                    <v-icon small>
-                      mdi-menu-{{ advanceOptions ? 'up' : 'down' }}
+                    {{ advanceOptions ? 'Hide' : 'Show more' }} options
+                    <v-icon x-small color="grey">
+                      mdi-{{ advanceOptions ? 'minus' : 'plus' }}-circle-outline
                     </v-icon>
                   </div>
                 </v-col>
@@ -368,18 +368,18 @@
                           v-on="$listeners"
                         />
 
-                      <!--                  <v-autocomplete
-                        label="Formula"
-                        hide-details
-                        class="caption formula-type"
-                        outlined
-                        dense
-                        :items="formulas"
-                      >
-                        <template #item="{item}">
-                          <span class="green&#45;&#45;text text&#45;&#45;darken-2 caption font-weight-regular">{{ item }}</span>
-                        </template>
-                      </v-autocomplete>-->
+                        <!--                  <v-autocomplete
+                          label="Formula"
+                          hide-details
+                          class="caption formula-type"
+                          outlined
+                          dense
+                          :items="formulas"
+                        >
+                          <template #item="{item}">
+                            <span class="green&#45;&#45;text text&#45;&#45;darken-2 caption font-weight-regular">{{ item }}</span>
+                          </template>
+                        </v-autocomplete>-->
                       </v-col>
                     </template>
                   </v-row>
@@ -449,7 +449,7 @@ export default {
   }),
   computed: {
     accordion() {
-      return ![UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.SpecificDBType].includes(this.newColumn && this.newColumn.uidt)
+      return ![UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.SpecificDBType, UITypes.Formula].includes(this.newColumn && this.newColumn.uidt)
     },
     uiTypes() {
       return uiTypes.filter(t => !this.editColumn || !t.virtual)

@@ -243,6 +243,7 @@ import VirtualHeaderCell from '../components/virtualHeaderCell'
 import colors from '@/mixins/colors'
 import TableCell from '@/components/project/spreadsheet/components/cell'
 import DynamicStyle from '@/components/dynamicStyle'
+import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'XcGridView',
@@ -512,12 +513,12 @@ export default {
       }
     },
     enableEditable(column) {
-      return ((column && column.uidt === 'Attachment') ||
-        (column && column.uidt === 'SingleSelect') ||
-        (column && column.uidt === 'MultiSelect') ||
-        (column && column.uidt === 'DateTime') ||
-        (column && column.uidt === 'Date') ||
-        (column && column.uidt === 'Time') ||
+      return ((column && column.uidt === UITypes.Attachment) ||
+        (column && column.uidt === UITypes.SingleSelect) ||
+        (column && column.uidt === UITypes.MultiSelect) ||
+        (column && column.uidt === UITypes.DateTime) ||
+        (column && column.uidt === UITypes.Date) ||
+        (column && column.uidt === UITypes.Time) ||
         (this.sqlUi && this.sqlUi.getAbstractType(column) === 'boolean')
       )
     },

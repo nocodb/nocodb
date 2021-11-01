@@ -66,8 +66,15 @@
         <v-icon v-if="uploading" small color="primary" class="nc-attachment-add-spinner">
           mdi-loading mdi-spin
         </v-icon>
-        <v-btn v-else-if="isForm" outlined x-small class="nc-attachment-add-btn">
-          <v-icon x-small color="primary">
+        <v-btn
+          v-else-if="isForm"
+          outlined
+          x-small
+          color=""
+          text
+          class="nc-attachment-add-btn"
+        >
+          <v-icon x-small color="">
             mdi-plus
           </v-icon> Attachment
         </v-btn>

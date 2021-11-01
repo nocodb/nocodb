@@ -8,7 +8,7 @@
     @dragend="dragOver = false"
     @drop.prevent="onFileDrop"
   >
-    <div v-show="_isUIAllowed('tableAttachment') && dragOver" class="drop-overlay">
+    <div v-show="(isForm || _isUIAllowed('tableAttachment')) && dragOver" class="drop-overlay">
       <div>
         <v-icon small>
           mdi-cloud-upload-outline
@@ -62,11 +62,16 @@
         </v-tooltip>
       </div>
 
-      <div v-if="active && !isPublicGrid" class="add d-flex align-center justify-center px-1" @click="addFile">
-        <v-icon v-if="uploading" small color="primary">
+      <div v-if="isForm || active && !isPublicGrid" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
+        <v-icon v-if="uploading" small color="primary" class="nc-attachment-add-spinner">
           mdi-loading mdi-spin
         </v-icon>
-        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary">
+        <v-btn v-else-if="isForm" outlined x-small class="nc-attachment-add-btn">
+          <v-icon x-small color="primary">
+            mdi-plus
+          </v-icon> Attachment
+        </v-btn>
+        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary nc-attachment-add-icon">
           mdi-plus
         </v-icon>
       </div>
@@ -88,7 +93,7 @@
         <v-card-text class="h-100 backgroundColor">
           <div class="d-flex mx-2">
             <v-btn
-              v-if="_isUIAllowed('tableAttachment') && !isPublicGrid"
+              v-if="(isForm || _isUIAllowed('tableAttachment')) && !isPublicGrid"
               small
               class="my-4 "
               :loading="uploading"

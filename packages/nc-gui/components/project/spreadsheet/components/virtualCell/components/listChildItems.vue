@@ -8,7 +8,7 @@
         mdi-reload
       </v-icon>
       <v-btn
-        v-if="(isForm || !isPublic) && !readOnly && _isUIAllowed('xcDatatableEditable')"
+        v-if="(isForm || !isPublic) && !readOnly && (isPublic || _isUIAllowed('xcDatatableEditable'))"
         small
         class="caption"
         color="primary"
@@ -24,7 +24,7 @@
     </v-card-title>
     <v-card-text>
       <div class="items-container pt-2 mb-n4" :class="{'mx-n2' : isForm}">
-        <div v-if="!readOnly && _isUIAllowed('xcDatatableEditable')" class="text-right mb-2 mt-n2 mx-2">
+        <div v-if="!readOnly && (isPublic || _isUIAllowed('xcDatatableEditable'))" class="text-right mb-2 mt-n2 mx-2">
           <v-btn
             v-if="isForm"
             x-small
@@ -47,11 +47,11 @@
             :key="i"
             class="mx-2 mb-2 child-list-modal child-card"
             outlined
-            @click="!readOnly && $emit('edit',ch) && _isUIAllowed('xcDatatableEditable')"
+            @click="!readOnly && $emit('edit',ch) "
           >
             <div class="remove-child-icon d-flex align-center">
               <x-icon
-                v-if="(isForm || !isPublic) && !readOnly && _isUIAllowed('xcDatatableEditable')"
+                v-if="(isForm || !isPublic&& _isUIAllowed('xcDatatableEditable')) && !readOnly "
                 :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
                 :color="['error','grey']"
                 small

@@ -443,6 +443,11 @@ export default {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {
             return
           }
+          if (e.ctrlKey ||
+            e.altKey ||
+            e.shiftKey ||
+            e.metaKey) { return }
+
           if (e.key && e.key.length === 1) {
             if (!this.isPkAvail && !this.data[this.selected.row].rowMeta.new) {
               return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)

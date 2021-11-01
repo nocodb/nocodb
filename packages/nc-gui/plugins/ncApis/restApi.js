@@ -12,7 +12,7 @@ export default class RestApi {
   }
 
   async read(id, params = {}) {
-    const data = await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`, params)
+    const data = await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`, params)
     return data.data
   }
 
@@ -67,7 +67,7 @@ export default class RestApi {
   async update(id, data, oldData) {
     const res = await this.$axios({
       method: 'put',
-      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`,
+      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`,
       data
     })
     const colName = Object.keys(data)[0]
@@ -96,7 +96,7 @@ export default class RestApi {
   async delete(id) {
     return this.$axios({
       method: 'delete',
-      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`
+      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`
     })
   }
 

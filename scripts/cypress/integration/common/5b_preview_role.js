@@ -208,7 +208,7 @@ export const genTest = (type, xcdb, roleType) => {
 
         let columnName = 'City'
         let navDrawListCnt = 2
-        let navDrawListItemCnt = 5
+
         cy.openTableTab(columnName)
         let validationString = (true == roles[roleType].validations.shareView) ? 'exist' : 'not.exist'
 
@@ -216,12 +216,23 @@ export const genTest = (type, xcdb, roleType) => {
         cy.get('header.v-toolbar').eq(0).find('button:contains("Share")').should(validationString)
 
         // Owner, Creator will have two navigation drawer (on each side of center panel)
-        if (validationString == 'exist') {
+        if (roleType == 'owner' || roleType == 'creator') {
             navDrawListCnt = 4
-            navDrawListItemCnt = 16
         }
+
         cy.get('.v-navigation-drawer__content').eq(1).find('[role="list"]').should('have.length', navDrawListCnt)
-        cy.get('.v-navigation-drawer__content').eq(1).find('.v-list-item').should('have.length', navDrawListItemCnt)
+
+        // view list field (default GRID view)
+        cy.get(`.nc-view-item`).should('exist')
+
+        // view create option, exists only for owner/ creator
+        cy.get(`.nc-create-gallery-view`).should(validationString)
+        cy.get(`.nc-create-grid-view`).should(validationString)
+        cy.get(`.nc-create-form-view`).should(validationString)
+
+        // share view & automations, exists only for owner/creator
+        cy.get(`.nc-share-view`).should(validationString)
+        cy.get(`.nc-automations`).should(validationString)        
 
         // redundant
         // cy.get('.v-navigation-drawer__content').eq(1).find('.v-list-item').eq(0).contains('Views').should('exist')

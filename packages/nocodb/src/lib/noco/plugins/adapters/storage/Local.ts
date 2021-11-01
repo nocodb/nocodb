@@ -15,7 +15,10 @@ export default class Local implements IStorageAdapter {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     try {
       mkdirp.sync(path.dirname(destPath));
-      await fs.promises.rename(file.path, destPath);
+      const data = await fs.readFileSync(file.path);
+      await fs.writeFileSync(destPath, data);
+      fs.unlinkSync(file.path);
+      // await fs.promises.rename(file.path, destPath);
     } catch (e) {
       throw e;
     }

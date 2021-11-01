@@ -2428,7 +2428,7 @@ class BaseModelSql extends BaseModel {
     let offset = +args.offset || 0;
     const limit = 100;
     // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
-    const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 500;
+    const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
     const csvRows = [];
     const startTime = process.hrtime();
     let elapsed, temp;

@@ -7,6 +7,9 @@ on:
     branches: [master, cypress]
   pull_request:
     branches: [master]
+    paths:
+      - "packages/nc-gui/**"
+      - "scripts/cypress/**"
 
 jobs:
   cypress-restTableOps-run:
@@ -16,9 +19,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -34,7 +34,6 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |
@@ -52,9 +51,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -70,7 +66,6 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |
@@ -88,9 +83,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -106,7 +98,6 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |
@@ -124,9 +115,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -141,7 +129,6 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |
@@ -159,9 +146,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -177,7 +161,6 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |
@@ -195,9 +178,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -213,7 +193,6 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |
@@ -231,9 +210,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -249,7 +225,6 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |
@@ -267,9 +242,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nc-gui) = nc-gui ]] && echo 'OK')" >> $GITHUB_ENV
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -284,7 +256,6 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Cypress run
-        if: ${{ env.CHANGED == 'OK' }}
         uses: cypress-io/github-action@v2
         with:
           start: |

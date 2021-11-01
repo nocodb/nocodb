@@ -364,7 +364,7 @@
               v-on="on"
               @click="showAdditionalFeatOverlay('webhooks')"
             >
-              <v-icon x-small class="mr-2">
+              <v-icon x-small class="mr-2 nc-automations">
                 mdi-hook
               </v-icon>
               <span class="caption"> Automations</span>

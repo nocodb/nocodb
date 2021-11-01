@@ -361,7 +361,7 @@
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"
             >
-              <v-icon x-small class="mr-2">
+              <v-icon x-small class="mr-2 nc-share-view">
                 mdi-open-in-new
               </v-icon>
               <span class="caption">

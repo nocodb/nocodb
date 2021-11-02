@@ -43,7 +43,8 @@
         >
           {{ ghStarText }}
         </gh-btns-star>
-        <a class="caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
+        <a class="align-self-center caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
+        <templates-modal class="align-self-center" />
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 
@@ -574,9 +575,11 @@ import xTerm from '../components/xTerm'
 import { copyTextToClipboard } from '@/helpers/xutils'
 import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
+import TemplatesModal from '~/components/templates/templatesModal'
 
 export default {
   components: {
+    TemplatesModal,
     ReleaseInfo,
     Language,
     ChangeEnv,

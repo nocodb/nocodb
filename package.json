@@ -3,6 +3,7 @@
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^2.0.0",
     "cypress": "^7.3.0",
+    "cypress-file-upload": "^5.0.8",
     "jsdoc-to-markdown": "^5.0.3",
     "lerna": "^3.20.1"
   },

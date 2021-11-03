@@ -142,6 +142,27 @@ export class _mainPage {
         cy.get('.nc-col-create-or-edit-card').contains('Save').click()
     }
 
+    addColumnWithType = (colName, colType) => {
+        cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({ force: true });
+        cy.get('.nc-column-name-input input', { timeout: 3000 }).clear().type(colName)
+
+        // Column data type: to be set to lookup in this context
+        cy.get('.nc-ui-dt-dropdown').click()
+        cy.getActiveMenu().contains(colType).click()
+        
+        cy.get('.nc-col-create-or-edit-card').contains('Save').click()
+        cy.wait(500)
+    }
+
+    deleteColumn = (colName) => {
+        cy.get(`th:contains(${colName}) .mdi-menu-down`)
+            .trigger('mouseover')
+            .click()
+
+        cy.get('.nc-column-delete').click()
+        cy.get('button:contains(Confirm)').click()        
+    }
+
     getAuthToken = () => {
         let obj = JSON.parse(localStorage['vuex'])
         return obj["users"]["token"]

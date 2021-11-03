@@ -107,10 +107,9 @@ export default class NcTemplateParser {
               dtx: 'specificType',
               dtxp: this.sqlUi.getDefaultLengthForDatatype(colProp.dt),
               dtxs: this.sqlUi.getDefaultScaleForDatatype(colProp.dt),
-              cn: tableColumn.cn,
+              ...colProp,
               _cn: tableColumn.cn,
-              uidt: tableColumn.uidt,
-              ...colProp
+              ...tableColumn
             });
           }
           break;

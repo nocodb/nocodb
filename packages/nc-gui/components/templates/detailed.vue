@@ -2,12 +2,18 @@
   <v-container class="py-0">
     <div class="d-flex">
       <v-navigation-drawer height="calc(100vh - 40px)">
-        <categories ref="cat" :counter.sync="counter" @input="v => $emit('load-category', v)" />
+        <categories
+          ref="cat"
+          :counter.sync="counter"
+          @showTemplateEditor="$emit('showTemplateEditor')"
+          @input="v => $emit('load-category', v)"
+        />
       </v-navigation-drawer>
       <v-container v-if="templateData" fluid style="height: calc(100vh - 40px ); overflow: auto">
         <v-img
-          :src="templateData.image_url || `https://picsum.photos/200/300?${id}`"
+          :src="templateData.image_url"
           height="200px"
+          :style="{ background: templateData.image_url }"
         />
         <div class="d-flex align-center mt-10">
           <h2 class="display-2 font-weight-bold my-0 flex-grow-1">

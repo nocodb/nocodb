@@ -32,8 +32,9 @@
               class="mx-auto"
             >
               <v-img
-                :src="template.image_url || `https://picsum.photos/200/300?${template.id}`"
+                :src="template.image_url"
                 height="200px"
+                :style="{ background: template.image_url }"
               />
 
               <v-card-title>
@@ -65,6 +66,7 @@
     @saved="onSaved"
     @load-category="v =>{ category = v; selectedId = null }"
     v-on="$listeners"
+    @showTemplateEditor="newEditor = true"
   />
 </template>
 

@@ -381,6 +381,17 @@
                       :rules="[v => !!v || 'Required'] "
                     />
                   </div>
+                  <!--
+                  <div
+                    class="rounded pa-5 mb-5 d-100 text-center caption"
+                    :style="{background:project.image_url}"
+                    @click="generateGradient"
+                  >
+                    Click to change gradient
+                  </div>-->
+
+                  <gradient-generator v-model="project.image_url" class=" d-100" />
+
                   <v-row>
                     <v-col>
                       <v-text-field
@@ -497,6 +508,7 @@
 <script>
 
 import { uiTypes, getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
+import GradientGenerator from '~/components/templates/gradientGenerator'
 
 const LinkToAnotherRecord = 'LinkToAnotherRecord'
 const Lookup = 'Lookup'
@@ -505,7 +517,7 @@ const defaultColProp = {}
 
 export default {
   name: 'TemplateEditor',
-  components: {},
+  components: { GradientGenerator },
   props: {
     id: [Number, String],
     viewMode: Boolean,
@@ -1003,6 +1015,7 @@ export default {
         accord.scrollIntoView()
       })
     },
+
     async saveTemplate() {
       try {
         if (this.id || this.localId) {

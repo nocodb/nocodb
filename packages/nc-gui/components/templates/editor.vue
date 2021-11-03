@@ -45,8 +45,8 @@
         mdi-plus
       </v-icon>
       <!--      <v-btn outlined small class='mr-1' @click='submitTemplate'> Submit Template</v-btn>-->
-      <v-btn color="primary" outlined small class="mr-1" @click="projectTemplateCreate">
-        {{ updateFilename ? 'Update' : 'Create' }}
+      <v-btn color="primary" outlined small class="mr-1" @click="saveTemplate">
+        {{ id || localId ? 'Update' : 'Create' }}
         Template
       </v-btn>
     </v-toolbar>
@@ -373,7 +373,7 @@
                   <div class="mt-10">
                     <v-text-field
                       ref="project"
-                      v-model="project.name"
+                      v-model="project.title"
                       class="caption"
                       outlined
                       dense
@@ -408,16 +408,17 @@
                       outlined
                       dense
                       label="Project Tags"
+                      @click="counter++"
                     />
                   </div>
+
+                  <v-text-field v-if="counter > 4" v-model="token" outlined dense label="Token" />
                 </div>
               </v-card-text>
             </v-card>
           </v-col>
         </v-row>
       </v-form>
-
-      <github-config v-if="githubConfigForm" class="mx-auto mt-10 mb-4" />
     </v-container>
 
     <v-dialog v-model="createTablesDialog" max-width="500">
@@ -506,10 +507,12 @@ export default {
   name: 'TemplateEditor',
   components: {},
   props: {
+    id: [Number, String],
     viewMode: Boolean,
     templateData: Object
   },
   data: () => ({
+    localId: null,
     valid: false,
     url: '',
     githubConfigForm: false,
@@ -541,7 +544,8 @@ export default {
       LinkToAnotherRecord: 'blue lighten-5',
       Rollup: 'pink lighten-5',
       Lookup: 'green lighten-5'
-    }
+    },
+    counter: 0
   }),
   computed: {
 
@@ -857,34 +861,6 @@ export default {
       document.body.removeChild(el)
       this.$toast.success('Successfully copied JSON data to clipboard!').goAway(3000)
     },
-    async submitTemplate() {
-      try {
-        this.copyJSON()
-
-        this.$toast.info('Initing Github for template').goAway(3000)
-        // const res = await axios.get('https://hookb.in/K3k2OOeN01fPMK88MMwb', el.value);
-        const res = await this.$axios.post('https://nocodb.com/api/v1/projectTemplateCreate', this.projectTemplate)
-        console.log(res)
-        this.$toast.success('Inited Github successfully').goAway(3000)
-        window.open(res.data.path, '_blank')
-      } catch (e) {
-        console.log(e)
-        this.$toast.error('Some error occurred').goAway(3000)
-      }
-    },
-    async template() {
-      //
-      // this.$axios({
-      //   method:'post',
-      //   url:'https://nocodb.com/api/api/v1/projectTemplateCreate',
-      //   data:{
-      //     name:'test_name'
-      //   }
-      // }).then(res => {
-      //   console.log(res.data)
-      // }).catch(e => console.log(e.message))
-
-    },
     openUrl() {
       window.open(this.url, '_blank')
     },
@@ -1026,6 +1002,30 @@ export default {
         accord.focus()
         accord.scrollIntoView()
       })
+    },
+    async saveTemplate() {
+      try {
+        if (this.id || this.localId) {
+          await this.$axios.put(`${process.env.NC_API_URL}/api/v1/nc/templates/${this.id || this.localId}`, this.projectTemplate, {
+            params: {
+              token: this.token
+            }
+          })
+          this.$toast.success('Template updated successfully').goAway(3000)
+        } else {
+          const res = await this.$axios.post(`${process.env.NC_API_URL}/api/v1/nc/templates`, this.projectTemplate, {
+            params: {
+              token: this.token
+            }
+          })
+          this.localId = res.data.id
+          this.$toast.success('Template updated successfully').goAway(3000)
+        }
+
+        this.$emit('saved')
+      } catch (e) {
+        this.$toast.error(e.message).goAway(3000)
+      }
     }
 
   }

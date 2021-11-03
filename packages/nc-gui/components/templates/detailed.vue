@@ -2,53 +2,81 @@
   <v-container class="py-0">
     <div class="d-flex">
       <v-navigation-drawer height="calc(100vh - 40px)">
-        <categories @input="v => $emit('load-category', v)"/>
+        <categories ref="cat" :counter.sync="counter" @input="v => $emit('load-category', v)" />
       </v-navigation-drawer>
       <v-container v-if="templateData" fluid style="height: calc(100vh - 40px ); overflow: auto">
         <v-img
-          :src="templateData.thumbnail"
+          :src="templateData.image_url || `https://picsum.photos/200/300?${id}`"
           height="200px"
         />
         <div class="d-flex align-center mt-10">
           <h2 class="display-2 font-weight-bold my-0 flex-grow-1">
             {{ templateData.title }}
           </h2>
-          <v-btn class="primary" x-large @click="useTemplate">Use template</v-btn>
+          <v-btn class="primary" x-large @click="useTemplate">
+            Use template
+          </v-btn>
         </div>
         <p class="caption mt-10">
           {{ templateData.description }}
         </p>
 
-
-        <templat-editor view-mode :templateData="templateData"></templat-editor>
-
+        <templat-editor
+          :id="templateId"
+          :view-mode="counter < 5 && viewMode"
+          :template-data.sync="templateData"
+          @saved="onSaved"
+        />
       </v-container>
     </div>
   </v-container>
 </template>
 
 <script>
-import categories from '~/components/templates/templates.categories'
-import TemplatEditor from "~/components/templates/editor";
-import Categories from "~/components/templates/categories";
+import TemplatEditor from '~/components/templates/editor'
+import Categories from '~/components/templates/categories'
 
 export default {
   name: 'ProjectTemplateDetailed',
-  components: {Categories, TemplatEditor},
+  components: { Categories, TemplatEditor },
   props: {
-    modal: Boolean, id: [String, Number]
+    modal: Boolean,
+    viewMode: Boolean,
+    id: [String, Number]
+
   },
-  data: () => ({categories, templateData: null}),
-  async mounted() {
-    this.templateData = (await import(`./templates.${this.modal ? this.id : this.$route.params.id}`)).default
-  }, methods: {
+  data: () => ({ templateData: null, counter: 0 }),
+  computed: {
+    templateId() {
+      return this.modal ? this.id : this.$route.params.id
+    }
+  },
+  mounted() {
+    this.loadTemplateData()
+  },
+  methods: {
+    async loadTemplateData() {
+      try {
+        const res = await this.$axios.get(`${process.env.NC_API_URL}/api/v1/nc/templates/${this.templateId}`)
+        const data = res.data
+        this.templateData = JSON.parse(data.template)
+      } catch (e) {
+        console.log(e)
+      }
+    },
     useTemplate() {
       if (this.modal) {
         this.$emit('import', this.templateData)
       }
+    },
+    async onSaved() {
+      await this.loadTemplateData()
+      if (this.$refs.cat) {
+        await this.$refs.cat.loadCategories()
+      }
+      this.$emit('saved')
     }
   }
-
 }
 </script>
 

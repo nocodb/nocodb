@@ -209,7 +209,8 @@ export default {
     'material-design-icons-iconfont/dist/material-design-icons.css'
   ],
   env: {
-    EE: !!process.env.EE
+    EE: !!process.env.EE,
+    NC_API_URL: 'http://localhost:3000'
   },
   pwa: {
     workbox: {

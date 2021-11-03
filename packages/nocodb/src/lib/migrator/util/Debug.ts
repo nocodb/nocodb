@@ -1,17 +1,16 @@
-import boxen from "boxen";
-import debug from "debug";
+import boxen from 'boxen';
+import debug from 'debug';
 
-import("colors");
-import DebugMgr from "./DebugMgr";
+import('colors');
+import DebugMgr from './DebugMgr';
 
 export default class Debug {
-
-  public namespace:any;
-  public api:any;
-  public warn:any;
-  public info:any;
-  public error:any;
-  public debug:any;
+  public namespace: any;
+  public api: any;
+  public warn: any;
+  public info: any;
+  public error: any;
+  public debug: any;
 
   constructor(namespace) {
     this.namespace = namespace;
@@ -25,25 +24,23 @@ export default class Debug {
   }
 
   ppException(e, func = null) {
-    let log = "";
-    log += `                                              EXCEPTION OCCURED!! in ${
-      this.namespace.red.bold
-    } @ ${func}`;
-    log += "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+    let log = '';
+    log += `                                              EXCEPTION OCCURED!! in ${this.namespace.red.bold} @ ${func}`;
+    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
       .red.bold;
     log += `MESSAGE:\n`.yellow.bold;
     log += `${e.message}\n`.yellow.bold;
-    log += "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
       .red.bold;
     log += `CODE:\n`.yellow.bold;
     log += `${e.code}\n`.yellow.bold;
-    log += "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
       .red.bold;
     log += `STACK:\n`.yellow.bold;
     log += `${e.stack}\n`.yellow.bold;
-    log += "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
       .red.bold;
-    console.log(boxen(log, { padding: 1, borderStyle: "double" }));
+    console.log(boxen(log, { padding: 1, borderStyle: 'double' }));
     console.log(e);
     return log;
   }

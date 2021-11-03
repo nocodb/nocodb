@@ -1,13 +1,15 @@
 import cors from 'cors';
 import express from 'express';
 
-import Noco from "../lib/noco/Noco";
+import Noco from '../lib/noco/Noco';
 process.env.NC_VERSION = '0009044';
 
 const server = express();
-server.use(cors({
-  exposedHeaders: 'xc-db-response'
-}));
+server.use(
+  cors({
+    exposedHeaders: 'xc-db-response'
+  })
+);
 
 server.set('view engine', 'ejs');
 
@@ -17,16 +19,14 @@ server.set('view engine', 'ejs');
 // process.env[`NC_TRY`] = 'true';
 // process.env[`NC_DASHBOARD_URL`] = '/test';
 
-
 process.env[`DEBUG`] = 'xc*';
 
 (async () => {
   server.use(await Noco.init({}));
   server.listen(process.env.PORT || 8080, () => {
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
-  })
-})().catch(e => console.log(e))
-
+  });
+})().catch(e => console.log(e));
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

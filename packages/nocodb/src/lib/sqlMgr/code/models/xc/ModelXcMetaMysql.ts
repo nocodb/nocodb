@@ -1,7 +1,6 @@
-import BaseModelXcMeta from "./BaseModelXcMeta";
+import BaseModelXcMeta from './BaseModelXcMeta';
 
 class ModelXcMetaMysql extends BaseModelXcMeta {
-
   /**
    * @param dir
    * @param filename
@@ -10,16 +9,14 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
-
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
   /**
    *  Prepare variables used in code template
    */
   prepare() {
-
     const data: any = {};
 
     /* example of simple variable */
@@ -58,7 +55,6 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
     };
 
     return data;
-
   }
 
   _renderXcHasMany(args) {
@@ -69,7 +65,6 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
     return JSON.stringify(args.belongsTo);
   }
 
-
   /**
    *
    * @param args
@@ -79,37 +74,29 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
    * @private
    */
   _renderXcColumns(args) {
-
     let str = '[\r\n';
 
     for (let i = 0; i < args.columns.length; ++i) {
-
       str += `{\r\n`;
       str += `cn: '${args.columns[i].cn}',\r\n`;
       str += `type: '${this._getAbstractType(args.columns[i])}',\r\n`;
       str += `dt: '${args.columns[i].dt}',\r\n`;
-      if (args.columns[i].rqd)
-        str += `rqd: ${args.columns[i].rqd},\r\n`;
+      if (args.columns[i].rqd) str += `rqd: ${args.columns[i].rqd},\r\n`;
 
       if (args.columns[i].cdf) {
         str += `default: "${args.columns[i].cdf}",\r\n`;
         str += `columnDefault: "${args.columns[i].cdf}",\r\n`;
       }
 
-      if (args.columns[i].un)
-        str += `un: ${args.columns[i].un},\r\n`;
+      if (args.columns[i].un) str += `un: ${args.columns[i].un},\r\n`;
 
-      if (args.columns[i].pk)
-        str += `pk: ${args.columns[i].pk},\r\n`;
+      if (args.columns[i].pk) str += `pk: ${args.columns[i].pk},\r\n`;
 
-      if (args.columns[i].ai)
-        str += `ai: ${args.columns[i].ai},\r\n`;
+      if (args.columns[i].ai) str += `ai: ${args.columns[i].ai},\r\n`;
 
-      if (args.columns[i].dtxp)
-        str += `dtxp: "${args.columns[i].dtxp}",\r\n`;
+      if (args.columns[i].dtxp) str += `dtxp: "${args.columns[i].dtxp}",\r\n`;
 
-      if (args.columns[i].dtxs)
-        str += `dtxs: ${args.columns[i].dtxs},\r\n`;
+      if (args.columns[i].dtxs) str += `dtxs: ${args.columns[i].dtxs},\r\n`;
 
       str += `validate: {
                 func: [],
@@ -117,18 +104,14 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
                 msg: []
               },`;
       str += `},\r\n`;
-
     }
 
     str += ']\r\n';
 
     return str;
-
   }
 
-
   getXcColumnsObject(args) {
-
     const columnsArr = [];
 
     for (const column of args.columns) {
@@ -146,7 +129,7 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
         uidt: column.uidt || this._getUIDataType(column),
         uip: column.uip,
         uicn: column.uicn,
-        ...column,
+        ...column
       };
 
       if (column.rqd) {
@@ -178,136 +161,134 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
         columnObj.dtxs = column.dtxs;
       }
 
-      columnsArr.push(columnObj)
+      columnsArr.push(columnObj);
     }
     this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
-
   }
 
   _getAbstractType(column) {
-
     let str = '';
     switch (column.dt) {
-      case "int":
-        str = 'integer'
+      case 'int':
+        str = 'integer';
         break;
-      case "tinyint":
-        str = 'integer'
+      case 'tinyint':
+        str = 'integer';
         break;
-      case "smallint":
-        str = 'integer'
+      case 'smallint':
+        str = 'integer';
         break;
-      case "mediumint":
-        str = 'integer'
+      case 'mediumint':
+        str = 'integer';
         break;
-      case "bigint":
-        str = 'bigInteger'
+      case 'bigint':
+        str = 'bigInteger';
         break;
-      case "float":
-        str = 'float'
+      case 'float':
+        str = 'float';
         break;
-      case "decimal":
-        str = 'decimal'
+      case 'decimal':
+        str = 'decimal';
         break;
-      case "double":
-        str = 'double'
+      case 'double':
+        str = 'double';
         break;
-      case "real":
-        str = 'real'
+      case 'real':
+        str = 'real';
         break;
-      case "bit":
-        str = 'boolean'
+      case 'bit':
+        str = 'boolean';
         break;
-      case "boolean":
-        str = 'boolean'
+      case 'boolean':
+        str = 'boolean';
         break;
-      case "serial":
-        str = 'serial'
+      case 'serial':
+        str = 'serial';
         break;
-      case "date":
-        str = 'date'
+      case 'date':
+        str = 'date';
         break;
-      case "datetime":
-        str = 'datetime'
+      case 'datetime':
+        str = 'datetime';
         break;
-      case "timestamp":
-        str = 'timestamp'
+      case 'timestamp':
+        str = 'timestamp';
         break;
-      case "time":
-        str = 'time'
+      case 'time':
+        str = 'time';
         break;
-      case "year":
-        str = 'year'
+      case 'year':
+        str = 'year';
         break;
-      case "char":
-        str = 'string'
+      case 'char':
+        str = 'string';
         break;
-      case "varchar":
-        str = 'string'
+      case 'varchar':
+        str = 'string';
         break;
-      case "nchar":
-        str = 'string'
+      case 'nchar':
+        str = 'string';
         break;
-      case "text":
-        str = 'text'
+      case 'text':
+        str = 'text';
         break;
-      case "tinytext":
-        str = 'text'
+      case 'tinytext':
+        str = 'text';
         break;
-      case "mediumtext":
-        str = 'text'
+      case 'mediumtext':
+        str = 'text';
         break;
-      case "longtext":
-        str = 'text'
+      case 'longtext':
+        str = 'text';
         break;
-      case "binary":
-        str = 'binary'
+      case 'binary':
+        str = 'binary';
         break;
-      case "varbinary":
-        str = 'binary'
+      case 'varbinary':
+        str = 'binary';
         break;
-      case "blob":
-        str = 'blob'
+      case 'blob':
+        str = 'blob';
         break;
-      case "tinyblob":
-        str = 'tinyblob'
+      case 'tinyblob':
+        str = 'tinyblob';
         break;
-      case "mediumblob":
-        str = 'mediumblob'
+      case 'mediumblob':
+        str = 'mediumblob';
         break;
-      case "longblob":
-        str = 'longblob'
+      case 'longblob':
+        str = 'longblob';
         break;
-      case "enum":
-        str = 'enum'
+      case 'enum':
+        str = 'enum';
         break;
-      case "set":
-        str = 'set'
+      case 'set':
+        str = 'set';
         break;
-      case "geometry":
-        str = 'geometry'
+      case 'geometry':
+        str = 'geometry';
         break;
-      case "point":
-        str = 'point'
+      case 'point':
+        str = 'point';
         break;
-      case "linestring":
-        str = 'linestring'
+      case 'linestring':
+        str = 'linestring';
         break;
-      case "polygon":
-        str = 'polygon'
+      case 'polygon':
+        str = 'polygon';
         break;
-      case "multipoint":
-        str = 'multipoint'
+      case 'multipoint':
+        str = 'multipoint';
         break;
-      case "multilinestring":
-        str = 'multilinestring'
+      case 'multilinestring':
+        str = 'multilinestring';
         break;
-      case "multipolygon":
-        str = 'multipolygon'
+      case 'multipolygon':
+        str = 'multipolygon';
         break;
-      case "json":
-        str = 'json'
+      case 'json':
+        str = 'json';
         break;
       default:
         str += `"${column.dt}"`;
@@ -316,249 +297,240 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
     return str;
   }
 
-
   _getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';
-      case "boolean":
+      case 'boolean':
         return 'Checkbox';
-      case  'float':
+      case 'float':
         return 'Decimal';
-      case "date":
+      case 'date':
         return 'Date';
-      case "datetime":
+      case 'datetime':
         return 'DateTime';
-      case "time":
+      case 'time':
         return 'Time';
       case 'year':
         return 'Year';
-      case   'string':
+      case 'string':
         return 'SingleLineText';
-      case "text":
+      case 'text':
         return 'LongText';
-      case "enum":
+      case 'enum':
         return 'SingleSelect';
-      case "set":
+      case 'set':
         return 'MultiSelect';
-      case "json":
+      case 'json':
         return 'LongText';
       case 'blob':
-        return 'LongText'
+        return 'LongText';
       case 'geometry':
-        return 'Geometry'
+        return 'Geometry';
       default:
-        return 'SpecificDBType'
+        return 'SpecificDBType';
     }
-
   }
-
 
   getAbstractType(col): any {
     switch ((col.dt || col.dt).toLowerCase()) {
-      case "int":
-      case "smallint":
-      case "mediumint":
-      case "bigint":
-      case "bit":
+      case 'int':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'bit':
         return 'integer';
 
-      case "boolean":
+      case 'boolean':
         return 'boolean';
 
-      case "float":
-      case "decimal":
-      case "double":
-      case "serial":
+      case 'float':
+      case 'decimal':
+      case 'double':
+      case 'serial':
         return 'float';
-      case "tinyint":
+      case 'tinyint':
         if (col.dtxp == '1') {
-          return 'boolean'
+          return 'boolean';
         } else {
-          return 'integer'
+          return 'integer';
         }
-      case "date":
+      case 'date':
         return 'date';
-      case "datetime":
-      case "timestamp":
-        return 'datetime'
-      case "time":
+      case 'datetime':
+      case 'timestamp':
+        return 'datetime';
+      case 'time':
         return 'time';
-      case "year":
-        return 'year'
-      case "char":
-      case "varchar":
-      case "nchar":
-        return 'string'
-      case "text":
-      case "tinytext":
-      case "mediumtext":
-      case "longtext":
-        return 'text'
-
-      // todo: use proper type
-      case "binary":
+      case 'year':
+        return 'year';
+      case 'char':
+      case 'varchar':
+      case 'nchar':
         return 'string';
-      case "varbinary":
+      case 'text':
+      case 'tinytext':
+      case 'mediumtext':
+      case 'longtext':
         return 'text';
 
+      // todo: use proper type
+      case 'binary':
+        return 'string';
+      case 'varbinary':
+        return 'text';
 
-      case "blob":
-      case "tinyblob":
-      case "mediumblob":
-      case "longblob":
+      case 'blob':
+      case 'tinyblob':
+      case 'mediumblob':
+      case 'longblob':
         return 'blob';
 
-      case "enum":
-        return 'enum'
-      case "set":
+      case 'enum':
+        return 'enum';
+      case 'set':
         return 'set';
 
-      case "geometry":
-      case "point":
-      case "linestring":
-      case "polygon":
-      case "multipoint":
-      case "multilinestring":
-      case "multipolygon":
+      case 'geometry':
+      case 'point':
+      case 'linestring':
+      case 'polygon':
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
         return 'geometry';
 
-      case "json":
-        return 'json'
-
+      case 'json':
+        return 'json';
     }
   }
 
   _sequelizeGetDefault(column) {
     let str = '';
     switch (column.dt) {
-      case "int":
+      case 'int':
         str += `'${column.cdf}'`;
         break;
-      case "tinyint":
+      case 'tinyint':
         str += `'${column.cdf}'`;
         break;
-      case "smallint":
+      case 'smallint':
         str += `'${column.cdf}'`;
         break;
-      case "mediumint":
+      case 'mediumint':
         str += `'${column.cdf}'`;
         break;
-      case "bigint":
+      case 'bigint':
         str += `'${column.cdf}'`;
         break;
-      case "float":
+      case 'float':
         str += `'${column.cdf}'`;
         break;
-      case "decimal":
+      case 'decimal':
         str += `'${column.cdf}'`;
         break;
-      case "double":
+      case 'double':
         str += `'${column.cdf}'`;
         break;
-      case "real":
+      case 'real':
         str += `'${column.cdf}'`;
         break;
-      case "bit":
+      case 'bit':
         str += column.cdf ? column.cdf.split('b')[1] : column.cdf;
         break;
-      case "boolean":
+      case 'boolean':
         str += column.cdf;
         break;
-      case "serial":
+      case 'serial':
         str += column.cdf;
         break;
-      case "date":
+      case 'date':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "datetime":
+      case 'datetime':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "timestamp":
+      case 'timestamp':
         str += `sequelize.literal('${column.cdf_sequelize}')`;
         break;
-      case "time":
+      case 'time':
         str += `'${column.cdf}'`;
         break;
-      case "year":
+      case 'year':
         str += `'${column.cdf}'`;
         break;
-      case "char":
+      case 'char':
         str += `'${column.cdf}'`;
         break;
-      case "varchar":
+      case 'varchar':
         str += `'${column.cdf}'`;
         break;
-      case "nchar":
+      case 'nchar':
         str += `'${column.cdf}'`;
         break;
-      case "text":
+      case 'text':
         str += column.cdf;
         break;
-      case "tinytext":
+      case 'tinytext':
         str += column.cdf;
         break;
-      case "mediumtext":
+      case 'mediumtext':
         str += column.cdf;
         break;
-      case "longtext":
+      case 'longtext':
         str += column.cdf;
         break;
-      case "binary":
+      case 'binary':
         str += column.cdf;
         break;
-      case "varbinary":
+      case 'varbinary':
         str += column.cdf;
         break;
-      case "blob":
+      case 'blob':
         str += column.cdf;
         break;
-      case "tinyblob":
+      case 'tinyblob':
         str += column.cdf;
         break;
-      case "mediumblob":
+      case 'mediumblob':
         str += column.cdf;
         break;
-      case "longblob":
+      case 'longblob':
         str += column.cdf;
         break;
-      case "enum":
+      case 'enum':
         str += `'${column.cdf}'`;
         break;
-      case "set":
+      case 'set':
         str += `'${column.cdf}'`;
         break;
-      case "geometry":
+      case 'geometry':
         str += `'${column.cdf}'`;
         break;
-      case "point":
+      case 'point':
         str += `'${column.cdf}'`;
         break;
-      case "linestring":
+      case 'linestring':
         str += `'${column.cdf}'`;
         break;
-      case "polygon":
+      case 'polygon':
         str += `'${column.cdf}'`;
         break;
-      case "multipoint":
+      case 'multipoint':
         str += `'${column.cdf}'`;
         break;
-      case "multilinestring":
+      case 'multilinestring':
         str += `'${column.cdf}'`;
         break;
-      case "multipolygon":
+      case 'multipolygon':
         str += `'${column.cdf}'`;
         break;
-      case "json":
+      case 'json':
         str += column.cdf;
         break;
     }
     return str;
   }
-
-
-
-
 }
 
 export default ModelXcMetaMysql;

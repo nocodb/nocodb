@@ -1,8 +1,6 @@
-import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
-
+import BaseGqlXcTsSchema from './BaseGqlXcTsSchema';
 
 class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
-
   /**
    *
    * @param dir
@@ -12,8 +10,8 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
   /*/!**
@@ -183,100 +181,89 @@ class GqlXcTsSchemaMysql extends BaseGqlXcTsSchema {
 */
 
   protected _getGraphqlType(columnObj): string {
-
     switch (columnObj.dt) {
-
-      case "tinyint":
-      case "smallint":
-      case "mediumint":
-      case "bigint":
-      case "serial":
-      case "int":
-        return "Int";
+      case 'tinyint':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'serial':
+      case 'int':
+        return 'Int';
         break;
 
-      case "float":
-      case "decimal":
-      case "double":
-      case "real":
-        return "Float";
+      case 'float':
+      case 'decimal':
+      case 'double':
+      case 'real':
+        return 'Float';
         break;
 
-      case "bit":
-      case "boolean":
-        return "Boolean";
+      case 'bit':
+      case 'boolean':
+        return 'Boolean';
 
-      case "date":
-      case "datetime":
-      case "timestamp":
-      case "time":
-      case "year":
-        return "String"
+      case 'date':
+      case 'datetime':
+      case 'timestamp':
+      case 'time':
+      case 'year':
+        return 'String';
         break;
 
-      case "char":
-      case "varchar":
-      case "nchar":
-      case "text":
-      case "tinytext":
-      case "mediumtext":
-      case "longtext":
-      case "binary":
-      case "varbinary":
-      case "blob":
-      case "tinyblob":
-      case "mediumblob":
-      case "longblob":
-      case "enum":
-        return "String"
+      case 'char':
+      case 'varchar':
+      case 'nchar':
+      case 'text':
+      case 'tinytext':
+      case 'mediumtext':
+      case 'longtext':
+      case 'binary':
+      case 'varbinary':
+      case 'blob':
+      case 'tinyblob':
+      case 'mediumblob':
+      case 'longblob':
+      case 'enum':
+        return 'String';
         break;
 
-      case "set":
-        return "JSON";
+      case 'set':
+        return 'JSON';
         break;
 
-      case "geometry":
-      case "point":
-      case "linestring":
-      case "polygon":
-      case "multipoint":
-      case "multilinestring":
-      case "multipolygon":
-      case "json":
+      case 'geometry':
+      case 'point':
+      case 'linestring':
+      case 'polygon':
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+      case 'json':
       default:
-        return "JSON"
+        return 'JSON';
         break;
-
     }
-
   }
 
   protected _getGraphqlConditionType(columnObj): any {
-
     switch (this._getGraphqlType(columnObj.dt)) {
-
-      case  "Int":
-        return 'ConditionInt'
-      case  "Float":
+      case 'Int':
+        return 'ConditionInt';
+      case 'Float':
         return 'ConditionFloat';
-      case  "Boolean":
-        return 'ConditionBoolean'
-      case  "String":
-      case  "JSON":
-        return 'ConditionString'
-      case "[String]":
-        return 'ConditionString'
+      case 'Boolean':
+        return 'ConditionBoolean';
+      case 'String':
+      case 'JSON':
+        return 'ConditionString';
+      case '[String]':
+        return 'ConditionString';
     }
-
   }
-
 
   /*getString() {
     return this._renderColumns(this.ctx);
   }*/
-
-
 }
-
 
 export default GqlXcTsSchemaMysql;

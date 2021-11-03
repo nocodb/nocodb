@@ -28,7 +28,7 @@
                 v-if="hiddenColumns.length"
                 class="pointer caption mr-2"
                 style="border-bottom: 2px solid rgb(218,218,218)"
-                @click="columns=[...allColumns]"
+                @click="addAllColumns()"
               >add all</span>
               <span
                 v-if="columns.length"
@@ -38,6 +38,7 @@
               >remove all</span>
             </div>
             <draggable
+              v-if="showFields "
               v-model="hiddenColumns"
               draggable=".item"
               group="form-inputs"
@@ -151,7 +152,6 @@
                 {{ localParams.description }}
               </editable>
               <draggable
-                :is="_isUIAllowed('editFormView') ? 'draggable' : 'div'"
                 v-model="columns"
                 draggable=".item"
                 group="form-inputs"
@@ -160,7 +160,6 @@
                 @end="drag=false"
               >
                 <div
-
                   v-for="(col,i) in columns"
                   :key="col.alias"
                   class="nc-field-wrapper item px-4 my-3 pointer"
@@ -173,7 +172,7 @@
                     <template
                       v-if="_isUIAllowed('editFormView')"
                     >
-                      <v-icon small class="nc-field-remove-icon" @click="columns = columns.filter((_,j) => i !== j)">
+                      <v-icon small class="nc-field-remove-icon" @click.stop="hideColumn(i)">
                         mdi-eye-off-outline
                       </v-icon>
                     </template>
@@ -376,13 +375,21 @@
                     <span class="font-weight-bold grey--text caption">Show a blank form after 5 seconds</span>
                   </template>
                 </v-switch>
-                <!--              <v-switch v-model="localParams.submit.emailMe" dense inset hide-details>
+                <v-switch
+                  v-if="localParams.emailMe"
+                  v-model="localParams.emailMe[$store.state.users.user.email]"
+                  dense
+                  inset
+                  hide-details
+                  class="nc-switch"
+                  @change="checkSMTPStatus"
+                >
                   <template #label>
                     <span class="caption font-weight-bold grey--text ">Email me at <span class="font-eright-bold">{{
                       $store.state.users.user.email
                     }}</span></span>
                   </template>
-                </v-switch>-->
+                </v-switch>
               </div>
             </div>
           </div>
@@ -405,11 +412,14 @@ import Editable from '../components/editable'
 import EditColumn from '../components/editColumn'
 import form from '../mixins/form'
 
+// todo: generate hideCols based on default values
+const hiddenCols = ['created_at', 'updated_at']
+
 export default {
   name: 'FormView',
   components: { EditColumn, Editable, EditableCell, VirtualCell, HeaderCell, VirtualHeaderCell, draggable },
   mixins: [form, validationMixin],
-  props: ['meta', 'availableColumns', 'nodes', 'sqlUi', 'formParams', 'showFields', 'fieldsOrder', 'allColumns', 'dbAlias', 'api'],
+  props: ['meta', 'availableColumns', 'nodes', 'sqlUi', 'formParams', 'showFields', 'fieldsOrder', 'allColumns', 'dbAlias', 'api', 'id'],
   data: () => ({
     localState: {},
     moved: false,
@@ -427,7 +437,10 @@ export default {
   validations() {
     const obj = { localState: {}, virtual: {} }
     for (const column of this.columns) {
-      if (!column.virtual && ((column.rqd && !column.default) || this.localParams.fields[column.alias].required)) {
+      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
+        continue
+      }
+      if (!column.virtual && (((column.rqd || column.notnull) && !column.default) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.alias].required)) {
         obj.localState[column._cn] = { required }
       } else if (column.bt) {
         const col = this.meta.columns.find(c => c.cn === column.bt.cn)
@@ -442,6 +455,9 @@ export default {
     return obj
   },
   computed: {
+    allColumnsLoc() {
+      return this.allColumns.filter(c => !hiddenCols.includes(c.cn) && !(c.pk && c.ai) && this.meta.belongsTo.every(bt => c.cn !== bt.cn))
+    },
     isEditable() {
       return this._isUIAllowed('editFormView')
     },
@@ -455,19 +471,19 @@ export default {
     },
     hiddenColumns: {
       get() {
-        return this.allColumns.filter(c => !this.showFields[c.alias] && !(c.pk && c.ai) && !(this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        return this.allColumns.filter(c => !this.showFields[c.alias] && !hiddenCols.includes(c.cn) && !(c.pk && c.ai) && !(this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
       }
     },
     columns: {
       get() {
-        return this.allColumns.filter(c => this.showFields[c.alias]).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
+        return this.allColumnsLoc.filter(c => this.showFields[c.alias] && !hiddenCols.includes(c.cn)).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
       },
       set(val) {
         const showFields = val.reduce((o, v) => {
           o[v.alias] = true
           return o
-        }, this.allColumns.reduce((o, v) => {
-          o[v.alias] = false
+        }, this.allColumnsLoc.reduce((o, v) => {
+          o[v.alias] = this.isDbRequired(v)
           return o
         }, {}))
         const fieldsOrder = val.map(v => v.alias)
@@ -499,6 +515,7 @@ export default {
       name: this.meta._tn,
       description: 'Form view description',
       submit: {},
+      emailMe: {},
       fields: {}
     }, this.localParams)
     this.availableColumns.forEach((c) => {
@@ -509,6 +526,41 @@ export default {
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
   },
   methods: {
+    hideColumn(i) {
+      if (this.isDbRequired(this.columns[i])) {
+        this.$toast.info('Required field can\'t be removed').goAway(3000)
+        return
+      }
+      this.columns = this.columns.filter((_, j) => i !== j)
+    },
+    addAllColumns() {
+      this.columns = [...this.allColumnsLoc]
+    },
+    isDbRequired(column) {
+      if (hiddenCols.includes(column.cn)) {
+        return true
+      }
+      let isRequired = (!column.virtual && column.rqd && !column.default && this.meta.belongsTo.every(bt => column.cn !== bt.cn)) ||
+        (column.pk && !(column.ai || column.default))
+
+      if (column.bt) {
+        const col = this.meta.columns.find(c => c.cn === column.bt.cn)
+        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
+          isRequired = true
+        }
+      }
+
+      return isRequired
+    },
+    async checkSMTPStatus() {
+      if (this.localParams.emailMe[this.$store.state.users.user.email]) {
+        const emailPlugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', { title: 'SMTP' }])
+        if (!emailPlugin.active) {
+          this.$set(this.localParams.emailMe, this.$store.state.users.user.email, false)
+          this.$toast.info('Please activate SMTP plugin in App store for enabling email notification').goAway(5000)
+        }
+      }
+    },
     updateCol(_, column, id) {
       this.$set(this.localState, column, id)
     },
@@ -546,20 +598,22 @@ export default {
         // }, {})
 
         // if (this.isNew) {
-        // const data =
-        const data = await this.api.insert(this.localState)
-        this.localState = { ...this.localState, ...data }
+
+        // todo: add params option in GraphQL
+        let data = await this.api.insert(this.localState, { params: { form: this.$route.query.view } })
+        data = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state
         if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
           for (const vcell of this.$refs.virtual) {
             if (vcell.save) {
-              await vcell.save(this.localState)
+              await vcell.save(data)
             }
           }
         }
 
         this.virtual = {}
+        this.localState = {}
 
         this.submitted = true
 

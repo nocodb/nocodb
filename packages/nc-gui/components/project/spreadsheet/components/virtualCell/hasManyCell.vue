@@ -9,7 +9,7 @@
             :active="active"
             :item="ch"
             :value="getCellValue(ch)"
-            :readonly="isLocked"
+            :readonly="isLocked || isPublic"
             @edit="editChild"
             @unlink="unlinkChild"
           />
@@ -28,7 +28,7 @@
         :class="{'d-none': !active, 'd-flex':active }"
       >
         <x-icon
-          v-if="_isUIAllowed('xcDatatableEditable')"
+          v-if="_isUIAllowed('xcDatatableEditable') && (isForm || !isPublic)"
           small
           :color="['primary','grey']"
           @click="showNewRecordModal"
@@ -45,6 +45,7 @@
       v-if="newRecordModal"
       v-model="newRecordModal"
       :hm="hm"
+      :tn="hm && hm.tn"
       :size="10"
       :meta="childMeta"
       :primary-col="childPrimaryCol"
@@ -55,6 +56,8 @@
         ...childQueryParams,
         where: isNew ? null :`~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
       }"
+      :is-public="isPublic"
+      :password="password"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
     />
@@ -70,13 +73,18 @@
       :size="10"
       :meta="childMeta"
       :parent-meta="meta"
+      :password="password"
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
       :api="childApi"
+      :column="column"
       :query-params="{
         ...childQueryParams,
         where: `(${childForeignKey},eq,${parentId})`
       }"
+      :is-public="isPublic"
+      :row-id="parentId"
+      type="hm"
       @new-record="showNewRecordModal"
       @edit="editChild"
       @unlink="unlinkChild"
@@ -92,7 +100,7 @@
     />
 
     <v-dialog
-      v-if="selectedChild"
+      v-if="selectedChild && !isPublic"
       v-model="expandFormModal"
       :overlay-opacity="0.8"
       width="1000px"
@@ -167,7 +175,11 @@ export default {
     active: Boolean,
     isNew: Boolean,
     isForm: Boolean,
-    required: Boolean
+    required: Boolean,
+    isPublic: Boolean,
+    metas: Object,
+    password: String,
+    column: Object
   },
   data: () => ({
     newRecordModal: false,
@@ -183,7 +195,7 @@ export default {
   }),
   computed: {
     childMeta() {
-      return this.$store.state.meta.metas[this.hm.tn]
+      return this.metas ? this.metas[this.hm.tn] : this.$store.state.meta.metas[this.hm.tn]
     },
     // todo : optimize
     childApi() {
@@ -214,7 +226,7 @@ export default {
     },
     // todo:
     form() {
-      return this.selectedChild ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
+      return this.selectedChild && !this.isPublic ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
     },
     childAvailableColumns() {
       const hideCols = ['created_at', 'updated_at']

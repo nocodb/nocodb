@@ -1,10 +1,10 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
     <v-toolbar height="32" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
-      <div v-if="!isForm" class="d-flex xc-border align-center search-box">
+      <div v-if="!isForm" class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
-            <div v-on="on">
+            <div style="min-width: 56px" v-on="on">
               <v-icon
                 class="pa-1 pr-0 ml-2"
                 small
@@ -40,7 +40,7 @@
         <v-text-field
           v-model="searchQueryVal"
           autocomplete="off"
-          style="min-width: 300px"
+          style="min-width: 100px ; width: 300px"
           flat
           dense
           solo
@@ -74,7 +74,14 @@
         </v-tooltip>
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
 
-        <x-btn tooltip="Reload view data" outlined small text @click="reload">
+        <x-btn
+          tooltip="Reload view data"
+          outlined
+          small
+          text
+          btn.class="nc-table-reload-btn"
+          @click="reload"
+        >
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
           </v-icon>
@@ -96,6 +103,7 @@
         <x-btn
           small
           text
+          btn.class="nc-save-new-row-btn"
           outlined
           tooltip="Save new rows"
           :disabled="!edited || isLocked"
@@ -130,6 +138,14 @@
           :field-list="[...realFieldList, ...formulaFieldList]"
           dense
         />
+
+        <csv-export
+          :meta="meta"
+          :nodes="nodes"
+          :selected-view="selectedView"
+          class="mr-1"
+        />
+
         <v-tooltip
           v-if="_isUIAllowed('table-delete')"
           bottom
@@ -184,7 +200,7 @@
         outlined
         small
         text
-        :btn-class="{ 'primary lighten-5' : !toggleDrawer}"
+        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer' : !toggleDrawer}"
         @click="toggleDrawer = !toggleDrawer"
       >
         <v-icon
@@ -207,10 +223,10 @@
           :style="{height:isForm ? '100%' : 'calc(100% - 36px)'}"
           style="overflow: auto;width:100%"
         >
-          <v-skeleton-loader v-if="!dataLoaded && (loadingData || loadingData)" type="table" />
+          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />
           <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
             <xc-grid-view
-              :key="key"
+              :key="key + selectedViewId"
               ref="ncgridview"
               :relation-type="relationType"
               :columns-width.sync="columnsWidth"
@@ -282,6 +298,7 @@
           </template>
           <template v-else-if="isForm">
             <form-view
+              :id="selectedViewId"
               :key="selectedViewId + viewKey"
               :nodes="nodes"
               :table="table"
@@ -347,7 +364,7 @@
               v-on="on"
               @click="showAdditionalFeatOverlay('webhooks')"
             >
-              <v-icon x-small class="mr-2">
+              <v-icon x-small class="mr-2 nc-automations">
                 mdi-hook
               </v-icon>
               <span class="caption"> Automations</span>
@@ -355,7 +372,7 @@
           </template>
           Create Automations or API Webhooks
         </v-tooltip>
-        <v-tooltip bottom>
+        <!--        <v-tooltip bottom>
           <template #activator="{on}">
             <v-list-item
               v-on="on"
@@ -368,7 +385,7 @@
             </v-list-item>
           </template>
           Create / Edit API Webhooks
-        </v-tooltip>
+        </v-tooltip>-->
         <v-list-item
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('validators')"
@@ -502,9 +519,9 @@
         @prev="loadPrev"
       />
     </v-dialog>
-
     <additional-features
       v-model="showAddFeatOverlay"
+      :selected-view="selectedView"
       :delete-table="deleteTable"
       :nodes="nodes"
       :type="featureType"
@@ -519,6 +536,7 @@ import { mapActions } from 'vuex'
 import debounce from 'debounce'
 import FormView from './views/formView'
 import XcGridView from './views/xcGridView'
+import spreadsheet from './mixins/spreadsheet'
 import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
 
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
@@ -528,16 +546,17 @@ import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
 import SortList from '@/components/project/spreadsheet/components/sortListMenu'
 import Fields from '@/components/project/spreadsheet/components/fieldsMenu'
 import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
-import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
 import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
 import Pagination from '@/components/project/spreadsheet/components/pagination'
 import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
+import CsvExport from '~/components/project/spreadsheet/components/csvExport'
 
 export default {
   name: 'RowsXcDataTable',
   components: {
+    CsvExport,
     FormView,
     DebugMetas,
     Pagination,
@@ -644,7 +663,7 @@ export default {
     try {
       await this.createTableIfNewTable()
       this.loadingMeta = true
-      await this.loadMeta()
+      await this.loadMeta(false)
       this.loadingMeta = false
 
       if (this.relationType === 'hm') {
@@ -666,7 +685,7 @@ export default {
         // await this.$refs.drawer.loadViews();
         await this.loadTableData()
       }
-      this.mapFieldsAndShowFields()
+      // this.mapFieldsAndShowFields()
     } catch (e) {
       console.log(e)
     }
@@ -745,7 +764,8 @@ export default {
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
           query_params: queryParams,
-          tn: this.meta.tn
+          tn: this.meta.tn,
+          view_name: this.$route.query.view
         })
       } catch (e) {
         // this.$toast.error(e.message).goAway(3000);
@@ -995,15 +1015,26 @@ export default {
           break
       }
     },
-    async loadMeta(updateShowFields = true, col) {
-      this.loadingMeta = true
+    async loadMeta(updateShowFields = true, col, oldCol) {
+      // update column name in column meta data
+      if (oldCol && col) {
+        this.$set(this.columnsWidth, col, this.columnsWidth[oldCol])
+        this.$set(this.showFields, col, this.showFields[oldCol])
+        const i = (this.fieldsOrder || []).indexOf(oldCol)
+        if (i > -1) {
+          this.$set(this.fieldsOrder, i, col)
+        }
+      }
+
+      // load latest table meta
       const tableMeta = await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         tn: this.table,
         force: true
       })
-      this.loadingMeta = false
+
+      // update column visibility
       if (updateShowFields) {
         try {
           const qp = JSON.parse(tableMeta.query_params)
@@ -1061,8 +1092,8 @@ export default {
       this.selectedExpandRowIndex = row
       this.selectedExpandRowMeta = rowMeta
     },
-    async onNewColCreation(col) {
-      await this.loadMeta(true, col)
+    async onNewColCreation(col, oldCol) {
+      await this.loadMeta(true, col, oldCol)
       this.$nextTick(async() => {
         await this.loadTableData()
         // this.mapFieldsAndShowFields();

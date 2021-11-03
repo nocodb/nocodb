@@ -2,11 +2,11 @@
   <div>
     <v-menu bottom offset-y>
       <template #activator="{on}">
-        <v-icon size="20" class="ml-2" v-on="on">
+        <v-icon size="20" class="ml-2 nc-menu-translate" v-on="on">
           mdi-translate
         </v-icon>
       </template>
-      <v-list dense>
+      <v-list dense class="nc-language-list">
         <v-list-item-group
           v-model="language"
         >
@@ -23,6 +23,10 @@
             </v-list-item-subtitle>
           </v-list-item>
         </v-list-item-group>
+        <v-divider />
+        <v-list-item>
+          <a href="https://github.com/nocodb/nocodb/tree/master/packages/nc-gui/lang" target="_blank" class="caption">Help translate</a>
+        </v-list-item>
       </v-list>
     </v-menu>
   </div>
@@ -37,21 +41,32 @@ export default {
       de: 'Deutsch',
       en: 'English',
       es: 'Española',
-      fr: 'français',
-      id: 'bahasa Indonesia',
-      it_IT: 'Italiana',
+      fr: 'Français',
+      id: 'Bahasa Indonesia',
+      it_IT: 'Italiano',
       ja: '日本語',
       ko: '한국인',
       nl: 'Nederlandse',
-      ru: 'русский',
-      zh_CN: '中国人',
-      zh_HK: 'zh_HK',
-      zh_TW: 'zh_TW'
+      ru: 'Pусский',
+      zh_CN: '大陆简体',
+      zh_HK: '香港繁體',
+      zh_TW: '臺灣正體',
+      sv: 'Svenska',
+      da: 'Dansk',
+      vi: 'Tiếng Việt',
+      no: 'Norsk',
+      iw: 'עִברִית',
+      fi: 'Suomalainen',
+      uk: 'Українська',
+      hr: 'Hrvatski',
+      th: 'ไทย',
+      sl: 'Slovenščina',
+      pt_BR: 'Português (Brasil)'
     }
   }),
   computed: {
     languages() {
-      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort((a, b) => order(b) - order(a))
+      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort()
     },
     language: {
       get() {
@@ -103,6 +118,14 @@ export default {
 }
 </script>
 
-<style scoped>
-
+<style scoped lang="scss">
+::v-deep {
+  .nc-language-list {
+    max-height: 90vh;
+    overflow: auto;
+     .v-list-item{
+      min-height: 30px !important;
+    }
+  }
+}
 </style>

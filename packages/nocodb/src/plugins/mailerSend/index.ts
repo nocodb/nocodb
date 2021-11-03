@@ -1,9 +1,9 @@
-import {XcActionType, XcType} from "nc-common";
-import {XcPluginConfig} from "nc-plugin";
+import { XcActionType, XcType } from 'nc-common';
+import { XcPluginConfig } from 'nc-plugin';
 
-import MailerSendPlugin from "./MailerSendPlugin";
+import MailerSendPlugin from './MailerSendPlugin';
 
-const config: XcPluginConfig ={
+const config: XcPluginConfig = {
   builder: MailerSendPlugin,
   title: 'MailerSend',
   version: '0.0.1',
@@ -13,41 +13,49 @@ const config: XcPluginConfig ={
   price: 'Free',
   tags: 'Email',
   category: 'Email',
-  inputs:{
+  inputs: {
     title: 'Configure MailerSend',
-    items: [{
-      key: 'api_key',
-      label: 'API KEy',
-      placeholder: 'eg: ***************',
-      type: XcType.Password,
-      required: true
-    },{
-      key: 'from',
-      label: 'From',
-      placeholder: 'eg: admin@example.com',
-      type: XcType.SingleLineText,
-      required: true
-    }, {
-      key: 'from_name',
-      label: 'From Name',
-      placeholder: 'eg: Adam',
-      type: XcType.SingleLineText,
-      required: true
-    }, ],
-    actions: [{
-      label: 'Test',
-      key: 'test',
-      actionType: XcActionType.TEST,
-      type: XcType.Button
-    }, {
-      label: 'Save',
-      key: 'save',
-      actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    },],
-    msgOnInstall: 'Successfully installed and email notification will use MailerSend configuration',
-    msgOnUninstall: '',
+    items: [
+      {
+        key: 'api_key',
+        label: 'API KEy',
+        placeholder: 'eg: ***************',
+        type: XcType.Password,
+        required: true
+      },
+      {
+        key: 'from',
+        label: 'From',
+        placeholder: 'eg: admin@example.com',
+        type: XcType.SingleLineText,
+        required: true
+      },
+      {
+        key: 'from_name',
+        label: 'From Name',
+        placeholder: 'eg: Adam',
+        type: XcType.SingleLineText,
+        required: true
+      }
+    ],
+    actions: [
+      {
+        label: 'Test',
+        key: 'test',
+        actionType: XcActionType.TEST,
+        type: XcType.Button
+      },
+      {
+        label: 'Save',
+        key: 'save',
+        actionType: XcActionType.SUBMIT,
+        type: XcType.Button
+      }
+    ],
+    msgOnInstall:
+      'Successfully installed and email notification will use MailerSend configuration',
+    msgOnUninstall: ''
   }
-}
+};
 
 export default config;

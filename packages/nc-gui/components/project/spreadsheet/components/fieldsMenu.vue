@@ -100,10 +100,11 @@
           </v-list-item>
         </template>
       </draggable>
+      <v-divider
+        class="my-2"
+      />
 
-      <v-divider class="my-2" />
-
-      <v-list-item dense>
+      <v-list-item v-if="!isPublic" dense>
         <v-checkbox
           v-model="showSystemFieldsLoc"
           class="mt-0 pt-0"
@@ -148,7 +149,8 @@ export default {
       type: Boolean,
       default: false
     },
-    isLocked: Boolean
+    isLocked: Boolean,
+    isPublic: Boolean
   },
   data: () => ({
     fieldFilter: '',
@@ -203,6 +205,8 @@ export default {
       if ((n && n.join()) !== (o && o.join())) {
         this.fieldsOrderLoc = n
       }
+
+      this.fieldsOrderLoc = n && n.length ? n : [...this.fieldList]
     },
     fieldsOrderLoc: {
       handler(n, o) {
@@ -215,7 +219,7 @@ export default {
   },
   created() {
     this.showFields = this.value
-    this.fieldsOrderLoc = this.fieldsOrder
+    this.fieldsOrderLoc = this.fieldsOrder && this.fieldsOrder.length ? this.fieldsOrder : [...this.fieldList]
   },
   methods: {
     showAll() {

@@ -1,13 +1,14 @@
-import {IWebhookNotificationAdapter, XcWebhookNotificationPlugin} from "nc-plugin";
+import {
+  IWebhookNotificationAdapter,
+  XcWebhookNotificationPlugin
+} from 'nc-plugin';
 
-import Slack from "./Slack";
-
+import Slack from './Slack';
 
 class SlackPlugin extends XcWebhookNotificationPlugin {
-
   private static notificationAdapter: Slack;
 
-  public  getAdapter(): IWebhookNotificationAdapter {
+  public getAdapter(): IWebhookNotificationAdapter {
     return SlackPlugin.notificationAdapter;
   }
 
@@ -15,7 +16,6 @@ class SlackPlugin extends XcWebhookNotificationPlugin {
     SlackPlugin.notificationAdapter = new Slack();
     await SlackPlugin.notificationAdapter.init();
   }
-
 }
 
 export default SlackPlugin;

@@ -1,12 +1,11 @@
 // @ts-ignore
 import nodemailer from 'nodemailer';
-import Mail from "nodemailer/lib/mailer";
+import Mail from 'nodemailer/lib/mailer';
 
-import IEmailAdapter, {XcEmail} from "../../../../../interface/IEmailAdapter";
+import IEmailAdapter, { XcEmail } from '../../../../../interface/IEmailAdapter';
 
 export default // @ts-ignore
 class SMTP implements IEmailAdapter {
-
   private transporter: Mail;
   private input: any;
 
@@ -18,22 +17,22 @@ class SMTP implements IEmailAdapter {
     const config = {
       // from: this.input.from,
       // options: {
-      "host": this.input?.host,
-      "port": parseInt(this.input?.port, 10),
-      "secure": this.input?.secure === 'true',
-      "ignoreTLS": this.input?.ignoreTLS === 'true',
-      "auth": {
-        "user": this.input?.username,
-        "pass": this.input?.password
+      host: this.input?.host,
+      port: parseInt(this.input?.port, 10),
+      secure: this.input?.secure === 'true',
+      ignoreTLS: this.input?.ignoreTLS === 'true',
+      auth: {
+        user: this.input?.username,
+        pass: this.input?.password
       }
       // }
-    }
+    };
     this.transporter = nodemailer.createTransport(config);
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
     if (this.transporter) {
-      await this.transporter.sendMail({...mail, from: this.input.from})
+      await this.transporter.sendMail({ ...mail, from: this.input.from });
     }
   }
 
@@ -41,9 +40,9 @@ class SMTP implements IEmailAdapter {
     try {
       this.mailSend({
         to: email,
-        subject: "Test email",
+        subject: 'Test email',
         html: 'Test email'
-      } as any)
+      } as any);
       return true;
     } catch (e) {
       throw e;

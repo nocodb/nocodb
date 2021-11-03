@@ -29,11 +29,14 @@ export default class GqlApi {
     return data.data.data[this.gqlQueryCountName]
   }
 
-  post(url, params) {
+  post(url, data, {
+    params = {}
+  } = {}) {
     return this.$axios({
       url: `${url}`,
       method: 'post',
-      data: params
+      data,
+      params
     })
   }
 
@@ -195,15 +198,15 @@ export default class GqlApi {
     return data1.data.data[this.gqlMutationUpdateName]
   }
 
-  async insert(data, params = {}) {
+  async insert(data, params) {
     const data1 = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
       query: `mutation create($data:${this.tableCamelized}Input){
-         ${this.gqlMutationCreateName}(data: $data){${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}
+         ${this.gqlMutationCreateName}(data: $data){${this.gqlReqBody}${await this.gqlRelationReqBody({})}}
       }`,
       variables: {
         data
       }
-    })
+    }, params)
     return data1.data.data[this.gqlMutationCreateName]
   }
 

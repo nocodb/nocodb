@@ -1,8 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseRender from '../../BaseRender';
 
 class ExpressXcTsRoutes extends BaseRender {
-
-
   /**
    *
    * @param dir
@@ -12,24 +10,21 @@ class ExpressXcTsRoutes extends BaseRender {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}: any) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }: any) {
+    super({ dir, filename, ctx });
   }
 
   /**
    *  Prepare variables used in code template
    */
   prepare() {
-
     let data: any = {};
 
     /* example of simple variable */
     data = this.ctx;
 
     return data;
-
   }
-
 
   getObject() {
     const ejsData: any = this.prepare();
@@ -43,13 +38,16 @@ class ExpressXcTsRoutes extends BaseRender {
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.list(req.query);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/findOne`,
         type: 'get',
         handler: ['findOne'],
@@ -58,13 +56,16 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.findOne(req.query);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/m2mNotChildren/:assoc/:pid`,
         type: 'get',
         handler: ['m2mNotChildren'],
@@ -73,9 +74,12 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
-                `]
-      }, {
+        functions: [
+          `
+                `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/groupby/:column_name`,
         type: 'get',
         handler: ['groupby'],
@@ -84,7 +88,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.groupBy({
       ...req.params,
@@ -92,8 +97,10 @@ async function(req, res){
     });
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/count`,
         type: 'get',
         handler: ['count'],
@@ -102,15 +109,18 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.countByPk({
       ...req.query
     });
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/bulk`,
         type: 'post',
         handler: ['bulkInsert'],
@@ -119,13 +129,16 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.insertb(req.body);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/bulk`,
         type: 'put',
         handler: ['bulkUpdate'],
@@ -134,13 +147,16 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.updateb(req.body);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/bulk`,
         type: 'delete',
         handler: ['bulkDelete'],
@@ -149,13 +165,16 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.delb(req.body)
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id/exists`,
         type: 'get',
         handler: ['exists'],
@@ -164,13 +183,16 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.exists(req.params.id);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/distinct`,
         type: 'get',
         handler: ['distinct'],
@@ -179,15 +201,18 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.distinct({
       ...req.query
     });
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/distribute`,
         type: 'get',
         handler: ['distribute'],
@@ -196,15 +221,18 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.distribution({
       ...req.query
     });
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/aggregate`,
         type: 'get',
         handler: ['aggregate'],
@@ -213,7 +241,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.aggregate({
       ...req.params,
@@ -221,8 +250,10 @@ async function(req, res){
     });
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/groupby`,
         type: 'get',
         handler: ['groupby'],
@@ -231,7 +262,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.groupBy({
       ...req.params,
@@ -239,8 +271,10 @@ async function(req, res){
     });
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id`,
         type: 'get',
         handler: ['get'],
@@ -249,13 +283,16 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.readByPk(req.params.id);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}`,
         type: 'post',
         handler: ['create'],
@@ -264,13 +301,16 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.insert(req.body, null, req);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id`,
         type: 'put',
         handler: ['update'],
@@ -279,13 +319,16 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.updateByPk(req.params.id, req.body, null, req);
     res.json(data);
 }
-        `]
-      }, {
+        `
+        ]
+      },
+      {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id`,
         type: 'delete',
         handler: ['delete'],
@@ -294,24 +337,30 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.model.delByPk(req.params.id, null, req);
     res.json(data);
 }
-        `]
+        `
+        ]
       }
     ];
 
     if (this.ctx.type === 'view') {
-      return routes.filter(({type, handler}) => type === 'get' && !handler.includes('exists') && !handler.includes('get'))
+      return routes.filter(
+        ({ type, handler }) =>
+          type === 'get' &&
+          !handler.includes('exists') &&
+          !handler.includes('get')
+      );
     }
     return routes;
   }
 
-
   getObjectWithoutFunctions() {
-    return this.getObject().map(({functions, ...rest}) => rest)
+    return this.getObject().map(({ functions, ...rest }) => rest);
   }
 }
 

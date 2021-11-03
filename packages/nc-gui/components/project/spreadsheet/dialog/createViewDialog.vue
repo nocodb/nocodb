@@ -11,7 +11,7 @@
             ref="name"
             v-model="view_name"
             label="View Name"
-            :rules="[v=>!!v || 'View name required']"
+            :rules="[v=>!!v || 'View name required', v => viewsList.every((v1) => (v1.alias || v1.title) !== v) || 'View name should be unique']"
             autofocus
           />
         </v-form>
@@ -39,7 +39,7 @@
 
 export default {
   name: 'CreateViewDialog',
-  props: ['value', 'nodes', 'table', 'alias', 'show_as', 'viewsCount', 'primaryValueColumn', 'meta', 'copyView'],
+  props: ['value', 'nodes', 'table', 'alias', 'show_as', 'viewsCount', 'primaryValueColumn', 'meta', 'copyView', 'viewsList'],
   data: () => ({
     valid: false,
     view_name: '',
@@ -74,6 +74,7 @@ export default {
   },
   methods: {
     async createView() {
+      if (!this.valid) { return }
       let showFields = null
       let attachmentCol
       if (this.show_as === 'gallery') {

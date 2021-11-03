@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
-import Knex from "knex";
+import Knex from 'knex';
 
 const autoBind = require('auto-bind');
 const _ = require('lodash');
 const Validator = require('validator');
-
 
 // interface BaseModel {
 //   beforeInsert(data): Promise<void>;
@@ -55,7 +54,6 @@ const Validator = require('validator');
  *
  */
 abstract class BaseModel {
-
   protected dbDriver: Knex;
   protected columns: any[];
   protected pks: any[];
@@ -67,7 +65,6 @@ abstract class BaseModel {
   protected clientType: string;
   public readonly type: string;
   public readonly tn: string;
-
 
   /**
    *
@@ -83,14 +80,13 @@ abstract class BaseModel {
    *
    */
   constructor({
-                dbDriver,
-                tn,
-                columns,
-                hasMany = [],
-                belongsTo = [],
-                type = 'table'
-              }) {
-
+    dbDriver,
+    tn,
+    columns,
+    hasMany = [],
+    belongsTo = [],
+    type = 'table'
+  }) {
     this.dbDriver = dbDriver;
     this.tn = tn;
     this.columns = columns;
@@ -116,9 +112,8 @@ abstract class BaseModel {
 
     this.clientType = this.dbDriver.clientType();
 
-    autoBind(this)
+    autoBind(this);
   }
-
 
   /**
    * Validates column values against validation functions
@@ -131,12 +126,19 @@ abstract class BaseModel {
   async validate(columns) {
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.columns.length; ++i) {
-      const {validate: {func, msg}, cn} = this.columns[i];
+      const {
+        validate: { func, msg },
+        cn
+      } = this.columns[i];
       for (let j = 0; j < func.length; ++j) {
         const fn = typeof func[j] === 'string' ? Validator[func[j]] : func[j];
-        const arg = typeof func[j] === 'string' ? columns[cn] + "" : columns[cn];
-        if (cn in columns && !(fn.constructor.name === "AsyncFunction" ? await fn(arg) : fn(arg)))
-          throw new Error(msg[j])
+        const arg =
+          typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
+        if (
+          cn in columns &&
+          !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
+        )
+          throw new Error(msg[j]);
       }
     }
     return true;
@@ -175,9 +177,9 @@ abstract class BaseModel {
    * @returns {Object} - foreign key where condition
    * @private
    */
-  _whereFk({tnp, parentId}) {
-    const {rcn} = this.belongsToRelations.find(({rtn}) => rtn === tnp)
-    const where = {[rcn]: parentId};
+  _whereFk({ tnp, parentId }) {
+    const { rcn } = this.belongsToRelations.find(({ rtn }) => rtn === tnp);
+    const where = { [rcn]: parentId };
     return where;
   }
 
@@ -197,7 +199,6 @@ abstract class BaseModel {
     return objCopy;
   }
 
-
   /**
    * Creates row in table
    *
@@ -206,11 +207,9 @@ abstract class BaseModel {
    */
   // @ts-ignore
   async insert(data, trx?: any, cookie?: any) {
-
     try {
-
       if ('beforeInsert' in this) {
-        await this.beforeInsert(data, trx, cookie)
+        await this.beforeInsert(data, trx, cookie);
       }
 
       let response;
@@ -219,7 +218,10 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (this.dbDriver.clientType() === 'pg' || this.dbDriver.clientType() === 'mssql') {
+      if (
+        this.dbDriver.clientType() === 'pg' ||
+        this.dbDriver.clientType() === 'mssql'
+      ) {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -234,11 +236,10 @@ abstract class BaseModel {
       return response;
     } catch (e) {
       console.log(e);
-      await this.errorInsert(e, data, trx, cookie)
+      await this.errorInsert(e, data, trx, cookie);
       throw e;
     }
   }
-
 
   /**
    * Creates row in this table under a certain parent
@@ -251,20 +252,21 @@ abstract class BaseModel {
    * @todo should return inserted record
    */
   // @ts-ignore
-  async insertByFk({parentId, tnp, data}, trx?: any, cookie  ?: any) {
-
+  async insertByFk({ parentId, tnp, data }, trx?: any, cookie?: any) {
     try {
-
       await this.beforeInsert(data, trx, cookie);
 
       let response;
 
       await this.validate(data);
-      Object.assign(data, this._whereFk({parentId, tnp}))
+      Object.assign(data, this._whereFk({ parentId, tnp }));
 
       const query = this.$db.insert(data);
 
-      if (this.dbDriver.clientType() === 'pg' || this.dbDriver.clientType() === 'mssql') {
+      if (
+        this.dbDriver.clientType() === 'pg' ||
+        this.dbDriver.clientType() === 'mssql'
+      ) {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -276,11 +278,11 @@ abstract class BaseModel {
         }
       }
 
-      await this.afterInsert(data, trx, cookie)
+      await this.afterInsert(data, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);
-      await this.errorInsert(e, data, trx, cookie)
+      await this.errorInsert(e, data, trx, cookie);
       throw e;
     }
   }
@@ -292,23 +294,20 @@ abstract class BaseModel {
    * @returns {Promise<*>}
    */
   async insertb(data) {
-
     try {
-
-      await this.beforeInsertb(data)
-
+      await this.beforeInsertb(data);
 
       for (const d of data) {
         await this.validate(d);
       }
 
-      const response = await this.dbDriver.batchInsert(this.tn, data, 50)
+      const response = await this.dbDriver
+        .batchInsert(this.tn, data, 50)
         .returning(this.pks?.[0]?.cn || '*');
 
       await this.afterInsertb(data);
 
       return response;
-
     } catch (e) {
       await this.errorInsertb(e, data);
       throw e;
@@ -323,9 +322,14 @@ abstract class BaseModel {
    * @returns {Object} Table row data
    */
   // @ts-ignore
-  async readByPk(id, {conditionGraph}) {
+  async readByPk(id, { conditionGraph }) {
     try {
-      return await this._run(this.$db.select().where(this._wherePk(id)).first());
+      return await this._run(
+        this.$db
+          .select()
+          .where(this._wherePk(id))
+          .first()
+      );
     } catch (e) {
       console.log(e);
       throw e;
@@ -341,13 +345,20 @@ abstract class BaseModel {
    * @param {String} args.tnp - parent table name
    * @returns {Promise<Object>} returns row
    */
-  async readByFk({id, parentId, tnp}) {
+  async readByFk({ id, parentId, tnp }) {
     try {
-
-      return await this._run(this.$db.select().where(this._wherePk(id)).andWhere(this._whereFk({
-        tnp,
-        parentId
-      })).limit(1));
+      return await this._run(
+        this.$db
+          .select()
+          .where(this._wherePk(id))
+          .andWhere(
+            this._whereFk({
+              tnp,
+              parentId
+            })
+          )
+          .limit(1)
+      );
     } catch (e) {
       console.log(e);
       throw e;
@@ -368,19 +379,24 @@ abstract class BaseModel {
    * @throws {Error}
    */
   async list(args) {
-
     try {
+      const {
+        fields,
+        where,
+        limit,
+        offset,
+        sort,
+        condition
+      } = this._getListArgs(args);
 
-      const {fields, where, limit, offset, sort, condition} = this._getListArgs(args);
-
-      const query = this.$db.select(...fields.split(','))
+      const query = this.$db
+        .select(...fields.split(','))
         .xwhere(where)
         .condition(condition);
 
-      this._paginateAndSort(query, {limit, offset, sort});
+      this._paginateAndSort(query, { limit, offset, sort });
 
       return await this._run(query);
-
     } catch (e) {
       console.log(e);
       throw e;
@@ -402,10 +418,13 @@ abstract class BaseModel {
    */
   async findOne(args) {
     try {
-      const {fields, where, condition} = this._getListArgs(args);
-      const query = this.$db.select(fields)
-        .xwhere(where).condition(condition).first();
-      this._paginateAndSort(query, args)
+      const { fields, where, condition } = this._getListArgs(args);
+      const query = this.$db
+        .select(fields)
+        .xwhere(where)
+        .condition(condition)
+        .first();
+      this._paginateAndSort(query, args);
       return await this._run(query);
     } catch (e) {
       console.log(e);
@@ -428,20 +447,22 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async findOneByFk({parentId, tnp, ...args}) {
+  async findOneByFk({ parentId, tnp, ...args }) {
     try {
-      const {fields, where, condition} = this._getListArgs(args);
-      const query = this.$db.select(fields)
-        .where(this._whereFk({parentId, tnp}))
-        .xwhere(where).condition(condition).first();
-      this._paginateAndSort(query, args)
+      const { fields, where, condition } = this._getListArgs(args);
+      const query = this.$db
+        .select(fields)
+        .where(this._whereFk({ parentId, tnp }))
+        .xwhere(where)
+        .condition(condition)
+        .first();
+      this._paginateAndSort(query, args);
       return await this._run(query);
     } catch (e) {
       console.log(e);
       throw e;
     }
   }
-
 
   /**
    * Get the count of rows based on the where
@@ -452,18 +473,20 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async countByPk({where, condition}) {
+  async countByPk({ where, condition }) {
     try {
-      return await this._run(this.$db.count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
-        .xwhere(where)
-        .condition(condition)
-        .first());
+      return await this._run(
+        this.$db
+          .count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
+          .xwhere(where)
+          .condition(condition)
+          .first()
+      );
     } catch (e) {
       console.log(e);
       throw e;
     }
   }
-
 
   /**
    * Get the count of rows based on the where
@@ -476,15 +499,21 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async countByFk({where, parentId, tnp, condition}) {
+  async countByFk({ where, parentId, tnp, condition }) {
     try {
-      return await this._run(this.$db.where(this._whereFk({
-        parentId,
-        tnp
-      })).count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
-        .xwhere(where)
-        .condition(condition)
-        .first());
+      return await this._run(
+        this.$db
+          .where(
+            this._whereFk({
+              parentId,
+              tnp
+            })
+          )
+          .count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
+          .xwhere(where)
+          .condition(condition)
+          .first()
+      );
     } catch (e) {
       console.log(e);
       throw e;
@@ -499,7 +528,7 @@ abstract class BaseModel {
    * @returns {Number} 1 for success, 0 for failure
    */
   // @ts-ignore
-  async updateByPk(id, data, trx?: any, cookie  ?: any) {
+  async updateByPk(id, data, trx?: any, cookie?: any) {
     try {
       await this.beforeUpdate(data, trx, cookie);
 
@@ -507,7 +536,9 @@ abstract class BaseModel {
       let response;
 
       // this.validate(data);
-      response = await this._run(this.$db.update(data).where(this._wherePk(id)));
+      response = await this._run(
+        this.$db.update(data).where(this._wherePk(id))
+      );
       await this.afterUpdate(data, trx, cookie);
       return response;
     } catch (e) {
@@ -528,18 +559,25 @@ abstract class BaseModel {
    * @returns {Number} 1 for success, 0 for failure
    */
   // @ts-ignore
-  async updateByFk({id, parentId, tnp, data}, trx?: any, cookie  ?: any) {
+  async updateByFk({ id, parentId, tnp, data }, trx?: any, cookie?: any) {
     try {
-      await this.beforeUpdate({id, parentId, tnp, data}, trx, cookie);
+      await this.beforeUpdate({ id, parentId, tnp, data }, trx, cookie);
 
       await this.validate(data);
       let response;
 
       // this.validate(data);
-      response = await this._run(this.$db.update(data).where(this._wherePk(id)).andWhere(this._whereFk({
-        tnp,
-        parentId
-      })));
+      response = await this._run(
+        this.$db
+          .update(data)
+          .where(this._wherePk(id))
+          .andWhere(
+            this._whereFk({
+              tnp,
+              parentId
+            })
+          )
+      );
       await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {
@@ -548,7 +586,6 @@ abstract class BaseModel {
       throw e;
     }
   }
-
 
   /**
    * Delete table row data by primary key
@@ -573,7 +610,6 @@ abstract class BaseModel {
     }
   }
 
-
   /**
    * Delete table row data by primary key and foreign key
    *
@@ -584,21 +620,28 @@ abstract class BaseModel {
    * @returns {Number} 1 for success, 0 for failure
    */
   // @ts-ignore
-  async delByFk({id, parentId, tnp}, trx?: any, cookie  ?: any) {
+  async delByFk({ id, parentId, tnp }, trx?: any, cookie?: any) {
     try {
-      await this.beforeDelete({id, parentId, tnp}, trx, cookie);
+      await this.beforeDelete({ id, parentId, tnp }, trx, cookie);
 
       let response;
 
-      response = await this._run(this.$db.del().where(this._wherePk(id)).andWhere(this._whereFk({
-        tnp,
-        parentId
-      })));
+      response = await this._run(
+        this.$db
+          .del()
+          .where(this._wherePk(id))
+          .andWhere(
+            this._whereFk({
+              tnp,
+              parentId
+            })
+          )
+      );
       await this.afterDelete(response, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);
-      await this.errorDelete(e, {id, parentId, tnp}, trx, cookie);
+      await this.errorDelete(e, { id, parentId, tnp }, trx, cookie);
       throw e;
     }
   }
@@ -610,10 +653,8 @@ abstract class BaseModel {
    * @returns {Promise<Number[]>} - 1 for success, 0 for failure
    */
   async updateb(data) {
-
     let trx;
     try {
-
       await this.beforeUpdateb(data);
 
       trx = await this.dbDriver.transaction();
@@ -621,7 +662,11 @@ abstract class BaseModel {
       const res = [];
       for (const d of data) {
         // this.validate(d);
-        const response = await this._run(trx(this.tn).update(d).where(this._extractPks(d)));
+        const response = await this._run(
+          trx(this.tn)
+            .update(d)
+            .where(this._extractPks(d))
+        );
         res.push(response);
       }
 
@@ -629,16 +674,13 @@ abstract class BaseModel {
       await this.afterUpdateb(res);
 
       return res;
-
     } catch (e) {
-      if (trx)
-        trx.rollback();
+      if (trx) trx.rollback();
       console.log(e);
       await this.errorUpdateb(e, data);
       throw e;
     }
   }
-
 
   /**
    * Bulk delete happens within a transaction
@@ -654,7 +696,11 @@ abstract class BaseModel {
 
       const res = [];
       for (const d of ids) {
-        const response = await this._run(trx(this.tn).del().where(this._extractPks(d)));
+        const response = await this._run(
+          trx(this.tn)
+            .del()
+            .where(this._extractPks(d))
+        );
         res.push(response);
       }
       trx.commit();
@@ -662,15 +708,12 @@ abstract class BaseModel {
       await this.afterDeleteb(res);
 
       return res;
-
     } catch (e) {
-      if (trx)
-        trx.rollback();
+      if (trx) trx.rollback();
       console.log(e);
       await this.errorDeleteb(e, ids);
       throw e;
     }
-
   }
 
   /**
@@ -681,7 +724,10 @@ abstract class BaseModel {
    */
   async exists(id, _) {
     try {
-      return Object.keys((await this.readByPk(id, {conditionGraph: null}))).length !== 0;
+      return (
+        Object.keys(await this.readByPk(id, { conditionGraph: null }))
+          .length !== 0
+      );
     } catch (e) {
       console.log(e);
       throw e;
@@ -694,9 +740,9 @@ abstract class BaseModel {
    * @param {String} id - ___ separated primary key string
    * @returns {Promise<boolean>} - true for exits and false for none
    */
-  async existsByFk({id, parentId, tnp}) {
+  async existsByFk({ id, parentId, tnp }) {
     try {
-      return (await this.readByFk({id, parentId, tnp})).length !== 0;
+      return (await this.readByFk({ id, parentId, tnp })).length !== 0;
     } catch (e) {
       console.log(e);
       throw e;
@@ -717,16 +763,19 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async groupBy({having, fields = '', column_name, limit, offset, sort}) {
+  async groupBy({ having, fields = '', column_name, limit, offset, sort }) {
     try {
-      const columns = [...(column_name ? [column_name] : []), ...fields.split(',').filter(Boolean)];
+      const columns = [
+        ...(column_name ? [column_name] : []),
+        ...fields.split(',').filter(Boolean)
+      ];
       const query = this.$db
         .groupBy(columns)
         .count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
         .select(columns)
         .xhaving(having);
 
-      this._paginateAndSort(query, {limit, offset, sort});
+      this._paginateAndSort(query, { limit, offset, sort });
 
       return await this._run(query);
     } catch (e) {
@@ -734,7 +783,6 @@ abstract class BaseModel {
       throw e;
     }
   }
-
 
   /**
    * Get the rows by aggregation by an aggregation function(s)
@@ -751,21 +799,26 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async aggregate({having, fields = '', func, column_name, limit, offset, sort}) {
+  async aggregate({
+    having,
+    fields = '',
+    func,
+    column_name,
+    limit,
+    offset,
+    sort
+  }) {
     try {
-      const query = this.$db
-        .select(...fields.split(','))
-        .xhaving(having);
+      const query = this.$db.select(...fields.split(',')).xhaving(having);
 
       if (fields) {
-        query.groupBy(...fields.split(','))
+        query.groupBy(...fields.split(','));
       }
       if (func && column_name) {
-        func.split(',').forEach(fn => query[fn](`${column_name} as ${fn}`))
+        func.split(',').forEach(fn => query[fn](`${column_name} as ${fn}`));
       }
 
-
-      this._paginateAndSort(query, {limit, offset, sort});
+      this._paginateAndSort(query, { limit, offset, sort });
 
       return await this._run(query);
     } catch (e) {
@@ -773,7 +826,6 @@ abstract class BaseModel {
       throw e;
     }
   }
-
 
   /**
    * Distribution of column values in the table
@@ -803,8 +855,7 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async distribution({column_name, steps, func = 'count', min, max, step}) {
-
+  async distribution({ column_name, steps, func = 'count', min, max, step }) {
     try {
       const ranges = [];
 
@@ -814,37 +865,42 @@ abstract class BaseModel {
         step = +step;
 
         for (let i = 0; i < max / step; i++) {
-          ranges.push([i * step + (i && 1), Math.min((i + 1) * step, max)])
+          ranges.push([i * step + (i && 1), Math.min((i + 1) * step, max)]);
         }
       };
 
-
       if (!isNaN(+min) && !isNaN(+max) && !isNaN(+step)) {
-        generateWindows(ranges, min, max, step)
+        generateWindows(ranges, min, max, step);
       } else if (steps) {
         const splitArr = steps.split(',');
         for (let i = 0; i < splitArr.length - 1; i++) {
-          ranges.push([+splitArr[i] + (i ? 1 : 0), splitArr[i + 1]])
+          ranges.push([+splitArr[i] + (i ? 1 : 0), splitArr[i + 1]]);
         }
       } else {
-        const {min, max, step} = await this.$db
+        const { min, max, step } = await this.$db
           .min(`${column_name} as min`)
           .max(`${column_name} as max`)
           .avg(`${column_name} as step`)
           .first();
-        generateWindows(ranges, min, max, Math.round(step))
+        generateWindows(ranges, min, max, Math.round(step));
       }
 
-      return (await this.dbDriver.unionAll(
-        ranges.map(([start, end]) => {
-            const query = this.$db.xwhere(`(${column_name},ge,${start})~and(${column_name},le,${end})`);
+      return (
+        await this.dbDriver.unionAll(
+          ranges.map(([start, end]) => {
+            const query = this.$db.xwhere(
+              `(${column_name},ge,${start})~and(${column_name},le,${end})`
+            );
             if (func) {
-              func.split(',').forEach(fn => query[fn](`${column_name} as ${fn}`))
+              func
+                .split(',')
+                .forEach(fn => query[fn](`${column_name} as ${fn}`));
             }
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
-          }
-        ), !this.isSqlite()
-      )).map((row, i) => {
+          }),
+          !this.isSqlite()
+        )
+      ).map((row, i) => {
         row.range = ranges[i].join('-');
         return row;
       });
@@ -852,9 +908,7 @@ abstract class BaseModel {
       console.log(e);
       throw e;
     }
-
   }
-
 
   /**
    * Get the list of distinct rows
@@ -870,12 +924,12 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async distinct({cn, fields = '', where, limit, offset, sort, condition}) {
+  async distinct({ cn, fields = '', where, limit, offset, sort, condition }) {
     try {
       const query = this.$db;
       query.distinct(cn, ...fields.split(',').filter(Boolean));
       query.xwhere(where).condition(condition);
-      this._paginateAndSort(query, {limit, offset, sort});
+      this._paginateAndSort(query, { limit, offset, sort });
       return await this._run(query);
     } catch (e) {
       console.log(e);
@@ -900,7 +954,6 @@ abstract class BaseModel {
     }
   }
 
-
   /**
    * Get child list and map to input parent
    *
@@ -911,32 +964,41 @@ abstract class BaseModel {
    * @returns {Promise<void>}
    * @private
    */
-  async _getChildListInParent({parent, child}, rest = {}, index) {
-    let {fields, where, limit, offset, sort, condition} = this._getChildListArgs(rest, index);
-    const {cn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
+  async _getChildListInParent({ parent, child }, rest = {}, index) {
+    let {
+      fields,
+      where,
+      limit,
+      offset,
+      sort,
+      condition
+    } = this._getChildListArgs(rest, index);
+    const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
 
     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
       fields += ',' + cn;
     }
 
+    const childs = await this._run(
+      this.dbDriver.union(
+        parent.map(p => {
+          const query = this.dbDriver(child)
+            .where({ [cn]: p[this.pks?.[0]?.cn] })
+            .xwhere(where)
+            .condition(condition)
+            .select(...fields.split(','));
 
-    const childs = await this._run(this.dbDriver.union(
-      parent.map(p => {
-        const query = this
-          .dbDriver(child)
-          .where({[cn]: p[this.pks?.[0]?.cn]})
-          .xwhere(where).condition(condition)
-          .select(...fields.split(','));
-
-        this._paginateAndSort(query, {sort, limit, offset});
-        return this.isSqlite() ? this.dbDriver.select().from(query) : query;
-      }), !this.isSqlite()
-    ));
+          this._paginateAndSort(query, { sort, limit, offset });
+          return this.isSqlite() ? this.dbDriver.select().from(query) : query;
+        }),
+        !this.isSqlite()
+      )
+    );
 
     const gs = _.groupBy(childs, cn);
     parent.forEach(row => {
       row[child] = gs[row[this.pks?.[0]?.cn]] || [];
-    })
+    });
   }
 
   /**
@@ -952,16 +1014,26 @@ abstract class BaseModel {
    * @param {String} [args.sort]   - comma separated column names where each column name is cn ascending and -cn is cn descending
    * @returns {Promise<Object[]>} return child rows
    */
-  async hasManyChildren({child, parentId, ...args}) {
+  async hasManyChildren({ child, parentId, ...args }) {
     try {
-      const {fields, where, limit, offset, sort, condition} = this._getListArgs(args);
-      const {rcn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
+      const {
+        fields,
+        where,
+        limit,
+        offset,
+        sort,
+        condition
+      } = this._getListArgs(args);
+      const { rcn } =
+        this.hasManyRelations.find(({ tn }) => tn === child) || {};
 
-      const query = this.dbDriver(child).select(...fields.split(','))
+      const query = this.dbDriver(child)
+        .select(...fields.split(','))
         .where(rcn, parentId)
-        .xwhere(where).condition(condition);
+        .xwhere(where)
+        .condition(condition);
 
-      this._paginateAndSort(query, {limit, offset, sort});
+      this._paginateAndSort(query, { limit, offset, sort });
       return await this._run(query);
     } catch (e) {
       console.log(e);
@@ -986,20 +1058,30 @@ abstract class BaseModel {
    * @param {String} [args.sort*] - comma separated column names where each column name is cn ascending and -cn is cn descending(* is a natural number 'i' where i is index of child table in comma separated list)
    * @returns {Promise<Object[]>}
    */
-  async hasManyList({childs, where, fields, f, ...rest}) {
+  async hasManyList({ childs, where, fields, f, ...rest }) {
     fields = fields || f || '*';
     try {
-
-      if (fields !== '*' && fields.split(',').indexOf(this.pks?.[0]?.cn) === -1) {
+      if (
+        fields !== '*' &&
+        fields.split(',').indexOf(this.pks?.[0]?.cn) === -1
+      ) {
         fields += ',' + this.pks?.[0]?.cn;
       }
 
-      const parent = await this.list({childs, where, fields, ...rest});
+      const parent = await this.list({ childs, where, fields, ...rest });
       if (parent && parent.length)
-        await Promise.all([...new Set(childs.split('.'))].map((child, index) => this._getChildListInParent({
-          parent,
-          child
-        }, rest, index)));
+        await Promise.all(
+          [...new Set(childs.split('.'))].map((child, index) =>
+            this._getChildListInParent(
+              {
+                parent,
+                child
+              },
+              rest,
+              index
+            )
+          )
+        );
       return parent;
     } catch (e) {
       console.log(e);
@@ -1020,25 +1102,30 @@ abstract class BaseModel {
    * @param {String} [args.sort]   - comma separated column names where each column name is cn ascending and -cn is cn descending
    * @returns {Promise<Object[]>}
    */
-  async belongsTo({parents, where, fields, f, ...rest}) {
+  async belongsTo({ parents, where, fields, f, ...rest }) {
     fields = fields || f || '*';
     try {
-
       for (const parent of parents.split('~')) {
-        const {cn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
+        const { cn } =
+          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
         if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
           fields += ',' + cn;
         }
       }
 
-      const childs = await this.list({where, fields, ...rest});
+      const childs = await this.list({ where, fields, ...rest });
 
-
-      await Promise.all(parents.split('~').map((parent, index) => {
-        const {cn, rcn} = this.belongsToRelations.find(({rtn}) => rtn === parent) || {};
-        const parentIds = [...new Set(childs.map(c => c[cn]))];
-        return this._belongsTo({parent, rcn, parentIds, childs, cn, ...rest}, index);
-      }))
+      await Promise.all(
+        parents.split('~').map((parent, index) => {
+          const { cn, rcn } =
+            this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+          const parentIds = [...new Set(childs.map(c => c[cn]))];
+          return this._belongsTo(
+            { parent, rcn, parentIds, childs, cn, ...rest },
+            index
+          );
+        })
+      );
 
       return childs;
     } catch (e) {
@@ -1046,7 +1133,6 @@ abstract class BaseModel {
       throw e;
     }
   }
-
 
   /**
    * Get parent and map to input child
@@ -1059,19 +1145,23 @@ abstract class BaseModel {
    * @returns {Promise<void>}
    * @private
    */
-  async _belongsTo({parent, rcn, parentIds, childs, cn, ...rest}, index) {
-    let {fields} = this._getChildListArgs(rest, index);
+  async _belongsTo({ parent, rcn, parentIds, childs, cn, ...rest }, index) {
+    let { fields } = this._getChildListArgs(rest, index);
     if (fields !== '*' && fields.split(',').indexOf(rcn) === -1) {
       fields += ',' + rcn;
     }
 
-    const parents = await this._run(this.dbDriver(parent).select(...fields.split(',')).whereIn(rcn, parentIds));
+    const parents = await this._run(
+      this.dbDriver(parent)
+        .select(...fields.split(','))
+        .whereIn(rcn, parentIds)
+    );
 
     const gs = _.groupBy(parents, rcn);
 
     childs.forEach(row => {
       row[parent] = gs[row[cn]] && gs[row[cn]][0];
-    })
+    });
   }
 
   /**
@@ -1086,32 +1176,40 @@ abstract class BaseModel {
    * @param {String} [args.sort]   - comma separated column names where each column name is cn ascending and -cn is cn descending
    * @returns {Promise<Object.<string, Object[]>>}  key will be parent pk and value will be child list
    */
-  async hasManyListGQL({child, ids, ...rest}) {
+  async hasManyListGQL({ child, ids, ...rest }) {
     try {
-      let {fields, where, limit, offset, sort, condition} = this._getChildListArgs(rest);
+      let {
+        fields,
+        where,
+        limit,
+        offset,
+        sort,
+        condition
+      } = this._getChildListArgs(rest);
 
-      const {cn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
+      const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
 
       if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
         fields += ',' + cn;
       }
 
-      const childs = await this._run(this.dbDriver.union(
-        ids.map(p => {
-          const query = this
-            .dbDriver(child)
-            .where({[cn]: p})
-            .xwhere(where).condition(condition)
-            .select(...fields.split(','));
+      const childs = await this._run(
+        this.dbDriver.union(
+          ids.map(p => {
+            const query = this.dbDriver(child)
+              .where({ [cn]: p })
+              .xwhere(where)
+              .condition(condition)
+              .select(...fields.split(','));
 
-          this._paginateAndSort(query, {sort, limit, offset});
-          return this.isSqlite() ? this.dbDriver.select().from(query) : query;
-        }), !this.isSqlite()
-      ));
-
+            this._paginateAndSort(query, { sort, limit, offset });
+            return this.isSqlite() ? this.dbDriver.select().from(query) : query;
+          }),
+          !this.isSqlite()
+        )
+      );
 
       return _.groupBy(childs, cn);
-
     } catch (e) {
       console.log(e);
       throw e;
@@ -1134,28 +1232,29 @@ abstract class BaseModel {
    * @param {String} [args.sort]   - comma separated column names where each column name is cn ascending and -cn is cn descending
    * @returns {Promise<Object.<string, Object[]>>}  key will be parent pk and value will be child list
    */
-  async hasManyListCount({child, ids, ...rest}) {
+  async hasManyListCount({ child, ids, ...rest }) {
     try {
-      const {where, condition} = this._getChildListArgs(rest);
+      const { where, condition } = this._getChildListArgs(rest);
 
-      const {cn} = this.hasManyRelations.find(({tn}) => tn === child) || {};
+      const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
 
-      const childs = await this._run(this.dbDriver.unionAll(
-        ids.map(p => {
-          const query = this
-            .dbDriver(child)
-            .where({[cn]: p})
-            .xwhere(where)
-            .condition(condition)
-            .count(`${cn} as count`)
-            .first();
-          return this.isSqlite() ? this.dbDriver.select().from(query) : query;
-        }), !this.isSqlite()
-      ));
+      const childs = await this._run(
+        this.dbDriver.unionAll(
+          ids.map(p => {
+            const query = this.dbDriver(child)
+              .where({ [cn]: p })
+              .xwhere(where)
+              .condition(condition)
+              .count(`${cn} as count`)
+              .first();
+            return this.isSqlite() ? this.dbDriver.select().from(query) : query;
+          }),
+          !this.isSqlite()
+        )
+      );
 
-      return childs.map(({count}) => count);
+      return childs.map(({ count }) => count);
       // return _.groupBy(childs, cn);
-
     } catch (e) {
       console.log(e);
       throw e;
@@ -1173,18 +1272,24 @@ abstract class BaseModel {
    * @returns {Object} query appended with paginate and sort params
    * @private
    */
-  _paginateAndSort(query, {limit = 20, offset = 0, sort = ''}: { limit?: number | string, offset?: number | string, sort?: string }) {
-    query.offset(offset)
-      .limit(limit);
+  _paginateAndSort(
+    query,
+    {
+      limit = 20,
+      offset = 0,
+      sort = ''
+    }: { limit?: number | string; offset?: number | string; sort?: string }
+  ) {
+    query.offset(offset).limit(limit);
 
     if (sort) {
       sort.split(',').forEach(o => {
         if (o[0] === '-') {
-          query.orderBy(o.slice(1), 'desc')
+          query.orderBy(o.slice(1), 'desc');
         } else {
-          query.orderBy(o, 'asc')
+          query.orderBy(o, 'asc');
         }
-      })
+      });
     }
     return query;
   }
@@ -1222,7 +1327,13 @@ abstract class BaseModel {
   _getListArgs(args) {
     const obj: XcFilter = {};
     obj.where = args.where || args.w || '';
-    obj.limit = Math.max(Math.min(args.limit || args.l || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
+    obj.limit = Math.max(
+      Math.min(
+        args.limit || args.l || this.config.limitDefault,
+        this.config.limitMax
+      ),
+      this.config.limitMin
+    );
     obj.offset = args.offset || args.o || 0;
     obj.fields = args.fields || args.f || '*';
     obj.sort = args.sort || args.s;
@@ -1241,13 +1352,18 @@ abstract class BaseModel {
     index++;
     const obj: XcFilter = {};
     obj.where = args[`where${index}`] || args[`w${index}`] || '';
-    obj.limit = Math.max(Math.min(args[`limit${index}`] || args[`l${index}`] || this.config.limitDefault, this.config.limitMax), this.config.limitMin);
+    obj.limit = Math.max(
+      Math.min(
+        args[`limit${index}`] || args[`l${index}`] || this.config.limitDefault,
+        this.config.limitMax
+      ),
+      this.config.limitMin
+    );
     obj.offset = args[`offset${index}`] || args[`o${index}`] || 0;
     obj.fields = args[`fields${index}`] || args[`f${index}`] || '*';
     obj.sort = args[`sort${index}`] || args[`s${index}`];
     return obj;
   }
-
 
   /**
    * Before Insert is a hook which can be override in subclass
@@ -1256,10 +1372,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async beforeInsert(data, trx?: any, cookie?: {}) {
-
-  }
-
+  async beforeInsert(data, trx?: any, cookie?: {}) {}
 
   /**
    * After Insert is a hook which can be override in subclass
@@ -1268,10 +1381,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async afterInsert(response, trx?: any, cookie?: {}) {
-
-  }
-
+  async afterInsert(response, trx?: any, cookie?: {}) {}
 
   /**
    * After Insert is a hook which can be override in subclass
@@ -1281,9 +1391,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async errorInsert(err, data, trx?: any, cookie?: {}) {
-
-  }
+  async errorInsert(err, data, trx?: any, cookie?: {}) {}
 
   /**
    * Before Update is a hook which can be override in subclass
@@ -1292,10 +1400,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async beforeUpdate(data, trx?: any, cookie?: {}) {
-
-  }
-
+  async beforeUpdate(data, trx?: any, cookie?: {}) {}
 
   /**
    * After Update is a hook which can be override in subclass
@@ -1304,10 +1409,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async afterUpdate(response, trx?: any, cookie?: {}) {
-
-  }
-
+  async afterUpdate(response, trx?: any, cookie?: {}) {}
 
   /**
    * Error update is a hook which can be override in subclass
@@ -1317,10 +1419,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async errorUpdate(err, data, trx?: any, cookie?: {}) {
-
-  }
-
+  async errorUpdate(err, data, trx?: any, cookie?: {}) {}
 
   /**
    * Before delete is a hook which can be override in subclass
@@ -1329,9 +1428,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async beforeDelete(data, trx?: any, cookie?: {}) {
-
-  }
+  async beforeDelete(data, trx?: any, cookie?: {}) {}
 
   /**
    * After Delete is a hook which can be override in subclass
@@ -1340,10 +1437,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async afterDelete(response, trx?: any, cookie?: {}) {
-
-  }
-
+  async afterDelete(response, trx?: any, cookie?: {}) {}
 
   /**
    * Error delete is a hook which can be override in subclass
@@ -1353,10 +1447,7 @@ abstract class BaseModel {
    * @param {Object} trx? - knex transaction reference
    */
   // @ts-ignore
-  async errorDelete(err, data, trx?: any, cookie?: {}) {
-
-  }
-
+  async errorDelete(err, data, trx?: any, cookie?: {}) {}
 
   /**
    * Before insert bulk  is a hook which can be override in subclass
@@ -1365,9 +1456,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async beforeInsertb(data, trx?: any) {
-
-  }
+  async beforeInsertb(data, trx?: any) {}
 
   /**
    * After insert bulk  is a hook which can be override in subclass
@@ -1376,9 +1465,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async afterInsertb(response, trx?: any) {
-
-  }
+  async afterInsertb(response, trx?: any) {}
 
   /**
    * Error insert bulk is a hook which can be override in subclass
@@ -1388,9 +1475,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async errorInsertb(err, data, trx?: any) {
-
-  }
+  async errorInsertb(err, data, trx?: any) {}
 
   /**
    * Before update bulk  is a hook which can be override in subclass
@@ -1399,9 +1484,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async beforeUpdateb(data, trx?: any) {
-
-  }
+  async beforeUpdateb(data, trx?: any) {}
 
   /**
    * After update bulk  is a hook which can be override in subclass
@@ -1410,9 +1493,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async afterUpdateb(response, trx?: any) {
-
-  }
+  async afterUpdateb(response, trx?: any) {}
 
   /**
    * Error update bulk is a hook which can be override in subclass
@@ -1422,9 +1503,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async errorUpdateb(err, data, trx?: any) {
-
-  }
+  async errorUpdateb(err, data, trx?: any) {}
 
   /**
    * Before delete bulk  is a hook which can be override in subclass
@@ -1433,9 +1512,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async beforeDeleteb(data, trx?: any) {
-
-  }
+  async beforeDeleteb(data, trx?: any) {}
 
   /**
    * After delete bulk  is a hook which can be override in subclass
@@ -1444,10 +1521,7 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async afterDeleteb(response, trx?: any) {
-
-  }
-
+  async afterDeleteb(response, trx?: any) {}
 
   /**
    * Error delete bulk is a hook which can be override in subclass
@@ -1457,13 +1531,8 @@ abstract class BaseModel {
    * @param {Object} trx - knex transaction reference
    */
   // @ts-ignore
-  async errorDeleteb(err, data, trx?: any) {
-
-  }
-
-
+  async errorDeleteb(err, data, trx?: any) {}
 }
-
 
 export interface XcFilter {
   where?: string;
@@ -1485,7 +1554,6 @@ export interface XcFilterWithAlias extends XcFilter {
   s?: string;
   f?: string;
 }
-
 
 export default BaseModel;
 /**

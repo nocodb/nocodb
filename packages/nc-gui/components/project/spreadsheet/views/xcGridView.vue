@@ -37,6 +37,7 @@
               :sql-ui="sqlUi"
               :is-public-view="isPublicView"
               :is-locked="isLocked"
+              :is-virtual="isVirtual"
               @saved="onNewColCreation"
             />
 
@@ -151,7 +152,10 @@
           >
             <virtual-cell
               v-if="columnObj.virtual"
-              :is-locked="isLocked"
+              :password="password"
+              :is-public="isPublicView"
+              :metas="metas"
+              :is-locked="isLocked "
               :column="columnObj"
               :row="rowObj"
               :nodes="nodes"
@@ -179,6 +183,7 @@
               :sql-ui="sqlUi"
               :db-alias="nodes.dbAlias"
               :is-locked="isLocked"
+              :is-public="isPublicView"
               @save="editEnabled = {}"
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj)"
@@ -238,6 +243,7 @@ import VirtualHeaderCell from '../components/virtualHeaderCell'
 import colors from '@/mixins/colors'
 import TableCell from '@/components/project/spreadsheet/components/cell'
 import DynamicStyle from '@/components/dynamicStyle'
+import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'XcGridView',
@@ -252,6 +258,7 @@ export default {
   },
   mixins: [colors],
   props: {
+    metas: Object,
     relationType: String,
     availableColumns: [Object, Array],
     showFields: Object,
@@ -270,7 +277,8 @@ export default {
     isVirtual: Boolean,
     isLocked: Boolean,
     columnsWidth: { type: Object },
-    isPkAvail: Boolean
+    isPkAvail: Boolean,
+    password: String
   },
   data: () => ({
     resizingCol: null,
@@ -340,6 +348,8 @@ export default {
   },
   methods: {
     isRequired(_columnObj, rowObj) {
+      if (this.isPublicView) { return false }
+
       let columnObj = _columnObj
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
@@ -434,6 +444,11 @@ export default {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {
             return
           }
+          if (e.ctrlKey ||
+            e.altKey ||
+            e.shiftKey ||
+            e.metaKey) { return }
+
           if (e.key && e.key.length === 1) {
             if (!this.isPkAvail && !this.data[this.selected.row].rowMeta.new) {
               return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
@@ -456,10 +471,10 @@ export default {
       this.selected.col = null
       this.selected.row = null
     },
-    onNewColCreation(col) {
+    onNewColCreation(col, oldCol) {
       this.addNewColMenu = false
       this.addNewColModal = false
-      this.$emit('onNewColCreation', col)
+      this.$emit('onNewColCreation', col, oldCol)
     },
     expandRow(...args) {
       this.$emit('expandRow', ...args)
@@ -498,13 +513,14 @@ export default {
       }
     },
     enableEditable(column) {
-      return (column && column.uidt === 'Attachment') ||
-        (column && column.uidt === 'SingleSelect') ||
-        (column && column.uidt === 'MultiSelect') ||
-        (column && column.uidt === 'DateTime') ||
-        (column && column.uidt === 'Date') ||
-        (column && column.uidt === 'Time') ||
+      return ((column && column.uidt === UITypes.Attachment) ||
+        (column && column.uidt === UITypes.SingleSelect) ||
+        (column && column.uidt === UITypes.MultiSelect) ||
+        (column && column.uidt === UITypes.DateTime) ||
+        (column && column.uidt === UITypes.Date) ||
+        (column && column.uidt === UITypes.Time) ||
         (this.sqlUi && this.sqlUi.getAbstractType(column) === 'boolean')
+      )
     },
     insertNewRow(atEnd = false, expand = false) {
       this.$emit('insertNewRow', atEnd, expand)

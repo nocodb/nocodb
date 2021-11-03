@@ -1,6 +1,5 @@
-import axios from "axios";
-import {IWebhookNotificationAdapter} from "nc-plugin";
-
+import axios from 'axios';
+import { IWebhookNotificationAdapter } from 'nc-plugin';
 
 export default class Slack implements IWebhookNotificationAdapter {
   public init(): Promise<any> {
@@ -8,20 +7,17 @@ export default class Slack implements IWebhookNotificationAdapter {
   }
 
   public async sendMessage(text: string, payload: any): Promise<any> {
-    for (const {webhook_url} of payload?.channels) {
+    for (const { webhook_url } of payload?.channels) {
       try {
         await axios.post(webhook_url, {
           text
-        })
+        });
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     }
   }
-
-
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

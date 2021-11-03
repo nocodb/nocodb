@@ -354,7 +354,12 @@ export const actions = {
     }
   },
 
-  async ActSqlOp({ commit, state, rootState, dispatch }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams]) {
+  async ActSqlOp({
+    commit,
+    state,
+    rootState,
+    dispatch
+  }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams, returnResponse]) {
     const params = {}
     if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
       params.project_id = this.$router.currentRoute.params.project_id
@@ -370,7 +375,7 @@ export const actions = {
       if (cusHeaders) {
         Object.assign(headers, cusHeaders)
       }
-      const data = (await this.$axios({
+      const res = (await this.$axios({
         url: '?q=sqlOp_' + op,
         baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
         data: { api: op, ...args, ...params, args: opArgs },
@@ -379,7 +384,9 @@ export const actions = {
         params: (args && args.query) || {},
         ...(cusAxiosOptions || {})
 
-      })).data
+      }))
+
+      const data = res.data
 
       // clear meta cache on relation create/delete
       // todo: clear only necessary metas
@@ -401,6 +408,10 @@ export const actions = {
         }
       }
 
+      if (returnResponse) {
+        return res
+      }
+
       return data
     } catch (e) {
       const err = new Error(e.response.data.msg)
@@ -409,7 +420,24 @@ export const actions = {
     }
   },
 
-  async ActUpload({ commit, state, rootState }, [args, op, opArgs, file, cusHeaders, cusAxiosOptions]) {
+  async ActUploadOld({
+    commit,
+    state,
+    rootState,
+    dispatch
+  }, [args, op, opArgs, file, cusHeaders, cusAxiosOptions, formData]) {
+    return await dispatch('ActUpload', { args, op, opArgs, file, cusHeaders, cusAxiosOptions, formData })
+  },
+
+  async ActUpload({ commit, state, rootState }, {
+    args = {},
+    op,
+    opArgs,
+    file,
+    cusHeaders = {},
+    cusAxiosOptions = {},
+    formData = new FormData()
+  }) {
     try {
       const params = {}
       if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
@@ -429,9 +457,10 @@ export const actions = {
         Object.assign(headers, cusHeaders)
       }
 
-      const formData = new FormData()
+      if (file) {
+        formData.append('file', file)
+      }
 
-      formData.append('file', file)
       formData.append('json', JSON.stringify({ api: op, ...params, ...args, args: opArgs }))
       // formData.append('project_id', params.project_id);
 

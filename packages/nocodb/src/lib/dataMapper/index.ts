@@ -1,9 +1,9 @@
-export {DbFactory} from './lib/DbFactory';
-export {BaseModelSql} from './lib/sql/BaseModelSql';
+export { DbFactory } from './lib/DbFactory';
+export { BaseModelSql } from './lib/sql/BaseModelSql';
 
-import XKnex, {Knex} from './lib/sql/CustomKnex';
+import XKnex, { Knex } from './lib/sql/CustomKnex';
 
-export {XKnex, Knex};
+export { XKnex, Knex };
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

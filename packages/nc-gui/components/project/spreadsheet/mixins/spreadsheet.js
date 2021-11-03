@@ -85,6 +85,8 @@ export default {
     },
 
     allColumns() {
+      if (!this.meta) { return [] }
+
       let columns = this.meta.columns
       if (this.meta && this.meta.v) {
         columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
@@ -93,11 +95,11 @@ export default {
       {
         const _ref = {}
         columns.forEach((c) => {
-          if (c.virtual && c.lk) {
-            c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-          } else {
-            c.alias = c._cn
-          }
+          // if (c.virtual && c.lk) {
+          //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+          // } else {
+          c.alias = c._cn
+          // }
           if (c.alias in _ref) {
             c.alias += _ref[c.alias]++
           } else {
@@ -131,11 +133,11 @@ export default {
       {
         const _ref = {}
         columns.forEach((c) => {
-          if (c.virtual && c.lk) {
-            c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-          } else {
-            c.alias = c._cn
-          }
+          // if (c.virtual && c.lk) {
+          //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+          // } else {
+          c.alias = c._cn
+          // }
           if (c.alias in _ref) {
             c.alias += _ref[c.alias]++
           } else {

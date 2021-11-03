@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :is="expand ? 'v-dialog' : 'div'" :value="true" max-width="800px" class="cell-container" @keydown.stop.enter>
+  <v-dialog :is="expand ? 'v-dialog' : 'div'" v-model="expand" max-width="800px" class="cell-container" @keydown.stop.enter>
     <div class="d-flex pa-1 " :class="{backgroundColor:expand}">
       <v-spacer />
       <v-icon small class="mr-2" @click="expand = !expand">

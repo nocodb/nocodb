@@ -1,3 +1,0 @@
-```
-See ./contribute folder
-```

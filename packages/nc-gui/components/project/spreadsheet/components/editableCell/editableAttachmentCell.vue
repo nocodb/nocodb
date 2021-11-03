@@ -8,7 +8,7 @@
     @dragend="dragOver = false"
     @drop.prevent="onFileDrop"
   >
-    <div v-show="_isUIAllowed('tableAttachment') && dragOver" class="drop-overlay">
+    <div v-show="(isForm || _isUIAllowed('tableAttachment')) && dragOver" class="drop-overlay">
       <div>
         <v-icon small>
           mdi-cloud-upload-outline
@@ -18,20 +18,23 @@
     </div>
 
     <div class="d-flex align-center img-container">
-      <div v-for="(item,i) in localState" :key="i" class="thumbnail align-center justify-center d-flex">
+      <div
+        v-for="(item,i) in (isPublicForm ? localFilesState : localState)"
+        :key="item.url || item.title"
+        class="thumbnail align-center justify-center d-flex"
+      >
         <v-tooltip bottom>
           <template #activator="{on}">
             <!--            <img alt="#" v-if="isImage(item.title)" :src="item.url" v-on="on" @click="selectImage(item.url,i)">-->
             <v-img
               v-if="isImage(item.title)"
-              :key="item.url"
               lazy-src="https://via.placeholder.com/60.png?text=Loading..."
               alt="#"
               max-height="33px"
               contain
-              :src="item.url"
+              :src="item.url || item.data"
               v-on="on"
-              @click="selectImage(item.url,i)"
+              @click="selectImage(item.url || item.data, i)"
             >
               <template #placeholder>
                 <v-skeleton-loader
@@ -41,12 +44,17 @@
                 />
               </template>
             </v-img>
-            <v-icon v-else-if="item.icon" :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url,'_blank')">
+            <v-icon
+              v-else-if="item.icon"
+              :size="active ? 33 : 22"
+              v-on="on"
+              @click="openUrl(item.url || item.data,'_blank')"
+            >
               {{
                 item.icon
               }}
             </v-icon>
-            <v-icon v-else :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url,'_blank')">
+            <v-icon v-else :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url|| item.data,'_blank')">
               mdi-file
             </v-icon>
           </template>
@@ -54,11 +62,23 @@
         </v-tooltip>
       </div>
 
-      <div v-if="active" class="add d-flex align-center justify-center px-1" @click="addFile">
-        <v-icon v-if="uploading" small color="primary">
+      <div v-if="isForm || active && !isPublicGrid" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
+        <v-icon v-if="uploading" small color="primary" class="nc-attachment-add-spinner">
           mdi-loading mdi-spin
         </v-icon>
-        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary">
+        <v-btn
+          v-else-if="isForm"
+          outlined
+          x-small
+          color=""
+          text
+          class="nc-attachment-add-btn"
+        >
+          <v-icon x-small color="">
+            mdi-plus
+          </v-icon> Attachment
+        </v-btn>
+        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary nc-attachment-add-icon">
           mdi-plus
         </v-icon>
       </div>
@@ -79,7 +99,13 @@
       <v-card class="h-100 images-modal">
         <v-card-text class="h-100 backgroundColor">
           <div class="d-flex mx-2">
-            <v-btn v-if="_isUIAllowed('tableAttachment')" small class="my-4 " :loading="uploading" @click="addFile">
+            <v-btn
+              v-if="(isForm || _isUIAllowed('tableAttachment')) && !isPublicGrid"
+              small
+              class="my-4 "
+              :loading="uploading"
+              @click="addFile"
+            >
               <v-icon small class="mr-2">
                 mdi-link-variant
               </v-icon>
@@ -89,14 +115,23 @@
 
           <div class="d-flex flex-wrap h-100">
             <v-container fluid style="max-height:calc(90vh - 80px);overflow-y: auto">
-              <v-row>
-                <v-col v-for="(item,i) in localState" :key="i" cols="4">
+              <draggable
+                v-model="localState"
+                class="row"
+                @update="onOrderUpdate"
+              >
+                <v-col v-for="(item,i) in (isPublicForm ? localFilesState : localState)" :key="i" cols="4">
                   <v-card
                     class="modal-thumbnail-card align-center justify-center d-flex"
                     height="200px"
                     style="position: relative"
                   >
-                    <v-icon v-if="_isUIAllowed('tableAttachment')" small class="remove-icon" @click="removeItem(i)">
+                    <v-icon
+                      v-if="_isUIAllowed('tableAttachment') && !isPublicGrid"
+                      small
+                      class="remove-icon"
+                      @click="removeItem(i)"
+                    >
                       mdi-close-circle
                     </v-icon>
                     <v-icon color="grey" class="download-icon" @click.stop="downloadItem(item,i)">
@@ -107,16 +142,16 @@
                         v-if="isImage(item.title)"
                         style="max-height: 100%;max-width: 100%"
                         alt="#"
-                        :src="item.url"
+                        :src="item.url || item.data"
                         @click="selectImage(item.url,i)"
                       >
 
-                      <v-icon v-else-if="item.icon" size="33" @click="openUrl(item.url,'_blank')">
+                      <v-icon v-else-if="item.icon" size="33" @click="openUrl(item.url || item.data,'_blank')">
                         {{
                           item.icon
                         }}
                       </v-icon>
-                      <v-icon v-else size="33" @click="openUrl(item.url,'_blank')">
+                      <v-icon v-else size="33" @click="openUrl(item.url || item.data,'_blank')">
                         mdi-file
                       </v-icon>
                     </div>
@@ -125,7 +160,7 @@
                     {{ item.title }}
                   </p>
                 </v-col>
-              </v-row>
+              </draggable>
             </v-container>
           </div>
         </v-card-text>
@@ -137,7 +172,7 @@
         <template v-if="showImage && selectedImage">
           <v-carousel v-model="carousel" height="calc(100vh - 100px)" hide-delimiters>
             <v-carousel-item
-              v-for="(item,i) in localState"
+              v-for="(item,i) in (isPublicForm ? localFilesState : localState)"
               :key="i"
             >
               <div class="mx-auto d-flex flex-column justify-center align-center" style="min-height:100px">
@@ -151,7 +186,7 @@
                   <img
                     v-if="isImage(item.title)"
                     style="max-width:90vh;max-height:calc(100vh - 100px)"
-                    :src="item.url"
+                    :src="item.url || item.data"
                   >
                   <v-icon v-else-if="item.icon" size="55">
                     {{ item.icon }}
@@ -176,7 +211,7 @@
             show-arrows
           >
             <v-slide-item
-              v-for="(item,i) in localState"
+              v-for="(item,i) in (isPublicForm ? localFilesState : localState)"
               :key="i"
             >
               <!--            <div class="d-flex justify-center" style="height:80px">-->
@@ -191,7 +226,7 @@
                 <img
                   v-if="isImage(item.title)"
                   style="max-width:100%;max-height:100%"
-                  :src="item.url"
+                  :src="item.url || item.data"
                 >
                 <v-icon v-else-if="item.icon" size="48">
                   {{ item.icon }}
@@ -216,10 +251,13 @@
 
 <script>
 import FileSaver from 'file-saver'
+import draggable from 'vuedraggable'
 import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
+
 export default {
   name: 'EditableAttachmentCell',
-  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column'],
+  components: { draggable },
+  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column', 'isPublicGrid', 'isForm', 'isPublicForm'],
   data: () => ({
     carousel: null,
     uploading: false,
@@ -227,7 +265,8 @@ export default {
     dialog: false,
     showImage: false,
     selectedImage: null,
-    dragOver: false
+    dragOver: false,
+    localFilesState: []
   }),
   watch: {
     value(val, prev) {
@@ -277,13 +316,34 @@ export default {
       }
     },
     async onFileSelection() {
+      if (this.isPublicGrid) {
+        return
+      }
       if (!this.$refs.file.files || !this.$refs.file.files.length) {
         return
       }
+
+      if (this.isPublicForm) {
+        this.localFilesState.push(...Array.from(this.$refs.file.files).map((file) => {
+          const res = { file, title: file.name }
+          if (isImage(file.name)) {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+              this.$set(res, 'data', e.target.result)
+            }
+            reader.readAsDataURL(file)
+          }
+          return res
+        }))
+
+        this.$emit('input', this.localFilesState.map(f => f.file))
+        return
+      }
+
       this.uploading = true
       for (const file of this.$refs.file.files) {
         try {
-          const item = await this.$store.dispatch('sqlMgr/ActUpload', [{
+          const item = await this.$store.dispatch('sqlMgr/ActUploadOld', [{
             dbAlias: this.dbAlias
           }, 'xcAttachmentUpload', {
             appendPath: [this.meta.tn],
@@ -301,13 +361,22 @@ export default {
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
-    removeItem(i) {
-      this.localState.splice(i, 1)
+    onOrderUpdate() {
       this.$emit('input', JSON.stringify(this.localState))
       this.$emit('update')
     },
+    removeItem(i) {
+      if (this.isPublicForm) {
+        this.localFilesState.splice(i, 1)
+        this.$emit('input', this.localFilesState.map(f => f.file))
+      } else {
+        this.localState.splice(i, 1)
+        this.$emit('input', JSON.stringify(this.localState))
+      }
+      this.$emit('update')
+    },
     downloadItem(item) {
-      FileSaver.saveAs(item.url, item.title)
+      FileSaver.saveAs(item.url || item.data, item.title)
     },
     onArrowDown(e) {
       if (!this.showImage) {
@@ -394,18 +463,19 @@ export default {
   top: 5px;
   right: 5px
 }
-.modal-thumbnail-card{
+
+.modal-thumbnail-card {
 
   .download-icon {
     position: absolute;
     bottom: 5px;
     right: 5px;
-    opacity:0;
-    transition:.4s opacity;
+    opacity: 0;
+    transition: .4s opacity;
   }
 
-  &:hover .download-icon{
-    opacity:1
+  &:hover .download-icon {
+    opacity: 1
   }
 }
 
@@ -496,4 +566,7 @@ export default {
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this p
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+-->

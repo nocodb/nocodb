@@ -1,7 +1,7 @@
 import autoBind from 'auto-bind';
-import Handlebars from "handlebars";
+import Handlebars from 'handlebars';
 
-import {Acls} from "../../../interface/config";
+import { Acls } from '../../../interface/config';
 
 export default class GqlMiddleware {
   private tn: any;
@@ -9,7 +9,6 @@ export default class GqlMiddleware {
   private models: any;
 
   constructor(acls: Acls, tn: string, middleWareBody?: string, models?: any) {
-
     autoBind(this);
     this.acls = acls;
     this.tn = tn;
@@ -18,7 +17,7 @@ export default class GqlMiddleware {
     if (middleWareBody) {
       Object.defineProperty(this, 'middleware', {
         value: this.generateResolverFromStringBody(middleWareBody)
-      })
+      });
     }
   }
 
@@ -27,12 +26,11 @@ export default class GqlMiddleware {
   }
 
   private generateResolverFromStringBody(fnBody: string): any {
-
     if (!(fnBody && fnBody.length)) {
       return;
     }
     // @ts-ignore
-    let handler = (args) => {
+    let handler = args => {
       return null;
     };
 
@@ -41,40 +39,38 @@ export default class GqlMiddleware {
       // tslint:disable-next-line:no-eval
       handler = eval(js);
     } catch (e) {
-      console.log('Error in GQL Middleware transpilation', e)
+      console.log('Error in GQL Middleware transpilation', e);
     }
     return handler;
   }
 
   // @ts-ignore
-  public async middleware(_args, {req, res, next}, info: any): Promise<any> {
-
-    const replaceEnvVarRec = (obj) => {
-
+  public async middleware(_args, { req, res, next }, info: any): Promise<any> {
+    const replaceEnvVarRec = obj => {
       return JSON.parse(JSON.stringify(obj), (_key, value) => {
-        return typeof value === 'string' ? Handlebars.compile(value, {noEscape: true})({
-          req
-          // : {
-          //   user: {id: 1} // (req as any).user
-          // }
-        }) : value;
+        return typeof value === 'string'
+          ? Handlebars.compile(value, { noEscape: true })({
+              req
+              // : {
+              //   user: {id: 1} // (req as any).user
+              // }
+            })
+          : value;
       });
-    }
-
+    };
 
     const getOperation = (operation, fieldName) => {
       if (operation === 'mutation') {
         if (fieldName.endsWith('Create')) {
-          return 'create'
+          return 'create';
         } else if (fieldName.endsWith('Update')) {
-          return 'update'
+          return 'update';
         } else if (fieldName.endsWith('Delete')) {
-          return 'delete'
+          return 'delete';
         }
       }
       return 'read';
-    }
-
+    };
 
     const roleOperationPossible = (roles, operation, object) => {
       res.locals.xcAcl = null;
@@ -90,7 +86,10 @@ export default class GqlMiddleware {
             if (this.acl[roleName][operation]) {
               return true;
             }
-          } else if (this.acl?.[roleName]?.[operation] && roleOperationObjectGet(roleName, operation, object)) {
+          } else if (
+            this.acl?.[roleName]?.[operation] &&
+            roleOperationObjectGet(roleName, operation, object)
+          ) {
             return true;
           }
         } catch (e) {
@@ -98,32 +97,39 @@ export default class GqlMiddleware {
         }
       }
       if (errors?.length) {
-        throw errors[0]
+        throw errors[0];
       }
       return false;
-    }
+    };
 
     // @ts-ignore
     const roleOperationObjectGet = (role, operation, object) => {
       const columns = this.acl[role][operation].columns;
       if (columns) {
         // todo: merge allowed columns if multiple roles
-        const allowedCols = Object.keys(columns).filter(col => columns[col])
-        res.locals.xcAcl = {allowedCols, operation, columns};
+        const allowedCols = Object.keys(columns).filter(col => columns[col]);
+        res.locals.xcAcl = { allowedCols, operation, columns };
 
-        if (info.fieldName.endsWith('Update') || info.fieldName.endsWith('Create')) {
+        if (
+          info.fieldName.endsWith('Update') ||
+          info.fieldName.endsWith('Create')
+        ) {
           if (Array.isArray(object)) {
             for (const row of object) {
               for (const colInReq of Object.keys(row)) {
                 if (!allowedCols.includes(colInReq)) {
-                  throw new Error(`User doesn't have permission to add/edit '${colInReq}' column`);
+                  throw new Error(
+                    `User doesn't have permission to add/edit '${colInReq}' column`
+                  );
                 }
               }
             }
           } else {
             for (const colInReq of Object.keys(object)) {
               if (!allowedCols.includes(colInReq)) {
-                throw new Error(`User doesn't have permission to edit '${colInReq}' column`);
+                throw new Error(
+                  `User doesn't have permission to edit '${colInReq}' column`
+                );
               }
             }
           }
@@ -131,25 +137,34 @@ export default class GqlMiddleware {
         } else {
           if (this.acl?.[role]?.[operation]?.custom) {
             if (this.acl?.[role]?.[operation]?.custom) {
-              const condition = replaceEnvVarRec(this.acl?.[role]?.[operation]?.custom)
-              _args.conditionGraph = {condition, models: this.models};
+              const condition = replaceEnvVarRec(
+                this.acl?.[role]?.[operation]?.custom
+              );
+              _args.conditionGraph = { condition, models: this.models };
             }
           }
           return Object.values(columns).some(Boolean);
         }
       }
-    }
-
-    const roles = (req as any)?.locals?.user?.roles ?? (req as any)?.session?.passport?.user?.roles ?? {
-      guest: true
     };
 
+    const roles = (req as any)?.locals?.user?.roles ??
+      (req as any)?.session?.passport?.user?.roles ?? {
+        guest: true
+      };
+
     try {
-      const allowed = roleOperationPossible(roles, getOperation(info.operation.operation, info.fieldName), _args?.data);
+      const allowed = roleOperationPossible(
+        roles,
+        getOperation(info.operation.operation, info.fieldName),
+        _args?.data
+      );
       if (allowed) {
         return;
       } else {
-        const msg = roles.guest ? `Access Denied : Please Login or Signup for a new account` : `Access Denied for this account`;
+        const msg = roles.guest
+          ? `Access Denied : Please Login or Signup for a new account`
+          : `Access Denied for this account`;
         throw new Error(msg);
       }
     } catch (e) {
@@ -158,13 +173,13 @@ export default class GqlMiddleware {
   }
 
   // @ts-ignore
-  public async postMiddleware(data, args, {req, res}, info): Promise<any> {
+  public async postMiddleware(data, args, { req, res }, info): Promise<any> {
     if (!res.locals.xcAcl) {
       return data;
     }
 
     // @ts-ignore
-    const {allowedCols, operation, columns} = res.locals.xcAcl;
+    const { allowedCols, operation, columns } = res.locals.xcAcl;
 
     if (!columns) {
       return data;
@@ -201,18 +216,16 @@ export default class GqlMiddleware {
           delete data[colInReq];
         }
       }
-
     }
-
 
     return data;
   }
 
   public async postLoaderMiddleware(...args): Promise<any> {
-    return this.postMiddleware(args[0], args[2], args[3], args[4])
+    return this.postMiddleware(args[0], args[2], args[3], args[4]);
   }
-
-}/**
+}
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

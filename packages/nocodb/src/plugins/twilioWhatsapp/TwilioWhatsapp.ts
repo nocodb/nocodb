@@ -1,6 +1,5 @@
-import {IWebhookNotificationAdapter} from "nc-plugin";
-import twilio from "twilio";
-
+import { IWebhookNotificationAdapter } from 'nc-plugin';
+import twilio from 'twilio';
 
 export default class TwilioWhatsapp implements IWebhookNotificationAdapter {
   private input: any;
@@ -17,21 +16,17 @@ export default class TwilioWhatsapp implements IWebhookNotificationAdapter {
   public async sendMessage(content: string, payload: any): Promise<any> {
     for (const num of payload?.to?.split(/\s*?,\s*?/)) {
       try {
-        await this.client.messages
-          .create({
-            body: content,
-            from: `whatsapp:${this.input.from}`,
-            to: `whatsapp:${num}`
-          })
+        await this.client.messages.create({
+          body: content,
+          from: `whatsapp:${this.input.from}`,
+          to: `whatsapp:${num}`
+        });
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     }
   }
-
-
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

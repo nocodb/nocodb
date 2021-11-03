@@ -54,10 +54,6 @@ export default {
 .value {
   width: 100%;
   min-height: 20px;
-
-}
-/deep/ .v-date-picker-table{
-  height:auto
 }
 </style>
 <!--

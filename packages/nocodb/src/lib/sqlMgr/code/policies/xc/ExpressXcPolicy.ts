@@ -1,12 +1,9 @@
-import lodash from "lodash";
+import lodash from 'lodash';
 
-import {Acl} from "../../../../../interface/config";
-import BaseRender from "../../BaseRender";
-
+import { Acl } from '../../../../../interface/config';
+import BaseRender from '../../BaseRender';
 
 class ExpressXcMiddleware extends BaseRender {
-
-
   /**
    *
    * @param dir
@@ -16,17 +13,15 @@ class ExpressXcMiddleware extends BaseRender {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
   /**
    *  Prepare variables used in code template
    */
   prepare() {
-
-
-    let data:any = {};
+    let data: any = {};
 
     /* example of simple variable */
     data = this.ctx;
@@ -57,16 +52,15 @@ class ExpressXcMiddleware extends BaseRender {
     };
 
     return data;
-
   }
 
- private _renderXcHasManyRoutePermissions(args) {
-
-
+  private _renderXcHasManyRoutePermissions(args) {
     let str = '';
-    let hmRelations = args.relations ? args.relations.filter(r => r.rtn === args.tn) : [];
+    let hmRelations = args.relations
+      ? args.relations.filter(r => r.rtn === args.tn)
+      : [];
     if (hmRelations.length > 1)
-      hmRelations = lodash.uniqBy(hmRelations, function (e) {
+      hmRelations = lodash.uniqBy(hmRelations, function(e) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < hmRelations.length; ++i) {
@@ -82,72 +76,79 @@ class ExpressXcMiddleware extends BaseRender {
 
     return str;
 
-
     /* iterate over has many relations */
   }
 
   _renderXcBelongsToRoutePermissions(args) {
-
     let str = '';
     //
-    let btRelations = args.relations ? args.relations.filter(r => r.tn === args.tn) : [];
+    let btRelations = args.relations
+      ? args.relations.filter(r => r.tn === args.tn)
+      : [];
     if (btRelations.length > 1)
-      btRelations = lodash.uniqBy(btRelations, function (e) {
+      btRelations = lodash.uniqBy(btRelations, function(e) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < btRelations.length; ++i) {
-      str += `'/api/${args.routeVersionLetter}1/${args.tn}/belongs/:parents' : {get:{admin:true,user:true,guest:true}},`
+      str += `'/api/${args.routeVersionLetter}1/${args.tn}/belongs/:parents' : {get:{admin:true,user:true,guest:true}},`;
     }
     return str;
   }
 
-  getObject():Acl {
+  getObject(): Acl {
     return {
       creator: {
         read: true,
-        ...(this.ctx.type !== 'view' ? {
-          create: true,
-          update: true,
-          delete: true,
-        } : {}),
+        ...(this.ctx.type !== 'view'
+          ? {
+              create: true,
+              update: true,
+              delete: true
+            }
+          : {})
       },
       editor: {
         read: true,
-        ...(this.ctx.type !== 'view' ? {
-          create: true,
-          update: true,
-          delete: true,
-        } : {}),
+        ...(this.ctx.type !== 'view'
+          ? {
+              create: true,
+              update: true,
+              delete: true
+            }
+          : {})
       },
       commenter: {
         read: true,
-        ...(this.ctx.type !== 'view' ? {
-          create: false,
-          update: false,
-          delete: false,
-        } : {}),
+        ...(this.ctx.type !== 'view'
+          ? {
+              create: false,
+              update: false,
+              delete: false
+            }
+          : {})
       },
       viewer: {
         read: true,
-        ...(this.ctx.type !== 'view' ? {
-          create: false,
-          update: false,
-          delete: false,
-        } : {}),
+        ...(this.ctx.type !== 'view'
+          ? {
+              create: false,
+              update: false,
+              delete: false
+            }
+          : {})
       },
       guest: {
         read: false,
-        ...(this.ctx.type !== 'view' ? {
-          create: false,
-          update: false,
-          delete: false,
-        } : {}),
-      },
-    }
+        ...(this.ctx.type !== 'view'
+          ? {
+              create: false,
+              update: false,
+              delete: false
+            }
+          : {})
+      }
+    };
   }
-
-
 }
-
 
 export default ExpressXcMiddleware;

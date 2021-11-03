@@ -1,7 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseRender from '../../BaseRender';
 
 class ExpressXcTsRoutesHm extends BaseRender {
-
   /**
    *
    * @param dir
@@ -11,24 +10,21 @@ class ExpressXcTsRoutesHm extends BaseRender {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}: any) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }: any) {
+    super({ dir, filename, ctx });
   }
 
   /**
    *  Prepare variables used in code template
    */
   public prepare(): any {
-
     let data = {};
 
     /* example of simple variable */
     data = this.ctx;
 
     return data;
-
   }
-
 
   public getObject() {
     const ejsData: any = this.prepare();
@@ -42,7 +38,8 @@ class ExpressXcTsRoutesHm extends BaseRender {
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.parentModel.hasManyList({
       ...req.query,
@@ -50,7 +47,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}`,
@@ -61,7 +59,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.parentModel.hasManyChildren({
       child: req.childModel.tn,
@@ -70,7 +69,8 @@ async function(req, res){
     })
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}`,
@@ -81,7 +81,8 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.childModel.insertByFk({
       parentId: req.params.parentId,
@@ -90,7 +91,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/findOne`,
@@ -101,7 +103,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.childModel.findOneByFk({
       parentId: req.params.parentId,
@@ -110,7 +113,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/count`,
@@ -121,7 +125,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.childModel.countByFk({
       parentId: req.params.parentId,
@@ -130,7 +135,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id`,
@@ -141,7 +147,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.childModel.readByFk({
       parentId: req.params.parentId,
@@ -150,7 +157,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id`,
@@ -161,7 +169,8 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.childModel.updateByFk({
       parentId: req.params.parentId,
@@ -171,7 +180,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id`,
@@ -182,7 +192,8 @@ async function(req, res){
           user: true,
           guest: false
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.childModel.delByFk({
       parentId: req.params.parentId,
@@ -191,7 +202,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id/exists`,
@@ -202,7 +214,8 @@ async function(req, res){
           user: true,
           guest: true
         },
-        functions: [`
+        functions: [
+          `
 async function(req, res){
     const data = await req.childModel.existsByFk({
       parentId: req.params.parentId,
@@ -212,16 +225,15 @@ async function(req, res){
     });
     res.json(data);
 }
-                `]
+                `
+        ]
       }
-    ]
+    ];
   }
-
 
   public getObjectWithoutFunctions() {
-    return this.getObject().map(({functions, ...rest}) => rest)
+    return this.getObject().map(({ functions, ...rest }) => rest);
   }
 }
-
 
 export default ExpressXcTsRoutesHm;

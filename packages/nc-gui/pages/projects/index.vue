@@ -235,11 +235,13 @@
                         x-small
                         class="mr-2"
                         :color="
-                          props.item.status === 'started'
-                            ? 'green'
-                            : props.item.status === 'stopped'
-                              ? 'orange'
-                              : 'orange'
+                          !props.item.allowed ? 'blue' :(
+                            props.item.status === 'started'
+                              ? 'green'
+                              : props.item.status === 'stopped'
+                                ? 'orange'
+                                : 'orange'
+                          )
                         "
                       >
                         mdi-moon-full
@@ -266,13 +268,15 @@
                         }}
                       </x-icon>
 
-                      <span class="title font-weight-regular">{{
+                      <span
+                        class="title font-weight-regular"
+                      >{{
                         props.item.title
                       }}</span>
                     </td>
                     <td>
                       <div
-                        v-if="_isUIAllowed('projectActions',true)"
+                        v-if="props.item.allowed && _isUIAllowed('projectActions',true)"
                         :class="{
                           'action-icons': !(
                             projectStatusUpdating &&
@@ -999,6 +1003,11 @@ export default {
       this.loaded = true
     },
     projectRouteHandler(project) {
+      if (!project.allowed) {
+        this.$toast.info(`Contact following owner email to get project access : ${project.owner}`).goAway(5000)
+        return
+      }
+
       if (project.status !== 'started') {
         this.$toast
           .info(
@@ -1039,7 +1048,7 @@ export default {
               {
                 // dbAlias: 'db',
                 project_id: projectId,
-                env: 'dev'
+                env: '_noco'
               },
               'xcMetaTablesExportDbToZip',
               null,
@@ -1079,7 +1088,7 @@ export default {
             await this.$store.dispatch('sqlMgr/ActSqlOp', [
               {
                 // dbAlias: 'db',
-                env: 'dev',
+                env: '_noco',
                 project_id: projectId
               },
               'xcMetaTablesReset'
@@ -1104,11 +1113,11 @@ export default {
         this.loading = 'import-zip'
         try {
           this.$refs.importFile.value = ''
-          await this.$store.dispatch('sqlMgr/ActUpload', [
+          await this.$store.dispatch('sqlMgr/ActUploadOld', [
             {
               // dbAlias: 'db',
               project_id: projectId,
-              env: 'dev'
+              env: '_noco'
             },
             'xcMetaTablesImportZipToLocalFsAndDb',
             {},

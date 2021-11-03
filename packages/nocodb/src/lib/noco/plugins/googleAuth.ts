@@ -1,43 +1,50 @@
-import {XcActionType, XcForm, XcType} from "nc-common";
+import { XcActionType, XcForm, XcType } from 'nc-common';
 
 const input: XcForm = {
   title: 'Configure Google Auth',
-  items: [{
-    key: 'client_id',
-    label: 'Client ID',
-    placeholder: 'Client ID',
-    type: XcType.SingleLineText,
-    required: true
-  }, {
-    key: 'client_secret',
-    label: 'Client Secret',
-    placeholder: 'Client Secret',
-    type: XcType.Password,
-    required: true
-  }, {
-    key: 'redirect_url',
-    label: 'Redirect URL',
-    placeholder: 'Redirect URL',
-    type: XcType.SingleLineText,
-    required: true
-  },],
-  actions: [{
-    label: 'Test',
-    placeholder: 'Test',
-    key: 'test',
-    actionType: XcActionType.TEST,
-    type: XcType.Button
-  }, {
-    label: 'Save',
-    placeholder: 'Save',
-    key: 'save',
-    actionType: XcActionType.SUBMIT,
-    type: XcType.Button
-  },],
-  msgOnInstall: 'Successfully installed and configured Google Authentication, restart NocoDB',
-  msgOnUninstall: '',
+  items: [
+    {
+      key: 'client_id',
+      label: 'Client ID',
+      placeholder: 'Client ID',
+      type: XcType.SingleLineText,
+      required: true
+    },
+    {
+      key: 'client_secret',
+      label: 'Client Secret',
+      placeholder: 'Client Secret',
+      type: XcType.Password,
+      required: true
+    },
+    {
+      key: 'redirect_url',
+      label: 'Redirect URL',
+      placeholder: 'Redirect URL',
+      type: XcType.SingleLineText,
+      required: true
+    }
+  ],
+  actions: [
+    {
+      label: 'Test',
+      placeholder: 'Test',
+      key: 'test',
+      actionType: XcActionType.TEST,
+      type: XcType.Button
+    },
+    {
+      label: 'Save',
+      placeholder: 'Save',
+      key: 'save',
+      actionType: XcActionType.SUBMIT,
+      type: XcType.Button
+    }
+  ],
+  msgOnInstall:
+    'Successfully installed and configured Google Authentication, restart NocoDB',
+  msgOnUninstall: ''
 };
-
 
 export default {
   title: 'Google',

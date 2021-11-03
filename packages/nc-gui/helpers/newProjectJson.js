@@ -5,7 +5,7 @@ export default {
       type: 'project',
       children: [
         {
-          name: 'dev',
+          name: '_noco',
           type: 'env',
           children: [
             {
@@ -41,7 +41,7 @@ export default {
       type: 'project',
       children: [
         {
-          name: 'dev',
+          name: '_noco',
           type: 'env',
           children: [
             {
@@ -95,7 +95,7 @@ export default {
       type: 'project',
       children: [
         {
-          name: 'dev',
+          name: '_noco',
           type: 'env',
           children: [
             {

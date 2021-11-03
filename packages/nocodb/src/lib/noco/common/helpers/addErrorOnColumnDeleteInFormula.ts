@@ -1,18 +1,19 @@
-export default function (args: {
-  virtualColumns,
-  columnName: string
+export default function(args: {
+  virtualColumns;
+  columnName: string;
 }): void | boolean {
-
   let modified = false;
 
   const fn = (pt, virtualColumn) => {
     if (pt.type === 'CallExpression') {
-      pt.arguments.map(arg => fn(arg, virtualColumn))
+      pt.arguments.map(arg => fn(arg, virtualColumn));
     } else if (pt.type === 'Literal') {
     } else if (pt.type === 'Identifier') {
       if (pt.name === args.columnName) {
         virtualColumn.formula.error = virtualColumn.formula.error || [];
-        virtualColumn.formula.error.push(`Column '${args.columnName}' was deleted`)
+        virtualColumn.formula.error.push(
+          `Column '${args.columnName}' was deleted`
+        );
         modified = true;
       }
     } else if (pt.type === 'BinaryExpression') {
@@ -22,13 +23,13 @@ export default function (args: {
   };
 
   if (!args.virtualColumns) {
-    return
+    return;
   }
   for (const v of args.virtualColumns) {
     if (!v.formula?.tree) {
       continue;
     }
-    fn(v.formula.tree, v)
+    fn(v.formula.tree, v);
   }
   return modified;
 }

@@ -1,11 +1,10 @@
-import {IEmailAdapter} from "nc-plugin";
-import nodemailer from "nodemailer";
-import Mail from "nodemailer/lib/mailer";
+import { IEmailAdapter } from 'nc-plugin';
+import nodemailer from 'nodemailer';
+import Mail from 'nodemailer/lib/mailer';
 
-import {XcEmail} from "../../interface/IEmailAdapter";
+import { XcEmail } from '../../interface/IEmailAdapter';
 
 export default class SMTP implements IEmailAdapter {
-
   private transporter: Mail;
   private input: any;
 
@@ -17,40 +16,38 @@ export default class SMTP implements IEmailAdapter {
     const config = {
       // from: this.input.from,
       // options: {
-      "host": this.input?.host,
-      "port": parseInt(this.input?.port, 10),
-      "secure": this.input?.secure === 'true',
-      "ignoreTLS": this.input?.ignoreTLS === 'true',
-      "auth": {
-        "user": this.input?.username,
-        "pass": this.input?.password
+      host: this.input?.host,
+      port: parseInt(this.input?.port, 10),
+      secure: this.input?.secure === 'true',
+      ignoreTLS: this.input?.ignoreTLS === 'true',
+      auth: {
+        user: this.input?.username,
+        pass: this.input?.password
       }
       // }
-    }
+    };
     this.transporter = nodemailer.createTransport(config);
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
     if (this.transporter) {
-      await this.transporter.sendMail({...mail, from: this.input.from})
+      await this.transporter.sendMail({ ...mail, from: this.input.from });
     }
   }
 
   public async test(email): Promise<boolean> {
     try {
-     await this.mailSend({
+      await this.mailSend({
         to: email,
-        subject: "Test email",
+        subject: 'Test email',
         html: 'Test email'
-      } as any)
+      } as any);
       return true;
     } catch (e) {
       throw e;
     }
   }
-
 }
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB</a><br>
     </b>
-    ✨ The Open Source Airtable Alternative ✨ <br>
+    🎃 The Open Source Airtable Alternative 🎃 <br>
 </h1>
 
 <p align="center">
@@ -21,24 +21,28 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a>
+    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
+    <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
+    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>  
 
-![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
+<p align="center"><img src="https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png" alt="The Open Source Airtable Alternative - works on MySQL, Postgres SQL Server & MariaDB" width="1000px" /></p>
 
 <div align="center">
 
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263434-75fe793d-42af-49e4-b964-d70920e41655.png">](markdown/readme/chinese.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263474-787d71e7-3a87-42a8-92a8-be1d1f55413d.png">](markdown/readme/french.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263531-fae58600-6616-4b43-95a0-5891019dd35d.png">](markdown/readme/german.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263589-3dbeda9a-0d2e-4bbd-b1fc-691404bb74fb.png">](markdown/readme/spanish.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263669-f567196a-d4e8-4143-a80a-93d3be32ba90.png">](markdown/readme/portuguese.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263707-ba4e04a4-268a-4626-91b8-048e572fd9f6.png">](markdown/readme/italian.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263770-38e3e79d-11d4-472e-ac27-ae0f17cf65c4.png">](markdown/readme/japanese.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263822-28fce9de-915a-44dc-962d-7a61d340e91d.png">](markdown/readme/korean.md)
-[<img height="50" src="https://user-images.githubusercontent.com/61551451/135263888-151d4ad1-7084-4943-97c9-56f28cd40b80.png">](markdown/readme/russian.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263434-75fe793d-42af-49e4-b964-d70920e41655.png">](scripts/markdown/readme/languages/chinese.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263474-787d71e7-3a87-42a8-92a8-be1d1f55413d.png">](scripts/markdown/readme/languages/french.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263531-fae58600-6616-4b43-95a0-5891019dd35d.png">](scripts/markdown/readme/languages/german.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263589-3dbeda9a-0d2e-4bbd-b1fc-691404bb74fb.png">](scripts/markdown/readme/languages/spanish.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263669-f567196a-d4e8-4143-a80a-93d3be32ba90.png">](scripts/markdown/readme/languages/portuguese.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263707-ba4e04a4-268a-4626-91b8-048e572fd9f6.png">](scripts/markdown/readme/languages/italian.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263770-38e3e79d-11d4-472e-ac27-ae0f17cf65c4.png">](scripts/markdown/readme/languages/japanese.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263822-28fce9de-915a-44dc-962d-7a61d340e91d.png">](scripts/markdown/readme/languages/korean.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263888-151d4ad1-7084-4943-97c9-56f28cd40b80.png">](scripts/markdown/readme/languages/russian.md)
 
 </div>
+
+<p align="center"><a href="scripts/markdown/readme/languages/README.md"><b>See other languages »</b></a></p>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
@@ -220,6 +224,8 @@ npm run dev
 
 Changes made to code automatically restart.
 
+> nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
+
 
 ## Running Cypress tests locally
 
@@ -227,10 +233,16 @@ Changes made to code automatically restart.
 # install dependencies(cypress)
 npm install
 
-# run required services by using docker compose 
-docker-compose -f ./docker-compose-cypress.yml up
+# run mysql database with required database using docker compose
+docker-compose -f ./scripts/docker-compose-cypress.yml up
 
-# wait until both 3000 and 8080 porta are avalable
+# Run backend api using following command
+npm run start:api
+
+# Run frontend web UI using following command
+npm run start:web
+
+# wait until both 3000 and 8080 ports are available
 # and run cypress test using following command
 npm run cypress:run
 
@@ -239,7 +251,7 @@ npm run cypress:open
 ```
 
 # Contributing
-- Please take a look at ./contribute/HowToApplyLicense.md 
+- Please take a look at ./scripts/contribute/HowToApplyLicense.md 
 - Ignore adding headers for .json or .md or .yml   
 
 # 🎯 Why are we building this?
@@ -307,6 +319,25 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/cthulberg"><img src="https://avatars.githubusercontent.com/u/5301275?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrea</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=cthulberg" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/eevleevs"><img src="https://avatars.githubusercontent.com/u/5012744?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Giulio Malventi</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=eevleevs" title="Code">💻</a></td>
     <td align="center"><a href="https://dev-z.github.io"><img src="https://avatars.githubusercontent.com/u/8604312?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Md. Ishtiaque Zafar</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dev-z" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.chaslui.com"><img src="https://avatars.githubusercontent.com/u/10083758?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ChasLui</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ChasLui" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://www.linkedin.com/in/zhansayam/"><img src="https://avatars.githubusercontent.com/u/41486762?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Zhansaya Maksut</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ZhansayaM" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/agkfri"><img src="https://avatars.githubusercontent.com/u/37952138?v=4?s=100" width="100px;" alt=""/><br /><sub><b>agkfri</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=agkfri" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/iqiziqi"><img src="https://avatars.githubusercontent.com/u/8640316?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ziqi</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=iqiziqi" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/AllanSiqueira"><img src="https://avatars.githubusercontent.com/u/14025084?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Allan Siqueira</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=AllanSiqueira" title="Code">💻</a></td>
+    <td align="center"><a href="https://creatify.my.id/"><img src="https://avatars.githubusercontent.com/u/54095238?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Fatih</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ahmadfatihin" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/roman-rezinkin"><img src="https://avatars.githubusercontent.com/u/17882264?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Roman Rezinkin</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=roman-rezinkin" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/fragalcer"><img src="https://avatars.githubusercontent.com/u/31025299?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Francisco Gallardo</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=fragalcer" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/sesam"><img src="https://avatars.githubusercontent.com/u/8921?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simon B.</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=sesam" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/lielfr"><img src="https://avatars.githubusercontent.com/u/360928?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Liel Fridman</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=lielfr" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/rubjo"><img src="https://avatars.githubusercontent.com/u/42270947?v=4?s=100" width="100px;" alt=""/><br /><sub><b>rubjo</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=rubjo" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/kinga-marszalkowska"><img src="https://avatars.githubusercontent.com/u/64398325?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kinga Marszałkowska</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=kinga-marszalkowska" title="Code">💻</a></td>
+    <td align="center"><a href="https://nimbusec.com"><img src="https://avatars.githubusercontent.com/u/10920640?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christof Horschitz</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dahawk" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/bebora"><img src="https://avatars.githubusercontent.com/u/32399075?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simone</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bebora" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/tyonirwansyah"><img src="https://avatars.githubusercontent.com/u/73389687?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tyo Nirwansyah</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=tyonirwansyah" title="Code">💻</a></td>
   </tr>
 </table>
 

@@ -1,7 +1,6 @@
-import BaseRender from "../../BaseRender";
+import BaseRender from '../../BaseRender';
 
 abstract class BaseModelXcMeta extends BaseRender {
-
   public abstract getXcColumnsObject(context: any): any[];
 
   public getObject() {
@@ -16,8 +15,7 @@ abstract class BaseModelXcMeta extends BaseRender {
       type: this.ctx.type,
 
       v: this.getVitualColumns()
-    }
-
+    };
   }
 
   public getVitualColumns(): any[] {
@@ -29,7 +27,7 @@ abstract class BaseModelXcMeta extends BaseRender {
       ...(this.ctx.belongsTo || []).map(bt => ({
         bt,
         _cn: `${bt._rtn} <= ${bt._tn}`
-      })),
+      }))
     ];
   }
 
@@ -37,7 +35,6 @@ abstract class BaseModelXcMeta extends BaseRender {
     // pk can be at the end
 
     //
-
 
     /*
 
@@ -82,9 +79,6 @@ abstract class BaseModelXcMeta extends BaseRender {
       }
     }
   }
-
-
 }
-
 
 export default BaseModelXcMeta;

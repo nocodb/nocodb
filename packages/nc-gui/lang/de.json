@@ -1,24 +1,24 @@
 {
   "projects": {
     "my_projects": "Meine Projekte",
-    "reload_projects_tooltip": "Projekte erfrischen",
+    "reload_projects_tooltip": "Projekte aktualisieren",
     "create_new_project_button": {
       "text": "Neues Projekt",
-      "subtext_1": "Schaffen",
-      "subtext_1_tooltip": "Erstellen Sie ein neues Projekt",
-      "subtext_2": "Erstellen Sie mit der Verbindung, um eine externe Datenbank zu verknüpfen",
+      "subtext_1": "Erstellen",
+      "subtext_1_tooltip": "Neues Projekt erstellen",
+      "subtext_2": "Erstellen mit einer<br>externen Datenbank",
       "subtext_2_tooltip": "Unterstützt MySQL, PostgreSQL, SQL Server & SQLite"
     },
-    "search_project": "Suchprojekt.",
+    "search_project": "Projekt suchen",
     "import_metadata": "Metadaten importieren",
     "export_metadata": "Metadaten exportieren",
-    "clear_metadata": "Klare Metadaten",
-    "stop_project": "Das Projekt stoppen",
+    "clear_metadata": "Metadaten löschen",
+    "stop_project": "Projekt stoppen",
     "start_project": "Projekt starten",
     "restart_project": "Projekt neu starten",
     "delete_project": "Projekt löschen",
     "project_api_type_tooltip_graphql": "Zugänglich über Graphql-APIs",
-    "project_api_type_tooltip_rest": "Erreichbar über Rest APIs",
+    "project_api_type_tooltip_rest": "Zugänglich über Rest APIs",
     "project_empty_message": "Beginnen Sie mit dem Erstellen eines neuen Projekts",
     "import_button": {
       "text": "Importieren von NOCODB-Projekt, indem Sie Metadaten-ZIP-Datei hochladen"
@@ -26,11 +26,11 @@
     "show_community_star": "Stern",
     "show_community_us_on_Github": "uns auf Github.",
     "show_community_book_a_free_demo": "Buchen Sie eine kostenlose Demo",
-    "show_community_get_your_questions_answered": "Erhalten Sie Ihre Fragen",
-    "show_community_join_discord": "Join Disord",
+    "show_community_get_your_questions_answered": "Erhalten Sie Antworten auf Ihre Fragen",
+    "show_community_join_discord": "Discord beitreten",
     "show_community_follow_nocodb": "Folgen Sie NOCODB.",
     "search": {
-      "your_search_found_no_results": "Ihre Suche nach {search} fand keine erfahren"
+      "your_search_found_no_results": "Ihre Suche nach {search} fand keine Ergebnisse"
     },
     "ext_db": {
       "title": {
@@ -49,20 +49,20 @@
         "title": "Datenbank-Anmeldeinformationen",
         "db_type": "Datenbanktyp.",
         "sqlite_file": "SQLite-Datei.",
-        "host_address": "Gastgeber-Adresse",
+        "host_address": "Host-Adresse",
         "port": "Port-Nummer",
         "username": "Nutzername",
         "password": "Passwort",
-        "db_create_if_not_exists": "Datenbank: Erstellen Sie, ob nicht vorhanden sind",
+        "db_create_if_not_exists": "Datenbank: Erstellen, falls nicht vorhanden",
         "button": {
-          "test_db_conn": "Testdatenbankverbindung testen.",
+          "test_db_conn": "Datenbankverbindung testen.",
           "remove_db_from_env": "Datenbank aus der Umgebung entfernen"
         },
         "advanced": {
-          "title": "SSL & Advanced Parameter",
+          "title": "SSL & Erweiterte Parameter",
           "ssl": {
             "client_key": {
-              "title": "Clientschlüssel",
+              "title": "Client-Schlüssel",
               "toolip": "Wählen Sie .key-Datei aus"
             },
             "client_cert": {
@@ -70,7 +70,7 @@
               "toolip": "Wählen Sie .Cert-Datei"
             },
             "server_ca": {
-              "title": "Server ca.",
+              "title": "Server CA",
               "toolip": "Wählen Sie CA-Datei"
             },
             "preferred": "Bevorzugt",
@@ -78,24 +78,24 @@
               "no": "Nein",
               "preferred": "Bevorzugt",
               "required": "Erforderlich",
-              "requried_ca": "Erforderlich-ca.",
+              "requried_ca": "CA Erforderlich",
               "requried_identity": "Erforderliche Identität"
             }
           },
           "inflection": {
-            "table_name": "BEWEBUNG - Tabellenname",
+            "table_name": "Flexion - Tabellenname",
             "column_name": "Flexion - Spaltenname"
           },
           "button": {
-            "edit_conn_json": "Verbindung bearbeiten JSON."
+            "edit_conn_json": "Verbindung JSON bearbeiten"
           }
         }
       },
       "error": {
         "invalid_char_in_folder_path": "Ungültiges Zeichen im Ordnerpfad.",
         "invalid_db_credentials": "Ungültige Datenbankanmeldeinformationen.",
-        "unable_to_connect_to_db": "Es kann keine Verbindung zu einer Datenbank hergestellt werden, bitte überprüfen Sie Ihre Datenbank.",
-        "user_doesnt_ve_sufficient_permission": "Der Benutzer gibt es nicht oder hat keine ausreichende Erlaubnis, das Schema zu erstellen."
+        "unable_to_connect_to_db": "Es kann keine Verbindung zur Datenbank hergestellt werden, bitte überprüfen Sie Ihre Datenbank.",
+        "user_doesnt_ve_sufficient_permission": "Den Benutzer gibt es nicht oder er hat keine ausreichenden Rechte, das Schema zu erstellen."
       },
       "head": {
         "title": "Projekt erstellen | NocOdb"
@@ -107,7 +107,7 @@
     },
     "notifications": {
       "no_new": "Keine neuen Benachrichtigungen",
-      "clear": "Klar"
+      "clear": "Löschen"
     }
   },
   "signin": {
@@ -121,7 +121,7 @@
       "rules": {
         "email_is_reqd": "E-Mail ist erforderlich",
         "email_must_be_valid": "Email muss gültig sein",
-        "passwd_required": "Passwort wird benötigt",
+        "passwd_required": "Passwort ist erforderlich",
         "passwd_must_be_8_chars": "Ihr Passwort muss mindestens 8 Zeichen sein"
       }
     },
@@ -135,7 +135,7 @@
     },
     "password": {
       "recovery": {
-        "title": "Setze dein Passwort zurück",
+        "title": "Setzen Sie Ihr Passwort zurück",
         "message_1": "Bitte geben Sie die E-Mail-Adresse an, die Sie bei der Anmeldung verwendet haben.",
         "message_2": "Wir senden Ihnen eine E-Mail mit einem Link, um Ihr Passwort zurückzusetzen.",
         "success": "Bitte überprüfen Sie Ihre E-Mail, um das Passwort zurückzusetzen",
@@ -151,7 +151,7 @@
   "treeview": {
     "settings": {
       "title": "Einstellungen",
-      "tooltip": "Nur für den Schöpfer sichtbar"
+      "tooltip": "Nur für den Ersteller sichtbar"
     },
     "app_store": "Appstore",
     "team_n_auth": {
@@ -162,21 +162,21 @@
       "title": "Projektmetadaten",
       "tooltip": "Meta-Management."
     },
-    "preview_as": "Vorschau anzeigen Wie",
+    "preview_as": "Vorschau anzeigen als",
     "reset_review": "Vorschau zurücksetzen."
   },
   "nav_drawer": {
     "title": "Ansichten",
     "virtual_views": {
       "action": {
-        "copy": "Kopieransicht",
-        "rename": "Sicht umbenennen",
+        "copy": "Ansicht kopieren",
+        "rename": "Ansicht umbenennen",
         "delete": "Ansicht löschen"
       },
-      "title": "Einen Blick erstellen.",
-      "caption": "Nur für den Schöpfer sichtbar",
+      "title": "Eine Ansicht erstellen.",
+      "caption": "Nur für den Ersteller sichtbar",
       "grid": {
-        "title": "Netz",
+        "title": "Grid",
         "create": "Grid-Ansicht hinzufügen."
       },
       "gallery": {
@@ -192,18 +192,18 @@
         "create": "Kanban-Sicht hinzufügen"
       },
       "form": {
-        "title": "Form",
+        "title": "Formular",
         "create": "Fügen Sie den Formularansicht hinzu"
       }
     },
     "advanced": {
-      "title1": "Ansicht auf teilen.",
+      "title1": "Ansicht teilen.",
       "views_list": "Ansichten Liste.",
       "copy_api_url": "API-URL kopieren"
     },
     "share_view": {
       "title": "Diese Ansicht wird über einen privaten Link geteilt",
-      "body": "Personen mit privatem Link können in dieser Ansicht nur angezeigt werden",
+      "body": "Personen mit privatem Link können nur Zellen sehen, die in dieser Ansicht angezeigt werden",
       "toggle": {
         "option1": "Den Zugriff mit einem Passwort einschränken",
         "option2": "Zugriff ist Passwort eingeschränkt"
@@ -231,16 +231,16 @@
         "desc": "Importieren Sie alle Metadaten aus dem Meta-Verzeichnis in Meta-Tabellen."
       },
       "export_to_zip": {
-        "title": "Exportieren Reißverschluss",
+        "title": "Zip-Datei exportieren",
         "desc": "Exportieren Sie das Projekt Meta in ZIP-Datei und downloaden."
       },
       "import_zip": {
-        "title": "Reißverschluss importieren",
+        "title": "Zip-Datei importieren",
         "desc": "Importieren Sie das Projekt Meta-ZIP-Datei und starten Sie erneut."
       },
       "reset": {
         "title": "Zurücksetzen",
-        "desc": "Alle Metadaten aus Metadetischen löschen."
+        "desc": "Alle Metadaten aus Meta-Tabellen löschen."
       }
     }
   }

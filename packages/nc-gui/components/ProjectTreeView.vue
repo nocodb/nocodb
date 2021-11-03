@@ -837,7 +837,7 @@ export default {
       } else {
         console.log('add app store tab');
         let item = { name: 'App Store', key: `appStore` };
-        item._nodes = { env: 'dev' };
+        item._nodes = { env: '_noco' };
         item._nodes.type = 'appStore';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
@@ -873,7 +873,7 @@ export default {
       } else {
         console.log('add roles tab');
         let item = { name: 'Team & Auth ', key: `roles` };
-        item._nodes = { env: 'dev' };
+        item._nodes = { env: '_noco' };
         item._nodes.type = 'roles';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
@@ -885,7 +885,7 @@ export default {
       } else {
         console.log('add acl tab');
         let item = { name: 'Meta Management', key: `disableOrEnableModel` };
-        item._nodes = { env: 'dev' };
+        item._nodes = { env: '_noco' };
         item._nodes.type = 'disableOrEnableModel';
         this.$store.dispatch('tabs/ActAddTab', item);
       }

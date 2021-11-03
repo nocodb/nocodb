@@ -1,4 +1,4 @@
-import BaseApiBuilder from "./BaseApiBuilder";
+import BaseApiBuilder from './BaseApiBuilder';
 
 export default class XcProcedure {
   private builder: BaseApiBuilder<any>;
@@ -10,10 +10,22 @@ export default class XcProcedure {
   public async callFunction(name: string, args: any[]) {
     try {
       if (this.builder.getDbType() === 'mssql') {
-        const result = await this.builder.getDbDriver().raw(`select dbo.??(${new Array(args.length).fill('?').join(',')}) as ??`, [name, ...args, name]);
+        const result = await this.builder
+          .getDbDriver()
+          .raw(
+            `select dbo.??(${new Array(args.length)
+              .fill('?')
+              .join(',')}) as ??`,
+            [name, ...args, name]
+          );
         return result[0];
       } else {
-        const result = await this.builder.getDbDriver().raw(`select ??(${new Array(args.length).fill('?').join(',')}) as ??`, [name, ...args, name]);
+        const result = await this.builder
+          .getDbDriver()
+          .raw(
+            `select ??(${new Array(args.length).fill('?').join(',')}) as ??`,
+            [name, ...args, name]
+          );
         return result[0];
       }
     } catch (e) {
@@ -24,7 +36,7 @@ export default class XcProcedure {
   public async callProcedure(name: string, args: any[]) {
     try {
       if (this.builder.getDbType() === 'mssql') {
-        throw new Error('Not implemented')
+        throw new Error('Not implemented');
         /*
             const sql = require('mssql');
             const request = new sql.Request({
@@ -47,22 +59,39 @@ export default class XcProcedure {
         // const result = '' // mcnd await this.builder.getDbDriver().raw(`Call ??(${Array.from({length: count}, (_, i) => '@var' + i).join(',')})`, [name]);
         //
         // return result)
-      } else if (this.builder.getDbType() === 'mysql2' || this.builder.getDbType() === 'mysql') {
-        const knexRef = args.reduce((knex, val, i) => knex.raw(`SET @var${i}=?`, [val]), this.builder.getDbDriver().schema)
-        const count = args.length
-        const result = await knexRef.raw(`Call ??(${Array.from({length: count}, (_, i) => '@var' + i).join(',')})`, [name]);
+      } else if (
+        this.builder.getDbType() === 'mysql2' ||
+        this.builder.getDbType() === 'mysql'
+      ) {
+        const knexRef = args.reduce(
+          (knex, val, i) => knex.raw(`SET @var${i}=?`, [val]),
+          this.builder.getDbDriver().schema
+        );
+        const count = args.length;
+        const result = await knexRef.raw(
+          `Call ??(${Array.from({ length: count }, (_, i) => '@var' + i).join(
+            ','
+          )})`,
+          [name]
+        );
         return [result[count][0][0]];
       } else if (this.builder.getDbType() === 'pg') {
-        const result = await this.builder.getDbDriver().raw(`Call ??(${new Array(args.length).fill('?').join(',')})`, [name, ...args]);
+        const result = await this.builder
+          .getDbDriver()
+          .raw(`Call ??(${new Array(args.length).fill('?').join(',')})`, [
+            name,
+            ...args
+          ]);
         return result;
       } else {
-        throw new Error('Not implemented')
+        throw new Error('Not implemented');
       }
     } catch (e) {
-      throw (e)
+      throw e;
     }
   }
-}/**
+}
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

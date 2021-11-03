@@ -6,17 +6,22 @@
     <list-child-items
       v-if="show"
       ref="child"
+      :type="type"
+      :row-id="rowId"
       :local-state="localState"
       :is-new="isNew"
       :size="10"
       :meta="meta"
-      :parent-meta="meta"
+      :password="password"
+      :parent-meta="parentMeta"
       :primary-col="primaryCol"
       :primary-key="primaryKey"
       :api="api"
       :query-params="queryParams"
       v-bind="$attrs"
       :read-only="readOnly"
+      :is-public="isPublic"
+      :column="column"
       v-on="$listeners"
     />
   </v-dialog>
@@ -29,9 +34,11 @@ export default {
   name: 'ListChildItemsModal',
   components: { ListChildItems },
   props: {
+    type: String,
     readOnly: Boolean,
     localState: Array,
     isNew: Boolean,
+    password: String,
     value: Boolean,
     title: {
       type: String,
@@ -49,7 +56,10 @@ export default {
     parentMeta: Object,
     size: Number,
     api: [Object, Function],
-    mm: [Object, Boolean]
+    mm: [Object, Boolean],
+    isPublic: Boolean,
+    rowId: [String, Number],
+    column: Object
   },
   data: () => ({
     data: null,

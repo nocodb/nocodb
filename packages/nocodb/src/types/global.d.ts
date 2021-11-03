@@ -1,12 +1,13 @@
 // @ts-ignore
 declare global {
-// @ts-ignore
+  // @ts-ignore
   declare module 'express' {
     export interface Response {
       xcJson(body: any): any;
     }
   }
-}/**
+}
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

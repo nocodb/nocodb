@@ -1,8 +1,6 @@
-import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
-
+import BaseGqlXcTsSchema from './BaseGqlXcTsSchema';
 
 class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
-
   /**
    *
    * @param dir
@@ -12,11 +10,11 @@ class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
-/*
+  /*
 
   /!**
    *
@@ -168,11 +166,8 @@ class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
   }
 */
 
-
   _getGraphqlType(columnObj): any {
-
     switch (columnObj.dt) {
-
       case 'smallint':
       case 'int':
       case 'tinyint':
@@ -215,44 +210,36 @@ class GqlXcTsSchemaMssql extends BaseGqlXcTsSchema {
       case 'xml':
       case 'varchar':
       default:
-        return "String";
+        return 'String';
         break;
-
 
       case 'geography':
       case 'geometry':
       case 'json':
         return 'JSON';
-
     }
-
   }
 
   _getGraphqlConditionType(columnObj): any {
-
     switch (this._getGraphqlType(columnObj.dt)) {
-
-      case  "Int":
-        return 'ConditionInt'
-      case  "Float":
+      case 'Int':
+        return 'ConditionInt';
+      case 'Float':
         return 'ConditionFloat';
-      case  "Boolean":
-        return 'ConditionBoolean'
-      case  "String":
-        return 'ConditionString'
-      case "[String]":
-        return 'ConditionString'
-      case "JSON":
-        return 'ConditionString'
+      case 'Boolean':
+        return 'ConditionBoolean';
+      case 'String':
+        return 'ConditionString';
+      case '[String]':
+        return 'ConditionString';
+      case 'JSON':
+        return 'ConditionString';
     }
-
   }
 
-/*  getString() {
+  /*  getString() {
     return this._renderColumns(this.ctx);
   }*/
-
 }
-
 
 export default GqlXcTsSchemaMssql;

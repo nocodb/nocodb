@@ -1,10 +1,16 @@
-import NcMetaIOImpl from "./NcMetaIOImpl";
+import NcMetaIOImpl from './NcMetaIOImpl';
 
 export default class NcMetaIOImplEE extends NcMetaIOImpl {
-  public async audit(project_id: string, dbAlias: string, target: string, data: any): Promise<any> {
+  public async audit(
+    project_id: string,
+    dbAlias: string,
+    target: string,
+    data: any
+  ): Promise<any> {
     return this.metaInsert(project_id, dbAlias, target, data);
   }
-}/**
+}
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

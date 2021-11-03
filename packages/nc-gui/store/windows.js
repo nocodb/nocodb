@@ -38,7 +38,8 @@ export const state = () => ({
   screensaver: true,
   autoApplyFilter: true,
   apiLoading: false,
-  includeM2M: false
+  includeM2M: false,
+  feedbackFormHidden: false
 })
 
 export const mutations = {
@@ -50,6 +51,9 @@ export const mutations = {
   },
   MutToggleLogWindow(state, show) {
     state.logWindow = !state.logWindow
+  },
+  MutFeedbackFormHidden(state, show) {
+    state.feedbackFormHidden = show
   },
   MutScreensaver(state, show) {
     state.screensaver = show

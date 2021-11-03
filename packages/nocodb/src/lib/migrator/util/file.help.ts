@@ -1,30 +1,19 @@
 import dayjs from 'dayjs';
 
-
-const getUniqFilenamePrefix = function () {
-
-  return dayjs().format('YYYYMMDD_HHmmssSSS')
-
+const getUniqFilenamePrefix = function() {
+  return dayjs().format('YYYYMMDD_HHmmssSSS');
 };
 
-const getFilenameForUp = function (prefix) {
-
-  return prefix + '.up.sql'
-
+const getFilenameForUp = function(prefix) {
+  return prefix + '.up.sql';
 };
 
-const getFilenameForDown = function (prefix) {
+const getFilenameForDown = function(prefix) {
+  return prefix + '.down.sql';
+};
 
-  return prefix + '.down.sql'
-
-}
-
-export {
-  getUniqFilenamePrefix,
-  getFilenameForUp,
-  getFilenameForDown
-}
-;/**
+export { getUniqFilenamePrefix, getFilenameForUp, getFilenameForDown };
+/**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>

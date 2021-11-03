@@ -172,7 +172,7 @@ export default {
           meta
         }])
 
-        return this.$emit('saved', `${this.lookup.column._lcn} (from ${this.lookup.table._ltn})`)
+        return this.$emit('saved', this.alias)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }

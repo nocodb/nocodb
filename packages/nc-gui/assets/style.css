@@ -480,3 +480,8 @@ body.dark .toasted .primary.info, body.dark .toasted.toasted-primary.info {
   background: #0040bc !important;
   border-radius: 19px;
 }
+
+
+.v-date-picker-table{
+  height:auto !important;
+}

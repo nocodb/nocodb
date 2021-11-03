@@ -1,7 +1,6 @@
-import SqlMgr from "./SqlMgr";
+import SqlMgr from './SqlMgr';
 
 export default class ProjectMgr {
-
   public static make(): ProjectMgr {
     if (!ProjectMgr._instance) {
       ProjectMgr._instance = new ProjectMgr();
@@ -11,7 +10,7 @@ export default class ProjectMgr {
 
   private static _instance: ProjectMgr;
   private sqlMgrMap: {
-    [key: string]: SqlMgr
+    [key: string]: SqlMgr;
   };
 
   constructor() {

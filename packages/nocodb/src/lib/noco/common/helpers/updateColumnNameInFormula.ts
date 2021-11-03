@@ -1,16 +1,15 @@
-import jsepTreeToFormula from "./jsepTreeToFormula";
+import jsepTreeToFormula from './jsepTreeToFormula';
 
-export default function (args: {
-  virtualColumns,
-  oldColumnName: string,
-  newColumnName: string,
+export default function(args: {
+  virtualColumns;
+  oldColumnName: string;
+  newColumnName: string;
 }): void | boolean {
-
   let modified = false;
 
-  const fn = (pt) => {
+  const fn = pt => {
     if (pt.type === 'CallExpression') {
-      pt.arguments.map(arg => fn(arg))
+      pt.arguments.map(arg => fn(arg));
     } else if (pt.type === 'Literal') {
     } else if (pt.type === 'Identifier') {
       if (pt.name === args.oldColumnName) {
@@ -24,14 +23,14 @@ export default function (args: {
   };
 
   if (!args.virtualColumns) {
-    return
+    return;
   }
   for (const v of args.virtualColumns) {
     if (!v.formula?.tree) {
       continue;
     }
-    fn(v.formula.tree)
-    v.formula.value = jsepTreeToFormula(v.formula.tree)
+    fn(v.formula.tree);
+    v.formula.value = jsepTreeToFormula(v.formula.tree);
   }
   return modified;
 }

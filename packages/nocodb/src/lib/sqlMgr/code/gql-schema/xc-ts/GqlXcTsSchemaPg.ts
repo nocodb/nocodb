@@ -1,5 +1,4 @@
-import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
-
+import BaseGqlXcTsSchema from './BaseGqlXcTsSchema';
 
 class GqlXcSchemaPg extends BaseGqlXcTsSchema {
   /**
@@ -11,13 +10,11 @@ class GqlXcSchemaPg extends BaseGqlXcTsSchema {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
-
-
-/*  /!**
+  /*  /!**
    *
    * @param args
    * @param args.columns
@@ -42,7 +39,7 @@ class GqlXcSchemaPg extends BaseGqlXcTsSchema {
 
   }*/
 
-/*  _getInputType(args) {
+  /*  _getInputType(args) {
     let str = `input ${args.tn_camelize}Input { \r\n`
     for (let i = 0; i < args.columns.length; ++i) {
       if (args.columns[i]._cn.split(' ').length > 1) {
@@ -56,7 +53,7 @@ class GqlXcSchemaPg extends BaseGqlXcTsSchema {
     return str;
   }*/
 
-/*  _getQuery(args) {
+  /*  _getQuery(args) {
     let str = `type Query { \r\n`
     str += `\t\t${args.tn_camelize}List(where: String,condition:Condition${args.tn_camelize}, limit: Int, offset: Int, sort: String): [${args.tn_camelize}]\r\n`
     str += `\t\t${args.tn_camelize}Read(id:String!): ${args.tn_camelize}\r\n`
@@ -71,7 +68,7 @@ class GqlXcSchemaPg extends BaseGqlXcTsSchema {
     return str;
   }*/
 
-/*  _getMutation(args) {
+  /*  _getMutation(args) {
     let str = `type Mutation { \r\n`
     str += `\t\t${args.tn_camelize}Create(data:${args.tn_camelize}Input): ${args.tn_camelize}\r\n`
  str += `\t\t${args.tn_camelize}Update(id:String,data:${args.tn_camelize}Input):  Int\r\n` //${args.tn_camelize}\r\n`
@@ -83,7 +80,7 @@ class GqlXcSchemaPg extends BaseGqlXcTsSchema {
     return str;
   }*/
 
-/*  _getType(args) {
+  /*  _getType(args) {
 
     let str = `type ${args.tn_camelize} { \r\n`
     let strWhere = `input Condition${args.tn_camelize} { \r\n`
@@ -170,170 +167,159 @@ class GqlXcSchemaPg extends BaseGqlXcTsSchema {
   }*/
 
   _getGraphqlType(columnObj) {
-
     switch (columnObj.dt) {
-
-      case "int":
-      case "integer":
-      case "bigint":
-      case "bigserial":
-      case "char":
-      case "int2":
-      case "int4":
-      case "int8":
-      case "int4range":
-      case "int8range":
-      case "serial":
-      case "serial2":
-      case "smallint":
-      case "smallserial":
-      case "serial8":
+      case 'int':
+      case 'integer':
+      case 'bigint':
+      case 'bigserial':
+      case 'char':
+      case 'int2':
+      case 'int4':
+      case 'int8':
+      case 'int4range':
+      case 'int8range':
+      case 'serial':
+      case 'serial2':
+      case 'smallint':
+      case 'smallserial':
+      case 'serial8':
         if (columnObj.dtx === 'ARRAY') {
-          return "[Int]"
+          return '[Int]';
         }
-        return "Int";
+        return 'Int';
         break;
 
-      case "bit":
-      case "bool":
-      case "boolean":
+      case 'bit':
+      case 'bool':
+      case 'boolean':
         if (columnObj.dtx === 'ARRAY') {
-          return "[Boolean]"
+          return '[Boolean]';
         }
-        return "Boolean";
+        return 'Boolean';
         break;
 
-      case "money":
-      case "real":
-      case "float4":
-      case "float8":
+      case 'money':
+      case 'real':
+      case 'float4':
+      case 'float8':
         if (columnObj.dtx === 'ARRAY') {
-          return "[Float]"
+          return '[Float]';
         }
-        return "Float";
+        return 'Float';
         break;
 
-
-      case "json":
-      case "jsonb":
-      case "anyenum":
-      case "anynonarray":
-      case "path":
-      case "point":
-      case "polygon":
+      case 'json':
+      case 'jsonb':
+      case 'anyenum':
+      case 'anynonarray':
+      case 'path':
+      case 'point':
+      case 'polygon':
         if (columnObj.dtx === 'ARRAY') {
-          return "[JSON]"
+          return '[JSON]';
         }
         return 'JSON';
 
-      case "character":
-      case "uuid":
-      case "date":
-      case "double precision":
-      case "event_trigger":
-      case "fdw_handler":
-      case "character varying":
-      case "text":
-      case "time":
-      case "time without time zone":
-      case "timestamp":
-      case "timestamp without time zone":
-      case "timestamptz":
-      case "timestamp with time zone":
-      case "timetz":
-      case "time with time zone":
-      case "daterange":
-      case "gtsvector":
-      case "index_am_handler":
-      case "anyrange":
-      case "box":
-      case "bpchar":
-      case "bytea":
-      case "cid":
-      case "cidr":
-      case "circle":
-      case "cstring":
-      case "inet":
-      case "internal":
-      case "interval":
-      case "language_handler":
-      case "line":
-      case "lsec":
-      case "macaddr":
-      case "name":
-      case "numeric":
-      case "numrange":
-      case "oid":
-      case "opaque":
-      case "pg_ddl_command":
-      case "pg_lsn":
-      case "pg_node_tree":
-      case "record":
-      case "refcursor":
-      case "regclass":
-      case "regconfig":
-      case "regdictionary":
-      case "regnamespace":
-      case "regoper":
-      case "regoperator":
-      case "regproc":
-      case "regpreocedure":
-      case "regrole":
-      case "regtype":
-      case "reltime":
-      case "smgr":
-      case "tid":
-      case "tinterval":
-      case "trigger":
-      case "tsm_handler":
-      case "tsquery":
-      case "tsrange":
-      case "tstzrange":
-      case "tsvector":
-      case "txid_snapshot":
-      case "unknown":
-      case "void":
-      case "xid":
-      case "xml" :
-      default :
-
+      case 'character':
+      case 'uuid':
+      case 'date':
+      case 'double precision':
+      case 'event_trigger':
+      case 'fdw_handler':
+      case 'character varying':
+      case 'text':
+      case 'time':
+      case 'time without time zone':
+      case 'timestamp':
+      case 'timestamp without time zone':
+      case 'timestamptz':
+      case 'timestamp with time zone':
+      case 'timetz':
+      case 'time with time zone':
+      case 'daterange':
+      case 'gtsvector':
+      case 'index_am_handler':
+      case 'anyrange':
+      case 'box':
+      case 'bpchar':
+      case 'bytea':
+      case 'cid':
+      case 'cidr':
+      case 'circle':
+      case 'cstring':
+      case 'inet':
+      case 'internal':
+      case 'interval':
+      case 'language_handler':
+      case 'line':
+      case 'lsec':
+      case 'macaddr':
+      case 'name':
+      case 'numeric':
+      case 'numrange':
+      case 'oid':
+      case 'opaque':
+      case 'pg_ddl_command':
+      case 'pg_lsn':
+      case 'pg_node_tree':
+      case 'record':
+      case 'refcursor':
+      case 'regclass':
+      case 'regconfig':
+      case 'regdictionary':
+      case 'regnamespace':
+      case 'regoper':
+      case 'regoperator':
+      case 'regproc':
+      case 'regpreocedure':
+      case 'regrole':
+      case 'regtype':
+      case 'reltime':
+      case 'smgr':
+      case 'tid':
+      case 'tinterval':
+      case 'trigger':
+      case 'tsm_handler':
+      case 'tsquery':
+      case 'tsrange':
+      case 'tstzrange':
+      case 'tsvector':
+      case 'txid_snapshot':
+      case 'unknown':
+      case 'void':
+      case 'xid':
+      case 'xml':
+      default:
         if (columnObj.dtx === 'ARRAY') {
-          return "[String]"
+          return '[String]';
         }
-        return "String";
+        return 'String';
         break;
-
     }
-
   }
 
-  protected _getGraphqlConditionType(columnObj):any {
-
+  protected _getGraphqlConditionType(columnObj): any {
     switch (this._getGraphqlType(columnObj.dt)) {
-
-      case  "Int":
-        return 'ConditionInt'
-      case  "Float":
+      case 'Int':
+        return 'ConditionInt';
+      case 'Float':
         return 'ConditionFloat';
-      case  "Boolean":
-        return 'ConditionBoolean'
-      case  "String":
-        return 'ConditionString'
-      case "[String]":
-        return 'ConditionString'
-      case "[JSON]":
-        return 'ConditionString'
-      case "JSON":
-        return 'ConditionString'
+      case 'Boolean':
+        return 'ConditionBoolean';
+      case 'String':
+        return 'ConditionString';
+      case '[String]':
+        return 'ConditionString';
+      case '[JSON]':
+        return 'ConditionString';
+      case 'JSON':
+        return 'ConditionString';
     }
-
   }
 
- /* getString(){
+  /* getString(){
     return this._renderColumns(this.ctx);
   }*/
-
 }
-
 
 export default GqlXcSchemaPg;

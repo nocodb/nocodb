@@ -1,40 +1,42 @@
-import {XcActionType, XcForm, XcType} from "nc-common";
-
+import { XcActionType, XcForm, XcType } from 'nc-common';
 
 const input: XcForm = {
   title: 'Configure Enterprise Edition',
-  items: [{
-    key: 'key',
-    label: 'Key',
-    placeholder: 'Key',
-    type: XcType.Password,
-    required: true
-  },
+  items: [
+    {
+      key: 'key',
+      label: 'Key',
+      placeholder: 'Key',
+      type: XcType.Password,
+      required: true
+    }
     // {
     // key: 'callback_url',
     // label: 'Callback URL',
     // placeholder: 'Callback URL',
     // type: XcType.URL,
     // required: true
-  // },
+    // },
   ],
-  actions: [{
-    label: 'Test',
-    placeholder: 'Test',
-    key: 'test',
-    actionType: XcActionType.TEST,
-    type: XcType.Button
-  }, {
-    label: 'Save',
-    placeholder: 'Save',
-    key: 'save',
-    actionType: XcActionType.SUBMIT,
-    type: XcType.Button
-  },],
+  actions: [
+    {
+      label: 'Test',
+      placeholder: 'Test',
+      key: 'test',
+      actionType: XcActionType.TEST,
+      type: XcType.Button
+    },
+    {
+      label: 'Save',
+      placeholder: 'Save',
+      key: 'save',
+      actionType: XcActionType.SUBMIT,
+      type: XcType.Button
+    }
+  ],
   msgOnInstall: 'Successfully installed and enabled Enterprise Edition.',
-  msgOnUninstall: '',
+  msgOnUninstall: ''
 };
-
 
 export default {
   title: 'Enterprise Edition',

@@ -6,13 +6,13 @@ export default {
         return {}
       }
     },
-    meta: Object,
     sqlUi: [Object, Function],
     nodes: [Object],
     api: [Object]
   },
   methods: {
     isValid(_columnObj, rowObj, required = false) {
+      if (!this.meta) { return }
       let columnObj = _columnObj
       if (columnObj.bt) {
         columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)

@@ -1,5 +1,5 @@
-export default async({ store, redirect, $axios, $toast }) => {
-  await store.dispatch('plugins/pluginPostInstall', 'Branding')
+export default async({ store, redirect, $axios, $toast, route }) => {
+  if (!route.path || !route.path.startsWith('/nc/')) { await store.dispatch('plugins/pluginPostInstall', 'Branding') }
   if (window.location.search &&
     /\bscope=|\bstate=/.test(window.location.search) &&
     /\bcode=/.test(window.location.search)) {

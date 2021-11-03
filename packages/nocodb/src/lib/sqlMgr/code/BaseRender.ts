@@ -8,8 +8,8 @@
 // import fsExtra from "fs-extra";
 // import md5 from "md5";
 // import dayjs from "dayjs";import Emit from "../../migrator/util/emit";
-import Debug from "../../migrator/util/Debug";
-import Emit from "../../migrator/util/emit";
+import Debug from '../../migrator/util/Debug';
+import Emit from '../../migrator/util/emit';
 
 // const beautify = js_beautify.js;
 
@@ -21,7 +21,6 @@ class BaseRender {
   protected log: any;
   protected ejsContent: any;
 
-
   /**
    * Class responsible for rendering code
    *
@@ -29,17 +28,17 @@ class BaseRender {
    * @param {string} - filename - filename of file to be rendered
    * @param {Object} - ctx - context to render this file
    */
-  constructor({dir, filename, ctx}) {
+  constructor({ dir, filename, ctx }) {
     this.dir = dir;
     this.filename = filename;
     this.ctx = ctx;
     this.evt = new Emit();
-    this.log = new Debug("BaseRender");
+    this.log = new Debug('BaseRender');
   }
 
   emit(data) {
     this.log.api(data);
-    this.evt.evt.emit("UI", {
+    this.evt.evt.emit('UI', {
       status: 0,
       data: `File : ${data}`
     });
@@ -47,7 +46,7 @@ class BaseRender {
 
   emitW(data) {
     this.log.warn(data);
-    this.evt.evt.emit("UI", {
+    this.evt.evt.emit('UI', {
       status: 1,
       data: `File : ${data}`
     });
@@ -55,7 +54,7 @@ class BaseRender {
 
   emitE(data) {
     this.log.error(data);
-    this.evt.evt.emit("UI", {
+    this.evt.evt.emit('UI', {
       status: -1,
       data: `File : ${data}`
     });
@@ -78,7 +77,7 @@ class BaseRender {
    * @param {Boolean} - force - on true overwrites the file
    * @returns {Promise<void>}
    */
-/*
+  /*
   async render(obj) {
     const {ejsPath, ejsData, force = false, writeFile = true} = obj;
     const {ejsContent} = this;
@@ -129,8 +128,6 @@ class BaseRender {
 
   }
 */
-
-
 }
 
 export default BaseRender;

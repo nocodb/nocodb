@@ -13,7 +13,10 @@
       :active="active"
       :db-alias="dbAlias"
       :meta="meta"
+      :is-form="isForm"
       :column="column"
+      :is-public-grid="isPublic && !isForm"
+      :is-public-form="isPublic && isForm"
       v-on="$listeners"
     />
 
@@ -59,7 +62,7 @@
     />
 
     <enum-cell
-      v-else-if="isEnum && !isForm && !active"
+      v-else-if="isEnum && (( !isForm && !active) || isLocked || (isPublic && !isForm))"
       v-model="localState"
       :column="column"
       v-on="parentListeners"
@@ -81,7 +84,7 @@
     />
 
     <set-list-editable-cell
-      v-else-if="isSet && (active || isForm)"
+      v-else-if="isSet && (active || isForm) && !isLocked && !(isPublic && !isForm)"
       v-model="localState"
       :column="column"
       v-on="parentListeners"
@@ -107,7 +110,7 @@
     <text-cell v-else v-model="localState" v-on="$listeners" />
     <span v-if="hint" class="nc-hint">{{ hint }}</span>
 
-    <div v-if="isLocked" class="nc-locked-overlay" />
+    <div v-if="(isLocked || (isPublic && !isForm)) && !isAttachment" class="nc-locked-overlay" />
   </div>
 </template>
 
@@ -159,7 +162,8 @@ export default {
     active: Boolean,
     dummy: Boolean,
     hint: String,
-    isLocked: Boolean
+    isLocked: Boolean,
+    isPublic: Boolean
   },
   data: () => ({
     changed: false,

@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "הפרויקטים שלי",
+    "reload_projects_tooltip": "רענון פרוייקטים",
+    "create_new_project_button": {
+      "text": "פרוייקט חדש",
+      "subtext_1": "לִיצוֹר",
+      "subtext_1_tooltip": "צור פרויקט חדש",
+      "subtext_2": "צור על ידי חיבור <br> למסד נתונים חיצוני",
+      "subtext_2_tooltip": "תומך MySQL, PostgreSQL, SQL Server & SQLite"
+    },
+    "search_project": "חפש פרוייקט",
+    "import_metadata": "ייבוא ​​מטא נתונים",
+    "export_metadata": "ייצוא מטא נתונים",
+    "clear_metadata": "מטא נתונים ברורים",
+    "stop_project": "עצור פרוייקט",
+    "start_project": "התחל פרויקט",
+    "restart_project": "הפעלה מחדש של פרוייקט",
+    "delete_project": "מחק פרויקט",
+    "project_api_type_tooltip_graphql": "נגיש באמצעות APIS graphql",
+    "project_api_type_tooltip_rest": "נגיש באמצעות שאר APIS",
+    "project_empty_message": "התחל על ידי יצירת פרוייקט חדש",
+    "import_button": {
+      "text": "ייבוא ​​פרויקט Nocodb על ידי העלאת קובץ Metadata Zip"
+    },
+    "show_community_star": "כוכב",
+    "show_community_us_on_Github": "ארה\"ב על github.",
+    "show_community_book_a_free_demo": "להזמין הדגמה חינם",
+    "show_community_get_your_questions_answered": "קבל את השאלות שלך ענה",
+    "show_community_join_discord": "הצטרף לדיסק",
+    "show_community_follow_nocodb": "בצע nocodb.",
+    "search": {
+      "your_search_found_no_results": "החיפוש שלך {חיפוש} לא נמצא תוצאות"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "ערוך פרוייקט",
+        "create": "צור פרויקט"
+      },
+      "project_name": "הזן את שם הפרויקט",
+      "project_type": "גישה לפרויקט דרך",
+      "button": {
+        "save_project": "שמור פרוייקט",
+        "update_and_restart": "עדכון & הפעלה מחדש",
+        "cancel": "לְבַטֵל",
+        "cancel_tooltip": "בטל והחזר"
+      },
+      "credentials": {
+        "title": "אישורי מסד נתונים",
+        "db_type": "סוג מסד נתונים",
+        "sqlite_file": "קובץ SQLite.",
+        "host_address": "כתובת המארח",
+        "port": "מספר היציאה",
+        "username": "שם משתמש",
+        "password": "סיסמה",
+        "db_create_if_not_exists": "מסד נתונים: צור אם לא קיים",
+        "button": {
+          "test_db_conn": "מבחן חיבור מסד נתונים",
+          "remove_db_from_env": "הסר מסד נתונים מסביבה"
+        },
+        "advanced": {
+          "title": "SSL & פרמטרים מתקדמים",
+          "ssl": {
+            "client_key": {
+              "title": "מפתח הלקוח",
+              "toolip": "בחר קובץ .key."
+            },
+            "client_cert": {
+              "title": "Client Cert.",
+              "toolip": "בחר קובץ .cert."
+            },
+            "server_ca": {
+              "title": "שרת CA.",
+              "toolip": "בחר קובץ CA."
+            },
+            "preferred": "מועדף",
+            "usage": {
+              "no": "לא",
+              "preferred": "מועדף",
+              "required": "נדרש",
+              "requried_ca": "חובה",
+              "requried_identity": "נדרש זהות"
+            }
+          },
+          "inflection": {
+            "table_name": "טופס - שם טבלה",
+            "column_name": "גוון - שם עמודה"
+          },
+          "button": {
+            "edit_conn_json": "ערוך חיבור JSON."
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "תו לא חוקי נתיב התיקייה.",
+        "invalid_db_credentials": "אישורי מסד נתונים לא חוקיים.",
+        "unable_to_connect_to_db": "לא ניתן להתחבר למסד הנתונים, בדוק את מסד הנתונים שלך.",
+        "user_doesnt_ve_sufficient_permission": "המשתמש אינו קיים או יש לך הרשאה מספקת ליצור סכימה."
+      },
+      "head": {
+        "title": "יצירת פרויקט נוקודב"
+      },
+      "dialog": {
+        "success": "החיבור הצליח",
+        "failure": "כשל בחיבור:"
+      }
+    },
+    "notifications": {
+      "no_new": "אין התראות חדשות",
+      "clear": "ברור"
+    }
+  },
+  "signin": {
+    "title": "להתחבר",
+    "enter_your_work_email": "הזן את הודעת העבודה שלך",
+    "enter_your_password": "הכנס את הסיסמה שלך",
+    "forget_password": "שכחת ססמה ?",
+    "dont_ve_an_account": "אין לך חשבון?",
+    "sign_up": "הירשם",
+    "form": {
+      "rules": {
+        "email_is_reqd": "דואר אלקטרוני נדרש",
+        "email_must_be_valid": "דואר אלקטרוני חייב להיות תקף",
+        "passwd_required": "דרושה סיסמא",
+        "passwd_must_be_8_chars": "הסיסמה שלך חייבת להיות atleast 8 תווים"
+      }
+    },
+    "head": {
+      "title": "התחבר | נוקודב",
+      "meta": {
+        "hid": "היכנס ל- nocodb",
+        "name": "היכנס ל- nocodb",
+        "content": "היכנס ל- nocodb"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "לאפס את הסיסמה שלך",
+        "message_1": "ספק את כתובת הדוא\"ל שבה השתמשת בעת חתמת.",
+        "message_2": "אנו נשלח לך דוא\"ל עם קישור כדי לאפס את הסיסמה שלך.",
+        "success": "בדוק את הדוא\"ל שלך כדי לאפס את הסיסמה",
+        "button": "שלח אימייל"
+      }
+    }
+  },
+  "signup": {
+    "title": "הירשם",
+    "you_will_be_the_super_admin": "אתה תהיה \"סופר מנהל\"",
+    "already_ve_an_account": "כבר יש לך חשבון ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "הגדרות",
+      "tooltip": "רק גלוי לבורא"
+    },
+    "app_store": "חנות אפליקציות",
+    "team_n_auth": {
+      "title": "צוות & auth.",
+      "tooltip": "תפקידים & ניהול משתמשים"
+    },
+    "project_metadata": {
+      "title": "פרויקט מטא נתונים",
+      "tooltip": "ניהול מטא"
+    },
+    "preview_as": "תצוגה מקדימה כ-",
+    "reset_review": "איפוס תצוגה מקדימה"
+  },
+  "nav_drawer": {
+    "title": "צפיות",
+    "virtual_views": {
+      "action": {
+        "copy": "העתק View.",
+        "rename": "שינוי שם View.",
+        "delete": "מחק להציג"
+      },
+      "title": "צור תצוגה",
+      "caption": "רק גלוי לבורא",
+      "grid": {
+        "title": "רֶשֶׁת",
+        "create": "הוסף תצוגת רשת"
+      },
+      "gallery": {
+        "title": "גלריה",
+        "create": "הוסף תצוגת גלריה"
+      },
+      "calendar": {
+        "title": "לוּחַ שָׁנָה",
+        "create": "הוסף תצוגת לוח שנה"
+      },
+      "kanban": {
+        "title": "קאנב\"כ",
+        "create": "הוסף Kanban View."
+      },
+      "form": {
+        "title": "טופס",
+        "create": "הוסף טופס View."
+      }
+    },
+    "advanced": {
+      "title1": "שיתוף View.",
+      "views_list": "רשימת צפיות",
+      "copy_api_url": "העתק URL API."
+    },
+    "share_view": {
+      "title": "תצוגה זו משותפת דרך קישור פרטי",
+      "body": "אנשים עם קישור פרטי יכולים לראות רק תאים גלוי בתצוגה זו",
+      "toggle": {
+        "option1": "הגבל גישה עם סיסמה",
+        "option2": "הגישה היא מוגבלת בסיסמה"
+      },
+      "password": {
+        "caption": "הכנס את הסיסמא",
+        "button": "שמור סיסמא"
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "ניהול משתמשים.",
+      "api": "ניהול אסינס API.",
+      "roles": "ניהול תפקידים"
+    },
+    "meta": {
+      "title": "פעולות מטא נתונים",
+      "export_to_file": {
+        "title": "ייצוא לקובץ",
+        "desc": "לייצא את כל המטא נתונים של טבלאות Meta לספרייה Meta."
+      },
+      "import": {
+        "title": "יְבוּא",
+        "desc": "ייבא את כל המטא נתונים ממספריית המטא למטא שולחנות."
+      },
+      "export_to_zip": {
+        "title": "ייצוא zip.",
+        "desc": "ייצוא פרויקט מטא לקובץ zip ולהוריד."
+      },
+      "import_zip": {
+        "title": "ייבוא ​​zip.",
+        "desc": "ייבוא ​​פרויקט Meta קובץ zip והפעל מחדש."
+      },
+      "reset": {
+        "title": "אִתחוּל",
+        "desc": "נקה את כל המטא נתונים מ מטא שולחנות."
+      }
+    }
+  }
+}

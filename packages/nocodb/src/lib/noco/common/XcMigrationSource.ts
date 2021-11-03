@@ -1,15 +1,27 @@
 import * as project from '../migrations/nc_001_init';
 import * as m2m from '../migrations/nc_002_add_m2m';
 import * as fkn from '../migrations/nc_003_add_fkn_column';
+import * as viewType from '../migrations/nc_004_add_view_type_column';
+import * as viewName from '../migrations/nc_005_add_view_name_column';
+import * as nc_006_alter_nc_shared_views from '../migrations/nc_006_alter_nc_shared_views';
+import * as nc_007_alter_nc_shared_views_1 from '../migrations/nc_007_alter_nc_shared_views_1';
 
 // Create a custom migration source class
-export default class XcMigrationSource{
+export default class XcMigrationSource {
   // Must return a Promise containing a list of migrations.
   // Migrations can be whatever you want, they will be passed as
   // arguments to getMigrationName and getMigration
   public getMigrations(): Promise<any> {
     // In this example we are just returning migration names
-    return Promise.resolve(['project','m2m', 'fkn'])
+    return Promise.resolve([
+        'project',
+        'm2m',
+        'fkn',
+        'viewType',
+        'viewName',
+        'nc_006_alter_nc_shared_views',
+        'nc_007_alter_nc_shared_views_1'
+    ]);
   }
 
   public getMigrationName(migration): string {
@@ -24,6 +36,15 @@ export default class XcMigrationSource{
         return m2m;
       case 'fkn':
         return fkn;
+      case 'viewType':
+        return viewType;
+      case 'viewName':
+        return viewName;
+      case 'nc_006_alter_nc_shared_views':
+        return nc_006_alter_nc_shared_views;
+      case 'nc_007_alter_nc_shared_views_1':
+        return nc_007_alter_nc_shared_views_1;
+
     }
   }
 }

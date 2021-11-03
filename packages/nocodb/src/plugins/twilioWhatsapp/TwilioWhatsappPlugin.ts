@@ -1,13 +1,14 @@
-import {IWebhookNotificationAdapter, XcWebhookNotificationPlugin} from "nc-plugin";
+import {
+  IWebhookNotificationAdapter,
+  XcWebhookNotificationPlugin
+} from 'nc-plugin';
 
-import TwilioWhatsapp from "./TwilioWhatsapp";
-
+import TwilioWhatsapp from './TwilioWhatsapp';
 
 class TwilioWhatsappPlugin extends XcWebhookNotificationPlugin {
-
   private static notificationAdapter: TwilioWhatsapp;
 
-  public  getAdapter(): IWebhookNotificationAdapter {
+  public getAdapter(): IWebhookNotificationAdapter {
     return TwilioWhatsappPlugin.notificationAdapter;
   }
 
@@ -15,7 +16,6 @@ class TwilioWhatsappPlugin extends XcWebhookNotificationPlugin {
     TwilioWhatsappPlugin.notificationAdapter = new TwilioWhatsapp(config);
     await TwilioWhatsappPlugin.notificationAdapter.init();
   }
-
 }
 
 export default TwilioWhatsappPlugin;

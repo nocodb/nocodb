@@ -37,7 +37,7 @@
           </v-icon>
         </template>
         <span v-on="on">
-          <span class="name  flex-grow-1" style="white-space: pre-wrap" :title="column._cn" v-html="alias" />
+          <span class="name  flex-grow-1" style="white-space: nowrap" :title="column._cn" v-html="alias" />
           <span v-if="column.rqd || required" class="error--text text--lighten-1">&nbsp;*</span>
         </span>
       </template>
@@ -46,7 +46,7 @@
     <v-spacer />
 
     <v-menu
-      v-if="!isLocked && !isPublicView && _isUIAllowed('edit-column') && !isForm"
+      v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('edit-column') && !isForm"
       offset-y
       open-on-hover
       left
@@ -57,7 +57,7 @@
         </v-icon>
       </template>
       <v-list dense>
-        <v-list-item v-if="!column.lk" dense @click="editColumnMenu = true">
+        <v-list-item dense @click="editColumnMenu = true">
           <x-icon small class="mr-1 nc-column-edit" color="primary">
             mdi-pencil
           </x-icon>
@@ -133,7 +133,7 @@ import EditVirtualColumn from '@/components/project/spreadsheet/components/editV
 export default {
   name: 'VirtualHeaderCell',
   components: { EditVirtualColumn },
-  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi', 'required', 'isLocked'],
+  props: ['column', 'nodes', 'meta', 'isForm', 'isPublicView', 'sqlUi', 'required', 'isLocked', 'isVirtual'],
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false,
@@ -141,7 +141,8 @@ export default {
   }),
   computed: {
     alias() {
-      return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column._cn
+      // return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column._cn
+      return this.column._cn
     },
     type() {
       if (this.column.bt) {

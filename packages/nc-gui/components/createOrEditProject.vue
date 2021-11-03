@@ -982,20 +982,20 @@
 </template>
 <script>
 import JSON5 from 'json5'
-import readFile from '@/helpers/fileReader'
 
 import { mapGetters, mapActions } from 'vuex'
 import Vue from 'vue'
 
 import { v4 as uuidv4 } from 'uuid'
 
+import XBtn from './global/xBtn'
+import dlgOk from './utils/dlgOk.vue'
+import textDlgSubmitCancel from './utils/dlgTextSubmitCancel'
 import MonacoJsonObjectEditor from '@/components/monaco/MonacoJsonObjectEditor'
 import ApiOverlay from '@/components/apiOverlay'
 import colors from '@/mixins/colors'
 import DlgOkNew from '@/components/utils/dlgOkNew'
-import XBtn from './global/xBtn'
-import dlgOk from './utils/dlgOk.vue'
-import textDlgSubmitCancel from './utils/dlgTextSubmitCancel'
+import readFile from '@/helpers/fileReader'
 
 const { uniqueNamesGenerator, starWars, adjectives, animals } = require('unique-names-generator')
 
@@ -1088,7 +1088,7 @@ export default {
         version: '0.6',
         folder: homeDir,
         envs: {
-          dev: {
+          _noco: {
             db: [
               {
                 client: 'pg',
@@ -1133,10 +1133,10 @@ export default {
             }
           }
         },
-        workingEnv: 'dev',
+        workingEnv: '_noco',
         ui: {
           envs: {
-            dev: {}
+            _noco: {}
           }
         },
         meta: {
@@ -1573,7 +1573,7 @@ export default {
 
       p.ui = {
         envs: {
-          dev: {}
+          _noco: {}
         }
       }
       for (const env in p.envs) {
@@ -1840,7 +1840,7 @@ export default {
       if (
         db.connection.host === 'localhost' &&
         !this.edit &&
-        env === 'dev' &&
+        env === '_noco' &&
         this.project.envs[env].db.length === 1 &&
         this.project.envs[env].db[0].connection.user === 'postgres' &&
         this.project.envs[env].db[0].connection.database ===

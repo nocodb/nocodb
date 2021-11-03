@@ -1,23 +1,22 @@
-import {XKnex} from "../../index";
-import mssql from "./functionMappings/mssql";
-import mysql from "./functionMappings/mysql";
-import pg from "./functionMappings/pg";
-import sqlite from "./functionMappings/sqlite";
-import {QueryBuilder} from "knex";
+import { XKnex } from '../../index';
+import mssql from './functionMappings/mssql';
+import mysql from './functionMappings/mysql';
+import pg from './functionMappings/pg';
+import sqlite from './functionMappings/sqlite';
+import { QueryBuilder } from 'knex';
 
 export interface MapFnArgs {
-  pt: any,
-  aliasToCol: { [alias: string]: string },
-  knex: XKnex,
-  alias: string,
-  a?: string,
-  fn: (...args: any) => QueryBuilder | any,
-  colAlias: string,
-  prevBinaryOp?: any
+  pt: any;
+  aliasToCol: { [alias: string]: string };
+  knex: XKnex;
+  alias: string;
+  a?: string;
+  fn: (...args: any) => QueryBuilder | any;
+  colAlias: string;
+  prevBinaryOp?: any;
 }
 
 const mapFunctionName = (args: MapFnArgs): any => {
-
   const name = args.pt.callee.name;
   let val;
 
@@ -40,11 +39,10 @@ const mapFunctionName = (args: MapFnArgs): any => {
   }
 
   if (typeof val === 'function') {
-    return val(args)
+    return val(args);
   } else if (typeof val === 'string') {
     args.pt.callee.name = val;
   }
-}
-
+};
 
 export default mapFunctionName;

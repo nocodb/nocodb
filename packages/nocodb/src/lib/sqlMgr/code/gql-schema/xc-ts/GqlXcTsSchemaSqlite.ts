@@ -1,8 +1,6 @@
-import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
-
+import BaseGqlXcTsSchema from './BaseGqlXcTsSchema';
 
 class GqlXcSchemaSqlite extends BaseGqlXcTsSchema {
-
   /**
    *
    * @param dir
@@ -12,10 +10,9 @@ class GqlXcSchemaSqlite extends BaseGqlXcTsSchema {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
-
 
   /*/!**
    *
@@ -43,7 +40,6 @@ class GqlXcSchemaSqlite extends BaseGqlXcTsSchema {
   }*/
 
   protected _getGraphqlType(columnObj): any {
-
     switch (columnObj.dt) {
       case 'int':
       case 'integer':
@@ -53,7 +49,7 @@ class GqlXcSchemaSqlite extends BaseGqlXcTsSchema {
       case 'bigint':
       case 'int2':
       case 'int8':
-        return 'Int'
+        return 'Int';
         break;
 
       case 'character':
@@ -67,7 +63,7 @@ class GqlXcSchemaSqlite extends BaseGqlXcTsSchema {
       case 'double precision':
       case 'float':
       case 'numeric':
-        return 'Float'
+        return 'Float';
         break;
 
       case 'boolean':
@@ -85,36 +81,30 @@ class GqlXcSchemaSqlite extends BaseGqlXcTsSchema {
       default:
         return 'String';
         break;
-
     }
-
   }
-
 
   protected _getGraphqlConditionType(columnObj): any {
-
     switch (this._getGraphqlType(columnObj.dt)) {
-
-      case  "Int":
-        return 'ConditionInt'
-      case  "Float":
+      case 'Int':
+        return 'ConditionInt';
+      case 'Float':
         return 'ConditionFloat';
-      case  "Boolean":
-        return 'ConditionBoolean'
-      case  "String":
-        return 'ConditionString'
-      case "[String]":
-        return 'ConditionString'
+      case 'Boolean':
+        return 'ConditionBoolean';
+      case 'String':
+        return 'ConditionString';
+      case '[String]':
+        return 'ConditionString';
     }
-
   }
 
-/*
+  /*
   public getString(): string {
     return this._renderColumns(this.ctx);
   }
 */
-/*
+  /*
   protected _getInputType(args): string {
     let str = `input ${args.tn_camelize}Input { \r\n`
     for (const column of args.columns) {
@@ -237,6 +227,5 @@ class GqlXcSchemaSqlite extends BaseGqlXcTsSchema {
     return `${str}\r\n\r\n${strWhere}`;
   }*/
 }
-
 
 export default GqlXcSchemaSqlite;

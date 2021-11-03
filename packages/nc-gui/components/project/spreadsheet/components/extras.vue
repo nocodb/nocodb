@@ -65,6 +65,18 @@
             </v-list-item-title>
           </v-list-item>
           <v-divider />
+          <v-list-item dense href="https://www.reddit.com/r/NocoDB/" target="_blank">
+            <!-- Get your questions answered -->
+            <v-list-item-title>
+              <v-icon class="mr-1" small color="#ff4600">
+                mdi-reddit
+              </v-icon>
+              <span class="caption" :title="$t('projects.show_community_join_reddit')">{{
+                $t('projects.show_community_join_reddit')
+              }}</span>
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider />
           <v-list-item dense href="https://twitter.com/NocoDB" target="_blank">
             <!-- Follow NocoDB -->
             <v-list-item-title>

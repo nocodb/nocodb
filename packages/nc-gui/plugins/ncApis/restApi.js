@@ -12,7 +12,7 @@ export default class RestApi {
   }
 
   async read(id, params = {}) {
-    const data = await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`, params)
+    const data = await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`, params)
     return data.data
   }
 
@@ -35,7 +35,7 @@ export default class RestApi {
     }
   }
 
-  get(url, params={}, extras = {}) {
+  get(url, params = {}, extras = {}) {
     return this.$axios({
       url,
       params,
@@ -57,14 +57,17 @@ export default class RestApi {
     /// api/v1/Film/m2mNotChildren/film_actor/44
     // const list = await this.list(params);
     // const count = (await this.count({where: params.where || ''})).count;
-    const { list, info: { count } } = (await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
+    const {
+      list,
+      info: { count }
+    } = (await this.get(`/nc/${this.$ctx.projectId}/api/v1/${this.table}/m2mNotChildren/${assoc}/${pid}`, params)).data
     return { list, count }
   }
 
   async update(id, data, oldData) {
     const res = await this.$axios({
       method: 'put',
-      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`,
+      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`,
       data
     })
     const colName = Object.keys(data)[0]
@@ -79,18 +82,21 @@ export default class RestApi {
     return res.data
   }
 
-  async insert(data) {
+  async insert(data, {
+    params = {}
+  } = {}) {
     return (await this.$axios({
       method: 'post',
       url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}`,
-      data
+      data,
+      params
     })).data
   }
 
   async delete(id) {
     return this.$axios({
       method: 'delete',
-      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${id}`
+      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`
     })
   }
 

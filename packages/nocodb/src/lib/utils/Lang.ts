@@ -4,14 +4,15 @@ import english from './english.json';
 import translated from './translated.json';
 
 /* Converted from : https://smodin.me/translate-one-text-into-multiple-languages
-* Enter database host name || Choose SQL Database type || Enter database username || Enter database password || Enter database port number || Enter database/schema name || Enter API type to generate || How do you want to run it
-* */
+ * Enter database host name || Choose SQL Database type || Enter database username || Enter database password || Enter database port number || Enter database/schema name || Enter API type to generate || How do you want to run it
+ * */
 
 const formattedTranslate: any = {};
-for (const {symbol, text} of ([english, ...translated].sort((a: any, b: any) => a.symbol.localeCompare(b.symbol)) as any[])) {
-  formattedTranslate [symbol] = text.split(/\s*\|\|\s*/);
+for (const { symbol, text } of [english, ...translated].sort((a: any, b: any) =>
+  a.symbol.localeCompare(b.symbol)
+) as any[]) {
+  formattedTranslate[symbol] = text.split(/\s*\|\|\s*/);
 }
-
 
 const dummy: any = new Date();
 const offset: any = -dummy.getTimezoneOffset();
@@ -21,14 +22,10 @@ enum STR {
   SLOGAN
 }
 
-
 class Lang {
-
   // @ts-ignore
   public static getString(str: STR): string {
-
     switch (locale) {
-
       case 'en':
       case 'en-GB':
       case 'en-AU':
@@ -49,7 +46,6 @@ class Lang {
 
       // case 'en-IN':
       //   break;
-
 
       case 'de':
       case 'de-DE':
@@ -103,18 +99,15 @@ class Lang {
       case 'pt':
       case 'pt-BR':
       case 'pt-PT':
-
         return `${formattedTranslate?.pt?.[str]}`;
 
       case 'ru':
       case 'ru-RU':
         return `${formattedTranslate?.ru?.[str]}`;
 
-
       case 'sv':
       case 'sv-SE':
         return `${formattedTranslate?.sv?.[str]}`;
-
 
       case 'th':
       case 'th-TH':
@@ -124,11 +117,9 @@ class Lang {
       case 'tl-PH':
         return `${formattedTranslate?.tl?.[str]}`;
 
-
       case 'tr':
       case 'tr-TR':
         return `${formattedTranslate?.tr?.[str]}`;
-
 
       case 'uk':
       case 'uk-UA':
@@ -138,16 +129,11 @@ class Lang {
       case 'vi-VN':
         return `${formattedTranslate?.vi?.[str]}`;
     }
-
   }
-
-
 }
 
 export default Lang;
-export {
-  STR
-};
+export { STR };
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

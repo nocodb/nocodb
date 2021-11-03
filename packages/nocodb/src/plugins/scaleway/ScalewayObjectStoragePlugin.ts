@@ -1,25 +1,23 @@
-import {IStorageAdapter, XcStoragePlugin} from "nc-plugin";
+import { IStorageAdapter, XcStoragePlugin } from 'nc-plugin';
 
-import ScalewayObjectStorage from "./ScalewayObjectStorage";
-
+import ScalewayObjectStorage from './ScalewayObjectStorage';
 
 class ScalewayObjectStoragePlugin extends XcStoragePlugin {
-
   private static storageAdapter: ScalewayObjectStorage;
 
-  public  getAdapter(): IStorageAdapter {
+  public getAdapter(): IStorageAdapter {
     return ScalewayObjectStoragePlugin.storageAdapter;
   }
 
   public async init(config: any): Promise<any> {
-    ScalewayObjectStoragePlugin.storageAdapter = new ScalewayObjectStorage(config);
+    ScalewayObjectStoragePlugin.storageAdapter = new ScalewayObjectStorage(
+      config
+    );
     await ScalewayObjectStoragePlugin.storageAdapter.init();
   }
-
 }
 
 export default ScalewayObjectStoragePlugin;
-
 
 /**
  * @copyright Copyright (c) 2021, Bhanu P Chaudhary <bhanu423@gmail.com>

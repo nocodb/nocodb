@@ -96,7 +96,7 @@ export default {
     }
   },
   created() {
-    this.filters = this.value || []
+    this.sortList = this.value || []
   },
   methods: {
     addSort() {
@@ -104,7 +104,7 @@ export default {
         field: '',
         order: ''
       })
-      this.filters = this.filters.slice()
+      this.sortList = this.sortList.slice()
     }
   }
 }

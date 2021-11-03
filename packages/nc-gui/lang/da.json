@@ -1,0 +1,247 @@
+{
+  "projects": {
+    "my_projects": "Mine projekter",
+    "reload_projects_tooltip": "Opdater projekter",
+    "create_new_project_button": {
+      "text": "Nyt projekt",
+      "subtext_1": "skab",
+      "subtext_1_tooltip": "Opret et nyt projekt",
+      "subtext_2": "Opret ved at forbinde <br> til en ekstern database",
+      "subtext_2_tooltip": "Understøtter MySQL, PostgreSQL, SQL Server & SQLITE"
+    },
+    "search_project": "Søg projekt",
+    "import_metadata": "Import metadata.",
+    "export_metadata": "Eksport metadata.",
+    "clear_metadata": "Klare metadata.",
+    "stop_project": "Stop Project.",
+    "start_project": "Start Project.",
+    "restart_project": "Genstart Project.",
+    "delete_project": "Slet projekt",
+    "project_api_type_tooltip_graphql": "Tilgængelig via GraphQL Apis",
+    "project_api_type_tooltip_rest": "Tilgængelig via hvile API'er",
+    "project_empty_message": "Kom i gang ved at oprette et nyt projekt",
+    "import_button": {
+      "text": "Import Nocodb-projekt ved at uploade Metadata Zip-filen"
+    },
+    "show_community_star": "Stjerne",
+    "show_community_us_on_Github": "os på github.",
+    "show_community_book_a_free_demo": "Book en gratis demo",
+    "show_community_get_your_questions_answered": "Få dine spørgsmål besvaret",
+    "show_community_join_discord": "Deltag Diskord",
+    "show_community_follow_nocodb": "Følg nocodb.",
+    "search": {
+      "your_search_found_no_results": "Din søgning efter {Søg} viste ingen resultater"
+    },
+    "ext_db": {
+      "title": {
+        "edit": "Rediger projekt",
+        "create": "Opret projekt"
+      },
+      "project_name": "Indtast projektnavn",
+      "project_type": "Access Project Via.",
+      "button": {
+        "save_project": "Gem projekt",
+        "update_and_restart": "Opdatering og genstart",
+        "cancel": "Afbestille",
+        "cancel_tooltip": "Annuller og returnerer"
+      },
+      "credentials": {
+        "title": "Database legitimationsoplysninger.",
+        "db_type": "Database type",
+        "sqlite_file": "SQLITE FILE.",
+        "host_address": "Værtsadresse.",
+        "port": "Port nummer.",
+        "username": "Brugernavn.",
+        "password": "Adgangskode",
+        "db_create_if_not_exists": "DATABASE: Opret, hvis ikke eksisterer",
+        "button": {
+          "test_db_conn": "Test Database Connection.",
+          "remove_db_from_env": "Fjern databasen fra miljøet"
+        },
+        "advanced": {
+          "title": "SSL & Avancerede parametre",
+          "ssl": {
+            "client_key": {
+              "title": "Klientnøgle",
+              "toolip": "Vælg .Key File."
+            },
+            "client_cert": {
+              "title": "Klient cert.",
+              "toolip": "Vælg .cert File."
+            },
+            "server_ca": {
+              "title": "Server ca.",
+              "toolip": "Vælg CA File."
+            },
+            "preferred": "Foretrukne",
+            "usage": {
+              "no": "Ingen",
+              "preferred": "Foretrukne",
+              "required": "Påkrævet",
+              "requried_ca": "Påkrævet-ca.",
+              "requried_identity": "Påkrævet-identitet"
+            }
+          },
+          "inflection": {
+            "table_name": "Bøjning - Bordnavn",
+            "column_name": "Bøjning - kolonne navn"
+          },
+          "button": {
+            "edit_conn_json": "Rediger forbindelse JSON"
+          }
+        }
+      },
+      "error": {
+        "invalid_char_in_folder_path": "Ugyldig tegn i mappebanen.",
+        "invalid_db_credentials": "Ugyldige databaseoplysninger.",
+        "unable_to_connect_to_db": "Kan ikke oprette forbindelse til databasen, tjek venligst din database er op.",
+        "user_doesnt_ve_sufficient_permission": "Brugeren eksisterer ikke eller har tilstrækkelig tilladelse til at skabe skema."
+      },
+      "head": {
+        "title": "Opret projekt | Nocodb."
+      },
+      "dialog": {
+        "success": "Forbindelsen var succesfuld",
+        "failure": "Forbindelsesfejl:"
+      }
+    },
+    "notifications": {
+      "no_new": "Ingen nye meddelelser.",
+      "clear": "Klar"
+    }
+  },
+  "signin": {
+    "title": "LOG IND",
+    "enter_your_work_email": "Indtast din arbejds-email",
+    "enter_your_password": "Skriv dit kodeord",
+    "forget_password": "Glemt din adgangskode ?",
+    "dont_ve_an_account": "Har du ikke en konto?",
+    "sign_up": "Tilmelde",
+    "form": {
+      "rules": {
+        "email_is_reqd": "E-mail er påkrævet",
+        "email_must_be_valid": "E-mail skal være gyldig",
+        "passwd_required": "adgangskode er påkrævet",
+        "passwd_must_be_8_chars": "Din adgangskode skal være mindst 8 tegn"
+      }
+    },
+    "head": {
+      "title": "Log ind | Nocodb.",
+      "meta": {
+        "hid": "Log ind på NOCODB",
+        "name": "Log ind på NOCODB",
+        "content": "Log ind på NOCODB"
+      }
+    },
+    "password": {
+      "recovery": {
+        "title": "Nulstil din adgangskode",
+        "message_1": "Angiv venligst den e-mail-adresse, du brugte, når du tilmeldte dig.",
+        "message_2": "Vi sender dig en email med et link for at nulstille dit kodeord.",
+        "success": "Tjek venligst din email for at nulstille adgangskoden",
+        "button": "SEND E-MAIL"
+      }
+    }
+  },
+  "signup": {
+    "title": "TILMELDE",
+    "you_will_be_the_super_admin": "Du vil være 'super admin'",
+    "already_ve_an_account": "Har du allerede en bruger ?"
+  },
+  "treeview": {
+    "settings": {
+      "title": "Indstillinger.",
+      "tooltip": "Kun synlig for skaberen"
+    },
+    "app_store": "App butik",
+    "team_n_auth": {
+      "title": "Team & Auth.",
+      "tooltip": "Roller & Brugere Management"
+    },
+    "project_metadata": {
+      "title": "Projektmetadata.",
+      "tooltip": "Meta Management."
+    },
+    "preview_as": "Forhåndsvisning så",
+    "reset_review": "Nulstil preview."
+  },
+  "nav_drawer": {
+    "title": "Visninger.",
+    "virtual_views": {
+      "action": {
+        "copy": "Kopi visning",
+        "rename": "Omdøb visning",
+        "delete": "Slet visning"
+      },
+      "title": "Opret en visning",
+      "caption": "Kun synlig for skaberen",
+      "grid": {
+        "title": "Grid.",
+        "create": "Tilføj gridvisning"
+      },
+      "gallery": {
+        "title": "Galleri",
+        "create": "Tilføj Gallery View."
+      },
+      "calendar": {
+        "title": "Kalender",
+        "create": "Tilføj kalendervisning"
+      },
+      "kanban": {
+        "title": "Kanban.",
+        "create": "Tilføj Kanban View."
+      },
+      "form": {
+        "title": "Form",
+        "create": "Tilføj formularvisning"
+      }
+    },
+    "advanced": {
+      "title1": "Del View",
+      "views_list": "Visninger List",
+      "copy_api_url": "COPY API URL."
+    },
+    "share_view": {
+      "title": "Denne visning deles via et privat link",
+      "body": "Folk med privat link kan kun se celler synlige i denne opfattelse",
+      "toggle": {
+        "option1": "Begræns adgang med et kodeord",
+        "option2": "Adgang er adgangskode begrænset"
+      },
+      "password": {
+        "caption": "Indtast adgangskoden",
+        "button": "Gem adgangskode."
+      }
+    }
+  },
+  "management": {
+    "tabs": {
+      "user": "Bruger Management",
+      "api": "API TOKENS MANAGEMENT",
+      "roles": "Roller Management."
+    },
+    "meta": {
+      "title": "Metadata Operations",
+      "export_to_file": {
+        "title": "Eksporter til filer",
+        "desc": "Eksporter alle metadata fra metabordene til metatirectory."
+      },
+      "import": {
+        "title": "Importere",
+        "desc": "Importer alle metadata fra metatappen til metaborde."
+      },
+      "export_to_zip": {
+        "title": "Eksporter zip",
+        "desc": "Eksporter Project Meta til ZIP-fil og download."
+      },
+      "import_zip": {
+        "title": "Import Zip.",
+        "desc": "Import Project Meta Zip-fil og genstart."
+      },
+      "reset": {
+        "title": "Nulstil",
+        "desc": "Ryd alle metadata fra metaborde."
+      }
+    }
+  }
+}

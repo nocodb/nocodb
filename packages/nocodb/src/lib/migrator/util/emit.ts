@@ -1,9 +1,9 @@
-import Emittery from "emittery";
+import Emittery from 'emittery';
 
 let emitSingleton = null;
 
 export default class Emit {
-  public evt:any;
+  public evt: any;
 
   constructor() {
     if (emitSingleton) return emitSingleton;

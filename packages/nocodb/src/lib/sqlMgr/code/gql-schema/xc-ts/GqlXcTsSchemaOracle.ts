@@ -1,8 +1,6 @@
-import BaseGqlXcTsSchema from "./BaseGqlXcTsSchema";
-
+import BaseGqlXcTsSchema from './BaseGqlXcTsSchema';
 
 class GqlXcSchemaOracle extends BaseGqlXcTsSchema {
-
   /**
    *
    * @param dir
@@ -12,8 +10,8 @@ class GqlXcSchemaOracle extends BaseGqlXcTsSchema {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({dir, filename, ctx}) {
-    super({dir, filename, ctx});
+  constructor({ dir, filename, ctx }) {
+    super({ dir, filename, ctx });
   }
 
   /*/!**
@@ -185,78 +183,71 @@ class GqlXcSchemaOracle extends BaseGqlXcTsSchema {
   }
 */
 
-  protected _getGraphqlType(columnObj):any {
+  protected _getGraphqlType(columnObj): any {
     switch (columnObj.dt) {
-      case "char":
-      case "nchar":
-      case "nvarchar2":
-      case "varchar2":
-      case "long":
-      case "raw":
-      case "long raw":
-        return "String";
+      case 'char':
+      case 'nchar':
+      case 'nvarchar2':
+      case 'varchar2':
+      case 'long':
+      case 'raw':
+      case 'long raw':
+        return 'String';
         break;
 
-      case "number":
-      case "numeric":
-      case "float":
-      case "dec":
-      case "real":
-      case "decimal":
-      case "double precision":
-        return "Float";
+      case 'number':
+      case 'numeric':
+      case 'float':
+      case 'dec':
+      case 'real':
+      case 'decimal':
+      case 'double precision':
+        return 'Float';
         break;
-      case "integer":
-      case "int":
-      case "smallint":
-        return "Int";
+      case 'integer':
+      case 'int':
+      case 'smallint':
+        return 'Int';
         break;
-      case "date":
-      case "timestamp":
-      case "timestamp with time zone":
-      case "timestamp with local time zone":
-      case "interval year to month":
-      case "interval day to second":
-      case "bfile":
-      case "blob":
-      case "clob":
-      case "nclob":
-        return "String";
+      case 'date':
+      case 'timestamp':
+      case 'timestamp with time zone':
+      case 'timestamp with local time zone':
+      case 'interval year to month':
+      case 'interval day to second':
+      case 'bfile':
+      case 'blob':
+      case 'clob':
+      case 'nclob':
+        return 'String';
         break;
-      case "rowid":
-      case "urowid":
-        return "Int";
+      case 'rowid':
+      case 'urowid':
+        return 'Int';
         break;
       default:
-        return "String"
+        return 'String';
         break;
     }
-
   }
 
-  protected _getGraphqlConditionType(columnObj):any {
-
+  protected _getGraphqlConditionType(columnObj): any {
     switch (this._getGraphqlType(columnObj.dt)) {
-
-      case  "Int":
-        return 'ConditionInt'
-      case  "Float":
+      case 'Int':
+        return 'ConditionInt';
+      case 'Float':
         return 'ConditionFloat';
-      case  "Boolean":
-        return 'ConditionBoolean'
-      case  "String":
-        return 'ConditionString'
-      case "[String]":
-        return 'ConditionString'
+      case 'Boolean':
+        return 'ConditionBoolean';
+      case 'String':
+        return 'ConditionString';
+      case '[String]':
+        return 'ConditionString';
     }
-
   }
   /*getString(){
     return this._renderColumns(this.ctx);
   }*/
-
-
 }
-
 
 export default GqlXcSchemaOracle;

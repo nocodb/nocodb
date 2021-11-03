@@ -5,15 +5,18 @@ const uiTypes = [
   },
   {
     name: 'LinkToAnotherRecord',
-    icon: 'mdi-link-variant'
+    icon: 'mdi-link-variant',
+    virtual: 1
   },
-  {
-    name: 'ForeignKey',
-    icon: 'mdi-link-variant'
-  },
+  // {
+  //   name: 'ForeignKey',
+  //   icon: 'mdi-link-variant',
+  //   virtual: 1
+  // },
   {
     name: 'Lookup',
-    icon: 'mdi-table-column-plus-before'
+    icon: 'mdi-table-column-plus-before',
+    virtual: 1
   },
   {
     name: 'SingleLineText',
@@ -93,11 +96,13 @@ const uiTypes = [
   },
   {
     name: 'Formula',
-    icon: 'mdi-math-integral'
+    icon: 'mdi-math-integral',
+    virtual: 1
   },
   {
     name: 'Rollup',
-    icon: 'mdi-movie-roll'
+    icon: 'mdi-movie-roll',
+    virtual: 1
   },
   {
     name: 'Count',
@@ -111,10 +116,10 @@ const uiTypes = [
     name: 'DateTime',
     icon: 'mdi-calendar-clock'
   },
-  {
-    name: 'CreateTime',
-    icon: 'mdi-calendar-clock'
-  },
+  // {
+  //   name: 'CreateTime',
+  //   icon: 'mdi-calendar-clock'
+  // },
   // {
   //   name: 'LastModifiedTime',
   //   icon: 'mdi-calendar-clock',
@@ -186,6 +191,42 @@ export default [
   'Button',
   'SpecificDBType'
 ]
+
+export const UITypes = {
+  ID: 'ID',
+  ForeignKey: 'ForeignKey',
+  SingleLineText: 'SingleLineText',
+  LongText: 'LongText',
+  Attachment: 'Attachment',
+  Checkbox: 'Checkbox',
+  MultiSelect: 'MultiSelect',
+  SingleSelect: 'SingleSelect',
+  Collaborator: 'Collaborator',
+  Date: 'Date',
+  Year: 'Year',
+  Time: 'Time',
+  PhoneNumber: 'PhoneNumber',
+  Email: 'Email',
+  URL: 'URL',
+  Number: 'Number',
+  Decimal: 'Decimal',
+  Currency: 'Currency',
+  Percent: 'Percent',
+  Duration: 'Duration',
+  Rating: 'Rating',
+  Formula: 'Formula',
+  Rollup: 'Rollup',
+  Count: 'Count',
+  Lookup: 'Lookup',
+  DateTime: 'DateTime',
+  CreateTime: 'CreateTime',
+  LastModifiedTime: 'LastModifiedTime',
+  AutoNumber: 'AutoNumber',
+  Barcode: 'Barcode',
+  Button: 'Button',
+  SpecificDBType: 'SpecificDBType',
+  LinkToAnotherRecord: 'LinkToAnotherRecord'
+}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

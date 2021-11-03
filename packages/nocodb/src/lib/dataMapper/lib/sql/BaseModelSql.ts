@@ -2407,7 +2407,13 @@ class BaseModelSql extends BaseModel {
     return (this.virtualColumns || [])?.reduce((arr, v) => {
       if (v.rl) {
         arr.push(
-          genRollupSelect({ knex: this.dbDriver, rollup: v.rl }).as(v._cn)
+          genRollupSelect({
+            tn: this.tn,
+            knex: this.dbDriver,
+            rollup: v.rl,
+            hasMany: this.hasManyRelations,
+            manyToMany: this.manyToManyRelations
+          }).as(v._cn)
         );
       }
       return arr;

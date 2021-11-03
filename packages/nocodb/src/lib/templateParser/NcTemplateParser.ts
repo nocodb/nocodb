@@ -24,11 +24,11 @@ export default class NcTemplateParser {
   private prefix: string;
   private template: any;
 
-  constructor({client, template, prefix = ''}) {
+  constructor({ client, template, prefix = '' }) {
     this.client = client;
-    this.sqlUi = SqlUiFactory.create({client});
+    this.sqlUi = SqlUiFactory.create({ client });
     this.template = template;
-    this.prefix = prefix
+    this.prefix = prefix;
   }
 
   public parse(template?: any): any {
@@ -39,11 +39,11 @@ export default class NcTemplateParser {
         ...tableTemplate,
         tn: this.getTable(tableTemplate.tn),
         _tn: tableTemplate._tn || tableTemplate.tn
-      }
+      };
       const table = this.extractTable(t);
       tables.push(table);
-      return t
-    })
+      return t;
+    });
 
     this._tables = tables;
 
@@ -73,7 +73,7 @@ export default class NcTemplateParser {
       columns: [
         defaultColumns[0],
         ...this.extractTableColumns(tableTemplate.columns),
-        ...defaultColumns.slice(1),
+        ...defaultColumns.slice(1)
       ]
     };
   }
@@ -95,22 +95,24 @@ export default class NcTemplateParser {
         //   // this.extractRelations(tableColumn, 'mm');
         //   break;
         default:
-          const colProp = this.sqlUi.getDataTypeForUiType(tableColumn);
-          columns.push({
-            ...this.sqlUi.getNewColumn(''),
-            rqd: false,
-            pk: false,
-            ai: false,
-            cdf: null,
-            un: false,
-            dtx: 'specificType',
-            dtxp: this.sqlUi.getDefaultLengthForDatatype(colProp.dt),
-            dtxs: this.sqlUi.getDefaultScaleForDatatype(colProp.dt),
-            cn: tableColumn.cn,
-            _cn: tableColumn.cn,
-            uidt: tableColumn.uidt,
-            ...colProp
-          });
+          {
+            const colProp = this.sqlUi.getDataTypeForUiType(tableColumn);
+            columns.push({
+              ...this.sqlUi.getNewColumn(''),
+              rqd: false,
+              pk: false,
+              ai: false,
+              cdf: null,
+              un: false,
+              dtx: 'specificType',
+              dtxp: this.sqlUi.getDefaultLengthForDatatype(colProp.dt),
+              dtxs: this.sqlUi.getDefaultScaleForDatatype(colProp.dt),
+              cn: tableColumn.cn,
+              _cn: tableColumn.cn,
+              uidt: tableColumn.uidt,
+              ...colProp
+            });
+          }
           break;
       }
     }
@@ -121,7 +123,9 @@ export default class NcTemplateParser {
     if (!this._relations) this._relations = [];
     if (!this._m2mRelations) this._m2mRelations = [];
     for (const hasMany of tableTemplate.hasMany || []) {
-      const childTable = this.tables.find(table => table.tn === this.getTable(hasMany.tn));
+      const childTable = this.tables.find(
+        table => table.tn === this.getTable(hasMany.tn)
+      );
       const parentTable = this.tables.find(
         table => table.tn === tableTemplate.tn
       );
@@ -160,7 +164,9 @@ export default class NcTemplateParser {
     }
     for (const manyToMany of tableTemplate.manyToMany || []) {
       // @ts-ignore
-      const childTable = this.tables.find(table => table.tn === this.getTable(manyToMany.rtn));
+      const childTable = this.tables.find(
+        table => table.tn === this.getTable(manyToMany.rtn)
+      );
       const parentTable = this.tables.find(
         table => table.tn === tableTemplate.tn
       );
@@ -189,27 +195,18 @@ export default class NcTemplateParser {
   private extractVirtualColumns(tableMeta) {
     if (!this._virtualColumns) this._virtualColumns = {};
     const virtualColumns = [];
-    for (const v of (tableMeta.v || [])) {
-      const v1 = {...v}
-      let type, prop;
+    for (const v of tableMeta.v || []) {
+      const v1 = { ...v };
 
-      switch (v.uidt) {
-        case UITypes.Rollup:
-          type = v.rl.type
-          prop = 'rl'
-          break;
-        case UITypes.Lookup:
-          type = v.lk.type
-          prop = 'lk'
-          break;
+      if (v.rl) {
+        v1.rl.rlttn = v1.rl.rltn;
+        v1.rl.rltn = this.getTable(v1.rl.rltn);
+      } else if (v.lk) {
+        v1.lk._ltn = v1.lk.ltn;
+        v1.lk.ltn = this.getTable(v1.lk.ltn);
       }
 
-      if (type && prop) {
-        // todo: extract relation data
-      } else {
-        virtualColumns.push(v1)
-      }
-
+      virtualColumns.push(v1);
     }
     this.virtualColumns[tableMeta.tn] = virtualColumns;
   }
@@ -231,6 +228,6 @@ export default class NcTemplateParser {
   }
 
   private getTable(tn) {
-    return `${this.prefix}${tn}`
+    return `${this.prefix}${tn}`;
   }
 }

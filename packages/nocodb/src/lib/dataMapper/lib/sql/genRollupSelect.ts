@@ -1,8 +1,24 @@
 import Knex from 'knex';
 
-export default function({ knex, rollup }: { knex: Knex; rollup: any }) {
+export default function({
+  knex,
+  rollup: _rollup,
+  hasMany,
+  manyToMany
+}: {
+  tn: string;
+  knex: Knex;
+  rollup: any;
+  hasMany: any[];
+  manyToMany: any[];
+}) {
+  let rollup = _rollup;
+
   switch (rollup.type) {
     case 'hm':
+      if (!rollup.tn || !rollup.rtn) {
+        rollup = { ...rollup, ...hasMany.find(hm => hm.tn === rollup.rltn) };
+      }
       return knex(rollup.rltn)
         [rollup.fn]?.(knex.ref(`${rollup.rltn}.${rollup.rlcn}`))
         .where(
@@ -12,6 +28,12 @@ export default function({ knex, rollup }: { knex: Knex; rollup: any }) {
         );
       break;
     case 'mm':
+      if (!rollup.tn || !rollup.rtn || !rollup.vtn) {
+        rollup = {
+          ...rollup,
+          ...manyToMany.find(mm => mm.rtn === rollup.rltn)
+        };
+      }
       return knex(rollup.rltn)
         [rollup.fn]?.(knex.ref(`${rollup.rltn}.${rollup.rlcn}`))
         .innerJoin(

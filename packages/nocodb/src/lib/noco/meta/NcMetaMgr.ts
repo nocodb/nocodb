@@ -3933,6 +3933,7 @@ export default class NcMetaMgr {
 
     return this.xcExportAsCsv(
       {
+        shared: true,
         ...sharedViewMeta,
         args: { ...args.args, ...sharedViewMeta }
       },
@@ -4209,6 +4210,10 @@ export default class NcMetaMgr {
       queryParams = JSON.parse(selectedView.query_params);
     } catch {}
 
+    if (!args.shared) {
+      queryParams = { ...queryParams, ...localQuery };
+    }
+
     let sort = this.serializeSortParam(queryParams);
 
     let where = '';
@@ -4240,14 +4245,18 @@ export default class NcMetaMgr {
         ...this.serializeNestedParams(meta, queryParams)
       },
       // filter only visible columns
-      Object.entries(localQuery?.showFields || queryParams?.showFields || {})
-        .filter(v => v[1])
-        .map(v => v[0])
-        .sort(
-          (a, b) =>
-            queryParams?.fieldsOrder?.indexOf(a) -
-            queryParams?.fieldsOrder?.indexOf(b)
-        )
+      localQuery?.showFields || queryParams?.showFields
+        ? Object.entries(
+            localQuery?.showFields || queryParams?.showFields || {}
+          )
+            .filter(v => v[1])
+            .map(v => v[0])
+            .sort(
+              (a, b) =>
+                (queryParams?.fieldsOrder?.indexOf(a) + 1 || Infinity) -
+                (queryParams?.fieldsOrder?.indexOf(b) + 1 || Infinity)
+            )
+        : undefined
     );
 
     return {
@@ -5155,7 +5164,7 @@ export default class NcMetaMgr {
     };
 
     for (const v of meta.v) {
-      if (!queryParams?.showFields?.[v._cn]) continue;
+      if (queryParams?.showFields && !queryParams.showFields[v._cn]) continue;
       if (v.bt || v.lk?.type === 'bt') {
         const tn = v.bt?.rtn || v.lk?.rtn;
         if (!nestedParams.bt.includes(tn)) nestedParams.bt.push(tn);
@@ -5186,6 +5195,7 @@ export default class NcMetaMgr {
     nestedParams.mm = nestedParams.mm.join(',');
     nestedParams.hm = nestedParams.hm.join(',');
     nestedParams.bt = nestedParams.bt.join(',');
+
     return nestedParams;
   }
 }

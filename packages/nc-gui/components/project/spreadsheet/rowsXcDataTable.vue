@@ -142,6 +142,12 @@
         <csv-export
           :meta="meta"
           :nodes="nodes"
+          :query-params="{
+            fieldsOrder,
+            fieldFilter,
+            sortList,
+            showFields
+          }"
           :selected-view="selectedView"
           class="mr-1"
         />

@@ -680,7 +680,7 @@ export default {
     validateAndFocus() {
       if (!this.$refs.form.validate()) {
         const input = this.$el.querySelector('.v-input.error--text')
-        this.expansionPanel = +input.parentElement.parentElement.dataset.exp
+        this.expansionPanel = input && input.parentElement && input.parentElement.parentElement && +input.parentElement.parentElement.dataset.exp
         setTimeout(() => {
           input.querySelector('input,select').focus()
         }, 500)
@@ -865,6 +865,7 @@ export default {
 
       const el = document.createElement('textarea')
       el.value = JSON.stringify(this.projectTemplate, null, 2)
+      debugger
       el.setAttribute('readonly', '')
       el.style = { position: 'absolute', left: '-9999px' }
       document.body.appendChild(el)
@@ -872,6 +873,7 @@ export default {
       document.execCommand('copy')
       document.body.removeChild(el)
       this.$toast.success('Successfully copied JSON data to clipboard!').goAway(3000)
+      return true
     },
     openUrl() {
       window.open(this.url, '_blank')
@@ -1025,6 +1027,14 @@ export default {
             }
           })
           this.$toast.success('Template updated successfully').goAway(3000)
+        } else if (!this.token) {
+          if (!this.copyJSON()) { return }
+
+          this.$toast.info('Initiating Github for template').goAway(3000)
+          const res = await this.$axios.post(`${process.env.NC_API_URL}/api/v1/projectTemplateCreate`, this.projectTemplate)
+          console.log(res)
+          this.$toast.success('Initiated Github successfully').goAway(3000)
+          window.open(res.data.path, '_blank')
         } else {
           const res = await this.$axios.post(`${process.env.NC_API_URL}/api/v1/nc/templates`, this.projectTemplate, {
             params: {

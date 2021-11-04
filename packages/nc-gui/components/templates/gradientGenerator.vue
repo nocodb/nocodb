@@ -7,8 +7,8 @@
     >
       Click to change gradient
     </div>
-    <input v-model="color1" :style="{background:color1} " type="color">
-    <input v-model="color2" :style="{background:color2} " type="color">
+    <input v-model="color1" :style="{color:color1} " type="color">
+    <input v-model="color2" :style="{color:color2} " type="color">
   </div>
 </template>
 
@@ -41,6 +41,11 @@ export default {
       }
     }
   },
+  created() {
+    if (!this.color1 && !this.color2) {
+      this.generateGradient()
+    }
+  },
   methods: {
 
     generateGradient() {
@@ -58,10 +63,8 @@ export default {
       const newColor1 = populate('#')
       const newColor2 = populate('#')
       this.angle = Math.round(Math.random() * 360)
-      this.color1 = newColor1
-      this.color2 = newColor2
-      // const gradient = 'linear-gradient(' + this.angle + 'deg, ' + newColor1 + ', ' + newColor2 + ')'
-      // this.$emit('input', gradient)
+      const gradient = 'linear-gradient(' + this.angle + 'deg, ' + newColor1 + ', ' + newColor2 + ')'
+      this.$emit('input', gradient)
     }
   }
 }

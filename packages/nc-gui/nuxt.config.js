@@ -210,7 +210,8 @@ export default {
   ],
   env: {
     EE: !!process.env.EE,
-    NC_API_URL: 'http://localhost:3000'
+    NC_API_URL: 'http://localhost:3001'
+    // NC_API_URL: 'https://nocodb.com'
   },
   pwa: {
     workbox: {

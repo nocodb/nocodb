@@ -20,8 +20,8 @@
         </v-list-item>
       </v-list-item-group>
     </v-list>
+    <!--      v-if="counter > 4"-->
     <v-btn
-      v-if="counter > 4"
       color="primary"
       outlined
       @click="showTemplateEditor"

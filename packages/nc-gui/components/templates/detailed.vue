@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-0">
     <div class="d-flex">
-      <v-navigation-drawer height="calc(100vh - 40px)">
+      <v-navigation-drawer permanent height="calc(100vh - 40px)">
         <categories
           ref="cat"
           :counter.sync="counter"

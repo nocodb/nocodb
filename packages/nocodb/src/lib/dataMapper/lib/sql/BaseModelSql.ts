@@ -2525,7 +2525,16 @@ class BaseModelSql extends BaseModel {
       }
     }
 
-    const data = Papaparse.unparse({ fields, data: csvRows });
+    const data = Papaparse.unparse({
+      fields:
+        fields &&
+        fields.filter(
+          f =>
+            this.columns.some(c => c._cn === f) ||
+            this.virtualColumns.some(c => c._cn === f)
+        ),
+      data: csvRows
+    });
     return { data, offset, elapsed };
   }
 

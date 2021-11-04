@@ -147,14 +147,24 @@ export const genTest = (type, xcdb) => {
 
             it(`[${roles[roleType].name}] Download files`, () => {
                 mainPage.hideUnhideField('LastUpdate')
-                let storedRecords = [
-                    `City,City => Address,Country <= City`,
-                    `A Corua (La Corua),939 Probolinggo Loop,Spain`,
-                    `Abha,733 Mandaluyong Place,Saudi Arabia`,
-                    `Abu Dhabi,535 Ahmadnagar Manor,United Arab Emirates`,
-                    `Acua,1789 Saint-Denis Parkway,Mexico`
-                ]
-                mainPage.downloadAndVerifyCsv(`City_exported_1.csv`, storedRecords)
+                const verifyCsv = (retrievedRecords) => {
+                    // expected output, statically configured
+                    let storedRecords = [
+                        `City,City => Address,Country <= City`,
+                        `A Corua (La Corua),939 Probolinggo Loop,Spain`,
+                        `Abha,733 Mandaluyong Place,Saudi Arabia`,
+                        `Abu Dhabi,535 Ahmadnagar Manor,United Arab Emirates`,
+                        `Acua,1789 Saint-Denis Parkway,Mexico`
+                    ]
+                    
+                    for (let i = 0; i < storedRecords.length; i++) {
+                        // cy.log(retrievedRecords[i])
+                        expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+                    }
+                }                
+
+                // download & verify
+                mainPage.downloadAndVerifyCsv(`City_exported_1.csv`, verifyCsv)
                 mainPage.hideUnhideField('LastUpdate')
             })            
 

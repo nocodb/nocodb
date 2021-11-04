@@ -17,14 +17,26 @@ export const genTest = (type, xcdb) => {
         })              
 
         it('Download verification- base view, default columns', () => {
-            let storedRecords = [
-                `Country,LastUpdate,Country => City`,
-                `Afghanistan,2006-02-14T23:14:00.000Z,Kabul`,
-                `Algeria,2006-02-14T23:14:00.000Z,"Batna,Bchar,Skikda"`,
-                `American Samoa,2006-02-14T23:14:00.000Z,Tafuna`,
-                `Angola,2006-02-14T23:14:00.000Z,"Benguela,Namibe"`
-            ]
-            mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, storedRecords)
+            mainPage.hideUnhideField('LastUpdate')
+            const verifyCsv = (retrievedRecords) => {
+                // expected output, statically configured
+                let storedRecords = [
+                    `Country,Country => City`,
+                    `Afghanistan,Kabul`,
+                    `Algeria,"Batna,Bchar,Skikda"`,
+                    `American Samoa,Tafuna`,
+                    `Angola,"Benguela,Namibe"`
+                ]
+                
+                for (let i = 0; i < storedRecords.length; i++) {
+                    cy.log(retrievedRecords[i])
+                    expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+                }
+            }                
+
+            // download & verify
+            mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv)
+            mainPage.hideUnhideField('LastUpdate')
         })
     })
 }

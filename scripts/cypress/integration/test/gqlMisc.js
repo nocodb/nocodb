@@ -5,6 +5,7 @@ let t6b = require('../common/6b_downloadCsv')
 let t6c = require('../common/6c_swagger_api')
 let t6d = require('../common/6d_language_validation')
 let t6e = require('../common/6e_project_operations')
+let t6f = require('../common/6f_attachments')
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
@@ -21,6 +22,7 @@ const nocoTestSuite = (type, xcdb) => {
     t6b.genTest(type, xcdb)
     t6c.genTest(type, xcdb)
     t6d.genTest(type, xcdb)
+    t6f.genTest(type, xcdb)
     // **deletes created project, hence place it @ end
     t6e.genTest(type, xcdb)    
 }

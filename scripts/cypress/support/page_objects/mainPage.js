@@ -159,7 +159,7 @@ export class _mainPage {
             .trigger('mouseover')
             .click()
 
-        cy.get('.nc-column-delete').click()
+        cy.get('.nc-column-delete', {timeout: 5000}).click()
         cy.get('button:contains(Confirm)').click()        
     }
 
@@ -222,7 +222,9 @@ export class _mainPage {
         cy.getActiveMenu().find(`.v-list-item:contains(${field})`).first().click()
         cy.get('.nc-filter-operation-select').last().click();
         cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click()
-        cy.get('.nc-filter-value-select input:text').last().type(`${value}`);
+        if ((operation != 'is null') && (operation != 'is not null')) {
+            cy.get('.nc-filter-value-select input:text').last().type(`${value}`);
+        }
         cy.get('.nc-filter-menu-btn').click()
     }
 
@@ -267,7 +269,7 @@ export class _mainPage {
     //      wait for a while & check in configured download folder for the intended file
     //      if it exists, verify it against 'expectedRecords' passed in as parameter
     //
-    downloadAndVerifyCsv = (filename, expectedRecords) => {
+    downloadAndVerifyCsv = (filename, verifyCsv) => {
         cy.get('.nc-actions-menu-btn').click()
         cy.get(`.menuable__content__active .v-list-item span:contains("Download as CSV")`).click()
 
@@ -289,17 +291,7 @@ export class _mainPage {
 
                         // from CSV, split into records (rows)
                         const rows = fileData.replace(/\r\n/g, '\n').split('\n');
-
-                        // verify records against intended contents
-                        for (let i = 0; i < expectedRecords.length; i++) {
-                            const firstCol = rows[i].split(',')
-                            const expectedFirstCol = expectedRecords[i].split(',')
-                            expect(firstCol[0]).to.be.equal(expectedFirstCol[0])
-
-                            // expect(rows[i]).to.be.equal(expectedRecords[i])
-                            //cy.log(rows[i])
-                        }
-
+                        verifyCsv(rows)
                         deleteDownloadsFolder()
                 })
             })        

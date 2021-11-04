@@ -863,15 +863,17 @@ export default {
         return
       }
 
-      const el = document.createElement('textarea')
-      el.value = JSON.stringify(this.projectTemplate, null, 2)
-      debugger
-      el.setAttribute('readonly', '')
-      el.style = { position: 'absolute', left: '-9999px' }
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      this.$clipboard(JSON.stringify(this.projectTemplate, null, 2))
+
+      // const el = document.createElement('textarea')
+      // el.value = JSON.stringify(this.projectTemplate, null, 2)
+      // debugger
+      // el.setAttribute('readonly', '')
+      // el.style = { position: 'absolute', left: '-9999px' }
+      // document.body.appendChild(el)
+      // el.select()
+      // document.execCommand('copy')
+      // document.body.removeChild(el)
       this.$toast.success('Successfully copied JSON data to clipboard!').goAway(3000)
       return true
     },

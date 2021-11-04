@@ -157,6 +157,7 @@ const getUIDTIcon = (uidt) => {
 export {
   uiTypes, getUIDTIcon
 }
+
 export default [
   'ID',
   'ForeignKey',

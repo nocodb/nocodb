@@ -4204,7 +4204,11 @@ export default class NcMetaMgr {
 
     const localQuery = args.args.localQuery;
 
-    const queryParams = JSON.parse(selectedView.query_params);
+    let queryParams: any = {};
+    try {
+      queryParams = JSON.parse(selectedView.query_params);
+    } catch {}
+
     let sort = this.serializeSortParam(queryParams);
 
     let where = '';
@@ -4226,7 +4230,9 @@ export default class NcMetaMgr {
       {
         ...(args.args.query || {}),
         fields: meta.columns
-          .filter(c => queryParams?.showFields?.[c._cn])
+          .filter(
+            c => !queryParams?.showFields && queryParams?.showFields?.[c._cn]
+          )
           .map(c => c._cn)
           .join(','),
         sort,
@@ -4257,11 +4263,11 @@ export default class NcMetaMgr {
     };
   }
 
-  private serializeSortParam(queryParams, returnArray = false) {
+  private serializeSortParam(queryParams: any, returnArray = false) {
     const sort = [];
-    if (queryParams.sortList) {
+    if (queryParams?.sortList) {
       sort.push(
-        ...(queryParams?.sortList
+        ...(queryParams.sortList
           ?.map(sort => {
             return sort.field ? `${sort.order}${sort.field}` : '';
           })

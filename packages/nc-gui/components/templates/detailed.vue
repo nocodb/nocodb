@@ -29,7 +29,7 @@
 
         <templat-editor
           :id="templateId"
-          :view-mode="counter < 5 && viewMode"
+          :view-mode="$store.state.templateE < 5 && viewMode"
           :template-data.sync="templateData"
           @saved="onSaved"
         />

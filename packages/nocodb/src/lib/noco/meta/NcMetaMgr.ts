@@ -4064,6 +4064,7 @@ export default class NcMetaMgr {
     return { data: { list: procedures } };
   }
 
+  // todo: transaction
   protected async xcModelsCreateFromTemplate(args, req) {
     const template = args.args.template;
 
@@ -4075,6 +4076,7 @@ export default class NcMetaMgr {
       d => d?.meta?.dbAlias === dbAlias
     );
 
+    const result = { tables: [], relations: [] };
 
     const apiBuilder = this.app?.projectBuilders
       ?.find(pb => pb.id === projectId)
@@ -4089,7 +4091,6 @@ export default class NcMetaMgr {
 
     for (const table of parser.tables) {
       console.log(table);
-
       // create table and trigger listener
       const out = await this.projectMgr
         .getSqlMgr({ id: projectId })
@@ -4112,35 +4113,37 @@ export default class NcMetaMgr {
           }
         });
       }
+
+      result.tables.push({ tn: table.tn, _tn: table._tn });
     }
 
     // create relations
 
     for (const relation of parser.relations) {
       if (relation.type === 'real') {
-      const outrel = await this.projectMgr
-        .getSqlMgr({ id: projectId })
-        .handleRequest('relationCreate', {
-          ...args,
-          args: relation
-        });
-      if (this.listener) {
-        await this.listener({
-          req: {
+        const outrel = await this.projectMgr
+          .getSqlMgr({ id: projectId })
+          .handleRequest('relationCreate', {
             ...args,
-            args: relation,
-            api: 'relationCreate'
-          },
-          res: outrel,
-          user: req.user,
-          ctx: {
-            req
-          }
-        });
-      }
+            args: relation
+          });
+        if (this.listener) {
+          await this.listener({
+            req: {
+              ...args,
+              args: relation,
+              api: 'relationCreate'
+            },
+            res: outrel,
+            user: req.user,
+            ctx: {
+              req
+            }
+          });
+        }
       } else {
         const outrel = await this.xcVirtualRelationCreate(
-          {...args, args: relation},
+          { ...args, args: relation },
           req
         );
         if (this.listener) {
@@ -4157,8 +4160,8 @@ export default class NcMetaMgr {
             }
           });
         }
-
       }
+      result.relations.push({});
     }
 
     //create m2m relations
@@ -4186,13 +4189,15 @@ export default class NcMetaMgr {
           }
         });
       }
+
+      result.relations.push({ mm: true });
     }
 
     // add virtual columns
-    for(const [tn, vColumns] of Object.entries(parser.virtualColumns)){
+    for (const [tn, vColumns] of Object.entries(parser.virtualColumns)) {
       const meta = apiBuilder.getMeta(tn);
       meta.v = meta.v || [];
-      meta.v.push(...vColumns)
+      meta.v.push(...vColumns);
 
       const res = await this.xcModelSet({
         ...args,
@@ -4200,11 +4205,11 @@ export default class NcMetaMgr {
           meta,
           tn
         }
-      })
+      });
       await this.listener({
         req: {
           ...args,
-          args:{
+          args: {
             meta,
             tn
           },
@@ -4218,7 +4223,7 @@ export default class NcMetaMgr {
       });
     }
 
-
+    return result;
   }
 
   protected async xcExportAsCsv(args, _req, res: express.Response) {

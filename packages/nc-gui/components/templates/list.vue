@@ -25,11 +25,11 @@
             md="6"
             lg="4"
             xl="3"
-            @click="openTemplate(template.id)"
           >
             <v-card
               height="100%"
               class="mx-auto"
+              @click="openTemplate(template.id)"
             >
               <v-img
                 :src="template.image_url"

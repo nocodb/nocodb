@@ -1,7 +1,7 @@
 <template>
   <div>
-    <v-toolbar v-if="!viewMode">
-      <v-text-field
+    <v-toolbar v-if="!viewMode" class="elevation-0">
+      <!--      <v-text-field
         v-model="url"
         clearable
         placeholder="Enter template url"
@@ -9,7 +9,7 @@
         hide-details
         dense
         @keydown.enter="loadUrl"
-      />
+      />-->
       <!--      <v-btn outlined class='ml-1' @click='loadUrl'> Load URL</v-btn>-->
       <v-spacer />
 
@@ -17,10 +17,10 @@
         mdi-information-outline
       </v-icon>
 
-      <v-icon class="mr-3" @click="openUrl">
+      <!--      <v-icon class="mr-3" @click="openUrl">
         mdi-web
-      </v-icon>
-      <v-tooltip bottom>
+      </v-icon>-->
+      <!--      <v-tooltip bottom>
         <template #activator="{on}">
           <v-icon
             class="mr-3"
@@ -31,23 +31,29 @@
           </v-icon>
         </template>
         <span class="caption">Reset template</span>
-      </v-tooltip>
+      </v-tooltip>-->
 
-      <v-icon
+      <v-btn small outlined class="mr-1" @click="project = {tables : []}">
+        <v-icon small>
+          mdi-close
+        </v-icon> Reset
+      </v-btn>
+      <!--      <v-icon
         :color="$store.getters['github/isAuthorized'] ? '' : 'error'"
         class="mr-3"
         @click="githubConfigForm = !githubConfigForm"
       >
         mdi-github
-      </v-icon>
-
-      <v-icon class="mr-3" @click="createTablesDialog = true">
-        mdi-plus
-      </v-icon>
+      </v-icon>-->
+      <v-btn small outlined class="mr-1">
+        <v-icon small @click="createTablesDialog = true">
+          mdi-plus
+        </v-icon>
+        New table
+      </v-btn>
       <!--      <v-btn outlined small class='mr-1' @click='submitTemplate'> Submit Template</v-btn>-->
       <v-btn color="primary" outlined small class="mr-1" @click="saveTemplate">
-        {{ id || localId ? 'Update' : 'Create' }}
-        Template
+        {{ id || localId ? 'Update in' :'Submit to' }} NocoDB
       </v-btn>
     </v-toolbar>
     <v-container class="text-center">
@@ -422,8 +428,6 @@
                       @click="counter++"
                     />
                   </div>
-
-                  <v-text-field v-if="counter > 4" v-model="token" outlined dense label="Token" />
                 </div>
               </v-card-text>
             </v-card>
@@ -556,11 +560,17 @@ export default {
       LinkToAnotherRecord: 'blue lighten-5',
       Rollup: 'pink lighten-5',
       Lookup: 'green lighten-5'
-    },
-    counter: 0
+    }
   }),
   computed: {
-
+    counter: {
+      get() {
+        return this.$store.state.templateC
+      },
+      set(c) {
+        this.$store.commit('mutTemplateC', c)
+      }
+    },
     updateFilename() {
       return this.url && this.url.split('/').pop()
     },
@@ -828,7 +838,7 @@ export default {
           this.copyJSON()
           break
         case 's':
-          await this.submitTemplate()
+          await this.saveTemplate()
           break
         case 'arrowup':
           this.expansionPanel = this.expansionPanel ? --this.expansionPanel : this.project.tables.length - 1
@@ -862,18 +872,14 @@ export default {
         this.$toast.info('Please fill all the required column!').goAway(5000)
         return
       }
-
-      this.$clipboard(JSON.stringify(this.projectTemplate, null, 2))
-
-      // const el = document.createElement('textarea')
-      // el.value = JSON.stringify(this.projectTemplate, null, 2)
-      // debugger
-      // el.setAttribute('readonly', '')
-      // el.style = { position: 'absolute', left: '-9999px' }
-      // document.body.appendChild(el)
-      // el.select()
-      // document.execCommand('copy')
-      // document.body.removeChild(el)
+      const el = document.createElement('textarea')
+      el.addEventListener('focusin', e => e.stopPropagation())
+      el.value = JSON.stringify(this.projectTemplate, null, 2)
+      el.style = { position: 'absolute', left: '-9999px' }
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
       this.$toast.success('Successfully copied JSON data to clipboard!').goAway(3000)
       return true
     },
@@ -1025,12 +1031,14 @@ export default {
         if (this.id || this.localId) {
           await this.$axios.put(`${process.env.NC_API_URL}/api/v1/nc/templates/${this.id || this.localId}`, this.projectTemplate, {
             params: {
-              token: this.token
+              token: this.$store.state.template
             }
           })
           this.$toast.success('Template updated successfully').goAway(3000)
-        } else if (!this.token) {
-          if (!this.copyJSON()) { return }
+        } else if (!this.$store.state.template) {
+          if (!this.copyJSON()) {
+            return
+          }
 
           this.$toast.info('Initiating Github for template').goAway(3000)
           const res = await this.$axios.post(`${process.env.NC_API_URL}/api/v1/projectTemplateCreate`, this.projectTemplate)
@@ -1040,7 +1048,7 @@ export default {
         } else {
           const res = await this.$axios.post(`${process.env.NC_API_URL}/api/v1/nc/templates`, this.projectTemplate, {
             params: {
-              token: this.token
+              token: this.$store.state.template
             }
           })
           this.localId = res.data.id

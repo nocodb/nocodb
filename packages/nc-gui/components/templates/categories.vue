@@ -22,12 +22,24 @@
     </v-list>
     <!--      v-if="counter > 4"-->
     <v-btn
-      color="primary"
+      class="ml-4"
+      color="grey"
+      x-small
       outlined
       @click="showTemplateEditor"
     >
-      Add new template
+      New template
     </v-btn>
+
+    <v-text-field
+      v-if="$store.state.templateC >4"
+      v-model="t"
+      outlined
+      dense
+      type="password"
+      class="caption mt-4 ml-1 mr-3"
+      hide-details
+    />
   </div>
 </template>
 
@@ -40,6 +52,14 @@ export default {
     categories: []
   }),
   computed: {
+    counterLoc: {
+      get() {
+        return this.$store.state.templateE
+      },
+      set(c) {
+        this.$store.commit('mutTemplateE', c)
+      }
+    },
     category: {
       get() {
         return this.value
@@ -48,12 +68,12 @@ export default {
         this.$emit('input', v)
       }
     },
-    counterLoc: {
+    t: {
       get() {
-        return this.counter
+        return this.$store.state.template
       },
-      set(v) {
-        this.$emit('update:counter', v)
+      set(t) {
+        this.$store.commit('mutTemplate', t)
       }
     }
   },

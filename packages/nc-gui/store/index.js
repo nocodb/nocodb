@@ -1,13 +1,23 @@
 export const state = () => ({
-  paidUser: false
+  paidUser: false,
+  template: null,
+  templateC: 0,
+  templateE: 0
 })
 
 export const mutations = {
+  mutTemplate(state, v) {
+    state.template = v
+  },
+  mutTemplateC(state, c) {
+    state.templateC = c
+  },
+  mutTemplateE(state, e) {
+    state.templateE = e
+  }
 }
 
-export const actions = {
-
-}
+export const actions = {}
 
 export const strict = false
 /**

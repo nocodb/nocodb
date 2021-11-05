@@ -3,7 +3,7 @@
     <v-list dense>
       <v-list-item dense>
         <v-list-item-subtitle>
-          <span class="caption" @click="counterLoc++">Categories</span>
+          <span class="caption" @dblclick="counterLoc++">Categories</span>
         </v-list-item-subtitle>
       </v-list-item>
       <v-list-item-group v-model="category">
@@ -11,6 +11,7 @@
           <v-list-item-title>
             <span
               :class="{'font-weight-black' : category === c.category } "
+              class="body-1"
             >
               {{
                 c.category
@@ -24,20 +25,43 @@
     <v-btn
       class="ml-4"
       color="grey"
-      x-small
+      small
       outlined
       @click="showTemplateEditor"
     >
-      New template
+      <v-icon class="mr-1" small>
+        mdi-plus
+      </v-icon> New template
     </v-btn>
 
+    <v-tooltip bottom>
+      <template #activator="{on}">
+        <v-btn
+          class="ml-4  mt-4"
+          color="grey"
+          small
+          outlined
+          v-on="on"
+          @click="$toast.info('Happy hacking!').goAway(3000)"
+        >
+          <v-icon small class="mr-1">
+            mdi-file-excel-outline
+          </v-icon>
+          Import
+        </v-btn>
+      </template>
+      <span class="caption">Create templates from multiple Excel files</span>
+    </v-tooltip>
+
     <v-text-field
-      v-if="$store.state.templateC >4"
+      v-if="$store.state.templateE > 3"
       v-model="t"
       outlined
       dense
+      :full-width="false"
+      style="width: 135px"
       type="password"
-      class="caption mt-4 ml-1 mr-3"
+      class="caption mt-4 ml-1 mr-3 ml-4 "
       hide-details
     />
   </div>

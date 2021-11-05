@@ -1,7 +1,7 @@
 <template>
   <v-container v-if="newEditor || !modal || selectedId === null " class="py-0">
-    <div class="d-flex">
-      <v-navigation-drawer permanent height="calc(100vh - 40px)">
+    <div class="d-flex h-100">
+      <v-navigation-drawer permanent height="100% ">
         <categories
           ref="cat"
           v-model="category"
@@ -10,8 +10,8 @@
           @showTemplateEditor="newEditor = true"
         />
       </v-navigation-drawer>
-      <template-editor v-if="newEditor" style="width:100%" @saved="onSaved" />
-      <v-container v-else fluid style="height: calc(100vh - 40px); overflow: auto">
+      <template-editor v-if="newEditor" style="width:100%; height: 100%; " @saved="onSaved" />
+      <v-container v-else fluid style="height: 100%; overflow: auto">
         <v-row
           v-if="templateList && templateList.length"
           class="align-stretch"
@@ -33,7 +33,7 @@
             >
               <v-img
                 :src="template.image_url"
-                height="200px"
+                height="50px"
                 :style="{ background: template.image_url }"
               />
 
@@ -60,6 +60,7 @@
   <project-template-detailed
     v-else
     :id="selectedId"
+    :loading="loading"
     :counter="counter"
     :modal="modal"
     :view-mode="counter < 5"
@@ -81,7 +82,8 @@ export default {
   name: 'ProjectTemplates',
   components: { TemplateEditor, Categories, ProjectTemplateDetailed },
   props: {
-    modal: Boolean
+    modal: Boolean,
+    loading: Boolean
   },
   data: () => ({
     category: null,

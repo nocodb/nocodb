@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-0">
-    <div class="d-flex">
-      <v-navigation-drawer permanent height="calc(100vh - 40px)">
+    <div class="d-flex h-100">
+      <v-navigation-drawer permanent height="100%">
         <categories
           ref="cat"
           :counter.sync="counter"
@@ -9,7 +9,7 @@
           @input="v => $emit('load-category', v)"
         />
       </v-navigation-drawer>
-      <v-container v-if="templateData" fluid style="height: calc(100vh - 40px ); overflow: auto">
+      <v-container v-if="templateData" fluid style="height: 100%; overflow: auto">
         <v-img
           :src="templateData.image_url"
           height="200px"
@@ -19,7 +19,7 @@
           <h2 class="display-2 font-weight-bold my-0 flex-grow-1">
             {{ templateData.title }}
           </h2>
-          <v-btn class="primary" x-large @click="useTemplate">
+          <v-btn :loading="loading" :disabled="loading" class="primary" x-large @click="useTemplate">
             Use template
           </v-btn>
         </div>
@@ -29,7 +29,7 @@
 
         <templat-editor
           :id="templateId"
-          :view-mode="$store.state.templateE < 5 && viewMode"
+          :view-mode="$store.state.templateE < 4 && viewMode"
           :template-data.sync="templateData"
           @saved="onSaved"
         />
@@ -46,6 +46,7 @@ export default {
   name: 'ProjectTemplateDetailed',
   components: { Categories, TemplatEditor },
   props: {
+    loading: Boolean,
     modal: Boolean,
     viewMode: Boolean,
     id: [String, Number]

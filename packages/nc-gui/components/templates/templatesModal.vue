@@ -2,8 +2,8 @@
   <div>
     <span v-ripple class="caption font-weight-bold pointer" @click="templatesModal = true">Templates</span>
     <v-dialog v-if="templatesModal" v-model="templatesModal">
-      <v-card>
-        <project-templates modal @import="importTemplate" />
+      <v-card height="90vh">
+        <project-templates style="height:90vh" modal :loading="loading" @import="importTemplate" />
       </v-card>
     </v-dialog>
   </div>
@@ -16,7 +16,8 @@ export default {
   name: 'TemplatesModal',
   components: { ProjectTemplates },
   data: () => ({
-    templatesModal: false
+    templatesModal: false,
+    loading: false
   }),
   methods: {
     async importTemplate(template) {
@@ -31,13 +32,6 @@ export default {
 
         if (res && res.tables && res.tables.length) {
           this.$toast.success(`Imported ${res.tables.length} tables successfully`).goAway(3000)
-          // await this.$router.push({
-          //   query: {
-          //     ...(this.$route.query || {}),
-          //     type: 'table',
-          //     name: res.tables[0]._tn
-          //   }
-          // })
         } else {
           this.$toast.success('Template imported successfully').goAway(3000)
         }

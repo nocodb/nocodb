@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="h-100">
     <v-toolbar v-if="!viewMode" class="elevation-0">
       <!--      <v-text-field
         v-model="url"
@@ -11,6 +11,24 @@
         @keydown.enter="loadUrl"
       />-->
       <!--      <v-btn outlined class='ml-1' @click='loadUrl'> Load URL</v-btn>-->
+
+      <v-tooltip bottom>
+        <template #activator="{on}">
+          <v-btn
+            small
+            outlined
+            v-on="on"
+            @click="$toast.info('Happy hacking!').goAway(3000)"
+          >
+            <v-icon small class="mr-1">
+              mdi-file-excel-outline
+            </v-icon>
+            Import
+          </v-btn>
+        </template>
+        <span class="caption">Create template from Excel</span>
+      </v-tooltip>
+
       <v-spacer />
 
       <v-icon class="mr-3" @click="helpModal=true">
@@ -36,7 +54,8 @@
       <v-btn small outlined class="mr-1" @click="project = {tables : []}">
         <v-icon small>
           mdi-close
-        </v-icon> Reset
+        </v-icon>
+        Reset
       </v-btn>
       <!--      <v-icon
         :color="$store.getters['github/isAuthorized'] ? '' : 'error'"
@@ -45,18 +64,27 @@
       >
         mdi-github
       </v-icon>-->
-      <v-btn small outlined class="mr-1">
-        <v-icon small @click="createTablesDialog = true">
+      <v-btn small outlined class="mr-1" @click="createTablesDialog = true">
+        <v-icon small>
           mdi-plus
         </v-icon>
         New table
       </v-btn>
+
       <!--      <v-btn outlined small class='mr-1' @click='submitTemplate'> Submit Template</v-btn>-->
-      <v-btn color="primary" outlined small class="mr-1" @click="saveTemplate">
-        {{ id || localId ? 'Update in' :'Submit to' }} NocoDB
+      <v-btn
+        color="primary"
+        outlined
+        small
+        class="mr-1"
+        :loading="loading"
+        :disabled="loading"
+        @click="saveTemplate"
+      >
+        {{ id || localId ? 'Update in' : 'Submit to' }} NocoDB
       </v-btn>
     </v-toolbar>
-    <v-container class="text-center">
+    <v-container class="text-center" style="height:calc(100% - 64px);overflow-y: auto">
       <v-form ref="form">
         <v-row fluid class="justify-center">
           <v-col cols="12">
@@ -77,13 +105,14 @@
                     >
                       <v-text-field
                         v-if="editableTn[i]"
-                        v-model="table.tn"
+                        :value="table.tn"
                         class="title"
                         style="max-width: 300px"
                         outlinedk
                         autofocus
                         dense
                         hide-details
+                        @input="e => onTableNameUpdate(table, e)"
                         @click="e => viewMode || e.stopPropagation()"
                         @blur="$set(editableTn,i, false)"
                         @keydown.enter=" $set(editableTn,i, false)"
@@ -133,14 +162,19 @@
 
                                 <v-text-field
                                   v-else
+
                                   :ref="`cn_${table.tn}_${j}`"
-                                  v-model="col.cn"
+                                  :value="col.cn"
                                   outlined
                                   dense
                                   class="caption"
                                   placeholder="Column name"
                                   hide-details="auto"
-                                  :rules="[v => !!v || 'Column name required']"
+                                  :rules="[
+                                    v => !!v || 'Column name required',
+                                    v =>!table.columns.some(c=>c !== col && c.cn === v) || 'Duplicate column not allowed'
+                                  ]"
+                                  @input="e => onColumnNameUpdate(col,e,table.tn)"
                                 />
                               </td>
 
@@ -233,7 +267,7 @@
                                       class="caption"
                                       dense
                                       hide-details="auto"
-                                      :rules="[v => !!v || 'Related table name required']"
+                                      :rules="[v => !!v || 'Related table name required', ...getRules(col, table)]"
                                       :items="isLookupOrRollup(col) ? getRelatedTables(table.tn, isRollup(col)) : project.tables"
                                       :item-text="t => isLookupOrRollup(col) ? `${t.tn} (${t.type})` : t.tn"
                                       :item-value="t => isLookupOrRollup(col) ? t : t.tn"
@@ -384,7 +418,7 @@
                       outlined
                       dense
                       label="Project Name"
-                      :rules="[v => !!v || 'Required'] "
+                      :rules="[v => !!v || 'Project name required'] "
                     />
                   </div>
                   <!--
@@ -402,6 +436,7 @@
                     <v-col>
                       <v-text-field
                         v-model="project.category"
+                        :rules="[v => !!v || 'Category name required']"
                         class="caption"
                         outlined
                         dense
@@ -424,7 +459,7 @@
                       class="caption"
                       outlined
                       dense
-                      label="Project Tags"
+                      label="Project Description"
                       @click="counter++"
                     />
                   </div>
@@ -496,7 +531,7 @@
           fab
           large
           color="primary"
-          right="100"
+          right
           style="top:45%"
           @click="createTablesDialog = true"
           v-on="on"
@@ -511,8 +546,10 @@
 
 <script>
 
+import UITypes from '../../../nocodb/build/main/lib/sqlUi/UITypes'
 import { uiTypes, getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
 import GradientGenerator from '~/components/templates/gradientGenerator'
+import Help from '~/components/templates/help'
 
 const LinkToAnotherRecord = 'LinkToAnotherRecord'
 const Lookup = 'Lookup'
@@ -521,13 +558,14 @@ const defaultColProp = {}
 
 export default {
   name: 'TemplateEditor',
-  components: { GradientGenerator },
+  components: { Help, GradientGenerator },
   props: {
     id: [Number, String],
     viewMode: Boolean,
     templateData: Object
   },
   data: () => ({
+    loading: false,
     localId: null,
     valid: false,
     url: '',
@@ -544,7 +582,7 @@ export default {
     createTablesDialog: false,
     createTableColumnsDialog: false,
     selectedTable: null,
-    uiTypes,
+    uiTypes: uiTypes.filter(t => ![UITypes.Formula, UITypes.SpecificDBType].includes(t.name)),
     rollupFnList: [
       { text: 'count', value: 'count' },
       { text: 'min', value: 'min' },
@@ -819,8 +857,6 @@ export default {
     },
 
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      // eslint-disable-next-line no-console
-      console.log({ metaKey, key, altKey, shiftKey, ctrlKey })
       if (!(metaKey && ctrlKey) && !(altKey && shiftKey)) {
         return
       }
@@ -1027,6 +1063,7 @@ export default {
     },
 
     async saveTemplate() {
+      this.loading = true
       try {
         if (this.id || this.localId) {
           await this.$axios.put(`${process.env.NC_API_URL}/api/v1/nc/templates/${this.id || this.localId}`, this.projectTemplate, {
@@ -1058,9 +1095,45 @@ export default {
         this.$emit('saved')
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
+      } finally {
+        this.loading = false
+      }
+    },
+    getRules(col, table) {
+      return v => col.uidt !== UITypes.LinkToAnotherRecord || !table.columns.some(c => c !== col && c.uidt === UITypes.LinkToAnotherRecord && c.type === col.type && c.rtn === col.rtn) || 'Duplicate relation is not allowed'
+    },
+    onTableNameUpdate(oldTable, newVal) {
+      const oldVal = oldTable.tn
+      this.$set(oldTable, 'tn', newVal)
+
+      for (const table of this.project.tables) {
+        for (const col of table.columns) {
+          if (col.uidt === UITypes.LinkToAnotherRecord) {
+            if (col.rtn === oldVal) {
+              this.$set(col, 'rtn', newVal)
+            }
+          } else if (col.uidt === UITypes.Rollup || col.uidt === UITypes.Lookup) {
+            if (col.rtn && col.rtn.tn === oldVal) {
+              this.$set(col.rtn, 'tn', newVal)
+            }
+          }
+        }
+      }
+    },
+    onColumnNameUpdate(oldCol, newVal, tn) {
+      const oldVal = oldCol.cn
+      this.$set(oldCol, 'cn', newVal)
+
+      for (const table of this.project.tables) {
+        for (const col of table.columns) {
+          if (col.uidt === UITypes.Rollup || col.uidt === UITypes.Lookup) {
+            if (col.rtn && col.rcn === oldVal && col.rtn.tn === tn) {
+              this.$set(col, 'rcn', newVal)
+            }
+          }
+        }
       }
     }
-
   }
 }
 </script>

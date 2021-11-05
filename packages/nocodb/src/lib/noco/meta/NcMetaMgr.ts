@@ -4089,6 +4089,16 @@ export default class NcMetaMgr {
     });
     parser.parse();
 
+    const existingTables = parser.tables.filter(t => apiBuilder.getMeta(t.tn));
+
+    if (existingTables?.length) {
+      throw new Error(
+        `Import unsuccessful : following tables '${existingTables
+          .map(t => t._tn)
+          .join(', ')}' already exists`
+      );
+    }
+
     for (const table of parser.tables) {
       console.log(table);
       // create table and trigger listener

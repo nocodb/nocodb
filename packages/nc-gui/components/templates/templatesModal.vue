@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="d-flex align-center">
     <span v-ripple class="caption font-weight-bold pointer" @click="templatesModal = true">Templates</span>
     <v-dialog v-if="templatesModal" v-model="templatesModal">
       <v-card height="90vh">

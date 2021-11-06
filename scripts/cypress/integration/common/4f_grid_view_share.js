@@ -163,7 +163,12 @@ export const genTest = (type, xcdb) => {
                     ]
                     
                     for (let i = 0; i < storedRecords.length; i++) {
-                        expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+                        let strCol = storedRecords[i].split(',')
+                        let retCol = retrievedRecords[i].split(',')
+                        for (let j = 0; j < 4; j++) {
+                            expect(strCol[j]).to.be.equal(retCol[j])
+                        }
+                        // expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
                     }
                 }                
 
@@ -306,9 +311,17 @@ export const genTest = (type, xcdb) => {
                         `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`
                     ]
                     
+                    // for (let i = 0; i < storedRecords.length; i++) {
+                    //     expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+                    // }
+
                     for (let i = 0; i < storedRecords.length; i++) {
-                        expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
-                    }
+                        let strCol = storedRecords[i].split(',')
+                        let retCol = retrievedRecords[i].split(',')
+                        for (let j = 0; j < 4; j++) {
+                            expect(strCol[j]).to.be.equal(retCol[j])
+                        }
+                    }                    
                 }                  
                 mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv)
                 mainPage.hideUnhideField('LastUpdate')

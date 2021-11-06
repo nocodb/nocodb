@@ -546,8 +546,7 @@
 
 <script>
 
-import UITypes from '../../../nocodb/build/main/lib/sqlUi/UITypes'
-import { uiTypes, getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
+import { uiTypes, getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 import GradientGenerator from '~/components/templates/gradientGenerator'
 import Help from '~/components/templates/help'
 

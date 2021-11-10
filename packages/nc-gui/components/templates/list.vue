@@ -12,6 +12,7 @@
       </v-navigation-drawer>
       <template-editor v-if="newEditor" style="width:100%; height: 100%; " @saved="onSaved" />
       <v-container v-else fluid style="height: 100%; overflow: auto">
+        {{ category }}
         <v-row
           v-if="templateList && templateList.length"
           class="align-stretch"
@@ -110,7 +111,7 @@ export default {
       }
     },
     getShortDescription(str) {
-      if (str.length < 200) {
+      if (!str || str.length < 200) {
         return str
       }
       return `${str.slice(0, 200)}...`

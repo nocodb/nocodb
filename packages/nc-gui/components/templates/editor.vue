@@ -229,17 +229,21 @@
                                 >
                                   <v-autocomplete
                                     :ref="`uidt_${table.tn}_${j}`"
-                                    v-model="col.uidt"
+                                    :value="col.uidt"
                                     placeholder="Column Datatype"
                                     outlined
                                     dense
                                     class="caption"
                                     hide-details="auto"
                                     :rules="[v => !!v || 'Column data type required']"
-                                    :items="uiTypes"
+                                    :items="col.uidt ==='ForeignKey' ? [...uiTypes, {
+                                      name: 'ForeignKey',
+                                      icon: 'mdi-link-variant',
+                                      virtual: 1
+                                    }] : uiTypes"
                                     item-text="name"
                                     item-value="name"
-                                    @change="onUidtChange(col)"
+                                    @input="v => onUidtChange(col.uidt,v,col,table)"
                                   >
                                     <template #item="{item:{name}}">
                                       <v-chip v-if="colors[name]" :color="colors[name]" small>
@@ -261,7 +265,7 @@
                                 >
                                   <td class="pa-3 text-left">
                                     <v-autocomplete
-                                      v-model="col.rtn"
+                                      :value="col.rtn"
                                       placeholder="Related table"
                                       outlined
                                       class="caption"
@@ -272,27 +276,31 @@
                                       :item-text="t => isLookupOrRollup(col) ? `${t.tn} (${t.type})` : t.tn"
                                       :item-value="t => isLookupOrRollup(col) ? t : t.tn"
                                       :value-comparator="compareRel"
+                                      @input="v => onRtnChange(col.rtn,v, col, table)"
                                     />
                                   </td>
 
                                   <td v-if="isRelation(col)" class="pa-3">
-                                    <span
-                                      v-if="viewMode"
-                                      class="caption"
-                                    >
-                                    <!--                                    {{ col.type }}-->
-                                    </span>
-                                    <v-autocomplete
-                                      v-else
-                                      v-model="col.type"
-                                      placeholder="Relation Type"
-                                      outlined
-                                      class="caption"
-                                      dense
-                                      hide-details="auto"
-                                      :rules="[v => !!v || 'Relation type required']"
-                                      :items="[{text:'Many To Many', value:'mm'},{text:'Has Many', value:'hm'}]"
-                                    />
+                                    <template v-if="col.uidt !== 'ForeignKey'">
+                                      <span
+                                        v-if="viewMode"
+                                        class="caption"
+                                      >
+                                        <!--                                    {{ col.type }}-->
+                                      </span>
+                                      <v-autocomplete
+                                        v-else
+                                        :value="col.type"
+                                        placeholder="Relation Type"
+                                        outlined
+                                        class="caption"
+                                        dense
+                                        hide-details="auto"
+                                        :rules="[v => !!v || 'Relation type required']"
+                                        :items="[{text:'Many To Many', value:'mm'},{text:'Has Many', value:'hm'}]"
+                                        @input="v => onRTypeChange(col.type, v, col,table)"
+                                      />
+                                    </template>
                                   </td>
                                   <td v-if="isLookupOrRollup(col)" class="pa-3">
                                     <span
@@ -363,7 +371,7 @@
                                     class="flex-grow-0"
                                     small
                                     color="grey"
-                                    @click.stop="deleteTableColumn(i,j)"
+                                    @click.stop="deleteTableColumn(i,j, col, table)"
                                   >
                                     mdi-delete
                                   </v-icon>
@@ -615,7 +623,7 @@ export default {
       return {
         ...this.project,
         tables: (this.project.tables || []).map((t) => {
-          const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], v: [] }
+          const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
 
           for (const column of (t.columns || [])) {
             if (this.isRelation(column)) {
@@ -627,6 +635,11 @@ export default {
               } else if (column.type === 'mm') {
                 table.manyToMany.push({
                   rtn: column.rtn,
+                  _cn: column.cn
+                })
+              } else if (column.uidt === UITypes.ForeignKey) {
+                table.belongsTo.push({
+                  tn: column.rtn,
                   _cn: column.cn
                 })
               }
@@ -745,9 +758,29 @@ export default {
       }
       this.project.tables.splice(i, 1)
     },
-    deleteTableColumn(i, j) {
+    deleteTableColumn(i, j, col, table) {
       const deleteTable = this.project.tables[i]
       const deleteColumn = deleteTable.columns[j]
+
+      let rTable, index
+      // if relation column, delete the corresponding relation from other table
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
+        if (col.type === 'hm') {
+          rTable = this.project.tables.find(t => t.tn === col.rtn)
+          index = rTable && rTable.columns.findIndex(c => c.uidt === UITypes.ForeignKey && c.rtn === table.tn)
+        } else if (col.type === 'mm') {
+          rTable = this.project.tables.find(t => t.tn === col.rtn)
+          index = rTable && rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'mm')
+        }
+      } else if (col.uidt === UITypes.ForeignKey) {
+        rTable = this.project.tables.find(t => t.tn === col.rtn)
+        index = rTable && rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'hm')
+      }
+
+      if (rTable && index > -1) {
+        rTable.columns.splice(index, 1)
+      }
+
       for (const table of this.project.tables) {
         if (table === deleteTable) {
           continue
@@ -778,8 +811,8 @@ export default {
           })).filter((v, i, arr) => i === arr.findIndex(c => c.cn === v.cn))
         })
       }
-      this.tableNamesInput = ''
       this.createTablesDialog = false
+      this.tableNamesInput = ''
     },
     compareRel(a, b) {
       return ((a && a.tn) || a) === ((b && b.tn) || b) && (a && a.type) === (b && b.type)
@@ -939,7 +972,7 @@ export default {
     parseTemplate({ tables = [], ...rest }) {
       const parsedTemplate = {
         ...rest,
-        tables: tables.map(({ manyToMany, hasMany, v, columns, ...rest }) => ({
+        tables: tables.map(({ manyToMany = [], hasMany = [], belongsTo = [], v = [], columns = [], ...rest }) => ({
           ...rest,
           columns: [
             ...columns,
@@ -955,6 +988,12 @@ export default {
               type: 'hm',
               rtn: hm.tn,
               ...hm
+            })),
+            ...belongsTo.map(bt => ({
+              cn: bt._cn || `${rest.tn} => ${bt.rtn}`,
+              uidt: UITypes.ForeignKey,
+              rtn: bt.tn,
+              ...bt
             })),
             ...v.map((v) => {
               const res = {
@@ -1039,11 +1078,6 @@ export default {
         this.$toast.success('Template generated and saved successfully!').goAway(4000)
       } catch (e) {
         this.$toast.error(e.message).goAway(5000)
-      }
-    },
-    onUidtChange(col) {
-      if (col.uidt === LinkToAnotherRecord) {
-        col.type = 'mm'
       }
     },
     navigateToTable(tn) {
@@ -1131,6 +1165,128 @@ export default {
             }
           }
         }
+      }
+    },
+    async onRtnChange(oldVal, newVal, col, table) {
+      this.$set(col, 'rtn', newVal)
+
+      await this.$nextTick()
+
+      if (col.uidt !== UITypes.LinkToAnotherRecord && col.uidt !== UITypes.ForeignKey) {
+        return
+      }
+
+      if (oldVal) {
+        const rTable = this.project.tables.find(t => t.tn === oldVal)
+        // delete relation from other table if exist
+
+        let index = -1
+        if (col.uidt === UITypes.LinkToAnotherRecord && col.type === 'mm') {
+          index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'mm')
+        } else if (col.uidt === UITypes.LinkToAnotherRecord && col.type === 'hm') {
+          index = rTable.columns.findIndex(c => c.uidt === UITypes.ForeignKey && c.rtn === table.tn)
+        } else if (col.uidt === UITypes.ForeignKey) {
+          index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'hm')
+        }
+
+        if (index > -1) {
+          rTable.columns.splice(index, 1)
+        }
+      }
+      if (newVal) {
+        const rTable = this.project.tables.find(t => t.tn === newVal)
+
+        // check relation relation exist in other table
+        // if not create a relation
+        if (col.uidt === UITypes.LinkToAnotherRecord && col.type === 'mm') {
+          if (!rTable.columns.find(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'mm')) {
+            rTable.columns.push({
+              cn: `title${rTable.columns.length + 1}`,
+              uidt: UITypes.LinkToAnotherRecord,
+              type: 'mm',
+              rtn: table.tn
+            })
+          }
+        } else if (col.uidt === UITypes.LinkToAnotherRecord && col.type === 'hm') {
+          if (!rTable.columns.find(c => c.uidt === UITypes.ForeignKey && c.rtn === table.tn)) {
+            rTable.columns.push({
+              cn: `title${rTable.columns.length + 1}`,
+              uidt: UITypes.ForeignKey,
+              rtn: table.tn
+            })
+          }
+        } else if (col.uidt === UITypes.ForeignKey) {
+          if (!rTable.columns.find(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'hm')) {
+            rTable.columns.push({
+              cn: `title${rTable.columns.length + 1}`,
+              uidt: UITypes.LinkToAnotherRecord,
+              type: 'hm',
+              rtn: table.tn
+            })
+          }
+        }
+      }
+    },
+    onRTypeChange(oldType, newType, col, table) {
+      this.$set(col, 'type', newType)
+
+      const rTable = this.project.tables.find(t => t.tn === col.rtn)
+
+      let index = -1
+
+      // find column and update relation
+      // or create a new column
+
+      if (oldType === 'hm') {
+        index = rTable.columns.findIndex(c => c.uidt === UITypes.ForeignKey && c.rtn === table.tn)
+      } else if (oldType === 'mm') {
+        index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'mm')
+      }
+
+      const rCol = index === -1 ? { cn: `title${rTable.columns.length + 1}` } : { ...rTable.columns[index] }
+      index = index === -1 ? rTable.columns.length : index
+
+      if (newType === 'mm') {
+        rCol.type = 'mm'
+        rCol.uidt = UITypes.LinkToAnotherRecord
+      } else if (newType === 'hm') {
+        rCol.type = 'bt'
+        rCol.uidt = UITypes.ForeignKey
+      }
+      rCol.rtn = table.tn
+
+      this.$set(rTable.columns, index, rCol)
+    },
+    onUidtChange(oldVal, newVal, col, table) {
+      this.$set(col, 'uidt', newVal)
+
+      // delete relation column from other table
+      // if previous type is relation
+
+      let index = -1
+      let rTable
+
+      if (oldVal === UITypes.LinkToAnotherRecord) {
+        rTable = this.project.tables.find(t => t.tn === col.rtn)
+        if (col.type === 'hm') {
+          index = rTable.columns.findIndex(c => c.uidt === UITypes.ForeignKey && c.rtn === table.tn)
+        } else if (col.type === 'mm') {
+          index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'mm')
+        }
+      } else if (oldVal === UITypes.ForeignKey) {
+        rTable = this.project.tables.find(t => t.tn === col.rtn)
+        index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'hm')
+      }
+      if (rTable && index > -1) {
+        rTable.columns.splice(index, 1)
+      }
+
+      col.rtn = undefined
+      col.type = undefined
+      col.rcn = undefined
+
+      if (col.uidt === LinkToAnotherRecord) {
+        col.type = col.type || 'mm'
       }
     }
   }

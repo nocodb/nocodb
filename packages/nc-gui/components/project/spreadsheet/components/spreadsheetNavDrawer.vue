@@ -470,6 +470,7 @@
           <div v-if="passwordProtect" class="d-flex flex-column align-center justify-center">
             <v-text-field
               v-model="shareLink.password"
+              autocomplete="new-password"
               browser-autocomplete="new-password"
               class="password-field mr-2 caption"
               style="max-width: 230px"

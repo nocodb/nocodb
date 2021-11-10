@@ -39,7 +39,7 @@
 
         <v-text-field
           v-model="searchQueryVal"
-          autocomplete="off"
+          autocomplete="new-password"
           style="min-width: 100px ; width: 300px"
           flat
           dense

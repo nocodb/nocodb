@@ -53,9 +53,12 @@
       <span class="caption">Create templates from multiple Excel files</span>
     </v-tooltip>
 
+    <!--    v-if="$store.state.templateE > 3"-->
+
     <v-text-field
-      v-if="$store.state.templateE > 3"
       v-model="t"
+      autocomplete="new-password"
+      name="nc"
       outlined
       dense
       :full-width="false"

@@ -131,6 +131,20 @@ export default class NcTemplateParser {
       const parentPrimaryColumn = parentTable.columns.find(
         column => column.uidt === UITypes.ID
       );
+      //
+      // // if duplicate relation ignore
+      // if (
+      //   this._relations.some(rl => {
+      //     return (
+      //       (rl.childTable === childTable.tn &&
+      //         rl.parentTable === parentTable.tn) ||
+      //       (rl.parentTable === childTable.tn &&
+      //         rl.childTable === parentTable.tn)
+      //     );
+      //   })
+      // ) {
+      //   continue;f
+      // }
 
       // add a column in child table
       const childColumnName = `${tableTemplate.tn}_id`;
@@ -175,6 +189,20 @@ export default class NcTemplateParser {
       const childPrimaryColumn = childTable.columns.find(
         column => column.uidt === UITypes.ID
       );
+
+      // if duplicate relation ignore
+      if (
+        this._m2mRelations.some(mm => {
+          return (
+            (mm.childTable === childTable.tn &&
+              mm.parentTable === parentTable.tn) ||
+            (mm.parentTable === childTable.tn &&
+              mm.childTable === parentTable.tn)
+          );
+        })
+      ) {
+        continue;
+      }
 
       // add many to many relation create entry
       this._m2mRelations.push({

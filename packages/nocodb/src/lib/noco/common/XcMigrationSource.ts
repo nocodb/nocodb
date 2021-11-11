@@ -5,6 +5,7 @@ import * as viewType from '../migrations/nc_004_add_view_type_column';
 import * as viewName from '../migrations/nc_005_add_view_name_column';
 import * as nc_006_alter_nc_shared_views from '../migrations/nc_006_alter_nc_shared_views';
 import * as nc_007_alter_nc_shared_views_1 from '../migrations/nc_007_alter_nc_shared_views_1';
+import * as nc_008_add_nc_shared_bases from '../migrations/nc_008_add_nc_shared_bases';
 
 // Create a custom migration source class
 export default class XcMigrationSource {
@@ -14,13 +15,14 @@ export default class XcMigrationSource {
   public getMigrations(): Promise<any> {
     // In this example we are just returning migration names
     return Promise.resolve([
-        'project',
-        'm2m',
-        'fkn',
-        'viewType',
-        'viewName',
-        'nc_006_alter_nc_shared_views',
-        'nc_007_alter_nc_shared_views_1'
+      'project',
+      'm2m',
+      'fkn',
+      'viewType',
+      'viewName',
+      'nc_006_alter_nc_shared_views',
+      'nc_007_alter_nc_shared_views_1',
+      'nc_008_add_nc_shared_bases'
     ]);
   }
 
@@ -44,7 +46,8 @@ export default class XcMigrationSource {
         return nc_006_alter_nc_shared_views;
       case 'nc_007_alter_nc_shared_views_1':
         return nc_007_alter_nc_shared_views_1;
-
+      case 'nc_008_add_nc_shared_bases':
+        return nc_008_add_nc_shared_bases;
     }
   }
 }

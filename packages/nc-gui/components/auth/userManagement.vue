@@ -501,6 +501,10 @@
             </x-btn>
           </v-card-actions>
         </template>
+
+        <v-card-text>
+          <share-base />
+        </v-card-text>
       </v-card>
     </v-dialog>
   </div>
@@ -512,10 +516,11 @@ import SetListCheckboxCell from '@/components/project/spreadsheet/components/edi
 import { enumColor } from '@/components/project/spreadsheet/helpers/colors'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
 import { isEmail } from '@/helpers'
+import ShareBase from '~/components/base/shareBase'
 
 export default {
   name: 'UserManagement',
-  components: { FeedbackForm, DlgLabelSubmitCancel, SetListCheckboxCell },
+  components: { ShareBase, FeedbackForm, DlgLabelSubmitCancel, SetListCheckboxCell },
   data: () => ({
     deleteItem: null,
     invite_token: null,

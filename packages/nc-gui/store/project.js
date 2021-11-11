@@ -20,12 +20,16 @@ export const state = () => ({
   defaultProject,
   projectInfo: null,
   activeEnv: null,
-  authDbAlias: null
+  authDbAlias: null,
+  projectId: null
 });
 
 export const mutations = {
   add(state, project) {
     state.list.push(project);
+  },
+  MutProjectId(state, projectId) {
+    state.projectId = projectId;
   },
   update(state, data) {
   },
@@ -78,27 +82,27 @@ export const getters = {
   },
   GtrFirstDbAlias(state, getters) {
     return (state.unserializedList
-      && state.unserializedList[0]
-      && state.unserializedList[0].projectJson
-      && state.unserializedList[0].projectJson.envs
-      && getters.GtrEnv
-      && state.unserializedList[0].projectJson.envs[getters.GtrEnv]
-      && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db
-      && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db[0]
-      && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db[0].meta
-      && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db[0].meta.dbAlias)
+        && state.unserializedList[0]
+        && state.unserializedList[0].projectJson
+        && state.unserializedList[0].projectJson.envs
+        && getters.GtrEnv
+        && state.unserializedList[0].projectJson.envs[getters.GtrEnv]
+        && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db
+        && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db[0]
+        && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db[0].meta
+        && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db[0].meta.dbAlias)
       || 'db';
   },
 
 
   GtrDbAliasList(state, getters) {
     return (state.unserializedList
-      && state.unserializedList[0]
-      && state.unserializedList[0].projectJson
-      && state.unserializedList[0].projectJson.envs
-      && getters.GtrEnv
-      && state.unserializedList[0].projectJson.envs[getters.GtrEnv]
-      && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db)
+        && state.unserializedList[0]
+        && state.unserializedList[0].projectJson
+        && state.unserializedList[0].projectJson.envs
+        && getters.GtrEnv
+        && state.unserializedList[0].projectJson.envs[getters.GtrEnv]
+        && state.unserializedList[0].projectJson.envs[getters.GtrEnv].db)
       // && state.unserializedList[0].projectJson.envs[gettersGtrEnv].db.map(db => db.meta.dbAlias))
       || [];
   },
@@ -261,16 +265,27 @@ export const actions = {
       }, 5000)
     });
     try {
+      let data,projectId;
       if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
+        commit('MutProjectId', projectId = this.$router.currentRoute.params.project_id)
         await dispatch('users/ActGetProjectUserDetails', this.$router.currentRoute.params.project_id, {root: true});
+        data = await this.dispatch('sqlMgr/ActSqlOp', [null, 'PROJECT_READ_BY_WEB']); // unsearialized data
+      } else if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.shared_base_id) {
+        const baseData = await this.dispatch('sqlMgr/ActSqlOp', [null, 'sharedBaseGet', {shared_base_id: this.$router.currentRoute.params.shared_base_id}]); // unsearialized data
+        commit('MutProjectId', projectId = baseData.project_id)
+        data = await this.dispatch('sqlMgr/ActSqlOp', [{project_id: baseData.project_id}, 'PROJECT_READ_BY_WEB']); // unsearialized data
+        await dispatch('users/ActGetBaseUserDetails', this.$router.currentRoute.params.shared_base_id, {root: true});
+      } else {
+        commit('MutProjectId',  null)
+        return
       }
-      const data = await this.dispatch('sqlMgr/ActSqlOp', [null, 'PROJECT_READ_BY_WEB']); // unsearialized data
+
       commit("list", data.data.list);
       commit("meta/MutClear", null, {root: true});
-     if(this.$ncApis){
-      this.$ncApis.clear();
-      this.$ncApis.setProjectId(this.$router.currentRoute.params.project_id);
-     }
+      if (this.$ncApis) {
+        this.$ncApis.clear();
+        this.$ncApis.setProjectId(projectId);
+      }
     } catch (e) {
       this.$toast.error(e).goAway(3000);
       this.$router.push('/projects')

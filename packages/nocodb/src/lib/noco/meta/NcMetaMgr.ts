@@ -152,6 +152,7 @@ export default class NcMetaMgr {
       if (req?.session?.passport?.user?.isAuthorized) {
         if (
           req?.body?.project_id &&
+          !req.session?.passport?.user?.isPublicBase &&
           !(await this.xcMeta.isUserHaveAccessToProject(
             req?.body?.project_id,
             req?.session?.passport?.user?.id
@@ -1337,6 +1338,9 @@ export default class NcMetaMgr {
         case 'sharedViewGet':
           result = await this.sharedViewGet(req, args);
           break;
+        case 'sharedBaseGet':
+          result = await this.sharedBaseGet(req, args);
+          break;
         case 'sharedViewExportAsCsv':
           result = await this.sharedViewExportAsCsv(req, args, res);
           break;
@@ -1497,6 +1501,15 @@ export default class NcMetaMgr {
 
         case 'createSharedViewLink':
           result = await this.createSharedViewLink(req, args);
+          break;
+        case 'createSharedBaseLink':
+          result = await this.createSharedBaseLink(req, args);
+          break;
+        case 'disableSharedBaseLink':
+          result = await this.disableSharedBaseLink(req, args);
+          break;
+        case 'getSharedBaseLink':
+          result = await this.getSharedBaseLink(req, args);
           break;
 
         case 'updateSharedViewLinkPassword':
@@ -3385,6 +3398,83 @@ export default class NcMetaMgr {
     }
   }
 
+  protected async createSharedBaseLink(req, args: any): Promise<any> {
+    try {
+      let sharedBase = await this.xcMeta.metaGet(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+
+      if (!sharedBase) {
+        const insertData = {
+          project_id: args.project_id,
+          db_alias: this.getDbAlias(args),
+          shared_base_id: uuidv4(),
+          password: args?.args?.password
+        };
+
+        await this.xcMeta.metaInsert(
+          args.project_id,
+          this.getDbAlias(args),
+          'nc_shared_bases',
+          insertData
+        );
+        sharedBase = await this.xcMeta.metaGet(
+          this.getProjectId(args),
+          this.getDbAlias(args),
+          'nc_shared_bases',
+          {},
+          ['id', 'shared_base_id', 'enabled']
+        );
+      }
+
+      sharedBase.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/base/${sharedBase.shared_base_id}`;
+
+      Tele.emit('evt', { evt_type: 'sharedBase:generated-link' });
+      return sharedBase;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  protected async disableSharedBaseLink(_req, args: any): Promise<any> {
+    try {
+      await this.xcMeta.metaDelete(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  protected async getSharedBaseLink(req, args: any): Promise<any> {
+    try {
+      const sharedBase = await this.xcMeta.metaGet(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+      if (sharedBase)
+        sharedBase.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/base/${sharedBase.shared_base_id}`;
+
+      return sharedBase;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   protected async updateSharedViewLinkPassword(_args: any): Promise<any> {
     // try {
     //
@@ -3896,6 +3986,23 @@ export default class NcMetaMgr {
     };
 
     return { ...sharedViewMeta, ...viewMeta };
+  }
+
+  protected async sharedBaseGet(_req, args: any): Promise<any> {
+    const sharedBaseMeta = await this.xcMeta
+      .knex('nc_shared_bases')
+      .select('project_id')
+      .where({
+        shared_base_id: args.args.shared_base_id,
+        enabled: true
+      })
+      .first();
+
+    if (!sharedBaseMeta) {
+      throw new Error('Meta not found');
+    }
+
+    return sharedBaseMeta;
   }
 
   protected async sharedViewExportAsCsv(_req, args: any, res): Promise<any> {

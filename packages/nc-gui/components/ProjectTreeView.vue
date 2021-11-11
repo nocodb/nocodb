@@ -280,7 +280,9 @@
                   </v-list-item-group>
                 </v-list-group>
                 <v-list-item
-                  v-else-if="item.type !== 'sqlClientDir' || showSqlClient"
+                  v-else-if="(item.type !== 'sqlClientDir' || showSqlClient) &&
+                    (item.type !=='migrationsDir' || _isUIAllowed('audit'))
+                  "
                   :key="item.key"
                   :selectable="false"
                   :value="`${(item._nodes && item._nodes).type || ''}||${

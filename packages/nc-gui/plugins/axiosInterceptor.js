@@ -6,7 +6,7 @@
 //   });
 // }
 
-export default ({ store, $axios, redirect, $toast }) => {
+export default ({ store, $axios, redirect, $toast, route, app }) => {
   // Add a request interceptor
   $axios.interceptors.request.use(function(config) {
     config.headers['xc-gui'] = 'true'
@@ -15,6 +15,12 @@ export default ({ store, $axios, redirect, $toast }) => {
     }
     if (!config.url.endsWith('/user/me') && !config.url.endsWith('/admin/roles') && store.state.users.previewAs) {
       config.headers['xc-preview'] = store.state.users.previewAs
+    }
+
+    if (!config.url.endsWith('/user/me') && !config.url.endsWith('/admin/roles')) {
+      if (app.context && app.context.route && app.context.route.params && app.context.route.params.shared_base_id) {
+        config.headers['xc-shared-base-id'] = app.context.route.params.shared_base_id
+      }
     }
 
     return config

@@ -17,6 +17,8 @@ import Noco from '../Noco';
 
 const autoBind = require('auto-bind');
 const PassportLocalStrategy = require('passport-local').Strategy;
+import { Strategy as CustomStrategy } from 'passport-custom';
+
 const { v4: uuidv4 } = require('uuid');
 
 import * as crypto from 'crypto';
@@ -39,12 +41,14 @@ passport.serializeUser(function(
     provider,
     firstname,
     lastname,
-    isAuthorized
+    isAuthorized,
+    isPublicBase
   },
   done
 ) {
   done(null, {
     isAuthorized,
+    isPublicBase,
     id,
     email,
     email_verified,
@@ -249,6 +253,18 @@ export default class RestAuthCtrl {
                   }
                 }
               )(req, res, next);
+            } else if (req.headers['xc-shared-base-id']) {
+              passport.authenticate('baseView', {}, (_err, user, _info) => {
+                if (user) {
+                  return resolve({
+                    ...user,
+                    isAuthorized: true,
+                    isPublicBase: true
+                  });
+                } else {
+                  resolve({ roles: 'guest' });
+                }
+              })(req, res, next);
             } else {
               resolve({ roles: 'guest' });
             }
@@ -290,6 +306,7 @@ export default class RestAuthCtrl {
         }
       })
     );
+    this.initCustomStrategy();
     this.initJwtStrategy();
 
     passport.use(
@@ -565,6 +582,30 @@ export default class RestAuthCtrl {
           .catch(err => {
             return done(err);
           });
+      })
+    );
+  }
+
+  protected initCustomStrategy() {
+    passport.use(
+      'baseView',
+      new CustomStrategy(async (req: any, callback) => {
+        let user;
+        if (req.headers['xc-shared-base-id']) {
+          const sharedBase = await this.xcMeta
+            .knex('nc_shared_bases')
+            .where({
+              enabled: true,
+              shared_base_id: req.headers['xc-shared-base-id']
+            })
+            .first();
+
+          user = {
+            roles: sharedBase?.roles
+          };
+        }
+
+        callback(null, user);
       })
     );
   }

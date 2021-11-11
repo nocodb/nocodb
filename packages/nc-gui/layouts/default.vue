@@ -44,7 +44,7 @@
           {{ ghStarText }}
         </gh-btns-star>
         <a class="align-self-center caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
-        <templates-modal v-if="isDashboard" class="align-self-center" />
+        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" class="align-self-center" />
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 

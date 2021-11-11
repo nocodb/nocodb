@@ -57,7 +57,7 @@ export const genTest = (type, xcdb) => {
         after(() => {
             // close table
             // mainPage.deleteCreatedViews()
-            cy.get('[href="#table||db||Address"]').find('button.mdi-close').click()
+            cy.closeTableTab('Address')
         })      
         
         // Common routine to create/edit/delete GRID & GALLERY view
@@ -426,7 +426,7 @@ export const genTest = (type, xcdb) => {
     //         // close table
     //         cy.visit(baseURL)
     //         mainPage.deleteCreatedViews()
-    //         cy.get('[href="#table||db||Address"]').find('button.mdi-close').click()
+    //         cy.closeTableTab('Address')
     //     })
 
     //     it(`Generate default Shared GRID view URL`, () => {
@@ -510,7 +510,7 @@ export const genTest = (type, xcdb) => {
             mainPage.deleteCreatedViews()
             
             // close table
-            cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+            cy.closeTableTab('Country')
         })
 
         it(`Generate default Shared GRID view URL`, () => {

@@ -19,7 +19,7 @@ export const genTest = (type, xcdb) => {
     })
 
     after(() => {
-      cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+      cy.closeTableTab('Country')
     })    
 
     // Common routine to create/edit/delete GRID & GALLERY view

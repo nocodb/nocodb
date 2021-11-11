@@ -261,7 +261,7 @@ export const genTest = (type, xcdb, roleType) => {
             cy.wait(3000)
 
             mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
-            cy.get('[href="#table||db||City"]').find('button.mdi-close').click()
+            cy.closeTableTab('City')
         })
 
         const genTestSub = (roleType) => {

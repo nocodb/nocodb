@@ -24,7 +24,7 @@ export const genTest = (type, xcdb) => {
             mainPage.getCell("Country", 10).rightclick()
             cy.getActiveMenu().contains('Delete Selected Row').click()
             
-            cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()            
+            cy.closeTableTab('Country')          
         })
         
         it(`Add column of type attachments`, () => {

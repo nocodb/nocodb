@@ -26,7 +26,7 @@ export const genTest = (type, xcdb) => {
     })
 
     after(() => {
-      cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+      cy.closeTableTab('Country');
     })    
 
     // Routine to create a new look up column

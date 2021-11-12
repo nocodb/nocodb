@@ -68,10 +68,10 @@ export const genTest = (type, xcdb) => {
             // Test suite
 
             const errHndl = (err, runnable, done) => {
-                    expect(err.message).to.include('Not allowed')
-                    done()
-                    return false
-                }
+                expect(err.message).to.include('Not allowed')
+                done()
+                return false
+            }
 
             it(`[${roles[roleType].name}] Left navigation menu, New User add`, (done) => {
                 cy.on('uncaught:exception', (err, runnable) => errHndl(err, runnable, done))
@@ -109,8 +109,7 @@ export const genTest = (type, xcdb) => {
                 // Table data related validations
                 //  - Add/delete/modify row
                 //
-                if (roleType != 'editor') 
-                    _editData(roleType, false)
+                _editData(roleType, false)
 
                 cy.wait(2000).then(() => {
                     done()

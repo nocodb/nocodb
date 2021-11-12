@@ -170,5 +170,17 @@ export function _viewMenu(roleType, previewMode) {
 
     // share view & automations, exists only for owner/creator
     cy.get(`.nc-share-view`).should(validationString)
-    cy.get(`.nc-automations`).should(validationString)        
+    cy.get(`.nc-automations`).should(validationString)
+}
+
+export function _topRightMenu(roleType, previewMode) {
+    let validationString = (true == roles[roleType].validations.shareView) ? 'exist' : 'not.exist'    
+    cy.get('.nc-topright-menu').find('.nc-menu-share').should(validationString)
+
+    cy.get('.nc-topright-menu').find('.nc-menu-theme').should('exist')
+    cy.get('.nc-topright-menu').find('.nc-menu-dark-theme').should('exist')
+    cy.get('.nc-topright-menu').find('.nc-menu-translate').should('exist')
+    cy.get('.nc-topright-menu').find('.nc-menu-account').should('exist')
+    cy.get('.nc-topright-menu').find('.nc-menu-alert').should('exist')
+
 }

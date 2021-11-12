@@ -2,7 +2,7 @@ import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
 import { roles, staticProjects } from "../../support/page_objects/projectConstants"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
-import { _advSettings, _editSchema, _editData, _editComment, _viewMenu } from "../spec/roleValidation.spec"
+import { _advSettings, _editSchema, _editData, _editComment, _viewMenu, _topRightMenu } from "../spec/roleValidation.spec"
 
 export const genTest = (type, xcdb) => {
     if (!isTestSuiteActive(type, xcdb)) return;
@@ -67,83 +67,48 @@ export const genTest = (type, xcdb) => {
             ///////////////////////////////////////////////////////
             // Test suite
 
-            const errHndl = (err, runnable, done) => {
-                expect(err.message).to.include('Not allowed')
-                done()
-                return false
-            }
-
-            it(`[${roles[roleType].name}] Left navigation menu, New User add`, (done) => {
-                cy.on('uncaught:exception', (err, runnable) => errHndl(err, runnable, done))
-
+            it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
                 // project configuration settings
                 //
                 _advSettings(roleType, false)
-                
-                cy.wait(2000).then(() => {
-                    done()
-                })
             })
 
-            it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, (done) => {
-                cy.on('uncaught:exception', (err, runnable) => errHndl(err, runnable, done))
-                
+            it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
                 // Schema related validations
                 //  - Add/delete table
                 //  - Add/Update/delete column
                 //
                 _editSchema(roleType, false)
-
-                cy.wait(2000).then(() => {
-                    done()
-                })  
             })
 
-            it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, (done) => {
-
-                // known issue: to be fixed
-                // right click raising alarm 'not allowed' for viewer
-                //
-                cy.on('uncaught:exception', (err, runnable) => errHndl(err, runnable, done))
-
+            it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, () => {
                 // Table data related validations
                 //  - Add/delete/modify row
                 //
                 _editData(roleType, false)
-
-                cy.wait(2000).then(() => {
-                    done()
-                })
             })
 
-            it(`[${roles[roleType].name}] Comments: view/add`, (done) => {
-
-                cy.on('uncaught:exception', (err, runnable) => errHndl(err, runnable, done))
-
+            it(`[${roles[roleType].name}] Comments: view/add`, () => {
                 // read &/ update comment
                 //      Viewer: only allowed to read
                 //      Everyone else: read &/ update
                 //
                 if (roleType != 'viewer')
                     _editComment(roleType, false)
-
-                cy.wait(2000).then(() => {
-                    done()
-                })  
             })
 
-            it(`[${roles[roleType].name}] Right navigation menu, share view`, (done) => {
-
-                cy.on('uncaught:exception', (err, runnable) => errHndl(err, runnable, done))
-
+            it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
                 // right navigation menu bar
                 //      Editor/Viewer/Commenter : can only view 'existing' views
                 //      Rest: can create/edit                
                 _viewMenu(roleType, false)
+            })
 
-                cy.wait(2000).then(() => {
-                    done()
-                })
+            it(`[${roles[roleType].name}] Top Right Menu bar`, () => {
+                // Share button is conditional
+                // Rest are static/ mandatory
+                //
+                _topRightMenu(roleType, false)           
             })
 
             it(`[${roles[roleType].name}] Download files`, () => {

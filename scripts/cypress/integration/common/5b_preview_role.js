@@ -6,7 +6,7 @@
 import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
-import { _advSettings, _editSchema, _editData, _editComment, _viewMenu } from "../spec/roleValidation.spec"
+import { _advSettings, _editSchema, _editData, _editComment, _viewMenu, _topRightMenu } from "../spec/roleValidation.spec"
 
 
 export const genTest = (type, xcdb, roleType) => {
@@ -66,6 +66,13 @@ export const genTest = (type, xcdb, roleType) => {
                 _viewMenu(roleType, true)
             })
 
+            it(`Role preview: ${roleType}: Top Right Menu bar`, () => {
+                // Share button is conditional
+                // Rest are static/ mandatory
+                //
+                _topRightMenu(roleType, false)    
+            })            
+
             it(`Role preview: ${roleType}: Edit Schema`, () => {
                 // Schema related validations
                 //  - Add/delete table
@@ -77,9 +84,7 @@ export const genTest = (type, xcdb, roleType) => {
 
         genTestSub('editor')
         genTestSub('commenter')
-
-        // disabled, to be fixed.
-        // genTestSub('viewer')
+        genTestSub('viewer')
     })
 }
 

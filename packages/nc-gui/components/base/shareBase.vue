@@ -27,9 +27,13 @@
 
     <v-chip v-if="base.enabled" :color="colors[2]">
       <div class="nc-url-wrapper d-flex mx-1 align-center d-100">
-        <span class="nc-url">{{ base.url }}</span>
-        <v-icon>mdi-reload</v-icon>
-        <v-icon>mdi-content-copy</v-icon>
+        <span class="nc-url">{{ url }}</span>
+        <v-icon @click="recreate">
+          mdi-reload
+        </v-icon>
+        <v-icon @click="copyUrl">
+          mdi-content-copy
+        </v-icon>
         <v-icon>mdi-xml</v-icon>
       </div>
     </v-chip>
@@ -38,6 +42,7 @@
 
 <script>
 import colors from '~/mixins/colors'
+import { copyTextToClipboard } from '~/helpers/xutils'
 
 export default {
   name: 'ShareBase',
@@ -47,6 +52,11 @@ export default {
       enable: false
     }
   }),
+  computed: {
+    url() {
+      return this.base && this.base.shared_base_id ? `${this.dashboardUrl}#/nc/base/${this.base.shared_base_id}` : null
+    }
+  },
   mounted() {
     this.loadSharedBase()
   },
@@ -74,6 +84,19 @@ export default {
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
+    },
+    async recreate() {
+      try {
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'disableSharedBaseLink'])
+        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'createSharedBaseLink'])
+        this.base = sharedBase || {}
+      } catch (e) {
+        this.$toast.error(e.message).goAway(3000)
+      }
+    },
+    copyUrl() {
+      copyTextToClipboard(this.url)
+      this.$toast.success('Copied shareable base url to clipboard!').goAway(3000)
     }
   }
 

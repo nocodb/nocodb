@@ -114,8 +114,8 @@
     "title": "INICIAR SESIÓN",
     "enter_your_work_email": "Ingresa tu e-mail de trabajo",
     "enter_your_password": "Ingresa tu contraseña",
-    "forget_password": "Has olvidado tu contraseña?",
-    "dont_ve_an_account": "No tienes una cuenta?",
+    "forget_password": "¿Has olvidado tu contraseña?",
+    "dont_ve_an_account": "¿No tienes una cuenta?",
     "sign_up": "Regístrarse",
     "form": {
       "rules": {
@@ -146,7 +146,7 @@
   "signup": {
     "title": "REGISTRARSE",
     "you_will_be_the_super_admin": "Serás 'Super Admin'",
-    "already_ve_an_account": "Ya tienes una cuenta?"
+    "already_ve_an_account": "¿Ya tienes una cuenta?"
   },
   "treeview": {
     "settings": {

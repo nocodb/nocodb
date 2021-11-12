@@ -1380,7 +1380,7 @@ export default class NcMetaMgr {
   protected async handleRequest(req, res, next) {
     try {
       const args = req.body;
-      let result;
+      let result, postListenerCb;
 
       switch (args.api) {
         case 'xcPluginDemoDefaults':
@@ -1655,6 +1655,22 @@ export default class NcMetaMgr {
           });
 
           Tele.emit('evt', { evt_type: 'project:created', xcdb: true });
+          postListenerCb = async () => {
+            if (args?.args?.template) {
+              await this.xcModelsCreateFromTemplate(
+                {
+                  dbAlias: 'db', // this.nodes.dbAlias,
+                  env: '_noco',
+                  project_id: result?.id,
+                  args: {
+                    template: args?.args?.template
+                  }
+                },
+                req
+              );
+            }
+          };
+
           break;
         }
         case 'projectList':
@@ -1912,6 +1928,10 @@ export default class NcMetaMgr {
             res
           }
         });
+      }
+
+      if (postListenerCb) {
+        await postListenerCb();
       }
 
       if (
@@ -4330,7 +4350,7 @@ export default class NcMetaMgr {
             meta,
             tn
           },
-          api: 'xcM2MRelationCreate'
+          api: 'tableXcModelGet'
         },
         res,
         user: req.user,

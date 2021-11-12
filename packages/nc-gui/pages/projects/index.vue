@@ -190,6 +190,27 @@
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
+                    <v-divider />
+                    <v-list-item
+                      title
+                      class="pt-2 nc-create-project-from-template"
+                      @click="onCreateProjectFromTemplate()"
+                    >
+                      <v-list-item-icon class="mr-2">
+                        <v-icon small class="">
+                          mdi-checkbox-multiple-blank
+                        </v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>
+                        <!-- Create By Connecting <br>To An External Database -->
+                        <span
+                          class="caption font-weight-regular"
+                          v-html="
+                            $t('projects.create_new_project_button.from_template')
+                          "
+                        />
+                      </v-list-item-title>
+                    </v-list-item>
                   </v-list>
                 </v-menu>
               </template>
@@ -665,6 +686,7 @@
       :dialog-show="dialogShow"
       :heading="confirmMessage"
     />
+    <templates-modal v-model="templatesModal" hide-label create-project />
   </v-container>
 </template>
 
@@ -673,9 +695,11 @@ import dlgLabelSubmitCancel from '../../components/utils/dlgLabelSubmitCancel.vu
 import ShareIcons from '../../components/share-icons'
 import SponsorMini from '@/components/sponsorMini'
 import colors from '~/mixins/colors'
+import TemplatesModal from '~/components/templates/templatesModal'
 
 export default {
   components: {
+    TemplatesModal,
     ShareIcons,
     SponsorMini,
     dlgLabelSubmitCancel
@@ -687,6 +711,7 @@ export default {
   },
   data() {
     return {
+      templatesModal: false,
       overlayVisible: true,
       showCommunity: false,
       project_id: null,
@@ -950,6 +975,9 @@ export default {
       } else {
         this.$router.push('/project/0')
       }
+    },
+    onCreateProjectFromTemplate() {
+      this.templatesModal = true
     },
     async importProjectFromJSON() {
     },

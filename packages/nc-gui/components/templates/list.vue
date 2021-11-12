@@ -12,9 +12,23 @@
       </v-navigation-drawer>
       <template-editor v-if="newEditor" style="width:100%; height: 100%; " @saved="onSaved" />
       <v-container v-else fluid style="height: 100%; overflow: auto">
-        {{ category }}
+        <v-row v-if="templatesLoading">
+          <v-col
+            v-for="i in 10"
+            :key="i"
+            sm="8"
+            offset-sm="2"
+            offset-md="0"
+            md="6"
+            lg="4"
+            xl="3"
+          >
+            <v-skeleton-loader type="card" />
+          </v-col>
+        </v-row>
+
         <v-row
-          v-if="templateList && templateList.length"
+          v-else-if="templateList && templateList.length"
           class="align-stretch"
         >
           <v-col
@@ -61,6 +75,7 @@
   <project-template-detailed
     v-else
     :id="selectedId"
+    :create-project="createProject"
     :loading="loading"
     :counter="counter"
     :modal="modal"
@@ -84,9 +99,11 @@ export default {
   components: { TemplateEditor, Categories, ProjectTemplateDetailed },
   props: {
     modal: Boolean,
-    loading: Boolean
+    loading: Boolean,
+    createProject: Boolean
   },
   data: () => ({
+    templatesLoading: false,
     category: null,
     selectedId: null,
     templateListLoc: [],
@@ -103,12 +120,14 @@ export default {
   },
   methods: {
     async loadTemplates() {
+      this.templatesLoading = true
       try {
         const res = await this.$axios.get(`${process.env.NC_API_URL}/api/v1/nc/templates`)
         this.templateListLoc = res.data.data
       } catch (e) {
         console.log(e)
       }
+      this.templatesLoading = false
     },
     getShortDescription(str) {
       if (!str || str.length < 200) {

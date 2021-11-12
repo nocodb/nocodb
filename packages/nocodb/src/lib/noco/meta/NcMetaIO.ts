@@ -16,6 +16,7 @@ const META_TABLES = {
     'nc_migrations',
     'nc_disabled_models_for_role',
     'nc_shared_views',
+    'nc_shared_bases',
     'nc_cron',
     'nc_audit'
   ],
@@ -31,7 +32,8 @@ const META_TABLES = {
     'nc_api_tokens',
     'nc_disabled_models_for_role',
     'nc_shared_views',
-    'nc_cron'
+    'nc_cron',
+    'nc_shared_bases'
   ],
   rest: [
     'nc_models',
@@ -46,7 +48,8 @@ const META_TABLES = {
     'nc_disabled_models_for_role',
     'nc_shared_views',
     'nc_cron',
-    'nc_audit'
+    'nc_audit',
+    'nc_shared_bases'
   ]
 };
 

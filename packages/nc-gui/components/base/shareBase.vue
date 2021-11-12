@@ -2,7 +2,8 @@
   <div>
     <v-icon color="grey" small>
       mdi-open-in-new
-    </v-icon> <span class="grey--text caption">Shared base link</span>
+    </v-icon>
+    <span class="grey--text caption">Shared base link</span>
     <div class="nc-container">
       <v-menu>
         <template #activator="{on}">
@@ -81,7 +82,8 @@ export default {
   methods: {
     async loadSharedBase() {
       try {
-        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'getSharedBaseLink'])
+        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          { dbAlias: 'db' }, 'getSharedBaseLink'])
         this.base = sharedBase || {}
       } catch (e) {
         console.log(e)
@@ -89,7 +91,7 @@ export default {
     },
     async createSharedBase() {
       try {
-        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'createSharedBaseLink'])
+        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'createSharedBaseLink'])
         this.base = sharedBase || {}
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
@@ -97,7 +99,7 @@ export default {
     },
     async disableSharedBase() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'disableSharedBaseLink'])
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'disableSharedBaseLink'])
         this.base = {}
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
@@ -105,8 +107,8 @@ export default {
     },
     async recreate() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'disableSharedBaseLink'])
-        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'createSharedBaseLink'])
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'disableSharedBaseLink'])
+        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'createSharedBaseLink'])
         this.base = sharedBase || {}
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
@@ -127,7 +129,7 @@ export default {
 <style scoped>
 .nc-url-wrapper {
   column-gap: 15px;
-  width:100%
+  width: 100%
 }
 
 .nc-url {

@@ -878,14 +878,14 @@ export default {
         }
       }
     },
-    // todo: move debounce to cell since this will skip few update api call
-    onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
-      await self.onCellValueChangeFn(col, row, column)
-    }, 100),
-    onCellValueChange(col, row, column) {
-      this.onCellValueChangeDebounce(col, row, column, this)
-    },
-    async onCellValueChangeFn(col, row, column) {
+    // // todo: move debounce to cell since this will skip few update api call
+    // onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
+    //   await self.onCellValueChangeFn(col, row, column)
+    // }, 100),
+    // onCellValueChange(col, row, column) {
+    //   this.onCellValueChangeFn(col, row, column)
+    // },
+    async onCellValueChange(col, row, column) {
       if (!this.data[row]) {
         return
       }

@@ -339,6 +339,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/bebora"><img src="https://avatars.githubusercontent.com/u/32399075?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simone</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bebora" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/tyonirwansyah"><img src="https://avatars.githubusercontent.com/u/73389687?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tyo Nirwansyah</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=tyonirwansyah" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://www.ddazal.com"><img src="https://avatars.githubusercontent.com/u/21014225?v=4?s=100" width="100px;" alt=""/><br /><sub><b>David Daza</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=ddazal" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

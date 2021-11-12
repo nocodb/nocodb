@@ -375,7 +375,7 @@
             <template v-if="_isUIAllowed('treeViewProjectSettings')">
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" @click="appsTabAdd" v-on="on">
+                  <v-list-item dense class="body-2 nc-settings-appstore" @click="appsTabAdd" v-on="on">
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-storefront-outline
@@ -395,7 +395,7 @@
 
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" @click="rolesTabAdd" v-on="on">
+                  <v-list-item dense class="body-2 nc-settings-teamauth" @click="rolesTabAdd" v-on="on">
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-account-group
@@ -414,7 +414,7 @@
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" @click="disableOrEnableModelTabAdd" v-on="on">
+                  <v-list-item dense class="body-2 nc-settings-projmeta" @click="disableOrEnableModelTabAdd" v-on="on">
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-table-multiple
@@ -507,7 +507,7 @@
                   <v-divider v-if="i" :key="i" vertical class="mx-2 caption grey--text" />
                   <div
                     :key="role.title"
-                    class="pointer text-center"
+                    :class="`pointer text-center nc-preview-${role.title}`"
                     @click="setPreviewUSer(role.title)"
                   >
                     <v-icon
@@ -531,7 +531,7 @@
                     mdi-close
                   </v-icon>
                   <!-- Reset Preview -->
-                  <span class="caption">{{ $t('treeview.reset_review') }}</span>
+                  <span class="caption nc-preview-reset">{{ $t('treeview.reset_review') }}</span>
                 </v-list-item>
               </template>
             </v-list>

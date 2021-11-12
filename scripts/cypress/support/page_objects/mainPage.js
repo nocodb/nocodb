@@ -35,11 +35,13 @@ export class _mainPage {
         this.TEAM_N_AUTH = 3
         this.PROJ_METADATA = 4
         this.ROLE_VIEW = 5
+        this.ROLE_VIEW_EDITOR = 6
+        this.ROLE_VIEW_COMMENTER = 7
+        this.ROLE_VIEW_VIEWER = 8
+        this.ROLE_VIEW_RESET = 9
 
         this.roleURL = {}
     }
-
-
 
     toolBarTopLeft(toolBarItem) {
         return cy.get('header.v-toolbar', {timeout: 20000}).eq(0).find('a').eq(toolBarItem)
@@ -50,10 +52,29 @@ export class _mainPage {
     }
 
     navigationDraw(item) {
-        if (item == this.ROLE_VIEW)
-            return cy.get('.nc-nav-drawer').find('.v-list').last()
-        else
-            return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
+        // if (item == this.ROLE_VIEW)
+        //     return cy.get('.nc-nav-drawer').find('.v-list').last()
+        // else
+        //     return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
+
+        switch (item) {
+            case this.AUDIT:
+                return cy.get('.nc-treeview-item-Audit')
+            case this.APPSTORE:
+                return cy.get('.nc-settings-appstore')
+            case this.TEAM_N_AUTH:
+                return cy.get('.nc-settings-teamauth')
+            case this.PROJ_METADATA:
+                return cy.get('.nc-settings-projmeta')
+            case this.ROLE_VIEW_EDITOR:
+                return cy.get('.nc-preview-editor')
+            case this.ROLE_VIEW_COMMENTER:
+                return cy.get('.nc-preview-commenter')
+            case this.ROLE_VIEW_VIEWER:
+                return cy.get('.nc-preview-viewer')
+            case this.ROLE_VIEW_RESET:
+                return cy.get('.nc-preview-reset')
+        }
     }
 
 

@@ -5,243 +5,12 @@
 
 import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
-import { roles } from "../../support/page_objects/projectConstants"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { _advSettings, _editSchema, _editData, _editComment, _viewMenu } from "../spec/roleValidation.spec"
 
-// should we reverify permissions after preview reset?
-const reVerificationAfterReset = false
-
-// should we verify permissions in owner mode before preview?
-const baseVerificationBeforePreview = false
 
 export const genTest = (type, xcdb, roleType) => {
     if(!isTestSuiteActive(type, xcdb)) return;
-
-    // project configuration settings
-    //
-    const advancedSettings = (roleType) => {
-
-        cy.log(`##### advancedSettings: ${roleType}`)
-
-        let validationString = (true == roles[roleType].validations.advSettings) ? 'exist' : 'not.exist'
-
-        // restricted mode has only 3 lists & 3 items
-        let vListLength = (true == roles[roleType].validations.advSettings) ? 4 : 3
-        let vListItemLength = (true == roles[roleType].validations.advSettings) ? 6 : 3
-
-        cy.get('.nc-nav-drawer').find('.v-list').should('has.length', vListLength)
-        cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').should('has.length', vListItemLength)
-
-        cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').contains('Audit').should('exist')
-        cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').contains('App Store').should(validationString)
-        cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').contains('Team & Auth').should(validationString)
-        cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').contains('Project Metadata').should(validationString)
-
-        // preview mode- common across all 
-        cy.get('.nc-nav-drawer').find('.v-list').last().contains('editor').should('exist')
-        cy.get('.nc-nav-drawer').find('.v-list').last().contains('commenter').should('exist')
-        cy.get('.nc-nav-drawer').find('.v-list').last().contains('viewer').should('exist')
-
-        // Reset preview option available only in 'preview mode'
-        // Open team & auth after reset-preview to ensure 'New User' button is visible again
-        //
-        if (true == roles[roleType].validations.advSettings) {
-            cy.get('.nc-nav-drawer').find('.v-list').last().contains('Reset Preview').should('not.exist')
-            cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').contains('Team & Auth').click()
-        }
-        else {
-            cy.get('.nc-nav-drawer').find('.v-list').last().contains('Reset Preview').should('exist')
-        }
-
-        cy.get('button:contains("New User")').should(validationString)
-    }
-
-
-    // Table data related validations
-    //  - Add/delete/modify row
-    //
-    const editData = (roleType) => {
-
-        cy.log(`##### editData: ${roleType}`)
-
-        // TODO: to be fixed for roleType = 'editor'
-        // Some of the expected buttons are invisible
-        if (roleType == 'editor')
-            return false
-
-        // TODO: to be fixed for roleType = 'editor'
-        // Unhandled exception
-        if (roleType == 'viewer')
-            return false
-
-        let columnName = 'City'
-        let validationString = (true == roles[roleType].validations.editData) ? 'exist' : 'not.exist'
-
-        cy.openTableTab(columnName)
-
-        // add new row option (from menu header)
-        //
-        cy.get('.nc-add-new-row-btn').should(validationString)
-
-        // update row option (right click)
-        //
-
-        // TODO: roleType = viewer has an unhandled exception for rightClick
-        if (roleType != 'viewer') {
-            cy.get(`tbody > :nth-child(4) > [data-col="City"]`).rightclick()
-            cy.get('.menuable__content__active').should(validationString)
-        }
-
-        if (validationString == 'exist') {
-
-            // right click options will exist (only for 'exist' case)
-            //
-            cy.getActiveMenu().contains('Insert New Row').should(validationString)
-            cy.getActiveMenu().contains('Delete Row').should(validationString)
-            cy.getActiveMenu().contains('Delete Selected Rows').should(validationString)
-            cy.get('body').type('{esc}')
-
-            // update cell contents option using row expander should be enabled
-            //
-            //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-            cy.get('.v-input.row-checkbox').eq(4).next().next().click({ force: true })
-            cy.getActiveModal().find('button').contains('Save Row').should('exist')
-            cy.get('body').type('{esc}')
-
-        }
-        else {
-            // update cell contents option using row expander should be disabled
-            //
-            //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-            cy.get('.v-input.row-checkbox').eq(4).next().next().click({ force: true })
-            cy.getActiveModal().find('button:disabled').contains('Save Row').should('exist')
-            cy.getActiveModal().find('button').contains('Cancel').click()
-            cy.get('body').type('{esc}')
-        }
-
-        // double click cell entries to edit
-        //
-        cy.get(`tbody > :nth-child(4) > [data-col="City"]`).dblclick().find('input').should(validationString)
-    }
-
-
-    // Schema related validations
-    //  - Add/delete table
-    //  - Add/Update/delete column
-    //
-    const editSchema = (roleType) => {
-
-        cy.log(`##### editSchema: ${roleType}`)
-
-        let columnName = 'City'
-        let validationString = (true == roles[roleType].validations.editSchema) ? 'exist' : 'not.exist'
-
-        // create table options
-        //
-        cy.get('.add-btn').should(validationString)
-        cy.get('.v-tabs-bar').eq(0).find('button.mdi-plus-box').should(validationString)
-
-        // delete table option
-        //
-        cy.get('.nc-table-delete-btn').should(validationString)
-
-        // add new column option
-        //        
-        cy.get('.new-column-header').should(validationString)
-
-        // update column (edit/ delete menu)
-        //
-        cy.get(`th:contains(${columnName}) .mdi-menu-down`).should(validationString)
-
-    }
-
-
-    // read &/ update comment
-    //      Viewer: only allowed to read
-    //      Everyone else: read &/ update
-    //
-    const editComment = (roleType) => {
-
-        cy.log(`##### editComment: ${roleType}`)
-
-        // TODO: to be fixed for roleType = 'editor'
-        // Unhandled exception
-        if (roleType == 'viewer')
-            return false
-
-
-        let columnName = 'City'
-        let validationString = (true == roles[roleType].validations.editComment) ? 'Comment added successfully' : 'Not allowed'
-
-        cy.openTableTab(columnName)
-
-        // click on comment icon & type comment
-        //
-
-        cy.get('.v-input.row-checkbox').eq(4).next().next().click({ force: true })
-        //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-        cy.getActiveModal().find('.mdi-comment-multiple-outline').should('exist').click()
-        cy.getActiveModal().find('.comment-box').type('Comment-1{enter}')
-        cy.getActiveModal().find('.mdi-door-open').click()
-
-        // Expected response: 
-        //      Viewer: Not allowed
-        //      Everyone else: Comment added successfully
-        //
-        cy.get('body').contains(validationString, { timeout: 2000 }).should('exist')
-        cy.wait(1000)
-        cy.getActiveModal().find('button').contains('Cancel').click()
-        cy.get('body').type('{esc}')
-    }
-
-    // right navigation menu bar
-    //      Editor/Viewer/Commenter : can only view 'existing' views
-    //      Rest: can create/edit
-    const viewMenu = (roleType) => {
-
-        cy.log(`##### viewMenu: ${roleType}`)
-
-        // TODO: to be fixed for roleType = 'editor'
-        // Unhandled exception
-        if (roleType == 'viewer')
-            return false
-
-        let columnName = 'City'
-        let navDrawListCnt = 2
-
-        cy.openTableTab(columnName)
-        let validationString = (true == roles[roleType].validations.shareView) ? 'exist' : 'not.exist'
-
-        // validate if Share button is visible at header tool bar
-        cy.get('header.v-toolbar').eq(0).find('button:contains("Share")').should(validationString)
-
-        // Owner, Creator will have two navigation drawer (on each side of center panel)
-        if (roleType == 'owner' || roleType == 'creator') {
-            navDrawListCnt = 4
-        }
-
-        cy.get('.v-navigation-drawer__content').eq(1).find('[role="list"]').should('have.length', navDrawListCnt)
-
-        // view list field (default GRID view)
-        cy.get(`.nc-view-item`).should('exist')
-
-        // view create option, exists only for owner/ creator
-        cy.get(`.nc-create-gallery-view`).should(validationString)
-        cy.get(`.nc-create-grid-view`).should(validationString)
-        cy.get(`.nc-create-form-view`).should(validationString)
-
-        // share view & automations, exists only for owner/creator
-        cy.get(`.nc-share-view`).should(validationString)
-        cy.get(`.nc-automations`).should(validationString)        
-
-        // redundant
-        // cy.get('.v-navigation-drawer__content').eq(1).find('.v-list-item').eq(0).contains('Views').should('exist')
-        // cy.get('.v-navigation-drawer__content').eq(1).find('.v-list-item').eq(1).contains('City').should('exist')
-
-        // cy.get(`.nc-create-grid-view`).should(validationString)
-        // cy.get(`.nc-create-gallery-view`).should(validationString)
-    }
-
 
     ///////////////////////////////////////////////////////////
     //// Test Suite
@@ -251,55 +20,68 @@ export const genTest = (type, xcdb, roleType) => {
         before(() => {
             loginPage.loginAndOpenProject(type, xcdb)
         })
-        // before(() => {
-        //     loginPage.signIn(roles.owner.credentials)
-        //     projectsPage.openProject('externalREST')
-        // })
 
         after(() => {
-            mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').click()
-            cy.wait(3000)
+            cy.get('.nc-preview-reset').click({ force: true })
+            cy.wait(20000)
 
-            mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
+            // mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
+            // cy.get('.nc-preview-reset').should('not-exist')
             cy.closeTableTab('City')
         })
 
         const genTestSub = (roleType) => {
         
-            it(`Role type: ${roleType}`, (done) => {
-                // known issue: to be fixed
-                // right click raising alarm 'not allowed' for viewer
-                //
-                cy.on('uncaught:exception', (err, runnable) => {
-                    expect(err.message).to.include('Not allowed')
-                    done()
-                    return false
-                })
-
-                mainPage.navigationDraw(mainPage.ROLE_VIEW).contains(roleType).click()
+            it(`Role preview: ${roleType}: Enable preview`, () => {
+                cy.get(`.nc-preview-${roleType}`).click()
                 cy.wait(3000)
                 cy.openTableTab('City')
+            })
 
-                advancedSettings(roleType)
-                editData(roleType)
-                editComment(roleType)
-                viewMenu(roleType)                               
-                editSchema(roleType)
+            it(`Role preview: ${roleType}: Advance settings`, () => {
+                // project configuration settings
+                //
+                _advSettings(roleType, true)
+            })
 
-                cy.wait(100).then(() => {
-                    done()
-                })            
+            it(`Role preview: ${roleType}: Edit data`, () => {
+                // Table data related validations
+                //  - Add/delete/modify row
+                //                
+                _editData(roleType, true)
+            })
+
+            it(`Role preview: ${roleType}: Edit comment`, () => {
+                // read &/ update comment
+                //      Viewer: only allowed to read
+                //      Everyone else: read &/ update
+                //
+                _editComment(roleType, true)
+            })
+
+            it(`Role preview: ${roleType}: Preview menu`, () => {
+                // right navigation menu bar
+                //      Editor/Viewer/Commenter : can only view 'existing' views
+                //      Rest: can create/edit
+                _viewMenu(roleType, true)
+            })
+
+            it(`Role preview: ${roleType}: Edit Schema`, () => {
+                // Schema related validations
+                //  - Add/delete table
+                //  - Add/Update/delete column
+                //                
+                _editSchema(roleType, true)
             })
         }
 
         genTestSub('editor')
         genTestSub('commenter')
+
+        // disabled, to be fixed.
         // genTestSub('viewer')
     })
 }
-
-// genTest('rest', false)
-
 
 
 /**

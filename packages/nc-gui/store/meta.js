@@ -16,7 +16,7 @@ export const mutations = {
 }
 
 export const actions = {
-  async ActLoadMeta({ state, commit, dispatch }, { tn, env, dbAlias, force }) {
+  async ActLoadMeta({ state, commit, dispatch }, { tn, env = '_noco', dbAlias = 'db', force }) {
     if (!force && state.loading[tn]) {
       return await new Promise((resolve) => {
         const unsubscribe = this.app.store.subscribe((s) => {

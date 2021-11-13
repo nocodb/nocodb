@@ -361,6 +361,8 @@ export const actions = {
     dispatch
   }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams, returnResponse]) {
     const params = {}
+    params.project_id = rootState.project.projectId
+
     if (this.$router.currentRoute && this.$router.currentRoute.params) {
       if (this.$router.currentRoute.params.project_id) {
         params.project_id = this.$router.currentRoute.params.project_id
@@ -419,6 +421,7 @@ export const actions = {
 
       return data
     } catch (e) {
+      console.log(e)
       const err = new Error(e.response.data.msg)
       err.response = e.response
       throw err

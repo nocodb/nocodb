@@ -1,88 +1,90 @@
 <template>
   <div class="h-100">
     <v-toolbar v-if="!viewMode" class="elevation-0">
-      <!--      <v-text-field
-        v-model="url"
-        clearable
-        placeholder="Enter template url"
-        outlined
-        hide-details
-        dense
-        @keydown.enter="loadUrl"
-      />-->
-      <!--      <v-btn outlined class='ml-1' @click='loadUrl'> Load URL</v-btn>-->
+      <slot name="toolbar">
+        <!--      <v-text-field
+          v-model="url"
+          clearable
+          placeholder="Enter template url"
+          outlined
+          hide-details
+          dense
+          @keydown.enter="loadUrl"
+        />-->
+        <!--      <v-btn outlined class='ml-1' @click='loadUrl'> Load URL</v-btn>-->
 
-      <v-tooltip bottom>
-        <template #activator="{on}">
-          <v-btn
-            small
-            outlined
-            v-on="on"
-            @click="$toast.info('Happy hacking!').goAway(3000)"
-          >
-            <v-icon small class="mr-1">
-              mdi-file-excel-outline
+        <v-tooltip bottom>
+          <template #activator="{on}">
+            <v-btn
+              small
+              outlined
+              v-on="on"
+              @click="$toast.info('Happy hacking!').goAway(3000)"
+            >
+              <v-icon small class="mr-1">
+                mdi-file-excel-outline
+              </v-icon>
+              Import
+            </v-btn>
+          </template>
+          <span class="caption">Create template from Excel</span>
+        </v-tooltip>
+
+        <v-spacer />
+
+        <v-icon class="mr-3" @click="helpModal=true">
+          mdi-information-outline
+        </v-icon>
+
+        <!--      <v-icon class="mr-3" @click="openUrl">
+          mdi-web
+        </v-icon>-->
+        <!--      <v-tooltip bottom>
+          <template #activator="{on}">
+            <v-icon
+              class="mr-3"
+              v-on="on"
+              @click="url = '',project.tables= []"
+            >
+              mdi-close-circle-outline
             </v-icon>
-            Import
-          </v-btn>
-        </template>
-        <span class="caption">Create template from Excel</span>
-      </v-tooltip>
+          </template>
+          <span class="caption">Reset template</span>
+        </v-tooltip>-->
 
-      <v-spacer />
-
-      <v-icon class="mr-3" @click="helpModal=true">
-        mdi-information-outline
-      </v-icon>
-
-      <!--      <v-icon class="mr-3" @click="openUrl">
-        mdi-web
-      </v-icon>-->
-      <!--      <v-tooltip bottom>
-        <template #activator="{on}">
-          <v-icon
-            class="mr-3"
-            v-on="on"
-            @click="url = '',project.tables= []"
-          >
-            mdi-close-circle-outline
+        <v-btn small outlined class="mr-1" @click="project = {tables : []}">
+          <v-icon small>
+            mdi-close
           </v-icon>
-        </template>
-        <span class="caption">Reset template</span>
-      </v-tooltip>-->
+          Reset
+        </v-btn>
+        <!--      <v-icon
+          :color="$store.getters['github/isAuthorized'] ? '' : 'error'"
+          class="mr-3"
+          @click="githubConfigForm = !githubConfigForm"
+        >
+          mdi-github
+        </v-icon>-->
+        <v-btn small outlined class="mr-1" @click="createTablesDialog = true">
+          <v-icon small>
+            mdi-plus
+          </v-icon>
+          New table
+        </v-btn>
 
-      <v-btn small outlined class="mr-1" @click="project = {tables : []}">
-        <v-icon small>
-          mdi-close
-        </v-icon>
-        Reset
-      </v-btn>
-      <!--      <v-icon
-        :color="$store.getters['github/isAuthorized'] ? '' : 'error'"
-        class="mr-3"
-        @click="githubConfigForm = !githubConfigForm"
-      >
-        mdi-github
-      </v-icon>-->
-      <v-btn small outlined class="mr-1" @click="createTablesDialog = true">
-        <v-icon small>
-          mdi-plus
-        </v-icon>
-        New table
-      </v-btn>
-
-      <!--      <v-btn outlined small class='mr-1' @click='submitTemplate'> Submit Template</v-btn>-->
-      <v-btn
-        color="primary"
-        outlined
-        small
-        class="mr-1"
-        :loading="loading"
-        :disabled="loading"
-        @click="saveTemplate"
-      >
-        {{ id || localId ? 'Update in' : 'Submit to' }} NocoDB
-      </v-btn>
+        <!--      <v-btn outlined small class='mr-1' @click='submitTemplate'> Submit Template</v-btn>-->
+        <v-btn
+          color="primary"
+          outlined
+          small
+          class="mr-1"
+          :loading="loading"
+          :disabled="loading"
+          @click="saveTemplate"
+        >
+          {{ id || localId ? 'Update in' : 'Submit to' }} NocoDB
+        </v-btn>
+      </slot>
     </v-toolbar>
     <v-container class="text-center" style="height:calc(100% - 64px);overflow-y: auto">
       <v-form ref="form">
@@ -620,7 +622,7 @@ export default {
       return this.url && this.url.split('/').pop()
     },
     projectTemplate() {
-      return {
+      const template = {
         ...this.project,
         tables: (this.project.tables || []).map((t) => {
           const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
@@ -673,6 +675,10 @@ export default {
           return table
         })
       }
+
+      this.$emit('update:templateData', template)
+
+      return template
     }
   },
 
@@ -851,7 +857,7 @@ export default {
 
     isRelation(col) {
       return col.uidt === 'LinkToAnotherRecord' ||
-        col.uidt === 'ForeignKey'
+          col.uidt === 'ForeignKey'
     },
     isLookup(col) {
       return col.uidt === 'Lookup'
@@ -864,11 +870,11 @@ export default {
     },
     isLookupOrRollup(col) {
       return this.isLookup(col) ||
-        this.isRollup(col)
+          this.isRollup(col)
     },
     isSelect(col) {
       return col.uidt === 'MultiSelect' ||
-        col.uidt === 'SingleSelect'
+          col.uidt === 'SingleSelect'
     },
     addNewColumnRow(table, uidt) {
       table.columns.push({

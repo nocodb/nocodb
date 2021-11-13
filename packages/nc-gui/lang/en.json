@@ -8,7 +8,8 @@
       "subtext_1_tooltip": "Create a new project",
       "subtext_2": "Create By Connecting <br>To An External Database",
       "subtext_2_tooltip": "Supports MySQL, PostgreSQL, SQL Server & SQLite",
-      "from_template": "Create Project from template"
+      "from_template": "Create Project from template",
+      "from_excel": "Create Project from excel"
     },
     "search_project": "Search Project",
     "import_metadata": "Import Metadata",

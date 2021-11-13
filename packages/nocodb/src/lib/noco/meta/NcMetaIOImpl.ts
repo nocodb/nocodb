@@ -353,7 +353,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         // }
       }
       config.id = id;
-      const project = {
+      const project: any = {
         id,
         title: projectName,
         description,
@@ -368,6 +368,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
         created_at: this.knexConnection?.fn?.now(),
         updated_at: this.knexConnection?.fn?.now()
       });
+
+      project.prefix = config.prefix;
       return project;
     } catch (e) {
       console.log(e);

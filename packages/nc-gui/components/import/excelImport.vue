@@ -1,55 +1,170 @@
 <template>
-  <v-tooltip bottom>
-    <template #activator="{on}">
-      <input ref="file" type="file" style="display: none" accept=".xlsx, .xls" @change="_change($event)">
-      <v-btn
-        small
-        outlined
-        v-on="on"
-        @click="$refs.file.click()"
-      >
-        <v-icon small class="mr-1">
-          mdi-file-excel-outline
-        </v-icon>
-        Import
-      </v-btn>
-    </template>
-    <span class="caption">Create template from Excel</span>
-  </v-tooltip>
+  <div>
+    <v-dialog max-width="600" :value="dropOrUpload">
+      <v-card max-width="600">
+        <div class="pa-4">
+          <div
+            class="nc-droppable d-flex align-center justify-center"
+            :style="{
+              background : dragOver ? '#7774' : ''
+            }"
+            @click="$refs.file.click()"
+            @drop.prevent="dropHandler"
+            @dragover.prevent="dragOver = true"
+            @dragenter.prevent="dragOver = true"
+            @dragexit="dragOver = false"
+            @dragleave="dragOver = false"
+            @dragend="dragOver = false"
+          >
+            <v-icon size="50" color="grey">
+              mdi-upload
+            </v-icon>
+          </div>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <v-tooltip bottom>
+      <template #activator="{on}">
+        <input ref="file" type="file" style="display: none" accept=".xlsx, .xls" @change="_change($event)">
+        <v-btn
+
+          v-if="!hideLabel"
+          small
+          outlined
+          v-on="on"
+          @click="$refs.file.click()"
+        >
+          <v-icon small class="mr-1">
+            mdi-file-excel-outline
+          </v-icon>
+          Import
+        </v-btn>
+      </template>
+      <span class="caption">Create template from Excel</span>
+    </v-tooltip>
+
+    <v-dialog v-if="templateData" :value="true">
+      <v-card>
+        <template-editor :template-data.sync="templateData">
+          <template #toolbar>
+            <v-spacer />
+            <create-project-from-template-btn
+              :loader-message.sync="loaderMessage"
+              :template-data="templateData"
+              :import-data="importData"
+            />
+          </template>
+        </template-editor>
+      </v-card>
+    </v-dialog>
+
+    <v-overlay :value="loaderMessage" z-index="99999" opacity=".9">
+      <div class="d-flex flex-column align-center">
+        <v-progress-circular indeterminate size="100" width="15" class="mb-10" />
+        <span class="title">{{ loaderMessage }}</span>
+      </div>
+    </v-overlay>
+  </div>
 </template>
 
 <script>
 
-import XLSX from 'xlsx'
+// import XLSX from 'xlsx'
+import ExcelTemplateAdapter from '~/components/import/ExcelTemplateAdapter'
+import TemplateEditor from '~/components/templates/editor'
+import CreateProjectFromTemplateBtn from '~/components/templates/createProjectFromTemplateBtn'
+
 export default {
   name: 'ExcelImport',
+  components: { CreateProjectFromTemplateBtn, TemplateEditor },
+  props: {
+    hideLabel: Boolean,
+    value: Boolean
+  },
+  data() {
+    return {
+      templateData: null,
+      importData: null,
+      dragOver: false,
+      loaderMessage: null
+    }
+  },
+  computed: {
+    dropOrUpload: {
+      set(v) {
+        this.$emit('input', v)
+      },
+      get() {
+        return this.value
+      }
+    }
+  },
+  mounted() {
+  },
   methods: {
+
+    selectFile() {
+      this.$refs.file.files = null
+      this.$refs.file.click()
+    },
+
     _change(file) {
       const files = file.target.files
-      if (files && files[0]) { this._file(files[0]) }
+      if (files && files[0]) {
+        this._file(files[0])
+      }
     },
     _file(file) {
+      this.loaderMessage = 'Loading excel file...'
+      this.dropOrUpload = false
+      console.time('excelImport')
       const reader = new FileReader()
       reader.onload = (e) => {
         const ab = e.target.result
-        const wb = XLSX.read(new Uint8Array(ab), { type: 'array' })
-
-        // const res = {}
-        // iterate each sheet
-        // each sheet repensents each table
-        for (let i = 0; i < wb.SheetNames.length; i++) {
-          const sheet = wb.SheetNames[i]
-          const ws = wb.Sheets[sheet]
-          const rows = XLSX.utils.sheet_to_json(ws, { header: 1 })
-          console.log(rows)
-        }
+        const templateGenerator = new ExcelTemplateAdapter(file.name, ab)
+        templateGenerator.parse()
+        this.templateData = templateGenerator.getTemplate()
+        this.importData = templateGenerator.getData()
+        console.timeEnd('excelImport')
+        this.loaderMessage = null
+      }
+      reader.onerror = () => {
+        this.loaderMessage = null
       }
       reader.readAsArrayBuffer(file)
+    },
+    dropHandler(ev) {
+      console.log('File(s) dropped')
+      let file
+      if (ev.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        if (ev.dataTransfer.items.length && ev.dataTransfer.items[0].kind === 'file') {
+          file = ev.dataTransfer.items[0].getAsFile()
+        }
+      } else if (ev.dataTransfer.files.length) {
+        file = ev.dataTransfer.files[0]
+      }
+      if (file) {
+        this._file(file)
+      }
+    },
+    dragOverHandler(ev) {
+      console.log('File(s) in drop zone')
+
+      // Prevent default behavior (Prevent file from being opened)
+      ev.preventDefault()
     }
+
   }
 }
 </script>
 
 <style scoped>
-
+.nc-droppable {
+  width: 100%;
+  min-height: 200px;
+  border-radius: 4px;
+  border: 2px dashed var(--v-textColor-lighten5);
+}
 </style>

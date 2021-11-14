@@ -507,7 +507,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectStatusUpdate(
-    projectName: string,
+    projectId: string,
     status: string
   ): Promise<any> {
     return this.knexConnection('nc_projects')
@@ -515,7 +515,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         status
       })
       .where({
-        title: projectName
+        id: projectId
       });
   }
 

@@ -48,7 +48,7 @@ export default class NcProjectBuilder {
 
       this.startTime = Date.now();
       const allRoutesInfo: any[] = [];
-      await this.app.ncMeta.projectStatusUpdate(this.title, 'starting');
+      await this.app.ncMeta.projectStatusUpdate(this.id, 'starting');
       await this.syncMigration();
       await this._createApiBuilder();
       this.initApiInfoRoute();
@@ -72,10 +72,10 @@ export default class NcProjectBuilder {
       }
 
       this.app.projectRouter.use(`/nc/${this.id}`, this.router);
-      await this.app.ncMeta.projectStatusUpdate(this.title, 'started');
+      await this.app.ncMeta.projectStatusUpdate(this.id, 'started');
     } catch (e) {
       console.log(e);
-      await this.app.ncMeta.projectStatusUpdate(this.title, 'stopped');
+      await this.app.ncMeta.projectStatusUpdate(this.id, 'stopped');
     }
   }
 
@@ -458,7 +458,7 @@ export default class NcProjectBuilder {
       case 'projectStop':
         this.router.stack.splice(0, this.router.stack.length);
         this.apiBuilders.splice(0, this.apiBuilders.length);
-        await this.app.ncMeta.projectStatusUpdate(this.title, 'stopped');
+        await this.app.ncMeta.projectStatusUpdate(this.id, 'stopped');
         NcProjectBuilder.triggerGarbageCollect();
         this.app.ncMeta.audit(this.id, null, 'nc_audit', {
           op_type: 'PROJECT',
@@ -862,7 +862,7 @@ export default class NcProjectBuilder {
   public async reInit() {
     this.router.stack.splice(0, this.router.stack.length);
     this.apiBuilders.splice(0, this.apiBuilders.length);
-    await this.app.ncMeta.projectStatusUpdate(this.title, 'stopped');
+    await this.app.ncMeta.projectStatusUpdate(this.id, 'stopped');
     const dbs = this.config?.envs?.[this.appConfig.workingEnv]?.db;
 
     if (!dbs || !dbs.length) {

@@ -45,7 +45,8 @@ export default {
     loading: Boolean,
     templateData: Object,
     importData: Object,
-    loaderMessage: String
+    loaderMessage: String,
+    progress: Number
   },
   data() {
     return {
@@ -82,7 +83,6 @@ export default {
       this.projectCreation = true
       try {
         const interv = setInterval(() => {
-          debugger
           this.loaderMessagesIndex = this.loaderMessagesIndex < this.loaderMessages.length - 1 ? this.loaderMessagesIndex + 1 : 6
           this.$emit('update:loaderMessage', this.loaderMessages[this.loaderMessagesIndex])
         }, 1000)
@@ -118,12 +118,13 @@ export default {
       this.projectCreation = false
     },
     async importDataToProject({ projectId, projectType, prefix = '' }) {
-      this.$store.commit('project/MutProjectId', projectId)
+      // this.$store.commit('project/MutProjectId', projectId)
       this.$ncApis.setProjectId(projectId)
 
+      let total = 0; let progress = 0
       await Promise.all(Object.entries(this.importData).map(async([table, data]) => {
         await this.$store.dispatch('meta/ActLoadMeta', {
-          tn: `${prefix}${table}`
+          tn: `${prefix}${table}`, project_id: projectId
         })
 
         // todo: get table name properly
@@ -131,11 +132,16 @@ export default {
           table: `${prefix}${table}`,
           type: projectType
         })
-
+        total += data.length
         for (let i = 0; i < data.length; i += 500) {
-          console.log(data[i])
-          await api.insertBulk(data.slice(i, i + 500))
+          this.$emit('update:loaderMessage', `Importing data : ${progress}/${total}`)
+          this.$emit('update:progress', Math.round(progress && 100 * progress / total))
+          const batchData = data.slice(i, i + 500)
+          await api.insertBulk(batchData)
+          progress += batchData.length
         }
+
+        this.$emit('update:progress', null)
       }))
     }
   }

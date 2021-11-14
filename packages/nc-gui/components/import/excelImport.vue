@@ -26,7 +26,14 @@
 
     <v-tooltip bottom>
       <template #activator="{on}">
-        <input ref="file" type="file" style="display: none" accept=".xlsx, .xls" @change="_change($event)">
+        <input
+          ref="file"
+          class="nc-excel-import-input"
+          type="file"
+          style="display: none"
+          accept=".xlsx, .xls"
+          @change="_change($event)"
+        >
         <v-btn
 
           v-if="!hideLabel"
@@ -51,6 +58,7 @@
             <v-spacer />
             <create-project-from-template-btn
               :loader-message.sync="loaderMessage"
+              :progress.sync="progress"
               :template-data="templateData"
               :import-data="importData"
             />
@@ -61,7 +69,17 @@
 
     <v-overlay :value="loaderMessage" z-index="99999" opacity=".9">
       <div class="d-flex flex-column align-center">
-        <v-progress-circular indeterminate size="100" width="15" class="mb-10" />
+        <v-progress-circular
+          v-if="progress !== null "
+          :rotate="360"
+          :size="100"
+          :width="15"
+          :value="progress"
+        >
+          {{ progress }}%
+        </v-progress-circular>
+
+        <v-progress-circular v-else indeterminate size="100" width="15" class="mb-10" />
         <span class="title">{{ loaderMessage }}</span>
       </div>
     </v-overlay>
@@ -87,7 +105,8 @@ export default {
       templateData: null,
       importData: null,
       dragOver: false,
-      loaderMessage: null
+      loaderMessage: null,
+      progress: null
     }
   },
   computed: {
@@ -115,20 +134,31 @@ export default {
         this._file(files[0])
       }
     },
-    _file(file) {
-      this.loaderMessage = 'Loading excel file...'
+    async _file(file) {
+      this.loaderMessage = 'Loading excel file'
+      let i = 0
+      const int = setInterval(() => {
+        this.loaderMessage = `Loading excel file${'.'.repeat(++i % 4)}`
+      }, 1000)
+
       this.dropOrUpload = false
-      console.time('excelImport')
       const reader = new FileReader()
+
       reader.onload = (e) => {
         const ab = e.target.result
         const templateGenerator = new ExcelTemplateAdapter(file.name, ab)
         templateGenerator.parse()
         this.templateData = templateGenerator.getTemplate()
         this.importData = templateGenerator.getData()
-        console.timeEnd('excelImport')
         this.loaderMessage = null
+        clearInterval(int)
       }
+
+      const handleEvent = (event) => {
+        this.loaderMessage = `${event.type}: ${event.loaded} bytes transferred`
+      }
+
+      reader.addEventListener('progress', handleEvent)
       reader.onerror = () => {
         this.loaderMessage = null
       }

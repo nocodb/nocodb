@@ -16,7 +16,7 @@ export const mutations = {
 }
 
 export const actions = {
-  async ActLoadMeta({ state, commit, dispatch }, { tn, env = '_noco', dbAlias = 'db', force }) {
+  async ActLoadMeta({ state, commit, dispatch }, { tn, env = '_noco', dbAlias = 'db', force, project_id }) {
     if (!force && state.loading[tn]) {
       return await new Promise((resolve) => {
         const unsubscribe = this.app.store.subscribe((s) => {
@@ -34,7 +34,7 @@ export const actions = {
       key: tn,
       value: true
     })
-    const model = await dispatch('sqlMgr/ActSqlOp', [{ env, dbAlias }, 'tableXcModelGet', { tn }], { root: true })
+    const model = await dispatch('sqlMgr/ActSqlOp', [{ env, dbAlias, project_id }, 'tableXcModelGet', { tn }], { root: true })
     const meta = JSON.parse(model.meta)
     commit('MutMeta', {
       key: tn,

@@ -173,7 +173,7 @@ export default abstract class NcMetaIO {
   ): Promise<any>;
 
   public abstract projectStatusUpdate(
-    projectName: string,
+    projectId: string,
     status: string
   ): Promise<any>;
 

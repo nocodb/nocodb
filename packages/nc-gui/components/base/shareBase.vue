@@ -53,6 +53,9 @@
           <v-icon @click="navigateToSharedBase">
             mdi-open-in-new
           </v-icon>
+          <v-icon @click="generateEmbeddableIframe">
+            mdi-xml
+          </v-icon>
         </div>
       </v-chip>
     </div>
@@ -120,6 +123,16 @@ export default {
     },
     navigateToSharedBase() {
       window.open(this.url, '_blank')
+    },
+    generateEmbeddableIframe() {
+      copyTextToClipboard(`<iframe
+class="nc-embed"
+ src="${this.url}?embedded"
+ frameborder="0"
+  width="100%"
+   height="700"
+   style="background: transparent; "></iframe>`)
+      this.$toast.success('Copied embeddable html code!').goAway(3000)
     }
   }
 

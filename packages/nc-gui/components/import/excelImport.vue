@@ -1,10 +1,10 @@
 <template>
-  <div>
-    <v-dialog max-width="600" :value="dropOrUpload">
+  <div class="pt-10">
+    <v-dialog v-model="dropOrUpload" max-width="600">
       <v-card max-width="600">
         <div class="pa-4">
           <div
-            class="nc-droppable d-flex align-center justify-center"
+            class="nc-droppable d-flex align-center justify-center flex-column"
             :style="{
               background : dragOver ? '#7774' : ''
             }"
@@ -17,8 +17,14 @@
             @dragend="dragOver = false"
           >
             <v-icon size="50" color="grey">
-              mdi-upload
+              mdi-file-plus-outline
             </v-icon>
+            <p class="title grey--text mb-1 mt-2">
+              Select Files to Upload
+            </p>
+            <p class="grey--text ">
+              or drag and drop files
+            </p>
           </div>
         </div>
       </v-card>
@@ -174,6 +180,10 @@ export default {
         }
       } else if (ev.dataTransfer.files.length) {
         file = ev.dataTransfer.files[0]
+      }
+
+      if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && file.type !== 'application/vnd.ms-excel') {
+        return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls!').goAway(3000)
       }
       if (file) {
         this._file(file)

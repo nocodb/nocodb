@@ -139,7 +139,7 @@
           dense
         />
 
-        <csv-export
+        <csv-export-import
           :meta="meta"
           :nodes="nodes"
           :query-params="{
@@ -557,12 +557,12 @@ import ExpandedForm from '@/components/project/spreadsheet/components/expandedFo
 import Pagination from '@/components/project/spreadsheet/components/pagination'
 import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
-import CsvExport from '~/components/project/spreadsheet/components/csvExport'
+import CsvExportImport from '~/components/project/spreadsheet/components/csvExportImport'
 
 export default {
   name: 'RowsXcDataTable',
   components: {
-    CsvExport,
+    CsvExportImport,
     FormView,
     DebugMetas,
     Pagination,

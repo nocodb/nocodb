@@ -554,6 +554,8 @@
       </v-btn>
     </v-snackbar>
     <change-env v-model="showChangeEnv" />
+
+    <loader />
   </v-app>
   <v-app v-else>
     <v-overlay>
@@ -576,9 +578,11 @@ import { copyTextToClipboard } from '@/helpers/xutils'
 import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
 import TemplatesModal from '~/components/templates/templatesModal'
+import Loader from '~/components/loader'
 
 export default {
   components: {
+    Loader,
     TemplatesModal,
     ReleaseInfo,
     Language,

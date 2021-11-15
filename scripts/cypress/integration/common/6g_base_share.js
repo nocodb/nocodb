@@ -63,7 +63,9 @@ export const genTest = (type, xcdb) => {
             _editData(roleType, false)
             _editComment(roleType, false)
             _viewMenu(roleType, false)
-            _topRightMenu(roleType, false)   
+
+            // disabled for share base
+            // _topRightMenu(roleType, false)   
         })        
     })
 }

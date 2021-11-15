@@ -44,18 +44,18 @@
         <div class="nc-url-wrapper d-flex mx-1 align-center d-100">
           <span class="nc-url flex-grow-1">{{ url }}</span>
           <v-divider vertical />
-          <v-icon @click="recreate">
+          <x-icon tooltip="reload" @click="recreate">
             mdi-reload
-          </v-icon>
-          <v-icon @click="copyUrl">
+          </x-icon>
+          <x-icon tooltip="copy URL" @click="copyUrl">
             mdi-content-copy
-          </v-icon>
-          <v-icon @click="navigateToSharedBase">
+          </x-icon>
+          <x-icon tooltip="open new tab" @click="navigateToSharedBase">
             mdi-open-in-new
-          </v-icon>
-          <v-icon @click="generateEmbeddableIframe">
+          </x-icon>
+          <x-icon tooltip="copy embeddable HTML code" @click="generateEmbeddableIframe">
             mdi-xml
-          </v-icon>
+          </x-icon>
         </div>
       </v-chip>
     </div>

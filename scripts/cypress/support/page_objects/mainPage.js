@@ -99,7 +99,7 @@ export class _mainPage {
 
         // get URL, invoke
         cy.getActiveModal().find('.v-alert').then(($obj) => {
-            linkText = $obj.text()
+            linkText = $obj.text().trim()
             cy.log(linkText)
             this.roleURL[roleType] = linkText
 

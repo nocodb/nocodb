@@ -54,7 +54,9 @@ export const genTest = (type, xcdb) => {
 
           let linkText = $obj.text().trim()
           cy.log(linkText)
-          cy.visit(linkText)
+          cy.visit(linkText, {
+            baseUrl: null
+          })
 
           // wait for share view page to load!
           cy.wait(5000)

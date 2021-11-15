@@ -41,7 +41,7 @@ export const genTest = (type, xcdb) => {
                 .find('.nc-url')
                 .then(($obj) => {
                     cy.log($obj[0])
-                    linkText = $obj[0].innerText
+                    linkText = $obj[0].innerText.trim()
             })
         })
 
@@ -49,7 +49,9 @@ export const genTest = (type, xcdb) => {
             cy.log(linkText)
 
             // visit URL & wait for page load to complete
-            cy.visit(linkText)
+            cy.visit(linkText, {
+                baseUrl: null
+            })
             projectsPage.waitHomePageLoad()
         })
 

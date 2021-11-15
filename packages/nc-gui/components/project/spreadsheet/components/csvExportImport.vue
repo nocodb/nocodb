@@ -236,9 +236,6 @@ export default {
         })
         const data = this.parsedCsv.data
         for (let i = 0, progress = 0; i < data.length; i += 500) {
-          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`)
-          this.$store.commit('loader/MutProgress', Math.round(progress && 100 * progress / data.length))
-
           const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
             if (col.enabled) {
               res[col.destCn] = row[col.sourceCn]
@@ -247,6 +244,8 @@ export default {
           }, {}))
           await api.insertBulk(batchData)
           progress += batchData.length
+          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`)
+          this.$store.commit('loader/MutProgress', Math.round((100 * progress / data.length)))
         }
         this.columnMappingModal = false
         this.$store.commit('loader/MutClear')

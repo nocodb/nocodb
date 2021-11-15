@@ -235,7 +235,13 @@
                         <div class="action d-flex" @click.stop>
                           <v-menu>
                             <template #activator="{ on }">
-                              <v-icon small v-on="on">
+                              <v-icon
+                                v-if="
+                                  _isUIAllowed('treeview-rename-button')||_isUIAllowed('ui-acl')
+                                "
+                                small
+                                v-on="on"
+                              >
                                 mdi-dots-vertical
                               </v-icon>
                             </template>

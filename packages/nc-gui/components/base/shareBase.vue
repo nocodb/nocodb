@@ -131,7 +131,7 @@ src="${this.url}?embed"
 frameborder="0"
 width="100%"
 height="700"
-style="background: transparent; "></iframe>`)
+style="background: transparent; border: 1px solid #ddd"></iframe>`)
       this.$toast.success('Copied embeddable html code!').goAway(3000)
     }
   }

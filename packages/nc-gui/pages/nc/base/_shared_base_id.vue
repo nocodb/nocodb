@@ -1,7 +1,12 @@
 <template>
-  <v-container fluid class="pa-0 ma-0" style="overflow: auto">
-    <splitpanes style="height:calc(100vh - 40px); position: relative;" class="xc-theme">
-      <pane :min-size="showProjectTree? 10 : 1.5" :size="showProjectTree ? paneSize : 1.5" :max-size="showProjectTree? 50 : 1.5" style="position: relative;overflow-x: hidden">
+  <div style="height: 100vh">
+    <splitpanes style="height:calc(100% - 25px); position: relative;" class="xc-theme">
+      <pane
+        :min-size="showProjectTree? 10 : 1.5"
+        :size="showProjectTree ? paneSize : 1.5"
+        :max-size="showProjectTree? 50 : 1.5"
+        style="position: relative;overflow-x: hidden"
+      >
         <ProjectTreeView v-show="showProjectTree" ref="treeview" />
         <v-btn
           x-small
@@ -21,7 +26,14 @@
         <ProjectTabs :key="pid" @tableCreate="tableCreate" />
       </pane>
     </splitpanes>
-  </v-container>
+    <div class="nc-embedded-options d-flex align-center px-3">
+      <a href="https://github.com/nocodb/nocodb" target="_blank" class="text-decoration-none d-inline-flex align-center  textColor--text">
+        <img src="favicon-32.png" height="15" class="mr-2">
+        <span class="body-1 font-weight-bold">NocoDB</span></a>
+      <v-spacer />
+      <span v-if="embed" class="caption pointer" @click="showLargerVersion"><v-icon small>mdi-arrow-expand</v-icon> View larger version</span>
+    </div>
+  </div>
 </template>
 <script>
 
@@ -36,6 +48,7 @@ export default {
     Splitpanes,
     Pane
   },
+  layout: 'shared',
   data() {
     return {
       paneSize: 18,
@@ -46,12 +59,17 @@ export default {
   computed: {
     pid() {
       return this.$route.params.project_id
+    },
+    embed() {
+      return this.$store.state.embed
     }
   },
   async created() {
     this.$store.watch(
       state => state.panelSize.treeView && state.panelSize.treeView.size,
-      (newSize) => { this.paneSize = newSize }
+      (newSize) => {
+        this.paneSize = newSize
+      }
     )
   },
 
@@ -67,6 +85,9 @@ export default {
     }
   },
   methods: {
+    showLargerVersion() {
+      window.open(location.href.replace(/embed&?/, ''), '_blank')
+    },
     tableCreate(table) {
       if (this.$refs.treeview) {
         this.$refs.treeview.mtdTableCreate(table)
@@ -118,6 +139,7 @@ export default {
   background: #7f828b33 !important;
   border: #7f828b33 !important;
 }
+
 .pane-toggle {
   position: absolute;
   right: 0;
@@ -139,6 +161,13 @@ export default {
 .theme--dark .pane-toggle {
   background-color: #363636;
 }
+
+.nc-embedded-options{
+  height: 25px;
+  width: 100%;
+  border: 1px solid #bbb;
+}
+
 </style>
 <!--
 /**

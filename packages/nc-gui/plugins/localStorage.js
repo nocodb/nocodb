@@ -33,6 +33,7 @@ export default async({ store, $vuetify: { theme }, route }) => {
   //   window.onNuxtReady(async (nuxt) => {
   if (route && route.query && 'embed' in route.query) {
     window.rehydrated = true
+    store.commit('mutEmbed', true)
   } else {
     const createPersistedState = (await import('vuex-persistedstate')).default
     const SecureLS = (await import('secure-ls')).default

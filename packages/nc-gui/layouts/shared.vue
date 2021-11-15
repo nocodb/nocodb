@@ -1,29 +1,36 @@
-export const state = () => ({
-  paidUser: false,
-  template: null,
-  templateC: 0,
-  templateE: 0,
-  embed: false
-})
+<template>
+  <v-app>
+    <snackbar />
+    <v-main>
+      <v-app-bar v-show="false" dark />
+      <div>
+        <nuxt />
+      </div>
+    </v-main>
+  </v-app>
+</template>
 
-export const mutations = {
-  mutTemplate(state, v) {
-    state.template = v
+<script>
+
+export default {
+  components: {},
+  data: () => ({}),
+  computed: {},
+  watch: {},
+  mounted() {
   },
-  mutTemplateC(state, c) {
-    state.templateC = c
+  async created() {
+    // this.$vuetify.theme.dark = false;
   },
-  mutTemplateE(state, e) {
-    state.templateE = e
-  },
-  mutEmbed(state, e) {
-    state.embed = e
-  }
+
+  methods: {}
 }
+</script>
+<style scoped>
 
-export const actions = {}
+</style>
 
-export const strict = false
+<!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
@@ -46,3 +53,4 @@ export const strict = false
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+-->

@@ -3463,6 +3463,16 @@ export default class NcMetaMgr {
 
   protected async disableSharedBaseLink(_req, args: any): Promise<any> {
     try {
+      const sharedBase = await this.xcMeta.metaGet(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+      if (!sharedBase) return;
+      XcCache.del(`nc_shared_bases||${sharedBase.shared_base_id}`);
       await this.xcMeta.metaDelete(
         this.getProjectId(args),
         this.getDbAlias(args),

@@ -592,14 +592,20 @@ export default class RestAuthCtrl {
       new CustomStrategy(async (req: any, callback) => {
         let user;
         if (req.headers['xc-shared-base-id']) {
-          const sharedBase = await this.xcMeta
-            .knex('nc_shared_bases')
-            .where({
-              enabled: true,
-              shared_base_id: req.headers['xc-shared-base-id']
-            })
-            .first();
+          const cacheKey = `nc_shared_bases||${req.headers['xc-shared-base-id']}`;
 
+          let sharedBase = XcCache.get(cacheKey);
+
+          if (!sharedBase) {
+            sharedBase = await this.xcMeta
+              .knex('nc_shared_bases')
+              .where({
+                enabled: true,
+                shared_base_id: req.headers['xc-shared-base-id']
+              })
+              .first();
+            XcCache.set(cacheKey, sharedBase);
+          }
           user = {
             roles: sharedBase?.roles
           };

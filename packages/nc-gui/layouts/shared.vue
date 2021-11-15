@@ -1,6 +1,5 @@
 <template>
   <v-app>
-    <snackbar />
     <v-main>
       <v-app-bar v-show="false" dark />
       <div>

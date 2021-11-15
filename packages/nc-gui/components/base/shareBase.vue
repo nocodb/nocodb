@@ -127,11 +127,11 @@ export default {
     generateEmbeddableIframe() {
       copyTextToClipboard(`<iframe
 class="nc-embed"
- src="${this.url}?embedded"
- frameborder="0"
-  width="100%"
-   height="700"
-   style="background: transparent; "></iframe>`)
+src="${this.url}?embed"
+frameborder="0"
+width="100%"
+height="700"
+style="background: transparent; "></iframe>`)
       this.$toast.success('Copied embeddable html code!').goAway(3000)
     }
   }

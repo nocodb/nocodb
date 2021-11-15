@@ -821,7 +821,7 @@ export default {
   },
   computed: {
     connectToExternalDB() {
-      return this.$store.state.project.projectInfo.connectToExternalDB
+      return this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.connectToExternalDB
     }
   },
   watch: {

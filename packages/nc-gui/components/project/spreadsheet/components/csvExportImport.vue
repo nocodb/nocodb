@@ -49,6 +49,10 @@
             <span class="caption ">
               Upload CSV
             </span>
+
+            <span class="caption grey--text">(<x-icon small color="grey lighten-2">
+              mdi-alpha
+            </x-icon> version)</span>
           </v-list-item-title>
         </v-list-item>
       </v-list>

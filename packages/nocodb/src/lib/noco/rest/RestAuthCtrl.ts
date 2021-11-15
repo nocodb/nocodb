@@ -222,7 +222,7 @@ export default class RestAuthCtrl {
           'jwt',
           { session: false },
           (_err, user, _info) => {
-            if (user) {
+            if (user && !req.headers['xc-shared-base-id']) {
               if (
                 req.path.indexOf('/user/me') === -1 &&
                 req.header('xc-preview') &&

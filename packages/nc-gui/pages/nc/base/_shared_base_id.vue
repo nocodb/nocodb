@@ -86,7 +86,7 @@ export default {
   },
   methods: {
     showLargerVersion() {
-      window.open(location.href.replace(/embed&?/, ''), '_blank')
+      window.open(location.href.replace(/([?&])embed&?/, '$1'), '_blank')
     },
     tableCreate(table) {
       if (this.$refs.treeview) {

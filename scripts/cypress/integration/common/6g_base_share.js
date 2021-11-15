@@ -56,7 +56,7 @@ export const genTest = (type, xcdb) => {
         it(`Validate access permissions`, () => {
 
             let roleType = 'viewer'
-            cy.get(`[href="#roles||||Team & Auth "]`).find('button.mdi-close').click()
+            // cy.get(`[href="#roles||||Team & Auth "]`).find('button.mdi-close').click()
 
             _advSettings(roleType, false)
             _editSchema(roleType, false)

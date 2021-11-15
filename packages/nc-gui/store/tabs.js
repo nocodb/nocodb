@@ -230,14 +230,16 @@ export const actions = {
         tabs.push(item)
       }
 
-      tabs.unshift({
-        name: 'Team & Auth ',
-        key: 'roles',
-        _nodes: {
-          env: '_noco',
-          type: 'roles'
-        }
-      })
+      if (rootGetters['users/GtrIsAdmin']) {
+        tabs.unshift({
+          name: 'Team & Auth ',
+          key: 'roles',
+          _nodes: {
+            env: '_noco',
+            type: 'roles'
+          }
+        })
+      }
     }
     commit('list', tabs)
   },

@@ -60,7 +60,11 @@ export const genTest = (type, xcdb) => {
                     if('rest' == type)
                         projectsPage.openProject(staticProjects.externalREST.basic.name)
                     else
-                        projectsPage.openProject(staticProjects.externalGQL.basic.name)  
+                        projectsPage.openProject(staticProjects.externalGQL.basic.name)
+                    
+                    if (roleType != 'creator') {
+                        cy.closeTableTab('Actor')
+                    }
                 })                    
             }
 

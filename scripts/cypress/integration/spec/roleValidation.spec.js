@@ -124,17 +124,24 @@ export function _editComment(roleType, previewMode) {
     //
 
     cy.get('.v-input.row-checkbox').eq(4).next().next().click({ force: true })
-    //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-    cy.getActiveModal().find('.mdi-comment-multiple-outline').should('exist').click()
-    cy.getActiveModal().find('.comment-box').type('Comment-1{enter}')
-    cy.getActiveModal().find('.mdi-door-open').click()
 
     // Expected response: 
-    //      Viewer: Not allowed
-    //      Everyone else: Comment added successfully
+    //      Viewer: Not able to see comment option
+    //      Everyone else: Comment added/read successfully
     //
-    cy.get('body').contains(validationString, { timeout: 2000 }).should('exist')
-    cy.wait(1000)
+
+    if ('viewer' == roleType) {
+        cy.getActiveModal().find('.mdi-comment-multiple-outline').should('not.exist')
+    }
+    else {
+        cy.getActiveModal().find('.mdi-comment-multiple-outline').should('exist').click()
+        cy.getActiveModal().find('.comment-box').type('Comment-1{enter}')
+        cy.getActiveModal().find('.mdi-door-open').click()
+
+        cy.get('body').contains(validationString, { timeout: 2000 }).should('exist')
+        cy.wait(1000)        
+    }
+
     cy.getActiveModal().find('button').contains('Cancel').click()
     cy.get('body').type('{esc}')
 }

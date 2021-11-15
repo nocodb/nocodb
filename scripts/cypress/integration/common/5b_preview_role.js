@@ -53,7 +53,7 @@ export const genTest = (type, xcdb, roleType) => {
 
             it(`Role preview: ${roleType}: Edit comment`, () => {
                 // read &/ update comment
-                //      Viewer: only allowed to read
+                //      Viewer: not allowed to read
                 //      Everyone else: read &/ update
                 //
                 _editComment(roleType, true)

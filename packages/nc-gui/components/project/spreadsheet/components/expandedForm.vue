@@ -32,7 +32,7 @@
         </x-icon>
 
         <x-icon
-          v-if="!isNew"
+          v-if="!isNew && _isUIAllowed('rowComments')"
           icon-class="mr-2"
           tooltip="Toggle comments"
           small
@@ -246,6 +246,7 @@
     </div>
 
     <v-btn
+      v-if="_isUIAllowed('rowComments')"
       v-show="!toggleDrawer"
       class="comment-icon"
       color="primary"

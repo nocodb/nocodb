@@ -190,7 +190,7 @@
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
-                    <v-divider />
+                    <!--                    <v-divider />
                     <v-list-item
                       title
                       class="pt-2 nc-create-project-from-template"
@@ -202,7 +202,7 @@
                         </v-icon>
                       </v-list-item-icon>
                       <v-list-item-title>
-                        <!-- Create By Connecting <br>To An External Database -->
+                        &lt;!&ndash; Create By Connecting <br>To An External Database &ndash;&gt;
                         <span
                           class="caption font-weight-regular"
                           v-html="
@@ -223,7 +223,7 @@
                         </v-icon>
                       </v-list-item-icon>
                       <v-list-item-title>
-                        <!-- Create By Connecting <br>To An External Database -->
+                        &lt;!&ndash; Create By Connecting <br>To An External Database &ndash;&gt;
                         <span
                           class="caption font-weight-regular"
                           v-html="
@@ -231,7 +231,7 @@
                           "
                         />
                       </v-list-item-title>
-                    </v-list-item>
+                    </v-list-item>-->
                   </v-list>
                 </v-menu>
               </template>

@@ -365,10 +365,17 @@
               </p>
 
               <div class="text-right">
-                <x-btn tooltip="Invite more users" small outlined btn.class="grey--text" @click="invite_token = null, selectedUser = {}">
+                <x-btn
+                  tooltip="Invite more users"
+                  small
+                  outlined
+                  btn.class="grey--text"
+                  @click="invite_token = null, selectedUser = {}"
+                >
                   <v-icon small color="grey" class="mr-1">
                     mdi-account-multiple-plus-outline
-                  </v-icon> Invite more
+                  </v-icon>
+                  Invite more
                 </x-btn>
               </div>
 
@@ -385,7 +392,7 @@
                       dense
                       validate-on-blur
                       outlined
-                      :rules="emailRules"
+                      :rules="validate && emailRules"
                       class="caption"
                       hint="You can add multiple comma(,) separated emails"
                       label="Email"
@@ -460,6 +467,7 @@ export default {
   name: 'UserManagement',
   components: { XBtn, ShareBase, FeedbackForm, DlgLabelSubmitCancel, SetListCheckboxCell },
   data: () => ({
+    validate: false,
     deleteItem: null,
     invite_token: null,
     userEditDialog: false,
@@ -516,6 +524,9 @@ export default {
     }
   },
   watch: {
+    userEditDialog(v) {
+      if (!v) { this.validate = false }
+    },
     options: {
       async handler() {
         await this.loadUsers()
@@ -696,6 +707,8 @@ export default {
       }
     },
     async saveUser() {
+      this.validate = true
+      await this.$nextTick()
       if (this.loading || !this.$refs.form.validate() || !this.selectedUser) {
         return
       }

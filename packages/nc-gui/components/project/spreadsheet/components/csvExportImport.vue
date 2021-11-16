@@ -64,6 +64,7 @@
       v-model="columnMappingModal"
       :meta="meta"
       :import-data-columns="parsedCsv.columns"
+      :parsed-csv="parsedCsv"
       @import="importData"
     />
   </div>
@@ -239,11 +240,14 @@ export default {
         const api = this.$ncApis.get({
           table: this.meta.tn
         })
+
         const data = this.parsedCsv.data
         for (let i = 0, progress = 0; i < data.length; i += 500) {
           const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
-            if (col.enabled) {
-              res[col.destCn] = row[col.sourceCn]
+            // todo: parse data
+
+            if (col.enabled && col.destCn && col.destCn._cn) {
+              res[col.destCn._cn] = row[col.sourceCn]
             }
             return res
           }, {}))

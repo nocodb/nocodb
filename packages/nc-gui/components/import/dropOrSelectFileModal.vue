@@ -63,10 +63,11 @@ export default {
     }
   },
   methods: {
-    _change(file) {
-      const files = file.target.files
+    _change(event) {
+      const files = event.target.files
       if (files && files[0]) {
         this.$emit('file', files[0])
+        event.target.value = ''
       }
     },
     dropHandler(ev) {

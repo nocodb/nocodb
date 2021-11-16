@@ -39,6 +39,7 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
+          v-if="_isUIAllowed('csvImport')"
           dense
           @click="importModal = true"
         >

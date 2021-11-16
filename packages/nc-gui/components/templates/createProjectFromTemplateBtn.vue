@@ -5,7 +5,7 @@
         <v-btn
           :loading="projectCreation"
           :disabled="projectCreation"
-          class="primary"
+          class="primary nc-btn-use-template"
           x-large
           v-on="on"
         >

@@ -317,6 +317,10 @@ export class _mainPage {
                 })
             })        
     }
+
+    getIFrameCell = (columnHeader, cellNumber) => {
+        return cy.iframe().find(`tbody > :nth-child(${cellNumber}) > [data-col="${columnHeader}"]`)
+    }
 }
 
 

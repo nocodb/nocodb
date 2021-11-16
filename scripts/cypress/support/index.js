@@ -16,6 +16,9 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 
+// https://www.cypress.io/blog/2020/02/12/working-with-iframes-in-cypress/
+import 'cypress-iframe'
+
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 

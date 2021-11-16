@@ -11,7 +11,9 @@ export const genTest = (type, xcdb) => {
 
     describe(`${type.toUpperCase()} Columns of type attachment`, () => {
         // before(() => {
-        //     cy.openTableTab('Country');
+        //     cy.waitForSpinners();
+        //     cy.signinOrSignup(roles.owner.credentials)
+        //     cy.wait(2000)
         // })
 
         // after(() => {
@@ -42,6 +44,24 @@ export const genTest = (type, xcdb) => {
                 .then(($obj) => {
                     cy.log($obj[0])
                     linkText = $obj[0].innerText.trim()
+
+                    const htmlFile = `
+<!DOCTYPE html>
+<html>
+<body>
+
+<iframe
+class="nc-embed"
+src="${linkText}?embed"
+frameborder="0"
+width="100%"
+height="700"
+style="background: transparent; "></iframe>
+
+</body>
+</html>
+            `
+                    cy.writeFile("scripts/cypress/fixtures/sampleFiles/iFrame.html", htmlFile)
             })
         })
 
@@ -56,20 +76,32 @@ export const genTest = (type, xcdb) => {
         })
 
         it(`Validate access permissions`, () => {
-
             let roleType = 'viewer'
-            // cy.get(`[href="#roles||||Team & Auth "]`).find('button.mdi-close').click()
 
             _advSettings(roleType, false)
             _editSchema(roleType, false)
             _editData(roleType, false)
             _editComment(roleType, false)
             _viewMenu(roleType, false)
+        })
 
-            // disabled for share base
-            // _topRightMenu(roleType, false)   
-        })        
-    })
+        it('Generate & verify embed HTML IFrame', { baseUrl: null }, () => {
+            // open iFrame html
+            cy.visit('scripts/cypress/fixtures/sampleFiles/iFrame.html')
+
+            cy.get('.nc-embed')
+            cy.frameLoaded('.nc-embed')
+
+            cy.iframe().find('.nc-project-tree').should('exist')
+            cy.iframe().find('.nc-fields-menu-btn').should('exist')
+            cy.iframe().find('.nc-sort-menu-btn').should('exist')
+            cy.iframe().find('.nc-filter-menu-btn').should('exist')
+            cy.iframe().find('.nc-actions-menu-btn').should('exist')
+
+            mainPage.getIFrameCell('FirstName', 1).contains("PENELOPE").should('exist')
+            mainPage.getIFrameCell('LastName', 1).contains("GUINESS").should('exist')
+        })
+     })
 }
 
 /**

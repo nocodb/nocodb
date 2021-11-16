@@ -40,8 +40,8 @@ export const genTest = (type, xcdb) => {
       // create form-view
       cy.get(`.nc-create-form-view`).click();
       cy.getActiveModal().find('button:contains(Submit)').click()
-
       cy.get(`.nc-view-item.nc-form-view-item`).contains('Country1').click()
+      cy.wait(1000)
       cy.get('.v-navigation-drawer__content > .container')
         .find('.v-list > .v-list-item')
         .contains('Share View')

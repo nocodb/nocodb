@@ -436,7 +436,7 @@
             <!-- People with private link can only see cells visible in this view -->
           </p>
           <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
-            {{ `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view' }/${shareLink.view_id}` }}
+            {{ `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view'}/${shareLink.view_id}` }}
             <v-spacer />
             <a
               :href=" `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view'}/${shareLink.view_id}`"
@@ -590,6 +590,7 @@ export default {
     if (this.load) {
       await this.loadViews()
     }
+    this.onViewIdChange(this.selectedViewIdLocal)
   },
   methods: {
     onViewIdChange(id) {
@@ -631,7 +632,8 @@ export default {
             fieldsOrder: JSON.parse(mainView.query_params).fieldsOrder
           })
         }
-      } catch {}
+      } catch {
+      }
       this.createViewType = type
       this.showCreateView = true
     },
@@ -711,7 +713,9 @@ export default {
       const old_title = view.title
 
       this.$set(view, 'edit', false)
-      if (view.title_temp === view.title) { return }
+      if (view.title_temp === view.title) {
+        return
+      }
       if (this.viewsList.some((v, i) => i !== index && (v.alias || v.title) === view.title_temp)) {
         this.$toast.info('View name should be unique').goAway(3000)
         return

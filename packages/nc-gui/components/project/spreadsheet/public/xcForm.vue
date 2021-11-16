@@ -398,19 +398,6 @@ export default {
           formData
         })
 
-        //
-        // data = { ...this.localState, ...data }
-        //
-        // // save hasmany and manytomany relations from local state
-        // if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
-        //   for (const vcell of this.$refs.virtual) {
-        //     if (vcell.save) {
-        //       await vcell.save(data)
-        //     }
-        //   }
-        // }
-        //
-
         this.virtual = {}
         this.localState = {}
 

@@ -555,6 +555,16 @@ export default {
     loading: false
   }),
   computed: {
+    newViewParams() {
+      if (!this.showFields) {
+        return {}
+      }
+      const showFields = { ...this.showFields }
+      Object.keys(showFields).forEach((k) => {
+        showFields[k] = true
+      })
+      return { showFields }
+    },
     selectedViewIdLocal: {
       set(val) {
         const view = (this.viewsList || []).find(v => v.id === val)
@@ -629,6 +639,7 @@ export default {
       try {
         this.copyViewRef = this.copyViewRef || {
           query_params: JSON.stringify({
+            ...this.newViewParams,
             fieldsOrder: JSON.parse(mainView.query_params).fieldsOrder
           })
         }

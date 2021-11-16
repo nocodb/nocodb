@@ -20,7 +20,7 @@ export const genTest = (type, xcdb) => {
             it(`Create ${proj.basic.name} project`, () => {
 
                 // click home button
-                mainPage.toolBarTopLeft(mainPage.HOME).click()
+                cy.get('.nc-noco-brand-icon').click()
 
                 cy.get('.nc-container').then((obj) => {
                     cy.log(obj)

@@ -1019,6 +1019,13 @@ export default class SqlMgr {
     };
   }
 
+  public async handleAxiosCall(apiMeta) {
+    // t = process.hrtime();
+    const data = await require('axios')(...apiMeta);
+
+    return data.data;
+  }
+
   public axiosRequestMake(apiMeta) {
     if (apiMeta.body) {
       try {
@@ -1348,6 +1355,10 @@ export default class SqlMgr {
         case ToolOps.REST_API_CALL:
           console.log('Within REST_API_CALL handler', args);
           result = this.handleApiCall(args.args);
+          break;
+        case 'handleAxiosCall':
+          console.log('Within handleAxiosCall handler', args);
+          result = this.handleAxiosCall(args.args);
           break;
 
         case ToolOps.PROJECT_MIGRATIONS_LIST:

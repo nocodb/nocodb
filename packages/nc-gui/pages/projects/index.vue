@@ -210,7 +210,7 @@
                           "
                         />
                       </v-list-item-title>
-                    </v-list-item>
+                    </v-list-item>-->
                     <v-divider />
                     <v-list-item
                       title
@@ -223,7 +223,6 @@
                         </v-icon>
                       </v-list-item-icon>
                       <v-list-item-title>
-                        &lt;!&ndash; Create By Connecting <br>To An External Database &ndash;&gt;
                         <span
                           class="caption font-weight-regular"
                           v-html="
@@ -231,7 +230,7 @@
                           "
                         />
                       </v-list-item-title>
-                    </v-list-item>-->
+                    </v-list-item>
                   </v-list>
                 </v-menu>
               </template>
@@ -262,7 +261,7 @@
                   'items-per-page-options': [20, -1],
                 }"
                 class="pa-4 text-left mx-auto "
-                style="cursor: pointer"
+                style="cursor: pointer; max-width: 100%"
               >
                 <template #item="props">
                   <tr
@@ -273,50 +272,61 @@
                     @click="projectRouteHandler(props.item)"
                   >
                     <td data-v-step="2">
-                      <v-icon
-                        x-small
-                        class="mr-2"
-                        :color="
-                          !props.item.allowed ? 'blue' :(
-                            props.item.status === 'started'
-                              ? 'green'
-                              : props.item.status === 'stopped'
-                                ? 'orange'
-                                : 'orange'
-                          )
-                        "
-                      >
-                        mdi-moon-full
-                      </v-icon>
-                      <!-- Accessible via GraphQL APIs / Accessible via REST APIs -->
-                      <x-icon
-                        small
-                        :tooltip="
-                          props.item.projectType === 'graphql'
-                            ? $t('projects.project_api_type_tooltip_graphql')
-                            : $t('projects.project_api_type_tooltip_rest')
-                        "
-                        icon.class="mr-2"
-                        :color="
-                          props.item.projectType === 'graphql'
-                            ? 'pink'
-                            : 'green'
-                        "
-                      >
-                        {{
-                          props.item.projectType === 'graphql'
-                            ? 'mdi-graphql'
-                            : 'mdi-code-json'
-                        }}
-                      </x-icon>
+                      <div class="d-flex align-center">
+                        <v-icon
+                          x-small
+                          class="mr-2"
+                          :color="
+                            !props.item.allowed ? 'blue' :(
+                              props.item.status === 'started'
+                                ? 'green'
+                                : props.item.status === 'stopped'
+                                  ? 'orange'
+                                  : 'orange'
+                            )
+                          "
+                        >
+                          mdi-moon-full
+                        </v-icon>
+                        <!-- Accessible via GraphQL APIs / Accessible via REST APIs -->
+                        <x-icon
+                          small
+                          :tooltip="
+                            props.item.projectType === 'graphql'
+                              ? $t('projects.project_api_type_tooltip_graphql')
+                              : $t('projects.project_api_type_tooltip_rest')
+                          "
+                          icon.class="mr-2"
+                          :color="
+                            props.item.projectType === 'graphql'
+                              ? 'pink'
+                              : 'green'
+                          "
+                        >
+                          {{
+                            props.item.projectType === 'graphql'
+                              ? 'mdi-graphql'
+                              : 'mdi-code-json'
+                          }}
+                        </x-icon>
 
-                      <span
-                        class="title font-weight-regular"
-                      >{{
-                        props.item.title
-                      }}</span>
+                        <v-tooltip bottom>
+                          <template #activator="{on}">
+                            <div
+                              class="d-inline-block title font-weight-regular"
+                              style="min-width:0; max-width:390px; white-space: nowrap;text-overflow: ellipsis; overflow: hidden"
+                              v-on="on"
+                            >
+                              {{
+                                props.item.title
+                              }}
+                            </div>
+                          </template>
+                          <span class="caption">{{ props.item.title }}</span>
+                        </v-tooltip>
+                      </div>
                     </td>
-                    <td>
+                    <td style="width:150px;min-width:150px;max-width:150px">
                       <div
                         v-if="props.item.allowed && _isUIAllowed('projectActions',true)"
                         :class="{

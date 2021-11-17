@@ -571,7 +571,7 @@ export default {
   props: {
     id: [Number, String],
     viewMode: Boolean,
-    templateData: Object
+    projectTemplate: Object
   },
   data: () => ({
     loading: false,
@@ -620,65 +620,68 @@ export default {
     },
     updateFilename() {
       return this.url && this.url.split('/').pop()
-    },
-    projectTemplate() {
-      const template = {
-        ...this.project,
-        tables: (this.project.tables || []).map((t) => {
-          const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
+    }
+  },
+  watch: {
+    project: {
+      deep: true,
+      handler() {
+        const template = {
+          ...this.project,
+          tables: (this.project.tables || []).map((t) => {
+            const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
 
-          for (const column of (t.columns || [])) {
-            if (this.isRelation(column)) {
-              if (column.type === 'hm') {
-                table.hasMany.push({
-                  tn: column.rtn,
-                  _cn: column.cn
-                })
-              } else if (column.type === 'mm') {
-                table.manyToMany.push({
-                  rtn: column.rtn,
-                  _cn: column.cn
-                })
-              } else if (column.uidt === UITypes.ForeignKey) {
-                table.belongsTo.push({
-                  tn: column.rtn,
-                  _cn: column.cn
-                })
+            for (const column of (t.columns || [])) {
+              if (this.isRelation(column)) {
+                if (column.type === 'hm') {
+                  table.hasMany.push({
+                    tn: column.rtn,
+                    _cn: column.cn
+                  })
+                } else if (column.type === 'mm') {
+                  table.manyToMany.push({
+                    rtn: column.rtn,
+                    _cn: column.cn
+                  })
+                } else if (column.uidt === UITypes.ForeignKey) {
+                  table.belongsTo.push({
+                    tn: column.rtn,
+                    _cn: column.cn
+                  })
+                }
+              } else if (this.isLookup(column)) {
+                if (column.rtn) {
+                  table.v.push({
+                    _cn: column.cn,
+                    lk: {
+                      ltn: column.rtn.tn,
+                      type: column.rtn.type,
+                      lcn: column.rcn
+                    }
+                  })
+                }
+              } else if (this.isRollup(column)) {
+                if (column.rtn) {
+                  table.v.push({
+                    _cn: column.cn,
+                    rl: {
+                      rltn: column.rtn.tn,
+                      rlcn: column.rcn,
+                      type: column.rtn.type,
+                      fn: column.fn
+                    }
+                  })
+                }
+              } else {
+                table.columns.push(column)
               }
-            } else if (this.isLookup(column)) {
-              if (column.rtn) {
-                table.v.push({
-                  _cn: column.cn,
-                  lk: {
-                    ltn: column.rtn.tn,
-                    type: column.rtn.type,
-                    lcn: column.rcn
-                  }
-                })
-              }
-            } else if (this.isRollup(column)) {
-              if (column.rtn) {
-                table.v.push({
-                  _cn: column.cn,
-                  rl: {
-                    rltn: column.rtn.tn,
-                    rlcn: column.rcn,
-                    type: column.rtn.type,
-                    fn: column.fn
-                  }
-                })
-              }
-            } else {
-              table.columns.push(column)
             }
-          }
-          return table
-        })
+            return table
+          })
+        }
+
+        this.$emit('update:projectTemplate', template)
       }
-
-      this.$emit('update:templateData', template)
-
-      return template
     }
   },
 
@@ -689,8 +692,8 @@ export default {
     document.removeEventListener('keydown', this.handleKeyDown)
   },
   mounted() {
-    if (this.templateData) {
-      this.parseTemplate(this.templateData)
+    if (this.projectTemplate) {
+      this.parseTemplate(this.projectTemplate)
       this.expansionPanel = Array.from({ length: this.project.tables.length }, (_, i) => i)
     }
     const input = this.$refs.projec && this.$refs.project.$el.querySelector('input')

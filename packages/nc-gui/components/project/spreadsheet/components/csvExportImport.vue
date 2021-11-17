@@ -74,8 +74,8 @@
 
 import FileSaver from 'file-saver'
 import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
-import CSVTemplateAdapter from '~/components/import/CSVTemplateAdapter'
 import ColumnMappingModal from '~/components/project/spreadsheet/components/columnMappingModal'
+import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 
 export default {
   name: 'CsvExportImport',
@@ -98,9 +98,9 @@ export default {
   methods: {
     async onCsvFileSelection(file) {
       const reader = new FileReader()
-
-      reader.onload = (e) => {
+      reader.onload = async(e) => {
         const templateGenerator = new CSVTemplateAdapter(file.name, e.target.result)
+        await templateGenerator.init()
         templateGenerator.parseData()
         this.parsedCsv.columns = templateGenerator.getColumns()
         this.parsedCsv.data = templateGenerator.getData()

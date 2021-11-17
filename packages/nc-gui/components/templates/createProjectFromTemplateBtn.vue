@@ -43,8 +43,8 @@ export default {
   mixins: [colors],
   props: {
     loading: Boolean,
-    templateData: Object,
-    importData: Object,
+    templateData: [Array, Object],
+    importData: [Array, Object],
     loaderMessage: String,
     progress: Number
   },
@@ -122,7 +122,10 @@ export default {
       this.$ncApis.setProjectId(projectId)
 
       let total = 0; let progress = 0
-      await Promise.all(Object.entries(this.importData).map(async([table, data]) => {
+
+      console.log(this.importData)
+      debugger
+      await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
         await this.$store.dispatch('meta/ActLoadMeta', {
           tn: `${prefix}${table}`, project_id: projectId
         })
@@ -142,7 +145,7 @@ export default {
         }
 
         this.$emit('update:progress', null)
-      }))
+      })(v)))
     }
   }
 

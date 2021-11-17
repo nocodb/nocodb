@@ -212,6 +212,7 @@ export default {
     projectList: true
   },
   user: {
+    handleAxiosCall: true,
     projectList: true,
     testConnection: true,
     projectCreateByWeb: true,

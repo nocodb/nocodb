@@ -1,6 +1,6 @@
 import XLSX from 'xlsx'
-import TemplateGenerator from '~/components/import/TemplateGenerator'
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+import TemplateGenerator from '~/components/import/templateParsers/TemplateGenerator'
 
 const excelTypeToUidt = {
   d: UITypes.DateTime,
@@ -13,12 +13,16 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   constructor(name, ab) {
     super()
     this.name = name
-    this.wb = XLSX.read(new Uint8Array(ab), { type: 'array' })
+    this.excelData = ab
     this.project = {
       title: this.name,
       tables: []
     }
     this.data = {}
+  }
+
+  async init() {
+    this.wb = XLSX.read(new Uint8Array(this.excelData), { type: 'array' })
   }
 
   parse() {
@@ -31,10 +35,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
       for (let col = 0; col < rows[0].length; col++) {
         const column = {
-          cn: rows[0][col]
+          cn: (rows[0][col] || `field${col + 1}`).replace(/\./, '_')
         }
 
-        const cellProps = ws[`${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`]
+        const cellProps = ws[`${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`] || {}
 
         column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
 
@@ -47,8 +51,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             const vals = rows.slice(1).map(r => r[col]).filter(v => v !== null && v !== undefined)
 
             // check column is multi or single select by comparing unique values
-            if (vals.some(v => v && v.includes(','))) {
-              const flattenedVals = vals.flatMap(v => v ? v.split(',') : [])
+            if (vals.some(v => v && v.toString().includes(','))) {
+              const flattenedVals = vals.flatMap(v => v ? v.toString().split(',') : [])
               const uniqueVals = new Set(flattenedVals)
               if (flattenedVals.length > uniqueVals.size && uniqueVals.size <= flattenedVals.length / 10) {
                 column.uidt = UITypes.MultiSelect

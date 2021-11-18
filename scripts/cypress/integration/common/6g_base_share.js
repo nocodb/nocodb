@@ -89,15 +89,17 @@ style="background: transparent; "></iframe>
             // open iFrame html
             cy.visit('scripts/cypress/fixtures/sampleFiles/iFrame.html')
 
-            cy.get('.nc-embed')
+            // wait for iFrame to load
             cy.frameLoaded('.nc-embed')
 
+            // validation for base menu opitons
             cy.iframe().find('.nc-project-tree').should('exist')
             cy.iframe().find('.nc-fields-menu-btn').should('exist')
             cy.iframe().find('.nc-sort-menu-btn').should('exist')
             cy.iframe().find('.nc-filter-menu-btn').should('exist')
             cy.iframe().find('.nc-actions-menu-btn').should('exist')
 
+            // validate data (row-1)
             mainPage.getIFrameCell('FirstName', 1).contains("PENELOPE").should('exist')
             mainPage.getIFrameCell('LastName', 1).contains("GUINESS").should('exist')
         })

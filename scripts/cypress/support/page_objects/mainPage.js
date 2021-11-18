@@ -321,6 +321,19 @@ export class _mainPage {
     getIFrameCell = (columnHeader, cellNumber) => {
         return cy.iframe().find(`tbody > :nth-child(${cellNumber}) > [data-col="${columnHeader}"]`)
     }
+
+    // https://docs.cypress.io/guides/core-concepts/variables-and-aliases#Sharing-Context
+    getDatatype = (tableName, columnName) => {
+        cy.window().then(win => {
+            const col = win.$nuxt.$store.state.meta.metas[tableName].columns
+            let dataType = ''
+            col.forEach(element => {
+                if(element.cn == columnName)
+                    dataType = element.uidt
+            })
+            cy.wrap(dataType).as('ncDatatype')
+        })
+    }    
 }
 
 

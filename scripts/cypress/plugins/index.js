@@ -40,3 +40,14 @@ module.exports = (on, config) => {
   })
 }
 
+
+// https://stackoverflow.com/questions/61934443/read-excel-files-in-cypress
+const readXlsx = require('./read-xlsx')
+
+module.exports = (on, config) => {
+  on('task', {
+    'readXlsx': readXlsx.read,
+    'readSheetList': readXlsx.sheetList
+  })
+}
+

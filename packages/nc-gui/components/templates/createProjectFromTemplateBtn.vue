@@ -124,7 +124,6 @@ export default {
       let total = 0; let progress = 0
 
       console.log(this.importData)
-      debugger
       await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
         await this.$store.dispatch('meta/ActLoadMeta', {
           tn: `${prefix}${table}`, project_id: projectId

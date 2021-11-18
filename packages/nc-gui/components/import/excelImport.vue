@@ -1,3 +1,11 @@
+<script>
+import CreateProjectFromTemplateBtn from '~/components/templates/createProjectFromTemplateBtn'
+import TemplateEditor from '~/components/templates/editor'
+
+export default {
+  components: { TemplateEditor, CreateProjectFromTemplateBtn }
+}
+</script>
 <template>
   <div class="pt-10">
     <v-dialog v-model="dropOrUpload" max-width="600">
@@ -21,7 +29,7 @@
               <div
                 class="nc-droppable d-flex align-center justify-center flex-column"
                 :style="{
-                  background : dragOver ? '#7774' : ''
+                  background : dragOver ? '#7772' : ''
                 }"
                 @click="$refs.file.click()"
                 @drop.prevent="dropHandler"
@@ -76,7 +84,7 @@
           <div class="d-flex">
             <v-spacer />
             <span class="caption pointer grey--text" @click="showMore = !showMore">{{ showMore ? 'Hide' : 'Show' }} more
-              <v-icon small>mdi-menu-{{ showMore ? 'up':'down' }}</v-icon>
+              <v-icon small>mdi-menu-{{ showMore ? 'up' : 'down' }}</v-icon>
             </span>
           </div>
           <div class="mb-2 pt-2 nc-excel-import-options" :style="{ maxHeight: showMore ? '100px' : '0'}">
@@ -124,15 +132,24 @@
       <span class="caption">Create template from Excel</span>
     </v-tooltip>
 
-    <v-dialog v-if="templateData" :value="true">
+    <v-dialog v-if="templateData" v-model="templateEditorModal" max-width="1000">
       <v-card>
-        <template-editor :project-template.sync="templateData">
-          <template #toolbar>
+        <template-editor :project-template.sync="templateData" excel-import>
+          <template #toolbar="{valid}">
+            <h3 class="mt-2 grey--text">
+              Import Excel as Project : {{ filename }}
+            </h3>
+
             <v-spacer />
             <create-project-from-template-btn
               :template-data="templateData"
               :import-data="importData"
-            />
+              :valid="valid"
+              create-gql-text="Import as GQL Project"
+              create-rest-text="Import as REST Project"
+            >
+              Import Excel
+            </create-project-from-template-btn>
           </template>
         </template-editor>
       </v-card>
@@ -150,13 +167,14 @@ import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTempl
 
 export default {
   name: 'ExcelImport',
-  components: { CreateProjectFromTemplateBtn, TemplateEditor },
+  components: {CreateProjectFromTemplateBtn, TemplateEditor},
   props: {
     hideLabel: Boolean,
     value: Boolean
   },
   data() {
     return {
+      templateEditorModal:false,
       valid: null,
       templateData: null,
       importData: null,
@@ -165,7 +183,8 @@ export default {
       showMore: false,
       parserConfig: {
         maxRowsToParse: 500
-      }
+      },
+      filename: ''
     }
   },
   computed: {
@@ -187,10 +206,11 @@ export default {
       this.$refs.file.click()
     },
 
-    _change(file) {
-      const files = file.target.files
+    _change(event) {
+      const files = event.target.files
       if (files && files[0]) {
         this._file(files[0])
+        event.target.value = ''
       }
     },
     async _file(file) {
@@ -199,11 +219,10 @@ export default {
       const int = setInterval(() => {
         this.$store.commit('loader/MutMessage', `Loading excel file${'.'.repeat(++i % 4)}`)
       }, 1000)
-
       this.dropOrUpload = false
       const reader = new FileReader()
-
-      reader.onload = async(e) => {
+      this.filename = file.name
+      reader.onload = async (e) => {
         const ab = e.target.result
         await this.parseAndExtractData('file', ab, file.name)
         this.$store.commit('loader/MutMessage', null)
@@ -216,7 +235,8 @@ export default {
       }
 
       reader.addEventListener('progress', handleEvent)
-      reader.onerror = () => {
+      reader.onerror = (e) => {
+        console.log('error', e)
         this.$store.commit('loader/MutClear')
       }
       reader.readAsArrayBuffer(file)
@@ -236,9 +256,11 @@ export default {
       templateGenerator.parse()
       this.templateData = templateGenerator.getTemplate()
       this.importData = templateGenerator.getData()
+      this.templateEditorModal = true;
     },
 
     dropHandler(ev) {
+      this.dragOver = false;
       console.log('File(s) dropped')
       let file
       if (ev.dataTransfer.items) {
@@ -250,12 +272,12 @@ export default {
         file = ev.dataTransfer.files[0]
       }
 
-      if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && file.type !== 'application/vnd.ms-excel') {
-        return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls!').goAway(3000)
+      if (!file) return
+
+      if (!/\.xls[xm]?$/.test(file.name)) {
+        return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls,.xlsm!').goAway(3000)
       }
-      if (file) {
-        this._file(file)
-      }
+      this._file(file)
     },
     dragOverHandler(ev) {
       console.log('File(s) in drop zone')
@@ -303,8 +325,8 @@ export default {
   width: 100%;
 }
 
-.nc-excel-import-options{
-  transition:.4s max-height;
+.nc-excel-import-options {
+  transition: .4s max-height;
   overflow: hidden;
 }
 </style>

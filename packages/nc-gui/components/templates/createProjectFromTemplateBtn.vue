@@ -9,7 +9,7 @@
           x-large
           v-on="on"
         >
-          Use template
+          <slot>Use template</slot>
           <v-icon>mdi-menu-down</v-icon>
         </v-btn>
       </template>
@@ -19,7 +19,7 @@
             <v-icon class="mr-1" :color="textColors[7]">
               mdi-code-json
             </v-icon>
-            Create REST Project
+            {{ createRestText }}
           </v-list-item-title>
         </v-list-item>
         <v-list-item dense class="py-2" @click="useTemplate('graphql')">
@@ -27,7 +27,7 @@
             <v-icon class="mr-1" :color="textColors[3]">
               mdi-graphql
             </v-icon>
-            Create GQL Project
+            {{ createGqlText }}
           </v-list-item-title>
         </v-list-item>
       </v-list>
@@ -44,7 +44,23 @@ export default {
   props: {
     loading: Boolean,
     templateData: [Array, Object],
-    importData: [Array, Object]
+    importData: [Array, Object],
+    valid: {
+      default: true,
+      type: Boolean
+    },
+    validationErrorMsg: {
+      default: 'Please fill all the required values',
+      type: String
+    },
+    createGqlText: {
+      default: 'Create GQL Project',
+      type: String
+    },
+    createRestText: {
+      default: 'Create REST Project',
+      type: String
+    }
   },
   data() {
     return {
@@ -76,6 +92,10 @@ export default {
   },
   methods: {
     async useTemplate(projectType) {
+      if (!this.valid) {
+        return this.$toast.error(this.validationErrorMsg).goAway(3000)
+      }
+
       // this.$emit('useTemplate', type)
 
       this.projectCreation = true
@@ -118,7 +138,8 @@ export default {
       // this.$store.commit('project/MutProjectId', projectId)
       this.$ncApis.setProjectId(projectId)
 
-      let total = 0; let progress = 0
+      let total = 0
+      let progress = 0
 
       await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
         await this.$store.dispatch('meta/ActLoadMeta', {

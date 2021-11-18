@@ -105,12 +105,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             }
           }
         } else if (column.uidt === UITypes.Number) {
-          if (rows.slice(1, 500).some((v) => {
+          if (rows.slice(1, this.config.maxRowsToParse).some((v) => {
             return v && v[col] && parseInt(+v[col]) !== +v[col]
           })) {
             column.uidt = UITypes.Decimal
           }
-          if (rows.slice(1, 500).every((v, i) => {
+          if (rows.slice(1, this.config.maxRowsToParse).every((v, i) => {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + col,
               r: i + 2
@@ -123,7 +123,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             column.uidt = UITypes.Currency
           }
         } else if (column.uidt === UITypes.DateTime) {
-          if (rows.slice(1, 500).every((v, i) => {
+          if (rows.slice(1, this.config.maxRowsToParse).every((v, i) => {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + col,
               r: i + 2

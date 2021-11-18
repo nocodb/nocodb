@@ -1,11 +1,3 @@
-<script>
-import CreateProjectFromTemplateBtn from '~/components/templates/createProjectFromTemplateBtn'
-import TemplateEditor from '~/components/templates/editor'
-
-export default {
-  components: { TemplateEditor, CreateProjectFromTemplateBtn }
-}
-</script>
 <template>
   <div class="pt-10">
     <v-dialog v-model="dropOrUpload" max-width="600">
@@ -84,7 +76,7 @@ export default {
           <div class="d-flex">
             <v-spacer />
             <span class="caption pointer grey--text" @click="showMore = !showMore">{{ showMore ? 'Hide' : 'Show' }} more
-              <v-icon small>mdi-menu-{{ showMore ? 'up' : 'down' }}</v-icon>
+              <v-icon small color="grey lighten-1">mdi-menu-{{ showMore ? 'up' : 'down' }}</v-icon>
             </span>
           </div>
           <div class="mb-2 pt-2 nc-excel-import-options" :style="{ maxHeight: showMore ? '100px' : '0'}">
@@ -133,12 +125,13 @@ export default {
     </v-tooltip>
 
     <v-dialog v-if="templateData" v-model="templateEditorModal" max-width="1000">
-      <v-card>
+      <v-card class="pa-6">
         <template-editor :project-template.sync="templateData" excel-import>
           <template #toolbar="{valid}">
-            <h3 class="mt-2 grey--text">
-              Import Excel as Project : {{ filename }}
-            </h3>
+            <!--            <h3 class="mt-2 grey&#45;&#45;text">-->
+            <!--              Import Excel as Project -->
+            <!--            </h3>-->
+            <!--            <span class="grey&#45;&#45;text">Importing 2 sheets</span>-->
 
             <v-spacer />
             <create-project-from-template-btn
@@ -167,14 +160,14 @@ import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTempl
 
 export default {
   name: 'ExcelImport',
-  components: {CreateProjectFromTemplateBtn, TemplateEditor},
+  components: { CreateProjectFromTemplateBtn, TemplateEditor },
   props: {
     hideLabel: Boolean,
     value: Boolean
   },
   data() {
     return {
-      templateEditorModal:false,
+      templateEditorModal: false,
       valid: null,
       templateData: null,
       importData: null,
@@ -198,6 +191,10 @@ export default {
     }
   },
   mounted() {
+    if (this.$route && this.$route.query && this.$route.query.excelUrl) {
+      this.url = this.$route.query.excelUrl
+      this.loadUrl()
+    }
   },
   methods: {
 
@@ -214,6 +211,8 @@ export default {
       }
     },
     async _file(file) {
+      this.templateData = null
+      this.importData = null
       this.$store.commit('loader/MutMessage', 'Loading excel file')
       let i = 0
       const int = setInterval(() => {
@@ -222,7 +221,8 @@ export default {
       this.dropOrUpload = false
       const reader = new FileReader()
       this.filename = file.name
-      reader.onload = async (e) => {
+
+      reader.onload = async(e) => {
         const ab = e.target.result
         await this.parseAndExtractData('file', ab, file.name)
         this.$store.commit('loader/MutMessage', null)
@@ -256,11 +256,11 @@ export default {
       templateGenerator.parse()
       this.templateData = templateGenerator.getTemplate()
       this.importData = templateGenerator.getData()
-      this.templateEditorModal = true;
+      this.templateEditorModal = true
     },
 
     dropHandler(ev) {
-      this.dragOver = false;
+      this.dragOver = false
       console.log('File(s) dropped')
       let file
       if (ev.dataTransfer.items) {
@@ -272,7 +272,9 @@ export default {
         file = ev.dataTransfer.files[0]
       }
 
-      if (!file) return
+      if (!file) {
+        return
+      }
 
       if (!/\.xls[xm]?$/.test(file.name)) {
         return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls,.xlsm!').goAway(3000)
@@ -287,7 +289,7 @@ export default {
     },
 
     async loadUrl() {
-      if (!this.$refs.form.validate()) {
+      if ((this.$refs.form && !this.$refs.form.validate()) || !this.url) {
         return
       }
 

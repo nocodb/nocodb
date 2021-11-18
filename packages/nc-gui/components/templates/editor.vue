@@ -90,8 +90,27 @@
       <v-form ref="form" v-model="valid">
         <v-row fluid class="justify-center">
           <v-col cols="12">
-            <v-card>
+            <v-card class="elevation-0">
               <v-card-text>
+                <div v-if="!viewMode" class="mx-auto" style="max-width:400px">
+                  <div class="mt-1">
+                    <v-text-field
+                      ref="project"
+                      v-model="project.title"
+                      class="caption"
+                      outlined
+                      dense
+                      label="Project Name"
+                      persistent-hint
+                      :rules="[v => !!v || 'Project name required'] "
+                    />
+                  </div>
+                </div>
+
+                <p v-if="project.tables" class="caption grey--text">
+                  {{ project.tables.length }} sheet{{ project.tables.length > 1 ? 's' :'' }} are available for import
+                </p>
+
                 <v-expansion-panels
                   v-if="project.tables && project.tables.length"
                   v-model="expansionPanel"
@@ -425,7 +444,7 @@
 
                 <!--            <v-btn small color='primary' class='mt-10' @click='createTablesDialog = true'>New Table</v-btn>-->
                 <div v-if="!viewMode" class="mx-auto" style="max-width:600px">
-                  <div class="mt-10">
+                  <!--                  <div class="mt-10">
                     <v-text-field
                       ref="project"
                       v-model="project.title"
@@ -435,7 +454,7 @@
                       label="Project Name"
                       :rules="[v => !!v || 'Project name required'] "
                     />
-                  </div>
+                  </div>-->
                   <!--
                   <div
                     class="rounded pa-5 mb-5 d-100 text-center caption"

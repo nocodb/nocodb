@@ -1,5 +1,17 @@
 <template>
-  <v-container fluid class="text-center px-10 pt-10 nc-container">
+  <v-container
+    fluid
+    class="text-center px-10 pt-10 nc-container"
+
+    @dragover.prevent="dragOver = true"
+    @dragenter.prevent="dragOver = true"
+    @dragexit="dragOver = false"
+    @dragleave="dragOver = false"
+    @dragend="dragOver = false"
+    @drop.prevent.stop="onFileDrop"
+  >
+    <!--    <v-overlay :value="dragOver" />-->
+
     <!--    <sponsor-overlay v-if="overlayVisible && projects && projects.length"-->
     <!--                     @close="overlayVisible = false"></sponsor-overlay>-->
     <v-row>
@@ -745,6 +757,7 @@ export default {
   },
   data() {
     return {
+      dragOver: false,
       excelImportModal: false,
       templatesModal: false,
       overlayVisible: true,
@@ -877,8 +890,16 @@ export default {
     // }, 200)
     await this.projectsLoad()
     // await this.openProjectIfQueryParamFound()
+
+    if (this.$route && this.$route.query && this.$route.query.excelUrl) {
+      this.excelImportModal = true
+    }
   },
   methods: {
+    async onFileDrop(e) {
+      this.excelImportModal = true
+      this.$refs.excelImport.dropHandler(e)
+    },
     async stopProject(project) {
       this.dialogShow = true
       this.confirmMessage =

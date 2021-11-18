@@ -140,6 +140,7 @@
         />
 
         <csv-export-import
+          ref="csvExportImport"
           :meta="meta"
           :nodes="nodes"
           :query-params="{
@@ -234,6 +235,7 @@
             <xc-grid-view
               :key="key + selectedViewId"
               ref="ncgridview"
+              droppable
               :relation-type="relationType"
               :columns-width.sync="columnsWidth"
               :is-locked="isLocked"
@@ -252,6 +254,7 @@
               :is-virtual="selectedView.type === 'vtable'"
               :api="api"
               :is-pk-avail="isPkAvail"
+              @drop="onFileDrop"
               @onNewColCreation="onNewColCreation"
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
@@ -1104,6 +1107,23 @@ export default {
         await this.loadTableData()
         // this.mapFieldsAndShowFields();
       })
+    },
+    onFileDrop(ev) {
+      let file
+      if (ev.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        if (ev.dataTransfer.items.length && ev.dataTransfer.items[0].kind === 'file') {
+          file = ev.dataTransfer.items[0].getAsFile()
+        }
+      } else if (ev.dataTransfer.files.length) {
+        file = ev.dataTransfer.files[0]
+      }
+
+      if (file && !file.name.endsWith('.csv')) {
+        return
+      }
+
+      this.$refs.csvExportImport.onCsvFileSelection(file)
     }
   },
   computed: {

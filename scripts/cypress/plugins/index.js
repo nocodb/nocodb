@@ -12,6 +12,10 @@
 // This function is called when a project is opened or re-opened (e.g. due to
 // the project's config changing)
 const { rmdir } = require('fs')
+
+// https://stackoverflow.com/questions/61934443/read-excel-files-in-cypress
+const readXlsx = require('./read-xlsx')
+
 /**
  * @type {Cypress.PluginConfig}
  */
@@ -37,17 +41,8 @@ module.exports = (on, config) => {
         })
       })
     },
-  })
-}
-
-
-// https://stackoverflow.com/questions/61934443/read-excel-files-in-cypress
-const readXlsx = require('./read-xlsx')
-
-module.exports = (on, config) => {
-  on('task', {
     'readXlsx': readXlsx.read,
-    'readSheetList': readXlsx.sheetList
+    'readSheetList': readXlsx.sheetList,  
   })
 }
 

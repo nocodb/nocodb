@@ -10,6 +10,16 @@ const read = ({file, sheet}) => {
    return rows
 }
 
+// const read = ({file, sheet}) => {
+//    const buf = fs.readFileSync(file);
+//    const workbook = XLSX.read(buf, { type: 'buffer' });
+//    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheet], {
+//         header: 1,
+//         blankrows: false
+//     });
+//    return rows
+// }
+
 const sheetList = ({file}) => {
    const buf = fs.readFileSync(file);
    const workbook = XLSX.read(buf, { type: 'buffer' });

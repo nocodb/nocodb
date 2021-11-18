@@ -46,7 +46,9 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       this.data[sheet] = []
       const ws = this.wb.Sheets[sheet]
       const range = XLSX.utils.decode_range(ws['!ref'])
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true })
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
+
+      // const colLen = Math.max()
 
       for (let col = 0; col < rows[0].length; col++) {
         let cn = (rows[0][col] ||
@@ -88,6 +90,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               vals = vals.filter(v => v !== null && v !== undefined)
 
               // check column is multi or single select by comparing unique values
+              // todo:
               if (vals.some(v => v && v.toString().includes(','))) {
                 const flattenedVals = vals.flatMap(v => v ? v.toString().split(',') : [])
                 const uniqueVals = new Set(flattenedVals)

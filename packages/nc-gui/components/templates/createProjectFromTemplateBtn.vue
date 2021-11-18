@@ -1,37 +1,37 @@
 <template>
   <div>
-    <v-menu bottom offset-y>
-      <template #activator="{on}">
-        <v-btn
-          :loading="projectCreation"
-          :disabled="projectCreation"
-          class="primary nc-btn-use-template"
-          x-large
-          v-on="on"
-        >
-          <slot>Use template</slot>
-          <v-icon>mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item dense class="py-2" @click="useTemplate('rest')">
-          <v-list-item-title>
-            <v-icon class="mr-1" :color="textColors[7]">
-              mdi-code-json
-            </v-icon>
-            {{ createRestText }}
-          </v-list-item-title>
-        </v-list-item>
-        <v-list-item dense class="py-2" @click="useTemplate('graphql')">
-          <v-list-item-title>
-            <v-icon class="mr-1" :color="textColors[3]">
-              mdi-graphql
-            </v-icon>
-            {{ createGqlText }}
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <!--    <v-menu bottom offset-y>-->
+    <!--      <template #activator="{on}">-->
+    <v-btn
+      :loading="projectCreation"
+      :disabled="projectCreation"
+      class="primary nc-btn-use-template"
+      x-large
+      @click="useTemplate('rest')"
+    >
+      <slot>Use template</slot>
+      <!--          <v-icon>mdi-menu-down</v-icon>-->
+    </v-btn>
+    <!--      </template>-->
+    <!--      <v-list>-->
+    <!--        <v-list-item dense class="py-2" @click="useTemplate('rest')">-->
+    <!--          <v-list-item-title>-->
+    <!--            <v-icon class="mr-1" :color="textColors[7]">-->
+    <!--              mdi-code-json-->
+    <!--            </v-icon>-->
+    <!--            {{ createRestText }}-->
+    <!--          </v-list-item-title>-->
+    <!--        </v-list-item>-->
+    <!--        <v-list-item dense class="py-2" @click="useTemplate('graphql')">-->
+    <!--          <v-list-item-title>-->
+    <!--            <v-icon class="mr-1" :color="textColors[3]">-->
+    <!--              mdi-graphql-->
+    <!--            </v-icon>-->
+    <!--            {{ createGqlText }}-->
+    <!--          </v-list-item-title>-->
+    <!--        </v-list-item>-->
+    <!--      </v-list>-->
+    <!--    </v-menu>-->
   </div>
 </template>
 

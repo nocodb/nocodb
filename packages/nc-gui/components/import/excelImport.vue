@@ -72,11 +72,28 @@
           </v-tab-item>
         </v-tabs>
 
-        <!--        <div class="my-4 text-center grey&#45;&#45;text">-->
-        <!--          OR-->
-        <!--        </div>-->
+        <div class="px-4 pb-2">
+          <div class="d-flex">
+            <v-spacer />
+            <span class="caption pointer grey--text" @click="showMore = !showMore">{{ showMore ? 'Hide' : 'Show' }} more
+              <v-icon small>mdi-menu-{{ showMore ? 'up':'down' }}</v-icon>
+            </span>
+          </div>
+          <div class="mb-2 pt-2 nc-excel-import-options" :style="{ maxHeight: showMore ? '100px' : '0'}">
+            <p />
 
-        <!--          <drop-or-select-file />-->
+            <v-text-field
+              v-model="parserConfig.maxRowsToParse"
+              style="max-width: 250px"
+              class="caption mx-auto"
+              dense
+              persistent-hint
+              hint="# of rows to parse to infer data type"
+              outlined
+              type="number"
+            />
+          </div>
+        </div>
       </v-card>
     </v-dialog>
 
@@ -113,8 +130,6 @@
           <template #toolbar>
             <v-spacer />
             <create-project-from-template-btn
-              :loader-message.sync="loaderMessage"
-              :progress.sync="progress"
               :template-data="templateData"
               :import-data="importData"
             />
@@ -122,23 +137,6 @@
         </template-editor>
       </v-card>
     </v-dialog>
-
-    <v-overlay :value="loaderMessage" z-index="99999" opacity=".9">
-      <div class="d-flex flex-column align-center">
-        <v-progress-circular
-          v-if="progress !== null "
-          :rotate="360"
-          :size="100"
-          :width="15"
-          :value="progress"
-        >
-          {{ progress }}%
-        </v-progress-circular>
-
-        <v-progress-circular v-else indeterminate size="100" width="15" class="mb-10" />
-        <span class="title">{{ loaderMessage }}</span>
-      </div>
-    </v-overlay>
   </div>
 </template>
 
@@ -163,9 +161,11 @@ export default {
       templateData: null,
       importData: null,
       dragOver: false,
-      loaderMessage: null,
-      progress: null,
-      url: ''
+      url: '',
+      showMore: false,
+      parserConfig: {
+        maxRowsToParse: 500
+      }
     }
   },
   computed: {
@@ -194,10 +194,10 @@ export default {
       }
     },
     async _file(file) {
-      this.loaderMessage = 'Loading excel file'
+      this.$store.commit('loader/MutMessage', 'Loading excel file')
       let i = 0
       const int = setInterval(() => {
-        this.loaderMessage = `Loading excel file${'.'.repeat(++i % 4)}`
+        this.$store.commit('loader/MutMessage', `Loading excel file${'.'.repeat(++i % 4)}`)
       }, 1000)
 
       this.dropOrUpload = false
@@ -206,17 +206,18 @@ export default {
       reader.onload = async(e) => {
         const ab = e.target.result
         await this.parseAndExtractData('file', ab, file.name)
-        this.loaderMessage = null
+        this.$store.commit('loader/MutMessage', null)
+
         clearInterval(int)
       }
 
       const handleEvent = (event) => {
-        this.loaderMessage = `${event.type}: ${event.loaded} bytes transferred`
+        this.$store.commit('loader/MutMessage', `${event.type}: ${event.loaded} bytes transferred`)
       }
 
       reader.addEventListener('progress', handleEvent)
       reader.onerror = () => {
-        this.loaderMessage = null
+        this.$store.commit('loader/MutClear')
       }
       reader.readAsArrayBuffer(file)
     },
@@ -225,10 +226,10 @@ export default {
       let templateGenerator
       switch (type) {
         case 'file':
-          templateGenerator = new ExcelTemplateAdapter(name, val)
+          templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
           break
         case 'url':
-          templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store)
+          templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig)
           break
       }
       await templateGenerator.init()
@@ -264,19 +265,22 @@ export default {
     },
 
     async loadUrl() {
-      if (!this.$refs.form.validate()) { return }
+      if (!this.$refs.form.validate()) {
+        return
+      }
 
-      this.loaderMessage = 'Loading excel file from url'
+      this.$store.commit('loader/MutMessage', 'Loading excel file from url')
+
       let i = 0
       const int = setInterval(() => {
-        this.loaderMessage = `Loading excel file${'.'.repeat(++i % 4)}`
+        this.$store.commit('loader/MutMessage', `Loading excel file${'.'.repeat(++i % 4)}`)
       }, 1000)
 
       this.dropOrUpload = false
 
       await this.parseAndExtractData('url', this.url, '')
       clearInterval(int)
-      this.loaderMessage = null
+      this.$store.commit('loader/MutClear')
     }
 
   }
@@ -291,11 +295,16 @@ export default {
   border: 2px dashed #ddd;
 }
 
-.nc-excel-import-tab-item{
+.nc-excel-import-tab-item {
   min-height: 400px;
   padding: 20px;
   display: flex;
   align-items: stretch;
-width:100%;
+  width: 100%;
+}
+
+.nc-excel-import-options{
+  transition:.4s max-height;
+  overflow: hidden;
 }
 </style>

@@ -11,8 +11,12 @@ const excelTypeToUidt = {
 }
 
 export default class ExcelTemplateAdapter extends TemplateGenerator {
-  constructor(name, ab) {
+  constructor(name, ab, parserConfig = {}) {
     super()
+    this.config = {
+      maxRowsToParse: 500,
+      ...parserConfig
+    }
     this.name = name
     this.excelData = ab
     this.project = {
@@ -23,22 +27,39 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async init() {
-    this.wb = XLSX.read(new Uint8Array(this.excelData), { type: 'array' })
+    this.wb = XLSX.read(new Uint8Array(this.excelData), { type: 'array', cellText: true, cellDates: true })
   }
 
   parse() {
+    const tableNamePrefixRef = {}
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
+      const columnNamePrefixRef = {}
       const sheet = this.wb.SheetNames[i]
-      const table = { tn: sheet, columns: [] }
+      let tn = sheet
+      if (tn in tableNamePrefixRef) {
+        tn = `${tn}${++tableNamePrefixRef[tn]}`
+      } else {
+        tableNamePrefixRef[tn] = 0
+      }
+
+      const table = { tn, columns: [] }
       this.data[sheet] = []
       const ws = this.wb.Sheets[sheet]
       const range = XLSX.utils.decode_range(ws['!ref'])
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false })
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true })
 
       for (let col = 0; col < rows[0].length; col++) {
+        let cn = (rows[0][col] ||
+          `field${col + 1}`).replace(/\./, '_')
+
+        if (cn in columnNamePrefixRef) {
+          cn = `${cn}${++columnNamePrefixRef[cn]}`
+        } else {
+          columnNamePrefixRef[cn] = 0
+        }
+
         const column = {
-          cn: (rows[0][col] ||
-            `field${col + 1}`).replace(/\./, '_')
+          cn
         }
 
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
@@ -100,6 +121,19 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             return !cellObj || (cellObj.w && cellObj.w.startsWith('$'))
           })) {
             column.uidt = UITypes.Currency
+          }
+        } else if (column.uidt === UITypes.DateTime) {
+          if (rows.slice(1, 500).every((v, i) => {
+            const cellId = XLSX.utils.encode_cell({
+              c: range.s.c + col,
+              r: i + 2
+            })
+
+            const cellObj = ws[cellId]
+
+            return !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
+          })) {
+            column.uidt = UITypes.Date
           }
         }
 

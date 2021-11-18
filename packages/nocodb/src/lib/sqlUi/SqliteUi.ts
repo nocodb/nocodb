@@ -788,7 +788,7 @@ export class SqliteUi {
         colProp.dt = 'varchar';
         break;
       case 'Date':
-        colProp.dt = 'varchar';
+        colProp.dt = 'date';
 
         break;
       case 'Year':

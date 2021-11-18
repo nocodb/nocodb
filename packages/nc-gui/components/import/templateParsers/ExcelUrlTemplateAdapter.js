@@ -1,9 +1,9 @@
 import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTemplateAdapter'
 
 export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
-  constructor(url, $store) {
+  constructor(url, $store, parserConfig) {
     const name = url.split('/').pop()
-    super(name, null)
+    super(name, null, parserConfig)
     this.url = url
     this.$store = $store
   }

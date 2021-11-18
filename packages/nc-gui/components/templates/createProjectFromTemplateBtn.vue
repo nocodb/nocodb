@@ -44,9 +44,7 @@ export default {
   props: {
     loading: Boolean,
     templateData: [Array, Object],
-    importData: [Array, Object],
-    loaderMessage: String,
-    progress: Number
+    importData: [Array, Object]
   },
   data() {
     return {
@@ -84,7 +82,7 @@ export default {
       try {
         const interv = setInterval(() => {
           this.loaderMessagesIndex = this.loaderMessagesIndex < this.loaderMessages.length - 1 ? this.loaderMessagesIndex + 1 : 6
-          this.$emit('update:loaderMessage', this.loaderMessages[this.loaderMessagesIndex])
+          this.$store.commit('loader/MutMessage', this.loaderMessages[this.loaderMessagesIndex])
         }, 1000)
 
         const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
@@ -97,11 +95,10 @@ export default {
 
         clearInterval(interv)
         if (this.importData) {
-          this.$emit('update:loaderMessage', 'Importing excel data to project')
+          this.$store.commit('loader/MutMessage', 'Importing excel data to project')
           await this.importDataToProject({ projectId: result.id, projectType, prefix: result.prefix })
         }
-
-        this.$emit('update:loaderMessage', null)
+        this.$store.commit('loader/MutMessage', null)
 
         this.projectReloading = false
 
@@ -123,7 +120,6 @@ export default {
 
       let total = 0; let progress = 0
 
-      console.log(this.importData)
       await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
         await this.$store.dispatch('meta/ActLoadMeta', {
           tn: `${prefix}${table}`, project_id: projectId
@@ -136,14 +132,13 @@ export default {
         })
         total += data.length
         for (let i = 0; i < data.length; i += 500) {
-          this.$emit('update:loaderMessage', `Importing data : ${progress}/${total}`)
-          this.$emit('update:progress', Math.round(progress && 100 * progress / total))
+          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${total}`)
+          this.$store.commit('loader/MutProgress', Math.round(progress && 100 * progress / total))
           const batchData = data.slice(i, i + 500)
           await api.insertBulk(batchData)
           progress += batchData.length
         }
-
-        this.$emit('update:progress', null)
+        this.$store.commit('loader/MutClear')
       })(v)))
     }
   }

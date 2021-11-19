@@ -27,12 +27,11 @@ export default class NcMetaIOImpl extends NcMetaIO {
   ): Promise<{ list: any[]; count: number }> {
     const query = this.knexConnection(target);
     const countQuery = this.knexConnection(target);
-
-    if (projectId !== null) {
+    if (projectId !== null && projectId !== undefined) {
       query.where('project_id', projectId);
       countQuery.where('project_id', projectId);
     }
-    if (dbAlias !== null) {
+    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
       countQuery.where('db_alias', dbAlias);
     }
@@ -116,10 +115,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
   ): Promise<void> {
     const query = this.knexConnection(target);
 
-    if (project_id !== null) {
+    if (project_id !== null && project_id !== undefined) {
       query.where('project_id', project_id);
     }
-    if (dbAlias !== null) {
+    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
     }
 
@@ -154,16 +153,17 @@ export default class NcMetaIOImpl extends NcMetaIO {
       query.select(...fields);
     }
 
-    if (project_id !== null) {
+    if (project_id !== null && project_id !== undefined) {
       query.where('project_id', project_id);
     }
-    if (dbAlias !== null) {
+    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
     }
 
     if (!idOrCondition) {
       return query.first();
     }
+
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else {
@@ -204,10 +204,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
   ): Promise<any[]> {
     const query = this.knexConnection(target);
 
-    if (project_id !== null) {
+    if (project_id !== null && project_id !== undefined) {
       query.where('project_id', project_id);
     }
-    if (dbAlias !== null) {
+    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
     }
 
@@ -240,10 +240,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
     xcCondition?
   ): Promise<any> {
     const query = this.knexConnection(target);
-    if (project_id !== null) {
+    if (project_id !== null && project_id !== undefined) {
       query.where('project_id', project_id);
     }
-    if (dbAlias !== null) {
+    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
     }
 
@@ -280,10 +280,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
     dbAlias: string
   ): Promise<boolean> {
     const query = this.knexConnection('nc_models');
-    if (project_id !== null) {
+    if (project_id !== null && project_id !== undefined) {
       query.where('project_id', project_id);
     }
-    if (dbAlias !== null) {
+    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
     }
     const data = await query.first();
@@ -353,7 +353,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         // }
       }
       config.id = id;
-      const project = {
+      const project: any = {
         id,
         title: projectName,
         description,
@@ -368,6 +368,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
         created_at: this.knexConnection?.fn?.now(),
         updated_at: this.knexConnection?.fn?.now()
       });
+
+      project.prefix = config.prefix;
       return project;
     } catch (e) {
       console.log(e);
@@ -505,7 +507,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectStatusUpdate(
-    projectName: string,
+    projectId: string,
     status: string
   ): Promise<any> {
     return this.knexConnection('nc_projects')
@@ -513,7 +515,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         status
       })
       .where({
-        title: projectName
+        id: projectId
       });
   }
 

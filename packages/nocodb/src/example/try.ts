@@ -24,7 +24,7 @@ process.env.NC_DB = url;
             config,
             ''
           );
-          await app.ncMeta.projectStatusUpdate(config.title, 'started');
+          await app.ncMeta.projectStatusUpdate(project.id, 'started');
           await app.ncMeta.projectAddUser(project.id, 1, 'owner,creator');
         }
       }

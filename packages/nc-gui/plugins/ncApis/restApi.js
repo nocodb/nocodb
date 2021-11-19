@@ -93,6 +93,17 @@ export default class RestApi {
     })).data
   }
 
+  async insertBulk(data, {
+    params = {}
+  } = {}) {
+    return (await this.$axios({
+      method: 'post',
+      url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/bulk`,
+      data,
+      params
+    })).data
+  }
+
   async delete(id) {
     return this.$axios({
       method: 'delete',

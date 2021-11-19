@@ -2,7 +2,7 @@ import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
-let baseURL = ''
+let storedURL = ''
 
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
@@ -30,7 +30,7 @@ export const genTest = (type, xcdb) => {
     })
       
     after(() => {
-      cy.get('[href="#table||db||City"]').find('button.mdi-close').click()
+      cy.closeTableTab('City')
     })      
       
 
@@ -63,7 +63,7 @@ export const genTest = (type, xcdb) => {
           
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
-                baseURL = url
+                storedURL = url
             })
         })
 
@@ -79,9 +79,11 @@ export const genTest = (type, xcdb) => {
                 .contains('/nc/form/', {timeout: 10000})
                 .then(($obj) => {
 
-                    let linkText = $obj.text()
+                    let linkText = $obj.text().trim()
                     cy.log(linkText)
-                    cy.visit(linkText)
+                    cy.visit(linkText, {
+                      baseUrl: null
+                    })
             
                     // wait for share view page to load!
                     cy.wait(5000)
@@ -137,7 +139,9 @@ export const genTest = (type, xcdb) => {
 
         it(`Delete ${viewType} view`, () => {
             // go back to base page
-            cy.visit(baseURL)
+            cy.visit(storedURL, {
+                baseUrl: null
+            })
 
             // number of view entries should be 2 before we delete
             cy.get('.nc-view-item').its('length').should('eq', 2)

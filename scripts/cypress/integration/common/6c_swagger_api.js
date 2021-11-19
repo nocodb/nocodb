@@ -57,7 +57,9 @@ export const genTest = (type, xcdb) => {
                     let URL = jsonPayload.SWAGGER_URL
                     Token = jsonPayload.AUTH_TOKEN
 
-                    cy.visit(URL).then(() => {
+                    cy.visit(URL, {
+                        baseUrl: null
+                    }).then(() => {
 
                         // wait to allow time for SWAGGER Library loading to finish
                         cy.wait(5000)

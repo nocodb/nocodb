@@ -152,6 +152,7 @@ export default class NcMetaMgr {
       if (req?.session?.passport?.user?.isAuthorized) {
         if (
           req?.body?.project_id &&
+          !req.session?.passport?.user?.isPublicBase &&
           !(await this.xcMeta.isUserHaveAccessToProject(
             req?.body?.project_id,
             req?.session?.passport?.user?.id
@@ -1337,6 +1338,9 @@ export default class NcMetaMgr {
         case 'sharedViewGet':
           result = await this.sharedViewGet(req, args);
           break;
+        case 'sharedBaseGet':
+          result = await this.sharedBaseGet(req, args);
+          break;
         case 'sharedViewExportAsCsv':
           result = await this.sharedViewExportAsCsv(req, args, res);
           break;
@@ -1376,7 +1380,7 @@ export default class NcMetaMgr {
   protected async handleRequest(req, res, next) {
     try {
       const args = req.body;
-      let result;
+      let result, postListenerCb;
 
       switch (args.api) {
         case 'xcPluginDemoDefaults':
@@ -1497,6 +1501,15 @@ export default class NcMetaMgr {
 
         case 'createSharedViewLink':
           result = await this.createSharedViewLink(req, args);
+          break;
+        case 'createSharedBaseLink':
+          result = await this.createSharedBaseLink(req, args);
+          break;
+        case 'disableSharedBaseLink':
+          result = await this.disableSharedBaseLink(req, args);
+          break;
+        case 'getSharedBaseLink':
+          result = await this.getSharedBaseLink(req, args);
           break;
 
         case 'updateSharedViewLinkPassword':
@@ -1642,6 +1655,22 @@ export default class NcMetaMgr {
           });
 
           Tele.emit('evt', { evt_type: 'project:created', xcdb: true });
+          postListenerCb = async () => {
+            if (args?.args?.template) {
+              await this.xcModelsCreateFromTemplate(
+                {
+                  dbAlias: 'db', // this.nodes.dbAlias,
+                  env: '_noco',
+                  project_id: result?.id,
+                  args: {
+                    template: args?.args?.template
+                  }
+                },
+                req
+              );
+            }
+          };
+
           break;
         }
         case 'projectList':
@@ -1899,6 +1928,10 @@ export default class NcMetaMgr {
             res
           }
         });
+      }
+
+      if (postListenerCb) {
+        await postListenerCb();
       }
 
       if (
@@ -2271,7 +2304,7 @@ export default class NcMetaMgr {
   // NOTE: updated
   protected async xcModelSet(args): Promise<any> {
     const dbAlias = await this.getDbAlias(args);
-    this.cacheModelDel(args.project_id, dbAlias, 'table', args.args.tn);
+    this.cacheModelDel(this.getProjectId(args), dbAlias, 'table', args.args.tn);
     return this.xcMeta.metaUpdate(
       args.project_id,
       dbAlias,
@@ -3385,6 +3418,93 @@ export default class NcMetaMgr {
     }
   }
 
+  protected async createSharedBaseLink(req, args: any): Promise<any> {
+    try {
+      let sharedBase = await this.xcMeta.metaGet(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+
+      if (!sharedBase) {
+        const insertData = {
+          project_id: args.project_id,
+          db_alias: this.getDbAlias(args),
+          shared_base_id: uuidv4(),
+          password: args?.args?.password
+        };
+
+        await this.xcMeta.metaInsert(
+          args.project_id,
+          this.getDbAlias(args),
+          'nc_shared_bases',
+          insertData
+        );
+        sharedBase = await this.xcMeta.metaGet(
+          this.getProjectId(args),
+          this.getDbAlias(args),
+          'nc_shared_bases',
+          {},
+          ['id', 'shared_base_id', 'enabled']
+        );
+      }
+
+      sharedBase.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/base/${sharedBase.shared_base_id}`;
+
+      Tele.emit('evt', { evt_type: 'sharedBase:generated-link' });
+      return sharedBase;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  protected async disableSharedBaseLink(_req, args: any): Promise<any> {
+    try {
+      const sharedBase = await this.xcMeta.metaGet(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+      if (!sharedBase) return;
+      XcCache.del(`nc_shared_bases||${sharedBase.shared_base_id}`);
+      await this.xcMeta.metaDelete(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  protected async getSharedBaseLink(req, args: any): Promise<any> {
+    try {
+      const sharedBase = await this.xcMeta.metaGet(
+        this.getProjectId(args),
+        this.getDbAlias(args),
+        'nc_shared_bases',
+        {
+          project_id: this.getProjectId(args)
+        }
+      );
+      if (sharedBase)
+        sharedBase.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/base/${sharedBase.shared_base_id}`;
+
+      return sharedBase;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   protected async updateSharedViewLinkPassword(_args: any): Promise<any> {
     // try {
     //
@@ -3898,6 +4018,23 @@ export default class NcMetaMgr {
     return { ...sharedViewMeta, ...viewMeta };
   }
 
+  protected async sharedBaseGet(_req, args: any): Promise<any> {
+    const sharedBaseMeta = await this.xcMeta
+      .knex('nc_shared_bases')
+      .select('project_id')
+      .where({
+        shared_base_id: args.args.shared_base_id,
+        enabled: true
+      })
+      .first();
+
+    if (!sharedBaseMeta) {
+      throw new Error('Meta not found');
+    }
+
+    return sharedBaseMeta;
+  }
+
   protected async sharedViewExportAsCsv(_req, args: any, res): Promise<any> {
     const sharedViewMeta = await this.xcMeta
       .knex('nc_shared_views')
@@ -3933,6 +4070,7 @@ export default class NcMetaMgr {
 
     return this.xcExportAsCsv(
       {
+        shared: true,
         ...sharedViewMeta,
         args: { ...args.args, ...sharedViewMeta }
       },
@@ -4063,6 +4201,7 @@ export default class NcMetaMgr {
     return { data: { list: procedures } };
   }
 
+  // todo: transaction
   protected async xcModelsCreateFromTemplate(args, req) {
     const template = args.args.template;
 
@@ -4074,15 +4213,31 @@ export default class NcMetaMgr {
       d => d?.meta?.dbAlias === dbAlias
     );
 
+    const result = { tables: [], relations: [] };
+
+    const apiBuilder = this.app?.projectBuilders
+      ?.find(pb => pb.id === projectId)
+      ?.apiBuilders?.find(ab => ab.dbAlias === dbAlias);
+
     const parser = new NcTemplateParser({
       client: connectionConfig?.client,
-      template
+      template,
+      prefix: projectConfig?.prefix
     });
     parser.parse();
 
+    const existingTables = parser.tables.filter(t => apiBuilder.getMeta(t.tn));
+
+    if (existingTables?.length) {
+      throw new Error(
+        `Import unsuccessful : following tables '${existingTables
+          .map(t => t._tn)
+          .join(', ')}' already exists`
+      );
+    }
+
     for (const table of parser.tables) {
       console.log(table);
-
       // create table and trigger listener
       const out = await this.projectMgr
         .getSqlMgr({ id: projectId })
@@ -4105,53 +4260,55 @@ export default class NcMetaMgr {
           }
         });
       }
+
+      result.tables.push({ tn: table.tn, _tn: table._tn });
     }
 
     // create relations
 
     for (const relation of parser.relations) {
-      // if (args.args.type === 'real') {
-      const outrel = await this.projectMgr
-        .getSqlMgr({ id: projectId })
-        .handleRequest('relationCreate', {
-          ...args,
-          args: relation
-        });
-      if (this.listener) {
-        await this.listener({
-          req: {
+      if (relation.type === 'real') {
+        const outrel = await this.projectMgr
+          .getSqlMgr({ id: projectId })
+          .handleRequest('relationCreate', {
             ...args,
-            args: relation,
-            api: 'relationCreate'
-          },
-          res: outrel,
-          user: req.user,
-          ctx: {
-            req
-          }
-        });
+            args: relation
+          });
+        if (this.listener) {
+          await this.listener({
+            req: {
+              ...args,
+              args: relation,
+              api: 'relationCreate'
+            },
+            res: outrel,
+            user: req.user,
+            ctx: {
+              req
+            }
+          });
+        }
+      } else {
+        const outrel = await this.xcVirtualRelationCreate(
+          { ...args, args: relation },
+          req
+        );
+        if (this.listener) {
+          await this.listener({
+            req: {
+              ...args,
+              args: relation,
+              api: 'xcVirtualRelationCreate'
+            },
+            res: outrel,
+            user: req.user,
+            ctx: {
+              req
+            }
+          });
+        }
       }
-      // } else {
-      //   const outrel = await this.xcVirtualRelationCreate(
-      //     {...args, args: rel1Args},
-      //     req
-      //   );
-      //   if (this.listener) {
-      //     await this.listener({
-      //       req: {
-      //         ...args,
-      //         args: rel1Args,
-      //         api: 'xcVirtualRelationCreate'
-      //       },
-      //       res: outrel,
-      //       user: req.user,
-      //       ctx: {
-      //         req
-      //       }
-      //     });
-      //   }
-
-      // }
+      result.relations.push({});
     }
 
     //create m2m relations
@@ -4179,7 +4336,41 @@ export default class NcMetaMgr {
           }
         });
       }
+
+      result.relations.push({ mm: true });
     }
+
+    // add virtual columns
+    for (const [tn, vColumns] of Object.entries(parser.virtualColumns)) {
+      const meta = apiBuilder.getMeta(tn);
+      meta.v = meta.v || [];
+      meta.v.push(...vColumns);
+
+      const res = await this.xcModelSet({
+        ...args,
+        args: {
+          meta,
+          tn
+        }
+      });
+      await this.listener({
+        req: {
+          ...args,
+          args: {
+            meta,
+            tn
+          },
+          api: 'tableXcModelGet'
+        },
+        res,
+        user: req.user,
+        ctx: {
+          req
+        }
+      });
+    }
+
+    return result;
   }
 
   protected async xcExportAsCsv(args, _req, res: express.Response) {
@@ -4204,7 +4395,15 @@ export default class NcMetaMgr {
 
     const localQuery = args.args.localQuery;
 
-    const queryParams = JSON.parse(selectedView.query_params);
+    let queryParams: any = {};
+    try {
+      queryParams = JSON.parse(selectedView.query_params);
+    } catch {}
+
+    if (!args.shared) {
+      queryParams = { ...queryParams, ...localQuery };
+    }
+
     let sort = this.serializeSortParam(queryParams);
 
     let where = '';
@@ -4226,7 +4425,9 @@ export default class NcMetaMgr {
       {
         ...(args.args.query || {}),
         fields: meta.columns
-          .filter(c => queryParams?.showFields?.[c._cn])
+          .filter(
+            c => !queryParams?.showFields && queryParams?.showFields?.[c._cn]
+          )
           .map(c => c._cn)
           .join(','),
         sort,
@@ -4234,14 +4435,18 @@ export default class NcMetaMgr {
         ...this.serializeNestedParams(meta, queryParams)
       },
       // filter only visible columns
-      Object.entries(localQuery?.showFields || queryParams?.showFields || {})
-        .filter(v => v[1])
-        .map(v => v[0])
-        .sort(
-          (a, b) =>
-            queryParams?.fieldsOrder?.indexOf(a) -
-            queryParams?.fieldsOrder?.indexOf(b)
-        )
+      localQuery?.showFields || queryParams?.showFields
+        ? Object.entries(
+            localQuery?.showFields || queryParams?.showFields || {}
+          )
+            .filter(v => v[1])
+            .map(v => v[0])
+            .sort(
+              (a, b) =>
+                (queryParams?.fieldsOrder?.indexOf(a) + 1 || Infinity) -
+                (queryParams?.fieldsOrder?.indexOf(b) + 1 || Infinity)
+            )
+        : undefined
     );
 
     return {
@@ -4257,11 +4462,11 @@ export default class NcMetaMgr {
     };
   }
 
-  private serializeSortParam(queryParams, returnArray = false) {
+  private serializeSortParam(queryParams: any, returnArray = false) {
     const sort = [];
-    if (queryParams.sortList) {
+    if (queryParams?.sortList) {
       sort.push(
-        ...(queryParams?.sortList
+        ...(queryParams.sortList
           ?.map(sort => {
             return sort.field ? `${sort.order}${sort.field}` : '';
           })
@@ -5149,7 +5354,7 @@ export default class NcMetaMgr {
     };
 
     for (const v of meta.v) {
-      if (!queryParams?.showFields?.[v._cn]) continue;
+      if (queryParams?.showFields && !queryParams.showFields[v._cn]) continue;
       if (v.bt || v.lk?.type === 'bt') {
         const tn = v.bt?.rtn || v.lk?.rtn;
         if (!nestedParams.bt.includes(tn)) nestedParams.bt.push(tn);
@@ -5180,6 +5385,7 @@ export default class NcMetaMgr {
     nestedParams.mm = nestedParams.mm.join(',');
     nestedParams.hm = nestedParams.hm.join(',');
     nestedParams.bt = nestedParams.bt.join(',');
+
     return nestedParams;
   }
 }

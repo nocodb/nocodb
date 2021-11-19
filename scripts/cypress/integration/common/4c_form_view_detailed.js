@@ -30,7 +30,7 @@ export const genTest = (type, xcdb) => {
     })
 
     after(() => {
-      cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+      cy.closeTableTab('Country')
     })          
 
     // Common routine to create/edit/delete GRID & GALLERY view
@@ -281,7 +281,9 @@ export const genTest = (type, xcdb) => {
         it(`Validate ${viewType}: URL validation after re-access`, () => {
             // visit URL
             cy.log(formViewURL)
-            cy.visit(formViewURL)
+            cy.visit(formViewURL, {
+                baseUrl: null
+            })
 
             // New form appeared? Header & description should exist
             cy.get('.nc-form', { timeout: 10000 })

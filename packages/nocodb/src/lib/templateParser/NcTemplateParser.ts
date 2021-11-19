@@ -17,27 +17,39 @@ export default class NcTemplateParser {
     | typeof SqliteUi;
 
   private _tables: any[];
+  private client: string;
   private _relations: any[];
   private _m2mRelations: any[];
+  private _virtualColumns: { [tn: string]: any[] };
+  private prefix: string;
   private template: any;
 
-  constructor({ client, template }) {
+  constructor({ client, template, prefix = '' }) {
+    this.client = client;
     this.sqlUi = SqlUiFactory.create({ client });
     this.template = template;
+    this.prefix = prefix;
   }
 
   public parse(template?: any): any {
     const tables = [];
     this.template = template || this.template;
-    for (const tableTemplate of this.template.tables) {
-      const table = this.extractTable(tableTemplate);
+    const tableTemplates = this.template.tables.map(tableTemplate => {
+      const t = {
+        ...tableTemplate,
+        tn: this.getTable(tableTemplate.tn),
+        _tn: tableTemplate._tn || tableTemplate.tn
+      };
+      const table = this.extractTable(t);
       tables.push(table);
-    }
+      return t;
+    });
 
     this._tables = tables;
 
-    for (const tableTemplate of this.template.tables) {
+    for (const tableTemplate of tableTemplates) {
       this.extractRelations(tableTemplate);
+      this.extractVirtualColumns(tableTemplate);
     }
   }
 
@@ -57,9 +69,11 @@ export default class NcTemplateParser {
 
     return {
       tn: tableTemplate.tn,
+      _tn: tableTemplate._tn,
       columns: [
-        ...defaultColumns,
-        ...this.extractTableColumns(tableTemplate.columns)
+        defaultColumns[0],
+        ...this.extractTableColumns(tableTemplate.columns),
+        ...defaultColumns.slice(1)
       ]
     };
   }
@@ -81,13 +95,23 @@ export default class NcTemplateParser {
         //   // this.extractRelations(tableColumn, 'mm');
         //   break;
         default:
-          columns.push({
-            ...this.sqlUi.getNewColumn(''),
-            cn: tableColumn.cn,
-            _cn: tableColumn.cn,
-            uidt: tableColumn.uidt,
-            ...this.sqlUi.getDataTypeForUiType(tableColumn)
-          });
+          {
+            const colProp = this.sqlUi.getDataTypeForUiType(tableColumn);
+            columns.push({
+              ...this.sqlUi.getNewColumn(''),
+              rqd: false,
+              pk: false,
+              ai: false,
+              cdf: null,
+              un: false,
+              dtx: 'specificType',
+              dtxp: this.sqlUi.getDefaultLengthForDatatype(colProp.dt),
+              dtxs: this.sqlUi.getDefaultScaleForDatatype(colProp.dt),
+              ...colProp,
+              _cn: tableColumn.cn,
+              ...tableColumn
+            });
+          }
           break;
       }
     }
@@ -98,13 +122,29 @@ export default class NcTemplateParser {
     if (!this._relations) this._relations = [];
     if (!this._m2mRelations) this._m2mRelations = [];
     for (const hasMany of tableTemplate.hasMany || []) {
-      const childTable = this.tables.find(table => table.tn === hasMany.tn);
-      const partentTable = this.tables.find(
+      const childTable = this.tables.find(
+        table => table.tn === this.getTable(hasMany.tn)
+      );
+      const parentTable = this.tables.find(
         table => table.tn === tableTemplate.tn
       );
-      const parentPrimaryColumn = partentTable.columns.find(
+      const parentPrimaryColumn = parentTable.columns.find(
         column => column.uidt === UITypes.ID
       );
+      //
+      // // if duplicate relation ignore
+      // if (
+      //   this._relations.some(rl => {
+      //     return (
+      //       (rl.childTable === childTable.tn &&
+      //         rl.parentTable === parentTable.tn) ||
+      //       (rl.parentTable === childTable.tn &&
+      //         rl.childTable === parentTable.tn)
+      //     );
+      //   })
+      // ) {
+      //   continue;f
+      // }
 
       // add a column in child table
       const childColumnName = `${tableTemplate.tn}_id`;
@@ -126,18 +166,20 @@ export default class NcTemplateParser {
       // add relation create entry
       this._relations.push({
         childColumn: childColumnName,
-        childTable: hasMany.tn,
+        childTable: childTable.tn,
         onDelete: 'NO ACTION',
         onUpdate: 'NO ACTION',
         parentColumn: parentPrimaryColumn.cn,
         parentTable: tableTemplate.tn,
-        type: 'real',
+        type: this.client === 'sqlite3' ? 'virtual' : 'real',
         updateRelation: false
       });
     }
     for (const manyToMany of tableTemplate.manyToMany || []) {
       // @ts-ignore
-      const childTable = this.tables.find(table => table.tn === manyToMany.rtn);
+      const childTable = this.tables.find(
+        table => table.tn === this.getTable(manyToMany.rtn)
+      );
       const parentTable = this.tables.find(
         table => table.tn === tableTemplate.tn
       );
@@ -148,6 +190,20 @@ export default class NcTemplateParser {
         column => column.uidt === UITypes.ID
       );
 
+      // if duplicate relation ignore
+      if (
+        this._m2mRelations.some(mm => {
+          return (
+            (mm.childTable === childTable.tn &&
+              mm.parentTable === parentTable.tn) ||
+            (mm.parentTable === childTable.tn &&
+              mm.childTable === parentTable.tn)
+          );
+        })
+      ) {
+        continue;
+      }
+
       // add many to many relation create entry
       this._m2mRelations.push({
         alias: 'title8',
@@ -157,10 +213,29 @@ export default class NcTemplateParser {
         onUpdate: 'NO ACTION',
         parentColumn: parentPrimaryColumn.cn,
         parentTable: parentTable.tn,
-        type: 'real',
+        type: this.client === 'sqlite3' ? 'virtual' : 'real',
         updateRelation: false
       });
     }
+  }
+
+  private extractVirtualColumns(tableMeta) {
+    if (!this._virtualColumns) this._virtualColumns = {};
+    const virtualColumns = [];
+    for (const v of tableMeta.v || []) {
+      const v1 = { ...v };
+
+      if (v.rl) {
+        v1.rl.rlttn = v1.rl.rltn;
+        v1.rl.rltn = this.getTable(v1.rl.rltn);
+      } else if (v.lk) {
+        v1.lk._ltn = v1.lk.ltn;
+        v1.lk.ltn = this.getTable(v1.lk.ltn);
+      }
+
+      virtualColumns.push(v1);
+    }
+    this.virtualColumns[tableMeta.tn] = virtualColumns;
   }
 
   get tables(): any[] {
@@ -170,7 +245,16 @@ export default class NcTemplateParser {
   get relations(): any[] {
     return this._relations;
   }
+
   get m2mRelations(): any[] {
     return this._m2mRelations;
+  }
+
+  get virtualColumns(): { [tn: string]: any[] } {
+    return this._virtualColumns;
+  }
+
+  private getTable(tn) {
+    return `${this.prefix}${tn}`;
   }
 }

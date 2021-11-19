@@ -91,7 +91,7 @@
 
         <column-filter-menu v-model="filters" :field-list="realFieldList" />
 
-        <csv-export :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
+        <csv-export-import :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
 
       <!--      <v-menu>
         <template #activator="{ on, attrs }">
@@ -197,12 +197,12 @@ import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
 import XcGridView from '../views/xcGridView'
 import { SqlUI } from '@/helpers/sqlUi'
-import CsvExport from '~/components/project/spreadsheet/components/csvExport'
+import CsvExportImport from '~/components/project/spreadsheet/components/csvExportImport'
 // import ExpandedForm from "../expandedForm";
 
 export default {
   name: 'XcTable',
-  components: { CsvExport, XcGridView, ColumnFilterMenu, SortListMenu, FieldsMenu },
+  components: { CsvExportImport, XcGridView, ColumnFilterMenu, SortListMenu, FieldsMenu },
   mixins: [spreadsheet],
   props: {
     env: String,

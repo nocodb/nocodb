@@ -7,11 +7,13 @@ export default {
     xcDatatableEditable: true,
     column: true,
     tableAttachment: true,
-    tableRowUpdate: true
+    tableRowUpdate: true,
+    rowComments: true
   },
   commenter: {
     airTable: true,
-    column: true
+    column: true,
+    rowComments: true
   },
   viewer: {
     airTable: true,

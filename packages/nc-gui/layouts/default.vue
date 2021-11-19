@@ -43,7 +43,8 @@
         >
           {{ ghStarText }}
         </gh-btns-star>
-        <a class="caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
+        <a class="align-self-center caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
+        <!--        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" class="align-self-center" />-->
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 
@@ -98,12 +99,12 @@
 
       <v-spacer />
 
-      <v-toolbar-items class="hidden-sm-and-down">
+      <v-toolbar-items class="hidden-sm-and-down nc-topright-menu">
         <release-info />
 
         <template v-if="isDashboard">
           <div>
-            <x-btn v-if="_isUIAllowed('add-user')" small color="white" btn-class="primary--text" @click="rolesTabAdd">
+            <x-btn v-if="_isUIAllowed('add-user')" small color="white" btn-class="primary--text nc-menu-share" @click="rolesTabAdd">
               <v-icon small class="mr-1">
                 mdi-account-supervisor-outline
               </v-icon>
@@ -113,7 +114,7 @@
 
           <v-tooltip bottom>
             <template #activator="{ on }">
-              <v-icon v-ripple="{class : 'nc-ripple'}" class="mt-1 ml-3" size="22" v-on="on" @click="$store.commit('windows/MutToggleTheme')">
+              <v-icon v-ripple="{class : 'nc-ripple'}" class="mt-1 ml-3 nc-menu-theme" size="22" v-on="on" @click="$store.commit('windows/MutToggleTheme')">
                 mdi-format-color-fill
               </v-icon>
             </template>
@@ -129,7 +130,7 @@
               <v-icon
                 v-ripple="{class : 'nc-ripple'}"
                 size="20"
-                class="ml-3"
+                class="ml-3 nc-menu-dark-theme"
                 @click="changeTheme"
                 v-on="on"
               >
@@ -286,7 +287,7 @@
           open-on-hover
         >
           <template #activator="{ on }">
-            <v-btn v-ge="['Profile','']" text class="font-weight-bold" v-on="on">
+            <v-btn v-ge="['Profile','']" text class="font-weight-bold nc-menu-account" v-on="on">
               <v-icon v-if="role && roleIcon[role]" size="20">
                 {{ roleIcon[role] }}
               </v-icon>
@@ -402,7 +403,7 @@
         </v-menu>
         <v-menu v-else offset-y open-on-hover>
           <template #activator="{ on }">
-            <v-btn v-ge="['Profile','']" text class=" font-weight-bold" v-on="on">
+            <v-btn v-ge="['Profile','']" text class=" font-weight-bold nc-menu-account" v-on="on">
               <!--              Menu-->
               <v-icon>mdi-account</v-icon>
               <v-icon>arrow_drop_down</v-icon>
@@ -553,6 +554,8 @@
       </v-btn>
     </v-snackbar>
     <change-env v-model="showChangeEnv" />
+
+    <loader />
   </v-app>
   <v-app v-else>
     <v-overlay>
@@ -574,9 +577,11 @@ import xTerm from '../components/xTerm'
 import { copyTextToClipboard } from '@/helpers/xutils'
 import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
+import Loader from '~/components/loader'
 
 export default {
   components: {
+    Loader,
     ReleaseInfo,
     Language,
     ChangeEnv,

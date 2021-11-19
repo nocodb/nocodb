@@ -196,8 +196,8 @@ export default {
       },
       set(val) {
         this.changed = true
+        if (val !== this.value) { this.syncDataDebounce(this) }
         this.$emit('input', val)
-        this.syncDataDebounce(this)
       }
     },
     parentListeners() {

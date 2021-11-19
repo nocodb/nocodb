@@ -277,7 +277,7 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'kanban' ">
+          <template v-else-if="isKanban">
             <kanban-view
               :nodes="nodes"
               :table="table"
@@ -1115,6 +1115,9 @@ export default {
     },
     isForm() {
       return this.selectedView && this.selectedView.show_as === 'form'
+    },
+    isKanban() {
+      return this.selectedView && this.selectedView.show_as === 'kanban' 
     },
     meta() {
       return this.$store.state.meta.metas[this.table]

@@ -39,7 +39,7 @@
 
         <v-text-field
           v-model="searchQueryVal"
-          autocomplete="off"
+          autocomplete="new-password"
           style="min-width: 100px ; width: 300px"
           flat
           dense
@@ -139,9 +139,15 @@
           dense
         />
 
-        <csv-export
+        <csv-export-import
           :meta="meta"
           :nodes="nodes"
+          :query-params="{
+            fieldsOrder,
+            fieldFilter,
+            sortList,
+            showFields
+          }"
           :selected-view="selectedView"
           class="mr-1"
         />
@@ -551,12 +557,12 @@ import ExpandedForm from '@/components/project/spreadsheet/components/expandedFo
 import Pagination from '@/components/project/spreadsheet/components/pagination'
 import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
-import CsvExport from '~/components/project/spreadsheet/components/csvExport'
+import CsvExportImport from '~/components/project/spreadsheet/components/csvExportImport'
 
 export default {
   name: 'RowsXcDataTable',
   components: {
-    CsvExport,
+    CsvExportImport,
     FormView,
     DebugMetas,
     Pagination,
@@ -872,14 +878,14 @@ export default {
         }
       }
     },
-    // todo: move debounce to cell since this will skip few update api call
-    onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
-      await self.onCellValueChangeFn(col, row, column)
-    }, 100),
-    onCellValueChange(col, row, column) {
-      this.onCellValueChangeDebounce(col, row, column, this)
-    },
-    async onCellValueChangeFn(col, row, column) {
+    // // todo: move debounce to cell since this will skip few update api call
+    // onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
+    //   await self.onCellValueChangeFn(col, row, column)
+    // }, 100),
+    // onCellValueChange(col, row, column) {
+    //   this.onCellValueChangeFn(col, row, column)
+    // },
+    async onCellValueChange(col, row, column) {
       if (!this.data[row]) {
         return
       }

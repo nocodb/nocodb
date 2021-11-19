@@ -212,7 +212,7 @@ export class MysqlUi {
         return 255;
 
       case 'varchar':
-        return 45;
+        return 255;
 
       case 'nchar':
         return 255;

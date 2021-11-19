@@ -235,7 +235,13 @@
                         <div class="action d-flex" @click.stop>
                           <v-menu>
                             <template #activator="{ on }">
-                              <v-icon small v-on="on">
+                              <v-icon
+                                v-if="
+                                  _isUIAllowed('treeview-rename-button')||_isUIAllowed('ui-acl')
+                                "
+                                small
+                                v-on="on"
+                              >
                                 mdi-dots-vertical
                               </v-icon>
                             </template>
@@ -280,7 +286,9 @@
                   </v-list-item-group>
                 </v-list-group>
                 <v-list-item
-                  v-else-if="item.type !== 'sqlClientDir' || showSqlClient"
+                  v-else-if="(item.type !== 'sqlClientDir' || showSqlClient) &&
+                    (item.type !=='migrationsDir' || _isUIAllowed('audit'))
+                  "
                   :key="item.key"
                   :selectable="false"
                   :value="`${(item._nodes && item._nodes).type || ''}||${
@@ -373,7 +381,7 @@
             <template v-if="_isUIAllowed('treeViewProjectSettings')">
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" @click="appsTabAdd" v-on="on">
+                  <v-list-item dense class="body-2 nc-settings-appstore" @click="appsTabAdd" v-on="on">
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-storefront-outline
@@ -393,7 +401,7 @@
 
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" @click="rolesTabAdd" v-on="on">
+                  <v-list-item dense class="body-2 nc-settings-teamauth" @click="rolesTabAdd" v-on="on">
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-account-group
@@ -412,7 +420,7 @@
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2" @click="disableOrEnableModelTabAdd" v-on="on">
+                  <v-list-item dense class="body-2 nc-settings-projmeta" @click="disableOrEnableModelTabAdd" v-on="on">
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-table-multiple
@@ -505,7 +513,7 @@
                   <v-divider v-if="i" :key="i" vertical class="mx-2 caption grey--text" />
                   <div
                     :key="role.title"
-                    class="pointer text-center"
+                    :class="`pointer text-center nc-preview-${role.title}`"
                     @click="setPreviewUSer(role.title)"
                   >
                     <v-icon
@@ -529,7 +537,7 @@
                     mdi-close
                   </v-icon>
                   <!-- Reset Preview -->
-                  <span class="caption">{{ $t('treeview.reset_review') }}</span>
+                  <span class="caption nc-preview-reset">{{ $t('treeview.reset_review') }}</span>
                 </v-list-item>
               </template>
             </v-list>
@@ -642,6 +650,7 @@
 import { mapMutations, mapGetters, mapActions } from 'vuex';
 
 import rightClickOptions from '../helpers/rightClickOptions';
+import rightClickOptionsSub from '../helpers/rightClickOptionsSub';
 import icons from '../helpers/treeViewIcons';
 
 import textDlgSubmitCancel from './utils/dlgTextSubmitCancel';
@@ -1076,7 +1085,10 @@ export default {
     },
     ctxMenuOptions() {
       if (!this.menuItem || !this.menuItem._nodes.type) return;
-      const options = rightClickOptions[this.menuItem._nodes.type];
+      let options = rightClickOptions[this.menuItem._nodes.type];
+      if (!this.$store.getters['users/GtrIsAdmin']) {
+        options = rightClickOptionsSub[this.menuItem._nodes.type];
+      }
       return options;
       // if (options) {
       //   return Object.keys(options).map(k => typeof options[k] === 'object' ? Object.keys(options[k]) : k);

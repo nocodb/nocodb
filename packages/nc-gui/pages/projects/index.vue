@@ -190,6 +190,48 @@
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
+                    <!--                    <v-divider />
+                    <v-list-item
+                      title
+                      class="pt-2 nc-create-project-from-template"
+                      @click="onCreateProjectFromTemplate()"
+                    >
+                      <v-list-item-icon class="mr-2">
+                        <v-icon small class="">
+                          mdi-checkbox-multiple-blank
+                        </v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>
+                        &lt;!&ndash; Create By Connecting <br>To An External Database &ndash;&gt;
+                        <span
+                          class="caption font-weight-regular"
+                          v-html="
+                            $t('projects.create_new_project_button.from_template')
+                          "
+                        />
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-divider />
+                    <v-list-item
+                      title
+                      class="pt-2 nc-create-project-from-excel"
+                      @click="onCreateProjectFromExcel()"
+                    >
+                      <v-list-item-icon class="mr-2">
+                        <v-icon small class="">
+                          mdi-file-excel-outline
+                        </v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>
+                        &lt;!&ndash; Create By Connecting <br>To An External Database &ndash;&gt;
+                        <span
+                          class="caption font-weight-regular"
+                          v-html="
+                            $t('projects.create_new_project_button.from_excel')
+                          "
+                        />
+                      </v-list-item-title>
+                    </v-list-item>-->
                   </v-list>
                 </v-menu>
               </template>
@@ -665,6 +707,8 @@
       :dialog-show="dialogShow"
       :heading="confirmMessage"
     />
+    <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
+    <templates-modal v-model="templatesModal" hide-label create-project />
   </v-container>
 </template>
 
@@ -673,9 +717,13 @@ import dlgLabelSubmitCancel from '../../components/utils/dlgLabelSubmitCancel.vu
 import ShareIcons from '../../components/share-icons'
 import SponsorMini from '@/components/sponsorMini'
 import colors from '~/mixins/colors'
+import TemplatesModal from '~/components/templates/templatesModal'
+import ExcelImport from '~/components/import/excelImport'
 
 export default {
   components: {
+    ExcelImport,
+    TemplatesModal,
     ShareIcons,
     SponsorMini,
     dlgLabelSubmitCancel
@@ -687,6 +735,8 @@ export default {
   },
   data() {
     return {
+      excelImportModal: false,
+      templatesModal: false,
       overlayVisible: true,
       showCommunity: false,
       project_id: null,
@@ -771,7 +821,7 @@ export default {
   },
   computed: {
     connectToExternalDB() {
-      return this.$store.state.project.projectInfo.connectToExternalDB
+      return this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.connectToExternalDB
     }
   },
   watch: {
@@ -950,6 +1000,13 @@ export default {
       } else {
         this.$router.push('/project/0')
       }
+    },
+    onCreateProjectFromTemplate() {
+      this.templatesModal = true
+    },
+    onCreateProjectFromExcel() {
+      // this.$refs.excelImport.selectFile()
+      this.excelImportModal = true
     },
     async importProjectFromJSON() {
     },

@@ -2,8 +2,7 @@ import { loginPage, projectsPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
 import { roles, staticProjects } from "../../support/page_objects/projectConstants"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
-
-// let roleURL = {}
+import { _advSettings, _editSchema, _editData, _editComment, _viewMenu, _topRightMenu } from "../spec/roleValidation.spec"
 
 export const genTest = (type, xcdb) => {
     if (!isTestSuiteActive(type, xcdb)) return;
@@ -38,10 +37,6 @@ export const genTest = (type, xcdb) => {
         addUser(roles.editor)
         addUser(roles.commenter)
         addUser(roles.viewer)                
-
-        // it(`Logging purpose`, () => {
-        //     cy.log(mainPage.roleURL)
-        // })
     })    
     
     const roleValidation = (roleType) => {
@@ -50,7 +45,9 @@ export const genTest = (type, xcdb) => {
             if (roleType != 'owner') {
                 it(`[${roles[roleType].name}] SignIn, Open project`, () => {
                     cy.log(mainPage.roleURL[roleType])
-                    cy.visit(mainPage.roleURL[roleType])
+                    cy.visit(mainPage.roleURL[roleType], {
+                        baseUrl: null
+                    })
                     cy.wait(3000)
 
                     // Redirected to new URL, feed details
@@ -65,110 +62,83 @@ export const genTest = (type, xcdb) => {
                     if('rest' == type)
                         projectsPage.openProject(staticProjects.externalREST.basic.name)
                     else
-                        projectsPage.openProject(staticProjects.externalGQL.basic.name)  
+                        projectsPage.openProject(staticProjects.externalGQL.basic.name)
+                    
+                    if (roleType != 'creator') {
+                        cy.closeTableTab('Actor')
+                    }
                 })                    
             }
 
             ///////////////////////////////////////////////////////
             // Test suite
 
-            // it(`[${roles[roleType].name}] SignIn, Open project`, () => {
-            //     loginPage.signIn(roles[roleType].credentials)
-            //     if('rest' == type)
-            //         projectsPage.openProject(staticProjects.externalREST.basic.name)
-            //     else
-            //         projectsPage.openProject(staticProjects.externalGQL.basic.name)
-            // })
-
-            it(`[${roles[roleType].name}] Left navigation menu, New User add`, (done) => {
-                cy.on('uncaught:exception', (err, runnable) => {
-                    expect(err.message).to.include('Not allowed')
-                    done()
-                    return false
-                })                
-                advancedSettings(roleType, done)
-
-                //done()
-            })
-
-            it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, (done) => {
-                cy.on('uncaught:exception', (err, runnable) => {
-                    expect(err.message).to.include('Not allowed')
-                    done()
-                    return false
-                })                
-                editSchema(roleType, done)
-
-                // done()
-            })
-
-            it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, (done) => {
-
-                // known issue: to be fixed
-                // right click raising alarm 'not allowed' for viewer
+            it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
+                // project configuration settings
                 //
-                cy.on('uncaught:exception', (err, runnable) => {
-                    expect(err.message).to.include('Not allowed')
-                    done()
-                    return false
-                })
-
-                if (roleType != 'editor')
-                    editData(roleType, done)
-                else
-                    done()
+                _advSettings(roleType, false)
             })
 
-            it(`[${roles[roleType].name}] Comments: view/add`, (done) => {
-                cy.on('uncaught:exception', (err, runnable) => {
-                    expect(err.message).to.include('Not allowed')
-                    done()
-                    return false
-                })
-                // Fix me!
+            it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
+                // Schema related validations
+                //  - Add/delete table
+                //  - Add/Update/delete column
+                //
+                _editSchema(roleType, false)
+            })
+
+            it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, () => {
+                // Table data related validations
+                //  - Add/delete/modify row
+                //
+                _editData(roleType, false)
+            })
+
+            it(`[${roles[roleType].name}] Comments: view/add`, () => {
+                // read &/ update comment
+                //      Viewer: only allowed to read
+                //      Everyone else: read &/ update
+                //
                 if (roleType != 'viewer')
-                    editComment(roleType, done)
-                else
-                    done()
+                    _editComment(roleType, false)
             })
 
-            it(`[${roles[roleType].name}] Right navigation menu, share view`, (done) => {
+            it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
+                // right navigation menu bar
+                //      Editor/Viewer/Commenter : can only view 'existing' views
+                //      Rest: can create/edit                
+                _viewMenu(roleType, false)
+            })
 
-                cy.on('uncaught:exception', (err, runnable) => {
-                    expect(err.message).to.include('Not allowed')
-                    done()
-                    return false
-                })
-                
-                viewMenu(roleType, done)
-
-                //done()
+            it(`[${roles[roleType].name}] Top Right Menu bar`, () => {
+                // Share button is conditional
+                // Rest are static/ mandatory
+                //
+                _topRightMenu(roleType, false)           
             })
 
             it(`[${roles[roleType].name}] Download files`, () => {
                 mainPage.hideUnhideField('LastUpdate')
-                let storedRecords = [
-                    `City,City => Address,Country <= City`,
-                    `A Corua (La Corua),939 Probolinggo Loop,Spain`,
-                    `Abha,733 Mandaluyong Place,Saudi Arabia`,
-                    `Abu Dhabi,535 Ahmadnagar Manor,United Arab Emirates`,
-                    `Acua,1789 Saint-Denis Parkway,Mexico`
-                ]
-                mainPage.downloadAndVerifyCsv(`City_exported_1.csv`, storedRecords)
+                const verifyCsv = (retrievedRecords) => {
+                    // expected output, statically configured
+                    let storedRecords = [
+                        `City,City => Address,Country <= City`,
+                        `A Corua (La Corua),939 Probolinggo Loop,Spain`,
+                        `Abha,733 Mandaluyong Place,Saudi Arabia`,
+                        `Abu Dhabi,535 Ahmadnagar Manor,United Arab Emirates`,
+                        `Acua,1789 Saint-Denis Parkway,Mexico`
+                    ]
+                    
+                    for (let i = 0; i < storedRecords.length; i++) {
+                        // cy.log(retrievedRecords[i])
+                        expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+                    }
+                }                
+
+                // download & verify
+                mainPage.downloadAndVerifyCsv(`City_exported_1.csv`, verifyCsv)
                 mainPage.hideUnhideField('LastUpdate')
             })            
-
-            // after(() => {
-            //     if ('viewer' == roleType) {
-            //         loginPage.loginAndOpenProject('graphql', false)
-            //     }
-            // })              
-
-            // it(`Reset`, () => {
-            //     if ('viewer' == roleType) {
-            //         loginPage.loginAndOpenProject('graphql', false)
-            //     }
-            // })
         })        
     }
 
@@ -180,194 +150,6 @@ export const genTest = (type, xcdb) => {
     roleValidation('viewer')
 }
 
-// project configuration settings
-//
-const advancedSettings = (roleType, done) => {
-
-    // let validationString = (true == roleValidation[roleIdx].advSettings) ? 'exist' : 'not.exist'
-    let validationString = (true == roles[roleType].validations.advSettings) ? 'exist' : 'not.exist'
-
-    // hardwired to be enabled for all roles
-    mainPage.navigationDraw(mainPage.AUDIT).should('exist')
-
-    mainPage.navigationDraw(mainPage.APPSTORE).should(validationString)
-    mainPage.navigationDraw(mainPage.TEAM_N_AUTH).should(validationString)
-    mainPage.navigationDraw(mainPage.PROJ_METADATA).should(validationString)
-
-    // mainPage.navigationDraw(mainPage.ROLE_VIEW).should(validationString)
-    if ('exist' == validationString) {
-        mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('editor')
-        mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('commenter')
-        mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('viewer')
-    }
-
-    cy.get('button:contains("New User")').should(validationString)
-    cy.wait(2000).then(() => {
-        done()
-    })
-}
-
-
-// Schema related validations
-//  - Add/delete table
-//  - Add/Update/delete column
-//
-const editSchema = (roleType, done) => {
-
-    let columnName = 'City'
-    let validationString = (true == roles[roleType].validations.editSchema) ? 'exist' : 'not.exist'
-
-    // create table options
-    //
-    cy.get('.add-btn').should(validationString)
-    cy.get('.v-tabs-bar').eq(0).find('button.mdi-plus-box').should(validationString)
-
-    // open existing table-column
-    //
-    cy.openTableTab(columnName)
-
-    // delete table option
-    //
-    cy.get('.nc-table-delete-btn').should(validationString)
-
-    // add new column option
-    //        
-    cy.get('.new-column-header').should(validationString)
-
-    // update column (edit/ delete menu)
-    //
-    cy.get(`th:contains(${columnName}) .mdi-menu-down`).should(validationString)
-
-    cy.wait(2000).then(() => {
-        done()
-    })    
-
-}
-
-
-// Table data related validations
-//  - Add/delete/modify row
-//
-const editData = (roleType, done) => {
-
-    let columnName = 'City'
-    let validationString = (true == roles[roleType].validations.editData) ? 'exist' : 'not.exist'
-
-    cy.openTableTab(columnName)
-
-    // add new row option (from menu header)
-    //
-    cy.get('.nc-add-new-row-btn').should(validationString)
-
-    // update row option (right click)
-    //
-    cy.get(`tbody > :nth-child(8) > [data-col="City"]`).rightclick()
-
-    cy.get('.menuable__content__active').should(validationString)
-
-    if (validationString == 'exist') {
-
-        // right click options will exist (only for 'exist' case)
-        //
-        cy.getActiveMenu().contains('Insert New Row').should(validationString)
-        cy.getActiveMenu().contains('Delete Row').should(validationString)
-        cy.getActiveMenu().contains('Delete Selected Rows').should(validationString)
-        cy.get('body').type('{esc}')
-
-        // update cell contents option using row expander should be enabled
-        //
-        //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-        cy.get('.v-input.row-checkbox').eq(4).next().next().click({ force: true })
-        cy.getActiveModal().find('button').contains('Save Row').should('exist')
-        cy.get('body').type('{esc}')
-
-    }
-    else {
-        // update cell contents option using row expander should be disabled
-        //
-        //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-        cy.get('.v-input.row-checkbox').eq(4).next().next().click({ force: true })
-        cy.getActiveModal().find('button:disabled').contains('Save Row').should('exist')
-        cy.get('body').type('{esc}')
-    }
-
-    // double click cell entries to edit
-    //
-    cy.get(`tbody > :nth-child(8) > [data-col="City"]`).dblclick().find('input').should(validationString)
-
-    cy.wait(2000).then(() => {
-        done()
-    })    
-}
-
-
-// read &/ update comment
-//      Viewer: only allowed to read
-//      Everyone else: read &/ update
-//
-const editComment = (roleType, done) => {
-
-    let columnName = 'City'
-    let validationString = (true == roles[roleType].validations.editComment) ? 'Comment added successfully' : 'Not allowed'
-
-    cy.openTableTab(columnName)
-
-    // click on comment icon & type comment
-    //
-
-    cy.get('.v-input.row-checkbox').eq(8).next().next().click({ force: true })
-    //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-    cy.getActiveModal().find('.mdi-comment-multiple-outline').should('exist').click()
-    cy.getActiveModal().find('.comment-box').type('Comment-1{enter}')
-
-    // Expected response: 
-    //      Viewer: Not allowed
-    //      Everyone else: Comment added successfully
-    //
-    cy.get('body').contains(validationString, { timeout: 2000 }).should('exist')
-    cy.get('body').type('{esc}')
-
-    cy.wait(2000).then(() => {
-        done()
-    })    
-}
-
-// right navigation menu bar
-//      Editor/Viewer/Commenter : can only view 'existing' views
-//      Rest: can create/edit
-const viewMenu = (roleType, done) => {
-
-    let columnName = 'City'
-    let navDrawListCnt = 2
-
-    cy.openTableTab(columnName)
-    let validationString = (true == roles[roleType].validations.shareView) ? 'exist' : 'not.exist'
-
-    // validate if Share button is visible at header tool bar
-    cy.get('header.v-toolbar').eq(0).find('button:contains("Share")').should(validationString)
-
-    // Owner, Creator will have two navigation drawer (on each side of center panel)
-    if (roleType == 'owner' || roleType == 'creator') {
-        navDrawListCnt = 4
-    }
-    cy.get('.v-navigation-drawer__content').eq(1).find('[role="list"]').should('have.length', navDrawListCnt)
-
-    // view list field (default GRID view)
-    cy.get(`.nc-view-item`).should('exist')
-
-    // view create option, exists only for owner/ creator
-    cy.get(`.nc-create-gallery-view`).should(validationString)
-    cy.get(`.nc-create-grid-view`).should(validationString)
-    cy.get(`.nc-create-form-view`).should(validationString)
-
-    // share view & automations, exists only for owner/creator
-    cy.get(`.nc-share-view`).should(validationString)
-    cy.get(`.nc-automations`).should(validationString)
-
-    cy.wait(2000).then(() => {
-        done()
-    })
-}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

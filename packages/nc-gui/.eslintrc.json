@@ -34,7 +34,7 @@
   },
   "settings": {
     "vue-i18n": {
-      "localeDir": "./static/lang/*.json",
+      "localeDir": "./lang/*.json",
       "messageSyntaxVersion": "^8.20.0"
     }
   }

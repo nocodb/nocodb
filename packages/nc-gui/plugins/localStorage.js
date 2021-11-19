@@ -1,11 +1,6 @@
-import createPersistedState from 'vuex-persistedstate'
-
-import SecureLS from 'secure-ls'
 import isDev from '../helpers/xutils'
 
-const ls = new SecureLS({ isCompression: false })
-
-export default async({ store, $vuetify: { theme } }) => {
+export default async({ store, $vuetify: { theme }, route }) => {
   /**
    *
    */
@@ -36,27 +31,35 @@ export default async({ store, $vuetify: { theme } }) => {
   // if (process.client) {
   //
   //   window.onNuxtReady(async (nuxt) => {
+  if (route && route.query && 'embed' in route.query) {
+    window.rehydrated = true
+    store.commit('mutEmbed', true)
+  } else {
+    const createPersistedState = (await import('vuex-persistedstate')).default
+    const SecureLS = (await import('secure-ls')).default
+    const ls = new SecureLS({ isCompression: false })
 
-  createPersistedState({
-    fetchBeforeUse: true,
-    async rehydrated(store) {
-      window.rehydrated = true
-      console.log(store.state.windows)
-      console.log('Date difference ', await store.dispatch('windows/ActGetExpiryDate'))
-    },
-    paths: ['users', 'sqlClient', 'apiClient', 'panelSize', 'windows', 'graphqlClient', 'apiClientSwagger', 'app'],
-    ...(
-      isDev()
-        ? {}
-        : {
-            storage: {
-              getItem: key => ls.get(key),
-              setItem: (key, value) => ls.set(key, value),
-              removeItem: key => ls.remove(key)
+    createPersistedState({
+      fetchBeforeUse: true,
+      async rehydrated(store) {
+        window.rehydrated = true
+        console.log(store.state.windows)
+        console.log('Date difference ', await store.dispatch('windows/ActGetExpiryDate'))
+      },
+      paths: ['users', 'sqlClient', 'apiClient', 'panelSize', 'windows', 'graphqlClient', 'apiClientSwagger', 'app'],
+      ...(
+        isDev()
+          ? {}
+          : {
+              storage: {
+                getItem: key => ls.get(key),
+                setItem: (key, value) => ls.set(key, value),
+                removeItem: key => ls.remove(key)
+              }
             }
-          }
-    )
-  })(store) // vuex plugins can be connected to store, even after creation
+      )
+    })(store) // vuex plugins can be connected to store, even after creation
+  }
 }
 
 /**

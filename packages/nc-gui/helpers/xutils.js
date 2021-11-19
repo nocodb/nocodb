@@ -88,6 +88,8 @@ export function copyTextToClipboard(text) {
   // Avoid flash of white box if rendered for any reason.
   textArea.style.background = 'transparent'
 
+  textArea.addEventListener('focusin', e => e.stopPropagation())
+
   textArea.value = text
 
   document.body.appendChild(textArea)

@@ -1,35 +1,23 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import Knex from 'knex';
 
-Vue.use(Vuex)
+const up = async (knex: Knex) => {
+  await knex.schema.createTable('nc_shared_bases', table => {
+    table.increments();
+    table.string('project_id');
+    table.string('db_alias');
+    table.string('roles').defaultTo('viewer');
+    table.string('shared_base_id');
+    table.boolean('enabled').defaultTo(true);
+    table.string('password');
+    table.timestamps(true, true);
+  });
+};
 
-export const store = new Vuex.Store({
+const down = async knex => {
+  await knex.schema.dropTable('nc_shared_bases');
+};
 
-  // resourceState
-  state: {
-    // resourceList : []
-    list: []
-  },
-  // modified state vars
-  getters: {
-
-  },
-  // state variables are modified here
-  mutations: {
-
-  },
-  // mutation are performed via actions
-  actions: {
-
-  },
-  // modules
-  modules: {
-
-  }
-
-})
-
-export default store
+export { up, down };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -124,6 +124,10 @@ Cypress.Commands.add('openTableTab', (tn) => {
   cy.wait(500)
 })
 
+Cypress.Commands.add('closeTableTab', (tn) => {
+  cy.get(`[href="#table||db||${tn}"]`).find('button.mdi-close').click()
+})
+
 Cypress.Commands.add('openOrCreateGqlProject', (_args) => {
   const args = Object.assign({new: false, meta: false}, _args)
 

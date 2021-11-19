@@ -51,7 +51,7 @@
           >
             <div class="remove-child-icon d-flex align-center">
               <x-icon
-                v-if="(isForm || !isPublic&& _isUIAllowed('xcDatatableEditable')) && !readOnly "
+                v-if="((isPublic && isForm) || (!isPublic && _isUIAllowed('xcDatatableEditable'))) && !readOnly "
                 :tooltip="`Unlink this '${meta._tn}' from '${parentMeta._tn}'`"
                 :color="['error','grey']"
                 small
@@ -61,7 +61,7 @@
                 mdi-link-variant-remove
               </x-icon>
               <x-icon
-                v-if="!isPublic && !mm && !bt && !readOnly&& _isUIAllowed('xcDatatableEditable')"
+                v-if="!isPublic && !mm && !bt && !readOnly && _isUIAllowed('xcDatatableEditable')"
                 :tooltip="`Delete row in '${meta._tn}'`"
                 :color="['error','grey']"
                 small

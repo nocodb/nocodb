@@ -10,11 +10,11 @@
               mdi-exclamation
             </v-icon>
           </template>
-          <v-icon v-ripple="{class : 'nc-ripple'}" size="20" v-on="on">
+          <v-icon v-ripple="{class : 'nc-ripple'}" size="20" class="nc-menu-alert" v-on="on">
             mdi-bell-ring
           </v-icon>
         </v-badge>
-        <v-icon v-else v-ripple="{class : 'nc-ripple'}" size="20" v-on="on">
+        <v-icon v-else v-ripple="{class : 'nc-ripple'}" size="20" class="nc-menu-alert" v-on="on">
           mdi-bell-ring
         </v-icon>
         <v-progress-circular

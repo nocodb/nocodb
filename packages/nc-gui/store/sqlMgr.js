@@ -361,9 +361,15 @@ export const actions = {
     dispatch
   }, [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams, returnResponse]) {
     const params = {}
-    if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
-      params.project_id = this.$router.currentRoute.params.project_id
+
+    if (this.$router.currentRoute && this.$router.currentRoute.params) {
+      if (this.$router.currentRoute.params.project_id) {
+        params.project_id = this.$router.currentRoute.params.project_id
+      } else if (this.$router.currentRoute.params.shared_base_id) {
+        params.project_id = rootState.project.projectId
+      }
     }
+
     try {
       const headers = {}
       if (rootState.project.projectInfo && rootState.project.projectInfo.authType === 'masterKey') {
@@ -414,6 +420,7 @@ export const actions = {
 
       return data
     } catch (e) {
+      console.log(e)
       const err = new Error(e.response.data.msg)
       err.response = e.response
       throw err
@@ -443,6 +450,11 @@ export const actions = {
       if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
         params.project_id = this.$router.currentRoute.params.project_id
       }
+
+      if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
+        params.project_id = this.$router.currentRoute.params.project_id
+      }
+
       const headers = {
         'Content-Type': 'multipart/form-data'
       }

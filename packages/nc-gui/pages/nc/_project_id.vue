@@ -1,10 +1,20 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
     <splitpanes style="height:calc(100vh - 40px); position: relative;" class="xc-theme">
-      <pane :min-size="showProjectTree? 10 : 1.5" :size="showProjectTree ? paneSize : 1.5" :max-size="showProjectTree? 50 : 1.5" style="overflow: auto;">
+      <pane :min-size="showProjectTree? 10 : 1.5" :size="showProjectTree ? paneSize : 1.5" :max-size="showProjectTree? 50 : 1.5" style="position: relative;overflow-x: hidden">
         <ProjectTreeView v-show="showProjectTree" ref="treeview" />
-        <v-btn icon color="grey" class="pane-toggle" :style="'transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);' + (showProjectTree?`left: calc(${paneSize}% - 1.25rem);`:'left: calc(1.5% - 1.25rem);')" :class="{'pane-toggle-active': showProjectTree}" @click="toggleTreeView">
-          <v-icon small>{{ showProjectTree ? 'mdi-arrow-expand-left' : 'mdi-arrow-expand-right' }}</v-icon>
+        <v-btn
+          x-small
+          icon
+          color="grey"
+          class="pane-toggle"
+          style="transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);right:-8px"
+          :class="{'pane-toggle-active': showProjectTree}"
+          @click="toggleTreeView"
+        >
+          <v-icon x-small color="rgba(127,130,139)">
+            {{ showProjectTree ? 'mdi-arrow-left' : 'mdi-arrow-right' }}
+          </v-icon>
         </v-btn>
       </pane>
       <pane :size="showProjectTree ? 100 - paneSize : 100">

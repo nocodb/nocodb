@@ -2,7 +2,7 @@ import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
-let baseURL = ''
+let storedURL = ''
 
 // 0: all enabled
 // 1: field hide
@@ -31,7 +31,7 @@ export const genTest = (type, xcdb) => {
             .then(($obj) => {
                 cy.get('body').type('{esc}')
                 // viewURL.push($obj.text())
-                viewURL[viewName] = $obj.text()
+                viewURL[viewName] = $obj.text().trim()
                 cy.wait(1000)
             })
     }    
@@ -57,7 +57,7 @@ export const genTest = (type, xcdb) => {
         after(() => {
             // close table
             // mainPage.deleteCreatedViews()
-            cy.get('[href="#table||db||Address"]').find('button.mdi-close').click()
+            cy.closeTableTab('Address')
         })      
         
         // Common routine to create/edit/delete GRID & GALLERY view
@@ -88,7 +88,7 @@ export const genTest = (type, xcdb) => {
 
                 // store base URL- to re-visit and delete form view later
                 cy.url().then((url) => {
-                    baseURL = url
+                    storedURL = url
                 })
             })
 
@@ -127,7 +127,9 @@ export const genTest = (type, xcdb) => {
 
             it(`Share ${viewType.toUpperCase()} view : Visit URL, Verify title`, () => {
                 // visit public view
-                cy.visit(viewURL['combined'])
+                cy.visit(viewURL['combined'], {
+                    baseUrl: null
+                })
         
                 // wait for public view page to load!
                 cy.wait(5000)
@@ -151,17 +153,30 @@ export const genTest = (type, xcdb) => {
             })
             
             it(`Share ${viewType.toUpperCase()} view : verify download CSV`, () => {
-                // expected output, statically configured
-                let storedRecords = [
-                    `Address,District,PostalCode,Phone,Location,LastUpdate,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
-                    `1013 Tabuk Boulevard,West Bengali,96203,158399646978,[object Object],2014-09-25T17:01:19.000Z,2,,Kanchrapara,`,
-                    `1892 Nabereznyje Telny Lane,Tutuila,28396,478229987054,[object Object],2014-09-25T17:00:02.000Z,2,,Tafuna,`,
-                    `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2014-09-25T17:01:27.000Z,2,,Tambaram,`,
-                    `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],2014-09-25T17:01:23.000Z,1,,Pudukkottai,`
-                ]
+                mainPage.hideUnhideField('LastUpdate')
+                const verifyCsv = (retrievedRecords) => {
+                    // expected output, statically configured
+                    let storedRecords = [
+                        `Address,District,PostalCode,Phone,Location,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
+                        `1013 Tabuk Boulevard,West Bengali,96203,158399646978,[object Object],2,,Kanchrapara,`,
+                        `1892 Nabereznyje Telny Lane,Tutuila,28396,478229987054,[object Object],2,,Tafuna,`,
+                        `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2,,Tambaram,`,
+                        `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`
+                    ]
+                    
+                    for (let i = 0; i < storedRecords.length; i++) {
+                        let strCol = storedRecords[i].split(',')
+                        let retCol = retrievedRecords[i].split(',')
+                        for (let j = 0; j < 4; j++) {
+                            expect(strCol[j]).to.be.equal(retCol[j])
+                        }
+                        // expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+                    }
+                }                
 
                 // download & verify
-                mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, storedRecords)
+                mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv)
+                mainPage.hideUnhideField('LastUpdate')
             })
 
             // it(`Share ${viewType} view generate URL with all fields enabled`, () => {
@@ -289,12 +304,29 @@ export const genTest = (type, xcdb) => {
             })
 
             it(`Share ${viewType.toUpperCase()} view : verify download CSV after local filter`, () => {
-                let storedRecords = [
-                    `Address,District,PostalCode,Phone,Location,LastUpdate,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
-                    `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2014-09-25T17:01:27.000Z,2,,Tambaram,`,
-                    `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],2014-09-25T17:01:23.000Z,1,,Pudukkottai,`
-                ]
-                mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, storedRecords)
+                mainPage.hideUnhideField('LastUpdate')
+                const verifyCsv = (retrievedRecords) => {
+                    // expected output, statically configured
+                    let storedRecords = [
+                        `Address,District,PostalCode,Phone,Location,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
+                        `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2,,Tambaram,`,
+                        `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`
+                    ]
+                    
+                    // for (let i = 0; i < storedRecords.length; i++) {
+                    //     expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+                    // }
+
+                    for (let i = 0; i < storedRecords.length; i++) {
+                        let strCol = storedRecords[i].split(',')
+                        let retCol = retrievedRecords[i].split(',')
+                        for (let j = 0; j < 4; j++) {
+                            expect(strCol[j]).to.be.equal(retCol[j])
+                        }
+                    }                    
+                }                  
+                mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv)
+                mainPage.hideUnhideField('LastUpdate')
             })            
 
             it(`Share ${viewType.toUpperCase()} view : Delete Filter`, () => {
@@ -344,7 +376,9 @@ export const genTest = (type, xcdb) => {
 
             it(`Delete ${viewType.toUpperCase()} view`, () => {
                 // go back to base page
-                cy.visit(baseURL)
+                cy.visit(storedURL, {
+                    baseUrl: null
+                })
 
                 // number of view entries should be 2 before we delete
                 cy.get('.nc-view-item').its('length').should('eq', 2)
@@ -396,7 +430,7 @@ export const genTest = (type, xcdb) => {
     //         // close table
     //         cy.visit(baseURL)
     //         mainPage.deleteCreatedViews()
-    //         cy.get('[href="#table||db||Address"]').find('button.mdi-close').click()
+    //         cy.closeTableTab('Address')
     //     })
 
     //     it(`Generate default Shared GRID view URL`, () => {
@@ -453,7 +487,7 @@ export const genTest = (type, xcdb) => {
             cy.saveLocalStorage()
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
-                baseURL = url
+                storedURL = url
                 generateViewLink('rowColUpdate')
             })            
         })
@@ -461,7 +495,9 @@ export const genTest = (type, xcdb) => {
         after(() => {
             // close table
             cy.restoreLocalStorage();
-            cy.visit(baseURL)
+            cy.visit(storedURL, {
+                baseUrl: null
+            })
 
             // delete row
             mainPage.getPagination(5).click()
@@ -480,7 +516,7 @@ export const genTest = (type, xcdb) => {
             mainPage.deleteCreatedViews()
             
             // close table
-            cy.get('[href="#table||db||Country"]').find('button.mdi-close').click()
+            cy.closeTableTab('Country')
         })
 
         it(`Generate default Shared GRID view URL`, () => {
@@ -497,7 +533,9 @@ export const genTest = (type, xcdb) => {
             // visit public view
             cy.log(viewURL['rowColUpdate'])
             cy.restoreLocalStorage();
-            cy.visit(viewURL['rowColUpdate']) //5
+            cy.visit(viewURL['rowColUpdate'], {
+                baseUrl: null
+            }) //5
             // wait for public view page to load!
             cy.wait(5000)
         })

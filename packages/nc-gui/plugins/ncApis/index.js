@@ -5,7 +5,7 @@ export default function({ store: $store, $axios, ...rest }, inject) {
   let projectId = null
 
   inject('ncApis', {
-    get: ({ table, dbAlias = 'db', env = '_noco' }) => {
+    get: ({ table, dbAlias = 'db', env = '_noco', type }) => {
       if (!$store.state.meta.metas[table]) {
         return
       }
@@ -19,7 +19,7 @@ export default function({ store: $store, $axios, ...rest }, inject) {
 
       instanceRefs[env][dbAlias][table] = ApiFactory.create(
         table,
-        $store.getters['project/GtrProjectType'],
+        type || $store.getters['project/GtrProjectType'],
         { $store, $axios, projectId, dbAlias, env, table }
       )
 

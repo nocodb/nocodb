@@ -230,14 +230,35 @@ export const actions = {
         tabs.push(item)
       }
 
-      tabs.unshift({
-        name: 'Team & Auth ',
-        key: 'roles',
-        _nodes: {
-          env: '_noco',
-          type: 'roles'
-        }
-      })
+      if (rootGetters['users/GtrIsAdmin']) {
+        tabs.unshift({
+          name: 'Team & Auth ',
+          key: 'roles',
+          _nodes: {
+            env: '_noco',
+            type: 'roles'
+          }
+        })
+      } else {
+        await dispatch('project/_loadTables', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.tables',
+          _nodes: {
+            dbAlias: 'db',
+            // dbKey: "0.projectJson.envs._noco.db.0",
+            env: '_noco',
+            // key: "0.projectJson.envs._noco.db.0.tables",
+            type: 'tableDir'
+          }
+        }, { root: true })
+        const nodes = rootState.project
+          .list[0] // project
+          .children[0] //  environment
+          .children[0] // db
+          .children.find(n => n.type === 'tableDir') // parent node
+          .children
+        if (nodes && nodes[0]) { tabs.push(nodes[0]) }
+      }
     }
     commit('list', tabs)
   },

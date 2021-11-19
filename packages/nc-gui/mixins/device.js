@@ -10,7 +10,7 @@ export default {
   },
   computed: {
     dashboardUrl() {
-      return `${location.origin}${location.path || ''}`
+      return `${location.origin}${location.pathname || ''}`
     },
     isDark() {
       return this.$vuetify && this.$vuetify.theme && this.$vuetify.theme.dark

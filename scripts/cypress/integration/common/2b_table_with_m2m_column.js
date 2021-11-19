@@ -12,7 +12,7 @@ export const genTest = (type, xcdb) => {
     })
 
     after(() => {
-      cy.get('[href="#table||db||Actor"]').find('button.mdi-close').click()
+      cy.closeTableTab('Actor')
     })
     
     it('Table column header, URL validation', () => {

@@ -35,11 +35,13 @@ export class _mainPage {
         this.TEAM_N_AUTH = 3
         this.PROJ_METADATA = 4
         this.ROLE_VIEW = 5
+        this.ROLE_VIEW_EDITOR = 6
+        this.ROLE_VIEW_COMMENTER = 7
+        this.ROLE_VIEW_VIEWER = 8
+        this.ROLE_VIEW_RESET = 9
 
         this.roleURL = {}
     }
-
-
 
     toolBarTopLeft(toolBarItem) {
         return cy.get('header.v-toolbar', {timeout: 20000}).eq(0).find('a').eq(toolBarItem)
@@ -50,10 +52,29 @@ export class _mainPage {
     }
 
     navigationDraw(item) {
-        if (item == this.ROLE_VIEW)
-            return cy.get('.nc-nav-drawer').find('.v-list').last()
-        else
-            return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
+        // if (item == this.ROLE_VIEW)
+        //     return cy.get('.nc-nav-drawer').find('.v-list').last()
+        // else
+        //     return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
+
+        switch (item) {
+            case this.AUDIT:
+                return cy.get('.nc-treeview-item-Audit')
+            case this.APPSTORE:
+                return cy.get('.nc-settings-appstore')
+            case this.TEAM_N_AUTH:
+                return cy.get('.nc-settings-teamauth')
+            case this.PROJ_METADATA:
+                return cy.get('.nc-settings-projmeta')
+            case this.ROLE_VIEW_EDITOR:
+                return cy.get('.nc-preview-editor')
+            case this.ROLE_VIEW_COMMENTER:
+                return cy.get('.nc-preview-commenter')
+            case this.ROLE_VIEW_VIEWER:
+                return cy.get('.nc-preview-viewer')
+            case this.ROLE_VIEW_RESET:
+                return cy.get('.nc-preview-reset')
+        }
     }
 
 
@@ -78,7 +99,7 @@ export class _mainPage {
 
         // get URL, invoke
         cy.getActiveModal().find('.v-alert').then(($obj) => {
-            linkText = $obj.text()
+            linkText = $obj.text().trim()
             cy.log(linkText)
             this.roleURL[roleType] = linkText
 
@@ -159,7 +180,7 @@ export class _mainPage {
             .trigger('mouseover')
             .click()
 
-        cy.get('.nc-column-delete').click()
+        cy.get('.nc-column-delete', {timeout: 5000}).click()
         cy.get('button:contains(Confirm)').click()        
     }
 
@@ -222,7 +243,9 @@ export class _mainPage {
         cy.getActiveMenu().find(`.v-list-item:contains(${field})`).first().click()
         cy.get('.nc-filter-operation-select').last().click();
         cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click()
-        cy.get('.nc-filter-value-select input:text').last().type(`${value}`);
+        if ((operation != 'is null') && (operation != 'is not null')) {
+            cy.get('.nc-filter-value-select input:text').last().type(`${value}`);
+        }
         cy.get('.nc-filter-menu-btn').click()
     }
 
@@ -267,7 +290,7 @@ export class _mainPage {
     //      wait for a while & check in configured download folder for the intended file
     //      if it exists, verify it against 'expectedRecords' passed in as parameter
     //
-    downloadAndVerifyCsv = (filename, expectedRecords) => {
+    downloadAndVerifyCsv = (filename, verifyCsv) => {
         cy.get('.nc-actions-menu-btn').click()
         cy.get(`.menuable__content__active .v-list-item span:contains("Download as CSV")`).click()
 
@@ -289,17 +312,7 @@ export class _mainPage {
 
                         // from CSV, split into records (rows)
                         const rows = fileData.replace(/\r\n/g, '\n').split('\n');
-
-                        // verify records against intended contents
-                        for (let i = 0; i < expectedRecords.length; i++) {
-                            const firstCol = rows[i].split(',')
-                            const expectedFirstCol = expectedRecords[i].split(',')
-                            expect(firstCol[0]).to.be.equal(expectedFirstCol[0])
-
-                            // expect(rows[i]).to.be.equal(expectedRecords[i])
-                            //cy.log(rows[i])
-                        }
-
+                        verifyCsv(rows)
                         deleteDownloadsFolder()
                 })
             })        

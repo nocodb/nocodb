@@ -52,7 +52,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
       for (let col = 0; col < rows[0].length; col++) {
         let cn = (rows[0][col] ||
-          `field${col + 1}`).replace(/\./, '_')
+          `field${col + 1}`).replace(/\./, '_').trim()
 
         if (cn in columnNamePrefixRef) {
           cn = `${cn}${++columnNamePrefixRef[cn]}`

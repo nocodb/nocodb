@@ -1,17 +1,63 @@
 <template>
   <v-container fluid>
-    <kanban-board :stages="stages" :blocks="blocks" @update-block="updateBlock">
-      <div v-for="(stage,i) in stages" :slot="stage" :key="stage" class="mx-auto">
-        <v-chip :color="stagesColors[i]" class="text-uppercase caption font-weight-bold">
-          {{ stage }}
+    <kanban-board :stages="kanbanData.stages" :blocks="kanbanData.blocks" @update-block="updateBlock">
+      <div v-for="(stage, i) in kanbanData.stages" :slot="stage" :key="stage" class="mx-auto">
+        <v-chip :color="kanbanData.stagesColors[i]" class="text-uppercase caption font-weight-bold">
+          {{ stage }} 
         </v-chip>
       </div>
-      <div v-for="block in blocks" :slot="block.id" :key="block.id" class="caption">
-        <!--        <div>-->
-        <!--          {{ block.id }}-->
-        <!--        </div>-->
-        <div>
-          {{ block.title }}
+      <div v-for="(block, i) in kanbanData.blocks" :slot="block.id" :key="block.id" class="caption">
+          <div @click="$emit('expandForm', {
+            // TODO
+          })">
+            {{block}}
+            <v-card-text>
+              <v-container>
+                <v-row class="">
+                  <v-col
+                    v-for="(col) in fields"
+                    v-show="showFields[col.alias|| col._cn]"
+                    :key="col.alias || col._cn"
+                    class="col-12 mt-1 mb-2 "
+                  >
+                    <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
+                      <virtual-header-cell
+                        v-if="col.virtual"
+                        :column="col"
+                        :nodes="nodes"
+                        :is-form="true"
+                        :meta="meta"
+                      />
+                      <header-cell
+                        v-else
+                        :is-form="true"
+                        :value="col._cn"
+                        :column="col"
+                      />
+                    </label>
+                    <virtual-cell
+                      v-if="col.virtual"
+                      ref="virtual"
+                      :column="col"
+                      :row="block"
+                      :nodes="nodes"
+                      :meta="meta"
+                    />
+                    <table-cell
+                      v-else
+                      :value="block[col._cn]"
+                      :column="col"
+                      :sql-ui="sqlUi"
+                      class="xc-input body-2"
+                      :meta="meta"
+                    />
+                    <!-- {{ meta }} -->
+                    <!-- {{ col.virtual }} // false  -->
+                    <!-- {{ block[col._cn] }} // Coffee Packaging -->
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
         </div>
       </div>
     </kanban-board>
@@ -24,93 +70,69 @@
 
 export default {
   name: 'KanbanView',
-  data: () => ({
-    stages: ['on-hold', 'in-progress', 'needs-review', 'approved'],
-    stagesColors: ['error', 'primary', 'warning', 'success'],
-    blocks: [
-      {
-        id: 1,
-        status: 'on-hold',
-        title: 'More language options'
-      },
-      {
-        id: 2,
-        status: 'on-hold',
-        title: 'Customizable links'
-      },
-      {
-        id: 3,
-        status: 'on-hold',
-        title: 'Emoji support'
-      },
-      {
-        id: 4,
-        status: 'on-hold',
-        title: 'Video embedding'
-      },
-      {
-        id: 5,
-        status: 'on-hold',
-        title: 'Photo gallery support'
-      },
-      {
-        id: 6,
-        status: 'on-hold',
-        title: 'Starred cards'
-      },
-      {
-        id: 7,
-        status: 'in-progress',
-        title: 'Reporting'
-      },
-      {
-        id: 8,
-        status: 'in-progress',
-        title: 'Marks card as done'
-      },
-      {
-        id: 9,
-        status: 'in-progress',
-        title: 'Multiple due dates'
-      },
-      {
-        id: 10,
-        status: 'in-progress',
-        title: 'Expand notifications'
-      },
-      {
-        id: 11,
-        status: 'needs-review',
-        title: '"Heart" commad'
-      },
-      {
-        id: 12,
-        status: 'needs-review',
-        title: 'Assign checklist item'
-      },
-      {
-        id: 13,
-        status: 'approved',
-        title: 'Delete permissions'
-      },
-      {
-        id: 14,
-        status: 'approved',
-        title: '3rd party calendar support'
-      },
-      {
-        id: 15,
-        status: 'approved',
-        title: '2FA'
-      },
-      {
-        id: 16,
-        status: 'approved',
-        title: 'Additional sticker packs'
+  props: [
+    'nodes',
+    'table',
+    'showFields',
+    'availableColumns',
+    'meta',
+    'data',
+    'primaryValueColumn',
+    'showSystemFields',
+    'sqlUi',
+    'coverImageField'
+  ],
+  computed: {
+    fields() {
+      if (this.availableColumns) {
+        return this.availableColumns
       }
 
-    ]
-  })
+      const hideCols = ['created_at', 'updated_at']
+
+      if (this.showSystemFields) {
+        return this.meta.columns || []
+      } else {
+        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
+          !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        ) || []
+      }
+    },
+    kanbanData() {
+      console.log(this.data)
+      // stages are distinct values of grouping field
+      var stages = []
+      var blocks = []
+      // TODO: add "Choose a grouping field" window
+      const groupingField = "Category"
+
+      for(var i = 0; i < this.data.length; i++) {
+        console.log(`this.data[i].row`, this.data[i].row)
+        console.log(`this.data[i].rowMeta`, this.data[i].rowMeta)
+        
+        stages.push(this.data[i].row[groupingField])
+        console.log(`this.primaryValueColumn: ${this.primaryValueColumn}`)
+        const block = {
+          status: this.data[i].row[groupingField],
+          ...this.data[i].row
+        }
+        console.log(block)
+        blocks.push(block)
+      }
+      stages = [...new Set(stages)]
+      var stagesColors = ['error', 'primary', 'warning', 'success']
+      return {
+        stages,
+        stagesColors,
+        blocks
+      }
+    }
+  },
+  methods: {
+    updateBlock() {
+      // TODO: implement updateBlock func
+    }
+  }
 }
 </script>
 

@@ -67,9 +67,13 @@
 <script>
 
 // import "vue-kanban/src/assets/kanban.css";
-
+import VirtualHeaderCell from '../components/virtualHeaderCell'
+import HeaderCell from '../components/headerCell'
+import VirtualCell from '../components/virtualCell'
+import TableCell from '../components/cell'
 export default {
   name: 'KanbanView',
+  components: { TableCell, VirtualCell, HeaderCell, VirtualHeaderCell },
   props: [
     'nodes',
     'table',

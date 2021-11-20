@@ -7,57 +7,58 @@
         </v-chip>
       </div>
       <div v-for="(block, i) in kanbanData.blocks" :slot="block.id" :key="block.id" class="caption">
-          <div @click="$emit('expandForm', {
-            // TODO
-          })">
-            {{block}}
-            <v-card-text>
-              <v-container>
-                <v-row class="">
-                  <v-col
-                    v-for="(col) in fields"
-                    v-show="showFields[col.alias|| col._cn]"
-                    :key="col.alias || col._cn"
-                    class="col-12 mt-1 mb-2 "
-                  >
-                    <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
-                      <virtual-header-cell
+          <v-hover v-slot="{hover}">
+            <v-card
+              class="h-100"
+              :elevation="hover ? 4 : 1"
+              @click="$emit('expandForm', {row: block, rowIndex: i, rowMeta: block.rowMeta})"
+            >
+              <v-card-text>
+                <v-container>
+                  <v-row class="">
+                    <v-col
+                      v-for="(col) in fields"
+                      v-show="showFields[col.alias|| col._cn]"
+                      :key="col.alias || col._cn"
+                      class="col-12 mt-1 mb-2 "
+                    >
+                      <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
+                        <virtual-header-cell
+                          v-if="col.virtual"
+                          :column="col"
+                          :nodes="nodes"
+                          :is-form="true"
+                          :meta="meta"
+                        />
+                        <header-cell
+                          v-else
+                          :is-form="true"
+                          :value="col._cn"
+                          :column="col"
+                        />
+                      </label>
+                      <virtual-cell
                         v-if="col.virtual"
+                        ref="virtual"
                         :column="col"
+                        :row="block"
                         :nodes="nodes"
-                        :is-form="true"
                         :meta="meta"
                       />
-                      <header-cell
+                      <table-cell
                         v-else
-                        :is-form="true"
-                        :value="col._cn"
+                        :value="block[col._cn]"
                         :column="col"
+                        :sql-ui="sqlUi"
+                        class="xc-input body-2"
+                        :meta="meta"
                       />
-                    </label>
-                    <virtual-cell
-                      v-if="col.virtual"
-                      ref="virtual"
-                      :column="col"
-                      :row="block"
-                      :nodes="nodes"
-                      :meta="meta"
-                    />
-                    <table-cell
-                      v-else
-                      :value="block[col._cn]"
-                      :column="col"
-                      :sql-ui="sqlUi"
-                      class="xc-input body-2"
-                      :meta="meta"
-                    />
-                    <!-- {{ meta }} -->
-                    <!-- {{ col.virtual }} // false  -->
-                    <!-- {{ block[col._cn] }} // Coffee Packaging -->
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+            </v-card>
+          </v-hover>
         </div>
       </div>
     </kanban-board>
@@ -118,6 +119,7 @@ export default {
         console.log(`this.primaryValueColumn: ${this.primaryValueColumn}`)
         const block = {
           status: this.data[i].row[groupingField],
+          rowMeta: this.data[i].rowMeta,
           ...this.data[i].row
         }
         console.log(block)
@@ -200,12 +202,16 @@ export default {
   }
 
   .drag-item {
-    padding: 10px;
+    // padding: 10px;
     margin: 10px;
     //height: 100px;
     background: var(--v-backgroundColor-lighten2);
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     border-radius: 4px;
+  }
+
+  .drag-item .container {
+    padding: 0px;
   }
 
   .drag-item.is-moving {

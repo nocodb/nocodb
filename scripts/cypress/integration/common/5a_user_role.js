@@ -45,7 +45,9 @@ export const genTest = (type, xcdb) => {
             if (roleType != 'owner') {
                 it(`[${roles[roleType].name}] SignIn, Open project`, () => {
                     cy.log(mainPage.roleURL[roleType])
-                    cy.visit(mainPage.roleURL[roleType])
+                    cy.visit(mainPage.roleURL[roleType], {
+                        baseUrl: null
+                    })
                     cy.wait(3000)
 
                     // Redirected to new URL, feed details

@@ -252,6 +252,20 @@ export default class GqlApi {
     })
     return { list: list.data.data.m2mNotChildren, count: count.data.data.m2mNotChildrenCount.count }
   }
+
+  async insertBulk(data, {
+    params = {}
+  } = {}) {
+    const data1 = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
+      query: `mutation bulkInsert($data:[${this.tableCamelized}Input]){
+         ${this.gqlMutationCreateName}Bulk(data: $data)
+      }`,
+      variables: {
+        data
+      }
+    }, params)
+    return data1.data.data[`${this.gqlMutationCreateName}Bulk`]
+  }
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

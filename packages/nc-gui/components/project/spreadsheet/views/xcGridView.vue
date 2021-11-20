@@ -1,5 +1,12 @@
 <template>
-  <div>
+  <div
+    @dragover.prevent="dragOver = true"
+    @dragenter.prevent="dragOver = true"
+    @dragexit="dragOver = false"
+    @dragleave="dragOver = false"
+    @dragend="dragOver = false"
+    @drop.prevent.stop="onFileDrop"
+  >
     <table
       v-if="data"
       class="xc-row-table nc-grid"
@@ -22,7 +29,7 @@
             class="grey-border caption font-wight-regular  nc-grid-header-cell"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
             :data-col="col.alias"
-            @xcresize="onresize(col.alias,$event)"
+            @xcresize="onresize(col.alias,$event), log('xcresize')"
             @xcresizing="onXcResizing(col.alias,$event)"
             @xcresized="resizingCol = null"
           >
@@ -258,6 +265,7 @@ export default {
   },
   mixins: [colors],
   props: {
+    droppable: Boolean,
     metas: Object,
     relationType: String,
     availableColumns: [Object, Array],
@@ -294,7 +302,8 @@ export default {
       row: null,
       col: null
     },
-    aggCount: []
+    aggCount: [],
+    dragOver: false
   }),
   computed: {
     ids() {
@@ -347,8 +356,13 @@ export default {
     document.removeEventListener('keydown', this.onKeyDown)
   },
   methods: {
+    onFileDrop(event) {
+      this.$emit('drop', event)
+    },
     isRequired(_columnObj, rowObj) {
-      if (this.isPublicView) { return false }
+      if (this.isPublicView) {
+        return false
+      }
 
       let columnObj = _columnObj
       if (columnObj.bt) {
@@ -447,7 +461,9 @@ export default {
           if (e.ctrlKey ||
             e.altKey ||
             e.shiftKey ||
-            e.metaKey) { return }
+            e.metaKey) {
+            return
+          }
 
           if (e.key && e.key.length === 1) {
             if (!this.isPkAvail && !this.data[this.selected.row].rowMeta.new) {
@@ -531,6 +547,9 @@ export default {
     onXcResizing(_cn, width) {
       this.resizingCol = _cn
       this.resizingColWidth = width
+    },
+    log(e, s) {
+      console.log(e.target, s)
     }
   }
 }

@@ -6,7 +6,7 @@
     @dragexit="dragOver = false"
     @dragleave="dragOver = false"
     @dragend="dragOver = false"
-    @drop.prevent="onFileDrop"
+    @drop.prevent.stop="onFileDrop"
   >
     <div v-show="(isForm || _isUIAllowed('tableAttachment')) && dragOver" class="drop-overlay">
       <div>

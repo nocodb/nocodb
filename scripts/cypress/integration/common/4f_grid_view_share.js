@@ -2,7 +2,7 @@ import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
-let baseURL = ''
+let storedURL = ''
 
 // 0: all enabled
 // 1: field hide
@@ -31,7 +31,7 @@ export const genTest = (type, xcdb) => {
             .then(($obj) => {
                 cy.get('body').type('{esc}')
                 // viewURL.push($obj.text())
-                viewURL[viewName] = $obj.text()
+                viewURL[viewName] = $obj.text().trim()
                 cy.wait(1000)
             })
     }    
@@ -88,7 +88,7 @@ export const genTest = (type, xcdb) => {
 
                 // store base URL- to re-visit and delete form view later
                 cy.url().then((url) => {
-                    baseURL = url
+                    storedURL = url
                 })
             })
 
@@ -127,7 +127,9 @@ export const genTest = (type, xcdb) => {
 
             it(`Share ${viewType.toUpperCase()} view : Visit URL, Verify title`, () => {
                 // visit public view
-                cy.visit(viewURL['combined'])
+                cy.visit(viewURL['combined'], {
+                    baseUrl: null
+                })
         
                 // wait for public view page to load!
                 cy.wait(5000)
@@ -374,7 +376,9 @@ export const genTest = (type, xcdb) => {
 
             it(`Delete ${viewType.toUpperCase()} view`, () => {
                 // go back to base page
-                cy.visit(baseURL)
+                cy.visit(storedURL, {
+                    baseUrl: null
+                })
 
                 // number of view entries should be 2 before we delete
                 cy.get('.nc-view-item').its('length').should('eq', 2)
@@ -483,7 +487,7 @@ export const genTest = (type, xcdb) => {
             cy.saveLocalStorage()
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
-                baseURL = url
+                storedURL = url
                 generateViewLink('rowColUpdate')
             })            
         })
@@ -491,7 +495,9 @@ export const genTest = (type, xcdb) => {
         after(() => {
             // close table
             cy.restoreLocalStorage();
-            cy.visit(baseURL)
+            cy.visit(storedURL, {
+                baseUrl: null
+            })
 
             // delete row
             mainPage.getPagination(5).click()
@@ -527,7 +533,9 @@ export const genTest = (type, xcdb) => {
             // visit public view
             cy.log(viewURL['rowColUpdate'])
             cy.restoreLocalStorage();
-            cy.visit(viewURL['rowColUpdate']) //5
+            cy.visit(viewURL['rowColUpdate'], {
+                baseUrl: null
+            }) //5
             // wait for public view page to load!
             cy.wait(5000)
         })

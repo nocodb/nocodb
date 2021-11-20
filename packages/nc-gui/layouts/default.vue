@@ -16,7 +16,7 @@
       <v-toolbar-title>
         <v-tooltip bottom>
           <template #activator="{ on }">
-            <v-btn to="/projects" icon class="pa-1 brand-icon" v-on="on">
+            <v-btn to="/projects" icon class="pa-1 brand-icon nc-noco-brand-icon" v-on="on">
               <v-img :src="logo" max-height="30px" max-width="30px" />
               <!-- <v-icon color="primary">alpha-x-circle</v-icon
               ><v-icon color="primary">alpha-c-circle </v-icon> -->

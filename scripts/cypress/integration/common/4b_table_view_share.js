@@ -2,7 +2,7 @@ import { mainPage } from "../../support/page_objects/mainPage"
 import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
-let baseURL = ''
+let storedURL = ''
 let linkText = ''
 
 const generateLinkWithPwd = () => {
@@ -24,7 +24,7 @@ const generateLinkWithPwd = () => {
     cy.getActiveModal().find('.share-link-box')
         .then(($obj) => {
 
-            linkText = $obj.text()
+            linkText = $obj.text().trim()
             cy.log(linkText)
         })
 }
@@ -40,7 +40,7 @@ export const genTest = (type, xcdb) => {
             cy.openTableTab('City')
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
-                baseURL = url
+                storedURL = url
             })
             
             generateLinkWithPwd()
@@ -55,7 +55,9 @@ export const genTest = (type, xcdb) => {
         })
 
         it('Share view with incorrect password', () => {
-            cy.visit(linkText)
+            cy.visit(linkText, {
+                baseUrl: null
+            })
             // wait for share view page to load!
             cy.wait(1000)
             // feed password
@@ -69,7 +71,9 @@ export const genTest = (type, xcdb) => {
 
         // fallover test- use previously opened view & continue verification instead of opening again
         it('Share view with correct password', () => {
-            // cy.visit(linkText)
+            // cy.visit(linkText, {
+            //     baseUrl: null
+            // })
             // // wait for share view page to load!
             // cy.wait(1000)
             // feed password
@@ -82,7 +86,9 @@ export const genTest = (type, xcdb) => {
         })
 
         it('Delete view', () => {
-            cy.visit(baseURL)
+            cy.visit(storedURL, {
+                baseUrl: null
+            })
             mainPage.deleteCreatedViews()
         })
 

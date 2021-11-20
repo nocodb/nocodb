@@ -650,6 +650,7 @@
 import { mapMutations, mapGetters, mapActions } from 'vuex';
 
 import rightClickOptions from '../helpers/rightClickOptions';
+import rightClickOptionsSub from '../helpers/rightClickOptionsSub';
 import icons from '../helpers/treeViewIcons';
 
 import textDlgSubmitCancel from './utils/dlgTextSubmitCancel';
@@ -1084,7 +1085,10 @@ export default {
     },
     ctxMenuOptions() {
       if (!this.menuItem || !this.menuItem._nodes.type) return;
-      const options = rightClickOptions[this.menuItem._nodes.type];
+      let options = rightClickOptions[this.menuItem._nodes.type];
+      if (!this.$store.getters['users/GtrIsAdmin']) {
+        options = rightClickOptionsSub[this.menuItem._nodes.type];
+      }
       return options;
       // if (options) {
       //   return Object.keys(options).map(k => typeof options[k] === 'object' ? Object.keys(options[k]) : k);

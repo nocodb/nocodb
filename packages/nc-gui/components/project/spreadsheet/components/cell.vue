@@ -15,6 +15,7 @@
   <date-cell v-else-if="isDate" :value="value" />
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
+  <boolean-cell v-else-if="isBoolean" :value="value" />
   <span v-else :class="{'long-text-cell' : isTextArea}">{{ value }}</span>
 </template>
 
@@ -25,13 +26,14 @@ import cell from '@/components/project/spreadsheet/mixins/cell'
 import SetListCell from '@/components/project/spreadsheet/components/cell/setListCell'
 import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
 import EditableAttachmentCell from '@/components/project/spreadsheet/components/editableCell/editableAttachmentCell'
+import BooleanCell from '@/components/project/spreadsheet/components/cell/booleanCell'
 import DateCell from './cell/dateCell'
 import DateTimeCell from './cell/dateTimeCell'
 import TimeCell from './cell/timeCell'
 
 export default {
   name: 'TableCell',
-  components: { TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell },
+  components: { TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected'],
   computed: {}

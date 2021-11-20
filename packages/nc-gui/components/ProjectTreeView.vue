@@ -647,7 +647,7 @@
 <script>
 /* eslint-disable */
 
-import { mapMutations, mapGetters, mapActions } from 'vuex';
+import {mapMutations, mapGetters, mapActions} from 'vuex';
 
 import rightClickOptions from '../helpers/rightClickOptions';
 import rightClickOptionsSub from '../helpers/rightClickOptionsSub';
@@ -655,7 +655,7 @@ import icons from '../helpers/treeViewIcons';
 
 import textDlgSubmitCancel from './utils/dlgTextSubmitCancel';
 import dlgLabelSubmitCancel from './utils/dlgLabelSubmitCancel';
-import { copyTextToClipboard } from '../helpers/xutils';
+import {copyTextToClipboard} from '../helpers/xutils';
 import DlgTableCreate from '@/components/utils/dlgTableCreate';
 import DlgViewCreate from '@/components/utils/dlgViewCreate';
 import SponsorMini from '@/components/sponsorMini';
@@ -704,7 +704,7 @@ export default {
     x: 0,
     y: 0,
     menuItem: null,
-    menu: [{ title: 'Execute' }],
+    menu: [{title: 'Execute'}],
     icons,
     tree: [],
     active: [],
@@ -742,7 +742,7 @@ export default {
       defaultValue: null,
     },
     rolesList: null,
-    selectedNodeForDelete: { dialog: false, item: null, heading: null },
+    selectedNodeForDelete: {dialog: false, item: null, heading: null},
   }),
   computed: {
     previewAs: {
@@ -845,8 +845,8 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         console.log('add app store tab');
-        let item = { name: 'App Store', key: `appStore` };
-        item._nodes = { env: '_noco' };
+        let item = {name: 'App Store', key: `appStore`};
+        item._nodes = {env: '_noco'};
         item._nodes.type = 'appStore';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
@@ -881,8 +881,8 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         console.log('add roles tab');
-        let item = { name: 'Team & Auth ', key: `roles` };
-        item._nodes = { env: '_noco' };
+        let item = {name: 'Team & Auth ', key: `roles`};
+        item._nodes = {env: '_noco'};
         item._nodes.type = 'roles';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
@@ -893,8 +893,8 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         console.log('add acl tab');
-        let item = { name: 'Meta Management', key: `disableOrEnableModel` };
-        item._nodes = { env: '_noco' };
+        let item = {name: 'Meta Management', key: `disableOrEnableModel`};
+        item._nodes = {env: '_noco'};
         item._nodes.type = 'disableOrEnableModel';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
@@ -1008,7 +1008,7 @@ export default {
             }
             if (item._nodes.type === 'table') {
               let tableIndex = +item._nodes.key.split('.').pop();
-              if (!(await this.$store.dispatch('windows/ActCheckMaxTable', { tableIndex }))) return;
+              if (!(await this.$store.dispatch('windows/ActCheckMaxTable', {tableIndex}))) return;
             }
             this.$store.dispatch('tabs/ActAddTab', item);
           }
@@ -1074,9 +1074,9 @@ export default {
         if (!this.isTreeView) {
           if (this.$route.query.type) {
             const node = this.listViewArr.find(n => n.type === `${this.$route.query.type}Dir`);
-            await this.addTab({ ...(node || this.listViewArr[0]) }, false, true);
+            await this.addTab({...(node || this.listViewArr[0])}, false, true);
           } else {
-            await this.addTab({ ...this.listViewArr[0] }, false, true);
+            await this.addTab({...this.listViewArr[0]}, false, true);
           }
         }
       } catch (error) {
@@ -1234,7 +1234,7 @@ export default {
             dbAlias: item._nodes.dbAlias,
           },
           func,
-          { tn: item.name },
+          {tn: item.name},
         ]);
         if (result && result.data) {
           copyTextToClipboard(result.data, 'selection');
@@ -1242,7 +1242,7 @@ export default {
           copyTextToClipboard('Example String', 'selection');
         }
 
-        let sqlClientNode = { ...item._nodes };
+        let sqlClientNode = {...item._nodes};
         let newItem = {
           _nodes: sqlClientNode,
         };
@@ -1272,20 +1272,22 @@ export default {
       }
     },
 
-    async mtdDialogRenameTableSubmit(tn, cookie) {
-      console.log(tn);
+    async mtdDialogRenameTableSubmit(_tn, cookie) {
       let item = cookie;
-      await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
-        {
-          env: item._nodes.env,
-          dbAlias: item._nodes.dbAlias,
-        },
-        'tableRename',
-        {
-          tn: tn,
-          tn_old: item.name,
-        },
-      ]);
+      await this.$store.dispatch(
+        // 'sqlMgr/ActSqlOpPlus',[
+        'sqlMgr/ActSqlOp', [
+          {
+            env: item._nodes.env,
+            dbAlias: item._nodes.dbAlias,
+          },
+          // 'tableRename',
+          'ncTableAliasRename',
+          {
+            tn: _tn,
+            tn_old: item.name,
+          },
+        ]);
       await this.removeTabsByName(item);
       await this.loadTablesFromParentTreeNode({
         _nodes: {
@@ -1296,14 +1298,15 @@ export default {
         _nodes: {
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
-          tn: tn,
+          tn: this.menuItem._nodes.tn,
+          _tn:_tn,
           dbConnection: this.menuItem._nodes.dbConnection,
 
           type: 'table',
           dbKey: this.menuItem._nodes.dbKey,
           key: this.menuItem._nodes.key,
         },
-        name: tn,
+        name: _tn,
       });
       this.dialogRenameTable.dialogShow = false;
       this.dialogRenameTable.defaultValue = null;
@@ -1539,7 +1542,7 @@ export default {
               dbAlias: item._nodes.dbAlias,
             },
             'tableDelete',
-            { tn: item._nodes.tn, columns: columns.data.list }
+            {tn: item._nodes.tn, columns: columns.data.list}
           );
           await this.loadTablesFromParentTreeNode({
             _nodes: {
@@ -1554,7 +1557,7 @@ export default {
               dbAlias: item._nodes.dbAlias,
             },
             'viewRead',
-            { view_name: item._nodes.view_name },
+            {view_name: item._nodes.view_name},
           ]);
 
           await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
@@ -1657,7 +1660,8 @@ export default {
     this.loadDefaultTabs(true);
     this.loadRoles();
   },
-  beforeCreate() {},
+  beforeCreate() {
+  },
   mounted() {
     // this.setBorderWidth();
     // this.setEvents();

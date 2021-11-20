@@ -10,7 +10,7 @@ class ExpressXcPolicyGql extends BaseRender {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({ dir, filename, ctx }) {
+  constructor({ dir = '', filename = '', ctx }) {
     super({ dir, filename, ctx });
   }
 

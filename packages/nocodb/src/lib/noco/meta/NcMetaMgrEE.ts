@@ -271,6 +271,8 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/form/${sharedView.view_id}`;
       } else if (args.args.show_as === 'gallery') {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/gallery/${sharedView.view_id}`;
+      } else if(args.args.show_as === 'kanban') {
+        sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/kanban/${sharedView.view_id}`;
       } else {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${sharedView.view_id}`;
       }

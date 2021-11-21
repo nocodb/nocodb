@@ -353,7 +353,7 @@
 
             <v-list-item
               v-show="
-                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' ||selectedView.show_as === 'grid' )
+                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' || selectedView.show_as === 'grid' || selectedView.show_as === 'kanban' )
               "
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"
@@ -433,10 +433,10 @@
             <!-- People with private link can only see cells visible in this view -->
           </p>
           <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
-            {{ `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view'}/${shareLink.view_id}` }}
+            {{ sharedViewUrl }}
             <v-spacer />
             <a
-              :href=" `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view'}/${shareLink.view_id}`"
+              :href="`${sharedViewUrl}`"
               style="text-decoration: none"
               target="_blank"
             >
@@ -580,6 +580,20 @@ export default {
         }
         return id
       }
+    },
+    sharedViewUrl() {
+      var viewType
+      switch (this.shareLink.view_type) {
+        case "form":
+          viewType = "form"
+          break;
+        case "kanban":
+          viewType = "kanban"
+          break;
+        default:
+          viewType = "view"
+      }
+      return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.view_id}`
     }
   },
   watch: {
@@ -825,7 +839,7 @@ export default {
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
     copyShareUrlToClipboard() {
-      this.clipboard(`${this.dashboardUrl}#/nc/${this.shareLink.view_type === 'form' ? 'form' : 'view'}/${this.shareLink.view_id}`)
+      this.clipboard(this.sharedViewUrl)
       this.clipboardSuccessHandler()
     }
   }

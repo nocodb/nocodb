@@ -1656,6 +1656,88 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await this.reInitializeGraphqlEndpoint();
   }
 
+  public async onTableAliasRename(
+    oldTableAliasName: string,
+    newTableAliasName: string
+  ): Promise<void> {
+    this.log(
+      "onTableAliasRename : '%s' => '%s'",
+      oldTableAliasName,
+      newTableAliasName
+    );
+    if (oldTableAliasName === newTableAliasName) {
+      return;
+    }
+
+    const {
+      // meta,
+      relatedTableList,
+      tableName: t
+    } = await super.onTableAliasRename(oldTableAliasName, newTableAliasName);
+
+    for (const table of [t, ...relatedTableList]) {
+      const meta = this.getMeta(table);
+
+      const ctx = this.generateContextForMeta(meta);
+      ctx.manyToMany = meta.manyToMany;
+      ctx.v = meta.v;
+      this.schemas[table] = GqlXcSchemaFactory.create(
+        this.connectionConfig,
+        this.generateRendererArgs(ctx)
+      ).getString();
+
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          schema: this.schemas[table]
+        },
+        { title: table }
+      );
+
+      const newResolvers: any[] = Object.keys(
+        new ExpressXcTsPolicyGql({ ctx }).getObject()
+      );
+
+      const oldResolvers: any[] = Object.keys(
+        new ExpressXcTsPolicyGql(
+          this.generateRendererArgs({ ...ctx, _tn: oldTableAliasName })
+        ).getObject()
+      );
+
+      let i = 0;
+
+      // this.log(
+      //   `xcTableRename : Updating resolvers name and table name - '%s' => '%s'`,
+      //   oldTablename,
+      //   newTablename
+      // );
+      for (const res of newResolvers) {
+        const oldRes = oldResolvers[i++];
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_resolvers',
+          {
+            resolver: res
+          },
+          {
+            title: table,
+            resolver: oldRes,
+            handler_type: 1
+          }
+        );
+      }
+    }
+
+    // load routes and models from db
+    await this.xcTablesRead([...relatedTableList, t]);
+    await this.reInitializeGraphqlEndpoint();
+
+    // }
+  }
+
   public async onRelationCreate(tnp: string, tnc: string, args): Promise<void> {
     await super.onRelationCreate(tnp, tnc, args);
     this.log(`onRelationCreate : Within relation create event handler`);

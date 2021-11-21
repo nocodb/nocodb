@@ -470,6 +470,179 @@ export default abstract class BaseApiBuilder<T extends Noco>
     await this.modifyTableNameInACL(oldTableName, newTableName);
   }
 
+  public async onTableAliasRename(
+    oldTableAliasName: string,
+    newTableAliasName: string
+  ): Promise<any> {
+    this.baseLog(
+      `onTableAliasRename : '%s' => '%s'`,
+      oldTableAliasName,
+      newTableAliasName
+    );
+    this.baseLog(
+      `onTableAliasRename : updating table name in hooks meta table - '%s' => '%s'`,
+      oldTableAliasName,
+      newTableAliasName
+    );
+
+    const tableName =
+      this.getTableName(oldTableAliasName) ||
+      this.getTableName(newTableAliasName);
+
+    XcCache.del([this.projectId, this.dbAlias, 'table', tableName].join('::'));
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        _rtn: newTableAliasName
+      },
+      {
+        _rtn: oldTableAliasName
+      }
+    );
+
+    const meta = this.metas[tableName];
+    meta._tn = newTableAliasName;
+
+    if (oldTableAliasName === newTableAliasName) {
+      return;
+    }
+
+    // delete old model
+    delete this.models[tableName];
+
+    // todo: update virtual columns
+
+    // const rootPath = `/api/${ctx.routeVersionLetter}/${ctx._tn}`;
+
+    const relatedTableList = new Set<string>();
+
+    // update in hasMany
+    for (const hm of meta.hasMany || []) {
+      hm._rtn = newTableAliasName;
+      relatedTableList.add(hm.tn);
+    }
+    // update in belongsTo
+    for (const bt of meta.belongsTo || []) {
+      bt._tn = newTableAliasName;
+      relatedTableList.add(bt.rtn);
+    }
+
+    // update in MnyToMany
+    for (const mm of meta.manyToMany || []) {
+      mm._tn = newTableAliasName;
+      relatedTableList.add(mm.rtn);
+    }
+
+    for (const v of meta.v || []) {
+      if (v?.hm?._rtn) v.hm._rtn = newTableAliasName;
+      else if (v?.bt?._tn) v.bt._tn = newTableAliasName;
+      else if (v?.mm?._tn) v.mm._tn = newTableAliasName;
+      else if (v?.lk) {
+        if (v?.lk.type === 'hm') {
+          v.lk._rtn = newTableAliasName;
+        } else if (v?.lk.type === 'bt' || v.lk.type === 'mm') {
+          v.lk._tn = newTableAliasName;
+        }
+      } else if (v?.rl) {
+        if (v.rl === 'hm') {
+          v.rl._rtn = newTableAliasName;
+        } else if (v.rl.type === 'bt' || v.rl.type === 'mm') {
+          v.rl._tn = newTableAliasName;
+        }
+      }
+      // todo: lookup and rollup
+    }
+
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        _tn: newTableAliasName
+      },
+      {
+        _tn: oldTableAliasName
+      }
+    );
+    /* Update meta data */
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        meta: JSON.stringify(meta),
+        alias: newTableAliasName
+      },
+      { title: tableName, type: 'table' }
+    );
+
+    for (const relTableName of relatedTableList) {
+      const meta = this.getMeta(relTableName);
+      // update in hasMany
+      for (const hm of meta.hasMany || []) {
+        if (hm.tn !== tableName) continue;
+        hm._tn = newTableAliasName;
+      }
+      // update in belongsTo
+      for (const bt of meta.belongsTo || []) {
+        if (bt.rtn !== tableName) continue;
+        bt._rtn = newTableAliasName;
+      }
+
+      // update in MnyToMany
+      for (const mm of meta.manyToMany || []) {
+        if (mm.rtn !== tableName) continue;
+        mm._rtn = newTableAliasName;
+      }
+
+      for (const v of meta.v || []) {
+        if (v?.hm?.tn === tableName) v.hm._tn = newTableAliasName;
+        else if (v?.bt?.rtn === tableName) v.bt._rtn = newTableAliasName;
+        else if (v?.mm?.rtn === tableName) v.mm._rtn = newTableAliasName;
+        else if (v?.lk?.ltn === tableName) {
+          v.lk._ltn = newTableAliasName;
+          if (v?.lk.type === 'hm') {
+            v.lk._tn = newTableAliasName;
+          } else if (v?.lk.type === 'bt' || v.lk.type === 'mm') {
+            v.lk._rtn = newTableAliasName;
+          }
+        } else if (v?.rl?.rltn === tableName) {
+          v.rl._rltn = newTableAliasName;
+          if (v.rl?.type === 'hm') {
+            v.rl._tn = newTableAliasName;
+          } else if (v.rl.type === 'bt' || v.rl.type === 'mm') {
+            v.rl._rtn = newTableAliasName;
+          }
+        }
+
+        // todo: lookup and rollup
+        // mm._tn = newTableAliasName;
+        // relatedTableList.add(mm.rtn);
+      }
+
+      // todo: update virtual columns
+      // todo: delete cache
+      // todo: update in db
+
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          meta: JSON.stringify(meta)
+        },
+        {
+          title: relTableName
+        }
+      );
+    }
+
+    return { meta, relatedTableList, tableName };
+    // await this.modifyTableNameInACL(oldTableAliasName, newTableAliasName);
+  }
+
   public async onGqlSchemaUpdate(
     _tableName: string,
     _schema: string
@@ -1556,6 +1729,18 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return belongsTo;
   }
 
+  protected generateContextForMeta(meta: any): any {
+    return this.generateContextForTable(
+      meta.tn,
+      meta.columns,
+      [...meta.hasMany, ...meta.belongsTo],
+      meta.hasMany,
+      meta.belongsTo,
+      'table',
+      meta._tn
+    );
+  }
+
   protected generateContextForTable(
     tn: string,
     columns: any[],
@@ -1607,6 +1792,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       modifiedTableName,
       this.connectionConfig?.meta?.inflection?.tn
     );
+  }
+
+  protected getTableName(alias) {
+    return Object.values(this.metas).find(m => m._tn === alias)?.tn;
   }
 
   protected generateContextForHasMany(ctx, tnc: string): any {

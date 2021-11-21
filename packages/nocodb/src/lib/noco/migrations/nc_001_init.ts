@@ -1,18 +1,6 @@
-// import s3 from "../plugins/s3";
-// import gcs from "../plugins/gcs";
-// import smtp from "../plugins/smtp";
 import cache from '../plugins/cache';
 import googleAuth from '../plugins/googleAuth';
 import ses from '../plugins/ses';
-// import azure from "../plugins/azure";
-// import brand from "../plugins/brand";
-// import discord from "../plugins/discord";
-// import slack from "../plugins/slack";
-// import mattermost from "../plugins/mattermost";
-// import ee from "../plugins/ee";
-// import miniio from "../plugins/miniio";
-// import spaces from "../plugins/spaces";
-// import githubAuth from "../instant/common/plugins/githubAuth";
 
 const up = async knex => {
   await knex.schema.createTable('nc_projects', table => {

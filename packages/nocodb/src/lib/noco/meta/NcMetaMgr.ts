@@ -1883,6 +1883,8 @@ export default class NcMetaMgr {
         case 'xcVirtualRelationCreate':
           result = await this.xcVirtualRelationCreate(args, req);
           break;
+        case 'ncTableAliasRename':
+          break;
 
         case 'xcM2MRelationCreate':
           result = await this.xcM2MRelationCreate(args, req);

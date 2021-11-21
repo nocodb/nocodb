@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-center ">
-    <input v-model="localState" type="checkbox">
+    <input v-model="localState" type="checkbox" :disabled="true">
   </div>
 </template>
 

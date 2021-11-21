@@ -29,7 +29,7 @@
             </td>
             <td class="caption text-left">
               <nuxt-link :to="sharedViewUrl(currentView)">
-                {{ sharedViewUrl(currentView) }}
+                {{ `${dashboardUrl}#${sharedViewUrl(currentView)}` }}
               </nuxt-link>
             </td>
             <td class="caption">
@@ -66,7 +66,7 @@
               </td>
               <td class="caption text-left">
                 <nuxt-link :to="sharedViewUrl(link)">
-                  {{ sharedViewUrl(link) }}
+                  {{ `${dashboardUrl}#${sharedViewUrl(link)}` }}
                 </nuxt-link>
               </td>
               <td class="caption">
@@ -126,7 +126,7 @@ export default {
   },
   methods: {
     copyLink(view) {
-      this.$clipboard(this.sharedViewUrl(view))
+      this.$clipboard(`${this.dashboardUrl}#${this.sharedViewUrl(view)}`)
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
     async loadSharedViewsList() {
@@ -174,7 +174,7 @@ export default {
         default:
           viewType = "view"
       }
-      return `${this.dashboardUrl}#/nc/${viewType}/${view.view_id}`
+      return `/nc/${viewType}/${view.view_id}`
     },
   }
 }

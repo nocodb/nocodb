@@ -85,7 +85,8 @@ export default {
     'primaryValueColumn',
     'showSystemFields',
     'sqlUi',
-    'coverImageField'
+    'coverImageField',
+    'api',
   ],
   computed: {
     fields() {
@@ -132,8 +133,37 @@ export default {
     }
   },
   methods: {
-    updateBlock() {
-      // TODO: implement updateBlock func
+    async updateBlock(id, status) {
+      try {
+        if(!this.api) {
+          return
+        }
+
+        if(this.kanbanData.blocks[id - 1].status == status) {
+          // no change
+          return
+        }
+        // TODO: add "Choose a grouping field" window
+        const groupingField = "Category"
+
+        const prevStatus = this.kanbanData.blocks[id - 1].status
+        const newData = await this.api.update(id, 
+        { [groupingField]: status }, // new data
+        { [groupingField]: prevStatus }) // old data
+
+        // TODO: reload the view
+
+        this.$toast.success(`Moved block from ${prevStatus} to ${status} successfully.`, {
+          position: 'bottom-center'
+        }).goAway(3000)
+
+      } catch (e) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(e.response.data.msg).goAway(3000)
+        } else {
+          this.$toast.error(`Failed to update block : ${e.message}`).goAway(3000)
+        }
+      }
     }
   }
 }

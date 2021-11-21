@@ -290,6 +290,7 @@
               :data="data"
               :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
+              :api="api"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>

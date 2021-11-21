@@ -20,7 +20,7 @@
                       v-for="(col) in fields"
                       v-show="showFields[col.alias|| col._cn]"
                       :key="col.alias || col._cn"
-                      class="col-12 mt-1 mb-2 "
+                      class="kanban-col col-12"
                     >
                       <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
                         <virtual-header-cell
@@ -92,16 +92,13 @@ export default {
       if (this.availableColumns) {
         return this.availableColumns
       }
-
-      const hideCols = ['created_at', 'updated_at']
-
       if (this.showSystemFields) {
         return this.meta.columns || []
-      } else {
-        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
-          !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
-        ) || []
-      }
+      } 
+      const hideCols = ['created_at', 'updated_at']
+      return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
+        !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+      ) || []
     },
     kanbanData() {
       console.log(this.data)
@@ -278,6 +275,10 @@ export default {
 
   .gu-transit {
     opacity: 0.2;
+  }
+
+  .kanban-col  {
+    padding: 10px;
   }
 
 }

@@ -1310,8 +1310,8 @@ export default {
       });
       this.dialogRenameTable.dialogShow = false;
       this.dialogRenameTable.defaultValue = null;
-      this.$toast.success('Table renamed succesfully').goAway(3000);
-      console.log(tn, cookie);
+      this.$toast.success('Table renamed successfully').goAway(3000);
+      console.log(_tn, cookie);
     },
     mtdDialogRenameTableCancel() {
       console.log('mtdDialogGetTableNameCancel cancelled');
@@ -1319,7 +1319,7 @@ export default {
       this.dialogRenameTable.defaultValue = null;
     },
     mtdTableCreate(table) {
-      if (!this.menuItem) {
+      if (!this.menuItem || this.menuItem.type !== 'tableDir') {
         this.menuItem = this.listViewArr.find(n => n.type === 'tableDir');
       }
       // const tables = table.name.split(',');

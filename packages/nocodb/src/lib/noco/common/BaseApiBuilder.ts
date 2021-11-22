@@ -637,6 +637,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
           title: relTableName
         }
       );
+
+      XcCache.del(
+        [this.projectId, this.dbAlias, 'table', relTableName].join('::')
+      );
     }
 
     return { meta, relatedTableList, tableName };

@@ -407,44 +407,57 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
   public async userProjectList(userId: any): Promise<any[]> {
     return (
-      (
-        await this.knexConnection('nc_projects')
-          .leftJoin(
-            this.knexConnection('nc_projects_users')
-              .where(`nc_projects_users.user_id`, userId)
-              .as('user'),
-            'user.project_id',
-            'nc_projects.id'
-          )
-          .select('nc_projects.*')
-          .select('user.user_id')
-          //(SELECT `xc_users`.`email`
-          //                   FROM   `xc_users`
-          //                          INNER JOIN `nc_projects_users`
-          //                                  ON `nc_projects_users`.`user_id` =
-          //                                     `xc_users`.`id` and `nc_projects_users`.project_id=`nc_projects`.id  where `nc_projects_users`.`roles` like '%owner%'  limit 1)
-          .select(
-            this.knexConnection('xc_users')
-              .select('xc_users.email')
-              .innerJoin(
-                'nc_projects_users',
-                'nc_projects_users.user_id',
-                '=',
-                'xc_users.id'
-              )
-              .where('nc_projects_users.roles', 'like', '%owner%')
-              .first()
-              .as('owner')
-          )
-      ).map(p => {
-        p.allowed = p.user_id === userId;
-        p.config = CryptoJS.AES.decrypt(
-          p.config,
-          this.config?.auth?.jwt?.secret
-        ).toString(CryptoJS.enc.Utf8);
-        return p;
-      })
-    );
+      await this.knexConnection('nc_projects')
+        .leftJoin(
+          this.knexConnection('nc_projects_users')
+            .where(`nc_projects_users.user_id`, userId)
+            .as('user'),
+          'user.project_id',
+          'nc_projects.id'
+        )
+        .select('nc_projects.*')
+        .select('user.user_id')
+        .select(
+          this.knexConnection('xc_users')
+            .select('xc_users.email')
+            .innerJoin(
+              'nc_projects_users',
+              'nc_projects_users.user_id',
+              '=',
+              'xc_users.id'
+            )
+            .where('nc_projects_users.roles', 'like', '%owner%')
+            .first()
+            .as('owner')
+        )
+        .select(
+          this.knexConnection('xc_users')
+            .count('xc_users.id')
+            .innerJoin(
+              'nc_projects_users',
+              'nc_projects_users.user_id',
+              '=',
+              'xc_users.id'
+            )
+            .where(qb => {
+              qb.where('nc_projects_users.roles', 'like', '%creator%').orWhere(
+                'nc_projects_users.roles',
+                'like',
+                '%owner%'
+              );
+            })
+            .andWhere('xc_users.id', userId)
+            .first()
+            .as('is_creator')
+        )
+    ).map(p => {
+      p.allowed = p.user_id === userId;
+      p.config = CryptoJS.AES.decrypt(
+        p.config,
+        this.config?.auth?.jwt?.secret
+      ).toString(CryptoJS.enc.Utf8);
+      return p;
+    });
   }
 
   public async isUserHaveAccessToProject(

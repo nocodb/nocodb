@@ -599,6 +599,7 @@
 
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
+      :rules="[validateTableName]"
       :dialog-show="dialogRenameTable.dialogShow"
       :heading="dialogRenameTable.heading"
       :cookie="dialogRenameTable.cookie"
@@ -659,6 +660,7 @@ import {copyTextToClipboard} from '../helpers/xutils';
 import DlgTableCreate from '@/components/utils/dlgTableCreate';
 import DlgViewCreate from '@/components/utils/dlgViewCreate';
 import SponsorMini from '@/components/sponsorMini';
+import {validateTableName} from "~/helpers";
 
 // const {clipboard} = require('electron');
 
@@ -671,6 +673,7 @@ export default {
     dlgLabelSubmitCancel,
   },
   data: () => ({
+    validateTableName,
     roleIcon: {
       owner: 'mdi-account-star',
       creator: 'mdi-account-hard-hat',
@@ -1299,7 +1302,7 @@ export default {
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
           tn: this.menuItem._nodes.tn,
-          _tn:_tn,
+          _tn: _tn,
           dbConnection: this.menuItem._nodes.dbConnection,
 
           type: 'table',

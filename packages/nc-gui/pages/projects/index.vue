@@ -340,7 +340,7 @@
                     </td>
                     <td style="width:150px;min-width:150px;max-width:150px">
                       <div
-                        v-if="props.item.allowed && _isUIAllowed('projectActions',true)"
+                        v-if="props.item.allowed && _isUIAllowed('projectActions',true) && props.item.is_creator"
                         :class="{
                           'action-icons': !(
                             projectStatusUpdating &&
@@ -1015,7 +1015,7 @@ export default {
               .goAway(3000)
           } catch (e) {
             this.$toast
-              .error(`Project '${project.title}' restarting failed`)
+              .error(`Project '${project.title}' deleting failed`)
               .goAway(3000)
           }
           await this.projectsLoad()

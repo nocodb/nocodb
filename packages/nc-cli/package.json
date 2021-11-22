@@ -1,6 +1,6 @@
 {
   "name": "create-nocodb-app",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "nc-cli",
   "main": "dist/bundle.js",
   "module": "dist/bundle.js",

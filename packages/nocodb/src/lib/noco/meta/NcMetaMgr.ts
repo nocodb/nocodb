@@ -192,6 +192,7 @@ export default class NcMetaMgr {
             if (
               !(
                 roles?.creator ||
+                roles?.owner ||
                 roles?.editor ||
                 roles?.viewer ||
                 roles?.commenter ||
@@ -294,7 +295,14 @@ export default class NcMetaMgr {
                 oneClick: !!process.env.NC_ONE_CLICK,
                 connectToExternalDB: !process.env
                   .NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
-                version: packageVersion
+                version: packageVersion,
+                defaultLimit: Math.max(
+                  Math.min(
+                    +process.env.DB_QUERY_LIMIT_DEFAULT || 25,
+                    +process.env.DB_QUERY_LIMIT_MAX || 100
+                  ),
+                  +process.env.DB_QUERY_LIMIT_MIN || 1
+                )
               };
               return res.json(result);
             }
@@ -536,7 +544,7 @@ export default class NcMetaMgr {
         await this.xcMeta.projectAddUser(
           projectId,
           req?.session?.passport?.user?.id,
-          'owner,creator'
+          'owner'
         );
         await this.projectMgr
           .getSqlMgr({
@@ -644,7 +652,7 @@ export default class NcMetaMgr {
           await this.xcMeta.projectAddUser(
             importProjectId,
             req?.session?.passport?.user?.id,
-            'owner,creator'
+            'owner'
           );
           await this.projectMgr
             .getSqlMgr({
@@ -1535,6 +1543,7 @@ export default class NcMetaMgr {
               'Creating new project with external Database not allowed'
             );
           }
+          await this.checkIsUserAllowedToCreateProject(req);
           result = await this.xcMeta.projectCreate(
             args.args.project.title,
             args.args.projectJson
@@ -1542,7 +1551,7 @@ export default class NcMetaMgr {
           await this.xcMeta.projectAddUser(
             result.id,
             req?.session?.passport?.user?.id,
-            'owner,creator'
+            'owner'
           );
           await this.projectMgr
             .getSqlMgr({
@@ -1583,7 +1592,7 @@ export default class NcMetaMgr {
             await this.xcMeta.projectAddUser(
               result.id,
               req?.session?.passport?.user?.id,
-              'owner,creator'
+              'owner'
             );
             await this.projectMgr
               .getSqlMgr({
@@ -1605,6 +1614,7 @@ export default class NcMetaMgr {
           }
           break;
         case 'projectCreateByWebWithXCDB': {
+          await this.checkIsUserAllowedToCreateProject(req);
           const config = NcConfigFactory.makeProjectConfigFromConnection(
             this.config?.meta?.db,
             args.args.projectType
@@ -1631,7 +1641,7 @@ export default class NcMetaMgr {
           await this.xcMeta.projectAddUser(
             result.id,
             req?.session?.passport?.user?.id,
-            'owner,creator'
+            'owner'
           );
           await this.projectMgr
             .getSqlMgr({
@@ -1657,6 +1667,12 @@ export default class NcMetaMgr {
           Tele.emit('evt', { evt_type: 'project:created', xcdb: true });
           postListenerCb = async () => {
             if (args?.args?.template) {
+              Tele.emit('evt', {
+                evt_type: args.args?.excelImport
+                  ? 'project:created:fromExcel'
+                  : 'project:created:fromTemplate',
+                xcdb: true
+              });
               await this.xcModelsCreateFromTemplate(
                 {
                   dbAlias: 'db', // this.nodes.dbAlias,
@@ -4372,6 +4388,8 @@ export default class NcMetaMgr {
       });
     }
 
+    Tele.emit('evt', { evt_type: 'template:imported' });
+
     return result;
   }
 
@@ -5389,6 +5407,24 @@ export default class NcMetaMgr {
     nestedParams.bt = nestedParams.bt.join(',');
 
     return nestedParams;
+  }
+
+  private async checkIsUserAllowedToCreateProject(req: any): Promise<void> {
+    const user = req.user;
+    const roles = await this.xcMeta.metaList(null, null, 'nc_projects_users', {
+      condition: { user_id: user?.id },
+      xcCondition: {
+        _or: [{ roles: { like: '%creator%' } }, { roles: { like: '%owner%' } }]
+      },
+      fields: ['roles']
+    });
+
+    if (
+      !roles.some(r => /\b(?:owner|creator)\b/.test(r?.roles)) &&
+      (await this.xcMeta.metaList(null, null, 'nc_projects'))?.length
+    ) {
+      throw new Error("You don't have permission to create project");
+    }
   }
 }
 

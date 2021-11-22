@@ -128,15 +128,17 @@
       <v-card class="pa-6">
         <template-editor :project-template.sync="templateData" excel-import>
           <template #toolbar="{valid}">
-            <!--            <h3 class="mt-2 grey&#45;&#45;text">-->
-            <!--              Import Excel as Project -->
-            <!--            </h3>-->
+            <h3 class="mt-2 grey--text">
+              Importing : {{ filename }}
+            </h3>
             <!--            <span class="grey&#45;&#45;text">Importing 2 sheets</span>-->
 
+            <v-spacer />
             <v-spacer />
             <create-project-from-template-btn
               :template-data="templateData"
               :import-data="importData"
+              excel-import
               :valid="valid"
               create-gql-text="Import as GQL Project"
               create-rest-text="Import as REST Project"

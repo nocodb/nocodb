@@ -78,6 +78,40 @@ function GetCaretPosition(ctrl) {
   return (CaretPos)
 }
 
+export function validateTableName(v) {
+  if (!v) {
+    return 'Table name required'
+  }
+  if (/^[_A-Za-z][_0-9A-Za-z]*$/.test(v)) {
+    return true
+  }
+
+  if (/^[^_A-Za-z]/.test(v)) {
+    return 'Name should start with an alphabet or _'
+  }
+  const m = v.match(/[^_A-Za-z\d]/g)
+  if (m) {
+    return `Following characters are not allowed ${m.map(c => JSON.stringify(c)).join(', ')}`
+  }
+}
+
+export function validateColumnName(v) {
+  if (!v) {
+    return 'Column name required'
+  }
+  if (/^[_A-Za-z][_0-9A-Za-z]*$/.test(v)) {
+    return true
+  }
+
+  if (/^[^_A-Za-z]/.test(v)) {
+    return 'Name should start with an alphabet or _'
+  }
+  const m = v.match(/[^_A-Za-z\d]/g)
+  if (m) {
+    return `Following characters are not allowed ${m.map(c => JSON.stringify(c)).join(', ')}`
+  }
+}
+
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

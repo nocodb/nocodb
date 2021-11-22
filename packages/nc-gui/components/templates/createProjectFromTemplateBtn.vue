@@ -42,6 +42,7 @@ export default {
   name: 'CreateProjectFromTemplateBtn',
   mixins: [colors],
   props: {
+    excelImport: Boolean,
     loading: Boolean,
     templateData: [Array, Object],
     importData: [Array, Object],
@@ -99,8 +100,9 @@ export default {
       // this.$emit('useTemplate', type)
 
       this.projectCreation = true
+      let interv
       try {
-        const interv = setInterval(() => {
+        interv = setInterval(() => {
           this.loaderMessagesIndex = this.loaderMessagesIndex < this.loaderMessages.length - 1 ? this.loaderMessagesIndex + 1 : 6
           this.$store.commit('loader/MutMessage', this.loaderMessages[this.loaderMessagesIndex])
         }, 1000)
@@ -108,7 +110,8 @@ export default {
         const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
           title: this.templateData.title,
           projectType,
-          template: this.templateData
+          template: this.templateData,
+          excelImport: this.excelImport
         }])
 
         await this.$store.dispatch('project/ActLoadProjectInfo')
@@ -131,6 +134,8 @@ export default {
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)
+        this.$store.commit('loader/MutMessage', null)
+        clearInterval(interv)
       }
       this.projectCreation = false
     },

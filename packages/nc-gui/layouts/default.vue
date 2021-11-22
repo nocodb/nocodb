@@ -149,19 +149,6 @@
           />
 
           <x-btn
-            v-if="showAirtabLikeLink > 2"
-            text
-            btn.class="caption font-weight-bold px-2 text-capitalize"
-            tooltip="Data (^⇧D)"
-            to="/datatable"
-          >
-            <v-icon size="20">
-              mdi-table
-            </v-icon> &nbsp;
-            Data
-          </x-btn>
-
-          <x-btn
             v-if="!$store.state.windows.nc"
             text
             btn.class="caption font-weight-bold px-2 text-capitalize"

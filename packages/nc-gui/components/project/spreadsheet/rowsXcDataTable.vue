@@ -583,6 +583,7 @@ export default {
   },
   mixins: [spreadsheet],
   props: {
+    tabId: String,
     env: String,
     nodes: Object,
     addNewRelationTab: Function,
@@ -640,7 +641,7 @@ export default {
     },
     page: 1,
     count: 0,
-    size: 25,
+    // size: 25,
     xWhere: '',
     sort: '',
 
@@ -668,8 +669,38 @@ export default {
     }],
     rowContextMenu: null
   }),
+  watch: {
+    page(p) {
+      this.$store.commit('tabs/MutSetTabState', {
+        id: this.uniqueId,
+        key: 'page',
+        val: p
+      })
+    },
+    selectedViewId(id) {
+      if (this.tabsState[this.tabId] && this.tabsState[this.tabId].page) {
+        this.page = this.tabsState[this.tabId].page || 1
+      } else {
+        this.page = 1
+      }
+      // this.$store.commit('tabs/MutSetTabState', {
+      //   id: this.tabId,
+      //   key: 'selectedViewId',
+      //   val: id
+      // })
+    }
+  },
   async mounted() {
     try {
+      if (this.tabsState && this.tabsState[this.uniqueId]) {
+        if (this.tabsState[this.uniqueId].page) {
+          this.page = this.tabsState[this.uniqueId].page
+        }
+        // if (this.tabsState[this.tabId].selectedViewId) {
+        //   this.selectedViewId = this.tabsState[this.tabId].selectedViewId
+        // }
+      }
+
       await this.createTableIfNewTable()
       this.loadingMeta = true
       await this.loadMeta(false)
@@ -1127,6 +1158,13 @@ export default {
     }
   },
   computed: {
+    tabsState() { return this.$store.state.tabs.tabsState || {} },
+    uniqueId() {
+      return `${this.tabId}_${this.selectedViewId}`
+    },
+    size() {
+      return (this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.defaultLimit) || 25
+    },
     isPkAvail() {
       return this.meta && this.meta.columns.some(c => c.pk)
     },

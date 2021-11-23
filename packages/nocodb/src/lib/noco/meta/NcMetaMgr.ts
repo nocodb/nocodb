@@ -31,7 +31,7 @@ import { GqlApiBuilder } from '../gql/GqlApiBuilder';
 import NcPluginMgr from '../plugins/NcPluginMgr';
 import XcCache from '../plugins/adapters/cache/XcCache';
 import EmailFactory from '../plugins/adapters/email/EmailFactory';
-import Twilio from '../plugins/adapters/twilio/Twilio';
+// import Twilio from '../plugins/adapters/twilio/Twilio';
 import { RestApiBuilder } from '../rest/RestApiBuilder';
 import RestAuthCtrl from '../rest/RestAuthCtrlEE';
 import { packageVersion } from 'nc-help';
@@ -48,7 +48,7 @@ export default class NcMetaMgr {
   public projectConfigs = {};
   public readonly pluginMgr: NcPluginMgr;
 
-  public twilioInstance: Twilio;
+  // public twilioInstance: Twilio;
 
   protected app: Noco;
 
@@ -75,7 +75,7 @@ export default class NcMetaMgr {
   public async initHandler(rootRouter: Router) {
     await this.pluginMgr?.init();
 
-    await this.initTwilio();
+    // await this.initTwilio();
     await this.initCache();
     this.eeVerify();
 
@@ -1309,15 +1309,15 @@ export default class NcMetaMgr {
     };
   }
 
-  protected async initTwilio(overwrite = false): Promise<void> {
-    const activeStorage = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-      active: true,
-      category: 'Twilio'
-    });
-
-    this.twilioInstance = Twilio.create(activeStorage, overwrite);
-    await this.twilioInstance?.init();
-  }
+  // protected async initTwilio(overwrite = false): Promise<void> {
+  //   // const activeStorage = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
+  //   //   active: true,
+  //   //   category: 'Twilio'
+  //   // });
+  //   //
+  //   // this.twilioInstance = Twilio.create(activeStorage, overwrite);
+  //   // await this.twilioInstance?.init();
+  // }
 
   protected async initCache(overwrite = false): Promise<void> {
     const activeCache = await this.xcMeta.metaGet(null, null, 'nc_plugins', {

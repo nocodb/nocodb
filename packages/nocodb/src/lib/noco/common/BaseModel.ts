@@ -184,7 +184,19 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
                     data,
                     hook.notification?.payload
                   ),
-                  hook.notification?.payload
+                  JSON.parse(
+                    JSON.stringify(hook.notification?.payload),
+                    (_key, value) => {
+                      return typeof value === 'string'
+                        ? this.parseBody(
+                            value,
+                            req,
+                            data,
+                            hook.notification?.payload
+                          )
+                        : value;
+                    }
+                  )
                 );
               }
               break;

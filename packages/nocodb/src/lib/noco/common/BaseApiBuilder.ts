@@ -236,6 +236,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
         model_name: tn
       }
     );
+    if (delete this.metas[tn]) delete this.metas[tn];
+    if (delete this.models[tn]) delete this.models[tn];
   }
 
   public async onRelationCreate(

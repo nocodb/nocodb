@@ -642,6 +642,13 @@
       :heading="selectedNodeForDelete.heading"
       type="error"
     />
+    <excel-import
+      ref="excelImport"
+      v-model="excelImportDialog"
+      hide-label
+      import-to-project
+      @success="onExcelImport"
+    />
   </div>
 </template>
 
@@ -661,11 +668,13 @@ import DlgTableCreate from '@/components/utils/dlgTableCreate';
 import DlgViewCreate from '@/components/utils/dlgViewCreate';
 import SponsorMini from '@/components/sponsorMini';
 import {validateTableName} from "~/helpers";
+import ExcelImport from "~/components/import/excelImport";
 
 // const {clipboard} = require('electron');
 
 export default {
   components: {
+    ExcelImport,
     SponsorMini,
     DlgViewCreate,
     DlgTableCreate,
@@ -704,6 +713,7 @@ export default {
     open: [],
     search: null,
     menuVisible: false,
+    excelImportDialog:false,
     x: 0,
     y: 0,
     menuItem: null,
@@ -924,7 +934,12 @@ export default {
         this.miniExpanded = false;
       }
     },
-
+    onExcelImport(){
+      if (!this.menuItem || this.menuItem.type !== 'tableDir') {
+        this.menuItem = this.listViewArr.find(n => n.type === 'tableDir');
+      }
+      this.loadTables(this.menuItem)
+    },
     ...mapMutations({
       setProject: 'project/list',
       updateProject: 'project/update',
@@ -1146,12 +1161,11 @@ export default {
             this.dialogGetFunctionName.dialogShow = true;
           } else if (action === 'ENV_DB_FUNCTIONS_CREATE') {
             this.dialogGetFunctionName.dialogShow = true;
-          } else if (action === 'ENV_DB_TABLES_REFRESH') {
-            await this.loadTables(this.menuItem);
-            this.$toast.success('Tables refreshed').goAway(1000);
           } else if (action === 'ENV_DB_VIEWS_REFRESH') {
             await this.loadViews(this.menuItem);
             this.$toast.success('Views refreshed').goAway(1000);
+          } else if (action === 'IMPORT_EXCEL') {
+           this.excelImportDialog=true
           } else if (action === 'ENV_DB_FUNCTIONS_REFRESH') {
             await this.loadFunctions(this.menuItem);
             this.$toast.success('Functions refreshed').goAway(1000);

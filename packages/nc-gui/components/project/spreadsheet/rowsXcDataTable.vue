@@ -560,7 +560,7 @@ import ExpandedForm from '@/components/project/spreadsheet/components/expandedFo
 import Pagination from '@/components/project/spreadsheet/components/pagination'
 import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
-import CsvExportImport from '~/components/project/spreadsheet/components/csvExportImport'
+import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
 
 export default {
   name: 'RowsXcDataTable',

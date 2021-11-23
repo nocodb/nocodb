@@ -78,7 +78,7 @@ import ColumnMappingModal from '~/components/project/spreadsheet/components/colu
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 
 export default {
-  name: 'CsvExportImport',
+  name: 'ExportImport',
   components: { ColumnMappingModal, DropOrSelectFileModal },
   props: {
     meta: Object,

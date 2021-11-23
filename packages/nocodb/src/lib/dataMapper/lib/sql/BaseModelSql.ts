@@ -2573,6 +2573,9 @@ class BaseModelSql extends BaseModel {
         );
       }
       default:
+        if (value && typeof value === 'object') {
+          return JSON.stringify(value);
+        }
         return value;
     }
   }

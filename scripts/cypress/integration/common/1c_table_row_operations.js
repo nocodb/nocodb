@@ -36,9 +36,10 @@ export const genTest = (type, xcdb) => {
       cy.get('#data-table-form-Title > input').first().clear().type(updatedRandVal);
       cy.contains('Save Row').filter('button').click({force: true})
 
-      cy.wait(3000)
-      cy.get('td').contains(randVal).should('not.exist');
-      cy.get('td').contains(updatedRandVal).should('exist');
+      cy.wait(3000).then(() => {
+        cy.get('td').contains(randVal).should('not.exist');
+        cy.get('td').contains(updatedRandVal).should('exist');        
+      })
     })
 
     it('Delete row', () => {

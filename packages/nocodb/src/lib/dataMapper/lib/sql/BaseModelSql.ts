@@ -1905,6 +1905,7 @@ class BaseModelSql extends BaseModel {
         parents.split('~').map((parent, index) => {
           const { cn, rcn } =
             this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
           const parentIds = [
             ...new Set(childs.map(c => c[cn] || c[this.columnToAlias[cn]]))
           ];
@@ -2162,7 +2163,7 @@ class BaseModelSql extends BaseModel {
       ),
       this.config.limitMin
     );
-    obj.offset = args.offset || args.o || 0;
+    obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f || '*';
     obj.sort = args.sort || args.s;
     return obj;

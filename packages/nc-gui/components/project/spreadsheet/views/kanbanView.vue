@@ -151,7 +151,9 @@ export default {
         { [groupingField]: status }, // new data
         { [groupingField]: prevStatus }) // old data
 
-        // TODO: reload the view
+        // TODO: optimize - it takes a few seconds to see the change
+        this.kanbanData.blocks[id - 1].status = status
+        this.kanbanData.blocks[id - 1][groupingField] = status
 
         this.$toast.success(`Moved block from ${prevStatus} to ${status} successfully.`, {
           position: 'bottom-center'

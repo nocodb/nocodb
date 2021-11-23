@@ -833,7 +833,7 @@ export default {
         return
       }
       // todo: fix
-      const re = /(?<=^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g
+      const re = /(?:^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g
       let m
       // eslint-disable-next-line no-cond-assign
       while (m = re.exec(this.tableNamesInput)) {

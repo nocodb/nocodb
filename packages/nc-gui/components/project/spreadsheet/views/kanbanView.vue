@@ -1,12 +1,12 @@
 <template>
   <v-container fluid>
-    <kanban-board :stages="kanbanData.stages" :blocks="kanbanData.blocks" @update-block="updateBlock">
-      <div v-for="(stage, i) in kanbanData.stages" :slot="stage" :key="stage" class="mx-auto">
-        <v-chip :color="kanbanData.stagesColors[i]" class="text-uppercase caption font-weight-bold">
+    <kanban-board :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">
+      <div v-for="(stage, i) in stages" :slot="stage" :key="stage" class="mx-auto">
+        <v-chip :color="stagesColors[i]" class="text-uppercase caption font-weight-bold">
           {{ stage }} 
         </v-chip>
       </div>
-      <div v-for="(block, i) in kanbanData.blocks" :slot="block.id" :key="block.id" class="caption">
+      <div v-for="(block, i) in blocks" :slot="block.id" :key="block.id" class="caption">
           <v-hover v-slot="{hover}">
             <v-card
               class="h-100"
@@ -88,6 +88,17 @@ export default {
     'coverImageField',
     'api',
   ],
+  data() {
+    return {
+      stages: [],
+      stageColors: [],
+      blocks: [],
+      clonedBlocks: [],
+    }
+  },
+  async mounted() {
+    await this.setKanbanData()
+  },
   computed: {
     fields() {
       if (this.availableColumns) {
@@ -101,59 +112,51 @@ export default {
         !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
       ) || []
     },
-    kanbanData() {
-      console.log(this.data)
-      // stages are distinct values of grouping field
-      var stages = []
-      var blocks = []
-      // TODO: add "Choose a grouping field" window
-      const groupingField = "Category"
-
-      for(var i = 0; i < this.data.length; i++) {
-        console.log(`this.data[i].row`, this.data[i].row)
-        console.log(`this.data[i].rowMeta`, this.data[i].rowMeta)
-        
-        stages.push(this.data[i].row[groupingField])
-        console.log(`this.primaryValueColumn: ${this.primaryValueColumn}`)
-        const block = {
-          status: this.data[i].row[groupingField],
-          rowMeta: this.data[i].rowMeta,
-          ...this.data[i].row
-        }
-        console.log(block)
-        blocks.push(block)
-      }
-      stages = [...new Set(stages)]
-      var stagesColors = ['error', 'primary', 'warning', 'success']
-      return {
-        stages,
-        stagesColors,
-        blocks
-      }
-    }
   },
   methods: {
+    async setKanbanData() {
+      try {
+        // TODO: add "Choose a grouping field" window
+        const groupingField = "Category"
+        // TODO: update stagesColors
+        this.stagesColors = ['error', 'primary', 'warning', 'success']
+        for(var i = 0; i < this.data.length; i++) {
+          this.stages.push(this.data[i].row[groupingField])
+          const block = {
+            status: this.data[i].row[groupingField],
+            rowMeta: this.data[i].rowMeta,
+            ...this.data[i].row
+          }
+          console.log(block)
+          this.blocks.push(block)
+        }
+        this.stages = [...new Set(this.stages)]
+        this.clonedBlocks = this.blocks
+        return Promise.resolve(this.blocks)
+      } catch(e) {
+        return Promise.reject(e)
+      }
+    },
     async updateBlock(id, status) {
       try {
         if(!this.api) {
           return
         }
 
-        if(this.kanbanData.blocks[id - 1].status == status) {
+        if(this.blocks[id - 1].status == status) {
           // no change
           return
         }
         // TODO: add "Choose a grouping field" window
         const groupingField = "Category"
 
-        const prevStatus = this.kanbanData.blocks[id - 1].status
+        const prevStatus = this.blocks[id - 1].status
         const newData = await this.api.update(id, 
         { [groupingField]: status }, // new data
         { [groupingField]: prevStatus }) // old data
 
-        // TODO: optimize - it takes a few seconds to see the change
-        this.kanbanData.blocks[id - 1].status = status
-        this.kanbanData.blocks[id - 1][groupingField] = status
+        this.blocks[id - 1].status = status
+        this.blocks[id - 1][groupingField] = status
 
         this.$toast.success(`Moved block from ${prevStatus} to ${status} successfully.`, {
           position: 'bottom-center'

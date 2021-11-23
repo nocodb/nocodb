@@ -280,7 +280,7 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
-          <template v-else-if="isKanban">
+          <template v-else-if="isKanban && data.length">
             <kanban-view
               :nodes="nodes"
               :table="table"

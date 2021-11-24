@@ -816,7 +816,7 @@ export default {
       this.featureType = feat
     },
     async createTableIfNewTable() {
-      if (this.nodes.newTable) {
+      if (this.nodes.newTable && !this.nodes.tableCreated) {
         const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.cn))
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
@@ -834,7 +834,8 @@ export default {
             ...this.nodes
           }
         })
-        // delete this.nodes.newTable
+        // eslint-disable-next-line vue/no-mutating-props
+        this.nodes.tableCreated = true
       }
 
       this.loadViews = true

@@ -871,6 +871,7 @@ export default {
         const { row: rowObj, rowMeta } = this.data[row]
         if (rowMeta.new) {
           try {
+            this.$set(this.data[row], 'saving', true)
             const pks = this.meta.columns.filter((col) => {
               return col.pk
             })
@@ -910,6 +911,8 @@ export default {
               this.$toast.error(`Failed to save row : ${e.message}`).goAway(3000)
             }
           }
+
+          this.$set(this.data[row], 'saving', false)
         }
       }
     },
@@ -943,6 +946,7 @@ export default {
           if (!id) {
             return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
+          this.$set(this.data[row], 'saving', true)
 
           const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
@@ -961,6 +965,8 @@ export default {
             this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
           }
         }
+
+        this.$set(this.data[row], 'saving', false)
       }
     },
     async deleteRow() {

@@ -5,44 +5,10 @@
     </v-icon>
     <span class="grey--text caption">Shared base link</span>
     <div class="nc-container">
-      <v-menu>
-        <template #activator="{on}">
-          <div class="my-2" v-on="on">
-            <template v-if="base.enabled">
-              Anyone with following link can view base in a readonly mode
-            </template>
-            <template v-else>
-              Generate publicly shareable readonly base
-            </template>
-
-            <v-icon small>
-              mdi-menu-down-outline
-            </v-icon>
-          </div>
-        </template>
-        <v-list dense>
-          <v-list-item dense @click="createSharedBase">
-            <v-list-item-title>
-              <v-icon small class="mr-1">
-                mdi-link-variant
-              </v-icon>
-              <span class="caption">Readonly link</span>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item dense @click="disableSharedBase">
-            <v-list-item-title>
-              <v-icon small class="mr-1">
-                mdi-link-variant-off
-              </v-icon>
-              <span class="caption">Disable shared base</span>
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-
-      <v-chip v-if="base.enabled" :color="colors[4]">
+      <v-chip v-if="base.enabled" :color="colors[4]" style="" class="rounded pl-1 pr-0 d-100 nc-url-chip pr-3">
         <div class="nc-url-wrapper d-flex mx-1 align-center d-100">
-          <span class="nc-url flex-grow-1">{{ url }}</span>
+          <span class="nc-url flex-grow-1 caption ">{{ url }}</span>
+          <v-spacer />
           <v-divider vertical />
           <x-icon tooltip="reload" @click="recreate">
             mdi-reload
@@ -58,6 +24,78 @@
           </x-icon>
         </div>
       </v-chip>
+
+      <div class="d-flex align-center px-2">
+        <div>
+          <v-menu offset-x>
+            <template #activator="{on}">
+              <div class="my-2" v-on="on">
+                <div class="font-weight-bold">
+                  <span v-if="base.enabled">Anyone with the link</span>
+                  <span v-else>Disabled shared base</span>
+                  <v-icon small>
+                    mdi-menu-down-outline
+                  </v-icon>
+                </div>
+              </div>
+            </template>
+            <v-list dense>
+              <v-list-item dense @click="createSharedBase('viewer')">
+                <v-list-item-title>
+                  <v-icon small class="mr-1">
+                    mdi-link-variant
+                  </v-icon>
+                  <span class="caption">Anyone with the link</span>
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item dense @click="disableSharedBase">
+                <v-list-item-title>
+                  <v-icon small class="mr-1">
+                    mdi-link-variant-off
+                  </v-icon>
+                  <span class="caption">Disable shared base</span>
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          <div class=" caption">
+            <template v-if="base.enabled">
+              <span v-if="base.roles === 'editor'">Anyone on the internet with this link can edit</span>
+              <span v-else-if="base.roles === 'viewer'">Anyone on the internet with this link can view</span>
+            </template>
+            <template v-else>
+              Generate publicly shareable readonly base
+            </template>
+          </div>
+        </div>
+        <v-spacer />
+        <div class="d-flex justify-center" style="width:120px">
+          <v-menu v-if="base.enabled" offset-y>
+            <template #activator="{on}">
+              <div class="text-capitalize my-2   font-weight-bold backgroundColorDefault py-2 px-4 rounded" v-on="on">
+                {{ base.roles || 'Viewer' }}
+
+                <v-icon small>
+                  mdi-menu-down-outline
+                </v-icon>
+              </div>
+            </template>
+
+            <v-list dense>
+              <v-list-item @click="createSharedBase('editor')">
+                <v-list-item-title>
+                  Editor
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="createSharedBase('viewer')">
+                <v-list-item-title>
+                  Viewer
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -92,9 +130,9 @@ export default {
         console.log(e)
       }
     },
-    async createSharedBase() {
+    async createSharedBase(roles = 'viewer') {
       try {
-        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'createSharedBaseLink'])
+        const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'createSharedBaseLink', { roles }])
         this.base = sharedBase || {}
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
@@ -157,4 +195,5 @@ style="background: transparent; border: 1px solid #ddd"></iframe>`)
   background: var(--v-backgroundColor-base);
   padding: 20px 20px;
 }
+/deep/ .nc-url-chip .v-chip__content{width: 100%}
 </style>

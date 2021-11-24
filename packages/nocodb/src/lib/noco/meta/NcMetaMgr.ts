@@ -3447,12 +3447,18 @@ export default class NcMetaMgr {
         }
       );
 
+      let roles = args?.args?.roles;
+      if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
+        roles = 'viewer';
+      }
+
       if (!sharedBase) {
         const insertData = {
           project_id: args.project_id,
           db_alias: this.getDbAlias(args),
           shared_base_id: uuidv4(),
-          password: args?.args?.password
+          password: args?.args?.password,
+          roles
         };
 
         await this.xcMeta.metaInsert(
@@ -3466,8 +3472,19 @@ export default class NcMetaMgr {
           this.getDbAlias(args),
           'nc_shared_bases',
           {},
-          ['id', 'shared_base_id', 'enabled']
+          ['id', 'shared_base_id', 'enabled', 'roles']
         );
+      } else {
+        await this.xcMeta.metaUpdate(
+          this.getProjectId(args),
+          this.getDbAlias(args),
+          'nc_shared_bases',
+          { roles },
+          {
+            project_id: this.getProjectId(args)
+          }
+        );
+        sharedBase.roles = roles;
       }
 
       sharedBase.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/base/${sharedBase.shared_base_id}`;

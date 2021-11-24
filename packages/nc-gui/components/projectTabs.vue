@@ -61,8 +61,8 @@
           >
             <!--          <sqlLogAndOutput :hide="hideLogWindows">-->
             <TableView
+              v-if="activeTab === `${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
               :ref="'tabs'+index"
-              :is-active="activeTab === `${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
               :tab-id="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
               :hide-log-windows.sync="hideLogWindows"
               :nodes="tab._nodes"

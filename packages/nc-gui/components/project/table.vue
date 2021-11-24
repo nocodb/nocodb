@@ -317,7 +317,6 @@
           >
             <rows-xc-data-table
               ref="tabs7"
-              :is-active="isActive"
               :tab-id="tabId"
               :show-tabs="relationTabs && relationTabs.length"
               :table="nodes.tn"
@@ -385,7 +384,6 @@
             <template>
               <rows-xc-data-table
                 ref="tabs7"
-                :is-active="isActive"
                 :show-tabs="relationTabs && relationTabs.length"
                 :table="nodes.tn"
                 :nodes="nodes"
@@ -641,7 +639,7 @@ export default {
   head() {
     return {}
   },
-  props: ['nodes', 'hideLogWindows', 'tabId', 'isActive']
+  props: ['nodes', 'hideLogWindows', 'tabId']
 }
 </script>
 

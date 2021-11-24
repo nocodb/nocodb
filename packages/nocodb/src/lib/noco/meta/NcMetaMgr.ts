@@ -4568,9 +4568,7 @@ export default class NcMetaMgr {
               result[d.title].disabled[d.role] = !!d.disabled;
             }
 
-            return Object.values(result)?.sort((a: any, b: any) =>
-              (a?._tn || a?.tn)?.localeCompare(b?._tn || b?.tn)
-            );
+            return Object.values(result);
           }
           break;
         case 'view':

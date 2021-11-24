@@ -583,7 +583,6 @@ export default {
   },
   mixins: [spreadsheet],
   props: {
-    isActive: Boolean,
     tabId: String,
     env: String,
     nodes: Object,
@@ -671,11 +670,6 @@ export default {
     rowContextMenu: null
   }),
   watch: {
-    isActive(n, o) {
-      if (!o && n) {
-        this.reload()
-      }
-    },
     page(p) {
       this.$store.commit('tabs/MutSetTabState', {
         id: this.uniqueId,
@@ -1165,9 +1159,7 @@ export default {
     }
   },
   computed: {
-    tabsState() {
-      return this.$store.state.tabs.tabsState || {}
-    },
+    tabsState() { return this.$store.state.tabs.tabsState || {} },
     uniqueId() {
       return `${this.tabId}_${this.selectedViewId}`
     },

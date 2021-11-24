@@ -43,6 +43,10 @@ module.exports = (on, config) => {
     },
     'readXlsx': readXlsx.read,
     'readSheetList': readXlsx.sheetList,  
+    log(message) {
+      console.log(message)
+      return null      
+    }
   })
 }
 

@@ -110,10 +110,12 @@ export const genTest = (type, xcdb) => {
                 for (let i = 0; i < sheets.length; i++) {
 
                     // verify if all sheet names are correct
-                    cy.wrap(sheets[i]).find('.title').then((blk) => {
-                        cy.log(blk.text().trim())
-                        expect(blk.text().trim()).to.equal(sheetList[i])
-                    })
+                    // cy.wrap(sheets[i]).find('.title').then((blk) => {
+                    //     cy.log(blk.text().trim())
+                    //     expect(blk.text().trim()).to.equal(sheetList[i])
+                    // })
+
+                    cy.wrap(sheets[i]).contains(sheetList[i]).should('exist')
 
                     // for each sheet, expand to verify table names & their data types
                     cy.wrap(sheets[i]).find('.mdi-chevron-down').click()
@@ -209,10 +211,12 @@ export const genTest = (type, xcdb) => {
                 for (let i = 0; i < sheets.length; i++) {
 
                     // verify if all sheet names are correct
-                    cy.wrap(sheets[i]).find('.title').then((blk) => {
-                        cy.log(blk.text().trim())
-                        expect(blk.text().trim()).to.equal('Sheet1')
-                    })
+                    // cy.wrap(sheets[i]).find('.title').then((blk) => {
+                    //     cy.log(blk.text().trim())
+                    //     expect(blk.text().trim()).to.equal('Sheet1')
+                    // })
+
+                    cy.wrap(sheets[i]).contains('Sheet1').should('exist')
 
                     // for each sheet, expand to verify table names & their data types
                     cy.wrap(sheets[i]).find('.mdi-chevron-down').click()

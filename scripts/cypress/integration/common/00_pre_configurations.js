@@ -11,6 +11,7 @@ export const genTest = (type, xcdb) => {
     describe(`Project pre-configurations`, () => {
 
         it('Admin SignUp', () => {
+            cy.task('log', 'This will be output to the terminal')
             cy.waitForSpinners();
             cy.signinOrSignup(roles.owner.credentials)
             cy.wait(2000)

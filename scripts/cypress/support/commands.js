@@ -208,6 +208,46 @@ Cypress.Commands.add('deleteTable', (name) => {
   cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
 })
 
+Cypress.Commands.add('renameTable', (oldName, newName) => {
+  // expand project tree
+  cy.get('.nc-project-tree')
+    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+    .first()
+    .click()
+
+  // right click on project table name
+  cy.get('.nc-project-tree')
+    .contains(oldName, { timeout: 6000 })
+    .first()
+    .rightclick()
+
+  // choose rename option from menu
+  cy.getActiveMenu()
+    .find('[role="menuitem"]')
+    .contains('Table Rename')
+    .click({ force: true })
+  
+  // feed new name
+  cy.getActiveContentModal()
+    .find('input')
+    .clear()
+    .type(newName)
+
+  // submit
+  cy.getActiveContentModal()
+    .find('button')
+    .contains('Submit')
+    .click()
+
+  // close expanded project tree 
+  cy.get('.nc-project-tree')
+    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+    .first()
+    .click()
+  
+  cy.wait(2000)
+})
+
 Cypress.Commands.add('createColumn', (table, columnName) => {
   cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
     .first().click()

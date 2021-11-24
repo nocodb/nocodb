@@ -42,7 +42,9 @@ export default {
   name: 'CreateProjectFromTemplateBtn',
   mixins: [colors],
   props: {
+    excelImport: Boolean,
     loading: Boolean,
+    importToProject: Boolean,
     templateData: [Array, Object],
     importData: [Array, Object],
     valid: {
@@ -99,38 +101,68 @@ export default {
       // this.$emit('useTemplate', type)
 
       this.projectCreation = true
+      let interv
       try {
-        const interv = setInterval(() => {
+        interv = setInterval(() => {
           this.loaderMessagesIndex = this.loaderMessagesIndex < this.loaderMessages.length - 1 ? this.loaderMessagesIndex + 1 : 6
           this.$store.commit('loader/MutMessage', this.loaderMessages[this.loaderMessagesIndex])
         }, 1000)
 
-        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
-          title: this.templateData.title,
-          projectType,
-          template: this.templateData
-        }])
+        let projectId, prefix
 
-        await this.$store.dispatch('project/ActLoadProjectInfo')
+        if (this.importToProject) {
+          this.$store.commit('loader/MutMessage', 'Importing excel template')
 
+          const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            // todo: extract based on active
+            dbAlias: 'db', // this.nodes.dbAlias,
+            env: '_noco'
+          }, 'xcModelsCreateFromTemplate', {
+            template: this.templateData
+          }])
+
+          if (res && res.tables && res.tables.length) {
+            this.$toast.success(`Imported ${res.tables.length} tables successfully`).goAway(3000)
+          } else {
+            this.$toast.success('Template imported successfully').goAway(3000)
+          }
+
+          projectId = this.$route.params.project_id
+          prefix = this.$store.getters['project/GtrProjectPrefix']
+        } else {
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
+            title: this.templateData.title,
+            projectType,
+            template: this.templateData,
+            excelImport: this.excelImport
+          }])
+          projectId = result.id
+          prefix = result.prefix
+          await this.$store.dispatch('project/ActLoadProjectInfo')
+        }
         clearInterval(interv)
         if (this.importData) {
           this.$store.commit('loader/MutMessage', 'Importing excel data to project')
-          await this.importDataToProject({ projectId: result.id, projectType, prefix: result.prefix })
+          await this.importDataToProject({ projectId, projectType, prefix })
         }
         this.$store.commit('loader/MutMessage', null)
 
         this.projectReloading = false
+        if (!this.importToProject) {
+          await this.$router.push({
+            path: `/nc/${projectId}`,
+            query: {
+              new: 1
+            }
+          })
+        }
 
-        this.$router.push({
-          path: `/nc/${result.id}`,
-          query: {
-            new: 1
-          }
-        })
+        this.$emit('success')
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)
+        this.$store.commit('loader/MutMessage', null)
+        clearInterval(interv)
       }
       this.projectCreation = false
     },

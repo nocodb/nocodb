@@ -3,7 +3,8 @@ import Vue from 'vue'
 export const state = () => ({
   list: [],
   activeTab: 0,
-  activeTabCtx: {}
+  activeTabCtx: {},
+  tabsState: {}
 })
 
 export const mutations = {
@@ -53,6 +54,20 @@ export const mutations = {
     Vue.set(state, 'list', list)
 
     // state.list = list;
+  },
+  MutSetTabState(state, { id, key, val }) {
+    const tabState = { ...(state.tabsState[id] || {}) }
+    Vue.set(tabState, key, val)
+    Vue.set(state.tabsState, id, tabState)
+  },
+  MutClearTabState(state, key) {
+    if (key) {
+      const newState = { ...state.tabsState }
+      delete newState[key]
+      state.tabsState = newState
+    } else {
+      state.tabsState = {}
+    }
   }
 }
 
@@ -257,7 +272,9 @@ export const actions = {
           .children[0] // db
           .children.find(n => n.type === 'tableDir') // parent node
           .children
-        if (nodes && nodes[0]) { tabs.push(nodes[0]) }
+        if (nodes && nodes[0]) {
+          tabs.push(nodes[0])
+        }
       }
     }
     commit('list', tabs)

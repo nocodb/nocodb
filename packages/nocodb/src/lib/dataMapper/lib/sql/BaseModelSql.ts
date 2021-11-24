@@ -75,8 +75,8 @@ class BaseModelSql extends BaseModel {
     this.manyToManyRelations = manyToMany;
     this.virtualColumns = v;
     this.config = {
-      limitDefault: process.env.DB_QUERY_LIMIT_DEFAULT || 10,
-      limitMax: process.env.DB_QUERY_LIMIT_MAX || 500,
+      limitDefault: process.env.DB_QUERY_LIMIT_DEFAULT || 25,
+      limitMax: process.env.DB_QUERY_LIMIT_MAX || 100,
       limitMin: process.env.DB_QUERY_LIMIT_MIN || 1,
       log: false,
       explain: false,
@@ -1905,6 +1905,7 @@ class BaseModelSql extends BaseModel {
         parents.split('~').map((parent, index) => {
           const { cn, rcn } =
             this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
           const parentIds = [
             ...new Set(childs.map(c => c[cn] || c[this.columnToAlias[cn]]))
           ];
@@ -2162,7 +2163,7 @@ class BaseModelSql extends BaseModel {
       ),
       this.config.limitMin
     );
-    obj.offset = args.offset || args.o || 0;
+    obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f || '*';
     obj.sort = args.sort || args.s;
     return obj;
@@ -2573,6 +2574,9 @@ class BaseModelSql extends BaseModel {
         );
       }
       default:
+        if (value && typeof value === 'object') {
+          return JSON.stringify(value);
+        }
         return value;
     }
   }

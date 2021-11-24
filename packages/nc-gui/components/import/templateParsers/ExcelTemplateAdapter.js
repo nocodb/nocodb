@@ -63,7 +63,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const column = {
           cn
         }
-
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
         const cellId = XLSX.utils.encode_cell({
           c: range.s.c + col,
@@ -94,13 +93,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               if (vals.some(v => v && v.toString().includes(','))) {
                 const flattenedVals = vals.flatMap(v => v ? v.toString().split(',') : [])
                 const uniqueVals = new Set(flattenedVals)
-                if (flattenedVals.length > uniqueVals.size && uniqueVals.size <= flattenedVals.length / 10) {
+                if (flattenedVals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(flattenedVals.length / 2)) {
                   column.uidt = UITypes.MultiSelect
                   column.dtxp = [...uniqueVals].join(',')
                 }
               } else {
                 const uniqueVals = new Set(vals)
-                if (vals.length > uniqueVals.size && uniqueVals.size <= vals.length / 10) {
+                if (vals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(vals.length / 2)) {
                   column.uidt = UITypes.SingleSelect
                   column.dtxp = [...uniqueVals].join(',')
                 }

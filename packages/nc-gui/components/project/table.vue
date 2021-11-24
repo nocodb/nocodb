@@ -317,6 +317,7 @@
           >
             <rows-xc-data-table
               ref="tabs7"
+              :tab-id="tabId"
               :show-tabs="relationTabs && relationTabs.length"
               :table="nodes.tn"
               :nodes="nodes"
@@ -638,7 +639,7 @@ export default {
   head() {
     return {}
   },
-  props: ['nodes', 'hideLogWindows']
+  props: ['nodes', 'hideLogWindows', 'tabId']
 }
 </script>
 

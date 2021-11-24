@@ -599,6 +599,7 @@
 
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
+      :rules="[validateTableName]"
       :dialog-show="dialogRenameTable.dialogShow"
       :heading="dialogRenameTable.heading"
       :cookie="dialogRenameTable.cookie"
@@ -641,6 +642,13 @@
       :heading="selectedNodeForDelete.heading"
       type="error"
     />
+    <excel-import
+      ref="excelImport"
+      v-model="excelImportDialog"
+      hide-label
+      import-to-project
+      @success="onExcelImport"
+    />
   </div>
 </template>
 
@@ -659,11 +667,14 @@ import {copyTextToClipboard} from '../helpers/xutils';
 import DlgTableCreate from '@/components/utils/dlgTableCreate';
 import DlgViewCreate from '@/components/utils/dlgViewCreate';
 import SponsorMini from '@/components/sponsorMini';
+import {validateTableName} from "~/helpers";
+import ExcelImport from "~/components/import/excelImport";
 
 // const {clipboard} = require('electron');
 
 export default {
   components: {
+    ExcelImport,
     SponsorMini,
     DlgViewCreate,
     DlgTableCreate,
@@ -671,6 +682,7 @@ export default {
     dlgLabelSubmitCancel,
   },
   data: () => ({
+    validateTableName,
     roleIcon: {
       owner: 'mdi-account-star',
       creator: 'mdi-account-hard-hat',
@@ -701,6 +713,7 @@ export default {
     open: [],
     search: null,
     menuVisible: false,
+    excelImportDialog:false,
     x: 0,
     y: 0,
     menuItem: null,
@@ -921,7 +934,12 @@ export default {
         this.miniExpanded = false;
       }
     },
-
+    onExcelImport() {
+      if (!this.menuItem || this.menuItem.type !== 'tableDir') {
+        this.menuItem = this.listViewArr.find(n => n.type === 'tableDir');
+      }
+      this.loadTables(this.menuItem)
+    },
     ...mapMutations({
       setProject: 'project/list',
       updateProject: 'project/update',
@@ -1143,12 +1161,11 @@ export default {
             this.dialogGetFunctionName.dialogShow = true;
           } else if (action === 'ENV_DB_FUNCTIONS_CREATE') {
             this.dialogGetFunctionName.dialogShow = true;
-          } else if (action === 'ENV_DB_TABLES_REFRESH') {
-            await this.loadTables(this.menuItem);
-            this.$toast.success('Tables refreshed').goAway(1000);
           } else if (action === 'ENV_DB_VIEWS_REFRESH') {
             await this.loadViews(this.menuItem);
             this.$toast.success('Views refreshed').goAway(1000);
+          } else if (action === 'IMPORT_EXCEL') {
+            this.excelImportDialog = true
           } else if (action === 'ENV_DB_FUNCTIONS_REFRESH') {
             await this.loadFunctions(this.menuItem);
             this.$toast.success('Functions refreshed').goAway(1000);
@@ -1299,7 +1316,7 @@ export default {
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
           tn: this.menuItem._nodes.tn,
-          _tn:_tn,
+          _tn: _tn,
           dbConnection: this.menuItem._nodes.dbConnection,
 
           type: 'table',
@@ -1310,8 +1327,8 @@ export default {
       });
       this.dialogRenameTable.dialogShow = false;
       this.dialogRenameTable.defaultValue = null;
-      this.$toast.success('Table renamed succesfully').goAway(3000);
-      console.log(tn, cookie);
+      this.$toast.success('Table renamed successfully').goAway(3000);
+      console.log(_tn, cookie);
     },
     mtdDialogRenameTableCancel() {
       console.log('mtdDialogGetTableNameCancel cancelled');
@@ -1319,7 +1336,7 @@ export default {
       this.dialogRenameTable.defaultValue = null;
     },
     mtdTableCreate(table) {
-      if (!this.menuItem) {
+      if (!this.menuItem || this.menuItem.type !== 'tableDir') {
         this.menuItem = this.listViewArr.find(n => n.type === 'tableDir');
       }
       // const tables = table.name.split(',');

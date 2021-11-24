@@ -92,6 +92,11 @@ style="background: transparent; "></iframe>
             // wait for iFrame to load
             cy.frameLoaded('.nc-embed')
 
+            // for GQL- additionally close GQL Client window
+            if (type === 'graphql') {
+                cy.iframe().find(`[title="Graphql Client"] > button.mdi-close`).click()
+            }
+
             // validation for base menu opitons
             cy.iframe().find('.nc-project-tree').should('exist')
             cy.iframe().find('.nc-fields-menu-btn').should('exist')

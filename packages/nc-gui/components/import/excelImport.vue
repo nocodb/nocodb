@@ -1,5 +1,5 @@
 <template>
-  <div class="pt-10">
+  <div :class="{'pt-10':!hideLabel}">
     <v-dialog v-model="dropOrUpload" max-width="600">
       <v-card max-width="600">
         <v-tabs height="30">
@@ -125,21 +125,25 @@
     </v-tooltip>
 
     <v-dialog v-if="templateData" v-model="templateEditorModal" max-width="1000">
-      <v-card class="pa-6">
+      <v-card class="pa-6" min-width="500">
         <template-editor :project-template.sync="templateData" excel-import>
           <template #toolbar="{valid}">
-            <!--            <h3 class="mt-2 grey&#45;&#45;text">-->
-            <!--              Import Excel as Project -->
-            <!--            </h3>-->
+            <h3 class="mt-2 grey--text">
+              Importing : {{ filename }}
+            </h3>
             <!--            <span class="grey&#45;&#45;text">Importing 2 sheets</span>-->
 
+            <v-spacer />
             <v-spacer />
             <create-project-from-template-btn
               :template-data="templateData"
               :import-data="importData"
+              :import-to-project="importToProject"
+              excel-import
               :valid="valid"
               create-gql-text="Import as GQL Project"
               create-rest-text="Import as REST Project"
+              @success="$emit('success'),templateEditorModal = false"
             >
               Import Excel
             </create-project-from-template-btn>
@@ -163,7 +167,8 @@ export default {
   components: { CreateProjectFromTemplateBtn, TemplateEditor },
   props: {
     hideLabel: Boolean,
-    value: Boolean
+    value: Boolean,
+    importToProject: Boolean
   },
   data() {
     return {
@@ -243,20 +248,27 @@ export default {
     },
 
     async parseAndExtractData(type, val, name) {
-      let templateGenerator
-      switch (type) {
-        case 'file':
-          templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
-          break
-        case 'url':
-          templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig)
-          break
+      try {
+        let templateGenerator
+        this.templateData = null
+        this.importData = null
+        switch (type) {
+          case 'file':
+            templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
+            break
+          case 'url':
+            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig)
+            break
+        }
+        await templateGenerator.init()
+        templateGenerator.parse()
+        this.templateData = templateGenerator.getTemplate()
+        this.importData = templateGenerator.getData()
+        this.templateEditorModal = true
+      } catch (e) {
+        console.log(e)
+        this.$toast.error(e.message).goAway(3000)
       }
-      await templateGenerator.init()
-      templateGenerator.parse()
-      this.templateData = templateGenerator.getTemplate()
-      this.importData = templateGenerator.getData()
-      this.templateEditorModal = true
     },
 
     dropHandler(ev) {

@@ -58,13 +58,6 @@
                   <template #progress />
                 </v-text-field>
 
-                <!---->
-
-                <!--                <vue-recaptcha @verify="onNormalVerify" sitekey="6LfbcqMUAAAAAAb_2319UdF8m68JHSYVy_m4wPBx"-->
-                <!--                               style="transform:scale(0.7);-webkit-transform:scale(0.7);transform-origin:0 0;-webkit-transform-origin:0 0;">-->
-
-                <!--                </vue-recaptcha>-->
-
                 <v-btn
                   v-ge="['Sign Up ','']"
                   color="primary"
@@ -85,7 +78,10 @@
 
                 <br>
                 <br>
-                <br>
+                <div class="d-flex align-center justify-center mb-2">
+                  <v-switch v-model="subscribe" dense hide-details class="mt-0  pt-0" />
+                  <label class="caption font-weight-light">Subscribe to our weekly newsletter</label>
+                </div>
                 <p v-ge="['Already have an account ?','']" class="font-weight-light caption">
                   {{ $t('signup.already_ve_an_account') }}
                   <router-link to="/user/authentication/signin">
@@ -198,10 +194,10 @@
                 <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"><u>Terms of service</u></span>
               </p> &nbsp;
 
-              <div class="d-flex align-center mb-4 justify-center">
+              <!--              <div class="d-flex align-center mb-4 justify-center">
                 <v-checkbox v-model="subscribe" color="grey" dense hide-details class="mt-0  pt-0" />
-                <label class="caption grey--text font-weight-light">Subscribe to our weekly newsletter</label>
-              </div>
+                <label class="caption grey&#45;&#45;text font-weight-light">Subscribe to our weekly newsletter</label>
+              </div>-->
             </v-row>
 
             <!--<br>-->
@@ -247,7 +243,7 @@ export default {
 
   data() {
     return {
-      subscribe: true,
+      subscribe: false,
       isDev: (process.env.NODE_ENV === 'dev'),
 
       dialog: false,

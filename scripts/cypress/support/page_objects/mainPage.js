@@ -90,11 +90,7 @@ export class _mainPage {
         cy.get('label:contains("Select User roles")').click()
 
         // opt-in requested role & submit
-        // note that, 'editor' is set by default
-        //
         cy.getActiveMenu().contains(roleType).click()
-        cy.getActiveMenu().contains('editor').click()
-        cy.get('.mdi-menu-down').last().click()
         cy.get('.nc-invite-or-save-btn').click()
 
         // get URL, invoke
@@ -129,11 +125,8 @@ export class _mainPage {
         cy.get('label:contains(Select User roles)').click()
 
         // opt-in requested role & submit
-        // note that, 'editor' is set by default
         //
         cy.getActiveMenu().contains(role).click()
-        cy.getActiveMenu().contains('editor').click()
-        cy.get('.mdi-menu-down').click()
         cy.get('.nc-invite-or-save-btn').click()
         cy.wait(1000)
 

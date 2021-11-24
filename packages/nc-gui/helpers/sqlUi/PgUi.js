@@ -1630,13 +1630,13 @@ export class PgUi {
         colProp.dt = 'character varying'
         break
       case 'DateTime':
-        colProp.dt = 'datetime'
+        colProp.dt = 'timestamp'
         break
       case 'CreateTime':
-        colProp.dt = 'datetime'
+        colProp.dt = 'timestamp'
         break
       case 'LastModifiedTime':
-        colProp.dt = 'datetime'
+        colProp.dt = 'timestamp'
         break
       case 'AutoNumber':
         colProp.dt = 'int'
@@ -1761,7 +1761,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric',
+          'numeric'
         ]
 
       case 'Decimal':
@@ -1769,7 +1769,7 @@ export class PgUi {
           'double precision',
           'float4',
           'float8',
-          'numeric',
+          'numeric'
         ]
 
       case 'Currency':
@@ -1787,7 +1787,7 @@ export class PgUi {
           'double precision',
           'money', 'float4',
           'float8',
-          'numeric',
+          'numeric'
         ]
 
       case 'Percent':
@@ -1807,7 +1807,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric',
+          'numeric'
         ]
 
       case 'Duration':
@@ -1827,7 +1827,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric',
+          'numeric'
         ]
 
       case 'Rating':
@@ -1847,7 +1847,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric',
+          'numeric'
         ]
 
       case 'Formula':

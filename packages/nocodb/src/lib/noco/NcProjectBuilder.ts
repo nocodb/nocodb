@@ -763,6 +763,7 @@ export default class NcProjectBuilder {
         if (this.config.auth.jwt) {
           if (
             !(
+              req.session.passport.user.roles.owner ||
               req.session.passport.user.roles.creator ||
               req.session.passport.user.roles.editor ||
               req.session.passport.user.roles.commenter ||

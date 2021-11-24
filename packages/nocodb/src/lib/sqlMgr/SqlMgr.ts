@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import url from 'url';
+import { Tele } from 'nc-help';
 
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
@@ -1023,6 +1024,7 @@ export default class SqlMgr {
     // t = process.hrtime();
     const data = await require('axios')(...apiMeta);
 
+    Tele.emit('evt', { evt_type: 'import:excel:url' });
     return data.data;
   }
 

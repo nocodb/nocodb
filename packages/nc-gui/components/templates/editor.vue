@@ -1,5 +1,5 @@
 <template>
-  <div class="h-100">
+  <div class="h-100" style="min-height: 500px">
     <v-toolbar v-if="!viewMode" class="elevation-0">
       <slot name="toolbar" :valid="valid">
         <!--      <v-text-field
@@ -86,6 +86,7 @@
         </v-btn>
       </slot>
     </v-toolbar>
+    <v-divider class="mt-6" />
     <v-container class="text-center" style="height:calc(100% - 64px);overflow-y: auto">
       <v-form ref="form" v-model="valid">
         <v-row fluid class="justify-center">
@@ -97,17 +98,20 @@
                     <v-text-field
                       ref="project"
                       v-model="project.title"
-                      class="caption"
+                      class="title"
                       outlined
-                      dense
-                      label="Project Name"
-                      persistent-hint
+                      hide-details
+                      denses
                       :rules="[v => !!v || 'Project name required'] "
-                    />
+                    >
+                      <template #label>
+                        <span class="caption">Project Name</span>
+                      </template>
+                    </v-text-field>
                   </div>
                 </div>
 
-                <p v-if="project.tables" class="caption grey--text">
+                <p v-if="project.tables" class="caption grey--text mt-4">
                   {{ project.tables.length }} sheet{{ project.tables.length > 1 ? 's' :'' }} are available for import
                 </p>
 
@@ -127,7 +131,7 @@
                       <v-text-field
                         v-if="editableTn[i]"
                         :value="table.tn"
-                        class="title"
+                        class="font-weight-bold"
                         style="max-width: 300px"
                         outlinedk
                         autofocus
@@ -140,7 +144,7 @@
                       />
                       <span
                         v-else
-                        class="title"
+                        class="font-weight-bold"
                         @click="e => viewMode || (e.stopPropagation() , $set(editableTn,i, true))"
                       >
                         <v-icon color="primary lighten-1">mdi-table</v-icon>
@@ -829,7 +833,7 @@ export default {
         return
       }
       // todo: fix
-      const re = /(?<=^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g
+      const re = /(?:^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g
       let m
       // eslint-disable-next-line no-cond-assign
       while (m = re.exec(this.tableNamesInput)) {

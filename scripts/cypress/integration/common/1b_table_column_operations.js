@@ -10,8 +10,8 @@ export const genTest = (type, xcdb) => {
     const name = 'tablex'
     const colName = 'column_name_a'
     const updatedColName = 'updated_column_name'
-    const randVal = 'Test'
-    const updatedRandVal = 'Updated'    
+    const randVal = 'Test@1234.com'
+    const updatedRandVal = 'Updated@1234.com'    
 
     before(() => {
       // loginPage.loginAndOpenProject(type)
@@ -91,22 +91,19 @@ export const genTest = (type, xcdb) => {
       cy.wait(2000)
       cy.get('.nc-add-new-row-btn').click({force: true});
       cy.get('#data-table-form-Title > input').first().type(randVal);
-      cy.contains('Save Row').filter('button').click({force: true})
-      cy.get('td', {timeout: 10000}).contains(randVal).should('exist');
+      cy.getActiveModal().find('button').contains('Save Row').click({force: true})
+      mainPage.getCell('Title', 1).contains(randVal).should('exist')
     })
 
     it('Update row', () => {
-      cy.get('td').contains(randVal)
-        .closest('tr')
-        .find('.nc-row-expand-icon')
-        .click({force: true});
-
+      mainPage.getRow(1).find('.nc-row-expand-icon').click({force: true})
       cy.get('#data-table-form-Title > input').first().clear().type(updatedRandVal);
-      cy.contains('Save Row').filter('button').click({force: true})
+      cy.getActiveModal().find('button').contains('Save Row').click({force: true})
 
       cy.wait(3000)
-      cy.get('td').contains(randVal).should('not.exist');
-      cy.get('td').contains(updatedRandVal).should('exist');
+      
+      mainPage.getCell('Title', 1).contains(randVal).should('not.exist')
+      mainPage.getCell('Title', 1).contains(updatedRandVal).should('exist')
     })
 
     it('Delete row', () => {

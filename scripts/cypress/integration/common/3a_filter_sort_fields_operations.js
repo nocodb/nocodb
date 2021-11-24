@@ -65,15 +65,18 @@ export const genTest = (type, xcdb) => {
       // create new row using right click menu option
       //
       it('Add row using rightclick menu option', () => {
-        mainPage.getPagination(5).click()
+        // mainPage.getPagination(5).click({ force: true })
 
-        mainPage.getCell("Country", 9).rightclick()
-        cy.getActiveMenu().contains('Insert New Row').click()
-        mainPage.getCell("Country", 10).dblclick().type('Test Country-1{enter}')
+        // wait before proceeding further to ensure reload is completed
+        // cy.wait(1000)
 
-        mainPage.getCell("Country", 10).rightclick()
-        cy.getActiveMenu().contains('Insert New Row').click()
-        mainPage.getCell("Country", 11).dblclick().type('Test Country-2{enter}')
+        mainPage.getCell("Country", 9).rightclick({force: true})
+        cy.getActiveMenu().contains('Insert New Row').click({force: true})
+        mainPage.getCell("Country", 10).dblclick().find('input').type('Test Country-1{enter}')
+
+        mainPage.getCell("Country", 10).rightclick({force: true})
+        cy.getActiveMenu().contains('Insert New Row').click({force: true})
+        mainPage.getCell("Country", 11).dblclick().find('input').type('Test Country-2{enter}')
 
         // verify
         mainPage.getCell("Country", 10).contains("Test Country-1").should('exist')
@@ -86,8 +89,8 @@ export const genTest = (type, xcdb) => {
         mainPage.getRow(10).find('.mdi-checkbox-blank-outline').click({force: true})
         mainPage.getRow(11).find('.mdi-checkbox-blank-outline').click({force: true})
 
-        mainPage.getCell("Country", 10).rightclick()
-        cy.getActiveMenu().contains('Delete Selected Row').click()
+        mainPage.getCell("Country", 10).rightclick({force: true})
+        cy.getActiveMenu().contains('Delete Selected Row').click({force: true})
 
         // verify
         mainPage.getCell("Country", 10).should('not.exist')

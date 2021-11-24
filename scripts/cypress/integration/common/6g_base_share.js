@@ -28,14 +28,13 @@ export const genTest = (type, xcdb) => {
             
             // Click on readonly base text
             cy.getActiveModal()
-                .find('.nc-container')
-                .contains('Generate publicly shareable readonly base')
+                .find('.nc-disable-shared-base')
                 .click()
             
             // Select 'Readonly link'
             cy.getActiveMenu()
                 .find('.caption')
-                .contains('Readonly link')
+                .contains('Anyone with the link')
                 .click()
             
             // Copy URL

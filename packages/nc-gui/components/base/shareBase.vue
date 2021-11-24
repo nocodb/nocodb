@@ -30,7 +30,7 @@
           <v-menu offset-x>
             <template #activator="{on}">
               <div class="my-2" v-on="on">
-                <div class="font-weight-bold">
+                <div class="font-weight-bold nc-disable-shared-base">
                   <span v-if="base.enabled">Anyone with the link</span>
                   <span v-else>Disabled shared base</span>
                   <v-icon small>

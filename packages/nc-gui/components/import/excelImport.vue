@@ -248,20 +248,27 @@ export default {
     },
 
     async parseAndExtractData(type, val, name) {
-      let templateGenerator
-      switch (type) {
-        case 'file':
-          templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
-          break
-        case 'url':
-          templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig)
-          break
+      try {
+        let templateGenerator
+        this.templateData = null
+        this.importData = null
+        switch (type) {
+          case 'file':
+            templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
+            break
+          case 'url':
+            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig)
+            break
+        }
+        await templateGenerator.init()
+        templateGenerator.parse()
+        this.templateData = templateGenerator.getTemplate()
+        this.importData = templateGenerator.getData()
+        this.templateEditorModal = true
+      } catch (e) {
+        console.log(e)
+        this.$toast.error(e.message).goAway(3000)
       }
-      await templateGenerator.init()
-      templateGenerator.parse()
-      this.templateData = templateGenerator.getTemplate()
-      this.importData = templateGenerator.getData()
-      this.templateEditorModal = true
     },
 
     dropHandler(ev) {

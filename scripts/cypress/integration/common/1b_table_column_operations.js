@@ -91,7 +91,10 @@ export const genTest = (type, xcdb) => {
       cy.wait(2000)
       cy.get('.nc-add-new-row-btn').click({force: true});
       cy.get('#data-table-form-Title > input').first().type(randVal);
-      cy.getActiveModal().find('button').contains('Save Row').click({force: true})
+      cy.getActiveModal().find('button').contains('Save Row').click({ force: true })
+
+      // kludge- add delay to ensure previous operations are completed
+      cy.wait(2000)
       mainPage.getCell('Title', 1).contains(randVal).should('exist')
     })
 
@@ -107,7 +110,7 @@ export const genTest = (type, xcdb) => {
     })
 
     it('Delete row', () => {
-      cy.get('td').contains(updatedRandVal).rightclick({force: true})
+      mainPage.getCell('Title', 1).contains(updatedRandVal).rightclick({ force: true })
 
       // delete row
       cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click({force: true})

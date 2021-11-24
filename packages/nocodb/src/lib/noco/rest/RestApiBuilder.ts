@@ -432,7 +432,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       r._tn = this.getTableNameAlias(r.tn);
       r._rtn = this.getTableNameAlias(r.rtn);
     });
-
+    await this.relationsSyncAndGet();
+    
     const tableRoutes = tables.map(table => {
       return async () => {
         swaggerRefs[table.tn] = [];

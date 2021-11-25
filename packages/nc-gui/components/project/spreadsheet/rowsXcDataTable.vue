@@ -597,6 +597,12 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    syncDataDebounce: debounce(async function(self) {
+      await self.syncData()
+    }, 500),
+    loadTableDataDeb: debounce(async function(self) {
+      await self.loadTableDataFn()
+    }, 200),
     viewKey: 0,
     extraViewParams: {},
     debug: false,
@@ -779,9 +785,6 @@ export default {
         this.$refs.ncgridview.xcAuditModelCommentsCount()
       }
     },
-    syncDataDebounce: debounce(async function(self) {
-      await self.syncData()
-    }, 500),
     async syncData() {
       if (this.relation) {
         return
@@ -1102,9 +1105,6 @@ export default {
         }
       }
     },
-    loadTableDataDeb: debounce(async function(self) {
-      await self.loadTableDataFn()
-    }, 200),
     loadTableData() {
       this.loadTableDataDeb(this)
     },

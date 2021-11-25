@@ -2165,7 +2165,7 @@ class BaseModelSql extends BaseModel {
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f || '*';
-    obj.sort = args.sort || args.s;
+    obj.sort = args.sort || args.s || this.pks?.[0]?.cn;
     return obj;
   }
 

@@ -9,7 +9,7 @@ let linkText = ''
 export const genTest = (type, xcdb) => {
     if(!isTestSuiteActive(type, xcdb)) return;
 
-    describe(`${type.toUpperCase()} Columns of type attachment`, () => {
+    describe(`${type.toUpperCase()} Base VIEW share`, () => {
         // before(() => {
         //     cy.waitForSpinners();
         //     cy.signinOrSignup(roles.owner.credentials)
@@ -72,6 +72,8 @@ style="background: transparent; "></iframe>
                 baseUrl: null
             })
             projectsPage.waitHomePageLoad()
+
+            cy.closeTableTab('Actor')
         })
 
         it(`Validate access permissions`, () => {

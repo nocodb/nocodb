@@ -317,6 +317,11 @@ export default {
         this.syncDataDebounce(this)
       }
     },
+    groupingField(v) {
+      if (!this.loadingMeta || !this.loadingData) {
+        this.syncDataDebounce(this)
+      }
+    },
     fieldsOrder: {
       handler(v) {
         if (!this.loadingMeta || !this.loadingData) {

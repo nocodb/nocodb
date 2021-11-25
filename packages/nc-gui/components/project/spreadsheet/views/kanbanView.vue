@@ -85,7 +85,7 @@ export default {
     'primaryValueColumn',
     'showSystemFields',
     'sqlUi',
-    'coverImageField',
+    'groupingField',
     'api',
   ],
   data() {
@@ -116,14 +116,12 @@ export default {
   methods: {
     async setKanbanData() {
       try {
-        // TODO: add "Choose a grouping field" window
-        const groupingField = "Category"
         // TODO: update stagesColors
         this.stagesColors = ['error', 'primary', 'warning', 'success']
         for(var i = 0; i < this.data.length; i++) {
-          this.stages.push(this.data[i].row[groupingField])
+          this.stages.push(this.data[i].row[this.groupingField])
           const block = {
-            status: this.data[i].row[groupingField],
+            status: this.data[i].row[this.groupingField],
             rowMeta: this.data[i].rowMeta,
             ...this.data[i].row
           }
@@ -147,16 +145,14 @@ export default {
           // no change
           return
         }
-        // TODO: add "Choose a grouping field" window
-        const groupingField = "Category"
 
         const prevStatus = this.blocks[id - 1].status
         const newData = await this.api.update(id, 
-        { [groupingField]: status }, // new data
-        { [groupingField]: prevStatus }) // old data
+        { [this.groupingField]: status }, // new data
+        { [this.groupingField]: prevStatus }) // old data
 
         this.blocks[id - 1].status = status
-        this.blocks[id - 1][groupingField] = status
+        this.blocks[id - 1][this.groupingField] = status
 
         this.$toast.success(`Moved block from ${prevStatus} to ${status} successfully.`, {
           position: 'bottom-center'

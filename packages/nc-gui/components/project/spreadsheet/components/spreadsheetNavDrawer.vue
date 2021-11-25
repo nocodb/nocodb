@@ -531,6 +531,7 @@ export default {
     viewStatus: Object,
     columnsWidth: Object,
     coverImageField: String,
+    groupingField: String,
     showSystemFields: Boolean
   },
   data: () => ({
@@ -634,6 +635,7 @@ export default {
       this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
       this.$emit('update:extraViewParams', queryParams.extraViewParams || {})
       this.$emit('update:coverImageField', queryParams.coverImageField)
+      this.$emit('update:groupingField', queryParams.groupingField)
       this.$emit('update:showSystemFields', queryParams.showSystemFields)
       if (queryParams.showFields) {
         this.$emit('update:showFields', queryParams.showFields)

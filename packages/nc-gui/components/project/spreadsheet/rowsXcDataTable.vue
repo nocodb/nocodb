@@ -124,7 +124,9 @@
           :sql-ui="sqlUi"
           :show-system-fields.sync="showSystemFields"
           :cover-image-field.sync="coverImageField"
+          :grouping-field.sync="groupingField"
           :is-gallery="isGallery"
+          :is-kanban="isKanban"
         />
 
         <sort-list
@@ -290,6 +292,7 @@
               :data="data"
               :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
+              :grouping-field="groupingField"
               :api="api"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
@@ -348,6 +351,7 @@
         :meta="meta"
         :selected-view-id.sync="selectedViewId"
         :cover-image-field.sync="coverImageField"
+        :grouping-field.sync="groupingField"
         :selected-view.sync="selectedView"
         :primary-value-column="primaryValueColumn"
         :concatenated-x-where="concatenatedXWhere"
@@ -610,6 +614,7 @@ export default {
     },
     fieldsOrder: [],
     coverImageField: null,
+    groupingField: null,
     showSystemFields: false,
     showAdvanceOptions: false,
     loadViews: false,
@@ -801,6 +806,10 @@ export default {
 
         if (this.isGallery) {
           queryParams.coverImageField = this.coverImageField
+        }
+
+        if (this.isKanban) {
+          queryParams.groupingField = this.groupingField
         }
 
         this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))

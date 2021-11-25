@@ -77,11 +77,25 @@ export default {
       if (!this.valid) { return }
       let showFields = null
       let attachmentCol
+      let singleSelectCol
       if (this.show_as === 'gallery') {
         showFields = { [this.primaryValueColumn]: true }
         attachmentCol = this.meta.columns.find(c => c.uidt === 'Attachment')
         if (attachmentCol) {
           showFields[attachmentCol.cn] = true
+        }
+        this.meta.columns.forEach((c) => {
+          if (c.pk) {
+            showFields[c.cn] = true
+          }
+        })
+      }
+
+      if (this.show_as === 'kanban') {
+        showFields = { [this.primaryValueColumn]: true }
+        singleSelectCol = this.meta.columns.find(c => c.uidt === 'SingleSelect')
+        if (singleSelectCol) {
+          showFields[singleSelectCol.cn] = true
         }
         this.meta.columns.forEach((c) => {
           if (c.pk) {
@@ -99,6 +113,7 @@ export default {
           query_params: {
             showFields,
             coverImageField: attachmentCol ? attachmentCol._cn : '',
+            groupingField: singleSelectCol ? singleSelectCol._cn : '',
             ...this.queryParams
           },
           parent_model_title: this.table,

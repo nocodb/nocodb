@@ -33,7 +33,7 @@
           <v-select
             v-model="coverImageFieldLoc"
             label="Cover Image"
-            class="caption cover-image"
+            class="caption field-caption"
             dense
             outlined
             :items="attachmentFields"
@@ -43,8 +43,32 @@
             @click.stop
           >
             <template #prepend-inner>
-              <v-icon small class="cover-image-icon">
+              <v-icon small class="field-icon">
                 mdi-image
+              </v-icon>
+            </template>
+          </v-select>
+        </div>
+        <v-divider />
+      </template>
+
+      <template v-if="isKanban">
+        <div class="pa-2">
+          <v-select
+            v-model="groupingFieldLoc"
+            label="Grouping Field"
+            class="caption field-caption"
+            dense
+            outlined
+            :items="singleSelectFields"
+            item-text="alias"
+            item-value="_cn"
+            hide-details
+            @click.stop
+          >
+            <template #prepend-inner>
+              <v-icon small class="field-icon">
+                mdi-select-group
               </v-icon>
             </template>
           </v-select>
@@ -139,7 +163,9 @@ export default {
   },
   props: {
     coverImageField: String,
+    groupingField: String,
     isGallery: Boolean,
+    isKanban: Boolean,
     sqlUi: [Object, Function],
     meta: Object,
     fieldsOrder: [Array],
@@ -164,12 +190,26 @@ export default {
         _cn: ''
       }]
     },
+    singleSelectFields() {
+      return [...(this.meta && this.meta.columns ? this.meta.columns.filter(f => f.uidt === 'SingleSelect') : []), {
+        alias: 'None',
+        _cn: ''
+      }]
+    },
     coverImageFieldLoc: {
       get() {
         return this.coverImageField
       },
       set(val) {
         this.$emit('update:coverImageField', val)
+      }
+    },
+    groupingFieldLoc: {
+      get() {
+        return this.groupingField
+      },
+      set(val) {
+        this.$emit('update:groupingField', val)
       }
     },
     columnMeta() {
@@ -244,7 +284,7 @@ export default {
     font-size: 12px !important;
   }
 
-  .cover-image {
+  .field-caption {
     .v-input__append-inner {
       margin-top: 4px !important;
     }
@@ -257,7 +297,7 @@ export default {
       max-height: 20px !important;
     }
 
-    .cover-image-icon{
+    .field-icon{
       margin-top: 2px;
     }
   }

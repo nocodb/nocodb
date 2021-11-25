@@ -37,7 +37,7 @@ import FieldsMenu from '../components/fieldsMenu'
 import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
 import XcGridView from '../views/xcGridView'
-import CsvExportImport from '~/components/project/spreadsheet/components/csvExportImport'
+import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
 export default {
   name: 'XcKanban',
   components: { CsvExportImport, XcGridView, ColumnFilterMenu, SortListMenu, FieldsMenu },

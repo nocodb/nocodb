@@ -1,6 +1,6 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
-    <v-toolbar height="32" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
+    <v-toolbar height="32" dense class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1" style="z-index: 7">
       <div v-if="!isForm" class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
@@ -74,33 +74,50 @@
         </v-tooltip>
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
 
-        <x-btn
+        <!--        <x-btn
           tooltip="Reload view data"
           outlined
           small
           text
-          btn.class="nc-table-reload-btn"
+          btn.class="nc-table-reload-btn px-0"
+          @click="reload"
+        >-->
+        <v-icon small class="mx-n1" color="grey lighten-1">
+          mdi-circle-small
+        </v-icon>
+        <x-icon
+          tooltip="Reload view data"
+          icon.class="nc-table-reload-btn mx-1"
+          small
           @click="reload"
         >
-          <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-reload
-          </v-icon>
-        </x-btn>
-        <x-btn
-          v-if="isEditable && relationType !== 'bt'"
+          mdi-reload
+        </x-icon>
+        <v-icon small class="mx-n1" color="grey lighten-1">
+          mdi-circle-small
+        </v-icon>
+        <!--        </x-btn>-->
+        <!--        <x-btn-->
+        <!--          v-if="isEditable && relationType !== 'bt'"-->
+        <!--          tooltip="Add new row"-->
+        <!--          :disabled="isLocked"-->
+        <!--          outlined-->
+        <!--          small-->
+        <!--          text-->
+        <!--          btn.class="nc-add-new-row-btn"-->
+        <!--          @click="insertNewRow(true,true)"-->
+        <!--        >-->
+        <x-icon
+          icon.class="nc-add-new-row-btn mx-1"
           tooltip="Add new row"
-          :disabled="isLocked"
-          outlined
           small
-          text
-          btn.class="nc-add-new-row-btn"
+          :color="['success','']"
           @click="insertNewRow(true,true)"
         >
-          <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-plus
-          </v-icon>
-        </x-btn>
-        <x-btn
+          mdi-plus-outline
+        </x-icon>
+        <!--        </x-btn>-->
+        <!--        <x-btn
           small
           text
           btn.class="nc-save-new-row-btn"
@@ -113,52 +130,12 @@
             save
           </v-icon>
           Save
-        </x-btn>
-
-        <fields
-          v-model="showFields"
-          :field-list="fieldList"
-          :meta="meta"
-          :is-locked="isLocked"
-          :fields-order.sync="fieldsOrder"
-          :sql-ui="sqlUi"
-          :show-system-fields.sync="showSystemFields"
-          :cover-image-field.sync="coverImageField"
-          :is-gallery="isGallery"
-        />
-
-        <sort-list
-          v-model="sortList"
-          :is-locked="isLocked"
-          :field-list="[...realFieldList, ...formulaFieldList]"
-        />
-        <column-filter
-          v-model="filters"
-          :is-locked="isLocked"
-          :field-list="[...realFieldList, ...formulaFieldList]"
-          dense
-        />
-
-        <csv-export-import
-          ref="csvExportImport"
-          :meta="meta"
-          :nodes="nodes"
-          :query-params="{
-            fieldsOrder,
-            fieldFilter,
-            sortList,
-            showFields
-          }"
-          :selected-view="selectedView"
-          class="mr-1"
-        />
-
-        <v-tooltip
-          v-if="_isUIAllowed('table-delete')"
-          bottom
-        >
-          <template #activator="{on}">
-            <v-btn
+        </x-btn>-->
+        <!--        <v-tooltip-->
+        <!--          bottom-->
+        <!--        >-->
+        <!--          <template #activator="{on}">-->
+        <!--            <v-btn
               v-show="_isUIAllowed('table-delete')"
               class="nc-table-delete-btn"
               :disabled="isLocked"
@@ -167,15 +144,67 @@
               text
               v-on="on"
               @click="checkAndDeleteTable"
-            >
-              <x-icon small color="red grey">
-                mdi-delete-outline
-              </x-icon>
-            </v-btn>
-          </template>
-          <span class="">Delete table</span>
-        </v-tooltip>
+            >-->
+        <v-icon small class="mx-n1" color="grey lighten-1">
+          mdi-circle-small
+        </v-icon>
+        <x-icon
+          v-if="_isUIAllowed('table-delete')"
+          icon.class="nc-table-delete-btn mx-1 mr-1"
+          :disabled="isLocked"
+          small
+          :color="['red',''] "
+          tooltip="Delete table"
+          @click="checkAndDeleteTable"
+        >
+          mdi-delete-outline
+        </x-icon>
+
+        <v-icon small class="ml-n2" color="grey lighten-1">
+          mdi-circle-small
+        </v-icon>
+        <!--            </v-btn>-->
+        <!--          </template>-->
+        <!--          <span class="">Delete table</span>-->
+        <!--        </v-tooltip>-->
       </template>
+      <fields
+        v-model="showFields"
+        :field-list="fieldList"
+        :meta="meta"
+        :is-locked="isLocked"
+        :fields-order.sync="fieldsOrder"
+        :sql-ui="sqlUi"
+        :show-system-fields.sync="showSystemFields"
+        :cover-image-field.sync="coverImageField"
+        :is-gallery="isGallery"
+      />
+
+      <sort-list
+        v-model="sortList"
+        :is-locked="isLocked"
+        :field-list="[...realFieldList, ...formulaFieldList]"
+      />
+      <column-filter
+        v-model="filters"
+        :is-locked="isLocked"
+        :field-list="[...realFieldList, ...formulaFieldList]"
+        dense
+      />
+
+      <csv-export-import
+        ref="csvExportImport"
+        :meta="meta"
+        :nodes="nodes"
+        :query-params="{
+          fieldsOrder,
+          fieldFilter,
+          sortList,
+          showFields
+        }"
+        :selected-view="selectedView"
+      />
+
       <!-- Cell height -->
       <!--      <v-menu>
               <template v-slot:activator="{ on, attrs }">
@@ -212,7 +241,7 @@
       >
         <v-icon
           small
-          class="mx-2"
+          class="mx-0"
           color="grey  darken-3"
         >
           {{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
@@ -1290,6 +1319,9 @@ export default {
 
 /deep/ .v-input__control label {
   font-size: inherit;
+}
+/deep/ .nc-table-toolbar > .v-toolbar__content{
+  padding: 0;
 }
 </style>
 

@@ -8,7 +8,7 @@
         overlap
       >
         <v-btn
-          class="nc-filter-menu-btn"
+          class="nc-filter-menu-btn px-2"
           :disabled="isLocked"
           outlined
           small

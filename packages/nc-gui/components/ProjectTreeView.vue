@@ -118,7 +118,7 @@
             </template>
           </v-treeview>
           <v-container v-else fluid class="px-1 pt-0">
-            <v-list dense expand class="nc-project-tree nc-single-env-project-tree">
+            <v-list height="30" dense expand class="nc-project-tree nc-single-env-project-tree pt-1">
               <template v-for="item in listViewArr">
                 <!--                   v-if="item.children && item.children.length"-->
                 <v-list-group

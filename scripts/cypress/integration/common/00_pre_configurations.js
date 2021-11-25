@@ -14,7 +14,6 @@ export const genTest = (type, xcdb) => {
             cy.task('log', 'This will be output to the terminal')
             cy.waitForSpinners();
             cy.signinOrSignup(roles.owner.credentials)
-            cy.wait(2000)
         })
 
         const createProject = (proj) => {

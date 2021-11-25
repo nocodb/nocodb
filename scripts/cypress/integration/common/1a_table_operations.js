@@ -1,5 +1,4 @@
 
-import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage";
 
@@ -9,7 +8,6 @@ export const genTest = (type, xcdb) => {
   describe(`${xcdb ? 'Meta - ' : ''}${type.toUpperCase()} api - Table`, () => {
 
     before(() => {
-      //loginPage.loginAndOpenProject(type, xcdb)
       cy.get('.mdi-close').click({ multiple: true })
     })
       
@@ -36,7 +34,10 @@ export const genTest = (type, xcdb) => {
 
     it('Open Audit tab', ()=> {
         mainPage.navigationDraw(mainPage.AUDIT).click()
-        cy.wait(2000)
+
+      // wait for column headers to appear
+      //
+      cy.get('thead > tr > th.caption').should('have.length', 5)
 
         // Audit table entries
         //  [Header] Operation Type, Operation Sub Type, Description, User, Created
@@ -76,17 +77,19 @@ export const genTest = (type, xcdb) => {
       // 4. verify linked contents in other table
       // 4a. Address table, has many field
       cy.openTableTab('Address')
-      cy.wait(2000).then(() => {
-        mainPage.getCell('City <= Address', 1).scrollIntoView()
-        mainPage.getCell('City <= Address', 1).find('.name').contains('Lethbridge').should('exist')        
-      })
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)
+
+      mainPage.getCell('City <= Address', 1).scrollIntoView()
+      mainPage.getCell('City <= Address', 1).find('.name').contains('Lethbridge').should('exist')        
       cy.closeTableTab('Address')
 
       // 4b. Country table, belongs to field
       cy.openTableTab('Country')
-      cy.wait(2000).then(() => {
-        mainPage.getCell('Country => City', 1).find('.name').contains('Kabul').should('exist')
-      })      
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)
+      
+      mainPage.getCell('Country => City', 1).find('.name').contains('Kabul').should('exist')
       cy.closeTableTab('Country')
       
       // revert re-name operation to not impact rest of test suite

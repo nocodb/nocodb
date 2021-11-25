@@ -1,5 +1,4 @@
 
-import { loginPage } from "../../support/page_objects/navigation"
 import { mainPage } from "../../support/page_objects/mainPage"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
@@ -14,7 +13,6 @@ export const genTest = (type, xcdb) => {
     const updatedRandVal = 'Updated@1234.com'    
 
     before(() => {
-      // loginPage.loginAndOpenProject(type)
       cy.createTable(name)
     });
 
@@ -28,9 +26,6 @@ export const genTest = (type, xcdb) => {
       mainPage.addColumn(colName)
 
       cy.get(`th:contains(${colName})`).should('exist');
-
-      // wait for pop up's to exit
-      cy.wait(3000)
     })
 
     // edit the newly created column
@@ -45,6 +40,8 @@ export const genTest = (type, xcdb) => {
       cy.get('.nc-ui-dt-dropdown').click()
       cy.contains('LongText').click()
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()
+
+      cy.toastWait('Update table.tablex successful')
 
       cy.get(`th[data-col="${colName}"] .mdi-text-subject`).should('exist')
 
@@ -67,7 +64,7 @@ export const genTest = (type, xcdb) => {
       cy.get('.nc-column-name-input input').clear().type(updatedColName)
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()
 
-      cy.wait(3000)
+      cy.toastWait('Update table.tablex successful')
 
       cy.get(`th:contains(${colName})`).should('not.exist')
       cy.get(`th:contains(${updatedColName})`).should('exist')
@@ -83,18 +80,18 @@ export const genTest = (type, xcdb) => {
 
       cy.get('.nc-column-delete').click()
       cy.get('button:contains(Confirm)').click()
+      cy.toastWait('Update table.tablex successful')
 
       cy.get(`th:contains(${updatedColName})`).should('not.exist');
     })
 
     it('Add new row', () => {
-      cy.wait(2000)
+      cy.get('.nc-add-new-row-btn:visible').should('exist')
       cy.get('.nc-add-new-row-btn').click({force: true});
       cy.get('#data-table-form-Title > input').first().type(randVal);
       cy.getActiveModal().find('button').contains('Save Row').click({ force: true })
 
-      // kludge- add delay to ensure previous operations are completed
-      cy.wait(2000)
+      cy.toastWait('updated successfully')
       mainPage.getCell('Title', 1).contains(randVal).should('exist')
     })
 
@@ -103,7 +100,7 @@ export const genTest = (type, xcdb) => {
       cy.get('#data-table-form-Title > input').first().clear().type(updatedRandVal);
       cy.getActiveModal().find('button').contains('Save Row').click({force: true})
 
-      cy.wait(3000)
+      cy.toastWait('updated successfully')
       
       mainPage.getCell('Title', 1).contains(randVal).should('not.exist')
       mainPage.getCell('Title', 1).contains(updatedRandVal).should('exist')
@@ -114,14 +111,11 @@ export const genTest = (type, xcdb) => {
 
       // delete row
       cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click({force: true})
-      cy.wait(1000)
+      cy.toastWait('Deleted row successfully')
       cy.get('td').contains(randVal).should('not.exist');
     })
   })
 }
-
-// genTest('rest', false)
-// genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

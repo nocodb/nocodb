@@ -1,5 +1,4 @@
 
-import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 export const genTest = (type, xcdb) => {
@@ -7,8 +6,9 @@ export const genTest = (type, xcdb) => {
 
   describe(`${type.toUpperCase()} api - M2M Column validation`, () => {
     before(() => {
-      // loginPage.loginAndOpenProject(type)
       cy.openTableTab('Actor')
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)      
     })
 
     after(() => {
@@ -20,7 +20,7 @@ export const genTest = (type, xcdb) => {
       // column name validation
       cy.get(`.project-tab:contains(Actor):visible`).should('exist')
       // URL validation
-      cy.url().should('contain', `?name=Actor&`)
+      cy.url().should('contain', `name=Actor`)
     })
 
     it('Expand m2m column', () => {
@@ -38,34 +38,30 @@ export const genTest = (type, xcdb) => {
 
     it('Expand "Link to" record, validate', () => {
       cy.getActiveModal().find('button:contains(Link to \'Film\')').click()
-      cy.wait(1000)
-
-      // Link record form validation
-      cy.getActiveModal().contains('Link Record').should('exist')
-      cy.getActiveModal().find('button.mdi-reload').should('exist')
-      cy.getActiveModal().find('button:contains("New Record")').should('exist')
-      cy.getActiveModal().find('.child-card').eq(0).contains('ACE GOLDFINGER').should('exist')
-      cy.get('body').type('{esc}')
+        .then(() => {
+          // Link record form validation
+          cy.getActiveModal().contains('Link Record').should('exist')
+          cy.getActiveModal().find('button.mdi-reload').should('exist')
+          cy.getActiveModal().find('button:contains("New Record")').should('exist')
+          cy.getActiveModal().find('.child-card').eq(0).contains('ACE GOLDFINGER').should('exist')
+          cy.get('body').type('{esc}')
+        })
     })
 
     it('Expand first linked card, validate', () => {
       cy.getActiveModal().find('.child-card').eq(0).contains('ACADEMY DINOSAUR', {timeout: 2000}).click()
-      cy.wait(1000)
+        .then(() => {
+          // Link card validation
+          cy.getActiveModal().find('h5').contains("ACADEMY DINOSAUR").should('exist')
+          cy.getActiveModal().find('button:contains("Save Row")').should('exist')
+          cy.getActiveModal().find('button:contains("Cancel")').should('exist')
 
-      // Link card validation
-      cy.getActiveModal().find('h5').contains("ACADEMY DINOSAUR").should('exist')
-      cy.getActiveModal().find('button:contains("Save Row")').should('exist')
-      cy.getActiveModal().find('button:contains("Cancel")').should('exist')
-
-      cy.getActiveModal().find('button:contains("Cancel")').click()
-      cy.getActiveModal().find('button.mdi-close').click()      
+          cy.getActiveModal().find('button:contains("Cancel")').click()
+          cy.getActiveModal().find('button.mdi-close').click()      
+      })
     })
   })
 }
-
-// genTest('rest', false)
-// genTest('graphql', false)
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

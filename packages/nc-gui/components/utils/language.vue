@@ -40,7 +40,7 @@ export default {
     labels: {
       de: 'Deutsch',
       en: 'English',
-      es: 'Española',
+      es: 'Español',
       fr: 'Français',
       id: 'Bahasa Indonesia',
       it_IT: 'Italiano',

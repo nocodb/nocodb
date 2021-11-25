@@ -57,7 +57,7 @@ npm install --save nocodb
 
 ## Heroku
 
-Use Heroku CLI login
+### Using the Heroku CLI login
 
 ```
 heroku container:login
@@ -67,4 +67,20 @@ docker push registry.heroku.com/<Heroku App Name>/web
 heroku container:release -a <Heroku App Name> web
 ```
 
+### Using GitHub
 
+Fork the [nocodb-seed-heroku repository](https://github.com/nocodb/nocodb-seed-heroku) to your GitHub account.
+Login to Heroku, go to your NocoDB app, and head to the "Deploy" tab.
+Select "GitHub" in the "Deployment method" section.
+
+In the "Connect to GitHub" section, search for your forked nocodb-seed-heroku repo. Connect to it:
+
+![image](https://user-images.githubusercontent.com/55474996/143479577-e8bdc1f0-99d1-4072-8d95-4879cc54ddb2.png)
+
+In the "Automatic deploys" section, select "Enable Automatic Deploys":
+
+![image](https://user-images.githubusercontent.com/55474996/143479705-b5280199-aa31-40db-a5aa-7586eb918c01.png)
+
+Head back to your forked nocodb-seed-heroku repo on your GitHub account. Edit one of your files and make a simple modification (example, add some random characters to the readme.md) and commit the change directly to the main branch.
+
+This will trigger the Heroku deployment. Your app should now be updated to the latest release of NocoDB.

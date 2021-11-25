@@ -584,6 +584,7 @@ export default {
   },
   mixins: [spreadsheet],
   props: {
+    isActive: Boolean,
     tabId: String,
     env: String,
     nodes: Object,
@@ -671,6 +672,11 @@ export default {
     rowContextMenu: null
   }),
   watch: {
+    isActive(n, o) {
+      if (!o && n) {
+        this.reload()
+      }
+    },
     page(p) {
       this.$store.commit('tabs/MutSetTabState', {
         id: this.uniqueId,
@@ -872,6 +878,7 @@ export default {
         const { row: rowObj, rowMeta } = this.data[row]
         if (rowMeta.new) {
           try {
+            this.$set(this.data[row], 'saving', true)
             const pks = this.meta.columns.filter((col) => {
               return col.pk
             })
@@ -911,6 +918,8 @@ export default {
               this.$toast.error(`Failed to save row : ${e.message}`).goAway(3000)
             }
           }
+
+          this.$set(this.data[row], 'saving', false)
         }
       }
     },
@@ -925,15 +934,18 @@ export default {
       if (!this.data[row]) {
         return
       }
-      const { row: rowObj, rowMeta, oldRow } = this.data[row]
+      const { row: rowObj, rowMeta, oldRow, saving } = this.data[row]
       if (rowMeta.new) {
+        // return if there is no change
+        if (oldRow[column._cn] === rowObj[column._cn] || saving) {
+          return
+        }
         await this.save()
       } else {
         try {
           if (!this.api) {
             return
           }
-
           // return if there is no change
           if (oldRow[column._cn] === rowObj[column._cn]) {
             return
@@ -944,7 +956,8 @@ export default {
           if (!id) {
             return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
-
+          this.$set(this.data[row], 'saving', true)
+          // eslint-disable-next-line promise/param-names
           const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
           }, { [column._cn]: oldRow[column._cn] })
@@ -962,6 +975,8 @@ export default {
             this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
           }
         }
+
+        this.$set(this.data[row], 'saving', false)
       }
     },
     async deleteRow() {
@@ -1160,7 +1175,9 @@ export default {
     }
   },
   computed: {
-    tabsState() { return this.$store.state.tabs.tabsState || {} },
+    tabsState() {
+      return this.$store.state.tabs.tabsState || {}
+    },
     uniqueId() {
       return `${this.tabId}_${this.selectedViewId}`
     },

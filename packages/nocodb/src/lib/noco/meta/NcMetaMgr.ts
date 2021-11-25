@@ -3447,12 +3447,18 @@ export default class NcMetaMgr {
         }
       );
 
+      let roles = args?.args?.roles;
+      if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
+        roles = 'viewer';
+      }
+
       if (!sharedBase) {
         const insertData = {
           project_id: args.project_id,
           db_alias: this.getDbAlias(args),
           shared_base_id: uuidv4(),
-          password: args?.args?.password
+          password: args?.args?.password,
+          roles
         };
 
         await this.xcMeta.metaInsert(
@@ -3466,8 +3472,23 @@ export default class NcMetaMgr {
           this.getDbAlias(args),
           'nc_shared_bases',
           {},
-          ['id', 'shared_base_id', 'enabled']
+          ['id', 'shared_base_id', 'enabled', 'roles']
         );
+      } else {
+        const cacheKey = `nc_shared_bases||${sharedBase.shared_base_id}`;
+
+        XcCache.del(cacheKey);
+
+        await this.xcMeta.metaUpdate(
+          this.getProjectId(args),
+          this.getDbAlias(args),
+          'nc_shared_bases',
+          { roles },
+          {
+            project_id: this.getProjectId(args)
+          }
+        );
+        sharedBase.roles = roles;
       }
 
       sharedBase.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/base/${sharedBase.shared_base_id}`;
@@ -4568,7 +4589,9 @@ export default class NcMetaMgr {
               result[d.title].disabled[d.role] = !!d.disabled;
             }
 
-            return Object.values(result);
+            return Object.values(result)?.sort((a: any, b: any) =>
+              (a?._tn || a?.tn)?.localeCompare(b?._tn || b?.tn)
+            );
           }
           break;
         case 'view':

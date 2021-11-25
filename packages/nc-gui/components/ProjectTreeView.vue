@@ -26,16 +26,25 @@
                   &lt;!&ndash;        <v-icon v-else>mdi-arrow-expand-horizontal</v-icon>&ndash;&gt;
 
                 </v-btn>-->
-          <!--      <v-text-field-->
-          <!--        v-model="search"-->
-          <!--        label="Search Project"-->
-          <!--        dense-->
-          <!--        solo-->
-          <!--        hide-details-->
-          <!--        clearable-->
-          <!--        clear-icon="mdi-close-circle-outline"-->
-          <!--        class="pa-2"-->
-          <!--      ></v-text-field>-->
+          <v-text-field
+            v-else
+            v-model="search"
+            placeholder="Search tables"
+            dense
+            hide-details
+            class="elevation-0 mr-2  pl-3 pr-1 caption nc-table-list-filter"
+          >
+            <template #prepend-inner>
+              <v-icon small class="mt-2 ml-2 mr-1 ">
+                mdi-magnify
+              </v-icon>
+            </template>
+            <template #append>
+              <v-icon v-if="search" class="mt-3 mr-3" color="grey" x-small @click="search=''">
+                mdi-close
+              </v-icon>
+            </template>
+          </v-text-field>
 
           <v-skeleton-loader
             v-if="!projects || !projects.length"
@@ -108,7 +117,7 @@
               </v-tooltip>
             </template>
           </v-treeview>
-          <v-container v-else fluid class="px-1">
+          <v-container v-else fluid class="px-1 pt-0">
             <v-list dense expand class="nc-project-tree nc-single-env-project-tree">
               <template v-for="item in listViewArr">
                 <!--                   v-if="item.children && item.children.length"-->
@@ -116,7 +125,7 @@
                   v-if="isNested(item) && showNode(item)"
                   :key="item.type"
                   color="textColor"
-                  :value="isActiveList(item)"
+                  :value="isActiveList(item) || search"
                   @click="
                     !(item.children && item.children.length) && addTab({ ...item }, false, false)
                   "
@@ -131,7 +140,7 @@
                     <v-list-item-icon>
                       <v-icon
                         v-if="open && icons[item._nodes.type].openIcon"
-                        x-small
+                        small
                         style="cursor: auto"
                         :color="icons[item._nodes.type].openColor"
                       >
@@ -139,7 +148,7 @@
                       </v-icon>
                       <v-icon
                         v-else
-                        x-small
+                        small
                         style="cursor: auto"
                         :color="icons[item._nodes.type].color"
                       >
@@ -149,17 +158,25 @@
                     <v-list-item-title>
                       <v-tooltip v-if="!isNonAdminAccessAllowed(item)" top>
                         <template #activator="{ on }">
-                          <span class="caption font-weight-regular" v-on="on">
+                          <span v-if="item.type === 'tableDir'" class="caption font-weight-regular" v-on="on">
+                            Tables<template v-if="item.children && item.children.length"> ({{
+                              item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
+                            }})</template></span>
+                          <span v-else class="caption font-weight-regular" v-on="on">
                             {{ item.name }}</span>
                         </template>
                         <span class="caption">Only visible to Creator</span>
                       </v-tooltip>
-                      <span
+                      <template
                         v-else
-                        class="caption font-weight-regular"
-                        @dblclick="showSqlClient = true"
                       >
-                        {{ item.name }}</span>
+                        <span v-if="item.type === 'tableDir'" class="caption font-weight-regular" v-on="on">
+                          Tables<template v-if="item.children && item.children.length"> ({{
+                            item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
+                          }})</template></span>
+                        <span v-else class="caption font-weight-regular" v-on="on">
+                          {{ item.name }}</span>
+                      </template>
                     </v-list-item-title>
 
                     <v-spacer />
@@ -186,6 +203,7 @@
                   <v-list-item-group :value="selectedItem">
                     <v-list-item
                       v-for="child in item.children || []"
+                      v-show="!search || child.name.toLowerCase().includes(search.toLowerCase())"
                       :key="child.key"
                       color="x-active"
                       active-class="font-weight-bold"
@@ -713,7 +731,7 @@ export default {
     open: [],
     search: null,
     menuVisible: false,
-    excelImportDialog:false,
+    excelImportDialog: false,
     x: 0,
     y: 0,
     menuItem: null,
@@ -1768,6 +1786,24 @@ export default {
 .nested:hover .action {
   opacity: 1;
 }
+
+/deep/ .nc-table-list-filter .v-input__slot {
+  min-height: 30px !important;
+}
+/deep/ .nc-table-list-filter .v-input__slot label {
+  top: 6px;
+}
+
+
+
+/deep/ .nc-table-list-filter.theme--light.v-text-field > .v-input__control > .v-input__slot:before {
+  border-top-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/deep/ .nc-table-list-filter.theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
+}
+
 </style>
 
 <!--

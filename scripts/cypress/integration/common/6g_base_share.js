@@ -1,15 +1,51 @@
 
 import { mainPage } from "../../support/page_objects/mainPage"
 import { projectsPage } from "../../support/page_objects/navigation"
+import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { _advSettings, _editSchema, _editData, _editComment, _viewMenu, _topRightMenu } from "../spec/roleValidation.spec"
 
 let linkText = ''
 
 export const genTest = (type, xcdb) => {
-    if(!isTestSuiteActive(type, xcdb)) return;
+    if (!isTestSuiteActive(type, xcdb)) return;
+    
+    const permissionValidation = (roleType) => {
 
-    describe(`${type.toUpperCase()} Columns of type attachment`, () => {
+        it(`${roleType}: Visit base shared URL`, () => {
+            cy.log(linkText)
+
+            // visit URL & wait for page load to complete
+            cy.visit(linkText, {
+                baseUrl: null
+            })
+            projectsPage.waitHomePageLoad()
+
+            cy.closeTableTab('Actor')
+        })        
+
+        it(`${roleType}: Validate access permissions: advance menu`, () => {
+            _advSettings(roleType, false)
+        })
+
+        it(`${roleType}: Validate access permissions: edit schema`, () => {
+            _editSchema(roleType, false)
+        })
+            
+        it(`${roleType}: Validate access permissions: edit data`, () => {
+            _editData(roleType, false)
+        })
+
+        it(`${roleType}: Validate access permissions: edit comments`, () => {
+            _editComment(roleType, false)
+        })
+
+        it(`${roleType}: Validate access permissions: view's menu`, () => {
+            _viewMenu(roleType, false)
+        })        
+    }
+
+    describe(`${type.toUpperCase()} Base VIEW share`, () => {
         // before(() => {
         //     cy.waitForSpinners();
         //     cy.signinOrSignup(roles.owner.credentials)
@@ -28,14 +64,13 @@ export const genTest = (type, xcdb) => {
             
             // Click on readonly base text
             cy.getActiveModal()
-                .find('.nc-container')
-                .contains('Generate publicly shareable readonly base')
+                .find('.nc-disable-shared-base')
                 .click()
             
             // Select 'Readonly link'
             cy.getActiveMenu()
                 .find('.caption')
-                .contains('Readonly link')
+                .contains('Anyone with the link')
                 .click()
             
             // Copy URL
@@ -65,25 +100,27 @@ style="background: transparent; "></iframe>
             })
         })
 
-        it(`Visit base shared URL`, () => {
-            cy.log(linkText)
+        permissionValidation('viewer')
 
-            // visit URL & wait for page load to complete
-            cy.visit(linkText, {
-                baseUrl: null
-            })
-            projectsPage.waitHomePageLoad()
+        it('Update to EDITOR base share link', () => {
+            loginPage.loginAndOpenProject(type)
+
+            // click SHARE
+            cy.get('.nc-topright-menu')
+                .find('.nc-menu-share')
+                .click()
+
+            cy.getActiveModal()
+                .find('.nc-shared-base-role')
+                .click()
+            
+            cy.getActiveMenu()
+                .find('[role="menuitem"]')
+                .contains('Editor')
+                .click()            
         })
 
-        it(`Validate access permissions`, () => {
-            let roleType = 'viewer'
-
-            _advSettings(roleType, false)
-            _editSchema(roleType, false)
-            _editData(roleType, false)
-            _editComment(roleType, false)
-            _viewMenu(roleType, false)
-        })
+        permissionValidation('editor')
 
         it('Generate & verify embed HTML IFrame', { baseUrl: null }, () => {
             // open iFrame html
@@ -107,7 +144,7 @@ style="background: transparent; "></iframe>
             // validate data (row-1)
             mainPage.getIFrameCell('FirstName', 1).contains("PENELOPE").should('exist')
             mainPage.getIFrameCell('LastName', 1).contains("GUINESS").should('exist')
-        })
+        })        
      })
 }
 

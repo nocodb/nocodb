@@ -3,8 +3,8 @@ export default {
   ForeignKey: {},
   SingleLineText: { w: '150px' },
   LongText: { w: '400px' },
-  Attachment: {},
-  Checkbox: {},
+  Attachment: { w: '400px' },
+  Checkbox: { w: '100px' },
   MultiSelect: { w: '200px' },
   SingleSelect: { w: '200px' },
   Collaborator: {},
@@ -23,11 +23,12 @@ export default {
   Formula: {},
   Rollup: {},
   Count: {},
-  Lookup: {},
   DateTime: {},
   CreateTime: {},
   LastModifiedTime: {},
   AutoNumber: {},
   Barcode: {},
-  Button: {}
+  Button: {},
+  LinkToAnotherRecord: { w: '400px' },
+  Lookup: { w: '400px' }
 }

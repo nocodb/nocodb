@@ -522,6 +522,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mikepsinn",
+      "name": "Mike P. Sinn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2808553?v=4",
+      "profile": "http://quantimo.do",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

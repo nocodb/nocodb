@@ -311,7 +311,8 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     }
   }
 
-  private axiosRequestMake(apiMeta, apiReq, data) {
+  private axiosRequestMake(_apiMeta, apiReq, data) {
+    const apiMeta = { ..._apiMeta };
     if (apiMeta.body) {
       try {
         apiMeta.body = JSON.parse(apiMeta.body, (_key, value) => {

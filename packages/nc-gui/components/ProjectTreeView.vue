@@ -27,6 +27,7 @@
 
                 </v-btn>-->
           <v-text-field
+            v-else
             v-model="search"
             placeholder="Search tables"
             dense

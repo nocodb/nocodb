@@ -194,7 +194,6 @@
               @save="editEnabled = {}"
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj)"
-              @blur="onCellValueChange(col, row, columnObj,'blur')"
               @change="onCellValueChange(col, row, columnObj)"
             />
 
@@ -486,6 +485,8 @@ export default {
       }
       this.selected.col = null
       this.selected.row = null
+      this.editEnabled.col = null
+      this.editEnabled.row = null
     },
     onNewColCreation(col, oldCol) {
       this.addNewColMenu = false

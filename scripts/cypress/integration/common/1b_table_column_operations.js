@@ -23,7 +23,7 @@ export const genTest = (type, xcdb) => {
 
     it('Create Table Column', () => {
       cy.get(`.project-tab:contains(${name}):visible`).should('exist')
-      mainPage.addColumn(colName)
+      mainPage.addColumn(colName, name)
 
       cy.get(`th:contains(${colName})`).should('exist');
     })

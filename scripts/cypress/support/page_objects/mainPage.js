@@ -150,11 +150,11 @@ export class _mainPage {
         return cy.get('.xc-row-table').find('tr').eq(rowIndex)
     }
 
-    addColumn = (colName) => {
+    addColumn = (colName, tableName) => {
         cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({ force: true });
         cy.get('.nc-column-name-input input', { timeout: 3000 }).clear().type(colName)
         cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-        cy.toastWait(`Update table.${colName} successful`)
+        cy.toastWait(`Update table.${tableName} successful`)
     }
 
     addColumnWithType = (colName, colType) => {

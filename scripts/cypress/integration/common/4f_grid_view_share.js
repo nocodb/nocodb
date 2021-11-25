@@ -527,7 +527,7 @@ export const genTest = (type, xcdb) => {
             cy.wait(1000)
 
             // add column
-            mainPage.addColumn('dummy')
+            mainPage.addColumn('dummy', 'Country')
             cy.wait(5000)
 
             // visit public view

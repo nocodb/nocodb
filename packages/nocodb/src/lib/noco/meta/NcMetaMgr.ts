@@ -3475,6 +3475,10 @@ export default class NcMetaMgr {
           ['id', 'shared_base_id', 'enabled', 'roles']
         );
       } else {
+        const cacheKey = `nc_shared_bases||${sharedBase.shared_base_id}`;
+
+        XcCache.del(cacheKey);
+
         await this.xcMeta.metaUpdate(
           this.getProjectId(args),
           this.getDbAlias(args),

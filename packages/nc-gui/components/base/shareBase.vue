@@ -72,7 +72,7 @@
         <div class="d-flex justify-center" style="width:120px">
           <v-menu v-if="base.enabled" offset-y>
             <template #activator="{on}">
-              <div class="text-capitalize my-2   font-weight-bold backgroundColorDefault py-2 px-4 rounded" v-on="on">
+              <div class="text-capitalize my-2   font-weight-bold backgroundColorDefault py-2 px-4 rounded nc-shared-base-role" v-on="on">
                 {{ base.roles || 'Viewer' }}
 
                 <v-icon small>

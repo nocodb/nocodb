@@ -32,7 +32,7 @@ export const genTest = (type, xcdb) => {
       cy.getActiveModal().contains('Link Record').should('exist')
       cy.getActiveModal().find('button.mdi-reload').should('exist')
       cy.getActiveModal().find('button:contains("New Record")').should('exist')
-      cy.getActiveModal().find('.child-card').eq(0).contains('Batna').should('exist')
+      cy.getActiveModal().find('.child-card').eq(0).contains('A Corua (La Corua)').should('exist')
 
       cy.getActiveModal().find('button.mdi-close').click()
       cy.wait(200)

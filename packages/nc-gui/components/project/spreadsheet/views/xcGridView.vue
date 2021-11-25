@@ -327,7 +327,7 @@ export default {
     style() {
       let style = ''
       for (const c of this.availableColumns) {
-        const val = (this.columnsWidth && this.columnsWidth[c.alias]) || (c.virtual ? '200px' : (columnStyling[c.uidt] && columnStyling[c.uidt].w))
+        const val = (this.columnsWidth && this.columnsWidth[c.alias]) || (c.virtual ? '200px' : ((columnStyling[c.uidt] && columnStyling[c.uidt].w) || '150px'))
         if (val && c.key !== this.resizingCol) {
           style += `[data-col="${c.alias}"]{min-width:${val};max-width:${val};width: ${val};}`
         }

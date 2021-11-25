@@ -67,11 +67,11 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
+<br>
 
-> To persist data you can mount volume at `/usr/app/data/`. For example:
-```bash
-docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
-```
+- NocoDB needs a database as input : [Click here for production setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- If this input is absent we fallback to SQLite - to persist sqlite you can mount `/usr/app/data/`. Example below
+  - ```docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest```
 
 ### Using Npm
 ```

@@ -154,7 +154,7 @@ export class _mainPage {
         cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({ force: true });
         cy.get('.nc-column-name-input input', { timeout: 3000 }).clear().type(colName)
         cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-        cy.toastWait('Update table.tablex successful')
+        cy.toastWait(`Update table.${colName} successful`)
     }
 
     addColumnWithType = (colName, colType) => {

@@ -119,7 +119,11 @@ export const genTest = (type, xcdb) => {
 
                     // for each sheet, expand to verify table names & their data types
                     cy.wrap(sheets[i]).find('.mdi-chevron-down').click()
-                    cy.wait(1000)
+
+                    // wait for 4 DOM rows to become visible, corresponding to 4 column names in excel
+                    // change to avoid static wait
+                    cy.get('.v-data-table').find('tr:visible').should('have.length', 4)
+                    
                     cy.get('.v-data-table').find('tr:visible').then((row) => {
 
                         for (let j = 1; j < row.length; j++) {

@@ -35,7 +35,7 @@ export const genTest = (type, xcdb) => {
                 cy.get('.xc-toolbar').find('.nc-view-lock-menu:enabled')    .should('exist')
                 cy.get('.xc-toolbar').find('.nc-table-reload-btn:enabled')  .should('exist')            
                 cy.get('.xc-toolbar').find('.nc-add-new-row-btn:enabled')   .should(`${vString}exist`)
-                cy.get('.xc-toolbar').find('.nc-save-new-row-btn:disabled') .should('exist')            
+                // cy.get('.xc-toolbar').find('.nc-save-new-row-btn:disabled') .should('exist')            
                 cy.get('.xc-toolbar').find('.nc-fields-menu-btn:enabled')   .should(`${vString}exist`)
                 cy.get('.xc-toolbar').find('.nc-sort-menu-btn:enabled')     .should(`${vString}exist`)
                 cy.get('.xc-toolbar').find('.nc-filter-menu-btn:enabled')   .should(`${vString}exist`)

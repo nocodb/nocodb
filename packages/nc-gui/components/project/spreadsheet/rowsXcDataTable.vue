@@ -108,8 +108,10 @@
         <!--          @click="insertNewRow(true,true)"-->
         <!--        >-->
         <x-icon
+          v-if="isEditable && relationType !== 'bt'"
           icon.class="nc-add-new-row-btn mx-1"
           tooltip="Add new row"
+          :disabled="isLocked"
           small
           :color="['success','']"
           @click="insertNewRow(true,true)"

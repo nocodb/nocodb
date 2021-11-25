@@ -93,7 +93,12 @@
         >
           mdi-reload
         </x-icon>
-        <v-icon small class="mx-n1" color="grey lighten-1">
+        <v-icon
+          v-if="isEditable && relationType !== 'bt'"
+          small
+          class="mx-n1"
+          color="grey lighten-1"
+        >
           mdi-circle-small
         </v-icon>
         <!--        </x-btn>-->
@@ -147,7 +152,12 @@
               v-on="on"
               @click="checkAndDeleteTable"
             >-->
-        <v-icon small class="mx-n1" color="grey lighten-1">
+        <v-icon
+          v-if="_isUIAllowed('table-delete')"
+          small
+          class="mx-n1"
+          color="grey lighten-1"
+        >
           mdi-circle-small
         </v-icon>
         <x-icon

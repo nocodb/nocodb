@@ -524,11 +524,10 @@ export const genTest = (type, xcdb) => {
             cy.get('.nc-add-new-row-btn').click({force: true})
             cy.get('#data-table-form-Country > input').first().click().type('a')
             cy.contains('Save Row').filter('button').click({ force: true })
-            cy.wait(1000)
+            cy.toastWait('updated successfully')
 
             // add column
             mainPage.addColumn('dummy', 'Country')
-            cy.wait(5000)
 
             // visit public view
             cy.log(viewURL['rowColUpdate'])

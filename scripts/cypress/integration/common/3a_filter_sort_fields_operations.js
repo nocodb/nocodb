@@ -57,7 +57,7 @@ export const genTest = (type, xcdb) => {
         mainPage.getCell("Country", 10).rightclick()
         cy.getActiveMenu().contains('Delete Row').click()
 
-        cy.toastWait('Deleted row successfully')
+        // cy.toastWait('Deleted row successfully')
 
         // verify
         mainPage.getCell("Country", 10).should('not.exist')
@@ -70,13 +70,13 @@ export const genTest = (type, xcdb) => {
         cy.getActiveMenu().contains('Insert New Row').click({force: true})
         mainPage.getCell("Country", 10).dblclick().find('input').type('Test Country-1{enter}')
 
-        cy.toastWait('saved successfully')
+        // cy.toastWait('saved successfully')
 
         mainPage.getCell("Country", 10).rightclick({force: true})
         cy.getActiveMenu().contains('Insert New Row').click({force: true})
         mainPage.getCell("Country", 11).dblclick().find('input').type('Test Country-2{enter}')
 
-        cy.toastWait('saved successfully')
+        // cy.toastWait('saved successfully')
 
         // verify
         mainPage.getCell("Country", 10).contains("Test Country-1").should('exist')
@@ -92,7 +92,7 @@ export const genTest = (type, xcdb) => {
         mainPage.getCell("Country", 10).rightclick({force: true})
         cy.getActiveMenu().contains('Delete Selected Row').click({force: true})
 
-        cy.toastWait('Deleted selected rows successfully')
+        // cy.toastWait('Deleted 2 selected rows successfully')
 
         // verify
         mainPage.getCell("Country", 10).should('not.exist')

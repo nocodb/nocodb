@@ -111,7 +111,7 @@ export const genTest = (type, xcdb) => {
 
       // delete row
       cy.getActiveMenu().find('.v-list-item:contains("Delete Row")').first().click({force: true})
-      cy.toastWait('Deleted row successfully')
+      // cy.toastWait('Deleted row successfully')
       cy.get('td').contains(randVal).should('not.exist');
     })
   })

@@ -115,13 +115,16 @@ export default {
   },
   methods: {
     async setKanbanData() {
+      const uncategorized = "Uncategorized"
       try {
         // TODO: update stagesColors
-        this.stagesColors = ['error', 'primary', 'warning', 'success']
+        this.stagesColors = ['', 'error', 'primary', 'warning', 'success']
+        this.stages.push(uncategorized)
         for(var i = 0; i < this.data.length; i++) {
-          this.stages.push(this.data[i].row[this.groupingField])
+          const status = this.data[i].row[this.groupingField] ?? uncategorized
+          this.stages.push(status)
           const block = {
-            status: this.data[i].row[this.groupingField],
+            status,
             rowMeta: this.data[i].rowMeta,
             ...this.data[i].row
           }
@@ -146,15 +149,17 @@ export default {
           return
         }
 
+        const uncategorized = "Uncategorized"
+
         const prevStatus = this.blocks[id - 1].status
         const newData = await this.api.update(id, 
-        { [this.groupingField]: status }, // new data
+        { [this.groupingField]: status == uncategorized ? null : status }, // new data
         { [this.groupingField]: prevStatus }) // old data
 
         this.blocks[id - 1].status = status
-        this.blocks[id - 1][this.groupingField] = status
+        this.blocks[id - 1][this.groupingField] = (status == uncategorized ? null : status)
 
-        this.$toast.success(`Moved block from ${prevStatus} to ${status} successfully.`, {
+        this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
         }).goAway(3000)
 

@@ -1,6 +1,11 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
-    <v-toolbar height="32" dense class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1" style="z-index: 7">
+    <v-toolbar
+      height="32"
+      dense
+      class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
+      style="z-index: 7"
+    >
       <div v-if="!isForm" class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
@@ -1042,6 +1047,7 @@ export default {
     },
     async deleteSelectedRows() {
       let row = this.rowLength
+      let success = 0
       while (row--) {
         try {
           const { row: rowObj, rowMeta } = this.data[row]
@@ -1058,12 +1064,12 @@ export default {
             await this.api.delete(id)
           }
           this.data.splice(row, 1)
+          success++
         } catch (e) {
           return this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
         }
-
-        this.$toast.success('Deleted selected rows successfully').goAway(3000)
       }
+      if (success) { this.$toast.success(`Deleted ${success} selected row${success > 1 ? 's' : ''} successfully`).goAway(3000) }
     },
 
     async clearCellValue() {
@@ -1332,7 +1338,8 @@ export default {
 /deep/ .v-input__control label {
   font-size: inherit;
 }
-/deep/ .nc-table-toolbar > .v-toolbar__content{
+
+/deep/ .nc-table-toolbar > .v-toolbar__content {
   padding: 0;
 }
 </style>

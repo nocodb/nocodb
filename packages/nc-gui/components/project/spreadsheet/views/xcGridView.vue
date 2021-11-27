@@ -100,6 +100,10 @@
           v-for="({row:rowObj, rowMeta, saving},row) in data"
           :key="row"
           class=" nc-grid-row"
+          :class="{
+            'nc-new-row':rowMeta.new,
+            'nc-saved-row':!rowMeta.new,
+          }"
         >
           <td
             style="width: 65px"

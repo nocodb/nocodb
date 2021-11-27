@@ -574,6 +574,10 @@ export default {
   position: absolute;
 }
 
+/deep/ .project-tab:first-of-type{
+  margin-left: 0 !important;
+}
+
 </style>
 <!--
 /**

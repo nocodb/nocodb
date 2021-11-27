@@ -1,6 +1,11 @@
 <template>
   <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
-    <v-toolbar height="32" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
+    <v-toolbar
+      height="32"
+      dense
+      class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
+      style="z-index: 7"
+    >
       <div v-if="!isForm" class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
@@ -74,33 +79,57 @@
         </v-tooltip>
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
 
-        <x-btn
+        <!--        <x-btn
           tooltip="Reload view data"
           outlined
           small
           text
-          btn.class="nc-table-reload-btn"
+          btn.class="nc-table-reload-btn px-0"
+          @click="reload"
+        >-->
+        <v-icon small class="mx-n1" color="grey lighten-1">
+          mdi-circle-small
+        </v-icon>
+        <x-icon
+          tooltip="Reload view data"
+          icon.class="nc-table-reload-btn mx-1"
+          small
           @click="reload"
         >
-          <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-reload
-          </v-icon>
-        </x-btn>
-        <x-btn
+          mdi-reload
+        </x-icon>
+        <v-icon
           v-if="isEditable && relationType !== 'bt'"
+          small
+          class="mx-n1"
+          color="grey lighten-1"
+        >
+          mdi-circle-small
+        </v-icon>
+        <!--        </x-btn>-->
+        <!--        <x-btn-->
+        <!--          v-if="isEditable && relationType !== 'bt'"-->
+        <!--          tooltip="Add new row"-->
+        <!--          :disabled="isLocked"-->
+        <!--          outlined-->
+        <!--          small-->
+        <!--          text-->
+        <!--          btn.class="nc-add-new-row-btn"-->
+        <!--          @click="insertNewRow(true,true)"-->
+        <!--        >-->
+        <x-icon
+          v-if="isEditable && relationType !== 'bt'"
+          icon.class="nc-add-new-row-btn mx-1"
           tooltip="Add new row"
           :disabled="isLocked"
-          outlined
           small
-          text
-          btn.class="nc-add-new-row-btn"
+          :color="['success','']"
           @click="insertNewRow(true,true)"
         >
-          <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-plus
-          </v-icon>
-        </x-btn>
-        <x-btn
+          mdi-plus-outline
+        </x-icon>
+        <!--        </x-btn>-->
+        <!--        <x-btn
           small
           text
           btn.class="nc-save-new-row-btn"
@@ -113,54 +142,12 @@
             save
           </v-icon>
           Save
-        </x-btn>
-
-        <fields
-          v-model="showFields"
-          :field-list="fieldList"
-          :meta="meta"
-          :is-locked="isLocked"
-          :fields-order.sync="fieldsOrder"
-          :sql-ui="sqlUi"
-          :show-system-fields.sync="showSystemFields"
-          :cover-image-field.sync="coverImageField"
-          :grouping-field.sync="groupingField"
-          :is-gallery="isGallery"
-          :is-kanban="isKanban"
-        />
-
-        <sort-list
-          v-model="sortList"
-          :is-locked="isLocked"
-          :field-list="[...realFieldList, ...formulaFieldList]"
-        />
-        <column-filter
-          v-model="filters"
-          :is-locked="isLocked"
-          :field-list="[...realFieldList, ...formulaFieldList]"
-          dense
-        />
-
-        <csv-export-import
-          ref="csvExportImport"
-          :meta="meta"
-          :nodes="nodes"
-          :query-params="{
-            fieldsOrder,
-            fieldFilter,
-            sortList,
-            showFields
-          }"
-          :selected-view="selectedView"
-          class="mr-1"
-        />
-
-        <v-tooltip
-          v-if="_isUIAllowed('table-delete')"
-          bottom
-        >
-          <template #activator="{on}">
-            <v-btn
+        </x-btn>-->
+        <!--        <v-tooltip-->
+        <!--          bottom-->
+        <!--        >-->
+        <!--          <template #activator="{on}">-->
+        <!--            <v-btn
               v-show="_isUIAllowed('table-delete')"
               class="nc-table-delete-btn"
               :disabled="isLocked"
@@ -169,15 +156,74 @@
               text
               v-on="on"
               @click="checkAndDeleteTable"
-            >
-              <x-icon small color="red grey">
-                mdi-delete-outline
-              </x-icon>
-            </v-btn>
-          </template>
-          <span class="">Delete table</span>
-        </v-tooltip>
+            >-->
+        <v-icon
+          v-if="_isUIAllowed('table-delete')"
+          small
+          class="mx-n1"
+          color="grey lighten-1"
+        >
+          mdi-circle-small
+        </v-icon>
+        <x-icon
+          v-if="_isUIAllowed('table-delete')"
+          icon.class="nc-table-delete-btn mx-1 mr-1"
+          :disabled="isLocked"
+          small
+          :color="['red',''] "
+          tooltip="Delete table"
+          @click="checkAndDeleteTable"
+        >
+          mdi-delete-outline
+        </x-icon>
+
+        <v-icon small class="ml-n2" color="grey lighten-1">
+          mdi-circle-small
+        </v-icon>
+        <!--            </v-btn>-->
+        <!--          </template>-->
+        <!--          <span class="">Delete table</span>-->
+        <!--        </v-tooltip>-->
       </template>
+      <fields
+        v-model="showFields"
+        :field-list="fieldList"
+        :meta="meta"
+        :is-locked="isLocked"
+        :fields-order.sync="fieldsOrder"
+        :sql-ui="sqlUi"
+        :show-system-fields.sync="showSystemFields"
+        :cover-image-field.sync="coverImageField"
+        :grouping-field.sync="groupingField"
+        :is-gallery="isGallery"
+        :is-kanban="isKanban"
+      />
+
+      <sort-list
+        v-model="sortList"
+        :is-locked="isLocked"
+        :field-list="[...realFieldList, ...formulaFieldList]"
+      />
+      <column-filter
+        v-model="filters"
+        :is-locked="isLocked"
+        :field-list="[...realFieldList, ...formulaFieldList]"
+        dense
+      />
+
+      <csv-export-import
+        ref="csvExportImport"
+        :meta="meta"
+        :nodes="nodes"
+        :query-params="{
+          fieldsOrder,
+          fieldFilter,
+          sortList,
+          showFields
+        }"
+        :selected-view="selectedView"
+      />
+
       <!-- Cell height -->
       <!--      <v-menu>
               <template v-slot:activator="{ on, attrs }">
@@ -214,7 +260,7 @@
       >
         <v-icon
           small
-          class="mx-2"
+          class="mx-0"
           color="grey  darken-3"
         >
           {{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
@@ -602,6 +648,12 @@ export default {
     showTabs: [Boolean, Number]
   },
   data: () => ({
+    syncDataDebounce: debounce(async function(self) {
+      await self.syncData()
+    }, 500),
+    loadTableDataDeb: debounce(async function(self) {
+      await self.loadTableDataFn()
+    }, 200),
     viewKey: 0,
     extraViewParams: {},
     debug: false,
@@ -785,9 +837,6 @@ export default {
         this.$refs.ncgridview.xcAuditModelCommentsCount()
       }
     },
-    syncDataDebounce: debounce(async function(self) {
-      await self.syncData()
-    }, 500),
     async syncData() {
       if (this.relation) {
         return
@@ -917,9 +966,9 @@ export default {
               oldRow: { ...insertedData }
             })
 
-            this.$toast.success(`${insertedData[this.primaryValueColumn] ? `${insertedData[this.primaryValueColumn]}'s r` : 'R'}ow saved successfully.`, {
+            /* this.$toast.success(`${insertedData[this.primaryValueColumn] ? `${insertedData[this.primaryValueColumn]}'s r` : 'R'}ow saved successfully.`, {
               position: 'bottom-center'
-            }).goAway(3000)
+            }).goAway(3000) */
           } catch (e) {
             if (e.response && e.response.data && e.response.data.msg) {
               this.$toast.error(e.response.data.msg).goAway(3000)
@@ -974,9 +1023,9 @@ export default {
           this.$set(this.data[row], 'row', { ...rowObj, ...newData })
 
           this.$set(oldRow, column._cn, rowObj[column._cn])
-          this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
+          /*    this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
             position: 'bottom-center'
-          }).goAway(3000)
+          }).goAway(3000) */
         } catch (e) {
           if (e.response && e.response.data && e.response.data.msg) {
             this.$toast.error(e.response.data.msg).goAway(3000)
@@ -1001,13 +1050,14 @@ export default {
           await this.api.delete(id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
-        this.$toast.success('Deleted row successfully').goAway(3000)
+        // this.$toast.success('Deleted row successfully').goAway(3000)
       } catch (e) {
         this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
       }
     },
     async deleteSelectedRows() {
       let row = this.rowLength
+      // let success = 0
       while (row--) {
         try {
           const { row: rowObj, rowMeta } = this.data[row]
@@ -1024,12 +1074,12 @@ export default {
             await this.api.delete(id)
           }
           this.data.splice(row, 1)
+          // success++
         } catch (e) {
           return this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
         }
-
-        this.$toast.success('Deleted selected rows successfully').goAway(3000)
       }
+      // if (success) { this.$toast.success(`Deleted ${success} selected row${success > 1 ? 's' : ''} successfully`).goAway(3000) }
     },
 
     async clearCellValue() {
@@ -1112,9 +1162,6 @@ export default {
         }
       }
     },
-    loadTableDataDeb: debounce(async function(self) {
-      await self.loadTableDataFn()
-    }, 200),
     loadTableData() {
       this.loadTableDataDeb(this)
     },
@@ -1303,6 +1350,10 @@ export default {
 
 /deep/ .v-input__control label {
   font-size: inherit;
+}
+
+/deep/ .nc-table-toolbar > .v-toolbar__content {
+  padding: 0;
 }
 </style>
 

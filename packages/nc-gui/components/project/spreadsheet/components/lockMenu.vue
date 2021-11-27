@@ -1,14 +1,14 @@
 <template>
   <v-menu offset-y max-width="350">
     <template #activator="{on}">
-      <v-icon v-if="value === 'locked'" small class="mr-5 nc-view-lock-menu" v-on="on">
-        mdi-lock
+      <v-icon v-if="value === 'locked'" small class="mx-1 nc-view-lock-menu" v-on="on">
+        mdi-lock-outline
       </v-icon>
-      <v-icon v-else-if="value === 'personal'" small class="mr-5 nc-view-lock-menu" v-on="on">
+      <v-icon v-else-if="value === 'personal'" small class="mx-1 nc-view-lock-menu" v-on="on">
         mdi-account
       </v-icon>
-      <v-icon v-else small class="mr-5 nc-view-lock-menu" v-on="on">
-        mdi-account-group
+      <v-icon v-else small class="mx-1 nc-view-lock-menu" v-on="on">
+        mdi-account-group-outline
       </v-icon>
     </template>
     <v-list maxc-width="350">

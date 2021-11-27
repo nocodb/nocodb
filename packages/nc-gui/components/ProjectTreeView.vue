@@ -118,7 +118,7 @@
             </template>
           </v-treeview>
           <v-container v-else fluid class="px-1 pt-0">
-            <v-list dense expand class="nc-project-tree nc-single-env-project-tree">
+            <v-list height="30" dense expand class="nc-project-tree nc-single-env-project-tree pt-1">
               <template v-for="item in listViewArr">
                 <!--                   v-if="item.children && item.children.length"-->
                 <v-list-group
@@ -170,11 +170,11 @@
                       <template
                         v-else
                       >
-                        <span v-if="item.type === 'tableDir'" class="caption font-weight-regular" v-on="on">
+                        <span v-if="item.type === 'tableDir'" class="caption font-weight-regular">
                           Tables<template v-if="item.children && item.children.length"> ({{
                             item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                           }})</template></span>
-                        <span v-else class="caption font-weight-regular" v-on="on">
+                        <span v-else class="caption font-weight-regular">
                           {{ item.name }}</span>
                       </template>
                     </v-list-item-title>

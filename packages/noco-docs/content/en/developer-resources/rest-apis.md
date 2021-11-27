@@ -32,7 +32,7 @@ menuTitle: 'REST APIs'
 
 |  **Method**  |  **Path**  | **Query Params** | **Description**  |
 |---|---|---|---|
-|  **GET** | [/api/v1/tableName](#list)  | [where, limit, offset, sort, fields](#query-params) | List rows of the table |
+|  **GET** | [/api/v1/tableName](#list)  | [where, limit, offset, sort, fields, mm, bt, hm](#query-params) | List rows of the table |
 |  **POST** | [/api/v1/tableName](#create)  | | Insert row into table |
 |  **PUT** | [/api/v1/tableName/:id](#update)  | | Update existing row in table |
 |  **GET** | [/api/v1/tableName/:id](#get-by-primary-key)  | | Get row by primary key |
@@ -67,6 +67,12 @@ menuTitle: 'REST APIs'
 |  sort  | s |  Sort by column name, Use `-` as prefix for descending sort  |   | column_name |
 |  fields  | f |  Required column names in result  |  * | column_name1,column_name2 |
 |  fields1  | f1 |  Required column names in child result  |  * | column_name1,column_name2 |
+|  bt  |  |  Comma-separated belongs to tables  | `All belongs to tables` | [click here for example](#nested-parentbelongs-to) |
+|  bfields`<p>`  | bf`<p>`  |  Required belongs to table column names in result. Where `<p>` refers to position of table name in `bt` parameter(starts from `1`)  | primary key and primary value | [click here for example](#nested-parentbelongs-to) |
+|  hm  |  |  Comma-separated has many tables  | `All hasmany tables` | [click here for example](#nested-childrenhas-many) |
+|  hfields`<p>`  | hf`<p>`  |  Required has many table column names in result. Where `<p>` refers to position of table name in `hm` parameter(starts from `1`) | primary key and primary value | [click here for example](#nested-childrenhas-many) |
+|  mm  |  |  Comma-separated many to many tables  | `All many to many tables` | [click here for example](#nested-childrenmany-to-many) |
+|  mfields`<p>`  | mf`<p>`  |  Required many to many table column names in result. Where `<p>` refers to position of table name in `mm` parameter(starts from `1`) | primary key and primary value | [click here for example](#nested-childrenmany-to-many) |
 
 
 ## HasMany APIs
@@ -631,7 +637,212 @@ GET  /api/v1/country/count
   </code-block>
 </code-group>
 
+[⤴️](#api-overview)  
+
+
+
+
+### Nested Parent(Belongs To)
+
+<code-group>
+  <code-block label="Request" active> 
+  
+```
+GET  /api/v1/City?bt=country&bfields1=Country,CountryId
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+  {
+    "CityId": 1,
+    "City": "A Corua (La Corua)",
+    "CountryId": 87,
+    "LastUpdate": "2006-02-14T23:15:25.000Z",
+    "CountryRead": {
+      "CountryId": 87,
+      "Country": "Spain"
+    }
+  },
+  {
+    "CityId": 2,
+    "City": "Abha",
+    "CountryId": 82,
+    "LastUpdate": "2006-02-14T23:15:25.000Z",
+    "CountryRead": {
+      "CountryId": 82,
+      "Country": "Saudi Arabia"
+    }
+  },
+  {
+    "CityId": 3,
+    "City": "Abu Dhabi",
+    "CountryId": 101,
+    "LastUpdate": "2006-02-14T23:15:25.000Z",
+    "CountryRead": {
+      "CountryId": 101,
+      "Country": "United Arab Emirates"
+    }
+  }
+]
+```
+  </code-block>
+</code-group>
+
 [⤴️](#api-overview)
+
+### Nested Children(Has Many)
+
+<code-group>
+  <code-block label="Request" active> 
+  
+```
+GET  /api/v1/Country?hm=city&hfields1=City,CityId
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+  {
+    "CountryId": 1,
+    "Country": "Afghanistan",
+    "LastUpdate": "2021-11-15T14:11:37.000Z",
+    "CityList": [
+      {
+        "CityId": 251,
+        "City": "Kabul",
+        "CountryId": 1
+      }
+    ]
+  },
+  {
+    "CountryId": 2,
+    "Country": "Algeria",
+    "LastUpdate": "2021-11-15T14:11:42.000Z",
+    "CityList": [
+      {
+        "CityId": 59,
+        "City": "Batna",
+        "CountryId": 2
+      },
+      {
+        "CityId": 63,
+        "City": "Bchar",
+        "CountryId": 2
+      },
+      {
+        "CityId": 483,
+        "City": "Skikda",
+        "CountryId": 2
+      }
+    ]
+  },
+  {
+    "CountryId": 3,
+    "Country": "American Samoa",
+    "LastUpdate": "2006-02-14T23:14:00.000Z",
+    "CityList": [
+      {
+        "CityId": 516,
+        "City": "Tafuna",
+        "CountryId": 3
+      }
+    ]
+  }
+]
+```
+  </code-block>
+</code-group>
+
+[⤴️](#api-overview)
+
+
+
+### Nested Children(Many To Many)
+
+<code-group>
+  <code-block label="Request" active> 
+  
+```
+GET  /api/v1/Actor?l=3&mm=film&mfields1=ReleaseYear
+```
+
+</code-block>
+<code-block label="Response"> 
+
+```json
+[
+  {
+    "ActorId": 1,
+    "FirstName": "PENELOPE",
+    "LastName": "GUINESS",
+    "LastUpdate": "2021-11-24T14:43:23.000Z",
+    "FilmMMList": [
+      {
+        "actor_actor_id": 1,
+        "FilmId": 1,
+        "Title": "Test Movie 1",
+        "ReleaseYear": 2001
+      }
+    ]
+  },
+  {
+    "ActorId": 2,
+    "FirstName": "NICK",
+    "LastName": "WAHLBERG",
+    "LastUpdate": "2006-02-14T23:04:33.000Z",
+    "FilmMMList": [
+      {
+        "actor_actor_id": 2,
+        "FilmId": 1,
+        "Title": "Test Movie 2",
+        "ReleaseYear": 2002
+      }
+    ]
+  },
+  {
+    "ActorId": 3,
+    "FirstName": "ED",
+    "LastName": "CHASE",
+    "LastUpdate": "2006-02-14T23:04:33.000Z",
+    "FilmMMList": [
+      {
+        "actor_actor_id": 3,
+        "FilmId": 1,
+        "Title": "Test Movie 3",
+        "ReleaseYear": 2000
+      }
+    ]
+  }
+]
+```
+  </code-block>
+</code-group>
+
+[⤴️](#api-overview)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
 ### Bulk Insert
 

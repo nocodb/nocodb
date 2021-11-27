@@ -1,6 +1,5 @@
 
 import { mainPage } from "../../support/page_objects/mainPage"
-import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 export const genTest = (type, xcdb) => {
@@ -8,12 +7,10 @@ export const genTest = (type, xcdb) => {
 
   describe(`${type.toUpperCase()} api - Filter, Fields, Sort`, () => {
     before(() => {
-      // loginPage.loginAndOpenProject(type)
-
       // open country table
       cy.openTableTab('Country');
-      cy.wait(2000)
-
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)
     })
 
     after(() => {
@@ -46,6 +43,8 @@ export const genTest = (type, xcdb) => {
         cy.get('#data-table-form-Country > input').first().type('Test Country');
         cy.contains('Save Row').filter('button').click()
 
+        cy.toastWait('updated successfully')
+
         // verify
         mainPage.getPagination(5).click()
         mainPage.getCell("Country", 10).contains("Test Country").should('exist')
@@ -58,6 +57,8 @@ export const genTest = (type, xcdb) => {
         mainPage.getCell("Country", 10).rightclick()
         cy.getActiveMenu().contains('Delete Row').click()
 
+        // cy.toastWait('Deleted row successfully')
+
         // verify
         mainPage.getCell("Country", 10).should('not.exist')
       })
@@ -65,18 +66,17 @@ export const genTest = (type, xcdb) => {
       // create new row using right click menu option
       //
       it('Add row using rightclick menu option', () => {
-        // mainPage.getPagination(5).click({ force: true })
-
-        // wait before proceeding further to ensure reload is completed
-        // cy.wait(1000)
-
         mainPage.getCell("Country", 9).rightclick({force: true})
         cy.getActiveMenu().contains('Insert New Row').click({force: true})
         mainPage.getCell("Country", 10).dblclick().find('input').type('Test Country-1{enter}')
 
+        // cy.toastWait('saved successfully')
+
         mainPage.getCell("Country", 10).rightclick({force: true})
         cy.getActiveMenu().contains('Insert New Row').click({force: true})
         mainPage.getCell("Country", 11).dblclick().find('input').type('Test Country-2{enter}')
+
+        // cy.toastWait('saved successfully')
 
         // verify
         mainPage.getCell("Country", 10).contains("Test Country-1").should('exist')
@@ -92,11 +92,12 @@ export const genTest = (type, xcdb) => {
         mainPage.getCell("Country", 10).rightclick({force: true})
         cy.getActiveMenu().contains('Delete Selected Row').click({force: true})
 
+        // cy.toastWait('Deleted 2 selected rows successfully')
+
         // verify
         mainPage.getCell("Country", 10).should('not.exist')
         mainPage.getCell("Country", 11).should('not.exist')   
 
-        cy.wait(1000)
         mainPage.getPagination(1).click()
       })
 
@@ -126,9 +127,6 @@ export const genTest = (type, xcdb) => {
 
 
     describe('Field Operation', () => {
-      // before(() => {
-      //   cy.get('.nc-fields-menu-btn').click()
-      // })
 
       it('Hide field', () => {
         cy.get('th:contains(LastUpdate)').should('be.visible')
@@ -159,27 +157,22 @@ export const genTest = (type, xcdb) => {
         cy.get('.nc-filter-operation-select').last().click();
         cy.getActiveMenu().find('.v-list-item:contains("is equal")').click()
         cy.get('.nc-filter-value-select input:text').last().type('India');
-        // cy.getActiveMenu().find('button:contains("Apply changes")').click()
         cy.get('.nc-filter-menu-btn').click()
-        cy.wait(1000)
-
-        cy.get('td:contains(India)').should('exist')
+          .then(() => {
+            cy.get('td:contains(India)').should('exist')
+          })
       })
 
       it('Delete Filter', () => {
         // remove sort and check
         cy.get('.nc-filter-menu-btn').click()
         cy.get('.nc-filter-item-remove-btn').click()
-        // cy.getActiveMenu().find('button:contains("Apply changes")').click()
         cy.get('.nc-filter-menu-btn').click()      
         cy.contains('td:contains(India)').should('not.exist')
       })
     })
   })
 }
-
-// genTest('rest', false)
-// genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

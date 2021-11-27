@@ -1,16 +1,22 @@
 
-import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 export const genTest = (type, xcdb) => {
   if(!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Table: belongs to, link record`, () => {
-    // before(() => loginPage.loginAndOpenProject(type))
     
-    it('Table column header, URL validation', () => {
+    before(() => {
       cy.openTableTab('Country')
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)    
+    })
 
+    after(() => {
+      cy.closeTableTab('Country')
+    })    
+
+    it('Table column header, URL validation', () => {
       // column name validation
       cy.get(`.project-tab:contains(Country):visible`).should('exist')
       // URL validation
@@ -18,7 +24,6 @@ export const genTest = (type, xcdb) => {
     })
 
     it('Expand belongs-to column', () => {
-
       // expand first row
       cy.get('td[data-col="Country => City"] div:visible', {timeout: 12000}).first().click()
       cy.get('td[data-col="Country => City"] div .mdi-arrow-expand:visible').first().click()
@@ -26,24 +31,20 @@ export const genTest = (type, xcdb) => {
 
     it('Expand Link record, validate', () => {
       cy.getActiveModal().find('button:contains(Link to \'City\')').click()
-      cy.wait(1000)
+        .then(() => {
+          // Link record form validation
+          cy.getActiveModal().contains('Link Record').should('exist')
+          cy.getActiveModal().find('button.mdi-reload').should('exist')
+          cy.getActiveModal().find('button:contains("New Record")').should('exist')
+          cy.getActiveModal().find('.child-card').eq(0).contains('A Corua (La Corua)').should('exist')
 
-      // Link record form validation
-      cy.getActiveModal().contains('Link Record').should('exist')
-      cy.getActiveModal().find('button.mdi-reload').should('exist')
-      cy.getActiveModal().find('button:contains("New Record")').should('exist')
-      cy.getActiveModal().find('.child-card').eq(0).contains('Batna').should('exist')
-
-      cy.getActiveModal().find('button.mdi-close').click()
-      cy.wait(200)
-      cy.getActiveModal().find('button.mdi-close').click()
+          cy.getActiveModal().find('button.mdi-close').click().then(() => {
+            cy.getActiveModal().find('button.mdi-close').click()
+          })
+      })
     })
   })
 }
-
-// genTest('rest')
-// genTest('graphql')
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

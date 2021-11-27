@@ -8,7 +8,7 @@
       <template #activator="{on}">
         <v-btn
           outlined
-          class="nc-actions-menu-btn caption"
+          class="nc-actions-menu-btn caption px-2"
           small
           text
           v-on="on"

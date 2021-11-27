@@ -67,8 +67,11 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
+<br>
 
-> To persist data you can mount volume at `/usr/app/data/`.
+- NocoDB needs a database as input : [Click here for production setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- If this input is absent we fallback to SQLite - to persist sqlite you can mount `/usr/app/data/`. Example below
+  - ```docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest```
 
 ### Using Npm
 ```
@@ -341,6 +344,8 @@ Our mission is to provide the most powerful no-code interface for databases whic
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/jiione"><img src="https://avatars.githubusercontent.com/u/83341978?v=4?s=100" width="100px;" alt=""/><br /><sub><b>jiwon</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=jiione" title="Code">💻</a></td>
+    <td align="center"><a href="http://quantimo.do"><img src="https://avatars.githubusercontent.com/u/2808553?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mike P. Sinn</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mikepsinn" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/candideu"><img src="https://avatars.githubusercontent.com/u/55474996?v=4?s=100" width="100px;" alt=""/><br /><sub><b>candideu</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=candideu" title="Code">💻</a></td>
   </tr>
 </table>
 

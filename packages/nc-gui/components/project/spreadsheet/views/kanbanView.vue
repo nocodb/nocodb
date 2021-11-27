@@ -1,12 +1,10 @@
 <template>
   <v-container fluid>
     <kanban-board :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">
-      <div v-for="(stage, i) in stages" :slot="stage" :key="stage" class="mx-auto">
-        <v-chip :color="stagesColors[i]" class="text-uppercase caption font-weight-bold">
-          {{ stage }} 
-        </v-chip>
+      <div v-for="stage in stages" :slot="stage" :key="stage" class="mx-auto">
+        <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
-      <div v-for="(block, i) in blocks" :slot="block.id" :key="block.id" class="caption">
+      <div v-for="(block, i) in clonedBlocks" :slot="block.id" :key="block.id" class="caption">
           <v-hover v-slot="{hover}">
             <v-card
               class="h-100"
@@ -72,9 +70,10 @@ import VirtualHeaderCell from '../components/virtualHeaderCell'
 import HeaderCell from '../components/headerCell'
 import VirtualCell from '../components/virtualCell'
 import TableCell from '../components/cell'
+import EnumCell from '../components/cell/enumCell'
 export default {
   name: 'KanbanView',
-  components: { TableCell, VirtualCell, HeaderCell, VirtualHeaderCell },
+  components: { TableCell, VirtualCell, HeaderCell, VirtualHeaderCell, EnumCell },
   props: [
     'nodes',
     'table',
@@ -112,13 +111,14 @@ export default {
         !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
       ) || []
     },
+    groupingFieldColumn() {
+      return this.fields.filter(o => o.alias == this.groupingField)[0]
+    }
   },
   methods: {
     async setKanbanData() {
       const uncategorized = "Uncategorized"
       try {
-        // TODO: update stagesColors
-        this.stagesColors = ['', 'error', 'primary', 'warning', 'success']
         this.stages.push(uncategorized)
         for(var i = 0; i < this.data.length; i++) {
           const status = this.data[i].row[this.groupingField] ?? uncategorized

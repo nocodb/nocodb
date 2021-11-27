@@ -170,11 +170,11 @@
                       <template
                         v-else
                       >
-                        <span v-if="item.type === 'tableDir'" class="caption font-weight-regular" v-on="on">
+                        <span v-if="item.type === 'tableDir'" class="caption font-weight-regular">
                           Tables<template v-if="item.children && item.children.length"> ({{
                             item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                           }})</template></span>
-                        <span v-else class="caption font-weight-regular" v-on="on">
+                        <span v-else class="caption font-weight-regular">
                           {{ item.name }}</span>
                       </template>
                     </v-list-item-title>

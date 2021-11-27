@@ -1040,14 +1040,14 @@ export default {
           await this.api.delete(id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
-        this.$toast.success('Deleted row successfully').goAway(3000)
+        // this.$toast.success('Deleted row successfully').goAway(3000)
       } catch (e) {
         this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
       }
     },
     async deleteSelectedRows() {
       let row = this.rowLength
-      let success = 0
+      // let success = 0
       while (row--) {
         try {
           const { row: rowObj, rowMeta } = this.data[row]
@@ -1064,12 +1064,12 @@ export default {
             await this.api.delete(id)
           }
           this.data.splice(row, 1)
-          success++
+          // success++
         } catch (e) {
           return this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
         }
       }
-      if (success) { this.$toast.success(`Deleted ${success} selected row${success > 1 ? 's' : ''} successfully`).goAway(3000) }
+      // if (success) { this.$toast.success(`Deleted ${success} selected row${success > 1 ? 's' : ''} successfully`).goAway(3000) }
     },
 
     async clearCellValue() {

@@ -951,9 +951,9 @@ export default {
               oldRow: { ...insertedData }
             })
 
-            this.$toast.success(`${insertedData[this.primaryValueColumn] ? `${insertedData[this.primaryValueColumn]}'s r` : 'R'}ow saved successfully.`, {
+            /* this.$toast.success(`${insertedData[this.primaryValueColumn] ? `${insertedData[this.primaryValueColumn]}'s r` : 'R'}ow saved successfully.`, {
               position: 'bottom-center'
-            }).goAway(3000)
+            }).goAway(3000) */
           } catch (e) {
             if (e.response && e.response.data && e.response.data.msg) {
               this.$toast.error(e.response.data.msg).goAway(3000)
@@ -1008,9 +1008,9 @@ export default {
           this.$set(this.data[row], 'row', { ...rowObj, ...newData })
 
           this.$set(oldRow, column._cn, rowObj[column._cn])
-          this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
+          /*    this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
             position: 'bottom-center'
-          }).goAway(3000)
+          }).goAway(3000) */
         } catch (e) {
           if (e.response && e.response.data && e.response.data.msg) {
             this.$toast.error(e.response.data.msg).goAway(3000)

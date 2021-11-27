@@ -97,7 +97,7 @@
       </thead>
       <tbody v-click-outside="onClickOutside">
         <tr
-          v-for="({row:rowObj, rowMeta},row) in data"
+          v-for="({row:rowObj, rowMeta, saving},row) in data"
           :key="row"
           class=" nc-grid-row"
         >
@@ -112,6 +112,7 @@
                 class="ml-2 grey--text"
                 :class="{ 'row-no' : !isPublicView }"
               >{{ row + 1 }}</span>
+
               <template v-if="!isPublicView">
                 <v-checkbox
                   v-if="rowMeta"
@@ -122,7 +123,7 @@
                 />
                 <v-spacer />
                 <v-icon
-                  v-if="!groupedAggCount[ids[row]] && !isLocked"
+                  v-if="!groupedAggCount[ids[row]] && !isLocked && !saving"
                   color="pink"
                   small
                   class="row-expand-icon nc-row-expand-icon  mr-1 pointer"
@@ -132,13 +133,20 @@
                 </v-icon>
               </template>
               <v-chip
-                v-if="groupedAggCount[ids[row]]"
+                v-if="groupedAggCount[ids[row]] && !saving"
                 x-small
                 :color="colors[ groupedAggCount[ids[row]] % colors.length]"
                 @click="expandRow(row,rowMeta)"
               >
                 {{ groupedAggCount[ids[row]] }}
               </v-chip>
+
+              <template v-if="saving">
+                <v-spacer />
+                <v-icon small>
+                  mdi-spin mdi-loading
+                </v-icon>
+              </template>
             </div>
           </td>
           <td

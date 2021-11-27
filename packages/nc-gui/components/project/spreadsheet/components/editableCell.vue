@@ -5,7 +5,7 @@
     @keydown.stop.right
     @keydown.stop.up
     @keydown.stop.down
-    @keydown.stop.enter="$emit('save')"
+    @keydown.stop.enter="cahnged=false,$emit('save')"
   >
     <editable-attachment-cell
       v-if="isAttachment"
@@ -170,7 +170,7 @@ export default {
     destroyed: false,
     syncDataDebounce: debounce(async function(self) {
       await self.syncData()
-    }, 500)
+    }, 1000)
   }),
   computed: {
     localState: {
@@ -180,10 +180,14 @@ export default {
       set(val) {
         this.changed = true
         if (val !== this.value) {
+          this.$emit('input', val)
           // debugger
-          this.syncDataDebounce(this)
+          if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime) {
+            this.syncData()
+          } else {
+            this.syncDataDebounce(this)
+          }
         }
-        this.$emit('input', val)
       }
     },
     parentListeners() {

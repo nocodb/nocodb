@@ -1078,7 +1078,7 @@ export default {
         return
       }
       this.$set(this.data[index].row, col._cn, null)
-      this.onCellValueChangeFn(colIndex, index, col)
+      await this.onCellValueChange(colIndex, index, col)
     },
     async insertNewRow(atEnd = false, expand = false) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1

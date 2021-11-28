@@ -93,6 +93,8 @@ export class _mainPage {
         cy.getActiveMenu().contains(roleType).click()
         cy.get('.nc-invite-or-save-btn').click()
 
+        cy.toastWait('Successfully updated the user details')
+
         // get URL, invoke
         cy.getActiveModal().find('.v-alert').then(($obj) => {
             linkText = $obj.text().trim()
@@ -100,19 +102,6 @@ export class _mainPage {
             this.roleURL[roleType] = linkText
 
             cy.get('body').click('right')
-
-            // cy.visit(linkText)
-
-            // cy.wait(3000)
-
-            // // Redirected to new URL, feed details
-            // //
-            // cy.get('input[type="text"]').type(userCred.username)
-            // cy.get('input[type="password"]').type(userCred.password)
-            // cy.get('button:contains("SIGN UP")').click()
-
-            // cy.url({ timeout: 6000 }).should('contain', '#/project')
-            // cy.wait(1000)
         })
     }
 
@@ -128,7 +117,7 @@ export class _mainPage {
         //
         cy.getActiveMenu().contains(role).click()
         cy.get('.nc-invite-or-save-btn').click()
-        cy.wait(1000)
+        cy.toastWait('Successfully updated the user details')
 
         this.roleURL[role] = "http://localhost:3000/#/user/authentication/signin"
     }
@@ -157,7 +146,7 @@ export class _mainPage {
         cy.toastWait(`Update table.${tableName} successful`)
     }
 
-    addColumnWithType = (colName, colType) => {
+    addColumnWithType = (colName, colType, tableName) => {
         cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({ force: true });
         cy.get('.nc-column-name-input input', { timeout: 3000 }).clear().type(colName)
 
@@ -166,7 +155,7 @@ export class _mainPage {
         cy.getActiveMenu().contains(colType).click()
         
         cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-        cy.wait(500)
+        cy.toastWait(`Update table.${tableName} successful`)
     }
 
     deleteColumn = (colName) => {
@@ -195,6 +184,7 @@ export class _mainPage {
         cy.getActiveModal().find('[placeholder="Port"]').click().type(port)
         cy.getActiveModal().find('[placeholder="Secure"]').click().type(secure)
         cy.getActiveModal().find('button').contains('Save').click()
+        cy.toastWait('Successfully installed and email notification will use SMTP configuration')
     }
 
     resetSMTP = () => {
@@ -205,6 +195,7 @@ export class _mainPage {
             .contains(" Reset ")
             .click({ force: true })
         cy.getActiveModal().find('button').contains('Submit').click()
+        cy.toastWait('Plugin uninstalled successfully')
     }
 
     hideUnhideField = (field) => {
@@ -240,6 +231,10 @@ export class _mainPage {
         if ((operation != 'is null') && (operation != 'is not null')) {
             cy.get('.nc-filter-value-select input:text').last().type(`${value}`);
         }
+
+        cy.get('.nc-filter-field-select').find('.v-select__slot').contains(field).should('exist')
+        cy.get('.nc-filter-operation-select').find('.v-select__slot').contains(operation).should('exist')
+
         cy.get('.nc-filter-menu-btn').click()
     }
 
@@ -263,7 +258,7 @@ export class _mainPage {
 
         // cy.get('.container').find('button.mdi-delete-outline')
 
-        cy.get('th:contains("View Link")').parent().parent()
+        cy.get('th:contains("View Link")').should('exist').parent().parent()
             .next().find('tr').each(($tableRow) => {
                 cy.log($tableRow[0].childElementCount)
 
@@ -275,6 +270,7 @@ export class _mainPage {
             })
             .then(() => {
             cy.get('.v-overlay__content > .d-flex > .v-icon').click()
+            cy.toastWait('Deleted shared view successfully')
         })
     }
     
@@ -288,12 +284,7 @@ export class _mainPage {
         cy.get('.nc-actions-menu-btn').click()
         cy.get(`.menuable__content__active .v-list-item span:contains("Download as CSV")`).click()
 
-        // Toast verification disabled as for larger table, multiple toasts appear before success one
-        // for each partitioned file
-        // cy.get('.toasted', { timeout: 5000 })
-        //     .contains('Successfully exported all table data')
-        //     .should('exist')
-        cy.wait(5000)
+        cy.toastWait('Successfully exported all table data')
             .then(() => {
 
                 // download folder path, read from config file

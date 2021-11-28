@@ -46,15 +46,6 @@ export const genTest = (type, xcdb) => {
     }
 
     describe(`${type.toUpperCase()} Base VIEW share`, () => {
-        // before(() => {
-        //     cy.waitForSpinners();
-        //     cy.signinOrSignup(roles.owner.credentials)
-        //     cy.wait(2000)
-        // })
-
-        // after(() => {
-        //     cy.closeTableTab('Country')          
-        // })
         
         it(`Generate base share URL`, () => {
             // click SHARE

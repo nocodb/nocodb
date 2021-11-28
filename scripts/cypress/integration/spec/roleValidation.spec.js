@@ -143,13 +143,13 @@ export function _editComment(roleType, previewMode) {
     else {
         cy.getActiveModal().find('.mdi-comment-multiple-outline').should('exist').click()
         cy.getActiveModal().find('.comment-box').type('Comment-1{enter}')
+        // cy.toastWait('Comment added successfully')
         cy.getActiveModal().find('.mdi-door-open').click()
 
         cy.get('body').contains(validationString, { timeout: 2000 }).should('exist')
-        cy.wait(1000)        
     }
 
-    cy.getActiveModal().find('button').contains('Cancel').click()
+    cy.getActiveModal().find('button').contains('Cancel').should('exist').click()
     cy.get('body').type('{esc}')
 }
 

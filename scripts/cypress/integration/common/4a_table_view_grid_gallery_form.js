@@ -1,4 +1,4 @@
-import { loginPage } from "../../support/page_objects/navigation"
+
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 export const genTest = (type, xcdb) => {
@@ -11,11 +11,11 @@ export const genTest = (type, xcdb) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      // loginPage.loginAndOpenProject(type)
-
       // open a table to work on views
       //
       cy.openTableTab('Country');
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)        
     })
 
     after(() => {
@@ -34,6 +34,7 @@ export const genTest = (type, xcdb) => {
 
         // Pop up window, click Submit (accepting default name for view)
         cy.getActiveModal().find('button:contains(Submit)').click()
+        cy.toastWait('View created successfully')
 
         // validate if view was creted && contains default name 'Country1'
         cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').should('exist')
@@ -47,7 +48,7 @@ export const genTest = (type, xcdb) => {
 
         // feed new name
         cy.get(`.nc-${viewType}-view-item input`).type(`${viewType}View-1{enter}`)
-        cy.wait(1000)
+        cy.toastWait('View renamed successfully')
 
         // validate
         cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains(`${viewType}View-1`).should('exist')
@@ -61,7 +62,7 @@ export const genTest = (type, xcdb) => {
 
         // click on delete icon (becomes visible on hovering mouse)
         cy.get('.nc-view-delete-icon').click({ force: true })
-        cy.wait(1000)
+        cy.toastWait('View deleted successfully')
 
         // confirm if the number of veiw entries is reduced by 1
         cy.get('.nc-view-item').its('length').should('eq', 1)
@@ -76,11 +77,6 @@ export const genTest = (type, xcdb) => {
 
   })
 }
-
-// invoke for different API types supported
-//
-// genTest('rest', false)
-// genTest('graphql', false)
 
 
 /**

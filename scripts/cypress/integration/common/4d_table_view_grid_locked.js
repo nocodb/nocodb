@@ -1,4 +1,4 @@
-import { loginPage } from "../../support/page_objects/navigation"
+
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
@@ -9,11 +9,11 @@ export const genTest = (type, xcdb) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            // loginPage.loginAndOpenProject(type)
-
             // open a table to work on views
             //
             cy.openTableTab('Country');
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)            
         })
 
         after(() => {
@@ -67,11 +67,6 @@ export const genTest = (type, xcdb) => {
         lockViewTest(false)
     })
 }
-
-// invoke for different API types supported
-//
-// genTest('rest', false)
-// genTest('graphql', false)
 
 
 /**

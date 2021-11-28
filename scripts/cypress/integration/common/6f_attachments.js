@@ -9,6 +9,8 @@ export const genTest = (type, xcdb) => {
     before(() => {
       loginPage.loginAndOpenProject(type)
       cy.openTableTab('Country');
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)      
     })
 
     after(() => {
@@ -17,7 +19,8 @@ export const genTest = (type, xcdb) => {
       // clean up newly added rows into Country table operations
       // this auto verifies successfull addition of rows to table as well
       mainPage.getPagination(5).click()
-      cy.wait(3000)
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 10)
       mainPage.getRow(10).find('.mdi-checkbox-blank-outline').click({force: true})
 
       mainPage.getCell("Country", 10).rightclick()
@@ -27,12 +30,12 @@ export const genTest = (type, xcdb) => {
     })
 
     it(`Add column of type attachments`, () => {
-      mainPage.addColumnWithType('testAttach', 'Attachment')
-      cy.wait(4000)
+      mainPage.addColumnWithType('testAttach', 'Attachment', 'Country')
+
       for (let i = 1; i <= 2; i++) {
         let filepath = `sampleFiles/${i}.json`
         mainPage.getCell('testAttach', i).click().find('input[type="file"]').attachFile(filepath)
-        cy.wait(4000)
+        mainPage.getCell('testAttach', i).find('.mdi-file').should('exist')
       }
     })
 
@@ -40,9 +43,13 @@ export const genTest = (type, xcdb) => {
       // create form-view
       cy.get(`.nc-create-form-view`).click();
       cy.getActiveModal().find('button:contains(Submit)').click()
+
+      cy.toastWait('View created successfully')
+
       cy.get(`.nc-view-item.nc-form-view-item`).contains('Country1').click()
-      cy.wait(1000)
+
       cy.get('.v-navigation-drawer__content > .container')
+        .should('exist')
         .find('.v-list > .v-list-item')
         .contains('Share View')
         .click()
@@ -59,9 +66,8 @@ export const genTest = (type, xcdb) => {
           })
 
           // wait for share view page to load!
-          cy.wait(5000)
 
-          cy.get('#data-table-form-Country').type('_abc')
+          cy.get('#data-table-form-Country').should('exist').type('_abc')
           cy.get('#data-table-form-LastUpdate').click()
           cy.getActiveModal().find('button').contains('19').click()
           cy.getActiveModal().find('button').contains('OK').click()
@@ -73,7 +79,7 @@ export const genTest = (type, xcdb) => {
 
           // submit button & validate
           cy.get('.nc-form').find('button').contains('Submit').click()
-          cy.wait(3000)
+          cy.toastWait('Saved successfully')
         })
     })
 
@@ -81,9 +87,10 @@ export const genTest = (type, xcdb) => {
       // come back to main window
       loginPage.loginAndOpenProject(type)
       cy.openTableTab('Country');
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)
 
       mainPage.filterField('testAttach', 'is not null', null)
-      cy.wait(1000)
       mainPage.hideUnhideField('LastUpdate')
 
       const verifyCsv = (retrievedRecords) => {

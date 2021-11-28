@@ -1,4 +1,3 @@
-import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
@@ -14,23 +13,23 @@ export const genTest = (type, xcdb) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      // loginPage.loginAndOpenProject(type)
-
-      // open a table to work on views
-      //
-      cy.openTableTab('Country');
+        // open a table to work on views
+        //
+        cy.openTableTab('Country');
+        // wait for page rendering to complete
+        cy.get('.nc-grid-row').should('have.length', 25)
     })
 
     beforeEach(() => {
-      cy.restoreLocalStorage();
+        cy.restoreLocalStorage();
     })
 
     afterEach(() => {
-      cy.saveLocalStorage();
+        cy.saveLocalStorage();
     })
 
     after(() => {
-      cy.closeTableTab('Country')
+        cy.closeTableTab('Country')
     })          
 
     // Common routine to create/edit/delete GRID & GALLERY view
@@ -44,6 +43,8 @@ export const genTest = (type, xcdb) => {
 
             // Pop up window, click Submit (accepting default name for view)
             cy.getActiveModal().find('button:contains(Submit)').click()
+
+            cy.toastWait('View created successfully')
 
             // validate if view was creted && contains default name 'Country1'
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').should('exist')
@@ -142,6 +143,7 @@ export const genTest = (type, xcdb) => {
 
             // submit button & validate
             cy.get('.nc-form').find('button').contains('Submit').click()
+            cy.toastWait('Saved successfully')
             cy.get('.v-alert').contains('Successfully submitted form data').should('exist')
 
             // end of test removes newly added rows from table. that step validates if row was successfully added.
@@ -163,6 +165,7 @@ export const genTest = (type, xcdb) => {
 
             // submit button & validate
             cy.get('.nc-form').find('button').contains('Submit').click()
+            cy.toastWait('Congratulations')            
             cy.get('.v-alert').contains('Congratulations').should('exist')
 
             // end of test removes newly added rows from table. that step validates if row was successfully added.
@@ -184,18 +187,18 @@ export const genTest = (type, xcdb) => {
 
             // submit button & validate
             cy.get('.nc-form').find('button').contains('Submit').click()
+            cy.toastWait('Congratulations')
             cy.get('.v-alert').contains('Congratulations').should('exist')
             cy.get('button').contains('Submit Another Form').should('exist')
 
             cy.get('button').contains('Submit Another Form').click()
-            cy.wait(2000).then(() => {
-                // New form appeared? Header & description should exist
-                cy.get('.nc-form').find('[placeholder="Form Title"]').contains('A B C D').should('exist')
-                cy.get('.nc-form').find('[placeholder="Add form description"]').contains('Some description about form comes here').should('exist')
+            cy.get('.nc-form').should('exist')
+            // New form appeared? Header & description should exist
+            cy.get('.nc-form').find('[placeholder="Form Title"]').contains('A B C D').should('exist')
+            cy.get('.nc-form').find('[placeholder="Add form description"]').contains('Some description about form comes here').should('exist')
 
-                // end of test removes newly added rows from table. that step validates if row was successfully added.              
-            })
-        })            
+            // end of test removes newly added rows from table. that step validates if row was successfully added.              
+        })
 
         it(`Validate ${viewType}: Submit default, Enable checkbox "blank form after 5 seconds"`, () => {
             // cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
@@ -212,10 +215,10 @@ export const genTest = (type, xcdb) => {
 
             // submit button & validate
             cy.get('.nc-form').find('button').contains('Submit').click()
+            cy.toastWait('Congratulations')
             cy.get('.v-alert').contains('Congratulations').should('exist').then(() => {
                 // wait for 5 seconds
-                cy.wait(5000)
-                cy.get('.v-alert').contains('Congratulations').should('not.exist')
+                cy.get('.nc-form').should('exist')
 
                 // validate if form has appeared again
                 cy.get('.nc-form').find('[placeholder="Form Title"]').contains('A B C D').should('exist')
@@ -230,9 +233,7 @@ export const genTest = (type, xcdb) => {
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
             cy.get('.nc-form > .mx-auto').find('[type="checkbox"]').eq(2).click({ force: true })
             // validate if toaster pops up requesting to activate SMTP
-            cy.get('.toasted:visible', { timout: 6000 })
-                .contains('Please activate SMTP plugin in App store for enabling email notification')
-                .should('exist')
+            cy.toastWait('Please activate SMTP plugin in App store for enabling email notification')
         })
 
         it(`Validate ${viewType}: Email me verification, with SMTP configuration`, () => {
@@ -242,6 +243,9 @@ export const genTest = (type, xcdb) => {
 
             // open form view & enable "email me" option
             cy.openTableTab('Country');
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)
+            
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
             cy.get('.nc-form > .mx-auto').find('[type="checkbox"]').eq(2).click({ force: true })
             // validate if toaster pops up informing installation of email notification
@@ -252,6 +256,8 @@ export const genTest = (type, xcdb) => {
             mainPage.navigationDraw(mainPage.APPSTORE).click()
             mainPage.resetSMTP()
             cy.openTableTab('Country');
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)               
         })
 
         it(`Validate ${viewType}: Add/ remove field verification"`, () => {
@@ -302,7 +308,7 @@ export const genTest = (type, xcdb) => {
 
             // click on delete icon (becomes visible on hovering mouse)
             cy.get('.nc-view-delete-icon').click({ force: true })
-            cy.wait(1000)
+            cy.toastWait('View deleted successfully')
 
             // confirm if the number of veiw entries is reduced by 1
             cy.get('.nc-view-item').its('length').should('eq', 1)
@@ -310,7 +316,7 @@ export const genTest = (type, xcdb) => {
             // clean up newly added rows into Country table operations
             // this auto verifies successfull addition of rows to table as well
             mainPage.getPagination(5).click()
-            cy.wait(3000)
+            cy.get('.nc-grid-row').should('have.length', 13)
             mainPage.getRow(10).find('.mdi-checkbox-blank-outline').click({ force: true })
             mainPage.getRow(11).find('.mdi-checkbox-blank-outline').click({ force: true })
             mainPage.getRow(12).find('.mdi-checkbox-blank-outline').click({ force: true })
@@ -318,6 +324,7 @@ export const genTest = (type, xcdb) => {
             
             mainPage.getCell("Country", 10).rightclick()
             cy.getActiveMenu().contains('Delete Selected Row').click()            
+            // cy.toastWait('Deleted selected rows successfully')
         })
     }
 
@@ -325,14 +332,7 @@ export const genTest = (type, xcdb) => {
     viewTest('form')
 
   })
-    
-  
 }
-
-// invoke for different API types supported
-//
-// genTest('rest', false)
-// genTest('graphql', false)
 
 
 /**

@@ -23,7 +23,12 @@ export const genTest = (type, xcdb, roleType) => {
 
         after(() => {
             cy.get('.nc-preview-reset').click({ force: true })
-            cy.wait(20000)
+            // cy.wait(20000)
+
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row', { timeout: 25000 }).should('have.length', 25)
+            
+            // cy.get('.nc-preview-reset:visible').should('not-exist')
 
             // mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
             // cy.get('.nc-preview-reset').should('not-exist')
@@ -34,8 +39,10 @@ export const genTest = (type, xcdb, roleType) => {
         
             it(`Role preview: ${roleType}: Enable preview`, () => {
                 cy.get(`.nc-preview-${roleType}`).click()
-                cy.wait(3000)
+
                 cy.openTableTab('City')
+                // wait for page rendering to complete
+                cy.get('.nc-grid-row').should('have.length', 25)                
             })
 
             it(`Role preview: ${roleType}: Advance settings`, () => {

@@ -1,5 +1,4 @@
 import { mainPage } from "../../support/page_objects/mainPage"
-import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 let storedURL = ''
@@ -12,13 +11,12 @@ const generateLinkWithPwd = () => {
         .contains('Share View')
         .click()
     
-    // wait, as URL initially will be /undefined
-    cy.wait(500)
-
     // enable checkbox & feed pwd, save
     cy.getActiveModal().find('[role="switch"][type="checkbox"]').click( {force: true} )
     cy.getActiveModal().find('input[type="password"]').type('1')
     cy.getActiveModal().find('button:contains("Save password")').click()
+
+    cy.toastWait('Successfully updated')
 
     // copy link text, visit URL
     cy.getActiveModal().find('.share-link-box')
@@ -38,6 +36,8 @@ export const genTest = (type, xcdb) => {
         //
         before(() => {
             cy.openTableTab('City')
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)               
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
                 storedURL = url
@@ -58,12 +58,12 @@ export const genTest = (type, xcdb) => {
             cy.visit(linkText, {
                 baseUrl: null
             })
-            // wait for share view page to load!
-            cy.wait(1000)
+
+            cy.getActiveModal().should('exist')
+
             // feed password
             cy.getActiveModal().find('input[type="password"]').type('a')
             cy.getActiveModal().find('button:contains("Unlock")').click()
-            cy.wait(1000)
 
             // if pwd is incorrect, active modal requesting to feed in password again will persist
             cy.get('body').find('.v-dialog.v-dialog--active').should('exist')
@@ -74,12 +74,10 @@ export const genTest = (type, xcdb) => {
             // cy.visit(linkText, {
             //     baseUrl: null
             // })
-            // // wait for share view page to load!
-            // cy.wait(1000)
+
             // feed password
             cy.getActiveModal().find('input[type="password"]').clear().type('1')
             cy.getActiveModal().find('button:contains("Unlock")').click()
-            cy.wait(1000)
 
             // if pwd is incorrect, active modal requesting to feed in password again will persist
             cy.get('body').find('.v-dialog.v-dialog--active').should('not.exist')

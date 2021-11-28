@@ -97,6 +97,16 @@ export default {
   async mounted() {
     await this.setKanbanData()
   },
+  watch: {
+    async groupingField(newVal) {
+      this.groupingField = newVal
+      this.stages = []
+      this.stageColors = []
+      this.blocks = []
+      this.clonedBlocks = []
+      await this.setKanbanData()
+    }
+  },
   computed: {
     fields() {
       if (this.availableColumns) {

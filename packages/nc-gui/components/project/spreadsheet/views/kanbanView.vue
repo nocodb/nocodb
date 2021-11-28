@@ -57,7 +57,6 @@
               </v-card-text>
             </v-card>
           </v-hover>
-        </div>
       </div>
     </kanban-board>
   </v-container>
@@ -128,7 +127,7 @@ export default {
             rowMeta: this.data[i].rowMeta,
             ...this.data[i].row
           }
-          console.log(block)
+          // console.log(block)
           this.blocks.push(block)
         }
         this.stages = [...new Set(this.stages)]
@@ -177,6 +176,14 @@ export default {
 
 <style scoped lang="scss">
 ::v-deep {
+  .v-card {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  ul.drag-inner-list {
+    max-height: 500px;
+    overflow-y: scroll;
+  }
 
   ul.drag-list, ul.drag-inner-list {
     list-style-type: none;
@@ -186,7 +193,7 @@ export default {
 
   .drag-container {
     max-width: 1000px;
-    margin: 20px auto;
+    margin: 20px 0px;
   }
 
   .drag-list {
@@ -202,11 +209,11 @@ export default {
 
   .drag-column {
     flex: 1;
+    padding: 0px 10px 10px 10px;
     margin: 0 10px;
     position: relative;
     background: var(--v-backgroundColor-base); //rgba(256, 256, 256, 0.2);
-    overflow: hidden;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 
   @media (max-width: 690px) {
@@ -226,7 +233,8 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px;
+    padding: 10px 10px 0px 10px;
+    width: 240px;
   }
 
   .drag-inner-list {
@@ -257,12 +265,9 @@ export default {
   }
 
   .drag-options {
-    position: absolute;
-    top: 44px;
     left: 0;
     width: 100%;
     height: 100%;
-    padding: 10px;
     transform: translateX(100%);
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);

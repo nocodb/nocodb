@@ -100,10 +100,12 @@ export default {
   watch: {
     async groupingField(newVal) {
       this.groupingField = newVal
-      this.stages = []
-      this.stageColors = []
-      this.blocks = []
-      this.clonedBlocks = []
+      this.reset()
+      await this.setKanbanData()
+    },
+    async data(newVal) {
+      this.data = newVal
+      this.reset()
       await this.setKanbanData()
     }
   },
@@ -179,6 +181,12 @@ export default {
           this.$toast.error(`Failed to update block : ${e.message}`).goAway(3000)
         }
       }
+    },
+    reset() {
+      this.stages = []
+      this.stageColors = []
+      this.blocks = []
+      this.clonedBlocks = []    
     }
   }
 }

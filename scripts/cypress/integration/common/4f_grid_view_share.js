@@ -1,4 +1,4 @@
-import { loginPage } from "../../support/page_objects/navigation"
+
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage"
 
@@ -23,7 +23,8 @@ export const genTest = (type, xcdb) => {
             .click()
 
         // wait, as URL initially will be /undefined
-        cy.wait(1000)
+        cy.getActiveModal().find('.share-link-box')
+            .contains('/nc/view/', {timeout: 10000}).should('exist')      
 
         // copy link text, visit URL
         cy.getActiveModal().find('.share-link-box')
@@ -32,7 +33,6 @@ export const genTest = (type, xcdb) => {
                 cy.get('body').type('{esc}')
                 // viewURL.push($obj.text())
                 viewURL[viewName] = $obj.text().trim()
-                cy.wait(1000)
             })
     }    
 
@@ -43,6 +43,9 @@ export const genTest = (type, xcdb) => {
             // open a table to work on views
             //
             cy.openTableTab('Address');
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)
+
             cy.saveLocalStorage()
         })
 
@@ -69,22 +72,7 @@ export const genTest = (type, xcdb) => {
                 // create a normal public view
                 cy.get(`.nc-create-${viewType}-view`).click();
                 cy.getActiveModal().find('button:contains(Submit)').click()
-                cy.wait(1000)
-
-                // // create view for fields verification
-                // cy.get(`.nc-create-${viewType}-view`).click();
-                // cy.getActiveModal().find('button:contains(Submit)').click()
-                // cy.wait(1000)
-                
-                // // create view for Sort verification
-                // cy.get(`.nc-create-${viewType}-view`).click();
-                // cy.getActiveModal().find('button:contains(Submit)').click()
-                // cy.wait(1000)
-                
-                // // create view for Filter verification
-                // cy.get(`.nc-create-${viewType}-view`).click();
-                // cy.getActiveModal().find('button:contains(Submit)').click()
-                // cy.wait(1000)
+                cy.toastWait('View created successfully')
 
                 // store base URL- to re-visit and delete form view later
                 cy.url().then((url) => {
@@ -114,9 +102,7 @@ export const genTest = (type, xcdb) => {
 
                 cy.getActiveMenu().find('.v-list-item').contains('Views List').click()
 
-                cy.wait(1000)
-
-                // cy.get('.container').find('button.mdi-delete-outline')
+                cy.get('th:contains("View Link")').should('exist')
 
                 cy.get('th:contains("View Link")').parent().parent()
                     .next().find('tr').its('length').should('eq', 1)
@@ -131,8 +117,8 @@ export const genTest = (type, xcdb) => {
                     baseUrl: null
                 })
         
-                // wait for public view page to load!
-                cy.wait(5000)
+                // wait for page rendering to complete
+                cy.get('.nc-grid-row').should('have.length', 18)                
 
                 // verify title
                 cy.get('div.model-name').contains('Address1').should('exist')
@@ -179,110 +165,6 @@ export const genTest = (type, xcdb) => {
                 mainPage.hideUnhideField('LastUpdate')
             })
 
-            // it(`Share ${viewType} view generate URL with all fields enabled`, () => {
-            //     cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
-            //     generateViewLink('default')
-            //     cy.log(viewURL['default'])
-            // })
-
-            // it(`Share ${viewType} view generate URL with a field hidden`, () => {
-            //     cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country2').click()
-            //     mainPage.hideUnhideField('LastUpdate')
-            //     generateViewLink('hide')
-            // })
-
-            // it(`Share ${viewType} view generate URL with a field sorted`, () => {
-            //     cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country3').click()
-            //     mainPage.sortField('Country', 'Z -> A')
-            //     generateViewLink('sort')
-            // })
-
-            // it(`Share ${viewType} view generate URL with a field filtered`, () => {
-            //     cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country4').click()
-            //     mainPage.filterField('Country', 'is equal', 'India')
-            //     generateViewLink('filter')
-            // })        
-
-            // it(`Share ${viewType} view : Access URL with a field hidden`, () => {
-            //     // visit public view
-            //     cy.visit(viewURL['hide'])
-        
-            //     // wait for public view page to load!
-            //     cy.wait(5000)
-
-            //     // verify title
-            //     cy.get('div.model-name').contains('Country2').should('exist')
-
-            //     // verify column headers
-            //     cy.get('[data-col="Country"]').should('exist')
-            //     cy.get('[data-col="LastUpdate"]').should('not.exist')
-            //     cy.get('[data-col="Country => City"]').should('exist')
-
-            //     // country column content verification before sort
-            //     mainPage.getCell("Country", 1).contains("Afghanistan").should('exist')
-            //     mainPage.getCell("Country", 2).contains("Algeria").should('exist')
-            //     mainPage.getCell("Country", 3).contains("American Samoa").should('exist')
-            // })
-            
-            // it(`Share ${viewType} view : Access URL with a field sorted`, () => {
-            //     // visit public view
-            //     cy.visit(viewURL['sort'])
-        
-            //     // wait for public view page to load!
-            //     cy.wait(5000)
-
-            //     // verify title
-            //     cy.get('div.model-name').contains('Country3').should('exist')                
-
-            //     // verify column headers
-            //     cy.get('[data-col="Country"]').should('exist')
-            //     cy.get('[data-col="LastUpdate"]').should('exist')
-            //     cy.get('[data-col="Country => City"]').should('exist')
-
-            //     // country column content verification before sort
-            //     mainPage.getCell("Country", 1).contains("Zambia").should('exist')
-            // })
-            
-            // it(`Share ${viewType} view : Access URL with a field filtered`, () => {
-            //     // visit public view
-            //     cy.visit(viewURL['filter'])
-        
-            //     // wait for public view page to load!
-            //     cy.wait(5000)
-
-            //     // verify title
-            //     cy.get('div.model-name').contains('Country4').should('exist')                
-
-            //     // verify column headers
-            //     cy.get('[data-col="Country"]').should('exist')
-            //     cy.get('[data-col="LastUpdate"]').should('exist')
-            //     cy.get('[data-col="Country => City"]').should('exist')
-
-            //     // country column content verification before sort
-            //     mainPage.getCell("Country", 1).contains("India").should('exist')
-            // })          
-
-            // it(`Share ${viewType} view : Access URL with all fields enabled`, () => {
-            //     // visit public view
-            //     cy.visit(viewURL['default'])
-        
-            //     // wait for public view page to load!
-            //     cy.wait(5000)
-
-            //     // verify title
-            //     cy.get('div.model-name').contains('Country1').should('exist')                
-
-            //     // verify column headers
-            //     cy.get('[data-col="Country"]').should('exist')
-            //     cy.get('[data-col="LastUpdate"]').should('exist')
-            //     cy.get('[data-col="Country => City"]').should('exist')
-
-            //     // country column content verification before sort
-            //     mainPage.getCell("Country", 1).contains("Afghanistan").should('exist')
-            //     mainPage.getCell("Country", 2).contains("Algeria").should('exist')
-            //     mainPage.getCell("Country", 3).contains("American Samoa").should('exist')
-            // })
-
             it(`Share ${viewType.toUpperCase()} view : Disable sort`, () => {
                 // remove sort and validate
                 mainPage.clearSort()
@@ -291,7 +173,6 @@ export const genTest = (type, xcdb) => {
 
             it(`Share ${viewType.toUpperCase()} view : Enable sort`, () => {
                 // Sort menu operations (Country Column, Z->A)
-                //cy.wait(5000)
                 mainPage.sortField('District', 'Z -> A')
                 mainPage.getCell("District", 1).contains("West Bengali").should('exist')
             })
@@ -299,7 +180,8 @@ export const genTest = (type, xcdb) => {
             it(`Share ${viewType.toUpperCase()} view : Create Filter`, () => {
                 // add filter & validate
                 mainPage.filterField('District', 'is like', 'Tamil')
-                cy.wait(1000)
+                // wait for page rendering to complete
+                cy.get('.nc-grid-row').should('have.length', 2)
                 mainPage.getCell("District", 1).contains("Tamil").should('exist')
             })
 
@@ -369,8 +251,6 @@ export const genTest = (type, xcdb) => {
 
                 cy.getActiveModal().find('button.mdi-reload').should('exist')
                 cy.getActiveModal().find('button').contains('Link to').should('not.exist')
-                // cy.getActiveModal().find('.child-card').contains('Mike').should('exist')
-                //cy.getActiveModal().find('.child-card').find('button').should('not.exist')
                 cy.get('body').type('{esc}')
             })       
 
@@ -383,18 +263,8 @@ export const genTest = (type, xcdb) => {
                 // number of view entries should be 2 before we delete
                 cy.get('.nc-view-item').its('length').should('eq', 2)
 
-                // // click on delete icon (becomes visible on hovering mouse)
-                // cy.get('.nc-view-delete-icon').eq(3).click({ force: true })
-                // cy.wait(1000)
-
-                // cy.get('.nc-view-delete-icon').eq(2).click({ force: true })
-                // cy.wait(1000)            
-
-                // cy.get('.nc-view-delete-icon').eq(1).click({ force: true })
-                // cy.wait(1000)
-
                 cy.get('.nc-view-delete-icon').eq(0).click({ force: true })
-                cy.wait(1000)
+                cy.toastWait('View deleted successfully')
                 
                 // confirm if the number of veiw entries is reduced by 1
                 cy.get('.nc-view-item').its('length').should('eq', 1)
@@ -405,85 +275,13 @@ export const genTest = (type, xcdb) => {
         viewTest('grid')
     })
     
-    // describe(`${type.toUpperCase()} api - Grid view/ Virtual column verification`, () => {
-
-    //     before(() => {
-    //         // Address table has belongs to, has many & many-to-many
-    //         cy.openTableTab('Address');
-    //         cy.saveLocalStorage()
-    //         // store base URL- to re-visit and delete form view later
-    //         cy.url().then((url) => {
-    //             baseURL = url
-    //             generateViewLink('virtualColumn')
-    //         })            
-    //     })
-
-    //     beforeEach(() => {
-    //         cy.restoreLocalStorage();
-    //     })
-
-    //     afterEach(() => {
-    //         cy.saveLocalStorage();
-    //     })
-        
-    //     after(() => {
-    //         // close table
-    //         cy.visit(baseURL)
-    //         mainPage.deleteCreatedViews()
-    //         cy.closeTableTab('Address')
-    //     })
-
-    //     it(`Generate default Shared GRID view URL`, () => {
-    //         // visit public view
-    //         cy.visit(viewURL['virtualColumn'])
-    //         // wait for public view page to load!
-    //         cy.wait(5000)
-    //     })
-
-    //     it(`Share GRID view : Virtual column validation > has many`, () => {
-    //         // verify column headers
-    //         cy.get('[data-col="Address => Customer"]').should('exist')
-    //         cy.get('[data-col="Address => Staff"]').should('exist')
-    //         cy.get('[data-col="City <= Address"]').should('exist')
-    //         cy.get('[data-col="Address <=> Staff"]').should('exist')
-
-    //         // has many field validation
-    //         mainPage.getCell("Address => Staff", 3).click().find('button.mdi-close-thick').should('not.exist')
-    //         mainPage.getCell("Address => Staff", 3).click().find('button.mdi-plus').should('not.exist')
-    //         mainPage.getCell("Address => Staff", 3).click().find('button.mdi-arrow-expand').click()
-
-    //         cy.getActiveModal().find('button.mdi-reload').should('exist')
-    //         cy.getActiveModal().find('button').contains('Link to').should('not.exist')
-    //         cy.getActiveModal().find('.child-card').contains('Mike').should('exist')
-    //         cy.getActiveModal().find('.child-card').find('button').should('not.exist')
-    //         cy.get('body').type('{esc}')
-    //     })
-
-    //     it(`Share GRID view : Virtual column validation > belongs to`, () => {
-    //         // belongs to field validation
-    //         mainPage.getCell("City <= Address", 1).click().find('button.mdi-close-thick').should('not.exist')
-    //         mainPage.getCell("City <= Address", 1).click().find('button.mdi-arrow-expand').should('not.exist')
-    //         mainPage.getCell("City <= Address", 1).find('.v-chip').contains('Lethbridge').should('exist')
-    //     })
-
-    //     it(`Share GRID view : Virtual column validation > many to many`, () => {
-    //         // many-to-many field validation
-    //         mainPage.getCell("Address <=> Staff", 1).click().find('button.mdi-close-thick').should('not.exist')
-    //         mainPage.getCell("Address <=> Staff", 1).click().find('button.mdi-plus').should('not.exist')
-    //         mainPage.getCell("Address <=> Staff", 1).click().find('button.mdi-arrow-expand').click()
-
-    //         cy.getActiveModal().find('button.mdi-reload').should('exist')
-    //         cy.getActiveModal().find('button').contains('Link to').should('not.exist')
-    //         cy.getActiveModal().find('.child-card').contains('Mike').should('exist')
-    //         cy.getActiveModal().find('.child-card').find('button').should('not.exist')
-    //         cy.get('body').type('{esc}')
-    //     })
-    // })
-
     describe(`${type.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
             // Address table has belongs to, has many & many-to-many
             cy.openTableTab('Country')
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)
+            
             cy.saveLocalStorage()
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
@@ -501,7 +299,8 @@ export const genTest = (type, xcdb) => {
 
             // delete row
             mainPage.getPagination(5).click()
-            cy.wait(3000)
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 10)
             mainPage.getRow(10).find('.mdi-checkbox-blank-outline').click({ force: true })
             mainPage.getCell("Country", 10).rightclick()
             cy.getActiveMenu().contains('Delete Selected Row').click()
@@ -512,6 +311,8 @@ export const genTest = (type, xcdb) => {
                 .click()
             cy.get('.nc-column-delete').click()
             cy.get('button:contains(Confirm)').click()
+
+            cy.toastWait('Update table.Country successful')
 
             mainPage.deleteCreatedViews()
             
@@ -536,13 +337,15 @@ export const genTest = (type, xcdb) => {
                 baseUrl: null
             }) //5
             // wait for public view page to load!
-            cy.wait(5000)
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)            
         })
 
         it(`Share GRID view : new row visible`, () => {
             // verify row 
             cy.get(`.v-pagination > li:contains('5') button`).click()
-            cy.wait(3000)
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 10)
             mainPage.getCell('Country', 10).contains('a').should('exist')            
         })
 
@@ -552,11 +355,6 @@ export const genTest = (type, xcdb) => {
         })
     })
 }
-
-// invoke for different API types supported
-//
-// genTest('rest', false)
-// genTest('graphql', false)
 
 
 /**

@@ -120,6 +120,7 @@
                         outlined
                         data-v-step="1"
                         color="primary"
+                        class="nc-new-project-menu"
                         v-on="on"
                       >
                         <!-- New Project -->

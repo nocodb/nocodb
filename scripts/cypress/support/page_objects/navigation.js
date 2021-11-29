@@ -49,7 +49,7 @@ export class _loginPage {
     //
     waitProjectPageLoad() {
         cy.url({ timeout: 6000 }).should('contain', '#/project')
-        cy.wait(1000)
+        cy.get('.nc-new-project-menu').should('exist')
     }
 
     // standard pre-project activity
@@ -88,7 +88,7 @@ export class _projectsPage {
     // TODO: add projectName validation
     // 
     openProject(projectName) {
-        cy.get('tbody').contains('tr', projectName).click()
+        cy.get('tbody').contains('tr', projectName).should('exist').click()
 
         // takes a while to load project
         this.waitHomePageLoad()
@@ -153,11 +153,6 @@ export class _projectsPage {
                 cy.contains('GRAPHQL APIs').closest('label').click();
             }
 
-            // External database credentials
-            // cy.contains('Database Type').parent().find('input').eq(1).click()
-            // cy.wait(100)
-            // cy.get('body').contains(' MySQL ').parents('div').click()
-
             if (cred.hostAddress != '') cy.contains('Host Address').parent().find('input').clear().type(cred.hostAddress)
             if (cred.portNumber != '') cy.contains('Port Number').parent().find('input').clear().type(cred.portNumber)
             if (cred.username != '') cy.contains('Username').parent().find('input').clear().type(cred.username)
@@ -193,7 +188,6 @@ export class _projectsPage {
     //
     refreshProject() {
         cy.contains('My Projects').parent().find('button').click();
-        cy.wait(1000)
     }
 
     // search project with given key
@@ -225,7 +219,8 @@ export class _projectsPage {
 
         // delete icon
         cy.get('tbody').contains('tr', name).find('.mdi-delete-circle-outline').click()
-        this.waitDeletePageLoad()
+        cy.toastWait('deleted successfully')
+        // this.waitDeletePageLoad()
 
         // pop-up, submit
         cy.get('body').then((body) => {
@@ -238,36 +233,32 @@ export class _projectsPage {
     // 1. read all project names to be deleted, store in array
     // 2. invoke delete project for each entry in array
     //
-    deleteAllProject() {
+    // deleteAllProject() {
 
-        const projectName = []
+    //     const projectName = []
 
-        cy.get('table tr').each((tableRow) => {
+    //     cy.get('table tr').each((tableRow) => {
 
-            cy.wrap(tableRow).find('td').eq(0).find('.title').then((input) => {
-                projectName.push(input.text())
-            })
-        })
-            .then(() => {
-                console.log(projectName)
-                projectName.forEach(element => {
+    //         cy.wrap(tableRow).find('td').eq(0).find('.title').then((input) => {
+    //             projectName.push(input.text())
+    //         })
+    //     })
+    //         .then(() => {
+    //             console.log(projectName)
+    //             projectName.forEach(element => {
 
-                    // bring back the DOM to normalcy
-                    cy.get('div').parentsUntil('body')
-                    this.deleteProject(element)
+    //                 // bring back the DOM to normalcy
+    //                 cy.get('div').parentsUntil('body')
+    //                 this.deleteProject(element)
 
-                    // wait needed for pop up to disapper
-                    this.waitDeletePageLoad()
-                })
-            })
-    }
+    //                 // wait needed for pop up to disapper
+    //                 this.waitDeletePageLoad()
+    //             })
+    //         })
+    // }
 
     waitHomePageLoad() {
         cy.url({ timeout: 50000 }).should('contain', '&dbalias=')
-    }
-
-    waitDeletePageLoad() {
-        cy.wait(1000)
     }
 }
 

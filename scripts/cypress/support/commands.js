@@ -46,7 +46,7 @@ Cypress.Commands.add('signinOrSignup', (_args) => {
 
   // signin/signup
   cy.get('body').then(($body) => {
-    cy.wait(1000)
+    // cy.wait(1000)
     cy.url().then(url => {
       if (!url.includes('/projects')) {
         // handle initial load
@@ -78,7 +78,7 @@ Cypress.Commands.add('openOrCreateRestProject', (_args) => {
 
     // signin/signup
     cy.signinOrSignup()
-    cy.wait(2000);
+    cy.get('.nc-new-project-menu').should('exist')
     cy.get('body').then($body => {
       const filter = args.meta ? '.nc-meta-project-row' : ':not(.nc-meta-project-row)';
       // if project exist open
@@ -109,6 +109,7 @@ Cypress.Commands.add('openOrCreateRestProject', (_args) => {
 Cypress.Commands.add('openTableTab', (tn) => {
   cy.get('.nc-project-tree')
     .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+    .should('exist')
     .first().click()
 
   cy.get('.nc-project-tree')
@@ -124,7 +125,6 @@ Cypress.Commands.add('openTableTab', (tn) => {
     .first().click()
   
   // wait for page to load
-  cy.wait(500)
 })
 
 Cypress.Commands.add('closeTableTab', (tn) => {
@@ -136,7 +136,7 @@ Cypress.Commands.add('openOrCreateGqlProject', (_args) => {
 
   cy.signinOrSignup()
 
-  cy.wait(2000);
+  cy.get('.nc-new-project-menu').should('exist')
   cy.get('body').then($body => {
     const filter = args.meta ? '.nc-meta-project-row' : ':not(.nc-meta-project-row)';
     // if project exist open

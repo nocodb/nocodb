@@ -48,16 +48,14 @@ export const genTest = (type, xcdb) => {
                     cy.visit(mainPage.roleURL[roleType], {
                         baseUrl: null
                     })
-                    cy.wait(3000)
 
                     // Redirected to new URL, feed details
                     //
-                    cy.get('input[type="text"]').type(roles[roleType].credentials.username)
+                    cy.get('input[type="text"]').should('exist').type(roles[roleType].credentials.username)
                     cy.get('input[type="password"]').type(roles[roleType].credentials.password)
                     cy.get('button:contains("SIGN")').click()
 
                     cy.url({ timeout: 6000 }).should('contain', '#/project')
-                    cy.wait(1000)
 
                     if('rest' == type)
                         projectsPage.openProject(staticProjects.externalREST.basic.name)

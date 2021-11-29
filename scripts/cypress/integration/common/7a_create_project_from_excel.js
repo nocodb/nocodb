@@ -66,9 +66,6 @@ export const genTest = (type, xcdb) => {
     describe(`Import from excel`, () => {
 
         before(() => {
-            // cy.waitForSpinners()
-            // cy.signinOrSignup(roles.owner.credentials)
-            // cy.wait(2000)
 
             cy.task('readSheetList', { file: `./scripts/cypress/fixtures/${filepath}` })
                 .then((rows) => {
@@ -182,8 +179,8 @@ export const genTest = (type, xcdb) => {
 
             // delete project once all operations are completed
             mainPage.toolBarTopLeft(mainPage.HOME).click()
-            cy.wait(1000)
             cy.get(`.nc-${type}-project-row .mdi-delete-circle-outline`, { timeout: 10000 })
+                .should('exist')
                 .last()
                 .invoke('show')
                 .click();
@@ -277,8 +274,8 @@ export const genTest = (type, xcdb) => {
         after(() => {
             // delete project once all operations are completed
             mainPage.toolBarTopLeft(mainPage.HOME).click()
-            cy.wait(1000)
             cy.get(`.nc-${type}-project-row .mdi-delete-circle-outline`, { timeout: 10000 })
+                .should('exist')
                 .last()
                 .invoke('show')
                 .click();

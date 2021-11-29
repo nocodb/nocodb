@@ -42,9 +42,7 @@ export const genTest = (type, xcdb) => {
         before(() => {
             // open a table to work on views
             //
-            cy.openTableTab('Address');
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)
+            cy.openTableTab('Address', 25);
 
             cy.saveLocalStorage()
         })
@@ -82,7 +80,7 @@ export const genTest = (type, xcdb) => {
 
             it(`Share ${viewType.toUpperCase()} hide, sort, filter & verify`, () => {
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Address1').click()
-                mainPage.hideUnhideField('Address2')
+                mainPage.hideField('Address2')
                 mainPage.sortField('District', 'Z -> A')
                 mainPage.filterField('Address', 'is like', 'Ab')                
                 generateViewLink('combined')
@@ -139,7 +137,7 @@ export const genTest = (type, xcdb) => {
             })
             
             it(`Share ${viewType.toUpperCase()} view : verify download CSV`, () => {
-                mainPage.hideUnhideField('LastUpdate')
+                mainPage.hideField('LastUpdate')
                 const verifyCsv = (retrievedRecords) => {
                     // expected output, statically configured
                     let storedRecords = [
@@ -162,7 +160,7 @@ export const genTest = (type, xcdb) => {
 
                 // download & verify
                 mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv)
-                mainPage.hideUnhideField('LastUpdate')
+                mainPage.unhideField('LastUpdate')
             })
 
             it(`Share ${viewType.toUpperCase()} view : Disable sort`, () => {
@@ -186,7 +184,7 @@ export const genTest = (type, xcdb) => {
             })
 
             it(`Share ${viewType.toUpperCase()} view : verify download CSV after local filter`, () => {
-                mainPage.hideUnhideField('LastUpdate')
+                mainPage.hideField('LastUpdate')
                 const verifyCsv = (retrievedRecords) => {
                     // expected output, statically configured
                     let storedRecords = [
@@ -208,7 +206,7 @@ export const genTest = (type, xcdb) => {
                     }                    
                 }                  
                 mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv)
-                mainPage.hideUnhideField('LastUpdate')
+                mainPage.unhideField('LastUpdate')
             })            
 
             it(`Share ${viewType.toUpperCase()} view : Delete Filter`, () => {
@@ -278,9 +276,7 @@ export const genTest = (type, xcdb) => {
     describe(`${type.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
             // Address table has belongs to, has many & many-to-many
-            cy.openTableTab('Country')
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)
+            cy.openTableTab('Country', 25)
             
             cy.saveLocalStorage()
             // store base URL- to re-visit and delete form view later

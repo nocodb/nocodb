@@ -9,7 +9,7 @@ export const genTest = (type, xcdb) => {
     describe(`${type.toUpperCase()} Upload/ Download CSV`, () => {
         before(() => {
             // loginPage.loginAndOpenProject(type)
-            cy.openTableTab('Country');
+            cy.openTableTab('Country', 25);
         })
 
         after(() => {
@@ -17,7 +17,7 @@ export const genTest = (type, xcdb) => {
         })              
 
         it('Download verification- base view, default columns', () => {
-            mainPage.hideUnhideField('LastUpdate')
+            mainPage.hideField('LastUpdate')
             const verifyCsv = (retrievedRecords) => {
                 // expected output, statically configured
                 let storedRecords = [
@@ -36,7 +36,7 @@ export const genTest = (type, xcdb) => {
 
             // download & verify
             mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv)
-            mainPage.hideUnhideField('LastUpdate')
+            mainPage.unhideField('LastUpdate')
         })
     })
 }

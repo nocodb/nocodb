@@ -8,9 +8,7 @@ export const genTest = (type, xcdb) => {
   describe(`${type.toUpperCase()} Columns of type attachment`, () => {
     before(() => {
       loginPage.loginAndOpenProject(type)
-      cy.openTableTab('Country');
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)      
+      cy.openTableTab('Country', 25);
     })
 
     after(() => {
@@ -86,12 +84,10 @@ export const genTest = (type, xcdb) => {
     it(`Filter column which contain only attachments, download CSV`, () => {
       // come back to main window
       loginPage.loginAndOpenProject(type)
-      cy.openTableTab('Country');
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)
+      cy.openTableTab('Country', 25);
 
       mainPage.filterField('testAttach', 'is not null', null)
-      mainPage.hideUnhideField('LastUpdate')
+      mainPage.hideField('LastUpdate')
 
       const verifyCsv = (retrievedRecords) => {
         let storedRecords = [
@@ -111,7 +107,7 @@ export const genTest = (type, xcdb) => {
       }
 
       mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv)
-      mainPage.hideUnhideField('LastUpdate')
+      mainPage.unhideField('LastUpdate')
       mainPage.filterReset()
     })
   })

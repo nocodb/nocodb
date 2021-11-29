@@ -40,9 +40,7 @@ export const genTest = (type, xcdb, roleType) => {
             it(`Role preview: ${roleType}: Enable preview`, () => {
                 cy.get(`.nc-preview-${roleType}`).click()
 
-                cy.openTableTab('City')
-                // wait for page rendering to complete
-                cy.get('.nc-grid-row').should('have.length', 25)                
+                cy.openTableTab('City', 25)
             })
 
             it(`Role preview: ${roleType}: Advance settings`, () => {

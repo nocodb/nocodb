@@ -8,9 +8,7 @@ export const genTest = (type, xcdb) => {
   describe(`${type.toUpperCase()} api - Filter, Fields, Sort`, () => {
     before(() => {
       // open country table
-      cy.openTableTab('Country');
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)
+      cy.openTableTab('Country', 25);
     })
 
     after(() => {

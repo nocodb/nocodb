@@ -35,9 +35,8 @@ export const genTest = (type, xcdb) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.openTableTab('City')
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)               
+            cy.openTableTab('City', 25)
+           
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
                 storedURL = url

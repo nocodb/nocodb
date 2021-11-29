@@ -7,9 +7,8 @@ export const genTest = (type, xcdb) => {
   describe(`${type.toUpperCase()} api - Table: belongs to, link record`, () => {
     
     before(() => {
-      cy.openTableTab('Country')
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)    
+      cy.openTableTab('Country', 25)
+
     })
 
     after(() => {

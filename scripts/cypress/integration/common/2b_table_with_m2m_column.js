@@ -6,9 +6,8 @@ export const genTest = (type, xcdb) => {
 
   describe(`${type.toUpperCase()} api - M2M Column validation`, () => {
     before(() => {
-      cy.openTableTab('Actor')
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)      
+      cy.openTableTab('Actor', 25)
+   
     })
 
     after(() => {

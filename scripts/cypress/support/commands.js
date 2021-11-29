@@ -105,8 +105,9 @@ Cypress.Commands.add('openOrCreateRestProject', (_args) => {
   }
 )
 
-
-Cypress.Commands.add('openTableTab', (tn) => {
+// tn: table name
+// rc: row count. validate row count if rc!=0
+Cypress.Commands.add('openTableTab', (tn, rc) => {
   cy.get('.nc-project-tree')
     .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
     .should('exist')
@@ -124,7 +125,10 @@ Cypress.Commands.add('openTableTab', (tn) => {
     .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
     .first().click()
   
-  // wait for page to load
+  // wait for page rendering to complete
+  if (rc != 0) {
+    cy.get('.nc-grid-row').should('have.length', rc)
+  }
 })
 
 Cypress.Commands.add('closeTableTab', (tn) => {

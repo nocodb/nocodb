@@ -116,7 +116,9 @@ export const genTest = (type, xcdb) => {
             })
 
             it(`[${roles[roleType].name}] Download files`, () => {
-                mainPage.hideUnhideField('LastUpdate')
+                // #ID, City, LastUpdate, City => Address, Country <= City, +
+                mainPage.hideField('LastUpdate')
+
                 const verifyCsv = (retrievedRecords) => {
                     // expected output, statically configured
                     let storedRecords = [
@@ -135,7 +137,7 @@ export const genTest = (type, xcdb) => {
 
                 // download & verify
                 mainPage.downloadAndVerifyCsv(`City_exported_1.csv`, verifyCsv)
-                mainPage.hideUnhideField('LastUpdate')
+                mainPage.unhideField('LastUpdate')
             })            
         })        
     }

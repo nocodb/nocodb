@@ -76,18 +76,14 @@ export const genTest = (type, xcdb) => {
 
       // 4. verify linked contents in other table
       // 4a. Address table, has many field
-      cy.openTableTab('Address')
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)
+      cy.openTableTab('Address', 25)
 
       mainPage.getCell('City <= Address', 1).scrollIntoView()
       mainPage.getCell('City <= Address', 1).find('.name').contains('Lethbridge').should('exist')        
       cy.closeTableTab('Address')
 
       // 4b. Country table, belongs to field
-      cy.openTableTab('Country')
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)
+      cy.openTableTab('Country', 25)
       
       mainPage.getCell('Country => City', 1).find('.name').contains('Kabul').should('exist')
       cy.closeTableTab('Country')

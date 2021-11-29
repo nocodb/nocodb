@@ -198,11 +198,21 @@ export class _mainPage {
         cy.toastWait('Plugin uninstalled successfully')
     }
 
-    hideUnhideField = (field) => {
+    hideField = (field) => {
+        cy.get('.nc-grid-header-cell').contains(field).should('be.visible')
         cy.get('.nc-fields-menu-btn').click()
         cy.get(`.menuable__content__active .v-list-item label:contains(${field})`).click()
         cy.get('.nc-fields-menu-btn').click()
+        cy.get('.nc-grid-header-cell').contains(field).should('not.be.visible')
     }
+
+    unhideField = (field) => {
+        cy.get('.nc-grid-header-cell').contains(field).should('not.be.visible')
+        cy.get('.nc-fields-menu-btn').click()
+        cy.get(`.menuable__content__active .v-list-item label:contains(${field})`).click()
+        cy.get('.nc-fields-menu-btn').click()
+        cy.get('.nc-grid-header-cell').contains(field).should('be.visible')
+    }    
 
     sortField = (field, criteria) => {
         cy.get('.nc-sort-menu-btn').click()

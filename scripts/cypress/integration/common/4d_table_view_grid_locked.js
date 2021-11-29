@@ -11,9 +11,7 @@ export const genTest = (type, xcdb) => {
         before(() => {
             // open a table to work on views
             //
-            cy.openTableTab('Country');
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)            
+            cy.openTableTab('Country', 25);
         })
 
         after(() => {

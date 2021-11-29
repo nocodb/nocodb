@@ -15,9 +15,7 @@ export const genTest = (type, xcdb) => {
     before(() => {
         // open a table to work on views
         //
-        cy.openTableTab('Country');
-        // wait for page rendering to complete
-        cy.get('.nc-grid-row').should('have.length', 25)
+        cy.openTableTab('Country', 25);
     })
 
     beforeEach(() => {
@@ -242,9 +240,7 @@ export const genTest = (type, xcdb) => {
             mainPage.configureSMTP('admin@ex.com', 'smtp.ex.com', '8080', 'TLS')
 
             // open form view & enable "email me" option
-            cy.openTableTab('Country');
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)
+            cy.openTableTab('Country', 25);
             
             cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
             cy.get('.nc-form > .mx-auto').find('[type="checkbox"]').eq(2).click({ force: true })
@@ -255,9 +251,7 @@ export const genTest = (type, xcdb) => {
             // reset SMPT config's
             mainPage.navigationDraw(mainPage.APPSTORE).click()
             mainPage.resetSMTP()
-            cy.openTableTab('Country');
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)               
+            cy.openTableTab('Country', 25);
         })
 
         it(`Validate ${viewType}: Add/ remove field verification"`, () => {

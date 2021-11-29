@@ -163,14 +163,14 @@ export const genTest = (type, xcdb) => {
             // 0: { float: 1.1, number: 1, text: "abc" }
             // 1: { float: 1.2, number: 0, text: "def" }           
   
-            cy.openTableTab('Sheet2')
+            cy.openTableTab('Sheet2', 2)
             for (const [key, value] of Object.entries(expectedData)) {
                 mainPage.getCell(value[0], 1).contains(sheetData[0][value[0]]).should('exist')
                 mainPage.getCell(value[0], 2).contains(sheetData[1][value[0]]).should('exist')                    
             }
             cy.closeTableTab('Sheet2')
 
-            cy.openTableTab('Sheet3')
+            cy.openTableTab('Sheet3', 2)
             for (const [key, value] of Object.entries(expectedData)) {
                 mainPage.getCell(value[0], 1).contains(sheetData[0][value[0]]).should('exist')
                 mainPage.getCell(value[0], 2).contains(sheetData[1][value[0]]).should('exist')
@@ -261,7 +261,7 @@ export const genTest = (type, xcdb) => {
             // 0: { float: 1.1, number: 1, text: "abc" }
             // 1: { float: 1.2, number: 0, text: "def" }           
   
-            cy.openTableTab('Sheet1')
+            cy.openTableTab('Sheet1', 25)
             let idx = 0
             for (const [key, value] of Object.entries(UrlFileExpectedData)) {
                 if(UrlFileExpectedData[idx][1] != 'Date')

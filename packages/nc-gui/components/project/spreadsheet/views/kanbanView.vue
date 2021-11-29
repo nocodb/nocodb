@@ -227,11 +227,11 @@ export default {
 
   .drag-column {
     flex: 1;
-    padding: 0px 10px 10px 10px;
     margin: 0 10px;
     position: relative;
     background: var(--v-backgroundColor-base); //rgba(256, 256, 256, 0.2);
     border-radius: 6px;
+    max-width: 240px;
   }
 
   @media (max-width: 690px) {

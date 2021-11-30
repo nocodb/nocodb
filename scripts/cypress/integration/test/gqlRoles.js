@@ -1,26 +1,24 @@
-
-let t0 = require('./explicitLogin')
-let t01 = require('../common/00_pre_configurations')
-let t5a = require('../common/5a_user_role')
-let t5b = require('../common/5b_preview_role')
+let t0 = require("./explicitLogin");
+let t01 = require("../common/00_pre_configurations");
+let t5a = require("../common/5a_user_role");
+let t5b = require("../common/5b_preview_role");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
-const executionMode = 1
+const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
+  if (0 == executionMode) {
+    t0.genTest(type, xcdb);
+  } else {
+    t01.genTest(type, xcdb);
+  }
 
-    if (0 == executionMode) {
-        t0.genTest(type, xcdb)
-    } else {
-        t01.genTest(type, xcdb)
-    }    
+  t5a.genTest(type, xcdb);
+  t5b.genTest(type, xcdb);
+};
 
-    t5a.genTest(type, xcdb)
-    t5b.genTest(type, xcdb)
-}
-
-nocoTestSuite('graphql', false)
+nocoTestSuite("graphql", false);
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
@@ -43,7 +41,3 @@ nocoTestSuite('graphql', false)
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-
-
-

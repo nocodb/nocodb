@@ -1,66 +1,89 @@
-
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
-  if(!isTestSuiteActive(type, xcdb)) return;
+  if (!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - M2M Column validation`, () => {
     before(() => {
-      cy.openTableTab('Actor', 25)
-   
-    })
+      cy.openTableTab("Actor", 25);
+    });
 
     after(() => {
-      cy.closeTableTab('Actor')
-    })
-    
-    it('Table column header, URL validation', () => {
+      cy.closeTableTab("Actor");
+    });
 
+    it("Table column header, URL validation", () => {
       // column name validation
-      cy.get(`.project-tab:contains(Actor):visible`).should('exist')
+      cy.get(`.project-tab:contains(Actor):visible`).should("exist");
       // URL validation
-      cy.url().should('contain', `name=Actor`)
-    })
+      cy.url().should("contain", `name=Actor`);
+    });
 
-    it('Expand m2m column', () => {
-
+    it("Expand m2m column", () => {
       // expand first row
-      cy.get('td[data-col="Actor <=> Film"] div', {timeout: 12000}).first().click({force: true})
-      cy.get('td[data-col="Actor <=> Film"] div .mdi-arrow-expand').first().click({force: true})
+      cy.get('td[data-col="Actor <=> Film"] div', { timeout: 12000 })
+        .first()
+        .click({ force: true });
+      cy.get('td[data-col="Actor <=> Film"] div .mdi-arrow-expand')
+        .first()
+        .click({ force: true });
 
       // validations
-      cy.getActiveModal().contains('Film').should('exist')
-      cy.getActiveModal().find('button.mdi-reload').should('exist')
-      cy.getActiveModal().find('button:contains(Link to \'Film\')').should('exist')
-      cy.getActiveModal().find('.child-card').eq(0).contains('ACADEMY DINOSAUR').should('exist')
-    })
+      cy.getActiveModal().contains("Film").should("exist");
+      cy.getActiveModal().find("button.mdi-reload").should("exist");
+      cy.getActiveModal()
+        .find("button:contains(Link to 'Film')")
+        .should("exist");
+      cy.getActiveModal()
+        .find(".child-card")
+        .eq(0)
+        .contains("ACADEMY DINOSAUR")
+        .should("exist");
+    });
 
     it('Expand "Link to" record, validate', () => {
-      cy.getActiveModal().find('button:contains(Link to \'Film\')').click()
+      cy.getActiveModal()
+        .find("button:contains(Link to 'Film')")
+        .click()
         .then(() => {
           // Link record form validation
-          cy.getActiveModal().contains('Link Record').should('exist')
-          cy.getActiveModal().find('button.mdi-reload').should('exist')
-          cy.getActiveModal().find('button:contains("New Record")').should('exist')
-          cy.getActiveModal().find('.child-card').eq(0).contains('ACE GOLDFINGER').should('exist')
-          cy.get('body').type('{esc}')
-        })
-    })
+          cy.getActiveModal().contains("Link Record").should("exist");
+          cy.getActiveModal().find("button.mdi-reload").should("exist");
+          cy.getActiveModal()
+            .find('button:contains("New Record")')
+            .should("exist");
+          cy.getActiveModal()
+            .find(".child-card")
+            .eq(0)
+            .contains("ACE GOLDFINGER")
+            .should("exist");
+          cy.get("body").type("{esc}");
+        });
+    });
 
-    it('Expand first linked card, validate', () => {
-      cy.getActiveModal().find('.child-card').eq(0).contains('ACADEMY DINOSAUR', {timeout: 2000}).click()
+    it("Expand first linked card, validate", () => {
+      cy.getActiveModal()
+        .find(".child-card")
+        .eq(0)
+        .contains("ACADEMY DINOSAUR", { timeout: 2000 })
+        .click()
         .then(() => {
           // Link card validation
-          cy.getActiveModal().find('h5').contains("ACADEMY DINOSAUR").should('exist')
-          cy.getActiveModal().find('button:contains("Save Row")').should('exist')
-          cy.getActiveModal().find('button:contains("Cancel")').should('exist')
+          cy.getActiveModal()
+            .find("h5")
+            .contains("ACADEMY DINOSAUR")
+            .should("exist");
+          cy.getActiveModal()
+            .find('button:contains("Save Row")')
+            .should("exist");
+          cy.getActiveModal().find('button:contains("Cancel")').should("exist");
 
-          cy.getActiveModal().find('button:contains("Cancel")').click()
-          cy.getActiveModal().find('button.mdi-close').click()      
-      })
-    })
-  })
-}
+          cy.getActiveModal().find('button:contains("Cancel")').click();
+          cy.getActiveModal().find("button.mdi-close").click();
+        });
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
@@ -84,4 +107,3 @@ export const genTest = (type, xcdb) => {
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-

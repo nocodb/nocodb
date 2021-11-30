@@ -1,117 +1,102 @@
-
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
-    if(!isTestSuiteActive(type, xcdb)) return;
+  if (!isTestSuiteActive(type, xcdb)) return;
 
-    describe(`${type.toUpperCase()} api - LookUp column`, () => {
+  describe(`${type.toUpperCase()} api - LookUp column`, () => {
+    // to retrieve few v-input nodes from their label
+    //
+    const fetchParentFromLabel = (label) => {
+      cy.get("label").contains(label).parents(".v-input").click();
+    };
 
-        // to retrieve few v-input nodes from their label
-        //
-        const fetchParentFromLabel = (label) => {
-            cy.get('label')
-                .contains(label)
-                .parents('.v-input')
-                .click()
-        }
-
-        // Run once before test- create project (rest/graphql)
-        //
-        before(() => {
-            // open a table to work on views
-            //
-            cy.openTableTab('City', 25);
-        })
-
-        after(() => {
-            cy.closeTableTab('City')
-        })
-        
-        // Routine to create a new look up column
-        //
-        const addLookUpColumn = (childTable, childCol) => {
-
-            // (+) icon at end of column header (to add a new column)
-            // opens up a pop up window
-            //
-            cy.get('.new-column-header').click()
-
-            // Redundant to feed column name. as alias is displayed & referred for
-            cy.get('.nc-column-name-input input').clear().type(childCol)
-
-            // Column data type: to be set to lookup in this context
-            cy.get('.nc-ui-dt-dropdown').click()
-            cy.getActiveMenu().contains('Lookup').click()
-
-            // Configure Child table & column names
-            fetchParentFromLabel('Child Table')
-            cy.getActiveMenu().contains(childTable).click()
-
-            fetchParentFromLabel('Child column')
-            cy.getActiveMenu().contains(childCol).click()
-
-            // click on Save
-            cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-
-            // Verify if column exists. 
-            //
-            cy.get(`th:contains(${childCol})`)
-                .should('exist');
-        }
-
-        // routine to delete column
-        //
-        const deleteColumnByName = (childCol) => {
-
-            // verify if column exists before delete
-            cy.get(`th:contains(${childCol})`)
-                .should('exist');
-
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${childCol}) .mdi-menu-down`)
-                .trigger('mouseover')
-                .click()
-
-            // delete/ confirm on pop-up
-            cy.get('.nc-column-delete').click()
-            cy.getActiveModal().find('button:contains(Confirm)').click()
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${childCol})`)
-                .should('not.exist');
-
-        }
-
-        ///////////////////////////////////////////////////
-        // Test case
-
-        it('Add Lookup column (Address, District) & Delete', () => {
-
-            addLookUpColumn('Address', 'District')
-
-            // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-            cy.get(`tbody > :nth-child(1) > [data-col="District"]`)
-                .contains('Galicia')
-                .should('exist')
-
-            deleteColumnByName('District')
-
-        })
-
-        it.skip('Add Lookup column (Country, CountryId) & Delete', () => {
-
-            addLookUpColumn('Country', 'CountryId')
-
-            // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-            cy.get(`tbody > :nth-child(1) > [data-col="CountryId"]`)
-                .contains('87')
-                .should('exist')
-
-            deleteColumnByName('CountryId')
-        })
+    // Run once before test- create project (rest/graphql)
+    //
+    before(() => {
+      // open a table to work on views
+      //
+      cy.openTableTab("City", 25);
     });
-}
 
+    after(() => {
+      cy.closeTableTab("City");
+    });
+
+    // Routine to create a new look up column
+    //
+    const addLookUpColumn = (childTable, childCol) => {
+      // (+) icon at end of column header (to add a new column)
+      // opens up a pop up window
+      //
+      cy.get(".new-column-header").click();
+
+      // Redundant to feed column name. as alias is displayed & referred for
+      cy.get(".nc-column-name-input input").clear().type(childCol);
+
+      // Column data type: to be set to lookup in this context
+      cy.get(".nc-ui-dt-dropdown").click();
+      cy.getActiveMenu().contains("Lookup").click();
+
+      // Configure Child table & column names
+      fetchParentFromLabel("Child Table");
+      cy.getActiveMenu().contains(childTable).click();
+
+      fetchParentFromLabel("Child column");
+      cy.getActiveMenu().contains(childCol).click();
+
+      // click on Save
+      cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+
+      // Verify if column exists.
+      //
+      cy.get(`th:contains(${childCol})`).should("exist");
+    };
+
+    // routine to delete column
+    //
+    const deleteColumnByName = (childCol) => {
+      // verify if column exists before delete
+      cy.get(`th:contains(${childCol})`).should("exist");
+
+      // delete opiton visible on mouse-over
+      cy.get(`th:contains(${childCol}) .mdi-menu-down`)
+        .trigger("mouseover")
+        .click();
+
+      // delete/ confirm on pop-up
+      cy.get(".nc-column-delete").click();
+      cy.getActiveModal().find("button:contains(Confirm)").click();
+
+      // validate if deleted (column shouldnt exist)
+      cy.get(`th:contains(${childCol})`).should("not.exist");
+    };
+
+    ///////////////////////////////////////////////////
+    // Test case
+
+    it("Add Lookup column (Address, District) & Delete", () => {
+      addLookUpColumn("Address", "District");
+
+      // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
+      cy.get(`tbody > :nth-child(1) > [data-col="District"]`)
+        .contains("Galicia")
+        .should("exist");
+
+      deleteColumnByName("District");
+    });
+
+    it.skip("Add Lookup column (Country, CountryId) & Delete", () => {
+      addLookUpColumn("Country", "CountryId");
+
+      // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
+      cy.get(`tbody > :nth-child(1) > [data-col="CountryId"]`)
+        .contains("87")
+        .should("exist");
+
+      deleteColumnByName("CountryId");
+    });
+  });
+};
 
 // genTest('rest', false)
 // genTest('graphql', false)

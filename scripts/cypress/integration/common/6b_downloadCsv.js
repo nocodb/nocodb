@@ -1,45 +1,44 @@
-
-import { mainPage } from "../../support/page_objects/mainPage"
-import { loginPage } from "../../support/page_objects/navigation"
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { mainPage } from "../../support/page_objects/mainPage";
+import { loginPage } from "../../support/page_objects/navigation";
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
-    if(!isTestSuiteActive(type, xcdb)) return;
+  if (!isTestSuiteActive(type, xcdb)) return;
 
-    describe(`${type.toUpperCase()} Upload/ Download CSV`, () => {
-        before(() => {
-            // loginPage.loginAndOpenProject(type)
-            cy.openTableTab('Country', 25);
-        })
+  describe(`${type.toUpperCase()} Upload/ Download CSV`, () => {
+    before(() => {
+      // loginPage.loginAndOpenProject(type)
+      cy.openTableTab("Country", 25);
+    });
 
-        after(() => {
-            cy.closeTableTab('Country')
-        })              
+    after(() => {
+      cy.closeTableTab("Country");
+    });
 
-        it('Download verification- base view, default columns', () => {
-            mainPage.hideField('LastUpdate')
-            const verifyCsv = (retrievedRecords) => {
-                // expected output, statically configured
-                let storedRecords = [
-                    `Country,Country => City`,
-                    `Afghanistan,Kabul`,
-                    `Algeria,"Batna,Bchar,Skikda"`,
-                    `American Samoa,Tafuna`,
-                    `Angola,"Benguela,Namibe"`
-                ]
-                
-                for (let i = 0; i < storedRecords.length; i++) {
-                    cy.log(retrievedRecords[i])
-                    expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
-                }
-            }                
+    it("Download verification- base view, default columns", () => {
+      mainPage.hideField("LastUpdate");
+      const verifyCsv = (retrievedRecords) => {
+        // expected output, statically configured
+        let storedRecords = [
+          `Country,Country => City`,
+          `Afghanistan,Kabul`,
+          `Algeria,"Batna,Bchar,Skikda"`,
+          `American Samoa,Tafuna`,
+          `Angola,"Benguela,Namibe"`,
+        ];
 
-            // download & verify
-            mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv)
-            mainPage.unhideField('LastUpdate')
-        })
-    })
-}
+        for (let i = 0; i < storedRecords.length; i++) {
+          cy.log(retrievedRecords[i]);
+          expect(retrievedRecords[i]).to.be.equal(storedRecords[i]);
+        }
+      };
+
+      // download & verify
+      mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv);
+      mainPage.unhideField("LastUpdate");
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

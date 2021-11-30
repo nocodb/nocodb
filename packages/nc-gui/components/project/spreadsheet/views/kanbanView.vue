@@ -58,6 +58,21 @@
             </v-card>
           </v-hover>
       </div>
+      <div v-for="stage in stages" :key="stage" :slot="`footer-${stage}`" class="kanban-footer">
+          <x-btn
+          outlined
+          tooltip="Add a new record"
+          color="primary"
+          class="primary"
+          small
+          @click="addNewRecord"
+        >
+          <v-icon small left>
+            mdi-plus
+          </v-icon>
+          Add a new record
+        </x-btn>
+      </div>
     </kanban-board>
   </v-container>
 </template>
@@ -187,6 +202,9 @@ export default {
       this.stageColors = []
       this.blocks = []
       this.clonedBlocks = []    
+    },
+    addNewRecord() {
+      // TODO
     }
   }
 }
@@ -232,6 +250,11 @@ export default {
     background: var(--v-backgroundColor-base); //rgba(256, 256, 256, 0.2);
     border-radius: 6px;
     max-width: 240px;
+  }
+
+  .drag-column-footer {
+    padding: 20px 10px;
+    text-align: center;
   }
 
   @media (max-width: 690px) {

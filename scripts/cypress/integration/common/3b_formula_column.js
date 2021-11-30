@@ -1,192 +1,214 @@
-
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
-    if(!isTestSuiteActive(type, xcdb)) return;
+  if (!isTestSuiteActive(type, xcdb)) return;
 
-    describe(`${type.toUpperCase()} api - FORMULA`, () => {
+  describe(`${type.toUpperCase()} api - FORMULA`, () => {
+    // Run once before test- create project (rest/graphql)
+    //
+    before(() => {
+      // open a table to work on views
+      //
+      cy.openTableTab("City", 25);
+    });
 
-        // Run once before test- create project (rest/graphql)
-        //
-        before(() => {
-            // open a table to work on views
-            //
-            cy.openTableTab('City');
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)            
-        })
+    after(() => {
+      cy.closeTableTab("City");
+    });
 
-        after(() => {
-            cy.closeTableTab('City')
-        })        
+    // Given rowname & expected result for first 10 entries, validate
+    // NOTE: Scroll issue with Cypress automation, to fix
+    // validating partial data, row number 5 to 9
+    //
+    const rowValidation = (rowName, result) => {
+      // scroll back
+      cy.get(`tbody > :nth-child(1) > [data-col="City"]`).scrollIntoView();
 
-        // Given rowname & expected result for first 10 entries, validate
-        // NOTE: Scroll issue with Cypress automation, to fix
-        // validating partial data, row number 5 to 9
-        //
-        const rowValidation = (rowName, result) => {
+      // for (let i = 0; i < 10; i++)
+      for (let i = 3; i < 6; i++)
+        cy.get(`tbody > :nth-child(${i + 1}) > [data-col="${rowName}"]`)
+          .contains(result[i].toString())
+          .should("exist");
+    };
 
-            // scroll back
-            cy.get(`tbody > :nth-child(1) > [data-col="City"]`).scrollIntoView()
+    // Routine to create a new look up column
+    //
+    const addFormulaBasedColumn = (columnName, formula) => {
+      // (+) icon at end of column header (to add a new column)
+      // opens up a pop up window
+      //
+      cy.get(".new-column-header").click();
 
-            // for (let i = 0; i < 10; i++)
-            for (let i = 3; i < 6; i++)
-                cy.get(`tbody > :nth-child(${i + 1}) > [data-col="${rowName}"]`)
-                    .contains(result[i].toString())
-                    .should('exist')
-        }
+      // Column name
+      cy.get(".nc-column-name-input input")
+        .clear()
+        .type(`${columnName}{enter}`);
 
-        // Routine to create a new look up column
-        //
-        const addFormulaBasedColumn = (columnName, formula) => {
+      // Column data type: to be set to formula in this context
+      cy.get(".nc-ui-dt-dropdown").click().type("Formula");
+      cy.getActiveMenu().contains("Formula").click({ force: true });
 
-            // (+) icon at end of column header (to add a new column)
-            // opens up a pop up window
-            //
-            cy.get('.new-column-header').click()
+      // Configure formula
+      cy.get("label").contains("Formula").parent().click().type(formula);
 
-            // Column name
-            cy.get('.nc-column-name-input input').clear().type(`${columnName}{enter}`)
+      // click on Save
+      cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 
-            // Column data type: to be set to formula in this context
-            cy.get('.nc-ui-dt-dropdown').click().type('Formula')
-            cy.getActiveMenu().contains('Formula').click({ force: true })
+      cy.toastWait("Formula column saved successfully");
 
-            // Configure formula
-            cy.get('label').contains('Formula').parent().click().type(formula)
+      // Verify if column exists.
+      //
+      cy.get(`th:contains(${columnName})`).should("exist");
+    };
 
-            // click on Save
-            cy.get('.nc-col-create-or-edit-card').contains('Save').click()
+    // routine to delete column
+    //
+    const deleteColumnByName = (columnName) => {
+      // verify if column exists before delete
+      cy.get(`th:contains(${columnName})`).should("exist");
 
-            cy.toastWait('Formula column saved successfully')
+      // delete opiton visible on mouse-over
+      cy.get(`th:contains(${columnName}) .mdi-menu-down`)
+        .trigger("mouseover")
+        .click();
 
-            // Verify if column exists. 
-            //
-            cy.get(`th:contains(${columnName})`)
-                .should('exist');
-        }
+      // delete/ confirm on pop-up
+      cy.get(".nc-column-delete").click();
+      cy.getActiveModal().find("button:contains(Confirm)").click();
 
-        // routine to delete column
-        //
-        const deleteColumnByName = (columnName) => {
+      // validate if deleted (column shouldnt exist)
+      cy.get(`th:contains(${columnName})`).should("not.exist");
+    };
 
-            // verify if column exists before delete
-            cy.get(`th:contains(${columnName})`)
-                .should('exist');
+    // routine to edit column
+    //
+    const editColumnByName = (oldName, newName, newFormula) => {
+      // verify if column exists before delete
+      cy.get(`th:contains(${oldName})`).should("exist");
 
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${columnName}) .mdi-menu-down`)
-                .trigger('mouseover')
-                .click()
+      // delete opiton visible on mouse-over
+      cy.get(`th:contains(${oldName}) .mdi-menu-down`)
+        .trigger("mouseover")
+        .click();
 
-            // delete/ confirm on pop-up
-            cy.get('.nc-column-delete').click()
-            cy.getActiveModal().find('button:contains(Confirm)').click()
+      // edit/ save on pop-up
+      cy.get(".nc-column-edit").click();
+      cy.get(".nc-column-name-input input").clear().type(newName);
 
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${columnName})`)
-                .should('not.exist');
-        }
+      cy.get("label")
+        .contains("Formula")
+        .parent()
+        .find("input")
+        .clear()
+        .type(newFormula);
 
+      cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 
-        // routine to edit column
-        //
-        const editColumnByName = (oldName, newName, newFormula) => {
+      cy.toastWait("Formula column updated successfully");
 
-            // verify if column exists before delete
-            cy.get(`th:contains(${oldName})`)
-                .should('exist');
+      // validate if deleted (column shouldnt exist)
+      cy.get(`th:contains(${oldName})`).should("not.exist");
+      cy.get(`th:contains(${newName})`).should("exist");
+    };
 
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${oldName}) .mdi-menu-down`)
-                .trigger('mouseover')
-                .click()
+    ///////////////////////////////////////////////////
+    // Test case
 
-            // edit/ save on pop-up
-            cy.get('.nc-column-edit').click()
-            cy.get('.nc-column-name-input input').clear().type(newName)
+    // On City table (from Sakila DB), first 10 entries recorded here for verification
+    let cityId = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let countryId = [87, 82, 101, 60, 97, 31, 107, 44, 44, 50];
+    let city = [
+      "A corua (La Corua)",
+      "Abha",
+      "Abu Dhabi",
+      "Acua",
+      "Adana",
+      "Addis Abeba",
+      "Aden",
+      "Adoni",
+      "Ahmadnagar",
+      "Akishima",
+    ];
 
-            cy.get('label')
-                .contains('Formula').parent().find('input').clear().type(newFormula)
+    // Temporary locally computed expected results
+    let RESULT_STRING = [];
+    let RESULT_MATH_0 = [];
+    let RESULT_MATH_1 = [];
+    let RESULT_MATH_2 = [];
 
-            cy.get('.nc-col-create-or-edit-card').contains('Save').click()
+    for (let i = 0; i < 10; i++) {
+      // CONCAT, LOWER, UPPER, TRIM
+      RESULT_STRING[i] = `${city[i].toUpperCase()}${city[
+        i
+      ].toLowerCase()}trimmed`;
 
-            cy.toastWait('Formula column updated successfully')
+      // ADD, AVG, LEN
+      RESULT_MATH_0[i] =
+        cityId[i] +
+        countryId[i] +
+        (cityId[i] + countryId[i]) / 2 +
+        city[i].length;
 
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${oldName})`)
-                .should('not.exist');
-            cy.get(`th:contains(${newName})`)
-                .should('exist');
+      // CEILING, FLOOR, ROUND, MOD, MIN, MAX
+      RESULT_MATH_1[i] =
+        Math.ceil(1.4) +
+        Math.floor(1.6) +
+        Math.round(2.5) +
+        (cityId[i] % 3) +
+        Math.min(cityId[i], countryId[i]) +
+        Math.max(cityId[i], countryId[i]);
 
-        }
+      // LOG, EXP, POWER, SQRT
+      // only integer verification being computed, hence trunc
+      RESULT_MATH_2[i] = Math.trunc(
+        Math.log(cityId[i]) +
+          Math.exp(cityId[i]) +
+          Math.pow(cityId[i], 3) +
+          Math.sqrt(countryId[i])
+      );
+    }
 
-        ///////////////////////////////////////////////////
-        // Test case
+    it("Formula: CONCAT, LOWER, UPPER, TRIM", () => {
+      addFormulaBasedColumn(
+        "NC_MATH_0",
+        "ADD(CityId, CountryId) + AVG(CityId, CountryId) + LEN(City)"
+      );
+      rowValidation("NC_MATH_0", RESULT_MATH_0);
+    });
 
-        // On City table (from Sakila DB), first 10 entries recorded here for verification
-        let cityId = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        let countryId = [87, 82, 101, 60, 97, 31, 107, 44, 44, 50]
-        let city = ['A corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Adana', 'Addis Abeba', 'Aden', 'Adoni', 'Ahmadnagar', 'Akishima']
+    it("Formula: ADD, AVG, LEN", () => {
+      editColumnByName(
+        "NC_MATH_0",
+        "NC_STR_1",
+        `CONCAT(UPPER(City), LOWER(City), TRIM('    trimmed    '))`
+      );
+      rowValidation("NC_STR_1", RESULT_STRING);
+    });
 
-        // Temporary locally computed expected results
-        let RESULT_STRING = []
-        let RESULT_MATH_0 = []
-        let RESULT_MATH_1 = []
-        let RESULT_MATH_2 = []
+    it("Formula: CEILING, FLOOR, ROUND, MOD, MIN, MAX", () => {
+      editColumnByName(
+        "NC_STR_1",
+        "NC_MATH_1",
+        `CEILING(1.4) + FLOOR(1.6) + ROUND(2.5) + MOD(CityId, 3) + MIN(CityId, CountryId) + MAX(CityId, CountryId)`
+      );
+      rowValidation("NC_MATH_1", RESULT_MATH_1);
+    });
 
-        for (let i = 0; i < 10; i++) {
+    it("Formula: LOG, EXP, POWER, SQRT", () => {
+      editColumnByName(
+        "NC_MATH_1",
+        "NC_MATH_2",
+        `LOG(CityId) + EXP(CityId) + POWER(CityId, 3) + SQRT(CountryId)`
+      );
+      rowValidation("NC_MATH_2", RESULT_MATH_2);
+    });
 
-            // CONCAT, LOWER, UPPER, TRIM
-            RESULT_STRING[i] = `${city[i].toUpperCase()}${city[i].toLowerCase()}trimmed`
-
-            // ADD, AVG, LEN
-            RESULT_MATH_0[i] = ((cityId[i] + countryId[i]) +
-                ((cityId[i] + countryId[i]) / 2) +
-                (city[i].length))
-
-            // CEILING, FLOOR, ROUND, MOD, MIN, MAX
-            RESULT_MATH_1[i] = (Math.ceil(1.4) +
-                Math.floor(1.6) +
-                Math.round(2.5) +
-                (cityId[i] % 3) +
-                Math.min(cityId[i], countryId[i]) +
-                Math.max(cityId[i], countryId[i]))
-
-            // LOG, EXP, POWER, SQRT
-            // only integer verification being computed, hence trunc
-            RESULT_MATH_2[i] = Math.trunc(Math.log(cityId[i]) +
-                Math.exp(cityId[i]) +
-                Math.pow(cityId[i], 3) +
-                Math.sqrt(countryId[i]))
-        }
-
-        it('Formula: CONCAT, LOWER, UPPER, TRIM', () => {
-            addFormulaBasedColumn('NC_MATH_0', 'ADD(CityId, CountryId) + AVG(CityId, CountryId) + LEN(City)')
-            rowValidation('NC_MATH_0', RESULT_MATH_0)
-        })
-
-        it('Formula: ADD, AVG, LEN', () => {
-            editColumnByName('NC_MATH_0', 'NC_STR_1', `CONCAT(UPPER(City), LOWER(City), TRIM('    trimmed    '))`)
-            rowValidation('NC_STR_1', RESULT_STRING)
-        })
-
-        it('Formula: CEILING, FLOOR, ROUND, MOD, MIN, MAX', () => {
-            editColumnByName('NC_STR_1', 'NC_MATH_1', `CEILING(1.4) + FLOOR(1.6) + ROUND(2.5) + MOD(CityId, 3) + MIN(CityId, CountryId) + MAX(CityId, CountryId)`)
-            rowValidation('NC_MATH_1', RESULT_MATH_1)
-        })
-
-        it('Formula: LOG, EXP, POWER, SQRT', () => {
-            editColumnByName('NC_MATH_1', 'NC_MATH_2', `LOG(CityId) + EXP(CityId) + POWER(CityId, 3) + SQRT(CountryId)`)
-            rowValidation('NC_MATH_2', RESULT_MATH_2)
-        })
-
-        it('Formula: NOW, EDIT & Delete column', () => {
-            editColumnByName('NC_MATH_2', 'NC_NOW', `NOW()`)
-            deleteColumnByName('NC_NOW')
-        })
-    })
-}
+    it("Formula: NOW, EDIT & Delete column", () => {
+      editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
+      deleteColumnByName("NC_NOW");
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
@@ -210,4 +232,3 @@ export const genTest = (type, xcdb) => {
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-

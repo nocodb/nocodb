@@ -24,255 +24,272 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-import 'cypress-file-upload';
+import "cypress-file-upload";
 
-require('@4tw/cypress-drag-drop')
+require("@4tw/cypress-drag-drop");
 
 // for waiting until page load
-Cypress.Commands.add('waitForSpinners', () => {
-  cy.visit('http://localhost:3000', {
+Cypress.Commands.add("waitForSpinners", () => {
+  cy.visit("http://localhost:3000", {
     retryOnNetworkFailure: true,
     timeout: 1200000,
     headers: {
-      "Accept-Encoding": "gzip, deflate"
-    }
-  })
-  cy.get('#nuxt-loading', {timeout: 10_0000}).should('have.length', 0)
-})
+      "Accept-Encoding": "gzip, deflate",
+    },
+  });
+  cy.get("#nuxt-loading", { timeout: 10_0000 }).should("have.length", 0);
+});
 
-
-Cypress.Commands.add('signinOrSignup', (_args) => {
-  const args = Object.assign({username: 'user@nocodb.com', password: 'Password123.'}, _args)
+Cypress.Commands.add("signinOrSignup", (_args) => {
+  const args = Object.assign(
+    { username: "user@nocodb.com", password: "Password123." },
+    _args
+  );
 
   // signin/signup
-  cy.get('body').then(($body) => {
+  cy.get("body").then(($body) => {
     // cy.wait(1000)
-    cy.url().then(url => {
-      if (!url.includes('/projects')) {
+    cy.url().then((url) => {
+      if (!url.includes("/projects")) {
         // handle initial load
-        if ($body.find('.welcome-page').length > 0) {
+        if ($body.find(".welcome-page").length > 0) {
           cy.wait(8000);
-          cy.get('body').trigger('mousemove');
-          cy.contains('Let\'s Begin').click();
+          cy.get("body").trigger("mousemove");
+          cy.contains("Let's Begin").click();
           cy.get('input[type="text"]', { timeout: 12000 }).type(args.username);
           cy.get('input[type="password"]').type(args.password);
-          cy.get('button:contains("SIGN UP")').click()
+          cy.get('button:contains("SIGN UP")').click();
 
           // handle signin
         } else {
           cy.get('input[type="text"]', { timeout: 12000 }).type(args.username);
           cy.get('input[type="password"]').type(args.password);
-          cy.get('button:contains("SIGN IN")').click()
+          cy.get('button:contains("SIGN IN")').click();
         }
       }
-    })
-  })
+    });
+  });
 
   // indicates page-load complete
-  cy.get('.nc-noco-brand-icon', { timeout: 12000 }).should('exist')
+  cy.get(".nc-noco-brand-icon", { timeout: 12000 }).should("exist");
 });
 
 // for opening/creating a rest project
-Cypress.Commands.add('openOrCreateRestProject', (_args) => {
-    const args = Object.assign({new: false}, _args)
+Cypress.Commands.add("openOrCreateRestProject", (_args) => {
+  const args = Object.assign({ new: false }, _args);
 
-    // signin/signup
-    cy.signinOrSignup()
-    cy.get('.nc-new-project-menu').should('exist')
-    cy.get('body').then($body => {
-      const filter = args.meta ? '.nc-meta-project-row' : ':not(.nc-meta-project-row)';
-      // if project exist open
-      if ($body.find('.nc-rest-project-row').filter(filter).length && !args.new) {
-        cy.get('.nc-rest-project-row').filter(filter).first().click()
+  // signin/signup
+  cy.signinOrSignup();
+  cy.get(".nc-new-project-menu").should("exist");
+  cy.get("body").then(($body) => {
+    const filter = args.meta
+      ? ".nc-meta-project-row"
+      : ":not(.nc-meta-project-row)";
+    // if project exist open
+    if ($body.find(".nc-rest-project-row").filter(filter).length && !args.new) {
+      cy.get(".nc-rest-project-row").filter(filter).first().click();
+    } else {
+      cy.contains("New Project").trigger("onmouseover").trigger("mouseenter");
+      if (args.meta) {
+        cy.get(".nc-create-xc-db-project").click();
+        cy.url({ timeout: 6000 }).should("contain", "#/project/xcdb");
+        cy.get(".nc-metadb-project-name").type("test_proj" + Date.now());
+        cy.contains("button", "Create", { timeout: 3000 }).click();
       } else {
-        cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
-        if (args.meta) {
-          cy.get('.nc-create-xc-db-project').click()
-          cy.url({timeout: 6000}).should('contain', '#/project/xcdb')
-          cy.get('.nc-metadb-project-name').type('test_proj' + Date.now())
-          cy.contains('button','Create', {timeout: 3000}).click()
-        } else {
-          cy.get('.nc-create-external-db-project').click()
-          cy.url({timeout: 6000}).should('contain', '#/project')
-          cy.get('.database-field input').click().clear().type('sakila')
-          cy.contains('Test Database Connection').click()
-          cy.contains('Ok & Save Project', {timeout: 3000}).click()
-        }
+        cy.get(".nc-create-external-db-project").click();
+        cy.url({ timeout: 6000 }).should("contain", "#/project");
+        cy.get(".database-field input").click().clear().type("sakila");
+        cy.contains("Test Database Connection").click();
+        cy.contains("Ok & Save Project", { timeout: 3000 }).click();
       }
-    })
-    cy.url({timeout: 20000}).should('contain', '#/nc/')
+    }
+  });
+  cy.url({ timeout: 20000 }).should("contain", "#/nc/");
+});
 
-  }
-)
+// tn: table name
+// rc: row count. validate row count if rc!=0
+Cypress.Commands.add("openTableTab", (tn, rc) => {
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .should("exist")
+    .first()
+    .click();
 
-
-Cypress.Commands.add('openTableTab', (tn) => {
-  cy.get('.nc-project-tree')
-    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
-    .should('exist')
-    .first().click()
-
-  cy.get('.nc-project-tree')
+  cy.get(".nc-project-tree")
     .contains(tn, { timeout: 6000 })
     .first()
     .click({ force: true });
 
-  cy.get(`.project-tab:contains(${tn}):visible`)
-    .should('exist')
+  cy.get(`.project-tab:contains(${tn}):visible`).should("exist");
 
-  cy.get('.nc-project-tree')
-    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
-    .first().click()
-  
-  // wait for page to load
-})
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .first()
+    .click();
 
-Cypress.Commands.add('closeTableTab', (tn) => {
-  cy.get(`[href="#table||db||${tn}"]`).find('button.mdi-close').click()
-})
+  // wait for page rendering to complete
+  if (rc != 0) {
+    cy.get(".nc-grid-row").should("have.length", rc);
+  }
+});
 
-Cypress.Commands.add('openOrCreateGqlProject', (_args) => {
-  const args = Object.assign({new: false, meta: false}, _args)
+Cypress.Commands.add("closeTableTab", (tn) => {
+  cy.get(`[href="#table||db||${tn}"]`).find("button.mdi-close").click();
+});
 
-  cy.signinOrSignup()
+Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
+  const args = Object.assign({ new: false, meta: false }, _args);
 
-  cy.get('.nc-new-project-menu').should('exist')
-  cy.get('body').then($body => {
-    const filter = args.meta ? '.nc-meta-project-row' : ':not(.nc-meta-project-row)';
+  cy.signinOrSignup();
+
+  cy.get(".nc-new-project-menu").should("exist");
+  cy.get("body").then(($body) => {
+    const filter = args.meta
+      ? ".nc-meta-project-row"
+      : ":not(.nc-meta-project-row)";
     // if project exist open
-    if ($body.find('.nc-graphql-project-row').filter(filter).length && !args.new) {
-      cy.get('.nc-graphql-project-row').filter(filter).first().click()
+    if (
+      $body.find(".nc-graphql-project-row").filter(filter).length &&
+      !args.new
+    ) {
+      cy.get(".nc-graphql-project-row").filter(filter).first().click();
     } else {
-      cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
+      cy.contains("New Project").trigger("onmouseover").trigger("mouseenter");
       if (args.meta) {
-        cy.get('.nc-create-xc-db-project').click()
-        cy.url({timeout: 6000}).should('contain', '#/project/xcdb')
-        cy.contains('GRAPHQL APIs').closest('label').click();
-        cy.get('.nc-metadb-project-name').type('test_proj' + Date.now())
-        cy.contains('button','Create', {timeout: 3000}).click()
+        cy.get(".nc-create-xc-db-project").click();
+        cy.url({ timeout: 6000 }).should("contain", "#/project/xcdb");
+        cy.contains("GRAPHQL APIs").closest("label").click();
+        cy.get(".nc-metadb-project-name").type("test_proj" + Date.now());
+        cy.contains("button", "Create", { timeout: 3000 }).click();
       } else {
-        cy.get('.nc-create-external-db-project').click()
-        cy.url({timeout: 6000}).should('contain', '#/project')
-        cy.contains('GRAPHQL APIs').closest('label').click()
-        cy.get('.database-field input').click().clear().type('sakila')
-        cy.contains('Test Database Connection').click()
-        cy.contains('Ok & Save Project', {timeout: 3000}).click()
+        cy.get(".nc-create-external-db-project").click();
+        cy.url({ timeout: 6000 }).should("contain", "#/project");
+        cy.contains("GRAPHQL APIs").closest("label").click();
+        cy.get(".database-field input").click().clear().type("sakila");
+        cy.contains("Test Database Connection").click();
+        cy.contains("Ok & Save Project", { timeout: 3000 }).click();
       }
     }
-  })
-  cy.url({timeout: 20000}).should('contain', '#/nc/')
-
-})
+  });
+  cy.url({ timeout: 20000 }).should("contain", "#/nc/");
+});
 
 let LOCAL_STORAGE_MEMORY = {};
 
 Cypress.Commands.add("saveLocalStorage", () => {
-  Object.keys(localStorage).forEach(key => {
+  Object.keys(localStorage).forEach((key) => {
     LOCAL_STORAGE_MEMORY[key] = localStorage[key];
   });
 });
 
 Cypress.Commands.add("restoreLocalStorage", () => {
-  Object.keys(LOCAL_STORAGE_MEMORY).forEach(key => {
+  Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
     localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
   });
 });
 
 Cypress.Commands.add("getActiveModal", () => {
-  return cy.get('.v-dialog.v-dialog--active').last()
+  return cy.get(".v-dialog.v-dialog--active").last();
 });
 
 Cypress.Commands.add("getActiveMenu", () => {
-  return cy.get('.menuable__content__active').last()
+  return cy.get(".menuable__content__active").last();
 });
 
 Cypress.Commands.add("getActiveContentModal", () => {
-  return cy.get('.v-dialog__content--active').last()
+  return cy.get(".v-dialog__content--active").last();
 });
 
-
-Cypress.Commands.add('createTable', (name) => {
-  cy.get('.add-btn').click();
-  cy.get('.nc-create-table-card .nc-table-name input[type="text"]').first().click().clear().type(name)
-  cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]').first().should('have.value', name.toLowerCase())
-  cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
-  cy.toastWait(`Create table.${name} successful`)
-  cy.get(`.project-tab:contains(${name})`).should('exist')
-  cy.url().should('contain', `name=${name}`)
-})
-
-Cypress.Commands.add('deleteTable', (name) => {
-  cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
-    .first().click()
-  cy.get('.nc-project-tree').contains(name, {timeout: 6000}).first().click({force: true});
-  cy.get(`.project-tab:contains(${name}):visible`).should('exist')
-  cy.get('.nc-table-delete-btn:visible').click()
-  cy.get('button:contains(Submit)').click()
-  cy.toastWait(`Delete table.${name} successful`)
-})
-
-Cypress.Commands.add('renameTable', (oldName, newName) => {
-  // expand project tree
-  cy.get('.nc-project-tree')
-    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+Cypress.Commands.add("createTable", (name) => {
+  cy.get(".add-btn").click();
+  cy.get('.nc-create-table-card .nc-table-name input[type="text"]')
     .first()
     .click()
+    .clear()
+    .type(name);
+  cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]')
+    .first()
+    .should("have.value", name.toLowerCase());
+  cy.get(".nc-create-table-card .nc-create-table-submit").first().click();
+  cy.toastWait(`Create table.${name} successful`);
+  cy.get(`.project-tab:contains(${name})`).should("exist");
+  cy.url().should("contain", `name=${name}`);
+});
+
+Cypress.Commands.add("deleteTable", (name) => {
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .first()
+    .click();
+  cy.get(".nc-project-tree")
+    .contains(name, { timeout: 6000 })
+    .first()
+    .click({ force: true });
+  cy.get(`.project-tab:contains(${name}):visible`).should("exist");
+  cy.get(".nc-table-delete-btn:visible").click();
+  cy.get("button:contains(Submit)").click();
+  cy.toastWait(`Delete table.${name} successful`);
+});
+
+Cypress.Commands.add("renameTable", (oldName, newName) => {
+  // expand project tree
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .first()
+    .click();
 
   // right click on project table name
-  cy.get('.nc-project-tree')
+  cy.get(".nc-project-tree")
     .contains(oldName, { timeout: 6000 })
     .first()
-    .rightclick()
+    .rightclick();
 
   // choose rename option from menu
   cy.getActiveMenu()
     .find('[role="menuitem"]')
-    .contains('Table Rename')
-    .click({ force: true })
-  
+    .contains("Table Rename")
+    .click({ force: true });
+
   // feed new name
-  cy.getActiveContentModal()
-    .find('input')
-    .clear()
-    .type(newName)
+  cy.getActiveContentModal().find("input").clear().type(newName);
 
   // submit
-  cy.getActiveContentModal()
-    .find('button')
-    .contains('Submit')
-    .click()
-  
-  cy.toastWait('Table renamed successfully')
+  cy.getActiveContentModal().find("button").contains("Submit").click();
 
-  // close expanded project tree 
-  cy.get('.nc-project-tree')
-    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+  cy.toastWait("Table renamed successfully");
+
+  // close expanded project tree
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
     .first()
-    .click()
-  })
+    .click();
+});
 
-Cypress.Commands.add('createColumn', (table, columnName) => {
-  cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
-    .first().click()
-  cy.get('.nc-project-tree').contains(table, {timeout: 6000}).first().click({force: true});
-  cy.get(`.project-tab:contains(${table}):visible`).should('exist')
-  cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({force: true});
-  cy.get('.nc-column-name-input input').clear().type(columnName)
-  cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-  cy
-    .get('th:contains(new_column)')
-    .should('exist');
-})
+Cypress.Commands.add("createColumn", (table, columnName) => {
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .first()
+    .click();
+  cy.get(".nc-project-tree")
+    .contains(table, { timeout: 6000 })
+    .first()
+    .click({ force: true });
+  cy.get(`.project-tab:contains(${table}):visible`).should("exist");
+  cy.get(".v-window-item--active .nc-grid  tr > th:last button").click({
+    force: true,
+  });
+  cy.get(".nc-column-name-input input").clear().type(columnName);
+  cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+  cy.get("th:contains(new_column)").should("exist");
+});
 
-Cypress.Commands.add('toastWait', (msg) => {
-        cy.get('.toasted:visible', { timout: 6000 })
-            .contains(msg)
-            .should('exist')
-        cy.get('.toasted:visible', { timout: 6000 })
-            .contains(msg)
-            .should('not.exist')  
-})
-
+Cypress.Commands.add("toastWait", (msg) => {
+  cy.get(".toasted:visible", { timout: 6000 }).contains(msg).should("exist");
+  cy.get(".toasted:visible", { timout: 6000 })
+    .contains(msg)
+    .should("not.exist");
+});
 
 // Drag n Drop
 // refer: https://stackoverflow.com/a/55409853
@@ -384,5 +401,3 @@ Cypress.Commands.addAll(
   }
 )
 */
-
-

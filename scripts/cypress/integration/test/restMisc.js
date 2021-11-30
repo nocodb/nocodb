@@ -1,40 +1,38 @@
-
-let t0 = require('./explicitLogin')
-let t01 = require('../common/00_pre_configurations')
-let t6b = require('../common/6b_downloadCsv')
-let t6c = require('../common/6c_swagger_api')
-let t6d = require('../common/6d_language_validation')
-let t6e = require('../common/6e_project_operations')
-let t6f = require('../common/6f_attachments')
-let t6g = require('../common/6g_base_share')
-let t7a = require('../common/7a_create_project_from_excel')
+let t0 = require("./explicitLogin");
+let t01 = require("../common/00_pre_configurations");
+let t6b = require("../common/6b_downloadCsv");
+let t6c = require("../common/6c_swagger_api");
+let t6d = require("../common/6d_language_validation");
+let t6e = require("../common/6e_project_operations");
+let t6f = require("../common/6f_attachments");
+let t6g = require("../common/6g_base_share");
+let t7a = require("../common/7a_create_project_from_excel");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
-const executionMode = 1
+const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
+  if (0 == executionMode) {
+    t0.genTest(type, xcdb);
+  } else {
+    t01.genTest(type, xcdb);
+  }
 
-    if (0 == executionMode) {
-        t0.genTest(type, xcdb)
-    } else {
-        t01.genTest(type, xcdb)
-    }    
+  t6b.genTest(type, xcdb);
+  t6d.genTest(type, xcdb);
+  t6c.genTest(type, xcdb);
+  t6f.genTest(type, xcdb);
+  t6g.genTest(type, xcdb);
+  // **deletes created project, hence place it @ end
+  t6e.genTest(type, xcdb);
 
-    t6b.genTest(type, xcdb)
-    t6d.genTest(type, xcdb)
-    t6c.genTest(type, xcdb)
-    t6f.genTest(type, xcdb)
-    t6g.genTest(type, xcdb)
-    // **deletes created project, hence place it @ end
-    t6e.genTest(type, xcdb)
-    
-    // intended to keep this after earlier project deletion
-    // creates project using excel & deletes it
-    t7a.genTest(type, xcdb)
-}
+  // intended to keep this after earlier project deletion
+  // creates project using excel & deletes it
+  t7a.genTest(type, xcdb);
+};
 
-nocoTestSuite('rest', false)
+nocoTestSuite("rest", false);
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
@@ -57,7 +55,3 @@ nocoTestSuite('rest', false)
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-
-
-

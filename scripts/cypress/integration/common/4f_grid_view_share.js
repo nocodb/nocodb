@@ -1,8 +1,7 @@
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import { mainPage } from "../../support/page_objects/mainPage";
 
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
-import { mainPage } from "../../support/page_objects/mainPage"
-
-let storedURL = ''
+let storedURL = "";
 
 // 0: all enabled
 // 1: field hide
@@ -10,352 +9,418 @@ let storedURL = ''
 // 3: field filter
 // 4: default (address table): for view operation validation
 // 5: default (country table): for update row/column validation
-let viewURL = {}
+let viewURL = {};
 
 export const genTest = (type, xcdb) => {
-    if(!isTestSuiteActive(type, xcdb)) return;
+  if (!isTestSuiteActive(type, xcdb)) return;
 
-    const generateViewLink = (viewName) => {
-        // click on share view 
-        cy.get('.v-navigation-drawer__content > .container')
-            .find('.v-list > .v-list-item')
-            .contains('Share View')
-            .click()
+  const generateViewLink = (viewName) => {
+    // click on share view
+    cy.get(".v-navigation-drawer__content > .container")
+      .find(".v-list > .v-list-item")
+      .contains("Share View")
+      .click();
 
-        // wait, as URL initially will be /undefined
-        cy.getActiveModal().find('.share-link-box')
-            .contains('/nc/view/', {timeout: 10000}).should('exist')      
+    // wait, as URL initially will be /undefined
+    cy.getActiveModal()
+      .find(".share-link-box")
+      .contains("/nc/view/", { timeout: 10000 })
+      .should("exist");
 
-        // copy link text, visit URL
-        cy.getActiveModal().find('.share-link-box')
-            .contains('/nc/view/', {timeout: 10000})
-            .then(($obj) => {
-                cy.get('body').type('{esc}')
-                // viewURL.push($obj.text())
-                viewURL[viewName] = $obj.text().trim()
-            })
-    }    
+    // copy link text, visit URL
+    cy.getActiveModal()
+      .find(".share-link-box")
+      .contains("/nc/view/", { timeout: 10000 })
+      .then(($obj) => {
+        cy.get("body").type("{esc}");
+        // viewURL.push($obj.text())
+        viewURL[viewName] = $obj.text().trim();
+      });
+  };
 
-    describe(`${type.toUpperCase()} api - GRID view (Share)`, () => {
-        // Run once before test- create project (rest/graphql)
-        //
-        before(() => {
-            // open a table to work on views
-            //
-            cy.openTableTab('Address');
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)
+  describe(`${type.toUpperCase()} api - GRID view (Share)`, () => {
+    // Run once before test- create project (rest/graphql)
+    //
+    before(() => {
+      // open a table to work on views
+      //
+      cy.openTableTab("Address", 25);
 
-            cy.saveLocalStorage()
-        })
+      cy.saveLocalStorage();
+    });
 
-        beforeEach(() => {
-            cy.restoreLocalStorage();
-        })
+    beforeEach(() => {
+      cy.restoreLocalStorage();
+    });
 
-        afterEach(() => {
-            cy.saveLocalStorage();
-        })
-        
-        after(() => {
-            // close table
-            // mainPage.deleteCreatedViews()
-            cy.closeTableTab('Address')
-        })      
-        
-        // Common routine to create/edit/delete GRID & GALLERY view
-        // Input: viewType - 'grid'/'gallery'
-        //
-        const viewTest = (viewType) => {
+    afterEach(() => {
+      cy.saveLocalStorage();
+    });
 
-            it(`Create ${viewType.toUpperCase()} view`, () => {
-                // create a normal public view
-                cy.get(`.nc-create-${viewType}-view`).click();
-                cy.getActiveModal().find('button:contains(Submit)').click()
-                cy.toastWait('View created successfully')
+    after(() => {
+      // close table
+      // mainPage.deleteCreatedViews()
+      cy.closeTableTab("Address");
+    });
 
-                // store base URL- to re-visit and delete form view later
-                cy.url().then((url) => {
-                    storedURL = url
-                })
-            })
+    // Common routine to create/edit/delete GRID & GALLERY view
+    // Input: viewType - 'grid'/'gallery'
+    //
+    const viewTest = (viewType) => {
+      it(`Create ${viewType.toUpperCase()} view`, () => {
+        // create a normal public view
+        cy.get(`.nc-create-${viewType}-view`).click();
+        cy.getActiveModal().find("button:contains(Submit)").click();
+        cy.toastWait("View created successfully");
 
-            it(`Share ${viewType.toUpperCase()} hide, sort, filter & verify`, () => {
-                cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Address1').click()
-                mainPage.hideUnhideField('Address2')
-                mainPage.sortField('District', 'Z -> A')
-                mainPage.filterField('Address', 'is like', 'Ab')                
-                generateViewLink('combined')
-                cy.log(viewURL['combined'])
-            })
+        // store base URL- to re-visit and delete form view later
+        cy.url().then((url) => {
+          storedURL = url;
+        });
+      });
 
-            it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {
-                // generate view link multiple times
-                generateViewLink('combined')
-                generateViewLink('combined')
+      it(`Share ${viewType.toUpperCase()} hide, sort, filter & verify`, () => {
+        cy.get(`.nc-view-item.nc-${viewType}-view-item`)
+          .contains("Address1")
+          .click();
+        mainPage.hideField("Address2");
+        mainPage.sortField("District", "Z -> A");
+        mainPage.filterField("Address", "is like", "Ab");
+        generateViewLink("combined");
+        cy.log(viewURL["combined"]);
+      });
 
-                // verify if only one link exists in table
-                cy.get('.v-navigation-drawer__content > .container')
-                    .find('.v-list > .v-list-item')
-                    .contains('Share View')
-                    .parent().find('button.mdi-dots-vertical').click()
+      it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {
+        // generate view link multiple times
+        generateViewLink("combined");
+        generateViewLink("combined");
 
-                cy.getActiveMenu().find('.v-list-item').contains('Views List').click()
+        // verify if only one link exists in table
+        cy.get(".v-navigation-drawer__content > .container")
+          .find(".v-list > .v-list-item")
+          .contains("Share View")
+          .parent()
+          .find("button.mdi-dots-vertical")
+          .click();
 
-                cy.get('th:contains("View Link")').should('exist')
+        cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
 
-                cy.get('th:contains("View Link")').parent().parent()
-                    .next().find('tr').its('length').should('eq', 1)
-                    .then(() => {
-                        cy.get('.v-overlay__content > .d-flex > .v-icon').click()
-                    })
-            })
+        cy.get('th:contains("View Link")').should("exist");
 
-            it(`Share ${viewType.toUpperCase()} view : Visit URL, Verify title`, () => {
-                // visit public view
-                cy.visit(viewURL['combined'], {
-                    baseUrl: null
-                })
-        
-                // wait for page rendering to complete
-                cy.get('.nc-grid-row').should('have.length', 18)                
+        cy.get('th:contains("View Link")')
+          .parent()
+          .parent()
+          .next()
+          .find("tr")
+          .its("length")
+          .should("eq", 1)
+          .then(() => {
+            cy.get(".v-overlay__content > .d-flex > .v-icon").click();
+          });
+      });
 
-                // verify title
-                cy.get('div.model-name').contains('Address1').should('exist')
-            })
+      it(`Share ${viewType.toUpperCase()} view : Visit URL, Verify title`, () => {
+        // visit public view
+        cy.visit(viewURL["combined"], {
+          baseUrl: null,
+        });
 
-            it(`Share ${viewType.toUpperCase()} view : verify fields hidden/open`, () => {
-                // verify column headers
-                cy.get('[data-col="Address"]').should('exist')
-                cy.get('[data-col="Address2"]').should('not.exist')
-                cy.get('[data-col="District"]').should('exist')
-            })
+        // wait for page rendering to complete
+        cy.get(".nc-grid-row").should("have.length", 18);
 
-            it(`Share ${viewType.toUpperCase()} view : verify fields sort/ filter`, () => {
-                // country column content verification before sort
-                mainPage.getCell("District", 1).contains("West Bengali").should('exist')
-                mainPage.getCell("District", 2).contains("Tutuila").should('exist')
-                mainPage.getCell("District", 3).contains("Tamil Nadu").should('exist')
-            })
-            
-            it(`Share ${viewType.toUpperCase()} view : verify download CSV`, () => {
-                mainPage.hideUnhideField('LastUpdate')
-                const verifyCsv = (retrievedRecords) => {
-                    // expected output, statically configured
-                    let storedRecords = [
-                        `Address,District,PostalCode,Phone,Location,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
-                        `1013 Tabuk Boulevard,West Bengali,96203,158399646978,[object Object],2,,Kanchrapara,`,
-                        `1892 Nabereznyje Telny Lane,Tutuila,28396,478229987054,[object Object],2,,Tafuna,`,
-                        `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2,,Tambaram,`,
-                        `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`
-                    ]
-                    
-                    for (let i = 0; i < storedRecords.length; i++) {
-                        let strCol = storedRecords[i].split(',')
-                        let retCol = retrievedRecords[i].split(',')
-                        for (let j = 0; j < 4; j++) {
-                            expect(strCol[j]).to.be.equal(retCol[j])
-                        }
-                        // expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
-                    }
-                }                
+        // verify title
+        cy.get("div.model-name").contains("Address1").should("exist");
+      });
 
-                // download & verify
-                mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv)
-                mainPage.hideUnhideField('LastUpdate')
-            })
+      it(`Share ${viewType.toUpperCase()} view : verify fields hidden/open`, () => {
+        // verify column headers
+        cy.get('[data-col="Address"]').should("exist");
+        cy.get('[data-col="Address2"]').should("not.exist");
+        cy.get('[data-col="District"]').should("exist");
+      });
 
-            it(`Share ${viewType.toUpperCase()} view : Disable sort`, () => {
-                // remove sort and validate
-                mainPage.clearSort()
-                mainPage.getCell("District", 1).contains("Southern Mindanao").should('exist')
-            })
+      it(`Share ${viewType.toUpperCase()} view : verify fields sort/ filter`, () => {
+        // country column content verification before sort
+        mainPage
+          .getCell("District", 1)
+          .contains("West Bengali")
+          .should("exist");
+        mainPage.getCell("District", 2).contains("Tutuila").should("exist");
+        mainPage.getCell("District", 3).contains("Tamil Nadu").should("exist");
+      });
 
-            it(`Share ${viewType.toUpperCase()} view : Enable sort`, () => {
-                // Sort menu operations (Country Column, Z->A)
-                mainPage.sortField('District', 'Z -> A')
-                mainPage.getCell("District", 1).contains("West Bengali").should('exist')
-            })
+      it(`Share ${viewType.toUpperCase()} view : verify download CSV`, () => {
+        mainPage.hideField("LastUpdate");
+        const verifyCsv = (retrievedRecords) => {
+          // expected output, statically configured
+          let storedRecords = [
+            `Address,District,PostalCode,Phone,Location,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
+            `1013 Tabuk Boulevard,West Bengali,96203,158399646978,[object Object],2,,Kanchrapara,`,
+            `1892 Nabereznyje Telny Lane,Tutuila,28396,478229987054,[object Object],2,,Tafuna,`,
+            `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2,,Tambaram,`,
+            `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`,
+          ];
 
-            it(`Share ${viewType.toUpperCase()} view : Create Filter`, () => {
-                // add filter & validate
-                mainPage.filterField('District', 'is like', 'Tamil')
-                // wait for page rendering to complete
-                cy.get('.nc-grid-row').should('have.length', 2)
-                mainPage.getCell("District", 1).contains("Tamil").should('exist')
-            })
+          for (let i = 0; i < storedRecords.length; i++) {
+            let strCol = storedRecords[i].split(",");
+            let retCol = retrievedRecords[i].split(",");
+            for (let j = 0; j < 4; j++) {
+              expect(strCol[j]).to.be.equal(retCol[j]);
+            }
+            // expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+          }
+        };
 
-            it(`Share ${viewType.toUpperCase()} view : verify download CSV after local filter`, () => {
-                mainPage.hideUnhideField('LastUpdate')
-                const verifyCsv = (retrievedRecords) => {
-                    // expected output, statically configured
-                    let storedRecords = [
-                        `Address,District,PostalCode,Phone,Location,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
-                        `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2,,Tambaram,`,
-                        `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`
-                    ]
-                    
-                    // for (let i = 0; i < storedRecords.length; i++) {
-                    //     expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
-                    // }
+        // download & verify
+        mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv);
+        mainPage.unhideField("LastUpdate");
+      });
 
-                    for (let i = 0; i < storedRecords.length; i++) {
-                        let strCol = storedRecords[i].split(',')
-                        let retCol = retrievedRecords[i].split(',')
-                        for (let j = 0; j < 4; j++) {
-                            expect(strCol[j]).to.be.equal(retCol[j])
-                        }
-                    }                    
-                }                  
-                mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv)
-                mainPage.hideUnhideField('LastUpdate')
-            })            
+      it(`Share ${viewType.toUpperCase()} view : Disable sort`, () => {
+        // remove sort and validate
+        mainPage.clearSort();
+        mainPage
+          .getCell("District", 1)
+          .contains("Southern Mindanao")
+          .should("exist");
+      });
 
-            it(`Share ${viewType.toUpperCase()} view : Delete Filter`, () => {
-                // Remove sort and Validate
-                mainPage.filterReset()
-                mainPage.getCell("District", 1).contains("West Bengali").should('exist')
-            })
-            
-            it(`Share GRID view : Virtual column validation > has many`, () => {
-                // verify column headers
-                cy.get('[data-col="Address => Customer"]').should('exist')
-                cy.get('[data-col="Address => Staff"]').should('exist')
-                cy.get('[data-col="City <= Address"]').should('exist')
-                cy.get('[data-col="Address <=> Staff"]').should('exist')
+      it(`Share ${viewType.toUpperCase()} view : Enable sort`, () => {
+        // Sort menu operations (Country Column, Z->A)
+        mainPage.sortField("District", "Z -> A");
+        mainPage
+          .getCell("District", 1)
+          .contains("West Bengali")
+          .should("exist");
+      });
 
-                // has many field validation
-                mainPage.getCell("Address => Customer", 3).click().find('button.mdi-close-thick').should('not.exist')
-                mainPage.getCell("Address => Customer", 3).click().find('button.mdi-plus').should('not.exist')
-                mainPage.getCell("Address => Customer", 3).click().find('button.mdi-arrow-expand').click()
+      it(`Share ${viewType.toUpperCase()} view : Create Filter`, () => {
+        // add filter & validate
+        mainPage.filterField("District", "is like", "Tamil");
+        // wait for page rendering to complete
+        cy.get(".nc-grid-row").should("have.length", 2);
+        mainPage.getCell("District", 1).contains("Tamil").should("exist");
+      });
 
-                cy.getActiveModal().find('button.mdi-reload').should('exist')
-                cy.getActiveModal().find('button').contains('Link to').should('not.exist')
-                cy.getActiveModal().find('.child-card').contains('2').should('exist')
-                cy.getActiveModal().find('.child-card').find('button').should('not.exist')
-                cy.get('body').type('{esc}')
-            })
+      it(`Share ${viewType.toUpperCase()} view : verify download CSV after local filter`, () => {
+        mainPage.hideField("LastUpdate");
+        const verifyCsv = (retrievedRecords) => {
+          // expected output, statically configured
+          let storedRecords = [
+            `Address,District,PostalCode,Phone,Location,Address => Customer,Address => Staff,City <= Address,Address <=> Staff`,
+            `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2,,Tambaram,`,
+            `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`,
+          ];
 
-            it(`Share GRID view : Virtual column validation > belongs to`, () => {
-                // belongs to field validation
-                mainPage.getCell("City <= Address", 1).click().find('button.mdi-close-thick').should('not.exist')
-                mainPage.getCell("City <= Address", 1).click().find('button.mdi-arrow-expand').should('not.exist')
-                mainPage.getCell("City <= Address", 1).find('.v-chip').contains('Kanchrapara').should('exist')
-            })
+          // for (let i = 0; i < storedRecords.length; i++) {
+          //     expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
+          // }
 
-            it(`Share GRID view : Virtual column validation > many to many`, () => {
-                // many-to-many field validation
-                mainPage.getCell("Address <=> Staff", 1).click().find('button.mdi-close-thick').should('not.exist')
-                mainPage.getCell("Address <=> Staff", 1).click().find('button.mdi-plus').should('not.exist')
-                mainPage.getCell("Address <=> Staff", 1).click().find('button.mdi-arrow-expand').click()
+          for (let i = 0; i < storedRecords.length; i++) {
+            let strCol = storedRecords[i].split(",");
+            let retCol = retrievedRecords[i].split(",");
+            for (let j = 0; j < 4; j++) {
+              expect(strCol[j]).to.be.equal(retCol[j]);
+            }
+          }
+        };
+        mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv);
+        mainPage.unhideField("LastUpdate");
+      });
 
-                cy.getActiveModal().find('button.mdi-reload').should('exist')
-                cy.getActiveModal().find('button').contains('Link to').should('not.exist')
-                cy.get('body').type('{esc}')
-            })       
+      it(`Share ${viewType.toUpperCase()} view : Delete Filter`, () => {
+        // Remove sort and Validate
+        mainPage.filterReset();
+        mainPage
+          .getCell("District", 1)
+          .contains("West Bengali")
+          .should("exist");
+      });
 
-            it(`Delete ${viewType.toUpperCase()} view`, () => {
-                // go back to base page
-                cy.visit(storedURL, {
-                    baseUrl: null
-                })
+      it(`Share GRID view : Virtual column validation > has many`, () => {
+        // verify column headers
+        cy.get('[data-col="Address => Customer"]').should("exist");
+        cy.get('[data-col="Address => Staff"]').should("exist");
+        cy.get('[data-col="City <= Address"]').should("exist");
+        cy.get('[data-col="Address <=> Staff"]').should("exist");
 
-                // number of view entries should be 2 before we delete
-                cy.get('.nc-view-item').its('length').should('eq', 2)
+        // has many field validation
+        mainPage
+          .getCell("Address => Customer", 3)
+          .click()
+          .find("button.mdi-close-thick")
+          .should("not.exist");
+        mainPage
+          .getCell("Address => Customer", 3)
+          .click()
+          .find("button.mdi-plus")
+          .should("not.exist");
+        mainPage
+          .getCell("Address => Customer", 3)
+          .click()
+          .find("button.mdi-arrow-expand")
+          .click();
 
-                cy.get('.nc-view-delete-icon').eq(0).click({ force: true })
-                cy.toastWait('View deleted successfully')
-                
-                // confirm if the number of veiw entries is reduced by 1
-                cy.get('.nc-view-item').its('length').should('eq', 1)
-            })
-        }
+        cy.getActiveModal().find("button.mdi-reload").should("exist");
+        cy.getActiveModal()
+          .find("button")
+          .contains("Link to")
+          .should("not.exist");
+        cy.getActiveModal().find(".child-card").contains("2").should("exist");
+        cy.getActiveModal()
+          .find(".child-card")
+          .find("button")
+          .should("not.exist");
+        cy.get("body").type("{esc}");
+      });
 
-        // below scenario's will be invoked twice, once for rest & then for graphql
-        viewTest('grid')
-    })
-    
-    describe(`${type.toUpperCase()} api - Grid view/ row-column update verification`, () => {
-        before(() => {
-            // Address table has belongs to, has many & many-to-many
-            cy.openTableTab('Country')
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)
-            
-            cy.saveLocalStorage()
-            // store base URL- to re-visit and delete form view later
-            cy.url().then((url) => {
-                storedURL = url
-                generateViewLink('rowColUpdate')
-            })            
-        })
-        
-        after(() => {
-            // close table
-            cy.restoreLocalStorage();
-            cy.visit(storedURL, {
-                baseUrl: null
-            })
+      it(`Share GRID view : Virtual column validation > belongs to`, () => {
+        // belongs to field validation
+        mainPage
+          .getCell("City <= Address", 1)
+          .click()
+          .find("button.mdi-close-thick")
+          .should("not.exist");
+        mainPage
+          .getCell("City <= Address", 1)
+          .click()
+          .find("button.mdi-arrow-expand")
+          .should("not.exist");
+        mainPage
+          .getCell("City <= Address", 1)
+          .find(".v-chip")
+          .contains("Kanchrapara")
+          .should("exist");
+      });
 
-            // delete row
-            mainPage.getPagination(5).click()
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 10)
-            mainPage.getRow(10).find('.mdi-checkbox-blank-outline').click({ force: true })
-            mainPage.getCell("Country", 10).rightclick()
-            cy.getActiveMenu().contains('Delete Selected Row').click()
+      it(`Share GRID view : Virtual column validation > many to many`, () => {
+        // many-to-many field validation
+        mainPage
+          .getCell("Address <=> Staff", 1)
+          .click()
+          .find("button.mdi-close-thick")
+          .should("not.exist");
+        mainPage
+          .getCell("Address <=> Staff", 1)
+          .click()
+          .find("button.mdi-plus")
+          .should("not.exist");
+        mainPage
+          .getCell("Address <=> Staff", 1)
+          .click()
+          .find("button.mdi-arrow-expand")
+          .click();
 
-            // delete column
-            cy.get(`th:contains('dummy') .mdi-menu-down`)
-                .trigger('mouseover')
-                .click()
-            cy.get('.nc-column-delete').click()
-            cy.get('button:contains(Confirm)').click()
+        cy.getActiveModal().find("button.mdi-reload").should("exist");
+        cy.getActiveModal()
+          .find("button")
+          .contains("Link to")
+          .should("not.exist");
+        cy.get("body").type("{esc}");
+      });
 
-            cy.toastWait('Update table.Country successful')
+      it(`Delete ${viewType.toUpperCase()} view`, () => {
+        // go back to base page
+        cy.visit(storedURL, {
+          baseUrl: null,
+        });
 
-            mainPage.deleteCreatedViews()
-            
-            // close table
-            cy.closeTableTab('Country')
-        })
+        // number of view entries should be 2 before we delete
+        cy.get(".nc-view-item").its("length").should("eq", 2);
 
-        it(`Generate default Shared GRID view URL`, () => {
-            // add row
-            cy.get('.nc-add-new-row-btn').click({force: true})
-            cy.get('#data-table-form-Country > input').first().click().type('a')
-            cy.contains('Save Row').filter('button').click({ force: true })
-            cy.toastWait('updated successfully')
+        cy.get(".nc-view-delete-icon").eq(0).click({ force: true });
+        cy.toastWait("View deleted successfully");
 
-            // add column
-            mainPage.addColumn('dummy', 'Country')
+        // confirm if the number of veiw entries is reduced by 1
+        cy.get(".nc-view-item").its("length").should("eq", 1);
+      });
+    };
 
-            // visit public view
-            cy.log(viewURL['rowColUpdate'])
-            cy.restoreLocalStorage();
-            cy.visit(viewURL['rowColUpdate'], {
-                baseUrl: null
-            }) //5
-            // wait for public view page to load!
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 25)            
-        })
+    // below scenario's will be invoked twice, once for rest & then for graphql
+    viewTest("grid");
+  });
 
-        it(`Share GRID view : new row visible`, () => {
-            // verify row 
-            cy.get(`.v-pagination > li:contains('5') button`).click()
-            // wait for page rendering to complete
-            cy.get('.nc-grid-row').should('have.length', 10)
-            mainPage.getCell('Country', 10).contains('a').should('exist')            
-        })
+  describe(`${type.toUpperCase()} api - Grid view/ row-column update verification`, () => {
+    before(() => {
+      // Address table has belongs to, has many & many-to-many
+      cy.openTableTab("Country", 25);
 
-        it.skip(`Share GRID view : new column visible`, () => {
-            // verify column headers
-            cy.get('[data-col="dummy"]').should('exist')
-        })
-    })
-}
+      cy.saveLocalStorage();
+      // store base URL- to re-visit and delete form view later
+      cy.url().then((url) => {
+        storedURL = url;
+        generateViewLink("rowColUpdate");
+      });
+    });
 
+    after(() => {
+      // close table
+      cy.restoreLocalStorage();
+      cy.visit(storedURL, {
+        baseUrl: null,
+      });
+
+      // delete row
+      mainPage.getPagination(5).click();
+      // wait for page rendering to complete
+      cy.get(".nc-grid-row").should("have.length", 10);
+      mainPage
+        .getRow(10)
+        .find(".mdi-checkbox-blank-outline")
+        .click({ force: true });
+      mainPage.getCell("Country", 10).rightclick();
+      cy.getActiveMenu().contains("Delete Selected Row").click();
+
+      // delete column
+      cy.get(`th:contains('dummy') .mdi-menu-down`)
+        .trigger("mouseover")
+        .click();
+      cy.get(".nc-column-delete").click();
+      cy.get("button:contains(Confirm)").click();
+
+      cy.toastWait("Update table.Country successful");
+
+      mainPage.deleteCreatedViews();
+
+      // close table
+      cy.closeTableTab("Country");
+    });
+
+    it(`Generate default Shared GRID view URL`, () => {
+      // add row
+      cy.get(".nc-add-new-row-btn").click({ force: true });
+      cy.get("#data-table-form-Country > input").first().click().type("a");
+      cy.contains("Save Row").filter("button").click({ force: true });
+      cy.toastWait("updated successfully");
+
+      // add column
+      mainPage.addColumn("dummy", "Country");
+
+      // visit public view
+      cy.log(viewURL["rowColUpdate"]);
+      cy.restoreLocalStorage();
+      cy.visit(viewURL["rowColUpdate"], {
+        baseUrl: null,
+      }); //5
+      // wait for public view page to load!
+      // wait for page rendering to complete
+      cy.get(".nc-grid-row").should("have.length", 25);
+    });
+
+    it(`Share GRID view : new row visible`, () => {
+      // verify row
+      cy.get(`.v-pagination > li:contains('5') button`).click();
+      // wait for page rendering to complete
+      cy.get(".nc-grid-row").should("have.length", 10);
+      mainPage.getCell("Country", 10).contains("a").should("exist");
+    });
+
+    it.skip(`Share GRID view : new column visible`, () => {
+      // verify column headers
+      cy.get('[data-col="dummy"]').should("exist");
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

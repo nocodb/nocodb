@@ -350,6 +350,7 @@ export default {
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
         this.$emit('update:localState', [...this.localState])
+        this.$emit('saveRow')
         this.newRecordModal = false
         return
       }
@@ -394,7 +395,7 @@ export default {
     },
     getCellValue(cellObj) {
       if (cellObj) {
-        if (this.parentMeta && this.childPrimaryCol) {
+        if (this.childMeta && this.childPrimaryCol) {
           return cellObj[this.childPrimaryCol]
         }
         return Object.values(cellObj)[1]

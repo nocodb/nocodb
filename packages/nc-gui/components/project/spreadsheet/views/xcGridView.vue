@@ -185,6 +185,7 @@
               :is-new="rowMeta.new"
               v-on="$listeners"
               @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.cn === columnObj.bt.cn), col, row)"
+              @saveRow="onCellValueChange(col, row, columnObj)"
             />
 
             <editable-cell

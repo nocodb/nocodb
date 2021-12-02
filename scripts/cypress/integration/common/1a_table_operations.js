@@ -1,5 +1,4 @@
 
-import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 import { mainPage } from "../../support/page_objects/mainPage";
 
@@ -9,7 +8,6 @@ export const genTest = (type, xcdb) => {
   describe(`${xcdb ? 'Meta - ' : ''}${type.toUpperCase()} api - Table`, () => {
 
     before(() => {
-      //loginPage.loginAndOpenProject(type, xcdb)
       cy.get('.mdi-close').click({ multiple: true })
     })
       
@@ -21,35 +19,13 @@ export const genTest = (type, xcdb) => {
 
     // create a new random table
     it('Create Table', () => {
-      cy.get('.add-btn').click();
-      cy.get('.nc-create-table-card .nc-table-name input[type="text"]')
-        .first().click().clear().type(name)
-
-      if (!xcdb) {
-        cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]')
-          .first().should('have.value', name.toLowerCase())
-      }
-      //cy.wait(5000)
-
-      cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
-      cy.get(`.project-tab:contains(${name})`).should('exist')
-      cy.url().should('contain', `name=${name}`)
-
-      //cy.wait(5000)
+      cy.createTable(name)
     })
 
 
     // delete newly created table
     it('Delete Table', () => {
-
-      cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
-        .first().click()
-
-      cy.get('.nc-project-tree').contains(name, {timeout: 6000}).first().click({force: true});
-      cy.get(`.project-tab:contains(${name}):visible`).should('exist')
-      cy.get('.nc-table-delete-btn:visible').click()
-      cy.get('button:contains(Submit)').click()
-      cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
+      cy.deleteTable(name)
     })
 
     const getAuditCell = (row, col) => {
@@ -58,7 +34,10 @@ export const genTest = (type, xcdb) => {
 
     it('Open Audit tab', ()=> {
         mainPage.navigationDraw(mainPage.AUDIT).click()
-        cy.wait(2000)
+
+      // wait for column headers to appear
+      //
+      cy.get('thead > tr > th.caption').should('have.length', 5)
 
         // Audit table entries
         //  [Header] Operation Type, Operation Sub Type, Description, User, Created
@@ -72,15 +51,52 @@ export const genTest = (type, xcdb) => {
         getAuditCell(1,0).contains('TABLE').should('exist')
         getAuditCell(1,1).contains('CREATED').should('exist')
         getAuditCell(1,3).contains('user@nocodb.com').should('exist')        
-    })    
+    })
+    
+    it('Table Rename operation', () => {
+
+      cy.renameTable('City', 'CityX')
+
+      // verify
+      // 1. Table name in project tree has changed
+      cy.get('.nc-project-tree')
+        .contains('CityX')
+        .should('exist')
+      
+      // 2. Table tab name has changed
+      cy.get(`.project-tab:contains('CityX'):visible`)
+        .should('exist')
+      
+      // 3. contents of the table are valid
+      mainPage.getCell(`City`, 1)
+        .contains('A Corua (La Corua)')
+        .should('exist')
+      
+      cy.closeTableTab('CityX')
+
+      // 4. verify linked contents in other table
+      // 4a. Address table, has many field
+      cy.openTableTab('Address')
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)
+
+      mainPage.getCell('City <= Address', 1).scrollIntoView()
+      mainPage.getCell('City <= Address', 1).find('.name').contains('Lethbridge').should('exist')        
+      cy.closeTableTab('Address')
+
+      // 4b. Country table, belongs to field
+      cy.openTableTab('Country')
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)
+      
+      mainPage.getCell('Country => City', 1).find('.name').contains('Kabul').should('exist')
+      cy.closeTableTab('Country')
+      
+      // revert re-name operation to not impact rest of test suite
+      cy.renameTable('CityX', 'City')
+    })
   })
 }
-
-
-// genTest('rest', false)
-// genTest('graphql', false)
-// genTest('rest', true)
-// genTest('graphql', true)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

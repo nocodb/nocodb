@@ -2,12 +2,7 @@ export const isEmail = v => /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".
 
 // ref : https://stackoverflow.com/a/5717133
 export const isValidURL = (str) => {
-  const pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
-    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-    '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-    '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-    '(\\#[-a-z\\d_]*)?$', 'i') // fragment locator
+  const pattern = /^(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00A1-\uFFFF0-9]-*)*[a-z\u00A1-\uFFFF0-9]+)(?:\.(?:[a-z\u00A1-\uFFFF0-9]-*)*[a-z\u00A1-\uFFFF0-9]+)*(?:\.(?:[a-z\u00A1-\uFFFF]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i
   return !!pattern.test(str)
 }
 
@@ -76,6 +71,40 @@ function GetCaretPosition(ctrl) {
     CaretPos = ctrl.selectionStart
   }
   return (CaretPos)
+}
+
+export function validateTableName(v) {
+  if (!v) {
+    return 'Table name required'
+  }
+  if (/^[_A-Za-z][_0-9A-Za-z]*$/.test(v)) {
+    return true
+  }
+
+  if (/^[^_A-Za-z]/.test(v)) {
+    return 'Name should start with an alphabet or _'
+  }
+  const m = v.match(/[^_A-Za-z\d]/g)
+  if (m) {
+    return `Following characters are not allowed ${m.map(c => JSON.stringify(c)).join(', ')}`
+  }
+}
+
+export function validateColumnName(v) {
+  if (!v) {
+    return 'Column name required'
+  }
+  if (/^[_A-Za-z][_0-9A-Za-z]*$/.test(v)) {
+    return true
+  }
+
+  if (/^[^_A-Za-z]/.test(v)) {
+    return 'Name should start with an alphabet or _'
+  }
+  const m = v.match(/[^_A-Za-z\d]/g)
+  if (m) {
+    return `Following characters are not allowed ${m.map(c => JSON.stringify(c)).join(', ')}`
+  }
 }
 
 /**

@@ -12,7 +12,7 @@ class SwaggerXc extends BaseRender {
    * @param ctx.columns
    * @param ctx.relations
    */
-  constructor({ dir, filename, ctx }: any) {
+  constructor({ dir = '', filename = '', ctx }: any) {
     super({ dir, filename, ctx });
   }
 

@@ -1,4 +1,4 @@
-import { loginPage } from "../../support/page_objects/navigation"
+
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 export const genTest = (type, xcdb) => {
@@ -18,11 +18,11 @@ export const genTest = (type, xcdb) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      // loginPage.loginAndOpenProject(type)
-
       // open a table to work on views
       //
       cy.openTableTab('Country');
+      // wait for page rendering to complete
+      cy.get('.nc-grid-row').should('have.length', 25)         
     })
 
     after(() => {
@@ -58,14 +58,11 @@ export const genTest = (type, xcdb) => {
 
       // click on Save
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-      cy.wait(1000)
 
       // Verify if column exists. 
       //
       cy.get(`th:contains(${columnName})`)
         .should('exist');
-      cy.wait(500)
-
     }
 
     // routine to delete column
@@ -88,7 +85,6 @@ export const genTest = (type, xcdb) => {
       // validate if deleted (column shouldnt exist)
       cy.get(`th:contains(${columnName})`)
         .should('not.exist');
-
     }
 
 
@@ -110,12 +106,13 @@ export const genTest = (type, xcdb) => {
       cy.get('.nc-column-name-input input').clear().type(newName)
       cy.get('.nc-col-create-or-edit-card').contains('Save').click()
 
+      cy.toastWait('Successfully updated alias')
+
       // validate if deleted (column shouldnt exist)
       cy.get(`th:contains(${oldName})`)
         .should('not.exist');
       cy.get(`th:contains(${newName})`)
         .should('exist');
-
     }
 
     ///////////////////////////////////////////////////
@@ -151,12 +148,8 @@ export const genTest = (type, xcdb) => {
       deleteColumnByName('RollUpCol_New')
 
     })
-
   });
 }
-
-// genTest('rest', false)
-// genTest('graphql', false)
 
 
 /**

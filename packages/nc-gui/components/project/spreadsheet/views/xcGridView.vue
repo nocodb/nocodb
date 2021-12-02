@@ -1,5 +1,12 @@
 <template>
-  <div>
+  <div
+    @dragover.prevent="dragOver = true"
+    @dragenter.prevent="dragOver = true"
+    @dragexit="dragOver = false"
+    @dragleave="dragOver = false"
+    @dragend="dragOver = false"
+    @drop.prevent.stop="onFileDrop"
+  >
     <table
       v-if="data"
       class="xc-row-table nc-grid"
@@ -22,7 +29,7 @@
             class="grey-border caption font-wight-regular  nc-grid-header-cell"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
             :data-col="col.alias"
-            @xcresize="onresize(col.alias,$event)"
+            @xcresize="onresize(col.alias,$event), log('xcresize')"
             @xcresizing="onXcResizing(col.alias,$event)"
             @xcresized="resizingCol = null"
           >
@@ -90,9 +97,13 @@
       </thead>
       <tbody v-click-outside="onClickOutside">
         <tr
-          v-for="({row:rowObj, rowMeta},row) in data"
+          v-for="({row:rowObj, rowMeta, saving},row) in data"
           :key="row"
           class=" nc-grid-row"
+          :class="{
+            'nc-new-row':rowMeta.new,
+            'nc-saved-row':!rowMeta.new,
+          }"
         >
           <td
             style="width: 65px"
@@ -105,6 +116,7 @@
                 class="ml-2 grey--text"
                 :class="{ 'row-no' : !isPublicView }"
               >{{ row + 1 }}</span>
+
               <template v-if="!isPublicView">
                 <v-checkbox
                   v-if="rowMeta"
@@ -115,7 +127,7 @@
                 />
                 <v-spacer />
                 <v-icon
-                  v-if="!groupedAggCount[ids[row]] && !isLocked"
+                  v-if="!groupedAggCount[ids[row]] && !isLocked && !saving"
                   color="pink"
                   small
                   class="row-expand-icon nc-row-expand-icon  mr-1 pointer"
@@ -125,13 +137,20 @@
                 </v-icon>
               </template>
               <v-chip
-                v-if="groupedAggCount[ids[row]]"
+                v-if="groupedAggCount[ids[row]] && !saving"
                 x-small
                 :color="colors[ groupedAggCount[ids[row]] % colors.length]"
                 @click="expandRow(row,rowMeta)"
               >
                 {{ groupedAggCount[ids[row]] }}
               </v-chip>
+
+              <template v-if="saving">
+                <v-spacer />
+                <v-icon small>
+                  mdi-spin mdi-loading
+                </v-icon>
+              </template>
             </div>
           </td>
           <td
@@ -187,7 +206,6 @@
               @save="editEnabled = {}"
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj)"
-              @blur="onCellValueChange(col, row, columnObj,'blur')"
               @change="onCellValueChange(col, row, columnObj)"
             />
 
@@ -258,6 +276,7 @@ export default {
   },
   mixins: [colors],
   props: {
+    droppable: Boolean,
     metas: Object,
     relationType: String,
     availableColumns: [Object, Array],
@@ -294,7 +313,8 @@ export default {
       row: null,
       col: null
     },
-    aggCount: []
+    aggCount: [],
+    dragOver: false
   }),
   computed: {
     ids() {
@@ -319,7 +339,7 @@ export default {
     style() {
       let style = ''
       for (const c of this.availableColumns) {
-        const val = (this.columnsWidth && this.columnsWidth[c.alias]) || (c.virtual ? '200px' : (columnStyling[c.uidt] && columnStyling[c.uidt].w))
+        const val = (this.columnsWidth && this.columnsWidth[c.alias]) || (c.virtual ? '200px' : ((columnStyling[c.uidt] && columnStyling[c.uidt].w) || '150px'))
         if (val && c.key !== this.resizingCol) {
           style += `[data-col="${c.alias}"]{min-width:${val};max-width:${val};width: ${val};}`
         }
@@ -347,8 +367,13 @@ export default {
     document.removeEventListener('keydown', this.onKeyDown)
   },
   methods: {
+    onFileDrop(event) {
+      this.$emit('drop', event)
+    },
     isRequired(_columnObj, rowObj) {
-      if (this.isPublicView) { return false }
+      if (this.isPublicView) {
+        return false
+      }
 
       let columnObj = _columnObj
       if (columnObj.bt) {
@@ -447,7 +472,9 @@ export default {
           if (e.ctrlKey ||
             e.altKey ||
             e.shiftKey ||
-            e.metaKey) { return }
+            e.metaKey) {
+            return
+          }
 
           if (e.key && e.key.length === 1) {
             if (!this.isPkAvail && !this.data[this.selected.row].rowMeta.new) {
@@ -470,6 +497,8 @@ export default {
       }
       this.selected.col = null
       this.selected.row = null
+      this.editEnabled.col = null
+      this.editEnabled.row = null
     },
     onNewColCreation(col, oldCol) {
       this.addNewColMenu = false
@@ -531,6 +560,9 @@ export default {
     onXcResizing(_cn, width) {
       this.resizingCol = _cn
       this.resizingColWidth = width
+    },
+    log(e, s) {
+      console.log(e.target, s)
     }
   }
 }

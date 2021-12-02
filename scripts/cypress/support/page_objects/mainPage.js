@@ -90,11 +90,7 @@ export class _mainPage {
         cy.get('label:contains("Select User roles")').click()
 
         // opt-in requested role & submit
-        // note that, 'editor' is set by default
-        //
         cy.getActiveMenu().contains(roleType).click()
-        cy.getActiveMenu().contains('editor').click()
-        cy.get('.mdi-menu-down').last().click()
         cy.get('.nc-invite-or-save-btn').click()
 
         // get URL, invoke
@@ -129,11 +125,8 @@ export class _mainPage {
         cy.get('label:contains(Select User roles)').click()
 
         // opt-in requested role & submit
-        // note that, 'editor' is set by default
         //
         cy.getActiveMenu().contains(role).click()
-        cy.getActiveMenu().contains('editor').click()
-        cy.get('.mdi-menu-down').click()
         cy.get('.nc-invite-or-save-btn').click()
         cy.wait(1000)
 
@@ -157,10 +150,11 @@ export class _mainPage {
         return cy.get('.xc-row-table').find('tr').eq(rowIndex)
     }
 
-    addColumn = (colName) => {
+    addColumn = (colName, tableName) => {
         cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({ force: true });
         cy.get('.nc-column-name-input input', { timeout: 3000 }).clear().type(colName)
         cy.get('.nc-col-create-or-edit-card').contains('Save').click()
+        cy.toastWait(`Update table.${tableName} successful`)
     }
 
     addColumnWithType = (colName, colType) => {
@@ -317,6 +311,23 @@ export class _mainPage {
                 })
             })        
     }
+
+    getIFrameCell = (columnHeader, cellNumber) => {
+        return cy.iframe().find(`tbody > :nth-child(${cellNumber}) > [data-col="${columnHeader}"]`)
+    }
+
+    // https://docs.cypress.io/guides/core-concepts/variables-and-aliases#Sharing-Context
+    getDatatype = (tableName, columnName) => {
+        cy.window().then(win => {
+            const col = win.$nuxt.$store.state.meta.metas[tableName].columns
+            let dataType = ''
+            col.forEach(element => {
+                if(element.cn == columnName)
+                    dataType = element.uidt
+            })
+            cy.wrap(dataType).as('ncDatatype')
+        })
+    }    
 }
 
 

@@ -1,5 +1,4 @@
 
-import { loginPage } from "../../support/page_objects/navigation"
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
 
 export const genTest = (type, xcdb) => {
@@ -10,11 +9,11 @@ export const genTest = (type, xcdb) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            // loginPage.loginAndOpenProject(type)
-
             // open a table to work on views
             //
             cy.openTableTab('City');
+            // wait for page rendering to complete
+            cy.get('.nc-grid-row').should('have.length', 25)            
         })
 
         after(() => {
@@ -58,14 +57,13 @@ export const genTest = (type, xcdb) => {
 
             // click on Save
             cy.get('.nc-col-create-or-edit-card').contains('Save').click()
-            cy.wait(1000)
+
+            cy.toastWait('Formula column saved successfully')
 
             // Verify if column exists. 
             //
             cy.get(`th:contains(${columnName})`)
                 .should('exist');
-            cy.wait(500)
-
         }
 
         // routine to delete column
@@ -88,7 +86,6 @@ export const genTest = (type, xcdb) => {
             // validate if deleted (column shouldnt exist)
             cy.get(`th:contains(${columnName})`)
                 .should('not.exist');
-
         }
 
 
@@ -113,6 +110,8 @@ export const genTest = (type, xcdb) => {
                 .contains('Formula').parent().find('input').clear().type(newFormula)
 
             cy.get('.nc-col-create-or-edit-card').contains('Save').click()
+
+            cy.toastWait('Formula column updated successfully')
 
             // validate if deleted (column shouldnt exist)
             cy.get(`th:contains(${oldName})`)
@@ -188,10 +187,6 @@ export const genTest = (type, xcdb) => {
         })
     })
 }
-
-// genTest('rest', false)
-// genTest('graphql', false)
-
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

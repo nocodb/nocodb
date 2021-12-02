@@ -1,30 +1,97 @@
 <template>
-  <div class="pt-10">
+  <div :class="{'pt-10':!hideLabel}">
     <v-dialog v-model="dropOrUpload" max-width="600">
       <v-card max-width="600">
-        <div class="pa-4">
-          <div
-            class="nc-droppable d-flex align-center justify-center flex-column"
-            :style="{
-              background : dragOver ? '#7774' : ''
-            }"
-            @click="$refs.file.click()"
-            @drop.prevent="dropHandler"
-            @dragover.prevent="dragOver = true"
-            @dragenter.prevent="dragOver = true"
-            @dragexit="dragOver = false"
-            @dragleave="dragOver = false"
-            @dragend="dragOver = false"
-          >
-            <v-icon size="50" color="grey">
-              mdi-file-plus-outline
+        <v-tabs height="30">
+          <v-tab>
+            <v-icon small class="mr-1">
+              mdi-file-upload-outline
             </v-icon>
-            <p class="title grey--text mb-1 mt-2">
-              Select Files to Upload
-            </p>
-            <p class="grey--text ">
-              or drag and drop files
-            </p>
+            <span class="caption text-capitalize">Upload</span>
+          </v-tab>
+          <v-tab>
+            <v-icon small class="mr-1">
+              mdi-link-variant
+            </v-icon>
+            <span class="caption text-capitalize">URL</span>
+          </v-tab>
+
+          <v-tab-item>
+            <div class="nc-excel-import-tab-item ">
+              <div
+                class="nc-droppable d-flex align-center justify-center flex-column"
+                :style="{
+                  background : dragOver ? '#7772' : ''
+                }"
+                @click="$refs.file.click()"
+                @drop.prevent="dropHandler"
+                @dragover.prevent="dragOver = true"
+                @dragenter.prevent="dragOver = true"
+                @dragexit="dragOver = false"
+                @dragleave="dragOver = false"
+                @dragend="dragOver = false"
+              >
+                <x-icon :color="['primary','grey']" size="50">
+                  mdi-file-plus-outline
+                </x-icon>
+                <p class="title  mb-1 mt-2">
+                  Select File to Upload
+                </p>
+                <p class="grey--text mb-1">
+                  or drag and drop file
+                </p>
+
+                <p class="caption grey--text">
+                  Supported: .xls, .xlsx, .xlsm
+                </p>
+              </div>
+            </div>
+          </v-tab-item>
+          <v-tab-item>
+            <div class="nc-excel-import-tab-item align-center">
+              <div class="pa-4 d-100 h-100">
+                <v-form ref="form" v-model="valid">
+                  <div class="d-flex">
+                    <v-text-field
+                      v-model="url"
+                      hide-details="auto"
+                      type="url"
+                      label="Enter excel file url"
+                      class="caption"
+                      outlined
+                      dense
+                      :rules="[v => !!v || 'Required']"
+                    />
+                    <v-btn class="ml-3" color="primary" @click="loadUrl">
+                      Load
+                    </v-btn>
+                  </div>
+                </v-form>
+              </div>
+            </div>
+          </v-tab-item>
+        </v-tabs>
+
+        <div class="px-4 pb-2">
+          <div class="d-flex">
+            <v-spacer />
+            <span class="caption pointer grey--text" @click="showMore = !showMore">{{ showMore ? 'Hide' : 'Show' }} more
+              <v-icon small color="grey lighten-1">mdi-menu-{{ showMore ? 'up' : 'down' }}</v-icon>
+            </span>
+          </div>
+          <div class="mb-2 pt-2 nc-excel-import-options" :style="{ maxHeight: showMore ? '100px' : '0'}">
+            <p />
+
+            <v-text-field
+              v-model="parserConfig.maxRowsToParse"
+              style="max-width: 250px"
+              class="caption mx-auto"
+              dense
+              persistent-hint
+              hint="# of rows to parse to infer data type"
+              outlined
+              type="number"
+            />
           </div>
         </div>
       </v-card>
@@ -37,7 +104,7 @@
           class="nc-excel-import-input"
           type="file"
           style="display: none"
-          accept=".xlsx, .xls"
+          accept=".xlsx, .xls, .xlsm"
           @change="_change($event)"
         >
         <v-btn
@@ -57,62 +124,65 @@
       <span class="caption">Create template from Excel</span>
     </v-tooltip>
 
-    <v-dialog v-if="templateData" :value="true">
-      <v-card>
-        <template-editor :template-data.sync="templateData">
-          <template #toolbar>
+    <v-dialog v-if="templateData" v-model="templateEditorModal" max-width="1000">
+      <v-card class="pa-6" min-width="500">
+        <template-editor :project-template.sync="templateData" excel-import>
+          <template #toolbar="{valid}">
+            <h3 class="mt-2 grey--text">
+              Importing : {{ filename }}
+            </h3>
+            <!--            <span class="grey&#45;&#45;text">Importing 2 sheets</span>-->
+
+            <v-spacer />
             <v-spacer />
             <create-project-from-template-btn
-              :loader-message.sync="loaderMessage"
-              :progress.sync="progress"
               :template-data="templateData"
               :import-data="importData"
-            />
+              :import-to-project="importToProject"
+              excel-import
+              :valid="valid"
+              create-gql-text="Import as GQL Project"
+              create-rest-text="Import as REST Project"
+              @success="$emit('success'),templateEditorModal = false"
+            >
+              Import Excel
+            </create-project-from-template-btn>
           </template>
         </template-editor>
       </v-card>
     </v-dialog>
-
-    <v-overlay :value="loaderMessage" z-index="99999" opacity=".9">
-      <div class="d-flex flex-column align-center">
-        <v-progress-circular
-          v-if="progress !== null "
-          :rotate="360"
-          :size="100"
-          :width="15"
-          :value="progress"
-        >
-          {{ progress }}%
-        </v-progress-circular>
-
-        <v-progress-circular v-else indeterminate size="100" width="15" class="mb-10" />
-        <span class="title">{{ loaderMessage }}</span>
-      </div>
-    </v-overlay>
   </div>
 </template>
 
 <script>
 
 // import XLSX from 'xlsx'
-import ExcelTemplateAdapter from '~/components/import/ExcelTemplateAdapter'
 import TemplateEditor from '~/components/templates/editor'
 import CreateProjectFromTemplateBtn from '~/components/templates/createProjectFromTemplateBtn'
+import ExcelUrlTemplateAdapter from '~/components/import/templateParsers/ExcelUrlTemplateAdapter'
+import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTemplateAdapter'
 
 export default {
   name: 'ExcelImport',
   components: { CreateProjectFromTemplateBtn, TemplateEditor },
   props: {
     hideLabel: Boolean,
-    value: Boolean
+    value: Boolean,
+    importToProject: Boolean
   },
   data() {
     return {
+      templateEditorModal: false,
+      valid: null,
       templateData: null,
       importData: null,
       dragOver: false,
-      loaderMessage: null,
-      progress: null
+      url: '',
+      showMore: false,
+      parserConfig: {
+        maxRowsToParse: 500
+      },
+      filename: ''
     }
   },
   computed: {
@@ -126,6 +196,10 @@ export default {
     }
   },
   mounted() {
+    if (this.$route && this.$route.query && this.$route.query.excelUrl) {
+      this.url = this.$route.query.excelUrl
+      this.loadUrl()
+    }
   },
   methods: {
 
@@ -134,43 +208,71 @@ export default {
       this.$refs.file.click()
     },
 
-    _change(file) {
-      const files = file.target.files
+    _change(event) {
+      const files = event.target.files
       if (files && files[0]) {
         this._file(files[0])
+        event.target.value = ''
       }
     },
     async _file(file) {
-      this.loaderMessage = 'Loading excel file'
+      this.templateData = null
+      this.importData = null
+      this.$store.commit('loader/MutMessage', 'Loading excel file')
       let i = 0
       const int = setInterval(() => {
-        this.loaderMessage = `Loading excel file${'.'.repeat(++i % 4)}`
+        this.$store.commit('loader/MutMessage', `Loading excel file${'.'.repeat(++i % 4)}`)
       }, 1000)
-
       this.dropOrUpload = false
       const reader = new FileReader()
+      this.filename = file.name
 
-      reader.onload = (e) => {
+      reader.onload = async(e) => {
         const ab = e.target.result
-        const templateGenerator = new ExcelTemplateAdapter(file.name, ab)
-        templateGenerator.parse()
-        this.templateData = templateGenerator.getTemplate()
-        this.importData = templateGenerator.getData()
-        this.loaderMessage = null
+        await this.parseAndExtractData('file', ab, file.name)
+        this.$store.commit('loader/MutMessage', null)
+
         clearInterval(int)
       }
 
       const handleEvent = (event) => {
-        this.loaderMessage = `${event.type}: ${event.loaded} bytes transferred`
+        this.$store.commit('loader/MutMessage', `${event.type}: ${event.loaded} bytes transferred`)
       }
 
       reader.addEventListener('progress', handleEvent)
-      reader.onerror = () => {
-        this.loaderMessage = null
+      reader.onerror = (e) => {
+        console.log('error', e)
+        this.$store.commit('loader/MutClear')
       }
       reader.readAsArrayBuffer(file)
     },
+
+    async parseAndExtractData(type, val, name) {
+      try {
+        let templateGenerator
+        this.templateData = null
+        this.importData = null
+        switch (type) {
+          case 'file':
+            templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
+            break
+          case 'url':
+            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig)
+            break
+        }
+        await templateGenerator.init()
+        templateGenerator.parse()
+        this.templateData = templateGenerator.getTemplate()
+        this.importData = templateGenerator.getData()
+        this.templateEditorModal = true
+      } catch (e) {
+        console.log(e)
+        this.$toast.error(e.message).goAway(3000)
+      }
+    },
+
     dropHandler(ev) {
+      this.dragOver = false
       console.log('File(s) dropped')
       let file
       if (ev.dataTransfer.items) {
@@ -182,18 +284,39 @@ export default {
         file = ev.dataTransfer.files[0]
       }
 
-      if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && file.type !== 'application/vnd.ms-excel') {
-        return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls!').goAway(3000)
+      if (!file) {
+        return
       }
-      if (file) {
-        this._file(file)
+
+      if (!/\.xls[xm]?$/.test(file.name)) {
+        return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls,.xlsm!').goAway(3000)
       }
+      this._file(file)
     },
     dragOverHandler(ev) {
       console.log('File(s) in drop zone')
 
       // Prevent default behavior (Prevent file from being opened)
       ev.preventDefault()
+    },
+
+    async loadUrl() {
+      if ((this.$refs.form && !this.$refs.form.validate()) || !this.url) {
+        return
+      }
+
+      this.$store.commit('loader/MutMessage', 'Loading excel file from url')
+
+      let i = 0
+      const int = setInterval(() => {
+        this.$store.commit('loader/MutMessage', `Loading excel file${'.'.repeat(++i % 4)}`)
+      }, 1000)
+
+      this.dropOrUpload = false
+
+      await this.parseAndExtractData('url', this.url, '')
+      clearInterval(int)
+      this.$store.commit('loader/MutClear')
     }
 
   }
@@ -205,6 +328,19 @@ export default {
   width: 100%;
   min-height: 200px;
   border-radius: 4px;
-  border: 2px dashed var(--v-textColor-lighten5);
+  border: 2px dashed #ddd;
+}
+
+.nc-excel-import-tab-item {
+  min-height: 400px;
+  padding: 20px;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.nc-excel-import-options {
+  transition: .4s max-height;
+  overflow: hidden;
 }
 </style>

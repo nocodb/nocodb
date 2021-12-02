@@ -1,7 +1,6 @@
 <template>
   <v-app>
     <v-main>
-      <v-app-bar v-show="false" dark />
       <div>
         <nuxt />
       </div>

@@ -42,6 +42,9 @@ export function _editSchema(roleType, previewMode) {
     if (false == previewMode) {
         cy.openTableTab(columnName)
     }
+    // wait for page rendering to complete
+    cy.get('.nc-grid-row').should('have.length', 25)
+    
     // create table options
     //
     cy.get('.add-btn').should(validationString)
@@ -67,6 +70,8 @@ export function _editData(roleType, previewMode) {
     let validationString = (true == roles[roleType].validations.editData) ? 'exist' : 'not.exist'
 
     cy.openTableTab(columnName)
+    // wait for page rendering to complete
+    cy.get('.nc-grid-row').should('have.length', 25)
 
     // add new row option (from menu header)
     //
@@ -119,6 +124,8 @@ export function _editComment(roleType, previewMode) {
     let validationString = (true == roles[roleType].validations.editComment) ? 'Comment added successfully' : 'Not allowed'
 
     cy.openTableTab(columnName)
+    // wait for page rendering to complete
+    cy.get('.nc-grid-row').should('have.length', 25)
 
     // click on comment icon & type comment
     //
@@ -155,6 +162,9 @@ export function _viewMenu(roleType, previewMode) {
     let navDrawListCnt = 2
 
     cy.openTableTab(columnName)
+    // wait for page rendering to complete
+    cy.get('.nc-grid-row').should('have.length', 25)
+    
     let validationString = (true == roles[roleType].validations.shareView) ? 'exist' : 'not.exist'
 
     // validate if Share button is visible at header tool bar

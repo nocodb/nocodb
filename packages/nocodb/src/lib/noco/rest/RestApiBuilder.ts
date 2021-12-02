@@ -911,6 +911,179 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     // await this.xcTablesPopulate({tableNames: [newTableName]});
   }
 
+  public async onTableAliasRename(
+    oldTableAliasName: string,
+    newTableAliasName: string
+  ): Promise<void> {
+    this.log(
+      "onTableAliasRename : '%s' => '%s'",
+      oldTableAliasName,
+      newTableAliasName
+    );
+    if (oldTableAliasName === newTableAliasName) {
+      return;
+    }
+
+    const {
+      // meta,
+      relatedTableList,
+      tableName
+    } = await super.onTableAliasRename(oldTableAliasName, newTableAliasName);
+
+    for (const table of [tableName, ...relatedTableList]) {
+      const meta = this.getMeta(table);
+      this.models[table] = this.getBaseModel(meta);
+      const ctx = this.generateContextForMeta(meta);
+
+      const newSwagger = [];
+      newSwagger.push(new SwaggerXc({ ctx }).getObject());
+
+      // update routes
+      const routes = new ExpressXcTsRoutes({
+        dir: '',
+        ctx,
+        filename: ''
+      }).getObjectWithoutFunctions();
+
+      const routesUpdate = routes.map((route, i) => {
+        return async () => {
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_routes',
+            {
+              path: route.path
+            },
+            {
+              tn: table,
+              title: table,
+              type: route.type,
+              order: i
+            }
+          );
+        };
+      });
+      await NcHelp.executeOperations(
+        routesUpdate,
+        this.connectionConfig.client
+      );
+
+      /* handle relational routes  */
+      for (const hm of meta.hasMany) {
+        const rendererArgs = this.generateRendererArgs(
+          this.generateContextForHasMany(ctx, hm.tn)
+        );
+        const hmRoutes = new ExpressXcTsRoutesHm(
+          rendererArgs
+        ).getObjectWithoutFunctions();
+        newSwagger.push(new SwaggerXcHm(rendererArgs).getObject());
+
+        const routeName = `${table}Hm${hm.tn}`;
+        // const name = `${ctx.tn}Hm${hm.tn}`;
+
+        /* handle has many relational routes  */
+        const hmRoutesInsertion = hmRoutes.map((route, i) => {
+          return async () => {
+            // this.log(
+            //   "xcTableAliasRename : Updating table name and route path in 'nc_routes' metatable - '%s' => '%s' (HasMany relation)",
+            //   oldTableAliasName,
+            //   newTableAliasName
+            // );
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                path: route.path
+              },
+              {
+                title: routeName,
+                handler: JSON.stringify(route.handler),
+                tn: table,
+                type: route.type,
+                relation_type: 'hasMany',
+                order: i,
+                tnc: hm.tn,
+                handler_type: 1
+              }
+            );
+          };
+        });
+
+        await NcHelp.executeOperations(
+          hmRoutesInsertion,
+          this.connectionConfig.client
+        );
+      }
+
+      /* handle belongs to routes and controllers */
+      for (const bt of meta.belongsTo) {
+        const rendererArgs1 = this.generateRendererArgs(
+          this.generateContextForBelongsTo(
+            {
+              ...ctx,
+              tn: bt.tn
+            },
+            bt.rtn
+          )
+        );
+        const btRoutes = new ExpressXcTsRoutesBt(
+          rendererArgs1
+        ).getObjectWithoutFunctions();
+        newSwagger.push(new SwaggerXcBt(rendererArgs1).getObject());
+
+        const routeName = `${table}Bt${bt.rtn}`;
+
+        const btRoutesInsertion = btRoutes.map((route, i) => {
+          return async () => {
+            // this.log(
+            //   "xcTableRename : Updating table name and route path in 'nc_routes' metatable - '%s' => '%s' (BelongsTo relation)",
+            //   oldTablename,
+            //   newTablename
+            // );
+
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_routes',
+              {
+                path: route.path
+                // tn: newTablename,
+              },
+              {
+                tn: table,
+                title: routeName,
+                order: i,
+                type: route.type,
+                handler: JSON.stringify(route.handler),
+                relation_type: 'belongsTo',
+                tnp: bt.rtn,
+                handler_type: 1
+              }
+            );
+          };
+        });
+
+        await NcHelp.executeOperations(
+          btRoutesInsertion,
+          this.connectionConfig.client
+        );
+      }
+
+      this.mergeAndUpdateSwagger(table, newSwagger);
+    }
+
+    // update metas
+    //     - relations
+    //     - virtual columns
+    // update swagger docs
+    // update routes
+
+    // load routes and models from db
+    await this.xcTablesRead([...relatedTableList, tableName]);
+    await this.onSwaggerDocUpdate(tableName);
+  }
+
   // NOTE: xc-meta
   public async xcTableRename(
     oldTablename: string,

@@ -27,11 +27,12 @@
       </pane>
     </splitpanes>
     <div class="nc-embedded-options d-flex align-center px-3">
-      <a href="https://github.com/nocodb/nocodb" target="_blank" class="text-decoration-none d-inline-flex align-center  textColor--text">
-        <img src="favicon-32.png" height="15" class="mr-2">
-        <span class="body-1 font-weight-bold">NocoDB</span></a>
       <v-spacer />
-      <span v-if="embed" class="caption pointer" @click="showLargerVersion"><v-icon small>mdi-arrow-expand</v-icon> View larger version</span>
+      <a href="https://github.com/nocodb/nocodb" target="_blank" class=" d-inline-flex align-center caption">
+        <img src="favicon-32.png" height="15" class="mr-2">
+        <span>Built with </span> &nbsp;
+        <span class=""><span class="font-weight-bold"> NocoDB</span> </span></a>
+      <span v-if="embed" class="caption pointer ml-4" @click="showLargerVersion"><v-icon small>mdi-arrow-expand</v-icon> Expand</span>
     </div>
   </div>
 </template>

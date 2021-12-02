@@ -1,37 +1,37 @@
 <template>
   <div>
-    <v-menu bottom offset-y>
-      <template #activator="{on}">
-        <v-btn
-          :loading="projectCreation"
-          :disabled="projectCreation"
-          class="primary"
-          x-large
-          v-on="on"
-        >
-          Use template
-          <v-icon>mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item dense class="py-2" @click="useTemplate('rest')">
-          <v-list-item-title>
-            <v-icon class="mr-1" :color="textColors[7]">
-              mdi-code-json
-            </v-icon>
-            Create REST Project
-          </v-list-item-title>
-        </v-list-item>
-        <v-list-item dense class="py-2" @click="useTemplate('graphql')">
-          <v-list-item-title>
-            <v-icon class="mr-1" :color="textColors[3]">
-              mdi-graphql
-            </v-icon>
-            Create GQL Project
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <!--    <v-menu bottom offset-y>-->
+    <!--      <template #activator="{on}">-->
+    <v-btn
+      :loading="projectCreation"
+      :disabled="projectCreation"
+      class="primary nc-btn-use-template"
+      x-large
+      @click="useTemplate('rest')"
+    >
+      <slot>Use template</slot>
+      <!--          <v-icon>mdi-menu-down</v-icon>-->
+    </v-btn>
+    <!--      </template>-->
+    <!--      <v-list>-->
+    <!--        <v-list-item dense class="py-2" @click="useTemplate('rest')">-->
+    <!--          <v-list-item-title>-->
+    <!--            <v-icon class="mr-1" :color="textColors[7]">-->
+    <!--              mdi-code-json-->
+    <!--            </v-icon>-->
+    <!--            {{ createRestText }}-->
+    <!--          </v-list-item-title>-->
+    <!--        </v-list-item>-->
+    <!--        <v-list-item dense class="py-2" @click="useTemplate('graphql')">-->
+    <!--          <v-list-item-title>-->
+    <!--            <v-icon class="mr-1" :color="textColors[3]">-->
+    <!--              mdi-graphql-->
+    <!--            </v-icon>-->
+    <!--            {{ createGqlText }}-->
+    <!--          </v-list-item-title>-->
+    <!--        </v-list-item>-->
+    <!--      </v-list>-->
+    <!--    </v-menu>-->
   </div>
 </template>
 
@@ -42,11 +42,27 @@ export default {
   name: 'CreateProjectFromTemplateBtn',
   mixins: [colors],
   props: {
+    excelImport: Boolean,
     loading: Boolean,
-    templateData: Object,
-    importData: Object,
-    loaderMessage: String,
-    progress: Number
+    importToProject: Boolean,
+    templateData: [Array, Object],
+    importData: [Array, Object],
+    valid: {
+      default: true,
+      type: Boolean
+    },
+    validationErrorMsg: {
+      default: 'Please fill all the required values',
+      type: String
+    },
+    createGqlText: {
+      default: 'Create GQL Project',
+      type: String
+    },
+    createRestText: {
+      default: 'Create REST Project',
+      type: String
+    }
   },
   data() {
     return {
@@ -78,42 +94,75 @@ export default {
   },
   methods: {
     async useTemplate(projectType) {
+      if (!this.valid) {
+        return this.$toast.error(this.validationErrorMsg).goAway(3000)
+      }
+
       // this.$emit('useTemplate', type)
 
       this.projectCreation = true
+      let interv
       try {
-        const interv = setInterval(() => {
+        interv = setInterval(() => {
           this.loaderMessagesIndex = this.loaderMessagesIndex < this.loaderMessages.length - 1 ? this.loaderMessagesIndex + 1 : 6
-          this.$emit('update:loaderMessage', this.loaderMessages[this.loaderMessagesIndex])
+          this.$store.commit('loader/MutMessage', this.loaderMessages[this.loaderMessagesIndex])
         }, 1000)
 
-        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
-          title: this.templateData.title,
-          projectType,
-          template: this.templateData
-        }])
+        let projectId, prefix
 
-        await this.$store.dispatch('project/ActLoadProjectInfo')
+        if (this.importToProject) {
+          this.$store.commit('loader/MutMessage', 'Importing excel template')
 
+          const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            // todo: extract based on active
+            dbAlias: 'db', // this.nodes.dbAlias,
+            env: '_noco'
+          }, 'xcModelsCreateFromTemplate', {
+            template: this.templateData
+          }])
+
+          if (res && res.tables && res.tables.length) {
+            this.$toast.success(`Imported ${res.tables.length} tables successfully`).goAway(3000)
+          } else {
+            this.$toast.success('Template imported successfully').goAway(3000)
+          }
+
+          projectId = this.$route.params.project_id
+          prefix = this.$store.getters['project/GtrProjectPrefix']
+        } else {
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
+            title: this.templateData.title,
+            projectType,
+            template: this.templateData,
+            excelImport: this.excelImport
+          }])
+          projectId = result.id
+          prefix = result.prefix
+          await this.$store.dispatch('project/ActLoadProjectInfo')
+        }
         clearInterval(interv)
         if (this.importData) {
-          this.$emit('update:loaderMessage', 'Importing excel data to project')
-          await this.importDataToProject({ projectId: result.id, projectType, prefix: result.prefix })
+          this.$store.commit('loader/MutMessage', 'Importing excel data to project')
+          await this.importDataToProject({ projectId, projectType, prefix })
         }
-
-        this.$emit('update:loaderMessage', null)
+        this.$store.commit('loader/MutMessage', null)
 
         this.projectReloading = false
+        if (!this.importToProject) {
+          await this.$router.push({
+            path: `/nc/${projectId}`,
+            query: {
+              new: 1
+            }
+          })
+        }
 
-        this.$router.push({
-          path: `/nc/${result.id}`,
-          query: {
-            new: 1
-          }
-        })
+        this.$emit('success')
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)
+        this.$store.commit('loader/MutMessage', null)
+        clearInterval(interv)
       }
       this.projectCreation = false
     },
@@ -121,8 +170,10 @@ export default {
       // this.$store.commit('project/MutProjectId', projectId)
       this.$ncApis.setProjectId(projectId)
 
-      let total = 0; let progress = 0
-      await Promise.all(Object.entries(this.importData).map(async([table, data]) => {
+      let total = 0
+      let progress = 0
+
+      await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
         await this.$store.dispatch('meta/ActLoadMeta', {
           tn: `${prefix}${table}`, project_id: projectId
         })
@@ -134,15 +185,14 @@ export default {
         })
         total += data.length
         for (let i = 0; i < data.length; i += 500) {
-          this.$emit('update:loaderMessage', `Importing data : ${progress}/${total}`)
-          this.$emit('update:progress', Math.round(progress && 100 * progress / total))
+          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${total}`)
+          this.$store.commit('loader/MutProgress', Math.round(progress && 100 * progress / total))
           const batchData = data.slice(i, i + 500)
           await api.insertBulk(batchData)
           progress += batchData.length
         }
-
-        this.$emit('update:progress', null)
-      }))
+        this.$store.commit('loader/MutClear')
+      })(v)))
     }
   }
 

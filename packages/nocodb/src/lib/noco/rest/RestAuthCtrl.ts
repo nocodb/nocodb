@@ -37,7 +37,7 @@ passport.serializeUser(function(
     id,
     email,
     email_verified,
-    roles,
+    roles: _roles,
     provider,
     firstname,
     lastname,
@@ -46,6 +46,12 @@ passport.serializeUser(function(
   },
   done
 ) {
+  const roles = (_roles || '')
+    .split(',')
+    .reduce((obj, role) => Object.assign(obj, { [role]: true }), {});
+  if (roles.owner) {
+    roles.creator = true;
+  }
   done(null, {
     isAuthorized,
     isPublicBase,
@@ -55,9 +61,7 @@ passport.serializeUser(function(
     provider,
     firstname,
     lastname,
-    roles: (roles || '')
-      .split(',')
-      .reduce((obj, role) => Object.assign(obj, { [role]: true }), {})
+    roles
   });
 });
 
@@ -247,7 +251,12 @@ export default class RestAuthCtrl {
                 },
                 (_err, user, _info) => {
                   if (user) {
-                    return resolve({ ...user, isAuthorized: true });
+                    return resolve({
+                      ...user,
+                      isAuthorized: true,
+                      roles:
+                        user.roles === 'owner' ? 'owner,creator' : user.roles
+                    });
                   } else {
                     resolve({ roles: 'guest' });
                   }
@@ -401,7 +410,7 @@ export default class RestAuthCtrl {
               let roles = 'editor';
 
               if (!(await this.users.first())) {
-                roles = 'owner,creator,editor';
+                roles = 'owner';
               }
 
               if (!user) {
@@ -508,7 +517,7 @@ export default class RestAuthCtrl {
               let roles = 'editor';
 
               if (!(await this.users.first())) {
-                roles = 'owner,creator,editor';
+                roles = 'owner';
               }
 
               if (!user) {
@@ -573,7 +582,7 @@ export default class RestAuthCtrl {
           .first()
           .then(user => {
             if (user) {
-              user.roles = 'owner,creator';
+              user.roles = 'owner';
               return done(null, user);
             } else {
               return done(new Error('User not found'));
@@ -900,6 +909,7 @@ export default class RestAuthCtrl {
         let roles = 'user';
 
         if (!(await this.users.first())) {
+          // todo: update in nc_store
           // roles = 'owner,creator,editor'
         } else {
           if (process.env.NC_INVITE_ONLY_SIGNUP) {

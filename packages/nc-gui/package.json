@@ -26,7 +26,7 @@
     "inflection": "^1.12.0",
     "jsep": "^0.4.0",
     "material-design-icons-iconfont": "^5.0.1",
-    "monaco-editor": "^0.18.1",
+    "monaco-editor": "^0.19.3",
     "monaco-themes": "^0.2.5",
     "nano-assign": "^1.0.1",
     "nuxt": "^2.14.0",

@@ -187,7 +187,7 @@
                   </v-list-item-icon>
                   <div class="flex-grow-1" style="min-width: 0">
                     <p class="mb-1 caption edited-text">
-                      {{ isYou(log.user) ? 'You' : log.user }} {{
+                      {{ isYou(log.user) ? 'You' : log.user==null?'Shared base':log.user }} {{
                         log.op_type === 'COMMENT' ? 'commented' : (
                           log.op_sub_type === 'INSERT' ? 'created' : 'edited'
                         )

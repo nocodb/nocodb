@@ -34,5 +34,6 @@
   "screenshotsFolder": "scripts/cypress/screenshots",
   "videosFolder": "scripts/cypress/videos",
   "downloadsFolder": "scripts/cypress/downloads",
-  "supportFile": "scripts/cypress/support/index.js"  
+  "supportFile": "scripts/cypress/support/index.js",
+  "chromeWebSecurity": false 
 }

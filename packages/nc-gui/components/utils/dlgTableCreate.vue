@@ -20,6 +20,7 @@
           persistent-hint
           dense
           hide-details1
+          :rules="[validateTableName]"
           hint="Enter table name"
           class="mt-4 caption nc-table-name"
         />
@@ -119,6 +120,7 @@
 <script>
 
 import inflection from 'inflection'
+import { validateTableName } from '~/helpers'
 
 export default {
   name: 'DlgTableCreate',
@@ -131,7 +133,8 @@ export default {
           'title',
           'created_at',
           'updated_at']
-      }
+      },
+      validateTableName
     }
   },
   computed: {
@@ -164,9 +167,11 @@ export default {
 ::v-deep{
   .v-text-field__details {
     padding:0 2px !important;
-    .v-messages__message {
-      color: grey;
-      font-size: .65rem;
+    .v-messages:not(.error--text) {
+      .v-messages__message {
+        color: grey;
+        font-size: .65rem;
+      }
     }
   }
 }

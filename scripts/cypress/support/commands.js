@@ -67,6 +67,9 @@ Cypress.Commands.add('signinOrSignup', (_args) => {
       }
     })
   })
+
+  // indicates page-load complete
+  cy.get('.nc-noco-brand-icon', { timeout: 12000 }).should('exist')
 });
 
 // for opening/creating a rest project
@@ -193,9 +196,9 @@ Cypress.Commands.add('createTable', (name) => {
   cy.get('.nc-create-table-card .nc-table-name input[type="text"]').first().click().clear().type(name)
   cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]').first().should('have.value', name.toLowerCase())
   cy.get('.nc-create-table-card .nc-create-table-submit').first().click()
+  cy.toastWait(`Create table.${name} successful`)
   cy.get(`.project-tab:contains(${name})`).should('exist')
   cy.url().should('contain', `name=${name}`)
-  cy.wait(3000)
 })
 
 Cypress.Commands.add('deleteTable', (name) => {
@@ -205,8 +208,48 @@ Cypress.Commands.add('deleteTable', (name) => {
   cy.get(`.project-tab:contains(${name}):visible`).should('exist')
   cy.get('.nc-table-delete-btn:visible').click()
   cy.get('button:contains(Submit)').click()
-  cy.get(`.project-tab:contains(${name}):visible`).first().should('not.exist')
+  cy.toastWait(`Delete table.${name} successful`)
 })
+
+Cypress.Commands.add('renameTable', (oldName, newName) => {
+  // expand project tree
+  cy.get('.nc-project-tree')
+    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+    .first()
+    .click()
+
+  // right click on project table name
+  cy.get('.nc-project-tree')
+    .contains(oldName, { timeout: 6000 })
+    .first()
+    .rightclick()
+
+  // choose rename option from menu
+  cy.getActiveMenu()
+    .find('[role="menuitem"]')
+    .contains('Table Rename')
+    .click({ force: true })
+  
+  // feed new name
+  cy.getActiveContentModal()
+    .find('input')
+    .clear()
+    .type(newName)
+
+  // submit
+  cy.getActiveContentModal()
+    .find('button')
+    .contains('Submit')
+    .click()
+  
+  cy.toastWait('Table renamed successfully')
+
+  // close expanded project tree 
+  cy.get('.nc-project-tree')
+    .find('.v-list-item__title:contains(Tables)', { timeout: 10000 })
+    .first()
+    .click()
+  })
 
 Cypress.Commands.add('createColumn', (table, columnName) => {
   cy.get('.nc-project-tree').find('.v-list-item__title:contains(Tables)', {timeout: 10000})
@@ -219,6 +262,15 @@ Cypress.Commands.add('createColumn', (table, columnName) => {
   cy
     .get('th:contains(new_column)')
     .should('exist');
+})
+
+Cypress.Commands.add('toastWait', (msg) => {
+        cy.get('.toasted:visible', { timout: 6000 })
+            .contains(msg)
+            .should('exist')
+        cy.get('.toasted:visible', { timout: 6000 })
+            .contains(msg)
+            .should('not.exist')  
 })
 
 

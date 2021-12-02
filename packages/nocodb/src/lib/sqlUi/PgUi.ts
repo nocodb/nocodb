@@ -1665,13 +1665,13 @@ export class PgUi {
         colProp.dt = 'character varying';
         break;
       case 'DateTime':
-        colProp.dt = 'datetime';
+        colProp.dt = 'timestamp';
         break;
       case 'CreateTime':
-        colProp.dt = 'datetime';
+        colProp.dt = 'timestamp';
         break;
       case 'LastModifiedTime':
-        colProp.dt = 'datetime';
+        colProp.dt = 'timestamp';
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

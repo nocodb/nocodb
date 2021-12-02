@@ -1,11 +1,11 @@
 {
   "name": "create-nocodb-app",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "nc-cli",
   "main": "dist/bundle.js",
   "module": "dist/bundle.js",
   "repository": "https://github.com/pranavxc/nc-cli",
-  "license": "AGPL-3.0-or-later",
+  "license": "MIT",
   "keywords": [],
   "bin": {
     "nc": "./dist/bundle.js",

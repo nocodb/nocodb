@@ -24,7 +24,6 @@ const nocoTestSuite = (type, xcdb) => {
 
     t1a.genTest(type, xcdb)
     t1b.genTest(type, xcdb)
-    // merged with t1b: t1c.genTest(type, xcdb)
     t2a.genTest(type, xcdb)
     t2b.genTest(type, xcdb)
     t3a.genTest(type, xcdb)

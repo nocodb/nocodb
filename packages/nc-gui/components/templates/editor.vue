@@ -1,7 +1,7 @@
 <template>
-  <div class="h-100">
+  <div class="h-100" style="min-height: 500px">
     <v-toolbar v-if="!viewMode" class="elevation-0">
-      <slot name="toolbar">
+      <slot name="toolbar" :valid="valid">
         <!--      <v-text-field
           v-model="url"
           clearable
@@ -86,12 +86,35 @@
         </v-btn>
       </slot>
     </v-toolbar>
+    <v-divider class="mt-6" />
     <v-container class="text-center" style="height:calc(100% - 64px);overflow-y: auto">
-      <v-form ref="form">
+      <v-form ref="form" v-model="valid">
         <v-row fluid class="justify-center">
           <v-col cols="12">
-            <v-card>
+            <v-card class="elevation-0">
               <v-card-text>
+                <div v-if="!viewMode" class="mx-auto" style="max-width:400px">
+                  <div class="mt-1">
+                    <v-text-field
+                      ref="project"
+                      v-model="project.title"
+                      class="title"
+                      outlined
+                      hide-details
+                      denses
+                      :rules="[v => !!v || 'Project name required'] "
+                    >
+                      <template #label>
+                        <span class="caption">Project Name</span>
+                      </template>
+                    </v-text-field>
+                  </div>
+                </div>
+
+                <p v-if="project.tables" class="caption grey--text mt-4">
+                  {{ project.tables.length }} sheet{{ project.tables.length > 1 ? 's' :'' }} are available for import
+                </p>
+
                 <v-expansion-panels
                   v-if="project.tables && project.tables.length"
                   v-model="expansionPanel"
@@ -108,7 +131,7 @@
                       <v-text-field
                         v-if="editableTn[i]"
                         :value="table.tn"
-                        class="title"
+                        class="font-weight-bold"
                         style="max-width: 300px"
                         outlinedk
                         autofocus
@@ -121,7 +144,7 @@
                       />
                       <span
                         v-else
-                        class="title"
+                        class="font-weight-bold"
                         @click="e => viewMode || (e.stopPropagation() , $set(editableTn,i, true))"
                       >
                         <v-icon color="primary lighten-1">mdi-table</v-icon>
@@ -130,7 +153,7 @@
 
                       <v-spacer />
                       <v-icon v-if="!viewMode" class="flex-grow-0 mr-2" small color="grey" @click.stop="deleteTable(i)">
-                        mdi-delete
+                        mdi-delete-outline
                       </v-icon>
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
@@ -144,10 +167,10 @@
                         <v-simple-table v-if="table.columns.length" dense class="my-4">
                           <thead>
                             <tr>
-                              <th class="caption text-left pa-3">
+                              <th class="caption text-left pa-1">
                                 Column Name
                               </th>
-                              <th class="caption text-left pa-3" colspan="4">
+                              <th class="caption text-left pa-1" colspan="4">
                                 Column Type
                               </th>
                               <th />
@@ -157,7 +180,7 @@
                           </thead>
                           <tbody>
                             <tr v-for="(col,j) in table.columns" :key="j" :data-exp="i">
-                              <td class="pa-3 text-left" :style="{width:viewMode ? '33%' : ''}">
+                              <td class="pa-1 text-left" :style="{width:viewMode ? '33%' : '15%'}">
                                 <span v-if="viewMode" class="body-1 ">
                                   {{ col.cn }}
                                 </span>
@@ -225,12 +248,12 @@
 
                               <template v-else>
                                 <td
-                                  class="pa-3  text-left"
-                                  :colspan="isLookupOrRollup(col) || isRelation(col) || isSelect(col) ? (isRollup(col)?
-                                    1 :2) : 4"
+                                  class="pa-1  text-left"
+                                  style="width:200px;max-width:200px"
                                 >
                                   <v-autocomplete
                                     :ref="`uidt_${table.tn}_${j}`"
+                                    style="max-width: 200px"
                                     :value="col.uidt"
                                     placeholder="Column Datatype"
                                     outlined
@@ -253,8 +276,8 @@
                                       </v-chip>
                                       <span v-else class="caption">{{ name }}</span>
                                     </template>
-                                    <template #selection="{item:{name}}">
-                                      <v-chip v-if="colors[name]" :color="colors[name]" small>
+                                    <template #selection="{item:{name}} ">
+                                      <v-chip v-if="colors[name]" :color="colors[name]" small style="max-width: 100px">
                                         {{ name }}
                                       </v-chip>
                                       <span v-else class="caption">{{ name }}</span>
@@ -265,7 +288,7 @@
                                 <template
                                   v-if="isRelation(col) || isLookupOrRollup(col)"
                                 >
-                                  <td class="pa-3 text-left">
+                                  <td class="pa-1 text-left">
                                     <v-autocomplete
                                       :value="col.rtn"
                                       placeholder="Related table"
@@ -282,7 +305,7 @@
                                     />
                                   </td>
 
-                                  <td v-if="isRelation(col)" class="pa-3">
+                                  <td v-if="isRelation(col)" class="pa-1">
                                     <template v-if="col.uidt !== 'ForeignKey'">
                                       <span
                                         v-if="viewMode"
@@ -304,7 +327,7 @@
                                       />
                                     </template>
                                   </td>
-                                  <td v-if="isLookupOrRollup(col)" class="pa-3">
+                                  <td v-if="isLookupOrRollup(col)" class="pa-1">
                                     <span
                                       v-if="viewMode"
                                       class="caption"
@@ -326,7 +349,7 @@
                                       item-value="cn"
                                     />
                                   </td>
-                                  <td v-if="isRollup(col)" class="pa-3">
+                                  <td v-if="isRollup(col)" class="pa-1">
                                     <span
                                       v-if="viewMode"
                                       class="caption"
@@ -350,7 +373,7 @@
                                 <template
                                   v-if="isSelect(col)"
                                 >
-                                  <td class="pa-3 text-left" colspan="2">
+                                  <td class="pa-1 text-left" colspan="2">
                                     <span
                                       v-if="viewMode"
                                       class="caption"
@@ -367,7 +390,12 @@
                                     />
                                   </td>
                                 </template>
-                                <td>
+                                <td
+                                  v-if="!isRollup(col) "
+                                  :colspan="isLookupOrRollup(col) || isRelation(col) || isSelect(col) ? (isRollup(col)?
+                                    0 :1) : 3"
+                                />
+                                <td style="max-width: 50px;width: 50px">
                                   <v-icon
                                     v-if="!viewMode"
                                     class="flex-grow-0"
@@ -375,7 +403,7 @@
                                     color="grey"
                                     @click.stop="deleteTableColumn(i,j, col, table)"
                                   >
-                                    mdi-delete
+                                    mdi-delete-outline
                                   </v-icon>
                                 </td>
                               </template>
@@ -420,7 +448,7 @@
 
                 <!--            <v-btn small color='primary' class='mt-10' @click='createTablesDialog = true'>New Table</v-btn>-->
                 <div v-if="!viewMode" class="mx-auto" style="max-width:600px">
-                  <div class="mt-10">
+                  <!--                  <div class="mt-10">
                     <v-text-field
                       ref="project"
                       v-model="project.title"
@@ -430,7 +458,7 @@
                       label="Project Name"
                       :rules="[v => !!v || 'Project name required'] "
                     />
-                  </div>
+                  </div>-->
                   <!--
                   <div
                     class="rounded pa-5 mb-5 d-100 text-center caption"
@@ -439,40 +467,41 @@
                   >
                     Click to change gradient
                   </div>-->
+                  <template v-if="!excelImport">
+                    <gradient-generator v-model="project.image_url" class=" d-100" />
 
-                  <gradient-generator v-model="project.image_url" class=" d-100" />
-
-                  <v-row>
-                    <v-col>
-                      <v-text-field
-                        v-model="project.category"
-                        :rules="[v => !!v || 'Category name required']"
+                    <v-row>
+                      <v-col>
+                        <v-text-field
+                          v-model="project.category"
+                          :rules="[v => !!v || 'Category name required']"
+                          class="caption"
+                          outlined
+                          dense
+                          label="Project Category"
+                        />
+                      </v-col>
+                      <v-col>
+                        <v-text-field
+                          v-model="project.tags"
+                          class="caption"
+                          outlined
+                          dense
+                          label="Project Tags"
+                        />
+                      </v-col>
+                    </v-row>
+                    <div>
+                      <v-textarea
+                        v-model="project.description"
                         class="caption"
                         outlined
                         dense
-                        label="Project Category"
+                        label="Project Description"
+                        @click="counter++"
                       />
-                    </v-col>
-                    <v-col>
-                      <v-text-field
-                        v-model="project.tags"
-                        class="caption"
-                        outlined
-                        dense
-                        label="Project Tags"
-                      />
-                    </v-col>
-                  </v-row>
-                  <div>
-                    <v-textarea
-                      v-model="project.description"
-                      class="caption"
-                      outlined
-                      dense
-                      label="Project Description"
-                      @click="counter++"
-                    />
-                  </div>
+                    </div>
+                  </template>
                 </div>
               </v-card-text>
             </v-card>
@@ -571,7 +600,8 @@ export default {
   props: {
     id: [Number, String],
     viewMode: Boolean,
-    templateData: Object
+    projectTemplate: Object,
+    excelImport: Boolean
   },
   data: () => ({
     loading: false,
@@ -620,65 +650,68 @@ export default {
     },
     updateFilename() {
       return this.url && this.url.split('/').pop()
-    },
-    projectTemplate() {
-      const template = {
-        ...this.project,
-        tables: (this.project.tables || []).map((t) => {
-          const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
+    }
+  },
+  watch: {
+    project: {
+      deep: true,
+      handler() {
+        const template = {
+          ...this.project,
+          tables: (this.project.tables || []).map((t) => {
+            const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
 
-          for (const column of (t.columns || [])) {
-            if (this.isRelation(column)) {
-              if (column.type === 'hm') {
-                table.hasMany.push({
-                  tn: column.rtn,
-                  _cn: column.cn
-                })
-              } else if (column.type === 'mm') {
-                table.manyToMany.push({
-                  rtn: column.rtn,
-                  _cn: column.cn
-                })
-              } else if (column.uidt === UITypes.ForeignKey) {
-                table.belongsTo.push({
-                  tn: column.rtn,
-                  _cn: column.cn
-                })
+            for (const column of (t.columns || [])) {
+              if (this.isRelation(column)) {
+                if (column.type === 'hm') {
+                  table.hasMany.push({
+                    tn: column.rtn,
+                    _cn: column.cn
+                  })
+                } else if (column.type === 'mm') {
+                  table.manyToMany.push({
+                    rtn: column.rtn,
+                    _cn: column.cn
+                  })
+                } else if (column.uidt === UITypes.ForeignKey) {
+                  table.belongsTo.push({
+                    tn: column.rtn,
+                    _cn: column.cn
+                  })
+                }
+              } else if (this.isLookup(column)) {
+                if (column.rtn) {
+                  table.v.push({
+                    _cn: column.cn,
+                    lk: {
+                      ltn: column.rtn.tn,
+                      type: column.rtn.type,
+                      lcn: column.rcn
+                    }
+                  })
+                }
+              } else if (this.isRollup(column)) {
+                if (column.rtn) {
+                  table.v.push({
+                    _cn: column.cn,
+                    rl: {
+                      rltn: column.rtn.tn,
+                      rlcn: column.rcn,
+                      type: column.rtn.type,
+                      fn: column.fn
+                    }
+                  })
+                }
+              } else {
+                table.columns.push(column)
               }
-            } else if (this.isLookup(column)) {
-              if (column.rtn) {
-                table.v.push({
-                  _cn: column.cn,
-                  lk: {
-                    ltn: column.rtn.tn,
-                    type: column.rtn.type,
-                    lcn: column.rcn
-                  }
-                })
-              }
-            } else if (this.isRollup(column)) {
-              if (column.rtn) {
-                table.v.push({
-                  _cn: column.cn,
-                  rl: {
-                    rltn: column.rtn.tn,
-                    rlcn: column.rcn,
-                    type: column.rtn.type,
-                    fn: column.fn
-                  }
-                })
-              }
-            } else {
-              table.columns.push(column)
             }
-          }
-          return table
-        })
+            return table
+          })
+        }
+
+        this.$emit('update:projectTemplate', template)
       }
-
-      this.$emit('update:templateData', template)
-
-      return template
     }
   },
 
@@ -689,8 +722,8 @@ export default {
     document.removeEventListener('keydown', this.handleKeyDown)
   },
   mounted() {
-    if (this.templateData) {
-      this.parseTemplate(this.templateData)
+    if (this.projectTemplate) {
+      this.parseTemplate(this.projectTemplate)
       this.expansionPanel = Array.from({ length: this.project.tables.length }, (_, i) => i)
     }
     const input = this.$refs.projec && this.$refs.project.$el.querySelector('input')
@@ -800,7 +833,7 @@ export default {
         return
       }
       // todo: fix
-      const re = /(?<=^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g
+      const re = /(?:^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g
       let m
       // eslint-disable-next-line no-cond-assign
       while (m = re.exec(this.tableNamesInput)) {
@@ -1274,14 +1307,16 @@ export default {
 
       if (oldVal === UITypes.LinkToAnotherRecord) {
         rTable = this.project.tables.find(t => t.tn === col.rtn)
-        if (col.type === 'hm') {
-          index = rTable.columns.findIndex(c => c.uidt === UITypes.ForeignKey && c.rtn === table.tn)
-        } else if (col.type === 'mm') {
-          index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'mm')
+        if (rTable) {
+          if (col.type === 'hm') {
+            index = rTable.columns.findIndex(c => c.uidt === UITypes.ForeignKey && c.rtn === table.tn)
+          } else if (col.type === 'mm') {
+            index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'mm')
+          }
         }
       } else if (oldVal === UITypes.ForeignKey) {
         rTable = this.project.tables.find(t => t.tn === col.rtn)
-        index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'hm')
+        if (rTable) { index = rTable.columns.findIndex(c => c.uidt === UITypes.LinkToAnotherRecord && c.rtn === table.tn && c.type === 'hm') }
       }
       if (rTable && index > -1) {
         rTable.columns.splice(index, 1)
@@ -1300,4 +1335,7 @@ export default {
 </script>
 
 <style scoped>
+/deep/ .v-select__selections{
+  flex-wrap: nowrap;
+}
 </style>

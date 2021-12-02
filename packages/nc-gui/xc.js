@@ -2,6 +2,7 @@
 function initApp(config) {
   const nuxtApp = document.createElement('div')
   nuxtApp.id = '__nuxt'
+  
 
   document.querySelector(config.selector).appendChild(nuxtApp);
   [

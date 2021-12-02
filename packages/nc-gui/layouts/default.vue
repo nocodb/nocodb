@@ -16,7 +16,7 @@
       <v-toolbar-title>
         <v-tooltip bottom>
           <template #activator="{ on }">
-            <v-btn to="/projects" icon class="pa-1 brand-icon" v-on="on">
+            <v-btn to="/projects" icon class="pa-1 brand-icon nc-noco-brand-icon" v-on="on">
               <v-img :src="logo" max-height="30px" max-width="30px" />
               <!-- <v-icon color="primary">alpha-x-circle</v-icon
               ><v-icon color="primary">alpha-c-circle </v-icon> -->
@@ -147,19 +147,6 @@
             v-shortkey="[ 'ctrl','shift', 'd']"
             @shortkey="$router.push('/')"
           />
-
-          <x-btn
-            v-if="showAirtabLikeLink > 2"
-            text
-            btn.class="caption font-weight-bold px-2 text-capitalize"
-            tooltip="Data (^⇧D)"
-            to="/datatable"
-          >
-            <v-icon size="20">
-              mdi-table
-            </v-icon> &nbsp;
-            Data
-          </x-btn>
 
           <x-btn
             v-if="!$store.state.windows.nc"
@@ -299,7 +286,7 @@
               </v-icon>
             </v-btn>
           </template>
-          <v-list dense>
+          <v-list dense class="nc-user-menu">
             <template v-if="isDocker">
               <!--              <v-list-item @click="xcMetaTabAdd" v-ge="['Meta add','']">-->
               <!--                <v-list-item-title>-->
@@ -327,7 +314,7 @@
                 <v-list-item-title>
                   <v-icon small>
                     mdi-at
-                  </v-icon>&nbsp; <span class="font-weight-bold">{{ userEmail }}</span>
+                  </v-icon>&nbsp; <span class="font-weight-bold caption">{{ userEmail }}</span>
                 </v-list-item-title>
               </v-list-item>
 
@@ -343,7 +330,7 @@
                   <v-icon key="terminal-dash" small>
                     mdi-content-copy
                   </v-icon>&nbsp;
-                  <span class="font-weight-regular">Copy auth token</span>
+                  <span class="font-weight-regular caption">Copy auth token</span>
                 </v-list-item-title>
               </v-list-item>
 
@@ -367,7 +354,7 @@
                   <v-icon key="terminal-dash" small>
                     {{ isGql ? 'mdi-graphql' : 'mdi-code-json' }}
                   </v-icon>&nbsp;
-                  <span class="font-weight-regular">
+                  <span class="font-weight-regular caption">
                     {{ isGql ? 'GraphQL APIs' : 'Swagger APIs Doc' }}</span>
                 </v-list-item-title>
               </v-list-item>
@@ -376,7 +363,7 @@
                 <v-list-item-title>
                   <v-icon small>
                     mdi-information-outline
-                  </v-icon>&nbsp; <span class="font-weight-regular">Copy Project info</span>
+                  </v-icon>&nbsp; <span class="font-weight-regular caption">Copy Project info</span>
                 </v-list-item-title>
               </v-list-item>
 
@@ -385,7 +372,7 @@
                   <v-icon key="terminal-dash" small>
                     mdi-palette
                   </v-icon>&nbsp;
-                  <span class="font-weight-regular">Themes</span>
+                  <span class="font-weight-regular caption">Themes</span>
                 </v-list-item-title>
               </v-list-item>
 
@@ -395,7 +382,7 @@
                 <v-list-item-title>
                   <v-icon small>
                     mdi-logout
-                  </v-icon>&nbsp; <span class="font-weight-regular">Sign Out</span>
+                  </v-icon>&nbsp; <span class="font-weight-regular caption">Sign Out</span>
                 </v-list-item-title>
               </v-list-item>
             </template>
@@ -415,7 +402,7 @@
                 <v-icon small>
                   mdi-account-plus-outline
                 </v-icon> &nbsp; <span
-                  class="font-weight-regular"
+                  class="font-weight-regular caption"
                 >Sign Up</span>
               </v-list-item-title>
             </v-list-item>
@@ -423,7 +410,7 @@
               <v-list-item-title>
                 <v-icon small>
                   mdi-login
-                </v-icon> &nbsp; <span class="font-weight-regular">Login</span>
+                </v-icon> &nbsp; <span class="font-weight-regular caption">Login</span>
               </v-list-item-title>
             </v-list-item>
             <!--            <v-list-item @click="openPricingPage">-->
@@ -1095,6 +1082,9 @@ a {
 
 /deep/ .nc-ripple{
   border-radius: 50%;
+}
+/deep/ .nc-user-menu .v-list-item--dense, /deep/ .nc-user-menu  .v-list--dense .v-list-item{
+min-height:30px
 }
 
 </style>

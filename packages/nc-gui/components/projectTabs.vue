@@ -60,7 +60,13 @@
             style="height:100%"
           >
             <!--          <sqlLogAndOutput :hide="hideLogWindows">-->
-            <TableView :ref="'tabs'+index" :hide-log-windows.sync="hideLogWindows" :nodes="tab._nodes" />
+            <TableView
+              :ref="'tabs'+index"
+              :is-active="activeTab === `${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
+              :tab-id="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
+              :hide-log-windows.sync="hideLogWindows"
+              :nodes="tab._nodes"
+            />
             <!--          </sqlLogAndOutput>-->
           </div>
           <div v-else-if="tab._nodes.type === 'view'" style="height:100%">
@@ -566,6 +572,10 @@ export default {
 
 /deep/ .screensaver.body {
   position: absolute;
+}
+
+/deep/ .project-tab:first-of-type{
+  margin-left: 0 !important;
 }
 
 </style>

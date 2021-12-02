@@ -44,6 +44,9 @@ export default {
   watch: {
     value(v) {
       this.page = v
+    },
+    count(c) {
+      this.$emit('input', Math.max(1, Math.min(this.page, Math.ceil(c / this.size))))
     }
   },
   mounted() {

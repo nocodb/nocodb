@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import url from 'url';
+import { Tele } from 'nc-help';
 
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
@@ -1019,6 +1020,14 @@ export default class SqlMgr {
     };
   }
 
+  public async handleAxiosCall(apiMeta) {
+    // t = process.hrtime();
+    const data = await require('axios')(...apiMeta);
+
+    Tele.emit('evt', { evt_type: 'import:excel:url' });
+    return data.data;
+  }
+
   public axiosRequestMake(apiMeta) {
     if (apiMeta.body) {
       try {
@@ -1352,6 +1361,10 @@ export default class SqlMgr {
         case ToolOps.REST_API_CALL:
           console.log('Within REST_API_CALL handler', args);
           result = this.handleApiCall(args.args);
+          break;
+        case 'handleAxiosCall':
+          console.log('Within handleAxiosCall handler', args);
+          result = this.handleAxiosCall(args.args);
           break;
 
         case ToolOps.PROJECT_MIGRATIONS_LIST:

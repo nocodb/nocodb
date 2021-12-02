@@ -11,16 +11,16 @@ export const genTest = (type, xcdb) => {
     describe(`Project pre-configurations`, () => {
 
         it('Admin SignUp', () => {
+            cy.task('log', 'This will be output to the terminal')
             cy.waitForSpinners();
             cy.signinOrSignup(roles.owner.credentials)
-            cy.wait(2000)
         })
 
         const createProject = (proj) => {
             it(`Create ${proj.basic.name} project`, () => {
 
                 // click home button
-                mainPage.toolBarTopLeft(mainPage.HOME).click()
+                cy.get('.nc-noco-brand-icon').click()
 
                 cy.get('.nc-container').then((obj) => {
                     cy.log(obj)

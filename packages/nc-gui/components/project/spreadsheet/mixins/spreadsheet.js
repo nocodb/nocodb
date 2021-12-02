@@ -10,7 +10,10 @@ export default {
     fieldsOrder: [],
     // fieldList: [],
     // meta: {},
-    data: []
+    data: [],
+    syncDataDebounce() {
+      // not implemented
+    }
   }),
   methods: {
     mapFieldsAndShowFields() {
@@ -19,9 +22,6 @@ export default {
         obj[k] = k in this.showFields ? this.showFields[k] : true
         return obj
       }, {})
-    },
-    syncDataDebounce() {
-      // not implemented
     },
     onKeyDown(e) {
       if (this.selected.col === null || this.selected.row === null) {

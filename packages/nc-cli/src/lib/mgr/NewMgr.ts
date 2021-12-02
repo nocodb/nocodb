@@ -231,7 +231,7 @@ class NewMgr {
       args.folder = path.join(args.folder, args._[1]);
       mkdirp.sync(args.folder);
       process.chdir(args.folder);
-      await Util.runCmd(`cd ${args.folder}`);
+      await Util.runCmd(`cd ${Util.escapeShellArg(args.folder)}`);
       await promisify(download)('direct:https://github.com/nocodb/nocodb-seed/archive/refs/heads/main.zip', args.folder);
 
       if (answers.type !== 'sqlite3') {
@@ -239,7 +239,7 @@ class NewMgr {
       }
 
       if (os.type() === 'Windows_NT') {
-        console.log(boxen(`# Project created successfully\n\n# Please run the following commands\n\n${('cd ' + args.folder + '\nnpm install  \nnpm start\n').green.bold}`, {
+        console.log(boxen(`# Project created successfully\n\n# Please run the following commands\n\n${('cd ' + Util.escapeShellArg(args.folder) + '\nnpm install  \nnpm start\n').green.bold}`, {
           borderColor: 'green',
           borderStyle: 'round',
           margin: 1,
@@ -490,7 +490,7 @@ class NewMgr {
       args.folder = path.join(args.folder, args._[1]);
       mkdirp.sync(args.folder);
       process.chdir(args.folder);
-      await Util.runCmd(`cd ${args.folder}`);
+      await Util.runCmd(`cd ${Util.escapeShellArg(args.folder)}`);
 
       await promisify(download)('gitlab:xc-public/test10', args.folder);
       const config = {

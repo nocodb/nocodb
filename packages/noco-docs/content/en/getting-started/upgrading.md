@@ -12,9 +12,9 @@ link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme
 ```
 docker ps
 
-docker stop YOUR_CONTAINER_ID"
+docker stop "YOUR_CONTAINER_ID"
 
-docker rm YOUR_CONTAINER_ID"
+docker rm "YOUR_CONTAINER_ID"
 ```
 
 ### Find & remove nocodb docker image

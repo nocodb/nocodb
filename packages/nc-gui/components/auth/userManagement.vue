@@ -120,12 +120,11 @@
                           <!--                          {{ item.roles }}-->
 
                           <v-chip
-                            v-for="role in (item.roles ? item.roles.split(',') : [])"
-                            :key="role"
+                            v-if="item.roles"
                             class="mr-1"
-                            :color="rolesColors[role]"
+                            :color="rolesColors[getRole(item.roles)]"
                           >
-                            {{ role }}
+                            {{ getRole(item.roles) }}
                           </v-chip>
 
                           <!--                    <v-edit-dialog-->
@@ -411,7 +410,6 @@
                       hide-details="auto"
                       :items="roles"
                       label="Select User roles"
-                      multiple
                       dense
                       deletable-chips
                       @change="edited = true"
@@ -420,6 +418,14 @@
                         <v-chip small :color="rolesColors[item]">
                           {{ item }}
                         </v-chip>
+                      </template>
+                      <template #item="{item}">
+                        <div>
+                          <div>{{ item }}</div>
+                          <div class="mb-2 caption grey--text">
+                            {{ roleDescriptions[item] }}
+                          </div>
+                        </div>
                       </template>
                     </v-combobox>
                   </v-col>
@@ -490,10 +496,13 @@ export default {
         return !invalidEmails.length || `"${invalidEmails.join(', ')}" - invalid email`
       }
     ],
-    userList: []
+    userList: [],
+    roleDescriptions: {}
   }),
   computed: {
-
+    roleNames() {
+      return this.roles.map(r => r.title)
+    },
     inviteUrl() {
       return this.invite_token ? `${location.origin}${location.pathname}#/user/authentication/signup/${this.invite_token.invite_token}` : null
     },
@@ -506,11 +515,11 @@ export default {
     },
     selectedRoles: {
       get() {
-        return this.selectedUser && this.selectedUser.roles ? this.selectedUser.roles.split(',') : []
+        return (this.selectedUser && this.selectedUser.roles ? this.selectedUser.roles.split(',') : []).sort((a, b) => this.roleNames.indexOf(a) - this.roleNames.indexOf(a))[0]
       },
       set(roles) {
         if (this.selectedUser) {
-          this.selectedUser.roles = roles.filter(Boolean).join(',')
+          this.selectedUser.roles = roles // .filter(Boolean).join(',')
         }
       }
     },
@@ -524,9 +533,6 @@ export default {
     }
   },
   watch: {
-    userEditDialog(v) {
-      if (!v) { this.validate = false }
-    },
     options: {
       async handler() {
         await this.loadUsers()
@@ -534,6 +540,7 @@ export default {
       deep: true
     },
     userEditDialog(v) {
+      // if (!v) { this.validate = false }
       if (v && (this.selectedUser && !this.selectedUser.id)) {
         this.$nextTick(() => {
           setTimeout(() => {
@@ -552,6 +559,9 @@ export default {
     this.$eventBus.$off('show-add-user', this.addUser)
   },
   methods: {
+    getRole(roles) {
+      return (roles ? roles.split(',') : []).sort((a, b) => this.roleNames.indexOf(a) - this.roleNames.indexOf(a))[0]
+    },
     simpleAnim() {
       const count = 30
       const defaults = {
@@ -651,7 +661,10 @@ export default {
           params: {
             project_id: this.$route.params.project_id
           }
-        })).data.map(role => role.title).filter(role => role !== 'guest')
+        })).data.map((role) => {
+          this.roleDescriptions[role.title] = role.description
+          return role.title
+        }).filter(role => role !== 'guest')
       } catch (e) {
         console.log(e)
       }

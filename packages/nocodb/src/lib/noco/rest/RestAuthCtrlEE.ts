@@ -224,6 +224,8 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
                   })
                   .then(projectUser => {
                     user.roles = projectUser.roles;
+                    user.roles =
+                      user.roles === 'owner' ? 'owner,creator' : user.roles;
                     XcCache.set(key, user);
                     done(null, user);
                   });

@@ -1,47 +1,55 @@
 <template>
   <v-dialog v-model="dropOrUpload" max-width="600">
     <v-card max-width="600">
-      <div class="pa-4">
-        <div
-          class="nc-droppable d-flex align-center justify-center flex-column"
-          :style="{
-            background : dragOver ? '#7774' : ''
-          }"
-          @click="$refs.file.click()"
-          @drop.prevent="dropHandler"
-          @dragover.prevent="dragOver = true"
-          @dragenter.prevent="dragOver = true"
-          @dragexit="dragOver = false"
-          @dragleave="dragOver = false"
-          @dragend="dragOver = false"
-        >
-          <v-icon size="50" color="grey">
-            mdi-file-plus-outline
-          </v-icon>
-          <p class="title grey--text mb-1 mt-2">
-            Select {{ text }} file to Upload
-          </p>
-          <p class="grey--text ">
-            or drag and drop {{ text }} file
-          </p>
-        </div>
-        <input
-          ref="file"
-          class="nc-excel-import-input"
-          type="file"
-          style="display: none"
-          :accept="accept"
-          @change="_change($event)"
-        >
-      </div>
+      <!--      <div class="pa-4">
+              <div
+                class="nc-droppable d-flex align-center justify-center flex-column"
+                :style="{
+                  background : dragOver ? '#7774' : ''
+                }"
+                @click="$refs.file.click()"
+                @drop.prevent="dropHandler"
+                @dragover.prevent="dragOver = true"
+                @dragenter.prevent="dragOver = true"
+                @dragexit="dragOver = false"
+                @dragleave="dragOver = false"
+                @dragend="dragOver = false"
+              >
+                <v-icon size="50" color="grey">
+                  mdi-file-plus-outline
+                </v-icon>
+                <p class="title grey&#45;&#45;text mb-1 mt-2">
+                  Select {{ text }} file to Upload
+                </p>
+                <p class="grey&#45;&#45;text ">
+                  or drag and drop {{ text }} file
+                </p>
+              </div>
+              <input
+                ref="file"
+                class="nc-excel-import-input"
+                type="file"
+                style="display: none"
+                :accept="accept"
+                @change="_change($event)"
+              >
+            </div>-->
+      <drop-or-select-file
+        :accept="accept"
+        :text="text"
+        v-on="$listeners"
+      />
     </v-card>
   </v-dialog>
 </template>
 
 <script>
 
+import DropOrSelectFile from '~/components/import/dropOrSelectFile'
+
 export default {
   name: 'DropOrSelectFileModal',
+  components: { DropOrSelectFile },
   props: {
     value: Boolean,
     accept: String,
@@ -63,10 +71,11 @@ export default {
     }
   },
   methods: {
-    _change(file) {
-      const files = file.target.files
+    /*    _change(event) {
+      const files = event.target.files
       if (files && files[0]) {
         this.$emit('file', files[0])
+        event.target.value = ''
       }
     },
     dropHandler(ev) {
@@ -93,17 +102,17 @@ export default {
 
       // Prevent default behavior (Prevent file from being opened)
       ev.preventDefault()
-    }
+    } */
   }
 }
 </script>
 
 <style scoped>
 
-.nc-droppable {
+/*.nc-droppable {
   width: 100%;
   min-height: 200px;
   border-radius: 4px;
   border: 2px dashed var(--v-textColor-lighten5);
-}
+}*/
 </style>

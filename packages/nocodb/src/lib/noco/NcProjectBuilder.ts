@@ -255,6 +255,22 @@ export default class NcProjectBuilder {
         console.log(`Updated routes for table : ${data.req.args.tn}`);
         break;
 
+      case 'ncTableAliasRename':
+        await curBuilder.onTableAliasRename(
+          data.req.args.tn_old,
+          data.req.args.tn
+        );
+
+        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
+          op_type: 'TABLE',
+          op_sub_type: 'RENAMED',
+          user: data.user.email,
+          description: `renamed table alias  ${data.req.args.tn_old} to  ${data.req.args.tn}  `,
+          ip: data.ctx.req.clientIp
+        });
+        console.log(`Updated routes for table : ${data.req.args.tn}`);
+        break;
+
       case 'xcRoutesHandlerUpdate':
       case 'xcResolverHandlerUpdate':
       case 'xcRpcHandlerUpdate':
@@ -747,6 +763,7 @@ export default class NcProjectBuilder {
         if (this.config.auth.jwt) {
           if (
             !(
+              req.session.passport.user.roles.owner ||
               req.session.passport.user.roles.creator ||
               req.session.passport.user.roles.editor ||
               req.session.passport.user.roles.commenter ||

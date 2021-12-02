@@ -147,8 +147,7 @@ function migrationsParser(data = [], dbKey, env, dbAlias, dbConnection) {
         tn: table.tn,
         _tn: table._tn,
         dbConnection
-      },
-      creator_tooltip: `SQL Table name : '${table.tn}'`
+      }
     };
     tables.children.push(json);
   }
@@ -356,8 +355,7 @@ function tableParser(data = [], dbKey, env, dbAlias, dbConnection) {
         tn: table.tn,
         _tn: table._tn,
         dbConnection
-      },
-      creator_tooltip: `SQL Table name : '${table.tn}'`
+      }
     };
     tables.children.push(json);
   }

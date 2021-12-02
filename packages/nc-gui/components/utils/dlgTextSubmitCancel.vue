@@ -24,7 +24,7 @@
               v-model="fieldValue"
               validate-on-blur
               :label="field || ''"
-              :rules="[v=> !!v || 'Value required']"
+              :rules="[v=> !!v || 'Value required',...(rules || [])]"
               autofocus
               @keydown.enter.prevent="submitForm"
             />
@@ -67,7 +67,8 @@ export default {
     'type',
     'cookie',
     'defaultValue',
-    'submitText'
+    'submitText',
+    'rules'
   ],
   data() {
     return { fieldValue: '', valid: null }

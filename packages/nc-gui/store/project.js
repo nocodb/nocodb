@@ -282,6 +282,7 @@ export const actions = {
 
       commit("list", data.data.list);
       commit("meta/MutClear", null, {root: true});
+      commit("tabs/MutClearTabState",null, {root: true});
       if (this.$ncApis) {
         this.$ncApis.clear();
         this.$ncApis.setProjectId(projectId);

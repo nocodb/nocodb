@@ -889,6 +889,10 @@ ${'VARIATIONS :'.bold}
     }
   }
 
+  public static escapeShellArg(cmd) {
+    return '"' + cmd.replace(/(["'$`\\])/g, '\\$1') + '"';
+  };
+
   public async play(sound) {
 
     switch (sound) {

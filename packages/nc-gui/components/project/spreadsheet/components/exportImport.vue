@@ -8,7 +8,7 @@
       <template #activator="{on}">
         <v-btn
           outlined
-          class="nc-actions-menu-btn caption"
+          class="nc-actions-menu-btn caption px-2"
           small
           text
           v-on="on"
@@ -39,6 +39,7 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
+          v-if="_isUIAllowed('csvImport')"
           dense
           @click="importModal = true"
         >
@@ -63,6 +64,7 @@
       v-model="columnMappingModal"
       :meta="meta"
       :import-data-columns="parsedCsv.columns"
+      :parsed-csv="parsedCsv"
       @import="importData"
     />
   </div>
@@ -72,11 +74,11 @@
 
 import FileSaver from 'file-saver'
 import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
-import CSVTemplateAdapter from '~/components/import/CSVTemplateAdapter'
 import ColumnMappingModal from '~/components/project/spreadsheet/components/columnMappingModal'
+import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 
 export default {
-  name: 'CsvExportImport',
+  name: 'ExportImport',
   components: { ColumnMappingModal, DropOrSelectFileModal },
   props: {
     meta: Object,
@@ -96,9 +98,9 @@ export default {
   methods: {
     async onCsvFileSelection(file) {
       const reader = new FileReader()
-
-      reader.onload = (e) => {
+      reader.onload = async(e) => {
         const templateGenerator = new CSVTemplateAdapter(file.name, e.target.result)
+        await templateGenerator.init()
         templateGenerator.parseData()
         this.parsedCsv.columns = templateGenerator.getColumns()
         this.parsedCsv.data = templateGenerator.getData()
@@ -238,11 +240,14 @@ export default {
         const api = this.$ncApis.get({
           table: this.meta.tn
         })
+
         const data = this.parsedCsv.data
         for (let i = 0, progress = 0; i < data.length; i += 500) {
           const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
-            if (col.enabled) {
-              res[col.destCn] = row[col.sourceCn]
+            // todo: parse data
+
+            if (col.enabled && col.destCn && col.destCn._cn) {
+              res[col.destCn._cn] = row[col.sourceCn]
             }
             return res
           }, {}))

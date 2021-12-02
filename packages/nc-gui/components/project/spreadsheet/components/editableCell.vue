@@ -5,7 +5,7 @@
     @keydown.stop.right
     @keydown.stop.up
     @keydown.stop.down
-    @keydown.stop.enter="$emit('save')"
+    @keydown.stop.enter="cahnged=false,$emit('save')"
   >
     <editable-attachment-cell
       v-if="isAttachment"
@@ -167,28 +167,11 @@ export default {
   },
   data: () => ({
     changed: false,
-    destroyed: false
-  }),
-
-  mounted() {
-    // this.$refs.input.focus();
-  },
-  beforeDestroy() {
-    if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime)) {
-      this.$emit('change')
-    }
-    this.destroyed = true
-  },
-  methods: {
+    destroyed: false,
     syncDataDebounce: debounce(async function(self) {
       await self.syncData()
-    }, 1000),
-    syncData() {
-      if (!this.destroyed) {
-        this.$emit('update')
-      }
-    }
-  },
+    }, 1000)
+  }),
   computed: {
     localState: {
       get() {
@@ -196,8 +179,15 @@ export default {
       },
       set(val) {
         this.changed = true
-        if (val !== this.value) { this.syncDataDebounce(this) }
-        this.$emit('input', val)
+        if (val !== this.value) {
+          this.$emit('input', val)
+          // debugger
+          if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime) {
+            this.syncData()
+          } else {
+            this.syncDataDebounce(this)
+          }
+        }
       }
     },
     parentListeners() {
@@ -221,6 +211,23 @@ export default {
       return $listeners
     }
 
+  },
+
+  mounted() {
+    // this.$refs.input.focus();
+  },
+  beforeDestroy() {
+    if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime)) {
+      this.$emit('change')
+    }
+    this.destroyed = true
+  },
+  methods: {
+    syncData() {
+      if (!this.destroyed) {
+        this.$emit('update')
+      }
+    }
   }
 }
 </script>
@@ -232,21 +239,22 @@ div {
   color: var(--v-textColor-base);
 }
 
-.nc-hint{
+.nc-hint {
   font-size: .61rem;
-  color:grey;
+  color: grey;
 }
+
 .nc-cell {
-   position: relative;
- }
+  position: relative;
+}
 
 .nc-locked-overlay {
   position: absolute;
   z-index: 2;
   height: 100%;
   width: 100%;
-  top:0;
-  left:0;
+  top: 0;
+  left: 0;
 }
 </style>
 <!--

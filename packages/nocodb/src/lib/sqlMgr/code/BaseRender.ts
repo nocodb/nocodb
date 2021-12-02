@@ -28,7 +28,7 @@ class BaseRender {
    * @param {string} - filename - filename of file to be rendered
    * @param {Object} - ctx - context to render this file
    */
-  constructor({ dir, filename, ctx }) {
+  constructor({ dir = '', filename = '', ctx }) {
     this.dir = dir;
     this.filename = filename;
     this.ctx = ctx;

@@ -48,7 +48,7 @@
               {{ audit.description }}
             </td>
             <td class="caption">
-              {{ audit.user }}
+              {{ audit.user == null?'Shared base':audit.user }}
             </td>
             <!--          <td class="caption">-->
             <!--            {{ audit.ip }}-->

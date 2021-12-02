@@ -78,8 +78,11 @@
 
                 <br>
                 <br>
-                <br>
-                <p v-ge="['Already have an account ?','']" class="font-weight-light caption grey--text">
+                <div class="d-flex align-center justify-center mb-2">
+                  <v-switch v-model="subscribe" dense hide-details class="mt-0  pt-0" />
+                  <label class="caption font-weight-light">Subscribe to our weekly newsletter</label>
+                </div>
+                <p v-ge="['Already have an account ?','']" class="font-weight-light caption grey--text mb-0">
                   {{ $t('signup.already_ve_an_account') }}
                   <router-link to="/user/authentication/signin">
                     {{ $t('signin.title') }}
@@ -176,25 +179,11 @@
                 By signing up, you agree to
                 <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"><u>Terms of service</u></span>
               </p>
-              <div class="d-flex align-center mb-4 justify-center">
+              <!--              <div class="d-flex align-center mb-4 justify-center">
                 <v-checkbox v-model="subscribe" color="grey" dense hide-details class="mt-0  pt-0" />
-                <label class="caption grey--text font-weight-light">Subscribe to our weekly newsletter</label>
-              </div>
+                <label class="caption grey&#45;&#45;text font-weight-light">Subscribe to our weekly newsletter</label>
+              </div>-->
             </div>
-
-            <!--<br>-->
-            <!--<h3>OR</h3>-->
-            <!--<br>-->
-
-            <!--<v-card class="pa-3 elevation-10" color="">-->
-            <!--<p>or sign up with one of these services</p>-->
-            <!--<a href="/api/auth/google?redirect_to=/"><img src=""~/assets/img//btn_google_signin_dark_normal_web@2x.png"-->
-            <!--class="img-responsive" alt="google" wifth="128px"></a>-->
-            <!--&lt;!&ndash;<br>&ndash;&gt;-->
-            <!--&lt;!&ndash;<a href="/api/auth/facebook?redirect_to=/"><img src="/facebook.png" class="img-responsive" alt="facebook"></a>&ndash;&gt;-->
-            <!--</v-card>-->
-            <!--<br>-->
-            <!--<br>-->
           </v-col>
         </v-row>
       </v-col>
@@ -222,7 +211,7 @@ export default {
 
   data() {
     return {
-      subscribe: true,
+      subscribe: false,
       isDev: (process.env.NODE_ENV === 'dev'),
 
       dialog: false,

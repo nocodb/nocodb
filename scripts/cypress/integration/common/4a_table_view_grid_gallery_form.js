@@ -65,10 +65,11 @@ export const genTest = (type, xcdb) => {
       });
     };
 
-    // below two scenario's will be invoked twice, once for rest & then for graphql
+    // below four scenario's will be invoked twice, once for rest & then for graphql
     viewTest("grid");
     viewTest("gallery");
     viewTest("form");
+    viewTest("kanban");
   });
 };
 
@@ -77,6 +78,7 @@ export const genTest = (type, xcdb) => {
  *
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Raju Udava <sivadstala@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

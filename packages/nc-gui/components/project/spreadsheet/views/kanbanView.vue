@@ -65,7 +65,7 @@
           color="primary"
           class="primary"
           small
-          @click="addNewRecord"
+          @click="insertNewRow(true, true)"
         >
           <v-icon small left>
             mdi-plus
@@ -147,6 +147,11 @@ export default {
       try {
         this.stages.push(uncategorized)
         for(var i = 0; i < this.data.length; i++) {
+          if(!this.data[i].row.id) {
+            // skip empty record 
+            // case: add a new record -> cancel -> empty row -> no id
+            continue
+          }
           const status = this.data[i].row[this.groupingField] ?? uncategorized
           this.stages.push(status)
           const block = {
@@ -154,7 +159,6 @@ export default {
             rowMeta: this.data[i].rowMeta,
             ...this.data[i].row
           }
-          // console.log(block)
           this.blocks.push(block)
         }
         this.stages = [...new Set(this.stages)]
@@ -203,9 +207,9 @@ export default {
       this.blocks = []
       this.clonedBlocks = []    
     },
-    addNewRecord() {
-      // TODO
-    }
+    insertNewRow(atEnd = false, expand = false) {
+      this.$emit('insertNewRow', atEnd, expand)
+    },
   }
 }
 </script>

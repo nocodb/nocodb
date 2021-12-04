@@ -341,6 +341,7 @@
               :grouping-field="groupingField"
               :api="api"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+              @insertNewRow="insertNewRow"
             />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">

@@ -342,6 +342,7 @@
               :api="api"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
               @insertNewRow="insertNewRow"
+              @loadTableData="loadTableData"
             />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">

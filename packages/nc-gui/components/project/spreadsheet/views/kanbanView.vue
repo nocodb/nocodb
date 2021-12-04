@@ -9,7 +9,7 @@
             <v-card
               class="h-100"
               :elevation="hover ? 4 : 1"
-              @click="$emit('expandForm', {row: block, rowIndex: i, rowMeta: block.rowMeta})"
+              @click="$emit('expandForm', {rowIndex: i, rowMeta: block.rowMeta})"
             >
               <v-card-text>
                 <v-container>
@@ -60,6 +60,7 @@
       </div>
       <div v-for="stage in stages" :key="stage" :slot="`footer-${stage}`" class="kanban-footer">
           <x-btn
+          v-if="stage"
           outlined
           tooltip="Add a new record"
           color="primary"
@@ -70,7 +71,21 @@
           <v-icon small left>
             mdi-plus
           </v-icon>
-          {{ stage == "" ? "New Stack" : "Add a new record"}}
+          Add a new record
+        </x-btn>
+        <x-btn
+          v-else
+          outlined
+          tooltip="New Stack"
+          color="primary"
+          class="primary"
+          small
+          @click="insertNewRow(true, true)"
+        >
+          <v-icon small left>
+            mdi-plus
+          </v-icon>
+            New Stack
         </x-btn>
       </div>
     </kanban-board>
@@ -122,7 +137,7 @@ export default {
       this.data = newVal
       this.reset()
       await this.setKanbanData()
-    }
+    },
   },
   computed: {
     fields() {
@@ -145,7 +160,6 @@ export default {
     async setKanbanData() {
       const uncategorized = "Uncategorized"
       try {
-        this.stages.push(uncategorized)
         for(var i = 0; i < this.data.length; i++) {
           if(!this.data[i].row.id) {
             // skip empty record 
@@ -153,7 +167,7 @@ export default {
             continue
           }
           const status = this.data[i].row[this.groupingField] ?? uncategorized
-          this.stages.push(status)
+          if(status != uncategorized) this.stages.push(status)
           const block = {
             status,
             rowMeta: this.data[i].rowMeta,
@@ -161,12 +175,15 @@ export default {
           }
           this.blocks.push(block)
         }
-        // new stack column
-        this.stages.push("") 
         // remove depulicate items
         this.stages = [...new Set(this.stages)]
+        // TODO: allow reorder the stacks
+        this.stages.sort()
+        this.stages.unshift(uncategorized) 
+        // new stack column
+        this.stages.push("") 
         this.clonedBlocks = this.blocks
-        return Promise.resolve(this.blocks)
+        return Promise.resolve(this.clonedBlocks)
       } catch(e) {
         return Promise.reject(e)
       }
@@ -177,21 +194,20 @@ export default {
           return
         }
 
-        if(this.blocks[id - 1].status == status) {
+        if(this.clonedBlocks[id - 1].status == status) {
           // no change
           return
         }
 
         const uncategorized = "Uncategorized"
-
-        const prevStatus = this.blocks[id - 1].status
+        const prevStatus = this.clonedBlocks[id - 1].status
         const newData = await this.api.update(id, 
         { [this.groupingField]: status == uncategorized ? null : status }, // new data
         { [this.groupingField]: prevStatus }) // old data
 
-        this.blocks[id - 1].status = status
-        this.blocks[id - 1][this.groupingField] = (status == uncategorized ? null : status)
-
+        this.clonedBlocks[id - 1].status = status
+        this.clonedBlocks[id - 1][this.groupingField] = (status == uncategorized ? null : status)
+        this.$emit('loadTableData')
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
         }).goAway(3000)

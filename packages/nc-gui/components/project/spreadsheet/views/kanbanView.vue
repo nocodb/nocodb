@@ -2,7 +2,7 @@
   <v-container fluid>
     <kanban-board :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">
       <div v-for="stage in stages" :slot="stage" :key="stage" class="mx-auto">
-        <enum-cell :value="stage" :column="groupingFieldColumn" />
+        <enum-cell v-if="stage" :value="stage" :column="groupingFieldColumn" />
       </div>
       <div v-for="(block, i) in clonedBlocks" :slot="block.id" :key="block.id" class="caption">
           <v-hover v-slot="{hover}">
@@ -70,7 +70,7 @@
           <v-icon small left>
             mdi-plus
           </v-icon>
-          Add a new record
+          {{ stage == "" ? "New Stack" : "Add a new record"}}
         </x-btn>
       </div>
     </kanban-board>
@@ -161,6 +161,9 @@ export default {
           }
           this.blocks.push(block)
         }
+        // new stack column
+        this.stages.push("") 
+        // remove depulicate items
         this.stages = [...new Set(this.stages)]
         this.clonedBlocks = this.blocks
         return Promise.resolve(this.blocks)
@@ -278,13 +281,11 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 10px 0px 10px;
     width: 240px;
   }
-
-  .drag-inner-list {
-    min-height: 20px;
-    //color: white;
+  
+  .drag-column-header .set-item {
+    margin-top: 20px !important;
   }
 
   .drag-item {

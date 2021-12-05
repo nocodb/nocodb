@@ -164,12 +164,23 @@ export default {
           this.$toast.error(`API not found`).goAway(3000)
           return
         }
-        // TODO: get 25 records initially
-        const { 
-          data
-        } =  await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {});
-        this.kanbanData = data
-
+        
+        const initialLimit = 25
+        const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
+        if(!groupingColumn) {
+          return
+        }
+        const groupingColumnItems = groupingColumn.dtxp.split(",")
+        for(const groupingColumnItem of groupingColumnItems) {
+          const { 
+            data
+          } =  await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+            limit: initialLimit,
+            where: `(${this.groupingField},eq,${groupingColumnItem.replace(/'/g, '')})`
+          });
+          this.kanbanData = [...this.kanbanData, ...data]
+        }
+        console.log(this.kanbanData)
         await this.setKanbanData()
 
       } catch (e) {
@@ -245,6 +256,7 @@ export default {
       }
     },
     reset() {
+      this.kanbanData = []
       this.stages = []
       this.stageColors = []
       this.blocks = []

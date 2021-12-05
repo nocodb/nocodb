@@ -183,6 +183,7 @@ docker run -d -p 8080:8080 \
 
 ```
 git clone https://github.com/nocodb/nocodb
+cd nocodb
 cd docker-compose
 cd mysql or pg or mssql
 docker-compose up

@@ -118,6 +118,7 @@ export default {
   ],
   data() {
     return {
+      kanbanData: [],
       stages: [],
       stageColors: [],
       blocks: [],
@@ -125,18 +126,18 @@ export default {
     }
   },
   async mounted() {
-    await this.setKanbanData()
+    await this.fetchKanbanData()
   },
   watch: {
     async groupingField(newVal) {
       this.groupingField = newVal
       this.reset()
-      await this.setKanbanData()
+      await this.fetchKanbanData()
     },
     async data(newVal) {
-      this.data = newVal
+      // re-fetch the data if the data is modified in expanded form
       this.reset()
-      await this.setKanbanData()
+      await this.fetchKanbanData()
     },
   },
   computed: {
@@ -157,21 +158,43 @@ export default {
     }
   },
   methods: {
+    async fetchKanbanData() {
+      try {
+        if(!this.api) {
+          this.$toast.error(`API not found`).goAway(3000)
+          return
+        }
+        // TODO: get 25 records initially
+        const { 
+          data
+        } =  await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {});
+        this.kanbanData = data
+
+        await this.setKanbanData()
+
+      } catch (e) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(e.response.data.msg).goAway(3000)
+        } else {
+          this.$toast.error(`Error occurred : ${e.message}`).goAway(3000)
+        }
+      }
+    },
     async setKanbanData() {
       const uncategorized = "Uncategorized"
       try {
-        for(var i = 0; i < this.data.length; i++) {
-          if(!this.data[i].row.id) {
+        for(var i = 0; i < this.kanbanData.length; i++) {
+          if(!this.kanbanData[i].id) {
             // skip empty record 
             // case: add a new record -> cancel -> empty row -> no id
             continue
           }
-          const status = this.data[i].row[this.groupingField] ?? uncategorized
+          const status = this.kanbanData[i][this.groupingField] ?? uncategorized
           if(status != uncategorized) this.stages.push(status)
           const block = {
             status,
-            rowMeta: this.data[i].rowMeta,
-            ...this.data[i].row
+            rowMeta: this.kanbanData[i].rowMeta,
+            ...this.kanbanData[i]
           }
           this.blocks.push(block)
         }
@@ -191,6 +214,7 @@ export default {
     async updateBlock(id, status) {
       try {
         if(!this.api) {
+          this.$toast.error(`API not found`).goAway(3000)
           return
         }
 

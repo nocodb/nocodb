@@ -770,18 +770,22 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       );
 
       // enable extra
-      // tables.push(...(await this.sqlClient.viewList())?.data?.list?.map(v => {
-      //   this.viewsCount++;
-      //   v.type = 'view';
-      //   v.tn = v.view_name;
-      //   return v;
-      // }).filter(v => {
-      //   /* filter based on prefix */
-      //   if (this.projectBuilder?.prefix) {
-      //     return v.view_name.startsWith(this.projectBuilder?.prefix)
-      //   }
-      //   return true;
-      // }));
+      tables.push(
+        ...(await this.sqlClient.viewList())?.data?.list
+          ?.map(v => {
+            this.viewsCount++;
+            v.type = 'view';
+            v.tn = v.view_name;
+            return v;
+          })
+          .filter(v => {
+            /* filter based on prefix */
+            if (this.projectBuilder?.prefix) {
+              return v.view_name.startsWith(this.projectBuilder?.prefix);
+            }
+            return true;
+          })
+      );
       // enable extra
       // let functions = [];
       // let procedures = [];

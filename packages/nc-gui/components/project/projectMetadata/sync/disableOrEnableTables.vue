@@ -49,14 +49,16 @@
               <v-simple-table dense style="min-width: 400px">
                 <thead>
                   <tr>
-                    <th>
+                    <th class="grey--text">
                       Models <span v-show="!isNewOrDeletedModelFound" class="caption ml-1">({{
                         enableCountText
                       }})</span>
                     </th>
-                    <th>APIs</th>
-                    <th>Actions</th>
-                    <th>Comment</th>
+                    <!--                    <th>APIs</th>-->
+                    <th class="grey--text">
+                      Actions
+                    </th>
+                    <th />
                   </tr>
                 </thead>
                 <tbody>
@@ -70,14 +72,14 @@
                         <span class="caption">{{ model.title }}</span>
                       </v-tooltip>
                     </td>
-                    <td>
+                    <!--                    <td>
                       <v-checkbox
                         v-model="model.enabled"
                         dense
                         :disabled="model.new || model.deleted"
                         @change="edited = true"
                       />
-                    </td>
+                    </td>-->
                     <td>
                       <template v-if="model.new">
                       <!--                  <x-icon small color="success success" tooltip="Add and sync meta information"-->

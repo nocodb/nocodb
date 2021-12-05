@@ -15,31 +15,36 @@
   <date-cell v-else-if="isDate" :value="value" />
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
-  <span v-else :class="{'long-text-cell' : isTextArea}">{{ value }}</span>
+  <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>
 </template>
 
 <script>
+import DateCell from './cell/dateCell'
+import DateTimeCell from './cell/dateTimeCell'
+import TimeCell from './cell/timeCell'
 import JsonCell from '@/components/project/spreadsheet/components/cell/jsonCell'
 import UrlCell from '@/components/project/spreadsheet/components/cell/urlCell'
 import cell from '@/components/project/spreadsheet/mixins/cell'
 import SetListCell from '@/components/project/spreadsheet/components/cell/setListCell'
 import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
 import EditableAttachmentCell from '@/components/project/spreadsheet/components/editableCell/editableAttachmentCell'
-import DateCell from './cell/dateCell'
-import DateTimeCell from './cell/dateTimeCell'
-import TimeCell from './cell/timeCell'
 
 export default {
   name: 'TableCell',
   components: { TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected'],
-  computed: {}
+  computed: {
+    title() {
+      if (typeof this.value === 'string') { return this.value }
+      return ''
+    }
+  }
 }
 </script>
 
 <style scoped>
-.long-text-cell{
+.long-text-cell {
   white-space: pre;
 }
 </style>

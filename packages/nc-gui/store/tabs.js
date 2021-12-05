@@ -107,9 +107,33 @@ export const actions = {
       } = this.$router.currentRoute.query
       try {
         let tabNode
+
+        await dispatch('project/_loadTables', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.tables',
+          _nodes: {
+            dbAlias: 'db',
+            // dbKey: "0.projectJson.envs._noco.db.0",
+            env: '_noco',
+            // key: "0.projectJson.envs._noco.db.0.tables",
+            type: 'tableDir'
+          }
+        }, { root: true })
+        await dispatch('project/_loadViews', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.views',
+          _nodes: {
+            dbAlias: 'db',
+            // dbKey: "0.projectJson.envs._noco.db.0",
+            env: '_noco',
+            // key: "0.projectJson.envs._noco.db.0.tables",
+            type: 'viewDir'
+          }
+        }, { root: true })
+
         switch (type) {
           case 'table':
-            await dispatch('project/_loadTables', {
+            /*            await dispatch('project/_loadTables', {
               dbKey: '0.projectJson.envs._noco.db.0',
               key: '0.projectJson.envs._noco.db.0.tables',
               _nodes: {
@@ -119,7 +143,7 @@ export const actions = {
                 // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'tableDir'
               }
-            }, { root: true })
+            }, { root: true }) */
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
@@ -129,7 +153,7 @@ export const actions = {
 
             break
           case 'view':
-            await dispatch('project/_loadViews', {
+            /*            await dispatch('project/_loadViews', {
               dbKey: '0.projectJson.envs._noco.db.0',
               key: '0.projectJson.envs._noco.db.0.views',
               _nodes: {
@@ -139,7 +163,7 @@ export const actions = {
                 // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'viewDir'
               }
-            }, { root: true })
+            }, { root: true }) */
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
@@ -255,17 +279,6 @@ export const actions = {
           }
         })
       } else {
-        await dispatch('project/_loadTables', {
-          dbKey: '0.projectJson.envs._noco.db.0',
-          key: '0.projectJson.envs._noco.db.0.tables',
-          _nodes: {
-            dbAlias: 'db',
-            // dbKey: "0.projectJson.envs._noco.db.0",
-            env: '_noco',
-            // key: "0.projectJson.envs._noco.db.0.tables",
-            type: 'tableDir'
-          }
-        }, { root: true })
         const nodes = rootState.project
           .list[0] // project
           .children[0] //  environment

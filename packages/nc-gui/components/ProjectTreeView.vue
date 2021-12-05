@@ -184,7 +184,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <x-icon
-                          v-if="_isUIAllowed('treeview-add-button')"
+                          v-if="_isUIAllowed('treeview-add-button') && item.type !== 'viewDir'"
                           :color="['x-active', 'grey']"
                           small
                           v-on="on"

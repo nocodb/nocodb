@@ -128,7 +128,7 @@
       class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
-        <div ref="table" style="  overflow: auto;width:100%">
+        <div ref="table" style="  overflow: auto;width:100%; height: calc(100% - 36px);">
           <v-skeleton-loader v-if="loadingData" type="table" />
 
           <template v-else-if="selectedView && (selectedView.type === 'view' || selectedView.show_as === 'grid' )">

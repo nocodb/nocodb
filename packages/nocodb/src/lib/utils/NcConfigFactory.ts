@@ -401,6 +401,30 @@ export default class NcConfigFactory implements NcConfig {
       }
     });
 
+    if (
+      dbConfig?.connection?.ssl &&
+      typeof dbConfig?.connection?.ssl === 'object'
+    ) {
+      if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
+        dbConfig.connection.ssl.ca = fs
+          .readFileSync(dbConfig.connection.ssl.caFilePath)
+          .toString();
+      }
+      if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
+        dbConfig.connection.ssl.key = fs
+          .readFileSync(dbConfig.connection.ssl.keyFilePath)
+          .toString();
+      }
+      if (
+        dbConfig.connection.ssl.certFilePath &&
+        !dbConfig.connection.ssl.cert
+      ) {
+        dbConfig.connection.ssl.cert = fs
+          .readFileSync(dbConfig.connection.ssl.certFilePath)
+          .toString();
+      }
+    }
+
     return dbConfig;
   }
 

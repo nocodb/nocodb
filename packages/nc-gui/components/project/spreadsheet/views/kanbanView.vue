@@ -4,12 +4,12 @@
       <div v-for="stage in stages" :slot="stage" :key="stage" class="mx-auto">
         <enum-cell v-if="stage" :value="stage" :column="groupingFieldColumn" />
       </div>
-      <div v-for="(block, i) in clonedBlocks" :slot="block.id" :key="block.id" class="caption">
+      <div v-for="(block) in clonedBlocks" :slot="block.id" :key="block.id" class="caption">
           <v-hover v-slot="{hover}">
             <v-card
               class="h-100"
               :elevation="hover ? 4 : 1"
-              @click="$emit('expandForm', {rowIndex: i, rowMeta: block.rowMeta})"
+              @click="$emit('expandForm', {rowIndex: block.id - 1, rowMeta: block.rowMeta})"
             >
               <v-card-text>
                 <v-container>
@@ -229,19 +229,25 @@ export default {
           return
         }
 
-        if(this.clonedBlocks[id - 1].status == status) {
+        const targetBlock = this.clonedBlocks.find(b => b.id === Number(id));
+        if(!targetBlock) {
+          this.$toast.error(`Block with ID ${id} not found`).goAway(3000)
+          return
+        }
+
+        if(targetBlock.status == status) {
           // no change
           return
         }
 
         const uncategorized = "Uncategorized"
-        const prevStatus = this.clonedBlocks[id - 1].status
+        const prevStatus = targetBlock.status
         const newData = await this.api.update(id, 
         { [this.groupingField]: status == uncategorized ? null : status }, // new data
         { [this.groupingField]: prevStatus }) // old data
 
-        this.clonedBlocks[id - 1].status = status
-        this.clonedBlocks[id - 1][this.groupingField] = (status == uncategorized ? null : status)
+        targetBlock.status = status
+        targetBlock[this.groupingField] = (status == uncategorized ? null : status)
         this.$emit('loadTableData')
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'

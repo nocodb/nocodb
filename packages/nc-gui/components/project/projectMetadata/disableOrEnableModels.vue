@@ -30,13 +30,17 @@
               />
             </v-tab-item>
             <!-- enable extra -->
-            <!-- <v-tab class="text-capitalize caption">Views</v-tab>
-             <v-tab-item>
-               <disable-or-enable-views
-                 :nodes="nodes" :db="db"
-                                        :db-alias="db.meta.dbAlias"></disable-or-enable-views>
-             </v-tab-item>
-             <v-tab class="text-capitalize caption">Functions</v-tab>
+            <v-tab class="text-capitalize caption">
+              Views
+            </v-tab>
+            <v-tab-item>
+              <disable-or-enable-views
+                :nodes="nodes"
+                :db="db"
+                :db-alias="db.meta.dbAlias"
+              />
+            </v-tab-item>
+            <!-- <v-tab class="text-capitalize caption">Functions</v-tab>
              <v-tab-item>
                <disable-or-enable-functions :nodes="nodes" :db="db"
                                             :db-alias="db.meta.dbAlias"></disable-or-enable-functions>
@@ -108,16 +112,18 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import XcMeta from '../settings/xcMeta'
+import DisableOrEnableRelations from './sync/disableOrEnableRelations'
 import { isMetaTable } from '@/helpers/xutils'
 import DisableOrEnableTables from '@/components/project/projectMetadata/sync/disableOrEnableTables'
 import ToggleTableUiAcl from '@/components/project/projectMetadata/uiAcl/toggleTableUIAcl'
 import ToggleRelationsUiAcl from '@/components/project/projectMetadata/uiAcl/toggleRelationsUIAcl'
-import XcMeta from '../settings/xcMeta'
-import DisableOrEnableRelations from './sync/disableOrEnableRelations'
+import DisableOrEnableViews from '~/components/project/projectMetadata/sync/disableOrEnableViews'
 
 export default {
   name: 'DisableOrEnableModels',
   components: {
+    DisableOrEnableViews,
     ToggleRelationsUiAcl,
     ToggleTableUiAcl,
     DisableOrEnableTables,

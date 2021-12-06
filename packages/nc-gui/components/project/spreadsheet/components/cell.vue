@@ -16,10 +16,13 @@
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
   <boolean-cell v-else-if="isBoolean" :value="value" />
-  <span v-else :class="{'long-text-cell' : isTextArea}">{{ value }}</span>
+  <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>
 </template>
 
 <script>
+import DateCell from './cell/dateCell'
+import DateTimeCell from './cell/dateTimeCell'
+import TimeCell from './cell/timeCell'
 import JsonCell from '@/components/project/spreadsheet/components/cell/jsonCell'
 import UrlCell from '@/components/project/spreadsheet/components/cell/urlCell'
 import cell from '@/components/project/spreadsheet/mixins/cell'
@@ -27,21 +30,23 @@ import SetListCell from '@/components/project/spreadsheet/components/cell/setLis
 import EnumCell from '@/components/project/spreadsheet/components/cell/enumCell'
 import EditableAttachmentCell from '@/components/project/spreadsheet/components/editableCell/editableAttachmentCell'
 import BooleanCell from '@/components/project/spreadsheet/components/cell/booleanCell'
-import DateCell from './cell/dateCell'
-import DateTimeCell from './cell/dateTimeCell'
-import TimeCell from './cell/timeCell'
 
 export default {
   name: 'TableCell',
   components: { TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected'],
-  computed: {}
+  computed: {
+    title() {
+      if (typeof this.value === 'string') { return this.value }
+      return ''
+    }
+  }
 }
 </script>
 
 <style scoped>
-.long-text-cell{
+.long-text-cell {
   white-space: pre;
 }
 </style>
@@ -51,6 +56,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

@@ -4044,6 +4044,7 @@ export default class NcMetaMgr {
       ...viewMeta.meta,
       columns: viewMeta.meta.columns.filter(
         c =>
+          !viewMeta.query_params?.showFields ||
           viewMeta.query_params?.showFields?.[c._cn] ||
           c.pk ||
           viewMeta.meta.v?.some(v => v.bt?.cn === c.cn)
@@ -4216,7 +4217,10 @@ export default class NcMetaMgr {
     const roles = req.session?.passport?.user?.roles;
 
     const views = (
-      await this.xcVisibilityMetaGet({ ...args, args: { type: 'view' } })
+      await this.xcVisibilityMetaGet({
+        ...args,
+        args: { type: 'view', ...args.args }
+      })
     ).filter((view: any) => {
       return Object.keys(roles).some(
         role => roles[role] && !view.disabled[role]
@@ -4597,7 +4601,8 @@ export default class NcMetaMgr {
         case 'view':
           {
             // const views = (await sqlClient.viewList())?.data?.list;
-            const views = await this.xcMeta.metaList(
+
+            let views = await this.xcMeta.metaList(
               this.getProjectId(args),
               this.getDbAlias(args),
               'nc_models',
@@ -4608,8 +4613,26 @@ export default class NcMetaMgr {
               }
             );
 
+            if (args.args.force) {
+              views = (await sqlClient.viewList())?.data?.list?.map(view => {
+                return (
+                  views.find(mod => mod.title === view.view_name) ?? {
+                    title: view.view_name,
+                    alias: view.view_name
+                  }
+                );
+              });
+              const config = this.projectConfigs[this.getProjectId(args)];
+              views = config?.prefix
+                ? views.filter(t => {
+                    t.alias = t.title.replace(config?.prefix, '');
+                    return t.title.startsWith(config?.prefix);
+                  })
+                : views;
+            }
+
             const result = views.reduce((obj, view) => {
-              obj[view.view_name] = {
+              obj[view.view_name || view.title] = {
                 view_name: view.title,
                 _tn: view.alias,
                 disabled: { ...defaultDisabled }

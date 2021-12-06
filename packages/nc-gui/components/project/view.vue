@@ -1,8 +1,8 @@
 
 <template>
   <v-container class="pa-0 ma-0 h-100" fluid>
-    <v-tabs :key="!nodes.newView || created ? 'old' : 'new'" height="28" class="view-tab" color="pink">
-      <!--    <v-tab class="caption text-capitalize">
+    <!--    <v-tabs :key="!nodes.newView || created ? 'old' : 'new'" height="28" class="view-tab" color="pink">-->
+    <!--    <v-tab class="caption text-capitalize">
 
             <v-icon small>mdi-table-column</v-icon>&nbsp;
             Columns
@@ -63,7 +63,7 @@
             </template>
           </template>-->
 
-      <!--      <v-tab class="caption text-capitalize">
+    <!--      <v-tab class="caption text-capitalize">
               <v-icon small>mdi-shield-edit-outline</v-icon>&nbsp;
               ACL
             </v-tab>
@@ -72,26 +72,26 @@
                 :nodes="nodes"
               />
             </v-tab-item>-->
-      <template v-if="!nodes.newView || created">
+    <!--      <template v-if="!nodes.newView || created">
         <v-tab class="caption text-capitalize">
           <v-icon small>
             mdi-table-row
           </v-icon>&nbsp;
           Spreadsheet
         </v-tab>
-        <v-tab-item>
-          <!--        <rows-->
-          <!--          ref="tabs3"-->
-          <!--          :nodes="nodes"-->
-          <!--        />-->
-          <spreadsheet
-            class="h-100"
-            :nodes="nodes"
-          />
-        </v-tab-item>
-      </template>
+        <v-tab-item>-->
+    <!--        <rows-->
+    <!--          ref="tabs3"-->
+    <!--          :nodes="nodes"-->
+    <!--        />-->
+    <spreadsheet
+      class="h-100"
+      :nodes="nodes"
+    />
+    <!--        </v-tab-item>
+      </template>-->
 
-      <template v-if="_isUIAllowed('view-create')">
+    <!--      <template v-if="_isUIAllowed('view-create')">
         <v-tab class="caption text-capitalize">
           <v-icon small>
             mdi-database-edit
@@ -104,16 +104,16 @@
             @created="created = true"
           />
         </v-tab-item>
-      </template>
-    </v-tabs>
+      </template>-->
+    <!--    </v-tabs>-->
   </v-container>
 </template>
 
 <script>
 
 import { mapGetters } from 'vuex'
-import Spreadsheet from '@/components/project/viewTabs/viewSpreadsheet'
 import ViewQuery from './viewTabs/viewQuery'
+import Spreadsheet from '@/components/project/viewTabs/viewSpreadsheet'
 // import ViewColumns from './viewTabs/viewColumns'
 
 export default {

@@ -656,8 +656,8 @@
                                                               'projects.ext_db.credentials.advanced.inflection.table_name'
                                                             )
                                                           "
-                                                          multiple
-                                                          :items="['camelize']"
+                                                          single
+                                                          :items="['camelize', 'none']"
                                                         >
                                                           <template #item="{ item }">
                                                             <span class="caption">{{ item }}</span>
@@ -674,8 +674,8 @@
                                                               'projects.ext_db.credentials.advanced.inflection.column_name'
                                                             )
                                                           "
-                                                          multiple
-                                                          :items="['camelize']"
+                                                          single
+                                                          :items="['camelize', 'none']"
                                                         >
                                                           <template #item="{ item }">
                                                             <span class="caption">{{ item }}</span>
@@ -1113,8 +1113,8 @@ export default {
                     graphqlDepthLimit: 10
                   },
                   inflection: {
-                    tn: ['camelize'],
-                    cn: ['camelize']
+                    tn: 'none',
+                    cn: 'none'
                   }
                 },
                 ui: {
@@ -1709,8 +1709,8 @@ export default {
                 tn: 'nc_evolutions',
                 dbAlias: 'db',
                 inflection: {
-                  tn: ['camelize'],
-                  cn: ['camelize']
+                  tn: 'none',
+                  cn: 'none'
                 },
                 api: {
                   type: ''
@@ -1759,8 +1759,8 @@ export default {
           tn: 'nc_evolutions',
           dbAlias,
           inflection: {
-            tn: ['camelize'],
-            cn: ['camelize']
+            tn: 'none',
+            cn: 'none'
           },
           api: {
             type: ''

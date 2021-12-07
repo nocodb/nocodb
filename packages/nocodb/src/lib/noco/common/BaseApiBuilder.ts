@@ -1675,7 +1675,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     if (inflectionFns && inflectionFns !== 'none') {
       return inflectionFns
         .split(',')
-        .reduce((out, fn) => inflection[fn](out), name);
+        .reduce((out, fn) => inflection?.[fn]?.(out) ?? out, name);
     }
     return name;
   }

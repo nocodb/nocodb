@@ -184,7 +184,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <x-icon
-                          v-if="_isUIAllowed('treeview-add-button') && item.type !== 'viewDir'"
+                          v-if="_isUIAllowed('treeview-add-button')"
                           :color="['x-active', 'grey']"
                           small
                           v-on="on"
@@ -282,6 +282,19 @@
                                 </v-list-item-icon>
                                 <v-list-item-title>
                                   <span classs="caption">Rename</span>
+                                </v-list-item-title>
+                              </v-list-item>
+                              <v-list-item
+                                v-if="_isUIAllowed('table-delete')"
+                                dense @click="checkAndDeleteTable"
+                              >
+                                <v-list-item-icon>
+                                  <v-icon x-small>
+                                    mdi-delete-outline
+                                  </v-icon>
+                                </v-list-item-icon>
+                                <v-list-item-title>
+                                  <span classs="caption">Delete</span>
                                 </v-list-item-title>
                               </v-list-item>
                               <v-list-item v-if="_isUIAllowed('ui-acl')" dense @click="openUIACL">
@@ -843,6 +856,19 @@ export default {
           },
         });
       }, 100);
+    },
+    checkAndDeleteTable() {
+      console.log(this.meta)
+      console.log(this)
+      /* if (
+        !this.meta || (
+          (this.meta.hasMany && this.meta.hasMany.length) ||
+          (this.meta.manyToMany && this.meta.manyToMany.length) ||
+          (this.meta.belongsTo && this.meta.belongsTo.length))
+      ) {
+        return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
+      } */
+      this.deleteTable('showDialog')
     },
     setPreviewUSer(previewAs) {
       if (!process.env.EE) {

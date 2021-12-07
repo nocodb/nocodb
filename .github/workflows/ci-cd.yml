@@ -5,6 +5,9 @@ name: "CI/CD"
 on:
   push:
     branches: [master, cypress]
+    paths:
+      - "packages/nc-gui/**"
+      - "scripts/cypress/**"
   pull_request:
     branches: [master]
     paths:

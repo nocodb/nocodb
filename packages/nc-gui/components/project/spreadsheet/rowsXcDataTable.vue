@@ -380,7 +380,7 @@
             />
           </template>
         </div>
-        <template v-if="data && !isForm">
+        <template v-if="data && !isForm && !isKanban">
           <pagination
             v-model="page"
             :count="count"

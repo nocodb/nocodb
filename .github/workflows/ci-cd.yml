@@ -8,11 +8,13 @@ on:
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
+      - "packages/nocodb/**"
   pull_request:
     branches: [master]
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
+      - "packages/nocodb/**"
 
 jobs:
   cypress-restTableOps-run:

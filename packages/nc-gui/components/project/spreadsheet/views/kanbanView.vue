@@ -73,7 +73,7 @@
           </v-icon>
           Add a new record
         </x-btn>
-        <x-btn
+        <!-- <x-btn
           v-else
           outlined
           tooltip="New Stack"
@@ -86,7 +86,7 @@
             mdi-plus
           </v-icon>
             New Stack
-        </x-btn>
+        </x-btn> -->
       </div>
     </kanban-board>
   </v-container>
@@ -215,7 +215,7 @@ export default {
         this.stages.sort()
         this.stages.unshift(uncategorized) 
         // new stack column
-        this.stages.push("") 
+        // this.stages.push("") 
         this.clonedBlocks = this.blocks
         return Promise.resolve(this.clonedBlocks)
       } catch(e) {

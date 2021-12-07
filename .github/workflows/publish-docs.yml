@@ -19,11 +19,11 @@ jobs:
           echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep noco-docs) = noco-docs ]] && echo 'OK')" >> $GITHUB_ENV
 
       - uses: actions/setup-node@v2
-        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
+#        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         with:
           node-version: 14
       - name: Build docs
-        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
+#        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         run: |
           cd packages/noco-docs
           npm install
@@ -31,8 +31,8 @@ jobs:
 
 
       - name: Pushes generated output
-        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
-        uses: dmnemec/copy_file_to_another_repo_action@359a1f471b8afe754017e123da0aa01ad6b1d1ac
+#        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
+        uses: dmnemec/copy_file_to_another_repo_action@4b6da9b4101247054c69c1352e8ebb0e2a642424
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:

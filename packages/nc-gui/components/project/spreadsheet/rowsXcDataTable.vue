@@ -1092,7 +1092,7 @@ export default {
       this.$set(this.data[index].row, col._cn, null)
       await this.onCellValueChange(colIndex, index, col)
     },
-    async insertNewRow(atEnd = false, expand = false) {
+    async insertNewRow(atEnd = false, expand = false, predefinedValues = {}) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
       const focusCol = this.availableColumns.findIndex(c => !c.ai)
       this.data.splice(focusRow, 0, {
@@ -1107,7 +1107,9 @@ export default {
         },
         oldRow: {}
       })
-
+      if (predefinedValues) {
+        this.data[focusRow].row = {...this.data[focusRow].row, ...predefinedValues}
+      }
       this.selected = { row: focusRow, col: focusCol }
       this.editEnabled = { row: focusRow, col: focusCol }
 

@@ -66,7 +66,7 @@
           color="primary"
           class="primary"
           small
-          @click="insertNewRow(true, true)"
+          @click="insertNewRow(true, true, {[groupingField]: stage})"
         >
           <v-icon small left>
             mdi-plus
@@ -80,7 +80,7 @@
           color="primary"
           class="primary"
           small
-          @click="insertNewRow(true, true)"
+          @click="insertNewRow(true, true, {[groupingField]: stage})"
         >
           <v-icon small left>
             mdi-plus
@@ -268,8 +268,8 @@ export default {
       this.blocks = []
       this.clonedBlocks = []    
     },
-    insertNewRow(atEnd = false, expand = false) {
-      this.$emit('insertNewRow', atEnd, expand)
+    insertNewRow(atEnd = false, expand = false, predefinedValues = {}) {
+      this.$emit('insertNewRow', atEnd, expand, predefinedValues)
     },
   }
 }

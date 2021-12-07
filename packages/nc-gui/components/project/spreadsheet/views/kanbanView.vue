@@ -86,6 +86,10 @@
           </v-icon>
             New Stack
         </x-btn> -->
+
+        <div class="record-cnt">
+          {{ recordCnt[stage] }} {{ recordCnt[stage] > 1 ? "records" : "record" }}
+        </div>
       </div>
     </kanban-board>
   </v-container>
@@ -122,6 +126,7 @@ export default {
       stageColors: [],
       blocks: [],
       clonedBlocks: [],
+      recordCnt : {},
     }
   },
   async mounted() {
@@ -179,7 +184,7 @@ export default {
           });
           this.kanbanData = [...this.kanbanData, ...data]
         }
-        console.log(this.kanbanData)
+
         await this.setKanbanData()
 
       } catch (e) {
@@ -193,7 +198,8 @@ export default {
     async setKanbanData() {
       const uncategorized = "Uncategorized"
       try {
-        for(var i = 0; i < this.kanbanData.length; i++) {
+        const n = this.kanbanData.length
+        for(var i = 0; i < n; i++) {
           if(!this.kanbanData[i].id) {
             // skip empty record 
             // case: add a new record -> cancel -> empty row -> no id
@@ -206,6 +212,7 @@ export default {
             rowMeta: this.kanbanData[i].rowMeta,
             ...this.kanbanData[i]
           }
+          this.recordCnt[status] = (this.recordCnt[status] ?? 0) + 1
           this.blocks.push(block)
         }
         // remove depulicate items
@@ -265,7 +272,8 @@ export default {
       this.stages = []
       this.stageColors = []
       this.blocks = []
-      this.clonedBlocks = []    
+      this.clonedBlocks = []
+      this.recordCnt = {}
     },
     insertNewRow(atEnd = false, expand = false, predefinedValues = {}) {
       this.$emit('insertNewRow', atEnd, expand, predefinedValues)
@@ -317,7 +325,7 @@ export default {
   }
 
   .drag-column-footer {
-    padding: 20px 10px;
+    padding: 20px 10px 10px 10px;
     text-align: center;
   }
 
@@ -327,6 +335,12 @@ export default {
     padding: 0px 0px 0px 6px;
     min-width: 40px;
     min-height: 38px;
+  }
+
+  .drag-column-footer .record-cnt {
+    height: 38px;
+    line-height: 38px;
+    font-size: 15px;
   }
 
   .drag-column-footer .v-btn .mdi-plug::before {

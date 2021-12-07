@@ -657,7 +657,7 @@
                                                               'projects.ext_db.credentials.advanced.inflection.table_name'
                                                             )
                                                           "
-                                                          :items="['camelize', 'none']"
+                                                          :items="project.projectType === 'rest' ? ['camelize', 'none'] : ['camelize']"
                                                         >
                                                           <template #item="{ item }">
                                                             <span class="caption">{{ item }}</span>
@@ -675,7 +675,7 @@
                                                               'projects.ext_db.credentials.advanced.inflection.column_name'
                                                             )
                                                           "
-                                                          :items="['camelize', 'none']"
+                                                          :items="project.projectType === 'rest' ? ['camelize', 'none'] : ['camelize']"
                                                         >
                                                           <template #item="{ item }">
                                                             <span class="caption">{{ item }}</span>

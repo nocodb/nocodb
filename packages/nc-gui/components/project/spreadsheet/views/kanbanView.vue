@@ -71,7 +71,6 @@
           <v-icon small left>
             mdi-plus
           </v-icon>
-          Add a new record
         </x-btn>
         <!-- <x-btn
           v-else
@@ -320,6 +319,18 @@ export default {
   .drag-column-footer {
     padding: 20px 10px;
     text-align: center;
+  }
+
+  .drag-column-footer .v-btn {
+    border-radius: 50%;
+    border: 2px solid;
+    padding: 0px 0px 0px 6px;
+    min-width: 40px;
+    min-height: 38px;
+  }
+
+  .drag-column-footer .v-btn .mdi-plug::before {
+    font-weight: bold;
   }
 
   @media (max-width: 690px) {

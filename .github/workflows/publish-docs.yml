@@ -32,11 +32,12 @@ jobs:
 
       - name: Pushes generated output
         if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
-        uses: dmnemec/copy_file_to_another_repo_action@main
+        uses: dmnemec/copy_file_to_another_repo_action@359a1f471b8afe754017e123da0aa01ad6b1d1ac
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
           source_file: 'packages/noco-docs/dist/'
+          clear_folder: 'dist/*'
           destination_repo: 'nocodb/noco-docs'
           destination_folder: 'docs'
           user_email: 'oof1lab@gmail.com'

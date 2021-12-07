@@ -175,12 +175,13 @@ export default {
           return
         }
         const groupingColumnItems = groupingColumn.dtxp.split(",")
+        groupingColumnItems.push("Uncategorized")
         for(const groupingColumnItem of groupingColumnItems) {
           const { 
             data
           } =  await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
             limit: initialLimit,
-            where: `(${this.groupingField},eq,${groupingColumnItem.replace(/'/g, '')})`
+            where: groupingColumnItem == "Uncategorized" ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem.replace(/'/g, '')})`
           });
           this.kanbanData = [...this.kanbanData, ...data]
         }

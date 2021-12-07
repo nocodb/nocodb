@@ -37,7 +37,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
           source_file: 'packages/noco-docs/dist/'
-          clear_folder: 'dist/*'
+          clear_folder: 'dist'
           destination_repo: 'nocodb/noco-docs'
           destination_folder: 'docs'
           user_email: 'oof1lab@gmail.com'

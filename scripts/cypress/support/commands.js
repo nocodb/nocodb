@@ -121,7 +121,7 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
     .first()
     .click({ force: true });
 
-  cy.get(`.project-tab:contains(${tn}):visible`).should("exist");
+  cy.get(`.project-tab`).contains(tn, { timeout: 10000 }).should("exist");
 
   cy.get(".nc-project-tree")
     .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })

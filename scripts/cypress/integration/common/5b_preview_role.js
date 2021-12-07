@@ -24,6 +24,7 @@ export const genTest = (type, xcdb, roleType) => {
     // Sign in/ open project
     before(() => {
       loginPage.loginAndOpenProject(type, xcdb);
+      cy.openTableTab("City", 25);
     });
 
     after(() => {
@@ -44,7 +45,6 @@ export const genTest = (type, xcdb, roleType) => {
       it(`Role preview: ${roleType}: Enable preview`, () => {
         cy.get(`.nc-preview-${roleType}`).click();
 
-        cy.openTableTab("City", 25);
       });
 
       it(`Role preview: ${roleType}: Advance settings`, () => {

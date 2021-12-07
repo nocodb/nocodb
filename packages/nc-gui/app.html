@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html {{ HTML_ATTRS }}>
+<head {{ HEAD_ATTRS }}>
+  {{ HEAD }}
+</head>
+<body {{ BODY_ATTRS }}>
+{{ APP }}
+</body>
+<script>
+  setTimeout(() => {
+    if (document.getElementById('nuxt-loading')) {
+      if (!(window.$nuxt && window.$nuxt._isDev) && confirm('If you upgraded NocoDB, please click OK.')) {
+        window.location.reload(true)
+      }
+    }
+  }, 16000)
+</script>
+</html>

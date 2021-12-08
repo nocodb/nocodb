@@ -105,6 +105,13 @@
                   <!--                          </v-list-item>-->
                   <!--                        </v-list>-->
                 </v-col>
+
+                <v-col v-if="isSelect" cols="12">
+                  <custom-select-options
+                    v-model="newColumn.dtxp"
+                    @input="newColumn.altered = newColumn.altered || 2"
+                  />
+                </v-col>
                 <v-col v-if="accordion" cols="12" class="pt-0" :class="{'pb-0': advanceOptions}">
                   <div
                     class="pointer grey--text text-right caption nc-more-options"
@@ -116,6 +123,7 @@
                     </v-icon>
                   </div>
                 </v-col>
+
                 <v-col v-show="advanceOptions || !accordion" cols="12">
                   <v-row>
                     <template v-if="newColumn.uidt !== 'Formula'">
@@ -176,13 +184,6 @@
                           :is-m-s-s-q-l="isMSSQL"
                           :is-s-q-lite="isSQLite"
                           @onColumnSelect="onRelColumnSelect"
-                        />
-                      </v-col>
-
-                      <v-col v-if="isSelect" cols="12">
-                        <custom-select-options
-                          v-model="newColumn.dtxp"
-                          @input="newColumn.altered = newColumn.altered || 2"
                         />
                       </v-col>
 

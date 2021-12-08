@@ -105,100 +105,6 @@ export default class NcConfigFactory implements NcConfig {
     return config;
   }
 
-  public static makeOld(): NcConfig {
-    const config = new NcConfigFactory();
-
-    const dbUrls = Object.keys(process.env).filter(envKey =>
-      envKey.startsWith('NC_DB_URL')
-    );
-    // if (!dbUrls.length) {
-    //   return null
-    // }
-
-    for (const key of dbUrls.sort()) {
-      const dbConfig = this.urlToDbConfig(
-        process?.env?.[key],
-        key.slice(9),
-        config
-      );
-      config.envs['_noco'].db.push(dbConfig);
-      // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
-    }
-
-    if (process.env.NC_AUTH_ADMIN_SECRET) {
-      config.auth = {
-        masterKey: {
-          secret: process.env.NC_AUTH_ADMIN_SECRET
-        }
-      };
-    } else if (process.env.NC_NO_AUTH) {
-      config.auth = {
-        disabled: true
-      };
-      // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
-    } else if (config?.envs?.['_noco']?.db?.[0]) {
-      config.auth = {
-        jwt: {
-          // dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
-          dbAlias:
-            process.env.NC_AUTH_JWT_DB_ALIAS ||
-            config.envs['_noco'].db[0].meta.dbAlias,
-          secret: process.env.NC_AUTH_JWT_SECRET
-        }
-      };
-    }
-
-    if (process.env.NC_DB) {
-      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
-    }
-
-    if (process.env.NC_TRY) {
-      config.try = true;
-      config.meta.db = {
-        client: 'sqlite3',
-        connection: ':memory:',
-        pool: {
-          min: 1,
-          max: 1,
-          // disposeTimeout: 360000*1000,
-          idleTimeoutMillis: 360000 * 1000
-        }
-      } as any;
-    }
-
-    if (process.env.NC_MAILER) {
-      config.mailer = {
-        from: process.env.NC_MAILER_FROM,
-        options: {
-          host: process.env.NC_MAILER_HOST,
-          port: parseInt(process.env.NC_MAILER_PORT, 10),
-          secure: process.env.NC_MAILER_SECURE === 'true',
-          auth: {
-            user: process.env.NC_MAILER_USER,
-            pass: process.env.NC_MAILER_PASS
-          }
-        }
-      };
-    }
-
-    if (process.env.NC_PUBLIC_URL) {
-      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
-      // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
-      config.publicUrl = process.env.NC_PUBLIC_URL;
-    }
-
-    config.port = +(process?.env?.PORT ?? 8080);
-    // config.env = process.env?.NODE_ENV || 'dev';
-    // config.workingEnv = process.env?.NODE_ENV || 'dev';
-    config.env = '_noco';
-    config.workingEnv = '_noco';
-    config.toolDir = this.getToolDir();
-    config.projectType =
-      config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
-
-    return config;
-  }
-
   public static getToolDir() {
     return process.env.NC_TOOL_DIR || process.cwd();
   }
@@ -589,21 +495,6 @@ export default class NcConfigFactory implements NcConfig {
           idleTimeoutMillis: 360000 * 1000
         }
       } as any;
-    }
-
-    if (process.env.NC_MAILER) {
-      config.mailer = {
-        from: process.env.NC_MAILER_FROM,
-        options: {
-          host: process.env.NC_MAILER_HOST,
-          port: parseInt(process.env.NC_MAILER_PORT, 10),
-          secure: process.env.NC_MAILER_SECURE === 'true',
-          auth: {
-            user: process.env.NC_MAILER_USER,
-            pass: process.env.NC_MAILER_PASS
-          }
-        }
-      };
     }
 
     if (process.env.NC_PUBLIC_URL) {

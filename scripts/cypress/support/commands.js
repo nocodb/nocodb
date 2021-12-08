@@ -121,7 +121,7 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
     .first()
     .click({ force: true });
 
-  cy.get(`.project-tab:contains(${tn}):visible`).should("exist");
+  cy.get(`.project-tab`).contains(tn, { timeout: 10000 }).should("exist");
 
   cy.get(".nc-project-tree")
     .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
@@ -289,6 +289,42 @@ Cypress.Commands.add("toastWait", (msg) => {
   cy.get(".toasted:visible", { timout: 6000 })
     .contains(msg)
     .should("not.exist");
+});
+
+// vn: view name
+// rc: expected row count. validate row count if rc!=0
+Cypress.Commands.add("openViewsTab", (vn, rc) => {
+  cy.task("log", `[openViewsTab] ${vn} ${rc}`);
+
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Views)", { timeout: 10000 })
+    .should("exist")
+    .first()
+    .click();
+
+  cy.get(".nc-project-tree")
+    .contains(vn, { timeout: 6000 })
+    .first()
+    .click({ force: true });
+
+  cy.get(`.project-tab`).contains(vn, { timeout: 10000 }).should("exist");
+
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Views)", { timeout: 10000 })
+    .first()
+    .click();
+
+  // wait for page rendering to complete
+  if (rc != 0) {
+    cy.get(".nc-grid-row").should("have.length", rc);
+  }
+});
+
+Cypress.Commands.add("closeViewsTab", (vn) => {
+  cy.task("log", `[closeViewsTab] ${vn}`);
+  cy.get(`[href="#view||db||${vn}"]`)
+    .find("button.mdi-close")
+    .click({ force: true });
 });
 
 // Drag n Drop

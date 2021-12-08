@@ -1671,13 +1671,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   // table alias functions
-  protected getInflectedName(name: string, inflectionFns: string): string {
+  protected getInflectedName(_name: string, inflectionFns: string): string {
+    let name = _name;
     if (inflectionFns && inflectionFns !== 'none') {
-      return inflectionFns
+      name = inflectionFns
         .split(',')
-        .reduce((out, fn) => inflection[fn](out), name);
+        .reduce((out, fn) => inflection?.[fn]?.(out) ?? out, name);
     }
-    return name;
+    return this.apiType === 'graphql' ? name.replace(/[^_\da-z]/gi, '_') : name;
   }
 
   protected async getColumnList(tn: string): Promise<any[]> {

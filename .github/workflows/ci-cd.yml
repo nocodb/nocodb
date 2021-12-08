@@ -5,16 +5,25 @@ name: "CI/CD"
 on:
   push:
     branches: [master, cypress]
+    paths:
+      - "packages/nc-gui/**"
+      - "scripts/cypress/**"
+      - "packages/nocodb/**"
   pull_request:
     branches: [master]
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
+      - "packages/nocodb/**"
 
 jobs:
   cypress-restTableOps-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -47,6 +56,10 @@ jobs:
   cypress-restViews-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -79,6 +92,10 @@ jobs:
   cypress-restRoles-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -111,6 +128,10 @@ jobs:
   cypress-restMisc-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -143,6 +164,10 @@ jobs:
   cypress-gqlTableOps-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -175,6 +200,10 @@ jobs:
   cypress-gqlViews-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -207,6 +236,10 @@ jobs:
   cypress-gqlRoles-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -239,6 +272,10 @@ jobs:
   cypress-gqlMisc-run:
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Checkout
         uses: actions/checkout@v2
         with:

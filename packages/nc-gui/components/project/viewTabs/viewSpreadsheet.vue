@@ -133,6 +133,7 @@
 
           <template v-else-if="selectedView && (selectedView.type === 'view' || selectedView.show_as === 'grid' )">
             <xc-grid-view
+              :columns-width.sync="columnsWidth"
               :meta="meta"
               :data="data"
               :available-columns="availableColumns"
@@ -201,7 +202,7 @@
         :primary-value-column="primaryValueColumn"
         :concatenated-x-where="concatenatedXWhere"
         :sort="sort"
-
+        :columns-width.sync="columnsWidth"
         :selected-view-id.sync="selectedViewId"
         :selected-view.sync="selectedView"
         :filters.sync="filters"
@@ -276,6 +277,7 @@ export default {
     relationPrimaryValue: [String, Number]
   },
   data: () => ({
+    columnsWidth: null,
     syncDataDebounce: debounce(async function(self) {
       await self.syncData()
     }, 500),

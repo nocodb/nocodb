@@ -49,17 +49,20 @@ export default async({ store, redirect, $axios, $toast, route }) => {
     }
   )
 
-  // window.onNuxtReady(async () => {
-  console.log('===== Within nuxt ready handler =====')
-  await store.dispatch('project/ActLoadProjectInfo')
-  console.log('==== Projectinfo ', store.state.project.projectInfo)
-  if (!store.state.project.projectInfo.projectHasDb) {
-    redirect('/')
-  } else if (store.state.project.projectInfo.projectHasAdmin === false) {
-    redirect('/')
+  try {
+    // window.onNuxtReady(async () => {
+    console.log('===== Within nuxt ready handler =====')
+    await store.dispatch('project/ActLoadProjectInfo')
+    console.log('==== Projectinfo ', store.state.project.projectInfo)
+    if (!store.state.project.projectInfo.projectHasDb) {
+      redirect('/')
+    } else if (store.state.project.projectInfo.projectHasAdmin === false) {
+      redirect('/')
+    }
+    // })
+  } catch (e) {
+    console.log(e)
   }
-  // })
-
   // fetch latest release info
   const fetchReleaseInfo = async() => {
     try {

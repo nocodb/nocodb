@@ -166,12 +166,17 @@ export default {
     async fetchKanbanData() {
       try {
         if(!this.api) {
-          this.$toast.error(`API not found`).goAway(3000)
+          this.$toast.error(`API not found`, {
+            position: 'bottom-center'
+          }).goAway(3000)
           return
         }
         
         const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
         if(!groupingColumn) {
+          this.$toast.error(`Grouping column not found`, {
+            position: 'bottom-center'
+          }).goAway(3000)
           return
         }
 
@@ -198,12 +203,15 @@ export default {
         }
 
         await this.setKanbanData()
-
       } catch (e) {
         if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(e.response.data.msg).goAway(3000)
+          this.$toast.error(e.response.data.msg, {
+            position: 'bottom-center'
+          }).goAway(3000)
         } else {
-          this.$toast.error(`Error occurred : ${e.message}`).goAway(3000)
+          this.$toast.error(`Error occurred : ${e.message}`, {
+            position: 'bottom-center'
+          }).goAway(3000)
         }
       }
     },
@@ -240,13 +248,17 @@ export default {
     async updateBlock(id, status) {
       try {
         if(!this.api) {
-          this.$toast.error(`API not found`).goAway(3000)
+          this.$toast.error(`API not found`, {
+            position: 'bottom-center'
+          }).goAway(3000)
           return
         }
 
         const targetBlock = this.clonedBlocks.find(b => b.id === Number(id));
         if(!targetBlock) {
-          this.$toast.error(`Block with ID ${id} not found`).goAway(3000)
+          this.$toast.error(`Block with ID ${id} not found`, {
+            position: 'bottom-center'
+          }).goAway(3000)
           return
         }
 
@@ -267,12 +279,15 @@ export default {
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
         }).goAway(3000)
-
       } catch (e) {
         if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(e.response.data.msg).goAway(3000)
+          this.$toast.error(e.response.data.msg, {
+            position: 'bottom-center'
+          }).goAway(3000)
         } else {
-          this.$toast.error(`Failed to update block : ${e.message}`).goAway(3000)
+          this.$toast.error(`Failed to update block : ${e.message}`, {
+            position: 'bottom-center'
+          }).goAway(3000)
         }
       }
     },

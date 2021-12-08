@@ -30,8 +30,6 @@ import Noco from '../Noco';
 import { GqlApiBuilder } from '../gql/GqlApiBuilder';
 import NcPluginMgr from '../plugins/NcPluginMgr';
 import XcCache from '../plugins/adapters/cache/XcCache';
-import EmailFactory from '../plugins/adapters/email/EmailFactory';
-// import Twilio from '../plugins/adapters/twilio/Twilio';
 import { RestApiBuilder } from '../rest/RestApiBuilder';
 import RestAuthCtrl from '../rest/RestAuthCtrlEE';
 import { packageVersion } from 'nc-help';
@@ -4859,27 +4857,8 @@ export default class NcMetaMgr {
     });
   }
 
-  protected async xcPluginTest(req, args): Promise<any> {
-    try {
-      switch (args.args.category) {
-        case 'Email':
-          {
-            const emailIns = EmailFactory.createNewInstance(
-              args.args,
-              args.args.input
-            );
-            await emailIns.init();
-            await emailIns?.test(req.user?.email);
-          }
-          break;
-        default:
-          return this.pluginMgr.test(args.args);
-          break;
-      }
-      return true;
-    } catch (e) {
-      throw e;
-    }
+  protected async xcPluginTest(_req, args): Promise<any> {
+    return this.pluginMgr.test(args.args);
   }
 
   protected async xcPluginCreate(_args): Promise<any> {}

@@ -27,9 +27,8 @@ export default class EmailFactory {
         break;
       case 'SES':
         return new SES(input);
-        break;
       default:
-        return null;
+        throw new Error('Test not implemented');
         break;
     }
   }

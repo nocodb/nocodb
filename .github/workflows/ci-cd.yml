@@ -9,12 +9,14 @@ on:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
       - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
   pull_request:
     branches: [master]
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
       - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
 
 jobs:
   cypress-restTableOps-run:
@@ -41,13 +43,14 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/restTableOps.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
@@ -78,12 +81,15 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/restViews.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
@@ -114,12 +120,15 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/restRoles.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
@@ -150,12 +159,15 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/restMisc.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
@@ -186,12 +198,15 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/gqlTableOps.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
@@ -222,12 +237,15 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/gqlViews.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
@@ -258,12 +276,15 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/gqlRoles.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
@@ -294,12 +315,15 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: |
-            NODE_ENV=test npm run start:api
-            NODE_ENV=test npm run start:web
+            npm run start:api
+            npm run start:web
             docker-compose -f ./scripts/docker-compose-cypress.yml up -d
           spec: "./scripts/cypress/integration/test/gqlMisc.js"
           wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"

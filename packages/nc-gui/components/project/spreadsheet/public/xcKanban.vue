@@ -36,11 +36,10 @@ import spreadsheet from '../mixins/spreadsheet'
 import FieldsMenu from '../components/fieldsMenu'
 import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
-import XcGridView from '../views/xcGridView'
 import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
 export default {
   name: 'XcKanban',
-  components: { CsvExportImport, XcGridView, ColumnFilterMenu, SortListMenu, FieldsMenu },
+  components: { CsvExportImport, ColumnFilterMenu, SortListMenu, FieldsMenu },
   mixins: [spreadsheet],
   props: {
     env: String,
@@ -120,13 +119,13 @@ export default {
     modelName: null
   }),
   computed: {
-    
+
   },
   async mounted() {
     try {
       await this.loadMetaData()
       if (!this.showPasswordModal && !this.notFound) {
-        // TODO: load kanban data 
+        // TODO: load kanban data
       }
     } catch (e) {
       console.log(e)
@@ -151,7 +150,7 @@ export default {
           view_id: this.$route.params.id,
           password: this.password
         }])
-        
+
         this.fieldsOrder = qp.fieldsOrder || []
         this.viewName = view_name
         this.viewType = view_type
@@ -210,7 +209,7 @@ export default {
       }
 
       this.loadingData = false
-    },
+    }
   }
 }
 </script>

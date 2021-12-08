@@ -119,7 +119,7 @@ export default {
   computed: {
     origin() {
       return location.origin
-    },
+    }
   },
   created() {
     this.loadSharedViewsList()
@@ -163,19 +163,19 @@ export default {
       }
     },
     sharedViewUrl(view) {
-      var viewType
+      let viewType
       switch (view.view_type) {
-        case "form":
-          viewType = "form"
-          break;
-        case "kanban":
-          viewType = "kanban"
-          break;
+        case 'form':
+          viewType = 'form'
+          break
+        case 'kanban':
+          viewType = 'kanban'
+          break
         default:
-          viewType = "view"
+          viewType = 'view'
       }
       return `/nc/${viewType}/${view.view_id}`
-    },
+    }
   }
 }
 </script>

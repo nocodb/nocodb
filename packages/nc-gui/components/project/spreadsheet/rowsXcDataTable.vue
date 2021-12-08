@@ -730,7 +730,7 @@ export default {
       icon: 'mdi-ca rd'
     }],
     rowContextMenu: null,
-    presetValues: {},
+    presetValues: {}
   }),
   watch: {
     isActive(n, o) {
@@ -1099,7 +1099,7 @@ export default {
       this.data.splice(focusRow, 0, {
         row: this.relationType === 'hm'
           ? {
-            ...this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
+              ...this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
               [this.relation.cn]: this.relationIdValue
             }
           : this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
@@ -1108,7 +1108,7 @@ export default {
         },
         oldRow: {}
       })
-      
+
       this.selected = { row: focusRow, col: focusCol }
       this.editEnabled = { row: focusRow, col: focusCol }
       this.presetValues = presetValues
@@ -1254,7 +1254,7 @@ export default {
       return this.selectedView && this.selectedView.show_as === 'form'
     },
     isKanban() {
-      return this.selectedView && this.selectedView.show_as === 'kanban' 
+      return this.selectedView && this.selectedView.show_as === 'kanban'
     },
     meta() {
       return this.$store.state.meta.metas[this.table]

@@ -117,7 +117,7 @@ export default {
     'showSystemFields',
     'sqlUi',
     'groupingField',
-    'api',
+    'api'
   ],
   data() {
     return {
@@ -126,8 +126,9 @@ export default {
       stageColors: [],
       blocks: [],
       clonedBlocks: [],
-      recordCnt : {},
-      groupingColumnItems: []
+      recordCnt: {},
+      groupingColumnItems: [],
+      kanbanGroupingField: this.groupingField
     }
   },
   async mounted() {
@@ -135,7 +136,7 @@ export default {
   },
   watch: {
     async groupingField(newVal) {
-      this.groupingField = newVal
+      this.kanbanGroupingField = newVal
       this.reset()
       await this.fetchKanbanData()
     },
@@ -143,7 +144,7 @@ export default {
       // re-fetch the data if the data is modified in expanded form
       this.reset()
       await this.fetchKanbanData()
-    },
+    }
   },
   computed: {
     fields() {
@@ -152,53 +153,53 @@ export default {
       }
       if (this.showSystemFields) {
         return this.meta.columns || []
-      } 
+      }
       const hideCols = ['created_at', 'updated_at']
       return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
         !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
       ) || []
     },
     groupingFieldColumn() {
-      return this.fields.filter(o => o.alias == this.groupingField)[0]
+      return this.fields.filter(o => o.alias === this.kanbanGroupingField)[0]
     }
   },
   methods: {
     async fetchKanbanData() {
       try {
-        if(!this.api) {
-          this.$toast.error(`API not found`, {
+        if (!this.api) {
+          this.$toast.error('API not found', {
             position: 'bottom-center'
           }).goAway(3000)
           return
         }
-        
-        const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
-        if(!groupingColumn) {
-          this.$toast.error(`Grouping column not found`, {
+
+        const groupingColumn = this.meta.columns.find(c => c.cn === this.kanbanGroupingField)
+        if (!groupingColumn) {
+          this.$toast.error('Grouping column not found', {
             position: 'bottom-center'
           }).goAway(3000)
           return
         }
 
         const initialLimit = 25
-        const uncategorized = "Uncategorized"
-        
-        this.groupingColumnItems = groupingColumn.dtxp.split(",").map(c => {
+        const uncategorized = 'Uncategorized'
+
+        this.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
           const trimCol = c.replace(/'/g, '')
           this.recordCnt[trimCol] = 0
           return trimCol
         }).sort()
-        
+
         this.groupingColumnItems.unshift(uncategorized)
         this.recordCnt[uncategorized] = 0
-        
-        for(const groupingColumnItem of this.groupingColumnItems) {
-          const { 
+
+        for (const groupingColumnItem of this.groupingColumnItems) {
+          const {
             data
-          } =  await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+          } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
             limit: initialLimit,
-            where: groupingColumnItem == uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
-          });
+            where: groupingColumnItem === uncategorized ? `(${this.kanbanGroupingField},is,null)` : `(${this.kanbanGroupingField},eq,${groupingColumnItem})`
+          })
           this.kanbanData = [...this.kanbanData, ...data]
         }
 
@@ -216,16 +217,16 @@ export default {
       }
     },
     async setKanbanData() {
-      const uncategorized = "Uncategorized"
+      const uncategorized = 'Uncategorized'
       try {
         const n = this.kanbanData.length
-        for (var i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) {
           if (!this.kanbanData[i].id) {
-            // skip empty record 
+            // skip empty record
             // case: add a new record -> cancel -> empty row -> no id
             continue
           }
-          const status = this.kanbanData[i][this.groupingField] ?? uncategorized
+          const status = this.kanbanData[i][this.kanbanGroupingField] ?? uncategorized
           const block = {
             status,
             rowMeta: this.kanbanData[i].rowMeta,
@@ -236,45 +237,45 @@ export default {
         }
         // remove depulicate items
         this.stages = this.groupingColumnItems
-        
+
         // new stack column
-        // this.stages.push("") 
+        // this.stages.push("")
         this.clonedBlocks = this.blocks
         return Promise.resolve(this.clonedBlocks)
-      } catch(e) {
+      } catch (e) {
         return Promise.reject(e)
       }
     },
     async updateBlock(id, status) {
       try {
-        if(!this.api) {
-          this.$toast.error(`API not found`, {
+        if (!this.api) {
+          this.$toast.error('API not found', {
             position: 'bottom-center'
           }).goAway(3000)
           return
         }
 
-        const targetBlock = this.clonedBlocks.find(b => b.id === Number(id));
-        if(!targetBlock) {
+        const targetBlock = this.clonedBlocks.find(b => b.id === Number(id))
+        if (!targetBlock) {
           this.$toast.error(`Block with ID ${id} not found`, {
             position: 'bottom-center'
           }).goAway(3000)
           return
         }
 
-        if(targetBlock.status == status) {
+        if (targetBlock.status === status) {
           // no change
           return
         }
 
-        const uncategorized = "Uncategorized"
+        const uncategorized = 'Uncategorized'
         const prevStatus = targetBlock.status
-        const newData = await this.api.update(id, 
-        { [this.groupingField]: status == uncategorized ? null : status }, // new data
-        { [this.groupingField]: prevStatus }) // old data
+        await this.api.update(id,
+          { [this.kanbanGroupingField]: status === uncategorized ? null : status }, // new data
+          { [this.kanbanGroupingField]: prevStatus }) // old data
 
         targetBlock.status = status
-        targetBlock[this.groupingField] = (status == uncategorized ? null : status)
+        targetBlock[this.kanbanGroupingField] = (status === uncategorized ? null : status)
         this.$emit('loadTableData')
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
@@ -301,7 +302,7 @@ export default {
     },
     insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       this.$emit('insertNewRow', atEnd, expand, presetValues)
-    },
+    }
   }
 }
 </script>
@@ -390,7 +391,7 @@ export default {
     justify-content: space-between;
     width: 240px;
   }
-  
+
   .drag-column-header .set-item {
     margin-top: 20px !important;
   }

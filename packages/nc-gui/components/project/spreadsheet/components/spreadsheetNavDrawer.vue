@@ -583,16 +583,16 @@ export default {
       }
     },
     sharedViewUrl() {
-      var viewType
+      let viewType
       switch (this.shareLink.view_type) {
-        case "form":
-          viewType = "form"
-          break;
-        case "kanban":
-          viewType = "kanban"
-          break;
+        case 'form':
+          viewType = 'form'
+          break
+        case 'kanban':
+          viewType = 'kanban'
+          break
         default:
-          viewType = "view"
+          viewType = 'view'
       }
       return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.view_id}`
     }

@@ -2,7 +2,7 @@
   <v-container fluid>
     <kanban-board :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">
       <div v-for="stage in stages" :slot="stage" :key="stage" class="mx-auto">
-        <enum-cell v-if="stage" :value="stage" :column="groupingFieldColumn" />
+        <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
       <div v-for="(block) in clonedBlocks" :slot="block.id" :key="block.id" class="caption">
           <v-hover v-slot="{hover}">
@@ -127,6 +127,7 @@ export default {
       blocks: [],
       clonedBlocks: [],
       recordCnt : {},
+      groupingColumnItems: []
     }
   },
   async mounted() {
@@ -169,19 +170,29 @@ export default {
           return
         }
         
-        const initialLimit = 25
         const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
         if(!groupingColumn) {
           return
         }
-        const groupingColumnItems = groupingColumn.dtxp.split(",")
-        groupingColumnItems.push("Uncategorized")
-        for(const groupingColumnItem of groupingColumnItems) {
+
+        const initialLimit = 25
+        const uncategorized = "Uncategorized"
+        
+        this.groupingColumnItems = groupingColumn.dtxp.split(",").map(c => {
+          const trimCol = c.replace(/'/g, '')
+          this.recordCnt[trimCol] = 0
+          return trimCol
+        }).sort()
+        
+        this.groupingColumnItems.unshift(uncategorized)
+        this.recordCnt[uncategorized] = 0
+        
+        for(const groupingColumnItem of this.groupingColumnItems) {
           const { 
             data
           } =  await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
             limit: initialLimit,
-            where: groupingColumnItem == "Uncategorized" ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem.replace(/'/g, '')})`
+            where: groupingColumnItem == uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
           });
           this.kanbanData = [...this.kanbanData, ...data]
         }
@@ -200,27 +211,24 @@ export default {
       const uncategorized = "Uncategorized"
       try {
         const n = this.kanbanData.length
-        for(var i = 0; i < n; i++) {
-          if(!this.kanbanData[i].id) {
+        for (var i = 0; i < n; i++) {
+          if (!this.kanbanData[i].id) {
             // skip empty record 
             // case: add a new record -> cancel -> empty row -> no id
             continue
           }
           const status = this.kanbanData[i][this.groupingField] ?? uncategorized
-          if(status != uncategorized) this.stages.push(status)
           const block = {
             status,
             rowMeta: this.kanbanData[i].rowMeta,
             ...this.kanbanData[i]
           }
-          this.recordCnt[status] = (this.recordCnt[status] ?? 0) + 1
+          this.recordCnt[status] += 1
           this.blocks.push(block)
         }
         // remove depulicate items
-        this.stages = [...new Set(this.stages)]
-        // TODO: allow reorder the stacks
-        this.stages.sort()
-        this.stages.unshift(uncategorized) 
+        this.stages = this.groupingColumnItems
+        
         // new stack column
         // this.stages.push("") 
         this.clonedBlocks = this.blocks
@@ -290,7 +298,7 @@ export default {
   }
 
   ul.drag-inner-list {
-    max-height: 500px;
+    height: 400px;
     overflow-y: scroll;
   }
 
@@ -373,9 +381,7 @@ export default {
   }
 
   .drag-item {
-    // padding: 10px;
     margin: 10px;
-    //height: 100px;
     background: var(--v-backgroundColor-lighten2);
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     border-radius: 4px;

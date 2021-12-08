@@ -6,7 +6,6 @@
           v-model="tabs1.tab"
           background-color=""
           class="elevation-2"
-          dark
         >
           <v-tabs-slider />
 
@@ -15,7 +14,7 @@
             :key="i"
             :href="`#tab-${i}`"
           >
-            {{ t.title }}
+            <span class="caption text-capitalize">{{ t.title }}</span>
           </v-tab>
 
           <v-tab-item
@@ -42,9 +41,9 @@
 
               <v-row align="center">
                 <v-col md="8" offset-md="2">
-                  <p class="display-1">
+                  <!--                  <p class="title">
                     Change Password
-                  </p>
+                  </p>-->
 
                   <div>
                     <v-alert v-model="formUtil.formErr" type="error" dismissible>
@@ -52,12 +51,12 @@
                     </v-alert>
                   </div>
 
-                  <br>
-
                   <v-card class="pa-5 elevation-10" color="">
                     <v-form ref="formType" v-model="valid" lazy-validation>
                       <v-text-field
                         v-model="passwordDetails.currentPassword"
+                        dense
+                        class="caption"
                         name="input-10-2"
                         label="Currrent password"
                         :append-icon="e3 ? 'visibility' : 'visibility_off'"
@@ -68,6 +67,8 @@
 
                       <v-text-field
                         v-model="passwordDetails.newPassword"
+                        dense
+                        class="caption"
                         name="input-10-2"
                         label="New password"
                         :append-icon="e4 ? 'visibility' : 'visibility_off'"
@@ -78,6 +79,8 @@
 
                       <v-text-field
                         v-model="passwordDetails.verifyPassword"
+                        dense
+                        class="caption"
                         name="input-10-2"
                         label="Confirm new password"
                         :append-icon="e5 ? 'visibility' : 'visibility_off'"
@@ -87,8 +90,8 @@
                       />
 
                       <v-btn
+                        class="caption"
                         color="primary"
-                        large
                         :disabled="!valid"
                         @click="resetUserPassword"
                       >
@@ -99,7 +102,7 @@
                 </v-col>
               </v-row>
             </v-card>
-            <v-card
+            <!--            <v-card
               v-if="t.type==='subscription'"
               class="py-10 px-4"
               flat
@@ -136,7 +139,7 @@
                         </td>
                       </tr>
                     </template>
-                    <tr v-else class="grey--text">
+                    <tr v-else class="grey&#45;&#45;text">
                       <td colspan="3">
                         No subscription found.
                       </td>
@@ -146,23 +149,23 @@
               </v-simple-table>
 
               <v-row class="text-center">
-                <v-btn class="mx-auto orange-gradient white--text" @click="getSubscriptions">
+                <v-btn class="mx-auto orange-gradient white&#45;&#45;text" @click="getSubscriptions">
                   <v-icon>mdi-refresh</v-icon>&nbsp; Refresh
                 </v-btn>
               </v-row>
 
-              <!--            <v-btn @click.prevent="getSubscriptions">Show Subscriptions</v-btn>-->
-              <!--            <pre v-if="subscriptions.length">-->
-              <!--              <div v-for="(s,i) in subscriptions" :key="i">-->
-              <!--              plan : {{s.plan_id}}-->
-              <!--              subscription : {{s.subscription_id}}-->
-              <!--                users_id : {{s.fk_users_id}}-->
-              <!--                created : {{s.created_at}}-->
-              <!--                s : {{JSON.parse(s.api_response).subscription}}-->
-              <!--                s : {{new Date(JSON.parse(s.api_response).subscription.current_term_end * 1000).toLocaleDateString()}}-->
-              <!--              </div>-->
-              <!--            </pre>-->
-            </v-card>
+              &lt;!&ndash;            <v-btn @click.prevent="getSubscriptions">Show Subscriptions</v-btn>&ndash;&gt;
+              &lt;!&ndash;            <pre v-if="subscriptions.length">&ndash;&gt;
+              &lt;!&ndash;              <div v-for="(s,i) in subscriptions" :key="i">&ndash;&gt;
+              &lt;!&ndash;              plan : {{s.plan_id}}&ndash;&gt;
+              &lt;!&ndash;              subscription : {{s.subscription_id}}&ndash;&gt;
+              &lt;!&ndash;                users_id : {{s.fk_users_id}}&ndash;&gt;
+              &lt;!&ndash;                created : {{s.created_at}}&ndash;&gt;
+              &lt;!&ndash;                s : {{JSON.parse(s.api_response).subscription}}&ndash;&gt;
+              &lt;!&ndash;                s : {{new Date(JSON.parse(s.api_response).subscription.current_term_end * 1000).toLocaleDateString()}}&ndash;&gt;
+              &lt;!&ndash;              </div>&ndash;&gt;
+              &lt;!&ndash;            </pre>&ndash;&gt;
+            </v-card>-->
           </v-tab-item>
         </v-tabs>
       </v-col>
@@ -191,10 +194,12 @@ export default {
         tabs: [{
           type: 'password',
           title: 'Change Password'
-        }, {
-          type: 'subscription',
-          title: 'Subscriptions'
-        }]
+        }
+        // , {
+        //   type: 'subscription',
+        //   title: 'Subscriptions'
+        // }
+        ]
       },
 
       subscriptions: [],
@@ -276,9 +281,9 @@ export default {
     },
 
     async getSubscriptions(e) {
-      console.log('get subs')
-      const data = await this.$store.dispatch('users/ActGetSubscriptionsList')
-      this.subscriptions = data
+      // console.log('get subs')
+      // const data = await this.$store.dispatch('users/ActGetSubscriptionsList')
+      // this.subscriptions = data
     }
   },
   beforeCreated() {

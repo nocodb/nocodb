@@ -156,14 +156,10 @@ And connection params for this database can be specified in `NC_DB` environment 
 | NC_EXPORT_MAX_TIMEOUT | No | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches | Default value 5000(in millisecond) will be used  |
 | DB_QUERY_LIMIT_MAX | No | Maximum allowed pagination limit | 100 |
 | NC_DASHBOARD_URL | No | Custom dashboard url path | `/dashboard` |
-
-[comment]: <> (| NC_GITHUB_CLIENT_ID | No | Github client id to enable github authentication |  |)
-
-[comment]: <> (| NC_GITHUB_CLIENT_SECRET | No | Github client secret to enable github authentication |  |)
-
-[comment]: <> (| NC_GOOGLE_CLIENT_ID | No | Google client id to enable google authentication |  |)
-
-[comment]: <> (| NC_GOOGLE_CLIENT_SECRET | No | Google client secret to enable google authentication |  |)
+| NC_GITHUB_CLIENT_ID | No | Github client id to enable github authentication |  |
+| NC_GITHUB_CLIENT_SECRET | No | Github client secret to enable github authentication |  |
+| NC_GOOGLE_CLIENT_ID | No | Google client id to enable google authentication |  |
+| NC_GOOGLE_CLIENT_SECRET | No | Google client secret to enable google authentication |  |
 | NC_DASHBOARD_URL | No | Custom dashboard url path | `/dashboard` |
 | NC_INVITE_ONLY_SIGNUP | No | Allow users to signup only via invite url, value should be any non-empty string. |  |
 | NC_JWT_EXPIRES_IN | No | JWT token expiry time | `10h` |

@@ -1676,7 +1676,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     if (inflectionFns && inflectionFns !== 'none') {
       name = inflectionFns
         .split(',')
-        .reduce((out, fn) => inflection?.[fn]?.(out) ?? out, name);
+        .reduce((out, fn) => inflection?.[fn]?.(out) || out, name);
     }
     return this.apiType === 'graphql' ? name.replace(/[^_\da-z]/gi, '_') : name;
   }

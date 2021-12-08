@@ -110,6 +110,8 @@ Cypress.Commands.add("openOrCreateRestProject", (_args) => {
 // tn: table name
 // rc: row count. validate row count if rc!=0
 Cypress.Commands.add("openTableTab", (tn, rc) => {
+  cy.task("log", `[openTableTab] ${tn} ${rc}`);
+
   cy.get(".nc-project-tree")
     .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
     .should("exist")
@@ -135,6 +137,7 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
 });
 
 Cypress.Commands.add("closeTableTab", (tn) => {
+  cy.task("log", `[closeTableTab] ${tn}`);
   cy.get(`[href="#table||db||${tn}"]`).find("button.mdi-close").click();
 });
 

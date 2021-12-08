@@ -573,6 +573,7 @@
         :nodes="nodes"
         :query-params="queryParams"
         :show-next-prev="true"
+        :preset-values="presetValues"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"
@@ -728,7 +729,8 @@ export default {
       size: 'xlarge',
       icon: 'mdi-ca rd'
     }],
-    rowContextMenu: null
+    rowContextMenu: null,
+    presetValues: {},
   }),
   watch: {
     isActive(n, o) {
@@ -797,7 +799,6 @@ export default {
     }
     this.searchField = this.primaryValueColumn
     this.dataLoaded = true
-
     // await this.loadViews();
   },
   methods: {
@@ -1092,26 +1093,25 @@ export default {
       this.$set(this.data[index].row, col._cn, null)
       await this.onCellValueChange(colIndex, index, col)
     },
-    async insertNewRow(atEnd = false, expand = false, predefinedValues = {}) {
+    async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
       const focusCol = this.availableColumns.findIndex(c => !c.ai)
       this.data.splice(focusRow, 0, {
         row: this.relationType === 'hm'
           ? {
-              ...this.fieldList.reduce((o, f) => ({ ...o, [f]: null }), {}),
+            ...this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
               [this.relation.cn]: this.relationIdValue
             }
-          : this.fieldList.reduce((o, f) => ({ ...o, [f]: null }), {}),
+          : this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
         rowMeta: {
           new: true
         },
         oldRow: {}
       })
-      if (predefinedValues) {
-        this.data[focusRow].row = {...this.data[focusRow].row, ...predefinedValues}
-      }
+      
       this.selected = { row: focusRow, col: focusCol }
       this.editEnabled = { row: focusRow, col: focusCol }
+      this.presetValues = presetValues
 
       if (expand) {
         const { rowMeta } = this.data[this.data.length - 1]

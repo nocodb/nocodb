@@ -276,8 +276,8 @@ export default {
       this.clonedBlocks = []
       this.recordCnt = {}
     },
-    insertNewRow(atEnd = false, expand = false, predefinedValues = {}) {
-      this.$emit('insertNewRow', atEnd, expand, predefinedValues)
+    insertNewRow(atEnd = false, expand = false, presetValues = {}) {
+      this.$emit('insertNewRow', atEnd, expand, presetValues)
     },
   }
 }

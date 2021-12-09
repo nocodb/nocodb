@@ -33,6 +33,11 @@
 }
 
 
+.sortable-drag {
+  border: 2px solid var(--v-backgroundColor-base) !important;
+  border-radius: 2px;
+}
+
 .v-treeview--dense .v-treeview-node {
   /*margin-left: 12px !important;*/
 }
@@ -278,6 +283,7 @@ tbody tr:nth-of-type(odd) {
   height: calc(100% - 30px);
   overflow: auto;
 }
+
 .table-tabs.hidden-tab > .v-tabs-items {
   height: 100%;
   overflow: auto;
@@ -383,7 +389,7 @@ td .v-input--selection-controls {
   height: 100%;
 }
 
-.scroll-auto{
+.scroll-auto {
   overflow: auto;
 }
 
@@ -443,7 +449,7 @@ input, textarea, select {
 }
 
 /* Toast css */
-.toasted .primary, .toasted.toasted-primary{
+.toasted .primary, .toasted.toasted-primary {
   font-family: "Roboto", sans-serif !important;
   font-weight: 400 !important;
 }
@@ -482,6 +488,6 @@ body.dark .toasted .primary.info, body.dark .toasted.toasted-primary.info {
 }
 
 
-.v-date-picker-table{
-  height:auto !important;
+.v-date-picker-table {
+  height: auto !important;
 }

@@ -200,6 +200,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       offset?: number;
       xcCondition?;
       fields?: string[];
+      orderBy?: { [key: string]: 'asc' | 'desc' };
     }
   ): Promise<any[]> {
     const query = this.knexConnection(target);
@@ -224,6 +225,11 @@ export default class NcMetaIOImpl extends NcMetaIO {
       (query as any).condition(args.xcCondition);
     }
 
+    if (args?.orderBy) {
+      for (const [col, dir] of Object.entries(args.orderBy)) {
+        query.orderBy(col, dir);
+      }
+    }
     if (args?.fields?.length) {
       query.select(...args.fields);
     }

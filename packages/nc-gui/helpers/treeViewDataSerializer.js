@@ -344,6 +344,9 @@ function tableParser(data = [], dbKey, env, dbAlias, dbConnection) {
     const json = {
       type: "table",
       name: table._tn,
+      tn: table.tn,
+      _tn: table._tn,
+      order: table.order,
       key: tableDirKey + "." + i,
       children: [],
       _nodes: {
@@ -385,6 +388,8 @@ function viewsParser(data = [], dbKey, env, dbAlias, dbConnection) {
     const viewKey = `${viewDirKey}.${i}`;
     const json = {
       type: "view",
+      tn: view.tn || view.view_name,
+      _tn: view._tn,
       name: view._tn || view.view_name,
       key: viewDirKey + "." + i,
       children: [],

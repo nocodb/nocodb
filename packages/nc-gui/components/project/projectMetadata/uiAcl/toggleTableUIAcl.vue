@@ -128,7 +128,7 @@ export default {
         dbAlias: this.db.meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
       }, 'xcVisibilityMetaGet', {
-        type: 'table'
+        type: 'all'
       }]))
     },
     async save() {
@@ -136,8 +136,7 @@ export default {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
           env: this.$store.getters['project/GtrEnv']
-        }, 'xcVisibilityMetaSet', {
-          type: 'table',
+        }, 'xcVisibilityMetaSetAll', {
           disableList: this.tables.filter(t => t.edited)
         }])
         this.$toast.success('Updated UI ACL for tables successfully').goAway(3000)

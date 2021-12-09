@@ -355,6 +355,18 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     let tables;
     const swaggerRefs: { [table: string]: any[] } = {};
 
+    let order =
+      (
+        await this.xcMeta
+          .knex('nc_models')
+          .where({
+            project_id: this.projectId,
+            db_alias: this.dbAlias
+          })
+          .max('order as max')
+          .first()
+      )?.max || 0;
+
     /* Get all relations */
     const relations = await this.relationsSyncAndGet();
 
@@ -508,6 +520,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             this.dbAlias,
             'nc_models',
             {
+              order: ++order,
+              view_order: 1,
               title: table.tn,
               alias: meta._tn,
               meta: JSON.stringify(meta),

@@ -396,6 +396,76 @@ export default class NcMetaMgrEE extends NcMetaMgr {
     }
   }
 
+  protected async xcVisibilityMetaSetAll(args) {
+    try {
+      for (const d of args.args.disableList) {
+        const field = 'tn';
+        const props = {};
+
+        for (const role of Object.keys(d.disabled)) {
+          const dataInDb = await this.xcMeta.metaGet(
+            this.getProjectId(args),
+            this.getDbAlias(args),
+            'nc_disabled_models_for_role',
+            {
+              type: d.type,
+              title: d[field],
+              role,
+              ...props
+            }
+          );
+          if (dataInDb) {
+            if (d.disabled[role]) {
+              if (!dataInDb.disabled) {
+                await this.xcMeta.metaUpdate(
+                  this.getProjectId(args),
+                  this.getDbAlias(args),
+                  'nc_disabled_models_for_role',
+                  {
+                    disabled: d.disabled[role]
+                  },
+                  {
+                    type: args.args.type,
+                    title: d[field],
+                    role,
+                    ...props
+                  }
+                );
+              }
+            } else {
+              await this.xcMeta.metaDelete(
+                this.getProjectId(args),
+                this.getDbAlias(args),
+                'nc_disabled_models_for_role',
+                {
+                  type: args.args.type,
+                  title: d[field],
+                  role,
+                  ...props
+                }
+              );
+            }
+          } else if (d.disabled[role]) {
+            await this.xcMeta.metaInsert(
+              this.getProjectId(args),
+              this.getDbAlias(args),
+              'nc_disabled_models_for_role',
+              {
+                disabled: d.disabled[role],
+                type: args.args.type,
+                title: d[field],
+                role,
+                ...props
+              }
+            );
+          }
+        }
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+
   protected async xcAuditList(args): Promise<any> {
     return this.xcMeta.metaPaginatedList(
       this.getProjectId(args),

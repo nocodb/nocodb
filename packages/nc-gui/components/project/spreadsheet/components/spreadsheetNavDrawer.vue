@@ -552,6 +552,7 @@ export default {
     showSystemFields: Boolean
   },
   data: () => ({
+    drag: false,
     dragOptions: {
       animation: 200,
       group: 'description',

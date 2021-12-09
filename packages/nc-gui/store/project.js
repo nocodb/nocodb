@@ -313,7 +313,7 @@ export const actions = {
           env: data._nodes.env,
           dbAlias: data._nodes.dbAlias
         },
-        "tableList", {includeM2M: rootState.windows.includeM2M}
+        "xcTableAndViewList", {includeM2M: rootState.windows.includeM2M}
       ], {root: true});
 
 

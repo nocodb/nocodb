@@ -1481,8 +1481,8 @@ export default class NcMetaMgr {
           result = await this.xcVisibilityMetaSetAll(args);
           break;
 
-        case 'tableList':
-          result = await this.xcTableList(req, args);
+        case 'xcTableAndViewList':
+          result = await this.xcTableAndViewList(req, args);
           break;
 
         case 'columnList':
@@ -4819,13 +4819,13 @@ export default class NcMetaMgr {
                 xcCondition: {
                   _or: [
                     {
-                      type: 'table'
+                      type: { eq: 'table' }
                     },
                     {
-                      type: 'view'
+                      type: { eq: 'view' }
                     },
                     {
-                      type: 'vtable'
+                      type: { eq: 'vtable' }
                     }
                   ]
                 }
@@ -4839,7 +4839,8 @@ export default class NcMetaMgr {
                 order: table.order,
                 disabled: { ...defaultDisabled },
                 type: table.type,
-                show_as: table.show_as
+                show_as: table.show_as,
+                ptn: table.parent_model_title
               };
               return obj;
             }, {});
@@ -4852,13 +4853,13 @@ export default class NcMetaMgr {
                 xcCondition: {
                   _or: [
                     {
-                      type: 'table'
+                      type: { eq: 'table' }
                     },
                     {
-                      type: 'view'
+                      type: { eq: 'view' }
                     },
                     {
-                      type: 'vtable'
+                      type: { eq: 'vtable' }
                     }
                   ]
                 }
@@ -4874,6 +4875,70 @@ export default class NcMetaMgr {
                 b?.parent_model_title || b?.tn
               )
             );
+          }
+          break;
+        case 'table_view':
+          {
+            const models = await this.xcMeta.metaList(
+              this.getProjectId(args),
+              this.getDbAlias(args),
+              'nc_models',
+              {
+                condition: {
+                  ...(args?.args?.includeM2M ? {} : { mm: null })
+                },
+                xcCondition: {
+                  _or: [
+                    {
+                      type: { eq: 'table' }
+                    },
+                    {
+                      type: { eq: 'view' }
+                    }
+                  ]
+                },
+                orderBy: {
+                  order: 'asc'
+                }
+              }
+            );
+
+            const result = models.reduce((obj, table) => {
+              obj[table.title] = {
+                tn: table.title,
+                _tn: table.alias || table.title,
+                order: table.order,
+                disabled: { ...defaultDisabled },
+                type: table.type,
+                show_as: table.show_as,
+                ptn: table.parent_model_title
+              };
+              return obj;
+            }, {});
+
+            const disabledList = await this.xcMeta.metaList(
+              args.project_id,
+              this.getDbAlias(args),
+              'nc_disabled_models_for_role',
+              {
+                xcCondition: {
+                  _or: [
+                    {
+                      type: { eq: 'table' }
+                    },
+                    {
+                      type: { eq: 'view' }
+                    }
+                  ]
+                }
+              }
+            );
+
+            for (const d of disabledList) {
+              result[d.title].disabled[d.role] = !!d.disabled;
+            }
+
+            return Object.values(result);
           }
           break;
       }
@@ -5228,6 +5293,23 @@ export default class NcMetaMgr {
       RootDB: this.config?.meta?.db?.client,
       PackageVersion: packageVersion
     };
+  }
+
+  protected async xcTableAndViewList(req, args): Promise<any> {
+    const roles = req.session?.passport?.user?.roles;
+
+    let tables = await this.xcVisibilityMetaGet({
+      ...args,
+      args: { type: 'table_view', ...args.args }
+    });
+
+    tables = tables.filter((table: any) => {
+      return Object.keys(roles).some(
+        role => roles[role] && !table.disabled[role]
+      );
+    });
+
+    return { data: { list: tables } };
   }
 
   protected async xcVirtualTableList(args, req): Promise<any> {

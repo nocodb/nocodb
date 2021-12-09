@@ -229,6 +229,7 @@
                           <v-icon small class="nc-child-draggable-icon">
                             mdi-drag-vertical
                           </v-icon>
+
                           <v-list-item-icon>
                             <v-icon
                               v-if="icons[child._nodes.type].openIcon"
@@ -716,6 +717,7 @@ export default {
     dlgLabelSubmitCancel,
   },
   data: () => ({
+    drag:false,
     dragOptions:{
       animation: 200,
       group: "description",

@@ -89,7 +89,7 @@ We use ``Lerna`` to manage multi-packages. We have the following [packages](http
 
 ## Contributions
 
-All contributions are welcome. NocoDB projects can be found in the [NocoDB](https://github.com/nocodb) Github organization. Our core uses [The AGPL V3 license](https://github.com/nocodb/nocodb/blob/master/LICENSE) and all contributors should read the [contribution guides](https://github.com/nocodb/nocodb/tree/master/contribute) before making your first contribution. 
+All contributions are welcome. NocoDB projects can be found in the [NocoDB](https://github.com/nocodb) Github organization. Our core uses [The AGPL V3 license](https://github.com/nocodb/nocodb/blob/master/LICENSE) and all contributors should read the [contribution guides](https://github.com/nocodb/nocodb/tree/master/scripts/contribute) before making your first contribution. 
 
 You can also share your thoughts and discuss with our community members via [discord](https://discord.gg/5RgZmkW) or [Github Discussion](https://github.com/nocodb/nocodb/discussions). We also share our [Immediate Roadmap](https://github.com/nocodb/nocodb/projects/1) and all opinions are welcome.
 

@@ -368,7 +368,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       )?.max || 0;
 
     /* Get all relations */
-    const relations = await this.relationsSyncAndGet();
+    let [relations, missingRelations] = await this.getRelationsAndMissingRelations()
+    relations = relations.concat(missingRelations);
 
     // set table name alias
     relations.forEach(r => {
@@ -450,6 +451,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       r._tn = this.getTableNameAlias(r.tn);
       r._rtn = this.getTableNameAlias(r.rtn);
     });
+
+    this.syncRelations()
 
     const tableRoutes = tables.map(table => {
       return async () => {

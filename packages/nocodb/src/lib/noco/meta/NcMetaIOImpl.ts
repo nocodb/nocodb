@@ -234,8 +234,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
       query.select(...args.fields);
     }
 
-    console.log('======', query.toQuery());
-
     return query;
   }
 

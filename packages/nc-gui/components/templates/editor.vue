@@ -468,7 +468,7 @@
                     Click to change gradient
                   </div>-->
                   <template v-if="!excelImport">
-                    <gradient-generator v-model="project.image_url" class=" d-100" />
+                    <gradient-generator v-model="project.image_url" class=" d-100 mt-4" />
 
                     <v-row>
                       <v-col>

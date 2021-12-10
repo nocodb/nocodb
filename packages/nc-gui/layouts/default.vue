@@ -48,7 +48,7 @@
           href="https://docs.nocodb.com"
           target="_blank"
         >Docs</a>
-        <!--        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" class="align-self-center" />-->
+        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" v-model="templateModal" class="align-self-center" />
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 
@@ -581,9 +581,11 @@ import { copyTextToClipboard } from '@/helpers/xutils'
 import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
 import Loader from '~/components/loader'
+import TemplatesModal from '~/components/templates/templatesModal'
 
 export default {
   components: {
+    TemplatesModal,
     Loader,
     ReleaseInfo,
     Language,
@@ -596,6 +598,7 @@ export default {
     xTerm
   },
   data: () => ({
+    templateModal: false,
     ghStarText: 'Star',
     swaggerOrGraphiqlUrl: null,
     showScreensaver: false,

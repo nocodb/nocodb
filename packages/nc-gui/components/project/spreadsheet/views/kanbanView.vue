@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col v-for="idx in 5" :key="idx">
-        <v-skeleton-loader v-if="loadingData" :loading="loading" type="image@3"></v-skeleton-loader>
+        <v-skeleton-loader v-if="loadingData" type="image@3"></v-skeleton-loader>
       </v-col>
     </v-row>
     <kanban-board v-show="!loadingData" :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">

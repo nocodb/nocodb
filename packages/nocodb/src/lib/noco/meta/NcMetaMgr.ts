@@ -1485,6 +1485,10 @@ export default class NcMetaMgr {
           result = await this.xcTableAndViewList(req, args);
           break;
 
+        case 'tableList':
+          result = await this.xcTableList(req, args);
+          break;
+
         case 'columnList':
           result = await this.xcColumnList(args);
           break;

@@ -1898,10 +1898,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       // create count loader with middleware
       {
         const mw = new GqlMiddleware(this.acls, tnc, '', this.models);
-        this.addHmListResolverMethodToType(
-          tnp,
-          hm,
+        this.addHmCountResolverMethodToType(
           mw,
+          hm,
+          tnp,
           {},
           countPropName,
           this.models[hm.rtn]?.columnToAlias[hm.rcn]

@@ -2002,23 +2002,27 @@ class BaseModelSql extends BaseModel {
 
       const childs = await this._run(
         this._paginateAndSort(
-          this.dbDriver.union(
-            ids.map(p => {
-              const query = this.dbDriver(this.dbModels[child].tnPath)
-                .where({ [cn]: p })
-                .conditionGraph(conditionGraph)
-                .xwhere(where, this.selectQuery(''))
-                // .select(...fields.split(','));
-                .select(this.dbModels?.[child]?.selectQuery(fields));
+          this.dbDriver.queryBuilder().from(
+            this.dbDriver
+              .union(
+                ids.map(p => {
+                  const query = this.dbDriver(this.dbModels[child].tnPath)
+                    .where({ [cn]: p })
+                    .conditionGraph(conditionGraph)
+                    .xwhere(where, this.selectQuery(''))
+                    // .select(...fields.split(','));
+                    .select(this.dbModels?.[child]?.selectQuery(fields));
 
-              this._paginateAndSort(query, { limit, offset }, child);
-              return this.isSqlite()
-                ? this.dbDriver.select().from(query)
-                : query;
-            }),
-            !this.isSqlite()
+                  this._paginateAndSort(query, { limit, offset }, child);
+                  return this.isSqlite()
+                    ? this.dbDriver.select().from(query)
+                    : query;
+                }),
+                !this.isSqlite()
+              )
+              .as('list')
           ),
-          { sort, limit: 1000 } as any,
+          { sort, ignoreLimit: true } as any,
           child
         )
       );
@@ -2093,11 +2097,17 @@ class BaseModelSql extends BaseModel {
    */
   _paginateAndSort(
     query,
-    { limit = 20, offset = 0, sort = '' }: XcFilter,
+    {
+      limit = 20,
+      offset = 0,
+      sort = '',
+      ignoreLimit = false
+    }: XcFilter & { ignoreLimit?: boolean },
     table?: string,
     isUnion?: boolean
   ) {
-    query.offset(offset).limit(limit);
+    query.offset(offset);
+    if (!ignoreLimit) query.limit(limit);
 
     if (!table && !sort && this.clientType === 'mssql' && !isUnion) {
       sort =

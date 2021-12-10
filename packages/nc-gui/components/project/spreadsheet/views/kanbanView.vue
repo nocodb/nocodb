@@ -183,9 +183,6 @@ export default {
 
         const groupingColumn = this.meta.columns.find(c => c.cn === this.kanbanGroupingField)
         if (!groupingColumn) {
-          this.$toast.error('Grouping column not found', {
-            position: 'bottom-center'
-          }).goAway(3000)
           return
         }
 

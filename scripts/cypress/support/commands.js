@@ -300,7 +300,7 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
   cy.task("log", `[openViewsTab] ${vn} ${rc}`);
 
   cy.get(".nc-project-tree")
-    .find(".v-list-item__title:contains(Views)", { timeout: 10000 })
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
     .should("exist")
     .first()
     .click();
@@ -313,7 +313,7 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
   cy.get(`.project-tab`).contains(vn, { timeout: 10000 }).should("exist");
 
   cy.get(".nc-project-tree")
-    .find(".v-list-item__title:contains(Views)", { timeout: 10000 })
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
     .first()
     .click();
 

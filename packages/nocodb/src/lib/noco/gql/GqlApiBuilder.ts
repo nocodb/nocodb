@@ -773,9 +773,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       tables.push(...relatedTableList.map(t => ({ tn: t })));
     } else {
-      tables = (await this.sqlClient.tableList())?.data?.list?.filter(
-        ({ tn }) => !IGNORE_TABLES.includes(tn)
-      );
+      tables = (await this.sqlClient.tableList())?.data?.list
+        ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
+        ?.map(t => {
+          t.order = ++order;
+          return t;
+        });
 
       // enable extra
       tables.push(

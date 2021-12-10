@@ -1,6 +1,11 @@
 <template>
   <v-container fluid>
-    <kanban-board :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">
+    <v-row>
+      <v-col v-for="idx in 5" :key="idx">
+        <v-skeleton-loader v-if="loadingData" :loading="loading" type="image@3"></v-skeleton-loader>
+      </v-col>
+    </v-row>
+    <kanban-board v-show="!loadingData" :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">
       <div v-for="stage in stages" :slot="stage" :key="stage" class="mx-auto">
         <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
@@ -128,7 +133,8 @@ export default {
       clonedBlocks: [],
       recordCnt: {},
       groupingColumnItems: [],
-      kanbanGroupingField: this.groupingField
+      kanbanGroupingField: this.groupingField,
+      loadingData: true,
     }
   },
   async mounted() {
@@ -166,6 +172,8 @@ export default {
   methods: {
     async fetchKanbanData() {
       try {
+        this.loadingData = true
+
         if (!this.api) {
           this.$toast.error('API not found', {
             position: 'bottom-center'
@@ -214,6 +222,8 @@ export default {
             position: 'bottom-center'
           }).goAway(3000)
         }
+      } finally {
+        this.loadingData = false
       }
     },
     async setKanbanData() {

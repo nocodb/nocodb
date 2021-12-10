@@ -286,43 +286,50 @@
                   >
                     <td data-v-step="2">
                       <div class="d-flex align-center">
-                        <v-icon
-                          x-small
+                        <v-progress-circular
+                          v-if="props.item.loading"
                           class="mr-2"
-                          :color="
-                            !props.item.allowed ? 'blue' :(
-                              props.item.status === 'started'
-                                ? 'green'
-                                : props.item.status === 'stopped'
-                                  ? 'orange'
-                                  : 'orange'
-                            )
-                          "
-                        >
-                          mdi-moon-full
-                        </v-icon>
-                        <!-- Accessible via GraphQL APIs / Accessible via REST APIs -->
-                        <x-icon
-                          small
-                          :tooltip="
-                            props.item.projectType === 'graphql'
-                              ? $t('projects.project_api_type_tooltip_graphql')
-                              : $t('projects.project_api_type_tooltip_rest')
-                          "
-                          icon.class="mr-2"
-                          :color="
-                            props.item.projectType === 'graphql'
-                              ? 'pink'
-                              : 'green'
-                          "
-                        >
-                          {{
-                            props.item.projectType === 'graphql'
-                              ? 'mdi-graphql'
-                              : 'mdi-code-json'
-                          }}
-                        </x-icon>
-
+                          size="15"
+                          indeterminate
+                        />
+                        <template v-else>
+                          <v-icon
+                            x-small
+                            class="mr-2"
+                            :color="
+                              !props.item.allowed ? 'blue' :(
+                                props.item.status === 'started'
+                                  ? 'green'
+                                  : props.item.status === 'stopped'
+                                    ? 'orange'
+                                    : 'orange'
+                              )
+                            "
+                          >
+                            mdi-moon-full
+                          </v-icon>
+                          <!-- Accessible via GraphQL APIs / Accessible via REST APIs -->
+                          <x-icon
+                            small
+                            :tooltip="
+                              props.item.projectType === 'graphql'
+                                ? $t('projects.project_api_type_tooltip_graphql')
+                                : $t('projects.project_api_type_tooltip_rest')
+                            "
+                            icon.class="mr-2"
+                            :color="
+                              props.item.projectType === 'graphql'
+                                ? 'pink'
+                                : 'green'
+                            "
+                          >
+                            {{
+                              props.item.projectType === 'graphql'
+                                ? 'mdi-graphql'
+                                : 'mdi-code-json'
+                            }}
+                          </x-icon>
+                        </template>
                         <v-tooltip bottom>
                           <template #activator="{on}">
                             <div
@@ -1091,7 +1098,7 @@ export default {
       }
       this.loaded = true
     },
-    projectRouteHandler(project) {
+    async projectRouteHandler(project) {
       if (!project.allowed) {
         this.$toast.info(`Contact following owner email to get project access : ${project.owner}`).goAway(5000)
         return
@@ -1105,11 +1112,12 @@ export default {
           .goAway(5000)
         return
       }
-
+      this.$set(project, 'loading', true)
       if (!this.deleteBtnClicked) {
-        this.$router.push({
+        await this.$router.push({
           path: `/nc/${project.id}`
         })
+        // this.$set(project, 'loading', false)
       }
     },
     async projectEdit(project) {

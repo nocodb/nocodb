@@ -12,6 +12,8 @@ import {
   _editComment,
   _viewMenu,
   _topRightMenu,
+  disableTableAccess,
+  _accessControl,
 } from "../spec/roleValidation.spec";
 
 export const genTest = (type, xcdb) => {
@@ -50,6 +52,28 @@ export const genTest = (type, xcdb) => {
     addUser(roles.editor);
     addUser(roles.commenter);
     addUser(roles.viewer);
+
+    // Access contrl list- configuration
+    //
+    it(`Access control list- configuration`, () => {
+      // open Project metadata tab
+      //
+      mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
+      cy.get(".nc-ui-acl-tab").click({ force: true });
+
+      // validate if it has 19 entries representing tables & views
+      cy.get(".nc-acl-table-row").should("have.length", 19);
+
+      // disable table & view access
+      //
+      disableTableAccess("language", "editor");
+      disableTableAccess("language", "commenter");
+      disableTableAccess("language", "viewer");
+
+      disableTableAccess("customer_list", "editor");
+      disableTableAccess("customer_list", "commenter");
+      disableTableAccess("customer_list", "viewer");
+    });
   });
 
   const roleValidation = (roleType) => {
@@ -90,6 +114,12 @@ export const genTest = (type, xcdb) => {
         // project configuration settings
         //
         _advSettings(roleType, false);
+      });
+
+      it(`[${roles[roleType].name}] Access control`, () => {
+        // Access control validation
+        //
+        _accessControl(roleType, false);
       });
 
       it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {

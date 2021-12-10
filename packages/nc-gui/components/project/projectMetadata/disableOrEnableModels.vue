@@ -60,7 +60,7 @@
           </v-tabs>
         </v-tab-item>
 
-        <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption">
+        <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption nc-ui-acl-tab">
           {{ db.connection.database | extractDbName }} UI Access Control
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">

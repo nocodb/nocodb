@@ -215,3 +215,43 @@ export function _topRightMenu(roleType, previewMode) {
   cy.get(".nc-topright-menu").find(".nc-menu-account").should("exist");
   cy.get(".nc-topright-menu").find(".nc-menu-alert").should("exist");
 }
+
+// Access control list
+//
+export function disableTableAccess(tbl, role) {
+  const cls = `.nc-acl-${tbl}-${role}-chkbox`;
+  cy.get(cls).find("input").should("be.checked").click({ force: true });
+  cy.get(cls).find("input").should("not.be.checked");
+  cy.get(".nc-acl-save").next().click({ force: true });
+  cy.toastWait("Updated UI ACL for tables successfully");
+}
+
+export function enableTableAccess(tbl, role) {
+  const cls = `.nc-acl-${tbl}-${role}-chkbox`;
+  cy.get(cls).find("input").should("not.be.checked").click({ force: true });
+  cy.get(cls).find("input").should("be.checked");
+  cy.get(".nc-acl-save").next().click({ force: true });
+  cy.toastWait("Updated UI ACL for tables successfully");
+}
+
+export function _accessControl(roleType, previewMode) {
+  let validationString = roleType == "creator" ? "exist" : "not.exist";
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .should("exist")
+    .first()
+    .click({ force: true });
+
+  cy.get(".nc-project-tree")
+    .contains("Language", { timeout: 6000 })
+    .should(validationString);
+
+  cy.get(".nc-project-tree")
+    .contains("CustomerList", { timeout: 6000 })
+    .should(validationString);
+
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .first()
+    .click({ force: true });
+}

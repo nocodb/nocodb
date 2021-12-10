@@ -2126,8 +2126,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   protected async syncRelations(): Promise<boolean> {
-    const [relations, missingRelations] = await this.getRelationsAndMissingRelations()
-    if(!missingRelations) return false;
+    const [
+      relations,
+      missingRelations
+    ] = await this.getRelationsAndMissingRelations();
+    if (!missingRelations) return false;
 
     this.relationsCount = relations.length + missingRelations.length;
 
@@ -2158,7 +2161,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   protected async getRelationsAndMissingRelations(): Promise<[any, any]> {
     // Relations in metadata
-    let relations = await this.xcMeta.metaList(
+    const relations = await this.xcMeta.metaList(
       this.projectId,
       this.dbAlias,
       'nc_relations',
@@ -2177,7 +2180,6 @@ export default abstract class BaseApiBuilder<T extends Noco>
           'db_type',
           'dr',
           'fkn'
-
         ]
       }
     );
@@ -2186,13 +2188,15 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const dbRelations = (await this.sqlClient.relationListAll())?.data?.list;
 
     // Relations missing in metadata
-    const missingRelations = dbRelations.filter(dbRelation => {
-      return relations.every(relation => relation?.fkn !== dbRelation?.cstn)
-    }).map(relation => {
-      relation.enabled = true;
-      relation.fkn = relation?.cstn;
-      return relation
-    });
+    const missingRelations = dbRelations
+      .filter(dbRelation => {
+        return relations.every(relation => relation?.fkn !== dbRelation?.cstn);
+      })
+      .map(relation => {
+        relation.enabled = true;
+        relation.fkn = relation?.cstn;
+        return relation;
+      });
 
     return [relations, missingRelations];
   }
@@ -2928,6 +2932,20 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   public getMeta(tableName: string): any {
     return this.metas?.[tableName];
+  }
+  protected async getOrderVal(): Promise<number> {
+    const order =
+      (
+        await this.xcMeta
+          .knex('nc_models')
+          .where({
+            project_id: this.projectId,
+            db_alias: this.dbAlias
+          })
+          .max('order as max')
+          .first()
+      )?.max || 0;
+    return order;
   }
 }
 

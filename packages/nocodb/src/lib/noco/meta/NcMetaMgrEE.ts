@@ -425,7 +425,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                     disabled: d.disabled[role]
                   },
                   {
-                    type: args.args.type,
+                    type: d.type,
                     title: d[field],
                     role,
                     ...props
@@ -438,7 +438,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                 this.getDbAlias(args),
                 'nc_disabled_models_for_role',
                 {
-                  type: args.args.type,
+                  type: d.type,
                   title: d[field],
                   role,
                   ...props
@@ -452,7 +452,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
               'nc_disabled_models_for_role',
               {
                 disabled: d.disabled[role],
-                type: args.args.type,
+                type: d.type,
                 title: d[field],
                 role,
                 ...props

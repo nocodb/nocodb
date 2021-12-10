@@ -1676,7 +1676,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     if (inflectionFns && inflectionFns !== 'none') {
       name = inflectionFns
         .split(',')
-        .reduce((out, fn) => inflection?.[fn]?.(out) ?? out, name);
+        .reduce((out, fn) => inflection?.[fn]?.(out) || out, name);
     }
     return this.apiType === 'graphql' ? name.replace(/[^_\da-z]/gi, '_') : name;
   }
@@ -2123,6 +2123,82 @@ export default abstract class BaseApiBuilder<T extends Noco>
       );
     }
     return relations;
+  }
+
+  protected async syncRelations(): Promise<boolean> {
+    const [
+      relations,
+      missingRelations
+    ] = await this.getRelationsAndMissingRelations();
+    if (!missingRelations) return false;
+
+    this.relationsCount = relations.length + missingRelations.length;
+
+    for (const relation of missingRelations) {
+      await this.xcMeta.metaInsert(
+        this.projectId,
+        this.dbAlias,
+        'nc_relations',
+        {
+          tn: relation.tn,
+          _tn: this.getTableNameAlias(relation.tn),
+          cn: relation.cn,
+          _cn: this.getColumnNameAlias({ cn: relation.cn }, relation.tn),
+          rtn: relation.rtn,
+          _rtn: this.getTableNameAlias(relation.rtn),
+          rcn: relation.rcn,
+          _rcn: this.getColumnNameAlias({ cn: relation.rcn }, relation.rtn),
+          type: 'real',
+          db_type: this.connectionConfig?.client,
+          dr: relation?.dr,
+          ur: relation?.ur,
+          fkn: relation?.cstn
+        }
+      );
+    }
+    return true;
+  }
+
+  protected async getRelationsAndMissingRelations(): Promise<[any, any]> {
+    // Relations in metadata
+    const relations = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        fields: [
+          'ur',
+          'tn',
+          '_tn',
+          'cn',
+          '_cn',
+          'rtn',
+          'rcn',
+          '_rcn',
+          '_rtn',
+          'type',
+          'db_type',
+          'dr',
+          'fkn'
+        ]
+      }
+    );
+
+    // Relations in DB
+    const dbRelations = (await this.sqlClient.relationListAll())?.data?.list;
+
+    // Relations missing in metadata
+    const missingRelations = dbRelations
+      .filter(dbRelation => {
+        return relations.every(relation => relation?.fkn !== dbRelation?.cstn);
+      })
+      .map(relation => {
+        relation.enabled = true;
+        relation.fkn = relation?.cstn;
+        return relation;
+      });
+
+    return [relations, missingRelations];
   }
 
   protected async renameTableNameInXcRelations(
@@ -2856,6 +2932,20 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   public getMeta(tableName: string): any {
     return this.metas?.[tableName];
+  }
+  protected async getOrderVal(): Promise<number> {
+    const order =
+      (
+        await this.xcMeta
+          .knex('nc_models')
+          .where({
+            project_id: this.projectId,
+            db_alias: this.dbAlias
+          })
+          .max('order as max')
+          .first()
+      )?.max || 0;
+    return order;
   }
 }
 

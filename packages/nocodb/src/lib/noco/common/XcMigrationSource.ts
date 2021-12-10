@@ -6,6 +6,7 @@ import * as viewName from '../migrations/nc_005_add_view_name_column';
 import * as nc_006_alter_nc_shared_views from '../migrations/nc_006_alter_nc_shared_views';
 import * as nc_007_alter_nc_shared_views_1 from '../migrations/nc_007_alter_nc_shared_views_1';
 import * as nc_008_add_nc_shared_bases from '../migrations/nc_008_add_nc_shared_bases';
+import * as nc_009_add_model_order from '../migrations/nc_009_add_model_order';
 
 // Create a custom migration source class
 export default class XcMigrationSource {
@@ -22,7 +23,8 @@ export default class XcMigrationSource {
       'viewName',
       'nc_006_alter_nc_shared_views',
       'nc_007_alter_nc_shared_views_1',
-      'nc_008_add_nc_shared_bases'
+      'nc_008_add_nc_shared_bases',
+      'nc_009_add_model_order'
     ]);
   }
 
@@ -48,6 +50,8 @@ export default class XcMigrationSource {
         return nc_007_alter_nc_shared_views_1;
       case 'nc_008_add_nc_shared_bases':
         return nc_008_add_nc_shared_bases;
+      case 'nc_009_add_model_order':
+        return nc_009_add_model_order;
     }
   }
 }

@@ -3,6 +3,7 @@ export default {
   creator: '*',
   guest: {},
   editor: {
+    xcTableAndViewList: true,
     xcAuditCreate: true,
     xcAttachmentUpload: true,
     xcVirtualTableList: true,
@@ -165,6 +166,7 @@ export default {
     xcExportAsCsv: true
   },
   commenter: {
+    xcTableAndViewList: true,
     xcVirtualTableList: true,
     projectList: true,
     PROJECT_READ_BY_WEB: true,
@@ -189,6 +191,7 @@ export default {
     xcExportAsCsv: true
   },
   viewer: {
+    xcTableAndViewList: true,
     xcVirtualTableList: true,
     projectList: true,
     PROJECT_READ_BY_WEB: true,

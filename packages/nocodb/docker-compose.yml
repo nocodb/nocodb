@@ -321,6 +321,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: mysql://root:password@db57:3306/sakila
       command:
         - /bin/bash
@@ -337,6 +338,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
       command:
         - /bin/bash
@@ -352,6 +354,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
         DOCKER_DB_HOST: mssql
         DOCKERIZE_VERSION: v0.6.1
@@ -367,6 +370,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: sqlite:////home/sakila.db
       command:
         - /bin/bash
@@ -385,6 +389,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: mysql://root:password@db57:3306/sakila
       command:
         - /bin/bash
@@ -401,6 +406,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
       command:
         - /bin/bash
@@ -416,6 +422,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
         DOCKER_DB_HOST: mssql
         DOCKERIZE_VERSION: v0.6.1
@@ -431,6 +438,7 @@ services:
       volumes:
         - ./:/home/app
       environment:
+        NODE_ENV: test
         DATABASE_URL: sqlite:////home/sakila.db
       command:
         - /bin/bash

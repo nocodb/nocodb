@@ -364,12 +364,13 @@ export const actions = {
     commit('list', tabs)
   },
 
-  ActAddTab({ commit, state, rootState }, item) {
+  async ActAddTab({ commit, state, rootState }, item) {
     if (rootState.users.ui_ability.rules.maxTabs <= state.list.length) {
       this.commit('snackbar/setSnack', `Free plan limits to ${rootState.users.ui_ability.rules.maxTabs} tabs. Please <a href="https://nocodb.com/pricing" style="color: white;font-weight: bold;">upgrade</a> your plan for unlimited tabs.`)
       return
     }
     commit('add', item)
+    await Vue.nextTick()
     const index = state.list.length - 1
     if (state.activeTab !== 0 && state.activeTab === index) {
       commit('active', index - 1)

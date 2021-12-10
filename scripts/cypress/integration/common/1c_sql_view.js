@@ -66,6 +66,7 @@ export const genTest = (type, xcdb) => {
       cy.openViewsTab("SalesByFilmCategory", 16);
       cy.closeViewsTab("SalesByFilmCategory");
 
+      // SalesByStore && StaffList contain no entries. Hence marking row count to 0
       cy.openViewsTab("SalesByStore", 0);
       cy.closeViewsTab("SalesByStore");
 

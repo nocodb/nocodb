@@ -9,7 +9,7 @@
 <script>
   setTimeout(() => {
     if (document.getElementById('nuxt-loading')) {
-      if (!(window.$nuxt && window.$nuxt._isDev) && confirm('If you upgraded NocoDB, please click OK.')) {
+      if (!(window.$nuxt && window.$nuxt._isDev) && confirm('If you upgraded NocoDB, please click OK')) {
         window.location.reload(true)
       }
     }

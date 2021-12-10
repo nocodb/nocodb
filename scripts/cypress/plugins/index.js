@@ -44,7 +44,7 @@ module.exports = (on, config) => {
     readXlsx: readXlsx.read,
     readSheetList: readXlsx.sheetList,
     log(message) {
-      console.log(message);
+      console.log(`##Cypress>> ${message}`);
       return null;
     },
   });

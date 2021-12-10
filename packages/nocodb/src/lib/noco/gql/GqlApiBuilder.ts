@@ -725,9 +725,16 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       args?.tableNames,
       args?.type
     );
+
+    let order = await this.getOrderVal();
+
     let tables;
     /* Get all relations */
-    const relations = await this.relationsSyncAndGet();
+    let [
+      relations,
+      missingRelations
+    ] = await this.getRelationsAndMissingRelations();
+    relations = relations.concat(missingRelations);
 
     // set table name alias
     relations.forEach(r => {
@@ -760,7 +767,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       tables = args.tableNames.map(({ tn, _tn }) => ({
         tn,
         _tn,
-        type: args.type
+        type: args.type,
+        order: ++order
       }));
 
       tables.push(...relatedTableList.map(t => ({ tn: t })));
@@ -776,6 +784,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             this.viewsCount++;
             v.type = 'view';
             v.tn = v.view_name;
+            v.order = ++order;
             return v;
           })
           .filter(v => {
@@ -838,6 +847,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     }
 
     this.tablesCount = tables.length;
+    await this.syncRelations();
 
     if (tables.length) {
       relations.forEach(rel => (rel.enabled = true));
@@ -926,6 +936,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               this.dbAlias,
               'nc_models',
               {
+                order: table.order || ++order,
                 title: table.tn,
                 type: table.type || 'table',
                 meta: JSON.stringify(this.metas[table.tn]),

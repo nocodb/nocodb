@@ -3,6 +3,8 @@ name: "Publish : noco-i18n"
 on:
   push:
     branches: [ master ]
+    paths:
+      - "packages/noco-i18n/**"
   release:
     types: [ published ]
 
@@ -14,16 +16,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Check for update
-        run: |
-          echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep noco-i18n) = noco-i18n ]] && echo 'OK')" >> $GITHUB_ENV
 
       - uses: actions/setup-node@v2
-        if: ${{ env.CHANGED == 'OK' }}
         with:
           node-version: 14
       - name: Build noco-i18n
-        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         run: |
           cd packages/noco-i18n
           npm install
@@ -31,7 +28,6 @@ jobs:
 
 
       - name: Pushes generated output
-        if: ${{ env.CHANGED == 'OK' || github.event_name == 'release' }}
         # uses: dmnemec/copy_file_to_another_repo_action@main
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:

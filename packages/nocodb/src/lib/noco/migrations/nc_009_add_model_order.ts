@@ -1,38 +1,26 @@
-import IEmailAdapter from '../../../../../interface/IEmailAdapter';
+import Knex from 'knex';
 
-import SES from './SES';
-import SMTP from './SMTP';
+const up = async (knex: Knex) => {
+  await knex.schema.alterTable('nc_models', table => {
+    table
+      .float('order')
+      .unsigned()
+      .index();
+    table
+      .float('view_order')
+      .unsigned()
+      .index();
+  });
+};
 
-export default class EmailFactory {
-  private static instance: IEmailAdapter;
+const down = async knex => {
+  await knex.schema.alterTable('nc_models', table => {
+    table.dropColumn('order');
+    table.dropColumn('view_order');
+  });
+};
 
-  // tslint:disable-next-line:typedef
-  public static create(config: any, overwrite = false): IEmailAdapter {
-    if (this.instance && !overwrite) {
-      return this.instance;
-    }
-
-    if (config) {
-      const input = JSON.parse(config.input);
-      this.instance = this.createNewInstance(config, input);
-    }
-
-    return this.instance;
-  }
-
-  public static createNewInstance(config: any, input: any): IEmailAdapter {
-    switch (config.title) {
-      case 'SMTP':
-        return new SMTP(input);
-        break;
-      case 'SES':
-        return new SES(input);
-      default:
-        throw new Error('Test not implemented');
-        break;
-    }
-  }
-}
+export { up, down };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

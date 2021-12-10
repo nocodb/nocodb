@@ -354,9 +354,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     );
     let tables;
     const swaggerRefs: { [table: string]: any[] } = {};
+    let order = await this.getOrderVal();
 
     /* Get all relations */
-    const relations = await this.relationsSyncAndGet();
+    let [
+      relations,
+      // eslint-disable-next-line prefer-const
+      missingRelations
+    ] = await this.getRelationsAndMissingRelations();
+    relations = relations.concat(missingRelations);
 
     // set table name alias
     relations.forEach(r => {
@@ -389,11 +395,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         }
       }
 
-      tables = args.tableNames.map(({ tn, _tn }) => ({
-        tn,
-        type: args.type,
-        _tn
-      }));
+      tables = args.tableNames
+        .sort((a, b) => (a.tn || a._tn).localeCompare(b.tn || b._tn))
+        .map(({ tn, _tn }) => ({
+          tn,
+          type: args.type,
+          _tn,
+          order: ++order
+        }));
       tables.push(...relatedTableList.map(t => ({ tn: t })));
     } else {
       tables = (await this.sqlClient.tableList())?.data?.list?.filter(
@@ -403,10 +412,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       // enable extra
       tables.push(
         ...(await this.sqlClient.viewList())?.data?.list
+          ?.sort((a, b) =>
+            (a.view_name || a.tn).localeCompare(b.view_name || b.tn)
+          )
           ?.map(v => {
             this.viewsCount++;
             v.type = 'view';
             v.tn = v.view_name;
+            v.order = ++order;
             return v;
           })
           .filter(v => {
@@ -438,6 +451,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       r._tn = this.getTableNameAlias(r.tn);
       r._rtn = this.getTableNameAlias(r.rtn);
     });
+
+    this.syncRelations();
 
     const tableRoutes = tables.map(table => {
       return async () => {
@@ -508,6 +523,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             this.dbAlias,
             'nc_models',
             {
+              order: table.order || ++order,
+              view_order: 1,
               title: table.tn,
               alias: meta._tn,
               meta: JSON.stringify(meta),

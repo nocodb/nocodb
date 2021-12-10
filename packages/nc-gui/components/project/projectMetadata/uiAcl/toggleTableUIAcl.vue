@@ -49,10 +49,13 @@
           <v-simple-table dense style="min-width: 400px">
             <thead>
               <tr>
-                <th>
+                <th class="caption">
                   Models
                 </th>
-                <th v-for="role in roles" :key="role">
+                <th class="caption">
+                  Parent
+                </th>
+                <th v-for="role in roles" :key="role" class="caption">
                   {{ role }}
                 </th>
               </tr>
@@ -68,10 +71,16 @@
                   <td>
                     <v-tooltip bottom>
                       <template #activator="{on}">
-                        <span v-on="on">{{ table._tn }}</span>
+                        <v-icon small :color="viewIcons[table.show_as || table.type].color" v-on="on">
+                          {{ viewIcons[table.show_as || table.type].icon }}
+                        </v-icon>   <span class="caption ml-2" v-on="on">{{ table._tn }}</span>
                       </template>
                       <span class="caption">{{ table.tn }}</span>
                     </v-tooltip>
+                  </td>
+                  <td>
+                    <span v-if="table.ptn" class="caption">{{ table.ptn }}</span>
+                    <!--                    {{ table.show_as || table.type }}-->
                   </td>
                   <td v-for="role in roles" :key="`${table.tn}-${role}`">
                     <v-tooltip bottom>
@@ -81,7 +90,9 @@
                         >
                           <v-checkbox
                             v-model="table.disabled[role]"
+                            class="pt-0 mt-0"
                             dense
+                            hide-details
                             :true-value="false"
                             :false-value="true"
                             @change="$set(table,'edited',true)"
@@ -107,12 +118,14 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import viewIcons from '~/helpers/viewIcons'
 
 export default {
   name: 'ToggleTableUiAcl',
   components: {},
   props: ['nodes', 'db'],
   data: () => ({
+    viewIcons,
     models: null,
     updating: false,
     dbsTab: 0,
@@ -128,7 +141,7 @@ export default {
         dbAlias: this.db.meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
       }, 'xcVisibilityMetaGet', {
-        type: 'table'
+        type: 'all'
       }]))
     },
     async save() {
@@ -136,8 +149,7 @@ export default {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
           env: this.$store.getters['project/GtrEnv']
-        }, 'xcVisibilityMetaSet', {
-          type: 'table',
+        }, 'xcVisibilityMetaSetAll', {
           disableList: this.tables.filter(t => t.edited)
         }])
         this.$toast.success('Updated UI ACL for tables successfully').goAway(3000)

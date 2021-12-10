@@ -9,12 +9,14 @@ on:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
       - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
   pull_request:
     branches: [master]
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
       - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
 
 jobs:
   cypress-restTableOps-run:
@@ -41,7 +43,8 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -78,6 +81,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -114,6 +120,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -150,6 +159,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -186,6 +198,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -222,6 +237,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -258,6 +276,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -294,6 +315,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+
+      - name: Set env
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:

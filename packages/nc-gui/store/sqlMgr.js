@@ -27,6 +27,12 @@ function translateUiToLibCall(args, op, opArgs) {
       data.title = 'list'
       data.module = 'table'
       break
+    case 'xcTableAndViewList':
+      data.api = 'DB_TABLE_VIEW_LIST'
+      data.type = 'List'
+      data.title = 'list'
+      data.module = 'table'
+      break
     case 'tableUpdate':
       data.type = 'Update'
       data.title = opArgs._tn || opArgs.tn

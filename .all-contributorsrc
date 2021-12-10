@@ -540,6 +540,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "SiderealArt",
+      "name": "SiderealArt",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30827929?v=4",
+      "profile": "http://siderealart.me",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "vijayrathore8492",
+      "name": "Vijay Rathore",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17380265?v=4",
+      "profile": "http://vijayrathore.me",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

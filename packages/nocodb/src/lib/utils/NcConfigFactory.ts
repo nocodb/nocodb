@@ -35,7 +35,7 @@ const defaultClientPortMapping = {
 const defaultConnectionConfig: any = {
   // https://github.com/knex/knex/issues/97
   // timezone: process.env.NC_TIMEZONE || 'UTC',
-  // dateStrings: true
+  dateStrings: true
 };
 
 export default class NcConfigFactory implements NcConfig {

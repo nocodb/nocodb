@@ -43,7 +43,6 @@ export default {
       },
       set(val) {
         // console.log('dayjs=====', dayjs.utc(val).toString())
-
         // const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')
         this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm'))
       }

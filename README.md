@@ -349,6 +349,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/candideu"><img src="https://avatars.githubusercontent.com/u/55474996?v=4?s=100" width="100px;" alt=""/><br /><sub><b>candideu</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=candideu" title="Code">💻</a></td>
     <td align="center"><a href="http://siderealart.me"><img src="https://avatars.githubusercontent.com/u/30827929?v=4?s=100" width="100px;" alt=""/><br /><sub><b>SiderealArt</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=SiderealArt" title="Code">💻</a></td>
     <td align="center"><a href="http://vijayrathore.me"><img src="https://avatars.githubusercontent.com/u/17380265?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Vijay Rathore</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=vijayrathore8492" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/John-Appleseed"><img src="https://avatars.githubusercontent.com/u/7055847?v=4?s=100" width="100px;" alt=""/><br /><sub><b>John Appleseed</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=John-Appleseed" title="Code">💻</a></td>
   </tr>
 </table>
 

@@ -175,6 +175,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   
   ```bash
   git clone https://github.com/nocodb/nocodb
+  cd nocodb
   cd docker-compose
   cd mysql
   docker-compose up
@@ -186,6 +187,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 
   ```bash
   git clone https://github.com/nocodb/nocodb
+  cd nocodb
   cd docker-compose
   cd pg
   docker-compose up
@@ -197,6 +199,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 
   ```bash
   git clone https://github.com/nocodb/nocodb
+  cd nocodb
   cd docker-compose
   cd mssql
   docker-compose up

@@ -19,7 +19,7 @@
     "animate.css": "^4.1.1",
     "browser-lang": "^0.1.0",
     "canvas-confetti": "^1.4.0",
-    "dayjs": "^1.10.4",
+    "dayjs": "^1.10.7",
     "debounce": "^1.2.0",
     "file-saver": "^2.0.5",
     "fix-path": "^3.0.0",

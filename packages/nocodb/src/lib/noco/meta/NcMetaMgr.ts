@@ -37,6 +37,7 @@ import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import { promisify } from 'util';
 import NcTemplateParser from '../../templateParser/NcTemplateParser';
 import UITypes from '../../sqlUi/UITypes';
+import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -300,7 +301,8 @@ export default class NcMetaMgr {
                     +process.env.DB_QUERY_LIMIT_MAX || 100
                   ),
                   +process.env.DB_QUERY_LIMIT_MIN || 1
-                )
+                ),
+                timezone: defaultConnectionConfig.timezone
               };
               return res.json(result);
             }
@@ -1483,6 +1485,10 @@ export default class NcMetaMgr {
 
         case 'xcTableAndViewList':
           result = await this.xcTableAndViewList(req, args);
+          break;
+
+        case 'tableList':
+          result = await this.xcTableList(req, args);
           break;
 
         case 'columnList':

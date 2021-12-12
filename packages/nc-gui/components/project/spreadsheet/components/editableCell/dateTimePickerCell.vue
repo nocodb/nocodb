@@ -19,23 +19,32 @@
 
 <script>
 
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+dayjs.extend(utc)
+
 export default {
   name: 'DateTimePickerCell',
   props: ['value', 'ignoreFocus'],
   computed: {
     localState: {
       get() {
+        if (!this.value) { return this.value }
+
+        return dayjs(this.value).format('YYYY-MM-DD HH:mm')
+
         // todo : time value correction
-
-        if (/^\d{6,}$/.test(this.value)) {
-          return new Date(+this.value)
-        }
-
-        return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : ((this.value && new Date(this.value)))
+        //
+        // if (/^\d{6,}$/.test(this.value)) {
+        //   return new Date(+this.value)
+        // }
+        //
+        // return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : ((this.value && new Date(this.value)))
       },
       set(val) {
-        const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')
-        this.$emit('input', uVal)
+        // console.log('dayjs=====', dayjs.utc(val).toString())
+        // const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')
+        this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm'))
       }
     },
     parentListeners() {

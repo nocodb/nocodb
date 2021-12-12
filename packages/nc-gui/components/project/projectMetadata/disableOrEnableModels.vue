@@ -60,7 +60,7 @@
           </v-tabs>
         </v-tab-item>
 
-        <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption">
+        <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption nc-ui-acl-tab">
           {{ db.connection.database | extractDbName }} UI Access Control
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
@@ -93,7 +93,7 @@
                                          :db-alias="db.meta.dbAlias"></toggle-procedure-ui-acl>
 
               </v-tab-item>-->
-            <v-tab class="text-capitalize caption">
+            <!--            <v-tab class="text-capitalize caption">
               Relations
             </v-tab>
             <v-tab-item>
@@ -102,7 +102,7 @@
                 :db="db"
                 :db-alias="db.meta.dbAlias"
               />
-            </v-tab-item>
+            </v-tab-item>-->
           </v-tabs>
         </v-tab-item>
       </template>

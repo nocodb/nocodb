@@ -27,6 +27,7 @@
             small
             color="primary"
             icon="refresh"
+            class="nc-acl-reload"
             @click="loadTableList()"
           >
             Reload
@@ -39,6 +40,7 @@
             small
             color="primary"
             icon="save"
+            class="nc-acl-save"
             @click="save()"
           >
             Save
@@ -67,12 +69,13 @@
                 <tr
                   v-if="table._tn.toLowerCase().indexOf(filter.toLowerCase()) > -1"
                   :key="table.tn"
+                  :class="`nc-acl-table-row nc-acl-table-row-${table.tn}`"
                 >
                   <td>
                     <v-tooltip bottom>
                       <template #activator="{on}">
-                        <v-icon small :color="viewIcons[table.show_as || table.type].color" v-on="on">
-                          {{ viewIcons[table.show_as || table.type].icon }}
+                        <v-icon small :color="viewIcons[table.type === 'vtable' ? table.show_as : table.type].color" v-on="on">
+                          {{ viewIcons[table.type === 'vtable' ? table.show_as : table.type].icon }}
                         </v-icon>   <span class="caption ml-2" v-on="on">{{ table._tn }}</span>
                       </template>
                       <span class="caption">{{ table.tn }}</span>
@@ -90,7 +93,7 @@
                         >
                           <v-checkbox
                             v-model="table.disabled[role]"
-                            class="pt-0 mt-0"
+                            :class="`pt-0 mt-0 nc-acl-${table.tn}-${role}-chkbox`"
                             dense
                             hide-details
                             :true-value="false"
@@ -100,10 +103,10 @@
                         </div>
                       </template>
 
-                      <span v-if="table.disabled[role]">Click to hide '{{ table.tn }}' for Role:{{
+                      <span v-if="table.disabled[role]">Click to make '{{ table.tn }}' visible for Role:{{
                         role
                       }} in UI dashboard</span>
-                      <span v-else>Click to make '{{ table.tn }}' visible for Role:{{ role }} in UI dashboard</span>
+                      <span v-else>Click to hide '{{ table.tn }}' for Role:{{ role }} in UI dashboard</span>
                     </v-tooltip>
                   </td>
                 </tr>

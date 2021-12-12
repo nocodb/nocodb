@@ -91,7 +91,7 @@
 
         <column-filter-menu v-model="filters" :field-list="realFieldList" />
 
-        <csv-export-import :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
+        <csv-export-import :is-view="isView" :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
 
       <!--      <v-menu>
         <template #activator="{ on, attrs }">
@@ -212,7 +212,8 @@ export default {
     relation: Object,
     relationIdValue: [String, Number],
     refTable: String,
-    relationPrimaryValue: [String, Number]
+    relationPrimaryValue: [String, Number],
+    isView: Boolean
   },
   data: () => ({
     notFound: false,

@@ -3,12 +3,12 @@
   "version": "0.11.35",
   "scripts": {
     "dev": "EE=true nuxt",
-    "build": "nuxt build",
+    "build": "EE=true nuxt build",
     "lint": "eslint . --ext .js,.vue --fix --quiet",
     "start": "EE=true nuxt start",
     "generate": "nuxt generate",
     "build:copy": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
-    "build:copy:jsdeliver": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh  ./dist/ ../nc-lib-gui/lib/dist/ ; npm publish ../nc-lib-gui"
+    "build:copy:jsdeliver": "npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh  ./dist/ ../nc-lib-gui/lib/dist/ ; npm publish ../nc-lib-gui"
   },
   "dependencies": {
     "@mdi/font": "^5.9.55",
@@ -19,7 +19,7 @@
     "animate.css": "^4.1.1",
     "browser-lang": "^0.1.0",
     "canvas-confetti": "^1.4.0",
-    "dayjs": "^1.10.4",
+    "dayjs": "^1.10.7",
     "debounce": "^1.2.0",
     "file-saver": "^2.0.5",
     "fix-path": "^3.0.0",

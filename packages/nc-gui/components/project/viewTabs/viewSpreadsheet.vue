@@ -297,7 +297,7 @@ export default {
     showExpandModal: false,
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
-    meta: null,
+    // meta: null,
     navDrawer: true,
     selected: {
       row: null,
@@ -343,12 +343,19 @@ export default {
     modelName: null
   }),
   computed: {
+    meta() {
+      return this.$store.state.meta.metas[this.table]
+    },
     sqlUi() {
       // todo: replace with correct client
       return SqlUI.create(this.nodes.dbConnection)
     },
     api() {
-      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], (this.meta && this.meta._tn) || this.table, this.meta && this.meta.columns, this, this.meta)
+      return this.meta && this.$ncApis.get({
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        table: this.meta.tn
+      })
     },
     edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
@@ -532,13 +539,21 @@ export default {
 
     async loadMeta() {
       this.loadingMeta = true
-      const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+
+      await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableXcModelGet', {
-        tn: this.table
-      }])
-      this.meta = JSON.parse(tableMeta.meta)
+        dbAlias: this.nodes.dbAlias,
+        tn: this.table,
+        force: true
+      })
+
+      // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // }, 'tableXcModelGet', {
+      //   tn: this.table
+      // }])
+      // this.meta = JSON.parse(tableMeta.meta)
       this.loadingMeta = false
     },
     async loadTableData() {

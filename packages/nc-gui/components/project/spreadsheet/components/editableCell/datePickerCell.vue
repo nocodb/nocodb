@@ -13,6 +13,8 @@
 </template>
 
 <script>
+import dayjs from 'dayjs'
+
 export default {
   name: 'DatePickerCell',
   props: {
@@ -20,13 +22,22 @@ export default {
   },
   computed: {
     localState: {
-      get() {
+      /*      get() {
         return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ').replace(/\s\d{2}:\d{2}:[\d:.]+z?$/i, '') : (this.value && new Date(this.value))
       },
       set(val) {
         const v = new Date(val)
 
         this.$emit('input', v.toString() === 'Invalid Date' ? '' : new Date(val).toJSON().slice(0, 10))
+      } */
+
+      get() {
+        if (!this.value) { return this.value }
+
+        return dayjs(this.value).format('YYYY-MM-DD')
+      },
+      set(val) {
+        this.$emit('input', val && dayjs(val).format('YYYY-MM-DD'))
       }
     },
     parentListeners() {

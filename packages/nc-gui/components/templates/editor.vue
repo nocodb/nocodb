@@ -709,7 +709,7 @@ export default {
             return table
           })
         }
-
+        debugger
         this.$emit('update:projectTemplate', template)
       }
     }
@@ -722,10 +722,7 @@ export default {
     document.removeEventListener('keydown', this.handleKeyDown)
   },
   mounted() {
-    if (this.projectTemplate) {
-      this.parseTemplate(this.projectTemplate)
-      this.expansionPanel = Array.from({ length: this.project.tables.length }, (_, i) => i)
-    }
+    this.parseAndLoadTemplate()
     const input = this.$refs.projec && this.$refs.project.$el.querySelector('input')
     if (input) {
       input.focus()
@@ -733,6 +730,12 @@ export default {
     }
   },
   methods: {
+    parseAndLoadTemplate() {
+      if (this.projectTemplate) {
+        this.parseTemplate(this.projectTemplate)
+        this.expansionPanel = Array.from({ length: this.project.tables.length }, (_, i) => i)
+      }
+    },
     getIcon(type) {
       return getUIDTIcon(type)
     },

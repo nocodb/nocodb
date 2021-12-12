@@ -32,9 +32,10 @@ const defaultClientPortMapping = {
   mssql: 1433
 };
 
-const defaultConnectionConfig = {
-  // timezone: 'UTC',
-  // dateStrings: true
+const defaultConnectionConfig: any = {
+  // https://github.com/knex/knex/issues/97
+  // timezone: process.env.NC_TIMEZONE || 'UTC',
+  dateStrings: true
 };
 
 export default class NcConfigFactory implements NcConfig {
@@ -163,7 +164,8 @@ export default class NcConfigFactory implements NcConfig {
           password:
             url.searchParams.get('p') || url.searchParams.get('password'),
           port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user')
+          user: url.searchParams.get('u') || url.searchParams.get('user'),
+          timezone: 'utc'
         },
         // pool: {
         //   min: 1,
@@ -559,7 +561,8 @@ export default class NcConfigFactory implements NcConfig {
     db: {
       client: 'sqlite3',
       connection: {
-        filename: 'noco.db'
+        filename: 'noco.db',
+        timezone: 'utc'
       }
     }
   };

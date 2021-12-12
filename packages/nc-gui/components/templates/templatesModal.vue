@@ -13,6 +13,7 @@
           style="height:90vh"
           modal
           :loading="loading"
+          :project-template.sync="templateData"
           @import="importTemplate"
         />
       </v-card>
@@ -39,6 +40,7 @@ export default {
     createProject: Boolean
   },
   data: () => ({
+    templateData: null,
     loading: false,
     projectCreation: false,
     loaderMessagesIndex: 0,

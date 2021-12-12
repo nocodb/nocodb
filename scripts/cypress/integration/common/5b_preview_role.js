@@ -12,6 +12,8 @@ import {
   _editComment,
   _viewMenu,
   _topRightMenu,
+  enableTableAccess,
+  _accessControl,
 } from "../spec/roleValidation.spec";
 
 export const genTest = (type, xcdb, roleType) => {
@@ -39,18 +41,41 @@ export const genTest = (type, xcdb, roleType) => {
       // mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
       // cy.get('.nc-preview-reset').should('not-exist')
       cy.closeTableTab("City");
+
+      // open Project metadata tab
+      //
+      mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
+      cy.get(".nc-ui-acl-tab").click({ force: true });
+
+      // validate if it has 19 entries representing tables & views
+      cy.get(".nc-acl-table-row").should("have.length", 19);
+
+      // restore access
+      //
+      enableTableAccess("language", "editor");
+      enableTableAccess("language", "commenter");
+      enableTableAccess("language", "viewer");
+
+      enableTableAccess("customer_list", "editor");
+      enableTableAccess("customer_list", "commenter");
+      enableTableAccess("customer_list", "viewer");
     });
 
     const genTestSub = (roleType) => {
       it(`Role preview: ${roleType}: Enable preview`, () => {
         cy.get(`.nc-preview-${roleType}`).click();
-
       });
 
       it(`Role preview: ${roleType}: Advance settings`, () => {
         // project configuration settings
         //
         _advSettings(roleType, true);
+      });
+
+      it(`Role preview: ${roleType}: Access control`, () => {
+        // Access control validation
+        //
+        _accessControl(roleType, false);
       });
 
       it(`Role preview: ${roleType}: Edit data`, () => {

@@ -1022,7 +1022,6 @@ export default {
           const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
           }, { [column._cn]: oldRow[column._cn] })
-
           this.$set(this.data[row], 'row', { ...rowObj, ...newData })
 
           this.$set(oldRow, column._cn, rowObj[column._cn])

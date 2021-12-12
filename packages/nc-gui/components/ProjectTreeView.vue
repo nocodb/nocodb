@@ -228,7 +228,7 @@
                         >
                           <v-icon
                             small
-                            :class="`nc-child-draggable-icon-${child.name}`"
+                            :class="`nc-child-draggable-icon nc-child-draggable-icon-${child.name}`"
                           >
                             mdi-drag-vertical
                           </v-icon>

@@ -1,5 +1,9 @@
 import Knex from 'knex';
 
+const types = require('pg').types;
+// override parsing date column to Date()
+types.setTypeParser(1082, val => val);
+
 import { BaseModelSql } from './BaseModelSql';
 
 const opMapping = {

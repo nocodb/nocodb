@@ -1005,6 +1005,7 @@ export default {
             return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
           this.$set(this.data[row], 'saving', true)
+
           // eslint-disable-next-line promise/param-names
           const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]

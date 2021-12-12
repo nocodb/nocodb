@@ -709,7 +709,6 @@ export default {
             return table
           })
         }
-        debugger
         this.$emit('update:projectTemplate', template)
       }
     }

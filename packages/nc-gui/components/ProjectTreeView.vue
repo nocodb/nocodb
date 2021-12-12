@@ -226,7 +226,10 @@
                           @click.stop="addTab({ ...child }, false, true)"
                           @contextmenu.prevent.stop="showCTXMenu($event, child, false, true)"
                         >
-                          <v-icon small class="nc-child-draggable-icon">
+                          <v-icon
+                            small
+                            :class="`nc-child-draggable-icon-${child.name}`"
+                          >
                             mdi-drag-vertical
                           </v-icon>
 

@@ -93,7 +93,7 @@
                                          :db-alias="db.meta.dbAlias"></toggle-procedure-ui-acl>
 
               </v-tab-item>-->
-            <v-tab class="text-capitalize caption">
+            <!--            <v-tab class="text-capitalize caption">
               Relations
             </v-tab>
             <v-tab-item>
@@ -102,7 +102,7 @@
                 :db="db"
                 :db-alias="db.meta.dbAlias"
               />
-            </v-tab-item>
+            </v-tab-item>-->
           </v-tabs>
         </v-tab-item>
       </template>

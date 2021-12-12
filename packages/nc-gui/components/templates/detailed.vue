@@ -39,7 +39,8 @@
                   x-large
                   v-on="on"
                 >
-                  Use template <v-icon>mdi-menu-down</v-icon>
+                  Use template
+                  <v-icon>mdi-menu-down</v-icon>
                 </v-btn>
               </template>
               <v-list>
@@ -78,8 +79,9 @@
 
           <templat-editor
             :id="templateId"
+            ref="editor"
             :view-mode="$store.state.templateE < 4 && viewMode"
-            :template-data.sync="templateData"
+            :project-template.sync="templateData"
             @saved="onSaved"
           />
         </template>
@@ -120,6 +122,8 @@ export default {
         const res = await this.$axios.get(`${process.env.NC_API_URL}/api/v1/nc/templates/${this.templateId}`)
         const data = res.data
         this.templateData = JSON.parse(data.template)
+        await this.$nextTick()
+        if (this.$refs.editor) { this.$refs.editor.parseAndLoadTemplate() }
       } catch (e) {
         console.log(e)
       }

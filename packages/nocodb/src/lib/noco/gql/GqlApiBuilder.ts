@@ -2830,8 +2830,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await this.reInitializeGraphqlEndpoint();
   }
 
-  protected async ncUpManyToMany(): Promise<any> {
-    const metas = await super.ncUpManyToMany();
+  protected async ncUpManyToMany(ctx: any): Promise<any> {
+    const metas = await super.ncUpManyToMany(ctx);
 
     if (!metas) {
       return;

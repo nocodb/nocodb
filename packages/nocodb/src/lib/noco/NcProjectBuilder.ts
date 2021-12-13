@@ -706,7 +706,7 @@ export default class NcProjectBuilder {
 
           /* if migrator folder doesn't exist for project - call migratior init */
           const migrationFolder = path.join(
-            this.config.toolDir,
+            this.app.getToolDir(),
             'nc',
             this.id,
             connectionConfig.meta.dbAlias,
@@ -714,7 +714,7 @@ export default class NcProjectBuilder {
           );
           if (!fs.existsSync(migrationFolder)) {
             await migrator.init({
-              folder: this.config?.toolDir,
+              folder: this.app.getToolDir(),
               env: this.appConfig.workingEnv,
               dbAlias: connectionConfig.meta.dbAlias
             });
@@ -722,14 +722,14 @@ export default class NcProjectBuilder {
 
           /* migrator : sync & up */
           await migrator.sync({
-            folder: this.config?.toolDir,
+            folder: this.app.getToolDir(),
             env: this.appConfig.workingEnv,
             dbAlias: connectionConfig.meta.dbAlias,
             sqlClient
           });
 
           await migrator.migrationsUp({
-            folder: this.config?.toolDir,
+            folder: this.app.getToolDir(),
             env: this.appConfig.workingEnv,
             dbAlias: connectionConfig.meta.dbAlias,
             migrationSteps: 99999,

@@ -331,7 +331,7 @@ export default {
   computed: {
     selectAll: {
       get() {
-        return this.data.every(d => d.rowMeta && d.rowMeta.selected)
+        return !!(this.data.length && this.data.every(d => d.rowMeta && d.rowMeta.selected))
       },
       set(v) {
         for (const d of this.data) {

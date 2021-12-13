@@ -1,4 +1,4 @@
-version: '3.3'
+version: '2.4'
 
 services:
   root_db:

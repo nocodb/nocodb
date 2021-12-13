@@ -17,11 +17,10 @@
             </v-list-item>
             <v-list-item-group v-model="selectedViewIdLocal" mandatory color="primary">
               <draggable
+                :is="_isUIAllowed('viewlist-drag-n-drop') ? 'draggable' : 'div'"
                 v-model="viewsList"
                 draggable="div"
                 v-bind="dragOptions"
-                @start="drag=true"
-                @end="drag=false"
                 @change="onMove($event)"
               >
                 <transition-group type="transition" :name="!drag ? 'flip-list' : null">
@@ -36,8 +35,9 @@
                     @click="$emit('generateNewViewKey')"
                   >
                     <v-icon
+                      v-if="_isUIAllowed('viewlist-drag-n-drop')"
                       small
-                      :class="`nc-child-draggable-icon-${view.title}`"
+                      :class="`nc-child-draggable-icon nc-child-draggable-icon-${view.title}`"
                       @click.stop
                     >
                       mdi-drag-vertical

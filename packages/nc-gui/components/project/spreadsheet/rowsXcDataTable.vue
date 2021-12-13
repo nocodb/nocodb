@@ -1130,6 +1130,10 @@ export default {
         if (i > -1) {
           this.$set(this.fieldsOrder, i, col)
         }
+        const s = (this.sortList || []).find(s => s.field === oldCol)
+        if (s) {
+          this.$set(s, 'field', col)
+        }
       }
 
       // load latest table meta
@@ -1196,10 +1200,13 @@ export default {
       this.selectedExpandRowMeta = rowMeta
     },
     async onNewColCreation(col, oldCol) {
+      if (this.$refs.drawer) {
+        await this.$refs.drawer.loadViews()
+        this.$refs.drawer.onViewIdChange(this.selectedViewId)
+      }
       await this.loadMeta(true, col, oldCol)
       this.$nextTick(async() => {
         await this.loadTableData()
-        // this.mapFieldsAndShowFields();
       })
     },
     onFileDrop(ev) {

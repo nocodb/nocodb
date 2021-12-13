@@ -16,7 +16,7 @@ export const genTest = (type, xcdb) => {
       ActorInfo, CustomerList, FilmList, NiceButSlowerFilmList, SalesByFilmCategory, SalesByStore, StaffList
     */
 
-    it(`Table & View list, Drag/drop`, () => {
+    it(`Table & SQL View list, Drag/drop`, () => {
       // expand tree-view menu
       cy.get(".nc-project-tree")
         .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
@@ -64,6 +64,68 @@ export const genTest = (type, xcdb) => {
         .should("exist")
         .first()
         .click({ force: true });
+    });
+
+    // create new view as specified by 'viewType'
+    // can be - grid/ gallery/ form
+    // wait for toast to appear
+    //
+    function createView(viewType) {
+      // click on 'Grid/Gallery' button on Views bar
+      cy.get(`.nc-create-${viewType}-view`).click();
+
+      // Pop up window, click Submit (accepting default name for view)
+      cy.getActiveModal().find("button:contains(Submit)").click();
+
+      cy.toastWait("View created successfully");
+    }
+
+    // verify view 'viewName' to be present at position 'index'
+    // index starts from 0
+    function validateViewField(index, viewName) {
+      cy.get(".nc-view-item.nc-draggable-child")
+        .eq(index)
+        .contains(viewName)
+        .should("exist");
+    }
+
+    it(`View (Gallery/ Grid/ Form) re-order`, () => {
+      cy.openTableTab("Actor", 25);
+
+      // create 3 views, use default names
+      // Actor1, Actor2, Actor3
+      createView("grid");
+      createView("gallery");
+      createView("form");
+
+      // validate position order
+      validateViewField(0, "Actor");
+      validateViewField(1, "Actor1");
+      validateViewField(2, "Actor2");
+      validateViewField(3, "Actor3");
+
+      // move Actor3 field on top (drag, drop)
+      cy.get(".nc-child-draggable-icon-Actor3").drag(
+        ".nc-child-draggable-icon-actor"
+      );
+
+      // validate new position order, Actor3 on top
+      validateViewField(0, "Actor3");
+      validateViewField(1, "Actor");
+      validateViewField(2, "Actor1");
+      validateViewField(3, "Actor2");
+
+      // delete all created views
+      // click on delete icon (becomes visible on hovering mouse)
+      cy.get(".nc-view-delete-icon").eq(0).click({ force: true });
+      cy.toastWait("View deleted successfully");
+      cy.get(".nc-view-delete-icon").eq(0).click({ force: true });
+      cy.toastWait("View deleted successfully");
+      cy.get(".nc-view-delete-icon").eq(0).click({ force: true });
+      cy.toastWait("View deleted successfully");
+
+      // wind up
+      cy.closeTableTab("Actor");
     });
   });
 };

@@ -35,7 +35,11 @@
                     :class="`nc-${view.show_as}-view-item`"
                     @click="$emit('generateNewViewKey')"
                   >
-                    <v-icon small class="nc-child-draggable-icon" @click.stop>
+                    <v-icon
+                      small
+                      :class="`nc-child-draggable-icon-${view.title}`"
+                      @click.stop
+                    >
                       mdi-drag-vertical
                     </v-icon>
                     <v-list-item-icon class="mr-n1">

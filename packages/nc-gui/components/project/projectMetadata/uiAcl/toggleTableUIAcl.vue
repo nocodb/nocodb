@@ -48,7 +48,7 @@
         </v-toolbar>
 
         <div class="d-flex d-100 justify-center">
-          <v-simple-table dense style="min-width: 400px">
+          <v-simple-table v-if="tables" dense style="min-width: 400px">
             <thead>
               <tr>
                 <th class="caption" bgcolor="#F5F5F5" width="100px">
@@ -115,6 +115,7 @@
               </template>
             </tbody>
           </v-simple-table>
+          <v-skeleton-loader v-else type="table" />
         </div>
       </v-card>
     </v-card>

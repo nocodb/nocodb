@@ -23,9 +23,6 @@ services:
     image: nocodb/nocodb:latest
     ports:
       - "8080:8080"
-      - "8081:8081"
-      - "8082:8082"
-      - "8083:8083"
     restart: always
     environment:
       NC_DB: "mssql://root_db:1433?u=sa&p=Password123.&d=root_db"

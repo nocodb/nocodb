@@ -199,8 +199,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await this.reInitializeGraphqlEndpoint();
   }
 
-  public async onTableDelete(tn: string): Promise<void> {
-    await super.onTableDelete(tn);
+  public async onTableDelete(
+    tn: string,
+    extras?: { ignoreRelations?: boolean }
+  ): Promise<void> {
+    await super.onTableDelete(tn, extras);
     this.log(`onTableDelete : '%s' `, tn);
     delete this.models[tn];
     await this.xcTablesRowDelete(tn);

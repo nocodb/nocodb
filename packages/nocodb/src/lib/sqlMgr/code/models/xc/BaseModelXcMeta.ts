@@ -1,7 +1,83 @@
 import BaseRender from '../../BaseRender';
+import UITypes from '../../../../sqlUi/UITypes';
 
 abstract class BaseModelXcMeta extends BaseRender {
-  public abstract getXcColumnsObject(context: any): any[];
+  protected abstract _getAbstractType(column: any): any;
+
+  protected abstract _getUIDataType(column: any): any;
+
+  public getXcColumnsObject(args) {
+    const columnsArr = [];
+
+    for (const column of args.columns) {
+      const columnObj = {
+        validate: {
+          func: [],
+          args: [],
+          msg: []
+        },
+        cn: column.cn,
+        _cn: column._cn || column.cn,
+        type: this._getAbstractType(column),
+        dt: column.dt,
+
+        uidt: column.uidt || this._getUIDataType(column),
+        uip: column.uip,
+        uicn: column.uicn,
+        ...column
+      };
+
+      if (column.rqd) {
+        columnObj.rqd = column.rqd;
+      }
+
+      if (column.cdf) {
+        columnObj.default = column.cdf;
+        columnObj.columnDefault = column.cdf;
+      }
+
+      if (column.un) {
+        columnObj.un = column.un;
+      }
+
+      if (column.pk) {
+        columnObj.pk = column.pk;
+      }
+
+      if (column.ai) {
+        columnObj.ai = column.ai;
+      }
+
+      if (column.dtxp) {
+        columnObj.dtxp = column.dtxp;
+      }
+
+      if (column.dtxs) {
+        columnObj.dtxs = column.dtxs;
+      }
+
+      const oldColMeta = this.ctx?.oldMeta?.columns?.find(c => {
+        return columnObj.cn == c.cn && columnObj.tpe == c.type;
+      });
+
+      if (oldColMeta) {
+        columnObj._cn = oldColMeta._cn || columnObj._cn;
+        columnObj.uidt = oldColMeta.uidt;
+        if (
+          (columnObj.dtxp === UITypes.MultiSelect ||
+            columnObj.dtxp === UITypes.SingleSelect) &&
+          columnObj.dt !== 'set' &&
+          columnObj.dt !== 'enum'
+        ) {
+          columnObj.dtxp = columnObj.dtxp || oldColMeta.dtxp;
+        }
+      }
+
+      columnsArr.push(columnObj);
+    }
+    this.mapDefaultPrimaryValue(columnsArr);
+    return columnsArr;
+  }
 
   public getObject() {
     return {

@@ -19,7 +19,10 @@ import ExpressXcTsRoutesHm from '../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoute
 import NcHelp from '../../utils/NcHelp';
 import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../Noco';
-import BaseApiBuilder, { IGNORE_TABLES } from '../common/BaseApiBuilder';
+import BaseApiBuilder, {
+  IGNORE_TABLES,
+  NcMetaData
+} from '../common/BaseApiBuilder';
 import NcMetaIO from '../meta/NcMetaIO';
 
 import { RestCtrl } from './RestCtrl';
@@ -346,6 +349,9 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     columns?: {
       [tn: string]: any;
     };
+    oldMetas?: {
+      [tn: string]: NcMetaData;
+    };
   }): Promise<any> {
     this.log(
       `xcTablesPopulate : tables - %o , type - %s`,
@@ -498,6 +504,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           table.type,
           args.tableNames?.find(t => t.tn === table.tn)?._tn
         );
+
+        ctx.oldMeta = args?.oldMetas?.[table.tn];
 
         // ctx._tn = args.tableNames?.find(t => t.tn === table.tn)?._tn || ctx._tn;
 
@@ -854,7 +862,10 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     });
   }
 
-  public async onTableCreate(tn: string, args?: any): Promise<void> {
+  public async onTableCreate(
+    tn: string,
+    args?: { _tn?: string; columns?: any; oldMeta?: NcMetaData }
+  ): Promise<void> {
     await super.onTableCreate(tn, args);
 
     const columns = args.columns
@@ -865,12 +876,18 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     await this.xcTablesPopulate({
       tableNames: [{ tn, _tn: args._tn }],
-      columns
+      columns,
+      oldMetas: {
+        [tn]: args.oldMeta
+      }
     });
   }
 
-  public async onTableDelete(tn: string): Promise<void> {
-    await super.onTableDelete(tn);
+  public async onTableDelete(
+    tn: string,
+    extras?: { ignoreRelations?: boolean }
+  ): Promise<void> {
+    await super.onTableDelete(tn, extras);
     this.log("onTableDelete : '%s'", tn);
     try {
       const ctrlIndex = this.router.stack.findIndex(r => {

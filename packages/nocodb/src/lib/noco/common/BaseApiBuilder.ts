@@ -133,7 +133,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   protected models: { [key: string]: BaseModelSql };
 
-  protected metas: { [key: string]: any };
+  protected metas: { [key: string]: NcMetaData };
 
   protected sqlClient: MysqlClient | PgClient | SqlClient | any;
 
@@ -206,29 +206,33 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   public abstract onToggleModelRelation(relationInModels: any): Promise<void>;
 
-  public async onTableDelete(tn: string): Promise<void> {
+  public async onTableDelete(
+    tn: string,
+    extras?: { ignoreRelations?: boolean }
+  ): Promise<void> {
     this.baseLog(`onTableDelete : '%s'`, tn);
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
-    await this.xcMeta.metaDelete(
-      this.projectId,
-      this.dbAlias,
-      'nc_relations',
-      null,
-      {
-        _or: [
-          {
-            tn: {
-              eq: tn
+    if (!extras?.ignoreRelations)
+      await this.xcMeta.metaDelete(
+        this.projectId,
+        this.dbAlias,
+        'nc_relations',
+        null,
+        {
+          _or: [
+            {
+              tn: {
+                eq: tn
+              }
+            },
+            {
+              rtn: {
+                eq: tn
+              }
             }
-          },
-          {
-            rtn: {
-              eq: tn
-            }
-          }
-        ]
-      }
-    );
+          ]
+        }
+      );
     await this.deleteTableNameInACL(tn);
 
     await this.xcMeta.metaDelete(
@@ -2948,8 +2952,67 @@ export default abstract class BaseApiBuilder<T extends Noco>
     await this.loadFormViews();
   }
 
-  public getMeta(tableName: string): any {
+  public getMeta(tableName: string): NcMetaData {
     return this.metas?.[tableName];
+  }
+
+  public async onTableMetaRecreate(tableName: string): Promise<void> {
+    const meta = this.getMeta(tableName);
+
+    const virtualRelations = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+
+      {
+        xcCondition: {
+          virtual: true,
+          _or: [
+            {
+              tn: {
+                eq: tableName
+              }
+            },
+            {
+              rtn: {
+                eq: tableName
+              }
+            }
+          ]
+        }
+      }
+    );
+
+    const tableList = (await this.getSqlClient().tableList()?.data?.list) || [];
+    for (const rel of virtualRelations) {
+      const tnColList = await this.getColumnList(rel.tn);
+      const rtnColList = await this.getColumnList(rel.rtn);
+
+      if (
+        !(
+          tableList.find(t => t.tn === rel.rtn) &&
+          tableList.find(t => t.tn === rel.tn) &&
+          tnColList.find(t => t.cn === rel.cn) &&
+          rtnColList.find(t => t.cn === rel.rcn)
+        )
+      )
+        await this.xcMeta.metaDelete(
+          this.projectId,
+          this.dbAlias,
+          'nc_relations',
+          rel.id
+        );
+    }
+
+    await this.onTableDelete(tableName, {
+      ignoreRelations: true,
+      ignoreViews: true
+    } as any);
+
+    // todo : handle query params
+    // todo : handle query para
+
+    await this.onTableCreate(tableName, { oldMeta: meta });
   }
 
   protected async getOrderVal(): Promise<number> {
@@ -2975,7 +3038,24 @@ interface NcBuilderUpgraderCtx {
   dbAlias: string;
 }
 
-export { IGNORE_TABLES, NcBuilderUpgraderCtx };
+interface NcMetaData {
+  tn: string;
+  _tn?: string;
+  v: Array<{
+    _cn?: string;
+    [key: string]: any;
+  }>;
+  columns: Array<{
+    _cn?: string;
+    cn?: string;
+    uidt?: string;
+    [key: string]: any;
+  }>;
+
+  [key: string]: any;
+}
+
+export { IGNORE_TABLES, NcBuilderUpgraderCtx, NcMetaData };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

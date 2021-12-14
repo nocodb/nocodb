@@ -10,8 +10,8 @@ export default class NcProjectBuilderEE extends NcProjectBuilder {
 
     switch (data?.req?.api) {
       case 'tableMetaRecreate':
-        await curBuilder.onTableDelete(data.req.args.tn);
-        await curBuilder.onTableCreate(data.req.args.tn, {});
+        await curBuilder.onTableMetaRecreate(data.req.args.tn);
+
         break;
 
       case 'viewMetaRecreate':

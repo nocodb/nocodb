@@ -23,6 +23,7 @@ const mapFunctionName = (args: MapFnArgs): any => {
   switch (args.knex.clientType()) {
     case 'mysql':
     case 'mysql2':
+    case 'maridb':
       val = mysql[name] || name;
       break;
     case 'pg':

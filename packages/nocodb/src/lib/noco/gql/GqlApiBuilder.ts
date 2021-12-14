@@ -199,10 +199,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await this.reInitializeGraphqlEndpoint();
   }
 
-  public async onTableDelete(
-    tn: string,
-    extras?: { ignoreRelations?: boolean }
-  ): Promise<void> {
+  public async onTableDelete(tn: string, extras?: any): Promise<void> {
     await super.onTableDelete(tn, extras);
     this.log(`onTableDelete : '%s' `, tn);
     delete this.models[tn];
@@ -735,6 +732,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     /* Get all relations */
     /*    let [
       relations,
+      // eslint-disable-next-line prefer-const
       missingRelations
     ] = await this.getRelationsAndMissingRelations();
     relations = relations.concat(missingRelations);*/

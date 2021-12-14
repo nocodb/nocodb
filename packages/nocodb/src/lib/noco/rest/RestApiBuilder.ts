@@ -883,10 +883,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     });
   }
 
-  public async onTableDelete(
-    tn: string,
-    extras?: { ignoreRelations?: boolean }
-  ): Promise<void> {
+  public async onTableDelete(tn: string, extras?: any): Promise<void> {
     await super.onTableDelete(tn, extras);
     this.log("onTableDelete : '%s'", tn);
     try {

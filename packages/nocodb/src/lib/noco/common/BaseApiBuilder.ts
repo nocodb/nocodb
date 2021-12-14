@@ -208,31 +208,32 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   public async onTableDelete(
     tn: string,
-    extras?: { ignoreRelations?: boolean }
+    extras?: { ignoreVirtualRelations?: boolean; ignoreViews?: boolean }
   ): Promise<void> {
     this.baseLog(`onTableDelete : '%s'`, tn);
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
-    if (!extras?.ignoreRelations)
-      await this.xcMeta.metaDelete(
-        this.projectId,
-        this.dbAlias,
-        'nc_relations',
-        null,
-        {
-          _or: [
-            {
-              tn: {
-                eq: tn
-              }
-            },
-            {
-              rtn: {
-                eq: tn
-              }
+    await this.xcMeta.metaDelete(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      null,
+      {
+        _or: [
+          {
+            tn: {
+              eq: tn
             }
-          ]
-        }
-      );
+          },
+          {
+            rtn: {
+              eq: tn
+            }
+          }
+        ],
+        ...(extras?.ignoreVirtualRelations ? { type: { eq: 'virtual' } } : {})
+      }
+    );
+
     await this.deleteTableNameInACL(tn);
 
     await this.xcMeta.metaDelete(
@@ -355,7 +356,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         /* update fieldsOrder */
         const index = fieldsOrder.indexOf(alias);
         if (index > -1) {
-          fieldsOrder.splice(index, 0);
+          fieldsOrder.splice(index, 1);
         }
 
         /* update formView params */
@@ -1030,7 +1031,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           /* update fieldsOrder */
           const index = fieldsOrder.indexOf(column.cno);
           if (index > -1) {
-            fieldsOrder.splice(index, 0);
+            fieldsOrder.splice(index, 1);
           }
 
           /* update formView params */
@@ -1531,7 +1532,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         /* update fieldsOrder */
         const index = fieldsOrder.indexOf(alias);
         if (index > -1) {
-          fieldsOrder.splice(index, 0);
+          fieldsOrder.splice(index, 1);
         }
 
         /* update formView params */
@@ -2957,7 +2958,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   public async onTableMetaRecreate(tableName: string): Promise<void> {
-    const meta = this.getMeta(tableName);
+    const oldMeta = this.getMeta(tableName);
 
     const virtualRelations = await this.xcMeta.metaList(
       this.projectId,
@@ -2966,7 +2967,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
       {
         xcCondition: {
-          virtual: true,
+          type: 'virtual',
           _or: [
             {
               tn: {
@@ -3003,16 +3004,95 @@ export default abstract class BaseApiBuilder<T extends Noco>
           rel.id
         );
     }
-
+    // todo : handle query params
+    const oldModelRow = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      { title: tableName }
+    );
     await this.onTableDelete(tableName, {
-      ignoreRelations: true,
+      ignoreVirtualRelations: true,
       ignoreViews: true
     } as any);
 
-    // todo : handle query params
-    // todo : handle query para
+    let queryParams: any;
+    try {
+      queryParams = JSON.parse(oldModelRow.query_params);
+    } catch (e) {
+      queryParams = {};
+    }
 
-    await this.onTableCreate(tableName, { oldMeta: meta });
+    const {
+      virtualViews,
+      virtualViewsParamsArr
+    } = await this.extractSharedAndVirtualViewsParams(tableName);
+
+    await this.onTableCreate(tableName, { oldMeta: oldMeta });
+
+    const meta = this.getMeta(tableName);
+
+    for (const oldColumn of oldMeta.columns) {
+      if (meta.columns.find(c => c.c === oldColumn.cn)) continue;
+
+      // virtual views param update
+      for (const qp of [queryParams, ...virtualViewsParamsArr]) {
+        if (!qp) continue;
+
+        // @ts-ignore
+        const {
+          filters = {},
+          sortList = [],
+          showFields = {},
+          fieldsOrder = [],
+          extraViewParams = {}
+        } = qp;
+        /* update sort field */
+        const sIndex = (sortList || []).findIndex(
+          v => v.field === oldColumn.cno
+        );
+        if (sIndex > -1) {
+          sortList.splice(sIndex, 1);
+        }
+        /* update show field */
+        if (oldColumn.cno in showFields) {
+          delete showFields[oldColumn.cno];
+        }
+        /* update filters */
+        if (
+          filters &&
+          JSON.stringify(filters)?.includes(`"${oldColumn.cno}"`)
+        ) {
+          filters.splice(0, filters.length);
+        }
+
+        /* update fieldsOrder */
+        const index = fieldsOrder.indexOf(oldColumn.cno);
+        if (index > -1) {
+          fieldsOrder.splice(index, 1);
+        }
+
+        /* update formView params */
+        //  extraViewParams.formParams.fields
+        if (extraViewParams?.formParams?.fields?.[oldColumn.cno]) {
+          delete extraViewParams.formParams.fields[oldColumn.cno];
+        }
+      }
+    }
+
+    await this.updateSharedAndVirtualViewsParams(
+      virtualViewsParamsArr,
+      virtualViews
+    );
+    await this.xcMeta.metaUpdate(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        query_params: JSON.stringify(queryParams)
+      },
+      { title: tableName, type: 'table' }
+    );
   }
 
   protected async getOrderVal(): Promise<number> {

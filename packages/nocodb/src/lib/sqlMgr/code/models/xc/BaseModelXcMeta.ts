@@ -105,6 +105,12 @@ abstract class BaseModelXcMeta extends BaseRender {
         _cn: `${bt._rtn} <= ${bt._tn}`
       }))
     ];
+
+    // const oldVirtualCols = this.ctx?.oldMeta?.v || [];
+
+    // for (const oldVCol of oldVirtualCols) {
+    //   if
+    // }
   }
 
   public mapDefaultPrimaryValue(columnsArr: any[]): void {

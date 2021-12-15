@@ -7,6 +7,7 @@ import * as nc_006_alter_nc_shared_views from '../migrations/nc_006_alter_nc_sha
 import * as nc_007_alter_nc_shared_views_1 from '../migrations/nc_007_alter_nc_shared_views_1';
 import * as nc_008_add_nc_shared_bases from '../migrations/nc_008_add_nc_shared_bases';
 import * as nc_009_add_model_order from '../migrations/nc_009_add_model_order';
+import * as nc_010_add_parent_title_column from '../migrations/nc_010_add_parent_title_column';
 
 // Create a custom migration source class
 export default class XcMigrationSource {
@@ -24,7 +25,8 @@ export default class XcMigrationSource {
       'nc_006_alter_nc_shared_views',
       'nc_007_alter_nc_shared_views_1',
       'nc_008_add_nc_shared_bases',
-      'nc_009_add_model_order'
+      'nc_009_add_model_order',
+      'nc_010_add_parent_title_column'
     ]);
   }
 
@@ -52,6 +54,8 @@ export default class XcMigrationSource {
         return nc_008_add_nc_shared_bases;
       case 'nc_009_add_model_order':
         return nc_009_add_model_order;
+      case 'nc_010_add_parent_title_column':
+        return nc_010_add_parent_title_column;
     }
   }
 }

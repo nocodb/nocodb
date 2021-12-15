@@ -1222,7 +1222,10 @@ export default {
             this.dialogGetFunctionName.dialogShow = true;
           } else if (action === 'ENV_DB_FUNCTIONS_CREATE') {
             this.dialogGetFunctionName.dialogShow = true;
-          } else if (action === 'ENV_DB_VIEWS_REFRESH') {
+          } else if (action === "ENV_DB_TABLES_REFRESH") {
+            await this.loadTables(this.menuItem);
+            this.$toast.success('Tables refreshed').goAway(1000);
+          }else if (action === 'ENV_DB_VIEWS_REFRESH') {
             await this.loadViews(this.menuItem);
             this.$toast.success('Views refreshed').goAway(1000);
           } else if (action === 'IMPORT_EXCEL') {

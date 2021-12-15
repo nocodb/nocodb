@@ -119,7 +119,7 @@ export const actions = {
             type: 'tableDir'
           }
         }, { root: true })
-        await dispatch('project/_loadViews', {
+        /*        await dispatch('project/_loadViews', {
           dbKey: '0.projectJson.envs._noco.db.0',
           key: '0.projectJson.envs._noco.db.0.views',
           _nodes: {
@@ -129,7 +129,7 @@ export const actions = {
             // key: "0.projectJson.envs._noco.db.0.tables",
             type: 'viewDir'
           }
-        }, { root: true })
+        }, { root: true }) */
 
         switch (type) {
           case 'table':

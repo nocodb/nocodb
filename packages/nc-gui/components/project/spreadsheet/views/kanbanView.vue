@@ -224,10 +224,8 @@ export default {
           { [this.groupingField]: status === uncategorized ? null : status }, // new data
           { [this.groupingField]: prevStatus }) // old data
 
-
-        const targetBlockIdx = this.clonedBlocks.findIndex(b => b.id === Number(id))
-        // this.clonedBlocks[targetBlockIdx].status = status
-        // this.clonedBlocks[targetBlockIdx][this.kanbanGroupingField] = (status === uncategorized ? null : status)
+        targetBlock.status = status
+        targetBlock[this.groupingField] = (status === uncategorized ? null : status)
         this.$emit('updateKanbanBlock')
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'

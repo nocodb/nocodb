@@ -1291,7 +1291,6 @@ export default {
     async loadKanbanData() {
       try {
         this.kanban.loadingData = true
-        console.log("triggering loadKanbanData")
         if (this.api) {
           const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
           if (!groupingColumn) {
@@ -1325,7 +1324,6 @@ export default {
               })
             })
           }
-          console.log(this.kanban.data)
         }
       } catch (e) {
         if (e.response && e.response.data && e.response.data.msg) {
@@ -1362,53 +1360,6 @@ export default {
         selectedExpandRowMeta: null,
       }
     },
-    async updateKanbanBlock(id, status) {
-      console.log(id)
-      console.log(status)
-      try {
-        if (!this.api) {
-          this.$toast.error('API not found', {
-            position: 'bottom-center'
-          }).goAway(3000)
-          return
-        }
-
-        const targetBlockIdx = this.kanban.data.findIndex(o => o.row.id === Number(id))
-        if (!this.kanban.data[targetBlockIdx]) {
-          this.$toast.error(`Block with ID ${id} not found`, {
-            position: 'bottom-center'
-          }).goAway(3000)
-          return
-        }
-
-        console.log(this.kanban.data[targetBlockIdx])
-
-        if (this.kanban.data[targetBlockIdx].status === status) {
-          // no change
-          return
-        }
-
-        const uncategorized = 'Uncategorized'
-        const prevStatus = this.kanban.data[targetBlockIdx].status
-        await this.api.update(id,
-          { [this.groupingField]: status === uncategorized ? null : status }, // new data
-          { [this.groupingField]: prevStatus }) // old data
-        this.$set(this.kanban.data[targetBlockIdx].row[this.groupingField], status)
-        this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
-          position: 'bottom-center'
-        }).goAway(3000)
-      } catch (e) {
-        if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(e.response.data.msg, {
-            position: 'bottom-center'
-          }).goAway(3000)
-        } else {
-          this.$toast.error(`Failed to update block : ${e.message}`, {
-            position: 'bottom-center'
-          }).goAway(3000)
-        }
-      }
-    }
   },
   computed: {
     tabsState() {

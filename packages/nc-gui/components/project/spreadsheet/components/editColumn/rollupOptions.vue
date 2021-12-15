@@ -70,6 +70,7 @@ export default {
   data: () => ({
     rollup: {},
     loadingColumns: false,
+    tables: [],
     relationNames: {
       mm: 'Many To Many',
       hm: 'Has Many'
@@ -89,7 +90,7 @@ export default {
   }),
   computed: {
     refTables() {
-      return this.meta
+      return (this.meta
         ? [
           // ...(this.meta.belongsTo || []).map(({ rtn, _rtn, rcn, tn, cn }) => ({
           //   type: 'bt',
@@ -132,7 +133,7 @@ export default {
               _rltn: _rtn
             }))
           ]
-        : []
+        : []).filter(t => this.tables.includes(t.rltn))
     },
     columnList() {
       return ((
@@ -147,7 +148,18 @@ export default {
       }))
     }
   },
+  async mounted() {
+    await this.loadTablesList()
+  },
   methods: {
+    async loadTablesList() {
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias
+      }, 'tableList'])
+
+      this.tables = result.data.list.map(({ tn }) => tn)
+    },
     async onTableChange() {
       this.loadingColumns = true
       if (this.rollup.table) {

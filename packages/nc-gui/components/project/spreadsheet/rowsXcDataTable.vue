@@ -328,19 +328,19 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
-          <template v-else-if="isKanban && data.length">
+          <template v-else-if="isKanban && kanban.data.length && !kanban.loadingData">
             <kanban-view
               :nodes="nodes"
               :table="table"
               :show-fields="showFields"
               :available-columns="availableColumns"
               :meta="meta"
-              :data="data"
+              :kanban="kanban"
               :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
-              :grouping-field="groupingField"
+              :grouping-field.sync="groupingField"
               :api="api"
-              @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+              @expandKanbanForm="({rowIdx}) => expandKanbanForm(rowIdx)"
               @insertNewRow="insertNewRow"
               @loadTableData="loadTableData"
             />
@@ -555,7 +555,34 @@
       class=" mx-auto"
     >
       <expanded-form
-        v-if="selectedExpandRowIndex != null && data[selectedExpandRowIndex]"
+        v-if="isKanban && kanban.selectedExpandRow"
+        :key="kanban.selectedExpandRow.id"
+        v-model="kanban.selectedExpandRow"
+        :db-alias="nodes.dbAlias"
+        :has-many="hasMany"
+        :belongs-to="belongsTo"
+        :table="table"
+        :old-row.sync="kanban.selectedExpandOldRow"
+        :is-new="kanban.selectedExpandRowMeta.new"
+        :selected-row-meta="kanban.selectedExpandRowMeta"
+        :meta="meta"
+        :sql-ui="sqlUi"
+        :primary-value-column="primaryValueColumn"
+        :api="api"
+        :available-columns="availableColumns"
+        :nodes="nodes"
+        :query-params="queryParams"
+        :show-next-prev="true"
+        :preset-values="presetValues"
+        @cancel="showExpandModal = false;"
+        @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData()"
+        @commented="reloadComments"
+        @loadKanbanData="loadKanbanData"
+        @next="loadNext"
+        @prev="loadPrev"
+      />
+      <expanded-form
+        v-if="!isKanban && (selectedExpandRowIndex != null && data[selectedExpandRowIndex])"
         :key="selectedExpandRowIndex"
         v-model="data[selectedExpandRowIndex].row"
         :db-alias="nodes.dbAlias"
@@ -730,7 +757,19 @@ export default {
       icon: 'mdi-ca rd'
     }],
     rowContextMenu: null,
-    presetValues: {}
+    presetValues: {},
+    kanban: {
+      data: [],
+      stages: [],
+      blocks: [],
+      clonedBlocks: [],
+      recordCnt: {},
+      groupingColumnItems: [],
+      loadingData : true,
+      selectedExpandRow: null,
+      selectedExpandOldRow: null,
+      selectedExpandRowMeta: null,
+    },
   }),
   watch: {
     isActive(n, o) {
@@ -756,6 +795,12 @@ export default {
       //   key: 'selectedViewId',
       //   val: id
       // })
+    },
+    async groupingField(newVal) {
+      this.groupingField = newVal
+      if(this.$route.query.view === 'kanban') {
+        await this.loadKanbanData()
+      }
     }
   },
   async mounted() {
@@ -791,7 +836,11 @@ export default {
         })
       } else {
         // await this.$refs.drawer.loadViews();
-        await this.loadTableData()
+        if (this.$route.query.view === 'kanban') {
+          await this.loadKanbanData()
+        } else {
+          await this.loadTableData()
+        }
       }
       // this.mapFieldsAndShowFields()
     } catch (e) {
@@ -1011,7 +1060,6 @@ export default {
           if (oldRow[column._cn] === rowObj[column._cn]) {
             return
           }
-
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
 
           if (!id) {
@@ -1190,6 +1238,57 @@ export default {
       }
       this.loadingData = false
     },
+    async loadKanbanData() {
+      try {
+        this.kanban.loadingData = true
+
+        if (this.api) {
+          const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
+          if (!groupingColumn) {
+            return
+          }
+          
+          const initialLimit = 5
+          const uncategorized = 'Uncategorized'
+
+          this.initKanbanProps()
+          this.kanban.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
+            const trimCol = c.replace(/'/g, '')
+            this.kanban.recordCnt[trimCol] = 0
+            return trimCol
+          }).sort()
+
+          this.kanban.groupingColumnItems.unshift(uncategorized)
+          this.kanban.recordCnt[uncategorized] = 0
+          for (const groupingColumnItem of this.kanban.groupingColumnItems) {
+            const {
+              data
+            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+              limit: initialLimit,
+              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
+            })
+            const o = {
+              row: data[0],
+              oldRow: data[0],
+              rowMeta: {},
+            }
+            this.kanban.data.push(o)
+          }
+        }
+      } catch (e) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(e.response.data.msg, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        } else {
+          this.$toast.error(`Error occurred : ${e.message}`, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        }
+      } finally {
+        this.kanban.loadingData = false
+      }
+    },
     showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
       if (!this.isEditable) {
         return
@@ -1212,6 +1311,13 @@ export default {
       this.showExpandModal = true
       this.selectedExpandRowIndex = row
       this.selectedExpandRowMeta = rowMeta
+    },
+    expandKanbanForm(rowIdx) {
+      this.showExpandModal = true
+      const data = this.kanban.data.filter(o => o.row.id == rowIdx)[0]
+      this.kanban.selectedExpandRow = data.row
+      this.kanban.selectedExpandOldRow = data.oldRow
+      this.kanban.selectedExpandRowMeta = data.rowMeta
     },
     async onNewColCreation(col, oldCol) {
       if (this.$refs.drawer) {
@@ -1239,7 +1345,21 @@ export default {
       }
 
       this.$refs.csvExportImport.onCsvFileSelection(file)
-    }
+    },
+    initKanbanProps() {
+      this.kanban = {
+        data: [],
+        stages: [],
+        blocks: [],
+        clonedBlocks: [],
+        recordCnt: {},
+        groupingColumnItems: [],
+        loadingData : true,
+        selectedExpandRow: null,
+        selectedExpandOldRow: null,
+        selectedExpandRowMeta: null,
+      }
+    },
   },
   computed: {
     tabsState() {
@@ -1282,7 +1402,7 @@ export default {
         table: this.meta.tn
       })
       // return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
-    }
+    },
   }
 }
 </script>
@@ -1374,6 +1494,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

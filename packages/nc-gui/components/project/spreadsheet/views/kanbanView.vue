@@ -14,7 +14,7 @@
             <v-card
               class="h-100"
               :elevation="hover ? 4 : 1"
-              @click="$emit('expandForm', {rowIndex: block.id - 1, rowMeta: block.rowMeta})"
+              @click="$emit('expandKanbanForm', {rowIdx: block.id})"
             >
               <v-card-text>
                 <v-container>
@@ -93,7 +93,7 @@
         </x-btn> -->
 
         <div class="record-cnt">
-          {{ recordCnt[stage] }} {{ recordCnt[stage] > 1 ? "records" : "record" }}
+          {{ kanban.recordCnt[stage] }} {{ kanban.recordCnt[stage] > 1 ? "records" : "record" }}
         </div>
       </div>
     </kanban-board>
@@ -117,7 +117,7 @@ export default {
     'showFields',
     'availableColumns',
     'meta',
-    'data',
+    'kanban',
     'primaryValueColumn',
     'showSystemFields',
     'sqlUi',
@@ -126,30 +126,22 @@ export default {
   ],
   data() {
     return {
-      kanbanData: [],
       stages: [],
       stageColors: [],
       blocks: [],
       clonedBlocks: [],
-      recordCnt: {},
-      groupingColumnItems: [],
-      kanbanGroupingField: this.groupingField,
       loadingData: true,
     }
   },
   async mounted() {
-    await this.fetchKanbanData()
+    await this.setKanbanData()
   },
   watch: {
-    async groupingField(newVal) {
-      this.kanbanGroupingField = newVal
-      this.reset()
-      await this.fetchKanbanData()
-    },
-    async data(newVal) {
-      // re-fetch the data if the data is modified in expanded form
-      this.reset()
-      await this.fetchKanbanData()
+    'kanban.data': {
+      async handler() {
+        await this.setKanbanData()
+      },
+      deep: true
     }
   },
   computed: {
@@ -166,84 +158,33 @@ export default {
       ) || []
     },
     groupingFieldColumn() {
-      return this.fields.filter(o => o.alias === this.kanbanGroupingField)[0]
+      return this.fields.filter(o => o.alias === this.groupingField)[0]
     }
   },
   methods: {
-    async fetchKanbanData() {
-      try {
-        this.loadingData = true
-
-        if (!this.api) {
-          this.$toast.error('API not found', {
-            position: 'bottom-center'
-          }).goAway(3000)
-          return
-        }
-
-        const groupingColumn = this.meta.columns.find(c => c.cn === this.kanbanGroupingField)
-        if (!groupingColumn) {
-          return
-        }
-
-        const initialLimit = 25
-        const uncategorized = 'Uncategorized'
-
-        this.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
-          const trimCol = c.replace(/'/g, '')
-          this.recordCnt[trimCol] = 0
-          return trimCol
-        }).sort()
-
-        this.groupingColumnItems.unshift(uncategorized)
-        this.recordCnt[uncategorized] = 0
-
-        for (const groupingColumnItem of this.groupingColumnItems) {
-          const {
-            data
-          } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
-            limit: initialLimit,
-            where: groupingColumnItem === uncategorized ? `(${this.kanbanGroupingField},is,null)` : `(${this.kanbanGroupingField},eq,${groupingColumnItem})`
-          })
-          this.kanbanData = [...this.kanbanData, ...data]
-        }
-
-        await this.setKanbanData()
-      } catch (e) {
-        if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(e.response.data.msg, {
-            position: 'bottom-center'
-          }).goAway(3000)
-        } else {
-          this.$toast.error(`Error occurred : ${e.message}`, {
-            position: 'bottom-center'
-          }).goAway(3000)
-        }
-      } finally {
-        this.loadingData = false
-      }
-    },
     async setKanbanData() {
       const uncategorized = 'Uncategorized'
       try {
-        const n = this.kanbanData.length
+        this.loadingData = true
+        this.reset()
+
+        const n = this.kanban.data.length
         for (let i = 0; i < n; i++) {
-          if (!this.kanbanData[i].id) {
+          if (!this.kanban.data[i].row.id) {
             // skip empty record
             // case: add a new record -> cancel -> empty row -> no id
             continue
           }
-          const status = this.kanbanData[i][this.kanbanGroupingField] ?? uncategorized
+          const status = this.kanban.data[i].row[this.groupingField] ?? uncategorized
           const block = {
             status,
-            rowMeta: this.kanbanData[i].rowMeta,
-            ...this.kanbanData[i]
+            ...this.kanban.data[i].row
           }
-          this.recordCnt[status] += 1
+          this.kanban.recordCnt[status] += 1
           this.blocks.push(block)
         }
-        // remove depulicate items
-        this.stages = this.groupingColumnItems
+        
+        this.stages = this.kanban.groupingColumnItems
 
         // new stack column
         // this.stages.push("")
@@ -251,6 +192,8 @@ export default {
         return Promise.resolve(this.clonedBlocks)
       } catch (e) {
         return Promise.reject(e)
+      } finally {
+        this.loadingData = false
       }
     },
     async updateBlock(id, status) {
@@ -299,17 +242,14 @@ export default {
         }
       }
     },
-    reset() {
-      this.kanbanData = []
-      this.stages = []
-      this.stageColors = []
-      this.blocks = []
-      this.clonedBlocks = []
-      this.recordCnt = {}
-    },
     insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       this.$emit('insertNewRow', atEnd, expand, presetValues)
-    }
+    },
+    reset() {
+      this.stages = []
+      this.blocks = []
+      this.clonedBlocks = []
+    },
   }
 }
 </script>
@@ -483,3 +423,28 @@ export default {
 
 }
 </style>
+
+
+<!--
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+-->

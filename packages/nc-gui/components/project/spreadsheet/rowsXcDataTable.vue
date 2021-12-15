@@ -342,7 +342,7 @@
               :api="api"
               @expandKanbanForm="({rowIdx}) => expandKanbanForm(rowIdx)"
               @insertNewRow="insertNewRow"
-              @loadTableData="loadTableData"
+              @updateKanbanBlock="loadKanbanData"
             />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">
@@ -577,7 +577,6 @@
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData()"
         @commented="reloadComments"
-        @loadKanbanData="loadKanbanData"
         @next="loadNext"
         @prev="loadPrev"
       />
@@ -1238,57 +1237,6 @@ export default {
       }
       this.loadingData = false
     },
-    async loadKanbanData() {
-      try {
-        this.kanban.loadingData = true
-
-        if (this.api) {
-          const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
-          if (!groupingColumn) {
-            return
-          }
-          
-          const initialLimit = 5
-          const uncategorized = 'Uncategorized'
-
-          this.initKanbanProps()
-          this.kanban.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
-            const trimCol = c.replace(/'/g, '')
-            this.kanban.recordCnt[trimCol] = 0
-            return trimCol
-          }).sort()
-
-          this.kanban.groupingColumnItems.unshift(uncategorized)
-          this.kanban.recordCnt[uncategorized] = 0
-          for (const groupingColumnItem of this.kanban.groupingColumnItems) {
-            const {
-              data
-            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
-              limit: initialLimit,
-              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
-            })
-            const o = {
-              row: data[0],
-              oldRow: data[0],
-              rowMeta: {},
-            }
-            this.kanban.data.push(o)
-          }
-        }
-      } catch (e) {
-        if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(e.response.data.msg, {
-            position: 'bottom-center'
-          }).goAway(3000)
-        } else {
-          this.$toast.error(`Error occurred : ${e.message}`, {
-            position: 'bottom-center'
-          }).goAway(3000)
-        }
-      } finally {
-        this.kanban.loadingData = false
-      }
-    },
     showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
       if (!this.isEditable) {
         return
@@ -1311,13 +1259,6 @@ export default {
       this.showExpandModal = true
       this.selectedExpandRowIndex = row
       this.selectedExpandRowMeta = rowMeta
-    },
-    expandKanbanForm(rowIdx) {
-      this.showExpandModal = true
-      const data = this.kanban.data.filter(o => o.row.id == rowIdx)[0]
-      this.kanban.selectedExpandRow = data.row
-      this.kanban.selectedExpandOldRow = data.oldRow
-      this.kanban.selectedExpandRowMeta = data.rowMeta
     },
     async onNewColCreation(col, oldCol) {
       if (this.$refs.drawer) {
@@ -1346,6 +1287,67 @@ export default {
 
       this.$refs.csvExportImport.onCsvFileSelection(file)
     },
+    // Kanban
+    async loadKanbanData() {
+      try {
+        this.kanban.loadingData = true
+        console.log("triggering loadKanbanData")
+        if (this.api) {
+          const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
+          if (!groupingColumn) {
+            return
+          }
+          
+          const initialLimit = 10
+          const uncategorized = 'Uncategorized'
+
+          this.initKanbanProps()
+          this.kanban.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
+            const trimCol = c.replace(/'/g, '')
+            this.kanban.recordCnt[trimCol] = 0
+            return trimCol
+          }).sort()
+
+          this.kanban.groupingColumnItems.unshift(uncategorized)
+          this.kanban.recordCnt[uncategorized] = 0
+          for (const groupingColumnItem of this.kanban.groupingColumnItems) {
+            const {
+              data
+            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+              limit: initialLimit,
+              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
+            })
+            data.map(d => {
+              this.kanban.data.push({
+                row: d,
+                oldRow: d,
+                rowMeta: {},
+              })
+            })
+          }
+          console.log(this.kanban.data)
+        }
+      } catch (e) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(e.response.data.msg, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        } else {
+          this.$toast.error(`Error occurred : ${e.message}`, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        }
+      } finally {
+        this.kanban.loadingData = false
+      }
+    },
+    expandKanbanForm(rowIdx) {
+      this.showExpandModal = true
+      const data = this.kanban.data.filter(o => o.row.id == rowIdx)[0]
+      this.kanban.selectedExpandRow = data.row
+      this.kanban.selectedExpandOldRow = data.oldRow
+      this.kanban.selectedExpandRowMeta = data.rowMeta
+    },
     initKanbanProps() {
       this.kanban = {
         data: [],
@@ -1360,6 +1362,53 @@ export default {
         selectedExpandRowMeta: null,
       }
     },
+    async updateKanbanBlock(id, status) {
+      console.log(id)
+      console.log(status)
+      try {
+        if (!this.api) {
+          this.$toast.error('API not found', {
+            position: 'bottom-center'
+          }).goAway(3000)
+          return
+        }
+
+        const targetBlockIdx = this.kanban.data.findIndex(o => o.row.id === Number(id))
+        if (!this.kanban.data[targetBlockIdx]) {
+          this.$toast.error(`Block with ID ${id} not found`, {
+            position: 'bottom-center'
+          }).goAway(3000)
+          return
+        }
+
+        console.log(this.kanban.data[targetBlockIdx])
+
+        if (this.kanban.data[targetBlockIdx].status === status) {
+          // no change
+          return
+        }
+
+        const uncategorized = 'Uncategorized'
+        const prevStatus = this.kanban.data[targetBlockIdx].status
+        await this.api.update(id,
+          { [this.groupingField]: status === uncategorized ? null : status }, // new data
+          { [this.groupingField]: prevStatus }) // old data
+        this.$set(this.kanban.data[targetBlockIdx].row[this.groupingField], status)
+        this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
+          position: 'bottom-center'
+        }).goAway(3000)
+      } catch (e) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(e.response.data.msg, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        } else {
+          this.$toast.error(`Failed to update block : ${e.message}`, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        }
+      }
+    }
   },
   computed: {
     tabsState() {

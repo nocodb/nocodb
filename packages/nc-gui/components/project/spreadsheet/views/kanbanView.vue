@@ -122,7 +122,7 @@ export default {
     'showSystemFields',
     'sqlUi',
     'groupingField',
-    'api'
+    'api',
   ],
   data() {
     return {
@@ -221,12 +221,14 @@ export default {
         const uncategorized = 'Uncategorized'
         const prevStatus = targetBlock.status
         await this.api.update(id,
-          { [this.kanbanGroupingField]: status === uncategorized ? null : status }, // new data
-          { [this.kanbanGroupingField]: prevStatus }) // old data
+          { [this.groupingField]: status === uncategorized ? null : status }, // new data
+          { [this.groupingField]: prevStatus }) // old data
 
-        targetBlock.status = status
-        targetBlock[this.kanbanGroupingField] = (status === uncategorized ? null : status)
-        this.$emit('loadTableData')
+
+        const targetBlockIdx = this.clonedBlocks.findIndex(b => b.id === Number(id))
+        // this.clonedBlocks[targetBlockIdx].status = status
+        // this.clonedBlocks[targetBlockIdx][this.kanbanGroupingField] = (status === uncategorized ? null : status)
+        this.$emit('updateKanbanBlock')
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
         }).goAway(3000)

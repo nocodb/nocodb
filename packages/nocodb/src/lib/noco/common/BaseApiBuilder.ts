@@ -28,6 +28,7 @@ import { XcCron } from './XcCron';
 import NcConnectionMgr from './NcConnectionMgr';
 import updateColumnNameInFormula from './helpers/updateColumnNameInFormula';
 import addErrorOnColumnDeleteInFormula from './helpers/addErrorOnColumnDeleteInFormula';
+import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 
 const log = debug('nc:api:base');
 
@@ -1266,7 +1267,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     const NC_VERSIONS = [
       { name: '0009000', handler: null },
-      { name: '0009044', handler: this.ncUpManyToMany.bind(this) }
+      { name: '0009044', handler: this.ncUpManyToMany.bind(this) },
+      { name: '0083006', handler: ncModelsOrderUpgrader }
     ];
     if (!(await this.xcMeta?.knex?.schema?.hasTable?.('nc_store'))) {
       return;
@@ -1291,7 +1293,12 @@ export default abstract class BaseApiBuilder<T extends Noco>
               configObj.version,
               version.name
             );
-            await version?.handler?.();
+            await version?.handler?.(<NcBuilderUpgraderCtx>{
+              xcMeta: this.xcMeta,
+              builder: this,
+              dbAlias: this.dbAlias,
+              projectId: this.projectId
+            });
 
             // update version in meta after each upgrade
             config.version = version.name;
@@ -2404,7 +2411,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return metas;
   }
 
-  protected async ncUpManyToMany(): Promise<any> {
+  protected async ncUpManyToMany(_ctx: any): Promise<any> {
     const models = await this.xcMeta.metaList(
       this.projectId,
       this.dbAlias,
@@ -2933,6 +2940,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   public getMeta(tableName: string): any {
     return this.metas?.[tableName];
   }
+
   protected async getOrderVal(): Promise<number> {
     const order =
       (
@@ -2949,7 +2957,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 }
 
-export { IGNORE_TABLES };
+interface NcBuilderUpgraderCtx {
+  xcMeta: NcMetaIO;
+  builder: BaseApiBuilder<any>;
+  projectId: string;
+  dbAlias: string;
+}
+
+export { IGNORE_TABLES, NcBuilderUpgraderCtx };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

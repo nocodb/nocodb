@@ -214,16 +214,11 @@ export default abstract class NcMetaIO {
 }
 
 type XcConditionStr = {
-  [key in
-    | 'lt'
-    | 'gt'
-    | 'le'
-    | 'ge'
-    | 'like'
-    | 'nlike'
-    | 'eq'
-    | 'in'
-    | 'nin']: any;
+  [key in 'lt' | 'gt' | 'le' | 'ge' | 'like' | 'nlike' | 'eq' | 'in' | 'nin']:
+    | string
+    | number
+    | boolean
+    | Date;
 };
 
 interface XcCondition {

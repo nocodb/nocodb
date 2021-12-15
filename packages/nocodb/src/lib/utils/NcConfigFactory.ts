@@ -53,13 +53,13 @@ export default class NcConfigFactory implements NcConfig {
     config.port = +(process?.env?.PORT ?? 8080);
     config.env = '_noco'; // process.env?.NODE_ENV || 'dev';
     config.workingEnv = '_noco'; // process.env?.NODE_ENV || 'dev';
-    config.toolDir = this.getToolDir();
+    // config.toolDir = this.getToolDir();
     config.projectType =
       config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
     if (config.meta?.db?.connection?.filename) {
       config.meta.db.connection.filename = path.join(
-        config.toolDir,
+        this.getToolDir(),
         config.meta.db.connection.filename
       );
     }

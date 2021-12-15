@@ -201,12 +201,11 @@
                   </template>
 
                   <v-list-item-group :value="selectedItem">
-                    <draggable
-                      v-model=" item.children"
+                    <component
+                      :is="_isUIAllowed('treeview-drag-n-drop') ? 'draggable' : 'div'"
+                      v-model="item.children"
                       draggable="div"
                       v-bind="dragOptions"
-                      @start="drag=true"
-                      @end="drag=false"
                       @change="onMove($event, item.children)"
                     >
                       <transition-group type="transition" :name="!drag ? 'flip-list' : null">
@@ -226,7 +225,11 @@
                           @click.stop="addTab({ ...child }, false, true)"
                           @contextmenu.prevent.stop="showCTXMenu($event, child, false, true)"
                         >
-                          <v-icon small class="nc-child-draggable-icon">
+                          <v-icon
+                            v-if="_isUIAllowed('treeview-drag-n-drop')"
+                            small
+                            :class="`nc-child-draggable-icon nc-child-draggable-icon-${child.name}`"
+                          >
                             mdi-drag-vertical
                           </v-icon>
 
@@ -316,7 +319,7 @@
                           </template>
                         </v-list-item>
                       </transition-group>
-                    </draggable>
+                    </component>
                   </v-list-item-group>
                 </v-list-group>
                 <v-list-item

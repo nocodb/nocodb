@@ -3,6 +3,7 @@ let t01 = require("../common/00_pre_configurations");
 let t1a = require("../common/1a_table_operations");
 let t1b = require("../common/1b_table_column_operations");
 let t1c = require("../common/1c_sql_view");
+let t1d = require("../common/1d_table_view_drag_drop_reorder");
 let t2a = require("../common/2a_table_with_belongs_to_colulmn");
 let t2b = require("../common/2b_table_with_m2m_column");
 let t3a = require("../common/3a_filter_sort_fields_operations");
@@ -24,6 +25,7 @@ const nocoTestSuite = (type, xcdb) => {
   t1a.genTest(type, xcdb);
   t1b.genTest(type, xcdb);
   t1c.genTest(type, xcdb);
+  t1d.genTest(type, xcdb);
   t2a.genTest(type, xcdb);
   t2b.genTest(type, xcdb);
   t3a.genTest(type, xcdb);

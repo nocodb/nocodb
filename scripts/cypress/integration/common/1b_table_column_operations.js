@@ -4,6 +4,19 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 export const genTest = (type, xcdb) => {
   if (!isTestSuiteActive(type, xcdb)) return;
 
+  function addNewRow(index, cellValue) {
+    cy.get(".nc-add-new-row-btn:visible").should("exist");
+    cy.get(".nc-add-new-row-btn").click({ force: true });
+    cy.get("#data-table-form-Title > input").first().type(cellValue);
+    cy.getActiveModal()
+      .find("button")
+      .contains("Save Row")
+      .click({ force: true });
+
+    cy.toastWait("updated successfully");
+    mainPage.getCell("Title", index).contains(cellValue).should("exist");
+  }
+
   describe(`${type.toUpperCase()} api - Table Column`, () => {
     const name = "tablex";
     const colName = "column_name_a";
@@ -85,16 +98,7 @@ export const genTest = (type, xcdb) => {
     });
 
     it("Add new row", () => {
-      cy.get(".nc-add-new-row-btn:visible").should("exist");
-      cy.get(".nc-add-new-row-btn").click({ force: true });
-      cy.get("#data-table-form-Title > input").first().type(randVal);
-      cy.getActiveModal()
-        .find("button")
-        .contains("Save Row")
-        .click({ force: true });
-
-      cy.toastWait("updated successfully");
-      mainPage.getCell("Title", 1).contains(randVal).should("exist");
+      addNewRow(1, randVal);
     });
 
     it("Update row", () => {
@@ -127,6 +131,28 @@ export const genTest = (type, xcdb) => {
         .click({ force: true });
       // cy.toastWait('Deleted row successfully')
       cy.get("td").contains(randVal).should("not.exist");
+    });
+
+    it("Select all row check-box validation", () => {
+      // add multiple rows
+      addNewRow(1, "a1");
+      addNewRow(2, "a2");
+      addNewRow(3, "a3");
+      addNewRow(4, "a4");
+      addNewRow(5, "a5");
+
+      // check-box, select-all. 0 indicates table header
+      mainPage
+        .getRow(0)
+        .find(".mdi-checkbox-blank-outline")
+        .click({ force: true });
+
+      // delete selected rows
+      mainPage.getCell("Title", 1).rightclick({ force: true });
+      cy.getActiveMenu().contains("Delete Selected Row").click({ force: true });
+
+      // verify if everything is wiped off
+      mainPage.getCell("Title", 1).contains("a1").should("not.exist");
     });
   });
 };

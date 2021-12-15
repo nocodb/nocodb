@@ -1,20 +1,22 @@
 <template>
-  <v-datetime-picker
-    ref="picker"
-    v-model="localState"
-    class="caption xc-date-time-picker"
-    :text-field-props="{
-      class:'caption mt-0 pt-0',
-      flat:true,
-      solo:true,
-      dense:true,
-      hideDetails:true
-    }"
-    :time-picker-props="{
-      format:'24hr'
-    }"
-    v-on="parentListeners"
-  />
+  <div>
+    <v-datetime-picker
+      ref="picker"
+      v-model="localState"
+      class="caption xc-date-time-picker"
+      :text-field-props="{
+        class:'caption mt-0 pt-0',
+        flat:true,
+        solo:true,
+        dense:true,
+        hideDetails:true
+      }"
+      :time-picker-props="{
+        format:'24hr'
+      }"
+      v-on="parentListeners"
+    />
+  </div>
 </template>
 
 <script>
@@ -25,14 +27,16 @@ dayjs.extend(utc)
 
 export default {
   name: 'DateTimePickerCell',
-  props: ['value', 'ignoreFocus'],
+  props: {
+    value: [String, Date, Number], ignoreFocus: Boolean
+  },
   computed: {
     localState: {
       get() {
         if (!this.value) { return this.value }
 
+        console.log(this.value, dayjs(this.value).utc().format('YYYY-MM-DD HH:mm'))
         return dayjs(this.value).format('YYYY-MM-DD HH:mm')
-
         // todo : time value correction
         //
         // if (/^\d{6,}$/.test(this.value)) {
@@ -44,14 +48,16 @@ export default {
       set(val) {
         // console.log('dayjs=====', dayjs.utc(val).toString())
         // const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')
-        this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm'))
+        // console.log(uVal)
+
+        this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm:ssZ'))
       }
     },
     parentListeners() {
       const $listeners = {}
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        // $listeners.blur = this.$listeners.blur
       }
       if (this.$listeners.focus) {
         $listeners.focus = this.$listeners.focus

@@ -1266,7 +1266,10 @@ class BaseModelSql extends BaseModel {
     );
     let { fields } = restArgs;
     const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
-    const _cn = this.dbModels[child].columnToAlias?.[cn];
+    if (!this.dbModels[child]) {
+      return;
+    }
+    const _cn = this.dbModels[child]?.columnToAlias?.[cn];
 
     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
       fields += ',' + cn;
@@ -1343,6 +1346,10 @@ class BaseModelSql extends BaseModel {
 
     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
       fields += ',' + cn;
+    }
+
+    if (!this.dbModels[child]) {
+      return;
     }
 
     const childs = await this._run(
@@ -1498,13 +1505,17 @@ class BaseModelSql extends BaseModel {
         fields += ',' + this.pks[0].cn;
       }
 
-      for (const parent of parents.split(',')) {
-        const { cn } =
-          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-        if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-          fields += ',' + cn;
+      if (parents)
+        for (const parent of parents.split(',')) {
+          if (!parent) {
+            continue;
+          }
+          const { cn } =
+            this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+          if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
+            fields += ',' + cn;
+          }
         }
-      }
 
       const items = await this.list({ childs, where, fields, ...rest });
 
@@ -1525,22 +1536,23 @@ class BaseModelSql extends BaseModel {
         );
       }
 
-      await Promise.all(
-        parents.split(',').map((parent, index): any => {
-          if (!parent) {
-            return;
-          }
-          const { cn, rcn } =
-            this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-          const parentIds = [
-            ...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))
-          ];
-          return this._belongsTo(
-            { parent, rcn, parentIds, childs: items, cn, ...rest },
-            index
-          );
-        })
-      );
+      if (parents)
+        await Promise.all(
+          parents.split(',').map((parent, index): any => {
+            if (!parent) {
+              return;
+            }
+            const { cn, rcn } =
+              this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+            const parentIds = [
+              ...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))
+            ];
+            return this._belongsTo(
+              { parent, rcn, parentIds, childs: items, cn, ...rest },
+              index
+            );
+          })
+        );
 
       if (items && items.length) {
         await Promise.all(
@@ -1944,6 +1956,8 @@ class BaseModelSql extends BaseModel {
     if (fields !== '*' && fields.split(',').indexOf(rcn) === -1) {
       fields += ',' + rcn;
     }
+
+    if (!this.dbModels[parent]) return;
 
     const parents = await this._run(
       driver(this.dbModels[parent].tnPath)

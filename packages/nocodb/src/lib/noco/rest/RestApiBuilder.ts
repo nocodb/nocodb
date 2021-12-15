@@ -2380,7 +2380,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     if (!this.config.try) {
       this.log('generateSwaggerJson : Generating swagger.json');
       const swaggerFilePath = path.join(
-        this.config.toolDir,
+        this.app.getToolDir(),
         'nc',
         this.projectId,
         this.getDbAlias(),
@@ -2435,7 +2435,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       glob
         .sync(
           path.join(
-            this.config.toolDir,
+            this.app.getToolDir(),
             'nc',
             this.projectId,
             this.getDbAlias(),
@@ -2506,7 +2506,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     /* load swagger JSON */
     const swaggerFilePath = path.join(
-      this.config.toolDir,
+      this.app.getToolDir(),
       'nc',
       this.projectId,
       this.getDbAlias(),
@@ -2624,8 +2624,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     );
   }
 
-  protected async ncUpManyToMany(): Promise<any> {
-    const metas = await super.ncUpManyToMany();
+  protected async ncUpManyToMany(ctx: any): Promise<any> {
+    const metas = await super.ncUpManyToMany(ctx);
     if (!metas) {
       return;
     }

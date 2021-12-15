@@ -48,17 +48,17 @@
         </v-toolbar>
 
         <div class="d-flex d-100 justify-center">
-          <v-simple-table dense style="min-width: 400px">
+          <v-simple-table v-if="tables" dense style="min-width: 400px">
             <thead>
               <tr>
-                <th class="caption">
-                  Models
+                <th class="caption" bgcolor="#F5F5F5" width="100px">
+                  TableName
                 </th>
-                <th class="caption">
-                  Parent
+                <th class="caption" bgcolor="#F5F5F5" width="150px">
+                  ViewName
                 </th>
-                <th v-for="role in roles" :key="role" class="caption">
-                  {{ role }}
+                <th v-for="role in roles" :key="role" class="caption" bgcolor="#F5F5F5" width="100px">
+                  {{ role.charAt(0).toUpperCase() + role.slice(1) }}
                 </th>
               </tr>
             </thead>
@@ -74,15 +74,17 @@
                   <td>
                     <v-tooltip bottom>
                       <template #activator="{on}">
-                        <v-icon small :color="viewIcons[table.type === 'vtable' ? table.show_as : table.type].color" v-on="on">
-                          {{ viewIcons[table.type === 'vtable' ? table.show_as : table.type].icon }}
-                        </v-icon>   <span class="caption ml-2" v-on="on">{{ table._tn }}</span>
+                        <span class="caption ml-2" v-on="on">{{ table.type === 'table' ? table._tn:table.type === 'view' ? table._tn : table.ptn.charAt(0).toUpperCase()+table.ptn.slice(1) }}</span>
                       </template>
                       <span class="caption">{{ table.tn }}</span>
                     </v-tooltip>
                   </td>
                   <td>
-                    <span v-if="table.ptn" class="caption">{{ table.ptn }}</span>
+                    <v-icon small :color="viewIcons[table.type === 'vtable' ? table.show_as : table.type].color" v-on="on">
+                      {{ viewIcons[table.type === 'vtable' ? table.show_as : table.type].icon }}
+                    </v-icon>
+                    <span v-if="table.ptn" class="caption">{{ table._tn }}</span>
+                    <span v-else class="caption">{{ 'Default' }}</span>
                     <!--                    {{ table.show_as || table.type }}-->
                   </td>
                   <td v-for="role in roles" :key="`${table.tn}-${role}`">
@@ -113,6 +115,7 @@
               </template>
             </tbody>
           </v-simple-table>
+          <v-skeleton-loader v-else type="table" />
         </div>
       </v-card>
     </v-card>

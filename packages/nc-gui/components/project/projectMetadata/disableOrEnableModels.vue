@@ -5,7 +5,7 @@
         <v-icon icon x-small class="mr-2">
           mdi-file-table-box-multiple-outline
         </v-icon>
-        <span class="caption text-capitalize"> Export/Import Metadata</span>
+        <span class="caption text-capitalize nc-exp-imp-metadata"> Export/Import Metadata</span>
       </v-tab>
       <v-tab-item value="xc-project-meta">
         <div class="d-flex justify-center d-100">

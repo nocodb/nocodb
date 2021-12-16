@@ -356,14 +356,13 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     const swaggerRefs: { [table: string]: any[] } = {};
     let order = await this.getOrderVal();
 
-    /*    /!* Get all relations *!/
+    /*    /!* Get all relations *!/ */
     let [
       relations,
       // eslint-disable-next-line prefer-const
       missingRelations
     ] = await this.getRelationsAndMissingRelations();
-    relations = relations.concat(missingRelations);*/
-    const relations = await this.relationsSyncAndGet();
+    relations = relations.concat(missingRelations);
 
     // set table name alias
     relations.forEach(r => {
@@ -456,7 +455,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       r._rtn = this.getTableNameAlias(r.rtn);
     });
 
-    // await this.syncRelations();
+    await this.syncRelations();
 
     const tableRoutes = tables.map(table => {
       return async () => {

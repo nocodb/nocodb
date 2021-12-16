@@ -2205,10 +2205,15 @@ export default abstract class BaseApiBuilder<T extends Noco>
     // Relations in DB
     const dbRelations = (await this.sqlClient.relationListAll())?.data?.list;
 
+    const m2mTnPrefix = `${this.projectBuilder?.prefix ?? ''}_nc_m2m_`;
     // Relations missing in metadata
     const missingRelations = dbRelations
       .filter(dbRelation => {
-        return relations.every(relation => relation?.fkn !== dbRelation?.cstn);
+        return relations.every(relation => { 
+          return relation?.fkn !== dbRelation?.cstn 
+            && !(dbRelation?.tn || '').startsWith(m2mTnPrefix)
+            && !(dbRelation?.rtn || '').startsWith(m2mTnPrefix)
+        });
       })
       .map(relation => {
         relation.enabled = true;

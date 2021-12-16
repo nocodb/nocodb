@@ -153,6 +153,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 | NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
 | NC_REQUEST_BODY_SIZE | No | Request body size [limit](https://expressjs.com/en/resources/middleware/body-parser.html#limit) | `1048576` |
 | NC_EXPORT_MAX_TIMEOUT | No | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches | Default value 5000(in millisecond) will be used  |
+| DB_QUERY_LIMIT_DEFAULT | No | Default pagination limit | 25 |
 | DB_QUERY_LIMIT_MAX | No | Maximum allowed pagination limit | 100 |
 | DB_QUERY_LIMIT_MIN | No | Minimum allowed pagination limit | 1 |
 | NC_DISABLE_TELE | No | Disable telemetry                              |   |

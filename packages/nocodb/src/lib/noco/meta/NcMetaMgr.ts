@@ -1386,6 +1386,7 @@ export default class NcMetaMgr {
   }
 
   protected async handleRequest(req, res, next) {
+    console.log("[info]: NcMetaMgr::handleRequest", req.body);
     try {
       const args = req.body;
       let result, postListenerCb;

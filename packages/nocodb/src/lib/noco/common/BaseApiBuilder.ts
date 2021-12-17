@@ -489,6 +489,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       oldTableAliasName,
       newTableAliasName
     );
+    console.log(
+      `onTableAliasRename : updating table name in hooks meta table - '${oldTableAliasName}' => '${newTableAliasName}'`
+    );
 
     const tableName =
       this.getTableName(oldTableAliasName) ||

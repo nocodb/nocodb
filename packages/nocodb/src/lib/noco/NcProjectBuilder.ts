@@ -243,8 +243,7 @@ export default class NcProjectBuilder {
         break;
 
       case 'tableRename':
-        await curBuilder.onTableRename(data.req.args.tn_old, data.req.args.tn);
-
+        await curBuilder.onTableRename(data.req.args.tn_old, data.req.args.tn);    
         this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
           op_type: 'TABLE',
           op_sub_type: 'RENAMED',
@@ -692,12 +691,14 @@ export default class NcProjectBuilder {
       for (const connectionConfig of dbs) {
         try {
           const sqlClient = NcConnectionMgr.getSqlClient({
-            dbAlias: connectionConfig?.mets?.dbAlias,
+            dbAlias: connectionConfig?.meta?.dbAlias,
             env: this.config.env,
             config: this.config,
             projectId: this.id
           });
           /* create migrator */
+          console.log(connectionConfig);
+
           const migrator = new Migrator({
             project_id: this.id,
             config: this.config,

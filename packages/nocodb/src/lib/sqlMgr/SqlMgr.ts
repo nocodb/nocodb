@@ -1130,6 +1130,7 @@ export default class SqlMgr {
   public async handleRequest(operation, args) {
     let result;
 
+    console.log('[info]: sqlMgr:handleRequest');
     try {
       const op = (args.sqlOpPlus &&
       !process.env.NC_TRY &&
@@ -1211,7 +1212,18 @@ export default class SqlMgr {
 
         case ToolOps.DB_TABLE_CREATE:
           console.log('Within DB_TABLE_CREATE handler', args);
-          result = await op(args, 'tableCreate', args.args);
+          let newArgs = args.args;
+          let id = '';
+          let prefix = '';
+          if (args.env === '_noco') prefix = 'nc';
+          let parts = args.project_id.split('_');
+          id = parts[parts.length - 1];
+          prefix += `_${id}`;
+          newArgs = {
+            tn: `${prefix}__${args.args.tn}`,
+            tn_old: `${prefix}__${args.args.tn_old}`
+          };
+          result = await op(args, 'tableRename', newArgs);
           break;
         case ToolOps.DB_VIEW_CREATE:
           console.log('Within DB_VIEW_CREATE handler', args);

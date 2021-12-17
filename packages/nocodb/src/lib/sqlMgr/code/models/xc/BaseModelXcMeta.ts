@@ -95,7 +95,7 @@ abstract class BaseModelXcMeta extends BaseRender {
   }
 
   public getVitualColumns(): any[] {
-    return [
+    const virtualColumns = [
       ...(this.ctx.hasMany || []).map(hm => ({
         hm,
         _cn: `${hm._rtn} => ${hm._tn}`
@@ -106,11 +106,14 @@ abstract class BaseModelXcMeta extends BaseRender {
       }))
     ];
 
-    // const oldVirtualCols = this.ctx?.oldMeta?.v || [];
+    const oldVirtualCols = this.ctx?.oldMeta?.v || [];
 
-    // for (const oldVCol of oldVirtualCols) {
-    //   if
-    // }
+    for (const oldVCol of oldVirtualCols) {
+      console.log(oldVCol);
+      virtualColumns.push(oldVCol);
+    }
+
+    return virtualColumns;
   }
 
   public mapDefaultPrimaryValue(columnsArr: any[]): void {

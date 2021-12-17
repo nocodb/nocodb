@@ -27,10 +27,20 @@
                 small
                 color="primary"
                 icon="refresh"
-                @click="loadModels();loadTableList()"
+                @click="loadXcDiff()"
               >
                 Reload
               </x-btn>
+              <!--              <x-btn
+                outlined
+                tooltip="Reload list"
+                small
+                color="primary"
+                icon="refresh"
+                @click="loadModels();loadTableList()"
+              >
+                Reload
+              </x-btn>-->
               <x-btn
                 outlined
                 :loading="updating"
@@ -50,9 +60,7 @@
                 <thead>
                   <tr>
                     <th class="grey--text">
-                      Models <span v-show="!isNewOrDeletedModelFound" class="caption ml-1">({{
-                        enableCountText
-                      }})</span>
+                      Models</span>
                     </th>
                     <!--                    <th>APIs</th>-->
                     <th class="grey--text">
@@ -62,8 +70,64 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="model in comparedModelList" :key="model.title">
+                  <tr v-for="model in diff" :key="model.title">
                     <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
+                    <td>
+                      <v-tooltip bottom>
+                        <template #activator="{on}">
+                          <span v-on="on">{{ model.tn }}</span>
+                        </template>
+                        <span class="caption">{{ model.title }}</span>
+                      </v-tooltip>
+                    </td>
+                    <!--                    <td>
+                  <v-checkbox
+                    v-model="model.enabled"
+                    dense
+                    :disabled="model.new || model.deleted"
+                    @change="edited = true"
+                  />
+                </td>-->
+                    <td>
+                      <x-icon
+                        small
+                        color="primary"
+                        tooltip="Recreate metadata"
+                      >
+                        mdi-reload
+                      </x-icon>
+                    </td>
+
+                    <td>
+                      <span
+                        v-if="model.detectedChanges && model.detectedChanges.length"
+
+                        class="caption error--text"
+                      >{{ model.detectedChanges.map(m => m.msg).join(', ') }}</span>
+                    <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
+                    </td>
+                  </tr>
+                </tbody>
+              </v-simple-table>
+              <!--            </div>  <div class="d-flex d-100 justify-center">
+              <v-simple-table dense style="min-width: 400px">
+                <thead>
+                  <tr>
+                    <th class="grey&#45;&#45;text">
+                      Models <span v-show="!isNewOrDeletedModelFound" class="caption ml-1">({{
+                        enableCountText
+                      }})</span>
+                    </th>
+                    &lt;!&ndash;                    <th>APIs</th>&ndash;&gt;
+                    <th class="grey&#45;&#45;text">
+                      Actions
+                    </th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="model in comparedModelList" :key="model.title">
+                    &lt;!&ndash;                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">&ndash;&gt;
                     <td>
                       <v-tooltip bottom>
                         <template #activator="{on}">
@@ -72,24 +136,24 @@
                         <span class="caption">{{ model.title }}</span>
                       </v-tooltip>
                     </td>
-                    <!--                    <td>
-                      <v-checkbox
-                        v-model="model.enabled"
-                        dense
-                        :disabled="model.new || model.deleted"
-                        @change="edited = true"
-                      />
-                    </td>-->
+                    &lt;!&ndash;                    <td>
+                    <v-checkbox
+                      v-model="model.enabled"
+                      dense
+                      :disabled="model.new || model.deleted"
+                      @change="edited = true"
+                    />
+                  </td>&ndash;&gt;
                     <td>
                       <template v-if="model.new">
-                      <!--                  <x-icon small color="success success" tooltip="Add and sync meta information"-->
-                      <!--                          @click="addTableMeta([model.title])">mdi-plus-circle-outline-->
-                      <!--                  </x-icon>-->
+                      &lt;!&ndash;                  <x-icon small color="success success" tooltip="Add and sync meta information"&ndash;&gt;
+                      &lt;!&ndash;                          @click="addTableMeta([model.title])">mdi-plus-circle-outline&ndash;&gt;
+                      &lt;!&ndash;                  </x-icon>&ndash;&gt;
                       </template>
                       <template v-else-if="model.deleted">
-                      <!--                  <x-icon small v-else-if="model.deleted" color="error error" tooltip="Delete meta information"-->
-                      <!--                          @click="deleteTableMeta([model.title])">mdi-delete-outline-->
-                      <!--                  </x-icon>-->
+                      &lt;!&ndash;                  <x-icon small v-else-if="model.deleted" color="error error" tooltip="Delete meta information"&ndash;&gt;
+                      &lt;!&ndash;                          @click="deleteTableMeta([model.title])">mdi-delete-outline&ndash;&gt;
+                      &lt;!&ndash;                  </x-icon>&ndash;&gt;
                       </template>
                       <x-icon
                         v-else
@@ -105,14 +169,15 @@
                     <td>
                       <span
                         v-if="model.new"
-                        class="caption success--text"
+                        class="caption success&#45;&#45;text"
                       >New table found in DB. Yet to be synced.</span>
-                      <span v-else-if="model.deleted" class="caption error--text">This table doesn't exist in DB. Yet to be synced.</span>
-                    <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
+                      <span v-else-if="model.deleted" class="caption error&#45;&#45;text">This table doesn't exist in DB. Yet to be synced.</span>
+                    &lt;!&ndash;                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>&ndash;&gt;
                     </td>
                   </tr>
                 </tbody>
               </v-simple-table>
+            </div>-->
             </div>
           </v-card>
         </v-col>
@@ -155,12 +220,26 @@
             </v-tooltip>
             <v-spacer />
           </div>
-          <div v-if="isNewOrDeletedModelFound" class="d-flex justify-center">
-            <x-btn
+          <!--          <div-->
+          <!--            v-if="isNewOrDeletedModelFound" -->
+          <div class="d-flex justify-center">
+            <!--            <x-btn
               x-large
               btn.class="mx-auto primary nc-btn-sync-meta-data"
               tooltip="Sync metadata"
               @click="syncMetadata"
+            >
+              <v-icon color="white" class="mr-2 mt-n1">
+                mdi-database-sync
+              </v-icon>
+              Sync Now
+            </x-btn>-->
+
+            <x-btn
+              x-large
+              btn.class="mx-auto primary"
+              tooltip="Sync metadata"
+              @click="syncMetaDiff"
             >
               <v-icon color="white" class="mr-2 mt-n1">
                 mdi-database-sync
@@ -193,13 +272,21 @@ export default {
     updating: false,
     dbsTab: 0,
     filter: '',
-    tables: null
+    tables: null,
+    diff: null
   }),
   async mounted() {
+    await this.loadXcDiff()
     await this.loadModels()
     await this.loadTableList()
   },
   methods: {
+    async loadXcDiff() {
+      this.diff = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        dbAlias: this.db.meta.dbAlias,
+        env: this.$store.getters['project/GtrEnv']
+      }, 'xcMetaDiff'])
+    },
     async addTableMeta(tables) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -240,6 +327,19 @@ export default {
       }
       if (deleteTables.length) {
         await this.deleteTableMeta(deleteTables)
+      }
+    },
+
+    async syncMetaDiff() {
+      try {
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          dbAlias: this.db.meta.dbAlias,
+          env: this.$store.getters['project/GtrEnv']
+        }, 'xcMetaDiffSync', {}])
+        this.$toast.success('Table metadata recreated successfully').goAway(3000)
+        await this.loadXcDiff()
+      } catch (e) {
+        this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
       }
     },
 
@@ -307,8 +407,12 @@ export default {
     comparedModelList() {
       const res = []
       const getPriority = (item) => {
-        if (item.new) { return 2 }
-        if (item.deleted) { return 1 }
+        if (item.new) {
+          return 2
+        }
+        if (item.deleted) {
+          return 1
+        }
         return 0
       }
       if (this.tables && this.models) {

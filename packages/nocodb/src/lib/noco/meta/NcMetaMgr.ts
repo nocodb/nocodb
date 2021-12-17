@@ -38,6 +38,7 @@ import { promisify } from 'util';
 import NcTemplateParser from '../../templateParser/NcTemplateParser';
 import UITypes from '../../sqlUi/UITypes';
 import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
+import xcMetaDiff from './handlers/xcMetaDiff';
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -1437,6 +1438,9 @@ export default class NcMetaMgr {
         case 'xcVirtualTableDelete':
           result = await this.xcVirtualTableDelete(args, req);
           break;
+        case 'xcMetaDiff':
+          result = await this.xcMetaDiff(args, req);
+          break;
         case 'xcVirtualTableList':
           result = await this.xcVirtualTableList(args, req);
           break;
@@ -1946,6 +1950,7 @@ export default class NcMetaMgr {
         case 'functionMetaCreate':
         case 'functionMetaDelete':
         case 'functionMetaRecreate':
+        case 'xcMetaDiffSync':
           result = { msg: 'success' };
           break;
 
@@ -4973,7 +4978,7 @@ export default class NcMetaMgr {
             }
 
             for (const [title, aclObj] of Object.entries(viewsObj)) {
-              for (const role in result[title].disabled) {
+              for (const role in result[title]?.disabled || []) {
                 result[title].disabled[role] = Object.values(aclObj).every(
                   v => v[role]
                 );
@@ -5462,6 +5467,10 @@ export default class NcMetaMgr {
 
     Tele.emit('evt', { evt_type: 'vtable:deleted' });
     return res;
+  }
+
+  protected async xcMetaDiff(args, req): Promise<any> {
+    return xcMetaDiff.call(this, { args, req });
   }
 
   // @ts-ignore

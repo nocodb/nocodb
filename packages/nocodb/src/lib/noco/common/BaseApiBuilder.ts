@@ -31,6 +31,7 @@ import addErrorOnColumnDeleteInFormula from './helpers/addErrorOnColumnDeleteInF
 import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
+import xcMetaDiffSync from './handlers/xcMetaDiffSync';
 
 const log = debug('nc:api:base');
 
@@ -181,7 +182,12 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   public getSqlClient(): any {
-    return this.sqlClient;
+    return NcConnectionMgr.getSqlClient({
+      dbAlias: this.dbAlias,
+      env: this.config.env,
+      config: this.config,
+      projectId: this.projectId
+    });
   }
 
   public abstract onViewCreate(viewName: string): Promise<void>;
@@ -208,31 +214,42 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   public async onTableDelete(
     tn: string,
-    extras?: { ignoreVirtualRelations?: boolean; ignoreViews?: boolean }
+    extras?: {
+      ignoreVirtualRelations?: boolean;
+      ignoreRelations?: boolean;
+      ignoreViews?: boolean;
+    }
   ): Promise<void> {
     this.baseLog(`onTableDelete : '%s'`, tn);
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
-    await this.xcMeta.metaDelete(
-      this.projectId,
-      this.dbAlias,
-      'nc_relations',
-      null,
-      {
-        _or: [
-          {
-            tn: {
-              eq: tn
-            }
-          },
-          {
-            rtn: {
-              eq: tn
-            }
-          }
-        ],
-        ...(extras?.ignoreVirtualRelations ? { type: { eq: 'virtual' } } : {})
-      }
-    );
+    if (!extras?.ignoreRelations)
+      await this.xcMeta.metaDelete(
+        this.projectId,
+        this.dbAlias,
+        'nc_relations',
+        null,
+        {
+          _and: [
+            {
+              _or: [
+                {
+                  tn: {
+                    eq: tn
+                  }
+                },
+                {
+                  rtn: {
+                    eq: tn
+                  }
+                }
+              ]
+            },
+            ...(extras?.ignoreVirtualRelations
+              ? [{ type: { neq: 'virtual' } }]
+              : [])
+          ]
+        }
+      );
 
     await this.deleteTableNameInACL(tn);
 
@@ -1399,13 +1416,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.xcMeta;
   }
 
-  public async xcTablesRowDelete(tn: string): Promise<void> {
+  public async xcTablesRowDelete(tn: string, extras?: any): Promise<void> {
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
       title: tn
     });
-    await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
-      parent_model_title: tn
-    });
+    if (!extras?.ignoreViews)
+      await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
+        parent_model_title: tn
+      });
   }
 
   public async onVirtualRelationCreate(
@@ -2957,17 +2975,18 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.metas?.[tableName];
   }
 
-  public async onTableMetaRecreate(tableName: string): Promise<void> {
-    const oldMeta = this.getMeta(tableName);
+  /*  protected async getAndSync(tableName: string): Promise<any[]> {
+    const tableRelations = (await this.getRelationList()).filter(
+      rel => rel.tn === tableName
+    );
 
-    const virtualRelations = await this.xcMeta.metaList(
+    const existingTableRelations = await this.xcMeta.metaList(
       this.projectId,
       this.dbAlias,
       'nc_relations',
-
       {
         xcCondition: {
-          type: 'virtual',
+          type: 'real',
           _or: [
             {
               tn: {
@@ -2984,17 +3003,63 @@ export default abstract class BaseApiBuilder<T extends Noco>
       }
     );
 
-    const tableList = (await this.getSqlClient().tableList()?.data?.list) || [];
-    for (const rel of virtualRelations) {
-      const tnColList = await this.getColumnList(rel.tn);
-      const rtnColList = await this.getColumnList(rel.rtn);
+    ret;
+  }*/
 
+  public async onTableMetaRecreate(tableName: string): Promise<void> {
+    this.baseLog(`onTableMetaRecreate : '%s'`, tableName);
+    const oldMeta = this.getMeta(tableName);
+
+    const virtualRelations = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_relations',
+      {
+        xcCondition: {
+          _or: [
+            {
+              tn: {
+                eq: tableName
+              }
+            },
+            {
+              rtn: {
+                eq: tableName
+              }
+            }
+          ]
+        }
+      }
+    );
+    const colListRef = {};
+    const tableList =
+      (await this.getSqlClient()?.tableList())?.data?.list || [];
+
+    colListRef[tableName] = await this.getColumnList(tableName);
+
+    // @ts-ignore
+    const relations = await this.getRelationList();
+
+    for (const vCol of oldMeta.v || []) {
+      if (vCol.lk) {
+      }
+      if (vCol.rl) {
+      }
+    }
+
+    for (const rel of virtualRelations) {
+      colListRef[rel.tn] =
+        colListRef[rel.tn] || (await this.getColumnList(rel.tn));
+      colListRef[rel.rtn] =
+        colListRef[rel.rtn] || (await this.getColumnList(rel.rtn));
+
+      // todo: compare with real relation list
       if (
         !(
           tableList.find(t => t.tn === rel.rtn) &&
           tableList.find(t => t.tn === rel.tn) &&
-          tnColList.find(t => t.cn === rel.cn) &&
-          rtnColList.find(t => t.cn === rel.rcn)
+          colListRef[rel.tn].find(t => t.cn === rel.cn) &&
+          colListRef[rel.rtn].find(t => t.cn === rel.rcn)
         )
       )
         await this.xcMeta.metaDelete(
@@ -3004,6 +3069,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           rel.id
         );
     }
+
     // todo : handle query params
     const oldModelRow = await this.xcMeta.metaGet(
       this.projectId,
@@ -3011,8 +3077,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       'nc_models',
       { title: tableName }
     );
+
     await this.onTableDelete(tableName, {
-      ignoreVirtualRelations: true,
+      ignoreRelations: true,
       ignoreViews: true
     } as any);
 
@@ -3028,12 +3095,20 @@ export default abstract class BaseApiBuilder<T extends Noco>
       virtualViewsParamsArr
     } = await this.extractSharedAndVirtualViewsParams(tableName);
 
-    await this.onTableCreate(tableName, { oldMeta: oldMeta });
+    for (const oldColumn of oldMeta.columns) {
+      if (colListRef[tableName].find(c => c.cn === oldColumn.cn)) continue;
+      addErrorOnColumnDeleteInFormula({
+        virtualColumns: oldMeta.v,
+        columnName: oldColumn.cn
+      });
+    }
+
+    await this.onTableCreate(tableName, { oldMeta });
 
     const meta = this.getMeta(tableName);
 
     for (const oldColumn of oldMeta.columns) {
-      if (meta.columns.find(c => c.c === oldColumn.cn)) continue;
+      if (meta.columns.find(c => c.cn === oldColumn.cn)) continue;
 
       // virtual views param update
       for (const qp of [queryParams, ...virtualViewsParamsArr]) {
@@ -3047,35 +3122,46 @@ export default abstract class BaseApiBuilder<T extends Noco>
           fieldsOrder = [],
           extraViewParams = {}
         } = qp;
+
         /* update sort field */
         const sIndex = (sortList || []).findIndex(
-          v => v.field === oldColumn.cno
+          v => v.field === oldColumn._cn
         );
         if (sIndex > -1) {
           sortList.splice(sIndex, 1);
         }
         /* update show field */
-        if (oldColumn.cno in showFields) {
-          delete showFields[oldColumn.cno];
+        if (oldColumn.cn in showFields || oldColumn._cn in showFields) {
+          delete showFields[oldColumn.cn];
+          delete showFields[oldColumn._cn];
         }
         /* update filters */
+        // todo: remove only corresponding filter and compare field name
         if (
           filters &&
-          JSON.stringify(filters)?.includes(`"${oldColumn.cno}"`)
+          (JSON.stringify(filters)?.includes(`"${oldColumn.cn}"`) ||
+            JSON.stringify(filters)?.includes(`"${oldColumn._cn}"`))
         ) {
           filters.splice(0, filters.length);
         }
 
         /* update fieldsOrder */
-        const index = fieldsOrder.indexOf(oldColumn.cno);
+        let index = fieldsOrder.indexOf(oldColumn.cn);
+        if (index > -1) {
+          fieldsOrder.splice(index, 1);
+        }
+        index = fieldsOrder.indexOf(oldColumn._cn);
         if (index > -1) {
           fieldsOrder.splice(index, 1);
         }
 
         /* update formView params */
         //  extraViewParams.formParams.fields
-        if (extraViewParams?.formParams?.fields?.[oldColumn.cno]) {
-          delete extraViewParams.formParams.fields[oldColumn.cno];
+        if (extraViewParams?.formParams?.fields?.[oldColumn.cn]) {
+          delete extraViewParams.formParams.fields[oldColumn.cn];
+        }
+        if (extraViewParams?.formParams?.fields?.[oldColumn._cn]) {
+          delete extraViewParams.formParams.fields[oldColumn._cn];
         }
       }
     }
@@ -3109,6 +3195,12 @@ export default abstract class BaseApiBuilder<T extends Noco>
       )?.max || 0;
     return order;
   }
+
+  public async xcMetaDiffSync(): Promise<void> {
+    return xcMetaDiffSync.call(this);
+  }
+
+  public abstract xcTablesPopulate(args?: XcTablesPopulateParams): Promise<any>;
 }
 
 interface NcBuilderUpgraderCtx {
@@ -3134,8 +3226,25 @@ interface NcMetaData {
 
   [key: string]: any;
 }
-
-export { IGNORE_TABLES, NcBuilderUpgraderCtx, NcMetaData };
+type XcTablesPopulateParams = {
+  tableNames?: Array<{
+    tn: string;
+    _tn?: string;
+  }>;
+  type?: 'table' | 'view' | 'function' | 'procedure';
+  columns?: {
+    [tn: string]: any;
+  };
+  oldMetas?: {
+    [tn: string]: NcMetaData;
+  };
+};
+export {
+  IGNORE_TABLES,
+  NcBuilderUpgraderCtx,
+  NcMetaData,
+  XcTablesPopulateParams
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -21,7 +21,8 @@ import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../Noco';
 import BaseApiBuilder, {
   IGNORE_TABLES,
-  NcMetaData
+  NcMetaData,
+  XcTablesPopulateParams
 } from '../common/BaseApiBuilder';
 import NcMetaIO from '../meta/NcMetaIO';
 
@@ -340,19 +341,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     // minRouter.mapRoutes(this.router)
   }
 
-  public async xcTablesPopulate(args?: {
-    tableNames?: Array<{
-      tn: string;
-      _tn?: string;
-    }>;
-    type?: 'table' | 'view' | 'function' | 'procedure';
-    columns?: {
-      [tn: string]: any;
-    };
-    oldMetas?: {
-      [tn: string]: NcMetaData;
-    };
-  }): Promise<any> {
+  public async xcTablesPopulate(args?: XcTablesPopulateParams): Promise<any> {
     this.log(
       `xcTablesPopulate : tables - %o , type - %s`,
       args?.tableNames,
@@ -542,6 +531,24 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
               meta: JSON.stringify(meta),
               type: table.type || 'table'
             }
+          );
+        } else if (args?.oldMetas?.[table.tn]?.id) {
+          this.log(
+            "xcTablesPopulate : Updating model metadata for '%s' - %s",
+            table.tn,
+            table.type
+          );
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_models',
+            {
+              title: table.tn,
+              alias: meta._tn,
+              meta: JSON.stringify(meta),
+              type: table.type || 'table'
+            },
+            args?.oldMetas?.[table.tn]?.id
           );
         }
 
@@ -855,8 +862,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   // NOTE: xc-meta
-  public async xcTablesRowDelete(tn: string): Promise<void> {
-    await super.xcTablesRowDelete(tn);
+  public async xcTablesRowDelete(tn: string, extras?: any): Promise<void> {
+    await super.xcTablesRowDelete(tn, extras);
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_routes', {
       tn
     });
@@ -895,7 +902,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
       delete this.models[tn];
 
-      await this.xcTablesRowDelete(tn);
+      await this.xcTablesRowDelete(tn, extras);
 
       delete this.routers[tn];
       this.swaggerUpdate({

@@ -203,7 +203,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await super.onTableDelete(tn, extras);
     this.log(`onTableDelete : '%s' `, tn);
     delete this.models[tn];
-    await this.xcTablesRowDelete(tn);
+    await this.xcTablesRowDelete(tn, extras);
     delete this.resolvers[tn];
     delete this.schemas[tn];
 
@@ -1250,9 +1250,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   }
 
   // NOTE: xc-meta
-  public async xcTablesRowDelete(tn: string): Promise<void> {
+  public async xcTablesRowDelete(tn: string, extras?: any): Promise<void> {
     this.log(`xcTablesRowDelete : Deleting metadata of '%s' table`, tn);
-    await super.xcTablesRowDelete(tn);
+    await super.xcTablesRowDelete(tn, extras);
 
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_resolvers', {
       title: tn

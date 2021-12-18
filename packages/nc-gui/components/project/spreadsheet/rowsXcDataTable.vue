@@ -342,7 +342,6 @@
               :api="api"
               @expandKanbanForm="({rowIdx}) => expandKanbanForm(rowIdx)"
               @insertNewRow="insertNewRow"
-              @updateKanbanBlock="loadKanbanData"
               @loadMoreKanbanData="(groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)"
             />
           </template>

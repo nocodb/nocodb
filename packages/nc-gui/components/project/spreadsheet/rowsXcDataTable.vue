@@ -343,6 +343,7 @@
               @expandKanbanForm="({rowIdx}) => expandKanbanForm(rowIdx)"
               @insertNewRow="insertNewRow"
               @updateKanbanBlock="loadKanbanData"
+              @loadMoreKanbanData="(groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)"
             />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">
@@ -1350,6 +1351,28 @@ export default {
       } finally {
         this.kanban.loadingData = false
       }
+    },
+    async loadMoreKanbanData(groupingFieldVal) {
+      const uncategorized = "uncategorized"
+      const {
+        data
+      } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+        limit: 5,
+        where: groupingFieldVal === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingFieldVal})`,
+        offset: this.kanban.recordCnt[groupingFieldVal]
+      })
+      data.map(d => {
+        this.kanban.data.push({
+          row: d,
+          oldRow: d,
+          rowMeta: {},
+        })
+        this.kanban.blocks.push({
+          status: groupingFieldVal,
+          ...d
+        })
+      })
+      this.kanban.recordCnt[groupingFieldVal] += data.length
     },
     expandKanbanForm(rowIdx, data) {
       if (rowIdx != -1) {

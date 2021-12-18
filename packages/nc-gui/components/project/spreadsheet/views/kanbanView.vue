@@ -121,6 +121,17 @@ export default {
     'groupingField',
     'api',
   ],
+  mounted() {
+    const kbListElements = document.querySelectorAll('.drag-inner-list');
+    kbListElements.forEach(kbListEle => {
+      kbListEle.addEventListener('scroll', async (e) => {
+        if(kbListEle.scrollTop + kbListEle.clientHeight >= kbListEle.scrollHeight) {
+          const groupingFieldVal = kbListEle.getAttribute('data-status')
+          this.$emit('loadMoreKanbanData', groupingFieldVal)
+        }
+      })
+    })
+  },
   computed: {
     fields() {
       if (this.availableColumns) {

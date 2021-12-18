@@ -328,7 +328,7 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
-          <template v-else-if="isKanban && kanban.data.length && !kanban.loadingData">
+          <template v-else-if="isKanban && kanban.data.length">
             <kanban-view
               :nodes="nodes"
               :table="table"
@@ -1321,6 +1321,12 @@ export default {
                 row: d,
                 oldRow: d,
                 rowMeta: {},
+              })
+              const status = d[this.groupingField] ?? uncategorized
+              this.kanban.recordCnt[status] += 1
+              this.kanban.blocks.push({
+                status,
+                ...d
               })
             })
           }

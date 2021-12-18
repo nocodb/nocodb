@@ -2,14 +2,14 @@
   <v-container fluid>
     <v-row>
       <v-col v-for="idx in 5" :key="idx">
-        <v-skeleton-loader v-if="loadingData" type="image@3"></v-skeleton-loader>
+        <v-skeleton-loader v-if="kanban.loadingData" type="image@3"></v-skeleton-loader>
       </v-col>
     </v-row>
-    <kanban-board v-show="!loadingData" :stages="stages" :blocks="clonedBlocks" @update-block="updateBlock">
-      <div v-for="stage in stages" :slot="stage" :key="stage" class="mx-auto">
+    <kanban-board v-show="!kanban.loadingData" :stages="kanban.groupingColumnItems" :blocks="kanban.blocks" @update-block="updateBlock">
+      <div v-for="stage in this.kanban.groupingColumnItems" :slot="stage" :key="stage" class="mx-auto">
         <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
-      <div v-for="(block) in clonedBlocks" :slot="block.id" :key="block.id" class="caption">
+      <div v-for="(block) in kanban.blocks" :slot="block.id" :key="block.id" class="caption">
           <v-hover v-slot="{hover}">
             <v-card
               class="h-100"
@@ -63,7 +63,7 @@
             </v-card>
           </v-hover>
       </div>
-      <div v-for="stage in stages" :key="stage" :slot="`footer-${stage}`" class="kanban-footer">
+      <div v-for="stage in kanban.groupingColumnItems" :key="stage" :slot="`footer-${stage}`" class="kanban-footer">
           <x-btn
           v-if="stage"
           outlined
@@ -91,7 +91,6 @@
           </v-icon>
             New Stack
         </x-btn> -->
-
         <div class="record-cnt">
           {{ kanban.recordCnt[stage] }} {{ kanban.recordCnt[stage] > 1 ? "records" : "record" }}
         </div>
@@ -101,8 +100,6 @@
 </template>
 
 <script>
-
-// import "vue-kanban/src/assets/kanban.css";
 import VirtualHeaderCell from '../components/virtualHeaderCell'
 import HeaderCell from '../components/headerCell'
 import VirtualCell from '../components/virtualCell'
@@ -124,26 +121,6 @@ export default {
     'groupingField',
     'api',
   ],
-  data() {
-    return {
-      stages: [],
-      stageColors: [],
-      blocks: [],
-      clonedBlocks: [],
-      loadingData: true,
-    }
-  },
-  async mounted() {
-    await this.setKanbanData()
-  },
-  watch: {
-    'kanban.data': {
-      async handler() {
-        await this.setKanbanData()
-      },
-      deep: true
-    }
-  },
   computed: {
     fields() {
       if (this.availableColumns) {
@@ -162,40 +139,6 @@ export default {
     }
   },
   methods: {
-    async setKanbanData() {
-      const uncategorized = 'Uncategorized'
-      try {
-        this.loadingData = true
-        this.reset()
-
-        const n = this.kanban.data.length
-        for (let i = 0; i < n; i++) {
-          if (!this.kanban.data[i].row.id) {
-            // skip empty record
-            // case: add a new record -> cancel -> empty row -> no id
-            continue
-          }
-          const status = this.kanban.data[i].row[this.groupingField] ?? uncategorized
-          const block = {
-            status,
-            ...this.kanban.data[i].row
-          }
-          this.kanban.recordCnt[status] += 1
-          this.blocks.push(block)
-        }
-        
-        this.stages = this.kanban.groupingColumnItems
-
-        // new stack column
-        // this.stages.push("")
-        this.clonedBlocks = this.blocks
-        return Promise.resolve(this.clonedBlocks)
-      } catch (e) {
-        return Promise.reject(e)
-      } finally {
-        this.loadingData = false
-      }
-    },
     async updateBlock(id, status) {
       try {
         if (!this.api) {
@@ -205,7 +148,7 @@ export default {
           return
         }
 
-        const targetBlock = this.clonedBlocks.find(b => b.id === Number(id))
+        const targetBlock = this.kanban.blocks.find(b => b.id === Number(id))
         if (!targetBlock) {
           this.$toast.error(`Block with ID ${id} not found`, {
             position: 'bottom-center'
@@ -244,11 +187,6 @@ export default {
     },
     insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       this.$emit('insertNewRow', atEnd, expand, presetValues)
-    },
-    reset() {
-      this.stages = []
-      this.blocks = []
-      this.clonedBlocks = []
     },
   }
 }
@@ -420,7 +358,6 @@ export default {
   .kanban-col  {
     padding: 10px;
   }
-
 }
 </style>
 

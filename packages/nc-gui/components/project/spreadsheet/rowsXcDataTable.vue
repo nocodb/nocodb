@@ -1140,10 +1140,12 @@ export default {
       this.$set(this.data[index].row, col._cn, null)
       await this.onCellValueChange(colIndex, index, col)
     },
-    async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
+    async insertNewRow(atEnd = false, expand = false, presetValues = {}, isKanban = false) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
       const focusCol = this.availableColumns.findIndex(c => !c.ai)
-      this.data.splice(focusRow, 0, {
+      const data = isKanban ? this.kanban.data : this.data
+
+      data.splice(focusRow, 0, {
         row: this.relationType === 'hm'
           ? {
               ...this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
@@ -1155,14 +1157,18 @@ export default {
         },
         oldRow: {}
       })
-
+      
       this.selected = { row: focusRow, col: focusCol }
       this.editEnabled = { row: focusRow, col: focusCol }
       this.presetValues = presetValues
 
       if (expand) {
-        const { rowMeta } = this.data[this.data.length - 1]
-        this.expandRow(this.data.length - 1, rowMeta)
+        if (isKanban) {
+          this.expandKanbanForm(-1, data[data.length - 1])
+        } else {
+          const { rowMeta } = data[data.length - 1]
+          this.expandRow(data.length - 1, rowMeta)
+        }
       }
       // this.save()
     },
@@ -1345,9 +1351,12 @@ export default {
         this.kanban.loadingData = false
       }
     },
-    expandKanbanForm(rowIdx) {
+    expandKanbanForm(rowIdx, data) {
+      if (rowIdx != -1) {
+        // not a new record -> find the target record
+        data = this.kanban.data.filter(o => o.row.id == rowIdx)[0]
+      } 
       this.showExpandModal = true
-      const data = this.kanban.data.filter(o => o.row.id == rowIdx)[0]
       this.kanban.selectedExpandRow = data.row
       this.kanban.selectedExpandOldRow = data.oldRow
       this.kanban.selectedExpandRowMeta = data.rowMeta

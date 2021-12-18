@@ -147,7 +147,7 @@ export default {
     },
     groupingFieldColumn() {
       return this.fields.filter(o => o.alias === this.groupingField)[0]
-    }
+    },
   },
   methods: {
     async updateBlock(id, status) {
@@ -159,6 +159,7 @@ export default {
           return
         }
 
+        // update kanban block
         const targetBlock = this.kanban.blocks.find(b => b.id === Number(id))
         if (!targetBlock) {
           this.$toast.error(`Block with ID ${id} not found`, {
@@ -178,9 +179,17 @@ export default {
           { [this.groupingField]: status === uncategorized ? null : status }, // new data
           { [this.groupingField]: prevStatus }) // old data
 
-        targetBlock.status = status
-        targetBlock[this.groupingField] = (status === uncategorized ? null : status)
-        this.$emit('updateKanbanBlock')
+        this.$set(targetBlock, 'status', status)
+        this.$set(targetBlock, this.groupingField, status === uncategorized ? null : status)
+
+        // update kanban data
+        const kanbanRow = this.kanban.data.find(d => d.row.id === Number(id))
+        if (kanbanRow) {
+          this.$set(kanbanRow.row, this.groupingField, status === uncategorized ? null : status)
+        }
+        this.$set(this.kanban.recordCnt, prevStatus, this.kanban.recordCnt[prevStatus] - 1)
+        this.$set(this.kanban.recordCnt, status, this.kanban.recordCnt[status] + 1)
+        this.$forceUpdate()
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
         }).goAway(3000)

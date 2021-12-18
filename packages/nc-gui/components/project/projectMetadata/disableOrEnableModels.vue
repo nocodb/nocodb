@@ -1,11 +1,11 @@
 <template>
   <div>
     <v-tabs v-model="dbsTab" color="x-active" height="30">
-      <v-tab href="#xc-project-meta">
+      <v-tab href="#xc-project-meta" @dblclick="uiacl = true">
         <v-icon icon x-small class="mr-2">
           mdi-file-table-box-multiple-outline
         </v-icon>
-        <span class="caption text-capitalize"> Project Metadata</span>
+        <span class="caption text-capitalize nc-exp-imp-metadata"> Export/Import Metadata</span>
       </v-tab>
       <v-tab-item value="xc-project-meta">
         <div class="d-flex justify-center d-100">
@@ -15,7 +15,8 @@
 
       <template v-for="(db,i) in dbAliasList">
         <v-tab :key="db.meta.dbAlias + i" :href="'#' + db.meta.dbAlias" class="text-capitalize caption">
-          {{ db.connection.database | extractDbName }} {{ db.meta.dbAlias }} Metadata
+          <!--          {{ db.connection.database | extractDbName }} {{ db.meta.dbAlias }} -->
+          Metadata
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 't' + i" :value=" db.meta.dbAlias">
           <v-tabs color="x-active" height="28">
@@ -59,22 +60,23 @@
             </v-tab-item>
           </v-tabs>
         </v-tab-item>
-
-        <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption nc-ui-acl-tab">
-          {{ db.connection.database | extractDbName }} UI Access Control
-        </v-tab>
-        <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
-          <v-tabs color="x-active" height="28">
-            <v-tab class="text-capitalize caption">
-              Tables
-            </v-tab>
-            <v-tab-item>
-              <toggle-table-ui-acl
-                :nodes="nodes"
-                :db="db"
-                :db-alias="db.meta.dbAlias"
-              />
-            </v-tab-item>
+        <template v-if="uiacl">
+          <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption nc-ui-acl-tab">
+            <!--          {{ db.connection.database | extractDbName }}-->
+            UI Access Control
+          </v-tab>
+          <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
+            <v-tabs color="x-active" height="28">
+              <v-tab class="text-capitalize caption">
+                Tables
+              </v-tab>
+              <v-tab-item>
+                <toggle-table-ui-acl
+                  :nodes="nodes"
+                  :db="db"
+                  :db-alias="db.meta.dbAlias"
+                />
+              </v-tab-item>
             <!-- enable extra -->
             <!--  <v-tab class="text-capitalize caption">Views</v-tab>
               <v-tab-item>
@@ -103,8 +105,9 @@
                 :db-alias="db.meta.dbAlias"
               />
             </v-tab-item>-->
-          </v-tabs>
-        </v-tab-item>
+            </v-tabs>
+          </v-tab-item>
+        </template>
       </template>
     </v-tabs>
   </div>
@@ -132,6 +135,7 @@ export default {
   },
   props: ['nodes'],
   data: () => ({
+    uiacl: false,
     edited: false,
     models: null,
     updating: false,

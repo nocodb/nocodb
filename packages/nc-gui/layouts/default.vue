@@ -49,6 +49,8 @@
           target="_blank"
         >Docs</a>
         <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" v-model="templateModal" class="align-self-center" />
+
+        <!--        <better-u-x v-if="clickCount" />-->
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 
@@ -582,9 +584,11 @@ import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
 import Loader from '~/components/loader'
 import TemplatesModal from '~/components/templates/templatesModal'
+import BetterUX from '~/components/utils/betterUX'
 
 export default {
   components: {
+    BetterUX,
     TemplatesModal,
     Loader,
     ReleaseInfo,
@@ -598,6 +602,7 @@ export default {
     xTerm
   },
   data: () => ({
+    clickCount: true,
     templateModal: false,
     ghStarText: 'Star',
     swaggerOrGraphiqlUrl: null,

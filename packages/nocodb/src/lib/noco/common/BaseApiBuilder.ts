@@ -29,6 +29,8 @@ import NcConnectionMgr from './NcConnectionMgr';
 import updateColumnNameInFormula from './helpers/updateColumnNameInFormula';
 import addErrorOnColumnDeleteInFormula from './helpers/addErrorOnColumnDeleteInFormula';
 import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
+import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
+import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
 
 const log = debug('nc:api:base');
 
@@ -1268,7 +1270,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const NC_VERSIONS = [
       { name: '0009000', handler: null },
       { name: '0009044', handler: this.ncUpManyToMany.bind(this) },
-      { name: '0083006', handler: ncModelsOrderUpgrader }
+      { name: '0083006', handler: ncModelsOrderUpgrader },
+      { name: '0083007', handler: ncParentModelTitleUpgrader },
+      { name: '0083008', handler: ncRemoveDuplicatedRelationRows }
     ];
     if (!(await this.xcMeta?.knex?.schema?.hasTable?.('nc_store'))) {
       return;
@@ -1301,13 +1305,13 @@ export default abstract class BaseApiBuilder<T extends Noco>
             });
 
             // update version in meta after each upgrade
-            config.version = version.name;
+            configObj.version = version.name;
             await this.xcMeta.metaUpdate(
               this.projectId,
               this.dbAlias,
               'nc_store',
               {
-                value: JSON.stringify(config)
+                value: JSON.stringify(configObj)
               },
               {
                 key: 'NC_CONFIG'
@@ -1320,11 +1324,18 @@ export default abstract class BaseApiBuilder<T extends Noco>
             break;
           }
         }
-        config.version = process.env.NC_VERSION;
-        await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
-          key: 'NC_CONFIG',
-          value: JSON.stringify(config)
-        });
+        configObj.version = process.env.NC_VERSION;
+        await this.xcMeta.metaUpdate(
+          this.projectId,
+          this.dbAlias,
+          'nc_store',
+          {
+            value: JSON.stringify(configObj)
+          },
+          {
+            key: 'NC_CONFIG'
+          }
+        );
       }
     } else {
       this.baseLog(`xcUpgrade : Inserting config to meta database`);

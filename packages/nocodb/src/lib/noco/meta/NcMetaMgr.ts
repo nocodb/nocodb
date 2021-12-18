@@ -4873,7 +4873,11 @@ export default class NcMetaMgr {
             );
 
             for (const d of disabledList) {
-              result[d.title].disabled[d.role] = !!d.disabled;
+              if (
+                !result[d.title].ptn ||
+                result[d.title].ptn === d.parent_model_title
+              )
+                result[d.title].disabled[d.role] = !!d.disabled;
             }
 
             return Object.values(result)?.sort((a: any, b: any) =>
@@ -4900,6 +4904,9 @@ export default class NcMetaMgr {
                     },
                     {
                       type: { eq: 'view' }
+                    },
+                    {
+                      type: { eq: 'vtable' }
                     }
                   ]
                 },
@@ -4910,18 +4917,30 @@ export default class NcMetaMgr {
             );
 
             const result = models.reduce((obj, table) => {
-              obj[table.title] = {
-                tn: table.title,
-                _tn: table.alias || table.title,
-                order: table.order,
-                disabled: { ...defaultDisabled },
-                type: table.type,
-                show_as: table.show_as,
-                ptn: table.parent_model_title
-              };
+              if (table.type !== 'vtable')
+                obj[table.title] = {
+                  tn: table.title,
+                  _tn: table.alias || table.title,
+                  order: table.order,
+                  disabled: { ...defaultDisabled },
+                  type: table.type,
+                  show_as: table.show_as,
+                  ptn: table.parent_model_title
+                };
               return obj;
             }, {});
 
+            // @ts-ignore
+            const viewsObj = models.reduce((obj, tableView) => {
+              obj[tableView.parent_model_title || tableView.title] =
+                obj[tableView.parent_model_title || tableView.title] || {};
+              obj[tableView.parent_model_title || tableView.title][
+                tableView.title
+              ] = { ...defaultDisabled };
+              return obj;
+            }, {});
+
+            // @ts-ignore
             const disabledList = await this.xcMeta.metaList(
               args.project_id,
               this.getDbAlias(args),
@@ -4934,6 +4953,9 @@ export default class NcMetaMgr {
                     },
                     {
                       type: { eq: 'view' }
+                    },
+                    {
+                      type: { eq: 'vtable' }
                     }
                   ]
                 }
@@ -4941,8 +4963,24 @@ export default class NcMetaMgr {
             );
 
             for (const d of disabledList) {
-              result[d.title].disabled[d.role] = !!d.disabled;
+              if (d.type === 'vtable') {
+                if (viewsObj?.[d.parent_model_title]?.[d.title])
+                  viewsObj[d.parent_model_title][d.title][d.role] = d.disabled;
+              } else {
+                if (viewsObj?.[d.title]?.[d.title])
+                  viewsObj[d.title][d.title][d.role] = d.disabled;
+              }
             }
+
+            for (const [title, aclObj] of Object.entries(viewsObj)) {
+              for (const role in result[title].disabled) {
+                result[title].disabled[role] = Object.values(aclObj).every(
+                  v => v[role]
+                );
+              }
+            }
+
+            // result[d.title].disabled[d.role] = !!d.disabled;
 
             return Object.values(result);
           }
@@ -5303,7 +5341,6 @@ export default class NcMetaMgr {
 
   protected async xcTableAndViewList(req, args): Promise<any> {
     const roles = req.session?.passport?.user?.roles;
-
     let tables = await this.xcVisibilityMetaGet({
       ...args,
       args: { type: 'table_view', ...args.args }

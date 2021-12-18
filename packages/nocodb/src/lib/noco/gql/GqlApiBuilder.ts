@@ -730,11 +730,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     let tables;
     /* Get all relations */
-    let [
+    /*    let [
       relations,
       missingRelations
     ] = await this.getRelationsAndMissingRelations();
-    relations = relations.concat(missingRelations);
+    relations = relations.concat(missingRelations);*/
+    const relations = await this.relationsSyncAndGet();
 
     // set table name alias
     relations.forEach(r => {
@@ -850,7 +851,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     }
 
     this.tablesCount = tables.length;
-    await this.syncRelations();
+    // await this.syncRelations();
 
     if (tables.length) {
       relations.forEach(rel => (rel.enabled = true));

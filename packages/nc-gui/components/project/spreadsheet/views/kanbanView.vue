@@ -1,11 +1,6 @@
 <template>
   <v-container fluid>
-    <v-row>
-      <v-col v-for="idx in 5" :key="idx">
-        <v-skeleton-loader v-if="kanban.loadingData" type="image@3"></v-skeleton-loader>
-      </v-col>
-    </v-row>
-    <kanban-board v-show="!kanban.loadingData" :stages="kanban.groupingColumnItems" :blocks="kanban.blocks" @update-block="updateBlock">
+    <kanban-board :stages="kanban.groupingColumnItems" :blocks="kanban.blocks" @update-block="updateBlock">
       <div v-for="stage in this.kanban.groupingColumnItems" :slot="stage" :key="stage" class="mx-auto">
         <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>

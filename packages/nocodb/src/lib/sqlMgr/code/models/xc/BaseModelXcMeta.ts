@@ -109,8 +109,8 @@ abstract class BaseModelXcMeta extends BaseRender {
     const oldVirtualCols = this.ctx?.oldMeta?.v || [];
 
     for (const oldVCol of oldVirtualCols) {
-      console.log(oldVCol);
-      virtualColumns.push(oldVCol);
+      if (oldVCol.lk || oldVCol.rl || oldVCol.formula)
+        virtualColumns.push(oldVCol);
     }
 
     return virtualColumns;

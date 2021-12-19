@@ -376,20 +376,21 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     if (args?.tableNames?.length) {
       const relatedTableList = [];
 
-      // extract tables which have relation with the tables in list
-      for (const r of relations) {
-        if (args.tableNames.some(t => t.tn === r.tn)) {
-          if (!relatedTableList.includes(r.rtn)) {
-            relatedTableList.push(r.rtn);
-            await this.onTableDelete(r.rtn);
-          }
-        } else if (args.tableNames.some(t => t.tn === r.rtn)) {
-          if (!relatedTableList.includes(r.tn)) {
-            relatedTableList.push(r.tn);
-            await this.onTableDelete(r.tn);
+      if (!args?.oldMetas)
+        // extract tables which have relation with the tables in list
+        for (const r of relations) {
+          if (args.tableNames.some(t => t.tn === r.tn)) {
+            if (!relatedTableList.includes(r.rtn)) {
+              relatedTableList.push(r.rtn);
+              await this.onTableDelete(r.rtn);
+            }
+          } else if (args.tableNames.some(t => t.tn === r.rtn)) {
+            if (!relatedTableList.includes(r.tn)) {
+              relatedTableList.push(r.tn);
+              await this.onTableDelete(r.tn);
+            }
           }
         }
-      }
 
       tables = args.tableNames
         .sort((a, b) => (a.tn || a._tn).localeCompare(b.tn || b._tn))

@@ -9,7 +9,8 @@ enum XcMetaDiffType {
   TABLE_RELATION_ADD = 'TABLE_RELATION_ADD',
   TABLE_RELATION_REMOVE = 'TABLE_RELATION_REMOVE',
   TABLE_VIRTUAL_RELATION_ADD = 'TABLE_VIRTUAL_RELATION_ADD',
-  TABLE_VIRTUAL_RELATION_DELETE = 'TABLE_VIRTUAL_RELATION_DELETE'
+  TABLE_VIRTUAL_RELATION_REMOVE = 'TABLE_VIRTUAL_RELATION_REMOVE',
+  TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE'
 }
 
 interface NcMetaDiff {
@@ -33,7 +34,7 @@ export default async function(
 
   // @ts-ignore
   const tableList = (await sqlClient.tableList())?.data?.list;
-
+  const colListRef = {};
   // @ts-ignore
   const oldMetas = (
     await this.xcMeta.metaList(
@@ -43,6 +44,9 @@ export default async function(
       { condition: { type: 'table' } }
     )
   ).map(m => JSON.parse(m.meta));
+
+  // @ts-ignore
+  const relationList = (await sqlClient.relationListAll())?.data?.list;
 
   for (const table of tableList) {
     if (table.tn === 'nc_evolutions') continue;
@@ -73,10 +77,11 @@ export default async function(
     changes.push(tableProp);
 
     // check for column change
-    const columnList = (await sqlClient.columnList({ tn: table.tn }))?.data
-      ?.list;
+    colListRef[table.tn] = (
+      await sqlClient.columnList({ tn: table.tn })
+    )?.data?.list;
 
-    for (const column of columnList) {
+    for (const column of colListRef[table.tn]) {
       const oldColIdx = oldMeta.columns.findIndex(c => c.cn === column.cn);
 
       // new table
@@ -107,6 +112,59 @@ export default async function(
         cn
       });
     }
+    for (const vCol of oldMeta.v) {
+      if (!vCol.mm) continue;
+
+      // check related tables & columns
+
+      const rTable = tableList.find(t => t.tn === vCol.mm?.rtn);
+      const m2mTable = tableList.find(t => t.tn === vCol.mm?.vtn);
+
+      if (!rTable) {
+        tableProp.detectedChanges.push({
+          ...vCol,
+          type: XcMetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
+          msg: `Many to many removed(${vCol.mm?.rtn} removed)`
+        });
+        continue;
+      }
+      if (!m2mTable) {
+        tableProp.detectedChanges.push({
+          ...vCol,
+          type: XcMetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
+          msg: `Many to many removed(${vCol.mm?.vtn} removed)`
+        });
+        continue;
+      }
+
+      // verify columns
+
+      const pColumns = (colListRef[vCol.mm.tn] =
+        colListRef[vCol.mm.tn] ||
+        (await sqlClient.columnList({ tn: vCol.mm.tn }))?.data?.list);
+
+      const cColumns = (colListRef[vCol.mm.rtn] =
+        colListRef[vCol.mm.rtn] ||
+        (await sqlClient.columnList({ tn: vCol.mm.rtn }))?.data?.list);
+
+      const vColumns = (colListRef[vCol.mm.vtn] =
+        colListRef[vCol.mm.vtn] ||
+        (await sqlClient.columnList({ tn: vCol.mm.vtn }))?.data?.list);
+
+      if (
+        pColumns.every(c => c.cn !== vCol.mm.cn) ||
+        cColumns.every(c => c.cn !== vCol.mm.rcn) ||
+        vColumns.every(c => c.cn !== vCol.mm.vcn) ||
+        vColumns.every(c => c.cn !== vCol.mm.vrcn)
+      ) {
+        tableProp.detectedChanges.push({
+          ...vCol,
+          type: XcMetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
+          msg: `Many to many removed(One of the relation column removed)`
+        });
+        continue;
+      }
+    }
   }
 
   for (const { tn } of oldMetas) {
@@ -121,20 +179,30 @@ export default async function(
     });
   }
 
-  // @ts-ignore
-  const relationList = (await sqlClient.relationListAll())?.data?.list;
-
-  // todo: handle virtual
-  const oldRelations = await this.xcMeta.metaList(
-    this.getProjectId(args),
-    this.getDbAlias(args),
-    'nc_relations',
-    {
-      condition: {
-        type: 'real'
+  // extract unique relations
+  const oldRelations = (
+    await this.xcMeta.metaList(
+      this.getProjectId(args),
+      this.getDbAlias(args),
+      'nc_relations',
+      {
+        condition: {
+          type: 'real'
+        }
       }
-    }
-  );
+    )
+  ).filter((r, i, arr) => {
+    return (
+      i ===
+      arr.findIndex(
+        r1 =>
+          r1.tn === r.tn &&
+          r1.rtn === r.rtn &&
+          r1.cn === r.cn &&
+          r1.rcn === r.rcn
+      )
+    );
+  });
 
   // check relations
   for (const rel of relationList) {
@@ -195,6 +263,80 @@ export default async function(
         rcn: oldRel.rcn,
         msg: `Relation removed`
       });
+  }
+
+  const oldVirtualRelations = await this.xcMeta.metaList(
+    this.getProjectId(args),
+    this.getDbAlias(args),
+    'nc_relations',
+    {
+      condition: {
+        type: 'virtual'
+      }
+    }
+  );
+
+  // check relations
+  for (const vRel of oldVirtualRelations) {
+    if (tableList.every(t => t.tn !== vRel.tn && t.tn !== vRel.rtn)) {
+      changes
+        .find(t => t.tn === vRel.tn)
+        ?.detectedChanges.push({
+          type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
+          tn: vRel.tn,
+          rtn: vRel.rtn,
+          cn: vRel.cn,
+          rcn: vRel.rcn,
+          msg: `Virtual relation removed`
+        });
+      changes
+        .find(t => t.tn === vRel.rtn)
+        ?.detectedChanges.push({
+          type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
+          tn: vRel.tn,
+          rtn: vRel.rtn,
+          cn: vRel.cn,
+          rcn: vRel.rcn,
+          msg: `Virtual relation removed`
+        });
+      continue;
+    }
+
+    colListRef[vRel.tn] = (
+      await sqlClient.columnList({ tn: vRel.tn })
+    )?.data?.list;
+    colListRef[vRel.rtn] = (
+      await sqlClient.columnList({ tn: vRel.rtn })
+    )?.data?.list;
+
+    if (
+      colListRef[vRel.tn].every(c => c.cn !== vRel.cn) ||
+      colListRef[vRel.rtn].every(c => c.cn !== vRel.rcn)
+    ) {
+      changes
+        .find(t => t.tn === vRel.tn)
+        ?.detectedChanges.push({
+          type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
+          tn: vRel.tn,
+          rtn: vRel.rtn,
+          cn: vRel.cn,
+          rcn: vRel.rcn,
+          msg: `Virtual relation column missing`
+        });
+      changes
+        .find(t => t.tn === vRel.rtn)
+        ?.detectedChanges.push({
+          type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
+          tn: vRel.tn,
+          rtn: vRel.rtn,
+          cn: vRel.cn,
+          rcn: vRel.rcn,
+          msg: `Virtual relation column missing`
+        });
+    }
+
+    // colListRef[table.tn]= (await sqlClient.columnList({ tn: table.tn }))?.data
+    //   ?.list;
   }
 
   return changes;

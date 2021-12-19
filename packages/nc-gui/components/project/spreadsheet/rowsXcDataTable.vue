@@ -797,7 +797,7 @@ export default {
     },
     async groupingField(newVal) {
       this.groupingField = newVal
-      if(this.$route.query.view === 'kanban') {
+      if (this.selectedView && this.selectedView.show_as === 'kanban') {
         await this.loadKanbanData()
       }
     }
@@ -817,7 +817,6 @@ export default {
       this.loadingMeta = true
       await this.loadMeta(false)
       this.loadingMeta = false
-
       if (this.relationType === 'hm') {
         this.filters.push({
           field: this.meta.columns.find(c => c.cn === this.relation.cn)._cn,
@@ -835,7 +834,7 @@ export default {
         })
       } else {
         // await this.$refs.drawer.loadViews();
-        if (this.$route.query.view === 'kanban') {
+        if (this.selectedView && this.selectedView.show_as === 'kanban') {
           await this.loadKanbanData()
         } else {
           await this.loadTableData()

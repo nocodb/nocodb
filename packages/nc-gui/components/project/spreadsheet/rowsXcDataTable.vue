@@ -328,8 +328,16 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
-          <template v-else-if="isKanban && kanban.data.length">
+          <template v-else-if="isKanban">
+            <v-container fluid v-if="kanban.loadingData">
+              <v-row>
+                <v-col v-for="idx in 5" :key="idx">
+                  <v-skeleton-loader type="image@3"></v-skeleton-loader>
+                </v-col>
+              </v-row>
+            </v-container>
             <kanban-view
+              v-if="!kanban.loadingData && kanban.data.length" 
               :nodes="nodes"
               :table="table"
               :show-fields="showFields"
@@ -1295,47 +1303,60 @@ export default {
     // Kanban
     async loadKanbanData() {
       try {
-        this.kanban.loadingData = true
+        const kanban = {
+          data: [],
+          stages: [],
+          blocks: [],
+          clonedBlocks: [],
+          recordCnt: {},
+          groupingColumnItems: [],
+          loadingData: true,
+          selectedExpandRow: null,
+          selectedExpandOldRow: null,
+          selectedExpandRowMeta: null
+        }
+        this.kanban = kanban
+
         if (this.api) {
           const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
           if (!groupingColumn) {
             return
           }
-          
+
           const initialLimit = 10
           const uncategorized = 'Uncategorized'
 
-          this.initKanbanProps()
-          this.kanban.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
+          kanban.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
             const trimCol = c.replace(/'/g, '')
-            this.kanban.recordCnt[trimCol] = 0
+            kanban.recordCnt[trimCol] = 0
             return trimCol
           }).sort()
 
-          this.kanban.groupingColumnItems.unshift(uncategorized)
-          this.kanban.recordCnt[uncategorized] = 0
-          for (const groupingColumnItem of this.kanban.groupingColumnItems) {
+          kanban.groupingColumnItems.unshift(uncategorized)
+          kanban.recordCnt[uncategorized] = 0
+          for (const groupingColumnItem of kanban.groupingColumnItems) {
             const {
               data
             } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
               limit: initialLimit,
               where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
             })
-            data.map(d => {
-              this.kanban.data.push({
+            data.map((d) => {
+              kanban.data.push({
                 row: d,
                 oldRow: d,
-                rowMeta: {},
+                rowMeta: {}
               })
               const status = d[this.groupingField] ?? uncategorized
-              this.kanban.recordCnt[status] += 1
-              this.kanban.blocks.push({
+              kanban.recordCnt[status] += 1
+              kanban.blocks.push({
                 status,
                 ...d
               })
             })
           }
         }
+        this.kanban = kanban
       } catch (e) {
         if (e.response && e.response.data && e.response.data.msg) {
           this.$toast.error(e.response.data.msg, {
@@ -1381,20 +1402,6 @@ export default {
       this.kanban.selectedExpandRow = data.row
       this.kanban.selectedExpandOldRow = data.oldRow
       this.kanban.selectedExpandRowMeta = data.rowMeta
-    },
-    initKanbanProps() {
-      this.kanban = {
-        data: [],
-        stages: [],
-        blocks: [],
-        clonedBlocks: [],
-        recordCnt: {},
-        groupingColumnItems: [],
-        loadingData : true,
-        selectedExpandRow: null,
-        selectedExpandOldRow: null,
-        selectedExpandRowMeta: null,
-      }
     },
   },
   computed: {

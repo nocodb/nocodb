@@ -23,6 +23,7 @@
 
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+
 dayjs.extend(utc)
 
 export default {
@@ -33,23 +34,14 @@ export default {
   computed: {
     localState: {
       get() {
-        if (!this.value) { return this.value }
+        if (!this.value) {
+          return this.value
+        }
 
-        console.log(this.value, dayjs(this.value).utc().format('YYYY-MM-DD HH:mm'))
-        return dayjs(this.value).format('YYYY-MM-DD HH:mm')
-        // todo : time value correction
-        //
-        // if (/^\d{6,}$/.test(this.value)) {
-        //   return new Date(+this.value)
-        // }
-        //
-        // return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : ((this.value && new Date(this.value)))
+        return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
+          .format('YYYY-MM-DD HH:mm')
       },
       set(val) {
-        // console.log('dayjs=====', dayjs.utc(val).toString())
-        // const uVal = val && new Date(val).toISOString().slice(0, 19).replace('T', ' ').replace(/(\d{1,2}:\d{1,2}):\d{1,2}$/, '$1')
-        // console.log(uVal)
-
         this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm:ssZ'))
       }
     },

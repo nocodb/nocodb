@@ -14,7 +14,9 @@ import ModelXcMetaFactory from '../../sqlMgr/code/models/xc/ModelXcMetaFactory';
 import NcHelp from '../../utils/NcHelp';
 import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../Noco';
-import BaseApiBuilder from '../common/BaseApiBuilder';
+import BaseApiBuilder, {
+  XcTablesPopulateParams
+} from '../common/BaseApiBuilder';
 import NcMetaIO from '../meta/NcMetaIO';
 
 import { m2mNotChildren, m2mNotChildrenCount } from './GqlCommonResolvers';
@@ -710,16 +712,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     });
   }
 
-  public async xcTablesPopulate(args?: {
-    tableNames?: Array<{
-      tn: string;
-      _tn?: string;
-    }>;
-    type?: 'table' | 'view';
-    columns?: {
-      [key: string]: any;
-    };
-  }): Promise<any> {
+  public async xcTablesPopulate(args?: XcTablesPopulateParams): Promise<any> {
     this.log(
       'xcTablesPopulate : names - %o , type - %s',
       args?.tableNames,
@@ -751,20 +744,22 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     if (args?.tableNames?.length) {
       const relatedTableList = [];
-      // extract tables which have relation with the tables in list
-      for (const r of relations) {
-        if (args.tableNames.some(t => t.tn === r.tn)) {
-          if (!relatedTableList.includes(r.rtn)) {
-            relatedTableList.push(r.rtn);
-            await this.onTableDelete(r.rtn);
-          }
-        } else if (args.tableNames.some(t => t.tn === r.rtn)) {
-          if (!relatedTableList.includes(r.tn)) {
-            relatedTableList.push(r.tn);
-            await this.onTableDelete(r.tn);
+
+      if (!args?.oldMetas)
+        // extract tables which have relation with the tables in list
+        for (const r of relations) {
+          if (args.tableNames.some(t => t.tn === r.tn)) {
+            if (!relatedTableList.includes(r.rtn)) {
+              relatedTableList.push(r.rtn);
+              await this.onTableDelete(r.rtn);
+            }
+          } else if (args.tableNames.some(t => t.tn === r.rtn)) {
+            if (!relatedTableList.includes(r.tn)) {
+              relatedTableList.push(r.tn);
+              await this.onTableDelete(r.tn);
+            }
           }
         }
-      }
 
       tables = args.tableNames.map(({ tn, _tn }) => ({
         tn,
@@ -887,6 +882,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             table.tn,
             table.type
           );
+
+          ctx.oldMeta = args?.oldMetas?.[table.tn];
+
           /**************** prepare table models and policies ****************/
           this.metas[table.tn] = ModelXcMetaFactory.create(
             this.connectionConfig,
@@ -948,6 +946,24 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 // schema: this.schemas[table.tn],
                 alias: this.metas[table.tn]._tn
               }
+            );
+          } else if (args?.oldMetas?.[table.tn]?.id) {
+            this.log(
+              "xcTablesPopulate : Updating model metadata for '%s' - %s",
+              table.tn,
+              table.type
+            );
+            await this.xcMeta.metaUpdate(
+              this.projectId,
+              this.dbAlias,
+              'nc_models',
+              {
+                title: table.tn,
+                alias: this.metas[table.tn]._tn,
+                meta: JSON.stringify(this.metas[table.tn]),
+                type: table.type || 'table'
+              },
+              args?.oldMetas?.[table.tn]?.id
             );
           }
 

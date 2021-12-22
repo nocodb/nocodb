@@ -12,22 +12,17 @@ export const genTest = (type, xcdb) => {
       // loginPage.loginAndOpenProject(type);
     });
 
-    function openMetaTab(msg) {
+    function openMetaTab() {
       // open Project metadata tab
       //
       mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
       cy.get(".nc-meta-mgmt-metadata-tab")
-        .should('exist')
+        .should("exist")
         .click({ force: true });
       // kludge, at times test failed to open tab on click
       cy.get(".nc-meta-mgmt-metadata-tab")
-        .should('exist')
+        .should("exist")
         .click({ force: true });
-
-      // validate alert message 
-      cy.get(".v-alert")
-        .contains(msg)
-        .should("exist");
     }
 
     function closeMetaTab() {
@@ -39,74 +34,97 @@ export const genTest = (type, xcdb) => {
       cy.refreshTableTab();
     }
 
-    function metaSyncValidate(scenario, context) {
-      if (scenario === 'out of sync') {
-        openMetaTab(`Tables metadata is out of sync`);
-        cy.get('.nc-btn-sync-meta-data').should('exist').click();
-        cy.toastWait(`Table metadata ${context} successfully`);
-
-      } else {
-        openMetaTab(`Tables metadata is in sync`);
-      }
-      closeMetaTab();  
+    function metaSyncValidate(tbl, msg) {
+      cy.get(".nc-btn-metasync-reload").should("exist").click({ force: true });
+      cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
+      cy.get(".nc-btn-metasync-sync-now")
+        .should("exist")
+        .click({ force: true });
+      cy.toastWait(`Table metadata recreated successfully`);
+      // cy.get(`.nc-metasync-row-${tbl}`).should("exist");
     }
 
-    beforeEach(() => {
-      // ensure tables are in sync before each operation
-      openMetaTab(`Tables metadata is in sync`);
-      closeMetaTab();      
-    })
+    before(() => {
+      openMetaTab();
+    });
+
+    after(() => {
+      closeMetaTab();
+    });
 
     it(`Create table`, () => {
       // Create Table
-      cy.task("queryDb", `CREATE TABLE sakila.table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
-      cy.task("queryDb", `CREATE TABLE sakila.table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);      
-      metaSyncValidate('out of sync', 'added');      
-    })
+      cy.task(
+        "queryDb",
+        `CREATE TABLE sakila.table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`
+      );
+      cy.task(
+        "queryDb",
+        `CREATE TABLE sakila.table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`
+      );
+      metaSyncValidate("table1", "New table");
+      // metaSyncValidate("table2", "Table added");
+    });
 
     it(`Add relation`, () => {
       // Add relation (FK)
-      cy.task("queryDb", `ALTER TABLE sakila.table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`)
-      cy.task("queryDb", `ALTER TABLE sakila.table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES sakila.table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+      cy.task(
+        "queryDb",
+        `ALTER TABLE sakila.table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`
+      );
+      cy.task(
+        "queryDb",
+        `ALTER TABLE sakila.table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES sakila.table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
+      );
       // fix me
-      metaSyncValidate('in sync');
-    })
+      metaSyncValidate("table1", "New relation added");
+    });
 
     it(`Remove relation`, () => {
       // Remove relation (FK)
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP FOREIGN KEY fk1`);
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP INDEX fk1_idx`);
       // fix me
-      metaSyncValidate('in sync');
-    })
+      metaSyncValidate("table1", "Relation removed");
+    });
 
     it(`Add column`, () => {
       // Add Column
-      cy.task("queryDb", `ALTER TABLE sakila.table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`);
+      cy.task(
+        "queryDb",
+        `ALTER TABLE sakila.table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`
+      );
       // fix me
-      metaSyncValidate('in sync');
-    })
+      metaSyncValidate("table1", "New column(newCol)");
+    });
 
     it(`Rename column`, () => {
       // Rename Column
-      cy.task("queryDb", `ALTER TABLE sakila.table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`);
+      cy.task(
+        "queryDb",
+        `ALTER TABLE sakila.table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`
+      );
       // fix me
-      metaSyncValidate('in sync');
-    })
+      metaSyncValidate(
+        "table1",
+        "New column(newColName), Column removed(newCol)"
+      );
+    });
 
     it(`Delete column`, () => {
       // Remove Column
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP COLUMN newColName`);
       // fix me
-      metaSyncValidate('in sync');
-    })
+      metaSyncValidate("table1", "Column removed(newColName)");
+    });
 
     it(`Delete table`, () => {
       // DROP TABLE
       cy.task("queryDb", `DROP TABLE sakila.table1`);
       cy.task("queryDb", `DROP TABLE sakila.table2`);
-      metaSyncValidate('out of sync', 'deleted');
-    })
+      metaSyncValidate("table1", "Table removed");
+      // metaSyncValidate("table2", "out of sync");
+    });
   });
 };
 

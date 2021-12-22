@@ -22,6 +22,7 @@
 
               <v-spacer />
               <x-btn
+                btn.class="nc-btn-metasync-reload"
                 outlined
                 tooltip="Reload list"
                 small
@@ -41,7 +42,7 @@
               >
                 Reload
               </x-btn>-->
-              <x-btn
+              <!--x-btn
                 outlined
                 :loading="updating"
                 :disabled="updating || !edited"
@@ -52,7 +53,7 @@
                 @click="saveModels()"
               >
                 Save
-              </x-btn>
+              </!--x-btn-->
             </v-toolbar>
 
             <div class="d-flex d-100 justify-center">
@@ -64,13 +65,13 @@
                     </th>
                     <!--                    <th>APIs</th>-->
                     <th class="grey--text">
-                      Actions
+                      Sync state
                     </th>
                     <th />
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="model in diff" :key="model.title">
+                  <tr v-for="model in diff" :key="model.title" :class="`nc-metasync-row-${model.tn}`">
                     <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
                     <td>
                       <v-tooltip bottom>
@@ -88,7 +89,7 @@
                     @change="edited = true"
                   />
                 </td>-->
-                    <td>
+                    <!--td>
                       <x-icon
                         small
                         color="primary"
@@ -96,7 +97,7 @@
                       >
                         mdi-reload
                       </x-icon>
-                    </td>
+                    </!--td-->
 
                     <td>
                       <span
@@ -104,6 +105,12 @@
 
                         class="caption error--text"
                       >{{ model.detectedChanges.map(m => m.msg).join(', ') }}</span>
+                      <span
+                        v-else
+                        class="caption grey--text"
+                      >
+                        {{ 'No change identified' }}
+                      </span>
                     <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
                     </td>
                   </tr>
@@ -186,7 +193,7 @@
             <v-spacer />
 
             <v-tooltip bottom>
-              <template #activator="{on}">
+              <!-- template #activator="{on}">
                 <v-alert
                   v-if="isNewOrDeletedModelFound"
                   dense
@@ -213,10 +220,10 @@
                 Metadata for API creation & management is in sync with
                 '{{ dbAliasList[dbsTab].connection.database }}' Database.
               </template>
-              <template v-else>
+              <template-- v-else>
                 Metadata for API creation & management isn't sync with
                 '{{ dbAliasList[dbsTab].connection.database }}' Database.
-              </template>
+              </template-->
             </v-tooltip>
             <v-spacer />
           </div>
@@ -237,7 +244,7 @@
 
             <x-btn
               x-large
-              btn.class="mx-auto primary"
+              btn.class="mx-auto primary nc-btn-metasync-sync-now"
               tooltip="Sync metadata"
               @click="syncMetaDiff"
             >

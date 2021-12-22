@@ -886,7 +886,11 @@ export default {
         tn: this.table,
         force: true
       })
-      await this.loadTableData()
+      if (this.selectedView && this.selectedView.show_as === 'kanban') {
+        await this.loadKanbanData()
+      } else {
+        await this.loadTableData()
+      }
       this.key = Math.random()
     },
     reloadComments() {

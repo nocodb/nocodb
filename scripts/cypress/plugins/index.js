@@ -47,5 +47,30 @@ module.exports = (on, config) => {
       console.log(`##Cypress>> ${message}`);
       return null;
     },
+    queryDb: (query) => {
+      return queryTestDb(query, config);
+    },
   });
 };
+
+// mysql connection
+// https://gist.github.com/fityanos/0a345e9e9de498b6c629f78e6b2835f5
+
+const mysql = require("mysql2");
+function queryTestDb(query, config) {
+  // creates a new mysql connection using credentials from cypress.json env's
+  const connection = mysql.createConnection(config.env.db);
+  // start connection to db
+  connection.connect();
+  // exec query + disconnect to db as a Promise
+  return new Promise((resolve, reject) => {
+    connection.query(query, (error, results) => {
+      if (error) reject(error);
+      else {
+        connection.end();
+        // console.log(results)
+        return resolve(results);
+      }
+    });
+  });
+}

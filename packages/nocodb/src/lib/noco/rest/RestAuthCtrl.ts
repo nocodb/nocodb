@@ -1001,45 +1001,42 @@ export default class RestAuthCtrl {
     const email = _email.toLowerCase();
 
     const user = await this.users.where({ email }).first();
-    if (!user) {
-      return next(new Error('This email is not registered with us.'));
-    }
-
-    const token = uuidv4();
-    await this.users
-      .update({
-        reset_password_token: token,
-        reset_password_expires: new Date(Date.now() + 60 * 60 * 1000)
-      })
-      .where({ id: user.id });
-
-    try {
-      const template = (await import('./ui/emailTemplates/forgotPassword'))
-        .default;
-      await this.emailClient.mailSend({
-        to: user.email,
-        subject: 'Password Reset Link',
-        text: `Visit following link to update your password : ${req.ncSiteUrl}/password/reset/${token}.`,
-        html: ejs.render(template, {
-          resetLink: req.ncSiteUrl + `/password/reset/${token}`
+    if (user) {
+      const token = uuidv4();
+      await this.users
+        .update({
+          reset_password_token: token,
+          reset_password_expires: new Date(Date.now() + 60 * 60 * 1000)
         })
+        .where({ id: user.id });
+
+      try {
+        const template = (await import('./ui/emailTemplates/forgotPassword'))
+          .default;
+        await this.emailClient.mailSend({
+          to: user.email,
+          subject: 'Password Reset Link',
+          text: `Visit following link to update your password : ${req.ncSiteUrl}/password/reset/${token}.`,
+          html: ejs.render(template, {
+            resetLink: req.ncSiteUrl + `/password/reset/${token}`
+          })
+        });
+      } catch (e) {
+        console.log(
+          'Warning : `mailSend` failed, Please configure emailClient configuration.'
+        );
+      }
+      console.log(`Password reset token : ${token}`);
+
+      this.xcMeta.audit(null, null, 'nc_audit', {
+        op_type: 'AUTHENTICATION',
+        op_sub_type: 'PASSWORD_FORGOT',
+        user: user.email,
+        description: `requested for password reset `,
+        ip: req.clientIp
       });
-    } catch (e) {
-      console.log(
-        'Warning : `mailSend` failed, Please configure emailClient configuration.'
-      );
     }
-    console.log(`Password reset token : ${token}`);
-
-    this.xcMeta.audit(null, null, 'nc_audit', {
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'PASSWORD_FORGOT',
-      user: user.email,
-      description: `requested for password reset `,
-      ip: req.clientIp
-    });
-
-    res.json({ msg: 'Check your email for password reset link.' });
+    res.json({ msg: 'Check your email if you are registered with us.' });
   }
 
   protected async tokenValidate(req, res, next): Promise<any> {

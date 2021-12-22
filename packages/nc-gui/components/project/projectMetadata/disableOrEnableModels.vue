@@ -14,7 +14,7 @@
       </v-tab-item>
 
       <template v-for="(db,i) in dbAliasList">
-        <v-tab :key="db.meta.dbAlias + i" :href="'#' + db.meta.dbAlias" class="text-capitalize caption">
+        <v-tab :key="db.meta.dbAlias + i" :href="'#' + db.meta.dbAlias" class="text-capitalize caption nc-meta-mgmt-metadata-tab">
           <!--          {{ db.connection.database | extractDbName }} {{ db.meta.dbAlias }} -->
           Metadata
         </v-tab>

@@ -19,7 +19,12 @@
   "screenshotOnRunFailure": false,
   "numTestsKeptInMemory": 0,
   "env": {
-    "testMode": "extREST.extGQL"
+    "testMode": "extREST.extGQL",
+    "db": {
+      "host": "127.0.0.1",
+      "user": "root",
+      "password": "password"
+    }
   },
   "supportedOptionsForTestModes": [
     "extGQL",

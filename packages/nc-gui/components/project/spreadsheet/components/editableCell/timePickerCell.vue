@@ -22,12 +22,6 @@ export default {
   },
   computed: {
     localState: {
-      // get() {
-      //   return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : this.value
-      // },
-      // set(val) {
-      //   this.$emit('input', (new Date(val).toJSON() || '').slice(0, 10) || val)
-      // }
       get() {
         if (!this.value) {
           return this.value

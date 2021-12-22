@@ -158,7 +158,7 @@
           <div v-if="isNewOrDeletedModelFound" class="d-flex justify-center">
             <x-btn
               x-large
-              btn.class="mx-auto primary"
+              btn.class="mx-auto primary nc-btn-sync-meta-data"
               tooltip="Sync metadata"
               @click="syncMetadata"
             >

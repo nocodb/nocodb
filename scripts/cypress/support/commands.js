@@ -107,6 +107,20 @@ Cypress.Commands.add("openOrCreateRestProject", (_args) => {
   cy.url({ timeout: 20000 }).should("contain", "#/nc/");
 });
 
+Cypress.Commands.add("refreshTableTab", () => {
+  cy.task("log", `[refreshTableTab]`);
+
+  cy.get(".nc-project-tree")
+    .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+    .should("exist")
+    .first()
+    .rightclick({ force: true });
+  
+  cy.getActiveMenu().find('[role="menuitem"]').contains('Tables Refresh').click()
+
+  cy.toastWait('Tables refreshed'); 
+})
+
 // tn: table name
 // rc: row count. validate row count if rc!=0
 Cypress.Commands.add("openTableTab", (tn, rc) => {

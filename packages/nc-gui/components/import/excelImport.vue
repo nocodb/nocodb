@@ -42,7 +42,7 @@
                 </p>
 
                 <p class="caption grey--text">
-                  Supported: .xls, .xlsx, .xlsm
+                  Supported: .xls, .xlsx, .xlsm, .ods, .ots
                 </p>
               </div>
             </div>
@@ -104,7 +104,7 @@
           class="nc-excel-import-input"
           type="file"
           style="display: none"
-          accept=".xlsx, .xls, .xlsm"
+          accept=".xlsx, .xls, .xlsm, .ods, .ots"
           @change="_change($event)"
         >
         <v-btn
@@ -288,7 +288,7 @@ export default {
         return
       }
 
-      if (!/\.xls[xm]?$/.test(file.name)) {
+      if ((!/\.xls[xm]?$/.test(file.name)) && (!/\.o[dt]s?$/.test(file.name))) {
         return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls,.xlsm!').goAway(3000)
       }
       this._file(file)

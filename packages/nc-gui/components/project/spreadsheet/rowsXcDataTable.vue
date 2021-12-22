@@ -583,7 +583,7 @@
         :show-next-prev="false"
         :preset-values="presetValues"
         @cancel="showExpandModal = false;"
-        @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData()"
+        @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData(false)"
         @commented="reloadComments"
         @next="loadNext"
         @prev="loadPrev"
@@ -1300,7 +1300,7 @@ export default {
       this.$refs.csvExportImport.onCsvFileSelection(file)
     },
     // Kanban
-    async loadKanbanData() {
+    async loadKanbanData(initKanbanProps = true) {
       try {
         const kanban = {
           data: [],
@@ -1313,8 +1313,10 @@ export default {
           selectedExpandOldRow: null,
           selectedExpandRowMeta: null
         }
-        this.kanban = kanban
-
+        if (initKanbanProps) {
+          this.kanban = kanban
+        }
+        
         if (this.api) {
           const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
           if (!groupingColumn) {
@@ -1399,7 +1401,7 @@ export default {
     expandKanbanForm(rowIdx, data) {
       if (rowIdx != -1) {
         // not a new record -> find the target record
-        data = this.kanban.data.filter(o => o.row.id == rowIdx)[0]
+        data = this.kanban.data.filter(o => o.row.c_pk == rowIdx)[0]
       } 
       this.showExpandModal = true
       this.kanban.selectedExpandRow = data.row

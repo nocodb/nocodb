@@ -4,12 +4,12 @@
       <div v-for="stage in this.kanban.groupingColumnItems" :slot="stage" :key="stage" class="mx-auto">
         <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
-      <div v-for="(block) in kanban.blocks" :slot="block.id" :key="block.id" class="caption">
+      <div v-for="(block) in kanban.blocks" :slot="block.id" :key="block.c_pk" class="caption">
           <v-hover v-slot="{hover}">
             <v-card
               class="h-100"
               :elevation="hover ? 4 : 1"
-              @click="$emit('expandKanbanForm', {rowIdx: block.id})"
+              @click="$emit('expandKanbanForm', {rowIdx: block.c_pk})"
             >
               <v-card-text>
                 <v-container>
@@ -184,7 +184,6 @@ export default {
         }
         this.$set(this.kanban.recordCnt, prevStatus, this.kanban.recordCnt[prevStatus] - 1)
         this.$set(this.kanban.recordCnt, status, this.kanban.recordCnt[status] + 1)
-        this.$forceUpdate()
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
         }).goAway(3000)

@@ -580,7 +580,7 @@
         :available-columns="availableColumns"
         :nodes="nodes"
         :query-params="queryParams"
-        :show-next-prev="true"
+        :show-next-prev="false"
         :preset-values="presetValues"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData()"
@@ -1340,6 +1340,9 @@ export default {
               where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
             })
             data.map((d) => {
+              // handle composite primary key
+              d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
+              
               kanban.data.push({
                 row: d,
                 oldRow: d,
@@ -1379,6 +1382,8 @@ export default {
         offset: this.kanban.recordCnt[groupingFieldVal]
       })
       data.map(d => {
+        // handle composite primary key
+        d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
         this.kanban.data.push({
           row: d,
           oldRow: d,

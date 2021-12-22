@@ -145,7 +145,7 @@ export default {
     },
   },
   methods: {
-    async updateBlock(id, status) {
+    async updateBlock(c_pk, status) {
       try {
         if (!this.api) {
           this.$toast.error('API not found', {
@@ -155,9 +155,9 @@ export default {
         }
 
         // update kanban block
-        const targetBlock = this.kanban.blocks.find(b => b.id === Number(id))
+        const targetBlock = this.kanban.blocks.find(b => b.c_pk === c_pk)
         if (!targetBlock) {
-          this.$toast.error(`Block with ID ${id} not found`, {
+          this.$toast.error(`Block with ID ${c_pk} not found`, {
             position: 'bottom-center'
           }).goAway(3000)
           return
@@ -170,7 +170,7 @@ export default {
 
         const uncategorized = 'Uncategorized'
         const prevStatus = targetBlock.status
-        await this.api.update(id,
+        await this.api.update(c_pk,
           { [this.groupingField]: status === uncategorized ? null : status }, // new data
           { [this.groupingField]: prevStatus }) // old data
 
@@ -178,7 +178,7 @@ export default {
         this.$set(targetBlock, this.groupingField, status === uncategorized ? null : status)
 
         // update kanban data
-        const kanbanRow = this.kanban.data.find(d => d.row.id === Number(id))
+        const kanbanRow = this.kanban.data.find(d => d.row.c_pk === c_pk)
         if (kanbanRow) {
           this.$set(kanbanRow.row, this.groupingField, status === uncategorized ? null : status)
         }

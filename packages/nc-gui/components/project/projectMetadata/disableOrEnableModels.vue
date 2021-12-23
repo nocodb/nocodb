@@ -19,7 +19,12 @@
           Metadata
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 't' + i" :value=" db.meta.dbAlias">
-          <v-tabs color="x-active" height="28">
+          <disable-or-enable-tables
+            :nodes="nodes"
+            :db="db"
+            :db-alias="db.meta.dbAlias"
+          />
+          <!--          <v-tabs color="x-active" height="28">
             <v-tab class="text-capitalize caption">
               Tables
             </v-tab>
@@ -30,7 +35,7 @@
                 :db-alias="db.meta.dbAlias"
               />
             </v-tab-item>
-            <!-- enable extra -->
+            &lt;!&ndash; enable extra &ndash;&gt;
             <v-tab class="text-capitalize caption">
               Views
             </v-tab>
@@ -41,7 +46,7 @@
                 :db-alias="db.meta.dbAlias"
               />
             </v-tab-item>
-            <!-- <v-tab class="text-capitalize caption">Functions</v-tab>
+            &lt;!&ndash; <v-tab class="text-capitalize caption">Functions</v-tab>
              <v-tab-item>
                <disable-or-enable-functions :nodes="nodes" :db="db"
                                             :db-alias="db.meta.dbAlias"></disable-or-enable-functions>
@@ -50,7 +55,7 @@
              <v-tab-item>
                <disable-or-enable-procedures :nodes="nodes" :db="db"
                                              :db-alias="db.meta.dbAlias"></disable-or-enable-procedures>
-             </v-tab-item>-->
+             </v-tab-item>&ndash;&gt;
 
             <v-tab class="text-capitalize caption">
               Relations
@@ -58,7 +63,7 @@
             <v-tab-item>
               <disable-or-enable-relations :nodes="nodes" :db-alias="db.meta.dbAlias" />
             </v-tab-item>
-          </v-tabs>
+          </v-tabs>-->
         </v-tab-item>
         <template v-if="uiacl">
           <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption nc-ui-acl-tab">
@@ -116,22 +121,22 @@
 <script>
 import { mapGetters } from 'vuex'
 import XcMeta from '../settings/xcMeta'
-import DisableOrEnableRelations from './sync/disableOrEnableRelations'
+// import DisableOrEnableRelations from './sync/disableOrEnableRelations'
 import { isMetaTable } from '@/helpers/xutils'
 import DisableOrEnableTables from '@/components/project/projectMetadata/sync/disableOrEnableTables'
 import ToggleTableUiAcl from '@/components/project/projectMetadata/uiAcl/toggleTableUIAcl'
-import ToggleRelationsUiAcl from '@/components/project/projectMetadata/uiAcl/toggleRelationsUIAcl'
-import DisableOrEnableViews from '~/components/project/projectMetadata/sync/disableOrEnableViews'
+// import ToggleRelationsUiAcl from '@/components/project/projectMetadata/uiAcl/toggleRelationsUIAcl'
+// import DisableOrEnableViews from '~/components/project/projectMetadata/sync/disableOrEnableViews'
 
 export default {
   name: 'DisableOrEnableModels',
   components: {
-    DisableOrEnableViews,
-    ToggleRelationsUiAcl,
+    // DisableOrEnableViews,
+    // ToggleRelationsUiAcl,
     ToggleTableUiAcl,
     DisableOrEnableTables,
-    XcMeta,
-    DisableOrEnableRelations
+    XcMeta
+    // DisableOrEnableRelations
   },
   props: ['nodes'],
   data: () => ({

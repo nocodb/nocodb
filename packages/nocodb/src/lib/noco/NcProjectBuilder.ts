@@ -397,6 +397,9 @@ export default class NcProjectBuilder {
             await curBuilder.onProcedureCreate(procedure);
           }
         }
+      case 'xcMetaDiffSync':
+        await curBuilder.xcMetaDiffSync();
+        break;
       case 'tableMetaCreate':
         XCEeError.throw();
         break;

@@ -13,8 +13,8 @@
                 v-model="filter"
                 dense
                 hide-details
-                class="my-2 mx-auto"
-                :placeholder="`Search '${dbAliasList[dbsTab].connection.database}' models`"
+                class="my-2 mx-auto caption"
+                :placeholder="`Search models`"
                 prepend-inner-icon="search"
                 style="max-width:500px"
                 outlined
@@ -22,6 +22,17 @@
 
               <v-spacer />
               <x-btn
+                btn.class="nc-btn-metasync-reload"
+                outlined
+                tooltip="Reload list"
+                small
+                color="primary"
+                icon="refresh"
+                @click="loadXcDiff()"
+              >
+                Reload
+              </x-btn>
+              <!--              <x-btn
                 outlined
                 tooltip="Reload list"
                 small
@@ -30,8 +41,8 @@
                 @click="loadModels();loadTableList()"
               >
                 Reload
-              </x-btn>
-              <x-btn
+              </x-btn>-->
+              <!--x-btn
                 outlined
                 :loading="updating"
                 :disabled="updating || !edited"
@@ -42,7 +53,7 @@
                 @click="saveModels()"
               >
                 Save
-              </x-btn>
+              </!--x-btn-->
             </v-toolbar>
 
             <div class="d-flex d-100 justify-center">
@@ -50,12 +61,77 @@
                 <thead>
                   <tr>
                     <th class="grey--text">
+                      Models
+                    </th>
+                    <!--                    <th>APIs</th>-->
+                    <th class="grey--text">
+                      Sync state
+                    </th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="model in diff"
+                    v-show="!filter.trim() || (model.tn || model.title || '').toLowerCase().includes(filter.toLowerCase())"
+                    :key="model.title"
+                    :class="`nc-metasync-row-${model.tn}`"
+                  >
+                    <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
+                    <td>
+                      <v-tooltip bottom>
+                        <template #activator="{on}">
+                          <span v-on="on">{{ model.tn }}</span>
+                        </template>
+                        <span class="caption">{{ model.title }}</span>
+                      </v-tooltip>
+                    </td>
+                    <!--                    <td>
+              <v-checkbox
+                v-model="model.enabled"
+                dense
+                :disabled="model.new || model.deleted"
+                @change="edited = true"
+              />
+            </td>-->
+                    <!--td>
+                  <x-icon
+                    small
+                    color="primary"
+                    tooltip="Recreate metadata"
+                  >
+                    mdi-reload
+                  </x-icon>
+                </!--td-->
+
+                    <td>
+                      <span
+                        v-if="model.detectedChanges && model.detectedChanges.length"
+
+                        class="caption error--text"
+                      >{{ model.detectedChanges.map(m => m.msg).join(', ') }}</span>
+                      <span
+                        v-else
+                        class="caption grey--text"
+                      >
+                        {{ 'No change identified' }}
+                      </span>
+                    <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
+                    </td>
+                  </tr>
+                </tbody>
+              </v-simple-table>
+              <!--            </div>  <div class="d-flex d-100 justify-center">
+              <v-simple-table dense style="min-width: 400px">
+                <thead>
+                  <tr>
+                    <th class="grey&#45;&#45;text">
                       Models <span v-show="!isNewOrDeletedModelFound" class="caption ml-1">({{
                         enableCountText
                       }})</span>
                     </th>
-                    <!--                    <th>APIs</th>-->
-                    <th class="grey--text">
+                    &lt;!&ndash;                    <th>APIs</th>&ndash;&gt;
+                    <th class="grey&#45;&#45;text">
                       Actions
                     </th>
                     <th />
@@ -63,7 +139,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="model in comparedModelList" :key="model.title">
-                    <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
+                    &lt;!&ndash;                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">&ndash;&gt;
                     <td>
                       <v-tooltip bottom>
                         <template #activator="{on}">
@@ -72,24 +148,24 @@
                         <span class="caption">{{ model.title }}</span>
                       </v-tooltip>
                     </td>
-                    <!--                    <td>
-                      <v-checkbox
-                        v-model="model.enabled"
-                        dense
-                        :disabled="model.new || model.deleted"
-                        @change="edited = true"
-                      />
-                    </td>-->
+                    &lt;!&ndash;                    <td>
+                    <v-checkbox
+                      v-model="model.enabled"
+                      dense
+                      :disabled="model.new || model.deleted"
+                      @change="edited = true"
+                    />
+                  </td>&ndash;&gt;
                     <td>
                       <template v-if="model.new">
-                      <!--                  <x-icon small color="success success" tooltip="Add and sync meta information"-->
-                      <!--                          @click="addTableMeta([model.title])">mdi-plus-circle-outline-->
-                      <!--                  </x-icon>-->
+                      &lt;!&ndash;                  <x-icon small color="success success" tooltip="Add and sync meta information"&ndash;&gt;
+                      &lt;!&ndash;                          @click="addTableMeta([model.title])">mdi-plus-circle-outline&ndash;&gt;
+                      &lt;!&ndash;                  </x-icon>&ndash;&gt;
                       </template>
                       <template v-else-if="model.deleted">
-                      <!--                  <x-icon small v-else-if="model.deleted" color="error error" tooltip="Delete meta information"-->
-                      <!--                          @click="deleteTableMeta([model.title])">mdi-delete-outline-->
-                      <!--                  </x-icon>-->
+                      &lt;!&ndash;                  <x-icon small v-else-if="model.deleted" color="error error" tooltip="Delete meta information"&ndash;&gt;
+                      &lt;!&ndash;                          @click="deleteTableMeta([model.title])">mdi-delete-outline&ndash;&gt;
+                      &lt;!&ndash;                  </x-icon>&ndash;&gt;
                       </template>
                       <x-icon
                         v-else
@@ -105,14 +181,15 @@
                     <td>
                       <span
                         v-if="model.new"
-                        class="caption success--text"
+                        class="caption success&#45;&#45;text"
                       >New table found in DB. Yet to be synced.</span>
-                      <span v-else-if="model.deleted" class="caption error--text">This table doesn't exist in DB. Yet to be synced.</span>
-                    <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
+                      <span v-else-if="model.deleted" class="caption error&#45;&#45;text">This table doesn't exist in DB. Yet to be synced.</span>
+                    &lt;!&ndash;                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>&ndash;&gt;
                     </td>
                   </tr>
                 </tbody>
               </v-simple-table>
+            </div>-->
             </div>
           </v-card>
         </v-col>
@@ -121,7 +198,7 @@
             <v-spacer />
 
             <v-tooltip bottom>
-              <template #activator="{on}">
+              <!-- template #activator="{on}">
                 <v-alert
                   v-if="isNewOrDeletedModelFound"
                   dense
@@ -148,19 +225,33 @@
                 Metadata for API creation & management is in sync with
                 '{{ dbAliasList[dbsTab].connection.database }}' Database.
               </template>
-              <template v-else>
+              <template-- v-else>
                 Metadata for API creation & management isn't sync with
                 '{{ dbAliasList[dbsTab].connection.database }}' Database.
-              </template>
+              </template-->
             </v-tooltip>
             <v-spacer />
           </div>
-          <div v-if="isNewOrDeletedModelFound" class="d-flex justify-center">
-            <x-btn
+          <!--          <div-->
+          <!--            v-if="isNewOrDeletedModelFound" -->
+          <div class="d-flex justify-center">
+            <!--            <x-btn
               x-large
               btn.class="mx-auto primary nc-btn-sync-meta-data"
               tooltip="Sync metadata"
               @click="syncMetadata"
+            >
+              <v-icon color="white" class="mr-2 mt-n1">
+                mdi-database-sync
+              </v-icon>
+              Sync Now
+            </x-btn>-->
+
+            <x-btn
+              x-large
+              btn.class="mx-auto primary nc-btn-metasync-sync-now"
+              tooltip="Sync metadata"
+              @click="syncMetaDiff"
             >
               <v-icon color="white" class="mr-2 mt-n1">
                 mdi-database-sync
@@ -176,7 +267,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { isMetaTable } from '@/helpers/xutils'
+// import { isMetaTable } from '@/helpers/xutils'
 import XIcon from '@/components/global/xIcon'
 import XBtn from '@/components/global/xBtn'
 
@@ -193,14 +284,22 @@ export default {
     updating: false,
     dbsTab: 0,
     filter: '',
-    tables: null
+    tables: null,
+    diff: null
   }),
   async mounted() {
-    await this.loadModels()
-    await this.loadTableList()
+    await this.loadXcDiff()
+    // await this.loadModels()
+    // await this.loadTableList()
   },
   methods: {
-    async addTableMeta(tables) {
+    async loadXcDiff() {
+      this.diff = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+        dbAlias: this.db.meta.dbAlias,
+        env: this.$store.getters['project/GtrEnv']
+      }, 'xcMetaDiff'])
+    },
+    /* async addTableMeta(tables) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -242,60 +341,86 @@ export default {
         await this.deleteTableMeta(deleteTables)
       }
     },
-
-    async recreateTableMeta(table) {
+*/
+    async syncMetaDiff() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
           env: this.$store.getters['project/GtrEnv']
-        }, 'tableMetaRecreate', {
-          tn: table
-        }])
-        setTimeout(async() => {
-          await this.loadModels()
-          this.$toast.success('Table metadata recreated successfully').goAway(3000)
-        }, 1000)
-      } catch (e) {
-        this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
-      }
-    },
-    async loadModels() {
-      if (this.dbAliasList[this.dbsTab]) {
-        this.models = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcTableModelsList'])
-        this.edited = false
-      }
-    },
-    async loadTableList() {
-      this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.db.meta.dbAlias,
-        env: this.$store.getters['project/GtrEnv']
-      }, 'tableList', { force: true, includeM2M: true }])).data.list
-    },
+        }, 'xcMetaDiffSync', {}])
+        this.$toast.success('Table metadata recreated successfully').goAway(3000)
+        await this.loadXcDiff()
 
-    async saveModels() {
-      this.updating = true
-      try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcTableModelsEnable', this.models.filter(m => m.enabled).map(m => m.title)])
-        this.$toast.success('Models changes are updated successfully').goAway(3000)
+        this.$store.commit('tabs/removeTableOrViewTabs')
+        await this.$nextTick()
+        await this.$store.dispatch('project/_loadTables', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.tables',
+          _nodes: {
+            dbAlias: 'db',
+            env: '_noco',
+            type: 'tableDir'
+          }
+        })
+        await this.$store.commit('meta/MutClear')
       } catch (e) {
         this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
-        console.log(e.message)
       }
-      this.updating = false
-      this.edited = false
     }
+
+    /*  async recreateTableMeta(table) {
+        try {
+          await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv']
+          }, 'tableMetaRecreate', {
+            tn: table
+          }])
+          setTimeout(async() => {
+            await this.loadModels()
+            this.$toast.success('Table metadata recreated successfully').goAway(3000)
+          }, 1000)
+        } catch (e) {
+          this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
+        }
+      },
+      async loadModels() {
+        if (this.dbAliasList[this.dbsTab]) {
+          this.models = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv']
+          }, 'xcTableModelsList'])
+          this.edited = false
+        }
+      },
+      async loadTableList() {
+        this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          dbAlias: this.db.meta.dbAlias,
+          env: this.$store.getters['project/GtrEnv']
+        }, 'tableList', { force: true, includeM2M: true }])).data.list
+      },
+
+      async saveModels() {
+        this.updating = true
+        try {
+          await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv']
+          }, 'xcTableModelsEnable', this.models.filter(m => m.enabled).map(m => m.title)])
+          this.$toast.success('Models changes are updated successfully').goAway(3000)
+        } catch (e) {
+          this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
+          console.log(e.message)
+        }
+        this.updating = false
+        this.edited = false
+      } */
   },
   computed: {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
-    }),
-    enableCountText() {
+    })
+    /* enableCountText() {
       return this.models
         ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
         : ''
@@ -307,8 +432,12 @@ export default {
     comparedModelList() {
       const res = []
       const getPriority = (item) => {
-        if (item.new) { return 2 }
-        if (item.deleted) { return 1 }
+        if (item.new) {
+          return 2
+        }
+        if (item.deleted) {
+          return 1
+        }
         return 0
       }
       if (this.tables && this.models) {
@@ -328,7 +457,7 @@ export default {
       }
       res.sort((a, b) => getPriority(b) - getPriority(a))
       return res
-    }
+    } */
   }
 }
 </script>

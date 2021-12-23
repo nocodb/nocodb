@@ -111,7 +111,7 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
     return str;
   }
 
-  getXcColumnsObject(args) {
+  /* getXcColumnsObject(args) {
     const columnsArr = [];
 
     for (const column of args.columns) {
@@ -166,7 +166,7 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
     this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
   }
-
+*/
   _getAbstractType(column) {
     let str = '';
     switch (column.dt) {

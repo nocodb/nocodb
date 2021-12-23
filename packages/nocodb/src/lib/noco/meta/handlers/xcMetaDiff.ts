@@ -18,6 +18,11 @@ enum XcMetaDiffType {
   TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE'
 }
 
+enum XcMetaType {
+  TABLE = 'table',
+  VIEW = 'view'
+}
+
 interface NcMetaDiff {
   tn: string;
   detectedChanges: Array<{
@@ -72,6 +77,7 @@ export default async function(
     if (oldMetaIdx === -1) {
       changes.push({
         tn: table.tn,
+        type: XcMetaType.TABLE,
         detectedChanges: [
           {
             type: XcMetaDiffType.TABLE_NEW,
@@ -87,6 +93,7 @@ export default async function(
 
     const tableProp = {
       tn: table.tn,
+      type: XcMetaType.TABLE,
       detectedChanges: []
     };
     changes.push(tableProp);
@@ -185,6 +192,7 @@ export default async function(
   for (const { tn } of oldMetas) {
     changes.push({
       tn: tn,
+      type: XcMetaType.TABLE,
       detectedChanges: [
         {
           type: XcMetaDiffType.TABLE_REMOVE,
@@ -225,6 +233,7 @@ export default async function(
     if (oldViewMetaIdx === -1) {
       changes.push({
         tn: view.tn,
+        type: XcMetaType.VIEW,
         detectedChanges: [
           {
             type: XcMetaDiffType.VIEW_NEW,
@@ -240,6 +249,7 @@ export default async function(
 
     const viewProp = {
       tn: view.tn,
+      type: XcMetaType.VIEW,
       detectedChanges: []
     };
     changes.push(viewProp);
@@ -338,6 +348,7 @@ export default async function(
   for (const { tn } of oldViewMetas) {
     changes.push({
       tn: tn,
+      type: XcMetaType.VIEW,
       detectedChanges: [
         {
           type: XcMetaDiffType.VIEW_REMOVE,

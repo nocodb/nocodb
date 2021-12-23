@@ -6,6 +6,11 @@ enum XcMetaDiffType {
   TABLE_COLUMN_ADD = 'TABLE_COLUMN_ADD',
   TABLE_COLUMN_TYPE_CHANGE = 'TABLE_COLUMN_TYPE_CHANGE',
   TABLE_COLUMN_REMOVE = 'TABLE_COLUMN_REMOVE',
+  VIEW_NEW = 'VIEW_NEW',
+  VIEW_REMOVE = 'VIEW_REMOVE',
+  VIEW_COLUMN_ADD = 'VIEW_COLUMN_ADD',
+  VIEW_COLUMN_TYPE_CHANGE = 'VIEW_COLUMN_TYPE_CHANGE',
+  VIEW_COLUMN_REMOVE = 'VIEW_COLUMN_REMOVE',
   TABLE_RELATION_ADD = 'TABLE_RELATION_ADD',
   TABLE_RELATION_REMOVE = 'TABLE_RELATION_REMOVE',
   TABLE_VIRTUAL_RELATION_ADD = 'TABLE_VIRTUAL_RELATION_ADD',
@@ -29,11 +34,19 @@ export default async function(
 ): Promise<Array<NcMetaDiff>> {
   const changes = [];
 
+  const builder = this.getBuilder(args);
+
   // @ts-ignore
   const sqlClient = this.projectGetSqlClient(args);
 
   // @ts-ignore
-  const tableList = (await sqlClient.tableList())?.data?.list;
+  const tableList = (await sqlClient.tableList())?.data?.list?.filter(t => {
+    if (builder?.prefix) {
+      return t.tn?.startsWith(builder?.prefix);
+    }
+    return true;
+  });
+
   const colListRef = {};
   // @ts-ignore
   const oldMetas = (
@@ -41,7 +54,9 @@ export default async function(
       this.getProjectId(args),
       this.getDbAlias(args),
       'nc_models',
-      { condition: { type: 'table' } }
+      {
+        condition: { type: 'table' }
+      }
     )
   ).map(m => JSON.parse(m.meta));
 
@@ -174,6 +189,159 @@ export default async function(
         {
           type: XcMetaDiffType.TABLE_REMOVE,
           msg: `Table removed`
+        }
+      ]
+    });
+  }
+
+  // @ts-ignore
+  const viewList = (await sqlClient.viewList())?.data?.list
+    ?.map(v => {
+      v.type = 'view';
+      v.tn = v.view_name;
+      return v;
+    })
+    .filter(t => {
+      if (builder?.prefix) {
+        return t.tn?.startsWith(builder?.prefix);
+      }
+      return true;
+    }); // @ts-ignore
+  const oldViewMetas = (
+    await this.xcMeta.metaList(
+      this.getProjectId(args),
+      this.getDbAlias(args),
+      'nc_models',
+      {
+        condition: { type: 'view' }
+      }
+    )
+  ).map(m => JSON.parse(m.meta));
+
+  for (const view of viewList) {
+    const oldViewMetaIdx = oldViewMetas.findIndex(m => m.tn === view.tn);
+
+    // new table
+    if (oldViewMetaIdx === -1) {
+      changes.push({
+        tn: view.tn,
+        detectedChanges: [
+          {
+            type: XcMetaDiffType.VIEW_NEW,
+            msg: `New view`
+          }
+        ]
+      });
+      continue;
+    }
+
+    const oldViewMeta = oldViewMetas[oldViewMetaIdx];
+    oldViewMetas.splice(oldViewMetaIdx, 1);
+
+    const viewProp = {
+      tn: view.tn,
+      detectedChanges: []
+    };
+    changes.push(viewProp);
+
+    // check for column change
+    colListRef[view.tn] = (
+      await sqlClient.columnList({ tn: view.tn })
+    )?.data?.list;
+
+    for (const column of colListRef[view.tn]) {
+      const oldColIdx = oldViewMeta.columns.findIndex(c => c.cn === column.cn);
+
+      // new table
+      if (oldColIdx === -1) {
+        viewProp.detectedChanges.push({
+          type: XcMetaDiffType.VIEW_COLUMN_ADD,
+          msg: `New column(${column.cn})`,
+          cn: column.cn
+        });
+        continue;
+      }
+
+      const oldCol = oldViewMeta.columns[oldColIdx];
+      oldViewMeta.columns.splice(oldColIdx, 1);
+
+      if (oldCol.dt !== column.dt) {
+        viewProp.detectedChanges.push({
+          type: XcMetaDiffType.VIEW_COLUMN_TYPE_CHANGE,
+          msg: `Column type changed(${column.cn})`,
+          cn: oldCol.cn
+        });
+      }
+    }
+    for (const { cn } of oldViewMeta.columns) {
+      viewProp.detectedChanges.push({
+        type: XcMetaDiffType.VIEW_COLUMN_REMOVE,
+        msg: `Column removed(${cn})`,
+        cn
+      });
+    }
+    /*  for (const vCol of oldViewMeta.v) {
+      if (!vCol.mm) continue;
+
+      // check related tables & columns
+
+      const rTable = tableList.find(t => t.tn === vCol.mm?.rtn);
+      const m2mTable = tableList.find(t => t.tn === vCol.mm?.vtn);
+
+      if (!rTable) {
+        viewProp.detectedChanges.push({
+          ...vCol,
+          type: XcMetaDiffType.VIEW_VIRTUAL_M2M_REMOVE,
+          msg: `Many to many removed(${vCol.mm?.rtn} removed)`
+        });
+        continue;
+      }
+      if (!m2mTable) {
+        viewProp.detectedChanges.push({
+          ...vCol,
+          type: XcMetaDiffType.VIEW_VIRTUAL_M2M_REMOVE,
+          msg: `Many to many removed(${vCol.mm?.vtn} removed)`
+        });
+        continue;
+      }
+
+      // verify columns
+
+      const pColumns = (colListRef[vCol.mm.tn] =
+        colListRef[vCol.mm.tn] ||
+        (await sqlClient.columnList({ tn: vCol.mm.tn }))?.data?.list);
+
+      const cColumns = (colListRef[vCol.mm.rtn] =
+        colListRef[vCol.mm.rtn] ||
+        (await sqlClient.columnList({ tn: vCol.mm.rtn }))?.data?.list);
+
+      const vColumns = (colListRef[vCol.mm.vtn] =
+        colListRef[vCol.mm.vtn] ||
+        (await sqlClient.columnList({ tn: vCol.mm.vtn }))?.data?.list);
+
+      if (
+        pColumns.every(c => c.cn !== vCol.mm.cn) ||
+        cColumns.every(c => c.cn !== vCol.mm.rcn) ||
+        vColumns.every(c => c.cn !== vCol.mm.vcn) ||
+        vColumns.every(c => c.cn !== vCol.mm.vrcn)
+      ) {
+        viewProp.detectedChanges.push({
+          ...vCol,
+          type: XcMetaDiffType.VIEW_VIRTUAL_M2M_REMOVE,
+          msg: `Many to many removed(One of the relation column removed)`
+        });
+        continue;
+      }
+    }*/
+  }
+
+  for (const { tn } of oldViewMetas) {
+    changes.push({
+      tn: tn,
+      detectedChanges: [
+        {
+          type: XcMetaDiffType.VIEW_REMOVE,
+          msg: `View removed`
         }
       ]
     });

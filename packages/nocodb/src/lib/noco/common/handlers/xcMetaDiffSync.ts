@@ -14,6 +14,7 @@ export default async function(this: BaseApiBuilder<any> | any) {
       },
       getProjectId: () => this.getProjectId(),
       getDbAlias: () => this.getDbAlias(),
+      getBuilder: () => this,
       xcMeta: this.xcMeta
     },
     {}
@@ -25,9 +26,35 @@ export default async function(this: BaseApiBuilder<any> | any) {
     columns: {},
     oldMetas: {}
   };
+  const populateViewsParams: XcTablesPopulateParams = {
+    tableNames: [],
+    type: 'view',
+    columns: {},
+    oldMetas: {}
+  };
+  // @ts-ignore
+  const tableList = (await this.sqlClient.tableList())?.data?.list?.filter(
+    t => {
+      if (this?.prefix) {
+        return t.tn?.startsWith(this?.prefix);
+      }
+      return true;
+    }
+  );
 
   // @ts-ignore
-  const tableList = (await this.getSqlClient().tableList())?.data?.list;
+  const viewList = (await this.sqlClient.viewList())?.data?.list
+    ?.map(v => {
+      v.type = 'view';
+      v.tn = v.view_name;
+      return v;
+    })
+    .filter(t => {
+      if (this?.prefix) {
+        return t.tn?.startsWith(this?.prefix);
+      }
+      return true;
+    });
   // @ts-ignore
   const relationList = (await this.getSqlClient().tableList())?.data?.list;
 
@@ -38,7 +65,15 @@ export default async function(this: BaseApiBuilder<any> | any) {
     { condition: { type: 'table' } }
   );
 
+  const oldViewModels = await this.xcMeta.metaList(
+    this.getProjectId(),
+    this.getDbAlias(),
+    'nc_models',
+    { condition: { type: 'view' } }
+  );
+
   const oldMetasRef = {};
+  const oldViewMetasRef = {};
   // @ts-ignore
   const oldMetas = oldModels.map(m => {
     const meta = JSON.parse(m.meta);
@@ -46,6 +81,15 @@ export default async function(this: BaseApiBuilder<any> | any) {
     meta.id = m.id;
     populateParams.oldMetas[meta.tn] = meta;
     oldMetasRef[meta.tn] = meta;
+    return meta;
+  }); // @ts-ignore
+  const oldViewMetas = oldViewModels.map(m => {
+    const meta = JSON.parse(m.meta);
+    XcCache.del([this.projectId, this.dbAlias, 'table', meta.tn].join('::'));
+    XcCache.del([this.projectId, this.dbAlias, 'view', meta.tn].join('::'));
+    meta.id = m.id;
+    populateViewsParams.oldMetas[meta.tn] = meta;
+    oldViewMetasRef[meta.tn] = meta;
     return meta;
   });
 
@@ -497,6 +541,213 @@ export default async function(this: BaseApiBuilder<any> | any) {
             });
           }
           break;
+
+        case XcMetaDiffType.VIEW_NEW:
+          // add table to list
+
+          populateViewsParams.tableNames.push({ tn });
+
+          break;
+        case XcMetaDiffType.VIEW_REMOVE:
+          {
+            // delete table meta and views
+            // delete lookup relation etc
+
+            // todo: enable
+
+            await this.deleteTableNameInACL(tn);
+
+            await this.xcMeta.metaDelete(
+              this.projectId,
+              this.dbAlias,
+              'nc_shared_views',
+              {
+                model_name: tn
+              }
+            );
+            await this.xcMeta.metaDelete(
+              this.projectId,
+              this.dbAlias,
+              'nc_models',
+              {
+                type: 'view'
+              },
+              {
+                _or: [
+                  {
+                    title: { eq: tn }
+                  },
+                  {
+                    parent_model_title: { eq: tn }
+                  }
+                ]
+              }
+            );
+            if (delete this.metas[tn]) delete this.metas[tn];
+            if (delete this.models[tn]) delete this.models[tn];
+          }
+          break;
+        case XcMetaDiffType.VIEW_COLUMN_ADD:
+          // update old
+          populateViewsParams.tableNames.push({ tn });
+          populateViewsParams.oldMetas[tn] = oldViewMetas.find(
+            m => m.tn === tn
+          );
+
+          break;
+        case XcMetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
+          // update type in old meta
+
+          populateViewsParams.oldMetas[tn] = oldViewMetas.find(
+            m => m.tn === tn
+          );
+          populateViewsParams.tableNames.push({
+            tn,
+            _tn: populateViewsParams.oldMetas[tn]?._tn
+          });
+
+          break;
+        case XcMetaDiffType.VIEW_COLUMN_REMOVE:
+          {
+            const oldViewMetaIdx = oldViewMetas.findIndex(m => m.tn === tn);
+            if (oldViewMetaIdx === -1)
+              throw new Error('Old meta not found : ' + tn);
+
+            const oldViewMeta = oldViewMetas[oldViewMetaIdx];
+
+            populateViewsParams.oldMetas[tn] = oldViewMeta;
+            populateViewsParams.tableNames.push({
+              tn,
+              _tn: populateViewsParams.oldMetas[tn]?._tn
+            });
+
+            const queryParams = oldQueryParams[oldViewMetaIdx];
+
+            const oldColumn = oldViewMeta.columns.find(
+              c => c.cn === change?.cn
+            );
+
+            const {
+              // virtualViews,
+              virtualViewsParamsArr
+              // @ts-ignore
+            } = await this.extractSharedAndVirtualViewsParams(tn);
+            // virtual views param update
+            for (const qp of [queryParams, ...virtualViewsParamsArr]) {
+              if (!qp) continue;
+
+              // @ts-ignore
+              const {
+                filters = {},
+                sortList = [],
+                showFields = {},
+                fieldsOrder = [],
+                extraViewParams = {}
+              } = qp;
+
+              /* update sort field */
+              /*   const sIndex = (sortList || []).findIndex(
+      v => v.field === oldColumn._cn
+    );
+    if (sIndex > -1) {
+      sortList.splice(sIndex, 1);
+    }*/
+              for (const sort of sortList || []) {
+                if (
+                  sort?.field === oldColumn.cn ||
+                  sort?.field === oldColumn._cn
+                ) {
+                  sortList.splice(sortList.indexOf(sort), 1);
+                }
+              }
+
+              /* update show field */
+              if (oldColumn.cn in showFields || oldColumn._cn in showFields) {
+                delete showFields[oldColumn.cn];
+                delete showFields[oldColumn._cn];
+              }
+              /* update filters */
+              // todo: remove only corresponding filter and compare field name
+              /* if (
+     filters &&
+     (JSON.stringify(filters)?.includes(`"${oldColumn.cn}"`) ||
+       JSON.stringify(filters)?.includes(`"${oldColumn._cn}"`))
+   ) {
+     filters.splice(0, filters.length);
+   }*/
+              for (const filter of filters) {
+                if (
+                  filter?.field === oldColumn.cn ||
+                  filter?.field === oldColumn._cn
+                ) {
+                  filters.splice(filters.indexOf(filter), 1);
+                }
+              }
+
+              /* update fieldsOrder */
+              let index = fieldsOrder.indexOf(oldColumn.cn);
+              if (index > -1) {
+                fieldsOrder.splice(index, 1);
+              }
+              index = fieldsOrder.indexOf(oldColumn._cn);
+              if (index > -1) {
+                fieldsOrder.splice(index, 1);
+              }
+
+              /* update formView params */
+              //  extraViewParams.formParams.fields
+              if (extraViewParams?.formParams?.fields?.[oldColumn.cn]) {
+                delete extraViewParams.formParams.fields[oldColumn.cn];
+              }
+              if (extraViewParams?.formParams?.fields?.[oldColumn._cn]) {
+                delete extraViewParams.formParams.fields[oldColumn._cn];
+              }
+            }
+
+            // Delete lookup columns mapping to current column
+            // update column name in belongs to
+            if (oldViewMeta.belongsTo?.length) {
+              for (const bt of oldViewMeta.belongsTo) {
+                // filter out lookup columns which maps to current col
+                oldMetasRef[bt.rtn].v = oldMetasRef[bt.rtn].v?.filter(v => {
+                  if (v.lk && v.lk.ltn === tn && v.lk.lcn === oldColumn.cn) {
+                    relationTableMetas.add(oldMetasRef[bt.rtn]);
+                    return false;
+                  }
+                  return true;
+                });
+              }
+            }
+
+            // update column name in has many
+            if (oldViewMeta.hasMany?.length) {
+              for (const hm of oldViewMeta.hasMany) {
+                // filter out lookup columns which maps to current col
+                oldMetasRef[hm.tn].v = oldMetasRef[hm.tn].v?.filter(v => {
+                  if (v.lk && v.lk.ltn === tn && v.lk.lcn === change.cn) {
+                    relationTableMetas.add(oldMetasRef[hm.tn]);
+                    return false;
+                  }
+                  return true;
+                });
+              }
+            }
+
+            // update column name in many to many
+            if (oldViewMeta.manyToMany?.length) {
+              for (const mm of oldViewMeta.manyToMany) {
+                // filter out lookup columns which maps to current col
+                oldMetasRef[mm.rtn].v = oldMetasRef[mm.rtn].v?.filter(v => {
+                  if (v.lk && v.lk.ltn === tn && v.lk.lcn === change.cn) {
+                    relationTableMetas.add(oldMetasRef[mm.rtn]);
+                    return false;
+                  }
+                  return true;
+                });
+              }
+            }
+          }
+          break;
       }
     }
   }
@@ -516,6 +767,7 @@ export default async function(this: BaseApiBuilder<any> | any) {
     return t === populateParams.tableNames.find(t1 => t1.tn === t.tn);
   });
   await this.xcTablesPopulate(populateParams);
+  await this.xcTablesPopulate(populateViewsParams);
 
   return populateParams;
 }

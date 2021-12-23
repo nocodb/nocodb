@@ -71,7 +71,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="model in diff" v-show="!filter.trim() || (model.tn || model.title || '').toLowerCase().includes(filter.toLowerCase())" :key="model.title" :class="`nc-metasync-row-${model.tn}`">
+                  <tr
+                    v-for="model in diff"
+                    v-show="!filter.trim() || (model.tn || model.title || '').toLowerCase().includes(filter.toLowerCase())"
+                    :key="model.title"
+                    :class="`nc-metasync-row-${model.tn}`"
+                  >
                     <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
                     <td>
                       <v-tooltip bottom>
@@ -82,22 +87,22 @@
                       </v-tooltip>
                     </td>
                     <!--                    <td>
-                  <v-checkbox
-                    v-model="model.enabled"
-                    dense
-                    :disabled="model.new || model.deleted"
-                    @change="edited = true"
-                  />
-                </td>-->
+              <v-checkbox
+                v-model="model.enabled"
+                dense
+                :disabled="model.new || model.deleted"
+                @change="edited = true"
+              />
+            </td>-->
                     <!--td>
-                      <x-icon
-                        small
-                        color="primary"
-                        tooltip="Recreate metadata"
-                      >
-                        mdi-reload
-                      </x-icon>
-                    </!--td-->
+                  <x-icon
+                    small
+                    color="primary"
+                    tooltip="Recreate metadata"
+                  >
+                    mdi-reload
+                  </x-icon>
+                </!--td-->
 
                     <td>
                       <span
@@ -345,58 +350,69 @@ export default {
         }, 'xcMetaDiffSync', {}])
         this.$toast.success('Table metadata recreated successfully').goAway(3000)
         await this.loadXcDiff()
+
+        await this.$store.dispatch('project/_loadTables', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.tables',
+          _nodes: {
+            dbAlias: 'db',
+            env: '_noco',
+            type: 'tableDir'
+          }
+        })
+        await this.$store.commit('meta/MutClear')
       } catch (e) {
         this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
       }
     }
 
-  /*  async recreateTableMeta(table) {
-      try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+    /*  async recreateTableMeta(table) {
+        try {
+          await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv']
+          }, 'tableMetaRecreate', {
+            tn: table
+          }])
+          setTimeout(async() => {
+            await this.loadModels()
+            this.$toast.success('Table metadata recreated successfully').goAway(3000)
+          }, 1000)
+        } catch (e) {
+          this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
+        }
+      },
+      async loadModels() {
+        if (this.dbAliasList[this.dbsTab]) {
+          this.models = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv']
+          }, 'xcTableModelsList'])
+          this.edited = false
+        }
+      },
+      async loadTableList() {
+        this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
           env: this.$store.getters['project/GtrEnv']
-        }, 'tableMetaRecreate', {
-          tn: table
-        }])
-        setTimeout(async() => {
-          await this.loadModels()
-          this.$toast.success('Table metadata recreated successfully').goAway(3000)
-        }, 1000)
-      } catch (e) {
-        this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
-      }
-    },
-    async loadModels() {
-      if (this.dbAliasList[this.dbsTab]) {
-        this.models = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcTableModelsList'])
-        this.edited = false
-      }
-    },
-    async loadTableList() {
-      this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.db.meta.dbAlias,
-        env: this.$store.getters['project/GtrEnv']
-      }, 'tableList', { force: true, includeM2M: true }])).data.list
-    },
+        }, 'tableList', { force: true, includeM2M: true }])).data.list
+      },
 
-    async saveModels() {
-      this.updating = true
-      try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcTableModelsEnable', this.models.filter(m => m.enabled).map(m => m.title)])
-        this.$toast.success('Models changes are updated successfully').goAway(3000)
-      } catch (e) {
-        this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
-        console.log(e.message)
-      }
-      this.updating = false
-      this.edited = false
-    } */
+      async saveModels() {
+        this.updating = true
+        try {
+          await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv']
+          }, 'xcTableModelsEnable', this.models.filter(m => m.enabled).map(m => m.title)])
+          this.$toast.success('Models changes are updated successfully').goAway(3000)
+        } catch (e) {
+          this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
+          console.log(e.message)
+        }
+        this.updating = false
+        this.edited = false
+      } */
   },
   computed: {
     ...mapGetters({

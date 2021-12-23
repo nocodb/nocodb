@@ -18,6 +18,10 @@ export const mutations = {
   remove(state, index) {
     state.list.splice(index, 1)
   },
+  removeTableOrViewTabs(state) {
+    debugger
+    // state.list.splice(index, 1)
+  },
   clear(state, index) {
     state.list = []
   },

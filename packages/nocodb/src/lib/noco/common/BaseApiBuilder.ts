@@ -70,6 +70,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.sqlClient?.knex || this.dbDriver;
   }
 
+  public get prefix() {
+    return this.projectBuilder?.prefix;
+  }
+
   public get apiType(): string {
     return this.connectionConfig?.meta?.api?.type;
   }

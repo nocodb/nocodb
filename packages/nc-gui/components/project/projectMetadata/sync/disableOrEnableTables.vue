@@ -13,8 +13,8 @@
                 v-model="filter"
                 dense
                 hide-details
-                class="my-2 mx-auto"
-                :placeholder="`Search '${dbAliasList[dbsTab].connection.database}' models`"
+                class="my-2 mx-auto caption"
+                :placeholder="`Search models`"
                 prepend-inner-icon="search"
                 style="max-width:500px"
                 outlined
@@ -61,7 +61,7 @@
                 <thead>
                   <tr>
                     <th class="grey--text">
-                      Models</span>
+                      Models
                     </th>
                     <!--                    <th>APIs</th>-->
                     <th class="grey--text">
@@ -71,7 +71,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="model in diff" :key="model.title" :class="`nc-metasync-row-${model.tn}`">
+                  <tr v-for="model in diff" v-show="!filter.trim() || (model.tn || model.title || '').toLowerCase().includes(filter.toLowerCase())" :key="model.title" :class="`nc-metasync-row-${model.tn}`">
                     <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
                     <td>
                       <v-tooltip bottom>
@@ -262,7 +262,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { isMetaTable } from '@/helpers/xutils'
+// import { isMetaTable } from '@/helpers/xutils'
 import XIcon from '@/components/global/xIcon'
 import XBtn from '@/components/global/xBtn'
 
@@ -284,8 +284,8 @@ export default {
   }),
   async mounted() {
     await this.loadXcDiff()
-    await this.loadModels()
-    await this.loadTableList()
+    // await this.loadModels()
+    // await this.loadTableList()
   },
   methods: {
     async loadXcDiff() {
@@ -294,7 +294,7 @@ export default {
         env: this.$store.getters['project/GtrEnv']
       }, 'xcMetaDiff'])
     },
-    async addTableMeta(tables) {
+    /* async addTableMeta(tables) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -336,7 +336,7 @@ export default {
         await this.deleteTableMeta(deleteTables)
       }
     },
-
+*/
     async syncMetaDiff() {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
@@ -348,9 +348,9 @@ export default {
       } catch (e) {
         this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
       }
-    },
+    }
 
-    async recreateTableMeta(table) {
+  /*  async recreateTableMeta(table) {
       try {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
@@ -396,13 +396,13 @@ export default {
       }
       this.updating = false
       this.edited = false
-    }
+    } */
   },
   computed: {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
-    }),
-    enableCountText() {
+    })
+    /* enableCountText() {
       return this.models
         ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
         : ''
@@ -439,7 +439,7 @@ export default {
       }
       res.sort((a, b) => getPriority(b) - getPriority(a))
       return res
-    }
+    } */
   }
 }
 </script>

@@ -87,7 +87,7 @@
             New Stack
         </x-btn> -->
         <div class="record-cnt">
-          {{ kanban.recordCnt[stage] }} {{ kanban.recordCnt[stage] > 1 ? "records" : "record" }}
+          {{ kanban.recordCnt[stage] }} / {{ kanban.recordTotalCnt[stage] }} {{ kanban.recordTotalCnt[stage] > 1 ? "records" : "record" }}
         </div>
       </div>
     </kanban-board>

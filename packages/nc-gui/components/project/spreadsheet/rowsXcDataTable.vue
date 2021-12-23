@@ -770,6 +770,7 @@ export default {
       stages: [],
       blocks: [],
       recordCnt: {},
+      recordTotalCnt: {},
       groupingColumnItems: [],
       loadingData : true,
       selectedExpandRow: null,
@@ -1311,6 +1312,7 @@ export default {
           stages: [],
           blocks: [],
           recordCnt: {},
+          recordTotalCnt: {},
           groupingColumnItems: [],
           loadingData: true,
           selectedExpandRow: null,
@@ -1339,7 +1341,8 @@ export default {
           kanban.groupingColumnItems.unshift(uncategorized)
           kanban.recordCnt[uncategorized] = 0
           for (const groupingColumnItem of kanban.groupingColumnItems) {
-            const {
+            // enrich Kanban data
+            var {
               data
             } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
               limit: initialLimit,
@@ -1354,13 +1357,19 @@ export default {
                 oldRow: d,
                 rowMeta: {}
               })
-              const status = d[this.groupingField] ?? uncategorized
-              kanban.recordCnt[status] += 1
+              kanban.recordCnt[groupingColumnItem] += 1
               kanban.blocks.push({
-                status,
+                status: groupingColumnItem,
                 ...d
               })
             })
+            // enrich recordTotalCnt
+            var {
+              data
+            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}/count`, {
+              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
+            })
+            kanban.recordTotalCnt[groupingColumnItem] = data.count
           }
         }
         this.kanban = kanban

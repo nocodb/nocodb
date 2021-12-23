@@ -115,11 +115,15 @@ Cypress.Commands.add("refreshTableTab", () => {
     .should("exist")
     .first()
     .rightclick({ force: true });
-  
-  cy.getActiveMenu().find('[role="menuitem"]').contains('Tables Refresh').click()
 
-  cy.toastWait('Tables refreshed'); 
-})
+  cy.getActiveMenu()
+    .find('[role="menuitem"]')
+    .contains("Tables Refresh")
+    .should("exist")
+    .click({ force: true });
+
+  cy.toastWait("Tables refreshed");
+});
 
 // tn: table name
 // rc: row count. validate row count if rc!=0
@@ -247,7 +251,7 @@ Cypress.Commands.add("deleteTable", (name) => {
   cy.get(`.project-tab:contains(${name}):visible`).should("exist");
   cy.get(".nc-table-delete-btn:visible").click();
   cy.get("button:contains(Submit)").click();
-  cy.toastWait(`Delete table.${name} successful`);
+  cy.toastWait(`Delete table.${name.toLowerCase()} successful`);
 });
 
 Cypress.Commands.add("renameTable", (oldName, newName) => {

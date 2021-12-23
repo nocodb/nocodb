@@ -63,7 +63,6 @@ export const genTest = (type, xcdb) => {
         `CREATE TABLE sakila.table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`
       );
       metaSyncValidate("table1", "New table");
-      // metaSyncValidate("table2", "Table added");
     });
 
     it(`Add relation`, () => {
@@ -76,7 +75,6 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `ALTER TABLE sakila.table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES sakila.table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
       );
-      // fix me
       metaSyncValidate("table1", "New relation added");
     });
 
@@ -84,7 +82,6 @@ export const genTest = (type, xcdb) => {
       // Remove relation (FK)
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP FOREIGN KEY fk1`);
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP INDEX fk1_idx`);
-      // fix me
       metaSyncValidate("table1", "Relation removed");
     });
 
@@ -94,7 +91,6 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `ALTER TABLE sakila.table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`
       );
-      // fix me
       metaSyncValidate("table1", "New column(newCol)");
     });
 
@@ -104,7 +100,6 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `ALTER TABLE sakila.table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`
       );
-      // fix me
       metaSyncValidate(
         "table1",
         "New column(newColName), Column removed(newCol)"
@@ -114,7 +109,6 @@ export const genTest = (type, xcdb) => {
     it(`Delete column`, () => {
       // Remove Column
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP COLUMN newColName`);
-      // fix me
       metaSyncValidate("table1", "Column removed(newColName)");
     });
 
@@ -123,7 +117,39 @@ export const genTest = (type, xcdb) => {
       cy.task("queryDb", `DROP TABLE sakila.table1`);
       cy.task("queryDb", `DROP TABLE sakila.table2`);
       metaSyncValidate("table1", "Table removed");
-      // metaSyncValidate("table2", "out of sync");
+    });
+
+    it(`Hide, Filter, Sort`, () => {
+      cy.task(
+        "queryDb",
+        `CREATE TABLE sakila.table1 (id INT NOT NULL, col1 INT NULL, col2 INT NULL, col3 INT NULL, col4 INT NULL, PRIMARY KEY (id))`
+      );
+      cy.task(
+        "queryDb",
+        `INSERT INTO sakila.table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
+      );
+      metaSyncValidate("table1", "New table");
+      closeMetaTab();
+
+      cy.openTableTab("Table1", 9);
+      mainPage.hideField("Col1");
+      mainPage.sortField("Col1", "Z -> A");
+      mainPage.filterField(`Col1`, ">=", "5");
+      cy.get(".nc-grid-row").should("have.length", 5);
+      cy.closeTableTab("Table1");
+    });
+
+    it(`Verify`, () => {
+      openMetaTab();
+      // Rename Column
+      cy.task(
+        "queryDb",
+        `ALTER TABLE sakila.table1 CHANGE COLUMN col1 newCol INT NULL DEFAULT NULL`
+      );
+      metaSyncValidate("table1", "New column(newCol), Column removed(col1)");
+
+      cy.openTableTab("Table1", 0);
+      cy.deleteTable("Table1");
     });
   });
 };

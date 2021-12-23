@@ -79,6 +79,9 @@
                   >
                     <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
                     <td>
+                      <v-icon small :color="viewIcons[model.type==='table'?'grid':'view'].color" v-on="on">
+                        {{ viewIcons[model.type==='table'?'grid':'view'].icon }}
+                      </v-icon>
                       <v-tooltip bottom>
                         <template #activator="{on}">
                           <span v-on="on">{{ model.tn }}</span>
@@ -270,6 +273,7 @@ import { mapGetters } from 'vuex'
 // import { isMetaTable } from '@/helpers/xutils'
 import XIcon from '@/components/global/xIcon'
 import XBtn from '@/components/global/xBtn'
+import viewIcons from '~/helpers/viewIcons'
 
 export default {
   name: 'DisableOrEnableTables',
@@ -279,6 +283,7 @@ export default {
   },
   props: ['nodes', 'db'],
   data: () => ({
+    viewIcons,
     edited: false,
     models: null,
     updating: false,

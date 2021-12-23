@@ -19,8 +19,7 @@ export const mutations = {
     state.list.splice(index, 1)
   },
   removeTableOrViewTabs(state) {
-    debugger
-    // state.list.splice(index, 1)
+    state.list = state.list.filter(t => !['table', 'view'].includes(t.type))
   },
   clear(state, index) {
     state.list = []

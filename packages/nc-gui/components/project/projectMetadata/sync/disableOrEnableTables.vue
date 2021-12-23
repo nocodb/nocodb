@@ -351,6 +351,8 @@ export default {
         this.$toast.success('Table metadata recreated successfully').goAway(3000)
         await this.loadXcDiff()
 
+        this.$store.commit('tabs/removeTableOrViewTabs')
+        await this.$nextTick()
         await this.$store.dispatch('project/_loadTables', {
           dbKey: '0.projectJson.envs._noco.db.0',
           key: '0.projectJson.envs._noco.db.0.tables',

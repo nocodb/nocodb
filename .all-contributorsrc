@@ -576,6 +576,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dubiao",
+      "name": "标",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4001793?v=4",
+      "profile": "https://github.com/dubiao",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

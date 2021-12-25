@@ -352,6 +352,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/John-Appleseed"><img src="https://avatars.githubusercontent.com/u/7055847?v=4?s=100" width="100px;" alt=""/><br /><sub><b>John Appleseed</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=John-Appleseed" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Korayem"><img src="https://avatars.githubusercontent.com/u/198332?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Salem Korayem</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=Korayem" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/dubiao"><img src="https://avatars.githubusercontent.com/u/4001793?v=4?s=100" width="100px;" alt=""/><br /><sub><b>标</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dubiao" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

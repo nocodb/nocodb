@@ -2,11 +2,11 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ 开源 Airtable 替代品 ✨ <br>
+    ✨ Airtable 的开源替代品 ✨ <br>
 
 </h1>
 <p align="center">
-将任何MySQL，PostgreSQL，SQL Server，SQLite＆MariaDB转换为智能电子表格。
+将 MySQL、PostgreSQL、SQL Server、SQLite 或 MariaDB 转换为智能电子表格。
 </p>
 <div align="center">
 
@@ -49,7 +49,7 @@
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> 为了持久化数据，你可以挂载`/usr/app/data/`。
+> 要使用数据持久化，你可以挂载到 `/usr/app/data/`。
 
 ### 使用NPM
 ```
@@ -116,32 +116,32 @@ npm start
 
 
 # 特征
-### 丰富的电子表格接口
+### 丰富的电子表格功能
 
-- ⚡ 搜索，排序，过滤，隐藏uber轻松的列
-- ⚡ 创建视图：网格，画廊，卡班，甘特，形式
-- ⚡ 分享视图：公共和密码保护
+- ⚡ 搜索，排序，过滤，隐藏列
+- ⚡ 创建视图：网格，画廊，看板，甘特图，表单
+- ⚡ 分享视图：公开 或 密码保护
 - ⚡ 个人和锁定视图
-- ⚡ 将图像上传到单元格（使用S3，Minio，GCP，Azure，Dimitedocean，Linode，OVH，Backblaze）!!
-- ⚡ 角色：所有者，创建者，编辑器，评论者，查看器，评论者，自定义角色。
-- ⚡ 访问控制：即使在数据库，表和列级别也是细粒度的访问控制。
+- ⚡ 将图像上传到单元格（使用S3，Minio，GCP，Azure，DigitalOcean，Linode，OVH，Backblaze）
+- ⚡ 角色：所有者，创建者，编辑器，查看器，评论者，自定义角色。
+- ⚡ 访问控制：在 `数据库`、`表`、`列` 级别的访问控制。
 
 ### 工作流自动化应用商店：
-- ⚡ 聊天：微软团队，松弛，不和谐，最重要的
+- ⚡ 聊天：微软Teams，Slack，Discord，Mattermost
 - ⚡ 电子邮件：SMTP，SES，MailChimp
 - ⚡ 短信：Twilio
 - ⚡ whatsapp
 - ⚡ 任何第三方API
 
 ### Programmatic API访问通过：
-- ⚡ 休息apis（播开）
-- ⚡ GraphQLAPI。
-- ⚡ 包括JWT身份验证和社交验证
-- ⚡ 与Zapier，Integromat集成的API标记。
+- ⚡ REST API (Swagger)
+- ⚡ GraphQL API
+- ⚡ JWT身份验证和社交验证
+- ⚡ 与Zapier，Integromat集成的API
 
 
 # 生产安装
-NoCodb要求数据库存储电子表格视图和外部数据库的元数据。可以在NC_DB环境变量中指定此数据库的连接参数。
+NoCodb 要求一个数据库用来存储电子表格视图和外部元数据。可以在`NC_DB`环境变量中指定此数据库的连接参数。
 
 ## Docker
 
@@ -179,14 +179,14 @@ docker-compose up
 
 
 ## 环境变量
-| 变量                | 强制 | 注释                                                                         | 如果缺少                                  |
+| 变量                | 强制 | 注释                                                                         | 缺省                                  |
 |-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | 查看我们的数据库 URL                                                | 将在根文件夹中创建本地 SQLite  |
+| NC_DB                   | Yes       | 查看我们的数据库 URL                                                | 将在根文件夹中创建一个本地 SQLite 文件 |
 | DATABASE_URL            | No        | JDBC URL 格式。 可以代替 NC_DB 使用。 用于一键式 Heroku 部署|   |
 | DATABASE_URL_FILE       | No        | 包含 JDBC URL 格式的文件的路径。 可以代替 NC_DB 使用。 用于一键式 Heroku 部署|   |
-| NC_PUBLIC_URL           | Yes       | 用于发送电子邮件邀请                   | 从 http 请求参数的最佳猜测        |
-| NC_AUTH_JWT_SECRET      | Yes       | 用于认证和存储其他 secret 的 JWT secret                           | 将会产生一个随机的 secret          |
-| NC_SENTRY_DSN           | No        | 用于 Sentry 监控                                                     |   |
+| NC_PUBLIC_URL           | Yes       | 用于发送电子邮件邀请                        | 尽量从 http 请求参数推测一个        |
+| NC_AUTH_JWT_SECRET      | Yes       | JWT secret 用于认证和存储其他加密项          | 将会产生一个随机的 secret          |
+| NC_SENTRY_DSN           | No        | 用于 Sentry 监控                          |   |
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | 禁止使用外部数据库创建项目                              |   |
 | NC_DISABLE_TELE | No | 禁用 telemetry                              |   |
 | NC_BACKEND_URL | No | 自定义后端URL                              | 将使用`http://localhost:8080`  |
@@ -212,7 +212,7 @@ npm run dev
 # 在浏览器打开 localhost:3000/dashboard
 ```
 
-对代码所做的更改会自动重新启动。
+对代码做更改后会自动重新启动服务。
 
 ## 在本地运行 Cypress 测试
 
@@ -242,10 +242,10 @@ npm run cypress:open
 - 请看一下 ./scripts/contribute/HowToApplyLicense.md
 - 忽略为 .json 或 .md 或 .yml 添加标头
 
-# 🎯  为什么我们建立这个？
+# 🎯 为什么我们建立这个？
 
-大多数互联网业务都配备了电子表格或数据库以解决其业务需求。电子表格每天都会合作地使用十亿+人类。但是，我们在数据库上运行类似速度的方式，这在计算时更强大的工具。用SaaS产品解决此问题的尝试已经意味着可怕的门禁控制，供应商锁定，数据锁定，突然的价格变化，最重要的是将来有可能的玻璃天花板。
+大多数互联网业务都配备了电子表格或数据库以解决其业务需求，每天有上亿人使用电子表格。我们基于数据库运行更强大的工具能更高效地完成工作。用SaaS产品解决此问题的尝试已经意味着可怕的访问控制，供应商锁定，数据锁定，突然的价格变化，甚至是将来可能会阻碍发展。
 
 # ❤ 我们的任务 ：
 
-我们的使命是为数据库提供最强大的无码界面，该界面是世界上每一个互联网业务的开源。这不仅将民主化进入强大的计算工具，而且还带来了一十亿+人，他们将在互联网上具有根本修补和建筑能力。
+我们的使命是为数据库提供最强大的无码界面，为世界上每一个互联网业务的开源使用。这不仅将民主化带给强大的计算工具，还将为数亿人增强他们的创造力。

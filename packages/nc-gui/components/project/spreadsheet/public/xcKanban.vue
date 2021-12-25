@@ -26,6 +26,34 @@
         <column-filter-menu v-model="filters" :field-list="realFieldList" />
         <csv-export-import :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
       </v-toolbar>
+      <div
+        v-if="meta"
+        class="nc-grid-wrapper d-flex"
+        :class="`cell-height-${cellHeight}`"
+        style="overflow:auto;transition: width 500ms "
+      >
+        <v-container fluid v-if="loadingData">
+          <v-row>
+            <v-col v-for="idx in 5" :key="idx">
+              <v-skeleton-loader type="image@3"></v-skeleton-loader>
+            </v-col>
+          </v-row>
+        </v-container>
+        <kanban-view
+          v-if="!loadingData && kanban.data.length" 
+          :nodes="nodes"
+          :table="table"
+          :show-fields="showFields"
+          :available-columns="availableColumns"
+          :meta="meta"
+          :kanban="kanban"
+          :sql-ui="sqlUi"
+          :primary-value-column="primaryValueColumn"
+          :grouping-field.sync="groupingField"
+          :api="api"
+          @loadMoreKanbanData="(groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)"
+        />
+      </div>
     </template>
   </v-container>
 </template>
@@ -37,9 +65,10 @@ import FieldsMenu from '../components/fieldsMenu'
 import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
 import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
+import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
 export default {
   name: 'XcKanban',
-  components: { CsvExportImport, ColumnFilterMenu, SortListMenu, FieldsMenu },
+  components: { CsvExportImport, ColumnFilterMenu, SortListMenu, FieldsMenu, KanbanView },
   mixins: [spreadsheet],
   props: {
     env: String,
@@ -116,7 +145,19 @@ export default {
       icon: 'mdi-card'
     }],
     rowContextMenu: null,
-    modelName: null
+    modelName: null,
+    kanban: {
+      data: [],
+      stages: [],
+      blocks: [],
+      recordCnt: {},
+      recordTotalCnt: {},
+      groupingColumnItems: [],
+      loadingData : true,
+      selectedExpandRow: null,
+      selectedExpandOldRow: null,
+      selectedExpandRowMeta: null,
+    },
   }),
   computed: {
 
@@ -125,7 +166,7 @@ export default {
     try {
       await this.loadMetaData()
       if (!this.showPasswordModal && !this.notFound) {
-        // TODO: load kanban data
+        await this.loadKanbanData()
       }
     } catch (e) {
       console.log(e)
@@ -209,6 +250,24 @@ export default {
       }
 
       this.loadingData = false
+    },
+    async loadKanbanData() {
+      this.loadingData = true
+      try {
+        // TODO
+      } catch (e) {
+        this.showPasswordModal = true
+      }
+
+      this.loadingData = false
+    },
+    async unlock() {
+      this.showPasswordModal = false
+      await this.reload()
+    },
+    async reload() {
+      await this.loadMetaData()
+      await this.loadKanbanData()
     }
   }
 }

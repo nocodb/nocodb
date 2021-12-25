@@ -1324,7 +1324,8 @@ export default {
         }
         
         if (this.api) {
-          const groupingColumn = this.meta.columns.find(c => c.cn === this.groupingField)
+          const groupingColumn = this.meta.columns.find(c => c._cn === this.groupingField)
+
           if (!groupingColumn) {
             return
           }
@@ -1351,7 +1352,10 @@ export default {
             data.map((d) => {
               // handle composite primary key
               d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
-              
+              if (!d.id) {
+                // id is required for <kanban-board/>
+                d.id = d.c_pk
+              }
               kanban.data.push({
                 row: d,
                 oldRow: d,

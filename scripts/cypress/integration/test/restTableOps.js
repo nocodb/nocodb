@@ -4,19 +4,23 @@ let t1a = require("../common/1a_table_operations");
 let t1b = require("../common/1b_table_column_operations");
 let t1c = require("../common/1c_sql_view");
 let t1d = require("../common/1d_table_view_drag_drop_reorder");
-let t1e = require("../common/1e_meta_sync")
+let t1e = require("../common/1e_meta_sync");
 let t2a = require("../common/2a_table_with_belongs_to_colulmn");
 let t2b = require("../common/2b_table_with_m2m_column");
 let t3a = require("../common/3a_filter_sort_fields_operations");
 let t3b = require("../common/3b_formula_column");
 let t3c = require("../common/3c_lookup_column");
 let t3d = require("../common/3d_rollup_column");
+const {
+  setCurrentMode,
+} = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
+  setCurrentMode(type, xcdb);
   if (0 == executionMode) {
     t0.genTest(type, xcdb);
   } else {
@@ -37,6 +41,7 @@ const nocoTestSuite = (type, xcdb) => {
 };
 
 nocoTestSuite("rest", false);
+// nocoTestSuite("rest", true);
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

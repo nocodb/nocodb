@@ -19,7 +19,7 @@
   "screenshotOnRunFailure": false,
   "numTestsKeptInMemory": 0,
   "env": {
-    "testMode": "extREST.extGQL",
+    "testMode": "extREST.extGQL.xcdbREST.xcdbGQL",
     "db": {
       "host": "127.0.0.1",
       "user": "root",

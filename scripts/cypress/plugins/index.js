@@ -50,6 +50,10 @@ module.exports = (on, config) => {
     queryDb: (query) => {
       return queryTestDb(query, config);
     },
+    sqliteExec: (query) => {
+      _sqliteExec(query);
+      return null;
+    },
   });
 };
 
@@ -72,5 +76,35 @@ function queryTestDb(query, config) {
         return resolve(results);
       }
     });
+  });
+}
+
+// sqlite connection
+const sqlite3 = require("sqlite3").verbose();
+function _sqliteExec(query) {
+  // open the database
+  console.log("Current directory: " + process.cwd());
+  let db = new sqlite3.Database(
+    "./scripts/cypress/fixtures/sqlite-sakila/sakila.db",
+    sqlite3.OPEN_READWRITE,
+    (err) => {
+      if (err) {
+        console.error(err.message);
+      } else {
+        console.log("Connected to the noco xcdb database.");
+      }
+    }
+  );
+
+  db.serialize(() => {
+    db.run(query);
+  });
+
+  db.close((err) => {
+    if (err) {
+      console.error(err.message);
+    } else {
+      console.log("Close the database connection.");
+    }
   });
 }

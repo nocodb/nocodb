@@ -53,7 +53,7 @@ export const genTest = (type, xcdb) => {
       cy.contains("LongText").click();
       cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 
-      cy.toastWait("Update table.tablex successful");
+      cy.toastWait("Update table successful");
 
       cy.get(`th[data-col="${colName}"] .mdi-text-subject`).should("exist");
 
@@ -76,7 +76,7 @@ export const genTest = (type, xcdb) => {
       cy.get(".nc-column-name-input input").clear().type(updatedColName);
       cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 
-      cy.toastWait("Update table.tablex successful");
+      cy.toastWait("Update table successful");
 
       cy.get(`th:contains(${colName})`).should("not.exist");
       cy.get(`th:contains(${updatedColName})`).should("exist");
@@ -92,7 +92,7 @@ export const genTest = (type, xcdb) => {
 
       cy.get(".nc-column-delete").click();
       cy.get("button:contains(Confirm)").click();
-      cy.toastWait("Update table.tablex successful");
+      cy.toastWait("Update table successful");
 
       cy.get(`th:contains(${updatedColName})`).should("not.exist");
     });

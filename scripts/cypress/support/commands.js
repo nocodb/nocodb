@@ -25,6 +25,7 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 import "cypress-file-upload";
+import { isXcdb } from "./page_objects/projectConstants";
 
 require("@4tw/cypress-drag-drop");
 
@@ -230,11 +231,16 @@ Cypress.Commands.add("createTable", (name) => {
     .click()
     .clear()
     .type(name);
-  cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]')
-    .first()
-    .should("have.value", name.toLowerCase());
+
+  // cy.log(isXcdb());
+  // if (!isXcdb()) {
+  //   cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]')
+  //     .first()
+  //     .should("have.value", name.toLowerCase());
+  // }
+
   cy.get(".nc-create-table-card .nc-create-table-submit").first().click();
-  cy.toastWait(`Create table.${name} successful`);
+  cy.toastWait(`Create table successful`);
   cy.get(`.project-tab:contains(${name})`).should("exist");
   cy.url().should("contain", `name=${name}`);
 });
@@ -251,7 +257,7 @@ Cypress.Commands.add("deleteTable", (name) => {
   cy.get(`.project-tab:contains(${name}):visible`).should("exist");
   cy.get(".nc-table-delete-btn:visible").click();
   cy.get("button:contains(Submit)").click();
-  cy.toastWait(`Delete table.${name.toLowerCase()} successful`);
+  cy.toastWait(`Delete table successful`);
 });
 
 Cypress.Commands.add("renameTable", (oldName, newName) => {

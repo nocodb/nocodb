@@ -1,98 +1,227 @@
-  
 // Cypress test suite: project pre-configurations
 //
 
-import { loginPage, projectsPage } from "../../support/page_objects/navigation"
-import { mainPage } from "../../support/page_objects/mainPage"
-import { staticProjects, roles, isTestSuiteActive, getPrimarySuite, isSecondarySuite } from "../../support/page_objects/projectConstants"
+import { loginPage, projectsPage } from "../../support/page_objects/navigation";
+import { mainPage } from "../../support/page_objects/mainPage";
+import {
+  staticProjects,
+  roles,
+  isTestSuiteActive,
+  getPrimarySuite,
+  isSecondarySuite,
+  getCurrentMode,
+  isXcdb,
+} from "../../support/page_objects/projectConstants";
+
+function prepareSqliteQuery(projId) {
+  let sqliteQuery = [
+    `ALTER TABLE "actor" RENAME TO "nc_${projId}__actor"`,
+    `ALTER TABLE "address" RENAME TO "nc_${projId}__address"`,
+    `ALTER TABLE "category" RENAME TO "nc_${projId}__category"`,
+    `ALTER TABLE "city" RENAME TO "nc_${projId}__city"`,
+    `ALTER TABLE "country" RENAME TO "nc_${projId}__country"`,
+    `ALTER TABLE "customer" RENAME TO "nc_${projId}__customer"`,
+    `ALTER TABLE "film" RENAME TO "nc_${projId}__film"`,
+    `ALTER TABLE "film_actor" RENAME TO "nc_${projId}__film_actor"`,
+    `ALTER TABLE "film_category" RENAME TO "nc_${projId}__film_category"`,
+    `ALTER TABLE "film_text" RENAME TO "nc_${projId}__film_text"`,
+    `ALTER TABLE "inventory" RENAME TO "nc_${projId}__inventory"`,
+    `ALTER TABLE "language" RENAME TO "nc_${projId}__language"`,
+    `ALTER TABLE "payment" RENAME TO "nc_${projId}__payment"`,
+    `ALTER TABLE "rental" RENAME TO "nc_${projId}__rental"`,
+    `ALTER TABLE "staff" RENAME TO "nc_${projId}__staff"`,
+    `ALTER TABLE "store" RENAME TO "nc_${projId}__store"`,
+    `CREATE VIEW nc_${projId}__Customer_list
+        AS
+        SELECT cu.customer_id AS ID,
+            cu.first_name||' '||cu.last_name AS name,
+            a.address AS address,
+            a.postal_code AS zip_code,
+            a.phone AS phone,
+            "nc_${projId}__city".city AS city,
+            "nc_${projId}__country".country AS country,
+            case when cu.active=1 then 'active' else '' end AS notes,
+            cu.store_id AS SID
+        FROM "nc_${projId}__customer" AS cu JOIN "nc_${projId}__address" AS a ON cu.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
+        JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
+    `CREATE VIEW nc_${projId}__film_list
+        AS
+        SELECT "nc_${projId}__film".film_id AS FID,
+            "nc_${projId}__film".title AS title,
+            "nc_${projId}__film".description AS description,
+            "nc_${projId}__category".name AS category,
+            "nc_${projId}__film".rental_rate AS price,
+            "nc_${projId}__film".length AS length,
+            "nc_${projId}__film".rating AS rating,
+            "nc_${projId}__actor".first_name||' '||"nc_${projId}__actor".last_name AS actors
+        FROM "nc_${projId}__category" LEFT JOIN "nc_${projId}__film_category" ON "nc_${projId}__category".category_id = "nc_${projId}__film_category".category_id LEFT JOIN "nc_${projId}__film" ON "nc_${projId}__Film_category".film_id = "nc_${projId}__film".film_id
+        JOIN "nc_${projId}__film_actor" ON "nc_${projId}__film".film_id = "nc_${projId}__film_actor".film_id
+        JOIN "nc_${projId}__actor" ON "nc_${projId}__film_actor".actor_id = "nc_${projId}__actor".actor_id`,
+    `CREATE VIEW nc_${projId}__sales_by_film_category
+        AS
+        SELECT
+            c.name AS category
+            , SUM(p.amount) AS total_sales
+        FROM "nc_${projId}__payment" AS p
+        INNER JOIN "nc_${projId}__rental" AS r ON p.rental_id = r.rental_id
+        INNER JOIN "nc_${projId}__inventory" AS i ON r.inventory_id = i.inventory_id
+        INNER JOIN "nc_${projId}__film" AS f ON i.film_id = f.film_id
+        INNER JOIN "nc_${projId}__film_category" AS fc ON f.film_id = fc.film_id
+        INNER JOIN "nc_${projId}__category" AS c ON fc.category_id = c.category_id
+        GROUP BY c.name`,
+    `CREATE VIEW nc_${projId}__sales_by_store
+        AS
+        SELECT
+            s.store_id
+            ,c.city||','||cy.country AS store
+            ,m.first_name||' '||m.last_name AS manager
+            ,SUM(p.amount) AS total_sales
+        FROM "nc_${projId}__payment" AS p
+        INNER JOIN "nc_${projId}__rental" AS r ON p.rental_id = r.rental_id
+        INNER JOIN "nc_${projId}__inventory" AS i ON r.inventory_id = i.inventory_id
+        INNER JOIN "nc_${projId}__store" AS s ON i.store_id = s.store_id
+        INNER JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id
+        INNER JOIN "nc_${projId}__city" AS c ON a.city_id = c.city_id
+        INNER JOIN "nc_${projId}__country" AS cy ON c.country_id = cy.country_id
+        INNER JOIN "nc_${projId}__staff" AS m ON s.manager_staff_id = m.staff_id
+        GROUP BY  
+        s.store_id
+        , c.city||','||cy.country
+        , m.first_name||' '||m.last_name`,
+    `CREATE VIEW nc_${projId}__staff_list
+        AS
+        SELECT s.staff_id AS ID,
+            s.first_name||' '||s.last_name AS name,
+            a.address AS address,
+            a.postal_code AS zip_code,
+            a.phone AS phone,
+            "nc_${projId}__city".city AS city,
+            "nc_${projId}__country".country AS country,
+            s.store_id AS SID
+        FROM "nc_${projId}__staff" AS s JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
+            JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
+  ];
+  return sqliteQuery;
+}
 
 export const genTest = (type, xcdb) => {
-    if(!isTestSuiteActive(type, xcdb)) return;
-    describe(`Project pre-configurations`, () => {
+  if (!isTestSuiteActive(type, xcdb)) return;
+  describe(`Project pre-configurations`, () => {
+    it("Admin SignUp", () => {
+      cy.task("log", "This will be output to the terminal");
+      cy.waitForSpinners();
+      cy.signinOrSignup(roles.owner.credentials);
+    });
 
-        it('Admin SignUp', () => {
-            cy.task('log', 'This will be output to the terminal')
-            cy.waitForSpinners();
-            cy.signinOrSignup(roles.owner.credentials)
-        })
+    const createProject = (proj) => {
+      it(`Create ${proj.basic.name} project`, () => {
+        // click home button
+        cy.get(".nc-noco-brand-icon").click();
 
-        const createProject = (proj) => {
-            it(`Create ${proj.basic.name} project`, () => {
+        cy.get(".nc-container").then((obj) => {
+          cy.log(obj);
 
-                // click home button
-                cy.get('.nc-noco-brand-icon').click()
+          // if project already created, open
+          // else, create a new one
+          if (true == obj[0].innerHTML.includes(proj.basic.name)) {
+            projectsPage.openProject(proj.basic.name);
+          } else {
+            projectsPage.createProject(proj.basic, proj.config);
+          }
 
-                cy.get('.nc-container').then((obj) => {
-                    cy.log(obj)
+          if (xcdb) {
+            // store base URL- to re-visit and delete form view later
+            let projId;
+            cy.url()
+              .then((url) => {
+                // project prefix code can include "_"
+                // projId = url.split("_")[1].split("?")[0];
+                let startIdx = url.indexOf("_");
+                let endIdx = url.indexOf("?");
+                projId = url.slice(startIdx + 1, endIdx);
+                cy.log(url, projId);
+                let query = prepareSqliteQuery(projId);
+                for (let i = 0; i < query.length; i++) {
+                  cy.task("sqliteExec", query[i]);
+                }
+              })
+              .then(() => {
+                cy.log(projId);
+                mainPage.openMetaTab();
+                mainPage.metaSyncValidate(
+                  `nc_${projId}__Actor`,
+                  `New table, New relation added`
+                );
+                mainPage.closeMetaTab();
+              });
+          }
 
-                    // if project already created, open
-                    // else, create a new one
-                    if (true == obj[0].innerHTML.includes(proj.basic.name)) {
-                        projectsPage.openProject(proj.basic.name)
-                    } else {
-                        projectsPage.createProject(proj.basic, proj.config)                    
-                    }
+          // create requested project
+          // projectsPage.createProject(proj.basic, proj.config)
+        });
+      });
+    };
 
-                    // create requested project
-                    // projectsPage.createProject(proj.basic, proj.config)
-                })
-            })
-        }
+    // if (isTestSuiteActive('rest', true)) createProject(staticProjects.sampleREST)
+    // if (isTestSuiteActive('graphql', true)) createProject(staticProjects.sampleGQL)
+    // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
+    // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
 
-        // if (isTestSuiteActive('rest', true)) createProject(staticProjects.sampleREST)
-        // if (isTestSuiteActive('graphql', true)) createProject(staticProjects.sampleGQL)
-        // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
-        // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
+    // tbd: add case for xcdb
+    if ("rest" == type) {
+      if (true == xcdb) {
+        createProject(staticProjects.sampleREST);
+      } else {
+        createProject(staticProjects.externalREST);
+      }
+    } else if ("graphql" == type) {
+      if (true == xcdb) {
+        createProject(staticProjects.sampleGQL);
+      } else {
+        createProject(staticProjects.externalGQL);
+      }
+    }
+  });
 
-        // tbd: add case for xcdb 
-        if ('rest' == type) {
-            createProject(staticProjects.externalREST)
-        }
-        else if ('graphql' == type) {
-            createProject(staticProjects.externalGQL)
-        }
-    })
+  // describe('Static user creations (different roles)', () => {
 
-    // describe('Static user creations (different roles)', () => {
+  //     beforeEach(() => {
+  //         loginPage.signIn(roles.owner.credentials)
+  //         projectsPage.openProject(getPrimarySuite().basic.name)
+  //     })
 
-    //     beforeEach(() => {
-    //         loginPage.signIn(roles.owner.credentials)
-    //         projectsPage.openProject(getPrimarySuite().basic.name)
-    //     })
+  //     const addUser = (user) => {
+  //         it(`RoleType: ${user.name}`, () => {
+  //             mainPage.addNewUserToProject(user.credentials, user.name)
+  //         })
+  //     }
 
-    //     const addUser = (user) => {
-    //         it(`RoleType: ${user.name}`, () => {
-    //             mainPage.addNewUserToProject(user.credentials, user.name)
-    //         })
-    //     }
+  //     addUser(roles.creator)
+  //     addUser(roles.editor)
+  //     addUser(roles.commenter)
+  //     addUser(roles.viewer)
+  // })
 
-    //     addUser(roles.creator)
-    //     addUser(roles.editor)
-    //     addUser(roles.commenter)
-    //     addUser(roles.viewer)
-    // })
+  // describe('Static users- add to other static projects', () => {
 
-    // describe('Static users- add to other static projects', () => {
+  //     const addUserToProject = (proj) => {
+  //         it(`Add users to ${proj.basic.name}`, () => {
+  //             loginPage.signIn(roles.owner.credentials)
+  //             projectsPage.openProject(proj.basic.name)
 
-    //     const addUserToProject = (proj) => {
-    //         it(`Add users to ${proj.basic.name}`, () => {
-    //             loginPage.signIn(roles.owner.credentials)
-    //             projectsPage.openProject(proj.basic.name)
+  //             mainPage.addExistingUserToProject(roles.creator.credentials.username, roles.creator.name)
+  //             mainPage.addExistingUserToProject(roles.editor.credentials.username, roles.editor.name)
+  //             mainPage.addExistingUserToProject(roles.commenter.credentials.username, roles.commenter.name)
+  //             mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
+  //         })
+  //     }
 
-    //             mainPage.addExistingUserToProject(roles.creator.credentials.username, roles.creator.name)
-    //             mainPage.addExistingUserToProject(roles.editor.credentials.username, roles.editor.name)
-    //             mainPage.addExistingUserToProject(roles.commenter.credentials.username, roles.commenter.name)
-    //             mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
-    //         })
-    //     }
-
-    //     if (isSecondarySuite('rest', true)) addUserToProject(staticProjects.sampleREST)
-    //     if (isSecondarySuite('graphql', true)) addUserToProject(staticProjects.sampleGQL)
-    //     if (isSecondarySuite('rest', false)) addUserToProject(staticProjects.externalREST)
-    //     if (isSecondarySuite('graphql', false)) addUserToProject(staticProjects.externalGQL)
-    // })
-
-}
+  //     if (isSecondarySuite('rest', true)) addUserToProject(staticProjects.sampleREST)
+  //     if (isSecondarySuite('graphql', true)) addUserToProject(staticProjects.sampleGQL)
+  //     if (isSecondarySuite('rest', false)) addUserToProject(staticProjects.externalREST)
+  //     if (isSecondarySuite('graphql', false)) addUserToProject(staticProjects.externalGQL)
+  // })
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

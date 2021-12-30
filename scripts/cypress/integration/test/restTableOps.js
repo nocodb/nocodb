@@ -41,7 +41,6 @@ const nocoTestSuite = (type, xcdb) => {
 };
 
 nocoTestSuite("rest", false);
-// nocoTestSuite("rest", true);
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

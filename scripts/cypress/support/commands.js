@@ -313,8 +313,8 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 });
 
 Cypress.Commands.add("toastWait", (msg) => {
-  cy.get(".toasted:visible", { timout: 6000 }).contains(msg).should("exist");
-  cy.get(".toasted:visible", { timout: 6000 })
+  cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");
+  cy.get(".toasted:visible", { timout: 12000 })
     .contains(msg)
     .should("not.exist");
 });

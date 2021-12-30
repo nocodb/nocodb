@@ -6,12 +6,16 @@ let t6d = require("../common/6d_language_validation");
 let t6e = require("../common/6e_project_operations");
 let t6f = require("../common/6f_attachments");
 let t6g = require("../common/6g_base_share");
+const {
+  setCurrentMode,
+} = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
+  setCurrentMode(type, xcdb);
   if (0 == executionMode) {
     t0.genTest(type, xcdb);
   } else {

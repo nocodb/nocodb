@@ -147,6 +147,7 @@ export const isSecondarySuite = (proj, xcdb) => {
 };
 
 let currentTestMode = ``;
+let xcdbProjectString = ``;
 export function setCurrentMode(proj, xcdb) {
   if (!xcdb) {
     if (proj == "rest") currentTestMode = "extREST";
@@ -162,7 +163,15 @@ export function getCurrentMode() {
 }
 
 export function isXcdb() {
-  if (currentTestMode === 'xcdbREST' || currentTestMode === 'xcdbGQL')
+  if (currentTestMode === "xcdbREST" || currentTestMode === "xcdbGQL")
     return true;
   return false;
+}
+
+export function setProjectString(projStr) {
+  xcdbProjectString = projStr;
+}
+
+export function getProjectString() {
+  return xcdbProjectString;
 }

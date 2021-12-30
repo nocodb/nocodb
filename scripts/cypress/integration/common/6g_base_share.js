@@ -97,7 +97,7 @@ style="background: transparent; "></iframe>
     permissionValidation("viewer");
 
     it("Update to EDITOR base share link", () => {
-      loginPage.loginAndOpenProject(type);
+      loginPage.loginAndOpenProject(type, xcdb);
 
       // click SHARE
       cy.get(".nc-topright-menu").find(".nc-menu-share").click();

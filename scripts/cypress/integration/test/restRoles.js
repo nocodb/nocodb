@@ -2,12 +2,16 @@ let t0 = require("./explicitLogin");
 let t01 = require("../common/00_pre_configurations");
 let t5a = require("../common/5a_user_role");
 let t5b = require("../common/5b_preview_role");
+const {
+  setCurrentMode,
+} = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
+  setCurrentMode(type, xcdb);
   if (0 == executionMode) {
     t0.genTest(type, xcdb);
   } else {

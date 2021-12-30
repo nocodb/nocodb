@@ -71,9 +71,9 @@ export const genTest = (type, xcdb) => {
       disableTableAccess("language", "commenter");
       disableTableAccess("language", "viewer");
 
-      disableTableAccess("customer_list", "editor");
-      disableTableAccess("customer_list", "commenter");
-      disableTableAccess("customer_list", "viewer");
+      disableTableAccess("customerlist", "editor");
+      disableTableAccess("customerlist", "commenter");
+      disableTableAccess("customerlist", "viewer");
     });
   });
 
@@ -98,9 +98,16 @@ export const genTest = (type, xcdb) => {
 
           cy.url({ timeout: 6000 }).should("contain", "#/project");
 
-          if ("rest" == type)
-            projectsPage.openProject(staticProjects.externalREST.basic.name);
-          else projectsPage.openProject(staticProjects.externalGQL.basic.name);
+          if (xcdb) {
+            if ("rest" == type)
+              projectsPage.openProject(staticProjects.sampleREST.basic.name);
+            else projectsPage.openProject(staticProjects.sampleGQL.basic.name);
+          } else {
+            if ("rest" == type)
+              projectsPage.openProject(staticProjects.externalREST.basic.name);
+            else
+              projectsPage.openProject(staticProjects.externalGQL.basic.name);
+          }
 
           if (roleType != "creator") {
             cy.closeTableTab("Actor");

@@ -1,4 +1,8 @@
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {
+  isTestSuiteActive,
+  isXcdb,
+  getProjectString,
+} from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
   if (!isTestSuiteActive(type, xcdb)) return;
@@ -106,7 +110,9 @@ export const genTest = (type, xcdb) => {
 
       // move Actor3 field on top (drag, drop)
       cy.get(".nc-child-draggable-icon-Actor3").drag(
-        ".nc-child-draggable-icon-actor"
+        `.nc-child-draggable-icon-${
+          isXcdb() ? `nc_${getProjectString()}__` : ``
+        }actor`
       );
 
       // validate new position order, Actor3 on top

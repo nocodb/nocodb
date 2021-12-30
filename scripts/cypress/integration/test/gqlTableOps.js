@@ -11,6 +11,9 @@ let t3a = require("../common/3a_filter_sort_fields_operations");
 let t3b = require("../common/3b_formula_column");
 let t3c = require("../common/3c_lookup_column");
 let t3d = require("../common/3d_rollup_column");
+const {
+  setCurrentMode,
+} = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
@@ -18,6 +21,7 @@ const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
   if (0 == executionMode) {
+    setCurrentMode(type, xcdb);
     t0.genTest(type, xcdb);
   } else {
     t01.genTest(type, xcdb);

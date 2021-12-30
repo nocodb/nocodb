@@ -1,9 +1,13 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { loginPage } from "../../support/page_objects/navigation";
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {
+  isTestSuiteActive,
+  isXcdb,
+} from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
   if (!isTestSuiteActive(type, xcdb)) return;
+  if (isXcdb()) return;
 
   describe(`${type.toUpperCase()} api - Meta Sync`, () => {
     // Run once before test- create project (rest/graphql)

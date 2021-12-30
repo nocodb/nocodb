@@ -11,6 +11,7 @@ import {
   isSecondarySuite,
   getCurrentMode,
   isXcdb,
+  setProjectString,
 } from "../../support/page_objects/projectConstants";
 
 function prepareSqliteQuery(projId) {
@@ -31,7 +32,7 @@ function prepareSqliteQuery(projId) {
     `ALTER TABLE "rental" RENAME TO "nc_${projId}__rental"`,
     `ALTER TABLE "staff" RENAME TO "nc_${projId}__staff"`,
     `ALTER TABLE "store" RENAME TO "nc_${projId}__store"`,
-    `CREATE VIEW nc_${projId}__Customer_list
+    `CREATE VIEW nc_${projId}__customer_list
         AS
         SELECT cu.customer_id AS ID,
             cu.first_name||' '||cu.last_name AS name,
@@ -100,6 +101,58 @@ function prepareSqliteQuery(projId) {
             s.store_id AS SID
         FROM "nc_${projId}__staff" AS s JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
             JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
+    // below two are dummy entries to ensure view record exists
+    `CREATE VIEW nc_${projId}__actor_info
+        AS
+        SELECT s.staff_id AS ID,
+            s.first_name||' '||s.last_name AS name,
+            a.address AS address,
+            a.postal_code AS zip_code,
+            a.phone AS phone,
+            "nc_${projId}__city".city AS city,
+            "nc_${projId}__country".country AS country,
+            s.store_id AS SID
+        FROM "nc_${projId}__staff" AS s JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
+            JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
+    `CREATE VIEW nc_${projId}__nice_but_slower_film_list
+        AS
+        SELECT s.staff_id AS ID,
+            s.first_name||' '||s.last_name AS name,
+            a.address AS address,
+            a.postal_code AS zip_code,
+            a.phone AS phone,
+            "nc_${projId}__city".city AS city,
+            "nc_${projId}__country".country AS country,
+            s.store_id AS SID
+        FROM "nc_${projId}__staff" AS s JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
+            JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
+    // `CREATE VIEW nc_${projId}__actor_info
+    //     AS
+    //     SELECT
+    //       a.actor_id AS actor_id,
+    //       a.first_name AS first_name,
+    //       a.last_name AS last_name,
+    //       GROUP_CONCAT(DISTINCT CONCAT(c.name,
+    //         ': ',
+    //         (SELECT
+    //                 GROUP_CONCAT(f.title
+    //                         ORDER BY f.title ASC
+    //                         SEPARATOR ', ')
+    //             FROM
+    //                 ((nc_${projId}__film f
+    //                 JOIN nc_${projId}__film_category fc ON ((f.film_id = fc.film_id)))
+    //                 JOIN nc_${projId}__film_actor fa ON ((f.film_id = fa.film_id)))
+    //             WHERE
+    //                 ((fc.category_id = c.category_id)
+    //                     AND (fa.actor_id = a.actor_id))))
+    //         ORDER BY c.name ASC
+    //         SEPARATOR '; ') AS nc_${projId}__film_info
+    // FROM
+    //     (((actor a
+    //     LEFT JOIN nc_${projId}__film_actor fa ON ((a.actor_id = fa.actor_id)))
+    //     LEFT JOIN nc_${projId}__film_category fc ON ((fa.film_id = fc.film_id)))
+    //     LEFT JOIN nc_${projId}__category c ON ((fc.category_id = c.category_id)))
+    // GROUP BY a.actor_id , a.first_name , a.last_name`,
   ];
   return sqliteQuery;
 }
@@ -140,6 +193,8 @@ export const genTest = (type, xcdb) => {
                 let endIdx = url.indexOf("?");
                 projId = url.slice(startIdx + 1, endIdx);
                 cy.log(url, projId);
+                setProjectString(projId);
+
                 let query = prepareSqliteQuery(projId);
                 for (let i = 0; i < query.length; i++) {
                   cy.task("sqliteExec", query[i]);
@@ -149,7 +204,7 @@ export const genTest = (type, xcdb) => {
                 cy.log(projId);
                 mainPage.openMetaTab();
                 mainPage.metaSyncValidate(
-                  `nc_${projId}__Actor`,
+                  `nc_${projId}__actor`,
                   `New table, New relation added`
                 );
                 mainPage.closeMetaTab();
@@ -167,7 +222,6 @@ export const genTest = (type, xcdb) => {
     // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
     // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
 
-    // tbd: add case for xcdb
     if ("rest" == type) {
       if (true == xcdb) {
         createProject(staticProjects.sampleREST);

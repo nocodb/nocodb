@@ -7,7 +7,7 @@ export const genTest = (type, xcdb) => {
 
   describe(`${type.toUpperCase()} Columns of type attachment`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(type);
+      loginPage.loginAndOpenProject(type, xcdb);
       cy.openTableTab("Country", 25);
     });
 
@@ -90,7 +90,7 @@ export const genTest = (type, xcdb) => {
 
     it(`Filter column which contain only attachments, download CSV`, () => {
       // come back to main window
-      loginPage.loginAndOpenProject(type);
+      loginPage.loginAndOpenProject(type, xcdb);
       cy.openTableTab("Country", 25);
 
       mainPage.filterField("testAttach", "is not null", null);
@@ -105,9 +105,7 @@ export const genTest = (type, xcdb) => {
         expect(retrievedRecords[0]).to.be.equal(storedRecords[0]);
         for (let i = 1; i < storedRecords.length; i++) {
           const columns = retrievedRecords[i].split(",");
-          expect(columns[2]).to.contain(
-            ".json(http://localhost:8080/dl/external"
-          );
+          expect(columns[2]).to.contain(".json(http://localhost:8080/dl/");
         }
 
         cy.log(retrievedRecords[109]);

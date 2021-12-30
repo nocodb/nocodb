@@ -6,12 +6,16 @@ let t4c = require("../common/4c_form_view_detailed");
 let t4d = require("../common/4d_table_view_grid_locked");
 let t4e = require("../common/4e_form_view_share");
 let t4f = require("../common/4f_grid_view_share");
+const {
+  setCurrentMode,
+} = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
+  setCurrentMode(type, xcdb);
   if (0 == executionMode) {
     t0.genTest(type, xcdb);
   } else {

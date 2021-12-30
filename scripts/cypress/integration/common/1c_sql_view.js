@@ -16,39 +16,46 @@ export const genTest = (type, xcdb) => {
 
     it(`XCDB: SQL View Column operations`, () => {
       // Open one of the views & verify validity of first two entries
+      if (isXcdb()) {
+        cy.openViewsTab("CustomerList", 25);
 
-      cy.openViewsTab("CustomerList", 25);
+        // Record-1 validation
+        mainPage.getCell(`ID`, 1).contains("1").should("exist");
+        mainPage.getCell(`Name`, 1).contains("MARY SMITH").should("exist");
+        mainPage
+          .getCell(`Address`, 1)
+          .contains("1913 Hanoi Way")
+          .should("exist");
+        mainPage.getCell(`ZipCode`, 1).contains("35200").should("exist");
 
-      // Record-1 validation
-      mainPage.getCell(`ID`, 1).contains("1").should("exist");
-      mainPage.getCell(`Name`, 1).contains("MARY SMITH").should("exist");
-      mainPage.getCell(`Address`, 1).contains("1913 Hanoi Way").should("exist");
-      mainPage.getCell(`ZipCode`, 1).contains("35200").should("exist");
+        // Record-2 validation
+        mainPage.getCell(`ID`, 2).contains("2").should("exist");
+        mainPage
+          .getCell(`Name`, 2)
+          .contains("PATRICIA JOHNSON")
+          .should("exist");
+        mainPage
+          .getCell(`Address`, 2)
+          .contains("1121 Loja Avenue")
+          .should("exist");
+        mainPage.getCell(`ZipCode`, 2).contains("17886").should("exist");
 
-      // Record-2 validation
-      mainPage.getCell(`ID`, 2).contains("2").should("exist");
-      mainPage.getCell(`Name`, 2).contains("PATRICIA JOHNSON").should("exist");
-      mainPage
-        .getCell(`Address`, 2)
-        .contains("1121 Loja Avenue")
-        .should("exist");
-      mainPage.getCell(`ZipCode`, 2).contains("17886").should("exist");
+        // Column operations: Hide
+        mainPage.hideField(`ZipCode`);
+        mainPage.unhideField(`ZipCode`);
 
-      // Column operations: Hide
-      mainPage.hideField("ZipCode");
-      mainPage.unhideField("ZipCode");
+        // Column operations: Sort
+        mainPage.sortField("Name", "Z -> A");
+        mainPage.getCell(`Name`, 1).contains("ZACHARY HITE").should("exist");
+        mainPage.clearSort();
 
-      // Column operations: Sort
-      mainPage.sortField("Name", "Z -> A");
-      mainPage.getCell(`Name`, 1).contains("ZACHARY HITE").should("exist");
-      mainPage.clearSort();
+        // Column operations: Filter
+        mainPage.filterField("Name", "is like", "MARY");
+        mainPage.getCell(`Name`, 1).contains("MARY SMITH").should("exist");
+        mainPage.filterReset();
 
-      // Column operations: Filter
-      mainPage.filterField("Name", "is like", "MARY");
-      mainPage.getCell(`Name`, 1).contains("MARY SMITH").should("exist");
-      mainPage.filterReset();
-
-      cy.closeViewsTab("CustomerList");
+        cy.closeViewsTab("CustomerList");
+      }
     });
 
     it(`SQL View Column operations`, () => {

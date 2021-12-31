@@ -16,44 +16,14 @@ export const genTest = (type, xcdb) => {
       // loginPage.loginAndOpenProject(type);
     });
 
-    function openMetaTab() {
-      // open Project metadata tab
-      //
-      mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
-      cy.get(".nc-meta-mgmt-metadata-tab")
-        .should("exist")
-        .click({ force: true });
-      // kludge, at times test failed to open tab on click
-      cy.get(".nc-meta-mgmt-metadata-tab")
-        .should("exist")
-        .click({ force: true });
-    }
 
-    function closeMetaTab() {
-      // user href link to find meta mgmt tab
-      cy.get('[href="#disableOrEnableModel||||Meta Management"]')
-        .find("button.mdi-close")
-        .click({ force: true });
-      // refresh
-      cy.refreshTableTab();
-    }
-
-    function metaSyncValidate(tbl, msg) {
-      cy.get(".nc-btn-metasync-reload").should("exist").click({ force: true });
-      cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
-      cy.get(".nc-btn-metasync-sync-now")
-        .should("exist")
-        .click({ force: true });
-      cy.toastWait(`Table metadata recreated successfully`);
-      // cy.get(`.nc-metasync-row-${tbl}`).should("exist");
-    }
 
     before(() => {
-      openMetaTab();
+      mainPage.openMetaTab();
     });
 
     after(() => {
-      closeMetaTab();
+      mainPage.closeMetaTab();
     });
 
     it(`Create table`, () => {
@@ -66,7 +36,7 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `CREATE TABLE sakila.table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`
       );
-      metaSyncValidate("table1", "New table");
+      mainPage.metaSyncValidate("table1", "New table");
     });
 
     it(`Add relation`, () => {
@@ -79,14 +49,14 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `ALTER TABLE sakila.table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES sakila.table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
       );
-      metaSyncValidate("table1", "New relation added");
+      mainPage.metaSyncValidate("table1", "New relation added");
     });
 
     it(`Remove relation`, () => {
       // Remove relation (FK)
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP FOREIGN KEY fk1`);
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP INDEX fk1_idx`);
-      metaSyncValidate("table1", "Relation removed");
+      mainPage.metaSyncValidate("table1", "Relation removed");
     });
 
     it(`Add column`, () => {
@@ -95,7 +65,7 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `ALTER TABLE sakila.table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`
       );
-      metaSyncValidate("table1", "New column(newCol)");
+      mainPage.metaSyncValidate("table1", "New column(newCol)");
     });
 
     it(`Rename column`, () => {
@@ -104,7 +74,7 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `ALTER TABLE sakila.table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`
       );
-      metaSyncValidate(
+      mainPage.metaSyncValidate(
         "table1",
         "New column(newColName), Column removed(newCol)"
       );
@@ -113,14 +83,14 @@ export const genTest = (type, xcdb) => {
     it(`Delete column`, () => {
       // Remove Column
       cy.task("queryDb", `ALTER TABLE sakila.table1 DROP COLUMN newColName`);
-      metaSyncValidate("table1", "Column removed(newColName)");
+      mainPage.metaSyncValidate("table1", "Column removed(newColName)");
     });
 
     it(`Delete table`, () => {
       // DROP TABLE
       cy.task("queryDb", `DROP TABLE sakila.table1`);
       cy.task("queryDb", `DROP TABLE sakila.table2`);
-      metaSyncValidate("table1", "Table removed");
+      mainPage.metaSyncValidate("table1", "Table removed");
     });
 
     it(`Hide, Filter, Sort`, () => {
@@ -132,8 +102,8 @@ export const genTest = (type, xcdb) => {
         "queryDb",
         `INSERT INTO sakila.table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
       );
-      metaSyncValidate("table1", "New table");
-      closeMetaTab();
+      mainPage.metaSyncValidate("table1", "New table");
+      mainPage.closeMetaTab();
 
       cy.openTableTab("Table1", 9);
       mainPage.hideField("Col1");
@@ -144,13 +114,16 @@ export const genTest = (type, xcdb) => {
     });
 
     it(`Verify`, () => {
-      openMetaTab();
+      mainPage.openMetaTab();
       // Rename Column
       cy.task(
         "queryDb",
         `ALTER TABLE sakila.table1 CHANGE COLUMN col1 newCol INT NULL DEFAULT NULL`
       );
-      metaSyncValidate("table1", "New column(newCol), Column removed(col1)");
+      mainPage.metaSyncValidate(
+        "table1",
+        "New column(newCol), Column removed(col1)"
+      );
 
       cy.openTableTab("Table1", 0);
       cy.deleteTable("Table1");

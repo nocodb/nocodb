@@ -75,7 +75,7 @@
                     v-for="model in diff"
                     v-show="!filter.trim() || (model.tn || model.title || '').toLowerCase().includes(filter.toLowerCase())"
                     :key="model.title"
-                    :class="`nc-metasync-row-${model.tn}`"
+                    :class="`nc-metasync-row nc-metasync-row-${model.tn}`"
                   >
                     <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
                     <td>

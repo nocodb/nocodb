@@ -1404,6 +1404,10 @@ export default {
       data.map(d => {
         // handle composite primary key
         d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
+        if (!d.id) {
+            // id is required for <kanban-board/>
+            d.id = d.c_pk
+          }
         this.kanban.data.push({
           row: d,
           oldRow: d,

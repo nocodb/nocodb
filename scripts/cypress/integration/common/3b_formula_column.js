@@ -1,4 +1,7 @@
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {
+  isTestSuiteActive,
+  isXcdb,
+} from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
   if (!isTestSuiteActive(type, xcdb)) return;
@@ -195,16 +198,20 @@ export const genTest = (type, xcdb) => {
     });
 
     it("Formula: LOG, EXP, POWER, SQRT", () => {
-      editColumnByName(
-        "NC_MATH_1",
-        "NC_MATH_2",
-        `LOG(CityId) + EXP(CityId) + POWER(CityId, 3) + SQRT(CountryId)`
-      );
-      rowValidation("NC_MATH_2", RESULT_MATH_2);
+      if (!isXcdb()) {
+        // SQLITE doesnt support LOG, EXP, POWER SQRT construct
+        editColumnByName(
+          "NC_MATH_1",
+          "NC_MATH_2",
+          `LOG(CityId) + EXP(CityId) + POWER(CityId, 3) + SQRT(CountryId)`
+        );
+        rowValidation("NC_MATH_2", RESULT_MATH_2);
+      }
     });
 
     it("Formula: NOW, EDIT & Delete column", () => {
-      editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
+      if (!isXcdb()) editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
+      else editColumnByName("NC_MATH_1", "NC_NOW", `NOW()`);
       deleteColumnByName("NC_NOW");
     });
   });

@@ -378,7 +378,7 @@ export const genTest = (type, xcdb) => {
       cy.get(".nc-column-delete").click();
       cy.get("button:contains(Confirm)").click();
 
-      cy.toastWait("Update table.Country successful");
+      cy.toastWait("Update table successful");
 
       mainPage.deleteCreatedViews();
 

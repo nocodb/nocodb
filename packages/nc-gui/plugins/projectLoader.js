@@ -40,7 +40,7 @@ export default async({ store, redirect, $axios, $toast, route }) => {
       // console.log(store.state.notification.list)
       const n = store.state.notification.list.length && store.state.notification.list[0]
       if (n && n.status !== 'pending' && n.type !== 'List') {
-        const msg = `${n.type} ${n.module}.${n.title} ${icons[n.status].message}`
+        const msg = `${n.type} ${n.module} ${icons[n.status].message}`
         $toast[n.status](msg, {
           duration: 2000,
           icon: icons[n.status].icon

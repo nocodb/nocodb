@@ -5,10 +5,18 @@
     "test/restViews.js",
     "test/restRoles.js",
     "test/restMisc.js",
+    "test/xcdb-restTableOps.js",
+    "test/xcdb-restViews.js",
+    "test/xcdb-restRoles.js",
+    "test/xcdb-restMisc.js",    
     "test/gqlTableOps.js",
     "test/gqlViews.js",
     "test/gqlRoles.js",
-    "test/gqlMisc.js"
+    "test/gqlMisc.js",
+    "test/xcdb-gqlTableOps.js",
+    "test/xcdb-gqlViews.js",
+    "test/xcdb-gqlRoles.js",
+    "test/xcdb-gqlMisc.js"    
   ],
   "defaultCommandTimeout": 13000,
   "pageLoadTimeout": 600000,
@@ -19,7 +27,7 @@
   "screenshotOnRunFailure": false,
   "numTestsKeptInMemory": 0,
   "env": {
-    "testMode": "extREST.extGQL",
+    "testMode": "extREST.extGQL.xcdbREST.xcdbGQL",
     "db": {
       "host": "127.0.0.1",
       "user": "root",

@@ -162,7 +162,7 @@ export class _mainPage {
       .clear()
       .type(colName);
     cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-    cy.toastWait(`Update table.${tableName} successful`);
+    cy.toastWait(`Update table successful`);
   };
 
   addColumnWithType = (colName, colType, tableName) => {
@@ -178,7 +178,7 @@ export class _mainPage {
     cy.getActiveMenu().contains(colType).click();
 
     cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-    cy.toastWait(`Update table.${tableName} successful`);
+    cy.toastWait(`Update table successful`);
   };
 
   deleteColumn = (colName) => {
@@ -380,6 +380,41 @@ export class _mainPage {
       cy.wrap(dataType).as("ncDatatype");
     });
   };
+
+  openMetaTab() {
+    // open Project metadata tab
+    //
+    this.navigationDraw(this.PROJ_METADATA).click();
+    cy.get(".nc-meta-mgmt-metadata-tab").should("exist").click({ force: true });
+    // kludge, at times test failed to open tab on click
+    cy.get(".nc-meta-mgmt-metadata-tab").should("exist").click({ force: true });
+  }
+
+  closeMetaTab() {
+    // user href link to find meta mgmt tab
+    cy.get('[href="#disableOrEnableModel||||Meta Management"]')
+      .find("button.mdi-close")
+      .click({ force: true });
+    // refresh
+    cy.refreshTableTab();
+  }
+
+  metaSyncValidate(tbl, msg) {
+    cy.get(".nc-btn-metasync-reload").should("exist").click({ force: true });
+    cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
+    cy.get(".nc-btn-metasync-sync-now").should("exist").click({ force: true });
+    cy.get(".nc-metasync-row").then((row) => {
+      for (let i = 0; i < row.length; i++) {
+        cy.wrap(row).contains("No change identified").should("exist");
+      }
+    });
+    // cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("not.exist");
+    // cy.get(`.nc-metasync-row-${tbl}`)
+    //   .contains("No change identified")
+    //   .should("exist");
+    cy.toastWait(`Table metadata recreated successfully`);
+    // cy.get(`.nc-metasync-row-${tbl}`).should("exist");
+  }
 }
 
 export const mainPage = new _mainPage();

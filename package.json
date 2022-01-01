@@ -14,6 +14,7 @@
   },
   "scripts": {
     "start:api": "cd ./packages/nocodb; npm install; npm run watch:run",
+    "start:xcdb-api": "cd ./packages/nocodb; npm install; NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run",
     "start:web": "cd ./packages/nc-gui; npm install; npm run dev",
     "cypress:run": "cypress run --config-file ./scripts/cypress/cypress.json",
     "cypress:open": "cypress open --config-file ./scripts/cypress/cypress.json",
@@ -25,6 +26,7 @@
     "install:npm:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib; npm i -S xc-lib@latest; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i -S xc-lib@latest xc-lib-gui@latest;npm i ../xc-lib-gui"
   },
   "dependencies": {
-    "mysql2": "^2.3.3"
+    "mysql2": "^2.3.3",
+    "sqlite3": "^5.0.2"
   }
 }

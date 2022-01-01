@@ -1,5 +1,5 @@
 import { loginPage } from "../../support/page_objects/navigation";
-import { roles } from "../../support/page_objects/projectConstants";
+import { isXcdb, roles } from "../../support/page_objects/projectConstants";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
@@ -39,15 +39,17 @@ export const genTest = (type, xcdb) => {
     });
 
     it("Restart Project", () => {
-      //cy.visit('./#/projects')
-      cy.get(`.nc-${type}-project-row .mdi-restart`, { timeout: 10000 })
-        .should("exist")
-        .last()
-        .invoke("show")
-        .click();
-      cy.contains("Submit").closest("button").click();
+      if (!isXcdb()) {
+        //cy.visit('./#/projects')
+        cy.get(`.nc-${type}-project-row .mdi-restart`, { timeout: 10000 })
+          .should("exist")
+          .last()
+          .invoke("show")
+          .click();
+        cy.contains("Submit").closest("button").click();
 
-      cy.toastWait("restarted successfully");
+        cy.toastWait("restarted successfully");
+      }
     });
 
     it("Delete Project", () => {

@@ -57,9 +57,9 @@ export const genTest = (type, xcdb, roleType) => {
       enableTableAccess("language", "commenter");
       enableTableAccess("language", "viewer");
 
-      enableTableAccess("customer_list", "editor");
-      enableTableAccess("customer_list", "commenter");
-      enableTableAccess("customer_list", "viewer");
+      enableTableAccess("customerlist", "editor");
+      enableTableAccess("customerlist", "commenter");
+      enableTableAccess("customerlist", "viewer");
     });
 
     const genTestSub = (roleType) => {

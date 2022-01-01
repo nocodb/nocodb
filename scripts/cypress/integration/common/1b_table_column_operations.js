@@ -1,5 +1,8 @@
 import { mainPage } from "../../support/page_objects/mainPage";
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {
+  isTestSuiteActive,
+  isXcdb,
+} from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
   if (!isTestSuiteActive(type, xcdb)) return;
@@ -42,26 +45,28 @@ export const genTest = (type, xcdb) => {
 
     // edit the newly created column
     it("Edit table column - change datatype", () => {
-      cy.get(`th:contains(${colName}) .mdi-menu-down`)
-        .trigger("mouseover", { force: true })
-        .click({ force: true });
+      if (!isXcdb()) {
+        cy.get(`th:contains(${colName}) .mdi-menu-down`)
+          .trigger("mouseover", { force: true })
+          .click({ force: true });
 
-      cy.get(".nc-column-edit").click();
+        cy.get(".nc-column-edit").click();
 
-      // change column type and verify
-      cy.get(".nc-ui-dt-dropdown").click();
-      cy.contains("LongText").click();
-      cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+        // change column type and verify
+        cy.get(".nc-ui-dt-dropdown").click();
+        cy.contains("LongText").click();
+        cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 
-      cy.toastWait("Update table.tablex successful");
+        cy.toastWait("Update table successful");
 
-      cy.get(`th[data-col="${colName}"] .mdi-text-subject`).should("exist");
+        cy.get(`th[data-col="${colName}"] .mdi-text-subject`).should("exist");
 
-      cy.get(`th:contains(${colName}) .mdi-menu-down`)
-        .trigger("mouseover", { force: true })
-        .click({ force: true });
+        cy.get(`th:contains(${colName}) .mdi-menu-down`)
+          .trigger("mouseover", { force: true })
+          .click({ force: true });
 
-      cy.get(".nc-column-edit").click();
+        cy.get(".nc-column-edit").click();
+      }
     });
 
     // edit the newly created column
@@ -76,7 +81,7 @@ export const genTest = (type, xcdb) => {
       cy.get(".nc-column-name-input input").clear().type(updatedColName);
       cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 
-      cy.toastWait("Update table.tablex successful");
+      cy.toastWait("Update table successful");
 
       cy.get(`th:contains(${colName})`).should("not.exist");
       cy.get(`th:contains(${updatedColName})`).should("exist");
@@ -92,7 +97,7 @@ export const genTest = (type, xcdb) => {
 
       cy.get(".nc-column-delete").click();
       cy.get("button:contains(Confirm)").click();
-      cy.toastWait("Update table.tablex successful");
+      cy.toastWait("Update table successful");
 
       cy.get(`th:contains(${updatedColName})`).should("not.exist");
     });

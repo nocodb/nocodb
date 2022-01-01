@@ -69,7 +69,7 @@
                 <tr
                   v-if="table._tn.toLowerCase().indexOf(filter.toLowerCase()) > -1"
                   :key="table.tn"
-                  :class="`nc-acl-table-row nc-acl-table-row-${table.tn}`"
+                  :class="`nc-acl-table-row nc-acl-table-row-${table._tn}`"
                 >
                   <td>
                     <v-tooltip bottom>
@@ -95,7 +95,7 @@
                         >
                           <v-checkbox
                             v-model="table.disabled[role]"
-                            :class="`pt-0 mt-0 nc-acl-${table.tn}-${role}-chkbox`"
+                            :class="`pt-0 mt-0 nc-acl-${table._tn.toLowerCase().replace('_','')}-${role}-chkbox`"
                             dense
                             hide-details
                             :true-value="false"

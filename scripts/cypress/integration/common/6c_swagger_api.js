@@ -8,7 +8,7 @@ export const genTest = (type, xcdb) => {
 
   describe(`${type.toUpperCase()} : API List - Test preparation`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(type, false);
+      loginPage.loginAndOpenProject(type, xcdb);
     });
 
     it("Open project & record swagger URL, AuthToken", () => {

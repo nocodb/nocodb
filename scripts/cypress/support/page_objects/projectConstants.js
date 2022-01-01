@@ -145,3 +145,33 @@ export const isSecondarySuite = (proj, xcdb) => {
       return proj == "graphql" && xcdb ? false : true;
   }
 };
+
+let currentTestMode = ``;
+let xcdbProjectString = ``;
+export function setCurrentMode(proj, xcdb) {
+  if (!xcdb) {
+    if (proj == "rest") currentTestMode = "extREST";
+    else currentTestMode = "extGQL";
+  } else {
+    if (proj == "rest") currentTestMode = "xcdbREST";
+    else currentTestMode = "xcdbGQL";
+  }
+}
+
+export function getCurrentMode() {
+  return currentTestMode;
+}
+
+export function isXcdb() {
+  if (currentTestMode === "xcdbREST" || currentTestMode === "xcdbGQL")
+    return true;
+  return false;
+}
+
+export function setProjectString(projStr) {
+  xcdbProjectString = projStr;
+}
+
+export function getProjectString() {
+  return xcdbProjectString;
+}

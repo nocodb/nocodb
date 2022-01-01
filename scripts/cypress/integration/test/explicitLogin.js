@@ -8,7 +8,7 @@ export const genTest = (type, xcdb) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      loginPage.loginAndOpenProject(type);
+      loginPage.loginAndOpenProject(type, xcdb);
 
       // open a table to work on views
       //

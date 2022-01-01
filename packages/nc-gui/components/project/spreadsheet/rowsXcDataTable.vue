@@ -1151,9 +1151,10 @@ export default {
       this.$set(this.data[index].row, col._cn, null)
       await this.onCellValueChange(colIndex, index, col)
     },
-    async insertNewRow(atEnd = false, expand = false, presetValues = {}, isKanban = false) {
+    async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
       const focusCol = this.availableColumns.findIndex(c => !c.ai)
+      const isKanban = this.selectedView && this.selectedView.show_as === 'kanban'
       const data = isKanban ? this.kanban.data : this.data
 
       data.splice(focusRow, 0, {

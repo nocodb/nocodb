@@ -66,7 +66,7 @@
           color="primary"
           class="primary"
           small
-          @click="insertNewRow(true, true, {[groupingField]: stage}, true)"
+          @click="insertNewRow(true, true, {[groupingField]: stage})"
         >
           <v-icon small left>
             mdi-plus
@@ -199,8 +199,8 @@ export default {
         }
       }
     },
-    insertNewRow(atEnd = false, expand = false, presetValues = {}, isKanban = false) {
-      this.$emit('insertNewRow', atEnd, expand, presetValues, isKanban)
+    insertNewRow(atEnd = false, expand = false, presetValues = {}) {
+      this.$emit('insertNewRow', atEnd, expand, presetValues)
     },
   }
 }

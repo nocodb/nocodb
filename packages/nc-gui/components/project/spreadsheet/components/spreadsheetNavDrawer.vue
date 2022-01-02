@@ -369,9 +369,13 @@
             <!--            <v-menu offset-x left>-->
             <!--              <template v-slot:activator="{on}">-->
 
+            <!-- 
+              TODO:
+              - Add selectedView.show_as === 'kanban' when it is ready
+             -->
             <v-list-item
               v-show="
-                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' || selectedView.show_as === 'grid' || selectedView.show_as === 'kanban' )
+                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' || selectedView.show_as === 'grid' )
               "
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"

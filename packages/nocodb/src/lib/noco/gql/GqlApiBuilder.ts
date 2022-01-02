@@ -2607,7 +2607,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await this.reInitializeGraphqlEndpoint();
   }
 
-  private async reInitializeGraphqlEndpoint(): Promise<void> {
+  async reInitializeGraphqlEndpoint(): Promise<void> {
     this.log(
       `reInitializeGraphqlEndpoint : Reinitializing graphql router endpoint`
     );

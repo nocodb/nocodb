@@ -1,6 +1,7 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { loginPage } from "../../support/page_objects/navigation";
 import {
+  getCurrentMode,
   getProjectString,
   isTestSuiteActive,
   isXcdb,
@@ -155,7 +156,7 @@ export const genTest = (type, xcdb) => {
         "New column(newCol), Column removed(col1)"
       );
 
-      cy.openTableTab("Table1", 0);
+      cy.openTableTab("Table1", 9);
       cy.deleteTable("Table1");
     });
   });

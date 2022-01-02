@@ -92,6 +92,7 @@ export default async function(
     oldMetas.splice(oldMetaIdx, 1);
 
     const tableProp = {
+      _tn: oldMeta._tn,
       tn: table.tn,
       type: XcMetaType.TABLE,
       detectedChanges: []

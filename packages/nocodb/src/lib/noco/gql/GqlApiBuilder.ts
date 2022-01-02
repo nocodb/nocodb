@@ -841,7 +841,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     /* filter based on prefix */
     if (this.projectBuilder?.prefix) {
       tables = tables.filter(t => {
-        t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '');
+        // t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '');
         return t.tn.startsWith(this.projectBuilder?.prefix);
       });
     }

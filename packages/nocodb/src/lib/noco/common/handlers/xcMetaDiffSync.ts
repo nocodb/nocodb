@@ -180,7 +180,7 @@ export default async function(this: BaseApiBuilder<any> | any) {
             const oldColumn = oldMeta.columns.find(c => c.cn === change?.cn);
 
             const {
-              // virtualViews,
+              virtualViews,
               virtualViewsParamsArr
               // @ts-ignore
             } = await this.extractSharedAndVirtualViewsParams(tn);
@@ -255,6 +255,14 @@ export default async function(this: BaseApiBuilder<any> | any) {
                 delete extraViewParams.formParams.fields[oldColumn._cn];
               }
             }
+
+            // todo: enable
+            await this.updateSharedAndVirtualViewsParams(
+              virtualViewsParamsArr,
+              virtualViews
+            );
+
+            await this.metaQueryParamsUpdate(queryParams, tn);
 
             // Delete lookup columns mapping to current column
             // update column name in belongs to
@@ -354,7 +362,7 @@ export default async function(this: BaseApiBuilder<any> | any) {
               )?._cn;
 
               // virtual views param update
-              for (const qp of virtualViewsParamsArr) {
+              for (const qp of [virtualViewsParamsArr]) {
                 // @ts-ignore
                 const {
                   showFields = {},

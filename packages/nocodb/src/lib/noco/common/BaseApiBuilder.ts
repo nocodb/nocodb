@@ -3178,6 +3178,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       virtualViewsParamsArr,
       virtualViews
     );
+    await this.metaQueryParamsUpdate(queryParams, tableName);
+  }
+
+  private async metaQueryParamsUpdate(queryParams: any, tableName: string) {
     await this.xcMeta.metaUpdate(
       this.projectId,
       this.dbAlias,

@@ -761,12 +761,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           }
         }
 
-      tables = args.tableNames.map(({ tn, _tn }) => ({
-        tn,
-        _tn,
-        type: args.type,
-        order: ++order
-      }));
+      tables = args.tableNames
+        .sort((a, b) => (a.tn || a._tn).localeCompare(b.tn || b._tn))
+        .map(({ tn, _tn }) => ({
+          tn,
+          _tn,
+          type: args.type,
+          order: ++order
+        }));
 
       tables.push(...relatedTableList.map(t => ({ tn: t })));
     } else {

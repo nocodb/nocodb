@@ -2,9 +2,11 @@
   <v-tooltip v-if="tooltip || $slots['tooltip']" v-bind="tooltipProp">
     <template #activator="{ on }">
       <v-btn :class="[btnClass,$attrs['btn.class']]" v-bind="$attrs" v-on="{...$listeners,...on}">
-        <v-icon v-if="icon" small>
-          {{ icon }}
-        </v-icon>&nbsp;
+        <template v-if="icon">
+          <v-icon small>
+            {{ icon }}
+          </v-icon>&nbsp;
+        </template>
         <slot />
       </v-btn>
     </template>

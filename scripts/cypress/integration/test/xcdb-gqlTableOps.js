@@ -20,8 +20,8 @@ const {
 const executionMode = 1;
 
 const nocoTestSuite = (type, xcdb) => {
+  setCurrentMode(type, xcdb);
   if (0 == executionMode) {
-    setCurrentMode(type, xcdb);
     t0.genTest(type, xcdb);
   } else {
     t01.genTest(type, xcdb);

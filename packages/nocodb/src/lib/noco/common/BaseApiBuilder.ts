@@ -1718,9 +1718,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
   // table alias functions
   protected getInflectedName(_name: string, inflectionFns: string): string {
     let name = _name;
-    if (process.env.NC_INFLECTION)
+    if (process.env.NC_INFLECTION) {
       inflectionFns = 'camelize';
-    
+    }
+
     if (inflectionFns && inflectionFns !== 'none') {
       name = inflectionFns
         .split(',')
@@ -3177,6 +3178,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       virtualViewsParamsArr,
       virtualViews
     );
+    await this.metaQueryParamsUpdate(queryParams, tableName);
+  }
+
+  private async metaQueryParamsUpdate(queryParams: any, tableName: string) {
     await this.xcMeta.metaUpdate(
       this.projectId,
       this.dbAlias,

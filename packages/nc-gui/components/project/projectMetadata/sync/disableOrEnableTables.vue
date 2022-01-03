@@ -80,32 +80,32 @@
                     <!--                    v-if="model.alias.toLowerCase().indexOf(filter.toLowerCase()) > -1">-->
                     <td>
                       <v-icon small :color="viewIcons[model.type==='table'?'grid':'view'].color" v-on="on">
-                        {{ viewIcons[model.type==='table'?'grid':'view'].icon }}
+                        {{ viewIcons[model.type === 'table' ? 'grid' : 'view'].icon }}
                       </v-icon>
                       <v-tooltip bottom>
                         <template #activator="{on}">
-                          <span v-on="on">{{ model.tn }}</span>
+                          <span v-on="on">{{ model.tn && model.tn.slice(prefix.length) }}</span>
                         </template>
                         <span class="caption">{{ model.title }}</span>
                       </v-tooltip>
                     </td>
                     <!--                    <td>
-              <v-checkbox
-                v-model="model.enabled"
-                dense
-                :disabled="model.new || model.deleted"
-                @change="edited = true"
-              />
-            </td>-->
+            <v-checkbox
+              v-model="model.enabled"
+              dense
+              :disabled="model.new || model.deleted"
+              @change="edited = true"
+            />
+          </td>-->
                     <!--td>
-                  <x-icon
-                    small
-                    color="primary"
-                    tooltip="Recreate metadata"
-                  >
-                    mdi-reload
-                  </x-icon>
-                </!--td-->
+                <x-icon
+                  small
+                  color="primary"
+                  tooltip="Recreate metadata"
+                >
+                  mdi-reload
+                </x-icon>
+              </!--td-->
 
                     <td>
                       <span
@@ -424,7 +424,10 @@ export default {
   computed: {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
-    })
+    }),
+    prefix() {
+      return this.$store.getters['project/GtrProjectPrefix'] || ''
+    }
     /* enableCountText() {
       return this.models
         ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`

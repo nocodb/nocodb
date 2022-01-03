@@ -48,7 +48,7 @@
           href="https://docs.nocodb.com"
           target="_blank"
         >Docs</a>
-        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" v-model="templateModal" class="align-self-center" />
+        <!--        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" v-model="templateModal" class="align-self-center" />-->
 
         <!--        <better-u-x v-if="clickCount" />-->
       </v-toolbar-items>

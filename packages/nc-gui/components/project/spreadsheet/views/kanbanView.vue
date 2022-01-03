@@ -1,74 +1,80 @@
 <template>
-  <v-container fluid>
-    <kanban-board :stages="kanban.groupingColumnItems" :blocks="kanban.blocks" @update-block="updateBlock">
-      <div v-for="stage in this.kanban.groupingColumnItems" :slot="stage" :key="stage" class="mx-auto">
+  <v-container fluid class="h-100 d-100" style="overflow:auto ">
+    <kanban-board
+      :stages="kanban.groupingColumnItems"
+      :blocks="kanban.blocks"
+      class="h-100 my-0 mx-n2"
+      @update-block="updateBlock"
+    >
+      <div v-for="stage in kanban.groupingColumnItems" :slot="stage" :key="stage" class="mx-auto">
         <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
       <div v-for="(block) in kanban.blocks" :slot="block.id" :key="block.c_pk" class="caption">
-          <v-hover v-slot="{hover}">
-            <v-card
-              class="h-100"
-              :elevation="hover ? 4 : 1"
-              @click="$emit('expandKanbanForm', {rowIdx: block.c_pk})"
-            >
-              <v-card-text>
-                <v-container>
-                  <v-row class="">
-                    <v-col
-                      v-for="(col) in fields"
-                      v-show="showFields[col.alias|| col._cn]"
-                      :key="col.alias || col._cn"
-                      class="kanban-col col-12"
-                    >
-                      <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
-                        <virtual-header-cell
-                          v-if="col.virtual"
-                          :column="col"
-                          :nodes="nodes"
-                          :is-form="true"
-                          :meta="meta"
-                        />
-                        <header-cell
-                          v-else
-                          :is-form="true"
-                          :value="col._cn"
-                          :column="col"
-                        />
-                      </label>
-                      <virtual-cell
+        <v-hover v-slot="{hover}">
+          <v-card
+            class="h-100"
+            :elevation="hover ? 4 : 1"
+            @click="$emit('expandKanbanForm', {rowIdx: block.c_pk})"
+          >
+            <v-card-text>
+              <v-container>
+                <v-row class="">
+                  <v-col
+                    v-for="(col) in fields"
+                    v-show="showFields[col.alias|| col._cn]"
+                    :key="col.alias || col._cn"
+                    class="kanban-col col-12"
+                  >
+                    <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
+                      <virtual-header-cell
                         v-if="col.virtual"
-                        ref="virtual"
                         :column="col"
-                        :row="block"
                         :nodes="nodes"
+                        :is-form="true"
                         :meta="meta"
                       />
-                      <table-cell
+                      <header-cell
                         v-else
-                        :value="block[col._cn]"
+                        :is-form="true"
+                        :value="col._cn"
                         :column="col"
-                        :sql-ui="sqlUi"
-                        class="xc-input body-2"
-                        :meta="meta"
                       />
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-            </v-card>
-          </v-hover>
+                    </label>
+                    <virtual-cell
+                      v-if="col.virtual"
+                      ref="virtual"
+                      :column="col"
+                      :row="block"
+                      :nodes="nodes"
+                      :meta="meta"
+                    />
+                    <table-cell
+                      v-else
+                      :value="block[col._cn]"
+                      :column="col"
+                      :sql-ui="sqlUi"
+                      class="xc-input body-2"
+                      :meta="meta"
+                    />
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+          </v-card>
+        </v-hover>
       </div>
       <div v-for="stage in kanban.groupingColumnItems" :key="stage" :slot="`footer-${stage}`" class="kanban-footer">
-          <x-btn
+        <x-btn
           v-if="stage"
           outlined
           tooltip="Add a new record"
           color="primary"
           class="primary"
-          small
+          x-small
+          fab
           @click="insertNewRow(true, true, {[groupingField]: stage})"
         >
-          <v-icon small left>
+          <v-icon small>
             mdi-plus
           </v-icon>
         </x-btn>
@@ -86,8 +92,9 @@
           </v-icon>
             New Stack
         </x-btn> -->
-        <div class="record-cnt">
-          {{ kanban.recordCnt[stage] }} / {{ kanban.recordTotalCnt[stage] }} {{ kanban.recordTotalCnt[stage] > 1 ? "records" : "record" }}
+        <div class="record-cnt caption grey--text">
+          {{ kanban.recordCnt[stage] }} / {{ kanban.recordTotalCnt[stage] }}
+          {{ kanban.recordTotalCnt[stage] > 1 ? "records" : "record" }}
         </div>
       </div>
     </kanban-board>
@@ -100,6 +107,7 @@ import HeaderCell from '../components/headerCell'
 import VirtualCell from '../components/virtualCell'
 import TableCell from '../components/cell'
 import EnumCell from '../components/cell/enumCell'
+
 export default {
   name: 'KanbanView',
   components: { TableCell, VirtualCell, HeaderCell, VirtualHeaderCell, EnumCell },
@@ -114,19 +122,8 @@ export default {
     'showSystemFields',
     'sqlUi',
     'groupingField',
-    'api',
+    'api'
   ],
-  mounted() {
-    const kbListElements = document.querySelectorAll('.drag-inner-list');
-    kbListElements.forEach(kbListEle => {
-      kbListEle.addEventListener('scroll', async (e) => {
-        if(kbListEle.scrollTop + kbListEle.clientHeight >= kbListEle.scrollHeight) {
-          const groupingFieldVal = kbListEle.getAttribute('data-status')
-          this.$emit('loadMoreKanbanData', groupingFieldVal)
-        }
-      })
-    })
-  },
   computed: {
     fields() {
       if (this.availableColumns) {
@@ -142,7 +139,18 @@ export default {
     },
     groupingFieldColumn() {
       return this.fields.filter(o => o.alias === this.groupingField)[0]
-    },
+    }
+  },
+  mounted() {
+    const kbListElements = document.querySelectorAll('.drag-inner-list')
+    kbListElements.forEach((kbListEle) => {
+      kbListEle.addEventListener('scroll', async(e) => {
+        if (kbListEle.scrollTop + kbListEle.clientHeight >= kbListEle.scrollHeight) {
+          const groupingFieldVal = kbListEle.getAttribute('data-status')
+          this.$emit('loadMoreKanbanData', groupingFieldVal)
+        }
+      })
+    })
   },
   methods: {
     async updateBlock(c_pk, status) {
@@ -201,7 +209,7 @@ export default {
     },
     insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       this.$emit('insertNewRow', atEnd, expand, presetValues)
-    },
+    }
   }
 }
 </script>
@@ -213,7 +221,6 @@ export default {
   }
 
   ul.drag-inner-list {
-    height: 400px;
     overflow-y: scroll;
   }
 
@@ -224,7 +231,7 @@ export default {
   }
 
   .drag-container {
-    max-width: 1000px;
+    //max-width: 1000px;
     margin: 20px 0px;
   }
 
@@ -253,13 +260,13 @@ export default {
     text-align: center;
   }
 
-  .drag-column-footer .v-btn {
+/*  .drag-column-footer .v-btn {
     border-radius: 50%;
     border: 2px solid;
     padding: 0px 0px 0px 6px;
     min-width: 40px;
     min-height: 38px;
-  }
+  }*/
 
   .drag-column-footer .record-cnt {
     height: 38px;
@@ -369,12 +376,33 @@ export default {
     opacity: 0.2;
   }
 
-  .kanban-col  {
+  .kanban-col {
     padding: 10px;
   }
+
+  .drag-container {
+    display: inline-block;
+    .drag-list {
+      height: 100%;
+      display: inline-flex;
+
+      .drag-column {
+        display: flex;
+        flex-direction: column;
+        max-height: max(400px,100%);
+
+        .drag-inner-list {
+          overflow-y: auto;
+          overflow-x: hidden;
+          min-height: 200px;
+          flex-grow: 1
+        }
+      }
+    }
+  }
+
 }
 </style>
-
 
 <!--
 /**

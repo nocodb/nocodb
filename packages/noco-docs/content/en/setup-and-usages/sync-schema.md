@@ -19,7 +19,7 @@ Below are the steps to sync schema changes.
 ![metasync](https://user-images.githubusercontent.com/86527202/147923717-630f0e0f-7c7a-431c-a50d-8f9376a06eb7.png)
 
 ## Note
-1. Column rename operation will be depcited as amalgamation of Column delete & create operation
+1. Column rename operation will be depicted as amalgamation of Column delete & create operation
 2. Only table schema changes identified will be listed under `Sync state`; any changes to records are automatically synchronized.
 
 

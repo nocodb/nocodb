@@ -529,7 +529,7 @@ export default {
           type
         }
       }
-      this.enableCondition = !!(this.hook && Object.keys(this.hook.condition).length)
+      this.enableCondition = !!(this.hook && this.hook.condition && Object.keys(this.hook.condition).length)
       await this.onNotTypeChange()
       this.notification = payload
       if (this.hook.notification.type === 'Slack') {

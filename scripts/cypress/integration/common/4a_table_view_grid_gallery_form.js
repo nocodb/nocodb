@@ -69,7 +69,7 @@ export const genTest = (type, xcdb) => {
     viewTest("grid");
     viewTest("gallery");
     viewTest("form");
-    viewTest("kanban");
+    // viewTest("kanban");
   });
 };
 

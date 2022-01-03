@@ -184,6 +184,7 @@ export default {
         }
         this.$set(this.kanban.recordCnt, prevStatus, this.kanban.recordCnt[prevStatus] - 1)
         this.$set(this.kanban.recordCnt, status, this.kanban.recordCnt[status] + 1)
+        this.$forceUpdate()
         this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
           position: 'bottom-center'
         }).goAway(3000)

@@ -301,7 +301,8 @@ export default {
     },
     availableColumns: [Object, Array],
     queryParams: Object,
-    meta: Object
+    meta: Object,
+    presetValues: Object
   },
   data: () => ({
     showborder: false,
@@ -394,6 +395,13 @@ export default {
     async save() {
       try {
         const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
+
+        if (this.presetValues) {
+          // cater presetValues
+          for (const k in this.presetValues) {
+            this.$set(this.changedColumns, k, true)
+          }
+        }
 
         const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
           obj[col] = this.localState[col]

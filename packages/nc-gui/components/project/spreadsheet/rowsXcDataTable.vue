@@ -194,7 +194,9 @@
         :sql-ui="sqlUi"
         :show-system-fields.sync="showSystemFields"
         :cover-image-field.sync="coverImageField"
+        :grouping-field.sync="groupingField"
         :is-gallery="isGallery"
+        :is-kanban="isKanban"
       />
 
       <sort-list
@@ -326,17 +328,29 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'kanban' ">
+          <template v-else-if="isKanban">
+            <v-container fluid v-if="kanban.loadingData">
+              <v-row>
+                <v-col v-for="idx in 5" :key="idx">
+                  <v-skeleton-loader type="image@3"></v-skeleton-loader>
+                </v-col>
+              </v-row>
+            </v-container>
             <kanban-view
+              v-if="!kanban.loadingData && kanban.data.length" 
               :nodes="nodes"
               :table="table"
               :show-fields="showFields"
               :available-columns="availableColumns"
               :meta="meta"
-              :data="data"
+              :kanban="kanban"
               :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
-              @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+              :grouping-field.sync="groupingField"
+              :api="api"
+              @expandKanbanForm="({rowIdx}) => expandKanbanForm(rowIdx)"
+              @insertNewRow="insertNewRow"
+              @loadMoreKanbanData="(groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)"
             />
           </template>
           <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">
@@ -374,7 +388,7 @@
             />
           </template>
         </div>
-        <template v-if="data && !isForm">
+        <template v-if="data && !isForm && !isKanban">
           <pagination
             v-model="page"
             :count="count"
@@ -393,6 +407,7 @@
         :meta="meta"
         :selected-view-id.sync="selectedViewId"
         :cover-image-field.sync="coverImageField"
+        :grouping-field.sync="groupingField"
         :selected-view.sync="selectedView"
         :primary-value-column="primaryValueColumn"
         :concatenated-x-where="concatenatedXWhere"
@@ -548,7 +563,33 @@
       class=" mx-auto"
     >
       <expanded-form
-        v-if="selectedExpandRowIndex != null && data[selectedExpandRowIndex]"
+        v-if="isKanban && kanban.selectedExpandRow"
+        :key="kanban.selectedExpandRow.id"
+        v-model="kanban.selectedExpandRow"
+        :db-alias="nodes.dbAlias"
+        :has-many="hasMany"
+        :belongs-to="belongsTo"
+        :table="table"
+        :old-row.sync="kanban.selectedExpandOldRow"
+        :is-new="kanban.selectedExpandRowMeta.new"
+        :selected-row-meta="kanban.selectedExpandRowMeta"
+        :meta="meta"
+        :sql-ui="sqlUi"
+        :primary-value-column="primaryValueColumn"
+        :api="api"
+        :available-columns="availableColumns"
+        :nodes="nodes"
+        :query-params="queryParams"
+        :show-next-prev="false"
+        :preset-values="presetValues"
+        @cancel="showExpandModal = false;"
+        @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData(false)"
+        @commented="reloadComments"
+        @next="loadNext"
+        @prev="loadPrev"
+      />
+      <expanded-form
+        v-if="!isKanban && (selectedExpandRowIndex != null && data[selectedExpandRowIndex])"
         :key="selectedExpandRowIndex"
         v-model="data[selectedExpandRowIndex].row"
         :db-alias="nodes.dbAlias"
@@ -566,6 +607,7 @@
         :nodes="nodes"
         :query-params="queryParams"
         :show-next-prev="true"
+        :preset-values="presetValues"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"
@@ -661,6 +703,7 @@ export default {
     },
     fieldsOrder: [],
     coverImageField: null,
+    groupingField: null,
     showSystemFields: false,
     showAdvanceOptions: false,
     loadViews: false,
@@ -720,7 +763,20 @@ export default {
       size: 'xlarge',
       icon: 'mdi-ca rd'
     }],
-    rowContextMenu: null
+    rowContextMenu: null,
+    presetValues: {},
+    kanban: {
+      data: [],
+      stages: [],
+      blocks: [],
+      recordCnt: {},
+      recordTotalCnt: {},
+      groupingColumnItems: [],
+      loadingData : true,
+      selectedExpandRow: null,
+      selectedExpandOldRow: null,
+      selectedExpandRowMeta: null,
+    },
   }),
   watch: {
     isActive(n, o) {
@@ -746,6 +802,12 @@ export default {
       //   key: 'selectedViewId',
       //   val: id
       // })
+    },
+    async groupingField(newVal) {
+      this.groupingField = newVal
+      if (this.selectedView && this.selectedView.show_as === 'kanban') {
+        await this.loadKanbanData()
+      }
     }
   },
   async mounted() {
@@ -763,7 +825,6 @@ export default {
       this.loadingMeta = true
       await this.loadMeta(false)
       this.loadingMeta = false
-
       if (this.relationType === 'hm') {
         this.filters.push({
           field: this.meta.columns.find(c => c.cn === this.relation.cn)._cn,
@@ -781,7 +842,11 @@ export default {
         })
       } else {
         // await this.$refs.drawer.loadViews();
-        await this.loadTableData()
+        if (this.selectedView && this.selectedView.show_as === 'kanban') {
+          await this.loadKanbanData()
+        } else {
+          await this.loadTableData()
+        }
       }
       // this.mapFieldsAndShowFields()
     } catch (e) {
@@ -789,7 +854,6 @@ export default {
     }
     this.searchField = this.primaryValueColumn
     this.dataLoaded = true
-
     // await this.loadViews();
   },
   methods: {
@@ -823,7 +887,11 @@ export default {
         tn: this.table,
         force: true
       })
-      await this.loadTableData()
+      if (this.selectedView && this.selectedView.show_as === 'kanban') {
+        await this.loadKanbanData()
+      } else {
+        await this.loadTableData()
+      }
       this.key = Math.random()
     },
     reloadComments() {
@@ -849,6 +917,10 @@ export default {
 
         if (this.isGallery) {
           queryParams.coverImageField = this.coverImageField
+        }
+
+        if (this.isKanban) {
+          queryParams.groupingField = this.groupingField
         }
 
         this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
@@ -998,7 +1070,6 @@ export default {
           if (oldRow[column._cn] === rowObj[column._cn]) {
             return
           }
-
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
 
           if (!id) {
@@ -1080,28 +1151,36 @@ export default {
       this.$set(this.data[index].row, col._cn, null)
       await this.onCellValueChange(colIndex, index, col)
     },
-    async insertNewRow(atEnd = false, expand = false) {
+    async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
       const focusCol = this.availableColumns.findIndex(c => !c.ai)
-      this.data.splice(focusRow, 0, {
+      const isKanban = this.selectedView && this.selectedView.show_as === 'kanban'
+      const data = isKanban ? this.kanban.data : this.data
+
+      data.splice(focusRow, 0, {
         row: this.relationType === 'hm'
           ? {
-              ...this.fieldList.reduce((o, f) => ({ ...o, [f]: null }), {}),
+              ...this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
               [this.relation.cn]: this.relationIdValue
             }
-          : this.fieldList.reduce((o, f) => ({ ...o, [f]: null }), {}),
+          : this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
         rowMeta: {
           new: true
         },
         oldRow: {}
       })
-
+      
       this.selected = { row: focusRow, col: focusCol }
       this.editEnabled = { row: focusRow, col: focusCol }
+      this.presetValues = presetValues
 
       if (expand) {
-        const { rowMeta } = this.data[this.data.length - 1]
-        this.expandRow(this.data.length - 1, rowMeta)
+        if (isKanban) {
+          this.expandKanbanForm(-1, data[data.length - 1])
+        } else {
+          const { rowMeta } = data[data.length - 1]
+          this.expandRow(data.length - 1, rowMeta)
+        }
       }
       // this.save()
     },
@@ -1225,7 +1304,132 @@ export default {
       }
 
       this.$refs.csvExportImport.onCsvFileSelection(file)
-    }
+    },
+    // Kanban
+    async loadKanbanData(initKanbanProps = true) {
+      try {
+        const kanban = {
+          data: [],
+          stages: [],
+          blocks: [],
+          recordCnt: {},
+          recordTotalCnt: {},
+          groupingColumnItems: [],
+          loadingData: true,
+          selectedExpandRow: null,
+          selectedExpandOldRow: null,
+          selectedExpandRowMeta: null
+        }
+        if (initKanbanProps) {
+          this.kanban = kanban
+        }
+        
+        if (this.api) {
+          const groupingColumn = this.meta.columns.find(c => c._cn === this.groupingField)
+
+          if (!groupingColumn) {
+            return
+          }
+
+          const initialLimit = 10
+          const uncategorized = 'Uncategorized'
+
+          kanban.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
+            const trimCol = c.replace(/'/g, '')
+            kanban.recordCnt[trimCol] = 0
+            return trimCol
+          }).sort()
+
+          kanban.groupingColumnItems.unshift(uncategorized)
+          kanban.recordCnt[uncategorized] = 0
+          for (const groupingColumnItem of kanban.groupingColumnItems) {
+            // enrich Kanban data
+            var {
+              data
+            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+              limit: initialLimit,
+              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
+            })
+            data.map((d) => {
+              // handle composite primary key
+              d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
+              if (!d.id) {
+                // id is required for <kanban-board/>
+                d.id = d.c_pk
+              }
+              kanban.data.push({
+                row: d,
+                oldRow: d,
+                rowMeta: {}
+              })
+              kanban.recordCnt[groupingColumnItem] += 1
+              kanban.blocks.push({
+                status: groupingColumnItem,
+                ...d
+              })
+            })
+            // enrich recordTotalCnt
+            var {
+              data
+            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}/count`, {
+              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
+            })
+            kanban.recordTotalCnt[groupingColumnItem] = data.count
+          }
+        }
+        this.kanban = kanban
+      } catch (e) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(e.response.data.msg, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        } else {
+          this.$toast.error(`Error occurred : ${e.message}`, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        }
+      } finally {
+        this.kanban.loadingData = false
+      }
+    },
+    async loadMoreKanbanData(groupingFieldVal) {
+      const uncategorized = "uncategorized"
+      const {
+        data
+      } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+        limit: 5,
+        where: groupingFieldVal === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingFieldVal})`,
+        offset: this.kanban.recordCnt[groupingFieldVal]
+      })
+      data.map(d => {
+        // handle composite primary key
+        d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
+        if (!d.id) {
+            // id is required for <kanban-board/>
+            d.id = d.c_pk
+          }
+        this.kanban.data.push({
+          row: d,
+          oldRow: d,
+          rowMeta: {},
+        })
+        this.kanban.blocks.push({
+          status: groupingFieldVal,
+          ...d
+        })
+      })
+      this.kanban.recordCnt[groupingFieldVal] += data.length
+    },
+    expandKanbanForm(rowIdx, data) {
+      if (rowIdx != -1) {
+        // not a new record -> find the target record
+        data = this.kanban.data.filter(o => o.row.c_pk == rowIdx)[0]
+      } 
+      this.showExpandModal = true
+      this.kanban.selectedExpandRow = data.row
+      this.kanban.selectedExpandOldRow = data.oldRow
+      this.kanban.selectedExpandRowMeta = data.rowMeta
+    },
   },
   computed: {
     tabsState() {
@@ -1246,6 +1450,9 @@ export default {
     isForm() {
       return this.selectedView && this.selectedView.show_as === 'form'
     },
+    isKanban() {
+      return this.selectedView && this.selectedView.show_as === 'kanban'
+    },
     meta() {
       return this.$store.state.meta.metas[this.table]
     },
@@ -1265,7 +1472,7 @@ export default {
         table: this.meta.tn
       })
       // return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
-    }
+    },
   }
 }
 </script>
@@ -1357,6 +1564,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

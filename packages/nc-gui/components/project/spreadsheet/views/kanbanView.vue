@@ -1,17 +1,93 @@
 <template>
   <v-container fluid>
-    <kanban-board :stages="stages" :blocks="blocks" @update-block="updateBlock">
-      <div v-for="(stage,i) in stages" :slot="stage" :key="stage" class="mx-auto">
-        <v-chip :color="stagesColors[i]" class="text-uppercase caption font-weight-bold">
-          {{ stage }}
-        </v-chip>
+    <kanban-board :stages="kanban.groupingColumnItems" :blocks="kanban.blocks" @update-block="updateBlock">
+      <div v-for="stage in this.kanban.groupingColumnItems" :slot="stage" :key="stage" class="mx-auto">
+        <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
-      <div v-for="block in blocks" :slot="block.id" :key="block.id" class="caption">
-        <!--        <div>-->
-        <!--          {{ block.id }}-->
-        <!--        </div>-->
-        <div>
-          {{ block.title }}
+      <div v-for="(block) in kanban.blocks" :slot="block.id" :key="block.c_pk" class="caption">
+          <v-hover v-slot="{hover}">
+            <v-card
+              class="h-100"
+              :elevation="hover ? 4 : 1"
+              @click="$emit('expandKanbanForm', {rowIdx: block.c_pk})"
+            >
+              <v-card-text>
+                <v-container>
+                  <v-row class="">
+                    <v-col
+                      v-for="(col) in fields"
+                      v-show="showFields[col.alias|| col._cn]"
+                      :key="col.alias || col._cn"
+                      class="kanban-col col-12"
+                    >
+                      <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
+                        <virtual-header-cell
+                          v-if="col.virtual"
+                          :column="col"
+                          :nodes="nodes"
+                          :is-form="true"
+                          :meta="meta"
+                        />
+                        <header-cell
+                          v-else
+                          :is-form="true"
+                          :value="col._cn"
+                          :column="col"
+                        />
+                      </label>
+                      <virtual-cell
+                        v-if="col.virtual"
+                        ref="virtual"
+                        :column="col"
+                        :row="block"
+                        :nodes="nodes"
+                        :meta="meta"
+                      />
+                      <table-cell
+                        v-else
+                        :value="block[col._cn]"
+                        :column="col"
+                        :sql-ui="sqlUi"
+                        class="xc-input body-2"
+                        :meta="meta"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+            </v-card>
+          </v-hover>
+      </div>
+      <div v-for="stage in kanban.groupingColumnItems" :key="stage" :slot="`footer-${stage}`" class="kanban-footer">
+          <x-btn
+          v-if="stage"
+          outlined
+          tooltip="Add a new record"
+          color="primary"
+          class="primary"
+          small
+          @click="insertNewRow(true, true, {[groupingField]: stage})"
+        >
+          <v-icon small left>
+            mdi-plus
+          </v-icon>
+        </x-btn>
+        <!-- <x-btn
+          v-else
+          outlined
+          tooltip="New Stack"
+          color="primary"
+          class="primary"
+          small
+          @click="insertNewRow(true, true, {[groupingField]: stage})"
+        >
+          <v-icon small left>
+            mdi-plus
+          </v-icon>
+            New Stack
+        </x-btn> -->
+        <div class="record-cnt">
+          {{ kanban.recordCnt[stage] }} / {{ kanban.recordTotalCnt[stage] }} {{ kanban.recordTotalCnt[stage] > 1 ? "records" : "record" }}
         </div>
       </div>
     </kanban-board>
@@ -19,103 +95,127 @@
 </template>
 
 <script>
-
-// import "vue-kanban/src/assets/kanban.css";
-
+import VirtualHeaderCell from '../components/virtualHeaderCell'
+import HeaderCell from '../components/headerCell'
+import VirtualCell from '../components/virtualCell'
+import TableCell from '../components/cell'
+import EnumCell from '../components/cell/enumCell'
 export default {
   name: 'KanbanView',
-  data: () => ({
-    stages: ['on-hold', 'in-progress', 'needs-review', 'approved'],
-    stagesColors: ['error', 'primary', 'warning', 'success'],
-    blocks: [
-      {
-        id: 1,
-        status: 'on-hold',
-        title: 'More language options'
-      },
-      {
-        id: 2,
-        status: 'on-hold',
-        title: 'Customizable links'
-      },
-      {
-        id: 3,
-        status: 'on-hold',
-        title: 'Emoji support'
-      },
-      {
-        id: 4,
-        status: 'on-hold',
-        title: 'Video embedding'
-      },
-      {
-        id: 5,
-        status: 'on-hold',
-        title: 'Photo gallery support'
-      },
-      {
-        id: 6,
-        status: 'on-hold',
-        title: 'Starred cards'
-      },
-      {
-        id: 7,
-        status: 'in-progress',
-        title: 'Reporting'
-      },
-      {
-        id: 8,
-        status: 'in-progress',
-        title: 'Marks card as done'
-      },
-      {
-        id: 9,
-        status: 'in-progress',
-        title: 'Multiple due dates'
-      },
-      {
-        id: 10,
-        status: 'in-progress',
-        title: 'Expand notifications'
-      },
-      {
-        id: 11,
-        status: 'needs-review',
-        title: '"Heart" commad'
-      },
-      {
-        id: 12,
-        status: 'needs-review',
-        title: 'Assign checklist item'
-      },
-      {
-        id: 13,
-        status: 'approved',
-        title: 'Delete permissions'
-      },
-      {
-        id: 14,
-        status: 'approved',
-        title: '3rd party calendar support'
-      },
-      {
-        id: 15,
-        status: 'approved',
-        title: '2FA'
-      },
-      {
-        id: 16,
-        status: 'approved',
-        title: 'Additional sticker packs'
+  components: { TableCell, VirtualCell, HeaderCell, VirtualHeaderCell, EnumCell },
+  props: [
+    'nodes',
+    'table',
+    'showFields',
+    'availableColumns',
+    'meta',
+    'kanban',
+    'primaryValueColumn',
+    'showSystemFields',
+    'sqlUi',
+    'groupingField',
+    'api',
+  ],
+  mounted() {
+    const kbListElements = document.querySelectorAll('.drag-inner-list');
+    kbListElements.forEach(kbListEle => {
+      kbListEle.addEventListener('scroll', async (e) => {
+        if(kbListEle.scrollTop + kbListEle.clientHeight >= kbListEle.scrollHeight) {
+          const groupingFieldVal = kbListEle.getAttribute('data-status')
+          this.$emit('loadMoreKanbanData', groupingFieldVal)
+        }
+      })
+    })
+  },
+  computed: {
+    fields() {
+      if (this.availableColumns) {
+        return this.availableColumns
       }
+      if (this.showSystemFields) {
+        return this.meta.columns || []
+      }
+      const hideCols = ['created_at', 'updated_at']
+      return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
+        !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+      ) || []
+    },
+    groupingFieldColumn() {
+      return this.fields.filter(o => o.alias === this.groupingField)[0]
+    },
+  },
+  methods: {
+    async updateBlock(c_pk, status) {
+      try {
+        if (!this.api) {
+          this.$toast.error('API not found', {
+            position: 'bottom-center'
+          }).goAway(3000)
+          return
+        }
 
-    ]
-  })
+        // update kanban block
+        const targetBlock = this.kanban.blocks.find(b => b.c_pk === c_pk)
+        if (!targetBlock) {
+          this.$toast.error(`Block with ID ${c_pk} not found`, {
+            position: 'bottom-center'
+          }).goAway(3000)
+          return
+        }
+
+        if (targetBlock.status === status) {
+          // no change
+          return
+        }
+
+        const uncategorized = 'Uncategorized'
+        const prevStatus = targetBlock.status
+        await this.api.update(c_pk,
+          { [this.groupingField]: status === uncategorized ? null : status }, // new data
+          { [this.groupingField]: prevStatus }) // old data
+
+        this.$set(targetBlock, 'status', status)
+        this.$set(targetBlock, this.groupingField, status === uncategorized ? null : status)
+
+        // update kanban data
+        const kanbanRow = this.kanban.data.find(d => d.row.c_pk === c_pk)
+        if (kanbanRow) {
+          this.$set(kanbanRow.row, this.groupingField, status === uncategorized ? null : status)
+        }
+        this.$set(this.kanban.recordCnt, prevStatus, this.kanban.recordCnt[prevStatus] - 1)
+        this.$set(this.kanban.recordCnt, status, this.kanban.recordCnt[status] + 1)
+        this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
+          position: 'bottom-center'
+        }).goAway(3000)
+      } catch (e) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(e.response.data.msg, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        } else {
+          this.$toast.error(`Failed to update block : ${e.message}`, {
+            position: 'bottom-center'
+          }).goAway(3000)
+        }
+      }
+    },
+    insertNewRow(atEnd = false, expand = false, presetValues = {}) {
+      this.$emit('insertNewRow', atEnd, expand, presetValues)
+    },
+  }
 }
 </script>
 
 <style scoped lang="scss">
 ::v-deep {
+  .v-card {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  ul.drag-inner-list {
+    height: 400px;
+    overflow-y: scroll;
+  }
 
   ul.drag-list, ul.drag-inner-list {
     list-style-type: none;
@@ -125,7 +225,7 @@ export default {
 
   .drag-container {
     max-width: 1000px;
-    margin: 20px auto;
+    margin: 20px 0px;
   }
 
   .drag-list {
@@ -144,8 +244,31 @@ export default {
     margin: 0 10px;
     position: relative;
     background: var(--v-backgroundColor-base); //rgba(256, 256, 256, 0.2);
-    overflow: hidden;
-    border-radius: 4px;
+    border-radius: 6px;
+    max-width: 240px;
+  }
+
+  .drag-column-footer {
+    padding: 20px 10px 10px 10px;
+    text-align: center;
+  }
+
+  .drag-column-footer .v-btn {
+    border-radius: 50%;
+    border: 2px solid;
+    padding: 0px 0px 0px 6px;
+    min-width: 40px;
+    min-height: 38px;
+  }
+
+  .drag-column-footer .record-cnt {
+    height: 38px;
+    line-height: 38px;
+    font-size: 15px;
+  }
+
+  .drag-column-footer .v-btn .mdi-plug::before {
+    font-weight: bold;
   }
 
   @media (max-width: 690px) {
@@ -165,21 +288,22 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px;
+    width: 240px;
   }
 
-  .drag-inner-list {
-    min-height: 20px;
-    //color: white;
+  .drag-column-header .set-item {
+    margin-top: 20px !important;
   }
 
   .drag-item {
-    padding: 10px;
     margin: 10px;
-    //height: 100px;
     background: var(--v-backgroundColor-lighten2);
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     border-radius: 4px;
+  }
+
+  .drag-item .container {
+    padding: 0px;
   }
 
   .drag-item.is-moving {
@@ -192,12 +316,9 @@ export default {
   }
 
   .drag-options {
-    position: absolute;
-    top: 44px;
     left: 0;
     width: 100%;
     height: 100%;
-    padding: 10px;
     transform: translateX(100%);
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
@@ -248,5 +369,33 @@ export default {
     opacity: 0.2;
   }
 
+  .kanban-col  {
+    padding: 10px;
+  }
 }
 </style>
+
+
+<!--
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+-->

@@ -782,6 +782,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       // enable extra
       tables.push(
         ...(await this.sqlClient.viewList())?.data?.list
+          ?.sort((a, b) =>
+            (a.view_name || a.tn).localeCompare(b.view_name || b.tn)
+          )
           ?.map(v => {
             this.viewsCount++;
             v.type = 'view';

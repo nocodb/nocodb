@@ -33,7 +33,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   parse() {
     const tableNamePrefixRef = {}
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
-      const columnNamePrefixRef = {}
+      const columnNamePrefixRef = { id: 0 }
       const sheet = this.wb.SheetNames[i]
       let tn = sheet
       if (tn in tableNamePrefixRef) {
@@ -51,18 +51,18 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       // const colLen = Math.max()
 
       for (let col = 0; col < rows[0].length; col++) {
-        let cn = (rows[0][col] ||
-          `field${col + 1}`).replace(/\./, '_').trim()
+        let cn = ((rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+          `field${col + 1}`).replace(/\W/g, '_').trim()
 
         if (cn in columnNamePrefixRef) {
           cn = `${cn}${++columnNamePrefixRef[cn]}`
         } else {
           columnNamePrefixRef[cn] = 0
         }
-
         const column = {
           cn
         }
+
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
         const cellId = XLSX.utils.encode_cell({
           c: range.s.c + col,
@@ -86,22 +86,22 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             if (checkboxType.length === 1) {
               column.uidt = UITypes.Checkbox
             } else {
-              vals = vals.filter(v => v !== null && v !== undefined)
+              vals = vals.filter(v => v !== null && v !== undefined).map(v => v.toString().trim())
 
               // check column is multi or single select by comparing unique values
               // todo:
               if (vals.some(v => v && v.toString().includes(','))) {
-                const flattenedVals = vals.flatMap(v => v ? v.toString().split(',') : [])
+                const flattenedVals = vals.flatMap(v => v ? v.toString().trim().split(/\s*,\s*/) : [])
                 const uniqueVals = new Set(flattenedVals)
                 if (flattenedVals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(flattenedVals.length / 2)) {
                   column.uidt = UITypes.MultiSelect
-                  column.dtxp = [...uniqueVals].join(',')
+                  column.dtxp = `'${[...uniqueVals].join("','")}'`
                 }
               } else {
                 const uniqueVals = new Set(vals)
                 if (vals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(vals.length / 2)) {
                   column.uidt = UITypes.SingleSelect
-                  column.dtxp = [...uniqueVals].join(',')
+                  column.dtxp = `'${[...uniqueVals].join("','")}'`
                 }
               }
             }
@@ -154,7 +154,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         }
         this.data[sheet].push(rowData)
       }
-
       this.project.tables.push(table)
     }
   }

@@ -57,12 +57,13 @@ abstract class BaseModelXcMeta extends BaseRender {
       }
 
       const oldColMeta = this.ctx?.oldMeta?.columns?.find(c => {
-        return columnObj.cn == c.cn && columnObj.tpe == c.type;
+        return columnObj.cn == c.cn && (columnObj.type == c.type || c.dtx === "specificType");
       });
 
       if (oldColMeta) {
         columnObj._cn = oldColMeta._cn || columnObj._cn;
         columnObj.uidt = oldColMeta.uidt;
+        columnObj.validate = oldColMeta.validate || columnObj.validate
         if (
           (columnObj.dtxp === UITypes.MultiSelect ||
             columnObj.dtxp === UITypes.SingleSelect) &&

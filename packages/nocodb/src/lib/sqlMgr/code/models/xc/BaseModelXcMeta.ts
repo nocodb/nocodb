@@ -57,7 +57,7 @@ abstract class BaseModelXcMeta extends BaseRender {
       }
 
       const oldColMeta = this.ctx?.oldMeta?.columns?.find(c => {
-        return columnObj.cn == c.cn && columnObj.tpe == c.type;
+        return columnObj.cn == c.cn && columnObj.type == c.type;
       });
 
       if (oldColMeta) {

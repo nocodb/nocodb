@@ -431,7 +431,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           })
       );
 
-      tables.push(...views);
       await this.populteProcedureAndFunctionRoutes();
     }
 

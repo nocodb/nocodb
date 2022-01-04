@@ -26,63 +26,63 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 ### Advanced options & configurations
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-| Audit	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: |
-| App Store	| :white_check_mark: 	| :x: 	| :x: 	| :x: 	| :x: |
-| Team & Auth	| :white_check_mark: 	| :x: 	| :x: 	| :x: 	| :x: |
-| Project Metadata	| :white_check_mark: 	| :x: 	| :x: 	| :x: 	| :x: |
-| New user: Add Owner	| :white_check_mark: 	| :x: 	| :x: 	| :x: 	| :x: |
-| New user: Add Creator	| :white_check_mark: 	| :x: 	| :x: 	| :x: 	| :x: |
-| New user: Add Editor	| :white_check_mark: 	| :white_check_mark: 	| :x: 	| :x: 	| :x: |
-| New user: Add Commenter	| :white_check_mark: 	| :white_check_mark: 	| :x: 	| :x: 	| :x: |
-| New user: Add Viewer	| :white_check_mark: 	| :white_check_mark: 	| :x: 	| :x: 	| :x: |
-| View existing users	| :white_check_mark: 	| :white_check_mark: 	| :x: 	| :x: 	| :x: |
-| Preview mode	| :white_check_mark: 	| :white_check_mark: 	| :x: 	| :x: 	| :x: |
-| SQL Client	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	| :x: 	| :x: |
+| Audit	                  | ✅ | ✅ | ✅ | ✅	| ✅ |
+| App Store	              | ✅	| ❌ | ❌ | ❌	| ❌ |
+| Team & Auth	            | ✅	| ❌ | ❌ | ❌	| ❌ |
+| Project Metadata	      | ✅	| ❌ | ❌ | ❌	| ❌ |
+| New user: Add Owner	    | ✅	| ❌ | ❌ | ❌	| ❌ |
+| New user: Add Creator	  | ✅	| ❌ | ❌ | ❌	| ❌ |
+| New user: Add Editor	  | ✅	| ✅	| ❌	| ❌ | ❌ |
+| New user: Add Commenter	| ✅	| ✅	| ❌	| ❌ | ❌ |
+| New user: Add Viewer	  | ✅	| ✅	| ❌	| ❌ | ❌ |
+| View existing users	    | ✅	| ✅	| ❌	| ❌ | ❌ |
+| Preview mode	          | ✅	| ✅	| ❌	| ❌ | ❌ |
+| SQL Client	            | ✅	| ✅	| ✅	| ❌ | ❌ |
 
 ### Schema options
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-|	Add table	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
-|	Delete table	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
-|	Modify table	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
-|	Add column	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
-|	Delete column	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
-|	Modify column	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
+|	Add table	    | ✅ | ✅ | ❌	| ❌	| ❌	|
+|	Delete table	| ✅	| ✅	| ❌	| ❌	| ❌	|
+|	Modify table	| ✅	| ✅	| ❌	| ❌	| ❌	|
+|	Add column	  | ✅ | ✅	| ❌	| ❌	| ❌	|
+|	Delete column	| ✅	| ✅	| ❌	| ❌	| ❌	|
+|	Modify column	| ✅	| ✅	| ❌	| ❌	| ❌	|
 
 
 ### Record options
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-|	Add row	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	|
-|	Delete row	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	|
-|	Modify row/ cell	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	|
-|	Expand row	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	|
-|	Right click on cell (add/edit row)	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	|
-|	View table data (cell) contents	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
+|	Add row	          | ✅	| ✅	| ✅	| ❌	| ❌	|
+|	Delete row	      | ✅	| ✅	| ✅	| ❌	| ❌	|
+|	Modify row/ cell	| ✅	| ✅	| ✅	| ❌	| ❌	|
+|	Expand row	      | ✅	| ✅	| ✅	| ❌	| ❌	|
+|	Right click on cell (add/edit row)	| ✅	| ✅	| ✅	| ❌	| ❌	|
+|	View table data (cell) contents	    | ✅	| ✅	| ✅	| ✅	| ✅	|
 
 ### Comments
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-|	View comments from others	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :x:	|
-|	Add comments	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :x:	|
+|	View comments from others	| ✅	| ✅	| ✅	| ✅	| ❌	|
+|	Add comments	            | ✅	| ✅	| ✅	| ✅	| ❌	|
 
 ### Views
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-|	Create new view	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
-|	Share view	| :white_check_mark:	| :white_check_mark:	| :x:	| :x:	| :x:	|
+|	Create new view	| ✅	| ✅	| ❌	| ❌	| ❌	|
+|	Share view	    | ✅	| ✅	| ❌	| ❌	| ❌	|
 
 ### Project generals
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-|	Created views access	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
-|	Filter fields/ Column	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
-|	Filter fields/ Query	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
-|	Sort fields	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
-|	Theme	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
-|	Auth token	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
-|	Project Info	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
-|	Swagger API	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	| :white_check_mark:	|
+|	Created views access	| ✅	| ✅	| ✅	| ✅	| ✅	|
+|	Filter fields/ Column	| ✅	| ✅	| ✅	| ✅	| ✅	|
+|	Filter fields/ Query	| ✅	| ✅	| ✅	| ✅	| ✅	|
+|	Sort fields	          | ✅	| ✅	| ✅	| ✅	| ✅	|
+|	Theme	                | ✅	| ✅	| ✅	| ✅	| ✅	|
+|	Auth token	          | ✅	| ✅	| ✅	| ✅	| ✅	|
+|	Project Info	        | ✅	| ✅	| ✅	| ✅	| ✅	|
+|	Swagger API	          | ✅	| ✅	| ✅	| ✅	| ✅	|
 
 ### Automations
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|

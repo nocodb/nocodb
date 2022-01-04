@@ -1,86 +1,77 @@
+import { mainPage } from "../../support/page_objects/mainPage";
+import { projectsPage } from "../../support/page_objects/navigation";
+import { loginPage } from "../../support/page_objects/navigation";
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {
+  _advSettings,
+  _editSchema,
+  _editData,
+  _editComment,
+  _viewMenu,
+  _topRightMenu,
+} from "../spec/roleValidation.spec";
 
-import { mainPage } from "../../support/page_objects/mainPage"
-import { projectsPage } from "../../support/page_objects/navigation"
-import { loginPage } from "../../support/page_objects/navigation"
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
-import { _advSettings, _editSchema, _editData, _editComment, _viewMenu, _topRightMenu } from "../spec/roleValidation.spec"
-
-let linkText = ''
+let linkText = "";
 
 export const genTest = (type, xcdb) => {
-    if (!isTestSuiteActive(type, xcdb)) return;
-    
-    const permissionValidation = (roleType) => {
+  if (!isTestSuiteActive(type, xcdb)) return;
 
-        it(`${roleType}: Visit base shared URL`, () => {
-            cy.log(linkText)
+  const permissionValidation = (roleType) => {
+    it(`${roleType}: Visit base shared URL`, () => {
+      cy.log(linkText);
 
-            // visit URL & wait for page load to complete
-            cy.visit(linkText, {
-                baseUrl: null
-            })
-            projectsPage.waitHomePageLoad()
+      // visit URL & wait for page load to complete
+      cy.visit(linkText, {
+        baseUrl: null,
+      });
+      projectsPage.waitHomePageLoad();
 
-            cy.closeTableTab('Actor')
-        })        
+      cy.closeTableTab("Actor");
+    });
 
-        it(`${roleType}: Validate access permissions: advance menu`, () => {
-            _advSettings(roleType, false)
-        })
+    it(`${roleType}: Validate access permissions: advance menu`, () => {
+      _advSettings(roleType, false);
+    });
 
-        it(`${roleType}: Validate access permissions: edit schema`, () => {
-            _editSchema(roleType, false)
-        })
-            
-        it(`${roleType}: Validate access permissions: edit data`, () => {
-            _editData(roleType, false)
-        })
+    it(`${roleType}: Validate access permissions: edit schema`, () => {
+      _editSchema(roleType, false);
+    });
 
-        it(`${roleType}: Validate access permissions: edit comments`, () => {
-            _editComment(roleType, false)
-        })
+    it(`${roleType}: Validate access permissions: edit data`, () => {
+      _editData(roleType, false);
+    });
 
-        it(`${roleType}: Validate access permissions: view's menu`, () => {
-            _viewMenu(roleType, false)
-        })        
-    }
+    it(`${roleType}: Validate access permissions: edit comments`, () => {
+      _editComment(roleType, false);
+    });
 
-    describe(`${type.toUpperCase()} Base VIEW share`, () => {
-        // before(() => {
-        //     cy.waitForSpinners();
-        //     cy.signinOrSignup(roles.owner.credentials)
-        //     cy.wait(2000)
-        // })
+    it(`${roleType}: Validate access permissions: view's menu`, () => {
+      _viewMenu(roleType, false);
+    });
+  };
 
-        // after(() => {
-        //     cy.closeTableTab('Country')          
-        // })
-        
-        it(`Generate base share URL`, () => {
-            // click SHARE
-            cy.get('.nc-topright-menu')
-                .find('.nc-menu-share')
-                .click()
-            
-            // Click on readonly base text
-            cy.getActiveModal()
-                .find('.nc-disable-shared-base')
-                .click()
-            
-            // Select 'Readonly link'
-            cy.getActiveMenu()
-                .find('.caption')
-                .contains('Anyone with the link')
-                .click()
-            
-            // Copy URL
-            cy.getActiveModal()
-                .find('.nc-url')
-                .then(($obj) => {
-                    cy.log($obj[0])
-                    linkText = $obj[0].innerText.trim()
+  describe(`${type.toUpperCase()} Base VIEW share`, () => {
+    it(`Generate base share URL`, () => {
+      // click SHARE
+      cy.get(".nc-topright-menu").find(".nc-menu-share").click();
 
-                    const htmlFile = `
+      // Click on readonly base text
+      cy.getActiveModal().find(".nc-disable-shared-base").click();
+
+      // Select 'Readonly link'
+      cy.getActiveMenu()
+        .find(".caption")
+        .contains("Anyone with the link")
+        .click();
+
+      // Copy URL
+      cy.getActiveModal()
+        .find(".nc-url")
+        .then(($obj) => {
+          cy.log($obj[0]);
+          linkText = $obj[0].innerText.trim();
+
+          const htmlFile = `
 <!DOCTYPE html>
 <html>
 <body>
@@ -95,58 +86,57 @@ style="background: transparent; "></iframe>
 
 </body>
 </html>
-            `
-                    cy.writeFile("scripts/cypress/fixtures/sampleFiles/iFrame.html", htmlFile)
-            })
-        })
+            `;
+          cy.writeFile(
+            "scripts/cypress/fixtures/sampleFiles/iFrame.html",
+            htmlFile
+          );
+        });
+    });
 
-        permissionValidation('viewer')
+    permissionValidation("viewer");
 
-        it('Update to EDITOR base share link', () => {
-            loginPage.loginAndOpenProject(type)
+    it("Update to EDITOR base share link", () => {
+      loginPage.loginAndOpenProject(type, xcdb);
 
-            // click SHARE
-            cy.get('.nc-topright-menu')
-                .find('.nc-menu-share')
-                .click()
+      // click SHARE
+      cy.get(".nc-topright-menu").find(".nc-menu-share").click();
 
-            cy.getActiveModal()
-                .find('.nc-shared-base-role')
-                .click()
-            
-            cy.getActiveMenu()
-                .find('[role="menuitem"]')
-                .contains('Editor')
-                .click()            
-        })
+      cy.getActiveModal().find(".nc-shared-base-role").click();
 
-        permissionValidation('editor')
+      cy.getActiveMenu().find('[role="menuitem"]').contains("Editor").click();
+    });
 
-        it('Generate & verify embed HTML IFrame', { baseUrl: null }, () => {
-            // open iFrame html
-            cy.visit('scripts/cypress/fixtures/sampleFiles/iFrame.html')
+    permissionValidation("editor");
 
-            // wait for iFrame to load
-            cy.frameLoaded('.nc-embed')
+    it("Generate & verify embed HTML IFrame", { baseUrl: null }, () => {
+      // open iFrame html
+      cy.visit("scripts/cypress/fixtures/sampleFiles/iFrame.html");
 
-            // for GQL- additionally close GQL Client window
-            if (type === 'graphql') {
-                cy.iframe().find(`[title="Graphql Client"] > button.mdi-close`).click()
-            }
+      // wait for iFrame to load
+      cy.frameLoaded(".nc-embed");
 
-            // validation for base menu opitons
-            cy.iframe().find('.nc-project-tree').should('exist')
-            cy.iframe().find('.nc-fields-menu-btn').should('exist')
-            cy.iframe().find('.nc-sort-menu-btn').should('exist')
-            cy.iframe().find('.nc-filter-menu-btn').should('exist')
-            cy.iframe().find('.nc-actions-menu-btn').should('exist')
+      // for GQL- additionally close GQL Client window
+      if (type === "graphql") {
+        cy.iframe().find(`[title="Graphql Client"] > button.mdi-close`).click();
+      }
 
-            // validate data (row-1)
-            mainPage.getIFrameCell('FirstName', 1).contains("PENELOPE").should('exist')
-            mainPage.getIFrameCell('LastName', 1).contains("GUINESS").should('exist')
-        })        
-     })
-}
+      // validation for base menu opitons
+      cy.iframe().find(".nc-project-tree").should("exist");
+      cy.iframe().find(".nc-fields-menu-btn").should("exist");
+      cy.iframe().find(".nc-sort-menu-btn").should("exist");
+      cy.iframe().find(".nc-filter-menu-btn").should("exist");
+      cy.iframe().find(".nc-actions-menu-btn").should("exist");
+
+      // validate data (row-1)
+      mainPage
+        .getIFrameCell("FirstName", 1)
+        .contains("PENELOPE")
+        .should("exist");
+      mainPage.getIFrameCell("LastName", 1).contains("GUINESS").should("exist");
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

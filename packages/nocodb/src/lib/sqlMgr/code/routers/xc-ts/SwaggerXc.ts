@@ -358,9 +358,9 @@ class SwaggerXc extends BaseRender {
           },
           put: {
             tags: [`${this.ctx._tn}`],
-            summary: `Updates a ${this.ctx._tn}`,
+            summary: `Bulk ${this.ctx._tn} update`,
             description: '',
-            operationId: `update${this.ctx._tn}`,
+            operationId: `bulk${this.ctx._tn}Update`,
             consumes: ['application/json'],
             produces: ['application/json'],
             parameters: [
@@ -385,9 +385,9 @@ class SwaggerXc extends BaseRender {
           },
           delete: {
             tags: [`${this.ctx._tn}`],
-            summary: `Deletes a ${this.ctx._tn}`,
+            summary: `Bulk ${this.ctx._tn} delete`,
             description: '',
-            operationId: `delete${this.ctx._tn}`,
+            operationId: `bulk${this.ctx._tn}Delete`,
             produces: ['application/json'],
             parameters: [
               {

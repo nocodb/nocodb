@@ -13,6 +13,8 @@
 </template>
 
 <script>
+import dayjs from 'dayjs'
+
 export default {
   name: 'TimePickerCell',
   props: {
@@ -21,11 +23,27 @@ export default {
   computed: {
     localState: {
       get() {
-        return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : this.value
+        if (!this.value) {
+          return this.value
+        }
+        let dateTime = dayjs(this.value)
+        if (!dateTime.isValid()) {
+          dateTime = dayjs(this.value, 'HH:mm:ss')
+        }
+        if (!dateTime.isValid()) {
+          dateTime = dayjs(`1999-01-01 ${this.value}`)
+        }
+        if (!dateTime.isValid()) {
+          return this.value
+        }
+        return dateTime.format('HH:mm:ss')
       },
       set(val) {
-        this.$emit('input', (new Date(val).toJSON() || '').slice(0, 10) || val)
+        console.log(val)
+        const dateTime = dayjs(`1999-01-01 ${val}:00`)
+        if (dateTime.isValid()) { this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ')) }
       }
+
     },
     parentListeners() {
       const $listeners = {}
@@ -54,7 +72,7 @@ export default {
 
 <style scoped>
 .value {
-  width:100%;
+  width: 100%;
   min-height: 20px;
 }
 </style>

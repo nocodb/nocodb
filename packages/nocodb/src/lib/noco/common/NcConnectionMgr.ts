@@ -69,17 +69,26 @@ export default class NcConnectionMgr {
         connectionConfig?.connection?.ssl &&
         typeof connectionConfig?.connection?.ssl === 'object'
       ) {
-        if (connectionConfig.connection.ssl.caFilePath) {
+        if (
+          connectionConfig.connection.ssl.caFilePath &&
+          !connectionConfig.connection.ssl.ca
+        ) {
           connectionConfig.connection.ssl.ca = fs
             .readFileSync(connectionConfig.connection.ssl.caFilePath)
             .toString();
         }
-        if (connectionConfig.connection.ssl.keyFilePath) {
+        if (
+          connectionConfig.connection.ssl.keyFilePath &&
+          !connectionConfig.connection.ssl.key
+        ) {
           connectionConfig.connection.ssl.key = fs
             .readFileSync(connectionConfig.connection.ssl.keyFilePath)
             .toString();
         }
-        if (connectionConfig.connection.ssl.certFilePath) {
+        if (
+          connectionConfig.connection.ssl.certFilePath &&
+          !connectionConfig.connection.ssl.cert
+        ) {
           connectionConfig.connection.ssl.cert = fs
             .readFileSync(connectionConfig.connection.ssl.certFilePath)
             .toString();

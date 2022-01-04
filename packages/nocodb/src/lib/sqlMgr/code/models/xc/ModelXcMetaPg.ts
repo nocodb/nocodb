@@ -902,7 +902,7 @@ class ModelXcMetaPg extends BaseModelXcMeta {
     return str;
   }
 
-  getXcColumnsObject(args) {
+  /*  getXcColumnsObject(args) {
     const columnsArr = [];
 
     for (const column of args.columns) {
@@ -956,7 +956,7 @@ class ModelXcMetaPg extends BaseModelXcMeta {
 
     this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
-  }
+  }*/
 
   /*  getObject() {
     return {

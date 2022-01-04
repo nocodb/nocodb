@@ -90,7 +90,7 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0080000';
+    process.env.NC_VERSION = '0083008';
 
     this.router = express.Router();
     this.projectRouter = express.Router();
@@ -272,6 +272,10 @@ export default class Noco {
 
   public getConfig(): NcConfig {
     return this.config;
+  }
+
+  public getToolDir(): string {
+    return this.getConfig()?.toolDir;
   }
 
   public addToContext(context: any) {

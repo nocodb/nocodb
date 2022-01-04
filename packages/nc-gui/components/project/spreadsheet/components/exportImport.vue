@@ -39,7 +39,7 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
-          v-if="_isUIAllowed('csvImport')"
+          v-if="_isUIAllowed('csvImport') && !isView"
           dense
           @click="importModal = true"
         >
@@ -85,7 +85,8 @@ export default {
     nodes: Object,
     selectedView: Object,
     publicViewId: String,
-    queryParams: Object
+    queryParams: Object,
+    isView: Boolean
   },
   data() {
     return {

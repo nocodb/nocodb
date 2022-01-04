@@ -330,7 +330,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       request(app)
         .post('/auth/password/forgot')
         .send({ email: 'abc@abc.com' })
-        .expect(400, done);
+        .expect(200, done);
     });
 
     it('Forgot password with an existing email id', function(done) {

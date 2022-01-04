@@ -23,7 +23,7 @@
       >
         Reload
       </x-btn>
-      <x-btn
+      <!--      <x-btn
         outlined
         tooltip="Toggle All"
         small
@@ -33,7 +33,7 @@
         @click="toggleAll(toggle)"
       >
         Toggle All {{ toggle ? 'ON' : 'OFF' }}
-      </x-btn>
+      </x-btn>-->
       <x-btn
         outlined
         tooltip="Save Changes"
@@ -68,12 +68,22 @@
         <template #header>
           <thead>
             <tr class="text-left caption">
-              <th>#</th>
-              <th>Table Name <span class="caption grey--text">({{ selectedCount }})</span></th>
-              <th>Relation</th>
-              <th>Parent</th>
-              <th>Child</th>
-              <th />
+              <th class="grey--text">
+                #
+              </th>
+              <th class="grey--text">
+                Table Name <span class="caption grey--text">({{ selectedCount }})</span>
+              </th>
+              <th class="grey--text">
+                Relation
+              </th>
+              <th class="grey--text">
+                Parent
+              </th>
+              <th class="grey--text">
+                Child
+              </th>
+              <!--              <th />-->
             </tr>
           </thead>
         </template>
@@ -85,7 +95,7 @@
             <td>{{ item.relationType === 'hm' ? 'HasMany' : 'BelongsTo' }}</td>
             <td>{{ item.rtn }}</td>
             <td>{{ item.tn }}</td>
-            <td>
+            <!--            <td>
               <v-checkbox
                 v-model="item.enabled"
                 class=""
@@ -93,7 +103,7 @@
                 hide-details
                 @change="$set(item,'edited',true)"
               />
-            </td>
+            </td>-->
           </tr>
         </template>
       </v-data-table>

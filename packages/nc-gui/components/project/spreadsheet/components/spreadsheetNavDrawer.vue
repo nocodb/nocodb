@@ -16,97 +16,115 @@
               <span class="body-2 grey--text">{{ $t('nav_drawer.title') }}</span>
             </v-list-item>
             <v-list-item-group v-model="selectedViewIdLocal" mandatory color="primary">
-              <v-list-item
-                v-for="(view, i) in viewsList"
-                :key="view.id"
-                dense
-                :value="view.id"
-                active-class="x-active--text"
-                class="body-2  view nc-view-item"
-                :class="`nc-${view.show_as}-view-item`"
-                @click="$emit('generateNewViewKey')"
+              <draggable
+                :is="_isUIAllowed('viewlist-drag-n-drop') ? 'draggable' : 'div'"
+                v-model="viewsList"
+                draggable="div"
+                v-bind="dragOptions"
+                @change="onMove($event)"
               >
-                <v-list-item-icon class="mr-n1">
-                  <v-icon
-                    v-if="viewIcons[view.show_as]"
-                    x-small
-                    :color="viewIcons[view.show_as].color"
+                <transition-group type="transition" :name="!drag ? 'flip-list' : null">
+                  <v-list-item
+                    v-for="(view, i) in viewsList"
+                    :key="view.id"
+                    dense
+                    :value="view.id"
+                    active-class="x-active--text"
+                    class="body-2  view nc-view-item nc-draggable-child"
+                    :class="`nc-${view.show_as}-view-item`"
+                    @click="$emit('generateNewViewKey')"
                   >
-                    {{ viewIcons[view.show_as].icon }}
-                  </v-icon>
-                  <v-icon v-else color="primary" small>
-                    mdi-table
-                  </v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  <v-tooltip bottom>
-                    <template #activator="{ on }">
-                      <div
-                        class="font-weight-regular"
-                        style="overflow: hidden; text-overflow: ellipsis"
+                    <v-icon
+                      v-if="_isUIAllowed('viewlist-drag-n-drop')"
+                      small
+                      :class="`nc-child-draggable-icon nc-child-draggable-icon-${view.title}`"
+                      @click.stop
+                    >
+                      mdi-drag-vertical
+                    </v-icon>
+                    <v-list-item-icon class="mr-n1">
+                      <v-icon
+                        v-if="viewIcons[view.show_as]"
+                        x-small
+                        :color="viewIcons[view.show_as].color"
                       >
-                        <input
-                          v-if="view.edit"
-                          :ref="`input${i}`"
-                          v-model="view.title_temp"
-                          @click.stop
-                          @keydown.enter.stop="updateViewName(view, i)"
-                          @blur="updateViewName(view, i)"
-                        >
-                        <template
-                          v-else
-                        >
-                          <span v-on="on">{{ view.alias || view.title }}</span>
+                        {{ viewIcons[view.show_as].icon }}
+                      </v-icon>
+                      <v-icon v-else color="primary" small>
+                        mdi-table
+                      </v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>
+                      <v-tooltip bottom>
+                        <template #activator="{ on }">
+                          <div
+                            class="font-weight-regular"
+                            style="overflow: hidden; text-overflow: ellipsis"
+                          >
+                            <input
+                              v-if="view.edit"
+                              :ref="`input${i}`"
+                              v-model="view.title_temp"
+                              @click.stop
+                              @keydown.enter.stop="updateViewName(view, i)"
+                              @blur="updateViewName(view, i)"
+                            >
+                            <template
+                              v-else
+                            >
+                              <span v-on="on">{{ view.alias || view.title }}</span>
+                            </template>
+                          </div>
                         </template>
-                      </div>
+                        {{ view.alias || view.title }}
+                      </v-tooltip>
+                    </v-list-item-title>
+                    <v-spacer />
+                    <template v-if="_isUIAllowed('virtualViewsCreateOrEdit')">
+                      <!-- Copy view -->
+                      <x-icon
+                        v-if="view.type === 'vtable' && !view.edit"
+                        :tooltip="$t('nav_drawer.virtual_views.action.copy')"
+                        x-small
+                        color="primary"
+                        icon-class="view-icon nc-view-copy-icon"
+                        @click.stop="copyView(view, i)"
+                      >
+                        mdi-content-copy
+                      </x-icon>
+                      <!-- Rename view -->
+                      <x-icon
+                        v-if="view.type === 'vtable' && !view.edit"
+                        :tooltip="$t('nav_drawer.virtual_views.action.rename')"
+                        x-small
+                        color="primary"
+                        icon-class="view-icon nc-view-edit-icon"
+                        @click.stop="showRenameTextBox(view, i)"
+                      >
+                        mdi-pencil
+                      </x-icon>
+                      <!-- Delete view" -->
+                      <x-icon
+                        v-if="view.type === 'vtable'"
+                        :tooltip="$t('nav_drawer.virtual_views.action.delete')"
+                        small
+                        color="error"
+                        icon-class="view-icon nc-view-delete-icon"
+                        @click.stop="deleteView(view)"
+                      >
+                        mdi-delete-outline
+                      </x-icon>
                     </template>
-                    {{ view.alias || view.title }}
-                  </v-tooltip>
-                </v-list-item-title>
-                <v-spacer />
-                <template v-if="_isUIAllowed('virtualViewsCreateOrEdit')">
-                  <!-- Copy view -->
-                  <x-icon
-                    v-if="view.type === 'vtable' && !view.edit"
-                    :tooltip="$t('nav_drawer.virtual_views.action.copy')"
-                    x-small
-                    color="primary"
-                    icon-class="view-icon nc-view-copy-icon"
-                    @click.stop="copyView(view, i)"
-                  >
-                    mdi-content-copy
-                  </x-icon>
-                  <!-- Rename view -->
-                  <x-icon
-                    v-if="view.type === 'vtable' && !view.edit"
-                    :tooltip="$t('nav_drawer.virtual_views.action.rename')"
-                    x-small
-                    color="primary"
-                    icon-class="view-icon nc-view-edit-icon"
-                    @click.stop="showRenameTextBox(view, i)"
-                  >
-                    mdi-pencil
-                  </x-icon>
-                  <!-- Delete view" -->
-                  <x-icon
-                    v-if="view.type === 'vtable'"
-                    :tooltip="$t('nav_drawer.virtual_views.action.delete')"
-                    small
-                    color="error"
-                    icon-class="view-icon nc-view-delete-icon"
-                    @click.stop="deleteView(view)"
-                  >
-                    mdi-delete-outline
-                  </x-icon>
-                </template>
-                <v-icon
-                  v-if="view.id === selectedViewId"
-                  small
-                  class="check-icon"
-                >
-                  mdi-check-bold
-                </v-icon>
-              </v-list-item>
+                    <v-icon
+                      v-if="view.id === selectedViewId"
+                      small
+                      class="check-icon"
+                    >
+                      mdi-check-bold
+                    </v-icon>
+                  </v-list-item>
+                </transition-group>
+              </draggable>
             </v-list-item-group>
           </v-list>
           <template v-if="hideViews && _isUIAllowed('virtualViewsCreateOrEdit')">
@@ -499,13 +517,14 @@
 </template>
 
 <script>
+import draggable from 'vuedraggable'
 import CreateViewDialog from '@/components/project/spreadsheet/dialog/createViewDialog'
 import Extras from '~/components/project/spreadsheet/components/extras'
 import viewIcons from '~/helpers/viewIcons'
 
 export default {
   name: 'SpreadsheetNavDrawer',
-  components: { Extras, CreateViewDialog },
+  components: { Extras, CreateViewDialog, draggable },
   props: {
     extraViewParams: Object,
     showAdvanceOptions: Boolean,
@@ -537,6 +556,13 @@ export default {
     showSystemFields: Boolean
   },
   data: () => ({
+    drag: false,
+    dragOptions: {
+      animation: 200,
+      group: 'description',
+      disabled: false,
+      ghostClass: 'ghost'
+    },
     time: Date.now(),
     sponsorMiniVisible: true,
     enableDummyFeat: false,
@@ -578,8 +604,9 @@ export default {
       get() {
         let id
         if (this.viewsList) {
+          console.log(this.viewsList)
           const view = this.viewsList.find(v => (v.alias ? v.alias : v.title) === this.$route.query.view)
-          id = (view && view.id) || (this.viewsList[0] && this.viewsList[0].id)
+          id = (view && view.id) || (this.viewsList && this.viewsList[0] || {}).id
         }
         return id
       }
@@ -603,6 +630,22 @@ export default {
     this.onViewIdChange(this.selectedViewIdLocal)
   },
   methods: {
+    async onMove(event) {
+      if (this.viewsList.length - 1 === event.moved.newIndex) {
+        this.$set(this.viewsList[event.moved.newIndex], 'view_order', this.viewsList[event.moved.newIndex - 1].view_order + 1)
+      } else if (event.moved.newIndex === 0) {
+        this.$set(this.viewsList[event.moved.newIndex], 'view_order', this.viewsList[1].view_order / 2)
+      } else {
+        this.$set(this.viewsList[event.moved.newIndex], 'view_order', (this.viewsList[event.moved.newIndex - 1].view_order + this.viewsList[event.moved.newIndex + 1].view_order) / 2)
+      }
+
+      console.log(this.viewsList)
+
+      await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'xcModelViewOrderSet', {
+        id: this.viewsList[event.moved.newIndex].id,
+        view_order: this.viewsList[event.moved.newIndex].view_order
+      }])
+    },
     onViewIdChange(id) {
       const selectedView = this.viewsList && this.viewsList.find(v => v.id === id)
       let queryParams = {}
@@ -923,4 +966,31 @@ export default {
     opacity: 1;
   }
 }
+
+.nc-draggable-child .nc-child-draggable-icon {
+  opacity: 0;
+  transition: .3s opacity;
+  position: absolute;
+  left: 0;
+}
+
+.nc-draggable-child:hover .nc-child-draggable-icon {
+  opacity: 1;
+}
+
+.nc-draggable-child:hover .nc-child-draggable-icon {
+  opacity: 1;
+}
+
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
+}
+.ghost {
+  opacity: 0.5;
+  background: grey;
+}
+
 </style>

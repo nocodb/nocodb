@@ -87,6 +87,7 @@ PaymentList(where:"(checkNumber,eq,JM555205)~or((amount,gt,200)~and(amount,lt,20
 ```
 
 #### Logical operators
+
 ```
 ~or     -   'or'
 ~and    -   'and'

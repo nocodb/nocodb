@@ -186,6 +186,7 @@ docker run -d -p 8080:8080 \
 ## Docker Compose
 ```
 git clone https://github.com/nocodb/nocodb
+cd nocodb
 cd docker-compose
 cd mysql or pg or mssql
 docker-compose up
@@ -346,6 +347,13 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/jiione"><img src="https://avatars.githubusercontent.com/u/83341978?v=4?s=100" width="100px;" alt=""/><br /><sub><b>jiwon</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=jiione" title="Code">💻</a></td>
     <td align="center"><a href="http://quantimo.do"><img src="https://avatars.githubusercontent.com/u/2808553?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mike P. Sinn</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mikepsinn" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/candideu"><img src="https://avatars.githubusercontent.com/u/55474996?v=4?s=100" width="100px;" alt=""/><br /><sub><b>candideu</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=candideu" title="Code">💻</a></td>
+    <td align="center"><a href="http://siderealart.me"><img src="https://avatars.githubusercontent.com/u/30827929?v=4?s=100" width="100px;" alt=""/><br /><sub><b>SiderealArt</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=SiderealArt" title="Code">💻</a></td>
+    <td align="center"><a href="http://vijayrathore.me"><img src="https://avatars.githubusercontent.com/u/17380265?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Vijay Rathore</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=vijayrathore8492" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/John-Appleseed"><img src="https://avatars.githubusercontent.com/u/7055847?v=4?s=100" width="100px;" alt=""/><br /><sub><b>John Appleseed</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=John-Appleseed" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Korayem"><img src="https://avatars.githubusercontent.com/u/198332?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Salem Korayem</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=Korayem" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/dubiao"><img src="https://avatars.githubusercontent.com/u/4001793?v=4?s=100" width="100px;" alt=""/><br /><sub><b>标</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dubiao" title="Code">💻</a></td>
   </tr>
 </table>
 
@@ -357,3 +365,4 @@ Our mission is to provide the most powerful no-code interface for databases whic
 
 
 
+ 

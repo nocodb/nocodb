@@ -1,50 +1,61 @@
-
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
-  if(!isTestSuiteActive(type, xcdb)) return;
+  if (!isTestSuiteActive(type, xcdb)) return;
 
   describe(`${type.toUpperCase()} api - Table: belongs to, link record`, () => {
-    
     before(() => {
-      cy.openTableTab('Country')
-      // wait for page rendering to complete
-      cy.get('.nc-grid-row').should('have.length', 25)    
-    })
+      cy.openTableTab("Country", 25);
+    });
 
     after(() => {
-      cy.closeTableTab('Country')
-    })    
+      cy.closeTableTab("Country");
+    });
 
-    it('Table column header, URL validation', () => {
+    it("Table column header, URL validation", () => {
       // column name validation
-      cy.get(`.project-tab:contains(Country):visible`).should('exist')
+      cy.get(`.project-tab:contains(Country):visible`).should("exist");
       // URL validation
-      cy.url().should('contain', `name=Country`)
-    })
+      cy.url().should("contain", `name=Country`);
+    });
 
-    it('Expand belongs-to column', () => {
+    it("Expand belongs-to column", () => {
       // expand first row
-      cy.get('td[data-col="Country => City"] div:visible', {timeout: 12000}).first().click()
-      cy.get('td[data-col="Country => City"] div .mdi-arrow-expand:visible').first().click()
-    })
+      cy.get('td[data-col="Country => City"] div:visible', { timeout: 12000 })
+        .first()
+        .click();
+      cy.get('td[data-col="Country => City"] div .mdi-arrow-expand:visible')
+        .first()
+        .click();
+    });
 
-    it('Expand Link record, validate', () => {
-      cy.getActiveModal().find('button:contains(Link to \'City\')').click()
+    it("Expand Link record, validate", () => {
+      cy.getActiveModal()
+        .find("button:contains(Link to 'City')")
+        .click()
         .then(() => {
           // Link record form validation
-          cy.getActiveModal().contains('Link Record').should('exist')
-          cy.getActiveModal().find('button.mdi-reload').should('exist')
-          cy.getActiveModal().find('button:contains("New Record")').should('exist')
-          cy.getActiveModal().find('.child-card').eq(0).contains('A Corua (La Corua)').should('exist')
+          cy.getActiveModal().contains("Link Record").should("exist");
+          cy.getActiveModal().find("button.mdi-reload").should("exist");
+          cy.getActiveModal()
+            .find('button:contains("New Record")')
+            .should("exist");
+          cy.getActiveModal()
+            .find(".child-card")
+            .eq(0)
+            .contains("A Corua (La Corua)")
+            .should("exist");
 
-          cy.getActiveModal().find('button.mdi-close').click().then(() => {
-            cy.getActiveModal().find('button.mdi-close').click()
-          })
-      })
-    })
-  })
-}
+          cy.getActiveModal()
+            .find("button.mdi-close")
+            .click()
+            .then(() => {
+              cy.getActiveModal().find("button.mdi-close").click();
+            });
+        });
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

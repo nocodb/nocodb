@@ -184,7 +184,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <x-icon
-                          v-if="_isUIAllowed('treeview-add-button')"
+                          v-if="_isUIAllowed('treeview-add-button') && item.type !== 'viewDir'"
                           :color="['x-active', 'grey']"
                           small
                           v-on="on"
@@ -201,106 +201,125 @@
                   </template>
 
                   <v-list-item-group :value="selectedItem">
-                    <v-list-item
-                      v-for="child in item.children || []"
-                      v-show="!search || child.name.toLowerCase().includes(search.toLowerCase())"
-                      :key="child.key"
-                      color="x-active"
-                      active-class="font-weight-bold"
-                      :selectable="true"
-                      dense
-                      :value="`${(child._nodes && child._nodes).type || ''}||${
-                        (child._nodes && child._nodes.dbAlias) || ''
-                      }||${child.name}`"
-                      class="nested ml-3"
-                      @click.stop="addTab({ ...child }, false, true)"
-                      @contextmenu.prevent.stop="showCTXMenu($event, child, false, true)"
+                    <component
+                      :is="_isUIAllowed('treeview-drag-n-drop') ? 'draggable' : 'div'"
+                      v-model="item.children"
+                      draggable="div"
+                      v-bind="dragOptions"
+                      @change="onMove($event, item.children)"
                     >
-                      <v-list-item-icon>
-                        <v-icon
-                          v-if="icons[child._nodes.type].openIcon"
-                          x-small
-                          style="cursor: auto"
-                          :color="icons[child._nodes.type].openColor"
+                      <transition-group type="transition" :name="!drag ? 'flip-list' : null">
+                        <v-list-item
+                          v-for="child in item.children || []"
+                          v-show="!search || child.name.toLowerCase().includes(search.toLowerCase())"
+                          :key="child.key"
+                          color="x-active"
+                          active-class="font-weight-bold"
+                          :selectable="true"
+                          dense
+                          :value="`${(child._nodes && child._nodes).type || ''}||${
+                            (child._nodes && child._nodes.dbAlias) || ''
+                          }||${child.name}`"
+                          class="nested ml-3 nc-draggable-child"
+                          style="position: relative"
+                          @click.stop="addTab({ ...child }, false, true)"
+                          @contextmenu.prevent.stop="showCTXMenu($event, child, false, true)"
                         >
-                          {{ icons[child._nodes.type].openIcon }}
-                        </v-icon>
-                        <v-icon
-                          v-else
-                          x-small
-                          style="cursor: auto"
-                          :color="icons[child._nodes.type].color"
-                        >
-                          {{ icons[child._nodes.type].icon }}
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        <v-tooltip
-                          v-if="_isUIAllowed('creator_tooltip') && child.creator_tooltip"
-                          bottom
-                        >
-                          <template #activator="{ on }">
-                            <span class="caption" v-on="on" @dblclick="showSqlClient = true">
-                              {{ child.name }}
-                            </span>
+                          <v-icon
+                            v-if="_isUIAllowed('treeview-drag-n-drop')"
+                            small
+                            :class="`nc-child-draggable-icon nc-child-draggable-icon-${child.name}`"
+                          >
+                            mdi-drag-vertical
+                          </v-icon>
+
+                          <v-list-item-icon>
+                            <v-icon
+                              v-if="icons[child._nodes.type].openIcon"
+                              style="cursor: auto"
+                              x-small
+                              :color="icons[child._nodes.type].openColor"
+                            >
+                              {{ icons[child._nodes.type].openIcon }}
+                            </v-icon>
+                            <v-icon
+                              v-else
+                              x-small
+                              style="cursor: auto"
+                              :color="icons[child._nodes.type].color"
+                            >
+                              {{ icons[child._nodes.type].icon }}
+                            </v-icon>
+                          </v-list-item-icon>
+                          <v-list-item-title>
+                            <v-tooltip
+                              v-if="_isUIAllowed('creator_tooltip') && child.creator_tooltip"
+                              bottom
+                            >
+                              <template #activator="{ on }">
+                                <span class="caption" v-on="on" @dblclick="showSqlClient = true">
+                                  {{ child.name }}
+                                </span>
+                              </template>
+                              <span class="caption">{{ child.creator_tooltip }}</span>
+                            </v-tooltip>
+                            <span v-else class="caption">{{ child.name }}</span>
+                          </v-list-item-title>
+                          <template v-if="child.type === 'table'">
+                            <v-spacer />
+                            <div class="action d-flex" @click.stop>
+                              <v-menu>
+                                <template #activator="{ on }">
+                                  <v-icon
+                                    v-if="
+                                      _isUIAllowed('treeview-rename-button')||_isUIAllowed('ui-acl')
+                                    "
+                                    small
+                                    v-on="on"
+                                  >
+                                    mdi-dots-vertical
+                                  </v-icon>
+                                </template>
+
+                                <v-list dense>
+                                  <v-list-item
+                                    v-if="_isUIAllowed('treeview-rename-button')"
+                                    dense
+                                    @click="
+                                      menuItem = child;
+                                      dialogRenameTable.cookie = child;
+                                      dialogRenameTable.dialogShow = true;
+                                      dialogRenameTable.defaultValue = child.name;
+                                    "
+                                  >
+                                    <v-list-item-icon>
+                                      <v-icon x-small>
+                                        mdi-pencil-outline
+                                      </v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-title>
+                                      <span classs="caption">Rename</span>
+                                    </v-list-item-title>
+                                  </v-list-item>
+                                  <v-list-item v-if="_isUIAllowed('ui-acl')" dense @click="openUIACL">
+                                    <v-list-item-icon>
+                                      <v-icon x-small>
+                                        mdi-shield-outline
+                                      </v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-title>
+                                      <span classs="caption">UI ACL</span>
+                                    </v-list-item-title>
+                                  </v-list-item>
+                                </v-list>
+                              </v-menu>
+
+                            <!--                          <v-icon @click.stop="" x-small>mdi-delete-outline</v-icon>-->
+                            </div>
                           </template>
-                          <span class="caption">{{ child.creator_tooltip }}</span>
-                        </v-tooltip>
-                        <span v-else class="caption">{{ child.name }}</span>
-                      </v-list-item-title>
-                      <template v-if="child.type === 'table'">
-                        <v-spacer />
-                        <div class="action d-flex" @click.stop>
-                          <v-menu>
-                            <template #activator="{ on }">
-                              <v-icon
-                                v-if="
-                                  _isUIAllowed('treeview-rename-button')||_isUIAllowed('ui-acl')
-                                "
-                                small
-                                v-on="on"
-                              >
-                                mdi-dots-vertical
-                              </v-icon>
-                            </template>
-
-                            <v-list dense>
-                              <v-list-item
-                                v-if="_isUIAllowed('treeview-rename-button')"
-                                dense
-                                @click="
-                                  menuItem = child;
-                                  dialogRenameTable.cookie = child;
-                                  dialogRenameTable.dialogShow = true;
-                                  dialogRenameTable.defaultValue = child.name;
-                                "
-                              >
-                                <v-list-item-icon>
-                                  <v-icon x-small>
-                                    mdi-pencil-outline
-                                  </v-icon>
-                                </v-list-item-icon>
-                                <v-list-item-title>
-                                  <span classs="caption">Rename</span>
-                                </v-list-item-title>
-                              </v-list-item>
-                              <v-list-item v-if="_isUIAllowed('ui-acl')" dense @click="openUIACL">
-                                <v-list-item-icon>
-                                  <v-icon x-small>
-                                    mdi-shield-outline
-                                  </v-icon>
-                                </v-list-item-icon>
-                                <v-list-item-title>
-                                  <span classs="caption">UI ACL</span>
-                                </v-list-item-title>
-                              </v-list-item>
-                            </v-list>
-                          </v-menu>
-
-                          <!--                          <v-icon @click.stop="" x-small>mdi-delete-outline</v-icon>-->
-                        </div>
-                      </template>
-                    </v-list-item>
+                        </v-list-item>
+                      </transition-group>
+                    </component>
                   </v-list-item-group>
                 </v-list-group>
                 <v-list-item
@@ -688,10 +707,11 @@ import SponsorMini from '@/components/sponsorMini';
 import {validateTableName} from "~/helpers";
 import ExcelImport from "~/components/import/excelImport";
 
-// const {clipboard} = require('electron');
+import draggable from 'vuedraggable'
 
 export default {
   components: {
+    draggable,
     ExcelImport,
     SponsorMini,
     DlgViewCreate,
@@ -700,6 +720,13 @@ export default {
     dlgLabelSubmitCancel,
   },
   data: () => ({
+    drag:false,
+    dragOptions:{
+      animation: 200,
+      group: "description",
+      disabled: false,
+      ghostClass: "ghost"
+    },
     validateTableName,
     roleIcon: {
       owner: 'mdi-account-star',
@@ -833,7 +860,23 @@ export default {
     },
   },
   methods: {
-    openUIACL() {
+    async onMove(event, children) {
+
+
+      if (children.length - 1 === event.moved.newIndex) {
+        this.$set(children[event.moved.newIndex], 'order', children[event.moved.newIndex - 1].order + 1)
+      } else if (event.moved.newIndex === 0) {
+        this.$set(children[event.moved.newIndex], 'order', children[1].order / 2)
+      } else {
+        this.$set(children[event.moved.newIndex], 'order', (children[event.moved.newIndex - 1].order + children[event.moved.newIndex + 1].order) / 2)
+      }
+
+      await this.$store.dispatch('sqlMgr/ActSqlOp', [{dbAlias: 'db'}, 'xcModelOrderSet', {
+        tn: children[event.moved.newIndex].tn,
+        order: children[event.moved.newIndex].order,
+      }])
+
+    }, openUIACL() {
       this.disableOrEnableModelTabAdd();
       setTimeout(() => {
         this.$router.push({
@@ -1179,7 +1222,10 @@ export default {
             this.dialogGetFunctionName.dialogShow = true;
           } else if (action === 'ENV_DB_FUNCTIONS_CREATE') {
             this.dialogGetFunctionName.dialogShow = true;
-          } else if (action === 'ENV_DB_VIEWS_REFRESH') {
+          } else if (action === "ENV_DB_TABLES_REFRESH") {
+            await this.loadTables(this.menuItem);
+            this.$toast.success('Tables refreshed').goAway(1000);
+          }else if (action === 'ENV_DB_VIEWS_REFRESH') {
             await this.loadViews(this.menuItem);
             this.$toast.success('Views refreshed').goAway(1000);
           } else if (action === 'IMPORT_EXCEL') {
@@ -1790,10 +1836,10 @@ export default {
 /deep/ .nc-table-list-filter .v-input__slot {
   min-height: 30px !important;
 }
+
 /deep/ .nc-table-list-filter .v-input__slot label {
   top: 6px;
 }
-
 
 
 /deep/ .nc-table-list-filter.theme--light.v-text-field > .v-input__control > .v-input__slot:before {
@@ -1802,6 +1848,31 @@ export default {
 
 /deep/ .nc-table-list-filter.theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
   border-top-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+
+.nc-draggable-child .nc-child-draggable-icon {
+  opacity: 0;
+  transition: .3s opacity;
+  position: absolute;
+  left: 0;
+}
+
+.nc-draggable-child:hover .nc-child-draggable-icon {
+  opacity: 1;
+}
+
+
+
+ .flip-list-move {
+  transition: transform 0.5s;
+}
+  .no-move {
+  transition: transform 0s;
+}
+  .ghost {
+  opacity: 0.5;
+  background: grey;
 }
 
 </style>

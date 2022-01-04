@@ -27,6 +27,7 @@
             small
             color="primary"
             icon="refresh"
+            class="nc-acl-reload"
             @click="loadTableList()"
           >
             Reload
@@ -39,6 +40,7 @@
             small
             color="primary"
             icon="save"
+            class="nc-acl-save"
             @click="save()"
           >
             Save
@@ -46,14 +48,17 @@
         </v-toolbar>
 
         <div class="d-flex d-100 justify-center">
-          <v-simple-table dense style="min-width: 400px">
+          <v-simple-table v-if="tables" dense style="min-width: 400px">
             <thead>
               <tr>
-                <th>
-                  Models
+                <th class="caption" bgcolor="#F5F5F5" width="100px">
+                  TableName
                 </th>
-                <th v-for="role in roles" :key="role">
-                  {{ role }}
+                <th class="caption" bgcolor="#F5F5F5" width="150px">
+                  ViewName
+                </th>
+                <th v-for="role in roles" :key="role" class="caption" bgcolor="#F5F5F5" width="100px">
+                  {{ role.charAt(0).toUpperCase() + role.slice(1) }}
                 </th>
               </tr>
             </thead>
@@ -64,14 +69,23 @@
                 <tr
                   v-if="table._tn.toLowerCase().indexOf(filter.toLowerCase()) > -1"
                   :key="table.tn"
+                  :class="`nc-acl-table-row nc-acl-table-row-${table._tn}`"
                 >
                   <td>
                     <v-tooltip bottom>
                       <template #activator="{on}">
-                        <span v-on="on">{{ table._tn }}</span>
+                        <span class="caption ml-2" v-on="on">{{ table.type === 'table' ? table._tn:table.type === 'view' ? table._tn : table.ptn.charAt(0).toUpperCase()+table.ptn.slice(1) }}</span>
                       </template>
                       <span class="caption">{{ table.tn }}</span>
                     </v-tooltip>
+                  </td>
+                  <td>
+                    <v-icon small :color="viewIcons[table.type === 'vtable' ? table.show_as : table.type].color" v-on="on">
+                      {{ viewIcons[table.type === 'vtable' ? table.show_as : table.type].icon }}
+                    </v-icon>
+                    <span v-if="table.ptn" class="caption">{{ table._tn }}</span>
+                    <span v-else class="caption">{{ 'Default' }}</span>
+                    <!--                    {{ table.show_as || table.type }}-->
                   </td>
                   <td v-for="role in roles" :key="`${table.tn}-${role}`">
                     <v-tooltip bottom>
@@ -81,7 +95,9 @@
                         >
                           <v-checkbox
                             v-model="table.disabled[role]"
+                            :class="`pt-0 mt-0 nc-acl-${table._tn.toLowerCase().replace('_','')}-${role}-chkbox`"
                             dense
+                            hide-details
                             :true-value="false"
                             :false-value="true"
                             @change="$set(table,'edited',true)"
@@ -89,16 +105,17 @@
                         </div>
                       </template>
 
-                      <span v-if="table.disabled[role]">Click to hide '{{ table.tn }}' for Role:{{
+                      <span v-if="table.disabled[role]">Click to make '{{ table.tn }}' visible for Role:{{
                         role
                       }} in UI dashboard</span>
-                      <span v-else>Click to make '{{ table.tn }}' visible for Role:{{ role }} in UI dashboard</span>
+                      <span v-else>Click to hide '{{ table.tn }}' for Role:{{ role }} in UI dashboard</span>
                     </v-tooltip>
                   </td>
                 </tr>
               </template>
             </tbody>
           </v-simple-table>
+          <v-skeleton-loader v-else type="table" />
         </div>
       </v-card>
     </v-card>
@@ -107,12 +124,14 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import viewIcons from '~/helpers/viewIcons'
 
 export default {
   name: 'ToggleTableUiAcl',
   components: {},
   props: ['nodes', 'db'],
   data: () => ({
+    viewIcons,
     models: null,
     updating: false,
     dbsTab: 0,
@@ -128,7 +147,7 @@ export default {
         dbAlias: this.db.meta.dbAlias,
         env: this.$store.getters['project/GtrEnv']
       }, 'xcVisibilityMetaGet', {
-        type: 'table'
+        type: 'all'
       }]))
     },
     async save() {
@@ -136,8 +155,7 @@ export default {
         await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           dbAlias: this.db.meta.dbAlias,
           env: this.$store.getters['project/GtrEnv']
-        }, 'xcVisibilityMetaSet', {
-          type: 'table',
+        }, 'xcVisibilityMetaSetAll', {
           disableList: this.tables.filter(t => t.edited)
         }])
         this.$toast.success('Updated UI ACL for tables successfully').goAway(3000)

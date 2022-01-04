@@ -1,5 +1,5 @@
 <template>
-  <xc-table />
+  <xc-table is-view />
 </template>
 
 <script>

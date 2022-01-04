@@ -650,14 +650,14 @@
                                                         <!-- Inflection - Table name -->
                                                         <v-select
                                                           v-model="db.meta.inflection.tn"
+                                                          :disabled="edit"
                                                           class="caption"
                                                           :label="
                                                             $t(
                                                               'projects.ext_db.credentials.advanced.inflection.table_name'
                                                             )
                                                           "
-                                                          single
-                                                          :items="['camelize', 'none']"
+                                                          :items="project.projectType === 'rest' ? ['camelize', 'none'] : ['camelize']"
                                                         >
                                                           <template #item="{ item }">
                                                             <span class="caption">{{ item }}</span>
@@ -668,14 +668,14 @@
                                                         <!-- Inflection - Column name -->
                                                         <v-select
                                                           v-model="db.meta.inflection.cn"
+                                                          :disabled="edit"
                                                           class="caption"
                                                           :label="
                                                             $t(
                                                               'projects.ext_db.credentials.advanced.inflection.column_name'
                                                             )
                                                           "
-                                                          single
-                                                          :items="['camelize', 'none']"
+                                                          :items="project.projectType === 'rest' ? ['camelize', 'none'] : ['camelize']"
                                                         >
                                                           <template #item="{ item }">
                                                             <span class="caption">{{ item }}</span>

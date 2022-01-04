@@ -32,9 +32,10 @@ const defaultClientPortMapping = {
   mssql: 1433
 };
 
-const defaultConnectionConfig = {
-  // timezone: 'UTC',
-  // dateStrings: true
+const defaultConnectionConfig: any = {
+  // https://github.com/knex/knex/issues/97
+  // timezone: process.env.NC_TIMEZONE || 'UTC',
+  dateStrings: true
 };
 
 export default class NcConfigFactory implements NcConfig {
@@ -52,13 +53,13 @@ export default class NcConfigFactory implements NcConfig {
     config.port = +(process?.env?.PORT ?? 8080);
     config.env = '_noco'; // process.env?.NODE_ENV || 'dev';
     config.workingEnv = '_noco'; // process.env?.NODE_ENV || 'dev';
-    config.toolDir = this.getToolDir();
+    // config.toolDir = this.getToolDir();
     config.projectType =
       config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
     if (config.meta?.db?.connection?.filename) {
       config.meta.db.connection.filename = path.join(
-        config.toolDir,
+        this.getToolDir(),
         config.meta.db.connection.filename
       );
     }
@@ -101,100 +102,6 @@ export default class NcConfigFactory implements NcConfig {
     if (process.env.NC_DASHBOARD_URL) {
       config.dashboardPath = process.env.NC_DASHBOARD_URL;
     }
-
-    return config;
-  }
-
-  public static makeOld(): NcConfig {
-    const config = new NcConfigFactory();
-
-    const dbUrls = Object.keys(process.env).filter(envKey =>
-      envKey.startsWith('NC_DB_URL')
-    );
-    // if (!dbUrls.length) {
-    //   return null
-    // }
-
-    for (const key of dbUrls.sort()) {
-      const dbConfig = this.urlToDbConfig(
-        process?.env?.[key],
-        key.slice(9),
-        config
-      );
-      config.envs['_noco'].db.push(dbConfig);
-      // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
-    }
-
-    if (process.env.NC_AUTH_ADMIN_SECRET) {
-      config.auth = {
-        masterKey: {
-          secret: process.env.NC_AUTH_ADMIN_SECRET
-        }
-      };
-    } else if (process.env.NC_NO_AUTH) {
-      config.auth = {
-        disabled: true
-      };
-      // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
-    } else if (config?.envs?.['_noco']?.db?.[0]) {
-      config.auth = {
-        jwt: {
-          // dbAlias: process.env.NC_AUTH_JWT_DB_ALIAS || config.envs[process.env.NODE_ENV || 'dev'].db[0].meta.dbAlias,
-          dbAlias:
-            process.env.NC_AUTH_JWT_DB_ALIAS ||
-            config.envs['_noco'].db[0].meta.dbAlias,
-          secret: process.env.NC_AUTH_JWT_SECRET
-        }
-      };
-    }
-
-    if (process.env.NC_DB) {
-      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
-    }
-
-    if (process.env.NC_TRY) {
-      config.try = true;
-      config.meta.db = {
-        client: 'sqlite3',
-        connection: ':memory:',
-        pool: {
-          min: 1,
-          max: 1,
-          // disposeTimeout: 360000*1000,
-          idleTimeoutMillis: 360000 * 1000
-        }
-      } as any;
-    }
-
-    if (process.env.NC_MAILER) {
-      config.mailer = {
-        from: process.env.NC_MAILER_FROM,
-        options: {
-          host: process.env.NC_MAILER_HOST,
-          port: parseInt(process.env.NC_MAILER_PORT, 10),
-          secure: process.env.NC_MAILER_SECURE === 'true',
-          auth: {
-            user: process.env.NC_MAILER_USER,
-            pass: process.env.NC_MAILER_PASS
-          }
-        }
-      };
-    }
-
-    if (process.env.NC_PUBLIC_URL) {
-      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
-      // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
-      config.publicUrl = process.env.NC_PUBLIC_URL;
-    }
-
-    config.port = +(process?.env?.PORT ?? 8080);
-    // config.env = process.env?.NODE_ENV || 'dev';
-    // config.workingEnv = process.env?.NODE_ENV || 'dev';
-    config.env = '_noco';
-    config.workingEnv = '_noco';
-    config.toolDir = this.getToolDir();
-    config.projectType =
-      config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
     return config;
   }
@@ -257,7 +164,8 @@ export default class NcConfigFactory implements NcConfig {
           password:
             url.searchParams.get('p') || url.searchParams.get('password'),
           port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user')
+          user: url.searchParams.get('u') || url.searchParams.get('user'),
+          timezone: 'utc'
         },
         // pool: {
         //   min: 1,
@@ -400,6 +308,30 @@ export default class NcConfigFactory implements NcConfig {
         }, dbConfig);
       }
     });
+
+    if (
+      dbConfig?.connection?.ssl &&
+      typeof dbConfig?.connection?.ssl === 'object'
+    ) {
+      if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
+        dbConfig.connection.ssl.ca = fs
+          .readFileSync(dbConfig.connection.ssl.caFilePath)
+          .toString();
+      }
+      if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
+        dbConfig.connection.ssl.key = fs
+          .readFileSync(dbConfig.connection.ssl.keyFilePath)
+          .toString();
+      }
+      if (
+        dbConfig.connection.ssl.certFilePath &&
+        !dbConfig.connection.ssl.cert
+      ) {
+        dbConfig.connection.ssl.cert = fs
+          .readFileSync(dbConfig.connection.ssl.certFilePath)
+          .toString();
+      }
+    }
 
     return dbConfig;
   }
@@ -567,21 +499,6 @@ export default class NcConfigFactory implements NcConfig {
       } as any;
     }
 
-    if (process.env.NC_MAILER) {
-      config.mailer = {
-        from: process.env.NC_MAILER_FROM,
-        options: {
-          host: process.env.NC_MAILER_HOST,
-          port: parseInt(process.env.NC_MAILER_PORT, 10),
-          secure: process.env.NC_MAILER_SECURE === 'true',
-          auth: {
-            user: process.env.NC_MAILER_USER,
-            pass: process.env.NC_MAILER_PASS
-          }
-        }
-      };
-    }
-
     if (process.env.NC_PUBLIC_URL) {
       // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
       config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
@@ -644,7 +561,8 @@ export default class NcConfigFactory implements NcConfig {
     db: {
       client: 'sqlite3',
       connection: {
-        filename: 'noco.db'
+        filename: 'noco.db',
+        timezone: 'utc'
       }
     }
   };

@@ -1152,11 +1152,10 @@ export default {
       await this.onCellValueChange(colIndex, index, col)
     },
     async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
-      const focusRow = atEnd ? this.rowLength : this.rowContextMenu.index + 1
-      const focusCol = this.availableColumns.findIndex(c => !c.ai)
       const isKanban = this.selectedView && this.selectedView.show_as === 'kanban'
       const data = isKanban ? this.kanban.data : this.data
-
+      const focusRow = isKanban ? data.length : (atEnd ? this.rowLength : this.rowContextMenu.index + 1)
+      const focusCol = this.availableColumns.findIndex(c => !c.ai)
       data.splice(focusRow, 0, {
         row: this.relationType === 'hm'
           ? {
@@ -1169,14 +1168,16 @@ export default {
         },
         oldRow: {}
       })
-      
+      if (data[focusRow].row[this.groupingField] === "Uncategorized") {
+        data[focusRow].row[this.groupingField] = null
+      }
       this.selected = { row: focusRow, col: focusCol }
       this.editEnabled = { row: focusRow, col: focusCol }
       this.presetValues = presetValues
 
       if (expand) {
         if (isKanban) {
-          this.expandKanbanForm(-1, data[data.length - 1])
+          this.expandKanbanForm(-1, data[focusRow])
         } else {
           const { rowMeta } = data[data.length - 1]
           this.expandRow(data.length - 1, rowMeta)

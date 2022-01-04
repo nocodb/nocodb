@@ -27,7 +27,7 @@ link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme
 
 ## Quick try
 ### 1-Click Deploy
-<a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
+<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
     width="300px"

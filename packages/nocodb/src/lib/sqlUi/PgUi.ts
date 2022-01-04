@@ -1596,7 +1596,7 @@ export class PgUi {
         colProp.dt = 'character varying';
         break;
       case 'Date':
-        colProp.dt = 'character varying';
+        colProp.dt = 'date';
 
         break;
       case 'Year':

@@ -1,4 +1,4 @@
-version: '3.3'
+version: '2.1'
 
 services:
   root_db:
@@ -22,9 +22,6 @@ services:
     image: nocodb/nocodb:latest
     ports:
       - "8080:8080"
-      - "8081:8081"
-      - "8082:8082"
-      - "8083:8083"
     restart: always
     environment:
       NC_DB: "pg://root_db:5432?u=postgres&p=password&d=root_db"

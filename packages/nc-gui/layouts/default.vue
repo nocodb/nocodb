@@ -43,8 +43,14 @@
         >
           {{ ghStarText }}
         </gh-btns-star>
-        <a class="align-self-center caption font-weight-bold ml-1 mr-2 white--text" href="https://docs.nocodb.com" target="_blank">Docs</a>
-        <!--        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" class="align-self-center" />-->
+        <a
+          class="align-self-center caption font-weight-bold ml-1 mr-2 white--text"
+          href="https://docs.nocodb.com"
+          target="_blank"
+        >Docs</a>
+        <!--        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" v-model="templateModal" class="align-self-center" />-->
+
+        <!--        <better-u-x v-if="clickCount" />-->
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 
@@ -104,7 +110,13 @@
 
         <template v-if="isDashboard">
           <div>
-            <x-btn v-if="_isUIAllowed('add-user')" small color="white" btn-class="primary--text nc-menu-share" @click="rolesTabAdd">
+            <x-btn
+              v-if="_isUIAllowed('add-user')"
+              small
+              color="white"
+              btn-class="primary--text nc-menu-share"
+              @click="rolesTabAdd"
+            >
               <v-icon small class="mr-1">
                 mdi-account-supervisor-outline
               </v-icon>
@@ -114,7 +126,13 @@
 
           <v-tooltip bottom>
             <template #activator="{ on }">
-              <v-icon v-ripple="{class : 'nc-ripple'}" class="mt-1 ml-3 nc-menu-theme" size="22" v-on="on" @click="$store.commit('windows/MutToggleTheme')">
+              <v-icon
+                v-ripple="{class : 'nc-ripple'}"
+                class="mt-1 ml-3 nc-menu-theme"
+                size="22"
+                v-on="on"
+                @click="$store.commit('windows/MutToggleTheme')"
+              >
                 mdi-format-color-fill
               </v-icon>
             </template>
@@ -310,7 +328,7 @@
 
                               </v-list-item-title>
                             </v-list-item>-->
-              <v-list-item v-ge="['Sign Out','']" dense>
+              <v-list-item v-ge="['Settings','']" dense to="/user/settings">
                 <v-list-item-title>
                   <v-icon small>
                     mdi-at
@@ -565,9 +583,13 @@ import { copyTextToClipboard } from '@/helpers/xutils'
 import Snackbar from '~/components/snackbar'
 import Language from '~/components/utils/language'
 import Loader from '~/components/loader'
+import TemplatesModal from '~/components/templates/templatesModal'
+import BetterUX from '~/components/utils/betterUX'
 
 export default {
   components: {
+    BetterUX,
+    TemplatesModal,
     Loader,
     ReleaseInfo,
     Language,
@@ -580,6 +602,8 @@ export default {
     xTerm
   },
   data: () => ({
+    clickCount: true,
+    templateModal: false,
     ghStarText: 'Star',
     swaggerOrGraphiqlUrl: null,
     showScreensaver: false,
@@ -647,7 +671,9 @@ export default {
   watch: {
     '$route.path'(path, oldPath) {
       try {
-        if (oldPath === path) { return }
+        if (oldPath === path) {
+          return
+        }
         const recaptcha = this.$recaptchaInstance
         if (path.startsWith('/user/')) {
           recaptcha.showBadge()
@@ -744,7 +770,8 @@ export default {
     },
     loadChat() {
       if (!window.Tawk_API) {
-        const s1 = document.createElement('script'); const s0 = document.getElementsByTagName('script')[0]
+        const s1 = document.createElement('script')
+        const s0 = document.getElementsByTagName('script')[0]
         s1.async = true
         s1.src = 'https://embed.tawk.to/5d81b8de9f6b7a4457e23ba7/default'
         s1.charset = 'UTF-8'
@@ -1034,7 +1061,7 @@ export default {
 }
 </script>
 <style scoped>
-/deep/ .gh-button-container > a{
+/deep/ .gh-button-container > a {
   background: transparent !important;
   color: white !important;
 }
@@ -1080,11 +1107,12 @@ a {
   align-items: center;
 }
 
-/deep/ .nc-ripple{
+/deep/ .nc-ripple {
   border-radius: 50%;
 }
-/deep/ .nc-user-menu .v-list-item--dense, /deep/ .nc-user-menu  .v-list--dense .v-list-item{
-min-height:30px
+
+/deep/ .nc-user-menu .v-list-item--dense, /deep/ .nc-user-menu .v-list--dense .v-list-item {
+  min-height: 30px
 }
 
 </style>

@@ -1107,7 +1107,7 @@ export class MssqlUi {
         colProp.dt = 'varchar'
         break
       case 'DateTime':
-        colProp.dt = 'datetime'
+        colProp.dt = 'datetimeoffset'
         break
       case 'CreateTime':
         colProp.dt = 'datetime'
@@ -1294,9 +1294,9 @@ export class MssqlUi {
       case 'CreateTime':
       case 'LastModifiedTime':
         return [
-          'datetime',
-          'datetime2',
-          'datetimeoffset'
+          'datetimeoffset',
+          'datetime2'
+          // 'datetime'
         ]
 
       case 'AutoNumber':

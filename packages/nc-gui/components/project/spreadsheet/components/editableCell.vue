@@ -43,22 +43,19 @@
       v-else-if="isDate"
       v-model="localState"
       v-on="parentListeners"
-      @input="$emit('change')"
     />
 
     <time-picker-cell
       v-else-if="isTime"
       v-model="localState"
       v-on="parentListeners"
-      @update="$emit('change')"
     />
 
     <date-time-picker-cell
       v-else-if="isDateTime"
       v-model="localState"
-      ignore-focus="ignoreFocus"
+      ignore-focus
       v-on="parentListeners"
-      @input="$emit('change')"
     />
 
     <enum-cell
@@ -178,11 +175,10 @@ export default {
         return this.value
       },
       set(val) {
-        this.changed = true
         if (val !== this.value) {
+          this.changed = true
           this.$emit('input', val)
-          // debugger
-          if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime) {
+          if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime || this.isDateTime || this.isDate) {
             this.syncData()
           } else {
             this.syncDataDebounce(this)
@@ -217,14 +213,16 @@ export default {
     // this.$refs.input.focus();
   },
   beforeDestroy() {
-    if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime)) {
+    if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime || this.isDateTime)) {
+      this.changed = false
       this.$emit('change')
     }
     this.destroyed = true
   },
   methods: {
     syncData() {
-      if (!this.destroyed) {
+      if (this.changed && !this.destroyed) {
+        this.changed = false
         this.$emit('update')
       }
     }

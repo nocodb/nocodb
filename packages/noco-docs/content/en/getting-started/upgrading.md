@@ -12,9 +12,9 @@ link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme
 ```
 docker ps
 
-docker stop YOUR_CONTAINER_ID"
+docker stop "YOUR_CONTAINER_ID"
 
-docker rm YOUR_CONTAINER_ID"
+docker rm "YOUR_CONTAINER_ID"
 ```
 
 ### Find & remove nocodb docker image
@@ -66,6 +66,14 @@ docker tag nocodb/nocodb:latest registry.heroku.com/<Heroku App Name>/web
 docker push registry.heroku.com/<Heroku App Name>/web
 heroku container:release -a <Heroku App Name> web
 ```
+
+#### On Apple M1 Chipset 
+
+> Please make sure you change Docker's default architecture to `linux/amd64` by running the following command _before_ executing the aforementioned steps
+> 
+> ```export DOCKER_DEFAULT_PLATFORM=linux/amd64```
+>
+> More details [here](https://medium.com/geekculture/from-apple-silicon-to-heroku-docker-registry-without-swearing-36a2f59b30a3). 
 
 ### Using GitHub
 

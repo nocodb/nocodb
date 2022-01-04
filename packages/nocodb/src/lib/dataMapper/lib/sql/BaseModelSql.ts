@@ -1266,7 +1266,10 @@ class BaseModelSql extends BaseModel {
     );
     let { fields } = restArgs;
     const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
-    const _cn = this.dbModels[child].columnToAlias?.[cn];
+    if (!this.dbModels[child]) {
+      return;
+    }
+    const _cn = this.dbModels[child]?.columnToAlias?.[cn];
 
     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
       fields += ',' + cn;
@@ -1343,6 +1346,10 @@ class BaseModelSql extends BaseModel {
 
     if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
       fields += ',' + cn;
+    }
+
+    if (!this.dbModels[child]) {
+      return;
     }
 
     const childs = await this._run(
@@ -1498,13 +1505,17 @@ class BaseModelSql extends BaseModel {
         fields += ',' + this.pks[0].cn;
       }
 
-      for (const parent of parents.split(',')) {
-        const { cn } =
-          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-        if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-          fields += ',' + cn;
+      if (parents)
+        for (const parent of parents.split(',')) {
+          if (!parent) {
+            continue;
+          }
+          const { cn } =
+            this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+          if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
+            fields += ',' + cn;
+          }
         }
-      }
 
       const items = await this.list({ childs, where, fields, ...rest });
 
@@ -1525,22 +1536,23 @@ class BaseModelSql extends BaseModel {
         );
       }
 
-      await Promise.all(
-        parents.split(',').map((parent, index): any => {
-          if (!parent) {
-            return;
-          }
-          const { cn, rcn } =
-            this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-          const parentIds = [
-            ...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))
-          ];
-          return this._belongsTo(
-            { parent, rcn, parentIds, childs: items, cn, ...rest },
-            index
-          );
-        })
-      );
+      if (parents)
+        await Promise.all(
+          parents.split(',').map((parent, index): any => {
+            if (!parent) {
+              return;
+            }
+            const { cn, rcn } =
+              this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+            const parentIds = [
+              ...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))
+            ];
+            return this._belongsTo(
+              { parent, rcn, parentIds, childs: items, cn, ...rest },
+              index
+            );
+          })
+        );
 
       if (items && items.length) {
         await Promise.all(
@@ -1945,6 +1957,8 @@ class BaseModelSql extends BaseModel {
       fields += ',' + rcn;
     }
 
+    if (!this.dbModels[parent]) return;
+
     const parents = await this._run(
       driver(this.dbModels[parent].tnPath)
         // .select(...fields.split(',')
@@ -2002,23 +2016,27 @@ class BaseModelSql extends BaseModel {
 
       const childs = await this._run(
         this._paginateAndSort(
-          this.dbDriver.union(
-            ids.map(p => {
-              const query = this.dbDriver(this.dbModels[child].tnPath)
-                .where({ [cn]: p })
-                .conditionGraph(conditionGraph)
-                .xwhere(where, this.selectQuery(''))
-                // .select(...fields.split(','));
-                .select(this.dbModels?.[child]?.selectQuery(fields));
+          this.dbDriver.queryBuilder().from(
+            this.dbDriver
+              .union(
+                ids.map(p => {
+                  const query = this.dbDriver(this.dbModels[child].tnPath)
+                    .where({ [cn]: p })
+                    .conditionGraph(conditionGraph)
+                    .xwhere(where, this.selectQuery(''))
+                    // .select(...fields.split(','));
+                    .select(this.dbModels?.[child]?.selectQuery(fields));
 
-              this._paginateAndSort(query, { limit, offset }, child);
-              return this.isSqlite()
-                ? this.dbDriver.select().from(query)
-                : query;
-            }),
-            !this.isSqlite()
+                  this._paginateAndSort(query, { limit, offset }, child);
+                  return this.isSqlite()
+                    ? this.dbDriver.select().from(query)
+                    : query;
+                }),
+                !this.isSqlite()
+              )
+              .as('list')
           ),
-          { sort, limit: 1000 } as any,
+          { sort, ignoreLimit: true } as any,
           child
         )
       );
@@ -2093,11 +2111,17 @@ class BaseModelSql extends BaseModel {
    */
   _paginateAndSort(
     query,
-    { limit = 20, offset = 0, sort = '' }: XcFilter,
+    {
+      limit = 20,
+      offset = 0,
+      sort = '',
+      ignoreLimit = false
+    }: XcFilter & { ignoreLimit?: boolean },
     table?: string,
     isUnion?: boolean
   ) {
-    query.offset(offset).limit(limit);
+    query.offset(offset);
+    if (!ignoreLimit) query.limit(limit);
 
     if (!table && !sort && this.clientType === 'mssql' && !isUnion) {
       sort =
@@ -2532,16 +2556,21 @@ class BaseModelSql extends BaseModel {
       }
     }
 
-    const data = Papaparse.unparse({
-      fields:
-        fields &&
-        fields.filter(
-          f =>
-            this.columns.some(c => c._cn === f) ||
-            this.virtualColumns.some(c => c._cn === f)
-        ),
-      data: csvRows
-    });
+    const data = Papaparse.unparse(
+      {
+        fields:
+          fields &&
+          fields.filter(
+            f =>
+              this.columns.some(c => c._cn === f) ||
+              this.virtualColumns.some(c => c._cn === f)
+          ),
+        data: csvRows
+      },
+      {
+        escapeFormulae: true
+      }
+    );
     return { data, offset, elapsed };
   }
 

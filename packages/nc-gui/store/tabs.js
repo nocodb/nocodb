@@ -18,6 +18,9 @@ export const mutations = {
   remove(state, index) {
     state.list.splice(index, 1)
   },
+  removeTableOrViewTabs(state) {
+    state.list = state.list.filter(t => !['table', 'view'].includes(t.type))
+  },
   clear(state, index) {
     state.list = []
   },
@@ -107,9 +110,33 @@ export const actions = {
       } = this.$router.currentRoute.query
       try {
         let tabNode
+
+        await dispatch('project/_loadTables', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.tables',
+          _nodes: {
+            dbAlias: 'db',
+            // dbKey: "0.projectJson.envs._noco.db.0",
+            env: '_noco',
+            // key: "0.projectJson.envs._noco.db.0.tables",
+            type: 'tableDir'
+          }
+        }, { root: true })
+        /*        await dispatch('project/_loadViews', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.views',
+          _nodes: {
+            dbAlias: 'db',
+            // dbKey: "0.projectJson.envs._noco.db.0",
+            env: '_noco',
+            // key: "0.projectJson.envs._noco.db.0.tables",
+            type: 'viewDir'
+          }
+        }, { root: true }) */
+
         switch (type) {
           case 'table':
-            await dispatch('project/_loadTables', {
+            /*            await dispatch('project/_loadTables', {
               dbKey: '0.projectJson.envs._noco.db.0',
               key: '0.projectJson.envs._noco.db.0.tables',
               _nodes: {
@@ -119,7 +146,7 @@ export const actions = {
                 // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'tableDir'
               }
-            }, { root: true })
+            }, { root: true }) */
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
@@ -129,7 +156,7 @@ export const actions = {
 
             break
           case 'view':
-            await dispatch('project/_loadViews', {
+            /*            await dispatch('project/_loadViews', {
               dbKey: '0.projectJson.envs._noco.db.0',
               key: '0.projectJson.envs._noco.db.0.views',
               _nodes: {
@@ -139,7 +166,7 @@ export const actions = {
                 // key: "0.projectJson.envs._noco.db.0.tables",
                 type: 'viewDir'
               }
-            }, { root: true })
+            }, { root: true }) */
             tabNode = rootState.project
               .list[0] // project
               .children[0] //  environment
@@ -255,17 +282,6 @@ export const actions = {
           }
         })
       } else {
-        await dispatch('project/_loadTables', {
-          dbKey: '0.projectJson.envs._noco.db.0',
-          key: '0.projectJson.envs._noco.db.0.tables',
-          _nodes: {
-            dbAlias: 'db',
-            // dbKey: "0.projectJson.envs._noco.db.0",
-            env: '_noco',
-            // key: "0.projectJson.envs._noco.db.0.tables",
-            type: 'tableDir'
-          }
-        }, { root: true })
         const nodes = rootState.project
           .list[0] // project
           .children[0] //  environment
@@ -351,12 +367,13 @@ export const actions = {
     commit('list', tabs)
   },
 
-  ActAddTab({ commit, state, rootState }, item) {
+  async ActAddTab({ commit, state, rootState }, item) {
     if (rootState.users.ui_ability.rules.maxTabs <= state.list.length) {
       this.commit('snackbar/setSnack', `Free plan limits to ${rootState.users.ui_ability.rules.maxTabs} tabs. Please <a href="https://nocodb.com/pricing" style="color: white;font-weight: bold;">upgrade</a> your plan for unlimited tabs.`)
       return
     }
     commit('add', item)
+    await Vue.nextTick()
     const index = state.list.length - 1
     if (state.activeTab !== 0 && state.activeTab === index) {
       commit('active', index - 1)

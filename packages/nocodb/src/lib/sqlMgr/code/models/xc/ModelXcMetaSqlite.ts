@@ -110,7 +110,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
     return str;
   }
 
-  _getAbstractType(column) {
+  protected _getAbstractType(column) {
     let str = '';
     switch (column.dt) {
       case 'int':
@@ -452,6 +452,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
     return str;
   }
 
+  /*
   public getXcColumnsObject(args): any {
     const columnsArr = [];
 
@@ -506,6 +507,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
     this.mapDefaultPrimaryValue(columnsArr);
     return columnsArr;
   }
+*/
 
   /*  public getObject(): any {
     return {
@@ -521,7 +523,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
 
   }*/
 
-  private _getUIDataType(col): any {
+  protected _getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';

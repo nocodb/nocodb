@@ -26,7 +26,7 @@
               </v-icon>
             </div>
           </template>
-          <v-list dense>
+          <v-list v-if="meta" dense>
             <v-list-item
               v-for="col in meta.columns"
               :key="col.cn"
@@ -78,32 +78,49 @@
 
       <column-filter-menu v-model="filters" :field-list="fieldList" />
 
-      <v-menu>
-        <template #activator="{ on, attrs }">
-          <v-icon
-            v-bind="attrs"
-            small
-            class="mx-2"
-            color="grey  darken-3"
-            v-on="on"
-          >
-            mdi-arrow-collapse-vertical
-          </v-icon>
-        </template>
+      <!--            <v-menu>
+              <template #activator="{ on, attrs }">
+                <v-icon
+                  v-bind="attrs"
+                  small
+                  class="mx-2"
+                  color="grey  darken-3"
+                  v-on="on"
+                >
+                  mdi-arrow-collapse-vertical
+                </v-icon>
+              </template>
 
-        <v-list dense class="caption">
-          <v-list-item v-for="h in cellHeights" :key="h.size" dense @click.stop="cellHeight = h.size">
-            <v-list-item-icon class="mr-1">
-              <v-icon small :color="cellHeight === h.size && 'primary'">
-                {{ h.icon }}
-              </v-icon>
-            </v-list-item-icon>
-            <v-list-item-title :class="{'primary--text' : cellHeight === h.size}" style="text-transform: capitalize">
-              {{ h.size }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+              <v-list dense class="caption">
+                <v-list-item v-for="h in cellHeights" :key="h.size" dense @click.stop="cellHeight = h.size">
+                  <v-list-item-icon class="mr-1">
+                    <v-icon small :color="cellHeight === h.size && 'primary'">
+                      {{ h.icon }}
+                    </v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title :class="{'primary&#45;&#45;text' : cellHeight === h.size}" style="text-transform: capitalize">
+                    {{ h.size }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>-->
+
+      <x-btn
+        tooltip="Toggle navigation drawer"
+        outlined
+        small
+        text
+        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer' : !toggleDrawer}"
+        @click="toggleDrawer = !toggleDrawer"
+      >
+        <v-icon
+          small
+          class="mx-0"
+          color="grey  darken-3"
+        >
+          {{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
+        </v-icon>
+      </x-btn>
     </v-toolbar>
     <div
       :class="`cell-height-${cellHeight}`"
@@ -111,11 +128,12 @@
       class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
-        <div ref="table" style="  overflow: auto;width:100%">
+        <div ref="table" style="  overflow: auto;width:100%; height: calc(100% - 36px);">
           <v-skeleton-loader v-if="loadingData" type="table" />
 
           <template v-else-if="selectedView && (selectedView.type === 'view' || selectedView.show_as === 'grid' )">
             <xc-grid-view
+              :columns-width.sync="columnsWidth"
               :meta="meta"
               :data="data"
               :available-columns="availableColumns"
@@ -180,17 +198,18 @@
         :nodes="nodes"
         :table="table"
         :meta="meta"
+        :toggle-drawer="toggleDrawer"
         :primary-value-column="primaryValueColumn"
         :concatenated-x-where="concatenatedXWhere"
         :sort="sort"
-
+        :columns-width.sync="columnsWidth"
         :selected-view-id.sync="selectedViewId"
         :selected-view.sync="selectedView"
         :filters.sync="filters"
         :sort-list.sync="sortList"
         :show-fields.sync="showFields"
       >
-        <v-list-item
+        <!--        <v-list-item
           @click="showAdditionalFeatOverlay('view-columns')"
         >
           <v-icon x-small class="mr-2">
@@ -205,7 +224,7 @@
             mdi-shield-edit-outline
           </v-icon>
           <span class="caption"> ACL</span>
-        </v-list-item>
+        </v-list-item>-->
       </spreadsheet-nav-drawer>
     </div>
 
@@ -219,22 +238,19 @@
 
 <script>
 
+import debounce from 'debounce'
 import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
-// import Table from '@/components/project/table'
-// import EditableCell from "@/components/project/spreadsheet/editableCell";
 import { SqlUI } from '@/helpers/sqlUi/SqlUiFactory'
 import FieldsMenu from '@/components/project/spreadsheet/components/fieldsMenu'
 import SortListMenu from '@/components/project/spreadsheet/components/sortListMenu'
 import ColumnFilterMenu from '@/components/project/spreadsheet/components/columnFilterMenu'
 import XcGridView from '@/components/project/spreadsheet/views/xcGridView'
 import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
-import debounce from 'debounce'
 import GalleryView from '@/components/project/spreadsheet/views/galleryView'
 import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
 import CalendarView from '@/components/project/spreadsheet/views/calendarView'
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
 import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
-// import ExpandedForm from "@/components/project/spreadsheet/expandedForm";
 
 export default {
   name: 'Spreadsheet',
@@ -261,6 +277,11 @@ export default {
     relationPrimaryValue: [String, Number]
   },
   data: () => ({
+    columnsWidth: null,
+    syncDataDebounce: debounce(async function(self) {
+      await self.syncData()
+    }, 500),
+    fieldsOrder: [],
     showAddFeatOverlay: false,
     featureType: null,
     selectedViewId: null,
@@ -276,7 +297,7 @@ export default {
     showExpandModal: false,
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
-    meta: [],
+    // meta: null,
     navDrawer: true,
     selected: {
       row: null,
@@ -303,6 +324,7 @@ export default {
     },
     filteredData: [],
     showFields: {},
+    // fieldList: [],
 
     cellHeights: [{
       size: 'small',
@@ -320,6 +342,28 @@ export default {
     rowContextMenu: null,
     modelName: null
   }),
+  computed: {
+    meta() {
+      return this.$store.state.meta.metas[this.table]
+    },
+    sqlUi() {
+      // todo: replace with correct client
+      return SqlUI.create(this.nodes.dbConnection)
+    },
+    api() {
+      return this.meta && this.$ncApis.get({
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        table: this.meta.tn
+      })
+    },
+    edited() {
+      return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
+    },
+    table() {
+      return this.nodes.tn || this.nodes.view_name
+    }
+  },
   async mounted() {
     try {
       await this.loadMeta()
@@ -347,25 +391,62 @@ export default {
     }
     this.searchField = this.primaryValueColumn
   },
+  created() {
+    if (this.relationType === 'hm') {
+      this.filters.push({
+        field: this.relation.cn,
+        op: 'is equal',
+        value: this.relationIdValue,
+        readOnly: true
+      })
+    } else if (this.relationType === 'bt') {
+      this.filters.push({
+        field: this.relation.rcn,
+        op: 'is equal',
+        value: this.relationIdValue,
+        readOnly: true
+      })
+    }
+    document.addEventListener('keydown', this.onKeyDown)
+  },
+  beforeDestroy() {
+    document.removeEventListener('keydown', this.onKeyDown)
+  },
 
   methods: {
-    syncDataDebounce: debounce(async function(self) {
-      await self.syncData()
-    }, 500),
+    // syncDataDebounce: debounce(async function(self) {
+    //   await self.syncData()
+    // }, 500),
     async syncData() {
+      if (this.relation) {
+        return
+      }
       try {
         const queryParams = {
           filters: this.filters,
           sortList: this.sortList,
-          showFields: this.showFields
+          showFields: this.showFields,
+          fieldsOrder: this.fieldsOrder,
+          viewStatus: this.viewStatus,
+          columnsWidth: this.columnsWidth,
+          showSystemFields: this.showSystemFields,
+          extraViewParams: this.extraViewParams
+        }
+
+        if (this.isGallery) {
+          queryParams.coverImageField = this.coverImageField
         }
 
         this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
 
-        if (!this._isUIAllowed('xcVirtualTableUpdate')) { return }
+        if (!this._isUIAllowed('xcVirtualTableUpdate')) {
+          return
+        }
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
-          query_params: queryParams
+          query_params: queryParams,
+          tn: this.meta.tn,
+          view_name: this.$route.query.view
         })
       } catch (e) {
         // this.$toast.error(e.message).goAway(3000);
@@ -457,13 +538,21 @@ export default {
 
     async loadMeta() {
       this.loadingMeta = true
-      const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+
+      await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableXcModelGet', {
-        tn: this.table
-      }])
-      this.meta = JSON.parse(tableMeta.meta)
+        dbAlias: this.nodes.dbAlias,
+        tn: this.table,
+        force: true
+      })
+
+      // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias
+      // }, 'tableXcModelGet', {
+      //   tn: this.table
+      // }])
+      // this.meta = JSON.parse(tableMeta.meta)
       this.loadingMeta = false
     },
     async loadTableData() {
@@ -477,42 +566,6 @@ export default {
       }))
       this.loadingData = false
     }
-  },
-  computed: {
-    sqlUi() {
-      // todo: replace with correct client
-      return SqlUI.create(this.nodes.dbConnection)
-    },
-    api() {
-      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], (this.meta && this.meta._tn) || this.table, this.meta && this.meta.columns, this, this.meta)
-    },
-    edited() {
-      return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
-    },
-    table() {
-      return this.nodes.tn || this.nodes.view_name
-    }
-  },
-  created() {
-    if (this.relationType === 'hm') {
-      this.filters.push({
-        field: this.relation.cn,
-        op: 'is equal',
-        value: this.relationIdValue,
-        readOnly: true
-      })
-    } else if (this.relationType === 'bt') {
-      this.filters.push({
-        field: this.relation.rcn,
-        op: 'is equal',
-        value: this.relationIdValue,
-        readOnly: true
-      })
-    }
-    document.addEventListener('keydown', this.onKeyDown)
-  },
-  beforeDestroy() {
-    document.removeEventListener('keydown', this.onKeyDown)
   }
 }
 </script>

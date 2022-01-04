@@ -19,7 +19,11 @@ import ExpressXcTsRoutesHm from '../../sqlMgr/code/routes/xc-ts/ExpressXcTsRoute
 import NcHelp from '../../utils/NcHelp';
 import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../Noco';
-import BaseApiBuilder, { IGNORE_TABLES } from '../common/BaseApiBuilder';
+import BaseApiBuilder, {
+  IGNORE_TABLES,
+  NcMetaData,
+  XcTablesPopulateParams
+} from '../common/BaseApiBuilder';
 import NcMetaIO from '../meta/NcMetaIO';
 
 import { RestCtrl } from './RestCtrl';
@@ -337,16 +341,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     // minRouter.mapRoutes(this.router)
   }
 
-  public async xcTablesPopulate(args?: {
-    tableNames?: Array<{
-      tn: string;
-      _tn?: string;
-    }>;
-    type?: 'table' | 'view' | 'function' | 'procedure';
-    columns?: {
-      [tn: string]: any;
-    };
-  }): Promise<any> {
+  public async xcTablesPopulate(args?: XcTablesPopulateParams): Promise<any> {
     this.log(
       `xcTablesPopulate : tables - %o , type - %s`,
       args?.tableNames,
@@ -354,8 +349,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     );
     let tables;
     const swaggerRefs: { [table: string]: any[] } = {};
+    let order = await this.getOrderVal();
 
-    /* Get all relations */
+    /*    /!* Get all relations *!/
+    let [
+      relations,
+      // eslint-disable-next-line prefer-const
+      missingRelations
+    ] = await this.getRelationsAndMissingRelations();
+    relations = relations.concat(missingRelations);*/
     const relations = await this.relationsSyncAndGet();
 
     // set table name alias
@@ -374,43 +376,60 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     if (args?.tableNames?.length) {
       const relatedTableList = [];
 
-      // extract tables which have relation with the tables in list
-      for (const r of relations) {
-        if (args.tableNames.some(t => t.tn === r.tn)) {
-          if (!relatedTableList.includes(r.rtn)) {
-            relatedTableList.push(r.rtn);
-            await this.onTableDelete(r.rtn);
-          }
-        } else if (args.tableNames.some(t => t.tn === r.rtn)) {
-          if (!relatedTableList.includes(r.tn)) {
-            relatedTableList.push(r.tn);
-            await this.onTableDelete(r.tn);
+      if (!args?.oldMetas)
+        // extract tables which have relation with the tables in list
+        for (const r of relations) {
+          if (args.tableNames.some(t => t.tn === r.tn)) {
+            if (!relatedTableList.includes(r.rtn)) {
+              relatedTableList.push(r.rtn);
+              await this.onTableDelete(r.rtn);
+            }
+          } else if (args.tableNames.some(t => t.tn === r.rtn)) {
+            if (!relatedTableList.includes(r.tn)) {
+              relatedTableList.push(r.tn);
+              await this.onTableDelete(r.tn);
+            }
           }
         }
-      }
 
-      tables = args.tableNames.map(({ tn, _tn }) => ({
-        tn,
-        type: args.type,
-        _tn
-      }));
+      tables = args.tableNames
+        .sort((a, b) => (a.tn || a._tn).localeCompare(b.tn || b._tn))
+        .map(({ tn, _tn }) => ({
+          tn,
+          type: args.type,
+          _tn,
+          order: ++order
+        }));
       tables.push(...relatedTableList.map(t => ({ tn: t })));
     } else {
-      tables = (await this.sqlClient.tableList())?.data?.list?.filter(
-        ({ tn }) => !IGNORE_TABLES.includes(tn)
-      );
+      tables = (await this.sqlClient.tableList())?.data?.list
+        ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
+        ?.map(t => {
+          t.order = ++order;
+          return t;
+        });
 
-      const views = (await this.sqlClient.viewList())?.data?.list?.map(v => {
-        this.viewsCount++;
-        v.type = 'view';
-        v.tn = v.view_name || v.table_name;
-        return v;
-      }).filter(v => {
-        if (this.projectBuilder?.prefix) {
-          return v.view_name.startsWith(this.projectBuilder?.prefix)
-        }
-        return true;
-      });
+      // enable extra
+      tables.push(
+        ...(await this.sqlClient.viewList())?.data?.list
+          ?.sort((a, b) =>
+            (a.view_name || a.tn).localeCompare(b.view_name || b.tn)
+          )
+          ?.map(v => {
+            this.viewsCount++;
+            v.type = 'view';
+            v.tn = v.view_name;
+            v.order = ++order;
+            return v;
+          })
+          .filter(v => {
+            /* filter based on prefix */
+            if (this.projectBuilder?.prefix) {
+              return v.view_name.startsWith(this.projectBuilder?.prefix);
+            }
+            return true;
+          })
+      );
 
       tables.push(...views);
       await this.populteProcedureAndFunctionRoutes();
@@ -432,8 +451,9 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       r._tn = this.getTableNameAlias(r.tn);
       r._rtn = this.getTableNameAlias(r.rtn);
     });
-    await this.relationsSyncAndGet();
-    
+
+    // await this.syncRelations();
+
     const tableRoutes = tables.map(table => {
       return async () => {
         swaggerRefs[table.tn] = [];
@@ -475,6 +495,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           args.tableNames?.find(t => t.tn === table.tn)?._tn
         );
 
+        ctx.oldMeta = args?.oldMetas?.[table.tn];
+
         // ctx._tn = args.tableNames?.find(t => t.tn === table.tn)?._tn || ctx._tn;
 
         /* create models from table metadata */
@@ -503,11 +525,31 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             this.dbAlias,
             'nc_models',
             {
+              order: table.order || ++order,
+              view_order: 1,
               title: table.tn,
               alias: meta._tn,
               meta: JSON.stringify(meta),
               type: table.type || 'table'
             }
+          );
+        } else if (args?.oldMetas?.[table.tn]?.id) {
+          this.log(
+            "xcTablesPopulate : Updating model metadata for '%s' - %s",
+            table.tn,
+            table.type
+          );
+          await this.xcMeta.metaUpdate(
+            this.projectId,
+            this.dbAlias,
+            'nc_models',
+            {
+              title: table.tn,
+              alias: meta._tn,
+              meta: JSON.stringify(meta),
+              type: table.type || 'table'
+            },
+            args?.oldMetas?.[table.tn]?.id
           );
         }
 
@@ -821,14 +863,17 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   // NOTE: xc-meta
-  public async xcTablesRowDelete(tn: string): Promise<void> {
-    await super.xcTablesRowDelete(tn);
+  public async xcTablesRowDelete(tn: string, extras?: any): Promise<void> {
+    await super.xcTablesRowDelete(tn, extras);
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_routes', {
       tn
     });
   }
 
-  public async onTableCreate(tn: string, args?: any): Promise<void> {
+  public async onTableCreate(
+    tn: string,
+    args?: { _tn?: string; columns?: any; oldMeta?: NcMetaData }
+  ): Promise<void> {
     await super.onTableCreate(tn, args);
 
     const columns = args.columns
@@ -839,12 +884,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     await this.xcTablesPopulate({
       tableNames: [{ tn, _tn: args._tn }],
-      columns
+      columns,
+      oldMetas: {
+        [tn]: args.oldMeta
+      }
     });
   }
 
-  public async onTableDelete(tn: string): Promise<void> {
-    await super.onTableDelete(tn);
+  public async onTableDelete(tn: string, extras?: any): Promise<void> {
+    await super.onTableDelete(tn, extras);
     this.log("onTableDelete : '%s'", tn);
     try {
       const ctrlIndex = this.router.stack.findIndex(r => {
@@ -855,7 +903,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
       delete this.models[tn];
 
-      await this.xcTablesRowDelete(tn);
+      await this.xcTablesRowDelete(tn, extras);
 
       delete this.routers[tn];
       this.swaggerUpdate({
@@ -2355,7 +2403,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     if (!this.config.try) {
       this.log('generateSwaggerJson : Generating swagger.json');
       const swaggerFilePath = path.join(
-        this.config.toolDir,
+        this.app.getToolDir(),
         'nc',
         this.projectId,
         this.getDbAlias(),
@@ -2410,7 +2458,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       glob
         .sync(
           path.join(
-            this.config.toolDir,
+            this.app.getToolDir(),
             'nc',
             this.projectId,
             this.getDbAlias(),
@@ -2481,7 +2529,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     /* load swagger JSON */
     const swaggerFilePath = path.join(
-      this.config.toolDir,
+      this.app.getToolDir(),
       'nc',
       this.projectId,
       this.getDbAlias(),
@@ -2599,8 +2647,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     );
   }
 
-  protected async ncUpManyToMany(): Promise<any> {
-    const metas = await super.ncUpManyToMany();
+  protected async ncUpManyToMany(ctx: any): Promise<any> {
+    const metas = await super.ncUpManyToMany(ctx);
     if (!metas) {
       return;
     }

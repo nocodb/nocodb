@@ -468,7 +468,7 @@
                     Click to change gradient
                   </div>-->
                   <template v-if="!excelImport">
-                    <gradient-generator v-model="project.image_url" class=" d-100" />
+                    <gradient-generator v-model="project.image_url" class=" d-100 mt-4" />
 
                     <v-row>
                       <v-col>
@@ -709,7 +709,6 @@ export default {
             return table
           })
         }
-
         this.$emit('update:projectTemplate', template)
       }
     }
@@ -722,10 +721,7 @@ export default {
     document.removeEventListener('keydown', this.handleKeyDown)
   },
   mounted() {
-    if (this.projectTemplate) {
-      this.parseTemplate(this.projectTemplate)
-      this.expansionPanel = Array.from({ length: this.project.tables.length }, (_, i) => i)
-    }
+    this.parseAndLoadTemplate()
     const input = this.$refs.projec && this.$refs.project.$el.querySelector('input')
     if (input) {
       input.focus()
@@ -733,6 +729,12 @@ export default {
     }
   },
   methods: {
+    parseAndLoadTemplate() {
+      if (this.projectTemplate) {
+        this.parseTemplate(this.projectTemplate)
+        this.expansionPanel = Array.from({ length: this.project.tables.length }, (_, i) => i)
+      }
+    },
     getIcon(type) {
       return getUIDTIcon(type)
     },

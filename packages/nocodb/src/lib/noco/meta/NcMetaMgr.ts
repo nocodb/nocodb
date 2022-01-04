@@ -30,8 +30,6 @@ import Noco from '../Noco';
 import { GqlApiBuilder } from '../gql/GqlApiBuilder';
 import NcPluginMgr from '../plugins/NcPluginMgr';
 import XcCache from '../plugins/adapters/cache/XcCache';
-import EmailFactory from '../plugins/adapters/email/EmailFactory';
-// import Twilio from '../plugins/adapters/twilio/Twilio';
 import { RestApiBuilder } from '../rest/RestApiBuilder';
 import RestAuthCtrl from '../rest/RestAuthCtrlEE';
 import { packageVersion } from 'nc-help';
@@ -39,6 +37,8 @@ import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import { promisify } from 'util';
 import NcTemplateParser from '../../templateParser/NcTemplateParser';
 import UITypes from '../../sqlUi/UITypes';
+import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
+import xcMetaDiff from './handlers/xcMetaDiff';
 
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -302,7 +302,8 @@ export default class NcMetaMgr {
                     +process.env.DB_QUERY_LIMIT_MAX || 100
                   ),
                   +process.env.DB_QUERY_LIMIT_MIN || 1
-                )
+                ),
+                timezone: defaultConnectionConfig.timezone
               };
               return res.json(result);
             }
@@ -1437,8 +1438,11 @@ export default class NcMetaMgr {
         case 'xcVirtualTableDelete':
           result = await this.xcVirtualTableDelete(args, req);
           break;
+        case 'xcMetaDiff':
+          result = await this.xcMetaDiff(args, req);
+          break;
         case 'xcVirtualTableList':
-          result = await this.xcVirtualTableList(args);
+          result = await this.xcVirtualTableList(args, req);
           break;
 
         case 'xcVersionLetters':
@@ -1477,6 +1481,14 @@ export default class NcMetaMgr {
 
         case 'xcVisibilityMetaSet':
           result = await this.xcVisibilityMetaSet(args);
+          break;
+
+        case 'xcVisibilityMetaSetAll':
+          result = await this.xcVisibilityMetaSetAll(args);
+          break;
+
+        case 'xcTableAndViewList':
+          result = await this.xcTableAndViewList(req, args);
           break;
 
         case 'tableList':
@@ -1796,6 +1808,14 @@ export default class NcMetaMgr {
           result = await this.xcModelSet(args);
           break;
 
+        case 'xcModelOrderSet':
+          result = await this.xcModelOrderSet(args);
+          break;
+
+        case 'xcModelViewOrderSet':
+          result = await this.xcModelViewOrderSet(args);
+          break;
+
         case 'xcUpdateVirtualKeyAlias':
           result = await this.xcUpdateVirtualKeyAlias(args);
           break;
@@ -1930,6 +1950,7 @@ export default class NcMetaMgr {
         case 'functionMetaCreate':
         case 'functionMetaDelete':
         case 'functionMetaRecreate':
+        case 'xcMetaDiffSync':
           result = { msg: 'success' };
           break;
 
@@ -2321,7 +2342,7 @@ export default class NcMetaMgr {
 
   // NOTE: updated
   protected async xcModelSet(args): Promise<any> {
-    const dbAlias = await this.getDbAlias(args);
+    const dbAlias = this.getDbAlias(args);
     this.cacheModelDel(this.getProjectId(args), dbAlias, 'table', args.args.tn);
     return this.xcMeta.metaUpdate(
       args.project_id,
@@ -2333,6 +2354,36 @@ export default class NcMetaMgr {
       {
         title: args.args.tn
       }
+    );
+  }
+
+  // NOTE: updated
+  protected async xcModelOrderSet(args): Promise<any> {
+    const dbAlias = this.getDbAlias(args);
+    return this.xcMeta.metaUpdate(
+      this.getProjectId(args),
+      dbAlias,
+      'nc_models',
+      {
+        order: args.args.order
+      },
+      {
+        title: args.args.tn
+      }
+    );
+  }
+
+  // NOTE: updated
+  protected async xcModelViewOrderSet(args): Promise<any> {
+    const dbAlias = this.getDbAlias(args);
+    return this.xcMeta.metaUpdate(
+      this.getProjectId(args),
+      dbAlias,
+      'nc_models',
+      {
+        view_order: args.args.view_order
+      },
+      args.args.id
     );
   }
 
@@ -4044,6 +4095,7 @@ export default class NcMetaMgr {
       ...viewMeta.meta,
       columns: viewMeta.meta.columns.filter(
         c =>
+          !viewMeta.query_params?.showFields ||
           viewMeta.query_params?.showFields?.[c._cn] ||
           c.pk ||
           viewMeta.meta.v?.some(v => v.bt?.cn === c.cn)
@@ -4216,7 +4268,10 @@ export default class NcMetaMgr {
     const roles = req.session?.passport?.user?.roles;
 
     const views = (
-      await this.xcVisibilityMetaGet({ ...args, args: { type: 'view' } })
+      await this.xcVisibilityMetaGet({
+        ...args,
+        args: { type: 'view', ...args.args }
+      })
     ).filter((view: any) => {
       return Object.keys(roles).some(
         role => roles[role] && !view.disabled[role]
@@ -4569,6 +4624,7 @@ export default class NcMetaMgr {
               obj[table.title] = {
                 tn: table.title,
                 _tn: table.alias,
+                order: table.order,
                 disabled: { ...defaultDisabled }
               };
               return obj;
@@ -4589,15 +4645,18 @@ export default class NcMetaMgr {
               result[d.title].disabled[d.role] = !!d.disabled;
             }
 
-            return Object.values(result)?.sort((a: any, b: any) =>
-              (a?._tn || a?.tn)?.localeCompare(b?._tn || b?.tn)
+            return Object.values(result)?.sort(
+              (a: any, b: any) =>
+                (a.order || 0) - (b.order || 0) ||
+                (a?._tn || a?.tn)?.localeCompare(b?._tn || b?.tn)
             );
           }
           break;
         case 'view':
           {
             // const views = (await sqlClient.viewList())?.data?.list;
-            const views = await this.xcMeta.metaList(
+
+            let views = await this.xcMeta.metaList(
               this.getProjectId(args),
               this.getDbAlias(args),
               'nc_models',
@@ -4608,8 +4667,26 @@ export default class NcMetaMgr {
               }
             );
 
+            if (args.args.force) {
+              views = (await sqlClient.viewList())?.data?.list?.map(view => {
+                return (
+                  views.find(mod => mod.title === view.view_name) ?? {
+                    title: view.view_name,
+                    alias: view.view_name
+                  }
+                );
+              });
+              const config = this.projectConfigs[this.getProjectId(args)];
+              views = config?.prefix
+                ? views.filter(t => {
+                    t.alias = t.title.replace(config?.prefix, '');
+                    return t.title.startsWith(config?.prefix);
+                  })
+                : views;
+            }
+
             const result = views.reduce((obj, view) => {
-              obj[view.view_name] = {
+              obj[view.view_name || view.title] = {
                 view_name: view.title,
                 _tn: view.alias,
                 disabled: { ...defaultDisabled }
@@ -4739,6 +4816,180 @@ export default class NcMetaMgr {
             return Object.values(result);
           }
           break;
+
+        case 'all':
+          {
+            const models = await this.xcMeta.metaList(
+              this.getProjectId(args),
+              this.getDbAlias(args),
+              'nc_models',
+              {
+                condition: {
+                  ...(args?.args?.includeM2M ? {} : { mm: null })
+                },
+                xcCondition: {
+                  _or: [
+                    {
+                      type: { eq: 'table' }
+                    },
+                    {
+                      type: { eq: 'view' }
+                    },
+                    {
+                      type: { eq: 'vtable' }
+                    }
+                  ]
+                }
+              }
+            );
+
+            const result = models.reduce((obj, table) => {
+              obj[table.title] = {
+                tn: table.title,
+                _tn: table.alias || table.title,
+                order: table.order,
+                disabled: { ...defaultDisabled },
+                type: table.type,
+                show_as: table.show_as,
+                ptn: table.parent_model_title
+              };
+              return obj;
+            }, {});
+
+            const disabledList = await this.xcMeta.metaList(
+              args.project_id,
+              this.getDbAlias(args),
+              'nc_disabled_models_for_role',
+              {
+                xcCondition: {
+                  _or: [
+                    {
+                      type: { eq: 'table' }
+                    },
+                    {
+                      type: { eq: 'view' }
+                    },
+                    {
+                      type: { eq: 'vtable' }
+                    }
+                  ]
+                }
+              }
+            );
+
+            for (const d of disabledList) {
+              if (
+                !result[d.title].ptn ||
+                result[d.title].ptn === d.parent_model_title
+              )
+                result[d.title].disabled[d.role] = !!d.disabled;
+            }
+
+            return Object.values(result)?.sort((a: any, b: any) =>
+              (a?.parent_model_title || a?.tn)?.localeCompare(
+                b?.parent_model_title || b?.tn
+              )
+            );
+          }
+          break;
+        case 'table_view':
+          {
+            const models = await this.xcMeta.metaList(
+              this.getProjectId(args),
+              this.getDbAlias(args),
+              'nc_models',
+              {
+                condition: {
+                  ...(args?.args?.includeM2M ? {} : { mm: null })
+                },
+                xcCondition: {
+                  _or: [
+                    {
+                      type: { eq: 'table' }
+                    },
+                    {
+                      type: { eq: 'view' }
+                    },
+                    {
+                      type: { eq: 'vtable' }
+                    }
+                  ]
+                },
+                orderBy: {
+                  order: 'asc'
+                }
+              }
+            );
+
+            const result = models.reduce((obj, table) => {
+              if (table.type !== 'vtable')
+                obj[table.title] = {
+                  tn: table.title,
+                  _tn: table.alias || table.title,
+                  order: table.order,
+                  disabled: { ...defaultDisabled },
+                  type: table.type,
+                  show_as: table.show_as,
+                  ptn: table.parent_model_title
+                };
+              return obj;
+            }, {});
+
+            // @ts-ignore
+            const viewsObj = models.reduce((obj, tableView) => {
+              obj[tableView.parent_model_title || tableView.title] =
+                obj[tableView.parent_model_title || tableView.title] || {};
+              obj[tableView.parent_model_title || tableView.title][
+                tableView.title
+              ] = { ...defaultDisabled };
+              return obj;
+            }, {});
+
+            // @ts-ignore
+            const disabledList = await this.xcMeta.metaList(
+              args.project_id,
+              this.getDbAlias(args),
+              'nc_disabled_models_for_role',
+              {
+                xcCondition: {
+                  _or: [
+                    {
+                      type: { eq: 'table' }
+                    },
+                    {
+                      type: { eq: 'view' }
+                    },
+                    {
+                      type: { eq: 'vtable' }
+                    }
+                  ]
+                }
+              }
+            );
+
+            for (const d of disabledList) {
+              if (d.type === 'vtable') {
+                if (viewsObj?.[d.parent_model_title]?.[d.title])
+                  viewsObj[d.parent_model_title][d.title][d.role] = d.disabled;
+              } else {
+                if (viewsObj?.[d.title]?.[d.title])
+                  viewsObj[d.title][d.title][d.role] = d.disabled;
+              }
+            }
+
+            for (const [title, aclObj] of Object.entries(viewsObj)) {
+              for (const role in result[title]?.disabled || []) {
+                result[title].disabled[role] = Object.values(aclObj).every(
+                  v => v[role]
+                );
+              }
+            }
+
+            // result[d.title].disabled[d.role] = !!d.disabled;
+
+            return Object.values(result);
+          }
+          break;
       }
     } catch (e) {
       throw e;
@@ -4746,84 +4997,13 @@ export default class NcMetaMgr {
   }
 
   // @ts-ignore
-  protected async xcVisibilityMetaSet(args) {
-    // if (!this.isEe) {
+  protected async xcVisibilityMetaSetAll(args) {
     throw new XCEeError('Please upgrade');
-    // }
+  }
 
-    // try {
-    //   let field = '';
-    //   switch (args.args.type) {
-    //     case 'table':
-    //       field = 'tn';
-    //       break;
-    //     case 'function':
-    //       field = 'function_name';
-    //       break;
-    //     case 'procedure':
-    //       field = 'procedure_name';
-    //       break;
-    //     case 'view':
-    //       field = 'view_name';
-    //       break;
-    //     case 'relation':
-    //       field = 'relationType';
-    //       break;
-    //   }
-    //
-    //   for (const d of args.args.disableList) {
-    //     const props = {};
-    //     if (field === 'relationType') {
-    //       Object.assign(props, {
-    //         tn: d.tn,
-    //         rtn: d.rtn,
-    //         cn: d.cn,
-    //         rcn: d.rcn,
-    //         relation_type: d.relationType
-    //       })
-    //     }
-    //     for (const role of Object.keys(d.disabled)) {
-    //       const dataInDb = await this.xcMeta.metaGet(this.getProjectId(args), this.getDbAlias(args), 'nc_disabled_models_for_role', {
-    //         type: args.args.type,
-    //         title: d[field],
-    //         role,
-    //         ...props
-    //       });
-    //       if (dataInDb) {
-    //         if (d.disabled[role]) {
-    //           if (!dataInDb.disabled) {
-    //             await this.xcMeta.metaUpdate(this.getProjectId(args), this.getDbAlias(args), 'nc_disabled_models_for_role', {
-    //               disabled: d.disabled[role]
-    //             }, {
-    //               type: args.args.type,
-    //               title: d[field],
-    //               role, ...props
-    //             })
-    //           }
-    //         } else {
-    //
-    //           await this.xcMeta.metaDelete(this.getProjectId(args), this.getDbAlias(args), 'nc_disabled_models_for_role', {
-    //             type: args.args.type,
-    //             title: d[field],
-    //             role, ...props
-    //           })
-    //         }
-    //       } else if (d.disabled[role]) {
-    //         await this.xcMeta.metaInsert(this.getProjectId(args), this.getDbAlias(args), 'nc_disabled_models_for_role', {
-    //           disabled: d.disabled[role],
-    //           type: args.args.type,
-    //           title: d[field],
-    //           role, ...props
-    //         })
-    //
-    //       }
-    //     }
-    //   }
-    //
-    //
-    // } catch (e) {
-    //   throw e;
-    // }
+  // @ts-ignore
+  protected async xcVisibilityMetaSet(args) {
+    throw new XCEeError('Please upgrade');
   }
 
   protected async xcPluginList(_args): Promise<any> {
@@ -4836,27 +5016,8 @@ export default class NcMetaMgr {
     });
   }
 
-  protected async xcPluginTest(req, args): Promise<any> {
-    try {
-      switch (args.args.category) {
-        case 'Email':
-          {
-            const emailIns = EmailFactory.createNewInstance(
-              args.args,
-              args.args.input
-            );
-            await emailIns.init();
-            await emailIns?.test(req.user?.email);
-          }
-          break;
-        default:
-          return this.pluginMgr.test(args.args);
-          break;
-      }
-      return true;
-    } catch (e) {
-      throw e;
-    }
+  protected async xcPluginTest(_req, args): Promise<any> {
+    return this.pluginMgr.test(args.args);
   }
 
   protected async xcPluginCreate(_args): Promise<any> {}
@@ -4928,6 +5089,22 @@ export default class NcMetaMgr {
       }
     );
 
+    const view_order =
+      ((
+        await this.xcMeta
+          .knex('nc_models')
+          .where({
+            project_id: this.getProjectId(args),
+            db_alias: this.getDbAlias(args)
+          })
+          .andWhere(qb => {
+            qb.where({ title: args.args.parent_model_title });
+            qb.orWhere({ parent_model_title: args.args.parent_model_title });
+          })
+          .max('view_order as max')
+          .first()
+      )?.max || 0) + 1;
+
     if (!parentModel) {
       return;
     }
@@ -4938,7 +5115,8 @@ export default class NcMetaMgr {
       // meta: parentModel.meta,
       query_params: JSON.stringify(args.args.query_params),
       parent_model_title: args.args.parent_model_title,
-      show_as: args.args.show_as
+      show_as: args.args.show_as,
+      view_order
     };
     const projectId = this.getProjectId(args);
     const dbAlias = this.getDbAlias(args);
@@ -5166,45 +5344,103 @@ export default class NcMetaMgr {
     };
   }
 
-  protected async xcVirtualTableList(args): Promise<any> {
-    return (
-      await this.xcMeta.metaList(
-        this.getProjectId(args),
-        this.getDbAlias(args),
-        'nc_models',
-        {
-          xcCondition: {
-            _or: [
-              {
-                parent_model_title: {
-                  eq: args.args.tn
-                }
-              },
-              {
-                title: {
-                  eq: args.args.tn
-                }
+  protected async xcTableAndViewList(req, args): Promise<any> {
+    const roles = req.session?.passport?.user?.roles;
+    let tables = await this.xcVisibilityMetaGet({
+      ...args,
+      args: { type: 'table_view', ...args.args }
+    });
+
+    tables = tables.filter((table: any) => {
+      return Object.keys(roles).some(
+        role => roles[role] && !table.disabled[role]
+      );
+    });
+
+    return { data: { list: tables } };
+  }
+
+  protected async xcVirtualTableList(args, req): Promise<any> {
+    const roles = (await this.xcMeta.metaList('', '', 'nc_roles'))
+      .map(r => r.title)
+      .filter(role => !['owner', 'guest', 'creator'].includes(role));
+
+    const defaultDisabled = roles.reduce((o, r) => ({ ...o, [r]: false }), {});
+    const list = await this.xcMeta.metaList(
+      this.getProjectId(args),
+      this.getDbAlias(args),
+      'nc_models',
+      {
+        xcCondition: {
+          _or: [
+            {
+              parent_model_title: {
+                eq: args.args.tn
               }
-            ]
-          },
-          fields: [
-            'id',
-            'alias',
-            'meta',
-            'parent_model_title',
-            'query_params',
-            'show_as',
-            'title',
-            'type'
+            },
+            {
+              title: {
+                eq: args.args.tn
+              }
+            }
           ]
-          // todo: handle sort
+        },
+        fields: [
+          'id',
+          'alias',
+          'meta',
+          'parent_model_title',
+          'query_params',
+          'show_as',
+          'title',
+          'type',
+          'view_order'
+        ],
+        orderBy: {
+          view_order: 'asc'
         }
-      )
-    ).sort(
-      (a, b) =>
-        +(a.type === 'vtable' ? a.id : -Infinity) -
-        +(b.type === 'vtable' ? b.id : -Infinity)
+        // todo: handle sort
+      }
     );
+
+    const result = list.reduce((obj, table) => {
+      obj[table.title] = {
+        ...table,
+        disabled: { ...defaultDisabled }
+      };
+      return obj;
+    }, {});
+
+    const disabledList = await this.xcMeta.metaList(
+      args.project_id,
+      this.getDbAlias(args),
+      'nc_disabled_models_for_role',
+      {
+        xcCondition: {
+          _or: [
+            {
+              type: 'table'
+            },
+            {
+              type: 'vtable'
+            }
+          ]
+        }
+      }
+    );
+
+    for (const d of disabledList) {
+      if (result?.[d.title]?.disabled)
+        result[d.title].disabled[d.role] = !!d.disabled;
+    }
+
+    const models = Object.values(result).filter((table: any) => {
+      return Object.keys(req.session?.passport?.user?.roles).some(
+        role =>
+          req.session?.passport?.user?.roles[role] && !table.disabled[role]
+      );
+    });
+    return models;
   }
 
   protected async xcVirtualTableDelete(args, req): Promise<any> {
@@ -5231,6 +5467,10 @@ export default class NcMetaMgr {
 
     Tele.emit('evt', { evt_type: 'vtable:deleted' });
     return res;
+  }
+
+  protected async xcMetaDiff(args, req): Promise<any> {
+    return xcMetaDiff.call(this, { args, req });
   }
 
   // @ts-ignore

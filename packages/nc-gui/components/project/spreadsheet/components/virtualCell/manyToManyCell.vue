@@ -385,6 +385,7 @@ export default {
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
         this.localState.push(child)
         this.$emit('update:localState', [...this.localState])
+        this.$emit('saveRow')
         this.newRecordModal = false
         return
       }

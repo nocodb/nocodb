@@ -10,7 +10,7 @@
           @showTemplateEditor="newEditor = true"
         />
       </v-navigation-drawer>
-      <template-editor v-if="newEditor" style="width:100%; height: 100%; " @saved="onSaved" />
+      <template-editor v-if="newEditor" :project-template.sync="projectTemplate" style="width:100%; height: 100%; " @saved="onSaved" />
       <v-container v-else fluid style="height: 100%; overflow: auto">
         <v-row v-if="templatesLoading">
           <v-col
@@ -108,7 +108,8 @@ export default {
     selectedId: null,
     templateListLoc: [],
     counter: 0,
-    newEditor: false
+    newEditor: false,
+    projectTemplate: null
   }),
   computed: {
     templateList() {

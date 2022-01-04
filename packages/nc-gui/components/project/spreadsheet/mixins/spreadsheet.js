@@ -89,7 +89,9 @@ export default {
     },
 
     allColumns() {
-      if (!this.meta) { return [] }
+      if (!this.meta) {
+        return []
+      }
 
       let columns = this.meta.columns
       if (this.meta && this.meta.v) {
@@ -113,6 +115,9 @@ export default {
       }
       return columns
     },
+    // allColumnsNames() {
+    //   return this.allColumns && this.allColumns.length ? this.allColumns.reduce((a, c) => [...a, c.cn, c._cn], []) : []
+    // },
     availableColumns() {
       let columns = []
 
@@ -354,6 +359,7 @@ export default {
           }
 
           condition += (i ? `~${filt.logicOp}` : '')
+          // if (this.allColumnsNames.includes(filt.field)) {
           switch (filt.op) {
             case 'is equal':
               return condition + `(${filt.field},eq,${filt.value})`
@@ -380,6 +386,7 @@ export default {
             case '>=':
               return condition + `(${filt.field},ge,${filt.value})`
           }
+          // }
           return condition
         }, '')
 
@@ -397,6 +404,7 @@ export default {
     sortList: {
       async handler(sortList) {
         const sort = sortList.map((sort) => {
+          // && this.allColumnsNames.includes(sort.field)
           return sort.field ? `${sort.order}${sort.field}` : ''
         }).filter(Boolean).join(',')
         this.sort = sort

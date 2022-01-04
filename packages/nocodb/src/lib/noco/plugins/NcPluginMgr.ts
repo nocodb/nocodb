@@ -149,8 +149,18 @@ class NcPluginMgr {
           return tempPlugin?.getAdapter()?.test?.();
         }
         break;
+      case 'Email':
+        {
+          const plugin = defaultPlugins.find(
+            pluginConfig => pluginConfig?.title === args.title
+          );
+          const tempPlugin = new plugin.builder(this.app, plugin);
+          await tempPlugin.init(args?.input);
+          return tempPlugin?.getAdapter()?.test?.();
+        }
+        break;
       default:
-        throw new Error('Not implemented');
+        throw new Error('Test not implemented');
     }
   }
 }

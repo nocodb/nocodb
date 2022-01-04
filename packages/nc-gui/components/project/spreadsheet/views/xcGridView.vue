@@ -19,7 +19,18 @@
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4 grey--text text--darken-2'"
             style="width: 65px"
           >
-            #
+            <div class="d-flex align-center">
+              <span v-if="!selectAll" class="row-no">#</span>
+              <template v-if="!isPublicView">
+                <v-checkbox
+                  v-model="selectAll"
+                  class="row-checkbox pt-0 align-self-center my-auto"
+                  :class="{active : selectAll}"
+                  dense
+                />
+              </template>
+              <div class="d-flex align-center" />
+            </div>
           </th>
           <th
             v-for="(col) in availableColumns"
@@ -185,6 +196,7 @@
               :is-new="rowMeta.new"
               v-on="$listeners"
               @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.cn === columnObj.bt.cn), col, row)"
+              @saveRow="onCellValueChange(col, row, columnObj)"
             />
 
             <editable-cell
@@ -317,6 +329,16 @@ export default {
     dragOver: false
   }),
   computed: {
+    selectAll: {
+      get() {
+        return !!(this.data.length && this.data.every(d => d.rowMeta && d.rowMeta.selected))
+      },
+      set(v) {
+        for (const d of this.data) {
+          this.$set(d.rowMeta, 'selected', v)
+        }
+      }
+    },
     ids() {
       return this.data.map(({ oldRow }) => this.meta.columns.filter(c => c.pk).map(c => oldRow[c._cn]).join('___'))
     },

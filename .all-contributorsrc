@@ -540,6 +540,51 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "SiderealArt",
+      "name": "SiderealArt",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30827929?v=4",
+      "profile": "http://siderealart.me",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "vijayrathore8492",
+      "name": "Vijay Rathore",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17380265?v=4",
+      "profile": "http://vijayrathore.me",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "John-Appleseed",
+      "name": "John Appleseed",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7055847?v=4",
+      "profile": "https://github.com/John-Appleseed",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Korayem",
+      "name": "Salem Korayem",
+      "avatar_url": "https://avatars.githubusercontent.com/u/198332?v=4",
+      "profile": "https://github.com/Korayem",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "dubiao",
+      "name": "标",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4001793?v=4",
+      "profile": "https://github.com/dubiao",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

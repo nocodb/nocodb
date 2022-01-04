@@ -25,7 +25,7 @@ export default {
     ...(process.env.NODE_ENV === 'dev' ? { 'Show _Nodes Info': 'SHOW_NODES' } : {})
   },
   viewDir: {
-    'View Create': 'ENV_DB_VIEWS_CREATE',
+    // 'View Create': 'ENV_DB_VIEWS_CREATE',
     'Views Refresh': 'ENV_DB_VIEWS_REFRESH',
     ...(process.env.NODE_ENV === 'dev' ? { 'Show _Nodes Info': 'SHOW_NODES' } : {})
   },
@@ -75,8 +75,8 @@ export default {
     ...(process.env.NODE_ENV === 'dev' ? { 'Show _Nodes Info': 'SHOW_NODES' } : {})
   },
   view: {
-    'View Rename': 'ENV_DB_VIEWS_RENAME',
-    'View Delete': 'ENV_DB_VIEWS_DELETE',
+    // 'View Rename': 'ENV_DB_VIEWS_RENAME',
+    // 'View Delete': 'ENV_DB_VIEWS_DELETE',
     ...(process.env.NODE_ENV === 'dev' ? { 'Show _Nodes Info': 'SHOW_NODES' } : {})
   },
   function: {

@@ -1,85 +1,72 @@
-import { loginPage } from "../../support/page_objects/navigation"
-import { roles } from "../../support/page_objects/projectConstants"
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants"
+import { loginPage } from "../../support/page_objects/navigation";
+import { isXcdb, roles } from "../../support/page_objects/projectConstants";
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (type, xcdb) => {
-
   describe(`${type.toUpperCase()} Project operations`, () => {
-    if(!isTestSuiteActive(type, xcdb)) return;
+    if (!isTestSuiteActive(type, xcdb)) return;
 
     before(() => {
-      loginPage.signIn(roles.owner.credentials)
-    })
+      loginPage.signIn(roles.owner.credentials);
+    });
 
-    // beforeEach(() => {
-    //   cy.restoreLocalStorage();
-    // });
-
-    // afterEach(() => {
-    //   cy.saveLocalStorage();
-    // });
-
-    // it('Create Project', () => {
-    //   cy.contains('New Project').trigger('onmouseover').trigger('mouseenter');
-    //   cy.get('.create-external-db-project').click()
-    //   cy.url({timeout: 50000}).should('contain', '#/project/')
-    //   if (type === 'graphql') {
-    //     cy.contains('GRAPHQL APIs').closest('label').click()
-    //   }
-    //   cy.get('.database-field input').click().clear().type('dummy_db')
-    //   cy.contains('Test Database Connection').click()
-    //   cy.contains('Ok & Save Project', {timeout: 3000}).click()
-    //   cy.url({timeout: 50000}).should('contain', '#/nc/')
-    // });
-
-    it('Stop Project', () => {
+    it("Stop Project", () => {
       //cy.visit('./#/projects')
-      cy.get(`.nc-${type}-project-row .mdi-stop-circle-outline`, { timeout: 10000 })
+      cy.get(`.nc-${type}-project-row .mdi-stop-circle-outline`, {
+        timeout: 10000,
+      })
+        .should("exist")
         .last()
-        .invoke('show')
+        .invoke("show")
         .click();
-      cy.contains('Submit')
-        .closest('button')
-        .click();
-    })
+      cy.contains("Submit").closest("button").click();
 
-    it('Start Project', () => {
+      cy.toastWait("stopped successfully");
+    });
+
+    it("Start Project", () => {
       //cy.visit('./#/projects')
-      cy.get(`.nc-${type}-project-row .mdi-play-circle-outline`, { timeout: 10000 })
+      cy.get(`.nc-${type}-project-row .mdi-play-circle-outline`, {
+        timeout: 10000,
+      })
+        .should("exist")
         .last()
-        .invoke('show')
+        .invoke("show")
         .click();
-      cy.contains('Submit').closest('button').click();
-    })
+      cy.contains("Submit").closest("button").click();
 
-    it('Restart Project', () => {
+      cy.toastWait("started successfully");
+    });
+
+    it("Restart Project", () => {
+      if (!isXcdb()) {
+        //cy.visit('./#/projects')
+        cy.get(`.nc-${type}-project-row .mdi-restart`, { timeout: 10000 })
+          .should("exist")
+          .last()
+          .invoke("show")
+          .click();
+        cy.contains("Submit").closest("button").click();
+
+        cy.toastWait("restarted successfully");
+      }
+    });
+
+    it("Delete Project", () => {
       //cy.visit('./#/projects')
-      cy.wait(1000)
-      cy.get(`.nc-${type}-project-row .mdi-restart`, { timeout: 10000 })
+      cy.get(`.nc-${type}-project-row .mdi-delete-circle-outline`, {
+        timeout: 10000,
+      })
+        .should("exist")
         .last()
-        .invoke('show')
+        .invoke("show")
         .click();
-      cy.contains('Submit')
-        .closest('button')
-        .click();
-    })
+      cy.contains("Submit").closest("button").click();
 
-    it('Delete Project', () => {
-      //cy.visit('./#/projects')
-      cy.wait(1000)
-      cy.get(`.nc-${type}-project-row .mdi-delete-circle-outline`, { timeout: 10000 })
-        .last()
-        .invoke('show')
-        .click();
-      cy.contains('Submit')
-        .closest('button')
-        .click();
-    })
-  })
-}
-
-// genTest('rest', false)
-// genTest('graphql', false)
+      cy.toastWait("deleted successfully");
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -47,7 +47,7 @@ export default {
 
 <style scoped>
 .long-text-cell {
-  white-space: pre;
+  white-space: break-spaces;
 }
 </style>
 <!--

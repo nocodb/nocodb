@@ -264,11 +264,11 @@ export default {
   methods: {
     showAll() {
       // eslint-disable-next-line no-return-assign,no-sequences
-      this.showFields = Object.keys(this.showFields).reduce((o, k) => (o[k] = true, o), {})
+      this.showFields = (this.fieldsOrderLoc || Object.keys(this.showFields)).reduce((o, k) => (o[k] = true, o), {})
     },
     hideAll() {
       // eslint-disable-next-line no-return-assign,no-sequences
-      this.showFields = Object.keys(this.showFields).reduce((o, k) => (o[k] = false, o), {})
+      this.showFields = (this.fieldsOrderLoc || Object.keys(this.showFields)).reduce((o, k) => (o[k] = false, o), {})
     }
   }
 }

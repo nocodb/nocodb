@@ -22,7 +22,8 @@
     >
       <v-icon x-small outlined color="primary" class="mr-2">
         mdi-plus
-      </v-icon> Add option
+      </v-icon>
+      Add option
     </v-btn>
   </v-container>
 </template>
@@ -30,6 +31,7 @@
 <script>
 
 import colors from '@/components/project/spreadsheet/helpers/colors'
+
 export default {
   name: 'CustomSelectOptions',
   props: ['value'],
@@ -44,7 +46,7 @@ export default {
   watch: {
     localState: {
       handler(v) {
-        this.$emit('input', v.map(v => `'${v}'`).join(','))
+        this.$emit('input', v.map(v => `'${v.replace(/'/g, '\\\'')}'`).join(','))
       },
       deep: true
     },
@@ -57,7 +59,7 @@ export default {
   },
   methods: {
     syncState() {
-      this.localState = (this.value || '').split(',').map(v => v.replace(/^'|'$/g, ''))
+      this.localState = (this.value || '').split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
     }
   }
 }

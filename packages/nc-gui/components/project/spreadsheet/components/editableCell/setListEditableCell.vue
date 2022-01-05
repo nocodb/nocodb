@@ -64,7 +64,7 @@ export default {
     },
     setValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
+        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
       }
       return []
     },

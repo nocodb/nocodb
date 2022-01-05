@@ -42,25 +42,26 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         tableNamePrefixRef[tn] = 0
       }
 
-      const table = { tn, columns: [] }
+      const table = { tn, refTn: tn, columns: [] }
       this.data[sheet] = []
       const ws = this.wb.Sheets[sheet]
       const range = XLSX.utils.decode_range(ws['!ref'])
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
+      const columnNameRowExist = +rows[0].every(v => v === null || typeof v === 'string')
 
       // const colLen = Math.max()
       for (let col = 0; col < rows[0].length; col++) {
-        let cn = ((rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
-          `field${col + 1}`).replace(/\W/g, '_').trim()
+        let cn = ((columnNameRowExist && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+          `field_${col + 1}`).replace(/\W/g, '_').trim()
 
-        // todo: look for duplicate
-        if (cn in columnNamePrefixRef) {
+        while (cn in columnNamePrefixRef) {
           cn = `${cn}${++columnNamePrefixRef[cn]}`
-        } else {
-          columnNamePrefixRef[cn] = 0
         }
+        columnNamePrefixRef[cn] = 0
+
         const column = {
-          cn
+          cn,
+          refCn: cn
         }
 
         table.columns.push(column)
@@ -68,7 +69,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
         const cellId = XLSX.utils.encode_cell({
           c: range.s.c + col,
-          r: 1
+          r: columnNameRowExist
         })
         const cellProps = ws[cellId] || {}
         column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
@@ -82,7 +83,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           ) {
             column.uidt = UITypes.LongText
           } else {
-            let vals = rows.slice(1).map(r => r[col])
+            let vals = rows.slice(columnNameRowExist ? 1 : 0).map(r => r[col])
 
             const checkboxType = isCheckboxType(vals)
             if (checkboxType.length === 1) {
@@ -119,7 +120,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (rows.slice(1, this.config.maxRowsToParse).every((v, i) => {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + col,
-              r: i + 2
+              r: i + (columnNameRowExist)
             })
 
             const cellObj = ws[cellId]
@@ -132,7 +133,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (rows.slice(1, this.config.maxRowsToParse).every((v, i) => {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + col,
-              r: i + 1
+              r: i + columnNameRowExist
             })
 
             const cellObj = ws[cellId]
@@ -154,7 +155,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + i,
-              r: rowIndex + 1
+              r: rowIndex + columnNameRowExist
             })
 
             const cellObj = ws[cellId]

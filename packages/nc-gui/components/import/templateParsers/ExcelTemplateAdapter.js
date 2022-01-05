@@ -49,11 +49,11 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
 
       // const colLen = Math.max()
-
       for (let col = 0; col < rows[0].length; col++) {
         let cn = ((rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
           `field${col + 1}`).replace(/\W/g, '_').trim()
 
+        // todo: look for duplicate
         if (cn in columnNamePrefixRef) {
           cn = `${cn}${++columnNamePrefixRef[cn]}`
         } else {
@@ -62,6 +62,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const column = {
           cn
         }
+
+        table.columns.push(column)
 
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
         const cellId = XLSX.utils.encode_cell({
@@ -86,7 +88,9 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             if (checkboxType.length === 1) {
               column.uidt = UITypes.Checkbox
             } else {
+              // todo: optimize
               vals = vals.filter(v => v !== null && v !== undefined).map(v => v.toString().trim())
+                .filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
 
               // check column is multi or single select by comparing unique values
               // todo:
@@ -128,31 +132,40 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (rows.slice(1, this.config.maxRowsToParse).every((v, i) => {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + col,
-              r: i + 2
+              r: i + 1
             })
 
             const cellObj = ws[cellId]
-
             return !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
           })) {
             column.uidt = UITypes.Date
           }
         }
-
-        table.columns.push(column)
       }
 
+      let rowIndex = 0
       for (const row of rows.slice(1)) {
         const rowData = {}
         for (let i = 0; i < table.columns.length; i++) {
           if (table.columns[i].uidt === UITypes.Checkbox) {
             rowData[table.columns[i].cn] = getCheckboxValue(row[i])
+          } else if (table.columns[i].uidt === UITypes.Currency) {
+            console.log(table.columns[i], table.columns[i].uidt === UITypes.Currency)
+
+            const cellId = XLSX.utils.encode_cell({
+              c: range.s.c + i,
+              r: rowIndex + 1
+            })
+
+            const cellObj = ws[cellId]
+            rowData[table.columns[i].cn] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
           } else {
             // toto: do parsing if necessary based on type
             rowData[table.columns[i].cn] = row[i]
           }
         }
         this.data[sheet].push(rowData)
+        rowIndex++
       }
       this.project.tables.push(table)
     }

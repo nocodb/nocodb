@@ -83,30 +83,28 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           ) {
             column.uidt = UITypes.LongText
           } else {
-            let vals = rows.slice(columnNameRowExist ? 1 : 0).map(r => r[col])
+            const vals = rows.slice(columnNameRowExist ? 1 : 0).map(r => r[col]).filter(v => v !== null && v !== undefined && v.toString().trim() !== '')
 
             const checkboxType = isCheckboxType(vals)
             if (checkboxType.length === 1) {
               column.uidt = UITypes.Checkbox
             } else {
               // todo: optimize
-              vals = vals.filter(v => v !== null && v !== undefined).map(v => v.toString().trim())
-                .filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
-
               // check column is multi or single select by comparing unique values
               // todo:
               if (vals.some(v => v && v.toString().includes(','))) {
-                const flattenedVals = vals.flatMap(v => v ? v.toString().trim().split(/\s*,\s*/) : [])
-                const uniqueVals = new Set(flattenedVals)
-                if (flattenedVals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(flattenedVals.length / 2)) {
+                let flattenedVals = vals.flatMap(v => v ? v.toString().trim().split(/\s*,\s*/) : [])
+                const uniqueVals = flattenedVals = flattenedVals
+                  .filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
+                if (flattenedVals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(flattenedVals.length / 2)) {
                   column.uidt = UITypes.MultiSelect
-                  column.dtxp = `'${[...uniqueVals].join("','")}'`
+                  column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               } else {
-                const uniqueVals = new Set(vals)
-                if (vals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(vals.length / 2)) {
+                const uniqueVals = vals.map(v => v.toString().trim()).filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
+                if (vals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(vals.length / 2)) {
                   column.uidt = UITypes.SingleSelect
-                  column.dtxp = `'${[...uniqueVals].join("','")}'`
+                  column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               }
             }
@@ -151,8 +149,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (table.columns[i].uidt === UITypes.Checkbox) {
             rowData[table.columns[i].cn] = getCheckboxValue(row[i])
           } else if (table.columns[i].uidt === UITypes.Currency) {
-            console.log(table.columns[i], table.columns[i].uidt === UITypes.Currency)
-
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + i,
               r: rowIndex + columnNameRowExist
@@ -160,6 +156,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             const cellObj = ws[cellId]
             rowData[table.columns[i].cn] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
+          } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
+            rowData[table.columns[i].cn] = (row[i] || '').toString().trim() || null
           } else {
             // toto: do parsing if necessary based on type
             rowData[table.columns[i].cn] = row[i]

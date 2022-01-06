@@ -2,6 +2,7 @@
   <div>
     <v-chip
       v-for="v in (value || '').split(',')"
+      v-show="v || setValues.includes(v)"
       :key="v"
       small
       :color="colors[setValues.indexOf(v) % colors.length]"
@@ -20,7 +21,6 @@ export default {
   mixins: [colors],
   props: ['value', 'column'],
   computed: {
-
     setValues() {
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))

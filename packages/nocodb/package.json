@@ -147,7 +147,7 @@
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
-    "nc-help": "^0.2.18",
+    "nc-help": "^0.2.22",
     "nc-lib-gui": "0.84.1",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
@@ -225,7 +225,6 @@
     "webpack-node-externals": "^2.5.2",
     "webpack-obfuscator": "^1.12.0"
   },
-  "peerDependencies": {},
   "ava": {
     "failFast": true,
     "files": [

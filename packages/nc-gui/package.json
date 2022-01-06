@@ -40,7 +40,7 @@
     "uuid": "^8.3.2",
     "v-clipboard": "^2.2.3",
     "vee-validate": "^3.3.9",
-    "vue-github-buttons": "git+https://github.com/xgenecloud/vue-github-buttons.git",
+    "vue-github-buttons": "^3.1.0",
     "vue-i18n": "^8.20.0",
     "vue-kanban": "^1.8.0",
     "vue-odometer": "^1.0.2",

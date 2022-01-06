@@ -6,8 +6,6 @@
       v-model="navigation.shown"
       permanent
       mini-variant-width="50"
-      :mini-variant.sync="mini"
-      mini
       class="pl-2 nc-nav-drawer"
       style="min-width: 100%; height: 100%"
     >

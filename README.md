@@ -354,6 +354,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/dubiao"><img src="https://avatars.githubusercontent.com/u/4001793?v=4?s=100" width="100px;" alt=""/><br /><sub><b>标</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dubiao" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/willnewii"><img src="https://avatars.githubusercontent.com/u/652003?v=4?s=100" width="100px;" alt=""/><br /><sub><b>诗人的咸鱼</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=willnewii" title="Code">💻</a></td>
   </tr>
 </table>
 

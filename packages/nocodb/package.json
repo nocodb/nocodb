@@ -186,6 +186,7 @@
     "@types/inflection": "^1.5.28",
     "@types/lru-cache": "^5.1.0",
     "@types/minio": "^7.0.7",
+    "@types/mkdirp": "^1.0.2",
     "@types/mocha": "^8.0.1",
     "@types/nodemailer": "^6.4.0",
     "@types/supertest": "^2.0.10",

@@ -1,5 +1,6 @@
 import CryptoJS from 'crypto-js';
 import fs from 'fs';
+import mkdirp from 'mkdirp';
 import path from 'path';
 
 import archiver from 'archiver';
@@ -700,8 +701,11 @@ export default class NcMetaMgr {
           args.dbAlias,
           'meta'
         );
+
+        mkdirp.sync(metaFolder);
+
         // const client = await this.projectGetSqlClient(args);
-        const dbAlias = await this.getDbAlias(args);
+        const dbAlias = this.getDbAlias(args);
         for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
           // const metaData = await client.knex(tn).select();
           const metaData = await this.xcMeta.metaList(projectId, dbAlias, tn);
@@ -730,6 +734,7 @@ export default class NcMetaMgr {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

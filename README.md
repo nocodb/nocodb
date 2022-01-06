@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB</a><br>
     </b>
-    🎃 The Open Source Airtable Alternative 🎃 <br>
+    The Open Source Airtable Alternative <br>
 </h1>
 
 <p align="center">

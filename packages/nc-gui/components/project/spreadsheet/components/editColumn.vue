@@ -104,6 +104,21 @@
                   <!--                            <span class="caption">{{ item }}</span>-->
                   <!--                          </v-list-item>-->
                   <!--                        </v-list>-->
+                  <!--                  v-if="column && column.uidt === 'MultiSelect' &&newColumn.uidt === 'SingleSelect'"-->
+
+                  <v-alert
+                    dense
+                    type="warning"
+                    class="caption warning--text mt-2 mb-n4 pa-1"
+                    outlined
+                  >
+                    <template #prepend>
+                      <v-icon small class="mx-2" color="warning">
+                        mdi-alert-outline
+                      </v-icon>
+                    </template>
+                    Changing MultiSelect to SingleSelect can lead to errors when there are multiple values associated with a cell
+                  </v-alert>
                 </v-col>
 
                 <v-col v-if="isSelect" cols="12">
@@ -607,6 +622,11 @@ export default {
 
       this.newColumn.dtx = 'specificType'
 
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
+        this.newColumn.dtxp = this.column.dtxp
+      }
+
       // this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
 
       this.newColumn.altered = this.newColumn.altered || 2
@@ -626,6 +646,11 @@ export default {
 
       this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(this.newColumn.dt)
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt)
+
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
+        this.newColumn.dtxp = this.column.dtxp
+      }
 
       this.newColumn.altered = this.newColumn.altered || 2
     },

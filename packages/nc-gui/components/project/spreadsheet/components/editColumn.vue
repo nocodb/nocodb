@@ -100,6 +100,7 @@
                   </v-autocomplete>
 
                   <v-alert
+                    v-if="column && newColumn.uidt === 'SingleSelect' && column.uidt === 'MultiSelect'"
                     dense
                     type="warning"
                     class="caption warning--text mt-2 mb-n4 pa-1"

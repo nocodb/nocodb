@@ -241,7 +241,7 @@
                 &lt;!&ndash; Add Calendar View &ndash;&gt;
                 {{ $t('nav_drawer.virtual_views.calendar.create') }}
               </v-tooltip> -->
-              <v-tooltip bottom>
+              <!--              <v-tooltip bottom>
                 <template #activator="{ on }">
                   <v-list-item
                     dense
@@ -256,7 +256,7 @@
                     </v-list-item-icon>
                     <v-list-item-title>
                       <span class="font-weight-regular">
-                        <!-- Kanban -->
+                        &lt;!&ndash; Kanban &ndash;&gt;
                         {{ $t('nav_drawer.virtual_views.kanban.title') }}
                       </span>
                     </v-list-item-title>
@@ -268,7 +268,7 @@
                 </template>
                 Add Kanban View
                 {{ $t('nav_drawer.virtual_views.kanban.create') }}
-              </v-tooltip>
+              </v-tooltip>-->
               <v-tooltip
                 bottom
               >
@@ -369,7 +369,7 @@
             <!--            <v-menu offset-x left>-->
             <!--              <template v-slot:activator="{on}">-->
 
-            <!-- 
+            <!--
               TODO:
               - Add selectedView.show_as === 'kanban' when it is ready
              -->
@@ -608,7 +608,7 @@ export default {
         if (this.viewsList) {
           console.log(this.viewsList)
           const view = this.viewsList.find(v => (v.alias ? v.alias : v.title) === this.$route.query.view)
-          id = (view && view.id) || (this.viewsList && this.viewsList[0] || {}).id
+          id = (view && view.id) || ((this.viewsList && this.viewsList[0]) || {}).id
         }
         return id
       }
@@ -781,7 +781,7 @@ export default {
         return
       }
 
-      const old_title = view.title
+      const oldTitle = view.title
 
       this.$set(view, 'edit', false)
       if (view.title_temp === view.title) {
@@ -803,7 +803,7 @@ export default {
         this.$set(view, 'title', view.title_temp)
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
           id: view.id,
-          old_title,
+          old_title: oldTitle,
           title: view.title_temp,
           alias: view.alias,
           parent_model_title: this.meta.tn

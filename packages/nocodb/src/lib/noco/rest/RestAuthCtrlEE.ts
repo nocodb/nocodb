@@ -77,7 +77,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
           });
 
           const { id } = await this.users.where({ email }).first();
-          const count = await this.users.count('id').first();
+          const count = await this.users.count('id as count').first();
           // add user to project
           await this.xcMeta.projectAddUser(
             req.body.project_id,

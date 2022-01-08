@@ -565,12 +565,13 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.generateLoaderFromStringBody(
             loaderFunctionsObj[`${tn}Hm${hm.tn}List`]
           ) ||
-            (async ids => {
+            (async idsAndArg => {
               const data = await this.models[tn].hasManyListGQL({
                 child: hm.tn,
-                ids
+                ids: idsAndArg.map(({ id }) => id),
+                ...(idsAndArg?.[0]?.args || {})
               });
-              return ids.map((id: string) =>
+              return idsAndArg.map(({ id }) =>
                 data[id] ? data[id].map(c => new self.types[hm.tn](c)) : []
               );
             }),
@@ -581,7 +582,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       /* defining HasMany list method within GQL Type class */
       Object.defineProperty(this.types[tn].prototype, `${listPropName}`, {
         async value(args: any, context: any, info: any): Promise<any> {
-          return listLoader.load([this[colNameAlias], args, context, info]);
+          return listLoader.load([
+            { id: this[colNameAlias], args },
+            args,
+            context,
+            info
+          ]);
         },
         configurable: true
       });
@@ -605,14 +611,21 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const listLoader = new DataLoader(
         BaseType.applyMiddlewareForLoader(
           [mw.middleware],
-          async parentIds => {
+          async parentIdsAndArg => {
             return (
               await this.models[tn]._getGroupedManyToManyList({
-                parentIds,
+                parentIds: parentIdsAndArg.map(({ id }) => id),
                 child: mm.rtn,
                 // todo: optimize - query only required fields
                 rest: {
-                  mfields1: '*'
+                  mfields1: '*',
+                  ...Object.entries(parentIdsAndArg?.[0]?.args || {}).reduce(
+                    (params, [key, val]) => ({
+                      ...params,
+                      [`m${key}1`]: val
+                    }),
+                    {}
+                  )
                 }
               })
             )?.map(child => child.map(c => new self.types[mm.rtn](c)));
@@ -624,7 +637,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       /* defining HasMany list method within GQL Type class */
       Object.defineProperty(this.types[tn].prototype, listPropName, {
         async value(args: any, context: any, info: any): Promise<any> {
-          return listLoader.load([this[colNameAlias], args, context, info]);
+          return listLoader.load([
+            { id: this[colNameAlias], args },
+            args,
+            context,
+            info
+          ]);
         },
         configurable: true
       });
@@ -2851,6 +2869,60 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     }
 
     await this.reInitializeGraphqlEndpoint();
+  }
+
+  protected async ncUpAddNestedResolverArgs(_ctx: any): Promise<any> {
+    const models = await this.xcMeta.metaList(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        fields: ['meta'],
+        condition: {
+          type: 'table'
+        }
+      }
+    );
+    if (!models.length) {
+      return;
+    }
+    // add virtual columns for relations
+    for (const metaObj of models) {
+      const meta = JSON.parse(metaObj.meta);
+      const ctx = this.generateContextForTable(
+        meta.tn,
+        meta.columns,
+        [],
+        meta.hasMany,
+        meta.belongsTo,
+        meta.type,
+        meta._tn
+      );
+
+      /* generate gql schema of the table */
+      const schema = GqlXcSchemaFactory.create(this.connectionConfig, {
+        dir: '',
+        ctx: {
+          ...ctx,
+          manyToMany: meta.manyToMany
+        },
+        filename: ''
+      }).getString();
+
+      /* update schema in metadb */
+      await this.xcMeta.metaUpdate(
+        this.projectId,
+        this.dbAlias,
+        'nc_models',
+        {
+          schema
+        },
+        {
+          title: meta.tn,
+          type: 'table'
+        }
+      );
+    }
   }
 
   protected async ncUpManyToMany(ctx: any): Promise<any> {

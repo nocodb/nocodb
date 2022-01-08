@@ -99,13 +99,6 @@
                     </template>
                   </v-autocomplete>
 
-                  <!--                        <v-list dense max-height="calc(100vh - 300px)" style="overflow: auto">-->
-                  <!--                          <v-list-item v-for="item in uiTypes" @click.stop :key="item">-->
-                  <!--                            <span class="caption">{{ item }}</span>-->
-                  <!--                          </v-list-item>-->
-                  <!--                        </v-list>-->
-                  <!--                  v-if="column && column.uidt === 'MultiSelect' &&newColumn.uidt === 'SingleSelect'"-->
-
                   <v-alert
                     dense
                     type="warning"

@@ -1,6 +1,6 @@
 {
   "name": "create-nocodb-app",
-  "version": "0.1.23",
+  "version": "0.1.26",
   "description": "nc-cli",
   "main": "dist/bundle.js",
   "module": "dist/bundle.js",
@@ -60,7 +60,7 @@
     "axios": "^0.21.1",
     "boxen": "^4.2.0",
     "chalk-pipe": "^4.0.0",
-    "cli-table3": "^0.6.0",
+    "cli-table3": "0.6.1",
     "colors": "1.4.0",
     "download": "^8.0.0",
     "download-git-repo": "^3.0.2",

@@ -35,15 +35,15 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
       const columnNamePrefixRef = { id: 0 }
       const sheet = this.wb.SheetNames[i]
-      let tn = sheet
-      if (tn in tableNamePrefixRef) {
+      let tn = (sheet || 'table').replace(/\W/g, '_').trim()
+
+      while (tn in tableNamePrefixRef) {
         tn = `${tn}${++tableNamePrefixRef[tn]}`
-      } else {
-        tableNamePrefixRef[tn] = 0
       }
+      tableNamePrefixRef[tn] = 0
 
       const table = { tn, refTn: tn, columns: [] }
-      this.data[sheet] = []
+      this.data[tn] = []
       const ws = this.wb.Sheets[sheet]
       const range = XLSX.utils.decode_range(ws['!ref'])
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
@@ -163,7 +163,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             rowData[table.columns[i].cn] = row[i]
           }
         }
-        this.data[sheet].push(rowData)
+        this.data[tn].push(rowData)
         rowIndex++
       }
       this.project.tables.push(table)

@@ -912,7 +912,7 @@ export default class RestAuthCtrl {
         if (!(await this.users.first())) {
           // todo: update in nc_store
           // roles = 'owner,creator,editor'
-          Tele.emit('evt', { evt_type: 'user:first_signup' });
+          Tele.emit('evt', { evt_type: 'project:invite', count: 1 });
         } else {
           if (process.env.NC_INVITE_ONLY_SIGNUP) {
             return next(

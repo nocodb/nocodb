@@ -168,6 +168,8 @@
           <v-text-field
             v-model="password"
             dense
+            autocomplete="shared-table-password"
+            browser-autocomplete="shared-table-password"
             type="password"
             solo
             flat
@@ -567,7 +569,13 @@ export default {
           rowMeta: {}
         }))
       } catch (e) {
-        this.showPasswordModal = true
+        if (e.message === 'Not found' || e.message === 'Meta not found') {
+          this.notFound = true
+        } else if (e.message === 'Invalid password') {
+          this.showPasswordModal = true
+        } else {
+          console.log(e)
+        }
       }
 
       this.loadingData = false

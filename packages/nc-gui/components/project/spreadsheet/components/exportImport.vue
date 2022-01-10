@@ -74,7 +74,7 @@
 
 import FileSaver from 'file-saver'
 import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
-import ColumnMappingModal from '~/components/project/spreadsheet/components/columnMappingModal'
+import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/columnMappingModal'
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 
 export default {
@@ -247,8 +247,8 @@ export default {
           const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
             // todo: parse data
 
-            if (col.enabled && col.destCn && col.destCn._cn) {
-              res[col.destCn._cn] = row[col.sourceCn]
+            if (col.enabled && col.destCn) {
+              res[col.destCn] = row[col.sourceCn]
             }
             return res
           }, {}))

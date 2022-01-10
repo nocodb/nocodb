@@ -607,7 +607,9 @@ export default {
     },
     onDataTypeChange() {
       this.newColumn.rqd = false
-      this.newColumn.pk = false
+      if (this.newColumn.uidt !== UITypes.ID) {
+        this.newColumn.pk = false
+      }
       this.newColumn.ai = false
       this.newColumn.cdf = null
       this.newColumn.un = false

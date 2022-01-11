@@ -124,10 +124,15 @@ export default {
   },
 
   methods: {
-    validateField(v, row) {
-      if (!v) {
+    validateField(_cn, row) {
+      if (!_cn) {
         return true
       }
+
+      const v = this.meta && this.meta.columns.find(c => c._cn === _cn)
+
+      if ((this.mappings || []).filter(v => v.destCn === _cn).length > 1) { return 'Duplicate mapping found, please remove one of the mapping' }
+
       switch (v.uidt) {
         case UITypes.Number:
           if (this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)

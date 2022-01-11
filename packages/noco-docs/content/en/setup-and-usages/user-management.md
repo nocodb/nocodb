@@ -26,7 +26,7 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 ### Advanced options & configurations
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
-| Audit	                  | ✅ | ✅ | ✅ | ✅	| ✅ |
+| Audit	                  | ✅ | ✅ | ❌ | ❌	| ❌ |
 | App Store	              | ✅	| ❌ | ❌ | ❌	| ❌ |
 | Team & Auth	            | ✅	| ❌ | ❌ | ❌	| ❌ |
 | Project Metadata	      | ✅	| ❌ | ❌ | ❌	| ❌ |
@@ -37,7 +37,7 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 | New user: Add Viewer	  | ✅	| ✅	| ❌	| ❌ | ❌ |
 | View existing users	    | ✅	| ✅	| ❌	| ❌ | ❌ |
 | Preview mode	          | ✅	| ✅	| ❌	| ❌ | ❌ |
-| SQL Client	            | ✅	| ✅	| ✅	| ❌ | ❌ |
+
 
 ### Schema options
 |  | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|

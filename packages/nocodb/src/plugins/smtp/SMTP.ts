@@ -35,10 +35,10 @@ export default class SMTP implements IEmailAdapter {
     }
   }
 
-  public async test(email): Promise<boolean> {
+  public async test(): Promise<boolean> {
     try {
       await this.mailSend({
-        to: email,
+        to: this.input.from,
         subject: 'Test email',
         html: 'Test email'
       } as any);

@@ -5,7 +5,7 @@
     align="center"
     justify="center"
   >
-    <template v-if="typed && moved">
+    <template v-if="typed && moved || $store.state.project.projectInfo && $store.state.project.projectInfo.ncMin">
       <v-col
         cols="12"
         sm="12"

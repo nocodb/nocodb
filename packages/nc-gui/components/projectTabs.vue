@@ -253,7 +253,7 @@
       @create="$emit('tableCreate',$event); dialogCreateTableShow =false;"
     />
 
-    <screensaver v-if="showScreensaver" class="screensaver" />
+    <screensaver v-if="showScreensaver && !($store.state.project.projectInfo && $store.state.project.projectInfo.ncMin)" class="screensaver" />
   </v-container>
 </template>
 

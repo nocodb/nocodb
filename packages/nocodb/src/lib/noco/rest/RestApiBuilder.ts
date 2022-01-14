@@ -410,26 +410,30 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         });
 
       // enable extra
-      tables.push(
-        ...(await this.sqlClient.viewList())?.data?.list
-          ?.sort((a, b) =>
-            (a.view_name || a.tn).localeCompare(b.view_name || b.tn)
-          )
-          ?.map(v => {
-            this.viewsCount++;
-            v.type = 'view';
-            v.tn = v.view_name;
-            v.order = ++order;
-            return v;
-          })
-          .filter(v => {
-            /* filter based on prefix */
-            if (this.projectBuilder?.prefix) {
-              return v.view_name.startsWith(this.projectBuilder?.prefix);
-            }
-            return true;
-          })
-      );
+      const views = (await this.sqlClient.viewList())?.data?.list
+        ?.sort((a, b) =>
+          (a.view_name || a.tn).localeCompare(b.view_name || b.tn)
+        )
+        ?.map(v => {
+          this.viewsCount++;
+          v.type = 'view';
+          v.tn = v.view_name;
+          v.order = ++order;
+          return v;
+        })
+        .filter(v => {
+          /* filter based on prefix */
+          if (this.projectBuilder?.prefix) {
+            return v.view_name.startsWith(this.projectBuilder?.prefix);
+          }
+          return true;
+        });
+
+      if (!args?.type) {
+        tables = tables.concat(views);
+      } else if (args?.type === 'view') {
+        tables = views;
+      }
 
       await this.populteProcedureAndFunctionRoutes();
     }
@@ -1689,12 +1693,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         });
 
         /* Add new has many relation to virtual columns */
+        const numPrevRelations = args.numPrevRelations || ''
+        const relationColumnName = `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(
+          tnc)}${numPrevRelations ? " "+numPrevRelations : ""}`
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
-          hm: meta.hasMany.find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(
-            tnc
-          )}`
+          hm: meta.hasMany
+            .reverse()
+            .find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: relationColumnName
         });
 
         swaggerArr.push(
@@ -1702,9 +1709,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         );
 
         if (queryParams?.showFields) {
-          queryParams.showFields[
-            `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
-          ] = true;
+          queryParams.showFields[relationColumnName] = true;
         }
 
         await this.xcMeta.metaUpdate(
@@ -1832,12 +1837,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         });
 
         /* Add new belongs to relation to virtual columns */
+        const numPrevRelations = args.numPrevRelations || ''
+        const relationColumnName = `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(
+          tnc)}${numPrevRelations ? " "+numPrevRelations : ""}`
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
-          bt: meta.belongsTo.find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(
-            tnc
-          )}`
+          bt: meta.belongsTo
+            .reverse()
+            .find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: relationColumnName
         });
 
         swaggerArr.push(
@@ -1845,9 +1853,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         );
 
         if (queryParams?.showFields) {
-          queryParams.showFields[
-            `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
-          ] = true;
+          queryParams.showFields[relationColumnName] = true;
         }
 
         await this.xcMeta.metaUpdate(

@@ -2131,20 +2131,25 @@ export default abstract class BaseApiBuilder<T extends Noco>
       }
     );
 
-    let dbRelations = (await this.sqlClient.relationListAll())?.data?.list;
-    this.relationsCount = dbRelations.length;
-
     // check if relations already synced
-    if (relations.length === this.relationsCount) {
+    if (relations.length) {
+      this.relationsCount = relations.length;
       return relations;
     }
 
-    const missingRelations = dbRelations.filter(dbRelation => {
-      return relations.every(relation => relation.fkn !== dbRelation.cstn)
-    })
+    relations = (await this.sqlClient.relationListAll())?.data?.list;
+    this.relationsCount = relations.length;
+
+    // check if relations already synced
+    if (
+      (await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_relations'))
+        .length
+    ) {
+      return relations;
+    }
 
     // todo: insert parallelly
-    for (const relation of missingRelations) {
+    for (const relation of relations) {
       relation.enabled = true;
       relation.fkn = relation?.cstn;
       await this.xcMeta.metaInsert(
@@ -2168,9 +2173,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
         }
       );
     }
-
-    return relations.concat(missingRelations)
+    return relations;
   }
+
 
   protected async syncRelations(): Promise<boolean> {
     const [

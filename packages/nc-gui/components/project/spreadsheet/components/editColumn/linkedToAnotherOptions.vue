@@ -141,9 +141,7 @@ export default {
               'Duplicate many to many relation is not allowed at the moment'
           }
           if (this.type === 'hm') {
-            return !(this.meta.hasMany || [])
-              .some(hm => hm.tn === v) ||
-              'Duplicate has many relation is not allowed at the moment'
+            return true
           }
         }
       ]
@@ -238,6 +236,9 @@ export default {
 
       const newChildColumn = {}
 
+      const numPrevRelations = (this.meta.hasMany || []).filter(hm => hm.tn === this.relation.childTable).length
+      this.relation.childColumn = this.relation.childColumn + (numPrevRelations || '')
+      this.relation.numPrevRelations = numPrevRelations
       Object.assign(newChildColumn, {
         cn: this.relation.childColumn,
         _cn: this.relation.childColumn,

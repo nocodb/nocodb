@@ -55,8 +55,8 @@
                   class="grey--text caption primary-key "
                 >(Primary Key : {{ ch[primaryKey] }})</span>
                 <v-spacer />
-                <v-chip v-if="hm && ch[`${hm._rtn}Read`] && ch[`${hm._rtn}Read`][hmParentPrimaryValCol]" x-small>
-                  {{ ch[`${hm._rtn}Read`][hmParentPrimaryValCol] }}
+                <v-chip v-if="hm && ch[`${_cn}Read`] && ch[`${_cn}Read`][hmParentPrimaryValCol]" x-small>
+                  {{ ch[`${_cn}Read`][hmParentPrimaryValCol] }}
                 </v-chip>
               </v-card-text>
             </v-card>
@@ -90,6 +90,7 @@ export default {
   props: {
     value: Boolean,
     tn: String,
+    _cn: String,
     hm: [Object, Function, Boolean],
     title: {
       type: String,

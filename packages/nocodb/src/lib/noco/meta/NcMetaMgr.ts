@@ -2403,6 +2403,9 @@ export default class NcMetaMgr {
       return;
     }
     vColumn._cn = args.args.newAlias;
+    meta.v.forEach(v => {
+      if (v?.lk?._ltn === args.args.oldAlias) v.lk._ltn = args.args.newAlias;
+    });
 
     const queryParams = JSON.parse(model.query_params);
     if (

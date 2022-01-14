@@ -83,3 +83,6 @@ mongod
 # Cypress
 #=========
 shared.json
+
+# IDE
+*.vscode/*

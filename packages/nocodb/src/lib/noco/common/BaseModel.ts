@@ -255,7 +255,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
       const hidden = !formView.query_params?.showFields?.[virtual._cn];
 
       if (virtual.bt) {
-        const prop = `${virtual.bt._rtn}Read`;
+        const prop = `${virtual._cn}Read`;
         if (hidden) {
           delete transformedData[prop];
         } else {
@@ -267,7 +267,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
             ];
         }
       } else if (virtual.hm) {
-        const prop = `${virtual.hm._tn}List`;
+        const prop = `${virtual._cn}List`;
         if (hidden) {
           delete transformedData[prop];
         } else {

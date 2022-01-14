@@ -57,7 +57,10 @@ abstract class BaseModelXcMeta extends BaseRender {
       }
 
       const oldColMeta = this.ctx?.oldMeta?.columns?.find(c => {
-        return columnObj.cn == c.cn && (columnObj.type == c.type || c.dtx === "specificType");
+        return (
+          columnObj.cn == c.cn &&
+          (columnObj.type == c.type || c.dtx === 'specificType')
+        );
       });
 
       if (oldColMeta) {
@@ -95,16 +98,43 @@ abstract class BaseModelXcMeta extends BaseRender {
     };
   }
 
+  public findOldVirtualColumnName(relation, type: 'hm' | 'bt') {
+    const oldVirtualCols = this.ctx?.oldMeta?.v;
+    if (!oldVirtualCols) return;
+
+    return oldVirtualCols.find(
+      v =>
+        v?.[type]?.rtn === relation?.rtn &&
+        v?.[type]?.tn === relation?.tn &&
+        v?.[type]?.cn === relation?.cn
+    )?._cn;
+  }
+
+  public suffixRelationNumber(_cn, cn) {
+    const cnRegex = /[\w]+(\d)+$/;
+    const matches = cnRegex.exec(cn);
+    if (matches) _cn = _cn + ' ' + matches[1];
+    return _cn;
+  }
+
   public getVitualColumns(): any[] {
     const virtualColumns = [
-      ...(this.ctx.hasMany || []).map(hm => ({
-        hm,
-        _cn: `${hm._rtn} => ${hm._tn}`
-      })),
-      ...(this.ctx.belongsTo || []).map(bt => ({
-        bt,
-        _cn: `${bt._rtn} <= ${bt._tn}`
-      }))
+      ...(this.ctx.hasMany || []).map(hm => {
+        return {
+          hm,
+          _cn:
+            this.findOldVirtualColumnName(hm, 'hm') ||
+            this.suffixRelationNumber(`${hm._rtn} => ${hm._tn}`, hm.cn)
+        };
+      }),
+      ...(this.ctx.belongsTo || []).map(bt => {
+        return {
+          bt,
+          _cn:
+            this.findOldVirtualColumnName(bt, 'bt') ||
+            this.suffixRelationNumber(`${bt._rtn} => ${bt._tn}`, bt.cn)
+        };
+      })
     ];
 
     const oldVirtualCols = this.ctx?.oldMeta?.v || [];

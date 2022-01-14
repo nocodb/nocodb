@@ -1845,17 +1845,18 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         });
 
         /* Add new has many relation to virtual columns */
+        const numPrevRelations = args.numPrevRelations || ''
+        const relationColumnName = `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(
+          tnc)}${numPrevRelations ? " "+numPrevRelations : ""}`
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
-          hm: meta.hasMany.find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(
-            tnc
-          )}`
+          hm: meta.hasMany
+            .reverse()
+            .find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: relationColumnName
         });
         if (queryParams?.showFields) {
-          queryParams.showFields[
-            `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(tnc)}`
-          ] = true;
+          queryParams.showFields[relationColumnName] = true;
         }
 
         this.models[tnp] = this.getBaseModel(oldMeta);
@@ -2020,18 +2021,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           belongsTo: meta.belongsTo
         });
         /* Add new belongs to relation to virtual columns */
+        const numPrevRelations = args.numPrevRelations || ''
+        const relationColumnName = `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(
+          tnc)}${numPrevRelations ? " "+numPrevRelations : ""}`
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
-          bt: meta.belongsTo.find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(
-            tnc
-          )}`
+          bt: meta.belongsTo
+            .reverse()
+            .find(hm => hm.rtn === tnp && hm.tn === tnc),
+          _cn: relationColumnName
         });
 
         if (queryParams?.showFields) {
-          queryParams.showFields[
-            `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(tnc)}`
-          ] = true;
+          queryParams.showFields[relationColumnName] = true;
         }
         this.models[tnc] = this.getBaseModel(oldMeta);
         await this.xcMeta.metaUpdate(

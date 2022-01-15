@@ -55,7 +55,7 @@ menuTitle: "Formulas"
 | `+`      | `column1 + column2 + 2` | Addition of numeric values       |
 | `-`      | `column1 - column2`     | Subtraction of numeric values    |
 | `*`      | `column1 * column2`     | Multiplication of numeric values |
-| `-`      | `column1 / column2`     | Division of numeric values       |
+| `/`      | `column1 / column2`     | Division of numeric values       |
 
 > To change order of arithmetic operation, use round bracket parantheses `()`  
 > Example: `(column1 + (column2 * column3) / (3 - column4 ))`

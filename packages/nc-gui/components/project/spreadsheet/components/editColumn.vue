@@ -9,16 +9,7 @@
     <v-form ref="form" v-model="valid">
       <v-container fluid @click.stop.prevent>
         <v-row>
-          <v-col cols="12" class="d-flex pb-0">
-            <v-spacer />
-            <v-btn small outlined @click="close">
-              Cancel
-            </v-btn>
-            <v-btn small color="primary" :disabled="!valid" @click="save">
-              Save
-            </v-btn>
-          </v-col>
-          <v-col cols="12">
+          <v-col cols="12" class="mt-2">
             <v-text-field
               ref="column"
               v-model="newColumn.cn"
@@ -34,6 +25,7 @@
               dense
               outlined
               @input="newColumn.altered = newColumn.altered || 8"
+              @keyup.enter="save"
             />
           </v-col>
           <v-container
@@ -408,6 +400,15 @@
               </div>
             </v-row>
           </v-container>
+          <v-col cols="12" class="d-flex pt-0">
+            <v-spacer />
+            <v-btn small outlined @click="close">
+              Cancel
+            </v-btn>
+            <v-btn small color="primary" :disabled="!valid" @click="save">
+              Save
+            </v-btn>
+          </v-col>
         </v-row>
       </v-container>
     </v-form>

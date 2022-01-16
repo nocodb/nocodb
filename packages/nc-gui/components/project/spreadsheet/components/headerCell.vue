@@ -105,6 +105,8 @@
 
     <v-dialog
       v-model="columnDeleteDialog"
+      @keydown.esc="columnDeleteDialog = false"
+      @keydown.enter="deleteColumn"
       max-width="500"
       persistent
     >

@@ -32,15 +32,15 @@
         :class="`cell-height-${cellHeight}`"
         style="overflow:auto;transition: width 500ms "
       >
-        <v-container fluid v-if="loadingData">
+        <v-container v-if="loadingData" fluid>
           <v-row>
             <v-col v-for="idx in 5" :key="idx">
-              <v-skeleton-loader type="image@3"></v-skeleton-loader>
+              <v-skeleton-loader type="image@3" />
             </v-col>
           </v-row>
         </v-container>
         <kanban-view
-          v-if="!loadingData && kanban.data.length" 
+          v-if="!loadingData && kanban.data.length"
           :nodes="nodes"
           :table="table"
           :show-fields="showFields"
@@ -64,7 +64,7 @@ import spreadsheet from '../mixins/spreadsheet'
 import FieldsMenu from '../components/fieldsMenu'
 import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
-import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
+import CsvExportImport from '~/components/project/spreadsheet/components/moreActions'
 import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
 export default {
   name: 'XcKanban',
@@ -153,11 +153,11 @@ export default {
       recordCnt: {},
       recordTotalCnt: {},
       groupingColumnItems: [],
-      loadingData : true,
+      loadingData: true,
       selectedExpandRow: null,
       selectedExpandOldRow: null,
-      selectedExpandRowMeta: null,
-    },
+      selectedExpandRowMeta: null
+    }
   }),
   computed: {
 

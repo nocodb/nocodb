@@ -275,7 +275,7 @@ tbody tr:nth-of-type(odd) {
 }
 
 .project-tabs > .v-tabs-items {
-  height: calc(100% - 35px);
+  height: calc(100% - 30px);
   overflow: auto;
 }
 
@@ -490,4 +490,8 @@ body.dark .toasted .primary.info, body.dark .toasted.toasted-primary.info {
 
 .v-date-picker-table {
   height: auto !important;
+}
+
+.nc-remove-border{
+  border: none !important;
 }

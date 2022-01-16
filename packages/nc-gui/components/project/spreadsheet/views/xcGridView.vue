@@ -9,7 +9,7 @@
   >
     <table
       v-if="data"
-      class="xc-row-table nc-grid"
+      class="xc-row-table nc-grid backgroundColorDefault"
       style=" "
     >
       <thead>

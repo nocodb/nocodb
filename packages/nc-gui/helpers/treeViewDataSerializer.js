@@ -105,7 +105,7 @@ function dbparser(data, envKey, env) {
     //   json.children.push(procedureParser(db.procedures, dbKey, env, db.meta.dbAlias, db));
     // }
 
-    json.children.push(migrationsParser([], dbKey, env, db.meta.dbAlias, db));
+    // json.children.push(migrationsParser([], dbKey, env, db.meta.dbAlias, db));
     json.children.push(sqlClientParser([], dbKey, env, db.meta.dbAlias, db));
     dbs.push(json);
   }

@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
     <!--    <trialExpired v-if="$store.getters['windows/GtrHasTrialPeriodExpired']"></trialExpired>-->
-    <splitpanes style="height:calc(100vh - 40px)" class="xc-theme">
+    <splitpanes style="height:calc(100vh - 48px)" class="xc-theme">
       <pane min-size="10" :size="paneSize" max-size="50" style="overflow: auto">
         <ProjectTreeView />
       </pane>

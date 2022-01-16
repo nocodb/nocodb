@@ -654,7 +654,9 @@ export default {
     focusInput() {
       setTimeout(() => {
         if (this.$refs.column && this.$refs.column.$el) {
-          this.$refs.column.$el.querySelector('input').focus()
+          const el = this.$refs.column.$el.querySelector('input')
+          el.focus()
+          el.select()
         }
       }, 100)
     },

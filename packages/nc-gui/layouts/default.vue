@@ -29,21 +29,12 @@
             $store.state.project.projectInfo && $store.state.project.projectInfo.version
           }})</span>
         </v-tooltip>
-        <!--        <template>-->
-        <!--          <span class="title"> {{ brandName }}</span>-->
-        <!--        </template>-->
+        <template>
+          <span class="title"> {{ brandName }}</span>
+        </template>
       </v-toolbar-title>
 
       <v-toolbar-items class="ml-0">
-        <gh-btns-star
-          icon="mark-github"
-          slug="nocodb/nocodb"
-          show-count
-          class="mr-3 align-self-center"
-          :class="{'dark' : isDark}"
-        >
-          {{ ghStarText }}
-        </gh-btns-star>
         <!--        <a
           class="align-self-center caption font-weight-bold ml-1 mr-2 white&#45;&#45;text"
           href="https://docs.nocodb.com"
@@ -107,6 +98,16 @@
       <v-spacer />
 
       <v-toolbar-items class="hidden-sm-and-down nc-topright-menu">
+        <gh-btns-star
+          icon="mark-github"
+          slug="nocodb/nocodb"
+          show-count
+          class="mr-3 align-self-center"
+          :class="{'dark' : isDark}"
+        >
+          {{ ghStarText }}
+        </gh-btns-star>
+
         <release-info />
 
         <template v-if="isDashboard">
@@ -1069,7 +1070,14 @@ export default {
   background: transparent !important;
   color: #cdcdcd !important;
 }
-
+/deep/ .gh-button-container > a:first-child{
+  border-left-color: transparent;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+}
+/deep/ .gh-button-container > a:last-child{
+  border-color: transparent;
+}
 a {
   text-decoration: none;
 }

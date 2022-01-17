@@ -219,6 +219,7 @@
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj)"
               @change="onCellValueChange(col, row, columnObj)"
+              @navigateToNext="navigateToNext"
             />
 
             <table-cell
@@ -535,6 +536,11 @@ export default {
     },
     onCellValueChange(col, row, column, ev) {
       this.$emit('onCellValueChange', col, row, column, ev)
+    },
+    navigateToNext() {
+      if (this.selected.row < this.rowLength - 1) {
+        this.selected.row++
+      }
     },
     addNewRelationTab(...args) {
       this.$emit('addNewRelationTab', ...args)

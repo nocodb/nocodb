@@ -1,21 +1,17 @@
 <template>
-  <v-overlay
-    v-if="show"
+  <v-dialog
+    v-model="show"
     align="center"
-    :color="$store.state.windows.darkTheme ? 'white' : 'black'"
-    :dark="$store.state.windows.darkTheme"
-    :light="!$store.state.windows.darkTheme"
     absolute
     opacity=".75"
     z-index="9"
+    width="max(90%,600px)"
   >
-    <div class="d-flex">
-      <v-spacer />
-      <v-icon color="red" x-large class="close-icon" @click="show=false">
-        mdi-close-circle
-      </v-icon>
-    </div>
-    <div style="width:95%; margin: 0 2.5%" class=" feat-container">
+    <!--    :color="$store.state.windows.darkTheme ? 'white' : 'black'"-->
+    <!--    :dark="$store.state.windows.darkTheme"-->
+    <!--    :light="!$store.state.windows.darkTheme"-->
+
+    <div class="feat-container backgroundColorDefault" style="position: relative; min-height: 500px">
       <!--    <v-card max-height="100%" min-width="95%" max-width="100%" style="overflow: auto">-->
       <!--      <v-card-text>-->
 
@@ -39,7 +35,9 @@
       />
       <webhooks
         v-else-if="type === 'webhooks'"
+        class=""
         :nodes="nodes"
+        @close="show=false"
       />
       <validation
         v-else-if="type === 'validators'"
@@ -65,8 +63,7 @@
       <!--      </v-card-text>-->
       <!--    </v-card>-->
     </div>
-  </v-overlay>
-  <span v-else />
+  </v-dialog>
 </template>
 
 <script>

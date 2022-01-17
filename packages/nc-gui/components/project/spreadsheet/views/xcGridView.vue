@@ -87,7 +87,7 @@
               offset-y
               z-index="99"
               left
-              content-class="elevation-0"
+              content-class=""
             >
               <template #activator="{on}">
                 <v-icon small v-on="on">
@@ -463,7 +463,7 @@ export default {
 
       switch (e.keyCode) {
         // tab
-        case 9: {
+        case 9:
           e.preventDefault()
           this.editEnabled = { col: null, row: null }
           if (e.shiftKey) {
@@ -479,7 +479,7 @@ export default {
             this.selected.row++
             this.selected.col = 0
           }
-        }
+
           break
         // delete
         case 46: {
@@ -541,12 +541,12 @@ export default {
               case 67:
                 copyTextToClipboard(rowObj[columnObj._cn] || '')
                 break
-              // paste ctrl/cmd + v
-              case 86: {
-                const text = await navigator.clipboard.readText()
-                this.$set(rowObj, columnObj._cn, text)
-              }
-                break
+                // // paste ctrl/cmd + v
+                // case 86: {
+                //   const text = await navigator.clipboard.readText()
+                //   this.$set(rowObj, columnObj._cn, text)
+                // }
+                // break
             }
           }
 

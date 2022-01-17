@@ -85,7 +85,7 @@
       </v-list>
     </v-menu>
 
-    <v-menu v-model="editColumnMenu" offset-y content-class="elevation-0" left>
+    <v-menu v-model="editColumnMenu" offset-y content-class="" left>
       <template #activator="{on}">
         <span v-on="on" />
       </template>
@@ -105,10 +105,10 @@
 
     <v-dialog
       v-model="columnDeleteDialog"
-      @keydown.esc="columnDeleteDialog = false"
-      @keydown.enter="deleteColumn"
       max-width="500"
       persistent
+      @keydown.esc="columnDeleteDialog = false"
+      @keydown.enter="deleteColumn"
     >
       <v-card class="nc-delete-dialog-card">
         <v-card-title class="grey darken-2 subheading white--text">

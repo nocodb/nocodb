@@ -30,6 +30,17 @@
       <v-spacer />
 
       <x-btn
+        outlined
+        tooltip="Close webhooks modal"
+        small
+        @click.prevent="$emit('close')"
+      >
+        <v-icon small left>
+          mdi-close-circle-outline
+        </v-icon>
+        Close
+      </x-btn>
+      <x-btn
         v-ge="['hooks','reload']"
         outlined
         tooltip="Reload hooks"
@@ -75,268 +86,266 @@
       class="mx-auto"
       lazy-validation
     >
-      <v-card>
-        <v-container fluid>
-          <v-row>
-            <v-col cols="7">
-              <v-radio-group v-model="selectedHook" @change="onEventChange">
-                <template #default>
-                  <v-simple-table dense>
-                    <template #default>
-                      <thead>
-                        <tr>
-                          <th />
-                          <th>Title</th>
-                          <th>Event</th>
-                          <th>Condition</th>
-                          <th>Notify Via</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
+      <v-container fluid>
+        <v-row>
+          <v-col cols="7">
+            <v-radio-group v-model="selectedHook" @change="onEventChange">
+              <template #default>
+                <v-simple-table dense>
+                  <template #default>
+                    <thead>
+                      <tr>
+                        <th />
+                        <th>Title</th>
+                        <th>Event</th>
+                        <th>Condition</th>
+                        <th>Notify Via</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
 
-                      <tbody>
-                        <template v-if="hooks && hooks.length">
-                          <tr v-for="(item,i) in hooks" :key="i">
-                            <td>
-                              <v-radio :value="i" />
-                            </td>
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.event }} {{ item.operation }}</td>
-                            <td>
-                              <v-icon v-if="item.condition" color="success" small>
-                                mdi-check-bold
-                              </v-icon>
-                            </td>
-                            <td>{{ item.notification && item.notification.type }}</td>
-                            <td>
-                              <x-icon small color="error" @click.stop="deleteHook(item, i)">
-                                mdi-delete
-                              </x-icon>
+                    <tbody>
+                      <template v-if="hooks && hooks.length">
+                        <tr v-for="(item,i) in hooks" :key="i">
+                          <td>
+                            <v-radio :value="i" />
+                          </td>
+                          <td>{{ item.title }}</td>
+                          <td>{{ item.event }} {{ item.operation }}</td>
+                          <td>
+                            <v-icon v-if="item.condition" color="success" small>
+                              mdi-check-bold
+                            </v-icon>
+                          </td>
+                          <td>{{ item.notification && item.notification.type }}</td>
+                          <td>
+                            <x-icon small color="error" @click.stop="deleteHook(item, i)">
+                              mdi-delete
+                            </x-icon>
                             <!--              <x-icon small :color="loading || !valid || !hook.event ?  'grey' : 'primary'"
                                                   @click.stop="(!loading && valid && hook.event) && saveHooks()">save
                                           </x-icon>-->
-                            </td>
-                          </tr>
-                        </template>
-                        <tr v-else>
-                          <td colspan="6" class="text-center py-5">
-                            <x-btn
-                              v-ge="['hooks','add new']"
-                              outlined
-                              tooltip="Save Changes"
-                              color="primary"
-                              small
-                              @click.prevent="addNewHook"
-                            >
-                              <v-icon small left>
-                                mdi-plus
-                              </v-icon>
-                              Add New Webhook
-                            </x-btn>
                           </td>
                         </tr>
-                      </tbody>
-                    </template>
-                  </v-simple-table>
-                </template>
-              </v-radio-group>
-            </v-col>
-            <v-col cols="5">
-              <v-card v-if="hook" class="">
-                <v-card-title>
-                  Webhook
-                  <v-spacer />
-                  <x-btn
-                    v-ge="['hooks','save']"
-                    outlined
-                    tooltip="Save"
-                    color="primary"
-                    small
-
-                    :disabled="loading || !valid || !hook.event"
-                    @click.prevent="saveHooks"
-                  >
-                    <v-icon small left>
-                      save
-                    </v-icon>
-                    Save
-                  </x-btn>
-                </v-card-title>
-                <v-card-text>
-                  <v-text-field
-                    v-model="hook.title"
-                    class="caption"
-                    outlined
-                    dense
-                    label="Title"
-                    required
-                    :rules="[v => !!v || 'Title Required']"
-                  />
-
-                  <webhook-event
-                    :event.sync="hook.event"
-                    :operation.sync="hook.operation"
-                  />
-
-                  <v-card class="mb-8">
-                    <v-card-text>
-                      <v-checkbox
-                        v-model="enableCondition"
-                        dense
-                        hide-details
-                        class="mt-1"
-                        label="On Condition"
-                        @change="checkConditionAvail"
-                      />
-
-                      <column-filter
-                        v-if="enableCondition && _isEE"
-                        v-model="hook.condition"
-                        :field-list="fieldList"
-                        dense
-                        style="max-width: 100%"
-                      />
-                    </v-card-text>
-                  </v-card>
-
-                  <v-select
-                    v-model="hook.notification.type"
-                    outlined
-                    dense
-                    label="Notification"
-                    required
-                    :items="notificationList"
-                    :rules="[v => !!v || 'Title Required']"
-                    class="caption"
-                    :prepend-inner-icon="notificationIcon[hook.notification.type]"
-                    @change="onNotTypeChange"
-                  >
-                    <template #item="{item}">
-                      <v-list-item-icon>
-                        <v-icon small>
-                          {{ notificationIcon[item] }}
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        {{ item }}
-                      </v-list-item-title>
-                    </template>
-                  </v-select>
-
-                  <template v-if="hook.notification.type === 'URL'">
-                    <http-webhook v-model="notification" />
-                  </template>
-
-                  <template v-if="hook.notification.type === 'Slack'">
-                    <v-combobox
-                      v-if="slackChannels"
-                      v-model="notification.channels"
-                      :rules="[v => !!v || 'Required']"
-                      :items="slackChannels"
-                      item-text="channel"
-                      label="Select Slack channels"
-                      multiple
-                      outlined
-                      dense
-                      class="caption"
-                    />
-                  </template>
-                  <template v-if="hook.notification.type === 'Microsoft Teams'">
-                    <v-combobox
-                      v-if="teamsChannels"
-                      v-model="notification.channels"
-                      :rules="[v => !!v || 'Required']"
-                      :items="teamsChannels"
-                      item-text="channel"
-                      label="Select Teams channels"
-                      multiple
-                      outlined
-                      dense
-                      class="caption"
-                    />
-                  </template>
-                  <template v-if="hook.notification.type === 'Discord'">
-                    <v-combobox
-                      v-if="discordChannels"
-                      v-model="notification.channels"
-                      :rules="[v => !!v || 'Required']"
-                      :items="discordChannels"
-                      item-text="channel"
-                      label="Select Discord channels"
-                      multiple
-                      outlined
-                      dense
-                      class="caption"
-                    />
-                  </template>
-                  <template v-if="hook.notification.type === 'Mattermost'">
-                    <v-combobox
-                      v-if="mattermostChannels"
-                      v-model="notification.channels"
-                      :rules="[v => !!v || 'Required']"
-                      :items="mattermostChannels"
-                      item-text="channel"
-                      label="Select Mattermost channels"
-                      multiple
-                      outlined
-                      dense
-                      class="caption"
-                    />
-                  </template>
-
-                  <template v-if="inputs[hook.notification.type] && notification">
-                    <template v-for="input in inputs[hook.notification.type]">
-                      <v-textarea
-                        v-if="input.type === 'LongText'"
-                        :key="input.key"
-                        v-model="notification[input.key]"
-                        class="caption"
-                        dense
-                        outlined
-                        :label="input.label"
-                        :rules="[v => !input.required || !!v || 'Required']"
-                      />
-                      <v-text-field
-                        v-else
-                        :key="input.key"
-                        v-model="notification[input.key]"
-                        class="caption"
-                        dense
-                        outlined
-                        :label="input.label"
-                        :rules="[v => !input.required || !!v || 'Required']"
-                      />
-                    </template>
-                  </template>
-                </v-card-text>
-
-                <v-card-text>
-                  <span class="caption grey--text">
-                    <em>Available context variables are <strong>data, user, payload and env</strong></em>
-                    <v-tooltip top>
-                      <template #activator="{on}">
-                        <v-icon
-                          small
-                          color="grey"
-                          class="ml-2"
-                          v-on="on"
-                        >mdi-information</v-icon>
                       </template>
-                      <span class="caption">
-                        <strong>data</strong> : Row data <br>
-                        <strong>user</strong> : User information<br>
-                        <strong>payload</strong> : Plugin settings payload<br>
-                        <strong>env</strong> : Environment values (process.env)
+                      <tr v-else>
+                        <td colspan="6" class="text-center py-5">
+                          <x-btn
+                            v-ge="['hooks','add new']"
+                            outlined
+                            tooltip="Save Changes"
+                            color="primary"
+                            small
+                            @click.prevent="addNewHook"
+                          >
+                            <v-icon small left>
+                              mdi-plus
+                            </v-icon>
+                            Add New Webhook
+                          </x-btn>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </template>
+            </v-radio-group>
+          </v-col>
+          <v-col cols="5">
+            <v-card v-if="hook" class="">
+              <v-card-title>
+                Webhook
+                <v-spacer />
+                <x-btn
+                  v-ge="['hooks','save']"
+                  outlined
+                  tooltip="Save"
+                  color="primary"
+                  small
 
-                      </span>
-                    </v-tooltip>
-                  </span>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card>
+                  :disabled="loading || !valid || !hook.event"
+                  @click.prevent="saveHooks"
+                >
+                  <v-icon small left>
+                    save
+                  </v-icon>
+                  Save
+                </x-btn>
+              </v-card-title>
+              <v-card-text>
+                <v-text-field
+                  v-model="hook.title"
+                  class="caption"
+                  outlined
+                  dense
+                  label="Title"
+                  required
+                  :rules="[v => !!v || 'Title Required']"
+                />
+
+                <webhook-event
+                  :event.sync="hook.event"
+                  :operation.sync="hook.operation"
+                />
+
+                <v-card class="mb-8">
+                  <v-card-text>
+                    <v-checkbox
+                      v-model="enableCondition"
+                      dense
+                      hide-details
+                      class="mt-1"
+                      label="On Condition"
+                      @change="checkConditionAvail"
+                    />
+
+                    <column-filter
+                      v-if="enableCondition && _isEE"
+                      v-model="hook.condition"
+                      :field-list="fieldList"
+                      dense
+                      style="max-width: 100%"
+                    />
+                  </v-card-text>
+                </v-card>
+
+                <v-select
+                  v-model="hook.notification.type"
+                  outlined
+                  dense
+                  label="Notification"
+                  required
+                  :items="notificationList"
+                  :rules="[v => !!v || 'Title Required']"
+                  class="caption"
+                  :prepend-inner-icon="notificationIcon[hook.notification.type]"
+                  @change="onNotTypeChange"
+                >
+                  <template #item="{item}">
+                    <v-list-item-icon>
+                      <v-icon small>
+                        {{ notificationIcon[item] }}
+                      </v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>
+                      {{ item }}
+                    </v-list-item-title>
+                  </template>
+                </v-select>
+
+                <template v-if="hook.notification.type === 'URL'">
+                  <http-webhook v-model="notification" />
+                </template>
+
+                <template v-if="hook.notification.type === 'Slack'">
+                  <v-combobox
+                    v-if="slackChannels"
+                    v-model="notification.channels"
+                    :rules="[v => !!v || 'Required']"
+                    :items="slackChannels"
+                    item-text="channel"
+                    label="Select Slack channels"
+                    multiple
+                    outlined
+                    dense
+                    class="caption"
+                  />
+                </template>
+                <template v-if="hook.notification.type === 'Microsoft Teams'">
+                  <v-combobox
+                    v-if="teamsChannels"
+                    v-model="notification.channels"
+                    :rules="[v => !!v || 'Required']"
+                    :items="teamsChannels"
+                    item-text="channel"
+                    label="Select Teams channels"
+                    multiple
+                    outlined
+                    dense
+                    class="caption"
+                  />
+                </template>
+                <template v-if="hook.notification.type === 'Discord'">
+                  <v-combobox
+                    v-if="discordChannels"
+                    v-model="notification.channels"
+                    :rules="[v => !!v || 'Required']"
+                    :items="discordChannels"
+                    item-text="channel"
+                    label="Select Discord channels"
+                    multiple
+                    outlined
+                    dense
+                    class="caption"
+                  />
+                </template>
+                <template v-if="hook.notification.type === 'Mattermost'">
+                  <v-combobox
+                    v-if="mattermostChannels"
+                    v-model="notification.channels"
+                    :rules="[v => !!v || 'Required']"
+                    :items="mattermostChannels"
+                    item-text="channel"
+                    label="Select Mattermost channels"
+                    multiple
+                    outlined
+                    dense
+                    class="caption"
+                  />
+                </template>
+
+                <template v-if="inputs[hook.notification.type] && notification">
+                  <template v-for="input in inputs[hook.notification.type]">
+                    <v-textarea
+                      v-if="input.type === 'LongText'"
+                      :key="input.key"
+                      v-model="notification[input.key]"
+                      class="caption"
+                      dense
+                      outlined
+                      :label="input.label"
+                      :rules="[v => !input.required || !!v || 'Required']"
+                    />
+                    <v-text-field
+                      v-else
+                      :key="input.key"
+                      v-model="notification[input.key]"
+                      class="caption"
+                      dense
+                      outlined
+                      :label="input.label"
+                      :rules="[v => !input.required || !!v || 'Required']"
+                    />
+                  </template>
+                </template>
+              </v-card-text>
+
+              <v-card-text>
+                <span class="caption grey--text">
+                  <em>Available context variables are <strong>data, user, payload and env</strong></em>
+                  <v-tooltip top>
+                    <template #activator="{on}">
+                      <v-icon
+                        small
+                        color="grey"
+                        class="ml-2"
+                        v-on="on"
+                      >mdi-information</v-icon>
+                    </template>
+                    <span class="caption">
+                      <strong>data</strong> : Row data <br>
+                      <strong>user</strong> : User information<br>
+                      <strong>payload</strong> : Plugin settings payload<br>
+                      <strong>env</strong> : Environment values (process.env)
+
+                    </span>
+                  </v-tooltip>
+                </span>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-form>
   </div>
 </template>
@@ -521,7 +530,7 @@ export default {
       if (!this.hooks || !this.hooks.length) {
         return
       }
-      const { notification: { payload, type }, ...hook } = this.hooks[this.selectedHook]
+      const { notification: { payload, type } = {}, ...hook } = this.hooks[this.selectedHook] || {}
 
       this.hook = {
         ...hook,

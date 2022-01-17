@@ -4,7 +4,7 @@
     max-width="400px"
     max-height="95vh"
     style="overflow: auto"
-    class="elevation-0 card nc-col-create-or-edit-card"
+    class=" card nc-col-create-or-edit-card "
   >
     <v-form ref="form" v-model="valid">
       <v-container fluid @click.stop.prevent>
@@ -740,7 +740,7 @@ export default {
 }
 
 .card {
-  border: solid 2px #7f828b33;
+  //border: solid 2px #7f828b33;
 }
 
 .wrapper {

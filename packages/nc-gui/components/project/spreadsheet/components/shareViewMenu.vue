@@ -8,7 +8,7 @@
       <template #activator="{on}">-->
     <v-btn
       outlined
-      class="nc-actions-menu-btn caption px-2 nc-remove-border font-weight-medium"
+      class="nc-btn-share-view caption px-2 nc-remove-border font-weight-medium"
       small
       text
       @click="$emit('share')"

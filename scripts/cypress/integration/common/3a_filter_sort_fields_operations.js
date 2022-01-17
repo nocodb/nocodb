@@ -128,24 +128,27 @@ export const genTest = (type, xcdb) => {
 
     describe(`Sort operations`, () => {
       it("Enable sort", () => {
+        mainPage.sortField('Country', "Z -> A")
+
         // Sort menu operations (Country Column, Z->A)
-        cy.get(".nc-sort-menu-btn").click();
-        cy.contains("Add Sort Option").click();
-        cy.get(".nc-sort-field-select div").first().click();
-        cy.get(
-          ".menuable__content__active .v-list-item:contains(Country)"
-        ).click();
-        cy.get(".nc-sort-dir-select div").first().click();
-        cy.get(
-          '.menuable__content__active .v-list-item:contains("Z -> A")'
-        ).click();
+        // cy.get(".nc-sort-menu-btn").click();
+        // cy.contains("Add Sort Option").click();
+        // cy.get(".nc-sort-field-select div").first().click();
+        // cy.get(
+        //   ".menuable__content__active .v-list-item:contains(Country)"
+        // ).click();
+        // cy.get(".nc-sort-dir-select div").first().click();
+        // cy.get(
+        //   '.menuable__content__active .v-list-item:contains("Z -> A")'
+        // ).click();
 
         cy.contains("Zambia").should("exist");
       });
 
       it("Disable sort", () => {
         // remove sort and validate
-        cy.get(".nc-sort-item-remove-btn").click();
+        // cy.get(".nc-sort-item-remove-btn").click();
+        mainPage.clearSort();
         cy.contains("Zambia").should("not.exist");
       });
     });
@@ -155,46 +158,52 @@ export const genTest = (type, xcdb) => {
         cy.get("th:contains(LastUpdate)").should("be.visible");
 
         // toggle and confirm it's hidden
-        cy.get(".nc-fields-menu-btn").click();
-        cy.get(
-          ".menuable__content__active .v-list-item label:contains(LastUpdate)"
-        ).click();
-        cy.get(".nc-fields-menu-btn").click();
+        // cy.get(".nc-fields-menu-btn").click();
+        // cy.get(
+        //   ".menuable__content__active .v-list-item label:contains(LastUpdate)"
+        // ).click();
+        // cy.get(".nc-fields-menu-btn").click();
+        mainPage.hideField('LastUpdate')
         cy.get("th:contains(LastUpdate)").should("not.be.visible");
       });
 
       it("Show field", () => {
-        cy.get(".nc-fields-menu-btn").click();
-        cy.get(
-          ".menuable__content__active .v-list-item label:contains(LastUpdate)"
-        ).click();
-        cy.get(".nc-fields-menu-btn").click();
+        // cy.get(".nc-fields-menu-btn").click();
+        // cy.get(
+        //   ".menuable__content__active .v-list-item label:contains(LastUpdate)"
+        // ).click();
+        // cy.get(".nc-fields-menu-btn").click();
+        mainPage.unhideField('LastUpdate')
         cy.get("th:contains(LastUpdate)").should("be.visible");
       });
     });
 
     describe("Filter operations", () => {
       it("Create Filter", () => {
-        cy.get(".nc-filter-menu-btn").click();
-        cy.contains("Add Filter").click();
+        mainPage.filterField('Country', 'is equal', 'India');
+        cy.get("td:contains(India)").should("exist");
 
-        cy.get(".nc-filter-field-select").last().click();
-        cy.getActiveMenu().find(".v-list-item:contains(Country)").click();
-        cy.get(".nc-filter-operation-select").last().click();
-        cy.getActiveMenu().find('.v-list-item:contains("is equal")').click();
-        cy.get(".nc-filter-value-select input:text").last().type("India");
-        cy.get(".nc-filter-menu-btn")
-          .click()
-          .then(() => {
-            cy.get("td:contains(India)").should("exist");
-          });
+        // cy.get(".nc-filter-menu-btn").click();
+        // cy.contains("Add Filter").click();
+
+        // cy.get(".nc-filter-field-select").last().click();
+        // cy.getActiveMenu().find(".v-list-item:contains(Country)").click();
+        // cy.get(".nc-filter-operation-select").last().click();
+        // cy.getActiveMenu().find('.v-list-item:contains("is equal")').click();
+        // cy.get(".nc-filter-value-select input:text").last().type("India");
+        // cy.get(".nc-filter-menu-btn")
+        //   .click()
+        //   .then(() => {
+        //     cy.get("td:contains(India)").should("exist");
+        //   });
       });
 
       it("Delete Filter", () => {
         // remove sort and check
-        cy.get(".nc-filter-menu-btn").click();
-        cy.get(".nc-filter-item-remove-btn").click();
-        cy.get(".nc-filter-menu-btn").click();
+        mainPage.filterReset();
+        // cy.get(".nc-filter-menu-btn").click();
+        // cy.get(".nc-filter-item-remove-btn").click();
+        // cy.get(".nc-filter-menu-btn").click();
         cy.contains("td:contains(India)").should("not.exist");
       });
     });

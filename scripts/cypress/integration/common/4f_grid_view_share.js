@@ -16,10 +16,11 @@ export const genTest = (type, xcdb) => {
 
   const generateViewLink = (viewName) => {
     // click on share view
-    cy.get(".v-navigation-drawer__content > .container")
-      .find(".v-list > .v-list-item")
-      .contains("Share View")
-      .click();
+    // cy.get(".v-navigation-drawer__content > .container")
+    //   .find(".v-list > .v-list-item")
+    //   .contains("Share View")
+    //   .click();
+    mainPage.shareView().click();
 
     // wait, as URL initially will be /undefined
     cy.getActiveModal()
@@ -96,14 +97,15 @@ export const genTest = (type, xcdb) => {
         generateViewLink("combined");
 
         // verify if only one link exists in table
-        cy.get(".v-navigation-drawer__content > .container")
-          .find(".v-list > .v-list-item")
-          .contains("Share View")
-          .parent()
-          .find("button.mdi-dots-vertical")
-          .click();
+        // cy.get(".v-navigation-drawer__content > .container")
+        //   .find(".v-list > .v-list-item")
+        //   .contains("Share View")
+        //   .parent()
+        //   .find("button.mdi-dots-vertical")
+        //   .click();
+        mainPage.shareViewList().click();
 
-        cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
+        // cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
 
         cy.get('th:contains("View Link")').should("exist");
 

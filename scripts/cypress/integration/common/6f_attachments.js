@@ -53,11 +53,12 @@ export const genTest = (type, xcdb) => {
 
       cy.get(`.nc-view-item.nc-form-view-item`).contains("Country1").click();
 
-      cy.get(".v-navigation-drawer__content > .container")
-        .should("exist")
-        .find(".v-list > .v-list-item")
-        .contains("Share View")
-        .click();
+      // cy.get(".v-navigation-drawer__content > .container")
+      //   .should("exist")
+      //   .find(".v-list > .v-list-item")
+      //   .contains("Share View")
+      //   .click();
+      mainPage.shareView().click();
 
       // copy link text, visit URL
       cy.getActiveModal()

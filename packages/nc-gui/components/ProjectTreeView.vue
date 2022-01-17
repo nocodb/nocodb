@@ -480,7 +480,7 @@
 
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2 nc-settings-projmeta" @click="openAuditTab" v-on="on">
+                  <v-list-item dense class="body-2 nc-settings-audit" @click="openAuditTab" v-on="on">
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-notebook-outline

@@ -117,7 +117,9 @@ export const genTest = (type, xcdb) => {
           .its("length")
           .should("eq", 1)
           .then(() => {
-            cy.get(".v-overlay__content > .d-flex > .v-icon").click();
+            // cy.get(".v-overlay__content > .d-flex > .v-icon").click();
+            // close modal (fix me! add a close button to share view list modal)
+            cy.get('.v-overlay--active > .v-overlay__scrim').click({force: true});
           });
       });
 

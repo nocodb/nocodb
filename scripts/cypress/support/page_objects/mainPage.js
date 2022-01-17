@@ -357,9 +357,12 @@ export class _mainPage {
         }
       })
       .then(() => {
-        cy.get(".v-overlay__content > .d-flex > .v-icon").click();
         cy.toastWait("Deleted shared view successfully");
+        // close modal
+        cy.get('.v-overlay--active > .v-overlay__scrim').click({force: true});
       });
+    
+
   };
 
   // download CSV & verify

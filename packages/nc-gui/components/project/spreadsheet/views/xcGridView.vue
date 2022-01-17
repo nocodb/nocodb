@@ -462,6 +462,25 @@ export default {
       }
 
       switch (e.keyCode) {
+        // tab
+        case 9: {
+          e.preventDefault()
+          this.editEnabled = { col: null, row: null }
+          if (e.shiftKey) {
+            if (this.selected.col > 0) {
+              this.selected.col--
+            } else if (this.selected.row > 0) {
+              this.selected.row--
+              this.selected.col = this.colLength - 1
+            }
+          } else if (this.selected.col < this.colLength - 1) {
+            this.selected.col++
+          } else if (this.selected.row < this.rowLength - 1) {
+            this.selected.row++
+            this.selected.col = 0
+          }
+        }
+          break
         // delete
         case 46: {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {

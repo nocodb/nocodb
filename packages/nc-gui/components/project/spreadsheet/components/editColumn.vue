@@ -192,6 +192,23 @@
                         <v-col cols="12">
                           <v-container fluid class="wrapper">
                             <v-row>
+                              <v-col cols="12" class="mt-2">
+                                <v-text-field
+                                  ref="column"
+                                  v-model="newColumn._cn"
+                                  hide-details="auto"
+                                  color="primary"
+                                  :rules="[
+                                    v => !meta || !meta.columns || meta.columns.every(c => column && c.cn === column.cn || v !== c.cn ) && meta.v.every(c => v !== c._cn ) || 'Duplicate column name',
+                                  ]"
+                                  class="caption nc-column-name-input"
+                                  label="Alias"
+                                  dense
+                                  outlined
+                                  @input="newColumn.altered = newColumn.altered || 8"
+                                  @keyup.enter="save"
+                                />
+                              </v-col>
                               <v-col cols="12">
                                 <div class="d-flex justify-space-between caption">
                                   <v-tooltip bottom z-index="99999">
@@ -571,7 +588,9 @@ export default {
         }
 
         this.newColumn.tn = this.nodes.tn
-        this.newColumn._cn = this.newColumn.cn
+        if (!this.newColumn._cn) {
+          this.newColumn._cn = this.newColumn.cn
+        }
 
         const columns = [...this.meta.columns]
 

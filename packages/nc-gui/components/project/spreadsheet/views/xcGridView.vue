@@ -275,6 +275,7 @@ import colors from '@/mixins/colors'
 import TableCell from '@/components/project/spreadsheet/components/cell'
 import DynamicStyle from '@/components/dynamicStyle'
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+import { copyTextToClipboard } from '~/helpers/xutils'
 
 export default {
   name: 'XcGridView',
@@ -393,7 +394,7 @@ export default {
     onFileDrop(event) {
       this.$emit('drop', event)
     },
-    isRequired(_columnObj, rowObj) {
+    isRequired(_columnObj, rowObj, ignoreCurrentValue = false) {
       if (this.isPublicView) {
         return false
       }
@@ -404,7 +405,7 @@ export default {
       }
 
       return columnObj && (columnObj.rqd &&
-        (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
+        (ignoreCurrentValue || rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
         !columnObj.default)
     },
     updateCol(row, column, value, columnObj, colIndex, rowIndex) {
@@ -455,11 +456,30 @@ export default {
       this.aggCount = aggCount
     },
 
-    onKeyDown(e) {
+    async onKeyDown(e) {
       if (this.selected.col === null || this.selected.row === null) {
         return
       }
+
       switch (e.keyCode) {
+        // delete
+        case 46: {
+          if (this.editEnabled.col != null && this.editEnabled.row != null) {
+            return
+          }
+
+          const rowObj = this.data[this.selected.row].row
+          const columnObj = this.availableColumns[this.selected.col]
+
+          if (
+            // this.isRequired(columnObj, rowObj, true) ||
+            columnObj.virtual) {
+            return
+          }
+
+          this.$set(rowObj, columnObj._cn, null)
+        }
+          break
         // left
         case 37:
           if (this.selected.col > 0) {
@@ -492,6 +512,25 @@ export default {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {
             return
           }
+
+          const rowObj = this.data[this.selected.row].row
+          const columnObj = this.availableColumns[this.selected.col]
+
+          if (e.metaKey || e.ctrlKey) {
+            switch (e.keyCode) {
+              // copy - ctrl/cmd +c
+              case 67:
+                copyTextToClipboard(rowObj[columnObj._cn] || '')
+                break
+              // paste ctrl/cmd + v
+              case 86: {
+                const text = await navigator.clipboard.readText()
+                this.$set(rowObj, columnObj._cn, text)
+              }
+                break
+            }
+          }
+
           if (e.ctrlKey ||
             e.altKey ||
             e.shiftKey ||

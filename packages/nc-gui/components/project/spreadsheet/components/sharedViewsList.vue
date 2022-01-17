@@ -1,5 +1,5 @@
 <template>
-  <v-card max-width="900">
+  <div class="d-100">
     <v-container>
       <v-simple-table dense style="min-width: 600px;">
         <thead>
@@ -101,7 +101,7 @@
         </v-switch>
       </div>
     </v-container>
-  </v-card>
+  </div>
 </template>
 
 <script>

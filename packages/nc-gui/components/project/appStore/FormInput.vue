@@ -14,6 +14,11 @@
     v-model="localState"
     :input-details="inputDetails"
   />
+  <checkbox-field
+    v-else-if="inputDetails.type === 'Checkbox'"
+    v-model="localState"
+    :input-details="inputDetails"
+  />
   <text-field v-else v-model="localState" :input-details="inputDetails" />
 </template>
 
@@ -21,11 +26,12 @@
 import TextField from '@/components/project/appStore/inputs/textField'
 import Attachment from '@/components/project/appStore/inputs/attachment'
 import PasswordField from '@/components/project/appStore/inputs/passwordField'
-import TextAreaCell from '~/components/project/spreadsheet/components/editableCell/textAreaCell'
+import TextAreaCell from '@/components/project/spreadsheet/components/editableCell/textAreaCell'
+import CheckboxField from '@/components/project/appStore/inputs/checkboxField'
 
 export default {
   name: 'FormInput',
-  components: { PasswordField, TextAreaCell, Attachment, TextField },
+  components: { PasswordField, TextAreaCell, Attachment, TextField, CheckboxField },
   props: {
     value: String,
     inputDetails: Object

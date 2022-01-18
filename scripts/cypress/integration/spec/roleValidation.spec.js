@@ -207,9 +207,10 @@ export function _viewMenu(roleType, previewMode) {
   // mainPage.shareView().should(validationString);
   // mainPage.automations().should(validationString);
 
-  // fix me! disabled for now
-  // cy.get('.nc-btn-share-view').should(validationString);
+  // share view permissions are role specific
+  cy.get('.nc-btn-share-view').should(validationString);
 
+  // actions menu (more), only download csv should be visible for non-previlaged users
   cy.get('.nc-actions-menu-btn').click();
   cy.getActiveMenu().find('[role="menuitem"]').should("have.length", actionsMenuItemsCnt);
 }

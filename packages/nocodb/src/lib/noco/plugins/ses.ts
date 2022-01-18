@@ -12,8 +12,8 @@ const input: XcForm = {
     },
     {
       key: 'host',
-      label: 'Jost',
-      placeholder: 'Jost',
+      label: 'Host',
+      placeholder: 'Host',
       type: XcType.SingleLineText,
       required: true
     },

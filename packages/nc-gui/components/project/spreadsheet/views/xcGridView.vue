@@ -220,6 +220,7 @@
               @update="onCellValueChange(col, row, columnObj)"
               @change="onCellValueChange(col, row, columnObj)"
               @navigateToNext="navigateToNext"
+              @navigateToPrev="navigateToPrev"
             />
 
             <table-cell
@@ -600,6 +601,11 @@ export default {
         this.selected.row++
       }
     },
+    navigateToPrev() {
+      if (this.selected.row > 0) {
+        this.selected.row--
+      }
+    },    
     addNewRelationTab(...args) {
       this.$emit('addNewRelationTab', ...args)
     },

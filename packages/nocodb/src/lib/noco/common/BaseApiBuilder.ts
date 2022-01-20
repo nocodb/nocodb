@@ -1856,24 +1856,32 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return Object.values(this.metas).find(m => m._tn === alias)?.tn;
   }
 
-  protected generateContextForHasMany(ctx, tnc: string): any {
+  protected generateContextForHasMany(
+    ctx,
+    tnc: string,
+    relationColumnName: string = null
+  ): any {
     this.baseLog(`generateContextForHasMany : '%s' => '%s'`, ctx.tn, tnc);
     return {
       ...ctx,
       _tn: this.metas[ctx.tn]?._tn,
-      _ctn: this.metas[tnc]?._tn,
+      _ctn: relationColumnName,
       ctn: tnc,
       project_id: this.projectId
     };
   }
 
-  protected generateContextForBelongsTo(ctx: any, rtn: string): any {
+  protected generateContextForBelongsTo(
+    ctx: any,
+    rtn: string,
+    relationColumnName: string = null
+  ): any {
     this.baseLog(`generateContextForBelongsTo : '%s' => '%s'`, rtn, ctx.tn);
     return {
       ...ctx,
       rtn,
       _tn: this.metas[ctx.tn]._tn,
-      _rtn: this.metas[rtn]._tn,
+      _rtn: relationColumnName,
       project_id: this.projectId
     };
   }
@@ -2175,7 +2183,6 @@ export default abstract class BaseApiBuilder<T extends Noco>
     }
     return relations;
   }
-
 
   protected async syncRelations(): Promise<boolean> {
     const [

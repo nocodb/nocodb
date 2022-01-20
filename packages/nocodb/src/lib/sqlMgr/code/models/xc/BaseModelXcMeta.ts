@@ -110,8 +110,8 @@ abstract class BaseModelXcMeta extends BaseRender {
     )?._cn;
   }
 
-  public suffixRelationNumber(_cn, cn) {
-    const cnRegex = /[\w]+(\d)+$/;
+  public columnSuffixNumber(_cn, cn) {
+    const cnRegex = /[\w]+_(\d)+$/;
     const matches = cnRegex.exec(cn);
     if (matches) _cn = _cn + ' ' + matches[1];
     return _cn;
@@ -124,7 +124,7 @@ abstract class BaseModelXcMeta extends BaseRender {
           hm,
           _cn:
             this.findOldVirtualColumnName(hm, 'hm') ||
-            this.suffixRelationNumber(`${hm._rtn} => ${hm._tn}`, hm.cn)
+            this.columnSuffixNumber(`${hm._rtn} => ${hm._tn}`, hm.cn)
         };
       }),
       ...(this.ctx.belongsTo || []).map(bt => {
@@ -132,7 +132,7 @@ abstract class BaseModelXcMeta extends BaseRender {
           bt,
           _cn:
             this.findOldVirtualColumnName(bt, 'bt') ||
-            this.suffixRelationNumber(`${bt._rtn} => ${bt._tn}`, bt.cn)
+            this.columnSuffixNumber(`${bt._rtn} <= ${bt._tn}`, bt.cn)
         };
       })
     ];

@@ -3220,7 +3220,9 @@ export default class NcMetaMgr {
           );
           const childMeta = JSON.parse(child.meta);
           const relation = childMeta.belongsTo.find(
-            bt => bt.rtn === args.args.parentTable
+            bt =>
+              bt.rtn === args.args.parentTable &&
+              bt.cn === args.args.childColumn
           );
           // todo: virtual relation delete
           if (relation) {

@@ -1243,8 +1243,8 @@ class BaseModelSql extends BaseModel {
     }
   }
 
-  findVirtualColumnName(relation, type: 'hm' | 'bt') {
-    return this.virtualColumns.find(
+  static findVirtualColumnName(virtualColumns, relation, type: 'hm' | 'bt') {
+    return virtualColumns.find(
       v =>
         v?.[type]?.rtn === relation?.rtn &&
         v?.[type]?.tn === relation?.tn &&
@@ -1306,7 +1306,8 @@ class BaseModelSql extends BaseModel {
         )
       );
 
-      const listColumnName = `${this.findVirtualColumnName(
+      const listColumnName = `${BaseModelSql.findVirtualColumnName(
+        this.virtualColumns,
         { cn, rtn, tn },
         'hm'
       )}List`;
@@ -2017,7 +2018,8 @@ class BaseModelSql extends BaseModel {
       this.dbModels[parent]?.columnToAlias?.[rcn] || rcn
     );
 
-    const listColumnName = `${this.findVirtualColumnName(
+    const listColumnName = `${BaseModelSql.findVirtualColumnName(
+      this.virtualColumns,
       { cn, rtn: parent, tn: rest.tn },
       'bt'
     )}Read`;

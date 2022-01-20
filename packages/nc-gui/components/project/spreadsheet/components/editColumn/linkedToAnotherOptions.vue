@@ -217,6 +217,18 @@ export default {
       //   throw e
       // }
     },
+    isColumnNameUnique(columns, newColumnName) {
+      return !columns.find(c => c.cn === newColumnName)
+    },
+    getNewUniqueColumnName(columns) {
+      let columnSuffix = (this.meta.hasMany || []).filter(hm => hm.tn === this.relation.childTable).length
+      let newColumnName = this.relation.childColumn + (columnSuffix ? `_${columnSuffix}` : '')
+      while (!this.isColumnNameUnique(columns, newColumnName)) {
+        columnSuffix++
+        newColumnName = this.relation.childColumn + (columnSuffix ? `_${columnSuffix}` : '')
+      }
+      return [newColumnName, columnSuffix]
+    },
     async saveRelation() {
       if (this.type === 'mm') {
         await this.saveManyToMany()
@@ -233,12 +245,10 @@ export default {
       }])
 
       const childMeta = JSON.parse(childTableData.meta)
-
+      const [newColumnName, columnSuffix] = this.getNewUniqueColumnName(childMeta.columns)
+      this.relation.childColumn = newColumnName
+      this.relation.columnSuffixNumber = columnSuffix
       const newChildColumn = {}
-
-      const numPrevRelations = (this.meta.hasMany || []).filter(hm => hm.tn === this.relation.childTable).length
-      this.relation.childColumn = this.relation.childColumn + (numPrevRelations || '')
-      this.relation.numPrevRelations = numPrevRelations
       Object.assign(newChildColumn, {
         cn: this.relation.childColumn,
         _cn: this.relation.childColumn,

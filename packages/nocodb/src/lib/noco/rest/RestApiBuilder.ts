@@ -1757,8 +1757,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         /* */
       }
 
-      // swaggerArr.push(JSON.parse(existingModel.schema));
       if (existingModel) {
+        swaggerArr.push(JSON.parse(existingModel.schema));
         this.log(
           `onRelationCreate : Updating model metadata for parent table '%s'`,
           tnp
@@ -1906,8 +1906,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         /* */
       }
 
-      // swaggerArr.push(JSON.parse(existingModel.schema))
       if (existingModel) {
+        swaggerArr.push(JSON.parse(existingModel.schema));
         meta.belongsTo.forEach(hm => {
           hm.enabled = true;
         });
@@ -2048,7 +2048,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       );
       relationColumnName = BaseModelSql.findVirtualColumnName(
         this.getMeta(tnp).v,
-        { cn, rtn: tnc, tn: tnp },
+        { cn, rtn: tnp, tn: tnc },
         'hm'
       );
       const tagName = `${tnp}HasMany${relationColumnName}`;

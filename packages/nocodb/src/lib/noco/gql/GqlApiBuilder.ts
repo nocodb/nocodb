@@ -1845,9 +1845,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         });
 
         /* Add new has many relation to virtual columns */
-        const columnSuffixNumber = args.columnSuffixNumber || ''
-        const relationColumnName = `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(
-          tnc)}${columnSuffixNumber ? " "+columnSuffixNumber : ""}`
+        const columnSuffixNumber = args.columnSuffixNumber || '';
+        const relationColumnName = `${this.getTableNameAlias(
+          tnp
+        )} => ${this.getTableNameAlias(tnc)}${
+          columnSuffixNumber ? ' ' + columnSuffixNumber : ''
+        }`;
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
           hm: meta.hasMany
@@ -2021,9 +2024,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           belongsTo: meta.belongsTo
         });
         /* Add new belongs to relation to virtual columns */
-        const columnSuffixNumber = args.columnSuffixNumber || ''
-        const relationColumnName = `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(
-          tnc)}${columnSuffixNumber ? " "+columnSuffixNumber : ""}`
+        const columnSuffixNumber = args.columnSuffixNumber || '';
+        const relationColumnName = `${this.getTableNameAlias(
+          tnp
+        )} <= ${this.getTableNameAlias(tnc)}${
+          columnSuffixNumber ? ' ' + columnSuffixNumber : ''
+        }`;
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
           bt: meta.belongsTo

@@ -2141,7 +2141,9 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           belongsTo: meta.belongsTo,
           v: oldMeta.v.filter(
             ({ bt, lk }) =>
+              // eslint-disable-next-line prettier/prettier
               (!bt || bt.rtn !== tnp || bt.tn !== tnc) || bt.cn !== cn &&
+                // eslint-disable-next-line prettier/prettier
               !(lk && lk.type === 'bt' && lk.rtn === tnp && lk.tn === tnc)
           )
         });

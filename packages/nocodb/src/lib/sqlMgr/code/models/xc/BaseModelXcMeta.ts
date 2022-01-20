@@ -66,7 +66,7 @@ abstract class BaseModelXcMeta extends BaseRender {
       if (oldColMeta) {
         columnObj._cn = oldColMeta._cn || columnObj._cn;
         columnObj.uidt = oldColMeta.uidt;
-        columnObj.validate = oldColMeta.validate || columnObj.validate
+        columnObj.validate = oldColMeta.validate || columnObj.validate;
         if (
           (columnObj.dtxp === UITypes.MultiSelect ||
             columnObj.dtxp === UITypes.SingleSelect) &&

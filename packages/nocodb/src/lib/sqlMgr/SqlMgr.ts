@@ -14,6 +14,8 @@ const log = new Debug('SqlMgr');
 import KnexMigrator from '../migrator/SqlMigrator/lib/KnexMigrator';
 // import {XKnex} from "../dataMapper";
 import NcConnectionMgr from '../noco/common/NcConnectionMgr';
+import { customAlphabet } from 'nanoid';
+const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);
 
 const ToolOps = {
   DB_TABLE_LIST: 'tableList',
@@ -1236,6 +1238,8 @@ export default class SqlMgr {
           break;
         case ToolOps.DB_TABLE_RELATION_CREATE:
           console.log('Within DB_TABLE_RELATION_CREATE handler', args);
+          args.args.foreignKeyName =
+            args.args.foreignKeyName || `fk${randomID()}`;
           result = await op(args, 'relationCreate', args.args);
           break;
         case ToolOps.DB_TABLE_INDEX_CREATE:

@@ -1,8 +1,8 @@
 <template>
   <div class="d-flex align-center">
-    <v-spacer />
-
-    <span v-if="count && count > 1 && count !== Infinity" class="caption ml-2">Total {{ count }} rows found</span>
+    <span v-if="count !== null && count !== Infinity" class="caption ml-2">
+      {{ count }} record{{ count !== 1 ? 's' : '' }}
+    </span>
     <v-spacer />
     <v-pagination
       v-if="count !== Infinity"

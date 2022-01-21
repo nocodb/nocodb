@@ -10,7 +10,7 @@ import express, { Handler, Router } from 'express';
 import extract from 'extract-zip';
 import isDocker from 'is-docker';
 import multer from 'multer';
-import { nanoid } from 'nanoid';
+import { customAlphabet, nanoid } from 'nanoid';
 import { SqlClientFactory, Tele } from 'nc-help';
 import slash from 'slash';
 import { v4 as uuidv4 } from 'uuid';
@@ -40,7 +40,7 @@ import NcTemplateParser from '../../templateParser/NcTemplateParser';
 import UITypes from '../../sqlUi/UITypes';
 import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
-
+const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
 const NOCO_RELEASE = 'NOCO_RELEASE';
@@ -3020,10 +3020,13 @@ export default class NcMetaMgr {
 
       const associateTableCols = [];
 
+      const parentCn = 'table1_id';
+      const childCn = 'table2_id';
+
       associateTableCols.push(
         {
-          cn: `${childMeta.tn}_c_id`,
-          _cn: `${childMeta._tn}CId`,
+          cn: childCn,
+          _cn: childCn,
           rqd: true,
           pk: true,
           ai: false,
@@ -3035,8 +3038,8 @@ export default class NcMetaMgr {
           altered: 1
         },
         {
-          cn: `${parentMeta.tn}_p_id`,
-          _cn: `${parentMeta._tn}PId`,
+          cn: parentCn,
+          _cn: parentCn,
           rqd: true,
           pk: true,
           ai: false,
@@ -3050,9 +3053,8 @@ export default class NcMetaMgr {
       );
 
       // todo: associative table naming
-      const aTn = `${this.projectConfigs[projectId]?.prefix ?? ''}_nc_m2m_${
-        parentMeta.tn
-      }_${childMeta.tn}`;
+      const aTn = `${this.projectConfigs[projectId]?.prefix ??
+        ''}_nc_m2m_${randomID()}`;
       const aTnAlias = `m2m${parentMeta._tn}_${childMeta._tn}`;
 
       const out = await this.projectMgr
@@ -3088,25 +3090,17 @@ export default class NcMetaMgr {
       const rel1Args = {
         ...args.args,
         childTable: aTn,
-        childColumn: `${parentMeta.tn}_p_id`,
+        childColumn: parentCn,
         parentTable: parentMeta.tn,
         parentColumn: parentPK.cn,
-        foreignKeyName: `${parentMeta.tn.slice(0, 3)}_${childMeta.tn.slice(
-          0,
-          3
-        )}_${nanoid(6)}_p_fk`,
         type: 'real'
       };
       const rel2Args = {
         ...args.args,
         childTable: aTn,
-        childColumn: `${childMeta.tn}_c_id`,
+        childColumn: childCn,
         parentTable: childMeta.tn,
         parentColumn: childPK.cn,
-        foreignKeyName: `${parentMeta.tn.slice(0, 3)}_${childMeta.tn.slice(
-          0,
-          3
-        )}_${nanoid(6)}_c_fk`,
         type: 'real'
       };
       if (args.args.type === 'real') {

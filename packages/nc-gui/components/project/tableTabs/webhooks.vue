@@ -202,6 +202,7 @@
                     <column-filter
                       v-if="enableCondition && _isEE"
                       v-model="hook.condition"
+                      :meta="meta"
                       :field-list="fieldList"
                       dense
                       style="max-width: 100%"
@@ -374,6 +375,7 @@ export default {
     enableCondition: false,
     hooks: null,
     valid: false,
+    meta: null,
     loading: false,
     notificationList: [
       'Email',

@@ -88,6 +88,7 @@
         <column-filter
           v-if="!isForm"
           v-model="filters"
+          :meta="meta"
           :is-locked="isLocked"
           :field-list="[...realFieldList, ...formulaFieldList]"
           dense

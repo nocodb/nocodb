@@ -14,7 +14,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
 
@@ -255,8 +255,8 @@ npm run cypress:open
 ```
 
 # Contributing
-- Please take a look at ./scripts/contribute/HowToApplyLicense.md 
-- Ignore adding headers for .json or .md or .yml   
+
+Please check out [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md)
 
 # 🎯 Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.

@@ -50,41 +50,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-# Table of Contents
-
-- [Quick try](#quick-try)
-    + [1-Click Deploy](#1-click-deploy)
-      - [Heroku](#heroku)
-    + [Using Docker](#using-docker)
-    + [Using Npm](#using-npm)
-    + [Using Git](#using-git)
-    + [GUI](#gui)
-- [Screenshots](#screenshots)
-- [Features](#features)
-    + [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    + [App Store for workflow automations](#app-store-for-workflow-automations)
-    + [Programmatic API access via](#programmatic-api-access-via)
-- [Production Setup](#production-setup)
-  * [Docker](#docker)
-      - [Example: MySQL](#example--mysql)
-      - [Example: PostgreSQL](#example--postgresql)
-      - [Example: SQL Server](#example--sql-server)
-  * [Docker Compose](#docker-compose)
-  * [Environment variables](#environment-variables)
-- [Development Setup](#development-setup)
-  * [Cloning the project](#clone-the-project)
-  * [Running Backend locally](#running-backend-locally)
-  * [Running Frontend locally](#running-frontend-locally)
-  * [Running Cypress tests locally](#running-cypress-tests-locally)
-- [Contributing](#contributing)
-- [Why are we building this?](#---why-are-we-building-this-)
-- [Our Mission](#--our-mission--)
-- [Contributors](#contributors-------------)
-
-
-
----
-
 # Quick try
 ### 1-Click Deploy
 
@@ -128,6 +93,12 @@ npm start
 ### GUI
 Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
+# Join Our Community
+
+<a href="https://discord.gg/5RgZmkW">
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
+</a>
+
 # Screenshots
 
 ![2](https://user-images.githubusercontent.com/5435402/133759229-4275b934-873b-4a9b-9f23-96470fec9775.png)
@@ -162,6 +133,37 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 
 ![9](https://user-images.githubusercontent.com/5435402/133759249-8c1a85c2-a55c-48f6-bd58-aa6b4195cce7.png)
 
+# Table of Contents
+
+- [Quick try](#quick-try)
+    + [1-Click Deploy](#1-click-deploy)
+      - [Heroku](#heroku)
+    + [Using Docker](#using-docker)
+    + [Using Npm](#using-npm)
+    + [Using Git](#using-git)
+    + [GUI](#gui)
+- [Join Our Community](#join-our-community)
+- [Screenshots](#screenshots)
+- [Features](#features)
+    + [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+    + [App Store for workflow automations](#app-store-for-workflow-automations)
+    + [Programmatic API access via](#programmatic-api-access-via)
+- [Production Setup](#production-setup)
+  * [Docker](#docker)
+      - [Example: MySQL](#example--mysql)
+      - [Example: PostgreSQL](#example--postgresql)
+      - [Example: SQL Server](#example--sql-server)
+  * [Docker Compose](#docker-compose)
+  * [Environment variables](#environment-variables)
+- [Development Setup](#development-setup)
+  * [Cloning the project](#clone-the-project)
+  * [Running Backend locally](#running-backend-locally)
+  * [Running Frontend locally](#running-frontend-locally)
+  * [Running Cypress tests locally](#running-cypress-tests-locally)
+- [Contributing](#contributing)
+- [Why are we building this?](#---why-are-we-building-this-)
+- [Our Mission](#--our-mission--)
+- [Contributors](#contributors-------------)
 
 # Features
 ### Rich Spreadsheet Interface

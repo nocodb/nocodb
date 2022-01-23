@@ -14,7 +14,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
 
@@ -27,6 +27,10 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 </p>  
 
 <p align="center"><img src="https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png" alt="The Open Source Airtable Alternative - works on MySQL, Postgres SQL Server & MariaDB" width="1000px" /></p>
+
+<p align="center">
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
 
 <div align="center">
 
@@ -46,10 +50,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-
-<a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-
-
 # Quick try
 ### 1-Click Deploy
 
@@ -67,16 +67,21 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
-<br>
 
-- NocoDB needs a database as input : [Click here for production setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- If this input is absent we fallback to SQLite - to persist sqlite you can mount `/usr/app/data/`. Example below
-  - ```docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest```
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
+
+  Example:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
 
 ### Using Npm
 ```
 npx create-nocodb-app
 ```
+
 ### Using Git
 ```
 git clone https://github.com/nocodb/nocodb-seed
@@ -88,12 +93,11 @@ npm start
 ### GUI
 Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-
 # Join Our Community
+
 <a href="https://discord.gg/5RgZmkW">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
-<br>
 
 # Screenshots
 
@@ -129,6 +133,37 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 
 ![9](https://user-images.githubusercontent.com/5435402/133759249-8c1a85c2-a55c-48f6-bd58-aa6b4195cce7.png)
 
+# Table of Contents
+
+- [Quick try](#quick-try)
+    + [1-Click Deploy](#1-click-deploy)
+      - [Heroku](#heroku)
+    + [Using Docker](#using-docker)
+    + [Using Npm](#using-npm)
+    + [Using Git](#using-git)
+    + [GUI](#gui)
+- [Join Our Community](#join-our-community)
+- [Screenshots](#screenshots)
+- [Features](#features)
+    + [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+    + [App Store for workflow automations](#app-store-for-workflow-automations)
+    + [Programmatic API access via](#programmatic-api-access-via)
+- [Production Setup](#production-setup)
+  * [Docker](#docker)
+      - [Example: MySQL](#example--mysql)
+      - [Example: PostgreSQL](#example--postgresql)
+      - [Example: SQL Server](#example--sql-server)
+  * [Docker Compose](#docker-compose)
+  * [Environment variables](#environment-variables)
+- [Development Setup](#development-setup)
+  * [Cloning the project](#clone-the-project)
+  * [Running Backend locally](#running-backend-locally)
+  * [Running Frontend locally](#running-frontend-locally)
+  * [Running Cypress tests locally](#running-cypress-tests-locally)
+- [Contributing](#contributing)
+- [Why are we building this?](#---why-are-we-building-this-)
+- [Our Mission](#--our-mission--)
+- [Contributors](#contributors-------------)
 
 # Features
 ### Rich Spreadsheet Interface
@@ -140,14 +175,14 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 - ⚡ &nbsp;Roles : Owner, Creator, Editor, Viewer, Commenter, Custom Roles.
 - ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level.
 
-### App Store for workflow automations :
+### App Store for workflow automations
 - ⚡ &nbsp;Chat : Microsoft Teams, Slack, Discord, Mattermost
 - ⚡ &nbsp;Email : SMTP, SES, Mailchimp
 - ⚡ &nbsp;SMS : Twilio
 - ⚡ &nbsp;Whatsapp
 - ⚡ &nbsp;Any 3rd Party APIs
 
-### Programmatic API access via :
+### Programmatic API access via
 - ⚡ &nbsp;REST APIs (Swagger) 
 - ⚡ &nbsp;GraphQL APIs.
 - ⚡ &nbsp;Includes JWT Authentication & Social Auth
@@ -159,7 +194,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 
 ## Docker 
 
-#### Example MySQL
+#### Example: MySQL
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
@@ -167,7 +202,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example PostgreSQL
+#### Example: PostgreSQL
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="pg://host:port?u=user&p=password&d=database" \
@@ -175,7 +210,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
+#### Example: SQL Server
 ```
 docker run -d -p 8080:8080 \
     -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
@@ -192,37 +227,33 @@ cd mysql or pg or mssql
 docker-compose up
 ```
 
-
 ## Environment variables 
-| Variable                             | Mandatory | Comments                                                                                                   | If absent                                     |
-|--------------------------------------|-----------|------------------------------------------------------------------------------------------------------------|-----------------------------------------------|
-| `NC_DB`                              | Yes       | See our database URLs                                                                                      | A local SQLite will be created in root folder |
-| `DATABASE_URL`                       | No        | JDBC URL Format. Can be used instead of `NC_DB`. Used in 1-Click Heroku deployment                         |                                               |
-| `DATABASE_URL_FILE`                  | No        | path to file containing JDBC URL Format. Can be used instead of `NC_DB`. Used in 1-Click Heroku deployment |                                               |
-| `NC_PUBLIC_URL`                      | Yes       | Used for sending Email invitations                                                                         | Best guess from http request params           |
-| `NC_AUTH_JWT_SECRET`                 | Yes       | JWT secret used for auth and storing other secrets                                                         | A Random secret will be generated             |
-| `NC_SENTRY_DSN`                      | No        | For Sentry monitoring                                                                                      |                                               |
-| `NC_CONNECT_TO_EXTERNAL_DB_DISABLED` | No        | Disable Project creation with external database                                                            |                                               |
-| `NC_DISABLE_TELE`                    | No        | Disable telemetry                                                                                          |                                               |
-| `NC_BACKEND_URL`                     | No        | Custom Backend URL                                                                                         | ``http://localhost:8080`` will be used        |
 
-# Development setup 
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+
+# Development Setup 
+
+## Cloning the Project
+
 ```shell
 git clone https://github.com/nocodb/nocodb
-cd nocodb
+```
 
-# run backend
-cd packages/nocodb
+## Running Backend locally
+
+```shell
+cd nocodb/packages/nocodb
 npm install
 npm run watch:run
-
 # open localhost:8080/dashboard in browser
+```
 
-# run frontend 
+## Running Frontend locally 
+
+```shell
 cd packages/nc-gui
 npm install
 npm run dev
-
 # open localhost:3000/dashboard in browser
 ```
 
@@ -255,13 +286,13 @@ npm run cypress:open
 ```
 
 # Contributing
-- Please take a look at ./scripts/contribute/HowToApplyLicense.md 
-- Ignore adding headers for .json or .md or .yml   
+
+Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # 🎯 Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
-# ❤ Our Mission :
+# ❤ Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
 # Contributors : 🌻🌻🌻🐝🐝 

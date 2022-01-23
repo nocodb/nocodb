@@ -2,9 +2,16 @@
 
 Thanks for spending your time to contribute! The following is a set of guidelines for contributing to NocoDB. 
 
-- [Code of Conduct](https://github.com/nocodb/nocodb/blob/master/.github/CODE_OF_CONDUCT.md)
+## Table of Contents
+
 - [Pull Request Guidelines](#pull-request-guidelines)
 - [Development Setup](#development-setup)
+  * [Committing Changes](#committing-changes)
+  * [Applying License](#applying-license)
+    + [Modifying existing file](#modifying-existing-file)
+    + [Creating new file](#creating-new-file)
+    + [Sign your existing work](#sign-your-existing-work)
+    + [Sign your previous work](#sign-your-previous-work)
 - [Project Structure](#project-structure)
 - [Financial Contribution](#financial-contribution)
 - [Credits](#credits)
@@ -12,6 +19,10 @@ Thanks for spending your time to contribute! The following is a set of guideline
 ## Pull Request Guidelines
 
 - When you create a PR, you should fill in all the info defined in this [template](https://github.com/nocodb/nocodb/blob/master/.github/pull_request_template.md).
+
+- We adopt [Gitflow Design](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). However, we do not have release branches. 
+
+    ![git flow design](https://wac-cdn.atlassian.com/dam/jcr:cc0b526e-adb7-4d45-874e-9bcea9898b4a/04%20Hotfix%20branches.svg?cdnVersion=176)
 
 - The `master` branch is just a snapshot of the latest stable release. All development should be done in dedicated branches. 
 **Do not submit PRs against the `master` branch.**

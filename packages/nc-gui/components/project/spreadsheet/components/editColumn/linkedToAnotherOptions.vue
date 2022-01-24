@@ -140,9 +140,6 @@ export default {
               .some(mm => (mm.tn === v && mm.rtn === this.meta.tn) || (mm.rtn === v && mm.tn === this.meta.tn)) ||
               'Duplicate many to many relation is not allowed at the moment'
           }
-          if (this.type === 'hm') {
-            return true
-          }
         }
       ]
     }

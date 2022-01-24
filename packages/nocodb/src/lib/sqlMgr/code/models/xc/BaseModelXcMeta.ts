@@ -124,7 +124,7 @@ abstract class BaseModelXcMeta extends BaseRender {
           hm,
           _cn:
             this.findOldVirtualColumnName(hm, 'hm') ||
-            this.columnSuffixNumber(`${hm._rtn} => ${hm._tn}`, hm.cn)
+            this.columnSuffixNumber(`${hm._tn}`, hm.cn)
         };
       }),
       ...(this.ctx.belongsTo || []).map(bt => {
@@ -132,7 +132,7 @@ abstract class BaseModelXcMeta extends BaseRender {
           bt,
           _cn:
             this.findOldVirtualColumnName(bt, 'bt') ||
-            this.columnSuffixNumber(`${bt._rtn} <= ${bt._tn}`, bt.cn)
+            this.columnSuffixNumber(`${bt._rtn}`, bt.cn)
         };
       })
     ];

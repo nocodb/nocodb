@@ -1846,9 +1846,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
         /* Add new has many relation to virtual columns */
         const columnSuffixNumber = args.columnSuffixNumber || '';
-        const relationColumnName = `${this.getTableNameAlias(
-          tnp
-        )} => ${this.getTableNameAlias(tnc)}${
+        const relationColumnName = `${this.getTableNameAlias(tnc)}${
           columnSuffixNumber ? ' ' + columnSuffixNumber : ''
         }`;
         oldMeta.v = oldMeta.v || [];
@@ -2025,9 +2023,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         });
         /* Add new belongs to relation to virtual columns */
         const columnSuffixNumber = args.columnSuffixNumber || '';
-        const relationColumnName = `${this.getTableNameAlias(
-          tnp
-        )} <= ${this.getTableNameAlias(tnc)}${
+        const relationColumnName = `${this.getTableNameAlias(tnp)}${
           columnSuffixNumber ? ' ' + columnSuffixNumber : ''
         }`;
         oldMeta.v = oldMeta.v || [];

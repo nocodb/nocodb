@@ -1775,9 +1775,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         /* Add new has many relation to virtual columns */
         const columnSuffixNumber = args.columnSuffixNumber || '';
-        relationColumnName = `${this.getTableNameAlias(
-          tnp
-        )} => ${this.getTableNameAlias(tnc)}${
+        relationColumnName = `${this.getTableNameAlias(tnc)}${
           columnSuffixNumber ? ' ' + columnSuffixNumber : ''
         }`;
         hm = meta.hasMany.reverse().find(hm => hm.rtn === tnp && hm.tn === tnc);
@@ -1923,9 +1921,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
         /* Add new belongs to relation to virtual columns */
         const columnSuffixNumber = args.columnSuffixNumber || '';
-        const relationColumnName = `${this.getTableNameAlias(
-          tnp
-        )} <= ${this.getTableNameAlias(tnc)}${
+        const relationColumnName = `${this.getTableNameAlias(tnp)}${
           columnSuffixNumber ? ' ' + columnSuffixNumber : ''
         }`;
         bt = meta.belongsTo

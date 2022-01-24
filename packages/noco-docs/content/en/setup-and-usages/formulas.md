@@ -33,35 +33,35 @@ menuTitle: "Formulas"
 | ------- | -------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------- | ----------------- |
 | AVG     | `AVG(value1, [value2,...])`                              | `AVG(Column1, Column1)`                     | Average of input parameters                                               | 1                 |
 | ADD     | `ADD(value1, [value2,...])`                              | `ADD(Column1, Column1)`                     | Sum of input parameters                                                   | 1                 |
-| CONCAT  | `CONCAT(value1, [value2,...])`                           | `CONCAT(FirstName, ' ', LastName)`          | Concatenated string of input parameters                                   |
-| TRIM    | `TRIM(value1)`                                           | `TRIM(Title)`                               | Removes trailing and leading whitespaces from input parameter             |
-| UPPER   | `UPPER(value1)`                                          | `UPPER(Title)`                              | Upper case converted string of input parameter                            |
-| LOWER   | `LOWER(value1)`                                          | `LOWER(Title)`                              | Lower case converted string of input parameter                            |
-| LEN     | `LEN(value)`                                             | `LEN(Title)`                                | Input parameter charachter length                                         |
-| MIN     | `MIN(value1, [value2,...])`                              | `MIN(Column1, Column2, Column3)`            | Minimum value amongst input parameters                                    |
-| MAX     | `MAX(value1, [value2,...])`                              | `MAX(Column1, Column2, Column3)`            | Maximum value amongst input parameters                                    |
-| CEILING | `CEILING(value1)`                                        | `CEILING(Column)`                           | Rounded next largest integer value of input parameter                     |
-| FLOOR   | `FLOOR(value1)`                                          | `FLOOR(Column)`                             | Rounded largest integer less than or equal to input parameter             |
-| ROUND   | `ROUND(value1)`                                          | `ROUND(Column)`                             | Nearest integer to the input parameter                                    |
+| CONCAT  | `CONCAT(value1, [value2,...])`                           | `CONCAT(FirstName, ' ', LastName)`          | Concatenated string of input parameters                                   | 2
+| TRIM    | `TRIM(value)`                                            | `TRIM(Title)`                               | Removes trailing and leading whitespaces from input parameter             | 1
+| UPPER   | `UPPER(value)`                                           | `UPPER(Title)`                              | Upper case converted string of input parameter                            | 1
+| LOWER   | `LOWER(value)`                                           | `LOWER(Title)`                              | Lower case converted string of input parameter                            | 1
+| LEN     | `LEN(value)`                                             | `LEN(Title)`                                | Input parameter charachter length                                         | 1
+| MIN     | `MIN(value1, [value2,...])`                              | `MIN(Column1, Column2, Column3)`            | Minimum value amongst input parameters                                    | 1
+| MAX     | `MAX(value1, [value2,...])`                              | `MAX(Column1, Column2, Column3)`            | Maximum value amongst input parameters                                    | 1
+| CEILING | `CEILING(value)`                                         | `CEILING(Column)`                           | Rounded next largest integer value of input parameter                     | 1
+| FLOOR   | `FLOOR(value)`                                           | `FLOOR(Column)`                             | Rounded largest integer less than or equal to input parameter             | 1
+| ROUND   | `ROUND(value)`                                           | `ROUND(Column)`                             | Nearest integer to the input parameter                                    | 1
 | MOD     | `MOD(value1, value2)`                                    | `MOD(Column, 2)`                            | Remainder after integer division of input parameters                      | 2                 |
-| REPEAT  | `REPEAT(value1, count)`                                  | `REPEAT(Column, 2)`                         | Specified copies of the input parameter string concatenated together      |
-| LOG     | `LOG(value1, [base])`                                    | `LOG(Column)`                               | Logarithm of input parameter to the base specified                        |
-| EXP     | `EXP(value1)`                                            | `EXP(Column)`                               | Exponential value of input parameter (`e^x`)                              |
-| POWER   | `POWER(base, exponent)`                                  | `POWER(Column, 3)`                          | `base` to the `exponent` power, as in `base^exponent`                     |
-| SQRT    | `SQRT(value1)`                                           | `SQRT(Column)`                              | Square root of the input parameter                                        |
-| ABS     | `ABS(value1)`                                            | `ABS(Column)`                               | Absolute value of the input parameter                                     |
-| NOW     | `NOW()`                                                  | `NOW()`                                     | Current date time                                                         |
-| REPLACE | `REPLACE(value1, old_str,new_str)`                       | `REPLACE(Column, old_string, new_String)`   | String, after replacing all occurrences of `old_string` with `new_String` |
-| SEARCH  | `SEARCH(value1, search_val)`                             | `SEARCH(Column, 'str')`                     | Index of sub-string specified if found, 0 otherwise                       |
-| INT     | `INT(value1)`                                            | `INT(Column)`                               | Integer value of input parameter                                          |
-| RIGHT   | `RIGHT(value1, count)`                                   | `RIGHT(Column, 3)`                          | `n` characters from the end of input parameter                            |
-| LEFT    | `LEFT(value1, [value2,...])`                             | `LEFT(Column, 3)`                           | `n` characters from the beginning of input parameter                      |
-| SUBSTR  | `SUBTR(value1, position, [count])`                       | `SUBSTR(Column, 3, 2)`                      | Substring of length 'count' of input string, from the postition specified |
-| MID     | `SUBTR(value1, position, [count])`                       | `MID(Column, 3, 2)`                         | Alias for `SUBSTR`                                                        |
-| IF      | `IF(expression, success_case, [else_case])`              | `IF(Column > 1, Value1, Value2)`            | success_case if expression evaluates to TRUE, else_case otherwise         |
-| SWITCH  | `SWITCH(expression, [pattern,value,..., default_value])` | `SWITCH(Column1, 1, 'One', 2, 'Two', '--')` | Switch case value based on expression output                              |
-| AND     | `AND(expression1, [expression2,...])`                    | `AND(Column > 2, Column < 10)`              | TRUE if all expressions evaluate to TRUE                                  |
-| OR      | `OR(expression1, [expression2,...])`                     | `OR(Column > 2, Column < 10)`               | TRUE if at least one expression evaluates to TRUE                         |
+| REPEAT  | `REPEAT(value1, count)`                                  | `REPEAT(Column, 2)`                         | Specified copies of the input parameter string concatenated together      | 2
+| LOG     | `LOG(value1, [base])`                                    | `LOG(Column)`                               | Logarithm of input parameter to the base specified                        | 1
+| EXP     | `EXP(value)`                                             | `EXP(Column)`                               | Exponential value of input parameter (`e^x`)                              | 1
+| POWER   | `POWER(base, exponent)`                                  | `POWER(Column, 3)`                          | `base` to the `exponent` power, as in `base^exponent`                     | 2
+| SQRT    | `SQRT(value)`                                            | `SQRT(Column)`                              | Square root of the input parameter                                        | 1
+| ABS     | `ABS(value)`                                             | `ABS(Column)`                               | Absolute value of the input parameter                                     | 1
+| NOW     | `NOW()`                                                  | `NOW()`                                     | Current date time                                                         | 0
+| REPLACE | `REPLACE(value, old_str,new_str)`                        | `REPLACE(Column, old_string, new_String)`   | String, after replacing all occurrences of `old_string` with `new_String` | 3
+| SEARCH  | `SEARCH(value, search_val)`                              | `SEARCH(Column, 'str')`                     | Index of sub-string specified if found, 0 otherwise                       | 2
+| INT     | `INT(value)`                                             | `INT(Column)`                               | Integer value of input parameter                                          | 1
+| RIGHT   | `RIGHT(value, count)`                                    | `RIGHT(Column, 3)`                          | `n` characters from the end of input parameter                            | 2
+| LEFT    | `LEFT(value1, [value2,...])`                             | `LEFT(Column, 3)`                           | `n` characters from the beginning of input parameter                      | 2
+| SUBSTR  | `SUBTR(value, position, [count])`                        | `SUBSTR(Column, 3, 2)`                      | Substring of length 'count' of input string, from the postition specified | 3
+| MID     | `SUBTR(value, position, [count])`                        | `MID(Column, 3, 2)`                         | Alias for `SUBSTR`                                                        | 3
+| IF      | `IF(expression, success_case, [else_case])`              | `IF(Column > 1, Value1, Value2)`            | success_case if expression evaluates to TRUE, else_case otherwise         | 2
+| SWITCH  | `SWITCH(expression, [pattern,value,..., default_value])` | `SWITCH(Column1, 1, 'One', 2, 'Two', '--')` | Switch case value based on expression output                              | 3
+| AND     | `AND(expression1, [expression2,...])`                    | `AND(Column > 2, Column < 10)`              | TRUE if all expressions evaluate to TRUE                                  | 1
+| OR      | `OR(expression1, [expression2,...])`                     | `OR(Column > 2, Column < 10)`               | TRUE if at least one expression evaluates to TRUE                         | 1
 
 ### Numeric Operators
 

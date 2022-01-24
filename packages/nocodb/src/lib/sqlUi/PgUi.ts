@@ -1630,7 +1630,7 @@ export class PgUi {
         };
         break;
       case 'Number':
-        colProp.dt = 'int8';
+        colProp.dt = 'bigint';
         break;
       case 'Decimal':
         colProp.dt = 'decimal';

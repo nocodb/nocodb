@@ -99,11 +99,20 @@
                     </template>
                   </v-autocomplete>
 
-                  <!--                        <v-list dense max-height="calc(100vh - 300px)" style="overflow: auto">-->
-                  <!--                          <v-list-item v-for="item in uiTypes" @click.stop :key="item">-->
-                  <!--                            <span class="caption">{{ item }}</span>-->
-                  <!--                          </v-list-item>-->
-                  <!--                        </v-list>-->
+                  <v-alert
+                    v-if="column && newColumn.uidt === 'SingleSelect' && column.uidt === 'MultiSelect'"
+                    dense
+                    type="warning"
+                    class="caption warning--text mt-2 mb-n4 pa-1"
+                    outlined
+                  >
+                    <template #prepend>
+                      <v-icon small class="mx-2" color="warning">
+                        mdi-alert-outline
+                      </v-icon>
+                    </template>
+                    Changing MultiSelect to SingleSelect can lead to errors when there are multiple values associated with a cell
+                  </v-alert>
                 </v-col>
 
                 <v-col v-if="isSelect" cols="12">
@@ -598,7 +607,9 @@ export default {
     },
     onDataTypeChange() {
       this.newColumn.rqd = false
-      this.newColumn.pk = false
+      if (this.newColumn.uidt !== UITypes.ID) {
+        this.newColumn.pk = false
+      }
       this.newColumn.ai = false
       this.newColumn.cdf = null
       this.newColumn.un = false
@@ -606,6 +617,11 @@ export default {
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt)
 
       this.newColumn.dtx = 'specificType'
+
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
+        this.newColumn.dtxp = this.column.dtxp
+      }
 
       // this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
 
@@ -626,6 +642,11 @@ export default {
 
       this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(this.newColumn.dt)
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt)
+
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
+        this.newColumn.dtxp = this.column.dtxp
+      }
 
       this.newColumn.altered = this.newColumn.altered || 2
     },

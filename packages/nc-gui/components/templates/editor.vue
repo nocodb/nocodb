@@ -659,7 +659,7 @@ export default {
         const template = {
           ...this.project,
           tables: (this.project.tables || []).map((t) => {
-            const table = { tn: t.tn, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
+            const table = { ...t, columns: [], hasMany: [], manyToMany: [], belongsTo: [], v: [] }
 
             for (const column of (t.columns || [])) {
               if (this.isRelation(column)) {
@@ -1300,6 +1300,7 @@ export default {
     },
     onUidtChange(oldVal, newVal, col, table) {
       this.$set(col, 'uidt', newVal)
+      this.$set(col, 'dtxp', undefined)
 
       // delete relation column from other table
       // if previous type is relation

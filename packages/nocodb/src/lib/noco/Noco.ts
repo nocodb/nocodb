@@ -11,7 +11,6 @@ import * as express from 'express';
 import { Router } from 'express';
 import importFresh from 'import-fresh';
 import morgan from 'morgan';
-import { Tele } from 'nc-help';
 import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
@@ -90,7 +89,7 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0083008';
+    process.env.NC_VERSION = '0084002';
 
     this.router = express.Router();
     this.projectRouter = express.Router();
@@ -243,8 +242,6 @@ export default class Noco {
       }
       next();
     });
-
-    Tele.emit('evt_app_started', {});
 
     return this.router;
   }

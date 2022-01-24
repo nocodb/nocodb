@@ -269,11 +269,11 @@
         <!--               to="/visits" v-if="user && !isThisMobile">-->
         <!--          <b>Your Rewards</b>-->
         <!--        </v-btn>-->
-        <span
+        <!-- span
           v-shortkey="['ctrl', 'shift', 't']"
           tooltip="Terminal"
           @shortkey="terminalTabAdd()"
-        />
+        /-->
 
         <!--        <x-icon key="settings-dash" iconClass="mr-1 ml-4" @click="settingsDialog = true" tooltip="Tool Settings (^⇧C)">-->
         <!--          mdi-cog-->

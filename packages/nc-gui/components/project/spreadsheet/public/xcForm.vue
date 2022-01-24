@@ -206,6 +206,8 @@
           <v-text-field
             v-model="password"
             dense
+            autocomplete="shared-form-password"
+            browser-autocomplete="shared-form-password"
             type="password"
             solo
             flat

@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
-    <splitpanes style="height:calc(100vh - 40px); position: relative;" class="xc-theme">
+    <splitpanes style="height:calc(100vh - 48px); position: relative;" class="xc-theme nc-dashboard">
       <pane :min-size="showProjectTree? 10 : 1.5" :size="showProjectTree ? paneSize : 1.5" :max-size="showProjectTree? 50 : 1.5" style="position: relative;overflow-x: hidden">
         <ProjectTreeView v-show="showProjectTree" ref="treeview" />
         <v-btn
@@ -117,6 +117,19 @@ export default {
 /deep/ .splitpanes__splitter {
   background: #7f828b33 !important;
   border: #7f828b33 !important;
+}
+/deep/ .nc-dashboard > .splitpanes__splitter {
+  margin-top: 30px;
+  position: relative;
+}
+/deep/ .nc-dashboard > .splitpanes__splitter::before {
+  height: 30px;
+  content: '';
+  position: absolute;
+  top:-30px;
+  left: 0;
+  width: 100%;
+  background: var(--v-primary-base);
 }
 .pane-toggle {
   position: absolute;

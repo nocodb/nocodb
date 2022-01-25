@@ -8,10 +8,10 @@
       clipped-left
       dense
       dark
-      height="40"
+      height="48"
       @contextmenu="showAirtabLikeLink++"
     >
-      {{ $store.state.plugins.brand }}
+      <!--      {{ $store.state.plugins.brand }}-->
       <!-- <v-toolbar-side-icon></v-toolbar-side-icon> -->
       <v-toolbar-title>
         <v-tooltip bottom>
@@ -34,20 +34,12 @@
         </template>
       </v-toolbar-title>
 
-      <v-toolbar-items class="ml-3">
-        <gh-btns-star
-          icon="mark-github"
-          slug="nocodb/nocodb"
-          show-count
-          class="mr-3 align-self-center"
-        >
-          {{ ghStarText }}
-        </gh-btns-star>
-        <a
-          class="align-self-center caption font-weight-bold ml-1 mr-2 white--text"
+      <v-toolbar-items class="ml-0">
+        <!--        <a
+          class="align-self-center caption font-weight-bold ml-1 mr-2 white&#45;&#45;text"
           href="https://docs.nocodb.com"
           target="_blank"
-        >Docs</a>
+        >Docs</a>-->
         <!--        <templates-modal v-if="isDashboard && _isUIAllowed('template-import')" v-model="templateModal" class="align-self-center" />-->
 
         <!--        <better-u-x v-if="clickCount" />-->
@@ -83,7 +75,7 @@
       />
 
       <v-spacer />
-      <div style="position: absolute; top:0;left:0;width:100%; pointer-events: none" class="d-flex align-center">
+      <!--      <div style="position: absolute; top:0;left:0;width:100%; pointer-events: none" class="d-flex align-center">
         <h5
           v-if="isDashboard && $store.getters['project/GtrProjectName'] !== '__project__'"
           class="text-center mx-auto mb-0 mt-1 title font-weight-bold text-capitalize"
@@ -101,11 +93,21 @@
             Project name
           </v-tooltip>
         </h5>
-      </div>
+      </div>-->
 
       <v-spacer />
 
       <v-toolbar-items class="hidden-sm-and-down nc-topright-menu">
+        <gh-btns-star
+          icon="mark-github"
+          slug="nocodb/nocodb"
+          show-count
+          class="mr-3 align-self-center"
+          :class="{'dark' : isDark}"
+        >
+          {{ ghStarText }}
+        </gh-btns-star>
+
         <release-info />
 
         <template v-if="isDashboard">
@@ -113,8 +115,7 @@
             <x-btn
               v-if="_isUIAllowed('add-user')"
               small
-              color="white"
-              btn-class="primary--text nc-menu-share"
+              btn-class="primary--text nc-menu-share white"
               @click="rolesTabAdd"
             >
               <v-icon small class="mr-1">
@@ -124,7 +125,7 @@
             </x-btn>
           </div>
 
-          <v-tooltip bottom>
+          <!--          <v-tooltip bottom>
             <template #activator="{ on }">
               <v-icon
                 v-ripple="{class : 'nc-ripple'}"
@@ -159,7 +160,7 @@
               {{ $vuetify.theme.dark ? 'Click for light theme' : 'Click for dark theme' }}
               <i />
             </span>
-          </v-tooltip>
+          </v-tooltip>-->
 
           <span
             v-shortkey="[ 'ctrl','shift', 'd']"
@@ -1061,11 +1062,22 @@ export default {
 }
 </script>
 <style scoped>
-/deep/ .gh-button-container > a {
-  background: transparent !important;
-  color: white !important;
+/deep/ .gh-button-container{
+  background: #fff2;
+  border-radius: 4px;
 }
-
+/deep/ .gh-button-container:not(.dark) > a {
+  background: transparent !important;
+  color: #cdcdcd !important;
+}
+/deep/ .gh-button-container > a:first-child{
+  border-left-color: transparent;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+}
+/deep/ .gh-button-container > a:last-child{
+  border-color: transparent;
+}
 a {
   text-decoration: none;
 }

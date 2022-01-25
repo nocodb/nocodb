@@ -199,7 +199,7 @@ import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
 import XcGridView from '../views/xcGridView'
 import { SqlUI } from '@/helpers/sqlUi'
-import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
+import CsvExportImport from '~/components/project/spreadsheet/components/moreActions'
 // import ExpandedForm from "../expandedForm";
 
 export default {

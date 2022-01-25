@@ -1,3 +1,0 @@
-```
-See ./scripts/contribute folder
-```

@@ -169,6 +169,7 @@ export function _editComment(roleType, previewMode) {
 export function _viewMenu(roleType, previewMode) {
   let columnName = "City";
   let navDrawListCnt = 2;
+  let actionsMenuItemsCnt = 1;
 
   cy.openTableTab(columnName, 25);
 
@@ -183,7 +184,8 @@ export function _viewMenu(roleType, previewMode) {
 
   // Owner, Creator will have two navigation drawer (on each side of center panel)
   if (roleType == "owner" || roleType == "creator") {
-    navDrawListCnt = 4;
+    navDrawListCnt = 3;
+    actionsMenuItemsCnt = 4;
   }
 
   cy.get(".v-navigation-drawer__content")
@@ -200,8 +202,17 @@ export function _viewMenu(roleType, previewMode) {
   cy.get(`.nc-create-form-view`).should(validationString);
 
   // share view & automations, exists only for owner/creator
-  cy.get(`.nc-share-view`).should(validationString);
-  cy.get(`.nc-automations`).should(validationString);
+  // cy.get(`.nc-share-view`).should(validationString);
+  // cy.get(`.nc-automations`).should(validationString);
+  // mainPage.shareView().should(validationString);
+  // mainPage.automations().should(validationString);
+
+  // share view permissions are role specific
+  cy.get('.nc-btn-share-view').should(validationString);
+
+  // actions menu (more), only download csv should be visible for non-previlaged users
+  cy.get('.nc-actions-menu-btn').click();
+  cy.getActiveMenu().find('[role="menuitem"]').should("have.length", actionsMenuItemsCnt);
 }
 
 export function _topRightMenu(roleType, previewMode) {
@@ -209,8 +220,8 @@ export function _topRightMenu(roleType, previewMode) {
     true == roles[roleType].validations.shareView ? "exist" : "not.exist";
   cy.get(".nc-topright-menu").find(".nc-menu-share").should(validationString);
 
-  cy.get(".nc-topright-menu").find(".nc-menu-theme").should("exist");
-  cy.get(".nc-topright-menu").find(".nc-menu-dark-theme").should("exist");
+  // cy.get(".nc-topright-menu").find(".nc-menu-theme").should("exist");
+  // cy.get(".nc-topright-menu").find(".nc-menu-dark-theme").should("exist");
   cy.get(".nc-topright-menu").find(".nc-menu-translate").should("exist");
   cy.get(".nc-topright-menu").find(".nc-menu-account").should("exist");
   cy.get(".nc-topright-menu").find(".nc-menu-alert").should("exist");

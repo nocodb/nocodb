@@ -8,6 +8,7 @@ import * as nc_007_alter_nc_shared_views_1 from '../migrations/nc_007_alter_nc_s
 import * as nc_008_add_nc_shared_bases from '../migrations/nc_008_add_nc_shared_bases';
 import * as nc_009_add_model_order from '../migrations/nc_009_add_model_order';
 import * as nc_010_add_parent_title_column from '../migrations/nc_010_add_parent_title_column';
+import * as nc_011_remove_old_ses_plugin from '../migrations/nc_011_remove_old_ses_plugin';
 
 // Create a custom migration source class
 export default class XcMigrationSource {
@@ -26,7 +27,8 @@ export default class XcMigrationSource {
       'nc_007_alter_nc_shared_views_1',
       'nc_008_add_nc_shared_bases',
       'nc_009_add_model_order',
-      'nc_010_add_parent_title_column'
+      'nc_010_add_parent_title_column',
+      'nc_011_remove_old_ses_plugin'
     ]);
   }
 
@@ -56,6 +58,8 @@ export default class XcMigrationSource {
         return nc_009_add_model_order;
       case 'nc_010_add_parent_title_column':
         return nc_010_add_parent_title_column;
+      case 'nc_011_remove_old_ses_plugin':
+        return nc_011_remove_old_ses_plugin;
     }
   }
 }
@@ -65,6 +69,7 @@ export default class XcMigrationSource {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

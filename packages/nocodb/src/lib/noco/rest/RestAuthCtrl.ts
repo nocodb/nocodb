@@ -287,6 +287,7 @@ export default class RestAuthCtrl {
     });
 
     this.app.router.get(`/user/me`, this.me);
+    this.app.router.post(`/auth/signout`, this.signout);
 
     /* Admin APIs */
     this.app.router.use('/admin', this.isAdmin);
@@ -988,6 +989,28 @@ export default class RestAuthCtrl {
           this.config.auth.jwt.secret
         )
       } as any);
+    } catch (e) {
+      console.log(e);
+      next(e);
+    }
+  }
+
+  protected async signout(req, res, next): Promise<any> {
+    try {
+      res.clearCookie('refresh_token');
+      const email = req?.session?.passport?.user?.email?.toLowerCase();
+
+      if (email) {
+        await this.users
+          .update({
+            refresh_token: null
+          })
+          .where({
+            email
+          });
+      }
+
+      res.json({ msg: 'Success' });
     } catch (e) {
       console.log(e);
       next(e);

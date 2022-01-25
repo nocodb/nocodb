@@ -200,7 +200,7 @@ export default {
       return this.apps.reduce((arr, app) => arr.concat(app.tags || []), []).filter((f, i, arr) => i === arr.indexOf(f)).sort()
     },
     filteredApps() {
-      return this.apps.filter(app => (!this.query.trim() || app.name.toLowerCase().includes(this.query.trim().toLowerCase())) &&
+      return this.apps.filter(app => (!this.query.trim() || app.title.toLowerCase().includes(this.query.trim().toLowerCase())) &&
         (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
       )
     }

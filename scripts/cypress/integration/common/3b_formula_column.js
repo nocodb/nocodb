@@ -45,17 +45,17 @@ export const genTest = (type, xcdb) => {
       // Column name
       cy.get(".nc-column-name-input input")
         .clear()
-        .type(`${columnName}{enter}`);
+        .type(`${columnName}`);
 
       // Column data type: to be set to formula in this context
       cy.get(".nc-ui-dt-dropdown").click().type("Formula");
       cy.getActiveMenu().contains("Formula").click({ force: true });
 
       // Configure formula
-      cy.get("label").contains("Formula").parent().click().type(formula);
+      cy.get("label").contains("Formula").parent().click().type(formula).click();
 
       // click on Save
-      cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+      cy.get(".nc-col-create-or-edit-card").contains("Save").click({ force: true });
 
       cy.toastWait("Formula column saved successfully");
 
@@ -103,9 +103,10 @@ export const genTest = (type, xcdb) => {
         .parent()
         .find("input")
         .clear()
-        .type(newFormula);
+        .type(newFormula)
+        .click();
 
-      cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+      cy.get(".nc-col-create-or-edit-card").contains("Save").click({force: true});
 
       cy.toastWait("Formula column updated successfully");
 

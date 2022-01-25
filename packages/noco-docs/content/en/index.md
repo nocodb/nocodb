@@ -40,15 +40,11 @@ Also NocoDB's app store allows you to build business workflows on views with com
 - ⚡ &nbsp;Includes JWT Authentication & Social Auth
 - ⚡ &nbsp;API tokens to integrate with Zapier, Integromat.
 
-
-
 ##  Why are we building this ? 🎯 
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
 ## Our Mission :  ❤ 
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
-
-
 
 ## Architecture - Simple Overview
 
@@ -89,7 +85,7 @@ We use ``Lerna`` to manage multi-packages. We have the following [packages](http
 
 ## Contributions
 
-All contributions are welcome. NocoDB projects can be found in the [NocoDB](https://github.com/nocodb) Github organization. Our core uses [The AGPL V3 license](https://github.com/nocodb/nocodb/blob/master/LICENSE) and all contributors should read the [contribution guides](https://github.com/nocodb/nocodb/tree/master/scripts/contribute) before making your first contribution. 
+All contributions are welcome. NocoDB projects can be found in the [NocoDB](https://github.com/nocodb) Github organization. Our core uses [The AGPL V3 license](https://github.com/nocodb/nocodb/blob/master/LICENSE) and all contributors should read the [contribution guides](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md) before making your first contribution. 
 
 You can also share your thoughts and discuss with our community members via [discord](https://discord.gg/5RgZmkW) or [Github Discussion](https://github.com/nocodb/nocodb/discussions). We also share our [Immediate Roadmap](https://github.com/nocodb/nocodb/projects/1) and all opinions are welcome.
 

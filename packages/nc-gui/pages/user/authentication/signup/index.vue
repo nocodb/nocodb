@@ -53,6 +53,7 @@
                   :rules="formRules.password"
                   :type="formUtil.e3 ? 'password' : 'text'"
                   required
+                  @keyup.enter="MtdOnSignup"
                   @click:append="() => (formUtil.e3 = !formUtil.e3)"
                 >
                   <template #progress />

@@ -93,6 +93,13 @@
           </template>
         </v-select>
         <span v-if="['is null', 'is not null'].includes(filter.op)" :key="'span' + i" />
+        <v-checkbox
+          v-else-if="types[filter.field] === 'boolean'"
+          :key="i + '_7'"
+          v-model="filter.value"
+          dense
+          :disabled="filter.readOnly"
+        />
         <v-text-field
           v-else
           :key="i + '_7'"
@@ -126,9 +133,11 @@
 </template>
 
 <script>
+import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+
 export default {
   name: 'ColumnFilter',
-  props: ['fieldList', 'value'],
+  props: ['fieldList', 'value', 'meta'],
   data: () => ({
     filters: [],
     opList: [
@@ -141,6 +150,26 @@ export default {
       '<='
     ]
   }),
+  computed: {
+    types() {
+      if (!this.meta || !this.meta.columns || !this.meta.columns.length) { return {} }
+
+      return this.meta.columns.reduce((obj, col) => {
+        switch (col.uidt) {
+          case UITypes.Number:
+          case UITypes.Decimal:
+            obj[col._cn] = obj[col.cn] = 'number'
+            break
+          case UITypes.Checkbox:
+            obj[col._cn] = obj[col.cn] = 'boolean'
+            break
+          default:
+            break
+        }
+        return obj
+      }, {})
+    }
+  },
   watch: {
     filters: {
       handler(v) {

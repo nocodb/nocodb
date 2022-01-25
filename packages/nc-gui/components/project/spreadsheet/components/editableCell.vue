@@ -5,7 +5,8 @@
     @keydown.stop.right
     @keydown.stop.up
     @keydown.stop.down
-    @keydown.stop.enter="cahnged=false,$emit('save')"
+    @keydown.stop.enter.exact="changed=false,$emit('save'),$emit('navigateToNext')"
+    @keydown.stop.shift.enter.exact="changed=false,$emit('save'),$emit('navigateToPrev')"
   >
     <editable-attachment-cell
       v-if="isAttachment"

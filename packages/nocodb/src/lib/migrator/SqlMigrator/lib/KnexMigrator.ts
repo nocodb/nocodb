@@ -122,6 +122,8 @@ export default class KnexMigrator extends SqlMigrator {
     );
 
     try {
+      // @ts-ignore
+      // @ts-ignore
       await promisify(mkdirp)(
         path.join(
           this.toolDir,
@@ -142,6 +144,7 @@ export default class KnexMigrator extends SqlMigrator {
         )
       );
 
+      // @ts-ignore
       await promisify(mkdirp)(
         path.join(
           this.toolDir,
@@ -163,6 +166,7 @@ export default class KnexMigrator extends SqlMigrator {
         )
       );
 
+      // @ts-ignore
       await promisify(mkdirp)(
         path.join(
           this.toolDir,
@@ -183,6 +187,7 @@ export default class KnexMigrator extends SqlMigrator {
         )
       );
 
+      // @ts-ignore
       await promisify(mkdirp)(
         path.join(
           this.toolDir,
@@ -202,6 +207,7 @@ export default class KnexMigrator extends SqlMigrator {
         )
       );
 
+      // @ts-ignore
       await promisify(mkdirp)(
         path.join(
           this.toolDir,
@@ -211,6 +217,7 @@ export default class KnexMigrator extends SqlMigrator {
         )
       );
 
+      // @ts-ignore
       await promisify(mkdirp)(
         path.join(
           this.toolDir,
@@ -346,6 +353,7 @@ export default class KnexMigrator extends SqlMigrator {
 
         //freshProject.folder = args.folder;
 
+        // @ts-ignore
         await promisify(mkdirp)(`${args.folder}`);
 
         this.emit(`Project folder created successfully: ${args.folder}`);

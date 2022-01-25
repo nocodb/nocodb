@@ -26,22 +26,23 @@ let expectedData = {
   2: ["text", "SingleLineText"],
 };
 
+// column names with spaces will be converted to include _
 let UrlFileExpectedData = {
   0: ["Segment", "SingleSelect", ["Government"]],
   1: ["Country", "SingleSelect", ["Canada"]],
   2: ["Product", "SingleSelect", ["Carretera"]],
-  3: ["Discount Band", "SingleSelect", ["None"]],
-  4: ["Units Sold", "Decimal", [1618.5]],
-  5: ["Manufacturing Price", "Number", [3]],
-  6: ["Sale Price", "Number", [20]],
-  7: ["Gross Sales", "Decimal", [32370]],
+  3: ["Discount_Band", "SingleSelect", ["None"]],
+  4: ["Units_Sold", "Decimal", [1618.5]],
+  5: ["Manufacturing_Price", "Number", [3]],
+  6: ["Sale_Price", "Number", [20]],
+  7: ["Gross_Sales", "Decimal", [32370]],
   8: ["Discounts", "Decimal", [0]],
   9: ["Sales", "Decimal", [32370]],
   10: ["COGS", "Decimal", [16185]],
   11: ["Profit", "Decimal", [16185]],
   12: ["Date", "Date", ["2014-01-01"]],
-  13: ["Month Number", "Number", [1]],
-  14: ["Month Name", "SingleSelect", ["January"]],
+  13: ["Month_Number", "Number", [1]],
+  14: ["Month_Name", "SingleSelect", ["January"]],
   15: ["Year", "SingleSelect", [2014]],
 };
 

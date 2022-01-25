@@ -1,42 +1,19 @@
 <template>
-  <v-tooltip v-if="tooltip || $slots['tooltip']" v-bind="tooltipProp">
-    <template #activator="{ on }">
-      <v-btn :class="[btnClass,$attrs['btn.class']]" v-bind="$attrs" v-on="{...$listeners,...on}">
-        <template v-if="icon">
-          <v-icon small>
-            {{ icon }}
-          </v-icon>&nbsp;
-        </template>
-        <slot />
-      </v-btn>
-    </template>
-    <slot name="tooltip">
-      <span>{{ tooltip }}</span>
-    </slot>
-  </v-tooltip>
-  <v-btn v-else ref="btn" v-bind="$attrs" :class="[btnClass,$attrs['btn.class']]" v-on="$listeners">
-    <v-icon v-if="icon">
-      {{ icon }}
-    </v-icon>
-    <slot />
-  </v-btn>
+  <div class="d-flex align-center ">
+    <input v-model="localState" type="checkbox" :disabled="true">
+  </div>
 </template>
 
 <script>
 export default {
-  name: 'XBtn',
-  props: {
-    tooltipProp: {
-      type: Object,
-      default: () => ({
-        bottom: true
-      })
-    },
-    btnClass: [Object, String, Array],
-    tooltip: String,
-    icon: String
-  },
-  methods: {
+  name: 'BooleanCell',
+  props: ['value'],
+  computed: {
+    localState: {
+      get() {
+        return this.value
+      }
+    }
   }
 }
 </script>
@@ -44,12 +21,14 @@ export default {
 <style scoped>
 
 </style>
+
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

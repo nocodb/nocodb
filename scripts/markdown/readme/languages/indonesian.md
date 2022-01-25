@@ -36,7 +36,7 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB apapun menjadi spreadsh
 
 #### Heroku
 
-<a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
+<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
     width="300px"

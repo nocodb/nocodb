@@ -54,7 +54,7 @@
                     hide-details="auto"
                     :items="meta.columns"
                     item-text="_cn"
-                    :item-value="v => v"
+                    :item-value="v => v && v._cn"
                     :rules="[
                       v => validateField(v,r)
                     ]"
@@ -110,8 +110,7 @@ export default {
       }
     },
     requiredColumnValidationError() {
-      const missingRequiredColumns = this.meta.columns.filter(c => (
-        (c.pk && (!c.ai || !c.cdf)) || c.rqd) &&
+      const missingRequiredColumns = this.meta.columns.filter(c => (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) &&
         !this.mappings.some(r => r.destCn === c._cn))
 
       if (missingRequiredColumns.length) {
@@ -125,8 +124,15 @@ export default {
   },
 
   methods: {
-    validateField(v, row) {
-      if (!v) { return true }
+    validateField(_cn, row) {
+      if (!_cn) {
+        return true
+      }
+
+      const v = this.meta && this.meta.columns.find(c => c._cn === _cn)
+
+      if ((this.mappings || []).filter(v => v.destCn === _cn).length > 1) { return 'Duplicate mapping found, please remove one of the mapping' }
+
       switch (v.uidt) {
         case UITypes.Number:
           if (this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)

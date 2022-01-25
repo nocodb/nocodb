@@ -6,7 +6,7 @@ types.setTypeParser(1082, val => val);
 
 import { BaseModelSql } from './BaseModelSql';
 
-const opMapping = {
+const opMappingGen = {
   eq: '=',
   lt: '<',
   gt: '>',
@@ -92,6 +92,10 @@ const appendWhereCondition = function(
   knexRef,
   isHaving = false
 ) {
+  const opMapping = {
+    ...opMappingGen,
+    ...(knexRef?.client?.config?.client === 'pg' ? { like: 'ilike' } : {})
+  };
   const camKey = isHaving ? 'Having' : 'Where';
   const key = isHaving ? 'having' : 'where';
 

@@ -434,6 +434,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
               '=',
               'xc_users.id'
             )
+            .whereRaw('nc_projects.id = nc_projects_users.project_id')
             .where('nc_projects_users.roles', 'like', '%owner%')
             .first()
             .as('owner')
@@ -454,6 +455,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
                 '%owner%'
               );
             })
+            .whereRaw('nc_projects.id = nc_projects_users.project_id')
             .andWhere('xc_users.id', userId)
             .first()
             .as('is_creator')

@@ -24,8 +24,11 @@ export const genTest = (type, xcdb) => {
         // 1. Page title: "My Projects"
         // 2. Button: "New Project"
         // 3. Search box palceholder text: "Search Projects"
-        cy.get("b").contains(json.projects.my_projects).should("exist");
-        cy.get("button.v-btn")
+        // cy.get("b").contains(json.projects.my_projects).should("exist");
+        cy.get(".nc-project-page-title")
+          .contains(json.projects.my_projects)
+          .should("exist");
+        cy.get(".nc-new-project-menu")
           .contains(json.projects.create_new_project_button.text)
           .should("exist");
         cy.get(`[placeholder="${json.projects.search_project}"]`).should(

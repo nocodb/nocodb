@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-tabs v-model="dbsTab" color="x-active" height="30">
-      <v-tab href="#xc-project-meta" @dblclick="uiacl = true">
+      <v-tab href="#xc-project-meta">
         <v-icon icon x-small class="mr-2">
           mdi-file-table-box-multiple-outline
         </v-icon>
@@ -140,7 +140,7 @@ export default {
   },
   props: ['nodes'],
   data: () => ({
-    uiacl: false,
+    uiacl: true,
     edited: false,
     models: null,
     updating: false,

@@ -173,7 +173,7 @@ export default {
       let total = 0
       let progress = 0
 
-      await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
+      /*      await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
         await this.$store.dispatch('meta/ActLoadMeta', {
           tn: `${prefix}${table}`, project_id: projectId
         })
@@ -192,7 +192,38 @@ export default {
           progress += batchData.length
         }
         this.$store.commit('loader/MutClear')
+      })(v))) */
+
+      await Promise.all(this.templateData.tables.map(v => (async(tableMeta) => {
+        const table = tableMeta.tn
+        const data = this.importData[tableMeta.refTn]
+
+        await this.$store.dispatch('meta/ActLoadMeta', {
+          tn: `${prefix}${table}`, project_id: projectId
+        })
+
+        // todo: get table name properly
+        const api = this.$ncApis.get({
+          table: `${prefix}${table}`,
+          type: projectType
+        })
+        total += data.length
+        for (let i = 0; i < data.length; i += 500) {
+          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${total}`)
+          this.$store.commit('loader/MutProgress', Math.round(progress && 100 * progress / total))
+          const batchData = this.remapColNames(data.slice(i, i + 500), tableMeta.columns)
+          await api.insertBulk(batchData)
+          progress += batchData.length
+        }
+        this.$store.commit('loader/MutClear')
       })(v)))
+    },
+    remapColNames(batchData, columns) {
+      return batchData.map(data => (columns || []).reduce((aggObj, col) => ({
+        ...aggObj,
+        [col.cn]: data[col.refCn]
+      }), {})
+      )
     }
   }
 

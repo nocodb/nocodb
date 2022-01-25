@@ -28,8 +28,8 @@
               {{ currentView.view_name }}
             </td>
             <td class="caption text-left">
-              <nuxt-link :to="`/nc/${currentView.view_type === 'form' ? 'form' : 'view'}/${currentView.view_id}`">
-                {{ `${dashboardUrl}#/nc/${currentView.view_type === 'form' ? 'form' : 'view'}/${currentView.view_id}` }}
+              <nuxt-link :to="sharedViewUrl(currentView)">
+                {{ `${dashboardUrl}#${sharedViewUrl(currentView)}` }}
               </nuxt-link>
             </td>
             <td class="caption">
@@ -65,8 +65,8 @@
                 {{ link.view_name }}
               </td>
               <td class="caption text-left">
-                <nuxt-link :to="`/nc/${link.view_type === 'form' ? 'form' : 'view'}/${link.view_id}`">
-                  {{ `${dashboardUrl}#/nc/${link.view_type === 'form' ? 'form' : 'view'}/${link.view_id}` }}
+                <nuxt-link :to="sharedViewUrl(link)">
+                  {{ `${dashboardUrl}#${sharedViewUrl(link)}` }}
                 </nuxt-link>
               </td>
               <td class="caption">
@@ -125,12 +125,10 @@ export default {
     this.loadSharedViewsList()
   },
   methods: {
-
     copyLink(view) {
-      this.$clipboard(`${this.dashboardUrl}#/nc/${view.view_type === 'form' ? 'form' : 'view'}/${view.view_id}`)
+      this.$clipboard(`${this.dashboardUrl}#${this.sharedViewUrl(view)}`)
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
-
     async loadSharedViewsList() {
       const viewsList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'listSharedViewLinks', {
         model_name: this.modelName
@@ -163,6 +161,20 @@ export default {
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
+    },
+    sharedViewUrl(view) {
+      let viewType
+      switch (view.view_type) {
+        case 'form':
+          viewType = 'form'
+          break
+        case 'kanban':
+          viewType = 'kanban'
+          break
+        default:
+          viewType = 'view'
+      }
+      return `/nc/${viewType}/${view.view_id}`
     }
   }
 }

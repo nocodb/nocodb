@@ -426,8 +426,17 @@ export const actions = {
 
       return data
     } catch (e) {
-      console.log(e)
-      const err = new Error(e.response.data.msg)
+      let msg
+      if (e.response.data instanceof Blob) {
+        try {
+          msg = JSON.parse(await e.response.data.text()).msg
+        } catch {
+          msg = 'Some internal error occurred'
+        }
+      } else {
+        msg = e.response.data.msg || 'Some internal error occurred'
+      }
+      const err = new Error(msg)
       err.response = e.response
       throw err
     }

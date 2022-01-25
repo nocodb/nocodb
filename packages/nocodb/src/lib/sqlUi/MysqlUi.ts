@@ -1006,7 +1006,7 @@ export class MysqlUi {
         };
         break;
       case 'Number':
-        colProp.dt = 'int';
+        colProp.dt = 'bigint';
         break;
       case 'Decimal':
         colProp.dt = 'decimal';

@@ -65,7 +65,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
     }
     let str = '\r\n';
     for (const mm of args.manyToMany) {
-      str += `\t\t${mm._rtn}MMList: [${mm._rtn}]\r\n`;
+      str += `\t\t${mm._rtn}MMList(where: String,limit: Int, offset: Int, sort: String): [${mm._rtn}]\r\n`;
     }
     return str;
   }
@@ -151,7 +151,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
     // cityList in Country
     for (const { _tn } of hasManyRelations) {
       const childTable = _tn;
-      str += `\t\t${childTable}List: [${childTable}]\r\n`;
+      str += `\t\t${childTable}List(where: String,limit: Int, offset: Int, sort: String): [${childTable}]\r\n`;
       strWhere += `\t\t${childTable}List: Condition${childTable}\r\n`;
       str += `\t\t${childTable}Count: Int\r\n`;
     }

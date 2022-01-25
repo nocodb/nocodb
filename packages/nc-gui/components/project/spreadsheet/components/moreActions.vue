@@ -8,7 +8,7 @@
       <template #activator="{on}">
         <v-btn
           outlined
-          class="nc-actions-menu-btn caption px-2"
+          class="nc-actions-menu-btn caption px-2 nc-remove-border font-weight-medium"
           small
           text
           v-on="on"
@@ -16,7 +16,7 @@
           <v-icon small color="#777">
             mdi-flash-outline
           </v-icon>
-          Actions
+          More
 
           <v-icon small color="#777">
             mdi-menu-down
@@ -54,6 +54,33 @@
             <span class="caption grey--text">(<x-icon small color="grey lighten-2">
               mdi-alpha
             </x-icon> version)</span>
+          </v-list-item-title>
+        </v-list-item>
+        <v-list-item
+          v-if="_isUIAllowed('csvImport') && !isView"
+          dense
+          @click="$emit('showAdditionalFeatOverlay', 'shared-views')"
+        >
+          <v-list-item-title>
+            <v-icon small class="mr-1" color="">
+              mdi-view-list-outline
+            </v-icon>
+            <span class="caption ">
+              Shared View List
+            </span>
+          </v-list-item-title>
+        </v-list-item>  <v-list-item
+          v-if="_isUIAllowed('csvImport') && !isView"
+          dense
+          @click="$emit('webhook')"
+        >
+          <v-list-item-title>
+            <v-icon small class="mr-1" color="">
+              mdi-hook
+            </v-icon>
+            <span class="caption ">
+              Webhooks
+            </span>
           </v-list-item-title>
         </v-list-item>
       </v-list>

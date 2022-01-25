@@ -1,5 +1,5 @@
 <template>
-  <v-container class="h-100 j-excel-container pa-0 ma-0" fluid>
+  <v-container class="h-100 j-excel-container backgroundColor pa-0 ma-0" fluid>
     <v-toolbar
       height="32"
       dense
@@ -11,7 +11,7 @@
           <template #activator="{on}">
             <div style="min-width: 56px" v-on="on">
               <v-icon
-                class="pa-1 pr-0 ml-2"
+                class="ml-2"
                 small
                 color="grey"
               >
@@ -45,7 +45,7 @@
         <v-text-field
           v-model="searchQueryVal"
           autocomplete="new-password"
-          style="min-width: 100px ; width: 300px"
+          style="min-width: 100px ; width: 150px"
           flat
           dense
           solo
@@ -63,7 +63,55 @@
       >{{ refTable }}({{
         relationPrimaryValue
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
+      <div class="d-inline-flex">
+        <fields
+          v-if="!isForm"
+          v-model="showFields"
+          :field-list="fieldList"
+          :meta="meta"
+          :is-locked="isLocked"
+          :fields-order.sync="fieldsOrder"
+          :sql-ui="sqlUi"
+          :show-system-fields.sync="showSystemFields"
+          :cover-image-field.sync="coverImageField"
+          :grouping-field.sync="groupingField"
+          :is-gallery="isGallery"
+          :is-kanban="isKanban"
+        />
 
+        <sort-list
+          v-if="!isForm"
+          v-model="sortList"
+          :is-locked="isLocked"
+          :field-list="[...realFieldList, ...formulaFieldList]"
+        />
+        <column-filter
+          v-if="!isForm"
+          v-model="filters"
+          :meta="meta"
+          :is-locked="isLocked"
+          :field-list="[...realFieldList, ...formulaFieldList]"
+          dense
+        />
+
+        <share-view-menu @share="$refs.drawer && $refs.drawer.genShareLink()" />
+
+        <MoreActions
+          v-if="!isForm"
+          ref="csvExportImport"
+          :meta="meta"
+          :nodes="nodes"
+          :query-params="{
+            fieldsOrder,
+            fieldFilter,
+            sortList,
+            showFields
+          }"
+          :selected-view="selectedView"
+          @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
+          @webhook="showAdditionalFeatOverlay('webhooks')"
+        />
+      </div>
       <v-spacer class="h-100" @dblclick="debug=true" />
 
       <template v-if="!isForm">
@@ -185,44 +233,6 @@
         <!--          <span class="">Delete table</span>-->
         <!--        </v-tooltip>-->
       </template>
-      <fields
-        v-model="showFields"
-        :field-list="fieldList"
-        :meta="meta"
-        :is-locked="isLocked"
-        :fields-order.sync="fieldsOrder"
-        :sql-ui="sqlUi"
-        :show-system-fields.sync="showSystemFields"
-        :cover-image-field.sync="coverImageField"
-        :grouping-field.sync="groupingField"
-        :is-gallery="isGallery"
-        :is-kanban="isKanban"
-      />
-
-      <sort-list
-        v-model="sortList"
-        :is-locked="isLocked"
-        :field-list="[...realFieldList, ...formulaFieldList]"
-      />
-      <column-filter
-        v-model="filters"
-        :is-locked="isLocked"
-        :field-list="[...realFieldList, ...formulaFieldList]"
-        dense
-      />
-
-      <csv-export-import
-        ref="csvExportImport"
-        :meta="meta"
-        :nodes="nodes"
-        :query-params="{
-          fieldsOrder,
-          fieldFilter,
-          sortList,
-          showFields
-        }"
-        :selected-view="selectedView"
-      />
 
       <!-- Cell height -->
       <!--      <v-menu>
@@ -329,15 +339,15 @@
             />
           </template>
           <template v-else-if="isKanban">
-            <v-container fluid v-if="kanban.loadingData">
+            <v-container v-if="kanban.loadingData" fluid>
               <v-row>
                 <v-col v-for="idx in 5" :key="idx">
-                  <v-skeleton-loader type="image@3"></v-skeleton-loader>
+                  <v-skeleton-loader type="image@3" />
                 </v-col>
               </v-row>
             </v-container>
             <kanban-view
-              v-if="!kanban.loadingData && kanban.data.length" 
+              v-if="!kanban.loadingData && kanban.data.length"
               :nodes="nodes"
               :table="table"
               :show-fields="showFields"
@@ -428,7 +438,7 @@
         @loadTableData="loadTableData"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
       >
-        <v-tooltip bottom>
+        <!--        <v-tooltip bottom>
           <template #activator="{on}">
             <v-list-item
               v-on="on"
@@ -441,7 +451,7 @@
             </v-list-item>
           </template>
           Create Automations or API Webhooks
-        </v-tooltip>
+        </v-tooltip>-->
         <!--        <v-tooltip bottom>
           <template #activator="{on}">
             <v-list-item
@@ -648,12 +658,14 @@ import ExpandedForm from '@/components/project/spreadsheet/components/expandedFo
 import Pagination from '@/components/project/spreadsheet/components/pagination'
 import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
-import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
+import MoreActions from '~/components/project/spreadsheet/components/moreActions'
+import ShareViewMenu from '~/components/project/spreadsheet/components/shareViewMenu'
 
 export default {
   name: 'RowsXcDataTable',
   components: {
-    CsvExportImport,
+    ShareViewMenu,
+    MoreActions,
     FormView,
     DebugMetas,
     Pagination,
@@ -772,11 +784,11 @@ export default {
       recordCnt: {},
       recordTotalCnt: {},
       groupingColumnItems: [],
-      loadingData : true,
+      loadingData: true,
       selectedExpandRow: null,
       selectedExpandOldRow: null,
-      selectedExpandRowMeta: null,
-    },
+      selectedExpandRowMeta: null
+    }
   }),
   watch: {
     isActive(n, o) {
@@ -1168,7 +1180,7 @@ export default {
         },
         oldRow: {}
       })
-      if (data[focusRow].row[this.groupingField] === "Uncategorized") {
+      if (data[focusRow].row[this.groupingField] === 'Uncategorized') {
         data[focusRow].row[this.groupingField] = null
       }
       this.selected = { row: focusRow, col: focusCol }
@@ -1324,7 +1336,7 @@ export default {
         if (initKanbanProps) {
           this.kanban = kanban
         }
-        
+
         if (this.api) {
           const groupingColumn = this.meta.columns.find(c => c._cn === this.groupingField)
 
@@ -1394,7 +1406,7 @@ export default {
       }
     },
     async loadMoreKanbanData(groupingFieldVal) {
-      const uncategorized = "uncategorized"
+      const uncategorized = 'uncategorized'
       const {
         data
       } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
@@ -1402,17 +1414,17 @@ export default {
         where: groupingFieldVal === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingFieldVal})`,
         offset: this.kanban.recordCnt[groupingFieldVal]
       })
-      data.map(d => {
+      data.map((d) => {
         // handle composite primary key
         d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
         if (!d.id) {
-            // id is required for <kanban-board/>
-            d.id = d.c_pk
-          }
+          // id is required for <kanban-board/>
+          d.id = d.c_pk
+        }
         this.kanban.data.push({
           row: d,
           oldRow: d,
-          rowMeta: {},
+          rowMeta: {}
         })
         this.kanban.blocks.push({
           status: groupingFieldVal,
@@ -1425,12 +1437,12 @@ export default {
       if (rowIdx != -1) {
         // not a new record -> find the target record
         data = this.kanban.data.filter(o => o.row.c_pk == rowIdx)[0]
-      } 
+      }
       this.showExpandModal = true
       this.kanban.selectedExpandRow = data.row
       this.kanban.selectedExpandOldRow = data.oldRow
       this.kanban.selectedExpandRowMeta = data.rowMeta
-    },
+    }
   },
   computed: {
     tabsState() {
@@ -1473,7 +1485,7 @@ export default {
         table: this.meta.tn
       })
       // return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
-    },
+    }
   }
 }
 </script>

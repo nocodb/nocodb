@@ -8,7 +8,7 @@
         overlap
       >
         <v-btn
-          class="nc-sort-menu-btn px-2"
+          class="nc-sort-menu-btn px-2 nc-remove-border"
           :disabled="isLocked"
           small
           text

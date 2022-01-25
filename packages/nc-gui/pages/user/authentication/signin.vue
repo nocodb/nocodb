@@ -57,6 +57,7 @@
                   :append-icon="e3 ? 'visibility' : 'visibility_off'"
                   :rules="formRules.password"
                   :type="e3 ? 'password' : 'text'"
+                  @keyup.enter="MtdOnSignin"
                   @click:append="() => (e3 = !e3)"
                 />
                 <!-- Forgot your password -->

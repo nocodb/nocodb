@@ -5,11 +5,12 @@ let storedURL = "";
 let linkText = "";
 
 const generateLinkWithPwd = () => {
-  cy.get(".v-navigation-drawer__content > .container")
-    .find(".v-list > .v-list-item")
-    .contains("Share View")
-    .click();
-
+  // cy.get(".v-navigation-drawer__content > .container")
+  //   .find(".v-list > .v-list-item")
+  //   .contains("Share View")
+  //   .click();
+  mainPage.shareView().click();
+  
   // enable checkbox & feed pwd, save
   cy.getActiveModal()
     .find('[role="switch"][type="checkbox"]')

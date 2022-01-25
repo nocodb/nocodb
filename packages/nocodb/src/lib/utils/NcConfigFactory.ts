@@ -164,8 +164,7 @@ export default class NcConfigFactory implements NcConfig {
           password:
             url.searchParams.get('p') || url.searchParams.get('password'),
           port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user'),
-          timezone: 'utc'
+          user: url.searchParams.get('u') || url.searchParams.get('user')
         },
         // pool: {
         //   min: 1,
@@ -561,8 +560,7 @@ export default class NcConfigFactory implements NcConfig {
     db: {
       client: 'sqlite3',
       connection: {
-        filename: 'noco.db',
-        timezone: 'utc'
+        filename: 'noco.db'
       }
     }
   };

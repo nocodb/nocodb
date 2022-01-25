@@ -64,7 +64,7 @@ export class _mainPage {
 
     switch (item) {
       case this.AUDIT:
-        return cy.get(".nc-treeview-item-Audit");
+        return cy.get(".nc-settings-audit");
       case this.APPSTORE:
         return cy.get(".nc-settings-appstore");
       case this.TEAM_N_AUTH:
@@ -229,6 +229,30 @@ export class _mainPage {
     cy.toastWait("Plugin uninstalled successfully");
   };
 
+  shareView = () => {
+    return cy.get('.nc-btn-share-view');
+  }
+
+  shareViewList = () => {
+    cy.get('.nc-actions-menu-btn').click();
+    return cy.getActiveMenu().find('[role="menuitem"]').eq(2);
+  }
+
+  downloadCsv = () => {
+    cy.get('.nc-actions-menu-btn').click();
+    return cy.getActiveMenu().find('[role="menuitem"]').eq(0);
+  }
+
+  uploadCsv = () => {
+    cy.get('.nc-actions-menu-btn').click();
+    return cy.getActiveMenu().find('[role="menuitem"]').eq(1);
+  }
+
+  automations = () => {
+    cy.get('.nc-actions-menu-btn').click();
+    return cy.getActiveMenu().find('[role="menuitem"]').eq(3);
+  }
+
   hideField = (field) => {
     cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
     cy.get(".nc-fields-menu-btn").click();
@@ -279,6 +303,7 @@ export class _mainPage {
     cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click();
     if (operation != "is null" && operation != "is not null") {
       cy.get(".nc-filter-value-select input:text").last().type(`${value}`);
+      cy.get(".nc-filter-operation-select").last().click();
     }
 
     cy.get(".nc-filter-field-select")
@@ -302,14 +327,15 @@ export class _mainPage {
   // delete created views
   //
   deleteCreatedViews = () => {
-    cy.get(".v-navigation-drawer__content > .container")
-      .find(".v-list > .v-list-item")
-      .contains("Share View")
-      .parent()
-      .find("button.mdi-dots-vertical")
-      .click();
+    // cy.get(".v-navigation-drawer__content > .container")
+    //   .find(".v-list > .v-list-item")
+    //   .contains("Share View")
+    //   .parent()
+    //   .find("button.mdi-dots-vertical")
+    //   .click();
 
-    cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
+    // cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
+    this.shareViewList().click();
 
     cy.wait(1000);
 
@@ -331,9 +357,12 @@ export class _mainPage {
         }
       })
       .then(() => {
-        cy.get(".v-overlay__content > .d-flex > .v-icon").click();
         cy.toastWait("Deleted shared view successfully");
+        // close modal
+        cy.get('.v-overlay--active > .v-overlay__scrim').click({force: true});
       });
+    
+
   };
 
   // download CSV & verify

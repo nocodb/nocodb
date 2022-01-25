@@ -125,7 +125,7 @@
     <div
       :class="`cell-height-${cellHeight}`"
       style="overflow:auto;transition: width 500ms ;height : calc(100% - 36px)"
-      class="d-flex"
+      class="d-flex backgroundColor"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
         <div ref="table" style="  overflow: auto;width:100%; height: calc(100% - 36px);">

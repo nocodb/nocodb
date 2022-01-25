@@ -109,7 +109,7 @@
       </v-card>
     </v-dialog>
 
-    <v-menu v-model="editColumnMenu" offset-y content-class="elevation-0" left>
+    <v-menu v-model="editColumnMenu" offset-y content-class="" left>
       <template #activator="{on}">
         <span v-on="on" />
       </template>

@@ -22,11 +22,11 @@ export const genTest = (type, xcdb) => {
 
     it(`Table & SQL View list, Drag/drop`, () => {
       // expand tree-view menu
-      cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
-        .should("exist")
-        .first()
-        .click({ force: true });
+      // cy.get(".nc-project-tree")
+      //   .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+      //   .should("exist")
+      //   .first()
+      //   .click({ force: true });
 
       validateTreeField(1, "Actor");
 

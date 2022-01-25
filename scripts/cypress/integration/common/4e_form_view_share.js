@@ -81,10 +81,11 @@ export const genTest = (type, xcdb) => {
         cy.get(`.nc-view-item.nc-${viewType}-view-item`)
           .contains("City1")
           .click();
-        cy.get(".v-navigation-drawer__content > .container")
-          .find(".v-list > .v-list-item")
-          .contains("Share View")
-          .click();
+        // cy.get(".v-navigation-drawer__content > .container")
+        //   .find(".v-list > .v-list-item")
+        //   .contains("Share View")
+        //   .click();
+        mainPage.shareView().click();
 
         // copy link text, visit URL
         cy.getActiveModal()

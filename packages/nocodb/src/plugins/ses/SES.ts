@@ -1,10 +1,10 @@
 import { IEmailAdapter } from 'nc-plugin';
 import nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
-
+import AWS from 'aws-sdk';
 import { XcEmail } from '../../interface/IEmailAdapter';
 
-export default class SMTP implements IEmailAdapter {
+export default class SES implements IEmailAdapter {
   private transporter: Mail;
   private input: any;
 
@@ -13,25 +13,26 @@ export default class SMTP implements IEmailAdapter {
   }
 
   public async init(): Promise<any> {
-    const config = {
-      // from: this.input.from,
-      // options: {
-      host: this.input?.host,
-      port: parseInt(this.input?.port, 10),
-      secure: this.input?.secure === 'true',
-      ignoreTLS: this.input?.ignoreTLS === 'true',
-      auth: {
-        user: this.input?.username,
-        pass: this.input?.password
-      }
-      // }
+    const sesOptions: any = {
+      accessKeyId: this.input.access_key,
+      secretAccessKey: this.input.access_secret,
+      region: this.input.region
     };
-    this.transporter = nodemailer.createTransport(config);
+
+    this.transporter = nodemailer.createTransport({
+      SES: new AWS.SES(sesOptions)
+    });
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
     if (this.transporter) {
-      await this.transporter.sendMail({ ...mail, from: this.input.from });
+        this.transporter.sendMail({ ...mail, from: this.input.from }, (err, info) => {
+            if (err) {
+                console.log(err);
+              } else {
+                console.log('Message sent: ' + info.response);
+              }
+        });
     }
   }
 
@@ -42,7 +43,7 @@ export default class SMTP implements IEmailAdapter {
         subject: 'Test email',
         html: 'Test email'
       } as any);
-      return true;
+      return true
     } catch (e) {
       throw e;
     }
@@ -52,8 +53,7 @@ export default class SMTP implements IEmailAdapter {
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

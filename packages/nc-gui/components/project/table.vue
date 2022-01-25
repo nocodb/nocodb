@@ -647,9 +647,9 @@ export default {
 
 <style scoped>
 
-/deep/ .table-tabs > .v-tabs-items {
+/*/deep/ .table-tabs > .v-tabs-items {
   border-top: 1px solid #7F828B33;
-}
+}*/
 
 /deep/ .scaffoldOnSave .v-input__control {
   margin-top: -2px;

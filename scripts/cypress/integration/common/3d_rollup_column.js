@@ -38,7 +38,7 @@ export const genTest = (type, xcdb) => {
       // Column name
       cy.get(".nc-column-name-input input")
         .clear()
-        .type(`${columnName}{enter}`);
+        .type(`${columnName}`);
 
       // Column data type: to be set to rollup in this context
       // Type 'Rollup' ensures item outside view is also listed (note, rollup is at bottom of scroll list)

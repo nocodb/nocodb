@@ -8,7 +8,7 @@
         overlap
       >
         <v-btn
-          class="nc-filter-menu-btn px-2"
+          class="nc-filter-menu-btn px-2 nc-remove-border"
           :disabled="isLocked"
           outlined
           small
@@ -26,7 +26,7 @@
         </v-btn>
       </v-badge>
     </template>
-    <column-filter v-model="filters" :field-list="fieldList">
+    <column-filter v-model="filters" :field-list="fieldList" :meta="meta">
       <div class="d-flex align-center mx-2" @click.stop>
         <v-checkbox
           id="col-filter-checkbox"
@@ -58,7 +58,7 @@ import ColumnFilter from '@/components/project/spreadsheet/components/columnFilt
 export default {
   name: 'ColumnFilterMenu',
   components: { ColumnFilter },
-  props: ['fieldList', 'isLocked', 'value'],
+  props: ['fieldList', 'isLocked', 'value', 'meta'],
   data: () => ({
     filters: []
   }),

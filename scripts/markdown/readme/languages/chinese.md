@@ -49,7 +49,14 @@
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> 要使用数据持久化，你可以挂载到 `/usr/app/data/`。
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- 要使用数据持久化，你可以挂载到 `/usr/app/data/`。
+
+  示例:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
 
 ### 使用NPM
 ```

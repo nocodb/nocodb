@@ -10,9 +10,9 @@
       "subtext_2_tooltip": "支援 MySQL、PostgreSQL、SQL Server 和 SQLite"
     },
     "search_project": "搜尋專案",
-    "import_metadata": "匯入中介資料",
-    "export_metadata": "匯出中介資料",
-    "clear_metadata": "清除中介資料",
+    "import_metadata": "匯入中繼資料",
+    "export_metadata": "匯出中繼資料",
+    "clear_metadata": "清除中繼資料",
     "stop_project": "停止專案",
     "start_project": "啟動專案",
     "restart_project": "重啟專案",
@@ -21,16 +21,16 @@
     "project_api_type_tooltip_rest": "可透過 REST API 存取",
     "project_empty_message": "從建立新專案開始",
     "import_button": {
-      "text": "透過上傳中介資料 ZIP 檔案來匯入 NocoDB 專案"
+      "text": "透過上傳中繼資料 ZIP 檔案來匯入 NocoDB 專案"
     },
-    "show_community_star": "星星",
-    "show_community_us_on_Github": "我們在 Github",
-    "show_community_book_a_free_demo": "預訂免費展示版",
+    "show_community_star": "在 Github 上",
+    "show_community_us_on_Github": "幫我們按讚",
+    "show_community_book_a_free_demo": "預訂免費 Demo",
     "show_community_get_your_questions_answered": "解惑您的問題",
     "show_community_join_discord": "加入 Discord",
     "show_community_follow_nocodb": "追蹤 NocoDB",
     "search": {
-      "your_search_found_no_results": "找不到您搜尋 {search} 的結果"
+      "your_search_found_no_results": "您的搜尋 {search} 找不到結果"
     },
     "ext_db": {
       "title": {
@@ -41,7 +41,7 @@
       "project_type": "存取專案方式",
       "button": {
         "save_project": "儲存專案",
-        "update_and_restart": "更新並重啟",
+        "update_and_restart": "更新並重新啟動",
         "cancel": "取消",
         "cancel_tooltip": "取消及返回"
       },
@@ -59,7 +59,7 @@
           "remove_db_from_env": "從環境移除資料庫"
         },
         "advanced": {
-          "title": "SSL 和進階參數",
+          "title": "SSL 及進階參數",
           "ssl": {
             "client_key": {
               "title": "用戶端金鑰",
@@ -112,16 +112,16 @@
   },
   "signin": {
     "title": "登入",
-    "enter_your_work_email": "輸入您的工作電子信箱",
+    "enter_your_work_email": "輸入您的工作電子信箱地址",
     "enter_your_password": "輸入您的密碼",
     "forget_password": "忘記密碼？",
     "dont_ve_an_account": "沒有帳號？",
     "sign_up": "註冊",
     "form": {
       "rules": {
-        "email_is_reqd": "電子信箱必填",
+        "email_is_reqd": "電子信箱為必填",
         "email_must_be_valid": "電子信箱格式錯誤",
-        "passwd_required": "密碼必填",
+        "passwd_required": "密碼為必填",
         "passwd_must_be_8_chars": "您的密碼應至少有 8 個字元"
       }
     },
@@ -139,7 +139,7 @@
         "message_1": "請填入您註冊時使用的電子信箱位址。",
         "message_2": "我們將傳給您一封電子郵件，其中包含重設密碼的連結。",
         "success": "請確認您的電子郵件以重設密碼",
-        "button": "傳送電子信件"
+        "button": "傳送電子郵件"
       }
     }
   },
@@ -159,51 +159,51 @@
       "tooltip": "角色和使用者管理"
     },
     "project_metadata": {
-      "title": "專案中介資料",
-      "tooltip": "中介資料管理"
+      "title": "專案中繼資料",
+      "tooltip": "中繼資料管理"
     },
     "preview_as": "預覽方式",
     "reset_review": "重設預覽"
   },
   "nav_drawer": {
-    "title": "檢視",
+    "title": "檢視表",
     "virtual_views": {
       "action": {
-        "copy": "複製檢視",
-        "rename": "重新命名檢視",
-        "delete": "刪除檢視"
+        "copy": "複製檢視表",
+        "rename": "重新命名檢視表",
+        "delete": "刪除檢視表"
       },
-      "title": "建立檢視",
+      "title": "建立檢視表",
       "caption": "僅對建立者可見",
       "grid": {
         "title": "網格",
-        "create": "加入網格檢視"
+        "create": "加入網格檢視表"
       },
       "gallery": {
-        "title": "資源庫",
-        "create": "加入資源庫檢視"
+        "title": "圖庫",
+        "create": "加入圖庫檢視表"
       },
       "calendar": {
         "title": "日曆",
-        "create": "加入日曆檢視"
+        "create": "加入日曆檢視表"
       },
       "kanban": {
         "title": "看板",
-        "create": "加入看板檢視"
+        "create": "加入看板檢視表"
       },
       "form": {
         "title": "表單",
-        "create": "加入表單檢視"
+        "create": "加入表單檢視表"
       }
     },
     "advanced": {
-      "title1": "分享檢視",
-      "views_list": "檢視清單",
-      "copy_api_url": "複製 API URL"
+      "title1": "分享檢視表",
+      "views_list": "檢視表清單",
+      "copy_api_url": "複製 API 網址"
     },
     "share_view": {
-      "title": "此檢視透過私人連結共用",
-      "body": "擁有私人連結的存取者只能看到本檢視的儲存格",
+      "title": "此檢視表通過私人連結共享",
+      "body": "具有私有連結的人只能看到此檢視表中可見的儲存格",
       "toggle": {
         "option1": "使用密碼限制存取權限",
         "option2": "存取受密碼限制"
@@ -217,30 +217,30 @@
   "management": {
     "tabs": {
       "user": "使用者管理",
-      "api": "API Token 管理",
+      "api": "API 權杖管理",
       "roles": "角色管理"
     },
     "meta": {
-      "title": "中介資料操作",
+      "title": "中繼資料操作",
       "export_to_file": {
-        "title": "輸出為檔案",
-        "desc": "將所有中介資料從中介表格輸出至中介目錄。"
+        "title": "匯出為檔案",
+        "desc": "將所有中繼資料從中介資料表匯出至中介目錄。"
       },
       "import": {
         "title": "匯入",
-        "desc": "將所有中介資料從中介目錄輸入至中介表格。"
+        "desc": "將所有中繼資料從中繼目錄輸入至中繼表格。"
       },
       "export_to_zip": {
         "title": "輸出 ZIP",
-        "desc": "將專案中介資料匯出為 ZIP 檔案並下載。"
+        "desc": "將專案中繼資料匯出為 ZIP 檔案並下載。"
       },
       "import_zip": {
         "title": "匯入 ZIP",
-        "desc": "匯入專案中介 ZIP 檔案並重新啟動。"
+        "desc": "匯入專案中繼 ZIP 檔案並重新啟動。"
       },
       "reset": {
         "title": "重設",
-        "desc": "從中介表格清除所有中介資料。"
+        "desc": "從中繼表格清除所有中繼資料。"
       }
     }
   }

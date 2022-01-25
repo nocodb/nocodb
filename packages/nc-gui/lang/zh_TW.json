@@ -43,7 +43,7 @@
         "save_project": "儲存專案",
         "update_and_restart": "更新並重新啟動",
         "cancel": "取消",
-        "cancel_tooltip": "取消及返回"
+        "cancel_tooltip": "取消並返回"
       },
       "credentials": {
         "title": "資料庫憑證",
@@ -119,8 +119,8 @@
     "sign_up": "註冊",
     "form": {
       "rules": {
-        "email_is_reqd": "電子信箱為必填",
-        "email_must_be_valid": "電子信箱格式錯誤",
+        "email_is_reqd": "電子信箱地址為必填",
+        "email_must_be_valid": "電子信箱地址格式錯誤",
         "passwd_required": "密碼為必填",
         "passwd_must_be_8_chars": "您的密碼應至少有 8 個字元"
       }
@@ -224,7 +224,7 @@
       "title": "中繼資料操作",
       "export_to_file": {
         "title": "匯出為檔案",
-        "desc": "將所有中繼資料從中介資料表匯出至中介目錄。"
+        "desc": "將所有中繼資料從中繼資料表匯出至中繼目錄。"
       },
       "import": {
         "title": "匯入",

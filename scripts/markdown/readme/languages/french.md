@@ -144,7 +144,7 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
   * [Variables d'environnement](#variables-denvironnement)
 - [Paramétrage du développement](#paramétrage-du-développement)
 - [Contribuant](#contribuant)
-- [Pourquoi construisons-nous cela ?](#pourquoi-construisons-nous-cela-)
+- [Pourquoi construisons-nous cela?](#pourquoi-construisons-nous-cela)
 - [Notre mission](#notre-mission)
 
 # Caractéristiques
@@ -222,7 +222,7 @@ Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# Pourquoi construisons-nous cela ?
+# Pourquoi construisons-nous cela?
 La plupart des entreprises Internet s'équipent d'un tableur ou d'une base de données pour répondre à leurs besoins commerciaux. Les feuilles de calcul sont utilisées par plus d'un milliard d'humains en collaboration chaque jour. Cependant, nous sommes loin de travailler à des vitesses similaires sur des bases de données qui sont des outils beaucoup plus puissants en matière de calcul. Les tentatives pour résoudre ce problème avec les offres SaaS ont entraîné des contrôles d'accès horribles, le verrouillage des fournisseurs, le verrouillage des données, des changements de prix brusques et, surtout, un plafond de verre sur ce qui est possible à l'avenir.
 
 # Notre mission

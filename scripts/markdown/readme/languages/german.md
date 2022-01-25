@@ -148,7 +148,7 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
   * [Umgebungsvariablen](#umgebungsvariablen)
 - [Entwicklungsaufbau](#entwicklungsaufbau)
 - [Beitragen](#beitragen)
-- [Warum bauen wir das auf?](#warum-bauen-wir-das-auf-)
+- [Warum bauen wir das auf?](#warum-bauen-wir-das-auf)
 - [Unsere Aufgabe](#unsere-aufgabe)
 
 # Merkmale

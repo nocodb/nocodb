@@ -168,6 +168,8 @@
           <v-text-field
             v-model="password"
             dense
+            autocomplete="shared-table-password"
+            browser-autocomplete="shared-table-password"
             type="password"
             solo
             flat
@@ -197,7 +199,7 @@ import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
 import XcGridView from '../views/xcGridView'
 import { SqlUI } from '@/helpers/sqlUi'
-import CsvExportImport from '~/components/project/spreadsheet/components/exportImport'
+import CsvExportImport from '~/components/project/spreadsheet/components/moreActions'
 // import ExpandedForm from "../expandedForm";
 
 export default {
@@ -567,7 +569,13 @@ export default {
           rowMeta: {}
         }))
       } catch (e) {
-        this.showPasswordModal = true
+        if (e.message === 'Not found' || e.message === 'Meta not found') {
+          this.notFound = true
+        } else if (e.message === 'Invalid password') {
+          this.showPasswordModal = true
+        } else {
+          console.log(e)
+        }
       }
 
       this.loadingData = false

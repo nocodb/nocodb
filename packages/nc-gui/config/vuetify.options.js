@@ -15,6 +15,7 @@ export default function({ app }) {
 
         dark: {
           primary: '#0989ff',
+          // primary: '#0989ff',
           'x-active': '#e91e63',
           textColor: '#ffffff',
           text: '#ffffff',
@@ -23,7 +24,8 @@ export default function({ app }) {
           backgroundColorDefault: '#1f1f1f'
         },
         light: {
-          primary: '#0989ff',
+          primary: '#1348ba',
+          // primary: '#0989ff',
           'x-active': '#e91e63',
           textColor: '#333333',
           text: '#333333',

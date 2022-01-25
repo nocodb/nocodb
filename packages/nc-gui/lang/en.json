@@ -165,6 +165,10 @@
       "title": "Project Metadata",
       "tooltip": "Meta Management"
     },
+    "audit": {
+      "title": "Audit",
+      "tooltip": "Audit Log"
+    },
     "preview_as": "Preview as",
     "reset_review": "Reset Preview"
   },

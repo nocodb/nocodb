@@ -1298,7 +1298,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
       { name: '0009044', handler: this.ncUpManyToMany.bind(this) },
       { name: '0083006', handler: ncModelsOrderUpgrader },
       { name: '0083007', handler: ncParentModelTitleUpgrader },
-      { name: '0083008', handler: ncRemoveDuplicatedRelationRows }
+      { name: '0083008', handler: ncRemoveDuplicatedRelationRows },
+      { name: '0084002', handler: this.ncUpAddNestedResolverArgs.bind(this) }
     ];
     if (!(await this.xcMeta?.knex?.schema?.hasTable?.('nc_store'))) {
       return;
@@ -2463,6 +2464,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return metas;
   }
 
+  protected async ncUpAddNestedResolverArgs(_ctx: any): Promise<any> {}
+
   protected async ncUpManyToMany(_ctx: any): Promise<any> {
     const models = await this.xcMeta.metaList(
       this.projectId,
@@ -3248,6 +3251,7 @@ interface NcMetaData {
 
   [key: string]: any;
 }
+
 type XcTablesPopulateParams = {
   tableNames?: Array<{
     tn: string;

@@ -1,29 +1,47 @@
 <template>
   <v-tooltip v-if="tooltip || $slots['tooltip']" v-bind="tooltipProp">
     <template #activator="{ on }">
-      <v-btn :class="[btnClass,$attrs['btn.class']]" v-bind="$attrs" v-on="{...$listeners,...on}">
-        <v-icon v-if="icon" small>
-          {{ icon }}
-        </v-icon>&nbsp;
-        <slot />
-      </v-btn>
+      <v-hover v-slot="{ hover }">
+        <v-btn
+          :style="{backgroundColor : hover ? colors[0] : colors[1]}"
+          :class="[btnClass,$attrs['btn.class']]"
+          v-bind="$attrs"
+          v-on="{...$listeners,...on}"
+        >
+          <template v-if="icon">
+            <v-icon small>
+              {{ icon }}
+            </v-icon>&nbsp;
+          </template>
+          <slot />
+        </v-btn>
+      </v-hover>
     </template>
     <slot name="tooltip">
       <span>{{ tooltip }}</span>
     </slot>
   </v-tooltip>
-  <v-btn v-else ref="btn" v-bind="$attrs" :class="[btnClass,$attrs['btn.class']]" v-on="$listeners">
-    <v-icon v-if="icon">
-      {{ icon }}
-    </v-icon>
-    <slot />
-  </v-btn>
+  <v-hover v-else v-slot="{ hover }">
+    <v-btn
+      ref="btn"
+      v-bind="$attrs"
+      :class="[btnClass,$attrs['btn.class']]"
+      :style="{backgroundColor : hover ? colors[0] : colors[1]}"
+      v-on="$listeners"
+    >
+      <v-icon v-if="icon">
+        {{ icon }}
+      </v-icon>
+      <slot />
+    </v-btn>
+  </v-hover>
 </template>
 
 <script>
 export default {
   name: 'XBtn',
   props: {
+    color: String,
     tooltipProp: {
       type: Object,
       default: () => ({
@@ -33,6 +51,11 @@ export default {
     btnClass: [Object, String, Array],
     tooltip: String,
     icon: String
+  },
+  computed: {
+    colors() {
+      return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : []
+    }
   },
   methods: {
   }

@@ -275,27 +275,23 @@ export const actions = {
     return err
   },
 
-  async ActSignOut({ commit }) {
+  async ActSignOut({ commit, state }) {
     // console.log('in action signout');
 
     let err = null
 
     try {
-      // let err = await this.$axios.get('/auth/signout');
       // console.log(err);
+
+      await this.$axios.post('/auth/signout', null, {
+        headers: {
+          'xc-auth': state.token
+        }
+      })
       commit('MutSetUser', null)
       commit('MutSetToken', null)
       commit('MutMasterKey', null)
       commit('MutAuthType', null)
-      // commit('MutSetProjectToNull', null)
-      // commit('MutSetPaidUser', false);
-      //
-      // commit('MutUiAbility', {
-      //   rules: {
-      //     darkTheme: false,
-      //     maxTables: 5,
-      //   }
-      // })
     } catch (e) {
       err = e
       console.log(e)

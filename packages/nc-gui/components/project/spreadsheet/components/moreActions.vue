@@ -8,7 +8,7 @@
       <template #activator="{on}">
         <v-btn
           outlined
-          class="nc-actions-menu-btn caption px-2"
+          class="nc-actions-menu-btn caption px-2 nc-remove-border font-weight-medium"
           small
           text
           v-on="on"
@@ -16,7 +16,7 @@
           <v-icon small color="#777">
             mdi-flash-outline
           </v-icon>
-          Actions
+          More
 
           <v-icon small color="#777">
             mdi-menu-down
@@ -56,6 +56,33 @@
             </x-icon> version)</span>
           </v-list-item-title>
         </v-list-item>
+        <v-list-item
+          v-if="_isUIAllowed('csvImport') && !isView"
+          dense
+          @click="$emit('showAdditionalFeatOverlay', 'shared-views')"
+        >
+          <v-list-item-title>
+            <v-icon small class="mr-1" color="">
+              mdi-view-list-outline
+            </v-icon>
+            <span class="caption ">
+              Shared View List
+            </span>
+          </v-list-item-title>
+        </v-list-item>  <v-list-item
+          v-if="_isUIAllowed('csvImport') && !isView"
+          dense
+          @click="$emit('webhook')"
+        >
+          <v-list-item-title>
+            <v-icon small class="mr-1" color="">
+              mdi-hook
+            </v-icon>
+            <span class="caption ">
+              Webhooks
+            </span>
+          </v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-menu>
     <drop-or-select-file-modal v-model="importModal" accept=".csv" text="CSV" @file="onCsvFileSelection" />
@@ -74,7 +101,7 @@
 
 import FileSaver from 'file-saver'
 import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
-import ColumnMappingModal from '~/components/project/spreadsheet/components/columnMappingModal'
+import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/columnMappingModal'
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 
 export default {
@@ -245,8 +272,8 @@ export default {
           const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
             // todo: parse data
 
-            if (col.enabled && col.destCn && col.destCn._cn) {
-              res[col.destCn._cn] = row[col.sourceCn]
+            if (col.enabled && col.destCn) {
+              res[col.destCn] = row[col.sourceCn]
             }
             return res
           }, {}))

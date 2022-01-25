@@ -26,6 +26,7 @@ import TwilioPluginConfig from '../../../plugins/twilio';
 import TwilioWhatsappPluginConfig from '../../../plugins/twilioWhatsapp';
 import UpcloudPluginConfig from '../../../plugins/upcloud';
 import VultrPluginConfig from '../../../plugins/vultr';
+import SESPluginConfig from '../../../plugins/ses';
 import Noco from '../Noco';
 import NcMetaIO from '../meta/NcMetaIO';
 
@@ -49,7 +50,8 @@ const defaultPlugins = [
   UpcloudPluginConfig,
   SMTPPluginConfig,
   MailerSendConfig,
-  ScalewayPluginConfig
+  ScalewayPluginConfig,
+  SESPluginConfig
 ];
 
 class NcPluginMgr {

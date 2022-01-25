@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="project-container ma-0 pa-0" style="position: relative">
+  <v-container fluid class="project-container ma-0 pa-0 " style="position: relative">
     <v-tabs
       ref="projectTabs"
       v-model="activeTab"
@@ -90,7 +90,11 @@
             </sqlLogAndOutput>
           </div>
           <div v-else-if="tab._nodes.type === 'db'" style="height:100%">
-            <audit-tab :ref="'tabs'+index" :nodes="tab._nodes" />
+            <audit-tab
+              :ref="'tabs'+index"
+              class="backgroundColor"
+              :nodes="tab._nodes"
+            />
             <!--            <sqlLogAndOutput>-->
             <!--              <DbTab :nodes="tab._nodes" :ref="'tabs'+index"/>-->
             <!--            </sqlLogAndOutput>-->
@@ -104,14 +108,22 @@
             </sqlLogAndOutput>
           </div>
           <div v-else-if="tab._nodes.type === 'migrationsDir'" style="height:100%">
-            <audit-tab :ref="'tabs'+index" :nodes="tab._nodes" />
+            <audit-tab
+              :ref="'tabs'+index"
+              class="backgroundColor"
+              :nodes="tab._nodes"
+            />
 
             <!--            <sqlLogAndOutput>-->
             <!--              <DbTab :nodes="tab._nodes" :ref="'tabs'+index"/>-->
             <!--            </sqlLogAndOutput>-->
           </div>
           <div v-else-if="tab._nodes.type === 'apisDir'" style="height:100%">
-            <ApisTab :ref="'tabs'+index" :nodes="tab._nodes" />
+            <ApisTab
+              :ref="'tabs'+index"
+              class="backgroundColor"
+              :nodes="tab._nodes"
+            />
           </div>
           <div
             v-else-if="tab._nodes.type === 'apiClientDir'"
@@ -143,7 +155,10 @@
             v-else-if="tab._nodes.type === 'graphqlClientDir'"
             style="height:100%"
           >
-            <graphql-client style="height: 100%" />
+            <graphql-client
+              class="backgroundColor"
+              style="height: 100%"
+            />
           </div>
           <div
             v-else-if="tab._nodes.type === 'swaggerClientDir'"
@@ -161,19 +176,31 @@
             v-else-if="tab._nodes.type === 'meta'"
             style="height:100%"
           >
-            <xc-meta style="height: 100%" />
+            <xc-meta
+              class="backgroundColor"
+              style="height: 100%"
+            />
           </div>
           <div
             v-else-if="tab._nodes.type === 'roles'"
             style="height:100%"
           >
-            <auth-tab v-if="_isUIAllowed('team-auth')" :nodes="tab._nodes" style="height: 100%" />
+            <auth-tab
+              v-if="_isUIAllowed('team-auth')"
+              class="backgroundColor"
+              :nodes="tab._nodes"
+              style="height: 100%"
+            />
           </div>
           <div
             v-else-if="tab._nodes.type === 'acl'"
             style="height:100%"
           >
-            <global-acl :nodes="tab._nodes" style="height: 100%" />
+            <global-acl
+              class="backgroundColor"
+              :nodes="tab._nodes"
+              style="height: 100%"
+            />
           </div>
           <div
             v-else-if="tab._nodes.type === 'projectSettings'"
@@ -181,6 +208,7 @@
           >
             <project-settings
               v-if="_isUIAllowed('settings')"
+              class="backgroundColor"
               :nodes="tab._nodes"
               style="height: 100%"
             />
@@ -191,6 +219,7 @@
           >
             <disable-or-enable-models
               v-if="_isUIAllowed('project-metadata')"
+              class="backgroundColor"
               :nodes="tab._nodes"
               style="height: 100%"
             />
@@ -211,7 +240,10 @@
             v-else-if="tab._nodes.type === 'appStore'"
             style="height:100%"
           >
-            <app-store :nodes="tab._nodes" class="h-100" />
+            <app-store
+              :nodes="tab._nodes"
+              class="backgroundColor h-100"
+            />
           </div>
           <div v-else style="height:100%">
             <h1>{{ tab.name }}</h1>
@@ -231,20 +263,20 @@
         mdi-plus-box
       </x-icon>
       <v-spacer />
-      <div
-        class="powered-by align-self-center  grey--text text--lighten-3 d-flex align-center"
+      <!--      <div
+        class="powered-by align-self-center  grey&#45;&#45;text text&#45;&#45;lighten-3 d-flex align-center"
         style="margin-right: 34px;font-size: .65rem ;"
       >
         <span>Powered by <a
           href="https://nocodb.com"
           target="_blank"
-          class=" white--text"
+          class=" white&#45;&#45;text"
           style="text-decoration: none"
         >NocoDB</a></span>
         <v-icon x-small class="ml-1 powered-by-close" color="grey lighten-1" @click="upgradeToEE">
           mdi-close-circle
         </v-icon>
-      </div>
+      </div>-->
     </v-tabs>
 
     <dlg-table-create
@@ -253,7 +285,7 @@
       @create="$emit('tableCreate',$event); dialogCreateTableShow =false;"
     />
 
-    <screensaver v-if="showScreensaver" class="screensaver" />
+    <screensaver v-if="showScreensaver && !($store.state.project.projectInfo && $store.state.project.projectInfo.ncMin)" class="screensaver" />
   </v-container>
 </template>
 
@@ -509,7 +541,7 @@ export default {
 }
 
 /deep/ .project-tabs > .v-tabs-bar {
-  max-height: 35px;
+  max-height: 30px;
 }
 
 /*/deep/ .project-tabs .v-tabs-slider-wrapper {*/
@@ -518,9 +550,9 @@ export default {
 
 /deep/ .project-tabs .v-tab.project-tab {
   text-transform: capitalize;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  background: #ffffff22;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  background: #0002;
   margin: 0px 1px 0 1px;
   color: white !important;
 }

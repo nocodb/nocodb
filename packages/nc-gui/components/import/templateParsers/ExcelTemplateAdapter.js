@@ -33,40 +33,43 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   parse() {
     const tableNamePrefixRef = {}
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
-      const columnNamePrefixRef = {}
+      const columnNamePrefixRef = { id: 0 }
       const sheet = this.wb.SheetNames[i]
-      let tn = sheet
-      if (tn in tableNamePrefixRef) {
-        tn = `${tn}${++tableNamePrefixRef[tn]}`
-      } else {
-        tableNamePrefixRef[tn] = 0
-      }
+      let tn = (sheet || 'table').replace(/\W/g, '_').trim()
 
-      const table = { tn, columns: [] }
-      this.data[sheet] = []
+      while (tn in tableNamePrefixRef) {
+        tn = `${tn}${++tableNamePrefixRef[tn]}`
+      }
+      tableNamePrefixRef[tn] = 0
+
+      const table = { tn, refTn: tn, columns: [] }
+      this.data[tn] = []
       const ws = this.wb.Sheets[sheet]
       const range = XLSX.utils.decode_range(ws['!ref'])
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
+      const columnNameRowExist = +rows[0].every(v => v === null || typeof v === 'string')
 
       // const colLen = Math.max()
-
       for (let col = 0; col < rows[0].length; col++) {
-        let cn = (rows[0][col] ||
-          `field${col + 1}`).replace(/\./, '_').trim()
+        let cn = ((columnNameRowExist && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+          `field_${col + 1}`).replace(/\W/g, '_').trim()
 
-        if (cn in columnNamePrefixRef) {
+        while (cn in columnNamePrefixRef) {
           cn = `${cn}${++columnNamePrefixRef[cn]}`
-        } else {
-          columnNamePrefixRef[cn] = 0
         }
+        columnNamePrefixRef[cn] = 0
 
         const column = {
-          cn
+          cn,
+          refCn: cn
         }
+
+        table.columns.push(column)
+
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
         const cellId = XLSX.utils.encode_cell({
           c: range.s.c + col,
-          r: 1
+          r: columnNameRowExist
         })
         const cellProps = ws[cellId] || {}
         column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
@@ -80,28 +83,28 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           ) {
             column.uidt = UITypes.LongText
           } else {
-            let vals = rows.slice(1).map(r => r[col])
+            const vals = rows.slice(columnNameRowExist ? 1 : 0).map(r => r[col]).filter(v => v !== null && v !== undefined && v.toString().trim() !== '')
 
             const checkboxType = isCheckboxType(vals)
             if (checkboxType.length === 1) {
               column.uidt = UITypes.Checkbox
             } else {
-              vals = vals.filter(v => v !== null && v !== undefined)
-
+              // todo: optimize
               // check column is multi or single select by comparing unique values
               // todo:
               if (vals.some(v => v && v.toString().includes(','))) {
-                const flattenedVals = vals.flatMap(v => v ? v.toString().split(',') : [])
-                const uniqueVals = new Set(flattenedVals)
-                if (flattenedVals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(flattenedVals.length / 2)) {
+                let flattenedVals = vals.flatMap(v => v ? v.toString().trim().split(/\s*,\s*/) : [])
+                const uniqueVals = flattenedVals = flattenedVals
+                  .filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
+                if (flattenedVals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(flattenedVals.length / 2)) {
                   column.uidt = UITypes.MultiSelect
-                  column.dtxp = [...uniqueVals].join(',')
+                  column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               } else {
-                const uniqueVals = new Set(vals)
-                if (vals.length > uniqueVals.size && uniqueVals.size <= Math.ceil(vals.length / 2)) {
+                const uniqueVals = vals.map(v => v.toString().trim()).filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
+                if (vals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(vals.length / 2)) {
                   column.uidt = UITypes.SingleSelect
-                  column.dtxp = [...uniqueVals].join(',')
+                  column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               }
             }
@@ -115,7 +118,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (rows.slice(1, this.config.maxRowsToParse).every((v, i) => {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + col,
-              r: i + 2
+              r: i + (columnNameRowExist)
             })
 
             const cellObj = ws[cellId]
@@ -128,33 +131,41 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (rows.slice(1, this.config.maxRowsToParse).every((v, i) => {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + col,
-              r: i + 2
+              r: i + columnNameRowExist
             })
 
             const cellObj = ws[cellId]
-
             return !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
           })) {
             column.uidt = UITypes.Date
           }
         }
-
-        table.columns.push(column)
       }
 
+      let rowIndex = 0
       for (const row of rows.slice(1)) {
         const rowData = {}
         for (let i = 0; i < table.columns.length; i++) {
           if (table.columns[i].uidt === UITypes.Checkbox) {
             rowData[table.columns[i].cn] = getCheckboxValue(row[i])
+          } else if (table.columns[i].uidt === UITypes.Currency) {
+            const cellId = XLSX.utils.encode_cell({
+              c: range.s.c + i,
+              r: rowIndex + columnNameRowExist
+            })
+
+            const cellObj = ws[cellId]
+            rowData[table.columns[i].cn] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
+          } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
+            rowData[table.columns[i].cn] = (row[i] || '').toString().trim() || null
           } else {
             // toto: do parsing if necessary based on type
             rowData[table.columns[i].cn] = row[i]
           }
         }
-        this.data[sheet].push(rowData)
+        this.data[tn].push(rowData)
+        rowIndex++
       }
-
       this.project.tables.push(table)
     }
   }

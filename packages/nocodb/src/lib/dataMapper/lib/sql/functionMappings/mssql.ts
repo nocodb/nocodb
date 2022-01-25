@@ -50,6 +50,14 @@ const mssql = {
 
     return args.knex.raw(`Case ${query}\n End${args.colAlias}`);
   },
+  LOG: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `LOG(${args.pt.arguments
+        .reverse()
+        .map(ar => args.fn(ar).toQuery())
+        .join(',')})${args.colAlias}`
+    );
+  },
   MOD: pt => {
     Object.assign(pt, {
       type: 'BinaryExpression',

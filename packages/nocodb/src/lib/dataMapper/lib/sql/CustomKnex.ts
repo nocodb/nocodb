@@ -6,7 +6,7 @@ types.setTypeParser(1082, val => val);
 
 import { BaseModelSql } from './BaseModelSql';
 
-const opMapping = {
+const opMappingGen = {
   eq: '=',
   lt: '<',
   gt: '>',
@@ -92,6 +92,10 @@ const appendWhereCondition = function(
   knexRef,
   isHaving = false
 ) {
+  const opMapping = {
+    ...opMappingGen,
+    ...(knexRef?.client?.config?.client === 'pg' ? { like: 'ilike' } : {})
+  };
   const camKey = isHaving ? 'Having' : 'Where';
   const key = isHaving ? 'having' : 'where';
 
@@ -134,7 +138,7 @@ const appendWhereCondition = function(
           break;
       }
     } else if (typeof condition === 'string') {
-      const matches = condition.match(
+      const matches: any[] = condition.match(
         /^(?:~(\w+))?\(([\w ]+),(\w+),(.*?)\)(?:~(?:or|and|not))?$/
       );
 
@@ -381,6 +385,14 @@ const appendWhereCondition = function(
         default:
           if (!(matches[3] in opMapping))
             throw new Error(`${matches[3]} : Invalid comparison operator`);
+
+          if (
+            opMapping[matches[3]] === '=' &&
+            ['true', 'false'].includes(matches[4])
+          ) {
+            matches[4] = matches[4] === 'true';
+          }
+
           switch (matches[1] || '') {
             case 'or':
               knexRef[`or${camKey}`](
@@ -434,6 +446,8 @@ const appendWhereCondition = function(
       throw new Error('appendWhereCondition : grammar error ' + conditions);
     }
   });
+
+  console.log(knexRef.toQuery());
   return knexRef;
 };
 

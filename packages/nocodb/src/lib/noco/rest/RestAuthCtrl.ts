@@ -128,6 +128,7 @@ export default class RestAuthCtrl {
     await this.createAuthTableIfNotExists();
 
     await this.initStrategies();
+    Tele.emit('evt_app_started', await this.users.count('id as count').first());
     this.app.router.use(passport.initialize());
 
     const jwtMiddleware = passport.authenticate('jwt', { session: false });
@@ -286,6 +287,7 @@ export default class RestAuthCtrl {
     });
 
     this.app.router.get(`/user/me`, this.me);
+    this.app.router.post(`/auth/signout`, this.signout);
 
     /* Admin APIs */
     this.app.router.use('/admin', this.isAdmin);
@@ -911,6 +913,7 @@ export default class RestAuthCtrl {
         if (!(await this.users.first())) {
           // todo: update in nc_store
           // roles = 'owner,creator,editor'
+          Tele.emit('evt', { evt_type: 'project:invite', count: 1 });
         } else {
           if (process.env.NC_INVITE_ONLY_SIGNUP) {
             return next(
@@ -986,6 +989,28 @@ export default class RestAuthCtrl {
           this.config.auth.jwt.secret
         )
       } as any);
+    } catch (e) {
+      console.log(e);
+      next(e);
+    }
+  }
+
+  protected async signout(req, res, next): Promise<any> {
+    try {
+      res.clearCookie('refresh_token');
+      const email = req?.session?.passport?.user?.email?.toLowerCase();
+
+      if (email) {
+        await this.users
+          .update({
+            refresh_token: null
+          })
+          .where({
+            email
+          });
+      }
+
+      res.json({ msg: 'Success' });
     } catch (e) {
       console.log(e);
       next(e);
@@ -1236,7 +1261,7 @@ export default class RestAuthCtrl {
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           email
         });
-        count = await this.users.count('id').first();
+        count = await this.users.count('id as count').first();
 
         const { id } = await this.users.where({ email }).first();
         await this.xcMeta.projectAddUser(req.body.project_id, id, 'creator');

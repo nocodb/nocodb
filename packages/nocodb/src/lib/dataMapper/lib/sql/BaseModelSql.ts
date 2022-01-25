@@ -2049,7 +2049,7 @@ class BaseModelSql extends BaseModel {
         conditionGraph,
         sort
         // ...restArgs
-      } = this.dbModels[child]._getChildListArgs(rest);
+      } = this.dbModels[child]._getListArgs(rest);
       // let { fields } = restArgs;
       // todo: get only required fields
       let fields = '*';
@@ -2078,7 +2078,11 @@ class BaseModelSql extends BaseModel {
                     // .select(...fields.split(','));
                     .select(this.dbModels?.[child]?.selectQuery(fields));
 
-                  this._paginateAndSort(query, { limit, offset }, child);
+                  this.dbModels?.[child]?._paginateAndSort(
+                    query,
+                    { limit, sort, offset },
+                    child
+                  );
                   return this.isSqlite()
                     ? this.dbDriver.select().from(query)
                     : query;
@@ -2087,7 +2091,7 @@ class BaseModelSql extends BaseModel {
               )
               .as('list')
           ),
-          { sort, ignoreLimit: true } as any,
+          { ignoreLimit: true } as any,
           child
         )
       );

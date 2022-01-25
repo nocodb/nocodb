@@ -1,15 +1,18 @@
 <template>
   <div style="height: 100%" class="nc-tree-view" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
     <!--    :expand-on-hover="mini"-->
+    <div
+      class="primary nc-project-title theme--dark"
+    >
+      <div>{{ $store.getters["project/GtrProjectName"] }}</div>
+    </div>
     <v-navigation-drawer
       ref="drawer"
       v-model="navigation.shown"
       permanent
       mini-variant-width="50"
-      :mini-variant.sync="mini"
-      mini
       class="pl-2 nc-nav-drawer"
-      style="min-width: 100%; height: 100%"
+      style="min-width: 100%; height: calc(100% - 0px)"
     >
       <div class="h-100 d-flex flex-column">
         <div class="flex-grow-1" style="overflow-y: auto; min-height: 200px">
@@ -158,11 +161,11 @@
                     <v-list-item-title>
                       <v-tooltip v-if="!isNonAdminAccessAllowed(item)" top>
                         <template #activator="{ on }">
-                          <span v-if="item.type === 'tableDir'" class="caption font-weight-regular" v-on="on">
+                          <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium" v-on="on">
                             Tables<template v-if="item.children && item.children.length"> ({{
                               item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                             }})</template></span>
-                          <span v-else class="caption font-weight-regular" v-on="on">
+                          <span v-else class="body-2 font-weight-medium" v-on="on">
                             {{ item.name }}</span>
                         </template>
                         <span class="caption">Only visible to Creator</span>
@@ -170,7 +173,7 @@
                       <template
                         v-else
                       >
-                        <span v-if="item.type === 'tableDir'" class="caption font-weight-regular">
+                        <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium">
                           Tables<template v-if="item.children && item.children.length"> ({{
                             item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                           }})</template></span>
@@ -314,7 +317,7 @@
                                 </v-list>
                               </v-menu>
 
-                            <!--                          <v-icon @click.stop="" x-small>mdi-delete-outline</v-icon>-->
+                              <!--                          <v-icon @click.stop="" x-small>mdi-delete-outline</v-icon>-->
                             </div>
                           </template>
                         </v-list-item>
@@ -394,12 +397,12 @@
             <v-list-item>
               <v-list-item-title>
                 <!-- Settings -->
-                <span class="body-2 grey--text">{{ $t('treeview.settings.title') }}</span>
+                <span class="body-2 font-weight-medium">{{ $t('treeview.settings.title') }}</span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
                       class="mt-n1"
-                      color="pink grey"
+                      color="pink textColor"
                       icon-class="ml-2"
                       small
                       v-on="on"
@@ -474,6 +477,26 @@
                 <!-- Meta Management -->
                 {{ $t('treeview.project_metadata.tooltip') }}
               </v-tooltip>
+
+              <v-tooltip bottom>
+                <template #activator="{ on }">
+                  <v-list-item dense class="body-2 nc-settings-audit" @click="openAuditTab" v-on="on">
+                    <v-list-item-icon>
+                      <v-icon x-small>
+                        mdi-notebook-outline
+                      </v-icon>
+                    </v-list-item-icon>
+                    <!-- Project Metadata -->
+                    <v-list-item-title>
+                      <span class="font-weight-regular caption">{{
+                        $t('treeview.audit.title')
+                      }}</span>
+                    </v-list-item-title>
+                  </v-list-item>
+                </template>
+                <!-- Meta Management -->
+                {{ $t('treeview.audit.tooltip') }}
+              </v-tooltip>
             </template>
           </v-list>
           <v-divider />
@@ -531,7 +554,7 @@
           <v-list v-if="_isUIAllowed('previewAs') || previewAs" dense>
             <v-list-item>
               <!-- Preview as -->
-              <span class="body-2 grey--text">{{ $t('treeview.preview_as') }}</span>
+              <span class="body-2 font-weight-medium">{{ $t('treeview.preview_as') }}</span>
               <v-icon small class="ml-1">
                 mdi-drama-masks
               </v-icon>
@@ -720,8 +743,9 @@ export default {
     dlgLabelSubmitCancel,
   },
   data: () => ({
-    drag:false,
-    dragOptions:{
+    treeViewStatus: {},
+    drag: false,
+    dragOptions: {
       animation: 200,
       group: "description",
       disabled: false,
@@ -972,6 +996,21 @@ export default {
         item._nodes.type = 'disableOrEnableModel';
         this.$store.dispatch('tabs/ActAddTab', item);
       }
+    }, openAuditTab() {
+      const tabIndex = this.tabs.findIndex(el => el.key === `migrationsDir`);
+      if (tabIndex !== -1) {
+        this.changeActiveTab(tabIndex);
+      } else {
+        console.log('add audit tab');
+        let item = {name: 'Audit', key: `migrationsDir`};
+        item._nodes = {
+          env: '_noco',
+          dbAlias: 'db'
+        };
+        item._nodes.type = 'migrationsDir';
+        item._nodes.dbKey = '';
+        this.$store.dispatch('tabs/ActAddTab', item);
+      }
     },
     toggleMini() {
       this.$store.commit('panelSize/MutSize', {
@@ -1099,7 +1138,7 @@ export default {
       }
     },
     isActiveList(item) {
-      return item.type === this.$route.query.type || item.type === `${this.$route.query.type}Dir`;
+      return true//this.treeViewStatus[item.type] = this.treeViewStatus[item.type]  || item.type === this.$route.query.type || item.type === `${this.$route.query.type}Dir`;
     },
     showNode(item) {
       return (
@@ -1225,7 +1264,7 @@ export default {
           } else if (action === "ENV_DB_TABLES_REFRESH") {
             await this.loadTables(this.menuItem);
             this.$toast.success('Tables refreshed').goAway(1000);
-          }else if (action === 'ENV_DB_VIEWS_REFRESH') {
+          } else if (action === 'ENV_DB_VIEWS_REFRESH') {
             await this.loadViews(this.menuItem);
             this.$toast.success('Views refreshed').goAway(1000);
           } else if (action === 'IMPORT_EXCEL') {
@@ -1863,16 +1902,37 @@ export default {
 }
 
 
-
- .flip-list-move {
+.flip-list-move {
   transition: transform 0.5s;
 }
-  .no-move {
+
+.no-move {
   transition: transform 0s;
 }
-  .ghost {
+
+.ghost {
   opacity: 0.5;
   background: grey;
+}
+
+.nc-project-title {
+  height: 30px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.nc-project-title > div {
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  color: white;
+  font-weight: bold;
+  padding:0  10px 10px 10px;
+  text-transform: capitalize;
+  line-height: 20px;
+  min-width: calc(100% - 30px);
 }
 
 </style>

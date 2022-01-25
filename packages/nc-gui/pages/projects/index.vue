@@ -30,7 +30,7 @@
           >
             <v-overlay v-if="projectStatusUpdating" />
             <v-row justify="center">
-              <h1 class="text-center display-1 pa-2">
+              <h1 class="text-center display-1 pa-2 nc-project-page-title">
                 <!--                <p v-if="screenSize" class="caption">Screen resolution : {{screenSize}}</p>-->
 
                 <!--                <v-icon large>mdi-folder-multiple-outline</v-icon>&nbsp;-->
@@ -60,7 +60,7 @@
                 v-model="search"
                 v-ge="['home', 'project-search']"
                 data-v-step="3"
-                class="caption pt-0 mt-0"
+                class="caption pt-0 mt-0 nc-project-page-search"
                 :placeholder="$t('projects.search_project')"
                 single-line
                 hide-details

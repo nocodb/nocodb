@@ -585,6 +585,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "willnewii",
+      "name": "诗人的咸鱼",
+      "avatar_url": "https://avatars.githubusercontent.com/u/652003?v=4",
+      "profile": "https://github.com/willnewii",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "bitbytejoy",
+      "name": "bitbytejoy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11807034?v=4",
+      "profile": "https://github.com/bitbytejoy",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

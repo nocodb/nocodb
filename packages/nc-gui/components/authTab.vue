@@ -9,7 +9,7 @@
           </span>
         </v-tab>
         <v-tab-item class="h-100">
-          <user-management :nodes="nodes" />
+          <user-management class="backgroundColor" :nodes="nodes" />
         </v-tab-item>
 
         <template v-if="_isUIAllowed('apiTokenTab')">

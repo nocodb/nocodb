@@ -22,7 +22,7 @@ Simple installation - takes about three minutes!
 
 ### 1-Click Deploy to Heroku
 
-<a href="https://heroku.com/deploy?template=https://github.com/npgia/nocodb-seed-heroku">
+<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
     width="300px"
@@ -161,6 +161,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 | NC_GOOGLE_CLIENT_SECRET | No | Google client secret to enable google authentication |  |
 | NC_MIGRATIONS_DISABLED | No | Disable NocoDB migration |  |
 | NC_ONE_CLICK | No | Used for Heroku one-click deployment |  |
+| NC_MIN | No | If set to any non-empty string the default splash screen(initial welcome animation) and matrix screensaver will disable |  |
 | PORT | No | For setting app running port | `8080` |
 | NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
 | NC_DISABLE_ERR_REPORT | No | Disable error reporting  |  |

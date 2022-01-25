@@ -393,12 +393,21 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     const isValid = condition.reduce((valid, con) => {
       let res;
       const field = this.columnToAlias[con.field] ?? con.field;
+      let val = data[field];
+      switch (typeof con.value) {
+        case 'boolean':
+          val = !!data[field];
+          break;
+        case 'number':
+          val = !!data[field];
+          break;
+      }
       switch (con.op as string) {
         case 'is equal':
-          res = data[field] === con.value;
+          res = val === con.value;
           break;
         case 'is not equal':
-          res = data[field] !== con.value;
+          res = val !== con.value;
           break;
         case 'is like':
           res =

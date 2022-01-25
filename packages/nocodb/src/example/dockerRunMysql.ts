@@ -16,8 +16,14 @@ server.set('view engine', 'ejs');
 const date = new Date();
 process.env[
   `NC_DB`
-] = `mysql2://localhost:3306?u=root&p=password&d=meta_${date.getFullYear()}_${date.getMonth() +
-  1}_${date.getDate()}`;
+] = `mysql2://localhost:3306?u=root&p=password&d=meta_${date.getFullYear()}_${(
+  date.getMonth() + 1
+)
+  .toString()
+  .padStart(2, '0')}_${date
+  .getDate()
+  .toString()
+  .padStart(2, '0')}`;
 // process.env[`NC_DB`] = `pg://localhost:3306?u=root&p=password&d=mar_24`;
 // process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=abcde`;
 // process.env[`NC_TRY`] = 'true';

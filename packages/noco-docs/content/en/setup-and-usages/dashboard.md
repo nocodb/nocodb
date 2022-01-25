@@ -81,6 +81,8 @@ Supported file formats
 - Xls
 - Xlsx
 - Xlsm
+- Ods
+- Ots
 
 A local SQLite will be used.
 

@@ -1,3 +1,5 @@
+// @wingkwong: Deprecated. Moved to nocodb/packages/nocodb/src/plugins/ses instead. Keep this file for migration only. 
+
 import { XcActionType, XcForm, XcType } from 'nc-common';
 
 const input: XcForm = {
@@ -12,8 +14,8 @@ const input: XcForm = {
     },
     {
       key: 'host',
-      label: 'Jost',
-      placeholder: 'Jost',
+      label: 'Host',
+      placeholder: 'Host',
       type: XcType.SingleLineText,
       required: true
     },

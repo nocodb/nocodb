@@ -1,7 +1,7 @@
 {
   "name": "nocodb",
-  "version": "0.84.1-finn.0",
-  "description": "xc-cli",
+  "version": "0.84.7-finn.0",
+  "description": "NocoDB",
   "main": "dist/bundle.js",
   "repository": "https://github.com/finn-auto/nocodb",
   "license": "AGPL-3.0-or-later",
@@ -103,7 +103,7 @@
     "clear": "^0.1.0",
     "cli-table3": "^0.6.0",
     "cluster": "^0.7.7",
-    "colors": "^1.4.0",
+    "colors": "1.4.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
@@ -147,8 +147,8 @@
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
-    "nc-help": "^0.2.18",
-    "nc-lib-gui": "npm:finn-nc-lib-gui@0.84.1-finn.0",
+    "nc-help": "^0.2.30",
+    "nc-lib-gui": "npm:finn-nc-lib-gui@0.84.7-finn.0",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
     "nodemailer": "^6.4.10",
@@ -186,6 +186,7 @@
     "@types/inflection": "^1.5.28",
     "@types/lru-cache": "^5.1.0",
     "@types/minio": "^7.0.7",
+    "@types/mkdirp": "^1.0.2",
     "@types/mocha": "^8.0.1",
     "@types/nodemailer": "^6.4.0",
     "@types/supertest": "^2.0.10",
@@ -225,7 +226,6 @@
     "webpack-node-externals": "^2.5.2",
     "webpack-obfuscator": "^1.12.0"
   },
-  "peerDependencies": {},
   "ava": {
     "failFast": true,
     "files": [

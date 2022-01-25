@@ -13,7 +13,7 @@
           <v-list v-if="viewsList && viewsList.length" dense>
             <v-list-item dense>
               <!-- Views -->
-              <span class="body-2 grey--text">{{ $t('nav_drawer.title') }}</span>
+              <span class="body-2 font-weight-medium">{{ $t('nav_drawer.title') }}</span>
             </v-list-item>
             <v-list-item-group v-model="selectedViewIdLocal" mandatory color="primary">
               <draggable
@@ -138,13 +138,13 @@
             >
               <v-list-item dense>
                 <!-- Create a View -->
-                <span class="body-2 grey--text" @dblclick="enableDummyFeat = true">
+                <span class="body-2 font-weight-medium" @dblclick="enableDummyFeat = true">
                   {{ $t('nav_drawer.virtual_views.title') }}
                 </span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
-                      color="pink grey"
+                      color="pink textColor"
                       icon-class="ml-2"
                       small
                       v-on="on"
@@ -199,7 +199,6 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Gallery -->
-
                         {{ $t('nav_drawer.virtual_views.gallery.title') }}
                       </span>
                     </v-list-item-title>
@@ -213,65 +212,63 @@
                 <!-- Add Gallery View -->
                 {{ $t('nav_drawer.virtual_views.gallery.create') }}
               </v-tooltip>
+              <!-- <v-tooltip bottom>
+                <template #activator="{ on }">
+                  <v-list-item
+                    dense
+                    class="body-2"
+                    v-on="on"
+                    @click="enableDummyFeat ? openCreateViewDlg('calendar') : comingSoon()"
+                  >
+                    <v-list-item-icon class="mr-n1">
+                      <v-icon x-small>
+                        mdi-calendar
+                      </v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>
+                      <span class="font-weight-regular">
+                        &lt;!&ndash; Calendar &ndash;&gt;
+                        {{ $t('nav_drawer.virtual_views.calendar.title') }}
+                      </span>
+                    </v-list-item-title>
 
-              <!--              <v-tooltip bottom>-->
-              <!--                <template #activator="{ on }">-->
-              <!--                  <v-list-item-->
-              <!--                    dense-->
-              <!--                    class="body-2"-->
-              <!--                    v-on="on"-->
-              <!--                    @click="enableDummyFeat ? openCreateViewDlg('calendar') : comingSoon()"-->
-              <!--                  >-->
-              <!--                    <v-list-item-icon class="mr-n1">-->
-              <!--                      <v-icon x-small>-->
-              <!--                        mdi-calendar-->
-              <!--                      </v-icon>-->
-              <!--                    </v-list-item-icon>-->
-              <!--                    <v-list-item-title>-->
-              <!--                      <span class="font-weight-regular">-->
-              <!--                        &lt;!&ndash; Calendar &ndash;&gt;-->
-              <!--                        {{ $t('nav_drawer.virtual_views.calendar.title') }}-->
-              <!--                      </span>-->
-              <!--                    </v-list-item-title>-->
-
-              <!--                    <v-spacer />-->
-              <!--                    <v-icon class="mr-1" small>-->
-              <!--                      mdi-plus-->
-              <!--                    </v-icon>-->
-              <!--                  </v-list-item>-->
-              <!--                </template>-->
-              <!--                &lt;!&ndash; Add Calendar View &ndash;&gt;-->
-              <!--                {{ $t('nav_drawer.virtual_views.calendar.create') }}-->
-              <!--              </v-tooltip>-->
-              <!--              <v-tooltip bottom>-->
-              <!--                <template #activator="{ on }">-->
-              <!--                  <v-list-item-->
-              <!--                    dense-->
-              <!--                    open-class="body-2"-->
-              <!--                    v-on="on"-->
-              <!--                    @click="enableDummyFeat ? openCreateViewDlg('kanban') : comingSoon()"-->
-              <!--                  >-->
-              <!--                    <v-list-item-icon class="mr-n1">-->
-              <!--                      <v-icon x-small>-->
-              <!--                        mdi-tablet-dashboard-->
-              <!--                      </v-icon>-->
-              <!--                    </v-list-item-icon>-->
-              <!--                    <v-list-item-title>-->
-              <!--                      <span class="font-weight-regular">-->
-              <!--                        &lt;!&ndash; Kanban &ndash;&gt;-->
-              <!--                        {{ $t('nav_drawer.virtual_views.kanban.title') }}-->
-              <!--                      </span>-->
-              <!--                    </v-list-item-title>-->
-
-              <!--                    <v-spacer />-->
-              <!--                    <v-icon class="mr-1" small>-->
-              <!--                      mdi-plus-->
-              <!--                    </v-icon>-->
-              <!--                  </v-list-item>-->
-              <!--                </template>-->
-              <!--                &lt;!&ndash; Add Kanban View &ndash;&gt;-->
-              <!--                {{ $t('nav_drawer.virtual_views.kanban.create') }}-->
-              <!--              </v-tooltip>-->
+                    <v-spacer />
+                    <v-icon class="mr-1" small>
+                      mdi-plus
+                    </v-icon>
+                  </v-list-item>
+                </template>
+                &lt;!&ndash; Add Calendar View &ndash;&gt;
+                {{ $t('nav_drawer.virtual_views.calendar.create') }}
+              </v-tooltip> -->
+              <!--              <v-tooltip bottom>
+                <template #activator="{ on }">
+                  <v-list-item
+                    dense
+                    open-class="body-2"
+                    v-on="on"
+                    @click="openCreateViewDlg('kanban')"
+                  >
+                    <v-list-item-icon class="mr-n1">
+                      <v-icon x-small>
+                        mdi-tablet-dashboard
+                      </v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>
+                      <span class="font-weight-regular">
+                        &lt;!&ndash; Kanban &ndash;&gt;
+                        {{ $t('nav_drawer.virtual_views.kanban.title') }}
+                      </span>
+                    </v-list-item-title>
+                    <v-spacer />
+                    <v-icon class="mr-1" small>
+                      mdi-plus
+                    </v-icon>
+                  </v-list-item>
+                </template>
+                Add Kanban View
+                {{ $t('nav_drawer.virtual_views.kanban.create') }}
+              </v-tooltip>-->
               <v-tooltip
                 bottom
               >
@@ -335,7 +332,7 @@
           </v-hover>
         </div>
 -->
-        <div v-if="_isUIAllowed('table-advanced')">
+        <!--        <div v-if="_isUIAllowed('table-advanced')">
           <v-divider />
           <v-list
             dense
@@ -345,13 +342,13 @@
           >
             <v-list-item dense>
               <span
-                class="body-2 grey--text"
+                class="body-2 font-weight-medium"
                 @dblclick="$emit('update:showAdvanceOptions', !showAdvanceOptions)"
               >Advanced</span>
               <v-tooltip top>
                 <template #activator="{ on }">
                   <x-icon
-                    color="pink grey"
+                    color="pink textColor"
                     icon-class="ml-2"
                     small
                     v-on="on"
@@ -362,19 +359,23 @@
                   </x-icon>
                 </template>
                 <span class="caption">
-                  <!-- Only visible to Creator -->
+                  &lt;!&ndash; Only visible to Creator &ndash;&gt;
                   {{ $t('nav_drawer.virtual_views.caption') }}
                 </span>
               </v-tooltip>
             </v-list-item>
-            <!--            <v-tooltip bottom>-->
-            <!--              <template v-slot:activator="{on}">-->
-            <!--            <v-menu offset-x left>-->
-            <!--              <template v-slot:activator="{on}">-->
+            &lt;!&ndash;            <v-tooltip bottom>&ndash;&gt;
+            &lt;!&ndash;              <template v-slot:activator="{on}">&ndash;&gt;
+            &lt;!&ndash;            <v-menu offset-x left>&ndash;&gt;
+            &lt;!&ndash;              <template v-slot:activator="{on}">&ndash;&gt;
 
-            <v-list-item
+            &lt;!&ndash;
+              TODO:
+              - Add selectedView.show_as === 'kanban' when it is ready
+             &ndash;&gt;
+            &lt;!&ndash;            <v-list-item
               v-show="
-                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' ||selectedView.show_as === 'grid' )
+                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' || selectedView.show_as === 'grid' )
               "
               v-if="_isUIAllowed('shareview')"
               @click="genShareLink"
@@ -383,7 +384,7 @@
                 mdi-open-in-new
               </v-icon>
               <span class="caption">
-                <!-- Share View -->
+                &lt;!&ndash; Share View &ndash;&gt;
                 {{ $t('nav_drawer.advanced.title1') }}
               </span>
               <v-spacer />
@@ -397,34 +398,34 @@
                   <v-list-item dense @click="$emit('showAdditionalFeatOverlay', 'shared-views')">
                     <v-list-item-title>
                       <span class="font-weight-regular">
-                        <!-- Views List -->
+                        &lt;!&ndash; Views List &ndash;&gt;
                         {{ $t('nav_drawer.advanced.views_list') }}
                       </span>
                     </v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>
-            </v-list-item>
+            </v-list-item>&ndash;&gt;
 
-            <!--            <v-tooltip bottom>-->
-            <!--              <template #activator="{ on }">-->
-            <!--                <v-list-item v-on="on" @click="copyapiUrlToClipboard">-->
-            <!--                  <v-icon x-small class="mr-2">-->
-            <!--                    mdi-content-copy-->
-            <!--                  </v-icon>-->
-            <!--                  &lt;!&ndash; Copy API URL &ndash;&gt;-->
-            <!--                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>-->
-            <!--                </v-list-item>-->
-            <!--              </template>-->
-            <!--              &lt;!&ndash; Copy API URL &ndash;&gt;-->
-            <!--              {{ $t('nav_drawer.advanced.views_list') }}-->
-            <!--            </v-tooltip>-->
+            &lt;!&ndash;            <v-tooltip bottom>&ndash;&gt;
+            &lt;!&ndash;              <template #activator="{ on }">&ndash;&gt;
+            &lt;!&ndash;                <v-list-item v-on="on" @click="copyapiUrlToClipboard">&ndash;&gt;
+            &lt;!&ndash;                  <v-icon x-small class="mr-2">&ndash;&gt;
+            &lt;!&ndash;                    mdi-content-copy&ndash;&gt;
+            &lt;!&ndash;                  </v-icon>&ndash;&gt;
+            &lt;!&ndash;                  &lt;!&ndash; Copy API URL &ndash;&gt;&ndash;&gt;
+            &lt;!&ndash;                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>&ndash;&gt;
+            &lt;!&ndash;                </v-list-item>&ndash;&gt;
+            &lt;!&ndash;              </template>&ndash;&gt;
+            &lt;!&ndash;              &lt;!&ndash; Copy API URL &ndash;&gt;&ndash;&gt;
+            &lt;!&ndash;              {{ $t('nav_drawer.advanced.views_list') }}&ndash;&gt;
+            &lt;!&ndash;            </v-tooltip>&ndash;&gt;
             <template v-if="_isUIAllowed('model')">
-              <v-divider class="advance-menu-divider" />
+              &lt;!&ndash;              <v-divider class="advance-menu-divider" />&ndash;&gt;
               <slot />
             </template>
           </v-list>
-        </div>
+        </div>-->
       </div>
     </v-container>
 
@@ -454,10 +455,10 @@
             <!-- People with private link can only see cells visible in this view -->
           </p>
           <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
-            {{ `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view'}/${shareLink.view_id}` }}
+            {{ sharedViewUrl }}
             <v-spacer />
             <a
-              :href=" `${dashboardUrl}#/nc/${shareLink.view_type === 'form' ? 'form' : 'view'}/${shareLink.view_id}`"
+              :href="`${sharedViewUrl}`"
               style="text-decoration: none"
               target="_blank"
             >
@@ -553,6 +554,7 @@ export default {
     viewStatus: Object,
     columnsWidth: Object,
     coverImageField: String,
+    groupingField: String,
     showSystemFields: Boolean
   },
   data: () => ({
@@ -606,10 +608,24 @@ export default {
         if (this.viewsList) {
           console.log(this.viewsList)
           const view = this.viewsList.find(v => (v.alias ? v.alias : v.title) === this.$route.query.view)
-          id = (view && view.id) || (this.viewsList && this.viewsList[0] || {}).id
+          id = (view && view.id) || ((this.viewsList && this.viewsList[0]) || {}).id
         }
         return id
       }
+    },
+    sharedViewUrl() {
+      let viewType
+      switch (this.shareLink.view_type) {
+        case 'form':
+          viewType = 'form'
+          break
+        case 'kanban':
+          viewType = 'kanban'
+          break
+        default:
+          viewType = 'view'
+      }
+      return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.view_id}`
     }
   },
   watch: {
@@ -666,6 +682,7 @@ export default {
       this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
       this.$emit('update:extraViewParams', queryParams.extraViewParams || {})
       this.$emit('update:coverImageField', queryParams.coverImageField)
+      this.$emit('update:groupingField', queryParams.groupingField)
       this.$emit('update:showSystemFields', queryParams.showSystemFields)
       if (queryParams.showFields) {
         this.$emit('update:showFields', queryParams.showFields)
@@ -764,7 +781,7 @@ export default {
         return
       }
 
-      const old_title = view.title
+      const oldTitle = view.title
 
       this.$set(view, 'edit', false)
       if (view.title_temp === view.title) {
@@ -786,7 +803,7 @@ export default {
         this.$set(view, 'title', view.title_temp)
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
           id: view.id,
-          old_title,
+          old_title: oldTitle,
           title: view.title_temp,
           alias: view.alias,
           parent_model_title: this.meta.tn
@@ -871,7 +888,7 @@ export default {
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
     copyShareUrlToClipboard() {
-      this.clipboard(`${this.dashboardUrl}#/nc/${this.shareLink.view_type === 'form' ? 'form' : 'view'}/${this.shareLink.view_id}`)
+      this.clipboard(this.sharedViewUrl)
       this.clipboardSuccessHandler()
     }
   }

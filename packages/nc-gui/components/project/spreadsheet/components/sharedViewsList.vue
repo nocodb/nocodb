@@ -1,107 +1,111 @@
 <template>
-  <v-card max-width="900">
-    <v-container>
-      <v-simple-table dense style="min-width: 600px;">
-        <thead>
-          <tr class="">
-            <th class="caption grey--text">
-              View name
-            </th>
-            <th class="caption grey--text">
-              View Link
-            </th>
-            <th class="caption grey--text">
-              Password
-            </th>
-            <th class="caption grey--text">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="currentView">
-            <td class="font-weight-bold caption text-left">
-              <v-icon v-if="viewIcons[currentView.view_type]" small :color="viewIcons[currentView.view_type].color">
-                {{ viewIcons[currentView.view_type].icon }}
-              </v-icon>
-
-              {{ currentView.view_name }}
-            </td>
-            <td class="caption text-left">
-              <nuxt-link :to="`/nc/${currentView.view_type === 'form' ? 'form' : 'view'}/${currentView.view_id}`">
-                {{ `${dashboardUrl}#/nc/${currentView.view_type === 'form' ? 'form' : 'view'}/${currentView.view_id}` }}
-              </nuxt-link>
-            </td>
-            <td class="caption">
-              <template v-if="currentView.password">
-                <span>{{ currentView.showPassword ? currentView.password : '***************************' }}</span>
-                <v-icon small @click="$set(currentView, 'showPassword' , !currentView.showPassword)">
-                  {{ currentView.showPassword ? 'visibility_off' : 'visibility' }}
-                </v-icon>
-              </template>
-            </td>
-            <td class="caption">
-              <v-icon small @click="copyLink(currentView)">
-                mdi-content-copy
-              </v-icon>
-              <v-icon small @click="deleteLink(currentView.id)">
-                mdi-delete-outline
-              </v-icon>
-            </td>
-          </tr>
-
-          <tr v-else>
-            <td colspan="4" class="text-center caption info--text">
-              Current view is not shared!
-            </td>
-          </tr>
-          <template v-if="allSharedLinks">
-            <tr v-for="link of viewsList" :key="link.id">
-              <td class="caption text-left">
-                <v-icon v-if="viewIcons[link.view_type]" small :color="viewIcons[link.view_type].color">
-                  {{ viewIcons[link.view_type].icon }}
+  <div class="d-100">
+    <v-container class="d-flex">
+      <v-spacer />
+      <div>
+        <v-simple-table dense style="min-width: 600px; width:auto; margin:0 auto">
+          <thead>
+            <tr class="">
+              <th class="caption grey--text">
+                View name
+              </th>
+              <th class="caption grey--text">
+                View Link
+              </th>
+              <th class="caption grey--text">
+                Password
+              </th>
+              <th class="caption grey--text">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="currentView">
+              <td class="font-weight-bold caption text-left">
+                <v-icon v-if="viewIcons[currentView.view_type]" small :color="viewIcons[currentView.view_type].color">
+                  {{ viewIcons[currentView.view_type].icon }}
                 </v-icon>
 
-                {{ link.view_name }}
+                {{ currentView.view_name }}
               </td>
               <td class="caption text-left">
-                <nuxt-link :to="`/nc/${link.view_type === 'form' ? 'form' : 'view'}/${link.view_id}`">
-                  {{ `${dashboardUrl}#/nc/${link.view_type === 'form' ? 'form' : 'view'}/${link.view_id}` }}
+                <nuxt-link :to="sharedViewUrl(currentView)">
+                  {{ `${dashboardUrl}#${sharedViewUrl(currentView)}` }}
                 </nuxt-link>
               </td>
               <td class="caption">
-                <template v-if="link.password">
-                  <span>{{ link.showPassword ? link.password : '***************************' }}</span>
-                  <v-icon small @click="$set(link, 'showPassword' , !link.showPassword)">
-                    {{ link.showPassword ? 'visibility_off' : 'visibility' }}
+                <template v-if="currentView.password">
+                  <span>{{ currentView.showPassword ? currentView.password : '***************************' }}</span>
+                  <v-icon small @click="$set(currentView, 'showPassword' , !currentView.showPassword)">
+                    {{ currentView.showPassword ? 'visibility_off' : 'visibility' }}
                   </v-icon>
                 </template>
               </td>
               <td class="caption">
-                <v-icon small @click="copyLink(link)">
+                <v-icon small @click="copyLink(currentView)">
                   mdi-content-copy
                 </v-icon>
-                <v-icon small @click="deleteLink(link.id)">
+                <v-icon small @click="deleteLink(currentView.id)">
                   mdi-delete-outline
                 </v-icon>
               </td>
             </tr>
-          </template>
-        </tbody>
-      </v-simple-table>
-      <div class="mt-1 pl-2">
-        <v-switch
-          v-model="allSharedLinks"
-          class="nc-switch-show-all"
-          hide-details
-        >
-          <template #label>
-            <span class="caption"> Show all shared views of this table</span>
-          </template>
-        </v-switch>
+
+            <tr v-else>
+              <td colspan="4" class="text-center caption info--text">
+                Current view is not shared!
+              </td>
+            </tr>
+            <template v-if="allSharedLinks">
+              <tr v-for="link of viewsList" :key="link.id">
+                <td class="caption text-left">
+                  <v-icon v-if="viewIcons[link.view_type]" small :color="viewIcons[link.view_type].color">
+                    {{ viewIcons[link.view_type].icon }}
+                  </v-icon>
+
+                  {{ link.view_name }}
+                </td>
+                <td class="caption text-left">
+                  <nuxt-link :to="sharedViewUrl(link)">
+                    {{ `${dashboardUrl}#${sharedViewUrl(link)}` }}
+                  </nuxt-link>
+                </td>
+                <td class="caption">
+                  <template v-if="link.password">
+                    <span>{{ link.showPassword ? link.password : '***************************' }}</span>
+                    <v-icon small @click="$set(link, 'showPassword' , !link.showPassword)">
+                      {{ link.showPassword ? 'visibility_off' : 'visibility' }}
+                    </v-icon>
+                  </template>
+                </td>
+                <td class="caption">
+                  <v-icon small @click="copyLink(link)">
+                    mdi-content-copy
+                  </v-icon>
+                  <v-icon small @click="deleteLink(link.id)">
+                    mdi-delete-outline
+                  </v-icon>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </v-simple-table>
+        <div class="mt-1 pl-2">
+          <v-switch
+            v-model="allSharedLinks"
+            class="nc-switch-show-all"
+            hide-details
+          >
+            <template #label>
+              <span class="caption"> Show all shared views of this table</span>
+            </template>
+          </v-switch>
+        </div>
       </div>
+      <v-spacer />
     </v-container>
-  </v-card>
+  </div>
 </template>
 
 <script>
@@ -125,12 +129,10 @@ export default {
     this.loadSharedViewsList()
   },
   methods: {
-
     copyLink(view) {
-      this.$clipboard(`${this.dashboardUrl}#/nc/${view.view_type === 'form' ? 'form' : 'view'}/${view.view_id}`)
+      this.$clipboard(`${this.dashboardUrl}#${this.sharedViewUrl(view)}`)
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
-
     async loadSharedViewsList() {
       const viewsList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'listSharedViewLinks', {
         model_name: this.modelName
@@ -163,6 +165,20 @@ export default {
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
+    },
+    sharedViewUrl(view) {
+      let viewType
+      switch (view.view_type) {
+        case 'form':
+          viewType = 'form'
+          break
+        case 'kanban':
+          viewType = 'kanban'
+          break
+        default:
+          viewType = 'view'
+      }
+      return `/nc/${viewType}/${view.view_id}`
     }
   }
 }

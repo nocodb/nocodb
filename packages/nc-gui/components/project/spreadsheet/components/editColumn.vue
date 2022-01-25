@@ -4,21 +4,12 @@
     max-width="400px"
     max-height="95vh"
     style="overflow: auto"
-    class="elevation-0 card nc-col-create-or-edit-card"
+    class=" card nc-col-create-or-edit-card "
   >
     <v-form ref="form" v-model="valid">
       <v-container fluid @click.stop.prevent>
         <v-row>
-          <v-col cols="12" class="d-flex pb-0">
-            <v-spacer />
-            <v-btn small outlined @click="close">
-              Cancel
-            </v-btn>
-            <v-btn small color="primary" :disabled="!valid" @click="save">
-              Save
-            </v-btn>
-          </v-col>
-          <v-col cols="12">
+          <v-col cols="12" class="mt-2">
             <v-text-field
               ref="column"
               v-model="newColumn.cn"
@@ -34,6 +25,7 @@
               dense
               outlined
               @input="newColumn.altered = newColumn.altered || 8"
+              @keyup.enter="save"
             />
           </v-col>
           <v-container
@@ -99,11 +91,20 @@
                     </template>
                   </v-autocomplete>
 
-                  <!--                        <v-list dense max-height="calc(100vh - 300px)" style="overflow: auto">-->
-                  <!--                          <v-list-item v-for="item in uiTypes" @click.stop :key="item">-->
-                  <!--                            <span class="caption">{{ item }}</span>-->
-                  <!--                          </v-list-item>-->
-                  <!--                        </v-list>-->
+                  <v-alert
+                    v-if="column && newColumn.uidt === 'SingleSelect' && column.uidt === 'MultiSelect'"
+                    dense
+                    type="warning"
+                    class="caption warning--text mt-2 mb-n4 pa-1"
+                    outlined
+                  >
+                    <template #prepend>
+                      <v-icon small class="mx-2" color="warning">
+                        mdi-alert-outline
+                      </v-icon>
+                    </template>
+                    Changing MultiSelect to SingleSelect can lead to errors when there are multiple values associated with a cell
+                  </v-alert>
                 </v-col>
 
                 <v-col v-if="isSelect" cols="12">
@@ -399,6 +400,15 @@
               </div>
             </v-row>
           </v-container>
+          <v-col cols="12" class="d-flex pt-0">
+            <v-spacer />
+            <v-btn small outlined @click="close">
+              Cancel
+            </v-btn>
+            <v-btn small color="primary" :disabled="!valid" @click="save">
+              Save
+            </v-btn>
+          </v-col>
         </v-row>
       </v-container>
     </v-form>
@@ -598,7 +608,9 @@ export default {
     },
     onDataTypeChange() {
       this.newColumn.rqd = false
-      this.newColumn.pk = false
+      if (this.newColumn.uidt !== UITypes.ID) {
+        this.newColumn.pk = false
+      }
       this.newColumn.ai = false
       this.newColumn.cdf = null
       this.newColumn.un = false
@@ -606,6 +618,11 @@ export default {
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt)
 
       this.newColumn.dtx = 'specificType'
+
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
+        this.newColumn.dtxp = this.column.dtxp
+      }
 
       // this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
 
@@ -627,12 +644,19 @@ export default {
       this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(this.newColumn.dt)
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt)
 
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
+        this.newColumn.dtxp = this.column.dtxp
+      }
+
       this.newColumn.altered = this.newColumn.altered || 2
     },
     focusInput() {
       setTimeout(() => {
         if (this.$refs.column && this.$refs.column.$el) {
-          this.$refs.column.$el.querySelector('input').focus()
+          const el = this.$refs.column.$el.querySelector('input')
+          el.focus()
+          el.select()
         }
       }, 100)
     },
@@ -716,7 +740,7 @@ export default {
 }
 
 .card {
-  border: solid 2px #7f828b33;
+  //border: solid 2px #7f828b33;
 }
 
 .wrapper {

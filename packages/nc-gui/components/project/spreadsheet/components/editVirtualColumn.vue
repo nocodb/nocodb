@@ -4,20 +4,11 @@
     max-width="400px"
     max-height="95vh"
     style="overflow: auto"
-    class="elevation-0 card nc-col-create-or-edit-card"
+    class=" card nc-col-create-or-edit-card"
   >
     <v-form v-model="valid">
       <v-container fluid @click.stop.prevent>
         <v-row>
-          <v-col cols="12" class="d-flex pb-0">
-            <v-spacer />
-            <v-btn x-small outlined @click="close">
-              Cancel
-            </v-btn>
-            <v-btn x-small color="primary" :disabled="!valid" @click="save">
-              Save
-            </v-btn>
-          </v-col>
           <v-col cols="12">
             <v-text-field
               ref="column"
@@ -48,6 +39,15 @@
               :sql-ui="sqlUi"
             />
           </v-col>
+          <v-col cols="12" class="d-flex pt-0">
+            <v-spacer />
+            <v-btn x-small outlined @click="close">
+              Cancel
+            </v-btn>
+            <v-btn x-small color="primary" :disabled="!valid" @click="save">
+              Save
+            </v-btn>
+          </v-col>
         </v-row>
       </v-container>
     </v-form>
@@ -57,7 +57,6 @@
 <script>
 import FormulaOptions from '@/components/project/spreadsheet/components/editColumn/formulaOptions'
 import { validateColumnName } from '~/helpers'
-import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'EditVirtualColumn',
@@ -159,7 +158,7 @@ export default {
 }
 
 .card {
-  border: solid 2px #7f828b33;
+  //border: solid 2px #7f828b33;
 }
 
 </style>

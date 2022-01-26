@@ -119,19 +119,19 @@ npm start
 
 # Table of Contents
 
-- [クイック試し](#------)
+- [クイック試し](#クイック試し)
     + [1-Click Deploy](#1-click-deploy)
       - [Heroku](#heroku)
-    + [Docker を使う](#docker----)
-    + [NPM を使用して](#npm------)
-    + [git を使う](#git----)
+    + [Docker を使う](#docker-を使う)
+    + [NPM を使用して](#npm-を使用して)
+    + [git を使う](#git-を使う)
     + [GUI](#gui)
-- [私たちのコミュニティに参加する](#---------------)
-- [スクリーンショット](#---------)
-- [特徴](#--)
-    + [リッチスプレッドシートインターフェース](#-------------------)
-    + [ワークフロー自動化のための App Store](#--------------app-store-)
-    + [プログラムによる API アクセスによるアクセス](#---------api------------)
+- [私たちのコミュニティに参加する](#私たちのコミュニティに参加する)
+- [スクリーンショット](#スクリーンショット)
+- [特徴](#特徴)
+    + [リッチスプレッドシートインターフェース](#リッチスプレッドシートインターフェース)
+    + [ワークフロー自動化のための App Store](#ワークフロー自動化のための-app-store)
+    + [プログラムによる API アクセスによるアクセス](#プログラムによる-api-アクセスによるアクセス)
 - [Production Setup](#production-setup)
   * [Docker](#docker)
       - [Example MySQL](#example-mysql)
@@ -141,11 +141,8 @@ npm start
   * [Environment variables](#environment-variables)
 - [Development setup](#development-setup)
 - [Contributing](#contributing)
-- [なぜこれを構築しているのですか？](#-------------------)
-- [私たちの使命](#----------)
-
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
-
+- [なぜこれを構築しているのですか？](#なぜこれを構築しているのですか)
+- [私たちの使命](#私たちの使命)
 
 # 特徴
 

@@ -7,7 +7,9 @@
       "subtext_1": "作成",
       "subtext_1_tooltip": "新しいプロジェクトを作成します",
       "subtext_2": "<br>を外部データベースに接続することで作成します",
-      "subtext_2_tooltip": "MySQL、PostgreSQL、SQL Server＆SQLiteをサポートしています"
+      "subtext_2_tooltip": "MySQL、PostgreSQL、SQL Server＆SQLiteをサポートしています",
+      "from_template": "テンプレートからプロジェクトを作成します",
+      "from_excel": "Excelからプロジェクトを作成します"
     },
     "search_project": "プロジェクトの検索",
     "import_metadata": "メタデータを輸入する",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "無料のデモを予約する",
     "show_community_get_your_questions_answered": "あなたの質問に回答しましょう",
     "show_community_join_discord": "不意に参加してください",
-    "show_community_follow_nocodb": "Nocodbをフォローする",
+    "show_community_join_reddit": "/r/NocoDBに参加します",
+    "show_community_follow_nocodb": "NocoDBをフォローする",
     "search": {
       "your_search_found_no_results": "{検索}の検索結果が見つかりませんでした"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "プロジェクトメタデータ",
       "tooltip": "メタ管理"
+    },
+    "audit": {
+      "title": "監査",
+      "tooltip": "監査ログ"
     },
     "preview_as": "ASプレビュー",
     "reset_review": "リセットプレビュー"

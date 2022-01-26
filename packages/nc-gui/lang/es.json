@@ -7,7 +7,9 @@
       "subtext_1": "Crear",
       "subtext_1_tooltip": "Crear un nuevo proyecto",
       "subtext_2": "Conéctate a una <br>base de datos externa",
-      "subtext_2_tooltip": "Soporta MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "Soporta MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "Crear proyecto de plantilla",
+      "from_excel": "Crear proyecto de Excel"
     },
     "search_project": "Buscar proyecto",
     "import_metadata": "Importar Metadata",
@@ -28,6 +30,7 @@
     "show_community_book_a_free_demo": "Agendar un DEMO Gratuito",
     "show_community_get_your_questions_answered": "Obtén respuestas a tus preguntas",
     "show_community_join_discord": "Ingresar a Discord",
+    "show_community_join_reddit": "Únete /r/NocoDB",
     "show_community_follow_nocodb": "Seguir a NocoDB",
     "search": {
       "your_search_found_no_results": "Tu búsqueda de {search} no encontró resultados"
@@ -114,8 +117,8 @@
     "title": "INICIAR SESIÓN",
     "enter_your_work_email": "Ingresa tu e-mail de trabajo",
     "enter_your_password": "Ingresa tu contraseña",
-    "forget_password": "¿Has olvidado tu contraseña?",
-    "dont_ve_an_account": "¿No tienes una cuenta?",
+    "forget_password": "Has olvidado tu contraseña?",
+    "dont_ve_an_account": "No tienes una cuenta?",
     "sign_up": "Regístrarse",
     "form": {
       "rules": {
@@ -146,7 +149,7 @@
   "signup": {
     "title": "REGISTRARSE",
     "you_will_be_the_super_admin": "Serás 'Super Admin'",
-    "already_ve_an_account": "¿Ya tienes una cuenta?"
+    "already_ve_an_account": "Ya tienes una cuenta?"
   },
   "treeview": {
     "settings": {
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Proyecto Metadata",
       "tooltip": "Gestionar Meta"
+    },
+    "audit": {
+      "title": "Auditoría",
+      "tooltip": "Registro de auditoría"
     },
     "preview_as": "Visualizar como",
     "reset_review": "Restaurar visualización"

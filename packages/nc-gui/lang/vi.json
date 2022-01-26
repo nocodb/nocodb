@@ -7,7 +7,9 @@
       "subtext_1": "Tạo ra",
       "subtext_1_tooltip": "Tạo một dự án mới",
       "subtext_2": "Tạo bằng cách kết nối <br> vào cơ sở dữ liệu bên ngoài",
-      "subtext_2_tooltip": "Hỗ trợ MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "Hỗ trợ MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "Tạo dự án từ mẫu",
+      "from_excel": "Tạo dự án từ Excel"
     },
     "search_project": "Dự án tìm kiếm",
     "import_metadata": "Nhập siêu dữ liệu",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Đặt một bản demo miễn phí",
     "show_community_get_your_questions_answered": "Nhận câu hỏi của bạn được trả lời",
     "show_community_join_discord": "Tham gia thông minh",
-    "show_community_follow_nocodb": "Theo dõi NOCODB.",
+    "show_community_join_reddit": "Tham gia /r/NocoDB",
+    "show_community_follow_nocodb": "Theo dõi NocoDB",
     "search": {
       "your_search_found_no_results": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Siêu dữ liệu dự án.",
       "tooltip": "Quản lý Meta"
+    },
+    "audit": {
+      "title": "Kiểm toán",
+      "tooltip": "Sổ ghi chép đánh giá"
     },
     "preview_as": "Xem trước như",
     "reset_review": "Đặt lại xem trước"

@@ -7,7 +7,9 @@
       "subtext_1": "Skapa",
       "subtext_1_tooltip": "Skapa ett nytt projekt",
       "subtext_2": "Skapa genom att ansluta <br> till en extern databas",
-      "subtext_2_tooltip": "Stödjer MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "Stödjer MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "Skapa projekt från mall",
+      "from_excel": "Skapa projekt från Excel"
     },
     "search_project": "Sökprojekt",
     "import_metadata": "Importera metadata",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Boka en gratis demo",
     "show_community_get_your_questions_answered": "Få dina frågor besvarade",
     "show_community_join_discord": "Gå med i Discord",
-    "show_community_follow_nocodb": "Följ nocodb",
+    "show_community_join_reddit": "Gå med /r/NocoDB",
+    "show_community_follow_nocodb": "Följ NocoDB",
     "search": {
       "your_search_found_no_results": "Din sökning efter {Sök} har inga resultat"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Projektmetadata",
       "tooltip": "Metahantering"
+    },
+    "audit": {
+      "title": "Granska",
+      "tooltip": "Revisionslogg"
     },
     "preview_as": "Förhandsgranskning som",
     "reset_review": "Återställ förhandsgranskning"

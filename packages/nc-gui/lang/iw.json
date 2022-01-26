@@ -7,7 +7,9 @@
       "subtext_1": "לִיצוֹר",
       "subtext_1_tooltip": "צור פרויקט חדש",
       "subtext_2": "צור על ידי חיבור <br> למסד נתונים חיצוני",
-      "subtext_2_tooltip": "תומך MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "תומך MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "יצירת פרויקט מתבנית",
+      "from_excel": "יצירת פרויקט מ- Excel"
     },
     "search_project": "חפש פרוייקט",
     "import_metadata": "ייבוא ​​מטא נתונים",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "להזמין הדגמה חינם",
     "show_community_get_your_questions_answered": "קבל את השאלות שלך ענה",
     "show_community_join_discord": "הצטרף לדיסק",
-    "show_community_follow_nocodb": "בצע nocodb.",
+    "show_community_join_reddit": "הצטרף /r/NocoDB",
+    "show_community_follow_nocodb": "בצע NocoDB",
     "search": {
       "your_search_found_no_results": "החיפוש שלך {חיפוש} לא נמצא תוצאות"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "פרויקט מטא נתונים",
       "tooltip": "ניהול מטא"
+    },
+    "audit": {
+      "title": "בְּדִיקָה",
+      "tooltip": "יומן ביקורת"
     },
     "preview_as": "תצוגה מקדימה כ-",
     "reset_review": "איפוס תצוגה מקדימה"

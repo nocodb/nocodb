@@ -7,7 +7,9 @@
       "subtext_1": "新建",
       "subtext_1_tooltip": "新建一个项目",
       "subtext_2": "通过连接新建 <br>连接到外部数据库",
-      "subtext_2_tooltip": "支持 MySQL、PostgreSQL、SQL Server 和 SQLite"
+      "subtext_2_tooltip": "支持 MySQL、PostgreSQL、SQL Server 和 SQLite",
+      "from_template": "从模板创建项目",
+      "from_excel": "从Excel创建项目"
     },
     "search_project": "搜索项目",
     "import_metadata": "导入元数据",
@@ -28,6 +30,7 @@
     "show_community_book_a_free_demo": "查看免费演示",
     "show_community_get_your_questions_answered": "通过这里让你的问题得到解答",
     "show_community_join_discord": "加入 Discord",
+    "show_community_join_reddit": "加入/r/NocoDB",
     "show_community_follow_nocodb": "关注 NocoDB",
     "search": {
       "your_search_found_no_results": "你的搜索： {search} 没有发现匹配的结果"
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "项目基础信息",
       "tooltip": "项目基础信息管理"
+    },
+    "audit": {
+      "title": "审计",
+      "tooltip": "审计日志"
     },
     "preview_as": "预览",
     "reset_review": "重置预览"

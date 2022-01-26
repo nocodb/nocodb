@@ -13,8 +13,7 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB)
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
-
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 </div>
 
 <p align="center">
@@ -29,7 +28,9 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-<a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<p align="center">
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
 
 # 바로 써보기
 
@@ -52,7 +53,13 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> 데이터를 계속 저장하려면 반드시 `/usr/app/data/`에 볼륨을 마운트해야 합니다..
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- 데이터를 계속 저장하려면 반드시 `/usr/app/data/`에 볼륨을 마운트해야 합니다
+
+  Example:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:
 
 ### npm 사용
 
@@ -118,6 +125,33 @@ npm start
 ![11](https://user-images.githubusercontent.com/86527202/136069971-402bb0fe-af19-439b-9fb8-c2a882f5d35a.png)
 <br>
 
+# Table of Contents
+
+- [바로 써보기](#바로-써보기)
+    + [원클릭 배포](#원클릭-배포)
+      - [Heroku](#heroku)
+    + [Docker 사용](#docker-사용)
+    + [npm 사용](#npm-사용)
+    + [Git 사용](#git-사용)
+    + [GUI](#gui)
+- [커뮤니티 가입](#커뮤니티-가입)
+- [스크린샷](#스크린샷)
+- [기능](#기능)
+    + [스프레드시트같은 인터페이스](#스프레드시트같은-인터페이스)
+    + [워크플로 자동화를 위한 앱스토어](#워크플로-자동화를-위한-앱스토어)
+    + [외부 API 접근](#외부-api-접근)
+- [운영 환경에 설치하기](#운영-환경에-설치하기)
+  * [Docker](#docker)
+      - [MySQL 예제](#mysql-예제)
+      - [PostgreSQL 예제](#postgresql-예제)
+      - [SQL Server 예제](#sql-server-예제)
+  * [Docker Compose](#docker-compose)
+  * [환경변수](#환경변수)
+- [개발 환경에 설치하기](#개발-환경에-설치하기)
+- [기여하기](#기여하기)
+- [왜 이걸 만들었나요?](#왜-이걸-만들었나요-)
+- [우리의 사명](#우리의-사명)
+
 # 기능
 
 ### 스프레드시트같은 인터페이스
@@ -130,7 +164,7 @@ npm start
 - ⚡ 역할 부여: 소유자, 작성자, 편집자, 보기 전용, 의견 제시만, 원하는 대로
 - ⚡ 접근 통제: 데이터베이스, 테이블 및 열 수준까지도 상세한 통제 가능
 
-### 워크플로 자동화를 위한 앱스토어:
+### 워크플로 자동화를 위한 앱스토어
 
 - ⚡ 채팅: MS 팀즈, 슬랙, 디스코드, 매터모스트
 - ⚡ 이메일: SMTP, SES, MailChimp
@@ -138,7 +172,7 @@ npm start
 - ⚡ 왓츠앱
 - ⚡ 그 외에 여러 서드파티 API
 
-### 외부 API 접근 :
+### 외부 API 접근
 
 - ⚡ REST API (Swagger)
 - ⚡ GraphQL API
@@ -191,74 +225,20 @@ docker-compose up
 
 ## 환경변수
 
-| 변수명                               | 필수 여부 | 설명                                                                           | 미설정된 경우                  |
-| ------------------------------------ | --------- | ------------------------------------------------------------------------------ | ------------------------------ |
-| `NC_DB`                              | Yes       | 제품이 사용할 데이터베이스 URL                                                 | 루트 디렉터리에 SQLite DB 생성 |
-| `DATABASE_URL`                       | No        | JDBC URL 형식. `NC_DB` 대신 사용 가능. Heroku 원클릭 배포에 사용               |                                |
-| `DATABASE_URL_FILE`                  | No        | JDBC URL을 담은 파일의 경로. `NC_DB` 대신 사용 가능. Heroku 원클릭 배포에 사용 |                                |
-| `NC_PUBLIC_URL`                      | Yes       | 이메일 초대에 사용                                                             | HTTP 요청 파라미터를 통해 추정 |
-| `NC_AUTH_JWT_SECRET`                 | Yes       | 인증 및 다른 비밀 값을 저장할 때 사용할 JWT 시크릿 키                          | 임의의 시크릿 키 생성          |
-| `NC_SENTRY_DSN`                      | No        | Sentry 모니터링용                                                              |                                |
-| `NC_CONNECT_TO_EXTERNAL_DB_DISABLED` | No        | 외부 데이터베이스와 연동된 프로젝트를 생성하지 않음                            |                                |
-| `NC_DISABLE_TELE`                    | No        | 사용 정보를 수집하지 않음                                                      |                                |
-| `NC_BACKEND_URL`                     | No        | 커스텀 백엔드 URL                                                              | `http://localhost:8080` 사용   |
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # 개발 환경에 설치하기
 
-```shell
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-
-# 백엔드 실행
-cd packages/nocodb
-npm install
-npm run watch:run
-
-# 브라우저에서 localhost:8080/dashboard 열기
-
-# 프론트엔드 실행
-cd packages/nc-gui
-npm install
-npm run dev
-
-# 브라우저에서 localhost:3000/dashboard 열기
-```
-
-코드 변경후 자동으로 재시작됩니다.
-
-## 로컬에서 Cypress 테스트 돌리기
-
-```shell
-# 의존성(cypress) 설치
-npm install
-
-# docker compose를 사용하여 필요한 데이터베이스로 mysql 데이터베이스 실행
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# 다음 명령을 사용하여 백엔드 API 실행
-npm run start:api
-
-# 다음 명령을 사용하여 프론트엔드 웹 UI 실행
-npm run start:web
-
-
-# 3000 포트와 8080 포트가 모두 열릴 때까지 대기
-# 이후 다음 명령으로 cypress 실행
-npm run cypress:run
-
-# 또는 다음 명령으로 GUI로 실행
-npm run cypress:open
-```
+Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # 기여하기
 
-- 먼저 `./scripts/contribute/HowToApplyLicense.md`를 읽기
-- `.json`, `.md`, `.yml` 파일에는 헤더를 추가하지 않아도 됨
+Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 🎯 왜 이걸 만들었나요?
+# 왜 이걸 만들었나요?
 
 대부분의 인터넷 비즈니스는 업무상의 요구사항을 해결하기 위해 스프레드시트 또는 데이터베이스를 사용합니다. 스프레드시트는 매일 하루에 수십억 명 이상이 함께 사용합니다. 그러나 우리는 컴퓨팅에 관한 한 훨씬 강력한 도구인 데이터베이스는 별로 그만큼 사용하고 있지 않습니다. 이 문제를 SaaS로 해결하려는 시도는 끔찍한 접근 통제, 특정 업체 종속, 데이터 종속, 급격한 가격 변동, 그리고 무엇보다도 미래의 가능성을 스스로 가둬버리는 것을 의미합니다.
 
-# ❤ 우리의 사명
+# 우리의 사명
 
 우리의 사명은 이 세상의 모든 인터넷 비즈니스를 위해 가장 강력한 노코드(No-Code) 데이터베이스 인터페이스를 오픈소스로 제공하는 것입니다. 이는 단지 강력한 컴퓨팅 도구를 대중화하는 데 그치는 것이 아니라, 인터넷 상에서 뭐든 이어붙이고 만들 수 있는 급진적인 능력을 수십억 사람들에게 가져다주게 될 것입니다.

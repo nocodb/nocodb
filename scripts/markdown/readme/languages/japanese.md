@@ -53,7 +53,14 @@ MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッド
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> To persist data you can mount volume at `/usr/app/data/`.
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
+
+  Example:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
 
 ### NPM を使用して
 

@@ -12,7 +12,7 @@ MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッド
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
 
@@ -28,7 +28,9 @@ MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッド
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-<a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<p align="center">
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
 
 # クイック試し
 
@@ -115,6 +117,36 @@ npm start
 ![11](https://user-images.githubusercontent.com/86527202/136069544-5b51b90e-dda1-4e54-b094-611d06e5aa86.png)
 <br>
 
+# Table of Contents
+
+- [クイック試し](#------)
+    + [1-Click Deploy](#1-click-deploy)
+      - [Heroku](#heroku)
+    + [Docker を使う](#docker----)
+    + [NPM を使用して](#npm------)
+    + [git を使う](#git----)
+    + [GUI](#gui)
+- [私たちのコミュニティに参加する](#---------------)
+- [スクリーンショット](#---------)
+- [特徴](#--)
+    + [リッチスプレッドシートインターフェース](#-------------------)
+    + [ワークフロー自動化のための App Store](#--------------app-store-)
+    + [プログラムによる API アクセスによるアクセス](#---------api------------)
+- [Production Setup](#production-setup)
+  * [Docker](#docker)
+      - [Example MySQL](#example-mysql)
+      - [Example Postgres](#example-postgres)
+      - [Example SQL Server](#example-sql-server)
+  * [Docker Compose](#docker-compose)
+  * [Environment variables](#environment-variables)
+- [Development setup](#development-setup)
+- [Contributing](#contributing)
+- [なぜこれを構築しているのですか？](#-------------------)
+- [私たちの使命](#----------)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
+
 # 特徴
 
 ### リッチスプレッドシートインターフェース
@@ -128,7 +160,7 @@ npm start
 - ⚡ ロール：所有者、作成者、エディタ、コメンタ、ビューア、コメンタ、カスタムロール。
 - ⚡ アクセス制御：データベース、テーブル＆カラムレベルでも微細に粒度のアクセス制御。
 
-### ワークフロー自動化のための App Store：
+### ワークフロー自動化のための App Store
 
 - ⚡ チャット：マイクロソフトチーム、たるみ、不和、マッピー
 - ⚡ メール：SMTP、SE、MailChimp
@@ -188,73 +220,20 @@ docker-compose up
 
 ## Environment variables
 
-| Variable                           | Mandatory | Comments                                                                                                 | If absent                                     |
-| ---------------------------------- | --------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| NC_DB                              | Yes       | See our database URLs                                                                                    | A local SQLite will be created in root folder |
-| DATABASE_URL                       | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                         |                                               |
-| DATABASE_URL_FILE                  | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment |                                               |
-| NC_PUBLIC_URL                      | Yes       | Used for sending Email invitations                                                                       | Best guess from http request params           |
-| NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                       | A Random secret will be generated             |
-| NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                    |                                               |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                          |                                               |
-| NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                        |                                               |
-| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                       | `http://localhost:8080` will be used          |
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # Development setup
 
-```
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-
-# run backend
-cd packages/nocodb
-npm install
-npm run watch:run
-
-# open localhost:8080/dashboard in browser
-
-# run frontend
-cd packages/nc-gui
-npm install
-npm run dev
-
-# open localhost:3000/dashboard in browser
-```
-
-Changes made to code automatically restart.
-
-## Running Cypress tests locally
-
-```shell
-# install dependencies(cypress)
-npm install
-
-# run mysql database with required database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# Run backend api using following command
-npm run start:api
-
-# Run frontend web UI using following command
-npm run start:web
-
-# wait until both 3000 and 8080 ports are available
-# and run cypress test using following command
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-```
+Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # Contributing
 
-- Please take a look at ./scripts/contribute/HowToApplyLicense.md
-- Ignore adding headers for .json or .md or .yml
+Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 🎯 なぜこれを構築しているのですか？
+# なぜこれを構築しているのですか？
 
 ほとんどのインターネットビジネスは、彼らのビジネスニーズを解決するためにスプレッドシートまたはデータベースのどちらかでそれ自体を装備しています。スプレッドシートは 1 日ごとに 10 億+人間によって使用されます。ただし、コンピューティングに関してより強力なツールであるデータベースの同様のスピードで作業しているような方法です。これを SaaS 製品で解決しようとすると、恐ろしいアクセス制御、ベンダーロック、データロック、突然の価格が変更され、最も重要なことに将来可能なものに関するガラスの天井を意味しています。
 
-# ❤ 私たちの使命 ：
+# 私たちの使命
 
 私たちの使命は、世界ですべての単一のインターネットビジネスにオープンソースであるデータベースのための最も強力なノーコードインターフェースを提供することです。これは強力なコンピューティングツールへのアクセスを民主化するだけでなく、インターネット上で急進的な厄介な建築能力を持つ 10 億+人をもたらします。

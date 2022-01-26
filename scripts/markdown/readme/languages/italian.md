@@ -52,7 +52,14 @@ Trasforma qualsiasi MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in un foglio
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> Per rendere persistenti i dati puoi montare il volume su `/usr/app/data/`.
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- Per rendere persistenti i dati puoi montare il volume su `/usr/app/data/`.
+
+  Example:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
 
 ### Con NPM
 

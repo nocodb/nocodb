@@ -1,15 +1,15 @@
 {
   "projects": {
     "my_projects": "我的專案",
-    "reload_projects_tooltip": "重新整理",
+    "reload_projects_tooltip": "重新整理專案",
     "create_new_project_button": {
       "text": "建立新專案",
       "subtext_1": "建立",
       "subtext_1_tooltip": "建立新專案",
-      "subtext_2": "連接外部資料庫來建立",
-      "subtext_2_tooltip": "支援 MySQL, PostgreSQL, SQL Server & SQLite",
-      "from_template": "從範本建立新專案",
-      "from_excel": "從 Excel 建立新專案"
+      "subtext_2": "連線至外部資料庫來建立",
+      "subtext_2_tooltip": "支援 MySQL、PostgreSQL、SQL Server 和 SQLite",
+      "from_template": "從模板建立專案",
+      "from_excel": "從 Excel 建立專案"
     },
     "search_project": "搜尋專案",
     "import_metadata": "匯入中繼資料",
@@ -17,20 +17,20 @@
     "clear_metadata": "清除中繼資料",
     "stop_project": "停止專案",
     "start_project": "啟動專案",
-    "restart_project": "重新啟動專案",
+    "restart_project": "重啟專案",
     "delete_project": "刪除專案",
-    "project_api_type_tooltip_graphql": "可通過 GraphQL API 存取",
-    "project_api_type_tooltip_rest": "可通過 REST API 存取",
-    "project_empty_message": "開始建立新專案",
+    "project_api_type_tooltip_graphql": "可透過 GraphQL API 存取",
+    "project_api_type_tooltip_rest": "可透過 REST API 存取",
+    "project_empty_message": "從建立新專案開始",
     "import_button": {
-      "text": "通過上傳中繼資料 zip 檔案以匯入 NocoDB 專案"
+      "text": "透過上傳中繼資料 ZIP 檔案來匯入 NocoDB 專案"
     },
     "show_community_star": "在 Github 上",
     "show_community_us_on_Github": "幫我們按讚",
     "show_community_book_a_free_demo": "預訂免費 Demo",
-    "show_community_get_your_questions_answered": "讓您的問題得到解答",
+    "show_community_get_your_questions_answered": "解惑您的問題",
     "show_community_join_discord": "加入 Discord",
-    "show_community_join_reddit": "加入 /r/NocoDB",
+    "show_community_follow_reddit": "加入 /r/NocoDB",
     "show_community_follow_nocodb": "追蹤 NocoDB",
     "search": {
       "your_search_found_no_results": "您的搜尋 {search} 找不到結果"
@@ -38,10 +38,10 @@
     "ext_db": {
       "title": {
         "edit": "編輯專案",
-        "create": "建立新專案"
+        "create": "建立專案"
       },
       "project_name": "輸入專案名稱",
-      "project_type": "透過...存取專案",
+      "project_type": "存取專案方式",
       "button": {
         "save_project": "儲存專案",
         "update_and_restart": "更新並重新啟動",
@@ -52,24 +52,24 @@
         "title": "資料庫憑證",
         "db_type": "資料庫類型",
         "sqlite_file": "SQLite 檔案",
-        "host_address": "主機地址",
-        "port": "通訊埠編號",
+        "host_address": "主機位址",
+        "port": "連線埠號碼",
         "username": "使用者名稱",
         "password": "密碼",
-        "db_create_if_not_exists": "資料庫：如果不存在則建立",
+        "db_create_if_not_exists": "資料庫：不存在則建立",
         "button": {
-          "test_db_conn": "測試資料庫連接",
-          "remove_db_from_env": "從環境中刪除資料庫"
+          "test_db_conn": "測試資料庫連線",
+          "remove_db_from_env": "從環境移除資料庫"
         },
         "advanced": {
           "title": "SSL 及進階參數",
           "ssl": {
             "client_key": {
-              "title": "客戶端金鑰",
+              "title": "用戶端金鑰",
               "toolip": "選擇 .key 檔案"
             },
             "client_cert": {
-              "title": "客戶端憑證",
+              "title": "用戶端憑證",
               "toolip": "選擇 .cert 檔案"
             },
             "server_ca": {
@@ -78,58 +78,58 @@
             },
             "preferred": "首選",
             "usage": {
-              "no": "不",
+              "no": "否",
               "preferred": "首選",
               "required": "必填",
-              "requried_ca": "必填-CA",
-              "requried_identity": "必填-IDENTITY"
+              "requried_ca": "必填 - CA",
+              "requried_identity": "必填 - IDENTITY"
             }
           },
           "inflection": {
-            "table_name": "拐點 - 表名",
-            "column_name": "拐點 - 列名稱"
+            "table_name": "屈折 - 表格名稱",
+            "column_name": "屈折 - 直行名稱"
           },
           "button": {
-            "edit_conn_json": "編輯連接 JSON"
+            "edit_conn_json": "編輯連線 JSON"
           }
         }
       },
       "error": {
-        "invalid_char_in_folder_path": "文件夾路徑中的字符無效。",
-        "invalid_db_credentials": "資料庫憑據無效。",
-        "unable_to_connect_to_db": "無法連接資料庫，請檢查您的資料庫已啟動。",
-        "user_doesnt_ve_sufficient_permission": "使用者不存在或具有足夠的權限來創建架構。"
+        "invalid_char_in_folder_path": "資料夾路徑有無效字元。",
+        "invalid_db_credentials": "資料庫憑證無效。",
+        "unable_to_connect_to_db": "無法連線至資料庫。請檢查您的資料庫是否已經上線。",
+        "user_doesnt_ve_sufficient_permission": "使用者不存在，或者是無權建立結構。"
       },
       "head": {
-        "title": "建立新專案 | NocoDB"
+        "title": "建立新專案｜NocoDB"
       },
       "dialog": {
-        "success": "連接成功",
-        "failure": "連接失敗："
+        "success": "連線成功",
+        "failure": "連線失敗："
       }
     },
     "notifications": {
-      "no_new": "沒有新的通知",
+      "no_new": "沒有新通知",
       "clear": "清除"
     }
   },
   "signin": {
     "title": "登入",
-    "enter_your_work_email": "輸入您的工作電子郵件地址",
+    "enter_your_work_email": "輸入您的工作電子信箱地址",
     "enter_your_password": "輸入您的密碼",
     "forget_password": "忘記密碼？",
     "dont_ve_an_account": "沒有帳號？",
     "sign_up": "註冊",
     "form": {
       "rules": {
-        "email_is_reqd": "電子郵件地址為必填",
-        "email_must_be_valid": "電子郵件地址無效",
+        "email_is_reqd": "電子信箱地址為必填",
+        "email_must_be_valid": "電子信箱地址格式錯誤",
         "passwd_required": "密碼為必填",
-        "passwd_must_be_8_chars": "您的密碼必須至少有 8 個字元"
+        "passwd_must_be_8_chars": "您的密碼應至少有 8 個字元"
       }
     },
     "head": {
-      "title": "登入 | NocoDB",
+      "title": "登入｜NocoDB",
       "meta": {
         "hid": "登入 NocoDB",
         "name": "登入 NocoDB",
@@ -138,25 +138,25 @@
     },
     "password": {
       "recovery": {
-        "title": "重置您的密碼",
-        "message_1": "請提供您註冊時使用的電子郵件地址。",
-        "message_2": "我們將向您發送一封電子郵件，其中包含重置密碼的連結。",
-        "success": "請檢查您的電子郵件信箱以重置密碼",
+        "title": "重設密碼",
+        "message_1": "請填入您註冊時使用的電子信箱位址。",
+        "message_2": "我們將傳給您一封電子郵件，其中包含重設密碼的連結。",
+        "success": "請確認您的電子郵件以重設密碼",
         "button": "傳送電子郵件"
       }
     }
   },
   "signup": {
     "title": "註冊",
-    "you_will_be_the_super_admin": "你將成為「超級管理員」",
-    "already_ve_an_account": "已經有帳號了嗎？"
+    "you_will_be_the_super_admin": "您將是「超級管理員」",
+    "already_ve_an_account": "已經有帳號了？"
   },
   "treeview": {
     "settings": {
       "title": "設定",
       "tooltip": "僅建立者可見"
     },
-    "app_store": "應用商店",
+    "app_store": "應用程式商店",
     "team_n_auth": {
       "title": "團隊和認證",
       "tooltip": "角色和使用者管理"
@@ -165,8 +165,12 @@
       "title": "專案中繼資料",
       "tooltip": "中繼資料管理"
     },
-    "preview_as": "預覽為",
-    "reset_review": "重置預覽"
+    "audit": {
+      "title": "稽核",
+      "tooltip": "稽核記錄"
+    },
+    "preview_as": "預覽方式",
+    "reset_review": "重設預覽"
   },
   "nav_drawer": {
     "title": "檢視表",
@@ -180,35 +184,35 @@
       "caption": "僅對建立者可見",
       "grid": {
         "title": "網格",
-        "create": "新增網格檢視表"
+        "create": "加入網格檢視表"
       },
       "gallery": {
         "title": "圖庫",
-        "create": "新增圖庫檢視表"
+        "create": "加入圖庫檢視表"
       },
       "calendar": {
         "title": "日曆",
-        "create": "新增日曆檢視表"
+        "create": "加入日曆檢視表"
       },
       "kanban": {
         "title": "看板",
-        "create": "新增看板檢視表"
+        "create": "加入看板檢視表"
       },
       "form": {
         "title": "表單",
-        "create": "新增表單檢視表"
+        "create": "加入表單檢視表"
       }
     },
     "advanced": {
       "title1": "分享檢視表",
-      "views_list": "檢視列表",
+      "views_list": "檢視表清單",
       "copy_api_url": "複製 API 網址"
     },
     "share_view": {
       "title": "此檢視表通過私人連結共享",
-      "body": "具有私有連結的人只能看到此檢視表中可見的欄位",
+      "body": "具有私有連結的人只能看到此檢視表中可見的儲存格",
       "toggle": {
-        "option1": "限制密碼存取權限",
+        "option1": "使用密碼限制存取權限",
         "option2": "存取受密碼限制"
       },
       "password": {
@@ -226,23 +230,23 @@
     "meta": {
       "title": "中繼資料操作",
       "export_to_file": {
-        "title": "匯出至檔案",
-        "desc": "將所有中繼資料從中繼資料表匯出至目錄。"
+        "title": "匯出為檔案",
+        "desc": "將所有中繼資料從中繼資料表匯出至中繼目錄。"
       },
       "import": {
         "title": "匯入",
-        "desc": "將所有中繼資料從目錄匯入中繼資料表。"
+        "desc": "將所有中繼資料從中繼目錄匯入至中繼資料表。"
       },
       "export_to_zip": {
-        "title": "匯出 zip",
-        "desc": "將專案的中繼資料匯出成 zip 檔並下載。"
+        "title": "輸出 ZIP",
+        "desc": "將專案中繼資料匯出為 ZIP 檔案並下載。"
       },
       "import_zip": {
-        "title": "匯入 zip",
-        "desc": "匯入專案的中繼資料 zip 檔案並重新啟動。"
+        "title": "匯入 ZIP",
+        "desc": "匯入專案中繼資料 ZIP 檔案並重新啟動。"
       },
       "reset": {
-        "title": "重置",
+        "title": "重設",
         "desc": "清除中繼資料表中的所有中繼資料。"
       }
     }

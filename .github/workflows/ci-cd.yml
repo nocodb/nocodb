@@ -4,14 +4,14 @@
 name: "CI/CD"
 on:
   push:
-    branches: [master, cypress]
+    branches: [master, develop, cypress]
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"
       - "packages/nocodb/**"
       - ".github/workflows/ci-cd.yml"
   pull_request:
-    branches: [master]
+    branches: [master, develop]
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"

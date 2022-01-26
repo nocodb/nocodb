@@ -117,33 +117,6 @@ npm start
 ![11](https://user-images.githubusercontent.com/86527202/136066756-fc203c2c-570e-4514-b9f4-2a41ac24e5dd.png)
 <br>
 
-# Table of Contents
-
-- [快速尝试](#快速尝试)
-    + [一键式部署](#一键式部署)
-      - [Heroku](#heroku)
-    + [使用 Docker](#使用docker)
-    + [使用 Npm](#使用npm)
-    + [使用 Git](#使用git)
-    + [GUI](#gui)
-- [加入我们的社区](#加入我们的社区)
-- [截图](#截图)
-- [特征](#特征)
-    + [丰富的电子表格功能](#丰富的电子表格功能)
-    + [工作流自动化应用商店](#工作流自动化应用商店)
-    + [Programmatic API访问通过](#programmatic-api访问通过)
-- [生产安装](#生产安装)
-  * [Docker](#docker)
-      - [示例: MySQL](#mysql-示例)
-      - [示例: PostgreSQL](#postgres-示例)
-      - [示例: SQL Server](#sql-server-示例)
-  * [Docker Compose](#docker-compose)
-  * [环境变量](#环境变量)
-- [开发安装](#开发安装)
-- [贡献](#贡献)
-- [为什么我们建立这个?](#为什么我们建立这个)
-- [我们的任务](#我们的任务)
-
 # 特征
 ### 丰富的电子表格功能
 

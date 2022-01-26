@@ -124,33 +124,6 @@ npm start
 ![11](https://user-images.githubusercontent.com/86527202/136069544-5b51b90e-dda1-4e54-b094-611d06e5aa86.png)
 <br>
 
-# Table of Contents
-
-- [クイック試し](#クイック試し)
-    + [1-Click Deploy](#1-click-deploy)
-      - [Heroku](#heroku)
-    + [Docker を使う](#docker-を使う)
-    + [NPM を使用して](#npm-を使用して)
-    + [git を使う](#git-を使う)
-    + [GUI](#gui)
-- [私たちのコミュニティに参加する](#私たちのコミュニティに参加する)
-- [スクリーンショット](#スクリーンショット)
-- [特徴](#特徴)
-    + [リッチスプレッドシートインターフェース](#リッチスプレッドシートインターフェース)
-    + [ワークフロー自動化のための App Store](#ワークフロー自動化のための-app-store)
-    + [プログラムによる API アクセスによるアクセス](#プログラムによる-api-アクセスによるアクセス)
-- [Production Setup](#production-setup)
-  * [Docker](#docker)
-      - [Example MySQL](#example-mysql)
-      - [Example Postgres](#example-postgres)
-      - [Example SQL Server](#example-sql-server)
-  * [Docker Compose](#docker-compose)
-  * [Environment variables](#environment-variables)
-- [Development setup](#development-setup)
-- [Contributing](#contributing)
-- [なぜこれを構築しているのですか？](#なぜこれを構築しているのですか)
-- [私たちの使命](#私たちの使命)
-
 # 特徴
 
 ### リッチスプレッドシートインターフェース

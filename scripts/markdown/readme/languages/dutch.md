@@ -122,35 +122,6 @@ Toegang tot dashboard met behulp van : [http://localhost:8080/dashboard](http://
 ![11](https://user-images.githubusercontent.com/86527202/136073826-561f9a17-8d68-4c7a-830d-1e40e0892246.png)
 <br>
 
-# Table of Contents
-
-- [Snel proberen](#snel-proberen)
-    + [1-Click Deploy](#1-click-deploy)
-      - [Heroku](#heroku)
-    + [Docker gebruiken](#docker-gebruiken)
-    + [Gebruik van NPM](#gebruik-van-npm)
-    + [Git gebruiken](#git-gebruiken)
-    + [GUI](#gui)
-- [sluit je aan bij onze gemeenschap](#sluit-je-aan-bij-onze-gemeenschap)
-- [Screenshots](#screenshots)
-- [Table of Contents](#table-of-contents)
-- [Functies](#functies)
-    + [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    + [App Store voor Workflow Automations:](#app-store-voor-workflow-automations-)
-    + [Programmatische API-toegang via:](#programmatische-api-toegang-via)
-- [Production Setup](#production-setup)
-  * [Docker](#docker)
-      - [Example MySQL](#example-mysql)
-      - [Example Postgres](#example-postgres)
-      - [Example SQL Server](#example-sql-server)
-  * [Docker Compose](#docker-compose)
-  * [Environment variables](#environment-variables)
-- [Development setup](#development-setup)
-- [Contributing](#contributing)
-- [Waarom bouwen we dit?](#waarom-bouwen-we-dit)
-- [Onze missie](#onze-missie)
-
-
 # Functies
 
 ### Rich Spreadsheet Interface

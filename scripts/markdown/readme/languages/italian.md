@@ -125,33 +125,6 @@ Accedi al Pannello di Controllo visitando: [http://localhost:8080/dashboard](htt
 ![11](https://user-images.githubusercontent.com/86527202/136069091-16764d3e-1995-4a45-99e8-652f28d2a946.png)
 <br>
 
-# Table of Contents
-
-- [Prova veloce](#prova-veloce)
-    + [1-Click Deploy](#1-click-deploy)
-      - [Heroku](#heroku)
-    + [Con Docker](#con-docker)
-    + [Con NPM](#con-npm)
-    + [Con git](#con-git)
-    + [GUI](#gui)
-- [Unisciti alla nostra comunità](#unisciti-alla-nostra-comunità)
-- [Screenshots](#screenshots)
-- [Caratteristiche](#caratteristiche)
-    + [Interfaccia a foglio di calcolo](#interfaccia-a-foglio-di-calcolo)
-    + [App store per automazioni del flusso di lavoro](#app-store-per-automazioni-del-flusso-di-lavoro)
-    + [Accesso API programmatico tramite](#accesso-api-programmatico-tramite)
-- [Impostazione in produzione](#impostazione-in-produzione)
-  * [Docker](#docker)
-      - [Esempio con MySQL](#esempio-con-mysql)
-      - [Esempio con Postgres](#esempio-con-postgres)
-      - [Esempio con SQL Server](#esempio-con-sql-server)
-  * [Docker Compose](#docker-compose)
-  * [Variabili d'ambiente](#variabili-d-ambiente)
-- [Setup di sviluppo](#setup-di-sviluppo)
-- [Contributi](#contributi)
-- [Perché lo abbiamo creato?](#perché-lo-abbiamo-creato-)
-- [La nostra missione](#la-nostra-missione)
-
 # Caratteristiche
 
 ### Interfaccia a foglio di calcolo

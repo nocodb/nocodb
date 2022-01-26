@@ -123,33 +123,6 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 ![11](https://user-images.githubusercontent.com/86527202/136074285-b5d1dc5c-fac3-43af-b9fc-1a5d1d41d071.png)
 <br>
 
-# Table of Contents
-
-- [Mulai Cepat](#mulai-cepat)
-    + [1-Klik Deploy](#1-klik-deploy)
-      - [Heroku](#heroku)
-    + [Menggunakan Docker](#menggunakan-docker)
-    + [Menggunakan NPM](#menggunakan-npm)
-    + [Menggunakan git](#menggunakan-git)
-    + [GUI](#gui)
-- [Bergabunglah dengan komunitas kami](#bergabunglah-dengan-komunitas-kami)
-- [Tangkapan Layar](#tangkapan-layar)
-- [Fitur](#fitur)
-    + [Antarmuka spreadsheet yang kaya](#antarmuka-spreadsheet-yang-kaya)
-    + [App Store untuk Automasi Alur Kerja](#app-store-untuk-automasi-alur-kerja)
-    + [Akses API Programmatik melalui](#akses-api-programmatik-melalui)
-- [Pengaturan Produksi](#pengaturan-produksi)
-  * [Docker](#docker)
-      - [Contoh MySQL](#contoh-mysql)
-      - [Contoh Postgres](#contoh-postgres)
-      - [Contoh SQL Server](#contoh-sql-server)
-  * [Docker Compose](#docker-compose)
-  * [Environment variables](#environment-variables)
-- [Pengaturan Pengembangan](#pengaturan-pengembangan)
-- [Berkontribusi](#berkontribusi)
-- [Kenapa kita membangun ini?](#kenapa-kita-membangun-ini-)
-- [Misi kita](#misi-kita)
-
 # Fitur
 
 ### Antarmuka spreadsheet yang kaya

@@ -124,33 +124,6 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 ![11](https://user-images.githubusercontent.com/86527202/136068635-d9ac5165-7800-402d-b4e3-2e21d3d36027.png)
 <br>
 
-# Table of Contents
-
-- [Schneller Try](#schneller-try)
-    + [1-Click Deploy](#1-click-deploy)
-      - [Heroku](#heroku)
-    + [Verwenden von Docker](#verwenden-von-docker)
-    + [Verwenden von NPM](#verwenden-von-npm)
-    + [Mit git](#mit-git)
-    + [GUI](#gui)
-- [Tritt unserer Gemeinschaft bei](#tritt-unserer-gemeinschaft-bei)
-- [Screenshots](#screenshots)
-- [Merkmale](#merkmale)
-    + [Rich-Tabellenschnittstelle](#rich-tabellenschnittstelle)
-    + [App Store für Workflow-Automationen](#app-store-für-workflow-automationen)
-    + [Programmatischer API-Zugriff über](#programmatischer-api-zugriff-über)
-- [Produktionseinrichtung](#produktionseinrichtung)
-  * [Docker](#docker)
-      - [Beispiel MySQL](#beispiel-mysql)
-      - [Beispiel Postgres](#beispiel-postgres)
-      - [Beispiel SQL Server](#beispiel-sql-server)
-  * [Docker Compose](#docker-compose)
-  * [Umgebungsvariablen](#umgebungsvariablen)
-- [Entwicklungsaufbau](#entwicklungsaufbau)
-- [Beitragen](#beitragen)
-- [Warum bauen wir das auf?](#warum-bauen-wir-das-auf)
-- [Unsere Aufgabe](#unsere-aufgabe)
-
 # Merkmale
 
 ### Rich-Tabellenschnittstelle

@@ -120,33 +120,6 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
 ![11](https://user-images.githubusercontent.com/86527202/136067593-dcf7d768-4f4e-4841-8384-629a35daa356.png)
 <br>
 
-# Table of Contents
-
-- [Essayer rapidement](#essayer-rapidement)
-    + [1-Click Deploy](#1-click-deploy)
-      - [Heroku](#heroku)
-    + [Utiliser Docker](#utiliser-docker)
-    + [En utilisant npm](#en-utilisant-npm)
-    + [En utilisant git](#en-utilisant-git)
-    + [GUI](#gui)
-- [Rejoignez notre communauté](#rejoignez-notre-communauté)
-- [Captures d'écran](#captures-décran)
-- [Caractéristiques](#caractéristiques)
-    + [Interface de feuille de calcul riche](#interface-de-feuille-de-calcul-riche)
-    + [App Store for Workflow Automation](#app-store-for-workflow-automation)
-    + [Accès d'API programmatique via](#accès-dapi-programmatique-via)
-- [Configuration de la production](#configuration-de-la-production)
-  * [Docker](#docker)
-      - [Exemple MySQL](#exemple-mysql)
-      - [Exemple Postgres](#exemple-postgres)
-      - [Exemple SQL Server](#exemple-sql-server)
-  * [Docker Compose](#docker-compose)
-  * [Variables d'environnement](#variables-denvironnement)
-- [Paramétrage du développement](#paramétrage-du-développement)
-- [Contribuant](#contribuant)
-- [Pourquoi construisons-nous cela?](#pourquoi-construisons-nous-cela)
-- [Notre mission](#notre-mission)
-
 # Caractéristiques
 ### Interface de feuille de calcul riche
 

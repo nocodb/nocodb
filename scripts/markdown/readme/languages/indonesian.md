@@ -12,7 +12,7 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB apapun menjadi spreadsh
 
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB)
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
 
@@ -28,7 +28,9 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB apapun menjadi spreadsh
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-<a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<p align="center">
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
 
 # Mulai Cepat
 
@@ -45,21 +47,28 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB apapun menjadi spreadsh
 </a>
 <br>
 
-### Menggunakan Docker.
+### Menggunakan Docker
 
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> To persist data you can mount volume at `/usr/app/data/`.
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
 
-### Menggunakan NPM.
+  Example:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
+
+### Menggunakan NPM
 
 ```
 npx create-nocodb-app
 ```
 
-### Menggunakan git.
+### Menggunakan git
 
 ```
 git clone https://github.com/nocodb/nocodb-seed
@@ -126,7 +135,7 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 - ⚡ Peran: Pemilik, Pencipta, Editor, komentator, pemirsa, komentator, peran khusus.
 - ⚡ Kontrol akses: kontrol akses berbutir halus bahkan pada tingkat basis data, tabel & kolom.
 
-### App Store untuk Automasi Alur Kerja:
+### App Store untuk Automasi Alur Kerja
 
 - ⚡ Obrolan: Tim Microsoft, kendur, perselisihan, paling penting
 - ⚡ Email: SMTP, SES, MailChimp
@@ -134,7 +143,7 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 - ⚡ Whatsapp.
 - ⚡ API Pihak ke-3
 
-### Akses API Programmatik melalui:
+### Akses API Programmatik melalui
 
 - ⚡ Rest API (Swagger)
 - ⚡ Apis Graphql.
@@ -186,73 +195,20 @@ docker-compose up
 
 ## Environment variables
 
-| Variabel                           | Wajib | Komentar                                                                                                                               | Jika Tidak Ada                              |
-| ---------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| NC_DB                              | Iya   | Lihat URL basis data kami                                                                                                              | SQLite lokal akan dibuat di folder root     |
-| DATABASE_URL                       | Tidak | Format JDBC URL. Dapat digunakan sebagai pengganti NC_DB. Digunakan dalam 1-Klik Deployment                                            |                                             |
-| DATABASE_URL_FILE                  | Tidak | path ke file yang berisi Format URL JDBC. Dapat digunakan sebagai pengganti NC_DB. Digunakan dalam penyebaran 1-Klik Heroku Deployment |                                             |
-| NC_PUBLIC_URL                      | Iya   | Digunakan untuk mengirim undangan Email                                                                                                | Tebakan terbaik dari params permintaan http |
-| NC_AUTH_JWT_SECRET                 | Iya   | Rahasia JWT digunakan untuk auth dan menyimpan rahasia lainnya                                                                         | Rahasia acak akan dibuat                    |
-| NC_SENTRY_DSN                      | Tidak | Untuk pemantauan Penjaga                                                                                                               |                                             |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | Tidak | Nonaktifkan pembuatan Proyek dengan database eksternal                                                                                 |                                             |
-| NC_DISABLE_TELE                    | Tidak | Nonaktifkan telemetry                                                                                                                  |                                             |
-| NC_BACKEND_URL                     | Tidak | Backend URL Khusus                                                                                                                     | `http://localhost:8080` akan digunakan      |
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # Pengaturan Pengembangan
 
-```
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-
-# run backend
-cd packages/nocodb
-npm install
-npm run watch:run
-
-# open localhost:8080/dashboard in browser
-
-# run frontend
-cd packages/nc-gui
-npm install
-npm run dev
-
-# open localhost:3000/dashboard in browser
-```
-
-Perubahan yang dibuat pada kode akan dimulai ulang secara otomatis.
-
-## Menjalankan tes Cypress secara Lokal
-
-```shell
-# install dependencies(cypress)
-npm install
-
-# run mysql database with required database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# Run backend api using following command
-npm run start:api
-
-# Run frontend web UI using following command
-npm run start:web
-
-# wait until both 3000 and 8080 ports are available
-# and run cypress test using following command
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-```
+Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # Berkontribusi
 
-- Silahkan lihat ./scripts/contribute/HowToApplyLicense.md
-- Abaikan penambahan headers untuk .json or .md or .yml
+Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 🎯 Kenapa kita membangun ini?
+# Kenapa kita membangun ini?
 
 Sebagian besar bisnis internet melengkapi diri mereka dengan spreadsheet atau database untuk menyelesaikan kebutuhan bisnis mereka. Spreadsheet digunakan oleh satu miliar + manusia secara kolaboratif setiap hari. Namun, kami jauh bekerja dengan kecepatan yang sama pada basis data yang merupakan alat yang lebih kuat ketika datang ke komputasi. Upaya untuk menyelesaikan ini dengan persembahan SaaS berarti kontrol akses yang mengerikan, vendor lockin, data lockin, perubahan harga mendadak & paling penting plafon kaca pada apa yang mungkin di masa depan.
 
-# ❤ Misi kita :
+# Misi kita
 
 Misi kami adalah menyediakan antarmuka tanpa kode yang paling kuat untuk basis data yang merupakan sumber terbuka untuk setiap bisnis internet di dunia. Ini tidak hanya akan mendemokratisasi akses ke alat komputasi yang kuat tetapi juga memunculkan satu miliar + orang yang akan memiliki kemampuan mengotori-dan membangun radikal di Internet.

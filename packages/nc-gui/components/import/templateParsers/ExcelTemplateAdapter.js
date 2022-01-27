@@ -46,7 +46,26 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       this.data[tn] = []
       const ws = this.wb.Sheets[sheet]
       const range = XLSX.utils.decode_range(ws['!ref'])
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
+      const originalRows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
+
+      // fix precision bug & timezone offset issues introduced by xlsx
+      const basedate = new Date(1899, 11, 30, 0, 0, 0);
+      // number of milliseconds since base date
+      const dnthresh = basedate.getTime() + (new Date().getTimezoneOffset() - basedate.getTimezoneOffset()) * 60000;
+      // number of milliseconds in a day
+      const day_ms = 24 * 60 * 60 * 1000;
+      // handle date1904 property
+      const fixImportedDate = (date) => {
+        const parsed = XLSX.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, { 
+          date1904: this.wb.Workbook.WBProps.date1904 
+        })
+        return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
+      }
+      // fix imported date
+      const rows = originalRows.map((r) => r.map((v) => {
+        return v instanceof Date ? fixImportedDate(v): v
+      }))
+
       const columnNameRowExist = +rows[0].every(v => v === null || typeof v === 'string')
 
       // const colLen = Math.max()

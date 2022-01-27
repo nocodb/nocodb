@@ -7,7 +7,9 @@
       "subtext_1": "Создавать",
       "subtext_1_tooltip": "Создать новый проект",
       "subtext_2": "Создать, подключение к внешней базе данных",
-      "subtext_2_tooltip": "Поддерживает MySQL, PostgreSQL, SQL Server & Sqlite"
+      "subtext_2_tooltip": "Поддерживает MySQL, PostgreSQL, SQL Server & Sqlite",
+      "from_template": "Создать проект от шаблона",
+      "from_excel": "Создать проект из Excel"
     },
     "search_project": "Поиск проекта",
     "import_metadata": "Импорт метаданных",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Забронировать бесплатное демо",
     "show_community_get_your_questions_answered": "Получите ответы на ваши вопросы",
     "show_community_join_discord": "Присоединиться к",
-    "show_community_follow_nocodb": "Следуйте NOCODB.",
+    "show_community_join_reddit": "Присоединиться /r/NocoDB",
+    "show_community_follow_nocodb": "Следуйте NocoDB",
     "search": {
       "your_search_found_no_results": "Ваш поиск {поиск} не нашел результатов"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Метаданные проекта",
       "tooltip": "Мета Управление"
+    },
+    "audit": {
+      "title": "Ревизия",
+      "tooltip": "Журнал аудита"
     },
     "preview_as": "Предварительный просмотр как",
     "reset_review": "Сброс предварительного просмотра"

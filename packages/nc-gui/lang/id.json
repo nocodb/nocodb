@@ -7,7 +7,9 @@
       "subtext_1": "Membuat",
       "subtext_1_tooltip": "Buat proyek baru",
       "subtext_2": "Buat dengan menghubungkan <br> ke basis data eksternal",
-      "subtext_2_tooltip": "Mendukung MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "Mendukung MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "Buat proyek dari template",
+      "from_excel": "Buat proyek dari Excel"
     },
     "search_project": "Cari proyek",
     "import_metadata": "Impor Metadata.",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Pesan demo gratis",
     "show_community_get_your_questions_answered": "Dapatkan pertanyaan Anda dijawab",
     "show_community_join_discord": "Bergabunglah dengan Perselisihan",
-    "show_community_follow_nocodb": "Ikuti Nocodb.",
+    "show_community_join_reddit": "Bergabunglah /r/NocoDB",
+    "show_community_follow_nocodb": "Ikuti NocoDB",
     "search": {
       "your_search_found_no_results": "Pencarian Anda untuk {Search} tidak menemukan hasil"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Metadata proyek",
       "tooltip": "Meta Management."
+    },
+    "audit": {
+      "title": "Audit",
+      "tooltip": "Log audit"
     },
     "preview_as": "Pratinjau sebagai",
     "reset_review": "Reset Pratinjau"

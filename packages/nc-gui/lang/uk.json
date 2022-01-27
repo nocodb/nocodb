@@ -7,7 +7,9 @@
       "subtext_1": "Створювати",
       "subtext_1_tooltip": "Створіть новий проект",
       "subtext_2": "Створити шляхом підключення - до зовнішньої бази даних",
-      "subtext_2_tooltip": "Підтримує MySQL, PostgreSQL, SQL Server & Sqlite"
+      "subtext_2_tooltip": "Підтримує MySQL, PostgreSQL, SQL Server & Sqlite",
+      "from_template": "Створити проект з шаблону",
+      "from_excel": "Створити проект з Excel"
     },
     "search_project": "Пошуковий проект",
     "import_metadata": "Імпорт метаданих",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Забронюйте безкоштовну демонстрацію",
     "show_community_get_your_questions_answered": "Отримайте відповіді на запитання",
     "show_community_join_discord": "Приєднуватися",
-    "show_community_follow_nocodb": "Слідувати nocodb",
+    "show_community_join_reddit": "Приєднатися /r/NocoDB",
+    "show_community_follow_nocodb": "Слідувати NocoDB",
     "search": {
       "your_search_found_no_results": "Ваш пошук {пошук} не знайдено жодних результатів"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Метадані проекту",
       "tooltip": "Метаерство"
+    },
+    "audit": {
+      "title": "Аудит",
+      "tooltip": "Аудит журнал"
     },
     "preview_as": "Попередній перегляд як",
     "reset_review": "Скидання попереднього перегляду"

@@ -7,7 +7,9 @@
       "subtext_1": "สร้าง",
       "subtext_1_tooltip": "สร้างโครงการใหม่",
       "subtext_2": "สร้างโดยเชื่อมต่อ <br> ฐานข้อมูลภายนอก",
-      "subtext_2_tooltip": "รองรับ MySQL, POSTGRESQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "รองรับ MySQL, POSTGRESQL, SQL Server & SQLite",
+      "from_template": "สร้างโครงการจากเทมเพลต",
+      "from_excel": "สร้างโครงการจาก Excel"
     },
     "search_project": "ค้นหาโครงการ",
     "import_metadata": "เมทาดานำเข้า",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "จองการสาธิตฟรี",
     "show_community_get_your_questions_answered": "รับคำถามของคุณตอบ",
     "show_community_join_discord": "เข้าร่วมกับความไม่ลงรอยกัน",
-    "show_community_follow_nocodb": "ติดตาม NOCODB",
+    "show_community_join_reddit": "เข้าร่วม /r/NocoDB",
+    "show_community_follow_nocodb": "ติดตาม NocoDB",
     "search": {
       "your_search_found_no_results": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "ข้อมูลเมตาโครงการ",
       "tooltip": "การจัดการ Meta"
+    },
+    "audit": {
+      "title": "การตรวจสอบ",
+      "tooltip": "บันทึกการตรวจสอบ"
     },
     "preview_as": "ดูตัวอย่างเป็น",
     "reset_review": "รีเซ็ตดูตัวอย่าง"

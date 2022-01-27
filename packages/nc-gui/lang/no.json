@@ -7,7 +7,9 @@
       "subtext_1": "Opprett",
       "subtext_1_tooltip": "Opprett et nytt prosjekt",
       "subtext_2": "Opprett ved å koble til <br> til en ekstern database",
-      "subtext_2_tooltip": "Støtter MySQL, PostgreSQL, SQL Server & Sqlite"
+      "subtext_2_tooltip": "Støtter MySQL, PostgreSQL, SQL Server & Sqlite",
+      "from_template": "Opprett prosjektet fra mal",
+      "from_excel": "Opprett prosjekt fra Excel"
     },
     "search_project": "Søk etter prosjekt",
     "import_metadata": "Importer metadata",
@@ -28,6 +30,7 @@
     "show_community_book_a_free_demo": "Bestill en gratis demo",
     "show_community_get_your_questions_answered": "Få dine spørsmål besvart",
     "show_community_join_discord": "Bli med på Discord",
+    "show_community_join_reddit": "Bli med /r/NocoDB",
     "show_community_follow_nocodb": "Følg NocoDB",
     "search": {
       "your_search_found_no_results": "Søket ditt etter {søk} fant ingen resultater"
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Prosjektmetadata",
       "tooltip": "Organiser prosjektmetadata"
+    },
+    "audit": {
+      "title": "Revidere",
+      "tooltip": "Revisjonslogg"
     },
     "preview_as": "Forhåndsvisning som",
     "reset_review": "Tilbakestill forhåndsvisning"

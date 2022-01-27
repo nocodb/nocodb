@@ -7,7 +7,9 @@
       "subtext_1": "skab",
       "subtext_1_tooltip": "Opret et nyt projekt",
       "subtext_2": "Opret ved at forbinde <br> til en ekstern database",
-      "subtext_2_tooltip": "Understøtter MySQL, PostgreSQL, SQL Server & SQLITE"
+      "subtext_2_tooltip": "Understøtter MySQL, PostgreSQL, SQL Server & SQLITE",
+      "from_template": "Opret projekt fra skabelon",
+      "from_excel": "Opret projekt fra Excel"
     },
     "search_project": "Søg projekt",
     "import_metadata": "Import metadata.",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Book en gratis demo",
     "show_community_get_your_questions_answered": "Få dine spørgsmål besvaret",
     "show_community_join_discord": "Deltag Diskord",
-    "show_community_follow_nocodb": "Følg nocodb.",
+    "show_community_join_reddit": "Deltag /r/NocoDB",
+    "show_community_follow_nocodb": "Følg NocoDB",
     "search": {
       "your_search_found_no_results": "Din søgning efter {Søg} viste ingen resultater"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Projektmetadata.",
       "tooltip": "Meta Management."
+    },
+    "audit": {
+      "title": "Revidere",
+      "tooltip": "Audit log"
     },
     "preview_as": "Forhåndsvisning så",
     "reset_review": "Nulstil preview."

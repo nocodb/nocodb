@@ -7,7 +7,9 @@
       "subtext_1": "생성",
       "subtext_1_tooltip": "새 프로젝트를 만듭니다",
       "subtext_2": "외부 데이터베이스에 <br>을 연결하여 작성하십시오",
-      "subtext_2_tooltip": "MySQL, PostgreSQL, SQL Server 및 SQLite를 지원합니다"
+      "subtext_2_tooltip": "MySQL, PostgreSQL, SQL Server 및 SQLite를 지원합니다",
+      "from_template": "템플릿에서 프로젝트를 만듭니다",
+      "from_excel": "Excel에서 프로젝트 만들기"
     },
     "search_project": "프로젝트 검색",
     "import_metadata": "메타 데이터 가져오기",
@@ -28,6 +30,7 @@
     "show_community_book_a_free_demo": "무료 데모를 예약하십시오",
     "show_community_get_your_questions_answered": "귀하의 질문에 답변 해주십시오",
     "show_community_join_discord": "디스코드 참가",
+    "show_community_join_reddit": "가입 /r/NocoDB",
     "show_community_follow_nocodb": "NocoDB를 팔로우 하세요",
     "search": {
       "your_search_found_no_results": "{검색} 검색 결과가 없습니다"
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "프로젝트 메타 데이터",
       "tooltip": "메타 관리"
+    },
+    "audit": {
+      "title": "심사",
+      "tooltip": "감사 로그"
     },
     "preview_as": "미리보기",
     "reset_review": "미리보기 재설정"

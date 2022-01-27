@@ -28,9 +28,11 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-<a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<p align="center">
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
 
-# Schneller Try.
+# Schneller Try
 
 ### 1-Click Deploy
 
@@ -45,21 +47,28 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
 </a>
 <br>
 
-### Verwenden von Docker.
+### Verwenden von Docker
 
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> To persist data you can mount volume at `/usr/app/data/`.
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
 
-### Verwenden von NPM.
+  Example:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
+
+### Verwenden von NPM
 
 ```
 npx create-nocodb-app
 ```
 
-### Mit git.
+### Mit git
 
 ```
 git clone https://github.com/nocodb/nocodb-seed
@@ -127,7 +136,7 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 - ⚡ Rollen: Besitzer, Ersteller, Herausgeber, Kommentator, Viewer, Kommentator, benutzerdefinierte Rollen.
 - ⚡ Zugriffskontrolle: Granulare Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
 
-### App Store für Workflow-Automationen:
+### App Store für Workflow-Automationen
 
 - ⚡ Chat: Microsoft-Teams, Slack, Discord, Materie
 - ⚡ E-Mail: SMTP, SES, MailChimp
@@ -135,7 +144,7 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 - ⚡ WhatsApp.
 - ⚡ Jede 3rd-Party-APIs
 
-### Programmatischer API-Zugriff über:
+### Programmatischer API-Zugriff über
 
 - ⚡ Rest APIs (Swagger)
 - ⚡ Graphql-APIs.
@@ -187,73 +196,20 @@ docker-compose up
 
 ## Umgebungsvariablen
 
-| Variable                           | Mandatory | Comments                                                                                                 | If absent                                     |
-| ---------------------------------- | --------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| NC_DB                              | Yes       | See our database URLs                                                                                    | A local SQLite will be created in root folder |
-| DATABASE_URL                       | No        | JDBC URL Format. Kann statt NC_DB genutzt werden. Wird im 1-Click Heroku deployment genutzt.             |                                               |
-| DATABASE_URL_FILE                  | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment |                                               |
-| NC_PUBLIC_URL                      | Yes       | Wird für Einladungen per Mail genutzt                                                                    | Best guess from http request params           |
-| NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                       | A Random secret will be generated             |
-| NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                    |                                               |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                          |                                               |
-| NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                        |                                               |
-| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                       | `http://localhost:8080` will be used          |
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # Entwicklungsaufbau
 
-```
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-
-# run backend
-cd packages/nocodb
-npm install
-npm run watch:run
-
-# open localhost:8080/dashboard in browser
-
-# run frontend
-cd packages/nc-gui
-npm install
-npm run dev
-
-# open localhost:3000/dashboard in browser
-```
-
-Changes made to code automatically restart.
-
-## Cypress-Tests lokal ausführen
-
-```shell
-# install dependencies(cypress)
-npm install
-
-# run mysql database with required database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# Run backend api using following command
-npm run start:api
-
-# Run frontend web UI using following command
-npm run start:web
-
-# wait until both 3000 and 8080 ports are available
-# and run cypress test using following command
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-```
+Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # Beitragen
 
-- Bitte schau mal rein ./scripts/contribute/HowToApplyLicense.md
-- Ignorieren Sie das Hinzufügen von Überschriften für .json oder .md oder .yml
+Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 🎯 Warum bauen wir das auf?
+# Warum bauen wir das auf?
 
 Die meisten Internet-Unternehmen rüsten sich mit einer Tabelle oder einer Datenbank aus, um ihre Geschäftsanforderungen zu lösen. Die Tabellenkalkulationen werden von einer Milliarde + Menschen mit einem jeden Tag kollaborativ verwendet. Wir arbeiten jedoch mit ähnlichen Geschwindigkeiten in Datenbanken, die in Bezug auf das Berechnen viel stärkere Werkzeuge sind. Versuche, dies mit SaaS-Angeboten zu lösen, bedeutete schreckliche Zugangskontrollen, Anbieter-Lockin, Daten-Lockin, abrupte Preisänderungen und vor allem eine Glaskugel, was in Zukunft möglich ist.
 
-# ❤ Unsere Aufgabe :
+# Unsere Aufgabe
 
 Unsere Mission ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken bereitzustellen, die für jedes einzelne Internetgeschäft der Welt nutzbar ist. Dies würde nicht nur den Zugang zu einem leistungsstarken Computing-Tool demokratisieren, sondern auch eine Milliarde + Menschen hervorbringen, die im Internet radikale Bastel- und Baufähigkeiten haben werden.

@@ -7,7 +7,9 @@
       "subtext_1": "Stvoriti",
       "subtext_1_tooltip": "Stvoriti novi projekt",
       "subtext_2": "Stvoriti povezivanjem u vanjskoj bazi podataka",
-      "subtext_2_tooltip": "Podržava MySQL, PostgreSQL, SQL Server & Sqlite"
+      "subtext_2_tooltip": "Podržava MySQL, PostgreSQL, SQL Server & Sqlite",
+      "from_template": "Stvorite projekt iz predloška",
+      "from_excel": "Stvoriti projekt iz Excela"
     },
     "search_project": "Projekt pretraživanja",
     "import_metadata": "Uvoz metapodataka",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Rezervirajte besplatni demo",
     "show_community_get_your_questions_answered": "Odgovorite na vaša pitanja",
     "show_community_join_discord": "Pridružite se nesloga",
-    "show_community_follow_nocodb": "Slijedite NoCodb",
+    "show_community_join_reddit": "Pridružite se /r/NocoDB",
+    "show_community_follow_nocodb": "Slijedite NocoDB",
     "search": {
       "your_search_found_no_results": "Vaša potraga za {Search} nije pronašla rezultate"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Projektni metapodaci",
       "tooltip": "Meta upravljanje"
+    },
+    "audit": {
+      "title": "Revizija",
+      "tooltip": "Dnevnik revizije"
     },
     "preview_as": "Pregled kao",
     "reset_review": "Resetirajte pregled"

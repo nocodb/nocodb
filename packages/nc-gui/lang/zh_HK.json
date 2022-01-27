@@ -7,7 +7,9 @@
       "subtext_1": "駁內置嘅SQLite",
       "subtext_1_tooltip": "駁內置嘅SQLite",
       "subtext_2": "駁External嘅DB",
-      "subtext_2_tooltip": "支援 MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "支援 MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "從模板創建項目",
+      "from_excel": "從Excel創建項目"
     },
     "search_project": "搵下啲Projects",
     "import_metadata": "import metadata",
@@ -28,6 +30,7 @@
     "show_community_book_a_free_demo": "Book個 free demo",
     "show_community_get_your_questions_answered": "讓您的問題得到解答",
     "show_community_join_discord": "加入 Discord",
+    "show_community_join_reddit": "加入 /r/NocoDB",
     "show_community_follow_nocodb": "Fol下NocoDB",
     "search": {
       "your_search_found_no_results": "搵唔到有關 {search}"
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "項目元數據",
       "tooltip": "元管理"
+    },
+    "audit": {
+      "title": "審計",
+      "tooltip": "審計日誌"
     },
     "preview_as": "預覽",
     "reset_review": "重置預覽"

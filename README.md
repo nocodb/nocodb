@@ -161,9 +161,9 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
   * [Running Frontend locally](#running-frontend-locally)
   * [Running Cypress tests locally](#running-cypress-tests-locally)
 - [Contributing](#contributing)
-- [Why are we building this?](#---why-are-we-building-this-)
-- [Our Mission](#--our-mission--)
-- [Contributors](#contributors-------------)
+- [Why are we building this?](#why-are-we-building-this)
+- [Our Mission](#our-mission)
+- [Contributors](#contributors)
 
 # Features
 ### Rich Spreadsheet Interface
@@ -233,69 +233,19 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 
 # Development Setup 
 
-## Cloning the Project
-
-```shell
-git clone https://github.com/nocodb/nocodb
-```
-
-## Running Backend locally
-
-```shell
-cd nocodb/packages/nocodb
-npm install
-npm run watch:run
-# open localhost:8080/dashboard in browser
-```
-
-## Running Frontend locally 
-
-```shell
-cd packages/nc-gui
-npm install
-npm run dev
-# open localhost:3000/dashboard in browser
-```
-
-Changes made to code automatically restart.
-
-> nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-
-
-## Running Cypress tests locally
-
-```shell
-# install dependencies(cypress)
-npm install
-
-# run mysql database with required database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# Run backend api using following command
-npm run start:api
-
-# Run frontend web UI using following command
-npm run start:web
-
-# wait until both 3000 and 8080 ports are available
-# and run cypress test using following command
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-```
+Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # Contributing
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 🎯 Why are we building this?
+# Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
-# ❤ Our Mission
+# Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
-# Contributors : 🌻🌻🌻🐝🐝 
+# Contributors
 [//]: contributor-faces
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

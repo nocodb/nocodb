@@ -7,7 +7,9 @@
       "subtext_1": "Luoda",
       "subtext_1_tooltip": "Luo uusi projekti",
       "subtext_2": "Luo liittämällä <br> ulkoiseen tietokantaan",
-      "subtext_2_tooltip": "Tukee MySQL, PostgreSQL, SQL Server & Sqlite"
+      "subtext_2_tooltip": "Tukee MySQL, PostgreSQL, SQL Server & Sqlite",
+      "from_template": "Luo projekti mallilta",
+      "from_excel": "Luo projekti Excelistä"
     },
     "search_project": "Hakuprojekti",
     "import_metadata": "Tuo metatieto",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Varaa ilmainen demo",
     "show_community_get_your_questions_answered": "Hanki kysymyksesi vastasi",
     "show_community_join_discord": "Liity discordiin",
-    "show_community_follow_nocodb": "Seuraa NOCODB",
+    "show_community_join_reddit": "Liity /r/NocoDB",
+    "show_community_follow_nocodb": "Seuraa NocoDB",
     "search": {
       "your_search_found_no_results": "Hakusi {haku} ei löytänyt tuloksia"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Project Metadata",
       "tooltip": "Meta Management"
+    },
+    "audit": {
+      "title": "Tarkastaa",
+      "tooltip": "Tarkastusloki"
     },
     "preview_as": "Esikatselua jksk",
     "reset_review": "Nollaa esikatselu"

@@ -7,7 +7,9 @@
       "subtext_1": "Erstellen",
       "subtext_1_tooltip": "Neues Projekt erstellen",
       "subtext_2": "Erstellen mit einer<br>externen Datenbank",
-      "subtext_2_tooltip": "Unterstützt MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "Unterstützt MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "Projekt aus der Vorlage erstellen",
+      "from_excel": "Projekt von Excel erstellen"
     },
     "search_project": "Projekt suchen",
     "import_metadata": "Metadaten importieren",
@@ -28,7 +30,8 @@
     "show_community_book_a_free_demo": "Buchen Sie eine kostenlose Demo",
     "show_community_get_your_questions_answered": "Erhalten Sie Antworten auf Ihre Fragen",
     "show_community_join_discord": "Discord beitreten",
-    "show_community_follow_nocodb": "Folgen Sie NOCODB.",
+    "show_community_join_reddit": "Join /r/NocoDB",
+    "show_community_follow_nocodb": "Folgen Sie NocoDB",
     "search": {
       "your_search_found_no_results": "Ihre Suche nach {search} fand keine Ergebnisse"
     },
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Projektmetadaten",
       "tooltip": "Meta-Management."
+    },
+    "audit": {
+      "title": "Prüfung",
+      "tooltip": "Audit-Log"
     },
     "preview_as": "Vorschau anzeigen als",
     "reset_review": "Vorschau zurücksetzen."

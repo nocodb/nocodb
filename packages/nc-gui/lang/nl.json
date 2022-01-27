@@ -7,7 +7,9 @@
       "subtext_1": "Creëren",
       "subtext_1_tooltip": "Maak een nieuw project",
       "subtext_2": "Creëer door verbinding te maken met een externe database",
-      "subtext_2_tooltip": "Ondersteunt MySQL, PostgreSQL, SQL Server & Sqlite"
+      "subtext_2_tooltip": "Ondersteunt MySQL, PostgreSQL, SQL Server & Sqlite",
+      "from_template": "Maak project van sjabloon",
+      "from_excel": "Maak project van Excel"
     },
     "search_project": "Zoekproject",
     "import_metadata": "Importeer metadata",
@@ -28,6 +30,7 @@
     "show_community_book_a_free_demo": "Boek een gratis demo",
     "show_community_get_your_questions_answered": "Krijg je vragen beantwoord",
     "show_community_join_discord": "Join",
+    "show_community_join_reddit": "Join /r/NocoDB",
     "show_community_follow_nocodb": "Volg NocoDB",
     "search": {
       "your_search_found_no_results": "Uw zoekopdracht voor {sealch} vond geen resultaten"
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Project metadata",
       "tooltip": "Meta management"
+    },
+    "audit": {
+      "title": "Audit",
+      "tooltip": "Auditlogboek"
     },
     "preview_as": "Voorbeeld als",
     "reset_review": "Reset Preview"

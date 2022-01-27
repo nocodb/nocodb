@@ -7,7 +7,9 @@
       "subtext_1": "Criar",
       "subtext_1_tooltip": "Criar um novo projecto",
       "subtext_2": "Criar por Ligação <br>a Base de Dados Externa",
-      "subtext_2_tooltip": "Suporta MySQL, PostgreSQL, SQL Server & SQLite"
+      "subtext_2_tooltip": "Suporta MySQL, PostgreSQL, SQL Server & SQLite",
+      "from_template": "Criar projeto do modelo",
+      "from_excel": "Criar projeto do Excel"
     },
     "search_project": "Procurar Projecto",
     "import_metadata": "Importar Metadados",
@@ -28,6 +30,7 @@
     "show_community_book_a_free_demo": "Marque uma DEMONSTRAÇÃO gratuita",
     "show_community_get_your_questions_answered": "Obtenha resposta às suas questões",
     "show_community_join_discord": "Junte-se ao Discord",
+    "show_community_join_reddit": "Junte-se /r/NocoDB",
     "show_community_follow_nocodb": "Siga NocoDB",
     "search": {
       "your_search_found_no_results": "A sua pesquisa por {search} não encontrou resultados"
@@ -161,6 +164,10 @@
     "project_metadata": {
       "title": "Metadados do Projecto",
       "tooltip": "Gestão de Metadados"
+    },
+    "audit": {
+      "title": "Auditoria",
+      "tooltip": "Log de auditoria"
     },
     "preview_as": "Pré-visualizar como",
     "reset_review": "Redefinir pré-visualização"

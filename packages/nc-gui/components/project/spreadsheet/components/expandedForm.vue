@@ -13,7 +13,7 @@
           <template v-else>
             {{ table }}
           </template>
-          : {{ localState[primaryValueColumn] }}
+          : {{ primaryValue() }}
         </h5>
         <v-spacer />
         <v-btn small text @click="reload">
@@ -267,6 +267,7 @@ import EditableCell from '@/components/project/spreadsheet/components/editableCe
 import colors from '@/mixins/colors'
 import VirtualCell from '@/components/project/spreadsheet/components/virtualCell'
 import VirtualHeaderCell from '@/components/project/spreadsheet/components/virtualHeaderCell'
+import { UITypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
@@ -342,8 +343,8 @@ export default {
       return Object.values(this.changedColumns).some(Boolean)
     },
     localBreadcrumbs() {
-      return [...this.breadcrumbs, `${this.meta ? this.meta._tn : this.table} (${this.localState && this.localState[this.primaryValueColumn]})`]
-    }
+      return [...this.breadcrumbs, `${this.meta ? this.meta._tn : this.table} (${this.primaryValue()})`]
+    },
   },
   watch: {
     value(obj) {
@@ -436,7 +437,7 @@ export default {
         this.$emit('input', this.localState)
         this.$emit('update:isNew', false)
 
-        this.$toast.success(`${this.localState[this.primaryValueColumn]} updated successfully.`, {
+        this.$toast.success(`${this.primaryValue()} updated successfully.`, {
           position: 'bottom-right'
         }).goAway(3000)
       } catch (e) {
@@ -473,6 +474,24 @@ export default {
         await this.getAuditsAndComments()
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
+      }
+    },
+    primaryValue() {
+      if (this.localState) {
+        const value = this.localState[this.primaryValueColumn]
+        const uidt = this.meta.columns.find(c => c.cn == this.primaryValueColumn).uidt
+        if (uidt == UITypes.Date) {
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
+        } else if (uidt == UITypes.DateTime) {
+          return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD HH:mm')
+        } else if (uidt == UITypes.Time) {
+          let dateTime = dayjs(value)
+          if (!dateTime.isValid()) dateTime = dayjs(value, 'HH:mm:ss')
+          if (!dateTime.isValid()) dateTime = dayjs(`1999-01-01 ${value}`)
+          if (!dateTime.isValid()) return value
+          return dateTime.format('HH:mm:ss')
+        }
+        return value
       }
     }
   }

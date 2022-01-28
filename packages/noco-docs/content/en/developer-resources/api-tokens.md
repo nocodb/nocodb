@@ -21,4 +21,4 @@ NocoDB allows creating API tokens which allow it to be integrated seamlessly wit
 
 
 ### Using API Tokens
-Invoke NocoDB APIs with ```xc-token``` header
+Invoke NocoDB APIs with ```xc-auth``` header

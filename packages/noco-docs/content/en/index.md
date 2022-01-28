@@ -50,13 +50,11 @@ Our mission is to provide the most powerful no-code interface for databases whic
 
 <img src="architecture.png" style="background: white;border-radius:4px;padding :10px">
 
-<br>
-<br>
-
 | Project Type | Metadata stored in | Data stored in |
 |---------|-----------|--------|
 | Create new project | NC_DB | NC_DB |
-| Create new project with external DB | NC_DB | External database |
+| Create new project with External Database | NC_DB | External Database |
+| Create new project from Excel | NC_DB | NC_DB |
 
 ## NocoDB repository structure
 

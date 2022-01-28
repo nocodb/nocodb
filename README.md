@@ -116,10 +116,10 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 ![6](https://user-images.githubusercontent.com/5435402/133759242-2311a127-17c8-406c-b865-1a2e9c8ee398.png)
 <br>
 
-![3](https://user-images.githubusercontent.com/5435402/133759234-9b539029-be36-4a35-b55a-bee3ebd0e010.png)
+![5](https://user-images.githubusercontent.com/35857179/151526876-f6a0e472-9bbc-45ba-a771-9118e03bc748.png)
 <br>
 
-![4](https://user-images.githubusercontent.com/5435402/133759236-dc182129-3768-4e23-874e-98f5f32e962c.png)
+![6](https://user-images.githubusercontent.com/35857179/151526883-4c670f8b-7c5c-421f-9e95-54d3a84a72ba.png)
 <br>
 
 ![11](https://user-images.githubusercontent.com/5435402/133759253-bb9bc729-ee28-4f86-ab95-7d112c0815f2.png)

@@ -479,7 +479,9 @@ export default {
     primaryValue() {
       if (this.localState) {
         const value = this.localState[this.primaryValueColumn]
-        const uidt = this.meta.columns.find(c => c.cn == this.primaryValueColumn).uidt
+        const col = this.meta.columns.find(c => c._cn == this.primaryValueColumn)
+        if (!col) return
+        const uidt = col.uidt
         if (uidt == UITypes.Date) {
           return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
         } else if (uidt == UITypes.DateTime) {

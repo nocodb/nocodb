@@ -1,254 +1,181 @@
 {
-  "projects": {
-    "my_projects": "Moji projekti",
-    "reload_projects_tooltip": "Osveži projekte",
-    "create_new_project_button": {
-      "text": "Novi projekt",
-      "subtext_1": "Ustvari",
-      "subtext_1_tooltip": "Ustvari nov projekt",
-      "subtext_2": "Ustvari s povezovanjem<br>z zunanjo bazo podatkov",
-      "subtext_2_tooltip": "Podpira MySQL, PostgreSQL, SQL Server & SqLite",
-      "from_template": "Ustvarite projekt iz predlog",
-      "from_excel": "Ustvarite projekt iz Excela"
-    },
-    "search_project": "Poišči projekt",
-    "import_metadata": "Uvozi metapodatkov",
-    "export_metadata": "Izvozi metapodatkov",
-    "clear_metadata": "Odstrani metapodatkov",
-    "stop_project": "Ustavi projekt",
-    "start_project": "Zaženi projekt",
-    "restart_project": "Znova zaženi projekt",
-    "delete_project": "Izbriši projekt",
-    "project_api_type_tooltip_graphql": "Dostopen prek API-jev",
-    "project_api_type_tooltip_rest": "Dostopen prek REST API",
-    "project_empty_message": "Začni z ustvarjanjem novega projekta",
-    "import_button": {
-      "text": "Uvozi projekt NocoDB s nalaganjem metadata zip datoteko"
-    },
-    "show_community_star": "Zvezdi nas",
-    "show_community_us_on_Github": "na GitHub.",
-    "show_community_book_a_free_demo": "Rezervirajte brezplačno demo",
-    "show_community_get_your_questions_answered": "Odgovorili na vaša vprašanja",
-    "show_community_join_discord": "Pridružite se nam na Discord-u",
-    "show_community_join_reddit": "Pridružite se /r/NocoDB",
-    "show_community_follow_nocodb": "Sledite NocoDB",
-    "search": {
-      "your_search_found_no_results": "Vaše iskanje {search} ni dalo rezultatov"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "Uredi projekt",
-        "create": "Ustvari projek"
-      },
-      "project_name": "Vnesite ime projekta",
-      "project_type": "Dostopaj projekt prek",
-      "button": {
-        "save_project": "Shrani projekt",
-        "update_and_restart": "Posodobi in znova zaženi projekt",
-        "cancel": "Prekliči",
-        "cancel_tooltip": "Prekliči in vrni"
-      },
-      "credentials": {
-        "title": "Poverilnice baze podatkov",
-        "db_type": "Vrsta baze podatkov",
-        "sqlite_file": "SQLite datoteka",
-        "host_address": "Naslov gostitelja",
-        "port": "Številka vrat",
-        "username": "Uporabniško ime",
-        "password": "Geslo",
-        "db_create_if_not_exists": "Baza podatkov: Ustvari, če ne obstaja",
-        "button": {
-          "test_db_conn": "Priključek za preskusno bazo podatkov",
-          "remove_db_from_env": "Odstranite bazo podatkov iz okolja"
-        },
-        "advanced": {
-          "title": "SSL in napredni parametri",
-          "ssl": {
-            "client_key": {
-              "title": "Odjemalski ključ",
-              "toolip": "Izberi .key datoteko"
-            },
-            "client_cert": {
-              "title": "Potrdilo odjemalca",
-              "toolip": "Izberi .cert datoteko"
-            },
-            "server_ca": {
-              "title": "Strežnik CA",
-              "toolip": "Izberit CA datoteko"
-            },
-            "preferred": "Prednost",
-            "usage": {
-              "no": "Ne",
-              "preferred": "Prednost",
-              "required": "Obvezno",
-              "requried_ca": "Obvezni CA",
-              "requried_identity": "Zahtevana identiteta"
-            }
-          },
-          "inflection": {
-            "table_name": "Pregibanje - ime tabele",
-            "column_name": "Pregibanje - ime stolpca"
-          },
-          "button": {
-            "edit_conn_json": "Uredi povezavo JSON"
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "Neveljaven znak v poti map.",
-        "invalid_db_credentials": "Neveljavne poverilnice baze podatkov.",
-        "unable_to_connect_to_db": "Ne morem se povezati z bazo podatkov, preverite bazo podatkov.",
-        "user_doesnt_ve_sufficient_permission": "Uporabnik ne obstaja ali nima zadostnega dovoljenja za ustvarjanje sheme."
-      },
-      "head": {
-        "title": "Ustvari projekt | NocoDB."
-      },
-      "dialog": {
-        "success": "Povezava je bila uspešna",
-        "failure": "Povezava ni uspela:"
-      }
-    },
-    "notifications": {
-      "no_new": "Ni novih obvestil",
-      "clear": "Počisti"
-    }
+  "title": {
+    "myProject": "Moji projekti",
+    "newProj": "Novi projekt",
+    "dbCredentials": "Poverilnice baze podatkov",
+    "advancedParameters": "SSL in napredni parametri",
+    "headCreateProject": "Ustvari projekt | NocoDB.",
+    "headLogin": "Prijava | Nocodb.",
+    "resetPassword": "Ponastavi geslo",
+    "appStore": "Trgovina z aplikacijami",
+    "team&auth": "Ekipa in avtorizacija",
+    "rolesUserMgmt": "Upravljanje vlog in uporabnikov",
+    "projMeta": "Projekt metapodatkov",
+    "metaMgmt": "Upravljanje meta",
+    "audit": "Revizija",
+    "auditLogs": "Revizijski dnevnik",
+    "userMgmt": "Upravljanje uporabnikov",
+    "apiTokenMgmt": "Upravljanje žetonov API",
+    "rolesMgmt": "Upravljanje vlog",
+    "metaOperations": "Operacije metapodatkov"
   },
-  "signin": {
-    "title": "PRIJAVITI SE",
-    "enter_your_work_email": "Vnesite svoje delovno e-pošto",
-    "enter_your_password": "Vnesite svoje geslo",
-    "forget_password": "Ste pozabili geslo ?",
-    "dont_ve_an_account": "Nimate računa?",
-    "sign_up": "Prijavite se",
-    "form": {
-      "rules": {
-        "email_is_reqd": "Potrebna je e-pošta",
-        "email_must_be_valid": "E-pošta mora biti veljavna",
-        "passwd_required": "zahtevano je geslo",
-        "passwd_must_be_8_chars": "Geslo mora biti vsaj 8 znakov"
-      }
+  "activity": {
+    "refreshProject": "Osveži projekte",
+    "createProjectExtended": {
+      "extDB": "Ustvari s povezovanjem<br>z zunanjo bazo podatkov",
+      "template": "Ustvarite projekt iz predlog",
+      "excel": "Ustvarite projekt iz Excela"
     },
-    "head": {
-      "title": "Prijava | Nocodb.",
-      "meta": {
-        "hid": "Prijavite se v Nocodb",
-        "name": "Prijavite se v Nocodb",
-        "content": "Prijavite se v Nocodb"
-      }
-    },
-    "password": {
-      "recovery": {
-        "title": "Ponastavi geslo",
+    "searchProject": "Poišči projekt",
+    "importMetadata": "Uvozi metapodatkov",
+    "exportMetadata": "Izvozi metapodatkov",
+    "clearMetadata": "Odstrani metapodatkov",
+    "stopProject": "Ustavi projekt",
+    "startProject": "Zaženi projekt",
+    "restartProject": "Znova zaženi projekt",
+    "deleteProject": "Izbriši projekt",
+    "editProject": "Uredi projekt",
+    "createProject": "Ustvari projek",
+    "saveProject": "Shrani projekt",
+    "testDbConn": "Priključek za preskusno bazo podatkov",
+    "removeDbFromEnv": "Odstranite bazo podatkov iz okolja",
+    "editConnJson": "Uredi povezavo JSON",
+    "sendEmail": "POŠLJI SPOROČILO",
+    "settings": "Nastavitve",
+    "previewAs": "Predogled kot",
+    "resetReview": "Ponastavi predogled",
+    "copyView": "Kopiraj pogled",
+    "renameView": "Preimenuj pogled",
+    "deleteView": "Izbriši pogled",
+    "createView": "Ustvari pogled",
+    "shareView": "Deli pogled",
+    "ListView": "Seznam pogledov",
+    "copyApiURL": "Kopiraj API URL",
+    "exportToFile": "Izvozi v datoteko",
+    "import": "Uvozi",
+    "exportZip": "Izvozi zip",
+    "importZip": "Uvozi zip"
+  },
+  "general": {
+    "create": "Ustvari",
+    "cancel": "Prekliči",
+    "preferred": "Prednost",
+    "no": "Ne",
+    "required": "Obvezno",
+    "signIn": "PRIJAVITI SE",
+    "signUp": "Prijavite se",
+    "reset": "Ponastavi"
+  },
+  "tooltip": {
+    "xcDB": "Ustvari nov projekt",
+    "extDB": "Podpira MySQL, PostgreSQL, SQL Server & SqLite",
+    "apiGQL": "Dostopen prek API-jev",
+    "apiRest": "Dostopen prek REST API",
+    "updateRestart": "Posodobi in znova zaženi projekt",
+    "cancelReturn": "Prekliči in vrni",
+    "clientKey": "Izberi .key datoteko",
+    "clientCert": "Izberi .cert datoteko",
+    "clientCA": "Izberit CA datoteko",
+    "exportMetadata": "Izvozi vse metapodatke iz meta tabele v mapo meta.",
+    "importMetadata": "Uvozi vse metapodatke iz meta mape v meta tabele.",
+    "clearMetadata": "Počisti vse metapodatke iz meta tabel."
+  },
+  "msg": {
+    "info": {
+      "projectEmptyMessage": "Začni z ustvarjanjem novega projekta",
+      "importText": "Uvozi projekt NocoDB s nalaganjem metadata zip datoteko",
+      "apiOptions": "Dostopaj projekt prek",
+      "dbConnected": "Povezava je bila uspešna",
+      "notifications": {
+        "no_new": "Ni novih obvestil",
+        "clear": "Počisti"
+      },
+      "signUp": {
+        "workEmail": "Vnesite svoje delovno e-pošto",
+        "enterPassword": "Vnesite svoje geslo",
+        "forgotPassword": "Ste pozabili geslo ?",
+        "dontHaveAccount": "Nimate računa?",
+        "superAdmin": "Ti boš \"Super admin\"",
+        "alreadyHaveAccount": "Že imate račun?"
+      },
+      "loginMsg": "Prijavite se v Nocodb",
+      "passwordRecovery": {
         "message_1": "Navedite e-poštni naslov, ki ste ga uporabili, ko ste se prijavili.",
         "message_2": "Poslali vam bomo e-pošto s povezavo za ponastavitev gesla.",
-        "success": "Preverite e-poštno sporočilo, da ponastavite geslo",
-        "button": "POŠLJI SPOROČILO"
+        "success": "Preverite e-poštno sporočilo, da ponastavite geslo"
+      },
+      "onlyCreator": "Viden samo ustvarjalcu",
+      "addView": {
+        "grid": "Dodaj mrežni pogled",
+        "gallery": "Dodaj ogled galerije",
+        "calendar": "Dodaj pogled koledarja",
+        "kanban": "Dodaj pogled Kanban-a",
+        "form": "Dodaj pogled obrazca"
+      },
+      "privateLink": "Ta pogled je v skupni rabi prek zasebne povezave",
+      "privateLinkAdditionalInfo": "Ljudje z zasebno povezavo lahko vidijo le celice, ki so vidne v tem pogledu",
+      "beforeEnablePwd": "Omeji dostop z geslom",
+      "afterEnablePwd": "Za dostop je potrebno geslo",
+      "exportZip": "Izvozi meta projekta v datoteko zip in prenesi.",
+      "importZip": "Uvozi projekt meta zip datoteko in znova zaženi."
+    },
+    "error": {
+      "searchProject": "Vaše iskanje {search} ni dalo rezultatov",
+      "invalidChar": "Neveljaven znak v poti map.",
+      "invalidDbCredentials": "Neveljavne poverilnice baze podatkov.",
+      "unableToConnectToDb": "Ne morem se povezati z bazo podatkov, preverite bazo podatkov.",
+      "userDoesntHaveSufficientPermission": "Uporabnik ne obstaja ali nima zadostnega dovoljenja za ustvarjanje sheme.",
+      "dbConnectionFailed": "Povezava ni uspela:",
+      "signUpRules": {
+        "emailReqd": "Potrebna je e-pošta",
+        "emailInvalid": "E-pošta mora biti veljavna",
+        "passwdRequired": "zahtevano je geslo",
+        "passwdLength": "Geslo mora biti vsaj 8 znakov"
       }
     }
   },
-  "signup": {
-    "title": "PRIJAVITE SE",
-    "you_will_be_the_super_admin": "Ti boš \"Super admin\"",
-    "already_ve_an_account": "Že imate račun?"
-  },
-  "treeview": {
-    "settings": {
-      "title": "Nastavitve",
-      "tooltip": "Viden samo ustvarjalcu"
+  "labels": {
+    "community": {
+      "starUs1": "Zvezdi nas",
+      "starUs2": "na GitHub.",
+      "bookDemo": "Rezervirajte brezplačno demo",
+      "getAnswered": "Odgovorili na vaša vprašanja",
+      "joinDiscord": "Pridružite se nam na Discord-u",
+      "joinReddit": "Pridružite se /r/NocoDB",
+      "followNocodb": "Sledite NocoDB"
     },
-    "app_store": "Trgovina z aplikacijami",
-    "team_n_auth": {
-      "title": "Ekipa in avtorizacija",
-      "tooltip": "Upravljanje vlog in uporabnikov"
-    },
-    "project_metadata": {
-      "title": "Projekt metapodatkov",
-      "tooltip": "Upravljanje meta"
-    },
-    "audit": {
-      "title": "Revizija",
-      "tooltip": "Revizijski dnevnik"
-    },
-    "preview_as": "Predogled kot",
-    "reset_review": "Ponastavi predogled"
-  },
-  "nav_drawer": {
-    "title": "Ogledi",
-    "virtual_views": {
-      "action": {
-        "copy": "Kopiraj pogled",
-        "rename": "Preimenuj pogled",
-        "delete": "Izbriši pogled"
-      },
-      "title": "Ustvari pogled",
-      "caption": "Viden samo ustvarjalcu",
-      "grid": {
-        "title": "Mreža",
-        "create": "Dodaj mrežni pogled"
-      },
-      "gallery": {
-        "title": "Galerija",
-        "create": "Dodaj ogled galerije"
-      },
-      "calendar": {
-        "title": "Koledar",
-        "create": "Dodaj pogled koledarja"
-      },
-      "kanban": {
-        "title": "Kanban",
-        "create": "Dodaj pogled Kanban-a"
-      },
-      "form": {
-        "title": "Obrazec",
-        "create": "Dodaj pogled obrazca"
-      }
-    },
-    "advanced": {
-      "title1": "Deli pogled",
-      "views_list": "Seznam pogledov",
-      "copy_api_url": "Kopiraj API URL"
-    },
-    "share_view": {
-      "title": "Ta pogled je v skupni rabi prek zasebne povezave",
-      "body": "Ljudje z zasebno povezavo lahko vidijo le celice, ki so vidne v tem pogledu",
-      "toggle": {
-        "option1": "Omeji dostop z geslom",
-        "option2": "Za dostop je potrebno geslo"
-      },
-      "password": {
-        "caption": "Vnesi geslo",
-        "button": "Shrani geslo"
-      }
+    "dbType": "Vrsta baze podatkov",
+    "sqliteFile": "SQLite datoteka",
+    "hostAddress": "Naslov gostitelja",
+    "port": "Številka vrat",
+    "username": "Uporabniško ime",
+    "password": "Geslo",
+    "dbCreateIfNotExists": "Baza podatkov: Ustvari, če ne obstaja",
+    "clientKey": "Odjemalski ključ",
+    "clientCert": "Potrdilo odjemalca",
+    "serverCA": "Strežnik CA",
+    "requriedCa": "Obvezni CA",
+    "requriedIdentity": "Zahtevana identiteta",
+    "inflection": {
+      "tableName": "Pregibanje - ime tabele",
+      "columnName": "Pregibanje - ime stolpca"
     }
   },
-  "management": {
-    "tabs": {
-      "user": "Upravljanje uporabnikov",
-      "api": "Upravljanje žetonov API",
-      "roles": "Upravljanje vlog"
-    },
-    "meta": {
-      "title": "Operacije metapodatkov",
-      "export_to_file": {
-        "title": "Izvozi v datoteko",
-        "desc": "Izvozi vse metapodatke iz meta tabele v mapo meta."
-      },
-      "import": {
-        "title": "Uvozi",
-        "desc": "Uvozi vse metapodatke iz meta mape v meta tabele."
-      },
-      "export_to_zip": {
-        "title": "Izvozi zip",
-        "desc": "Izvozi meta projekta v datoteko zip in prenesi."
-      },
-      "import_zip": {
-        "title": "Uvozi zip",
-        "desc": "Uvozi projekt meta zip datoteko in znova zaženi."
-      },
-      "reset": {
-        "title": "Ponastavi",
-        "desc": "Počisti vse metapodatke iz meta tabel."
-      }
+  "placeholder": {
+    "projName": "Vnesite ime projekta",
+    "password": {
+      "enter": "Vnesi geslo",
+      "save": "Shrani geslo"
+    }
+  },
+  "objects": {
+    "views": "Ogledi",
+    "viewType": {
+      "grid": "Mreža",
+      "gallery": "Galerija",
+      "calendar": "Koledar",
+      "kanban": "Kanban",
+      "form": "Obrazec"
     }
   }
 }

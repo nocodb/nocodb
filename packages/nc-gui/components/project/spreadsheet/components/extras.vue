@@ -43,8 +43,8 @@
               <v-icon class="mr-1" small :color="textColors[0]">
                 mdi-discord
               </v-icon>
-              <span class="caption" :title="$t('projects.show_community_join_discord')">{{
-                $t('projects.show_community_join_discord')
+              <span class="caption" :title="$t('labels.community.joinDiscord')">{{
+                $t('labels.community.joinDiscord')
               }}</span>
             </v-list-item-title>
           </v-list-item>
@@ -55,8 +55,8 @@
               <v-icon class="mr-1" small :color="textColors[1]">
                 mdi-twitter
               </v-icon>
-              <span class="caption" title="$t('projects.show_community_follow_nocodb')"> {{
-                $t('projects.show_community_follow_nocodb')
+              <span class="caption" title="$t('labels.community.followNocodb')"> {{
+                $t('labels.community.followNocodb')
               }}</span>
             </v-list-item-title>
           </v-list-item>
@@ -67,8 +67,8 @@
               <v-icon class="mr-1" small color="#ff4600">
                 mdi-reddit
               </v-icon>
-              <span class="caption" :title="$t('projects.show_community_join_reddit')">{{
-                $t('projects.show_community_join_reddit')
+              <span class="caption" :title="$t('labels.community.joinReddit')">{{
+                $t('labels.community.joinReddit')
               }}</span>
             </v-list-item-title>
           </v-list-item>
@@ -83,8 +83,8 @@
               <v-icon class="mr-1" small :color="textColors[3]">
                 mdi-calendar-month
               </v-icon>
-              <span class="caption" :title="$t('projects.show_community_book_a_free_demo')">{{
-                $t('projects.show_community_book_a_free_demo')
+              <span class="caption" :title="$t('labels.community.bookDemo')">{{
+                $t('labels.community.bookDemo')
               }}</span>
             </v-list-item-title>
           </v-list-item>

@@ -397,7 +397,7 @@
             <v-list-item>
               <v-list-item-title>
                 <!-- Settings -->
-                <span class="body-2 font-weight-medium">{{ $t('treeview.settings.title') }}</span>
+                <span class="body-2 font-weight-medium">{{ $t('activity.settings') }}</span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
@@ -413,7 +413,7 @@
                     </x-icon>
                   </template>
                   <!-- Only visible to Creator -->
-                  <span class="caption">{{ $t('treeview.settings.tooltip') }}</span>
+                  <span class="caption">{{ $t('msg.info.onlyCreator') }}</span>
                 </v-tooltip>
               </v-list-item-title>
             </v-list-item>
@@ -430,13 +430,13 @@
                     <!-- App Store -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.app_store')
+                        $t('title.appStore')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- App Store -->
-                {{ $t('treeview.app_store') }}
+                {{ $t('title.appStore') }}
               </v-tooltip>
 
               <v-tooltip bottom>
@@ -450,13 +450,13 @@
                     <!-- Team & Auth -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.team_n_auth.title')
+                        $t('title.team&auth')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Roles & Users Management -->
-                {{ $t('treeview.team_n_auth.tooltip') }}
+                {{ $t('title.rolesUserMgmt') }}
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
@@ -469,13 +469,13 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.project_metadata.title')
+                        $t('title.projMeta')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Meta Management -->
-                {{ $t('treeview.project_metadata.tooltip') }}
+                {{ $t('title.metaMgmt') }}
               </v-tooltip>
 
               <v-tooltip bottom>
@@ -489,13 +489,13 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('treeview.audit.title')
+                        $t('title.audit')
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Meta Management -->
-                {{ $t('treeview.audit.tooltip') }}
+                {{ $t('title.auditLogs') }}
               </v-tooltip>
             </template>
           </v-list>
@@ -554,7 +554,7 @@
           <v-list v-if="_isUIAllowed('previewAs') || previewAs" dense>
             <v-list-item>
               <!-- Preview as -->
-              <span class="body-2 font-weight-medium">{{ $t('treeview.preview_as') }}</span>
+              <span class="body-2 font-weight-medium">{{ $t('activity.previewAs') }}</span>
               <v-icon small class="ml-1">
                 mdi-drama-masks
               </v-icon>
@@ -597,7 +597,7 @@
                     mdi-close
                   </v-icon>
                   <!-- Reset Preview -->
-                  <span class="caption nc-preview-reset">{{ $t('treeview.reset_review') }}</span>
+                  <span class="caption nc-preview-reset">{{ $t('activity.resetReview') }}</span>
                 </v-list-item>
               </template>
             </v-list>

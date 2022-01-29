@@ -1,254 +1,181 @@
 {
-  "projects": {
-    "my_projects": "Proyek saya",
-    "reload_projects_tooltip": "Refresh Projects.",
-    "create_new_project_button": {
-      "text": "Proyek baru",
-      "subtext_1": "Membuat",
-      "subtext_1_tooltip": "Buat proyek baru",
-      "subtext_2": "Buat dengan menghubungkan <br> ke basis data eksternal",
-      "subtext_2_tooltip": "Mendukung MySQL, PostgreSQL, SQL Server & SQLite",
-      "from_template": "Buat proyek dari template",
-      "from_excel": "Buat proyek dari Excel"
-    },
-    "search_project": "Cari proyek",
-    "import_metadata": "Impor Metadata.",
-    "export_metadata": "Ekspor metadata.",
-    "clear_metadata": "Clear Metadata.",
-    "stop_project": "Stop Project.",
-    "start_project": "Mulai Proyek",
-    "restart_project": "Restart Project.",
-    "delete_project": "Hapus proyek",
-    "project_api_type_tooltip_graphql": "Dapat diakses melalui Apis Graphql",
-    "project_api_type_tooltip_rest": "Dapat diakses melalui API REST",
-    "project_empty_message": "Mulailah dengan membuat proyek baru",
-    "import_button": {
-      "text": "Impor proyek NOCODB dengan mengunggah file zip metadata"
-    },
-    "show_community_star": "Bintang",
-    "show_community_us_on_Github": "kami di GitHub",
-    "show_community_book_a_free_demo": "Pesan demo gratis",
-    "show_community_get_your_questions_answered": "Dapatkan pertanyaan Anda dijawab",
-    "show_community_join_discord": "Bergabunglah dengan Perselisihan",
-    "show_community_join_reddit": "Bergabunglah /r/NocoDB",
-    "show_community_follow_nocodb": "Ikuti NocoDB",
-    "search": {
-      "your_search_found_no_results": "Pencarian Anda untuk {Search} tidak menemukan hasil"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "Edit proyek",
-        "create": "Buat Proyek"
-      },
-      "project_name": "Masukkan nama proyek",
-      "project_type": "PROYEK AKSES VIA.",
-      "button": {
-        "save_project": "Simpan proyek",
-        "update_and_restart": "Perbarui & Restart.",
-        "cancel": "Membatalkan",
-        "cancel_tooltip": "Batalkan dan kembali"
-      },
-      "credentials": {
-        "title": "Kredensial basis data",
-        "db_type": "DATABASE TYPE.",
-        "sqlite_file": "File SQLite.",
-        "host_address": "Alamat Tuan Rumah",
-        "port": "Nomor port.",
-        "username": "Nama pengguna",
-        "password": "Kata sandi",
-        "db_create_if_not_exists": "Basis Data: Buat jika tidak ada",
-        "button": {
-          "test_db_conn": "Tes Koneksi Basis Data",
-          "remove_db_from_env": "Hapus basis data dari lingkungan"
-        },
-        "advanced": {
-          "title": "SSL & Parameter Lanjutan",
-          "ssl": {
-            "client_key": {
-              "title": "Kunci klien",
-              "toolip": "Pilih .Key File."
-            },
-            "client_cert": {
-              "title": "Sertifikat klien",
-              "toolip": "Pilih file .cert."
-            },
-            "server_ca": {
-              "title": "Server CA.",
-              "toolip": "Pilih CA File."
-            },
-            "preferred": "Lebih disukai",
-            "usage": {
-              "no": "Tidak",
-              "preferred": "Lebih disukai",
-              "required": "Yg dibutuhkan",
-              "requried_ca": "Wajib-ca.",
-              "requried_identity": "Wajib-identitas."
-            }
-          },
-          "inflection": {
-            "table_name": "Infleksi - Nama Tabel",
-            "column_name": "Infleksi - Nama Kolom"
-          },
-          "button": {
-            "edit_conn_json": "Edit koneksi JSON."
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "Karakter tidak valid di jalur folder.",
-        "invalid_db_credentials": "Kredensial basis data tidak valid.",
-        "unable_to_connect_to_db": "Tidak dapat terhubung ke database, silakan periksa basis data Anda.",
-        "user_doesnt_ve_sufficient_permission": "Pengguna tidak ada atau memiliki izin yang cukup untuk membuat skema."
-      },
-      "head": {
-        "title": "Buat Proyek | Nocodb."
-      },
-      "dialog": {
-        "success": "Koneksi berhasil",
-        "failure": "Koneksi Bermasalah:"
-      }
-    },
-    "notifications": {
-      "no_new": "Tidak ada pemberitahuan baru",
-      "clear": "Jernih"
-    }
+  "title": {
+    "myProject": "Proyek saya",
+    "newProj": "Proyek baru",
+    "dbCredentials": "Kredensial basis data",
+    "advancedParameters": "SSL & Parameter Lanjutan",
+    "headCreateProject": "Buat Proyek | Nocodb.",
+    "headLogin": "Masuk | Nocodb.",
+    "resetPassword": "Mereset password Anda",
+    "appStore": "Toko aplikasi",
+    "team&auth": "Tim & AUTH.",
+    "rolesUserMgmt": "Manajemen Peran & Pengguna",
+    "projMeta": "Metadata proyek",
+    "metaMgmt": "Meta Management.",
+    "audit": "Audit",
+    "auditLogs": "Log audit",
+    "userMgmt": "Manajemen Pengguna",
+    "apiTokenMgmt": "API Token Management.",
+    "rolesMgmt": "Manajemen peran.",
+    "metaOperations": "Operasi metadata"
   },
-  "signin": {
-    "title": "MASUK",
-    "enter_your_work_email": "Masukkan email kantor Anda",
-    "enter_your_password": "Masukkan kata sandi Anda",
-    "forget_password": "Lupa kata sandi Anda ?",
-    "dont_ve_an_account": "Tidak punya akun?",
-    "sign_up": "Mendaftar",
-    "form": {
-      "rules": {
-        "email_is_reqd": "E-mail diperlukan",
-        "email_must_be_valid": "E-mail harus valid",
-        "passwd_required": "katakunci dibutuhkan",
-        "passwd_must_be_8_chars": "Kata sandi Anda harus minimal 8 karakter"
-      }
+  "activity": {
+    "refreshProject": "Refresh Projects.",
+    "createProjectExtended": {
+      "extDB": "Buat dengan menghubungkan <br> ke basis data eksternal",
+      "template": "Buat proyek dari template",
+      "excel": "Buat proyek dari Excel"
     },
-    "head": {
-      "title": "Masuk | Nocodb.",
-      "meta": {
-        "hid": "Masuk ke nocodb",
-        "name": "Masuk ke nocodb",
-        "content": "Masuk ke nocodb"
-      }
-    },
-    "password": {
-      "recovery": {
-        "title": "Mereset password Anda",
+    "searchProject": "Cari proyek",
+    "importMetadata": "Impor Metadata.",
+    "exportMetadata": "Ekspor metadata.",
+    "clearMetadata": "Clear Metadata.",
+    "stopProject": "Stop Project.",
+    "startProject": "Mulai Proyek",
+    "restartProject": "Restart Project.",
+    "deleteProject": "Hapus proyek",
+    "editProject": "Edit proyek",
+    "createProject": "Buat Proyek",
+    "saveProject": "Simpan proyek",
+    "testDbConn": "Tes Koneksi Basis Data",
+    "removeDbFromEnv": "Hapus basis data dari lingkungan",
+    "editConnJson": "Edit koneksi JSON.",
+    "sendEmail": "MENGIRIM EMAIL",
+    "settings": "Pengaturan",
+    "previewAs": "Pratinjau sebagai",
+    "resetReview": "Reset Pratinjau",
+    "copyView": "Salin Lihat",
+    "renameView": "Ganti nama tampilan",
+    "deleteView": "Hapus Lihat",
+    "createView": "Buat tampilan",
+    "shareView": "Bagikan Lihat",
+    "ListView": "Tampilan daftar",
+    "copyApiURL": "Salin API URL.",
+    "exportToFile": "Ekspor ke File.",
+    "import": "Impor",
+    "exportZip": "Ekspor Zip.",
+    "importZip": "Impor Zip."
+  },
+  "general": {
+    "create": "Membuat",
+    "cancel": "Membatalkan",
+    "preferred": "Lebih disukai",
+    "no": "Tidak",
+    "required": "Yg dibutuhkan",
+    "signIn": "MASUK",
+    "signUp": "Mendaftar",
+    "reset": "Mengatur ulang"
+  },
+  "tooltip": {
+    "xcDB": "Buat proyek baru",
+    "extDB": "Mendukung MySQL, PostgreSQL, SQL Server & SQLite",
+    "apiGQL": "Dapat diakses melalui Apis Graphql",
+    "apiRest": "Dapat diakses melalui API REST",
+    "updateRestart": "Perbarui & Restart.",
+    "cancelReturn": "Batalkan dan kembali",
+    "clientKey": "Pilih .Key File.",
+    "clientCert": "Pilih file .cert.",
+    "clientCA": "Pilih CA File.",
+    "exportMetadata": "Ekspor semua metadata dari tabel meta ke direktori meta.",
+    "importMetadata": "Impor semua metadata dari direktori Meta ke Meta Tables.",
+    "clearMetadata": "Bersihkan semua metadata dari Meta Tables."
+  },
+  "msg": {
+    "info": {
+      "projectEmptyMessage": "Mulailah dengan membuat proyek baru",
+      "importText": "Impor proyek NOCODB dengan mengunggah file zip metadata",
+      "apiOptions": "PROYEK AKSES VIA.",
+      "dbConnected": "Koneksi berhasil",
+      "notifications": {
+        "no_new": "Tidak ada pemberitahuan baru",
+        "clear": "Jernih"
+      },
+      "signUp": {
+        "workEmail": "Masukkan email kantor Anda",
+        "enterPassword": "Masukkan kata sandi Anda",
+        "forgotPassword": "Lupa kata sandi Anda ?",
+        "dontHaveAccount": "Tidak punya akun?",
+        "superAdmin": "Anda akan menjadi 'super admin'",
+        "alreadyHaveAccount": "Sudah memiliki akun ?"
+      },
+      "loginMsg": "Masuk ke nocodb",
+      "passwordRecovery": {
         "message_1": "Harap berikan alamat email yang Anda gunakan saat mendaftar.",
         "message_2": "Kami akan mengirimkan email kepada Anda dengan tautan untuk mengatur ulang kata sandi Anda.",
-        "success": "Silakan periksa email Anda untuk mengatur ulang kata sandi",
-        "button": "MENGIRIM EMAIL"
+        "success": "Silakan periksa email Anda untuk mengatur ulang kata sandi"
+      },
+      "onlyCreator": "Hanya terlihat oleh pencipta",
+      "addView": {
+        "grid": "Tambahkan tampilan grid",
+        "gallery": "Tambahkan Tampilan Galeri",
+        "calendar": "Tambahkan tampilan kalender",
+        "kanban": "Tambahkan Kanban Lihat",
+        "form": "Tambahkan tampilan formulir"
+      },
+      "privateLink": "Tampilan ini dibagikan melalui tautan pribadi",
+      "privateLinkAdditionalInfo": "Orang dengan tautan pribadi hanya dapat melihat sel yang terlihat dalam pandangan ini",
+      "beforeEnablePwd": "Batasi akses dengan kata sandi",
+      "afterEnablePwd": "Akses dibatasi kata sandi",
+      "exportZip": "Meta proyek ekspor ke file zip dan unduh.",
+      "importZip": "Impor file meta zip file dan restart."
+    },
+    "error": {
+      "searchProject": "Pencarian Anda untuk {Search} tidak menemukan hasil",
+      "invalidChar": "Karakter tidak valid di jalur folder.",
+      "invalidDbCredentials": "Kredensial basis data tidak valid.",
+      "unableToConnectToDb": "Tidak dapat terhubung ke database, silakan periksa basis data Anda.",
+      "userDoesntHaveSufficientPermission": "Pengguna tidak ada atau memiliki izin yang cukup untuk membuat skema.",
+      "dbConnectionFailed": "Koneksi Bermasalah:",
+      "signUpRules": {
+        "emailReqd": "E-mail diperlukan",
+        "emailInvalid": "E-mail harus valid",
+        "passwdRequired": "katakunci dibutuhkan",
+        "passwdLength": "Kata sandi Anda harus minimal 8 karakter"
       }
     }
   },
-  "signup": {
-    "title": "DAFTAR",
-    "you_will_be_the_super_admin": "Anda akan menjadi 'super admin'",
-    "already_ve_an_account": "Sudah memiliki akun ?"
-  },
-  "treeview": {
-    "settings": {
-      "title": "Pengaturan",
-      "tooltip": "Hanya terlihat oleh pencipta"
+  "labels": {
+    "community": {
+      "starUs1": "Bintang",
+      "starUs2": "kami di GitHub",
+      "bookDemo": "Pesan demo gratis",
+      "getAnswered": "Dapatkan pertanyaan Anda dijawab",
+      "joinDiscord": "Bergabunglah dengan Perselisihan",
+      "joinReddit": "Bergabunglah /r/NocoDB",
+      "followNocodb": "Ikuti NocoDB"
     },
-    "app_store": "Toko aplikasi",
-    "team_n_auth": {
-      "title": "Tim & AUTH.",
-      "tooltip": "Manajemen Peran & Pengguna"
-    },
-    "project_metadata": {
-      "title": "Metadata proyek",
-      "tooltip": "Meta Management."
-    },
-    "audit": {
-      "title": "Audit",
-      "tooltip": "Log audit"
-    },
-    "preview_as": "Pratinjau sebagai",
-    "reset_review": "Reset Pratinjau"
-  },
-  "nav_drawer": {
-    "title": "Tampilan",
-    "virtual_views": {
-      "action": {
-        "copy": "Salin Lihat",
-        "rename": "Ganti nama tampilan",
-        "delete": "Hapus Lihat"
-      },
-      "title": "Buat tampilan",
-      "caption": "Hanya terlihat oleh pencipta",
-      "grid": {
-        "title": "Kisi",
-        "create": "Tambahkan tampilan grid"
-      },
-      "gallery": {
-        "title": "Galeri",
-        "create": "Tambahkan Tampilan Galeri"
-      },
-      "calendar": {
-        "title": "Kalender",
-        "create": "Tambahkan tampilan kalender"
-      },
-      "kanban": {
-        "title": "Kanban.",
-        "create": "Tambahkan Kanban Lihat"
-      },
-      "form": {
-        "title": "Membentuk",
-        "create": "Tambahkan tampilan formulir"
-      }
-    },
-    "advanced": {
-      "title1": "Bagikan Lihat",
-      "views_list": "Tampilan daftar",
-      "copy_api_url": "Salin API URL."
-    },
-    "share_view": {
-      "title": "Tampilan ini dibagikan melalui tautan pribadi",
-      "body": "Orang dengan tautan pribadi hanya dapat melihat sel yang terlihat dalam pandangan ini",
-      "toggle": {
-        "option1": "Batasi akses dengan kata sandi",
-        "option2": "Akses dibatasi kata sandi"
-      },
-      "password": {
-        "caption": "Masukkan kata sandi",
-        "button": "Simpan kata sandi"
-      }
+    "dbType": "DATABASE TYPE.",
+    "sqliteFile": "File SQLite.",
+    "hostAddress": "Alamat Tuan Rumah",
+    "port": "Nomor port.",
+    "username": "Nama pengguna",
+    "password": "Kata sandi",
+    "dbCreateIfNotExists": "Basis Data: Buat jika tidak ada",
+    "clientKey": "Kunci klien",
+    "clientCert": "Sertifikat klien",
+    "serverCA": "Server CA.",
+    "requriedCa": "Wajib-ca.",
+    "requriedIdentity": "Wajib-identitas.",
+    "inflection": {
+      "tableName": "Infleksi - Nama Tabel",
+      "columnName": "Infleksi - Nama Kolom"
     }
   },
-  "management": {
-    "tabs": {
-      "user": "Manajemen Pengguna",
-      "api": "API Token Management.",
-      "roles": "Manajemen peran."
-    },
-    "meta": {
-      "title": "Operasi metadata",
-      "export_to_file": {
-        "title": "Ekspor ke File.",
-        "desc": "Ekspor semua metadata dari tabel meta ke direktori meta."
-      },
-      "import": {
-        "title": "Impor",
-        "desc": "Impor semua metadata dari direktori Meta ke Meta Tables."
-      },
-      "export_to_zip": {
-        "title": "Ekspor Zip.",
-        "desc": "Meta proyek ekspor ke file zip dan unduh."
-      },
-      "import_zip": {
-        "title": "Impor Zip.",
-        "desc": "Impor file meta zip file dan restart."
-      },
-      "reset": {
-        "title": "Mengatur ulang",
-        "desc": "Bersihkan semua metadata dari Meta Tables."
-      }
+  "placeholder": {
+    "projName": "Masukkan nama proyek",
+    "password": {
+      "enter": "Masukkan kata sandi",
+      "save": "Simpan kata sandi"
+    }
+  },
+  "objects": {
+    "views": "Tampilan",
+    "viewType": {
+      "grid": "Kisi",
+      "gallery": "Galeri",
+      "calendar": "Kalender",
+      "kanban": "Kanban.",
+      "form": "Membentuk"
     }
   }
 }

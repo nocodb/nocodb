@@ -1183,7 +1183,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     if (beforeMetaUpdate) {
       await beforeMetaUpdate({
-        ctx,
+        ctx: { ...ctx, v: oldMeta.v },
         meta: newMeta
       });
     }

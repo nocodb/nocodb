@@ -22,7 +22,6 @@
     "reload": "Reload",
     "reset": "Reset",
     "install": "Install",
-
     "show": "Show",
     "hide": "Hide",
     "showAll": "Show all",
@@ -34,18 +33,14 @@
     "hideMenu": "Hide menu",
     "addAll": "Add all",
     "removeAll": "Remove all",
-
-    "signUp": "SIGN UP",
+    "signUp": "Sign Up",
     "signIn": "SIGN IN",
     "signOut": "Sign Out",
-
     "required": "Required",
     "preferred": "Preferred",
     "mandatory": "Mandatory",
-
     "loading": "Loading ..."
   },
-
   "objects": {
     "project": "Project",
     "projects": "Projects",
@@ -61,7 +56,6 @@
     "records": "Records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
-
     "view": "View",
     "views": "Views",
     "viewType": {
@@ -71,7 +65,6 @@
       "kanban": "Kanban",
       "calendar": "Calendar"
     },
-
     "user": "User",
     "users": "Users",
     "role": "Role",
@@ -84,7 +77,6 @@
       "viewer": "Viewer"
     }
   },
-
   "datatype": {
     "ID": "ID",
     "ForeignKey": "Foreign Key",
@@ -119,7 +111,6 @@
     "Button": "Button",
     "Password": "Password"
   },
-
   "filterOperation": {
     "isEqual": "is equal",
     "isNotEqual": "is not equal",
@@ -130,7 +121,6 @@
     "isNull": "is null",
     "isNotNull": "is not null"
   },
-
   "title": {
     "newProj": "New Project",
     "myProject": "My Projects",
@@ -141,7 +131,7 @@
     "appStore": "App Store",
     "team&auth": "Team & Auth",
     "rolesUserMgmt": "Roles & Users Management",
-    "userMgmt": "Users management",
+    "userMgmt": "Users Management",
     "apiTokenMgmt": "API Tokens Management",
     "rolesMgmt": "Roles Management",
     "projMeta": "Project Metadata",
@@ -158,7 +148,6 @@
     "headLogin": "Log In | NocoDB",
     "resetPassword": "Reset your password"
   },
-
   "labels": {
     "projName": "Project name",
     "viewName": "View name",
@@ -213,7 +202,6 @@
       "followNocodb": "Follow NocoDB"
     }
   },
-
   "activity": {
     "createProject": "Create Project",
     "importProject": "Import Project",
@@ -231,38 +219,32 @@
       "template": "Create Project from template"
     },
     "OkSaveProject": "Ok & Save Project",
-
     "upgrade": {
       "available": "Upgrade available",
       "releaseNote": "Release notes",
       "howTo": "How to upgrade ?"
     },
     "translate": "Help translate",
-
     "account": {
       "authToken": "Copy Auth Token",
       "swagger": "Swagger APIs Doc",
       "projInfo": "Copy Project Info",
       "themes": "Themes"
     },
-
     "sort": "Sort",
     "addSort": "Add Sort Option",
     "filter": "Filter",
     "addFilter": "Add Filter",
-
     "share": "Share",
     "shareBase": {
       "disable": "Disable shared base",
       "enable": "Anyone with the link",
       "link": "Shared base link"
     },
-
     "invite": "Invite",
     "inviteMore": "Invite more",
     "inviteTeam": "Invite Team",
     "inviteToken": "Invite Token",
-
     "newUser": "New User",
     "editUser": "Edit user",
     "deleteUser": "Remove user from project",
@@ -270,38 +252,30 @@
     "copyInviteURL": "Copy invite URL",
     "newRole": "New role",
     "reloadRoles": "Reload roles",
-
     "nextPage": "Next page",
     "prevPage": "Previous page",
     "nextRecord": "Next record",
     "previousRecord": "Previous record",
-
     "copyApiURL": "Copy API URL",
-
     "createTable": "Table Create",
     "refreshTable": "Tables Refresh",
     "renameTable": "Table Rename",
     "addField": "Add new field to this table",
     "setPrimary": "Set as Primary value",
-
     "addRow": "Add new row",
     "saveRow": "Save row",
     "insertRow": "Insert New Row",
     "deleteRow": "Delete Row",
     "deleteSelectedRow": "Delete Selected Rows",
-
     "importExcel": "Import Excel",
     "downloadCSV": "Download as CSV",
     "uploadCSV": "Upload CSV",
-
     "import": "Import",
     "importMetadata": "Import Metadata",
     "exportMetadata": "Export Metadata",
     "clearMetadata": "Clear Metadata",
     "exportToFile": "Export to file",
-
     "changePwd": "Change Password",
-
     "createView": "Create a View",
     "shareView": "Share View",
     "listSharedView": "Shared View List",
@@ -314,35 +288,27 @@
     "createCalendar": "Create Calendar View",
     "createKanban": "Create Kanban View",
     "createForm": "Create Form View",
-
     "showSystemFields": "Show system fields",
-
     "copyUrl": "Copy URL",
     "openTab": "Open new tab",
     "iFrame": "Copy embeddable HTML code",
-
     "addWebhook": "Add New Webhook",
     "newToken": "Add New Token",
-
     "exportZip": "Export zip",
     "importZip": "Import zip",
     "metaSync": "Sync Now",
-
     "settings": "Settings",
     "previewAs": "Preview as",
     "resetReview": "Reset Preview",
-
     "testDbConn": "Test Database Connection",
     "removeDbFromEnv": "Remove Database from environment",
     "editConnJson": "Edit connection JSON",
     "sponsorUs": "Sponsor Us",
     "sendEmail": "SEND EMAIL"
   },
-
   "tooltip": {
     "xcDB": "Create a new project",
     "extDB": "Supports MySQL, PostgreSQL, SQL Server & SQLite",
-
     "apiRest": "Accessible via REST APIs",
     "apiGQL": "Accessible via GraphQL APIs",
     "theme": {
@@ -358,18 +324,15 @@
     "metaReloadList": "Reload list",
     "metaSync": "Sync metadata",
     "sqlMigration": "Reload migrations",
-
     "updateRestart": "Update & Restart",
     "cancelReturn": "Cancel and Return",
     "exportMetadata": "Export all metadata from the meta tables to meta directory.",
     "importMetadata": "Import all metadata from the meta directory to meta tables.",
     "clearMetadata": "Clear all metadata from meta tables.",
-
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file"
   },
-
   "placeholder": {
     "projName": "Enter Project Name",
     "password": {
@@ -388,7 +351,6 @@
     "defaultValue": "Default value",
     "filterByEmail": "Filter by E-mail"
   },
-
   "msg": {
     "info": {
       "footerInfo": "Rows per page",
@@ -408,7 +370,7 @@
       "deleteProject": "Do you want to delete the project?",
       "shareBasePrivate": "Generate publicly shareable readonly base",
       "shareBasePublic": "Anyone on the internet with this link can view",
-      "userInviteNoSMTP": "Looks like you have not configured mailer yet! \nPlease copy above invite link and send it to",
+      "userInviteNoSMTP": "Looks like you have not configured mailer yet! \\n Please copy above invite link and send it to",
       "dragDropHide": "Drag and drop fields here to hide",
       "formInput": "Enter form input label",
       "formHelpText": "Add some help text",
@@ -422,7 +384,7 @@
       "apiOptions": "Access Project via",
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",
-      "emailForm": "E-mail me at ",
+      "emailForm": "E-mail me at",
       "showSysFields": "Show system fields",
       "filterAutoApply": "Auto apply",
       "showMessage": "Show this message",
@@ -482,7 +444,7 @@
       "unableToConnectToDb": "Unable to connect to database, please check your database is up.",
       "userDoesntHaveSufficientPermission": "User does not exist or have sufficient permission to create schema.",
       "dbConnectionStatus": "Invalid database parameters",
-      "dbConnectionFailed": "Connection Failure",
+      "dbConnectionFailed": "Connection Failure:",
       "signUpRules": {
         "emailReqd": "E-mail is required",
         "emailInvalid": "E-mail must be valid",

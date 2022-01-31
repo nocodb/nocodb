@@ -1,254 +1,181 @@
 {
-  "projects": {
-    "my_projects": "Mijn projecten",
-    "reload_projects_tooltip": "Projecten vernieuwen",
-    "create_new_project_button": {
-      "text": "Nieuw project",
-      "subtext_1": "Creëren",
-      "subtext_1_tooltip": "Maak een nieuw project",
-      "subtext_2": "Creëer door verbinding te maken met een externe database",
-      "subtext_2_tooltip": "Ondersteunt MySQL, PostgreSQL, SQL Server & Sqlite",
-      "from_template": "Maak project van sjabloon",
-      "from_excel": "Maak project van Excel"
-    },
-    "search_project": "Zoekproject",
-    "import_metadata": "Importeer metadata",
-    "export_metadata": "Export metadata",
-    "clear_metadata": "Wissen metadata",
-    "stop_project": "Stopproject",
-    "start_project": "Startproject",
-    "restart_project": "Start Project opnieuw",
-    "delete_project": "Project verwijderen",
-    "project_api_type_tooltip_graphql": "Toegankelijk via grafische API's",
-    "project_api_type_tooltip_rest": "Toegankelijk via rustapis",
-    "project_empty_message": "Ga aan de slag door een nieuw project te maken",
-    "import_button": {
-      "text": "Import NocoDB-project door het uploaden van het metadata zip-bestand"
-    },
-    "show_community_star": "Ster",
-    "show_community_us_on_Github": "ons op Github",
-    "show_community_book_a_free_demo": "Boek een gratis demo",
-    "show_community_get_your_questions_answered": "Krijg je vragen beantwoord",
-    "show_community_join_discord": "Join",
-    "show_community_join_reddit": "Join /r/NocoDB",
-    "show_community_follow_nocodb": "Volg NocoDB",
-    "search": {
-      "your_search_found_no_results": "Uw zoekopdracht voor {sealch} vond geen resultaten"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "Project bewerken",
-        "create": "Maak project"
-      },
-      "project_name": "Voer de projectnaam in",
-      "project_type": "Toegangsproject via",
-      "button": {
-        "save_project": "Bewaar dit project",
-        "update_and_restart": "Update & Startart",
-        "cancel": "Annuleren",
-        "cancel_tooltip": "Annuleren en terugkeren"
-      },
-      "credentials": {
-        "title": "Database-inloggegevens",
-        "db_type": "Database-type",
-        "sqlite_file": "SQLITE-bestand",
-        "host_address": "Hostadres",
-        "port": "Poortnummer",
-        "username": "Gebruikersnaam",
-        "password": "Wachtwoord",
-        "db_create_if_not_exists": "Database: creëer als het niet bestaat",
-        "button": {
-          "test_db_conn": "Testdatabase-verbinding",
-          "remove_db_from_env": "Verwijder de database uit de omgeving"
-        },
-        "advanced": {
-          "title": "SSL & Advanced Parameters",
-          "ssl": {
-            "client_key": {
-              "title": "Klantentoets",
-              "toolip": "Selecteer het bestand"
-            },
-            "client_cert": {
-              "title": "Client CERT",
-              "toolip": "Selecteer .cert-bestand"
-            },
-            "server_ca": {
-              "title": "Server ca",
-              "toolip": "Selecteer CA-bestand"
-            },
-            "preferred": "Gewenst",
-            "usage": {
-              "no": "Nee",
-              "preferred": "Gewenst",
-              "required": "Verplicht",
-              "requried_ca": "Verplicht-CA",
-              "requried_identity": "Vereiste identiteit"
-            }
-          },
-          "inflection": {
-            "table_name": "BUMMERING - TABEL NAAM",
-            "column_name": "Buwering - Kolomnaam"
-          },
-          "button": {
-            "edit_conn_json": "Bewerk verbinding JSON"
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "Ongeldig teken in mappad.",
-        "invalid_db_credentials": "Ongeldige database-inloggegevens.",
-        "unable_to_connect_to_db": "Kan geen verbinding maken met de database, controleer dan uw database is op.",
-        "user_doesnt_ve_sufficient_permission": "Gebruiker bestaat niet of heeft voldoende toestemming om schema te maken."
-      },
-      "head": {
-        "title": "Project maken | Nocodb"
-      },
-      "dialog": {
-        "success": "Verbinding was succesvol",
-        "failure": "Verbindingsstoring:"
-      }
-    },
-    "notifications": {
-      "no_new": "geen nieuwe notificaties",
-      "clear": "Duidelijk"
-    }
+  "title": {
+    "myProject": "Mijn projecten",
+    "newProj": "Nieuw project",
+    "dbCredentials": "Database-inloggegevens",
+    "advancedParameters": "SSL & Advanced Parameters",
+    "headCreateProject": "Project maken | Nocodb",
+    "headLogin": "Log in | Nocodb",
+    "resetPassword": "Stel je wachtwoord opnieuw in",
+    "appStore": "App Winkel",
+    "team&auth": "Team & Auth",
+    "rolesUserMgmt": "Rollen en gebruikersbeheer",
+    "projMeta": "Project metadata",
+    "metaMgmt": "Meta management",
+    "audit": "Audit",
+    "auditLogs": "Auditlogboek",
+    "userMgmt": "Gebruikersbeheer",
+    "apiTokenMgmt": "Api tokens management",
+    "rolesMgmt": "Rollen Management",
+    "metaOperations": "Metadata-operaties"
   },
-  "signin": {
-    "title": "INLOGGEN",
-    "enter_your_work_email": "Voer uw werkmail in",
-    "enter_your_password": "Voer uw wachtwoord in",
-    "forget_password": "Uw wachtwoord vergeten ?",
-    "dont_ve_an_account": "Heb je geen account?",
-    "sign_up": "Inschrijven",
-    "form": {
-      "rules": {
-        "email_is_reqd": "E-mail is vereist",
-        "email_must_be_valid": "Email moet geldig zijn",
-        "passwd_required": "Een wachtwoord is verplicht",
-        "passwd_must_be_8_chars": "Jij wachtwoord moet ten minste 8 tekens zijn"
-      }
+  "activity": {
+    "refreshProject": "Projecten vernieuwen",
+    "createProjectExtended": {
+      "extDB": "Creëer door verbinding te maken met een externe database",
+      "template": "Maak project van sjabloon",
+      "excel": "Maak project van Excel"
     },
-    "head": {
-      "title": "Log in | Nocodb",
-      "meta": {
-        "hid": "Log in bij NocoDB",
-        "name": "Log in bij NocoDB",
-        "content": "Log in bij NocoDB"
-      }
-    },
-    "password": {
-      "recovery": {
-        "title": "Stel je wachtwoord opnieuw in",
+    "searchProject": "Zoekproject",
+    "importMetadata": "Importeer metadata",
+    "exportMetadata": "Export metadata",
+    "clearMetadata": "Wissen metadata",
+    "stopProject": "Stopproject",
+    "startProject": "Startproject",
+    "restartProject": "Start Project opnieuw",
+    "deleteProject": "Project verwijderen",
+    "editProject": "Project bewerken",
+    "createProject": "Maak project",
+    "saveProject": "Bewaar dit project",
+    "testDbConn": "Testdatabase-verbinding",
+    "removeDbFromEnv": "Verwijder de database uit de omgeving",
+    "editConnJson": "Bewerk verbinding JSON",
+    "sendEmail": "Stuur e-mail",
+    "settings": "Instellingen",
+    "previewAs": "Voorbeeld als",
+    "resetReview": "Reset Preview",
+    "copyView": "Kopieerweergave",
+    "renameView": "Hernoem weergave",
+    "deleteView": "Weergave verwijderen",
+    "createView": "Maak een weergave",
+    "shareView": "Aandeel",
+    "ListView": "Bekeken Lijst",
+    "copyApiURL": "Kopieer API URL",
+    "exportToFile": "Exporteren naar het bestand",
+    "import": "Importeren",
+    "exportZip": "Export rits",
+    "importZip": "Import rits"
+  },
+  "general": {
+    "create": "Creëren",
+    "cancel": "Annuleren",
+    "preferred": "Gewenst",
+    "no": "Nee",
+    "required": "Verplicht",
+    "signIn": "INLOGGEN",
+    "signUp": "Inschrijven",
+    "reset": "Reset"
+  },
+  "tooltip": {
+    "xcDB": "Maak een nieuw project",
+    "extDB": "Ondersteunt MySQL, PostgreSQL, SQL Server & Sqlite",
+    "apiGQL": "Toegankelijk via grafische API's",
+    "apiRest": "Toegankelijk via rustapis",
+    "updateRestart": "Update & Startart",
+    "cancelReturn": "Annuleren en terugkeren",
+    "clientKey": "Selecteer het bestand",
+    "clientCert": "Selecteer .cert-bestand",
+    "clientCA": "Selecteer CA-bestand",
+    "exportMetadata": "Exporteer alle metadata van de meta-tabellen naar de meta-map.",
+    "importMetadata": "Importeer alle metadata van de meta-map naar Meta Tables.",
+    "clearMetadata": "Wis alle metadata van Meta Tables."
+  },
+  "msg": {
+    "info": {
+      "projectEmptyMessage": "Ga aan de slag door een nieuw project te maken",
+      "importText": "Import NocoDB-project door het uploaden van het metadata zip-bestand",
+      "apiOptions": "Toegangsproject via",
+      "dbConnected": "Verbinding was succesvol",
+      "notifications": {
+        "no_new": "geen nieuwe notificaties",
+        "clear": "Duidelijk"
+      },
+      "signUp": {
+        "workEmail": "Voer uw werkmail in",
+        "enterPassword": "Voer uw wachtwoord in",
+        "forgotPassword": "Uw wachtwoord vergeten ?",
+        "dontHaveAccount": "Heb je geen account?",
+        "superAdmin": "Je bent de 'Super Admin'",
+        "alreadyHaveAccount": "Heb je al een account?"
+      },
+      "loginMsg": "Log in bij NocoDB",
+      "passwordRecovery": {
         "message_1": "Geef het e-mailadres op dat u hebt gebruikt toen u zich hebt aangemeld.",
         "message_2": "We sturen u een e-mail met een link om uw wachtwoord opnieuw in te stellen.",
-        "success": "Controleer uw e-mail om het wachtwoord opnieuw in te stellen",
-        "button": "Stuur e-mail"
+        "success": "Controleer uw e-mail om het wachtwoord opnieuw in te stellen"
+      },
+      "onlyCreator": "Alleen zichtbaar voor de maker",
+      "addView": {
+        "grid": "Rasterweergave toevoegen",
+        "gallery": "Voeg uitzicht op de galerij",
+        "calendar": "Voeg kalenderweergave toe",
+        "kanban": "Voeg KANBAN-weergave toe",
+        "form": "Voeg eenvormweergave toe"
+      },
+      "privateLink": "Deze weergave wordt gedeeld via een privélink",
+      "privateLinkAdditionalInfo": "Mensen met privélink kunnen alleen cellen zien die zichtbaar zijn in deze weergave",
+      "beforeEnablePwd": "Beperk de toegang met een wachtwoord",
+      "afterEnablePwd": "Toegang is wachtwoord beperkt",
+      "exportZip": "Export project meta naar zipbestand en download.",
+      "importZip": "Import project meta zip-bestand en start opnieuw op."
+    },
+    "error": {
+      "searchProject": "Uw zoekopdracht voor {sealch} vond geen resultaten",
+      "invalidChar": "Ongeldig teken in mappad.",
+      "invalidDbCredentials": "Ongeldige database-inloggegevens.",
+      "unableToConnectToDb": "Kan geen verbinding maken met de database, controleer dan uw database is op.",
+      "userDoesntHaveSufficientPermission": "Gebruiker bestaat niet of heeft voldoende toestemming om schema te maken.",
+      "dbConnectionFailed": "Verbindingsstoring:",
+      "signUpRules": {
+        "emailReqd": "E-mail is vereist",
+        "emailInvalid": "Email moet geldig zijn",
+        "passwdRequired": "Een wachtwoord is verplicht",
+        "passwdLength": "Jij wachtwoord moet ten minste 8 tekens zijn"
       }
     }
   },
-  "signup": {
-    "title": "INSCHRIJVEN",
-    "you_will_be_the_super_admin": "Je bent de 'Super Admin'",
-    "already_ve_an_account": "Heb je al een account?"
-  },
-  "treeview": {
-    "settings": {
-      "title": "Instellingen",
-      "tooltip": "Alleen zichtbaar voor de maker"
+  "labels": {
+    "community": {
+      "starUs1": "Ster",
+      "starUs2": "ons op Github",
+      "bookDemo": "Boek een gratis demo",
+      "getAnswered": "Krijg je vragen beantwoord",
+      "joinDiscord": "Join",
+      "joinReddit": "Join /r/NocoDB",
+      "followNocodb": "Volg NocoDB"
     },
-    "app_store": "App Winkel",
-    "team_n_auth": {
-      "title": "Team & Auth",
-      "tooltip": "Rollen en gebruikersbeheer"
-    },
-    "project_metadata": {
-      "title": "Project metadata",
-      "tooltip": "Meta management"
-    },
-    "audit": {
-      "title": "Audit",
-      "tooltip": "Auditlogboek"
-    },
-    "preview_as": "Voorbeeld als",
-    "reset_review": "Reset Preview"
-  },
-  "nav_drawer": {
-    "title": "Keer bekeken",
-    "virtual_views": {
-      "action": {
-        "copy": "Kopieerweergave",
-        "rename": "Hernoem weergave",
-        "delete": "Weergave verwijderen"
-      },
-      "title": "Maak een weergave",
-      "caption": "Alleen zichtbaar voor de maker",
-      "grid": {
-        "title": "Rooster",
-        "create": "Rasterweergave toevoegen"
-      },
-      "gallery": {
-        "title": "Galerij",
-        "create": "Voeg uitzicht op de galerij"
-      },
-      "calendar": {
-        "title": "Kalender",
-        "create": "Voeg kalenderweergave toe"
-      },
-      "kanban": {
-        "title": "Kanban",
-        "create": "Voeg KANBAN-weergave toe"
-      },
-      "form": {
-        "title": "Formulier",
-        "create": "Voeg eenvormweergave toe"
-      }
-    },
-    "advanced": {
-      "title1": "Aandeel",
-      "views_list": "Bekeken Lijst",
-      "copy_api_url": "Kopieer API URL"
-    },
-    "share_view": {
-      "title": "Deze weergave wordt gedeeld via een privélink",
-      "body": "Mensen met privélink kunnen alleen cellen zien die zichtbaar zijn in deze weergave",
-      "toggle": {
-        "option1": "Beperk de toegang met een wachtwoord",
-        "option2": "Toegang is wachtwoord beperkt"
-      },
-      "password": {
-        "caption": "Voer het wachtwoord in",
-        "button": "Wachtwoord opslaan"
-      }
+    "dbType": "Database-type",
+    "sqliteFile": "SQLITE-bestand",
+    "hostAddress": "Hostadres",
+    "port": "Poortnummer",
+    "username": "Gebruikersnaam",
+    "password": "Wachtwoord",
+    "dbCreateIfNotExists": "Database: creëer als het niet bestaat",
+    "clientKey": "Klantentoets",
+    "clientCert": "Client CERT",
+    "serverCA": "Server ca",
+    "requriedCa": "Verplicht-CA",
+    "requriedIdentity": "Vereiste identiteit",
+    "inflection": {
+      "tableName": "BUMMERING - TABEL NAAM",
+      "columnName": "Buwering - Kolomnaam"
     }
   },
-  "management": {
-    "tabs": {
-      "user": "Gebruikersbeheer",
-      "api": "Api tokens management",
-      "roles": "Rollen Management"
-    },
-    "meta": {
-      "title": "Metadata-operaties",
-      "export_to_file": {
-        "title": "Exporteren naar het bestand",
-        "desc": "Exporteer alle metadata van de meta-tabellen naar de meta-map."
-      },
-      "import": {
-        "title": "Importeren",
-        "desc": "Importeer alle metadata van de meta-map naar Meta Tables."
-      },
-      "export_to_zip": {
-        "title": "Export rits",
-        "desc": "Export project meta naar zipbestand en download."
-      },
-      "import_zip": {
-        "title": "Import rits",
-        "desc": "Import project meta zip-bestand en start opnieuw op."
-      },
-      "reset": {
-        "title": "Reset",
-        "desc": "Wis alle metadata van Meta Tables."
-      }
+  "placeholder": {
+    "projName": "Voer de projectnaam in",
+    "password": {
+      "enter": "Voer het wachtwoord in",
+      "save": "Wachtwoord opslaan"
+    }
+  },
+  "objects": {
+    "views": "Keer bekeken",
+    "viewType": {
+      "grid": "Rooster",
+      "gallery": "Galerij",
+      "calendar": "Kalender",
+      "kanban": "Kanban",
+      "form": "Formulier"
     }
   }
 }

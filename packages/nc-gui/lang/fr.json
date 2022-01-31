@@ -1,254 +1,181 @@
 {
-  "projects": {
-    "my_projects": "Mes projets",
-    "reload_projects_tooltip": "Rafraichir les projets",
-    "create_new_project_button": {
-      "text": "Nouveau projet",
-      "subtext_1": "Créer",
-      "subtext_1_tooltip": "Créer un nouveau projet",
-      "subtext_2": "Créer en se connectant<br>à une base de données",
-      "subtext_2_tooltip": "Base de données supportées MySQL, PostgreSQL, SQL Server & SQLite",
-      "from_template": "Créer un projet à partir du modèle",
-      "from_excel": "Créer un projet d'Excel"
-    },
-    "search_project": "Rechercher un projet",
-    "import_metadata": "Importer les métadonnées",
-    "export_metadata": "Exporter les métadonnées",
-    "clear_metadata": "Effacer les métadonnées",
-    "stop_project": "Arrêter le projet",
-    "start_project": "Démarrer le projet",
-    "restart_project": "Redémarrer le projet",
-    "delete_project": "Supprimer le projet",
-    "project_api_type_tooltip_graphql": "Accessible via l'API GraphQL",
-    "project_api_type_tooltip_rest": "Accessible via l'API REST",
-    "project_empty_message": "Commencer par créer un nouveau projet",
-    "import_button": {
-      "text": "Importer un projet NocoDB à partir d'un fichier ZIP de métadonnées"
-    },
-    "show_community_star": "Donner nous une étoile",
-    "show_community_us_on_Github": "sur Github",
-    "show_community_book_a_free_demo": "Planifier une démo gratuite",
-    "show_community_get_your_questions_answered": "Obtenir des réponses à vos questions",
-    "show_community_join_discord": "Join Discord",
-    "show_community_join_reddit": "Join /r/NocoDB",
-    "show_community_follow_nocodb": "Suivre NocoDB",
-    "search": {
-      "your_search_found_no_results": "Votre recherche pour {search} n'a renvoyée aucun résultat"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "Editer le projet",
-        "create": "Créer un projet"
-      },
-      "project_name": "Saisir le nom du projet",
-      "project_type": "Accéder au projet via",
-      "button": {
-        "save_project": "Enregistrer le projet",
-        "update_and_restart": "Mettre à jour et redémarrer",
-        "cancel": "Annuler",
-        "cancel_tooltip": "Annuler et revenir"
-      },
-      "credentials": {
-        "title": "Identifiants de la base de données",
-        "db_type": "Type de base de données",
-        "sqlite_file": "Fichier SQLite",
-        "host_address": "Adresse de l'hôte",
-        "port": "Numéro de port",
-        "username": "Utilisateur",
-        "password": "Mot de passe",
-        "db_create_if_not_exists": "Base de données : la créér si elle n'existe pas",
-        "button": {
-          "test_db_conn": "Test la connexion à la base de données",
-          "remove_db_from_env": "Supprimer la base de données de l'environement"
-        },
-        "advanced": {
-          "title": "SSL et paramètres avancés",
-          "ssl": {
-            "client_key": {
-              "title": "Clé Client",
-              "toolip": "Selectionner le fichier .key"
-            },
-            "client_cert": {
-              "title": "Certificat Client",
-              "toolip": "Selectionner le fichier .cert"
-            },
-            "server_ca": {
-              "title": "serveur d'AC",
-              "toolip": "Selectionner le fichier CA"
-            },
-            "preferred": "Préférée",
-            "usage": {
-              "no": "Non",
-              "preferred": "Préférée",
-              "required": "Requise",
-              "requried_ca": "AC requise",
-              "requried_identity": "Identité requise"
-            }
-          },
-          "inflection": {
-            "table_name": "Inflexion - Nom de la table",
-            "column_name": "Inflexion - Nom de la colonne"
-          },
-          "button": {
-            "edit_conn_json": "Editer le JSON de la connexion"
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "Caractère invalide dans le chemin du dossier.",
-        "invalid_db_credentials": "Identifiants de base de données invalides.",
-        "unable_to_connect_to_db": "Connexion impossible à la base de données, merci de vérifier que la base de données est démarrée et accessible.",
-        "user_doesnt_ve_sufficient_permission": "L’utilisateur n’existe pas ou n’a pas les permissions suffisantes pour créer le schéma."
-      },
-      "head": {
-        "title": "Créer un projet | NocoDB"
-      },
-      "dialog": {
-        "success": "Connexion réussi",
-        "failure": "Echec de connexion :"
-      }
-    },
-    "notifications": {
-      "no_new": "pas de nouvelles notifications",
-      "clear": "Dégager"
-    }
+  "title": {
+    "myProject": "Mes projets",
+    "newProj": "Nouveau projet",
+    "dbCredentials": "Identifiants de la base de données",
+    "advancedParameters": "SSL et paramètres avancés",
+    "headCreateProject": "Créer un projet | NocoDB",
+    "headLogin": "Connexion | NocoDB",
+    "resetPassword": "réinitialisez votre mot de passe",
+    "appStore": "Magasin d'applications",
+    "team&auth": "Équipe & Authentification",
+    "rolesUserMgmt": "Roles & Gestion utilisateurs",
+    "projMeta": "Métadonnées du projet",
+    "metaMgmt": "Gestion des métadonnées",
+    "audit": "Audit",
+    "auditLogs": "Journal d'audit",
+    "userMgmt": "Gestion des utilisateurs",
+    "apiTokenMgmt": "Gestion des jetons API",
+    "rolesMgmt": "Gestion des rôles",
+    "metaOperations": "Opérations de métadonnées"
   },
-  "signin": {
-    "title": "Connexion",
-    "enter_your_work_email": "Saisir votre adresse email professionnel",
-    "enter_your_password": "Saisir votre mot de passe",
-    "forget_password": "Mot de passe oublié ?",
-    "dont_ve_an_account": "Vous n'avez pas de compte ?",
-    "sign_up": "Déconnexion",
-    "form": {
-      "rules": {
-        "email_is_reqd": "Adresse Email requise",
-        "email_must_be_valid": "L'adresse Email doit être valide",
-        "passwd_required": "Mot de passe requis",
-        "passwd_must_be_8_chars": "Votre mot de passe doit contenir au moins 8 caractères"
-      }
+  "activity": {
+    "refreshProject": "Rafraichir les projets",
+    "createProjectExtended": {
+      "extDB": "Créer en se connectant<br>à une base de données",
+      "template": "Créer un projet à partir du modèle",
+      "excel": "Créer un projet d'Excel"
     },
-    "head": {
-      "title": "Connexion | NocoDB",
-      "meta": {
-        "hid": "Se connecter à NocoDB",
-        "name": "Se connecter à NocoDB",
-        "content": "Se connecter à NocoDB"
-      }
-    },
-    "password": {
-      "recovery": {
-        "title": "réinitialisez votre mot de passe",
+    "searchProject": "Rechercher un projet",
+    "importMetadata": "Importer les métadonnées",
+    "exportMetadata": "Exporter les métadonnées",
+    "clearMetadata": "Effacer les métadonnées",
+    "stopProject": "Arrêter le projet",
+    "startProject": "Démarrer le projet",
+    "restartProject": "Redémarrer le projet",
+    "deleteProject": "Supprimer le projet",
+    "editProject": "Editer le projet",
+    "createProject": "Créer un projet",
+    "saveProject": "Enregistrer le projet",
+    "testDbConn": "Test la connexion à la base de données",
+    "removeDbFromEnv": "Supprimer la base de données de l'environement",
+    "editConnJson": "Editer le JSON de la connexion",
+    "sendEmail": "Envoyer un email",
+    "settings": "Paramètres",
+    "previewAs": "Aperçu comme",
+    "resetReview": "Réinitiliser l'aperçu",
+    "copyView": "Copier la vue",
+    "renameView": "Renommer la vue",
+    "deleteView": "Supprimer la vue",
+    "createView": "Créer une vue",
+    "shareView": "Partager la vue",
+    "ListView": "Liste des vues",
+    "copyApiURL": "Copier l'URL de l'API",
+    "exportToFile": "Exporter vers le fichier",
+    "import": "Importer",
+    "exportZip": "Exportation zip",
+    "importZip": "Importer zip"
+  },
+  "general": {
+    "create": "Créer",
+    "cancel": "Annuler",
+    "preferred": "Préférée",
+    "no": "Non",
+    "required": "Requise",
+    "signIn": "Connexion",
+    "signUp": "Déconnexion",
+    "reset": "Réinitialiser"
+  },
+  "tooltip": {
+    "xcDB": "Créer un nouveau projet",
+    "extDB": "Base de données supportées MySQL, PostgreSQL, SQL Server & SQLite",
+    "apiGQL": "Accessible via l'API GraphQL",
+    "apiRest": "Accessible via l'API REST",
+    "updateRestart": "Mettre à jour et redémarrer",
+    "cancelReturn": "Annuler et revenir",
+    "clientKey": "Selectionner le fichier .key",
+    "clientCert": "Selectionner le fichier .cert",
+    "clientCA": "Selectionner le fichier CA",
+    "exportMetadata": "Exportez toutes les métadonnées des méta-tables vers le répertoire Meta.",
+    "importMetadata": "Importer toutes les métadonnées du répertoire Meta en méta-tables.",
+    "clearMetadata": "Effacer toutes les métadonnées des méta-tables."
+  },
+  "msg": {
+    "info": {
+      "projectEmptyMessage": "Commencer par créer un nouveau projet",
+      "importText": "Importer un projet NocoDB à partir d'un fichier ZIP de métadonnées",
+      "apiOptions": "Accéder au projet via",
+      "dbConnected": "Connexion réussi",
+      "notifications": {
+        "no_new": "pas de nouvelles notifications",
+        "clear": "Dégager"
+      },
+      "signUp": {
+        "workEmail": "Saisir votre adresse email professionnel",
+        "enterPassword": "Saisir votre mot de passe",
+        "forgotPassword": "Mot de passe oublié ?",
+        "dontHaveAccount": "Vous n'avez pas de compte ?",
+        "superAdmin": "Vous serez le 'super admin'",
+        "alreadyHaveAccount": "Vous avez déjà un compte ?"
+      },
+      "loginMsg": "Se connecter à NocoDB",
+      "passwordRecovery": {
         "message_1": "Veuillez fournir l'adresse e-mail que vous avez utilisée lorsque vous vous êtes inscrit.",
         "message_2": "Nous vous enverrons un email avec un lien pour réinitialiser votre mot de passe.",
-        "success": "Veuillez vérifier votre email pour réinitialiser le mot de passe",
-        "button": "Envoyer un email"
+        "success": "Veuillez vérifier votre email pour réinitialiser le mot de passe"
+      },
+      "onlyCreator": "Visible uniquement pour les créateurs",
+      "addView": {
+        "grid": "Ajouter une vue Grille",
+        "gallery": "Ajouter une vue Galerie",
+        "calendar": "Ajouter une vue Calendrier",
+        "kanban": "Ajouter une vue Kanban",
+        "form": "Ajouter une vue Formulaire"
+      },
+      "privateLink": "Cette vue est partagée via un lien privé",
+      "privateLinkAdditionalInfo": "Les personnes ayant le lien privé peuvent voir uniquement les cellules visibles de cette vue",
+      "beforeEnablePwd": "Restreindre l’accès à l’aide d’un mot de passe",
+      "afterEnablePwd": "L’accès est restreint par un mot de passe",
+      "exportZip": "Export Project Meta vers Zip Fichier et télécharger.",
+      "importZip": "Importer le projet META ZIP et redémarrer."
+    },
+    "error": {
+      "searchProject": "Votre recherche pour {search} n'a renvoyée aucun résultat",
+      "invalidChar": "Caractère invalide dans le chemin du dossier.",
+      "invalidDbCredentials": "Identifiants de base de données invalides.",
+      "unableToConnectToDb": "Connexion impossible à la base de données, merci de vérifier que la base de données est démarrée et accessible.",
+      "userDoesntHaveSufficientPermission": "L’utilisateur n’existe pas ou n’a pas les permissions suffisantes pour créer le schéma.",
+      "dbConnectionFailed": "Echec de connexion :",
+      "signUpRules": {
+        "emailReqd": "Adresse Email requise",
+        "emailInvalid": "L'adresse Email doit être valide",
+        "passwdRequired": "Mot de passe requis",
+        "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères"
       }
     }
   },
-  "signup": {
-    "title": "S'INSCRIRE",
-    "you_will_be_the_super_admin": "Vous serez le 'super admin'",
-    "already_ve_an_account": "Vous avez déjà un compte ?"
-  },
-  "treeview": {
-    "settings": {
-      "title": "Paramètres",
-      "tooltip": "Visible uniquement pour les créateurs"
+  "labels": {
+    "community": {
+      "starUs1": "Donner nous une étoile",
+      "starUs2": "sur Github",
+      "bookDemo": "Planifier une démo gratuite",
+      "getAnswered": "Obtenir des réponses à vos questions",
+      "joinDiscord": "Join Discord",
+      "joinReddit": "Join /r/NocoDB",
+      "followNocodb": "Suivre NocoDB"
     },
-    "app_store": "Magasin d'applications",
-    "team_n_auth": {
-      "title": "Équipe & Authentification",
-      "tooltip": "Roles & Gestion utilisateurs"
-    },
-    "project_metadata": {
-      "title": "Métadonnées du projet",
-      "tooltip": "Gestion des métadonnées"
-    },
-    "audit": {
-      "title": "Audit",
-      "tooltip": "Journal d'audit"
-    },
-    "preview_as": "Aperçu comme",
-    "reset_review": "Réinitiliser l'aperçu"
-  },
-  "nav_drawer": {
-    "title": "Vues",
-    "virtual_views": {
-      "action": {
-        "copy": "Copier la vue",
-        "rename": "Renommer la vue",
-        "delete": "Supprimer la vue"
-      },
-      "title": "Créer une vue",
-      "caption": "Visible uniquement pour les créateurs",
-      "grid": {
-        "title": "Grille",
-        "create": "Ajouter une vue Grille"
-      },
-      "gallery": {
-        "title": "Galerie",
-        "create": "Ajouter une vue Galerie"
-      },
-      "calendar": {
-        "title": "Calendrier",
-        "create": "Ajouter une vue Calendrier"
-      },
-      "kanban": {
-        "title": "Kanban",
-        "create": "Ajouter une vue Kanban"
-      },
-      "form": {
-        "title": "Formulaire",
-        "create": "Ajouter une vue Formulaire"
-      }
-    },
-    "advanced": {
-      "title1": "Partager la vue",
-      "views_list": "Liste des vues",
-      "copy_api_url": "Copier l'URL de l'API"
-    },
-    "share_view": {
-      "title": "Cette vue est partagée via un lien privé",
-      "body": "Les personnes ayant le lien privé peuvent voir uniquement les cellules visibles de cette vue",
-      "toggle": {
-        "option1": "Restreindre l’accès à l’aide d’un mot de passe",
-        "option2": "L’accès est restreint par un mot de passe"
-      },
-      "password": {
-        "caption": "Saisie le mot de passe",
-        "button": "Enregistrer le mot de passe"
-      }
+    "dbType": "Type de base de données",
+    "sqliteFile": "Fichier SQLite",
+    "hostAddress": "Adresse de l'hôte",
+    "port": "Numéro de port",
+    "username": "Utilisateur",
+    "password": "Mot de passe",
+    "dbCreateIfNotExists": "Base de données : la créér si elle n'existe pas",
+    "clientKey": "Clé Client",
+    "clientCert": "Certificat Client",
+    "serverCA": "serveur d'AC",
+    "requriedCa": "AC requise",
+    "requriedIdentity": "Identité requise",
+    "inflection": {
+      "tableName": "Inflexion - Nom de la table",
+      "columnName": "Inflexion - Nom de la colonne"
     }
   },
-  "management": {
-    "tabs": {
-      "user": "Gestion des utilisateurs",
-      "api": "Gestion des jetons API",
-      "roles": "Gestion des rôles"
-    },
-    "meta": {
-      "title": "Opérations de métadonnées",
-      "export_to_file": {
-        "title": "Exporter vers le fichier",
-        "desc": "Exportez toutes les métadonnées des méta-tables vers le répertoire Meta."
-      },
-      "import": {
-        "title": "Importer",
-        "desc": "Importer toutes les métadonnées du répertoire Meta en méta-tables."
-      },
-      "export_to_zip": {
-        "title": "Exportation zip",
-        "desc": "Export Project Meta vers Zip Fichier et télécharger."
-      },
-      "import_zip": {
-        "title": "Importer zip",
-        "desc": "Importer le projet META ZIP et redémarrer."
-      },
-      "reset": {
-        "title": "Réinitialiser",
-        "desc": "Effacer toutes les métadonnées des méta-tables."
-      }
+  "placeholder": {
+    "projName": "Saisir le nom du projet",
+    "password": {
+      "enter": "Saisie le mot de passe",
+      "save": "Enregistrer le mot de passe"
+    }
+  },
+  "objects": {
+    "views": "Vues",
+    "viewType": {
+      "grid": "Grille",
+      "gallery": "Galerie",
+      "calendar": "Calendrier",
+      "kanban": "Kanban",
+      "form": "Formulaire"
     }
   }
 }

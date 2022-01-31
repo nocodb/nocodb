@@ -39,7 +39,7 @@
 
                 <v-text-field
                   v-model="form.email"
-                  :label="$t('signin.enter_your_work_email')"
+                  :label="$t('msg.info.signUp.workEmail')"
                   :rules="formRules.email"
                   required
                 />
@@ -47,7 +47,7 @@
                 <v-text-field
                   v-model="form.password"
                   name="input-10-2"
-                  :label="$t('signin.enter_your_password')"
+                  :label="$t('msg.info.signUp.enterPassword')"
                   min="8"
                   :append-icon="formUtil.e3 ? 'visibility' : 'visibility_off'"
                   :rules="formRules.password"
@@ -74,7 +74,7 @@
                   :disabled="!formUtil.recpatcha || !formUtil.valid"
                   @click="MtdOnSignup"
                 >
-                  &nbsp; {{ $t('signup.title') }} &nbsp;
+                  &nbsp; {{ $t('general.signUp') }} &nbsp;
                 </v-btn>
 
                 <br>
@@ -84,9 +84,9 @@
                   <label class="caption font-weight-light">Subscribe to our weekly newsletter</label>
                 </div>
                 <p v-ge="['Already have an account ?','']" class="font-weight-light caption grey--text mb-0">
-                  {{ $t('signup.already_ve_an_account') }}
+                  {{ $t('msg.info.signUp.alreadyHaveAccount') }}
                   <router-link to="/user/authentication/signin">
-                    {{ $t('signin.title') }}
+                    {{ $t('general.signIn') }}
                   </router-link>
                 </p>
               </v-form>

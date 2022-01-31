@@ -12,7 +12,7 @@
       permanent
       mini-variant-width="50"
       class="pl-2 nc-nav-drawer"
-      style="min-width: 100%; height: calc(100% - 0px)"
+      style="min-width: 100%; height: calc(100% - 30px)"
     >
       <div class="h-100 d-flex flex-column">
         <div class="flex-grow-1" style="overflow-y: auto; min-height: 200px">

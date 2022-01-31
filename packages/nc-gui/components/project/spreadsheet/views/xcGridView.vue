@@ -498,6 +498,8 @@ export default {
           }
 
           this.$set(rowObj, columnObj._cn, null)
+          // update/save cell value
+          this.onCellValueChange(this.selected.col, this.selected.row, columnObj)
         }
           break
         // left
@@ -605,7 +607,7 @@ export default {
       if (this.selected.row > 0) {
         this.selected.row--
       }
-    },    
+    },
     addNewRelationTab(...args) {
       this.$emit('addNewRelationTab', ...args)
     },

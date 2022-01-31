@@ -20,10 +20,14 @@ services:
       root_db:
         condition: service_healthy
     image: nocodb/nocodb:latest
+    volumes:
+      - nc_data:/usr/app/data    
     ports:
       - "8080:8080"
     restart: always
     environment:
       NC_DB: "pg://root_db:5432?u=postgres&p=password&d=root_db"
+
 volumes:
   db_data: {}
+  nc_data: {}

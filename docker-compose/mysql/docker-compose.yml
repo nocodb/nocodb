@@ -21,10 +21,14 @@ services:
       root_db:
         condition: service_healthy
     image: nocodb/nocodb:latest
+    volumes:
+      - nc_data:/usr/app/data    
     ports:
       - "8080:8080"
     restart: always
     environment:
       NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
+
 volumes:
   db_data: {}
+  nc_data: {}

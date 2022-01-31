@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.84.7-finn.0",
+  "version": "0.84.8-finn.0",
   "description": "NocoDB",
   "main": "dist/bundle.js",
   "repository": "https://github.com/finn-auto/nocodb",
@@ -148,7 +148,7 @@
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
     "nc-help": "^0.2.30",
-    "nc-lib-gui": "npm:finn-nc-lib-gui@0.84.7-finn.0",
+    "nc-lib-gui": "npm:finn-nc-lib-gui@0.84.8-finn.0",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
     "nodemailer": "^6.4.10",

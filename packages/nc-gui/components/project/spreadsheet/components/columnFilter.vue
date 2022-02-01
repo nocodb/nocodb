@@ -20,7 +20,10 @@
           v-if="!i"
           :key="i + '_2'"
           class="caption d-flex align-center"
-        >where</span>
+        >
+        <!-- where -->
+        {{ $t('labels.where') }}
+        </span>
 
         <v-select
           v-else
@@ -126,7 +129,8 @@
       <v-icon small color="grey">
         mdi-plus
       </v-icon>
-      Add Filter
+      <!-- Add Filter -->
+      {{ $t('activity.addFilter') }}
     </v-btn>
     <slot />
   </div>

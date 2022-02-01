@@ -17,7 +17,8 @@
       <v-icon size="13" class="mr-1" color="#777">
         mdi-open-in-new
       </v-icon>
-      Share View
+      <!-- Share View -->
+      {{ $t('activity.shareView') }}
     </v-btn>
     <!--      </template>
 

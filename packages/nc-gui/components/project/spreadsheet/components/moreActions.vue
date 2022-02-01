@@ -34,7 +34,8 @@
               mdi-download-outline
             </v-icon>
             <span class="caption">
-              Download as CSV
+              <!-- Download as CSV -->
+              {{ $t('activity.downloadCSV') }}
             </span>
           </v-list-item-title>
         </v-list-item>
@@ -48,7 +49,8 @@
               mdi-upload-outline
             </v-icon>
             <span class="caption ">
-              Upload CSV
+              <!-- Upload CSV -->
+              {{ $t('activity.uploadCSV') }}
             </span>
 
             <span class="caption grey--text">(<x-icon small color="grey lighten-2">
@@ -66,7 +68,8 @@
               mdi-view-list-outline
             </v-icon>
             <span class="caption ">
-              Shared View List
+              <!-- Shared View List -->
+              {{ $t('activity.listSharedView') }}
             </span>
           </v-list-item-title>
         </v-list-item>  <v-list-item

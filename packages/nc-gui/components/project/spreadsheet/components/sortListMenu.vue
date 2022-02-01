@@ -19,7 +19,8 @@
           <v-icon small class="mr-1" color="#777">
             mdi-sort
           </v-icon>
-          Sort
+          <!-- Sort -->
+          {{ $t('activity.sort') }}
           <v-icon small color="#777">
             mdi-menu-down
           </v-icon>
@@ -71,7 +72,8 @@
         <v-icon small color="grey">
           mdi-plus
         </v-icon>
-        Add Sort Option
+        <!-- Add Sort Option -->
+        {{ $t('activity.addSort') }}
       </v-btn>
     </div>
   </v-menu>

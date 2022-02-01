@@ -162,7 +162,7 @@
                       <v-tooltip v-if="!isNonAdminAccessAllowed(item)" top>
                         <template #activator="{ on }">
                           <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium" v-on="on">
-                            Tables<template v-if="item.children && item.children.length"> ({{
+                            {{ $t('objects.tables') }}<template v-if="item.children && item.children.length"> ({{
                               item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                             }})</template></span>
                           <span v-else class="body-2 font-weight-medium" v-on="on">
@@ -174,7 +174,7 @@
                         v-else
                       >
                         <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium">
-                          Tables<template v-if="item.children && item.children.length"> ({{
+                          {{ $t('objects.tables') }}<template v-if="item.children && item.children.length"> ({{
                             item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                           }})</template></span>
                         <span v-else class="caption font-weight-regular">

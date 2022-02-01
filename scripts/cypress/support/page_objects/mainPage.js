@@ -447,7 +447,10 @@ export class _mainPage {
         cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
         cy.get(".nc-btn-metasync-sync-now")
             .should("exist")
-            .click({ force: true });
+            .click({ force: true })
+            .then(() => {
+                cy.toastWait(`Table metadata recreated successfully`);
+            });
         cy.get(".nc-metasync-row").then((row) => {
             for (let i = 0; i < row.length; i++) {
                 cy.wrap(row).contains("No change identified").should("exist");

@@ -1717,6 +1717,10 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.deleteRoutesForTables([tnp, tnc]);
     const relations = await this.getXcRelationList();
     let relationColumnName = tnc;
+    const columnSuffixNumber = args.columnSuffixNumber || '';
+    const childColumn =
+      args.childColumn ||
+      `${tnp}_id${columnSuffixNumber ? '_' + columnSuffixNumber : ''}`;
     let { hm, bt } = { hm: null, bt: null };
     {
       const swaggerArr = [];
@@ -1774,11 +1778,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         });
 
         /* Add new has many relation to virtual columns */
-        const columnSuffixNumber = args.columnSuffixNumber || '';
-        relationColumnName = `${this.getTableNameAlias(tnc)}${
-          columnSuffixNumber ? ' ' + columnSuffixNumber : ''
-        }`;
-        hm = meta.hasMany.reverse().find(hm => hm.rtn === tnp && hm.tn === tnc);
+        relationColumnName =
+          args.hmRelationColumnName ||
+          `${this.getTableNameAlias(tnc)}${
+            columnSuffixNumber ? ' ' + columnSuffixNumber : ''
+          }`;
+        hm = meta.hasMany.find(
+          hm => hm.rtn === tnp && hm.tn === tnc && hm.cn === childColumn
+        );
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({ hm: hm, _cn: relationColumnName });
 
@@ -1904,6 +1911,11 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         /* */
       }
 
+      const btRelationColumnName =
+        args.btRelationColumnName ||
+        `${this.getTableNameAlias(tnp)}${
+          columnSuffixNumber ? ' ' + columnSuffixNumber : ''
+        }`;
       if (existingModel) {
         swaggerArr.push(JSON.parse(existingModel.schema));
         meta.belongsTo.forEach(hm => {
@@ -1920,22 +1932,18 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         });
 
         /* Add new belongs to relation to virtual columns */
-        const columnSuffixNumber = args.columnSuffixNumber || '';
-        const relationColumnName = `${this.getTableNameAlias(tnp)}${
-          columnSuffixNumber ? ' ' + columnSuffixNumber : ''
-        }`;
-        bt = meta.belongsTo
-          .reverse()
-          .find(hm => hm.rtn === tnp && hm.tn === tnc);
+        bt = meta.belongsTo.find(
+          hm => hm.rtn === tnp && hm.tn === tnc && hm.cn === childColumn
+        );
         oldMeta.v = oldMeta.v || [];
-        oldMeta.v.push({ bt: bt, _cn: relationColumnName });
+        oldMeta.v.push({ bt: bt, _cn: btRelationColumnName });
 
         swaggerArr.push(
           new SwaggerXc({ ctx: { ...ctx, v: oldMeta.v } }).getObject()
         );
 
         if (queryParams?.showFields) {
-          queryParams.showFields[relationColumnName] = true;
+          queryParams.showFields[btRelationColumnName] = true;
         }
 
         await this.xcMeta.metaUpdate(
@@ -1953,7 +1961,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
 
       const rendererArgs = this.generateRendererArgs(
-        this.generateContextForBelongsTo(ctx, tnp, relationColumnName)
+        this.generateContextForBelongsTo(ctx, tnp, btRelationColumnName)
       );
       const btRoutes = new ExpressXcTsRoutesBt(
         rendererArgs
@@ -2048,10 +2056,17 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         'hm'
       );
       const tagName = `${tnp}HasMany${relationColumnName}`;
-      const swaggerObj = this.deleteTagFromSwaggerObj(
+      let swaggerObj = this.deleteTagFromSwaggerObj(
         existingModel.schema,
         tagName
       );
+      if (args.oldRelationColumnName) {
+        const tagName = `${tnp}HasMany${args.oldRelationColumnName}`;
+        swaggerObj = this.deleteTagFromSwaggerObj(
+          existingModel.schema,
+          tagName
+        );
+      }
 
       if (existingModel) {
         this.log(`Updating model metadata for parent table '%s'`, tnp);
@@ -2123,10 +2138,17 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         'bt'
       );
       const tagName = `${tnc}BelongsTo${relationColumnName}`;
-      const swaggerObj = this.deleteTagFromSwaggerObj(
+      let swaggerObj = this.deleteTagFromSwaggerObj(
         existingModel.schema,
         tagName
       );
+      if (args.oldRelationColumnName) {
+        const tagName = `${tnc}BelongsTo${args.oldRelationColumnName}`;
+        swaggerObj = this.deleteTagFromSwaggerObj(
+          existingModel.schema,
+          tagName
+        );
+      }
 
       if (existingModel) {
         this.log(`Updating model metadata for child table '%s'`, tnc);
@@ -2382,6 +2404,54 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     /* generate swagger docs */
     await this.generateSwaggerJson(swaggerDoc);
+  }
+
+  public async onVirtualColumnAliasUpdate({
+    tn,
+    oldAlias,
+    newAlias
+  }: any): Promise<void> {
+    super.onVirtualColumnAliasUpdate({ tn, oldAlias, newAlias });
+
+    const model = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        title: tn
+      }
+    );
+    const meta = JSON.parse(model.meta);
+    const virtualColumn = meta.v.find(v => v._cn === newAlias);
+    const relationType = virtualColumn.hm ? 'hm' : virtualColumn.bt ? 'bt' : '';
+    if (!relationType) return;
+
+    const relatedTableModel = await this.xcMeta.metaGet(
+      this.projectId,
+      this.dbAlias,
+      'nc_models',
+      {
+        title: virtualColumn[relationType].tn
+      }
+    );
+    const relatedTableRelationType = relationType === 'hm' ? 'bt' : 'hm';
+    const relatedTableMeta = JSON.parse(relatedTableModel.meta);
+    const relatedTableVirtualColumn = relatedTableMeta.v.find(
+      v => v[relatedTableRelationType].cn === virtualColumn[relationType].cn
+    );
+    const args = {
+      oldRelationColumnName: oldAlias,
+      [`${relationType}RelationColumnName`]: virtualColumn._cn,
+      [`${relatedTableRelationType}RelationColumnName`]: relatedTableVirtualColumn._cn,
+      childColumn: virtualColumn[relationType].cn,
+      onDelete: virtualColumn[relationType].dr,
+      onUpdate: virtualColumn[relationType].ur,
+      parentColumn: virtualColumn[relationType].rcn,
+      virtual: virtualColumn[relationType].type !== 'real',
+      foreignKeyName: virtualColumn[relationType].fkn
+    };
+    await this.onRelationDelete(tn, virtualColumn[relationType].tn, args);
+    await this.onRelationCreate(tn, virtualColumn[relationType].tn, args);
   }
 
   public async onTableUpdate(changeObj: any): Promise<void> {

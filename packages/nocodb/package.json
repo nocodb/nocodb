@@ -8,6 +8,7 @@
   "keywords": [],
   "scripts": {
     "describe": "npm-scripts-info",
+    "prepare:local": "rsync -rvzh --exclude node_modules/ ../nc-lib-gui/ ./nc-lib-gui/",
     "build": "run-s clean && run-p build:*",
     "build:obfuscate": "EE=true webpack  --config webpack.config.js",
     "build:main": "tsc -p tsconfig.json",
@@ -148,7 +149,7 @@
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
     "nc-help": "^0.2.27",
-    "nc-lib-gui": "0.84.6",
+    "nc-lib-gui": "file:./nc-lib-gui",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
     "nodemailer": "^6.4.10",

@@ -866,6 +866,7 @@ tbody tr:hover {
 
 .cell {
   font-size: 13px;
+  white-space: nowrap;
 
   &.required {
     box-shadow: inset 0 0 0 1px red;

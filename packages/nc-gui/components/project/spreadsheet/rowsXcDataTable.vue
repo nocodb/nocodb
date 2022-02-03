@@ -748,7 +748,7 @@ export default {
     },
     page: 1,
     count: 0,
-    // size: 25,
+    size: 100,
     xWhere: '',
     sort: '',
 

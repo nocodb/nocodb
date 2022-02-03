@@ -142,7 +142,30 @@ export default {
   computed: {
     alias() {
       // return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column._cn
-      return this.column._cn
+      return `${this.column._cn}<sup>${
+        this.column.hm 
+          ? this.childPrimaryCol || "" 
+          : this.column.bt ? 
+            this.parentPrimaryCol || "" : ''
+      }</sup>`
+    },
+    childPrimaryCol() {
+      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
+    },
+    parentPrimaryCol() {
+      return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
+    },
+    childMeta() {
+      return this.$store.state.meta.metas[this.column.hm.tn]
+    },
+    parentMeta() {
+      return this.$store.state.meta.metas[this.column.bt.rtn]
+    },
+    hmParentPrimaryValCol() {
+      console.log(this.hm, this.parentMeta)
+      return this.hm &&
+        this.parentMeta &&
+        this.parentMeta.columns.find(v => v.pv)._cn
     },
     type() {
       if (this.column.bt) {

@@ -785,8 +785,8 @@ if (sIndex > -1) {
   populateParams.tableNames = populateParams.tableNames?.filter(t => {
     return t === populateParams.tableNames.find(t1 => t1.tn === t.tn);
   });
-  await this.xcTablesPopulate(populateParams);
   await this.xcTablesPopulate(populateViewsParams);
+  await this.xcTablesPopulate(populateParams);
 
   if (this instanceof GqlApiBuilder) {
     await (this as GqlApiBuilder).reInitializeGraphqlEndpoint();

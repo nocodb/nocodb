@@ -129,7 +129,7 @@ Para accesar al dashboard: [http://localhost:8080/dashboard](http://localhost:80
 ### Atractiva interfaz de hoja de cálculo
 
 - ⚡ Buscar, ordenar, filtrar, ocultar columnas con la facilidad de Uber
-- ⚡ Crear vistas: Grid, Galería, Kanban, Gantt, Forma
+- ⚡ Crear vistas: Grid, Galería, Kanban, Forma
 - ⚡ Compartir Vistas: Publicas & Protegidas por contraseña
 - ⚡ Vistas personales y cerradas
 - ⚡ Sube imágenes en celdas (funciona con S3, Minio, GCP, Azure, DigitalCean, Linode, OVH, BackBlaze) !!

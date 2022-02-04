@@ -124,7 +124,7 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
 ### Interface de feuille de calcul riche
 
 - ⚡ Recherche, trier, filtrer, masquer les colonnes avec Uber Facile
-- ⚡ Créer des vues: grille, galerie, kanban, gantt, forme
+- ⚡ Créer des vues: grille, galerie, kanban, forme
 - ⚡ Partager des vues: Public & Mot de passe protégé
 - ⚡ Vues personnelles et verrouillées 
 - ⚡ Télécharger des images sur les cellules (fonctionne avec S3, Minio, GCP, Azure, DigitalOcean, Linode, Ovh, Backblaze) !!

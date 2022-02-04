@@ -168,7 +168,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 # Features
 ### Rich Spreadsheet Interface
 - ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
-- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Gantt, Form
+- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Form
 - ⚡ &nbsp;Share Views : public & password protected
 - ⚡ &nbsp;Personal & locked Views 
 - ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)

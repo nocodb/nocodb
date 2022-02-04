@@ -129,7 +129,7 @@ Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080
 ### Interface de planilha rica
 
 - ⚡ Pesquisar, classificar, filtrar, esconder colunas com uber facilidade
-- ⚡ Criar visualizações: Grade, Galeria, Kanban, Gantt, Formulário
+- ⚡ Criar visualizações: Grade, Galeria, Kanban, Formulário
 - ⚡ Compartilhar Visualizações: Public & Senha Protegido
 - ⚡ Vistas pessoais e bloqueadas
 - ⚡ Carregar imagens para as células (funciona com S3, Minio, GCP, Azure, Digitalocean, Linodo, OVH, Backblaze) !!

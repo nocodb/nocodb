@@ -128,7 +128,7 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 ### Antarmuka spreadsheet yang kaya
 
 - ⚡ Cari, Sortir, Filter, Sembunyikan Kolom dengan Uber Ease
-- ⚡ Buat Tampilan: Grid, Galeri, Kanban, Gantt, Formulir
+- ⚡ Buat Tampilan: Grid, Galeri, Kanban, Formulir
 - ⚡ Bagikan Pandangan: Dilindungi Publik & Kata Sandi
 - ⚡ Pandangan Pribadi & Terkunci
 - ⚡ Unggah gambar ke sel (bekerja dengan S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backblaze) !!

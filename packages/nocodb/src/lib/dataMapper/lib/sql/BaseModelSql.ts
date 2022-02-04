@@ -1313,8 +1313,10 @@ class BaseModelSql extends BaseModel {
       )}List`;
       const gs = _.groupBy(childs, _cn);
       parent.forEach(row => {
+        if (!row[listColumnName]) row[listColumnName] = [];
+
         if (gs[row[this.pks[0]._cn]])
-          row[listColumnName] = (row[listColumnName] || []).concat(
+          row[listColumnName] = row[listColumnName].concat(
             gs[row[this.pks[0]._cn]] || []
           );
       });

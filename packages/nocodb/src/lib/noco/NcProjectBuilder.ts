@@ -308,6 +308,11 @@ export default class NcProjectBuilder {
         console.log(`Updated validations for table : ${data.req.args.tn}`);
         break;
 
+      case 'tableXcHooksDelete':
+        await curBuilder.onHooksUpdate(data.req.args.tn);
+        console.log(`Updated validations for table : ${data.req.args.tn}`);
+        break;
+
       case 'xcModelSwaggerDocSet':
         await (curBuilder as RestApiBuilder).onSwaggerDocUpdate(
           data.req.args.tn

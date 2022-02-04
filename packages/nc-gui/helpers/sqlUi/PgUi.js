@@ -609,7 +609,7 @@ export class PgUi {
         return 'eg: '
 
       case 'char':
-        return 'eg: '
+        return "eg: 'T'"
 
       case 'character':
         return "eg: 'sample'"
@@ -864,7 +864,7 @@ export class PgUi {
         return 'eg: '
 
       case 'character varying':
-        return 'eg: '
+        return "eg: 'sample text'"
 
       case 'tinyint':
         return 'eg: '

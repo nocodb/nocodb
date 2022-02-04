@@ -371,7 +371,7 @@ export default class NcMetaMgr {
           break;
 
         default:
-          next();
+          return next();
           break;
       }
     } catch (e) {

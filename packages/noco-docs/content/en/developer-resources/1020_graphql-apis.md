@@ -1,6 +1,6 @@
 ---
 title: 'GraphQL APIs'
-position: 300
+position: 1020
 category: 'Developer Resources'
 menuTitle: 'GraphQL APIs'
 ---

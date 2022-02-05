@@ -1,7 +1,7 @@
 ---
 title: 'Demos'
 description: 'Demos'
-position: 3
+position: 30
 category: 'Getting started'
 fullscreen: true
 menuTitle: 'Demos'

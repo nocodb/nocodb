@@ -1,7 +1,7 @@
 ---
 title: 'Dashboard'
 description: 'Dashboard'
-position: 10
+position: 500
 category: 'Usage'
 menuTitle: 'Dashboard'
 ---

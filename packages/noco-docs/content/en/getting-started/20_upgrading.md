@@ -1,7 +1,7 @@
 ---
 title: 'Upgrading'
 description: 'Upgrading NocoDB : Docker, npm, Heroku!'
-position: 2
+position: 20
 category: 'Getting started'
 menuTitle: 'Upgrading'
 link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark

@@ -1,7 +1,7 @@
 ---
 title: 'API Tokens'
 description: 'API Tokens'
-position: 500
+position: 1040
 category: 'Developer Resources'
 menuTitle: 'API Tokens'
 ---

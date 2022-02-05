@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "nuxt",
+    "dev": "NODE_OPTIONS=--openssl-legacy-provider nuxt",
     "build": "nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate"

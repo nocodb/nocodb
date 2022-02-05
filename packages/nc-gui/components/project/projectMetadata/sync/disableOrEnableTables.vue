@@ -251,6 +251,7 @@
             </x-btn>-->
 
             <x-btn
+              v-if="isChanged"
               x-large
               btn.class="mx-auto primary nc-btn-metasync-sync-now"
               tooltip="Sync metadata"
@@ -270,17 +271,10 @@
 
 <script>
 import { mapGetters } from 'vuex'
-// import { isMetaTable } from '@/helpers/xutils'
-import XIcon from '@/components/global/xIcon'
-import XBtn from '@/components/global/xBtn'
 import viewIcons from '~/helpers/viewIcons'
 
 export default {
   name: 'DisableOrEnableTables',
-  components: {
-    XBtn,
-    XIcon
-  },
   props: ['nodes', 'db'],
   data: () => ({
     viewIcons,
@@ -425,6 +419,9 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
+    isChanged() {
+      return this.diff && this.diff.some(d => d && d.detectedChanges && d.detectedChanges.length)
+    },
     prefix() {
       return this.$store.getters['project/GtrProjectPrefix'] || ''
     }

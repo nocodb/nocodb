@@ -20,6 +20,7 @@ Simple installation - takes about three minutes!
     
 ## Quick try
 
+
 ### 1-Click Deploy to Heroku
 
 <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">

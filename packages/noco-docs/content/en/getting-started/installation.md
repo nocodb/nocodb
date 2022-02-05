@@ -66,32 +66,6 @@ Simple installation - takes about three minutes!
 > To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
         
 
-## Development Setup
-
-If you want to modify the source code, 
-
-- Start the backend locally
-
-```bash
-cd packages/nocodb
-npm install
-npm run watch:run
-```
-
-- Start the frontend locally
-
-```bash
-cd packages/nc-gui
-npm install
-npm run dev
-```
-
-- Open ``localhost:3000/dashboard`` in browser
-
-<alert>
-  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
-   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-</alert>
 
 ## Production Setup 
 
@@ -301,6 +275,32 @@ aws ecs create-service \
   If your service fails to start, you may check the logs in ECS console or in Cloudwatch. Generally it fails due to the connection between ECS container and NC_DB. Make sure the security groups have the correct inbound and outbound rules.  
 </alert>
 
+## Development Setup
+
+If you want to modify the source code,
+
+- Start the backend locally
+
+```bash
+cd packages/nocodb
+npm install
+npm run watch:run
+```
+
+- Start the frontend locally
+
+```bash
+cd packages/nc-gui
+npm install
+npm run dev
+```
+
+- Open ``localhost:3000/dashboard`` in browser
+
+<alert>
+  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
+   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
+</alert>
 
 ## Sample Demos
 

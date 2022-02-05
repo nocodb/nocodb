@@ -787,15 +787,15 @@ export class SqliteUi {
         break
       case 'PhoneNumber':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isMobilePhone'], args: [''], msg: ['Validation failed : isMobilePhone'] }
+        colProp.validate = { func: ['isMobilePhone'], args: [''], msg: ['Validation failed : Invalid Mobile Format'] }
         break
       case 'Email':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail'] }
+        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : Invalid Email Format'] }
         break
       case 'URL':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL'] }
+        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : Invalid URL Format'] }
         break
       case 'Number':
         colProp.dt = 'integer'
@@ -805,7 +805,7 @@ export class SqliteUi {
         break
       case 'Currency':
         colProp.dt = 'double precision'
-        colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : isCurrency'] }
+        colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : Invalid Currency Format'] }
         break
       case 'Percent':
         colProp.dt = 'double'

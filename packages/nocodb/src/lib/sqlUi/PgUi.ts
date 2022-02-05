@@ -1610,7 +1610,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
-          msg: ['Validation failed : isMobilePhone']
+          msg: ['Validation failed : Invalid Mobile Format']
         };
         break;
       case 'Email':
@@ -1618,7 +1618,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
-          msg: ['Validation failed : isEmail']
+          msg: ['Validation failed : Invalid Email Format']
         };
         break;
       case 'URL':
@@ -1626,7 +1626,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isURL'],
           args: [''],
-          msg: ['Validation failed : isURL']
+          msg: ['Validation failed : Invalid URL Format']
         };
         break;
       case 'Number':
@@ -1640,7 +1640,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
-          msg: ['Validation failed : isCurrency']
+          msg: ['Validation failed : Invalid Currency Format']
         };
         break;
       case 'Percent':

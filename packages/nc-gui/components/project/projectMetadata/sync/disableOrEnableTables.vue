@@ -238,52 +238,26 @@
           <!--          <div-->
           <!--            v-if="isNewOrDeletedModelFound" -->
           <div class="d-flex justify-center">
-            <!--            <x-btn
+            <v-btn
+              v-if="isChanged"
               x-large
-              btn.class="mx-auto primary nc-btn-sync-meta-data"
-              tooltip="Sync metadata"
-              @click="syncMetadata"
+              class="mx-auto primary nc-btn-metasync-sync-now"
+              @click="syncMetaDiff"
             >
               <v-icon color="white" class="mr-2 mt-n1">
                 mdi-database-sync
               </v-icon>
               Sync Now
-            </x-btn>-->
-            <v-tooltip bottom>
-              <template #activator="{on}">
-                <x-btn
-                  v-if="isChanged"
-                  x-large
-                  btn.class="mx-auto primary nc-btn-metasync-sync-now"
-                  @click="syncMetaDiff"
-                  v-on="on"
-                >
-                  <v-icon color="white" class="mr-2 mt-n1">
-                    mdi-database-sync
-                  </v-icon>
-                  Sync Now
-                </x-btn>
+            </v-btn>
 
-                <v-alert
-                  v-else
-                  dense
-                  outlined
-                  type="success"
-                  v-on="on"
-                >
-                  Tables metadata is in sync
-                </v-alert>
-              </template>
-
-              <template v-if="!isChanged">
-                Metadata for API creation & management is in sync with
-                '{{ dbAliasList[dbsTab].connection.database }}' Database.
-              </template>
-              <template-- v-else>
-                Metadata for API creation & management isn't sync with
-                '{{ dbAliasList[dbsTab].connection.database }}' Database.
-              </template-->
-            </v-tooltip>
+            <v-alert
+              v-else
+              dense
+              outlined
+              type="success"
+            >
+              Tables metadata is in sync
+            </v-alert>
           </div>
         </v-col>
       </v-row>
@@ -294,9 +268,11 @@
 <script>
 import { mapGetters } from 'vuex'
 import viewIcons from '~/helpers/viewIcons'
+import XBtn from '~/components/global/xBtn'
 
 export default {
   name: 'DisableOrEnableTables',
+  components: { XBtn },
   props: ['nodes', 'db'],
   data: () => ({
     viewIcons,

@@ -47,7 +47,7 @@
           :key="i + '_5'"
           v-model="filter.field"
           class="caption "
-          placeholder="Field"
+          :placeholder="$t('objects.field')"
           solo
           flat
           dense
@@ -65,7 +65,7 @@
           v-model="filter.field"
           class="caption nc-filter-field-select"
           :items="fieldList"
-          placeholder="Field"
+          :placeholder="$t('objects.field')"
           solo
           flat
           dense
@@ -82,7 +82,7 @@
           v-model="filter.op"
           class="flex-shrink-1 flex-grow-0 caption  nc-filter-operation-select"
           :items="opList"
-          placeholder="Operation"
+          :placeholder="$t('labels.operation')"
           solo
           flat
           style="max-width:120px"

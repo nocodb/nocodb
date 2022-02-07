@@ -32,7 +32,7 @@
           <v-text-field
             v-else
             v-model="search"
-            placeholder="Search tables"
+            :placeholder="$t('placeholder.searchProjectTree')"
             dense
             hide-details
             class="elevation-0 mr-2  pl-3 pr-1 caption nc-table-list-filter"

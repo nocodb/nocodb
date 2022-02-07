@@ -39,7 +39,7 @@
             v-model="sort.field"
             class="caption nc-sort-field-select"
             :items="fieldList"
-            label="Field"
+            :label="$t('objects.field')"
             solo
             flat
             dense
@@ -55,7 +55,7 @@
             v-model="sort.order"
             class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
             :items="[{text : 'A -> Z', value: ''},{text : 'Z -> A', value: '-'}]"
-            label="Operation"
+            :label="$t('labels.operation')"
             solo
             flat
             dense

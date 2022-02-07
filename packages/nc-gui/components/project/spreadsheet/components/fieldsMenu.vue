@@ -87,7 +87,7 @@
           flat
           class="caption mt-3 mb-2"
           color="grey"
-          placeholder="Search fields"
+          :placeholder="$t('placeholder.searchFields')"
           hide-details
           @click.stop
         >

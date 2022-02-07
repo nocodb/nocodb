@@ -253,9 +253,10 @@
         <!--      </v-tabs-items>-->
       </v-tabs-items>
 
+      <!-- tooltip: Add new table -->
       <x-icon
         v-if="_isUIAllowed('addTable')"
-        tooltip="Create new table"
+        :tooltip="$t('tooltip.addTable')"
         icon-class="add-btn"
         :color="[ 'white','grey lighten-2']"
         @click="dialogCreateTableShow = true"

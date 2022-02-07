@@ -69,12 +69,12 @@
           class="text-center mb-0"
           style="width: 100%;min-width:200px"
           @click.prevent="clearNotification"
-        >{{ $t('projects.notifications.clear') }}</a>
+        >{{ $t('msg.info.notifications.clear') }}</a>
       </v-list-item>
       <v-list-item v-else>
         <v-list-item-content>
           <v-list-item-subtitle class="px-3">
-            {{ $t('projects.notifications.no_new') }}
+            {{ $t('msg.info.notifications.no_new') }}
           </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>

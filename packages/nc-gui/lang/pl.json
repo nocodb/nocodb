@@ -1,247 +1,473 @@
 {
-  "projects": {
-    "my_projects": "Moje projekty",
-    "reload_projects_tooltip": "Odśwież projekty",
-    "create_new_project_button": {
-      "text": "Nowy projekt",
-      "subtext_1": "Utwórz",
-      "subtext_1_tooltip": "Utwórz nowy projekt",
-      "subtext_2": "Utwórz przez podłączenie <br> do zewnętrznej bazy danych",
-      "subtext_2_tooltip": "Obsługuje MySQL, PostgreSQL, SQL Server & Sqlite"
+  "general": {
+    "home": "Dom",
+    "load": "Obciążenie",
+    "open": "otwarty",
+    "close": "Blisko",
+    "yes": "tak",
+    "no": "Nie",
+    "ok": "ok",
+    "and": "i",
+    "or": "Lub",
+    "add": "Dodać",
+    "edit": "Edytować",
+    "remove": "Usunąć",
+    "save": "Zapisać",
+    "cancel": "Anuluj",
+    "submit": "Składać",
+    "create": "Utwórz",
+    "delete": "Kasować",
+    "update": "Aktualizacja",
+    "rename": "Przemianować",
+    "reload": "Przeładować",
+    "reset": "Resetowanie",
+    "install": "zainstalować",
+    "show": "Pokazać",
+    "hide": "Ukrywać",
+    "showAll": "Pokaż wszystko",
+    "hideAll": "Schowaj wszystko",
+    "showMore": "Pokaż więcej",
+    "showOptions": "Pokaż opcje",
+    "hideOptions": "Ukryj opcje",
+    "showMenu": "Pokaż menu",
+    "hideMenu": "Ukryj menu",
+    "addAll": "Dodać wszystko",
+    "removeAll": "Usuń wszystko",
+    "signUp": "Zapisać się",
+    "signIn": "ZALOGUJ SIĘ",
+    "signOut": "Wyloguj się",
+    "required": "Wymagany",
+    "preferred": "Preferowany",
+    "mandatory": "Obowiązkowy",
+    "loading": "Ładowanie ..."
+  },
+  "objects": {
+    "project": "Projekt",
+    "projects": "Projektowanie",
+    "table": "Tabela",
+    "tables": "Stoły",
+    "field": "Pole",
+    "fields": "Pola",
+    "column": "Kolumna",
+    "columns": "Kolumny",
+    "page": "Strona",
+    "pages": "Strony",
+    "record": "Nagrywać",
+    "records": "Dokumentacja",
+    "webhook": "WebHook.",
+    "webhooks": "Webhooks.",
+    "view": "Pogląd",
+    "views": "Wyświetlenia",
+    "viewType": {
+      "grid": "Siatka",
+      "gallery": "Galeria",
+      "form": "Formularz",
+      "kanban": "Kanban.",
+      "calendar": "Kalendarz"
     },
-    "search_project": "Szukaj projektu",
-    "import_metadata": "Importuj metadane",
-    "export_metadata": "Eksportuj metadane",
-    "clear_metadata": "Wyczyść metadane",
-    "stop_project": "Zatrzymaj projekt",
-    "start_project": "Rozpocznij projekt.",
-    "restart_project": "Restartuj projekt",
-    "delete_project": "Usuń Projekt.",
-    "project_api_type_tooltip_graphql": "Dostępne przez API Graphql",
-    "project_api_type_tooltip_rest": "Dostępne przez API REST",
-    "project_empty_message": "Zacznij od tworzenia nowego projektu",
-    "import_button": {
-      "text": "Importuj projekt NOCODB, przesyłając plik zip metadanych"
-    },
-    "show_community_star": "Gwiazda",
-    "show_community_us_on_Github": "My na Github.",
-    "show_community_book_a_free_demo": "Zarezerwuj darmowe demo",
-    "show_community_get_your_questions_answered": "Odpowiedzi na pytania",
-    "show_community_join_discord": "Dołącz do Discord.",
-    "show_community_follow_nocodb": "Śledź NOCODB.",
-    "search": {
-      "your_search_found_no_results": "Twoje wyszukiwanie dla {search}, nie znaleziono żadnych wyników"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "Edytuj projekt.",
-        "create": "Utwórz projekt"
-      },
-      "project_name": "Wprowadź nazwę projektu.",
-      "project_type": "Dostęp do projektu przez",
-      "button": {
-        "save_project": "Zapisz Projekt",
-        "update_and_restart": "Aktualizuj i uruchom ponownie",
-        "cancel": "Anuluj",
-        "cancel_tooltip": "Anuluj i wróć"
-      },
-      "credentials": {
-        "title": "Poświadczenia bazy danych.",
-        "db_type": "Typ bazy danych.",
-        "sqlite_file": "Plik sqlite.",
-        "host_address": "Adres hosta",
-        "port": "Numer portu",
-        "username": "Nazwa użytkownika",
-        "password": "Hasło",
-        "db_create_if_not_exists": "Baza danych: Utwórz, jeśli nie istnieje",
-        "button": {
-          "test_db_conn": "Testowe połączenie bazy danych.",
-          "remove_db_from_env": "Usuń bazę danych ze środowiska"
-        },
-        "advanced": {
-          "title": "Parametry SSL i zaawansowane",
-          "ssl": {
-            "client_key": {
-              "title": "Klucz klienta",
-              "toolip": "Wybierz plik .key."
-            },
-            "client_cert": {
-              "title": "Cert Client.",
-              "toolip": "Wybierz plik .Cert."
-            },
-            "server_ca": {
-              "title": "Serwer ca.",
-              "toolip": "Wybierz plik CA."
-            },
-            "preferred": "Preferowany",
-            "usage": {
-              "no": "Nie",
-              "preferred": "Preferowany",
-              "required": "Wymagany",
-              "requried_ca": "Wymagany-ca.",
-              "requried_identity": "Wymagana tożsamość"
-            }
-          },
-          "inflection": {
-            "table_name": "Nazwa tabeli",
-            "column_name": "Fleksja - Nazwa kolumny"
-          },
-          "button": {
-            "edit_conn_json": "Edytuj połączenie JSON."
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "Nieprawidłowy znak na ścieżce folderu.",
-        "invalid_db_credentials": "Nieprawidłowe poświadczenia bazy danych.",
-        "unable_to_connect_to_db": "Nie można połączyć się z bazą danych, sprawdź swoją bazę danych.",
-        "user_doesnt_ve_sufficient_permission": "Użytkownik nie istnieje ani nie ma wystarczającej zgody na tworzenie schematu."
-      },
-      "head": {
-        "title": "Utwórz projekt |. NOCODB."
-      },
-      "dialog": {
-        "success": "Połączenie udane",
-        "failure": "Błąd połączenia:"
-      }
-    },
-    "notifications": {
-      "no_new": "brak nowych powiadomień",
-      "clear": "Jasne"
+    "user": "Użytkownik",
+    "users": "Użytkownicy.",
+    "role": "Rola",
+    "roles": "Role.",
+    "roleType": {
+      "owner": "Właściciel",
+      "creator": "Twórca",
+      "editor": "Redaktor",
+      "commenter": "Komentator",
+      "viewer": "Widz"
     }
   },
-  "signin": {
-    "title": "ZALOGUJ SIĘ",
-    "enter_your_work_email": "Wpisz swój adres e-mail",
-    "enter_your_password": "Wprowadź hasło",
-    "forget_password": "Zapomniałeś hasła ?",
-    "dont_ve_an_account": "Nie masz konta?",
-    "sign_up": "Zapisać się",
-    "form": {
-      "rules": {
-        "email_is_reqd": "Email jest wymagany",
-        "email_must_be_valid": "Adres email musi być poprawny",
-        "passwd_required": "Wymagane jest hasło",
-        "passwd_must_be_8_chars": "Użytkownik musi być co najmniej 8 znaków"
-      }
+  "datatype": {
+    "ID": "ID",
+    "ForeignKey": "Klucz obcy",
+    "SingleLineText": "Tekst pojedynczy linii",
+    "LongText": "Długi tekst",
+    "Attachment": "Załącznik",
+    "Checkbox": "Pole wyboru",
+    "MultiSelect": "Wielokrotny wybór",
+    "SingleSelect": "Pojedynczy wybór",
+    "Collaborator": "Współpracownik",
+    "Date": "Data",
+    "Year": "Rok",
+    "Time": "Czas",
+    "PhoneNumber": "Numer telefonu",
+    "Email": "E-mail",
+    "URL": "URL.",
+    "Number": "Numer",
+    "Decimal": "Dziesiętny",
+    "Currency": "Waluta",
+    "Percent": "Procent",
+    "Duration": "Czas trwania",
+    "Rating": "Ocena",
+    "Formula": "Formuła",
+    "Rollup": "Rollup.",
+    "Count": "Liczyć",
+    "Lookup": "Spojrzeć w górę",
+    "DateTime": "Czas daty",
+    "CreateTime": "Utwórz czas",
+    "LastModifiedTime": "Ostatni zmodyfikowany czas",
+    "AutoNumber": "Numer samochodu",
+    "Barcode": "kod kreskowy",
+    "Button": "Przycisk",
+    "Password": "Hasło"
+  },
+  "filterOperation": {
+    "isEqual": "jest równy",
+    "isNotEqual": "nie jest równy",
+    "isLike": "jest jak",
+    "isNot like": "nie jest taki",
+    "isEmpty": "jest pusty",
+    "isNotEmpty": "nie jest pusty",
+    "isNull": "jest null.",
+    "isNotNull": "nie jest null."
+  },
+  "title": {
+    "newProj": "Nowy projekt",
+    "myProject": "Moje projekty",
+    "formTitle": "Tytuł formy",
+    "collabView": "Widok współpracy",
+    "lockedView": "Zamknięty widok",
+    "personalView": "Widok osobisty",
+    "appStore": "Sklep z aplikacjami",
+    "team&auth": "Team & Auth.",
+    "rolesUserMgmt": "Role i zarządzanie użytkownikami",
+    "userMgmt": "Zarządzanie użytkownikami",
+    "apiTokenMgmt": "Zarządzanie Tokeny API.",
+    "rolesMgmt": "Zarządzanie rólami",
+    "projMeta": "Metadane projektu.",
+    "metaMgmt": "Meta Management.",
+    "metadata": "Metadata.",
+    "exportImportMeta": "Eksport / Importuj metadane",
+    "metaOperations": "Operacje metadanych",
+    "audit": "Rewizja",
+    "auditLogs": "Dziennik kontroli",
+    "sqlMigrations": "Migracje SQL.",
+    "dbCredentials": "Poświadczenia bazy danych.",
+    "advancedParameters": "Parametry SSL i zaawansowane",
+    "headCreateProject": "Utwórz projekt |. NOCODB.",
+    "headLogin": "Zaloguj się | NOCODB.",
+    "resetPassword": "Zresetuj swoje hasło"
+  },
+  "labels": {
+    "projName": "Nazwa Projektu",
+    "viewName": "Zobacz nazwę.",
+    "viewLink": "Wyświetl link",
+    "columnName": "Nazwa kolumny",
+    "columnType": "Typ kolumny",
+    "roleName": "Nazwa roli.",
+    "roleDescription": "opis roli",
+    "databaseType": "Wpisz bazy danych",
+    "lengthValue": "Długość / wartość",
+    "dbType": "Typ bazy danych.",
+    "sqliteFile": "Plik sqlite.",
+    "hostAddress": "Adres hosta",
+    "port": "Numer portu",
+    "username": "Nazwa użytkownika",
+    "password": "Hasło",
+    "action": "Akcja",
+    "actions": "działania",
+    "operation": "Operacja",
+    "operationType": "Typ pracy",
+    "operationSubType": "Podtypowy typ pracy",
+    "description": "Opis",
+    "authentication": "Uwierzytelnianie",
+    "token": "Znak",
+    "where": "Gdzie",
+    "cache": "Pamięć podręczna",
+    "chat": "Czat",
+    "email": "E-mail",
+    "storage": "Przechowywanie",
+    "uiAcl": "Ui-ACL.",
+    "models": "Modele",
+    "syncState": "Synchronizowany stan",
+    "created": "Utworzony",
+    "sqlOutput": "Wyjście SQL.",
+    "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
+    "clientKey": "Klucz klienta",
+    "clientCert": "Cert Client.",
+    "serverCA": "Serwer ca.",
+    "requriedCa": "Wymagany-ca.",
+    "requriedIdentity": "Wymagana tożsamość",
+    "inflection": {
+      "tableName": "Nazwa tabeli",
+      "columnName": "Fleksja - Nazwa kolumny"
     },
-    "head": {
-      "title": "Zaloguj się | NOCODB.",
-      "meta": {
-        "hid": "Zaloguj się do NOCODB",
-        "name": "Zaloguj się do NOCODB",
-        "content": "Zaloguj się do NOCODB"
-      }
+    "community": {
+      "starUs1": "Gwiazda",
+      "starUs2": "My na Github.",
+      "bookDemo": "Zarezerwuj darmowe demo",
+      "getAnswered": "Odpowiedzi na pytania",
+      "joinDiscord": "Dołącz do Discord.",
+      "joinReddit": "Dołącz /r/NocoDB",
+      "followNocodb": "Śledź NocoDB"
+    }
+  },
+  "activity": {
+    "createProject": "Utwórz projekt",
+    "importProject": "Importuj projekt.",
+    "searchProject": "Szukaj projektu",
+    "editProject": "Edytuj projekt.",
+    "stopProject": "Zatrzymaj projekt",
+    "startProject": "Rozpocznij projekt.",
+    "restartProject": "Restartuj projekt",
+    "deleteProject": "Usuń Projekt.",
+    "refreshProject": "Odśwież projekty",
+    "saveProject": "Zapisz Projekt",
+    "createProjectExtended": {
+      "extDB": "Utwórz przez podłączenie <br> do zewnętrznej bazy danych",
+      "excel": "Utwórz projekt z Excel",
+      "template": "Utwórz projekt z szablonu"
     },
+    "OkSaveProject": "Projekt OK & Save",
+    "upgrade": {
+      "available": "Aktualizacja dostępna",
+      "releaseNote": "Informacje o wydaniu",
+      "howTo": "Jak ulepszyć?"
+    },
+    "translate": "Pomóż przetłumaczyć",
+    "account": {
+      "authToken": "Skopiuj auth token.",
+      "swagger": "Bałkowicie API DOC.",
+      "projInfo": "Skopiuj informacje o projekcie.",
+      "themes": "Tematy"
+    },
+    "sort": "Sortować",
+    "addSort": "Dodaj opcję Sortuj",
+    "filter": "Filtr",
+    "addFilter": "Dodaj filtr",
+    "share": "Udział",
+    "shareBase": {
+      "disable": "Wyłącz wspólną bazę",
+      "enable": "Każdy z linkiem",
+      "link": "Wspólny link bazowy."
+    },
+    "invite": "Zapraszać",
+    "inviteMore": "Zaprosić więcej",
+    "inviteTeam": "Invite Team.",
+    "inviteToken": "Zaproś token.",
+    "newUser": "Nowy użytkownik",
+    "editUser": "Edytuj użytkownika",
+    "deleteUser": "Usuń użytkownika z projektu",
+    "resendInvite": "Ponownie zaprosić zaproszenie e-maila",
+    "copyInviteURL": "Kopiuj Zaproś Url.",
+    "newRole": "Nowa rola",
+    "reloadRoles": "Role ponownie załaduj",
+    "nextPage": "Następna strona",
+    "prevPage": "Poprzednia strona",
+    "nextRecord": "Następny rekord",
+    "previousRecord": "Poprzednie nagranie",
+    "copyApiURL": "Kopiuj adres URL API.",
+    "createTable": "Stół tworzenie",
+    "refreshTable": "Tabele odświeżania",
+    "renameTable": "Zmień nazwę tabeli.",
+    "addField": "Dodaj nowe pole do tej tabeli",
+    "setPrimary": "Ustaw jako wartość podstawowa",
+    "addRow": "Dodaj nowy rząd",
+    "saveRow": "Zapisz wiersz",
+    "insertRow": "Wstaw nowy rząd",
+    "deleteRow": "Usuń rząd",
+    "deleteSelectedRow": "Usuń wybrane wiersze",
+    "importExcel": "Importuj Excel.",
+    "downloadCSV": "Pobierz jako CSV.",
+    "uploadCSV": "Prześlij CSV.",
+    "import": "Import",
+    "importMetadata": "Importuj metadane",
+    "exportMetadata": "Eksportuj metadane",
+    "clearMetadata": "Wyczyść metadane",
+    "exportToFile": "Eksportuj do pliku.",
+    "changePwd": "Zmień hasło",
+    "createView": "Utwórz widok",
+    "shareView": "Widok udostępniania",
+    "listSharedView": "Wspólna lista widoków",
+    "ListView": "Lista widoków",
+    "copyView": "Widok kopiowania",
+    "renameView": "Zmień nazwę",
+    "deleteView": "Usuń widok.",
+    "createGrid": "Utwórz widok siatki",
+    "createGallery": "Utwórz widok galerii",
+    "createCalendar": "Utwórz widok kalendarza",
+    "createKanban": "Utwórz widok Kanban",
+    "createForm": "Utwórz widok formularza",
+    "showSystemFields": "Pokaż pola systemowe.",
+    "copyUrl": "Kopiuj URL",
+    "openTab": "Otwórz nową kartę",
+    "iFrame": "Skopiuj wbudowany kod HTML",
+    "addWebhook": "Dodaj nowy webhook.",
+    "newToken": "Dodaj nowy token.",
+    "exportZip": "Eksportuj Zip.",
+    "importZip": "Importuj Zip.",
+    "metaSync": "Synchronizuj teraz",
+    "settings": "Ustawienia",
+    "previewAs": "Podgląd AS.",
+    "resetReview": "Zresetuj podgląd",
+    "testDbConn": "Testowe połączenie bazy danych.",
+    "removeDbFromEnv": "Usuń bazę danych ze środowiska",
+    "editConnJson": "Edytuj połączenie JSON.",
+    "sponsorUs": "Sponsor",
+    "sendEmail": "WYSŁAĆ EMAIL"
+  },
+  "tooltip": {
+    "xcDB": "Utwórz nowy projekt",
+    "extDB": "Obsługuje MySQL, PostgreSQL, SQL Server & Sqlite",
+    "apiRest": "Dostępne przez API REST",
+    "apiGQL": "Dostępne przez API Graphql",
+    "theme": {
+      "dark": "Przychodzi w czerni (^ ⇧b)",
+      "light": "Czy to jest czarne? (^ ⇧b)"
+    },
+    "addTable": "Dodaj nową tabelę",
+    "inviteMore": "Zaproś więcej użytkowników.",
+    "toggleNavDraw": "Przełącz szufladę nawigacyjną.",
+    "reloadApiToken": "Przeładuj żetony API",
+    "generateNewApiToken": "Wygeneruj nowy token API",
+    "addRole": "Dodaj nową rolę",
+    "metaReloadList": "Lista przeładowania",
+    "metaSync": "Synchronizacja metadanych",
+    "sqlMigration": "Przeładuj migracje",
+    "updateRestart": "Aktualizuj i uruchom ponownie",
+    "cancelReturn": "Anuluj i wróć",
+    "exportMetadata": "Eksportuj wszystkie metadane z tabel meta do meta katalogu.",
+    "importMetadata": "Importuj wszystkie metadane z meta katalogu do tabel meta.",
+    "clearMetadata": "Wyczyść wszystkie metadane z stołów meta.",
+    "clientKey": "Wybierz plik .key.",
+    "clientCert": "Wybierz plik .Cert.",
+    "clientCA": "Wybierz plik CA."
+  },
+  "placeholder": {
+    "projName": "Wprowadź nazwę projektu.",
     "password": {
-      "recovery": {
-        "title": "Zresetuj swoje hasło",
+      "enter": "Podaj hasło",
+      "current": "Aktualne hasło",
+      "new": "Nowe hasło",
+      "save": "Zapisz hasło",
+      "confirm": "Potwierdź nowe hasło"
+    },
+    "searchProjectTree": "Szukaj tabel",
+    "searchFields": "Pola wyszukiwania",
+    "searchColumn": "Szukaj {Search} Kolumna",
+    "searchApps": "Wyszukaj aplikacje.",
+    "searchModels": "Wyszukaj modele.",
+    "noItemsFound": "Nie znaleziono przedmiotów",
+    "defaultValue": "Domyślna wartość",
+    "filterByEmail": "Filtruj e-mailem"
+  },
+  "msg": {
+    "info": {
+      "footerInfo": "Wiersze na stronę",
+      "upload": "Wybierz plik do przesłania",
+      "upload_sub": "lub przeciągnij i upuść plik",
+      "excelSupport": "Obsługiwane: .xls, .xlsx, .xlsm, .ods, .oty",
+      "excelURL": "Wpisz adres URL pliku Excel",
+      "footMsg": "# wierszy do analizy do infera DataType",
+      "excelImport": "Arkusze są dostępne dla importu",
+      "exportMetadata": "Czy chcesz wyeksportować metadane z stołów meta?",
+      "importMetadata": "Czy chcesz importować metadane z stołów meta?",
+      "clearMetadata": "Czy chcesz usunąć metadane z stołów meta?",
+      "projectEmptyMessage": "Zacznij od tworzenia nowego projektu",
+      "stopProject": "Czy chcesz zatrzymać projekt?",
+      "startProject": "Czy chcesz rozpocząć projekt?",
+      "restartProject": "Czy chcesz ponownie uruchomić projekt?",
+      "deleteProject": "Czy chcesz usunąć projekt?",
+      "shareBasePrivate": "Wygeneruj publicznie do readonly bazy",
+      "shareBasePublic": "Każdy w Internecie z tym linkiem może przeglądać",
+      "userInviteNoSMTP": "Wygląda na to, że nie skonfigurowałeś jeszcze mailera! n Proszę skopiować powyżej zaproś link i wyślij go",
+      "dragDropHide": "Przeciągnij i upuść pola tutaj, aby się ukryć",
+      "formInput": "Wprowadź etykietę wejściową formularza",
+      "formHelpText": "Dodaj trochę pomocy",
+      "onlyCreator": "Tylko widoczne dla twórcy",
+      "formDesc": "Dodaj opis formularza",
+      "beforeEnablePwd": "Ogranicz dostęp do hasła",
+      "afterEnablePwd": "Dostęp jest ograniczony hasłem",
+      "privateLink": "Ten widok jest współdzielony przez prywatny link",
+      "privateLinkAdditionalInfo": "Ludzie z prywatnym ogniwem mogą widzieć tylko komórki widoczne w tym widoku",
+      "afterFormSubmitted": "Po złożeniu formularza",
+      "apiOptions": "Dostęp do projektu przez",
+      "submitAnotherForm": "Pokaż przycisk \"Prześlij inny formularz\"",
+      "showBlankForm": "Pokaż pustą formę po 5 sekundach",
+      "emailForm": "E-mail mnie",
+      "showSysFields": "Pokaż pola systemowe.",
+      "filterAutoApply": "Automatyczne zastosowanie",
+      "showMessage": "Pokaż tę wiadomość",
+      "viewNotShared": "Aktualny widok nie jest udostępniany!",
+      "showAllViews": "Pokaż wszystkie wspólne widoki na tę tabelę",
+      "collabView": "Współpracownicy z uprawnieniami edycji lub wyższe mogą zmienić konfigurację widoku.",
+      "lockedView": "Nikt nie może edytować konfiguracji widoku, dopóki nie zostanie odblokowany.",
+      "personalView": "Tylko możesz edytować konfigurację widoku. Domyślne widoki innych współpracowników są domyślnie ukryte.",
+      "ownerDesc": "Może dodawać / usunąć twórców. I pełne edycja struktur i pola bazy danych.",
+      "creatorDesc": "Może w pełni edytować strukturę i wartości bazy danych.",
+      "editorDesc": "Może edytować rekordy, ale nie można zmienić struktury bazy danych / pól.",
+      "commenterDesc": "Może przeglądać i komentować rekordy, ale nic nie może edytować",
+      "viewerDesc": "Może oglądać rekordy, ale nic nie może edytować",
+      "addUser": "Dodaj nowego użytkownika",
+      "staticRoleInfo": "Zdefiniowane systemowe role nie można edytować",
+      "exportZip": "Eksportuj projekt Meta do pliku zip i pobrać.",
+      "importZip": "Importuj projekt Meta Meta Zip i uruchom ponownie.",
+      "importText": "Importuj projekt NOCODB, przesyłając plik zip metadanych",
+      "metaNoChange": "Brak zidentyfikowania zmian",
+      "sqlMigration": "Migracje schematu zostaną utworzone automatycznie. Utwórz tabelę i odśwież tę stronę.",
+      "dbConnectionStatus": "Zatwierdzone środowisko",
+      "dbConnected": "Połączenie udane",
+      "notifications": {
+        "no_new": "brak nowych powiadomień",
+        "clear": "Jasne"
+      },
+      "sponsor": {
+        "header": "Możesz nam pomóc!",
+        "message": "Jesteśmy maleńką drużyną pracującą w pełnym wymiarze godzin, aby dokonać otwartego źródła NOCODB. Wierzymy, że narzędzie takie jak NOCODB powinno być dostępne swobodnie do każdego rozwiązania problemu w Internecie."
+      },
+      "loginMsg": "Zaloguj się do NOCODB",
+      "passwordRecovery": {
         "message_1": "Podaj adres e-mail użyty podczas podpisania.",
         "message_2": "Wyślemy Ci wiadomość e-mail z linkiem, aby zresetować hasło.",
-        "success": "Sprawdź swój adres e-mail, aby zresetować hasło",
-        "button": "WYSŁAĆ EMAIL"
-      }
-    }
-  },
-  "signup": {
-    "title": "ZAPISZ SIĘ",
-    "you_will_be_the_super_admin": "Będziesz \"super admin\"",
-    "already_ve_an_account": "Posiadasz już konto ?"
-  },
-  "treeview": {
-    "settings": {
-      "title": "Ustawienia",
-      "tooltip": "Tylko widoczne dla twórcy"
-    },
-    "app_store": "Sklep z aplikacjami",
-    "team_n_auth": {
-      "title": "Team & Auth.",
-      "tooltip": "Role i zarządzanie użytkownikami"
-    },
-    "project_metadata": {
-      "title": "Metadane projektu.",
-      "tooltip": "Meta Management."
-    },
-    "preview_as": "Podgląd AS.",
-    "reset_review": "Zresetuj podgląd"
-  },
-  "nav_drawer": {
-    "title": "Wyświetlenia",
-    "virtual_views": {
-      "action": {
-        "copy": "Widok kopiowania",
-        "rename": "Zmień nazwę",
-        "delete": "Usuń widok."
+        "success": "Sprawdź swój adres e-mail, aby zresetować hasło"
       },
-      "title": "Utwórz widok",
-      "caption": "Tylko widoczne dla twórcy",
-      "grid": {
-        "title": "Siatka",
-        "create": "Dodaj widok siatki"
+      "signUp": {
+        "superAdmin": "Będziesz \"super admin\"",
+        "alreadyHaveAccount": "Posiadasz już konto ?",
+        "workEmail": "Wpisz swój adres e-mail",
+        "enterPassword": "Wprowadź hasło",
+        "forgotPassword": "Zapomniałeś hasła ?",
+        "dontHaveAccount": "Nie masz konta?"
       },
-      "gallery": {
-        "title": "Galeria",
-        "create": "Dodaj widok galerii."
-      },
-      "calendar": {
-        "title": "Kalendarz",
-        "create": "Dodaj widok kalendarza"
-      },
-      "kanban": {
-        "title": "Kanban.",
-        "create": "Dodaj widok Kanban."
-      },
-      "form": {
-        "title": "Formularz",
-        "create": "Dodaj widok formy"
+      "addView": {
+        "grid": "Dodaj widok siatki",
+        "gallery": "Dodaj widok galerii.",
+        "form": "Dodaj widok formy",
+        "kanban": "Dodaj widok Kanban.",
+        "calendar": "Dodaj widok kalendarza"
       }
     },
-    "advanced": {
-      "title1": "Widok udostępniania",
-      "views_list": "Lista widoków",
-      "copy_api_url": "Kopiuj adres URL API."
-    },
-    "share_view": {
-      "title": "Ten widok jest współdzielony przez prywatny link",
-      "body": "Ludzie z prywatnym ogniwem mogą widzieć tylko komórki widoczne w tym widoku",
-      "toggle": {
-        "option1": "Ogranicz dostęp do hasła",
-        "option2": "Dostęp jest ograniczony hasłem"
-      },
-      "password": {
-        "caption": "Podaj hasło",
-        "button": "Zapisz hasło"
+    "error": {
+      "searchProject": "Twoje wyszukiwanie dla {search}, nie znaleziono żadnych wyników",
+      "invalidChar": "Nieprawidłowy znak na ścieżce folderu.",
+      "invalidDbCredentials": "Nieprawidłowe poświadczenia bazy danych.",
+      "unableToConnectToDb": "Nie można połączyć się z bazą danych, sprawdź swoją bazę danych.",
+      "userDoesntHaveSufficientPermission": "Użytkownik nie istnieje ani nie ma wystarczającej zgody na tworzenie schematu.",
+      "dbConnectionStatus": "Nieprawidłowe parametry bazy danych.",
+      "dbConnectionFailed": "Błąd połączenia:",
+      "signUpRules": {
+        "emailReqd": "Email jest wymagany",
+        "emailInvalid": "Adres email musi być poprawny",
+        "passwdRequired": "Wymagane jest hasło",
+        "passwdLength": "Użytkownik musi być co najmniej 8 znaków"
       }
-    }
-  },
-  "management": {
-    "tabs": {
-      "user": "Zarządzanie użytkownikami",
-      "api": "Zarządzanie Tokeny API.",
-      "roles": "Zarządzanie rólami"
     },
-    "meta": {
-      "title": "Operacje metadanych",
-      "export_to_file": {
-        "title": "Eksportuj do pliku.",
-        "desc": "Eksportuj wszystkie metadane z tabel meta do meta katalogu."
-      },
-      "import": {
-        "title": "Import",
-        "desc": "Importuj wszystkie metadane z meta katalogu do tabel meta."
-      },
-      "export_to_zip": {
-        "title": "Eksportuj Zip.",
-        "desc": "Eksportuj projekt Meta do pliku zip i pobrać."
-      },
-      "import_zip": {
-        "title": "Importuj Zip.",
-        "desc": "Importuj projekt Meta Meta Zip i uruchom ponownie."
-      },
-      "reset": {
-        "title": "Resetowanie",
-        "desc": "Wyczyść wszystkie metadane z stołów meta."
-      }
+    "toast": {
+      "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",
+      "importMetadata": "Metadane projektu zaimportowane pomyślnie",
+      "clearMetadata": "Metadane projektu oczyszczono pomyślnie",
+      "stopProject": "Projekt zatrzymał się pomyślnie",
+      "startProject": "Projekt rozpoczął się pomyślnie",
+      "restartProject": "Projekt zrestartowany pomyślnie",
+      "deleteProject": "Projekt usunięto pomyślnie",
+      "authToken": "Token autoryzny skopiowany do schowka",
+      "projInfo": "Skopiowane informacje do schowka",
+      "inviteUrlCopy": "Skopiowany Zaproś URL do schowka",
+      "createView": "Widok utworzony pomyślnie",
+      "formEmailSMTP": "Aktywuj wtyczkę SMTP w App Store, aby umożliwić powiadomienie e-mail",
+      "collabView": "Pomyślnie przełączony na widok współpracy",
+      "lockedView": "Pomyślnie przełączony na zablokowany widok",
+      "futureRelease": "Wkrótce!"
     }
   }
 }

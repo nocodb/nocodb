@@ -1,7 +1,7 @@
 ---
 title: 'Dashboard'
 description: 'Dashboard'
-position: 10
+position: 500
 category: 'Usage'
 menuTitle: 'Dashboard'
 ---
@@ -29,7 +29,7 @@ If you are using Docker, it is recommended to mount `/usr/app/data/` for persist
 Example:
 
 ```
-docker run -d -p 8080:8080 --name foo -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
 ```
 
 ## Initialize your first project

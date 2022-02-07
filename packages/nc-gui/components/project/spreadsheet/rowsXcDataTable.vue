@@ -1049,9 +1049,9 @@ export default {
             } else {
               this.$toast.error(`Failed to save row : ${e.message}`).goAway(3000)
             }
+          } finally {
+            this.$set(this.data[row], 'saving', false)
           }
-
-          this.$set(this.data[row], 'saving', false)
         }
       }
     },

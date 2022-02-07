@@ -2,7 +2,7 @@
   <div>
     <h3 class="text-center mb-5 grey--text text--darken-2">
       <!-- Metadata Operations -->
-      {{ $t('management.meta.title') }}
+      {{ $t('title.metaOperations') }}
     </h3>
 
     <v-simple-table class="ma-2 meta-table text-center mx-auto">
@@ -15,7 +15,7 @@
         <!--        <tr>-->
         <!--          <td>-->
         <!--            &lt;!&ndash; Export all metadata from the meta tables to meta directory. &ndash;&gt;-->
-        <!--            {{ $t('management.meta.export_to_file.desc') }}-->
+        <!--            {{ $t('tooltip.exportMetadata') }}-->
         <!--          </td>-->
         <!--          <td>-->
         <!--            <v-btn-->
@@ -30,7 +30,7 @@
         <!--                mdi-export-->
         <!--              </v-icon>&nbsp;-->
         <!--              &lt;!&ndash; Export to file &ndash;&gt;-->
-        <!--              {{ $t('management.meta.export_to_file.title') }}-->
+        <!--              {{ $t('activity.exportToFile') }}-->
         <!--            </v-btn>-->
         <!--          </td>-->
         <!--        </tr>-->
@@ -38,7 +38,7 @@
         <!--        <tr>-->
         <!--          <td>-->
         <!--            &lt;!&ndash; Import all metadata from the meta directory to meta tables. &ndash;&gt;-->
-        <!--            {{ $t('management.meta.import.desc') }}-->
+        <!--            {{ $t('tooltip.importMetadata') }}-->
         <!--          </td>-->
         <!--          <td>-->
         <!--            <v-btn-->
@@ -54,7 +54,7 @@
         <!--              </v-icon>&nbsp;-->
 
         <!--              &lt;!&ndash; Import &ndash;&gt;-->
-        <!--              {{ $t('management.meta.import.title') }}-->
+        <!--              {{ $t('activity.import') }}-->
         <!--            </v-btn>-->
         <!--          </td>-->
         <!--        </tr>-->
@@ -62,7 +62,7 @@
         <tr>
           <td>
             <!-- Export project meta to zip file and download. -->
-            {{ $t('management.meta.export_to_zip.desc') }}
+            {{ $t('msg.info.exportZip') }}
           </td>
           <td>
             <v-btn
@@ -77,14 +77,14 @@
                 mdi-export
               </v-icon>&nbsp;
               <!-- Export zip -->
-              {{ $t('management.meta.export_to_zip.title') }}
+              {{ $t('activity.exportZip') }}
             </v-btn>
           </td>
         </tr>
         <tr>
           <td>
             <!-- Import project meta zip file and restart. -->
-            {{ $t('management.meta.import_zip.desc') }}
+            {{ $t('msg.info.importZip') }}
           </td>
           <td>
             <v-btn
@@ -100,7 +100,7 @@
               </v-icon>&nbsp;
 
               <!-- Import Zip -->
-              {{ $t('management.meta.import_zip.title') }}
+              {{ $t('activity.importZip') }}
             </v-btn>
 
             <input
@@ -115,7 +115,7 @@
       <!--        <tr>-->
       <!--          <td>-->
       <!--            &lt;!&ndash; Clear all metadata from meta tables. &ndash;&gt;-->
-      <!--            {{ $t('management.meta.reset.desc') }}-->
+      <!--            {{ $t('tooltip.clearMetadata') }}-->
       <!--          </td>-->
       <!--          <td>-->
       <!--            <v-btn-->
@@ -130,7 +130,7 @@
       <!--                mdi-delete-variant-->
       <!--              </v-icon>&nbsp;-->
       <!--              &lt;!&ndash; Reset &ndash;&gt;-->
-      <!--              {{ $t('management.meta.reset.title') }}-->
+      <!--              {{ $t('general.reset') }}-->
       <!--            </v-btn>-->
       <!--          </td>-->
       <!--        </tr>-->

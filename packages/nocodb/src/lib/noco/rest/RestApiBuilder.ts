@@ -876,9 +876,16 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   ): Promise<void> {
     await super.onTableCreate(tn, args);
 
+    // get columns list from db
+    const columnsFromDb = await this.getColumnList(tn);
+
     const columns = args.columns
       ? {
-          [tn]: args.columns?.map(({ altered: _al, ...rest }) => rest)
+          [tn]: args.columns?.map(({ altered: _al, ...rest }) => ({
+            ...rest,
+            // find and overwrite column property from db
+            ...(columnsFromDb?.find(c => c.cn === rest.cn) || {})
+          }))
         }
       : {};
 

@@ -1,9 +1,9 @@
 ---
-title: 'User Management - Team & Auth Roles & Permissions'
+title: 'Team & Auth'
 description: 'Breakdown of roles & permissions for team user management'
-position: 44
+position: 620
 category: 'Usage'
-menuTitle: 'User Management - Team & Auth Roles & Permissions'
+menuTitle: 'Team & Auth'
 ---
 
 

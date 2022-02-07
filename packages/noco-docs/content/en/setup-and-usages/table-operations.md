@@ -1,7 +1,7 @@
 ---
 title: "Table Operations"
 description: "Table Operations"
-position: 20
+position: 510
 category: "Usage"
 menuTitle: "Table Operations"
 ---
@@ -10,7 +10,7 @@ Once you have created a new NocoDB project you can open it, In the browser, the 
 
 ## Table
 
-### [Table] Create
+### Table Create
 
 Now you can start creating new tables by simply clicking one of the following options.
 
@@ -28,7 +28,7 @@ After the successful submission, the table will be created and open as a new tab
 ![TableCreated](https://user-images.githubusercontent.com/86527202/144402089-b5e35564-80d5-4105-9e00-7e3e1c4a5030.png)
 
 
-### [Table] Rename
+### Table Rename
 
 Right click on Table name on left hand project-tree menu, select `Rename`
 In modal popup, enter new table name and click `Submit` button
@@ -36,7 +36,7 @@ In modal popup, enter new table name and click `Submit` button
 <img src="https://user-images.githubusercontent.com/86527202/144403447-1b2e4368-eb2b-40c0-901a-54e8adf9a80c.png" width="60%"/>
 
 
-### [Table] Delete
+### Table Delete
 
 The table can be deleted using the `delete` icon present in the toolbar within the table tab.
 <img src="https://user-images.githubusercontent.com/86527202/144403591-5d3d36eb-64b7-4057-9244-56a95b47b97b.png" width="60%"/>
@@ -44,7 +44,7 @@ The table can be deleted using the `delete` icon present in the toolbar within t
 
 ## Column
 
-### [Column] Add
+### Column Add
 
 Click the `+` icon on the right corner of the table.
 
@@ -60,7 +60,7 @@ Click `Save`button to create the new column.
   
 > For more about Abstract type [click here](./abstract-types).
 
-### [Column] Edit
+### Column Edit
 To edit column properties, click/hover on down arrow, select `Edit` from the menu.  
   
 <img src="https://user-images.githubusercontent.com/86527202/144404169-80d8b514-53cf-4bb1-8323-fd3cfda8816b.png" width="50%"/>  
@@ -71,7 +71,7 @@ For additional menu options, click `Show more options`
 <img src="https://user-images.githubusercontent.com/86527202/144404188-146ab0dc-bd2b-4902-9369-a34253e2fad6.png" width="40%"/>
 
 
-### [Column] Delete
+### Column Delete
 
 Column deletion can be done by using the `delete` option from the column header menu.
 
@@ -81,7 +81,7 @@ Column deletion can be done by using the `delete` option from the column header 
 
 For adding new values to the table we need new rows, new rows can be added in two methods.
 
-### [Row] Add (Using Form)
+### Row Add (Using Form)
 
 - Click the `+` icon in the toolbar of the table tab.  
   <img src="https://user-images.githubusercontent.com/86527202/144405563-50573b1c-1bd3-43ea-8020-357fc7ef9e42.png" width="50%"/>
@@ -90,20 +90,20 @@ For adding new values to the table we need new rows, new rows can be added in tw
 - After saving it will be there on your table.  
   ![image](https://user-images.githubusercontent.com/61551451/126785340-e9b80ad0-ba06-4a22-8a01-876d829c9673.png)
 
-### [Row] Add (Using Table Row at bottom of page)
+### Row Add (Using Table Row at bottom of page)
 
 - Click the bottom row of the table which contains `+` icon at the beginning.  
   <img src="https://user-images.githubusercontent.com/86527202/144405773-bb0d00ef-264d-4941-b01f-3b7f0b1fc54d.png" width="40%"/>
 - Now it will add a new row in the table
 
-### [Row] Edit
+### Row Edit
 You can start editing by any of the following methods  
   - Double click on cell to edit  
   - Click on cell and start typing (this way it will clear the previous content)  
   - Click on cell and press enter to start editing  
 - And it will automatically save on blur event or if inactive.  
 
-### [Row] Delete
+### Row Delete
 
 Right-click on anywhere in the row and then from the context menu select `Delete Row` option.  
 Bulk delete is also possible by selecting multiple rows by using the checkbox in first column and then `Delete Selected Rows` options from the right click context menu.  

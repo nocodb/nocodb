@@ -609,7 +609,7 @@ export class PgUi {
         return 'eg: '
 
       case 'char':
-        return 'eg: '
+        return "eg: 'T'"
 
       case 'character':
         return "eg: 'sample'"
@@ -864,7 +864,7 @@ export class PgUi {
         return 'eg: '
 
       case 'character varying':
-        return 'eg: '
+        return "eg: 'sample text'"
 
       case 'tinyint':
         return 'eg: '
@@ -1588,15 +1588,15 @@ export class PgUi {
         break
       case 'PhoneNumber':
         colProp.dt = 'character varying'
-        colProp.validate = { func: ['isMobilePhone'], args: [''], msg: ['Validation failed : isMobilePhone'] }
+        colProp.validate = { func: ['isMobilePhone'], args: [''], msg: ['Validation failed : Invalid Mobile Format'] }
         break
       case 'Email':
         colProp.dt = 'character varying'
-        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail'] }
+        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : Invalid Email Format'] }
         break
       case 'URL':
         colProp.dt = 'character varying'
-        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL'] }
+        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : Invalid URL Format'] }
         break
       case 'Number':
         colProp.dt = 'int8'
@@ -1606,7 +1606,7 @@ export class PgUi {
         break
       case 'Currency':
         colProp.dt = 'decimal'
-        colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : isCurrency'] }
+        colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : Invalid Currency Format'] }
         break
       case 'Percent':
         colProp.dt = 'double'

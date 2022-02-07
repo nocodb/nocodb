@@ -1,9 +1,9 @@
 ---
-title: 'How to access APIs ?'
-description: 'How to access APIs ?'
-position: 100
+title: 'Accessing APIs'
+description: 'Accessing APIs'
+position: 1000
 category: 'Developer Resources'
-menuTitle: 'How to access APIs ?'
+menuTitle: 'Accessing APIs'
 ---
 
 ## REST APIs

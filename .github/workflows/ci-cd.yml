@@ -4,7 +4,6 @@
 name: "CI/CD"
 on:
   push:
-    branches: [master, develop, cypress]
     paths:
       - "packages/nc-gui/**"
       - "scripts/cypress/**"

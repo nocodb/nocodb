@@ -1,247 +1,473 @@
 {
-  "projects": {
-    "my_projects": "Mina projekt",
-    "reload_projects_tooltip": "Uppdatera projekt",
-    "create_new_project_button": {
-      "text": "Nytt projekt",
-      "subtext_1": "Skapa",
-      "subtext_1_tooltip": "Skapa ett nytt projekt",
-      "subtext_2": "Skapa genom att ansluta <br> till en extern databas",
-      "subtext_2_tooltip": "Stödjer MySQL, PostgreSQL, SQL Server & SQLite"
+  "general": {
+    "home": "Hem",
+    "load": "Ladda",
+    "open": "Öppen",
+    "close": "Stänga",
+    "yes": "Ja",
+    "no": "Nej",
+    "ok": "OK",
+    "and": "Och",
+    "or": "Eller",
+    "add": "Lägg till",
+    "edit": "Redigera",
+    "remove": "Avlägsna",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "submit": "Skicka in",
+    "create": "Skapa",
+    "delete": "Radera",
+    "update": "Uppdatering",
+    "rename": "Döp om",
+    "reload": "Ladda om",
+    "reset": "Återställa",
+    "install": "Installera",
+    "show": "Visa",
+    "hide": "Dölj",
+    "showAll": "Visa allt",
+    "hideAll": "Göm alla",
+    "showMore": "Visa mer",
+    "showOptions": "Visa alternativ",
+    "hideOptions": "Dölj alternativ",
+    "showMenu": "Visa meny",
+    "hideMenu": "Dölj menyn",
+    "addAll": "Lägg till alla",
+    "removeAll": "Ta bort alla",
+    "signUp": "Bli Medlem",
+    "signIn": "LOGGA IN",
+    "signOut": "Logga ut",
+    "required": "Nödvändig",
+    "preferred": "Föredraget",
+    "mandatory": "Obligatorisk",
+    "loading": "Läser in ..."
+  },
+  "objects": {
+    "project": "Projekt",
+    "projects": "Projekt",
+    "table": "Tabell",
+    "tables": "Tabeller",
+    "field": "Fält",
+    "fields": "Fält",
+    "column": "Kolumn",
+    "columns": "Kolumner",
+    "page": "Sida",
+    "pages": "Sidor",
+    "record": "Spela in",
+    "records": "Uppgifter",
+    "webhook": "Webhook",
+    "webhooks": "Webhooks",
+    "view": "Se",
+    "views": "Åsikter",
+    "viewType": {
+      "grid": "Rutnät",
+      "gallery": "Galleri",
+      "form": "Form",
+      "kanban": "Kanban",
+      "calendar": "Kalender"
     },
-    "search_project": "Sökprojekt",
-    "import_metadata": "Importera metadata",
-    "export_metadata": "Exportera metadata",
-    "clear_metadata": "Rensa metadata",
-    "stop_project": "Stoppa projektet",
-    "start_project": "Startprojekt",
-    "restart_project": "Starta om projektet",
-    "delete_project": "Radera projekt",
-    "project_api_type_tooltip_graphql": "Tillgänglig via GraphQL API",
-    "project_api_type_tooltip_rest": "Tillgänglig via REST API",
-    "project_empty_message": "Kom igång med att skapa ett nytt projekt",
-    "import_button": {
-      "text": "Importera NOCODB-projektet genom att ladda upp metadata zip-filen"
-    },
-    "show_community_star": "Stjärna",
-    "show_community_us_on_Github": "oss på github",
-    "show_community_book_a_free_demo": "Boka en gratis demo",
-    "show_community_get_your_questions_answered": "Få dina frågor besvarade",
-    "show_community_join_discord": "Gå med i Discord",
-    "show_community_follow_nocodb": "Följ nocodb",
-    "search": {
-      "your_search_found_no_results": "Din sökning efter {Sök} har inga resultat"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "Redigera projekt",
-        "create": "Skapa projekt"
-      },
-      "project_name": "Ange projektnamn",
-      "project_type": "Åtkomstprojekt via",
-      "button": {
-        "save_project": "Spara projekt",
-        "update_and_restart": "Uppdatering och omstart",
-        "cancel": "Avbryt",
-        "cancel_tooltip": "Avbryt och returnera"
-      },
-      "credentials": {
-        "title": "Databasuppgifter",
-        "db_type": "Databas typ",
-        "sqlite_file": "Sqlite-fil",
-        "host_address": "Värdadress",
-        "port": "Portnummer",
-        "username": "Användarnamn",
-        "password": "Lösenord",
-        "db_create_if_not_exists": "Databas: Skapa om det inte finns",
-        "button": {
-          "test_db_conn": "Testdatabasanslutning",
-          "remove_db_from_env": "Ta bort databasen från miljö"
-        },
-        "advanced": {
-          "title": "SSL och avancerade parametrar",
-          "ssl": {
-            "client_key": {
-              "title": "Klientnyckel",
-              "toolip": "Välj. Key-filen"
-            },
-            "client_cert": {
-              "title": "Klientcert",
-              "toolip": "Välj .cert-fil"
-            },
-            "server_ca": {
-              "title": "Server ca",
-              "toolip": "Välj CA-fil"
-            },
-            "preferred": "Föredraget",
-            "usage": {
-              "no": "Nej",
-              "preferred": "Föredraget",
-              "required": "Nödvändig",
-              "requried_ca": "Krävs-ca",
-              "requried_identity": "Obligatorisk identitet"
-            }
-          },
-          "inflection": {
-            "table_name": "Böjning - tabellnamn",
-            "column_name": "Böjning - Kolumnnamn"
-          },
-          "button": {
-            "edit_conn_json": "Redigera anslutning JSON"
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "Ogiltigt tecken i mappbanan.",
-        "invalid_db_credentials": "Ogiltiga databasuppgifter.",
-        "unable_to_connect_to_db": "Det går inte att ansluta till databasen, kolla din databas är upp.",
-        "user_doesnt_ve_sufficient_permission": "Användaren existerar inte eller har tillräcklig tillåtelse att skapa schema."
-      },
-      "head": {
-        "title": "Skapa projekt | Nocodb"
-      },
-      "dialog": {
-        "success": "Anslutningen var framgångsrik",
-        "failure": "Anslutningsfel:"
-      }
-    },
-    "notifications": {
-      "no_new": "Inga nya meddelanden",
-      "clear": "Klar"
+    "user": "Användare",
+    "users": "Användare",
+    "role": "Roll",
+    "roles": "Roller",
+    "roleType": {
+      "owner": "Ägare",
+      "creator": "Skapare",
+      "editor": "Redaktör",
+      "commenter": "Kommentare",
+      "viewer": "Visare"
     }
   },
-  "signin": {
-    "title": "LOGGA IN",
-    "enter_your_work_email": "Ange ditt jobb E-post",
-    "enter_your_password": "Ange ditt lösenord",
-    "forget_password": "Glömt ditt lösenord ?",
-    "dont_ve_an_account": "Har du inget konto?",
-    "sign_up": "Bli Medlem",
-    "form": {
-      "rules": {
-        "email_is_reqd": "E-post krävs",
-        "email_must_be_valid": "Email måste vara giltig",
-        "passwd_required": "lösenord krävs",
-        "passwd_must_be_8_chars": "Du lösenord måste vara minst 8 tecken"
-      }
+  "datatype": {
+    "ID": "Id",
+    "ForeignKey": "Främmande nyckel",
+    "SingleLineText": "Enstaka text",
+    "LongText": "Långtext",
+    "Attachment": "Anknytning",
+    "Checkbox": "Kryssruta",
+    "MultiSelect": "Flera val",
+    "SingleSelect": "Enkelt välj",
+    "Collaborator": "Medarbetare",
+    "Date": "Datum",
+    "Year": "År",
+    "Time": "Tid",
+    "PhoneNumber": "Telefonnummer",
+    "Email": "E-post",
+    "URL": "Url",
+    "Number": "siffra",
+    "Decimal": "Decimal",
+    "Currency": "Valuta",
+    "Percent": "Procent",
+    "Duration": "Varaktighet",
+    "Rating": "Betyg",
+    "Formula": "Formel",
+    "Rollup": "Rulla upp",
+    "Count": "Räkna",
+    "Lookup": "Slå upp",
+    "DateTime": "Datum Tid",
+    "CreateTime": "Skapa tid",
+    "LastModifiedTime": "Senast ändrad tid",
+    "AutoNumber": "Automatisk nummer",
+    "Barcode": "Streckkod",
+    "Button": "Knapp",
+    "Password": "Lösenord"
+  },
+  "filterOperation": {
+    "isEqual": "är jämställd",
+    "isNotEqual": "är inte lika",
+    "isLike": "är som",
+    "isNot like": "är inte som",
+    "isEmpty": "är tom",
+    "isNotEmpty": "är inte tom",
+    "isNull": "är inget",
+    "isNotNull": "är inte noll"
+  },
+  "title": {
+    "newProj": "Nytt projekt",
+    "myProject": "Mina projekt",
+    "formTitle": "Formtitel",
+    "collabView": "Samarbetsvy",
+    "lockedView": "Låst vy",
+    "personalView": "Personlig utsikt",
+    "appStore": "Appbutik",
+    "team&auth": "Team & Auth",
+    "rolesUserMgmt": "Roller och användarhantering",
+    "userMgmt": "Användarhantering",
+    "apiTokenMgmt": "API Tokens Management",
+    "rolesMgmt": "Roller hantering",
+    "projMeta": "Projektmetadata",
+    "metaMgmt": "Metahantering",
+    "metadata": "Metadata",
+    "exportImportMeta": "Exportera / Importera metadata",
+    "metaOperations": "Metadataoperationer",
+    "audit": "Granska",
+    "auditLogs": "Revisionslogg",
+    "sqlMigrations": "SQL-migreringar",
+    "dbCredentials": "Databasuppgifter",
+    "advancedParameters": "SSL och avancerade parametrar",
+    "headCreateProject": "Skapa projekt | Nocodb",
+    "headLogin": "Logga in | Nocodb",
+    "resetPassword": "Återställ ditt lösenord"
+  },
+  "labels": {
+    "projName": "Projektnamn",
+    "viewName": "Visa namn",
+    "viewLink": "Visa länk",
+    "columnName": "Kolumnnamn",
+    "columnType": "Kolumntyp",
+    "roleName": "Rollnamn",
+    "roleDescription": "Rollbeskrivning",
+    "databaseType": "Skriv in databasen",
+    "lengthValue": "Längd / värde",
+    "dbType": "Databas typ",
+    "sqliteFile": "Sqlite-fil",
+    "hostAddress": "Värdadress",
+    "port": "Portnummer",
+    "username": "Användarnamn",
+    "password": "Lösenord",
+    "action": "Handling",
+    "actions": "Handlingar",
+    "operation": "Drift",
+    "operationType": "Driftstyp",
+    "operationSubType": "Driftstyp",
+    "description": "Beskrivning",
+    "authentication": "Autentisering",
+    "token": "Tecken",
+    "where": "Var",
+    "cache": "Cache",
+    "chat": "Chatt",
+    "email": "E-post",
+    "storage": "Lagring",
+    "uiAcl": "Ui-acl",
+    "models": "Modeller",
+    "syncState": "Synkronisera",
+    "created": "Skapad",
+    "sqlOutput": "SQL-utgång",
+    "dbCreateIfNotExists": "Databas: Skapa om det inte finns",
+    "clientKey": "Klientnyckel",
+    "clientCert": "Klientcert",
+    "serverCA": "Server ca",
+    "requriedCa": "Krävs-ca",
+    "requriedIdentity": "Obligatorisk identitet",
+    "inflection": {
+      "tableName": "Böjning - tabellnamn",
+      "columnName": "Böjning - Kolumnnamn"
     },
-    "head": {
-      "title": "Logga in | Nocodb",
-      "meta": {
-        "hid": "Logga in på NocodB",
-        "name": "Logga in på NocodB",
-        "content": "Logga in på NocodB"
-      }
+    "community": {
+      "starUs1": "Stjärna",
+      "starUs2": "oss på github",
+      "bookDemo": "Boka en gratis demo",
+      "getAnswered": "Få dina frågor besvarade",
+      "joinDiscord": "Gå med i Discord",
+      "joinReddit": "Gå med /r/NocoDB",
+      "followNocodb": "Följ NocoDB"
+    }
+  },
+  "activity": {
+    "createProject": "Skapa projekt",
+    "importProject": "Importprojekt",
+    "searchProject": "Sökprojekt",
+    "editProject": "Redigera projekt",
+    "stopProject": "Stoppa projektet",
+    "startProject": "Startprojekt",
+    "restartProject": "Starta om projektet",
+    "deleteProject": "Radera projekt",
+    "refreshProject": "Uppdatera projekt",
+    "saveProject": "Spara projekt",
+    "createProjectExtended": {
+      "extDB": "Skapa genom att ansluta <br> till en extern databas",
+      "excel": "Skapa projekt från Excel",
+      "template": "Skapa projekt från mall"
     },
+    "OkSaveProject": "OK och spara projekt",
+    "upgrade": {
+      "available": "Uppgradering tillgänglig",
+      "releaseNote": "Släppa anteckningar",
+      "howTo": "Hur man uppgraderar?"
+    },
+    "translate": "Hjälp översätt",
+    "account": {
+      "authToken": "Kopiera authoken",
+      "swagger": "Swagger apis doc",
+      "projInfo": "Kopiera projektinfo",
+      "themes": "Teman"
+    },
+    "sort": "Sortera",
+    "addSort": "Lägg till sort alternativ",
+    "filter": "Filtrera",
+    "addFilter": "Lägg till filter",
+    "share": "Dela med sig",
+    "shareBase": {
+      "disable": "Inaktivera delad bas",
+      "enable": "Någon med länken",
+      "link": "Delad baslänk"
+    },
+    "invite": "Inbjudan",
+    "inviteMore": "Bjud in mer",
+    "inviteTeam": "Bjud in lag",
+    "inviteToken": "Bjud in token",
+    "newUser": "Ny användare",
+    "editUser": "Redigera användaren",
+    "deleteUser": "Ta bort användaren från projektet",
+    "resendInvite": "Ändra bjud in e-post",
+    "copyInviteURL": "Kopiera inbjudan url",
+    "newRole": "Ny roll",
+    "reloadRoles": "Ladda om roller",
+    "nextPage": "Nästa sida",
+    "prevPage": "Föregående sida",
+    "nextRecord": "Nästa post",
+    "previousRecord": "Tidigare post",
+    "copyApiURL": "Kopiera API-URL",
+    "createTable": "Bord skapar",
+    "refreshTable": "Tabeller uppdateras",
+    "renameTable": "Bordsbyte",
+    "addField": "Lägg till nytt fält till den här tabellen",
+    "setPrimary": "Ange som primärt värde",
+    "addRow": "Lägg till ny rad",
+    "saveRow": "Spara rad",
+    "insertRow": "Infoga ny rad",
+    "deleteRow": "Radera raden",
+    "deleteSelectedRow": "Ta bort valda rader",
+    "importExcel": "Import excel",
+    "downloadCSV": "Hämta som CSV",
+    "uploadCSV": "Ladda upp CSV",
+    "import": "Importera",
+    "importMetadata": "Importera metadata",
+    "exportMetadata": "Exportera metadata",
+    "clearMetadata": "Rensa metadata",
+    "exportToFile": "Exportera till fil",
+    "changePwd": "Ändra lösenord",
+    "createView": "Skapa en vy",
+    "shareView": "Visa vy",
+    "listSharedView": "Delad visningslista",
+    "ListView": "Visningar lista",
+    "copyView": "Kopiera",
+    "renameView": "Byt namn på",
+    "deleteView": "Radera syn",
+    "createGrid": "Skapa rutnät",
+    "createGallery": "Skapa Gallery View",
+    "createCalendar": "Skapa kalendervy",
+    "createKanban": "Skapa Kanban View",
+    "createForm": "Skapa formulärvy",
+    "showSystemFields": "Visa systemfält",
+    "copyUrl": "Kopiera URL",
+    "openTab": "Öppna ny flik",
+    "iFrame": "Kopiera inbäddbar HTML-kod",
+    "addWebhook": "Lägg till ny webhook",
+    "newToken": "Lägg till ny token",
+    "exportZip": "Exportera zip",
+    "importZip": "Importera zip",
+    "metaSync": "Synkronisera nu",
+    "settings": "inställningar",
+    "previewAs": "Förhandsgranskning som",
+    "resetReview": "Återställ förhandsgranskning",
+    "testDbConn": "Testdatabasanslutning",
+    "removeDbFromEnv": "Ta bort databasen från miljö",
+    "editConnJson": "Redigera anslutning JSON",
+    "sponsorUs": "Sponsra oss",
+    "sendEmail": "SKICKA EPOST"
+  },
+  "tooltip": {
+    "xcDB": "Skapa ett nytt projekt",
+    "extDB": "Stödjer MySQL, PostgreSQL, SQL Server & SQLite",
+    "apiRest": "Tillgänglig via REST API",
+    "apiGQL": "Tillgänglig via GraphQL API",
+    "theme": {
+      "dark": "Det kommer i svart (^ ⇧b)",
+      "light": "Kommer det i svart? (^ ⇧b)"
+    },
+    "addTable": "Lägg till nytt bord",
+    "inviteMore": "Bjud in fler användare",
+    "toggleNavDraw": "Växla navigeringslådan",
+    "reloadApiToken": "Ladda om api tokens",
+    "generateNewApiToken": "Generera ny API-token",
+    "addRole": "Lägg till ny roll",
+    "metaReloadList": "Ladda om listan",
+    "metaSync": "Synkronisera metadata",
+    "sqlMigration": "Ladda om migreringar",
+    "updateRestart": "Uppdatering och omstart",
+    "cancelReturn": "Avbryt och returnera",
+    "exportMetadata": "Exportera alla metadata från meta-tabellerna till metakatalogen.",
+    "importMetadata": "Importera alla metadata från metakatalogen till meta-tabeller.",
+    "clearMetadata": "Rensa alla metadata från meta-tabeller.",
+    "clientKey": "Välj. Key-filen",
+    "clientCert": "Välj .cert-fil",
+    "clientCA": "Välj CA-fil"
+  },
+  "placeholder": {
+    "projName": "Ange projektnamn",
     "password": {
-      "recovery": {
-        "title": "Återställ ditt lösenord",
+      "enter": "Ange lösenordet",
+      "current": "Nuvarande lösenord",
+      "new": "Nytt lösenord",
+      "save": "Spara lösenord",
+      "confirm": "Bekräfta nytt lösenord"
+    },
+    "searchProjectTree": "Sökbord",
+    "searchFields": "Sökfält",
+    "searchColumn": "Sök {Sök} Kolumn",
+    "searchApps": "Sök appar",
+    "searchModels": "Sökmodeller",
+    "noItemsFound": "Inga föremål hittades",
+    "defaultValue": "Standardvärde",
+    "filterByEmail": "Filtrera via e-post"
+  },
+  "msg": {
+    "info": {
+      "footerInfo": "Rader per sida",
+      "upload": "Välj fil för att ladda upp",
+      "upload_sub": "eller dra och släpp filen",
+      "excelSupport": "Stöds: .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelURL": "Ange Excel-filadressen",
+      "footMsg": "# av rader att analysera att avleda datatyp",
+      "excelImport": "ark (er) är tillgängliga för import",
+      "exportMetadata": "Vill du exportera metadata från meta bord?",
+      "importMetadata": "Vill du importera metadata från meta bord?",
+      "clearMetadata": "Vill du rensa metadata från meta bord?",
+      "projectEmptyMessage": "Kom igång med att skapa ett nytt projekt",
+      "stopProject": "Vill du stoppa projektet?",
+      "startProject": "Vill du starta projektet?",
+      "restartProject": "Vill du starta om projektet?",
+      "deleteProject": "Vill du radera projektet?",
+      "shareBasePrivate": "Generera offentligt delbar readonly base",
+      "shareBasePublic": "Någon på internet med den här länken kan visa",
+      "userInviteNoSMTP": "Det verkar som om du inte har konfigurerat Mailer än! \\ n Vänligen kopiera ovanför bjudningslänk och skicka den till",
+      "dragDropHide": "Dra och släpp fält här för att dölja",
+      "formInput": "Ange formulärinmatningslabel",
+      "formHelpText": "Lägg till lite hjälptext",
+      "onlyCreator": "Bara synlig för skaparen",
+      "formDesc": "Lägg till formulär Beskrivning",
+      "beforeEnablePwd": "Begränsa åtkomsten med ett lösenord",
+      "afterEnablePwd": "Åtkomst är lösenordsbegränsad",
+      "privateLink": "Denna uppfattning delas via en privat länk",
+      "privateLinkAdditionalInfo": "Människor med privat länk kan bara se celler synliga i den här vyn",
+      "afterFormSubmitted": "Efter formuläret skickas in",
+      "apiOptions": "Åtkomstprojekt via",
+      "submitAnotherForm": "Visa \"Skicka en annan formulär\" -knapp",
+      "showBlankForm": "Visa en tom form efter 5 sekunder",
+      "emailForm": "E-posta mig på",
+      "showSysFields": "Visa systemfält",
+      "filterAutoApply": "Auto ansöker",
+      "showMessage": "Visa det här meddelandet",
+      "viewNotShared": "Aktuell vy är inte delad!",
+      "showAllViews": "Visa alla delade utsikt över denna tabell",
+      "collabView": "Samarbetare med redigeringsbehörigheter eller högre kan ändra visningskonfigurationen.",
+      "lockedView": "Ingen kan redigera visningskonfigurationen tills den är upplåst.",
+      "personalView": "Endast du kan redigera visningskonfigurationen. Andra samarbetspersonella synpunkter är gömda som standard.",
+      "ownerDesc": "Kan lägga till / ta bort skapare. Och fullständiga Redigera databasstrukturer och fält.",
+      "creatorDesc": "Kan helt redigera databasstruktur och värden.",
+      "editorDesc": "Kan redigera poster men kan inte ändra strukturen i databas / fält.",
+      "commenterDesc": "Kan visa och kommentera posterna men kan inte redigera någonting",
+      "viewerDesc": "Kan se posterna men kan inte redigera någonting",
+      "addUser": "Lägg till ny användare",
+      "staticRoleInfo": "Systemdefinierade roller kan inte redigeras",
+      "exportZip": "Exportera projekt Meta till ZIP-fil och nedladdning.",
+      "importZip": "Importera projekt Meta Zip-fil och starta om.",
+      "importText": "Importera NOCODB-projektet genom att ladda upp metadata zip-filen",
+      "metaNoChange": "Ingen ändring identifierad",
+      "sqlMigration": "Schema migreringar kommer att skapas automatiskt. Skapa ett bord och uppdatera den här sidan.",
+      "dbConnectionStatus": "Miljö Validerad",
+      "dbConnected": "Anslutningen var framgångsrik",
+      "notifications": {
+        "no_new": "Inga nya meddelanden",
+        "clear": "Klar"
+      },
+      "sponsor": {
+        "header": "Du kan hjälpa oss!",
+        "message": "Vi är ett litet lag som arbetar heltid för att göra NOCODB Open-Source. Vi tror att ett verktyg som NOCODB ska vara tillgängligt fritt till alla problemlösare på Internet."
+      },
+      "loginMsg": "Logga in på NocodB",
+      "passwordRecovery": {
         "message_1": "Vänligen ange den e-postadress du använde när du anmält dig.",
         "message_2": "Vi skickar dig ett mail med en länk för att återställa ditt lösenord.",
-        "success": "Kontrollera din email för att återställa lösenordet",
-        "button": "SKICKA EPOST"
-      }
-    }
-  },
-  "signup": {
-    "title": "BLI MEDLEM",
-    "you_will_be_the_super_admin": "Du kommer att vara \"Super Admin\"",
-    "already_ve_an_account": "Har du redan ett konto ?"
-  },
-  "treeview": {
-    "settings": {
-      "title": "inställningar",
-      "tooltip": "Bara synlig för skaparen"
-    },
-    "app_store": "Appbutik",
-    "team_n_auth": {
-      "title": "Team & Auth",
-      "tooltip": "Roller och användarhantering"
-    },
-    "project_metadata": {
-      "title": "Projektmetadata",
-      "tooltip": "Metahantering"
-    },
-    "preview_as": "Förhandsgranskning som",
-    "reset_review": "Återställ förhandsgranskning"
-  },
-  "nav_drawer": {
-    "title": "Åsikter",
-    "virtual_views": {
-      "action": {
-        "copy": "Kopiera",
-        "rename": "Byt namn på",
-        "delete": "Radera syn"
+        "success": "Kontrollera din email för att återställa lösenordet"
       },
-      "title": "Skapa en vy",
-      "caption": "Bara synlig för skaparen",
-      "grid": {
-        "title": "Rutnät",
-        "create": "Lägg till rutnät"
+      "signUp": {
+        "superAdmin": "Du kommer att vara \"Super Admin\"",
+        "alreadyHaveAccount": "Har du redan ett konto ?",
+        "workEmail": "Ange ditt jobb E-post",
+        "enterPassword": "Ange ditt lösenord",
+        "forgotPassword": "Glömt ditt lösenord ?",
+        "dontHaveAccount": "Har du inget konto?"
       },
-      "gallery": {
-        "title": "Galleri",
-        "create": "Lägg till Gallery View"
-      },
-      "calendar": {
-        "title": "Kalender",
-        "create": "Lägg till kalendervisning"
-      },
-      "kanban": {
-        "title": "Kanban",
-        "create": "Lägg till Kanban View"
-      },
-      "form": {
-        "title": "Form",
-        "create": "Lägg till formulärvy"
+      "addView": {
+        "grid": "Lägg till rutnät",
+        "gallery": "Lägg till Gallery View",
+        "form": "Lägg till formulärvy",
+        "kanban": "Lägg till Kanban View",
+        "calendar": "Lägg till kalendervisning"
       }
     },
-    "advanced": {
-      "title1": "Visa vy",
-      "views_list": "Visningar lista",
-      "copy_api_url": "Kopiera API-URL"
-    },
-    "share_view": {
-      "title": "Denna uppfattning delas via en privat länk",
-      "body": "Människor med privat länk kan bara se celler synliga i den här vyn",
-      "toggle": {
-        "option1": "Begränsa åtkomsten med ett lösenord",
-        "option2": "Åtkomst är lösenordsbegränsad"
-      },
-      "password": {
-        "caption": "Ange lösenordet",
-        "button": "Spara lösenord"
+    "error": {
+      "searchProject": "Din sökning efter {Sök} har inga resultat",
+      "invalidChar": "Ogiltigt tecken i mappbanan.",
+      "invalidDbCredentials": "Ogiltiga databasuppgifter.",
+      "unableToConnectToDb": "Det går inte att ansluta till databasen, kolla din databas är upp.",
+      "userDoesntHaveSufficientPermission": "Användaren existerar inte eller har tillräcklig tillåtelse att skapa schema.",
+      "dbConnectionStatus": "Ogiltiga databasparametrar",
+      "dbConnectionFailed": "Anslutningsfel:",
+      "signUpRules": {
+        "emailReqd": "E-post krävs",
+        "emailInvalid": "Email måste vara giltig",
+        "passwdRequired": "lösenord krävs",
+        "passwdLength": "Du lösenord måste vara minst 8 tecken"
       }
-    }
-  },
-  "management": {
-    "tabs": {
-      "user": "Användarhantering",
-      "api": "API Tokens Management",
-      "roles": "Roller hantering"
     },
-    "meta": {
-      "title": "Metadataoperationer",
-      "export_to_file": {
-        "title": "Exportera till fil",
-        "desc": "Exportera alla metadata från meta-tabellerna till metakatalogen."
-      },
-      "import": {
-        "title": "Importera",
-        "desc": "Importera alla metadata från metakatalogen till meta-tabeller."
-      },
-      "export_to_zip": {
-        "title": "Exportera zip",
-        "desc": "Exportera projekt Meta till ZIP-fil och nedladdning."
-      },
-      "import_zip": {
-        "title": "Importera zip",
-        "desc": "Importera projekt Meta Zip-fil och starta om."
-      },
-      "reset": {
-        "title": "Återställa",
-        "desc": "Rensa alla metadata från meta-tabeller."
-      }
+    "toast": {
+      "exportMetadata": "Projektmetadata exporterades framgångsrikt",
+      "importMetadata": "Projektmetadata importerades framgångsrikt",
+      "clearMetadata": "Projektmetadata rensade framgångsrikt",
+      "stopProject": "Projektet slutade framgångsrikt",
+      "startProject": "Projektet startade framgångsrikt",
+      "restartProject": "Projektet startade om framgångsrikt",
+      "deleteProject": "Projektet raderade framgångsrikt",
+      "authToken": "Auth Token kopieras till Urklipp",
+      "projInfo": "Kopierad Projektinformation till Urklipp",
+      "inviteUrlCopy": "Kopierad Bjud in URL till Urklipp",
+      "createView": "Visa skapad framgångsrikt",
+      "formEmailSMTP": "Vänligen aktivera SMTP-plugin i App Store för att aktivera e-postmeddelande",
+      "collabView": "Framgångsrikt bytte till collaborative view",
+      "lockedView": "Bytte framgångsrikt till låst vy",
+      "futureRelease": "Kommer snart!"
     }
   }
 }

@@ -20,7 +20,7 @@ Also NocoDB's app store allows you to build business workflows on views with com
 
 ### Rich Spreadsheet Interface
 - ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
-- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Gantt, Form
+- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Form
 - ⚡ &nbsp;Share Views : public & password protected
 - ⚡ &nbsp;Personal & locked Views 
 - ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)!!
@@ -50,13 +50,11 @@ Our mission is to provide the most powerful no-code interface for databases whic
 
 <img src="architecture.png" style="background: white;border-radius:4px;padding :10px">
 
-<br>
-<br>
-
 | Project Type | Metadata stored in | Data stored in |
 |---------|-----------|--------|
 | Create new project | NC_DB | NC_DB |
-| Create new project with external DB | NC_DB | External database |
+| Create new project with External Database | NC_DB | External Database |
+| Create new project from Excel | NC_DB | NC_DB |
 
 ## NocoDB repository structure
 

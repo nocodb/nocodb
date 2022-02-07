@@ -1,7 +1,7 @@
 ---
 title: "Column Operations"
 description: "Column Operations"
-position: 35
+position: 530
 category: "Usage"
 menuTitle: "Column Operations"
 ---

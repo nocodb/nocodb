@@ -13,7 +13,7 @@
           <v-list v-if="viewsList && viewsList.length" dense>
             <v-list-item dense>
               <!-- Views -->
-              <span class="body-2 font-weight-medium">{{ $t('nav_drawer.title') }}</span>
+              <span class="body-2 font-weight-medium">{{ $t('objects.views') }}</span>
             </v-list-item>
             <v-list-item-group v-model="selectedViewIdLocal" mandatory color="primary">
               <draggable
@@ -84,7 +84,7 @@
                       <!-- Copy view -->
                       <x-icon
                         v-if="view.type === 'vtable' && !view.edit"
-                        :tooltip="$t('nav_drawer.virtual_views.action.copy')"
+                        :tooltip="$t('activity.copyView')"
                         x-small
                         color="primary"
                         icon-class="view-icon nc-view-copy-icon"
@@ -95,7 +95,7 @@
                       <!-- Rename view -->
                       <x-icon
                         v-if="view.type === 'vtable' && !view.edit"
-                        :tooltip="$t('nav_drawer.virtual_views.action.rename')"
+                        :tooltip="$t('activity.renameView')"
                         x-small
                         color="primary"
                         icon-class="view-icon nc-view-edit-icon"
@@ -106,7 +106,7 @@
                       <!-- Delete view" -->
                       <x-icon
                         v-if="view.type === 'vtable'"
-                        :tooltip="$t('nav_drawer.virtual_views.action.delete')"
+                        :tooltip="$t('activity.deleteView')"
                         small
                         color="error"
                         icon-class="view-icon nc-view-delete-icon"
@@ -139,7 +139,7 @@
               <v-list-item dense>
                 <!-- Create a View -->
                 <span class="body-2 font-weight-medium" @dblclick="enableDummyFeat = true">
-                  {{ $t('nav_drawer.virtual_views.title') }}
+                  {{ $t('activity.createView') }}
                 </span>
                 <v-tooltip top>
                   <template #activator="{ on }">
@@ -156,7 +156,7 @@
                   </template>
                   <!-- Only visible to Creator -->
                   <span class="caption">
-                    {{ $t('nav_drawer.virtual_views.caption') }}
+                    {{ $t('msg.info.onlyCreator') }}
                   </span>
                 </v-tooltip>
               </v-list-item>
@@ -171,7 +171,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Grid -->
-                        {{ $t('nav_drawer.virtual_views.grid.title') }}
+                        {{ $t('objects.viewType.grid') }}
                       </span>
                     </v-list-item-title>
                     <v-spacer />
@@ -181,7 +181,7 @@
                   </v-list-item>
                 </template>
                 <!-- Add Grid View -->
-                {{ $t('nav_drawer.virtual_views.grid.create') }}
+                {{ $t('msg.info.addView.grid') }}
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
@@ -199,7 +199,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Gallery -->
-                        {{ $t('nav_drawer.virtual_views.gallery.title') }}
+                        {{ $t('objects.viewType.gallery') }}
                       </span>
                     </v-list-item-title>
 
@@ -210,7 +210,7 @@
                   </v-list-item>
                 </template>
                 <!-- Add Gallery View -->
-                {{ $t('nav_drawer.virtual_views.gallery.create') }}
+                {{ $t('msg.info.addView.gallery') }}
               </v-tooltip>
               <!-- <v-tooltip bottom>
                 <template #activator="{ on }">
@@ -228,7 +228,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         &lt;!&ndash; Calendar &ndash;&gt;
-                        {{ $t('nav_drawer.virtual_views.calendar.title') }}
+                        {{ $t('objects.viewType.calendar') }}
                       </span>
                     </v-list-item-title>
 
@@ -239,7 +239,7 @@
                   </v-list-item>
                 </template>
                 &lt;!&ndash; Add Calendar View &ndash;&gt;
-                {{ $t('nav_drawer.virtual_views.calendar.create') }}
+                {{ $t('msg.info.addView.calendar') }}
               </v-tooltip> -->
               <!--              <v-tooltip bottom>
                 <template #activator="{ on }">
@@ -257,7 +257,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         &lt;!&ndash; Kanban &ndash;&gt;
-                        {{ $t('nav_drawer.virtual_views.kanban.title') }}
+                        {{ $t('objects.viewType.kanban') }}
                       </span>
                     </v-list-item-title>
                     <v-spacer />
@@ -267,7 +267,7 @@
                   </v-list-item>
                 </template>
                 Add Kanban View
-                {{ $t('nav_drawer.virtual_views.kanban.create') }}
+                {{ $t('msg.info.addView.kanban') }}
               </v-tooltip>-->
               <v-tooltip
                 bottom
@@ -288,7 +288,7 @@
                       <span class="font-weight-regular">
                         <!-- Form -->
 
-                        {{ $t('nav_drawer.virtual_views.form.title') }}
+                        {{ $t('objects.viewType.form') }}
                       </span>
                     </v-list-item-title>
 
@@ -299,7 +299,7 @@
                   </v-list-item>
                 </template>
                 <!-- Add Form View -->
-                {{ $t('nav_drawer.virtual_views.form.create') }}
+                {{ $t('msg.info.addView.form') }}
               </v-tooltip>
             </v-list>
           </template>
@@ -360,7 +360,7 @@
                 </template>
                 <span class="caption">
                   &lt;!&ndash; Only visible to Creator &ndash;&gt;
-                  {{ $t('nav_drawer.virtual_views.caption') }}
+                  {{ $t('msg.info.onlyCreator') }}
                 </span>
               </v-tooltip>
             </v-list-item>
@@ -385,7 +385,7 @@
               </v-icon>
               <span class="caption">
                 &lt;!&ndash; Share View &ndash;&gt;
-                {{ $t('nav_drawer.advanced.title1') }}
+                {{ $t('activity.shareView') }}
               </span>
               <v-spacer />
               <v-menu offset-y>
@@ -399,7 +399,7 @@
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         &lt;!&ndash; Views List &ndash;&gt;
-                        {{ $t('nav_drawer.advanced.views_list') }}
+                        {{ $t('activity.ListView') }}
                       </span>
                     </v-list-item-title>
                   </v-list-item>
@@ -414,11 +414,11 @@
             &lt;!&ndash;                    mdi-content-copy&ndash;&gt;
             &lt;!&ndash;                  </v-icon>&ndash;&gt;
             &lt;!&ndash;                  &lt;!&ndash; Copy API URL &ndash;&gt;&ndash;&gt;
-            &lt;!&ndash;                  <span class="caption">{{ $t('nav_drawer.advanced.views_list') }}</span>&ndash;&gt;
+            &lt;!&ndash;                  <span class="caption">{{ $t('activity.ListView') }}</span>&ndash;&gt;
             &lt;!&ndash;                </v-list-item>&ndash;&gt;
             &lt;!&ndash;              </template>&ndash;&gt;
             &lt;!&ndash;              &lt;!&ndash; Copy API URL &ndash;&gt;&ndash;&gt;
-            &lt;!&ndash;              {{ $t('nav_drawer.advanced.views_list') }}&ndash;&gt;
+            &lt;!&ndash;              {{ $t('activity.ListView') }}&ndash;&gt;
             &lt;!&ndash;            </v-tooltip>&ndash;&gt;
             <template v-if="_isUIAllowed('model')">
               &lt;!&ndash;              <v-divider class="advance-menu-divider" />&ndash;&gt;
@@ -449,7 +449,7 @@
         <v-container @click.stop>
           <h3 class="title mb-3">
             <!-- This view is shared via a private link -->
-            {{ $t('nav_drawer.share_view.title') }}
+            {{ $t('msg.info.privateLink') }}
           </h3>
           <p class="grey&#45;&#45;text body-2">
             <!-- People with private link can only see cells visible in this view -->
@@ -477,11 +477,11 @@
             <template #label>
               <!-- Restrict access with a password -->
               <span v-show="!passwordProtect" class="caption">
-                {{ $t('nav_drawer.share_view.toggle.option1') }}
+                {{ $t('msg.info.beforeEnablePwd') }}
               </span>
               <!-- Access is password restricted -->
               <span v-show="passwordProtect" class="caption">
-                {{ $t('nav_drawer.share_view.toggle.option2') }}
+                {{ $t('msg.info.afterEnablePwd') }}
               </span>
             </template>
           </v-switch>
@@ -494,7 +494,7 @@
               class="password-field mr-2 caption"
               style="max-width: 230px"
               :type="showShareLinkPassword ? 'text' : 'password'"
-              :hint="$t('nav_drawer.share_view.password.caption')"
+              :hint="$t('placeholder.password.enter')"
               persistent-hint
               dense
               solo
@@ -508,7 +508,7 @@
             </v-text-field>
             <v-btn color="primary" class="caption" small @click="saveShareLinkPassword">
               <!-- Save password -->
-              {{ $t('nav_drawer.share_view.password.button') }}
+              {{ $t('placeholder.password.save') }}
             </v-btn>
           </div>
         </v-container>

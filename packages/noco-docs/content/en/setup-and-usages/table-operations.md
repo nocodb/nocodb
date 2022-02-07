@@ -2,7 +2,7 @@
 title: "Table Operations"
 description: "Table Operations"
 position: 510
-category: "Usage"
+category: "Product"
 menuTitle: "Table Operations"
 ---
 

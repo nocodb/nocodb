@@ -2,7 +2,7 @@
   "name": "nc-gui",
   "version": "0.11.35",
   "scripts": {
-    "dev": "EE=true nuxt",
+    "dev": "NODE_OPTIONS=--openssl-legacy-provider EE=true nuxt",
     "build": "EE=true nuxt build",
     "lint": "eslint . --ext .js,.vue --fix --quiet",
     "start": "EE=true nuxt start",

@@ -2,7 +2,7 @@
 title: 'Dashboard'
 description: 'Dashboard'
 position: 500
-category: 'Usage'
+category: 'Product'
 menuTitle: 'Dashboard'
 ---
 

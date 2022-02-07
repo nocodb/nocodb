@@ -2,7 +2,7 @@
 title: "Lookup"
 description: "Lookup"
 position: 550
-category: "Usage"
+category: "Product"
 menuTitle: "Lookup"
 ---
 

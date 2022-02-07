@@ -2,7 +2,7 @@
 title: "Rollup"
 description: "Rollup"
 position: 560
-category: "Usage"
+category: "Product"
 menuTitle: "Rollup"
 ---
 

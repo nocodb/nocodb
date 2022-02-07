@@ -789,7 +789,8 @@ if (sIndex > -1) {
   // invoke only if there is change in at least one table
   if (populateParams.tableNames?.length) {
     await this.xcTablesPopulate(populateParams);
-  } else if (populateViewsParams.tableNames?.length) {
+  }
+  if (populateViewsParams.tableNames?.length) {
     await this.xcTablesPopulate(populateViewsParams);
   }
 

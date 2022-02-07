@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.84.8",
+  "version": "0.84.9",
   "description": "NocoDB",
   "main": "dist/bundle.js",
   "repository": "https://github.com/nocodb/nocodb",

@@ -15,7 +15,7 @@
       class=" text-right"
       @click="deleteTable('showDialog')"
     >
-      Delete Table
+      {{ $t('activity.deleteTable') }}
     </v-btn>
     <v-btn @click="throwError()">
       error

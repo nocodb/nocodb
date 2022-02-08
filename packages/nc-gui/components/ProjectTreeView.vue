@@ -32,7 +32,7 @@
           <v-text-field
             v-else
             v-model="search"
-            placeholder="Search tables"
+            :placeholder="$t('placeholder.searchProjectTree')"
             dense
             hide-details
             class="elevation-0 mr-2  pl-3 pr-1 caption nc-table-list-filter"
@@ -162,7 +162,7 @@
                       <v-tooltip v-if="!isNonAdminAccessAllowed(item)" top>
                         <template #activator="{ on }">
                           <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium" v-on="on">
-                            Tables<template v-if="item.children && item.children.length"> ({{
+                            {{ $t('objects.tables') }}<template v-if="item.children && item.children.length"> ({{
                               item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                             }})</template></span>
                           <span v-else class="body-2 font-weight-medium" v-on="on">
@@ -174,7 +174,7 @@
                         v-else
                       >
                         <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium">
-                          Tables<template v-if="item.children && item.children.length"> ({{
+                          {{ $t('objects.tables') }}<template v-if="item.children && item.children.length"> ({{
                             item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
                           }})</template></span>
                         <span v-else class="caption font-weight-regular">

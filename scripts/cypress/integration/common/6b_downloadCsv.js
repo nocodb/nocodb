@@ -9,6 +9,7 @@ export const genTest = (type, xcdb) => {
     before(() => {
       // loginPage.loginAndOpenProject(type)
       cy.openTableTab("Country", 25);
+      cy.screenshot("6b-before");
     });
 
     after(() => {

@@ -13,6 +13,7 @@ export const genTest = (type, xcdb) => {
 
     after(() => {
       cy.closeTableTab("Country");
+      cy.screenshot('6b-after')
     });
 
     it("Download verification- base view, default columns", () => {

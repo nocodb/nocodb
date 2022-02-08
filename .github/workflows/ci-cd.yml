@@ -44,6 +44,12 @@ jobs:
             ${{ runner.os }}-
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -82,6 +88,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -120,6 +132,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -158,6 +176,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -195,6 +219,12 @@ jobs:
             ${{ runner.os }}-
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -233,6 +263,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -271,6 +307,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -309,6 +351,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -347,6 +395,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -385,6 +439,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -423,6 +483,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -461,6 +527,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -499,6 +571,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -537,6 +615,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -575,6 +659,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
@@ -613,6 +703,12 @@ jobs:
 
       - name: Set env
         run: echo "NODE_ENV=test" >> $GITHUB_ENV
+      - name: Upload screenshots
+        uses: actions/upload-artifact@latest
+        if: failure()
+        with:
+          name: cypress-snapshots
+          path: cypress/snapshots        
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:

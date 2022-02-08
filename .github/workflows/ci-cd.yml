@@ -55,6 +55,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-restViews-run:
         runs-on: ubuntu-20.04
         steps:
@@ -93,6 +99,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restViews-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-restRoles-run:
         runs-on: ubuntu-20.04
         steps:
@@ -131,6 +143,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restRoles-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-restMisc-run:
         runs-on: ubuntu-20.04
         steps:
@@ -169,6 +187,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restMisc-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-restTableOps-run:
         runs-on: ubuntu-20.04
         steps:
@@ -206,6 +230,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-restTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-restViews-run:
         runs-on: ubuntu-20.04
         steps:
@@ -244,6 +274,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-restViews-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-restRoles-run:
         runs-on: ubuntu-20.04
         steps:
@@ -282,6 +318,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-restRoles-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-restMisc-run:
         runs-on: ubuntu-20.04
         steps:
@@ -320,6 +362,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-restMisc-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-gqlTableOps-run:
         runs-on: ubuntu-20.04
         steps:
@@ -358,6 +406,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: gqlTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-gqlViews-run:
         runs-on: ubuntu-20.04
         steps:
@@ -396,6 +450,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: gqlViews-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-gqlRoles-run:
         runs-on: ubuntu-20.04
         steps:
@@ -434,6 +494,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: gqlRoles-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-gqlMisc-run:
         runs-on: ubuntu-20.04
         steps:
@@ -472,6 +538,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: gqlMisc-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-gqlTableOps-run:
         runs-on: ubuntu-20.04
         steps:
@@ -510,6 +582,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-gqlTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-gqlViews-run:
         runs-on: ubuntu-20.04
         steps:
@@ -548,6 +626,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-gqlViews-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-gqlRoles-run:
         runs-on: ubuntu-20.04
         steps:
@@ -586,6 +670,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-gqlRoles-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-xcdb-gqlMisc-run:
         runs-on: ubuntu-20.04
         steps:
@@ -624,6 +714,12 @@ jobs:
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: xcdb-gqlMisc-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     docker:
         runs-on: ubuntu-latest
         steps:

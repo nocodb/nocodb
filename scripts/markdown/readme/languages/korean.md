@@ -193,7 +193,7 @@ git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
 cd mysql or pg or mssql
-docker-compose up
+docker-compose up -d
 ```
 
 ## 환경변수

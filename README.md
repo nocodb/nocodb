@@ -63,6 +63,10 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 </a>
 <br>
 
+#### Opta
+[![Deploy](https://raw.githubusercontent.com/run-x/opta/main/assets/deploy-to-aws-button.svg)](https://app.runx.dev/deploy-with-aws?url=https%3A%2F%2Fgithub.com%2Fnocodb%2Fnocodb-seed-heroku%2Fblob%2Fmain%2Fopta.yaml&name=NocoDB)
+<br>
+
 ### Using Docker
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest

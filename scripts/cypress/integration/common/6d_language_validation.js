@@ -9,6 +9,7 @@ export const genTest = (type, xcdb) => {
         before(() => {
             //loginPage.signIn(roles.owner.credentials)
             mainPage.toolBarTopLeft(mainPage.HOME).click();
+            cy.screenshot("6d-1");
         });
 
         const langVerification = (idx, lang) => {
@@ -19,6 +20,8 @@ export const genTest = (type, xcdb) => {
                 // toggle menu as per index
                 cy.get(".nc-menu-translate").click();
                 cy.getActiveMenu().find(".v-list-item").eq(idx).click();
+
+                cy.screenshot("6d-2");
 
                 // basic validations
                 // 1. Page title: "My Projects"

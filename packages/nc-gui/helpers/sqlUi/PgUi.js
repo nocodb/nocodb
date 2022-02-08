@@ -1609,7 +1609,7 @@ export class PgUi {
         colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : Invalid Currency Format'] }
         break
       case 'Percent':
-        colProp.dt = 'double'
+        colProp.dt = 'float8'
         break
       case 'Duration':
         colProp.dt = 'int8'

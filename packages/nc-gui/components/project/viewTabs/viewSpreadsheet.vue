@@ -69,11 +69,11 @@
 
       <div class="d-inline-flex">
 
-        <fields-menu v-model="showFields" :field-list="fieldList" />
+        <fields-menu v-model="showFields" :field-list="fieldList" :is-locked="isLocked" />
 
-        <sort-list-menu v-model="sortList" :field-list="fieldList" />
+        <sort-list-menu v-model="sortList" :field-list="fieldList" :is-locked="isLocked" />
 
-        <column-filter-menu v-model="filters" :field-list="fieldList" />
+        <column-filter-menu v-model="filters" :field-list="fieldList" :is-locked="isLocked" />
 
         <share-view-menu @share="$refs.drawer && $refs.drawer.genShareLink()" />
 
@@ -94,9 +94,10 @@
           />
       </div>
       <v-spacer class="h-100" @dblclick="debug=true" />
-
+    
       <template>
         <debug-metas v-if="debug" class="mr-3" />
+        <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
         <v-icon small class="mx-n1" color="grey lighten-1">
           mdi-circle-small
         </v-icon>
@@ -214,6 +215,7 @@
         :filters.sync="filters"
         :sort-list.sync="sortList"
         :show-fields.sync="showFields"
+        :view-status.sync="viewStatus"
       >
         <!--        <v-list-item
           @click="showAdditionalFeatOverlay('view-columns')"
@@ -245,7 +247,6 @@
 <script>
 
 import debounce from 'debounce'
-import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 import { SqlUI } from '@/helpers/sqlUi/SqlUiFactory'
 import FieldsMenu from '@/components/project/spreadsheet/components/fieldsMenu'
 import SortListMenu from '@/components/project/spreadsheet/components/sortListMenu'
@@ -257,8 +258,9 @@ import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
 import CalendarView from '@/components/project/spreadsheet/views/calendarView'
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
 import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
-import MoreActions from '~/components/project/spreadsheet/components/moreActions'
-import ShareViewMenu from '~/components/project/spreadsheet/components/shareViewMenu'
+import MoreActions from '@/components/project/spreadsheet/components/moreActions'
+import ShareViewMenu from '@/components/project/spreadsheet/components/shareViewMenu'
+import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 
 
 export default {
@@ -275,6 +277,7 @@ export default {
     FieldsMenu,
     ShareViewMenu,
     MoreActions,
+    LockMenu,
   },
   mixins: [spreadsheet],
   props: {
@@ -351,7 +354,10 @@ export default {
       icon: 'mdi-card'
     }],
     rowContextMenu: null,
-    modelName: null
+    modelName: null,
+    viewStatus: {
+      type: null
+    },
   }),
   computed: {
     meta() {

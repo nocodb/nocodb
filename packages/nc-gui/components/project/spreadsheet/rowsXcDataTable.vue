@@ -110,6 +110,7 @@
           :selected-view="selectedView"
           @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
           @webhook="showAdditionalFeatOverlay('webhooks')"
+          @reload="reload"
         />
       </div>
       <v-spacer class="h-100" @dblclick="debug=true" />

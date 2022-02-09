@@ -289,6 +289,7 @@ export default {
         }
         this.columnMappingModal = false
         this.$store.commit('loader/MutClear')
+        this.$emit('reload')
         this.$toast.success('Successfully imported table data').goAway(3000)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)

@@ -155,7 +155,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   cd nocodb
   cd docker-compose
   cd mysql
-  docker-compose up
+  docker-compose up -d
   ```
 
   </code-block>
@@ -167,7 +167,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   cd nocodb
   cd docker-compose
   cd pg
-  docker-compose up
+  docker-compose up -d
   ```
 
   </code-block>
@@ -179,7 +179,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   cd nocodb
   cd docker-compose
   cd mssql
-  docker-compose up
+  docker-compose up -d
   ```
 
   </code-block> 

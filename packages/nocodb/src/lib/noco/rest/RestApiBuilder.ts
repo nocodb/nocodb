@@ -881,11 +881,12 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
     const columns = args.columns
       ? {
-          [tn]: args.columns?.map(({ altered: _al, ...rest }) => ({
-            ...rest,
-            // find and overwrite column property from db
-            ...(columnsFromDb?.find(c => c.cn === rest.cn) || {})
-          }))
+          [tn]: args.columns?.map(({ altered: _al, ...rest }) =>
+            this.mergeUiColAndDbColMetas(
+              rest,
+              columnsFromDb?.find(c => c.cn === rest.cn)
+            )
+          )
         }
       : {};
 

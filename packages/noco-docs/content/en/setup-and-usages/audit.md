@@ -2,7 +2,7 @@
 title: 'Audit'
 description: 'Audit log'
 position: 590
-category: 'Usage'
+category: 'Product'
 menuTitle: 'Audit'
 ---
 

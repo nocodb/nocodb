@@ -2,7 +2,7 @@
 title: 'Metadata'
 description: 'Metadata'
 position: 600
-category: 'Usage'
+category: 'Product'
 menuTitle: 'Metadata'
 ---
 

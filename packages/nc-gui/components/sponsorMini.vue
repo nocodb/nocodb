@@ -14,14 +14,16 @@
         />
       </template>
     </v-img>
+    <!-- You can help us! -->
     <v-card-title v-if="!nav" class="pb-2" :class="{'body-2 justify-center mt-n2' : nav}">
-      You can help us
+      {{ $t('msg.info.sponsor.header') }}
     </v-card-title>
     <v-card-text v-if="!nav" class="pb-0">
       <p class="caption text-left body-1 textColor--text text--lighten-1">
         <template>
-          We are a tiny team working full time to make NocoDB open source. We believe a tool like NocoDB should be
-          available freely to every problem solver on internet.
+          <!-- We are a tiny team working full time to make NocoDB open source. We believe a tool like NocoDB should be
+          available freely to every problem solver on internet. -->
+          {{ $t('msg.info.sponsor.message') }}
         </template>
       </p>
     </v-card-text>
@@ -30,7 +32,7 @@
         <v-icon small color="red" class="mr-2">
           mdi-cards-heart
         </v-icon>
-        Sponsor Us
+        {{ $t('activity.sponsorUs') }}
       </v-btn>
     </v-card-actions>
   </v-card>

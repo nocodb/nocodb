@@ -2,7 +2,7 @@
 title: 'Column Types'
 description: 'Column Types'
 position: 520
-category: 'Usage'
+category: 'Product'
 menuTitle: 'Column Types'
 ---
 

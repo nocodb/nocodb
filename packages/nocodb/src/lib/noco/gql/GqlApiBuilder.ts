@@ -195,11 +195,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     const columns = args.columns
       ? {
-          [tn]: args.columns?.map(({ altered: _al, ...rest }) => ({
-            ...rest,
-            // find and overwrite column property from db
-            ...columnsFromDb?.find(c => c.cn === rest.cn)
-          }))
+          [tn]: args.columns?.map(({ altered: _al, ...rest }) =>
+            this.mergeUiColAndDbColMetas(
+              rest,
+              columnsFromDb?.find(c => c.cn === rest.cn)
+            )
+          )
         }
       : {};
 

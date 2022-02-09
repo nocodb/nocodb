@@ -2,7 +2,7 @@
 title: "Primary value"
 description: "Primary value"
 position: 575
-category: "Usage"
+category: "Product"
 menuTitle: "Primary value"
 ---
 

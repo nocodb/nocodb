@@ -65,14 +65,14 @@
           <x-btn
             v-ge="['triggers','delete']"
             outlined
-            tooltip="Delete Table"
+            :tooltip="$t('activity.deleteTable')"
             small
             icon="mdi-delete-outline"
             class="error text-right"
             color="error "
             @click="deleteTable('showDialog')"
           >
-            Delete Table
+            {{ $t('activity.deleteTable') }}
           </x-btn>
         </v-toolbar>
         <v-skeleton-loader v-if="loading" type="table" />

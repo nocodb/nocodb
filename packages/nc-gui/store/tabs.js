@@ -171,7 +171,7 @@ export const actions = {
               .list[0] // project
               .children[0] //  environment
               .children[0] // db
-              .children.find(n => n.type === 'viewDir') // parent node
+              .children.find(n => n.type === 'tableDir') // parent node
               .children.find(t => t.name === name)
 
             break

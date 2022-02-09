@@ -7,7 +7,11 @@
         </v-card-title>
         <v-spacer />
         <v-btn
-          :disabled="!valid || requiredColumnValidationError"
+          :disabled="
+            !valid || 
+            (typeof requiredColumnValidationError === 'string' || requiredColumnValidationError) || 
+            (typeof noSelectedColumnError === 'string' || noSelectedColumnError)
+          "
           color="primary"
           large
           @click="$emit('import',mappings)"
@@ -20,6 +24,9 @@
       </v-card-actions>
       <div v-if="requiredColumnValidationError" class="error--text caption pa-2 text-center">
         {{ requiredColumnValidationError }}
+      </div>
+      <div v-if="noSelectedColumnError" class="error--text caption pa-2 text-center">
+        {{ noSelectedColumnError }}
       </div>
       <v-divider />
       <v-container fluid>
@@ -39,7 +46,7 @@
             <tbody>
               <tr v-for="(r,i) in mappings" :key="i">
                 <td>
-                  <v-checkbox v-model="r.enabled" class="mt-0" dense hide-details />
+                  <v-checkbox v-model="r.enabled" class="mt-0" dense hide-details @change="$refs.form.validate()"/>
                 </td>
                 <td class="caption" style="width:45%">
                   <div :title="r.sourceCn" style="">
@@ -117,6 +124,12 @@ export default {
         return `Following columns are required : ${missingRequiredColumns.map(c => c._cn).join(', ')}`
       }
       return false
+    },
+    noSelectedColumnError() {
+      if ((this.mappings || []).filter(v => v.enabled === true).length == 0) { 
+        return 'At least one column has to be selected' 
+      }
+      return false
     }
   },
   mounted() {
@@ -126,6 +139,11 @@ export default {
   methods: {
     validateField(_cn, row) {
       if (!_cn) {
+        return true
+      }
+
+      // if it is not selected, then pass validation
+      if (!row.enabled) {
         return true
       }
 
@@ -154,6 +172,7 @@ export default {
         }
         this.mappings.push(o)
       }
+      this.$nextTick(()=> this.$refs.form.validate())
     },
     getIcon(uidt) {
       return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline'

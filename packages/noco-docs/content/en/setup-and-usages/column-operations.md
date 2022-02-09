@@ -2,7 +2,7 @@
 title: "Column Operations"
 description: "Column Operations"
 position: 530
-category: "Usage"
+category: "Product"
 menuTitle: "Column Operations"
 ---
 ## Fields

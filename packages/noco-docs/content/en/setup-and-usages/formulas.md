@@ -2,7 +2,7 @@
 title: "Formulas"
 description: "Formulas"
 position: 570
-category: "Usage"
+category: "Product"
 menuTitle: "Formulas"
 ---
 

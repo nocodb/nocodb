@@ -1,16 +1,20 @@
 <template>
-  <v-container class=" j-excel-container pa-0 ma-0" fluid>
+  <v-container class="h-100 j-excel-container backgroundColor pa-0 ma-0" fluid>
     <div v-if="modelName" class="model-name text-capitalize">
       <span class="font-weight-bold"> {{ modelName }}</span> <span class="font-weight-regular ml-1">( Main View )</span>
     </div>
-
-    <v-toolbar height="36" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
-      <div class="d-flex xc-border align-center search-box">
+    <v-toolbar 
+      height="32"
+      dense
+      class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
+      style="z-index: 7"
+      >
+      <div class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
-            <div v-on="on">
+            <div style="min-width: 56px" v-on="on">
               <v-icon
-                class="pa-1 pr-0 ml-2"
+                class="ml-2"
                 small
                 color="grey"
               >
@@ -44,7 +48,7 @@
         <v-text-field
           v-model="searchQuery"
           autocomplete="off"
-          style="min-width: 300px"
+          style="min-width: 100px ; width: 150px"
           flat
           dense
           solo
@@ -63,47 +67,49 @@
         relationPrimaryValue
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
 
-      <v-spacer />
+      <div class="d-inline-flex">
 
-      <v-btn outlined small text @click="loadTableData">
-        <v-icon small class="mr-1" color="grey  darken-3">
-          mdi-reload
+        <fields-menu v-model="showFields" :field-list="fieldList" :is-locked="isLocked" />
+
+        <sort-list-menu v-model="sortList" :field-list="fieldList" :is-locked="isLocked" />
+
+        <column-filter-menu v-model="filters" :field-list="fieldList" :is-locked="isLocked" />
+
+        <share-view-menu @share="$refs.drawer && $refs.drawer.genShareLink()" />
+
+        <MoreActions
+            ref="csvExportImport"
+            :meta="meta"
+            :nodes="nodes"
+            :query-params="{
+              fieldsOrder,
+              fieldFilter,
+              sortList,
+              showFields
+            }"
+            :selected-view="selectedView"
+            :is-view="true"
+            @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
+            @webhook="showAdditionalFeatOverlay('webhooks')"
+          />
+      </div>
+      <v-spacer class="h-100" @dblclick="debug=true" />
+    
+      <template>
+        <debug-metas v-if="debug" class="mr-3" />
+        <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
+        <v-icon small class="mx-n1" color="grey lighten-1">
+          mdi-circle-small
         </v-icon>
-        Reload
-      </v-btn>
-
-      <fields-menu v-model="showFields" :field-list="fieldList" />
-
-      <sort-list-menu v-model="sortList" :field-list="fieldList" />
-
-      <column-filter-menu v-model="filters" :field-list="fieldList" />
-
-      <!--            <v-menu>
-              <template #activator="{ on, attrs }">
-                <v-icon
-                  v-bind="attrs"
-                  small
-                  class="mx-2"
-                  color="grey  darken-3"
-                  v-on="on"
-                >
-                  mdi-arrow-collapse-vertical
-                </v-icon>
-              </template>
-
-              <v-list dense class="caption">
-                <v-list-item v-for="h in cellHeights" :key="h.size" dense @click.stop="cellHeight = h.size">
-                  <v-list-item-icon class="mr-1">
-                    <v-icon small :color="cellHeight === h.size && 'primary'">
-                      {{ h.icon }}
-                    </v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title :class="{'primary&#45;&#45;text' : cellHeight === h.size}" style="text-transform: capitalize">
-                    {{ h.size }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>-->
+        <x-icon
+          tooltip="Reload view data"
+          icon.class="nc-table-reload-btn mx-1"
+          small
+          @click="loadTableData"
+        >
+          mdi-reload
+        </x-icon>
+      </template>
 
       <x-btn
         tooltip="Toggle navigation drawer"
@@ -195,6 +201,7 @@
       </div>
 
       <spreadsheet-nav-drawer
+        ref="drawer"
         :nodes="nodes"
         :table="table"
         :meta="meta"
@@ -208,6 +215,7 @@
         :filters.sync="filters"
         :sort-list.sync="sortList"
         :show-fields.sync="showFields"
+        :view-status.sync="viewStatus"
       >
         <!--        <v-list-item
           @click="showAdditionalFeatOverlay('view-columns')"
@@ -239,7 +247,6 @@
 <script>
 
 import debounce from 'debounce'
-import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 import { SqlUI } from '@/helpers/sqlUi/SqlUiFactory'
 import FieldsMenu from '@/components/project/spreadsheet/components/fieldsMenu'
 import SortListMenu from '@/components/project/spreadsheet/components/sortListMenu'
@@ -251,6 +258,10 @@ import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
 import CalendarView from '@/components/project/spreadsheet/views/calendarView'
 import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
 import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
+import MoreActions from '@/components/project/spreadsheet/components/moreActions'
+import ShareViewMenu from '@/components/project/spreadsheet/components/shareViewMenu'
+import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
+
 
 export default {
   name: 'Spreadsheet',
@@ -263,7 +274,10 @@ export default {
     XcGridView,
     ColumnFilterMenu,
     SortListMenu,
-    FieldsMenu
+    FieldsMenu,
+    ShareViewMenu,
+    MoreActions,
+    LockMenu,
   },
   mixins: [spreadsheet],
   props: {
@@ -340,7 +354,10 @@ export default {
       icon: 'mdi-card'
     }],
     rowContextMenu: null,
-    modelName: null
+    modelName: null,
+    viewStatus: {
+      type: null
+    },
   }),
   computed: {
     meta() {
@@ -638,6 +655,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

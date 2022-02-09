@@ -154,6 +154,7 @@ export default {
         }
         this.mappings.push(o)
       }
+      this.$nextTick(()=> this.$refs.form.validate())
     },
     getIcon(uidt) {
       return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline'

@@ -515,13 +515,13 @@ export default {
           const _ref = {}
           columns.forEach((c) => {
             if (c.virtual && c.bt) {
-              c.prop = `${c.bt.rtn}Read`
+              c.prop = `${c._cn}Read`
             }
             if (c.virtual && c.mm) {
               c.prop = `${c.mm.rtn}MMList`
             }
             if (c.virtual && c.hm) {
-              c.prop = `${c.hm.tn}List`
+              c.prop = `${c._cn}List`
             }
 
             // if (c.virtual && c.lk) {

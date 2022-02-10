@@ -2409,6 +2409,9 @@ export default class NcMetaMgr {
       return;
     }
     vColumn._cn = args.args.newAlias;
+    meta.v.forEach(v => {
+      if (v?.lk?._ltn === args.args.oldAlias) v.lk._ltn = args.args.newAlias;
+    });
 
     const queryParams = JSON.parse(model.query_params);
     if (
@@ -3217,7 +3220,9 @@ export default class NcMetaMgr {
           );
           const childMeta = JSON.parse(child.meta);
           const relation = childMeta.belongsTo.find(
-            bt => bt.rtn === args.args.parentTable
+            bt =>
+              bt.rtn === args.args.parentTable &&
+              bt.cn === args.args.childColumn
           );
           // todo: virtual relation delete
           if (relation) {

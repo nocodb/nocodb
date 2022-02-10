@@ -166,7 +166,6 @@ export default {
               row[col._cn] = r.row[prop] && r.row[prop].map(r => cn && r[cn])
             } else if (col.hm || (col.lk && col.lk.type === 'hm')) {
               const tn = col.hm ? col.hm.tn : col.lk.ltn
-              const _tn = col.hm ? col.hm._tn : col.lk._ltn
 
               await this.$store.dispatch('meta/ActLoadMeta', {
                 env: this.nodes.env,
@@ -174,7 +173,7 @@ export default {
                 tn
               })
 
-              prop = `${_tn}List`
+              prop = `${col._cn}List`
               cn = col.lk
                 ? col.lk._lcn
                 : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||
@@ -182,14 +181,13 @@ export default {
               row[col._cn] = r.row[prop] && r.row[prop].map(r => cn && r[cn])
             } else if (col.bt || (col.lk && col.lk.type === 'bt')) {
               const tn = col.bt ? col.bt.rtn : col.lk.ltn
-              const _tn = col.bt ? col.bt._rtn : col.lk._ltn
               await this.$store.dispatch('meta/ActLoadMeta', {
                 env: this.nodes.env,
                 dbAlias: this.nodes.dbAlias,
                 tn
               })
 
-              prop = `${_tn}Read`
+              prop = `${col._cn}Read`
               cn = col.lk
                 ? col.lk._lcn
                 : (this.$store.state.meta.metas[tn].columns.find(c => c.pv) ||

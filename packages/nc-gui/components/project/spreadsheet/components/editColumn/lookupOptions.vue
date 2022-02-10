@@ -64,6 +64,15 @@ export default {
   }),
   computed: {
     refTables() {
+      const findVirtualColumnName = (relation, type) => {
+        return this.meta.v.find(
+          v =>
+            v?.[type]?.rtn === relation?.rtn &&
+            v?.[type]?.tn === relation?.tn &&
+            v?.[type]?.cn === relation?.cn
+        )?._cn
+      }
+
       return (this.meta
         ? [
             ...(this.meta.belongsTo || []).map(({ rtn, _rtn, rcn, tn, cn }) => ({
@@ -74,7 +83,7 @@ export default {
               tn,
               cn,
               ltn: rtn,
-              _ltn: _rtn
+              _ltn: findVirtualColumnName({ tn, cn, rtn }, 'bt')
             })),
             ...(this.meta.hasMany || []).map(({
               tn,
@@ -90,7 +99,7 @@ export default {
               rcn,
               rtn,
               ltn: tn,
-              _ltn: _tn
+              _ltn: findVirtualColumnName({ tn, cn, rtn }, 'hm')
             })),
             ...(this.meta.manyToMany || []).map(({ vtn, _vtn, vrcn, vcn, rtn, _rtn, rcn, tn, cn }) => ({
               type: 'mm',
@@ -138,7 +147,7 @@ export default {
       return (this.lookup.table && (this.meta.v || []).every(c => !(
         c.lk &&
         c.lk.type === this.lookup.table.type &&
-        c.lk.ltn === this.lookup.table.ltn &&
+        c.lk._ltn === this.lookup.table._ltn &&
         c.lk.lcn === v.lcn
       ))) || 'Lookup already exist'
     },

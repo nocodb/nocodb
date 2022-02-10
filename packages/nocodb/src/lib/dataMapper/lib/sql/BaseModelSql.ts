@@ -851,13 +851,12 @@ class BaseModelSql extends BaseModel {
 
       const items = item ? [item] : [];
 
-      for (const parent of parents.split(',')) {
-        const { cn } =
-          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-        if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-          fields += ',' + cn;
+      const parentRelations = this.parentRelations(parents);
+      parentRelations.forEach(parent => {
+        if (fields !== '*' && fields.split(',').indexOf(parent.cn) === -1) {
+          fields += ',' + parent.cn;
         }
-      }
+      });
       await this._extractedNestedChilds(items, childs, rest, parents, many);
       return item;
     } catch (e) {
@@ -1245,6 +1244,23 @@ class BaseModelSql extends BaseModel {
   }
 
   /**
+   * Find matching virtual column
+   *
+   * @param virtualColumns - List of virtual columns
+   * @param relation - relationship object
+   * @param type - type of relationship
+   * @returns {Object} - matching virtual column
+   */
+  static findVirtualColumnName(virtualColumns, relation, type: 'hm' | 'bt') {
+    return virtualColumns.find(
+      v =>
+        v?.[type]?.rtn === relation?.rtn &&
+        v?.[type]?.tn === relation?.tn &&
+        v?.[type]?.cn === relation?.cn
+    )?._cn;
+  }
+
+  /**
    * Get child list and map to input parent
    *
    * @param {Object[]} parent - parent list array
@@ -1264,40 +1280,55 @@ class BaseModelSql extends BaseModel {
       child,
       'h'
     );
-    let { fields } = restArgs;
-    const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
-    if (!this.dbModels[child]) {
-      return;
+
+    const hmRelations =
+      this.hasManyRelations.filter(({ tn }) => tn === child) || [];
+
+    for (const { cn, tn, rtn } of hmRelations) {
+      let { fields } = restArgs;
+
+      if (!this.dbModels[child]) {
+        return;
+      }
+      const _cn = this.dbModels[child]?.columnToAlias?.[cn];
+
+      if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
+        fields += ',' + cn;
+      }
+
+      const childs = await this._run(
+        driver.union(
+          parent.map(p => {
+            const id =
+              p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] ||
+              p[this.pks[0].cn];
+            const query = driver(this.dbModels[child].tnPath)
+              .where(cn, id)
+              .xwhere(where, this.dbModels[child].selectQuery(''))
+              .select(this.dbModels[child].selectQuery(fields)); // ...fields.split(','));
+
+            this._paginateAndSort(query, { sort, limit, offset }, null, true);
+            return this.isSqlite() ? driver.select().from(query) : query;
+          }),
+          !this.isSqlite()
+        )
+      );
+
+      const listColumnName = `${BaseModelSql.findVirtualColumnName(
+        this.virtualColumns,
+        { cn, rtn, tn },
+        'hm'
+      )}List`;
+      const gs = _.groupBy(childs, _cn);
+      parent.forEach(row => {
+        if (!row[listColumnName]) row[listColumnName] = [];
+
+        if (gs[row[this.pks[0]._cn]])
+          row[listColumnName] = row[listColumnName].concat(
+            gs[row[this.pks[0]._cn]] || []
+          );
+      });
     }
-    const _cn = this.dbModels[child]?.columnToAlias?.[cn];
-
-    if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-      fields += ',' + cn;
-    }
-
-    const childs = await this._run(
-      driver.union(
-        parent.map(p => {
-          const id =
-            p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] ||
-            p[this.pks[0].cn];
-          const query = driver(this.dbModels[child].tnPath)
-            .where(cn, id)
-            .xwhere(where, this.dbModels[child].selectQuery(''))
-            .select(this.dbModels[child].selectQuery(fields)); // ...fields.split(','));
-
-          this._paginateAndSort(query, { sort, limit, offset }, null, true);
-          return this.isSqlite() ? driver.select().from(query) : query;
-        }),
-        !this.isSqlite()
-      )
-    );
-
-    const gs = _.groupBy(childs, _cn);
-    parent.forEach(row => {
-      row[`${this.dbModels?.[child]?._tn || child}List`] =
-        gs[row[this.pks[0]._cn]] || [];
-    });
   }
 
   /**
@@ -1471,6 +1502,22 @@ class BaseModelSql extends BaseModel {
   }
 
   /**
+   * Create list of parent relationships
+   * @param parents - comma separated parent table names
+   * @returns Array of parent relationships
+   */
+  parentRelations(parents): Array<any> {
+    return [...new Set(parents ? parents.split(',') : [])].reduce(
+      (relations: [], parent) => {
+        return relations.concat(
+          this.belongsToRelations.filter(({ rtn }) => rtn === parent) || []
+        );
+      },
+      []
+    ) as Array<any>;
+  }
+
+  /**
    * Gets parent list along with children list and parent
    *
    * @param {Object} args
@@ -1505,17 +1552,13 @@ class BaseModelSql extends BaseModel {
         fields += ',' + this.pks[0].cn;
       }
 
-      if (parents)
-        for (const parent of parents.split(',')) {
-          if (!parent) {
-            continue;
-          }
-          const { cn } =
-            this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-          if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-            fields += ',' + cn;
-          }
+      const parentRelations = this.parentRelations(parents);
+
+      parentRelations.forEach(parent => {
+        if (fields !== '*' && fields.split(',').indexOf(parent.cn) === -1) {
+          fields += ',' + parent.cn;
         }
+      });
 
       const items = await this.list({ childs, where, fields, ...rest });
 
@@ -1536,19 +1579,24 @@ class BaseModelSql extends BaseModel {
         );
       }
 
-      if (parents)
+      if (parentRelations.length)
         await Promise.all(
-          parents.split(',').map((parent, index): any => {
-            if (!parent) {
-              return;
-            }
-            const { cn, rcn } =
-              this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+          parentRelations.map((parent, index): any => {
             const parentIds = [
-              ...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))
+              ...new Set(
+                items.map(c => c[parent.cn] || c[this.columnToAlias[parent.cn]])
+              )
             ];
             return this._belongsTo(
-              { parent, rcn, parentIds, childs: items, cn, ...rest },
+              {
+                parent: parent.rtn,
+                rcn: parent.rcn,
+                parentIds,
+                childs: items,
+                cn: parent.cn,
+                tn: parent.tn,
+                ...rest
+              },
               index
             );
           })
@@ -1597,13 +1645,13 @@ class BaseModelSql extends BaseModel {
       const item = await this.readByPk(id, {}, trx);
       if (!item) return item;
 
-      for (const parent of parents.split(',')) {
-        const { cn } =
-          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-        if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-          fields += ',' + cn;
+      const parentRelations = this.parentRelations(parents);
+
+      parentRelations.forEach(parent => {
+        if (fields !== '*' && fields.split(',').indexOf(parent.cn) === -1) {
+          fields += ',' + parent.cn;
         }
-      }
+      });
 
       const items = Object.keys(item).length ? [item] : [];
       await this._extractedNestedChilds(
@@ -1774,18 +1822,25 @@ class BaseModelSql extends BaseModel {
       );
     }
 
+    const parentRelations = this.parentRelations(parents);
+
     await Promise.all(
-      parents.split(',').map((parent, index): any => {
-        if (!parent) {
-          return;
-        }
-        const { cn, rcn } =
-          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+      parentRelations.map((parent, index): any => {
         const parentIds = [
-          ...new Set(items.map(c => c[cn] || c[this.columnToAlias[cn]]))
+          ...new Set(
+            items.map(c => c[parent.cn] || c[this.columnToAlias[parent.cn]])
+          )
         ];
         return this._belongsTo(
-          { parent, rcn, parentIds, childs: items, cn, ...rest },
+          {
+            parent: parent.rtn,
+            rcn: parent.rcn,
+            parentIds,
+            childs: items,
+            cn: parent.cn,
+            tn: parent.tn,
+            ...rest
+          },
           index,
           trx
         );
@@ -1903,26 +1958,33 @@ class BaseModelSql extends BaseModel {
   async belongsTo({ parents, where, fields, f, ...rest }) {
     fields = fields || f || '*';
     try {
-      for (const parent of parents.split('~')) {
-        const { cn } =
-          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-        if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-          fields += ',' + cn;
+      const parentRelations = this.parentRelations(parents);
+
+      parentRelations.forEach(parent => {
+        if (fields !== '*' && fields.split(',').indexOf(parent.cn) === -1) {
+          fields += ',' + parent.cn;
         }
-      }
+      });
 
       const childs = await this.list({ where, fields, ...rest });
 
       await Promise.all(
-        parents.split('~').map((parent, index) => {
-          const { cn, rcn } =
-            this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
-          this.belongsToRelations.find(({ rtn }) => rtn === parent) || {};
+        parentRelations.map((parent, index) => {
           const parentIds = [
-            ...new Set(childs.map(c => c[cn] || c[this.columnToAlias[cn]]))
+            ...new Set(
+              childs.map(c => c[parent.cn] || c[this.columnToAlias[parent.cn]])
+            )
           ];
           return this._belongsTo(
-            { parent, rcn, parentIds, childs, cn, ...rest },
+            {
+              parent: parent.rtn,
+              rcn: parent.rcn,
+              parentIds,
+              childs,
+              cn: parent.cn,
+              tn: parent.tn,
+              ...rest
+            },
             index
           );
         })
@@ -1971,9 +2033,13 @@ class BaseModelSql extends BaseModel {
       this.dbModels[parent]?.columnToAlias?.[rcn] || rcn
     );
 
+    const listColumnName = `${BaseModelSql.findVirtualColumnName(
+      this.virtualColumns,
+      { cn, rtn: parent, tn: rest.tn },
+      'bt'
+    )}Read`;
     childs.forEach(row => {
-      row[`${this.dbModels?.[parent]?._tn || parent}Read`] =
-        gs[row[this?.columnToAlias?.[cn] || cn]]?.[0];
+      row[listColumnName] = gs[row[this?.columnToAlias?.[cn] || cn]]?.[0];
     });
   }
 
@@ -2374,11 +2440,11 @@ class BaseModelSql extends BaseModel {
     if (!this._nestedProps) {
       this._nestedProps = (this.virtualColumns || [])?.reduce((obj, v) => {
         if (v.bt) {
-          const prop = `${this.dbModels[v.bt.rtn]._tn}Read`;
+          const prop = `${v._cn}Read`;
           obj[prop] = v;
           this._nestedPropsModels[prop] = this.dbModels[v.bt?.rtn];
         } else if (v.hm) {
-          const prop = `${this.dbModels[v.hm.tn]._tn}List`;
+          const prop = `${v._cn}List`;
           obj[prop] = v;
           this._nestedPropsModels[prop] = this.dbModels[v.hm?.tn];
         } else if (v.mm) {

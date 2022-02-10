@@ -16,8 +16,9 @@ Your help in fixing i18n goes a long way supporting NocoDB. Please follow below 
   <img width="995" alt="Screenshot 2022-02-10 at 1 47 06 PM" src="https://user-images.githubusercontent.com/86527202/153368423-d1d898ef-bdcb-48c4-a772-b75e2c66566d.png">
 - Find your language code [here](https://developers.google.com/admin-sdk/directory/v1/languages)
 - Go to the column containing your language code. Make necessary changes. Origin text in ENGLISH can be found in `Column B` of master spreadsheet.
-- Create a new [issue in Github] with a link to publicly accessible change details (https://github.com/nocodb/nocodb/issues/new?assignees=dstala&labels=i18n+translation&template=i18n-translation-request.md&title=%5Bi18n%5D+Language+support+extension-+%3Clanguage+code%3E) request with a link to your spreadsheet from Step-1 (for us to verify & update master spreadsheet).
+- Create a new [issue in Github](https://github.com/nocodb/nocodb/issues/new?assignees=dstala&labels=i18n+translation&template=i18n-translation-request.md&title=%5Bi18n%5D+Language+support+extension-+%3Clanguage+code%3E) request with a link to your spreadsheet from Step-1 (for us to verify & update master spreadsheet). 
 - NocoDB Maintainers will take changes and merge it.
+- It's that simple!
 
 
 

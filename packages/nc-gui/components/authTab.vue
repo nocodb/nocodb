@@ -5,7 +5,7 @@
         <v-tab>
           <span class="caption text-capitalize">
             <!-- Users Management -->
-            {{ $t('management.tabs.user') }}
+            {{ $t('title.userMgmt') }}
           </span>
         </v-tab>
         <v-tab-item class="h-100">
@@ -16,7 +16,7 @@
           <v-tab>
             <span class="caption text-capitalize">
               <!-- API Tokens Management -->
-              {{ $t('management.tabs.api') }}
+              {{ $t('title.apiTokenMgmt') }}
             </span>
           </v-tab>
           <v-tab-item>
@@ -26,7 +26,7 @@
         <v-tab>
           <span class="caption text-capitalize">
             <!-- Roles Management -->
-            {{ $t('management.tabs.roles') }}
+            {{ $t('title.rolesMgmt') }}
           </span>
         </v-tab>
         <v-tab-item>

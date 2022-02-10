@@ -1,247 +1,473 @@
 {
-  "projects": {
-    "my_projects": "Mine prosjekter",
-    "reload_projects_tooltip": "Oppdater prosjekter",
-    "create_new_project_button": {
-      "text": "Nytt prosjekt",
-      "subtext_1": "Opprett",
-      "subtext_1_tooltip": "Opprett et nytt prosjekt",
-      "subtext_2": "Opprett ved å koble til <br> til en ekstern database",
-      "subtext_2_tooltip": "Støtter MySQL, PostgreSQL, SQL Server & Sqlite"
+  "general": {
+    "home": "Hjem",
+    "load": "Laste",
+    "open": "Åpen",
+    "close": "Lukk",
+    "yes": "Ja",
+    "no": "Nei",
+    "ok": "OK",
+    "and": "Og",
+    "or": "Eller",
+    "add": "Legg til",
+    "edit": "Redigere",
+    "remove": "Fjerne",
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "submit": "Sende inn",
+    "create": "Opprett",
+    "delete": "Slett",
+    "update": "Oppdater",
+    "rename": "Gi nytt navn til",
+    "reload": "Last på nytt",
+    "reset": "Nullstill",
+    "install": "Installere",
+    "show": "Forestilling",
+    "hide": "Gjemme seg",
+    "showAll": "Vis alt",
+    "hideAll": "Gjem alle",
+    "showMore": "Vis mer",
+    "showOptions": "Vis alternativer",
+    "hideOptions": "Skjul alternativer",
+    "showMenu": "Vis meny",
+    "hideMenu": "Skjul menyen",
+    "addAll": "Legg til alle",
+    "removeAll": "Fjern alle",
+    "signUp": "Registrer deg",
+    "signIn": "LOGG INN",
+    "signOut": "Logg ut",
+    "required": "Kreves",
+    "preferred": "Foretrukket",
+    "mandatory": "Påbudt, bindende",
+    "loading": "Laster ..."
+  },
+  "objects": {
+    "project": "Prosjekt",
+    "projects": "Prosjekter",
+    "table": "Bord",
+    "tables": "Bordene",
+    "field": "Felt",
+    "fields": "Enger",
+    "column": "Kolonne",
+    "columns": "Kolonner",
+    "page": "Side",
+    "pages": "Sider",
+    "record": "Ta opp",
+    "records": "Poster",
+    "webhook": "Webhook.",
+    "webhooks": "Webhooks.",
+    "view": "Utsikt",
+    "views": "Visninger",
+    "viewType": {
+      "grid": "Rutenett",
+      "gallery": "Galleri",
+      "form": "Skjema",
+      "kanban": "Kanban",
+      "calendar": "Kalender"
     },
-    "search_project": "Søk etter prosjekt",
-    "import_metadata": "Importer metadata",
-    "export_metadata": "Eksporter metadata",
-    "clear_metadata": "Tøm metadata",
-    "stop_project": "Stopp prosjekt",
-    "start_project": "Start prosjekt",
-    "restart_project": "Start prosjekt på nytt",
-    "delete_project": "Slett prosjekt",
-    "project_api_type_tooltip_graphql": "Tilgjengelig via GraphQL-API-er",
-    "project_api_type_tooltip_rest": "Tilgjengelig via REST-API-er",
-    "project_empty_message": "Kom i gang med å opprette et nytt prosjekt",
-    "import_button": {
-      "text": "Importer NocoDB-prosjekt ved å laste opp metadata Zip-fil"
-    },
-    "show_community_star": "Stjerne",
-    "show_community_us_on_Github": "oss på GitHub.",
-    "show_community_book_a_free_demo": "Bestill en gratis demo",
-    "show_community_get_your_questions_answered": "Få dine spørsmål besvart",
-    "show_community_join_discord": "Bli med på Discord",
-    "show_community_follow_nocodb": "Følg NocoDB",
-    "search": {
-      "your_search_found_no_results": "Søket ditt etter {søk} fant ingen resultater"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "Rediger prosjekt",
-        "create": "Opprett prosjekt"
-      },
-      "project_name": "Skriv inn prosjektnavn",
-      "project_type": "Tilgang til prosjekt via",
-      "button": {
-        "save_project": "Lagre prosjekt",
-        "update_and_restart": "Oppdatering og omstart",
-        "cancel": "Avbryt",
-        "cancel_tooltip": "Avbryt og retur"
-      },
-      "credentials": {
-        "title": "Database-autentisering",
-        "db_type": "Databasetype",
-        "sqlite_file": "SQLite-fil",
-        "host_address": "Vertsadresse",
-        "port": "Portnummer",
-        "username": "Brukernavn",
-        "password": "Passord",
-        "db_create_if_not_exists": "Database: Opprett hvis ikke eksisterer",
-        "button": {
-          "test_db_conn": "Test databaseforbindelse",
-          "remove_db_from_env": "Fjern databasen fra miljøet"
-        },
-        "advanced": {
-          "title": "SSL og avanserte parametere",
-          "ssl": {
-            "client_key": {
-              "title": "Klientnøkkel",
-              "toolip": "Velg .KEY-fil"
-            },
-            "client_cert": {
-              "title": "Klientsertifikat",
-              "toolip": "Velg .CERT-fil"
-            },
-            "server_ca": {
-              "title": "Server CA",
-              "toolip": "Velg CA-fil"
-            },
-            "preferred": "Foretrukket",
-            "usage": {
-              "no": "Nei",
-              "preferred": "Foretrukket",
-              "required": "Kreves",
-              "requried_ca": "Påkrevd-CA",
-              "requried_identity": "Nødvendig identitet"
-            }
-          },
-          "inflection": {
-            "table_name": "Bøyning - tabellnavn",
-            "column_name": "Bøyning - kolonnenavnn"
-          },
-          "button": {
-            "edit_conn_json": "Rediger tilkoblings-JSON"
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "Ugyldig karakter i mappebanen.",
-        "invalid_db_credentials": "Ugyldig databaseautentisering.",
-        "unable_to_connect_to_db": "Kan ikke koble til database, vennligst sjekk om databasen din er oppe.",
-        "user_doesnt_ve_sufficient_permission": "Brukeren eksisterer ikke eller har ikke tilstrekkelig tillatelse til å opprette skjema."
-      },
-      "head": {
-        "title": "Opprett prosjektet | NocoDB"
-      },
-      "dialog": {
-        "success": "Tilkoblingen var vellykket",
-        "failure": "Tilkoblingsfeil:"
-      }
-    },
-    "notifications": {
-      "no_new": "Ingen nye varsler",
-      "clear": "Tøm"
+    "user": "Bruker",
+    "users": "Brukere",
+    "role": "Rolle",
+    "roles": "Roller",
+    "roleType": {
+      "owner": "Eieren",
+      "creator": "Skaperen.",
+      "editor": "Redaktør",
+      "commenter": "Kommenterer",
+      "viewer": "Seer."
     }
   },
-  "signin": {
-    "title": "LOGG INN",
-    "enter_your_work_email": "Skriv inn jobb-e-post",
-    "enter_your_password": "Skriv inn passordet ditt",
-    "forget_password": "Glemt passordet?",
-    "dont_ve_an_account": "Har du ikke en konto?",
-    "sign_up": "Registrer deg",
-    "form": {
-      "rules": {
-        "email_is_reqd": "E-post er nødvendig",
-        "email_must_be_valid": "E-post må være gyldig",
-        "passwd_required": "Passord er påkrevd",
-        "passwd_must_be_8_chars": "Ditt passord må være minst 8 tegn"
-      }
+  "datatype": {
+    "ID": "Id.",
+    "ForeignKey": "Utenlandsk nøkkel",
+    "SingleLineText": "Enkel linje tekst",
+    "LongText": "Lang tekst",
+    "Attachment": "Vedlegg",
+    "Checkbox": "Avkrysningsboks.",
+    "MultiSelect": "Flervalg",
+    "SingleSelect": "Enkelt Velg",
+    "Collaborator": "Samarbeidspartner",
+    "Date": "Dato",
+    "Year": "År",
+    "Time": "Tid",
+    "PhoneNumber": "Telefonnummer",
+    "Email": "E-post",
+    "URL": "URL.",
+    "Number": "Nummer",
+    "Decimal": "Desimal",
+    "Currency": "Valuta",
+    "Percent": "Prosent",
+    "Duration": "Varighet",
+    "Rating": "Vurdering",
+    "Formula": "Formel",
+    "Rollup": "Rull opp",
+    "Count": "Telle",
+    "Lookup": "Se opp",
+    "DateTime": "Dato tid",
+    "CreateTime": "Skape tid",
+    "LastModifiedTime": "Sist endret tid",
+    "AutoNumber": "Auto nummer",
+    "Barcode": "Strekkode",
+    "Button": "Knapp",
+    "Password": "Passord"
+  },
+  "filterOperation": {
+    "isEqual": "er lik",
+    "isNotEqual": "er ikke likeverdig",
+    "isLike": "er som",
+    "isNot like": "er ikke som",
+    "isEmpty": "er tom",
+    "isNotEmpty": "er ikke tomt",
+    "isNull": "er null",
+    "isNotNull": "er ikke null"
+  },
+  "title": {
+    "newProj": "Nytt prosjekt",
+    "myProject": "Mine prosjekter",
+    "formTitle": "Skjema tittel",
+    "collabView": "Samarbeidende syn",
+    "lockedView": "Låst visning",
+    "personalView": "Personlig utsikt",
+    "appStore": "App Store",
+    "team&auth": "Team og Auth.",
+    "rolesUserMgmt": "Roller og brukeradministrasjon",
+    "userMgmt": "Brukeradministrasjon",
+    "apiTokenMgmt": "Administrering av API-nøkler",
+    "rolesMgmt": "Rolleadministrering",
+    "projMeta": "Prosjektmetadata",
+    "metaMgmt": "Organiser prosjektmetadata",
+    "metadata": "Metadata.",
+    "exportImportMeta": "Eksporter / Import Metadata",
+    "metaOperations": "Metadataoperasjoner",
+    "audit": "Revidere",
+    "auditLogs": "Revisjonslogg",
+    "sqlMigrations": "SQL-overføringer",
+    "dbCredentials": "Database-autentisering",
+    "advancedParameters": "SSL og avanserte parametere",
+    "headCreateProject": "Opprett prosjektet | NocoDB",
+    "headLogin": "Logg inn | NocoDB.",
+    "resetPassword": "Tilbakestill passordet ditt"
+  },
+  "labels": {
+    "projName": "Prosjektnavn",
+    "viewName": "Se navn",
+    "viewLink": "Vis lenke",
+    "columnName": "Kolonne navn",
+    "columnType": "Kolonne TYPE",
+    "roleName": "Rollenavn",
+    "roleDescription": "Rollbeskrivelse",
+    "databaseType": "Skriv inn database",
+    "lengthValue": "Lengde / verdi",
+    "dbType": "Databasetype",
+    "sqliteFile": "SQLite-fil",
+    "hostAddress": "Vertsadresse",
+    "port": "Portnummer",
+    "username": "Brukernavn",
+    "password": "Passord",
+    "action": "Handling",
+    "actions": "Handlinger",
+    "operation": "Operasjon",
+    "operationType": "Operasjonstype",
+    "operationSubType": "OPERATION SUB-TYPE",
+    "description": "Beskrivelse",
+    "authentication": "Godkjenning",
+    "token": "Token.",
+    "where": "Hvor",
+    "cache": "Cache.",
+    "chat": "Chat",
+    "email": "E-post",
+    "storage": "Oppbevaring",
+    "uiAcl": "UI-ACL.",
+    "models": "Modeller",
+    "syncState": "Synkroniser staten",
+    "created": "Opprettet",
+    "sqlOutput": "SQL-utgang",
+    "dbCreateIfNotExists": "Database: Opprett hvis ikke eksisterer",
+    "clientKey": "Klientnøkkel",
+    "clientCert": "Klientsertifikat",
+    "serverCA": "Server CA",
+    "requriedCa": "Påkrevd-CA",
+    "requriedIdentity": "Nødvendig identitet",
+    "inflection": {
+      "tableName": "Bøyning - tabellnavn",
+      "columnName": "Bøyning - kolonnenavnn"
     },
-    "head": {
-      "title": "Logg inn | NocoDB.",
-      "meta": {
-        "hid": "Logg inn i NocoDB",
-        "name": "Logg inn i NocoDB",
-        "content": "Logg inn i NocoDB"
-      }
+    "community": {
+      "starUs1": "Stjerne",
+      "starUs2": "oss på GitHub.",
+      "bookDemo": "Bestill en gratis demo",
+      "getAnswered": "Få dine spørsmål besvart",
+      "joinDiscord": "Bli med på Discord",
+      "joinReddit": "Bli med /r/NocoDB",
+      "followNocodb": "Følg NocoDB"
+    }
+  },
+  "activity": {
+    "createProject": "Opprett prosjekt",
+    "importProject": "Importprosjekt",
+    "searchProject": "Søk etter prosjekt",
+    "editProject": "Rediger prosjekt",
+    "stopProject": "Stopp prosjekt",
+    "startProject": "Start prosjekt",
+    "restartProject": "Start prosjekt på nytt",
+    "deleteProject": "Slett prosjekt",
+    "refreshProject": "Oppdater prosjekter",
+    "saveProject": "Lagre prosjekt",
+    "createProjectExtended": {
+      "extDB": "Opprett ved å koble til <br> til en ekstern database",
+      "excel": "Opprett prosjekt fra Excel",
+      "template": "Opprett prosjektet fra mal"
     },
+    "OkSaveProject": "OK og lagre prosjektet",
+    "upgrade": {
+      "available": "Oppgradering tilgjengelig",
+      "releaseNote": "Frigjøre notater",
+      "howTo": "Hvordan oppgradere?"
+    },
+    "translate": "Hjelp oversette",
+    "account": {
+      "authToken": "Kopier Auth Token",
+      "swagger": "Swagger Apis Doc.",
+      "projInfo": "Kopier prosjektinfo",
+      "themes": "Temaer"
+    },
+    "sort": "Sortere",
+    "addSort": "Legg til sorteringsalternativ",
+    "filter": "Filter",
+    "addFilter": "Legg til filter",
+    "share": "Dele",
+    "shareBase": {
+      "disable": "Deaktiver delt base",
+      "enable": "Alle med linken",
+      "link": "Delt grunnlinje"
+    },
+    "invite": "Invitere",
+    "inviteMore": "Inviter mer",
+    "inviteTeam": "Invitere team",
+    "inviteToken": "Inviter TOKEN.",
+    "newUser": "Ny bruker",
+    "editUser": "Rediger bruker",
+    "deleteUser": "Fjern brukeren fra prosjektet",
+    "resendInvite": "Resend invitere e-post",
+    "copyInviteURL": "Kopier Inviter URL.",
+    "newRole": "Ny rolle",
+    "reloadRoles": "Oppdater roller",
+    "nextPage": "Neste side",
+    "prevPage": "Forrige side",
+    "nextRecord": "Neste rekord",
+    "previousRecord": "Tidligere post",
+    "copyApiURL": "Kopier API URL",
+    "createTable": "Tabellen CREATE.",
+    "refreshTable": "Tabeller oppdatering",
+    "renameTable": "Tabell omdøpe",
+    "addField": "Legg til nytt felt i denne tabellen",
+    "setPrimary": "Sett som primærverdi",
+    "addRow": "Legg til ny rad",
+    "saveRow": "Lagre rad",
+    "insertRow": "Sett inn ny rad",
+    "deleteRow": "Slett rad",
+    "deleteSelectedRow": "Slett utvalgte rader",
+    "importExcel": "Importer Excel.",
+    "downloadCSV": "Last ned som CSV.",
+    "uploadCSV": "Last opp CSV.",
+    "import": "Importer",
+    "importMetadata": "Importer metadata",
+    "exportMetadata": "Eksporter metadata",
+    "clearMetadata": "Tøm metadata",
+    "exportToFile": "Eksporter til fil",
+    "changePwd": "Bytt passord",
+    "createView": "Opprett en visning",
+    "shareView": "Del visning",
+    "listSharedView": "Felles visningsliste",
+    "ListView": "Visningsliste",
+    "copyView": "Kopier visning",
+    "renameView": "Gi nytt navn til visning",
+    "deleteView": "Slett visning",
+    "createGrid": "Opprett rutenettvisning",
+    "createGallery": "Lag Gallery View.",
+    "createCalendar": "Opprett kalenderutsikt",
+    "createKanban": "Lag Kanban View.",
+    "createForm": "Opprett skjemavisning",
+    "showSystemFields": "Vis systemfelt",
+    "copyUrl": "Kopier URL.",
+    "openTab": "Åpne ny fanering",
+    "iFrame": "Kopier EmbedDable HTML-kode",
+    "addWebhook": "Legg til ny webhook.",
+    "newToken": "Legg til nytt Token.",
+    "exportZip": "Eksporter zip",
+    "importZip": "Importer zip",
+    "metaSync": "Synkroniser nå",
+    "settings": "Innstillinger",
+    "previewAs": "Forhåndsvisning som",
+    "resetReview": "Tilbakestill forhåndsvisning",
+    "testDbConn": "Test databaseforbindelse",
+    "removeDbFromEnv": "Fjern databasen fra miljøet",
+    "editConnJson": "Rediger tilkoblings-JSON",
+    "sponsorUs": "Sponsor oss",
+    "sendEmail": "SEND E-POST"
+  },
+  "tooltip": {
+    "xcDB": "Opprett et nytt prosjekt",
+    "extDB": "Støtter MySQL, PostgreSQL, SQL Server & Sqlite",
+    "apiRest": "Tilgjengelig via REST-API-er",
+    "apiGQL": "Tilgjengelig via GraphQL-API-er",
+    "theme": {
+      "dark": "Det kommer i svart (^ ⇧b)",
+      "light": "Kommer det i svart? (^ ⇧b)"
+    },
+    "addTable": "Legg til nytt bord",
+    "inviteMore": "Inviter flere brukere",
+    "toggleNavDraw": "Toggle Navigation Skuff",
+    "reloadApiToken": "Reload Api Tokens",
+    "generateNewApiToken": "Generere nye API-token",
+    "addRole": "Legg til ny rolle",
+    "metaReloadList": "Last inn listen",
+    "metaSync": "Synkroniser metadata.",
+    "sqlMigration": "Oppdater migreringer",
+    "updateRestart": "Oppdatering og omstart",
+    "cancelReturn": "Avbryt og retur",
+    "exportMetadata": "Eksporter alle metadata fra metatabellene til meta-katalogen.",
+    "importMetadata": "Importer alle metadata fra meta-katalogen til metatabellene.",
+    "clearMetadata": "Fjern alle metadata fra metatabeller.",
+    "clientKey": "Velg .KEY-fil",
+    "clientCert": "Velg .CERT-fil",
+    "clientCA": "Velg CA-fil"
+  },
+  "placeholder": {
+    "projName": "Skriv inn prosjektnavn",
     "password": {
-      "recovery": {
-        "title": "Tilbakestill passordet ditt",
+      "enter": "Skriv inn passordet",
+      "current": "Nåværende passord",
+      "new": "Nytt passord",
+      "save": "Lagre passord",
+      "confirm": "Bekrefte nytt passord"
+    },
+    "searchProjectTree": "Søketabeller",
+    "searchFields": "Søk markeringer",
+    "searchColumn": "Søk {Søk} Kolonne",
+    "searchApps": "Søk apps.",
+    "searchModels": "Søk modeller",
+    "noItemsFound": "ingen objekter funnet",
+    "defaultValue": "Standardverdi",
+    "filterByEmail": "Filtrer via e-post"
+  },
+  "msg": {
+    "info": {
+      "footerInfo": "Rader per side.",
+      "upload": "Velg Fil for å laste opp",
+      "upload_sub": "eller dra og slipp filen",
+      "excelSupport": "Støttet: .xls, .xlsx, .xlsm ,.ods ,.ots",
+      "excelURL": "Skriv inn Excel File URL",
+      "footMsg": "# av rader for å analysere å utlede datatype",
+      "excelImport": "Ark (er) er tilgjengelige for import",
+      "exportMetadata": "Ønsker du å eksportere metadata fra Meta-bord?",
+      "importMetadata": "Ønsker du å importere metadata fra Meta-bord?",
+      "clearMetadata": "Ønsker du å fjerne metadata fra Meta-bord?",
+      "projectEmptyMessage": "Kom i gang med å opprette et nytt prosjekt",
+      "stopProject": "Ønsker du å stoppe prosjektet?",
+      "startProject": "Ønsker du å starte prosjektet?",
+      "restartProject": "Vil du starte prosjektet på nytt?",
+      "deleteProject": "Ønsker du å slette prosjektet?",
+      "shareBasePrivate": "Generer offentlig delbar readonly base",
+      "shareBasePublic": "Alle på Internett med denne lenken kan se",
+      "userInviteNoSMTP": "Ser ut som om du ikke har konfigurert mailer ennå! \\ n Vennligst kopier over Inviter Link og send den til",
+      "dragDropHide": "Dra og slipp felt her for å skjule",
+      "formInput": "Skriv inn skjema inngangsetikett",
+      "formHelpText": "Legg til litt hjelpetekst",
+      "onlyCreator": "Bare synlig for skaperen",
+      "formDesc": "Legg til form Beskrivelse",
+      "beforeEnablePwd": "Begrens tilgang med et passord",
+      "afterEnablePwd": "Tilgang er passordbegrenset",
+      "privateLink": "Denne visningen deles via en privat lenke",
+      "privateLinkAdditionalInfo": "Personer med privat kobling kan bare se celler synlige i denne visningen",
+      "afterFormSubmitted": "Etter skjema er sendt inn",
+      "apiOptions": "Tilgang til prosjekt via",
+      "submitAnotherForm": "Vis 'Send inn en annen form' -knapp",
+      "showBlankForm": "Vis et tomt skjema etter 5 sekunder",
+      "emailForm": "E-post meg på",
+      "showSysFields": "Vis systemfelt",
+      "filterAutoApply": "Auto gjelder",
+      "showMessage": "Vis denne meldingen",
+      "viewNotShared": "Nåværende visning er ikke delt!",
+      "showAllViews": "Vis alle felles syn på dette bordet",
+      "collabView": "Samarbeidspartnere med redigeringsrettigheter eller høyere kan endre visningskonfigurasjonen.",
+      "lockedView": "Ingen kan redigere visningskonfigurasjonen til den er ulåst.",
+      "personalView": "Bare du kan redigere visningskonfigurasjonen. Andre samarbeidspartnere personlige synspunkter er skjult som standard.",
+      "ownerDesc": "Kan legge til / fjerne skapere. Og Full Rediger databasestrukturer og felt.",
+      "creatorDesc": "Kan fullt ut redigere databasestruktur og verdier.",
+      "editorDesc": "Kan redigere poster, men kan ikke endre strukturen i databasen / feltene.",
+      "commenterDesc": "Kan vise og kommentere postene, men kan ikke redigere noe",
+      "viewerDesc": "Kan se postene, men kan ikke redigere noe",
+      "addUser": "Legg til ny bruker",
+      "staticRoleInfo": "Systemdefinerte roller kan ikke redigeres",
+      "exportZip": "Eksporter prosjektets metadata til Zip-fil og last ned.",
+      "importZip": "Importer metadata om prosjekt fra Zip-fil og start på nytt.",
+      "importText": "Importer NocoDB-prosjekt ved å laste opp metadata Zip-fil",
+      "metaNoChange": "Ingen endring identifisert",
+      "sqlMigration": "Schema migreringer vil bli opprettet automatisk. Lag et bord og oppdatere denne siden.",
+      "dbConnectionStatus": "Miljøet validert",
+      "dbConnected": "Tilkoblingen var vellykket",
+      "notifications": {
+        "no_new": "Ingen nye varsler",
+        "clear": "Tøm"
+      },
+      "sponsor": {
+        "header": "Du kan hjelpe oss!",
+        "message": "Vi er et lite lag som jobber heltid for å gjøre Nocodb åpen kildekode. Vi tror et verktøy som Nocodb bør være tilgjengelig fritt til alle problemløser på internett."
+      },
+      "loginMsg": "Logg inn i NocoDB",
+      "passwordRecovery": {
         "message_1": "Vennligst oppgi e-postadressen du brukte når du registrerte deg.",
         "message_2": "Vi sender deg en e-post med en lenke for å tilbakestille passordet ditt.",
-        "success": "Vennligst sjekk e-posten din for å tilbakestille passordet",
-        "button": "SEND E-POST"
-      }
-    }
-  },
-  "signup": {
-    "title": "REGISTRER DEG",
-    "you_will_be_the_super_admin": "Du vil være 'super admin'",
-    "already_ve_an_account": "Har du allerede en konto?"
-  },
-  "treeview": {
-    "settings": {
-      "title": "Innstillinger",
-      "tooltip": "Bare synlig for skaperen"
-    },
-    "app_store": "App Store",
-    "team_n_auth": {
-      "title": "Team og Auth.",
-      "tooltip": "Roller og brukeradministrasjon"
-    },
-    "project_metadata": {
-      "title": "Prosjektmetadata",
-      "tooltip": "Organiser prosjektmetadata"
-    },
-    "preview_as": "Forhåndsvisning som",
-    "reset_review": "Tilbakestill forhåndsvisning"
-  },
-  "nav_drawer": {
-    "title": "Visninger",
-    "virtual_views": {
-      "action": {
-        "copy": "Kopier visning",
-        "rename": "Gi nytt navn til visning",
-        "delete": "Slett visning"
+        "success": "Vennligst sjekk e-posten din for å tilbakestille passordet"
       },
-      "title": "Opprett en visning",
-      "caption": "Bare synlig for skaperen",
-      "grid": {
-        "title": "Rutenett",
-        "create": "Legg til rutenett"
+      "signUp": {
+        "superAdmin": "Du vil være 'super admin'",
+        "alreadyHaveAccount": "Har du allerede en konto?",
+        "workEmail": "Skriv inn jobb-e-post",
+        "enterPassword": "Skriv inn passordet ditt",
+        "forgotPassword": "Glemt passordet?",
+        "dontHaveAccount": "Har du ikke en konto?"
       },
-      "gallery": {
-        "title": "Galleri",
-        "create": "Legg til galleriutsikt"
-      },
-      "calendar": {
-        "title": "Kalender",
-        "create": "Legg til kalendervisning"
-      },
-      "kanban": {
-        "title": "Kanban",
-        "create": "Legg til Kanban View"
-      },
-      "form": {
-        "title": "Skjema",
-        "create": "Legg til skjemavisning"
+      "addView": {
+        "grid": "Legg til rutenett",
+        "gallery": "Legg til galleriutsikt",
+        "form": "Legg til skjemavisning",
+        "kanban": "Legg til Kanban View",
+        "calendar": "Legg til kalendervisning"
       }
     },
-    "advanced": {
-      "title1": "Del visning",
-      "views_list": "Visningsliste",
-      "copy_api_url": "Kopier API URL"
-    },
-    "share_view": {
-      "title": "Denne visningen deles via en privat lenke",
-      "body": "Personer med privat kobling kan bare se celler synlige i denne visningen",
-      "toggle": {
-        "option1": "Begrens tilgang med et passord",
-        "option2": "Tilgang er passordbegrenset"
-      },
-      "password": {
-        "caption": "Skriv inn passordet",
-        "button": "Lagre passord"
+    "error": {
+      "searchProject": "Søket ditt etter {søk} fant ingen resultater",
+      "invalidChar": "Ugyldig karakter i mappebanen.",
+      "invalidDbCredentials": "Ugyldig databaseautentisering.",
+      "unableToConnectToDb": "Kan ikke koble til database, vennligst sjekk om databasen din er oppe.",
+      "userDoesntHaveSufficientPermission": "Brukeren eksisterer ikke eller har ikke tilstrekkelig tillatelse til å opprette skjema.",
+      "dbConnectionStatus": "Ugyldige databaseparametere",
+      "dbConnectionFailed": "Tilkoblingsfeil:",
+      "signUpRules": {
+        "emailReqd": "E-post er nødvendig",
+        "emailInvalid": "E-post må være gyldig",
+        "passwdRequired": "Passord er påkrevd",
+        "passwdLength": "Ditt passord må være minst 8 tegn"
       }
-    }
-  },
-  "management": {
-    "tabs": {
-      "user": "Brukeradministrasjon",
-      "api": "Administrering av API-nøkler",
-      "roles": "Rolleadministrering"
     },
-    "meta": {
-      "title": "Metadataoperasjoner",
-      "export_to_file": {
-        "title": "Eksporter til fil",
-        "desc": "Eksporter alle metadata fra metatabellene til meta-katalogen."
-      },
-      "import": {
-        "title": "Importer",
-        "desc": "Importer alle metadata fra meta-katalogen til metatabellene."
-      },
-      "export_to_zip": {
-        "title": "Eksporter zip",
-        "desc": "Eksporter prosjektets metadata til Zip-fil og last ned."
-      },
-      "import_zip": {
-        "title": "Importer zip",
-        "desc": "Importer metadata om prosjekt fra Zip-fil og start på nytt."
-      },
-      "reset": {
-        "title": "Nullstill",
-        "desc": "Fjern alle metadata fra metatabeller."
-      }
+    "toast": {
+      "exportMetadata": "Prosjektmetadata eksporteres vellykket",
+      "importMetadata": "Prosjektmetadata importert vellykket",
+      "clearMetadata": "Prosjektmetadata ryddet vellykket",
+      "stopProject": "Prosjektet sluttet vellykket",
+      "startProject": "Prosjektet startet vellykket",
+      "restartProject": "Prosjektet startet på nytt",
+      "deleteProject": "Prosjektet slettet vellykket",
+      "authToken": "Auth Token kopiert til utklippstavlen",
+      "projInfo": "Kopiert prosjektinfo til utklippstavlen",
+      "inviteUrlCopy": "Kopiert invitasjonsadresse til utklippstavle",
+      "createView": "Se opprettet vellykket",
+      "formEmailSMTP": "Vennligst aktiver SMTP-plugin i App Store for å aktivere e-postvarsling",
+      "collabView": "Vellykket byttet til samarbeidsvisning",
+      "lockedView": "Vellykket byttet til låst visning",
+      "futureRelease": "Kommer snart!"
     }
   }
 }

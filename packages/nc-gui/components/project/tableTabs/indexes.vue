@@ -65,7 +65,7 @@
       <x-btn
         v-ge="['indexes','delete-table']"
         outlined
-        tooltip="Delete Table"
+        :tooltip="$t('activity.deleteTable')"
         small
         color="error "
         class="error text-right"

@@ -5,6 +5,7 @@ services:
     image: mysql:5.7
     volumes:
       - db_data:/var/lib/mysql
+      - nc_data:/usr/app/data
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
@@ -28,3 +29,4 @@ services:
       NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
 volumes:
   db_data: {}
+  nc_data: {}

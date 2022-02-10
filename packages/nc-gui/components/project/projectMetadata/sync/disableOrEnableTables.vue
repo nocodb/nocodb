@@ -200,8 +200,8 @@
           <div class="d-flex">
             <v-spacer />
 
-            <v-tooltip bottom>
-              <!-- template #activator="{on}">
+            <!--            <v-tooltip bottom>-->
+            <!-- template #activator="{on}">
                 <v-alert
                   v-if="isNewOrDeletedModelFound"
                   dense
@@ -232,35 +232,32 @@
                 Metadata for API creation & management isn't sync with
                 '{{ dbAliasList[dbsTab].connection.database }}' Database.
               </template-->
-            </v-tooltip>
+            <!--            </v-tooltip>-->
             <v-spacer />
           </div>
           <!--          <div-->
           <!--            v-if="isNewOrDeletedModelFound" -->
           <div class="d-flex justify-center">
-            <!--            <x-btn
+            <v-btn
+              v-if="isChanged"
               x-large
-              btn.class="mx-auto primary nc-btn-sync-meta-data"
-              tooltip="Sync metadata"
-              @click="syncMetadata"
-            >
-              <v-icon color="white" class="mr-2 mt-n1">
-                mdi-database-sync
-              </v-icon>
-              Sync Now
-            </x-btn>-->
-
-            <x-btn
-              x-large
-              btn.class="mx-auto primary nc-btn-metasync-sync-now"
-              tooltip="Sync metadata"
+              class="mx-auto primary nc-btn-metasync-sync-now"
               @click="syncMetaDiff"
             >
               <v-icon color="white" class="mr-2 mt-n1">
                 mdi-database-sync
               </v-icon>
               Sync Now
-            </x-btn>
+            </v-btn>
+
+            <v-alert
+              v-else
+              dense
+              outlined
+              type="success"
+            >
+              Tables metadata is in sync
+            </v-alert>
           </div>
         </v-col>
       </v-row>
@@ -270,17 +267,12 @@
 
 <script>
 import { mapGetters } from 'vuex'
-// import { isMetaTable } from '@/helpers/xutils'
-import XIcon from '@/components/global/xIcon'
-import XBtn from '@/components/global/xBtn'
 import viewIcons from '~/helpers/viewIcons'
+import XBtn from '~/components/global/xBtn'
 
 export default {
   name: 'DisableOrEnableTables',
-  components: {
-    XBtn,
-    XIcon
-  },
+  components: { XBtn },
   props: ['nodes', 'db'],
   data: () => ({
     viewIcons,
@@ -425,6 +417,9 @@ export default {
     ...mapGetters({
       dbAliasList: 'project/GtrDbAliasList'
     }),
+    isChanged() {
+      return this.diff && this.diff.some(d => d && d.detectedChanges && d.detectedChanges.length)
+    },
     prefix() {
       return this.$store.getters['project/GtrProjectPrefix'] || ''
     }

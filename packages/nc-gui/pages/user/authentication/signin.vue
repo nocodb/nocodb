@@ -25,7 +25,7 @@
               </div>
               <!-- SIGN IN -->
               <h1 class="mt-4">
-                {{ $t('signin.title') }}
+                {{ $t('general.signIn') }}
               </h1>
 
               <div>
@@ -43,7 +43,7 @@
                 <!-- Enter your work email -->
                 <v-text-field
                   v-model="form.email"
-                  :label="$t('signin.enter_your_work_email')"
+                  :label="$t('msg.info.signUp.workEmail')"
                   :rules="formRules.email"
                   required
                 />
@@ -52,7 +52,7 @@
                 <v-text-field
                   v-model="form.password"
                   name="input-10-2"
-                  :label="$t('signin.enter_your_password')"
+                  :label="$t('msg.info.signUp.enterPassword')"
                   min="8"
                   :append-icon="e3 ? 'visibility' : 'visibility_off'"
                   :rules="formRules.password"
@@ -64,7 +64,7 @@
                 <p class="accent--text text-right caption font-weight-light">
                   <router-link to="/user/password/forgot">
                     {{
-                      $t('signin.forget_password')
+                      $t('msg.info.signUp.forgotPassword')
                     }}
                   </router-link>
                 </p>
@@ -86,7 +86,7 @@
                   :disabled="false"
                   @click="MtdOnSignin"
                 >
-                  <b>{{ $t('signin.title') }}</b>
+                  <b>{{ $t('general.signIn') }}</b>
                 </v-btn>
 
                 <br>
@@ -94,13 +94,13 @@
                 <br>
                 <!-- Don't have an account ? -->
                 <p class="caption font-weight-light">
-                  {{ $t('signin.dont_ve_an_account') }}
+                  {{ $t('msg.info.signUp.dontHaveAccount') }}
                   <!-- Sign Up -->
                   <router-link
                     v-ge="['Don\'t have an account ?', '']"
                     to="/user/authentication/signup"
                   >
-                    {{ $t('signin.sign_up') }}
+                    {{ $t('general.signUp') }}
                   </router-link>
                 </p>
                 <div>
@@ -237,17 +237,17 @@ export default {
       formRules: {
         email: [
           // E-mail is required
-          v => !!v || this.$t('signin.form.rules.email_is_reqd'),
+          v => !!v || this.$t('msg.error.signUpRules.emailReqd'),
           // E-mail must be valid
           v => isEmail(v) ||
-            this.$t('signin.form.rules.email_must_be_valid')
+            this.$t('msg.error.signUpRules.emailInvalid')
         ],
         password: [
           // Password is required
-          v => !!v || this.$t('signin.form.rules.passwd_required'),
+          v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
           // You password must be atleast 8 characters
           v =>
-            (v && v.length >= 8) || this.$t('signin.form.rules.passwd_must_be_8_chars')
+            (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
         ]
       },
       formUtil: {
@@ -267,12 +267,12 @@ export default {
   },
   head() {
     return {
-      title: this.$t('signin.head.title'),
+      title: this.$t('title.headLogin'),
       meta: [
         {
-          hid: this.$t('signin.head.meta.hid'),
-          name: this.$t('signin.head.meta.name'),
-          content: this.$t('signin.head.meta.content')
+          hid: this.$t('msg.info.loginMsg'),
+          name: this.$t('msg.info.loginMsg'),
+          content: this.$t('msg.info.loginMsg')
         }
       ]
     }

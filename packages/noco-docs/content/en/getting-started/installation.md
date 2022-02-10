@@ -1,7 +1,7 @@
 ---
 title: 'Installation'
 description: 'Simple installation - takes about three minutes!'
-position: 1
+position: 10
 category: 'Getting started'
 menuTitle: 'Installation'
 link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark
@@ -19,6 +19,7 @@ Simple installation - takes about three minutes!
     - An example database schema can be found <a class="grey--text" href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources"> <u>here</u></a>.
     
 ## Quick try
+
 
 ### 1-Click Deploy to Heroku
 
@@ -65,32 +66,6 @@ Simple installation - takes about three minutes!
 > To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
         
 
-## Development Setup
-
-If you want to modify the source code, 
-
-- Start the backend locally
-
-```bash
-cd packages/nocodb
-npm install
-npm run watch:run
-```
-
-- Start the frontend locally
-
-```bash
-cd packages/nc-gui
-npm install
-npm run dev
-```
-
-- Open ``localhost:3000/dashboard`` in browser
-
-<alert>
-  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
-   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-</alert>
 
 ## Production Setup 
 
@@ -180,7 +155,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   cd nocodb
   cd docker-compose
   cd mysql
-  docker-compose up
+  docker-compose up -d
   ```
 
   </code-block>
@@ -192,7 +167,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   cd nocodb
   cd docker-compose
   cd pg
-  docker-compose up
+  docker-compose up -d
   ```
 
   </code-block>
@@ -204,7 +179,7 @@ And connection params for this database can be specified in `NC_DB` environment 
   cd nocodb
   cd docker-compose
   cd mssql
-  docker-compose up
+  docker-compose up -d
   ```
 
   </code-block> 
@@ -300,6 +275,32 @@ aws ecs create-service \
   If your service fails to start, you may check the logs in ECS console or in Cloudwatch. Generally it fails due to the connection between ECS container and NC_DB. Make sure the security groups have the correct inbound and outbound rules.  
 </alert>
 
+## Development Setup
+
+If you want to modify the source code,
+
+- Start the backend locally
+
+```bash
+cd packages/nocodb
+npm install
+npm run watch:run
+```
+
+- Start the frontend locally
+
+```bash
+cd packages/nc-gui
+npm install
+npm run dev
+```
+
+- Open ``localhost:3000/dashboard`` in browser
+
+<alert>
+  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
+   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
+</alert>
 
 ## Sample Demos
 

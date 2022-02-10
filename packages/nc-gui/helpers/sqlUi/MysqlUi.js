@@ -961,16 +961,16 @@ export class MysqlUi {
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
-          msg: ['Validation failed : isMobilePhone ({cn})']
+          msg: ['Validation failed : Invalid Mobile Format ({cn})']
         }
         break
       case 'Email':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : isEmail ({cn})'] }
+        colProp.validate = { func: ['isEmail'], args: [''], msg: ['Validation failed : Invalid Email Format ({cn})'] }
         break
       case 'URL':
         colProp.dt = 'varchar'
-        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : isURL ({cn})'] }
+        colProp.validate = { func: ['isURL'], args: [''], msg: ['Validation failed : Invalid URL Format ({cn})'] }
         break
       case 'Number':
         colProp.dt = 'int'
@@ -980,7 +980,7 @@ export class MysqlUi {
         break
       case 'Currency':
         colProp.dt = 'decimal'
-        colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : isCurrency'] }
+        colProp.validate = { func: ['isCurrency'], args: [''], msg: ['Validation failed : Invalid Currency Format'] }
         break
       case 'Percent':
         colProp.dt = 'double'

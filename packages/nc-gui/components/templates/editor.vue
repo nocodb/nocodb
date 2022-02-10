@@ -578,7 +578,10 @@
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </template>
-      <span class="caption">Add new table</span>
+      <span class="caption">
+        <!--Add new table-->
+        {{ $t('tooltip.addTable') }}
+      </span>
     </v-tooltip>
   </div>
 </template>

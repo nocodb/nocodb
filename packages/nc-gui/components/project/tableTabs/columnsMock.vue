@@ -69,7 +69,7 @@
         class="error text-right"
         @click="deleteTable('showDialog')"
       >
-        Delete Table &nbsp;
+        {{ $t('activity.deleteTable') }} &nbsp;
 
         <v-progress-circular
           v-if="progress.deleteTable"

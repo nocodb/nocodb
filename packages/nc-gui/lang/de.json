@@ -106,7 +106,7 @@
     "DateTime": "Datum/Zeit",
     "CreateTime": "Zeit erstellen",
     "LastModifiedTime": "Zuletzt bearbeitet",
-    "AutoNumber": "Auto-Nummerierung",
+    "AutoNumber": "Auto-Numerierung",
     "Barcode": "Barcode",
     "Button": "Taste",
     "Password": "Passwort"
@@ -286,7 +286,7 @@
     "createGrid": "Raster-Ansicht erstellen",
     "createGallery": "Galerie-Ansicht erstellen",
     "createCalendar": "Kalender-Ansicht erstellen",
-    "createKanban": "Kanban-Anicht erstellen",
+    "createKanban": "Kanban-Ansicht erstellen",
     "createForm": "Formular-Ansicht erstellen",
     "showSystemFields": "Systemfelder anzeigen",
     "copyUrl": "URL kopieren",
@@ -326,8 +326,8 @@
     "sqlMigration": "Migrationen neu laden",
     "updateRestart": "Update & Neustart",
     "cancelReturn": "Abbrechen und Zurück",
-    "exportMetadata": "Alle Metadaten von den Metastabellen in Meta-Verzeichnis exportieren.",
-    "importMetadata": "Alle Metadaten vom Meta-Verzeichnis in Metastabellen importieren.",
+    "exportMetadata": "Alle Metadaten von den Metatabellen in Meta-Verzeichnis exportieren.",
+    "importMetadata": "Alle Metadaten vom Meta-Verzeichnis in Metatabellen importieren.",
     "clearMetadata": "Alle Metadaten aus Meta-Tabellen löschen.",
     "clientKey": "Auswahl .key-Datei",
     "clientCert": "Auswahl .cert-Datei",
@@ -361,7 +361,7 @@
       "footMsg": "Anzahl der Zeilen, um den Datentyp analysieren zu können",
       "excelImport": "Blatt (s) stehen für den Import zur Verfügung",
       "exportMetadata": "Möchten Sie Metadaten von Meta-Tabellen exportieren?",
-      "importMetadata": "Möchten Sie Metadaten von Metastabellen importieren?",
+      "importMetadata": "Möchten Sie Metadaten von Metatabellen importieren?",
       "clearMetadata": "Möchten Sie Metadaten von Meta-Tabellen löschen?",
       "projectEmptyMessage": "Beginnen mit dem Erstellen eines neuen Projekts",
       "stopProject": "Möchten Sie das Projekt beenden?",
@@ -401,7 +401,7 @@
       "addUser": "Neuen Benutzer hinzufügen",
       "staticRoleInfo": "Systemdefinierte Rollen können nicht bearbeitet werden",
       "exportZip": "Projekt-Meta in ZIP-Datei exportieren und downloaden",
-      "importZip": "Projekt Meta-ZIP-Datei inportieren und neu starten.",
+      "importZip": "Projekt Meta-ZIP-Datei importieren und neu starten.",
       "importText": "Importieren von NOCODB-Projekt durch Hochladen von Metadaten-ZIP-Datei",
       "metaNoChange": "Keine Änderung identifiziert",
       "sqlMigration": "Schema-Migrationen werden automatisch erstellt. Tabelle erstellen und diese Seite aktualisieren.",
@@ -413,7 +413,7 @@
       },
       "sponsor": {
         "header": "Sie können uns helfen!",
-        "message": "Wir sind ein winziges Team, das Vollzeit arbeitet, um die NOCODB-Open-Source zu machen. Wir glauben, dass ein Werkzeug wie NOCODB für jeden Problemlöser im Internet frei verfügbar sein sollte."
+        "message": "Wir sind ein winziges Team, das Vollzeit arbeitet, um die NOCODB-Open-Source zu machen. Wir glauben, daß ein Werkzeug wie NOCODB für jeden Problemlöser im Internet frei verfügbar sein sollte."
       },
       "loginMsg": "In NocoDB einloggen",
       "passwordRecovery": {
@@ -449,7 +449,7 @@
         "emailReqd": "E-Mail ist erforderlich",
         "emailInvalid": "Email muß gültig sein",
         "passwdRequired": "Passwort ist erforderlich",
-        "passwdLength": "Ihr Passwort muss mindestens 8 Zeichen haben"
+        "passwdLength": "Ihr Passwort muß mindestens 8 Zeichen haben"
       }
     },
     "toast": {

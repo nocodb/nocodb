@@ -92,9 +92,10 @@ const appendWhereCondition = function(
   knexRef,
   isHaving = false
 ) {
+  const clientType = knexRef?.client?.config?.client;
   const opMapping = {
     ...opMappingGen,
-    ...(knexRef?.client?.config?.client === 'pg' ? { like: 'ilike' } : {})
+    ...(clientType === 'pg' ? { like: 'ilike' } : {})
   };
   const camKey = isHaving ? 'Having' : 'Where';
   const key = isHaving ? 'having' : 'where';
@@ -433,7 +434,7 @@ const appendWhereCondition = function(
               const column = columnAliases[matches[2]] || matches[2];
               const operator = opMapping[matches[3]];
               const target = matches[4];
-              if (matches[3] == 'like') {
+              if (matches[3] == 'like' && clientType === 'pg') {
                 // handle uuid case
                 knexRef[`${key}`](
                   knexRef?.client.raw(`??::TEXT ${operator} '${target}'`, [

@@ -842,7 +842,6 @@ export class MysqlUi {
       case 'int':
       case 'smallint':
       case 'mediumint':
-      case 'bigint':
       case 'bit':
         return 'integer'
 
@@ -897,6 +896,7 @@ export class MysqlUi {
       case 'set':
         return 'set'
 
+      case 'bigint':
       case 'geometry':
       case 'point':
       case 'linestring':

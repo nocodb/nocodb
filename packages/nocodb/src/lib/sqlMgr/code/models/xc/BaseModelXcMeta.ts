@@ -64,8 +64,8 @@ abstract class BaseModelXcMeta extends BaseRender {
         columnObj._cn = oldColMeta._cn || columnObj._cn;
         columnObj.uidt = oldColMeta.uidt;
         if (
-          (columnObj.dtxp === UITypes.MultiSelect ||
-            columnObj.dtxp === UITypes.SingleSelect) &&
+          (columnObj.uidt === UITypes.MultiSelect ||
+            columnObj.uidt === UITypes.SingleSelect) &&
           columnObj.dt !== 'set' &&
           columnObj.dt !== 'enum'
         ) {

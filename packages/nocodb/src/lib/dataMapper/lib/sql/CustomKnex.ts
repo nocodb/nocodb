@@ -430,7 +430,7 @@ const appendWhereCondition = function(
               );
               break;
             case '':
-              const column = (columnAliases[matches[2]] || matches[2]);
+              const column = columnAliases[matches[2]] || matches[2];
               const operator = opMapping[matches[3]];
               const target = matches[4];
               if (matches[3] == 'like') {

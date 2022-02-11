@@ -785,8 +785,14 @@ if (sIndex > -1) {
   populateParams.tableNames = populateParams.tableNames?.filter(t => {
     return t === populateParams.tableNames.find(t1 => t1.tn === t.tn);
   });
-  await this.xcTablesPopulate(populateViewsParams);
-  await this.xcTablesPopulate(populateParams);
+
+  // invoke only if there is change in at least one table
+  if (populateParams.tableNames?.length) {
+    await this.xcTablesPopulate(populateParams);
+  }
+  if (populateViewsParams.tableNames?.length) {
+    await this.xcTablesPopulate(populateViewsParams);
+  }
 
   if (this instanceof GqlApiBuilder) {
     await (this as GqlApiBuilder).reInitializeGraphqlEndpoint();

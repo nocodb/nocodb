@@ -1,8 +1,8 @@
 ---
 title: "Link To Another Record"
 description: "Link To Another Record"
-position: 39
-category: "Usage"
+position: 540
+category: "Product"
 menuTitle: "Link To Another Record"
 ---
 

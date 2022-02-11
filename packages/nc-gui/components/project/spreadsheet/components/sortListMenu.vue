@@ -19,7 +19,8 @@
           <v-icon small class="mr-1" color="#777">
             mdi-sort
           </v-icon>
-          Sort
+          <!-- Sort -->
+          {{ $t('activity.sort') }}
           <v-icon small color="#777">
             mdi-menu-down
           </v-icon>
@@ -38,7 +39,7 @@
             v-model="sort.field"
             class="caption nc-sort-field-select"
             :items="fieldList"
-            label="Field"
+            :label="$t('objects.field')"
             solo
             flat
             dense
@@ -54,7 +55,7 @@
             v-model="sort.order"
             class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
             :items="[{text : 'A -> Z', value: ''},{text : 'Z -> A', value: '-'}]"
-            label="Operation"
+            :label="$t('labels.operation')"
             solo
             flat
             dense
@@ -71,7 +72,8 @@
         <v-icon small color="grey">
           mdi-plus
         </v-icon>
-        Add Sort Option
+        <!-- Add Sort Option -->
+        {{ $t('activity.addSort') }}
       </v-btn>
     </div>
   </v-menu>

@@ -35,7 +35,7 @@
 
                 <!--                <v-icon large>mdi-folder-multiple-outline</v-icon>&nbsp;-->
                 <!-- My Projects -->
-                <b>{{ $t('projects.my_projects') }}</b>
+                <b>{{ $t('title.myProject') }}</b>
 
                 <!--                <x-btn-->
                 <!--                  large-->
@@ -45,7 +45,7 @@
                 <x-icon
                   small
                   color="primary grey"
-                  :tooltip="$t('projects.reload_projects_tooltip')"
+                  :tooltip="$t('activity.refreshProject')"
                   @click="projectsLoad"
                 >
                   mdi-refresh
@@ -61,7 +61,7 @@
                 v-ge="['home', 'project-search']"
                 data-v-step="3"
                 class="caption pt-0 mt-0 nc-project-page-search"
-                :placeholder="$t('projects.search_project')"
+                :placeholder="$t('activity.searchProject')"
                 single-line
                 hide-details
                 style="max-width: 200px"
@@ -75,7 +75,7 @@
               <v-spacer />
               <!-- Import NocoDB Project by uploading metadata zip file -->
               <x-btn
-                vbind:tooltip="$t('projects.import_button.text')"
+                vbind:tooltip="$t('msg.info.importText')"
                 outlined
                 color="grey"
                 @click="
@@ -107,7 +107,7 @@
                               v-ge="['home','project-new']"
                               @click="onCreateProject()">
                               <v-icon class="mr-1" small>mdi-plus</v-icon>
-                              {{ $t('projects.create_new_project_button.text') }}
+                              {{ $t('title.newProj') }}
                             </x-btn>-->
 
               <template v-if="connectToExternalDB">
@@ -124,7 +124,7 @@
                         v-on="on"
                       >
                         <!-- New Project -->
-                        {{ $t('projects.create_new_project_button.text') }}
+                        {{ $t('title.newProj') }}
                         <v-icon class="mr-1" small>
                           mdi-menu-down
                         </v-icon>
@@ -144,7 +144,7 @@
                       <v-list-item-title>
                         <!-- Create -->
                         <span class="caption font-weight-regular ">{{
-                          $t('projects.create_new_project_button.subtext_1')
+                          $t('general.create')
                         }}</span>
                       </v-list-item-title>
                       <v-spacer />
@@ -161,7 +161,7 @@
                         </template>
                         <!-- Create a new project -->
                         <span class="caption">{{
-                          $t('projects.create_new_project_button.subtext_1_tooltip')
+                          $t('tooltip.xcDB')
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
@@ -181,7 +181,7 @@
                         <span
                           class="caption font-weight-regular"
                           v-html="
-                            $t('projects.create_new_project_button.subtext_2')
+                            $t('activity.createProjectExtended.extDB')
                           "
                         />
                       </v-list-item-title>
@@ -199,7 +199,7 @@
                         </template>
                         <!-- Supports MySQL, PostgreSQL, SQL Server & SQLite -->
                         <span class="caption">{{
-                          $t('projects.create_new_project_button.subtext_2_tooltip')
+                          $t('tooltip.extDB')
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
@@ -219,7 +219,7 @@
                         <span
                           class="caption font-weight-regular"
                           v-html="
-                            $t('projects.create_new_project_button.from_template')
+                            $t('activity.createProjectExtended.template')
                           "
                         />
                       </v-list-item-title>
@@ -239,7 +239,7 @@
                         <span
                           class="caption font-weight-regular"
                           v-html="
-                            $t('projects.create_new_project_button.from_excel')
+                            $t('activity.createProjectExtended.excel')
                           "
                         />
                       </v-list-item-title>
@@ -256,7 +256,7 @@
                 @click="onCreateProject('xcdb')"
               >
                 <!-- New Project -->
-                {{ $t('projects.create_new_project_button.text') }}
+                {{ $t('title.newProj') }}
               </x-btn>
             </v-row>
 
@@ -313,8 +313,8 @@
                             small
                             :tooltip="
                               props.item.projectType === 'graphql'
-                                ? $t('projects.project_api_type_tooltip_graphql')
-                                : $t('projects.project_api_type_tooltip_rest')
+                                ? $t('tooltip.apiGQL')
+                                : $t('tooltip.apiRest')
                             "
                             icon.class="mr-2"
                             :color="
@@ -360,7 +360,7 @@
                         <x-icon
                           v-if="props.item.status === 'started'"
                           :tooltip="
-                            $t('projects.stop_project')
+                            $t('activity.stopProject')
                           "
                           class="pointer mr-2"
                           color="orange grey"
@@ -372,7 +372,7 @@
                         <x-icon
                           v-else-if="props.item.status === 'stopped'"
                           :tooltip="
-                            $t('projects.start_project')
+                            $t('activity.startProject')
                           "
                           class="pointer mr-2"
                           color="green grey"
@@ -392,7 +392,7 @@
                         <!-- Restart Project -->
                         <x-icon
                           :tooltip="
-                            $t('projects.restart_project')
+                            $t('activity.restartProject')
                           "
                           class="pointer mr-2"
                           color="primary grey"
@@ -403,7 +403,7 @@
                         <!-- Delete Project -->
                         <x-icon
                           :tooltip="
-                            $t('projects.delete_project')
+                            $t('activity.deleteProject')
                           "
                           class="pointer mr-2"
                           color="red grey"
@@ -437,7 +437,7 @@
                               <v-list-item-title>
                                 <!-- Import Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                  $t('projects.import_metadata')
+                                  $t('activity.importMetadata')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -453,7 +453,7 @@
                               <v-list-item-title>
                                 <!-- Export Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                  $t('projects.export_metadata')
+                                  $t('activity.exportMetadata')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -469,7 +469,7 @@
                               <v-list-item-title>
                                 <!-- Clear Metadata -->
                                 <span class="caption font-weight-regular">{{
-                                  $t('projects.clear_metadata')
+                                  $t('activity.clearMetadata')
                                 }}</span>
                               </v-list-item-title>
                             </v-list-item>
@@ -488,7 +488,7 @@
                     color="error"
                     icon="warning"
                   >
-                    {{ $t('projects.search.your_search_found_no_results', {search}) }}
+                    {{ $t('msg.error.searchProject', {search}) }}
                   </v-alert>
                 </template>
                 <!--                <template v-slot:no-data>-->
@@ -511,7 +511,7 @@
                   icon="mdi-information-outline"
                 >
                   <!-- Get started by creating a new project -->
-                  {{ $t('projects.project_empty_message') }}
+                  {{ $t('msg.info.projectEmptyMessage') }}
                 </v-alert>
               </v-col>
             </v-row>
@@ -538,7 +538,7 @@
                 "
               >
                 <!-- Create By Connecting <br>To An External Database -->
-                <span v-html="$t('projects.create_new_project_button.subtext_2')" />
+                <span v-html="$t('activity.createProjectExtended.extDB')" />
               </p>
               <v-card-actions class="justify-center pb-10">
                 <x-btn
@@ -552,7 +552,7 @@
                     mdi-lightbulb-on
                   </v-icon>&nbsp;
                   <!-- New Project -->
-                  {{ $t('projects.create_new_project_button.text') }}
+                  {{ $t('title.newProj') }}
                 </x-btn>
               </v-card-actions>
             </v-card>
@@ -609,12 +609,12 @@
           </v-list-item-icon>
           <v-list-item-title>
             <!-- Star -->
-            {{ $t('projects.show_community_star') }}
+            {{ $t('labels.community.starUs1') }}
             <v-icon small>
               mdi-star-outline
             </v-icon>
             <!-- us on Github -->
-            {{ $t('projects.show_community_us_on_Github') }}
+            {{ $t('labels.community.starUs2') }}
           </v-list-item-title>
         </v-list-item>
         <v-divider
@@ -637,7 +637,7 @@
           <!-- Book a Free DEMO -->
           <v-list-item-title>
             {{
-              $t('projects.show_community_book_a_free_demo')
+              $t('labels.community.bookDemo')
             }}
           </v-list-item-title>
         </v-list-item>
@@ -651,7 +651,7 @@
           <!-- Get your questions answered -->
           <v-list-item-title>
             {{
-              $t('projects.show_community_get_your_questions_answered')
+              $t('labels.community.getAnswered')
             }}
           </v-list-item-title>
         </v-list-item>
@@ -670,7 +670,7 @@
           <!-- Follow NocoDB -->
           <v-list-item-title>
             {{
-              $t('projects.show_community_follow_nocodb')
+              $t('labels.community.followNocodb')
             }}
           </v-list-item-title>
         </v-list-item>
@@ -714,7 +714,7 @@
             <v-list-item-title>
               Built with Vue JS
               <!--              {{-->
-              <!--                $t('projects.show_community_follow_nocodb')-->
+              <!--                $t('labels.community.followNocodb')-->
               <!--              }}-->
             </v-list-item-title>
           </v-list-item>

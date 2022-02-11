@@ -5,17 +5,17 @@
         <v-card v-if="showMsg" class="pa-5 ma-5">
           <v-alert type="success" :value="true" outline>
             <p class="display-1">
-              {{ $t('signin.password.recovery.success') }}
+              {{ $t('msg.info.passwordRecovery.success') }}
             </p>
           </v-alert>
         </v-card>
 
         <v-card v-else class="pa-5 elevation-10" color="">
-          <h1>{{ $t('signin.password.recovery.title') }}</h1>
+          <h1>{{ $t('title.resetPassword') }}</h1>
 
           <br>
-          <p>{{ $t('signin.password.recovery.message_1') }}</p>
-          <p>{{ $t('signin.password.recovery.message_2') }}</p>
+          <p>{{ $t('msg.info.passwordRecovery.message_1') }}</p>
+          <p>{{ $t('msg.info.passwordRecovery.message_2') }}</p>
 
           <div>
             <v-alert v-model="formUtil.formErr" type="error" dismissible>
@@ -42,7 +42,7 @@
               :disabled="!valid"
               @click="resetPasswordHandle"
             >
-              {{ $t('signin.password.recovery.button') }}
+              {{ $t('activity.sendEmail') }}
             </v-btn>
           </v-form>
         </v-card>

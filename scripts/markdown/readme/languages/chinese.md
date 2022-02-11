@@ -3,7 +3,6 @@
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
     ✨ Airtable 的开源替代品 ✨ <br>
-
 </h1>
 <p align="center">
 将 MySQL、PostgreSQL、SQL Server、SQLite 或 MariaDB 转换为智能电子表格。
@@ -12,7 +11,7 @@
 
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB)
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
 
@@ -28,8 +27,9 @@
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-<a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-
+<p align="center">
+    <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
 
 # 快速尝试
 ### 一键式部署
@@ -49,7 +49,14 @@
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-> 要使用数据持久化，你可以挂载到 `/usr/app/data/`。
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- 要使用数据持久化，你可以挂载到 `/usr/app/data/`。
+
+  示例:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
 
 ### 使用NPM
 ```
@@ -110,11 +117,6 @@ npm start
 ![11](https://user-images.githubusercontent.com/86527202/136066756-fc203c2c-570e-4514-b9f4-2a41ac24e5dd.png)
 <br>
 
-
-
-
-
-
 # 特征
 ### 丰富的电子表格功能
 
@@ -138,7 +140,6 @@ npm start
 - ⚡ GraphQL API
 - ⚡ JWT身份验证和社交验证
 - ⚡ 与Zapier，Integromat集成的API
-
 
 # 生产安装
 NoCodb 要求一个数据库用来存储电子表格视图和外部元数据。可以在`NC_DB`环境变量中指定此数据库的连接参数。
@@ -174,78 +175,25 @@ docker run -d -p 8080:8080 \
 git clone https://github.com/nocodb/nocodb
 cd docker-compose
 cd mysql or pg or mssql
-docker-compose up
+docker-compose up -d
 ```
 
-
 ## 环境变量
-| 变量                | 强制 | 注释                                                                         | 缺省                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | 查看我们的数据库 URL                                                | 将在根文件夹中创建一个本地 SQLite 文件 |
-| DATABASE_URL            | No        | JDBC URL 格式。 可以代替 NC_DB 使用。 用于一键式 Heroku 部署|   |
-| DATABASE_URL_FILE       | No        | 包含 JDBC URL 格式的文件的路径。 可以代替 NC_DB 使用。 用于一键式 Heroku 部署|   |
-| NC_PUBLIC_URL           | Yes       | 用于发送电子邮件邀请                        | 尽量从 http 请求参数推测一个        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret 用于认证和存储其他加密项          | 将会产生一个随机的 secret          |
-| NC_SENTRY_DSN           | No        | 用于 Sentry 监控                          |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | 禁止使用外部数据库创建项目                              |   |
-| NC_DISABLE_TELE | No | 禁用 telemetry                              |   |
-| NC_BACKEND_URL | No | 自定义后端URL                              | 将使用`http://localhost:8080`  |
+
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # 开发安装
 
-```bash
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-
-# 运行后端
-cd packages/nocodb
-npm install
-npm run watch:run
-
-# 在浏览器打开 localhost:8080/dashboard
-
-# 运行前端
-cd packages/nc-gui
-npm install
-npm run dev
-
-# 在浏览器打开 localhost:3000/dashboard
-```
-
-对代码做更改后会自动重新启动服务。
-
-## 在本地运行 Cypress 测试
-
-```bash
-# 安装开发依赖(cypress)
-npm install
-
-# 使用 docker compose 使用所需的数据库运行 mysql 数据库
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# 使用以下命令运行后端 api
-npm run start:api
-
-# 使用以下命令运行前端 Web UI
-npm run start:web
-
-# 等到 3000 和 8080 端口都可用时，使用以下命令运行Cypress测试
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-
-```
+Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # 贡献
 
-- 请看一下 ./scripts/contribute/HowToApplyLicense.md
-- 忽略为 .json 或 .md 或 .yml 添加标头
+Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 🎯 为什么我们建立这个？
+# 为什么我们建立这个？
 
 大多数互联网业务都配备了电子表格或数据库以解决其业务需求，每天有上亿人使用电子表格。我们基于数据库运行更强大的工具能更高效地完成工作。用SaaS产品解决此问题的尝试已经意味着可怕的访问控制，供应商锁定，数据锁定，突然的价格变化，甚至是将来可能会阻碍发展。
 
-# ❤ 我们的任务 ：
+# 我们的任务
 
 我们的使命是为数据库提供最强大的无码界面，为世界上每一个互联网业务的开源使用。这不仅将民主化带给强大的计算工具，还将为数亿人增强他们的创造力。

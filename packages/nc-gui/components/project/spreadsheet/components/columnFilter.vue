@@ -20,7 +20,10 @@
           v-if="!i"
           :key="i + '_2'"
           class="caption d-flex align-center"
-        >where</span>
+        >
+        <!-- where -->
+        {{ $t('labels.where') }}
+        </span>
 
         <v-select
           v-else
@@ -44,7 +47,7 @@
           :key="i + '_5'"
           v-model="filter.field"
           class="caption "
-          placeholder="Field"
+          :placeholder="$t('objects.field')"
           solo
           flat
           dense
@@ -62,7 +65,7 @@
           v-model="filter.field"
           class="caption nc-filter-field-select"
           :items="fieldList"
-          placeholder="Field"
+          :placeholder="$t('objects.field')"
           solo
           flat
           dense
@@ -79,7 +82,7 @@
           v-model="filter.op"
           class="flex-shrink-1 flex-grow-0 caption  nc-filter-operation-select"
           :items="opList"
-          placeholder="Operation"
+          :placeholder="$t('labels.operation')"
           solo
           flat
           style="max-width:120px"
@@ -126,7 +129,8 @@
       <v-icon small color="grey">
         mdi-plus
       </v-icon>
-      Add Filter
+      <!-- Add Filter -->
+      {{ $t('activity.addFilter') }}
     </v-btn>
     <slot />
   </div>

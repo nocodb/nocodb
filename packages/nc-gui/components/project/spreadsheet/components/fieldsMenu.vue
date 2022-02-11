@@ -19,7 +19,8 @@
           <v-icon small class="mr-1" color="#777">
             mdi-eye-off-outline
           </v-icon>
-          Fields
+          <!-- Fields -->
+          {{ $t('objects.fields') }}
           <v-icon small color="#777">
             mdi-menu-down
           </v-icon>
@@ -86,7 +87,7 @@
           flat
           class="caption mt-3 mb-2"
           color="grey"
-          placeholder="Search fields"
+          :placeholder="$t('placeholder.searchFields')"
           hide-details
           @click.stop
         >
@@ -137,16 +138,21 @@
           @click.stop
         >
           <template #label>
-            <span class="caption">Show System Fields</span>
+            <span class="caption">
+              <!-- Show System Fields -->
+              {{ $t('activity.showSystemFields') }}
+              </span>
           </template>
         </v-checkbox>
       </v-list-item>
       <v-list-item dense class="mt-2 list-btn mb-3">
         <v-btn small class="elevation-0 grey--text" @click.stop="showAll">
-          Show All
+          <!-- Show All -->
+          {{ $t('general.showAll') }}
         </v-btn>
         <v-btn small class="elevation-0 grey--text" @click.stop="hideAll">
-          Hide All
+          <!-- Hide All -->
+          {{ $t('general.hideAll') }}
         </v-btn>
       </v-list-item>
     </v-list>

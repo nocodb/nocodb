@@ -190,9 +190,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     await super.onTableCreate(tn, args);
 
-    const columns = {
-      [tn]: args?.columns?.map(({ altered: _al, ...rest }) => rest)
-    };
+    // get columns list from db
+    const columnsFromDb = await this.getColumnList(tn);
+
+    const columns = args.columns
+      ? {
+          [tn]: args.columns?.map(({ altered: _al, ...rest }) =>
+            this.mergeUiColAndDbColMetas(
+              rest,
+              columnsFromDb?.find(c => c.cn === rest.cn)
+            )
+          )
+        }
+      : {};
 
     await this.xcTablesPopulate({
       tableNames: [{ tn, _tn: args._tn }],

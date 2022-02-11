@@ -116,10 +116,10 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 ![6](https://user-images.githubusercontent.com/5435402/133759242-2311a127-17c8-406c-b865-1a2e9c8ee398.png)
 <br>
 
-![3](https://user-images.githubusercontent.com/5435402/133759234-9b539029-be36-4a35-b55a-bee3ebd0e010.png)
+![5](https://user-images.githubusercontent.com/35857179/151526876-f6a0e472-9bbc-45ba-a771-9118e03bc748.png)
 <br>
 
-![4](https://user-images.githubusercontent.com/5435402/133759236-dc182129-3768-4e23-874e-98f5f32e962c.png)
+![6](https://user-images.githubusercontent.com/35857179/151526883-4c670f8b-7c5c-421f-9e95-54d3a84a72ba.png)
 <br>
 
 ![11](https://user-images.githubusercontent.com/5435402/133759253-bb9bc729-ee28-4f86-ab95-7d112c0815f2.png)
@@ -161,14 +161,14 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
   * [Running Frontend locally](#running-frontend-locally)
   * [Running Cypress tests locally](#running-cypress-tests-locally)
 - [Contributing](#contributing)
-- [Why are we building this?](#---why-are-we-building-this-)
-- [Our Mission](#--our-mission--)
-- [Contributors](#contributors-------------)
+- [Why are we building this?](#why-are-we-building-this)
+- [Our Mission](#our-mission)
+- [Contributors](#contributors)
 
 # Features
 ### Rich Spreadsheet Interface
 - ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
-- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Gantt, Form
+- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Form
 - ⚡ &nbsp;Share Views : public & password protected
 - ⚡ &nbsp;Personal & locked Views 
 - ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)
@@ -224,7 +224,7 @@ git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
 cd mysql or pg or mssql
-docker-compose up
+docker-compose up -d
 ```
 
 ## Environment variables 
@@ -237,12 +237,13 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 
 ```shell
 git clone https://github.com/nocodb/nocodb
+cd nocodb
 ```
 
 ## Running Backend locally
 
 ```shell
-cd nocodb/packages/nocodb
+cd packages/nocodb
 npm install
 npm run watch:run
 # open localhost:8080/dashboard in browser
@@ -289,13 +290,13 @@ npm run cypress:open
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 🎯 Why are we building this?
+# Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
-# ❤ Our Mission
+# Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
-# Contributors : 🌻🌻🌻🐝🐝 
+# Contributors
 [//]: contributor-faces
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

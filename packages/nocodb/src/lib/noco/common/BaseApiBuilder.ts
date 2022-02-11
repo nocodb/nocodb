@@ -32,6 +32,7 @@ import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
 import xcMetaDiffSync from './handlers/xcMetaDiffSync';
+import UITypes from '../../sqlUi/UITypes';
 
 const log = debug('nc:api:base');
 
@@ -726,6 +727,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
     this.baseLog(`onTableUpdate : Getting old model meta for '%s'`, tn);
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
 
+    // get columns list from db
+    const columnsFromDb = await this.getColumnList(tn);
+
     const relationTableMetas: Set<any> = new Set();
 
     const oldModelRow = await this.xcMeta.metaGet(
@@ -752,8 +756,12 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const columns =
       changeObj.columns
         .filter(c => c.altered !== 4)
-        .map(({ altered: _al, ...rest }) => rest) ||
-      (await this.getColumnList(tn));
+        .map(({ altered: _al, ...rest }) =>
+          this.mergeUiColAndDbColMetas(
+            rest,
+            columnsFromDb?.find(c => c.cn === rest.cn)
+          )
+        ) || (await this.getColumnList(tn));
 
     /* Get all relations */
     const relations = await this.relationsSyncAndGet();
@@ -1193,6 +1201,22 @@ export default abstract class BaseApiBuilder<T extends Noco>
     );
 
     await NcHelp.executeOperations(aclOper, this.connectionConfig.client);
+  }
+
+  protected mergeUiColAndDbColMetas(uiCol, dbCol) {
+    return {
+      ...(uiCol || {}),
+      ...(dbCol || {}),
+      // persist x props for single/multi select
+      ...(uiCol?.uidt === UITypes.SingleSelect ||
+      uiCol?.uidt === UITypes.MultiSelect
+        ? {
+            dtx: uiCol.dtx,
+            dtxp: uiCol.dtxp,
+            dtxs: uiCol.dtxs
+          }
+        : {})
+    };
   }
 
   public async onViewUpdate(

@@ -155,23 +155,32 @@
                           >
                             mdi-pencil-outline
                           </x-icon>
-
-                          <x-icon
-                            v-if="!item.project_id"
-                            tooltip="Add user to project"
-                            color="primary"
-                            small
-                            @click="inviteUser(item.email)"
-                          >
-                            mdi-plus
-                          </x-icon>
+                          <span v-if="!item.project_id">
+                            <x-icon
+                              tooltip="Add user to project"
+                              color="primary"
+                              small
+                              @click="inviteUser(item.email)"
+                            >
+                              mdi-plus
+                            </x-icon>
+                            <x-icon
+                              tooltip="Delete user from NocoDB"
+                              class="ml-2"
+                              color="error"
+                              small
+                              @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true;deleteUserType='DELETE_FROM_NOCODB'"
+                            >
+                              mdi-delete-forever-outline
+                            </x-icon>
+                          </span>
                           <x-icon
                             v-else
                             tooltip="Remove user from project"
                             class="ml-2"
                             color="error"
                             small
-                            @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true"
+                            @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true;deleteUserType='DELETE_FROM_PROJECT'"
                           >
                             mdi-delete-outline
                           </x-icon>
@@ -296,7 +305,7 @@
     <dlg-label-submit-cancel
       type="primary"
       :actions-mtd="confirmDelete"
-      heading="Do you want to remove the user from project?"
+      :heading="dialogMessage"
       :dialog-show="showConfirmDlg"
     />
 
@@ -497,7 +506,8 @@ export default {
       }
     ],
     userList: [],
-    roleDescriptions: {}
+    roleDescriptions: {},
+    deleteUserType: '' // [DELETE_FROM_PROJECT, DELETE_FROM_NOCODB]
   }),
   computed: {
     roleNames() {
@@ -530,6 +540,12 @@ export default {
       set(i) {
         this.selectedUser = this.users[i]
       }
+    },
+    dialogMessage() {
+      let msg = 'Do you want to remove the user'
+      if (this.deleteUserType === 'DELETE_FROM_PROJECT') { msg += ' from Project' } else if (this.deleteUserType === 'DELETE_FROM_NOCODB') { msg += ' from NocoDB' }
+      msg += '?'
+      return msg
     }
   },
   watch: {
@@ -669,30 +685,30 @@ export default {
         console.log(e)
       }
     },
-    async deleteUser(id) {
+    async deleteUser(id, type) {
       try {
         await this.$axios.delete('/admin/' + id, {
           params: {
             project_id: this.$route.params.project_id,
-            email: this.deleteItem.email
+            email: this.deleteItem.email,
+            type
           },
           headers: {
             'xc-auth': this.$store.state.users.token
           }
         })
-        this.$toast.success('Successfully removed the user from project').goAway(3000)
+        this.$toast.success(`Successfully removed the user from ${type === 'DELETE_FROM_PROJECT' ? 'project' : 'NocoDB'}`).goAway(3000)
         await this.loadUsers()
       } catch (e) {
         this.$toast.error(e.response.data.msg).goAway(3000)
       }
     },
-
     async confirmDelete(hideDialog) {
       if (hideDialog) {
         this.showConfirmDlg = false
         return
       }
-      await this.deleteUser(this.deleteId)
+      await this.deleteUser(this.deleteId, this.deleteUserType)
       this.showConfirmDlg = false
     },
     addUser() {
@@ -832,6 +848,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

@@ -164,7 +164,7 @@
                             >
                               mdi-plus
                             </x-icon>
-                            <x-icon
+                            <!-- <x-icon
                               tooltip="Remove user from NocoDB"
                               class="ml-2"
                               color="error"
@@ -172,7 +172,7 @@
                               @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true;deleteUserType='DELETE_FROM_NOCODB'"
                             >
                               mdi-delete-forever-outline
-                            </x-icon>
+                            </x-icon> -->
                           </span>
                           <x-icon
                             v-else

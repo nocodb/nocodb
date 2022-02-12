@@ -16,8 +16,8 @@ import {
   _accessControl,
 } from "../spec/roleValidation.spec";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
   describe("Static user creations (different roles)", () => {
     // beforeEach(() => {
@@ -98,12 +98,12 @@ export const genTest = (type, xcdb) => {
 
           cy.url({ timeout: 6000 }).should("contain", "#/project");
 
-          if (xcdb) {
-            if ("rest" == type)
+          if (dbType) {
+            if ("rest" == apiType)
               projectsPage.openProject(staticProjects.sampleREST.basic.name);
             else projectsPage.openProject(staticProjects.sampleGQL.basic.name);
           } else {
-            if ("rest" == type)
+            if ("rest" == apiType)
               projectsPage.openProject(staticProjects.externalREST.basic.name);
             else
               projectsPage.openProject(staticProjects.externalGQL.basic.name);

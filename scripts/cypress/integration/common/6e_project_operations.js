@@ -2,9 +2,9 @@ import { loginPage } from "../../support/page_objects/navigation";
 import { isXcdb, roles } from "../../support/page_objects/projectConstants";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  describe(`${type.toUpperCase()} Project operations`, () => {
-    if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  describe(`${apiType.toUpperCase()} Project operations`, () => {
+    if (!isTestSuiteActive(apiType, dbType)) return;
 
     before(() => {
       loginPage.signIn(roles.owner.credentials);
@@ -12,7 +12,7 @@ export const genTest = (type, xcdb) => {
 
     it("Stop Project", () => {
       //cy.visit('./#/projects')
-      cy.get(`.nc-${type}-project-row .mdi-stop-circle-outline`, {
+      cy.get(`.nc-${apiType}-project-row .mdi-stop-circle-outline`, {
         timeout: 10000,
       })
         .should("exist")
@@ -26,7 +26,7 @@ export const genTest = (type, xcdb) => {
 
     it("Start Project", () => {
       //cy.visit('./#/projects')
-      cy.get(`.nc-${type}-project-row .mdi-play-circle-outline`, {
+      cy.get(`.nc-${apiType}-project-row .mdi-play-circle-outline`, {
         timeout: 10000,
       })
         .should("exist")
@@ -41,7 +41,7 @@ export const genTest = (type, xcdb) => {
     it("Restart Project", () => {
       if (!isXcdb()) {
         //cy.visit('./#/projects')
-        cy.get(`.nc-${type}-project-row .mdi-restart`, { timeout: 10000 })
+        cy.get(`.nc-${apiType}-project-row .mdi-restart`, { timeout: 10000 })
           .should("exist")
           .last()
           .invoke("show")
@@ -54,7 +54,7 @@ export const genTest = (type, xcdb) => {
 
     it("Delete Project", () => {
       //cy.visit('./#/projects')
-      cy.get(`.nc-${type}-project-row .mdi-delete-circle-outline`, {
+      cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
         timeout: 10000,
       })
         .should("exist")

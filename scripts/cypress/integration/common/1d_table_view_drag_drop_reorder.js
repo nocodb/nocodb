@@ -4,10 +4,10 @@ import {
   getProjectString,
 } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} Table/view drag-drop reorder`, () => {
+  describe(`${apiType.toUpperCase()} Table/view drag-drop reorder`, () => {
     function validateTreeField(index, tblName) {
       cy.get(`:nth-child(${index}) > .v-list-item__title > .caption`)
         .contains(tblName)

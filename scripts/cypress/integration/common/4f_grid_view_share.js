@@ -11,8 +11,8 @@ let storedURL = "";
 // 5: default (country table): for update row/column validation
 let viewURL = {};
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
   const generateViewLink = (viewName) => {
     // click on share view
@@ -39,7 +39,7 @@ export const genTest = (type, xcdb) => {
       });
   };
 
-  describe(`${type.toUpperCase()} api - GRID view (Share)`, () => {
+  describe(`${apiType.toUpperCase()} api - GRID view (Share)`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
@@ -344,7 +344,7 @@ export const genTest = (type, xcdb) => {
     viewTest("grid");
   });
 
-  describe(`${type.toUpperCase()} api - Grid view/ row-column update verification`, () => {
+  describe(`${apiType.toUpperCase()} api - Grid view/ row-column update verification`, () => {
     before(() => {
       // Address table has belongs to, has many & many-to-many
       cy.openTableTab("Country", 25);

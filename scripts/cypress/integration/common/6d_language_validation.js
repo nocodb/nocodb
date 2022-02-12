@@ -3,8 +3,8 @@ const { loginPage } = require("../../support/page_objects/navigation");
 const { roles } = require("../../support/page_objects/projectConstants");
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-    if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+    if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Language support`, () => {
         before(() => {
             //loginPage.signIn(roles.owner.credentials)

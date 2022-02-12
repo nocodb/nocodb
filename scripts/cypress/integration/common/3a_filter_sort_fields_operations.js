@@ -1,10 +1,10 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Filter, Fields, Sort`, () => {
+  describe(`${apiType.toUpperCase()} api - Filter, Fields, Sort`, () => {
     before(() => {
       // open country table
       cy.openTableTab("Country", 25);

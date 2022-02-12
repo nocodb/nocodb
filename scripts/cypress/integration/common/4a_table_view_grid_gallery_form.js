@@ -1,9 +1,9 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Table views: Create/Edit/Delete`, () => {
+  describe(`${apiType.toUpperCase()} api - Table views: Create/Edit/Delete`, () => {
     const name = "Test" + Date.now();
 
     // Run once before test- create project (rest/graphql)

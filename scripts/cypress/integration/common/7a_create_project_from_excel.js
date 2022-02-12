@@ -63,8 +63,8 @@ let UrlFileExpectedData = {
 //     12: ['dateTime', 'DateTime']
 // }
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
   describe(`Import from excel`, () => {
     before(() => {
@@ -198,7 +198,7 @@ export const genTest = (type, xcdb) => {
 
       // delete project once all operations are completed
       mainPage.toolBarTopLeft(mainPage.HOME).click();
-      cy.get(`.nc-${type}-project-row .mdi-delete-circle-outline`, {
+      cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
         timeout: 10000,
       })
         .should("exist")
@@ -307,7 +307,7 @@ export const genTest = (type, xcdb) => {
     after(() => {
       // delete project once all operations are completed
       mainPage.toolBarTopLeft(mainPage.HOME).click();
-      cy.get(`.nc-${type}-project-row .mdi-delete-circle-outline`, {
+      cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
         timeout: 10000,
       })
         .should("exist")

@@ -1,14 +1,14 @@
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Login & Open project`, () => {
+  describe(`${apiType.toUpperCase()} api - Login & Open project`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      loginPage.loginAndOpenProject(type, xcdb);
+      loginPage.loginAndOpenProject(apiType, dbType);
 
       // open a table to work on views
       //

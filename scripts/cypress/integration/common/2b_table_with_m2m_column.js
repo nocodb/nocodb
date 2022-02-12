@@ -1,9 +1,9 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - M2M Column validation`, () => {
+  describe(`${apiType.toUpperCase()} api - M2M Column validation`, () => {
     before(() => {
       cy.openTableTab("Actor", 25);
     });

@@ -13,8 +13,8 @@ import {
 
 let linkText = "";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
   const permissionValidation = (roleType) => {
     it(`${roleType}: Visit base shared URL`, () => {
@@ -50,7 +50,7 @@ export const genTest = (type, xcdb) => {
     });
   };
 
-  describe(`${type.toUpperCase()} Base VIEW share`, () => {
+  describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
     it(`Generate base share URL`, () => {
       // click SHARE
       cy.get(".nc-topright-menu").find(".nc-menu-share").click();
@@ -97,7 +97,7 @@ style="background: transparent; "></iframe>
     permissionValidation("viewer");
 
     it("Update to EDITOR base share link", () => {
-      loginPage.loginAndOpenProject(type, xcdb);
+      loginPage.loginAndOpenProject(apiType, dbType);
 
       // click SHARE
       cy.get(".nc-topright-menu").find(".nc-menu-share").click();
@@ -117,7 +117,7 @@ style="background: transparent; "></iframe>
       cy.frameLoaded(".nc-embed");
 
       // for GQL- additionally close GQL Client window
-      if (type === "graphql") {
+      if (apiType === "graphql") {
         cy.iframe().find(`[title="Graphql Client"] > button.mdi-close`).click();
       }
 

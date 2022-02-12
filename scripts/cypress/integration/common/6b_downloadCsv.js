@@ -2,10 +2,10 @@ import { mainPage } from "../../support/page_objects/mainPage";
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} Upload/ Download CSV`, () => {
+  describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
     before(() => {
       // loginPage.loginAndOpenProject(type)
       cy.openTableTab("Country", 25);

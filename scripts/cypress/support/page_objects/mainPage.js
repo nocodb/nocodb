@@ -278,9 +278,9 @@ export class _mainPage {
         cy.get(".nc-sort-menu-btn").click();
         cy.contains("Add Sort Option").click();
         cy.get(".nc-sort-field-select div").first().click();
-        cy.get(
-            `.menuable__content__active .v-list-item:contains(${field})`
-        ).click();
+        cy.get(`.menuable__content__active .v-list-item:contains(${field})`)
+            .first()
+            .click();
         cy.get(".nc-sort-dir-select div").first().click();
         cy.get(
             `.menuable__content__active .v-list-item:contains(${criteria})`

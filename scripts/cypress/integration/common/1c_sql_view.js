@@ -91,7 +91,7 @@ export const genTest = (apiType, dbType) => {
                     .should("exist");
                 mainPage
                     .getCell(`FilmInfo`, 1)
-                    .contains("Animation: ANACONDA CONFESSIONS;")
+                    .contains("Animation: ANACONDA CONFESSIONS")
                     .should("exist");
 
                 // Record-2 validation
@@ -106,9 +106,7 @@ export const genTest = (apiType, dbType) => {
                     .should("exist");
                 mainPage
                     .getCell(`FilmInfo`, 2)
-                    .contains(
-                        "Action: BULL SHAWSHANK; Animation: FIGHT JAWBREAKER;"
-                    )
+                    .contains("Action: BULL SHAWSHANK")
                     .should("exist");
 
                 // Column operations: Hide
@@ -135,7 +133,7 @@ export const genTest = (apiType, dbType) => {
             }
         });
 
-        it.skip(`SQL View List`, () => {
+        it(`SQL View List`, () => {
             // confirm if other views exist
             //
             cy.openViewsTab("CustomerList", 25);

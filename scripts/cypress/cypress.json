@@ -16,7 +16,11 @@
         "test/xcdb-gqlTableOps.js",
         "test/xcdb-gqlViews.js",
         "test/xcdb-gqlRoles.js",
-        "test/xcdb-gqlMisc.js"
+        "test/xcdb-gqlMisc.js",
+        "test/pg-restTableOps.js",
+        "test/pg-restViews.js",
+        "test/pg-restRoles.js",
+        "test/pg-restMisc.js"
     ],
     "defaultCommandTimeout": 13000,
     "pageLoadTimeout": 600000,
@@ -31,7 +35,8 @@
             { "apiType": "rest", "dbType": "xcdb" },
             { "apiType": "graphql", "dbType": "xcdb" },
             { "apiType": "rest", "dbType": "mysql" },
-            { "apiType": "graphql", "dbType": "mysql" }
+            { "apiType": "graphql", "dbType": "mysql" },
+            { "apiType": "rest", "dbType": "postgres" }
         ],
         "db": {
             "host": "127.0.0.1",

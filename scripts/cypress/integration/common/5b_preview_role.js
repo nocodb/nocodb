@@ -16,8 +16,8 @@ import {
   _accessControl,
 } from "../spec/roleValidation.spec";
 
-export const genTest = (type, xcdb, roleType) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType, roleType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
   ///////////////////////////////////////////////////////////
   //// Test Suite
@@ -25,7 +25,7 @@ export const genTest = (type, xcdb, roleType) => {
   describe("Role preview validations", () => {
     // Sign in/ open project
     before(() => {
-      loginPage.loginAndOpenProject(type, xcdb);
+      loginPage.loginAndOpenProject(apiType, dbType);
       cy.openTableTab("City", 25);
     });
 

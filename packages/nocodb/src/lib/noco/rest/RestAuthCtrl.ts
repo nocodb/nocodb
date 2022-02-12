@@ -1355,7 +1355,7 @@ export default class RestAuthCtrl {
 
   protected async deleteAdmin(req, res, next): Promise<any> {
     try {
-      const { project_id } = req.query;
+      const { project_id, type } = req.query;
 
       if (req.session?.passport?.user?.id === +req.params.id) {
         return next(new Error("Admin can't delete themselves!"));
@@ -1372,11 +1372,16 @@ export default class RestAuthCtrl {
           );
         }
       }
-
-      XcCache.del(`${req?.query?.email}___${req?.req?.project_id}`);
-
-      // await this.users.where('id', req.params.id).del();
-      await this.xcMeta.projectRemoveUser(project_id, req.params.id);
+      if (type === 'DELETE_FROM_PROJECT') {
+        // remove user from Project
+        XcCache.del(`${req?.query?.email}___${req?.req?.project_id}`);
+        await this.xcMeta.projectRemoveUser(project_id, req.params.id);
+      } else if (type === 'DELETE_FROM_NOCODB') {
+        // remove user from NocoDB
+        await this.xcMeta.removeXcUser(req.params.id);
+      } else {
+        new Error('Invalid type is provided.');
+      }
     } catch (e) {
       return next(e);
     }
@@ -1748,6 +1753,7 @@ export default class RestAuthCtrl {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

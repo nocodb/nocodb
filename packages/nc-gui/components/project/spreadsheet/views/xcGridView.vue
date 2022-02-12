@@ -237,7 +237,7 @@
             />
           </td>
         </tr>
-        <tr v-if="isPkAvail && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
+        <tr v-if="!isLocked && !isPublicView && isEditable && relationType !== 'bt'">
           <td :colspan="visibleColLength + 1" class="text-left pointer nc-grid-add-new-cell" @click="insertNewRow(true)">
             <v-tooltip top>
               <template #activator="{on}">

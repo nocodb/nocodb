@@ -30,7 +30,7 @@ const nocoTestSuite = (apiType, dbType) => {
   t4f.genTest(apiType, dbType);
 };
 
-nocoTestSuite("graphql", true);
+nocoTestSuite("graphql", "xcdb");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

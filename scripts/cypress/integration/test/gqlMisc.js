@@ -31,7 +31,7 @@ const nocoTestSuite = (apiType, dbType) => {
   t6e.genTest(apiType, dbType);
 };
 
-nocoTestSuite("graphql", false);
+nocoTestSuite("graphql", "mysql");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

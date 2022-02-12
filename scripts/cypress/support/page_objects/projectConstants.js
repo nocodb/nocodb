@@ -1,10 +1,10 @@
 export const defaultDbParams = {
-  databaseType: 0, // MySQL
-  hostAddress: "localhost",
-  portNumber: "3306",
-  username: "root",
-  password: "password",
-  databaseName: "sakila",
+    databaseType: 0, // MySQL
+    hostAddress: "localhost",
+    portNumber: "3306",
+    username: "root",
+    password: "password",
+    databaseName: "sakila",
 };
 
 // database
@@ -15,163 +15,123 @@ export const defaultDbParams = {
 //          editComment: add comment
 //          shareView: right navigation bar (share options)
 export const roles = {
-  owner: {
-    name: "owner",
-    credentials: { username: "user@nocodb.com", password: "Password123." },
-    validations: {
-      advSettings: true,
-      editSchema: true,
-      editData: true,
-      editComment: true,
-      shareView: true,
+    owner: {
+        name: "owner",
+        credentials: { username: "user@nocodb.com", password: "Password123." },
+        validations: {
+            advSettings: true,
+            editSchema: true,
+            editData: true,
+            editComment: true,
+            shareView: true,
+        },
     },
-  },
-  creator: {
-    name: "creator",
-    credentials: { username: "creator@nocodb.com", password: "Password123." },
-    validations: {
-      advSettings: true,
-      editSchema: true,
-      editData: true,
-      editComment: true,
-      shareView: true,
+    creator: {
+        name: "creator",
+        credentials: {
+            username: "creator@nocodb.com",
+            password: "Password123.",
+        },
+        validations: {
+            advSettings: true,
+            editSchema: true,
+            editData: true,
+            editComment: true,
+            shareView: true,
+        },
     },
-  },
-  editor: {
-    name: "editor",
-    credentials: { username: "editor@nocodb.com", password: "Password123." },
-    validations: {
-      advSettings: false,
-      editSchema: false,
-      editData: true,
-      editComment: true,
-      shareView: false,
+    editor: {
+        name: "editor",
+        credentials: {
+            username: "editor@nocodb.com",
+            password: "Password123.",
+        },
+        validations: {
+            advSettings: false,
+            editSchema: false,
+            editData: true,
+            editComment: true,
+            shareView: false,
+        },
     },
-  },
-  commenter: {
-    name: "commenter",
-    credentials: { username: "commenter@nocodb.com", password: "Password123." },
-    validations: {
-      advSettings: false,
-      editSchema: false,
-      editData: false,
-      editComment: true,
-      shareView: false,
+    commenter: {
+        name: "commenter",
+        credentials: {
+            username: "commenter@nocodb.com",
+            password: "Password123.",
+        },
+        validations: {
+            advSettings: false,
+            editSchema: false,
+            editData: false,
+            editComment: true,
+            shareView: false,
+        },
     },
-  },
-  viewer: {
-    name: "viewer",
-    credentials: { username: "viewer@nocodb.com", password: "Password123." },
-    validations: {
-      advSettings: false,
-      editSchema: false,
-      editData: false,
-      editComment: false,
-      shareView: false,
+    viewer: {
+        name: "viewer",
+        credentials: {
+            username: "viewer@nocodb.com",
+            password: "Password123.",
+        },
+        validations: {
+            advSettings: false,
+            editSchema: false,
+            editData: false,
+            editComment: false,
+            shareView: false,
+        },
     },
-  },
 };
 
 // default projects
 //
 export const staticProjects = {
-  sampleREST: {
-    basic: { dbType: "none", apiType: "REST", name: "sampleREST" },
-    config: {},
-  },
-  sampleGQL: {
-    basic: { dbType: "none", apiType: "GQL", name: "sampleGQL" },
-    config: {},
-  },
-  externalREST: {
-    basic: { dbType: "external", apiType: "REST", name: "externalREST" },
-    config: defaultDbParams,
-  },
-  externalGQL: {
-    basic: { dbType: "external", apiType: "GQL", name: "externalGQL" },
-    config: defaultDbParams,
-  },
+    sampleREST: {
+        basic: { dbType: "none", apiType: "REST", name: "sampleREST" },
+        config: {},
+    },
+    sampleGQL: {
+        basic: { dbType: "none", apiType: "GQL", name: "sampleGQL" },
+        config: {},
+    },
+    externalREST: {
+        basic: { dbType: "external", apiType: "REST", name: "externalREST" },
+        config: defaultDbParams,
+    },
+    externalGQL: {
+        basic: { dbType: "external", apiType: "GQL", name: "externalGQL" },
+        config: defaultDbParams,
+    },
 };
 
 // return TRUE if test suite specified is activated from env-variables
 //
 export const isTestSuiteActive = (apiType, dbType) => {
-  const env = Cypress.env("testMode");
-  if (!dbType) {
-    switch (apiType) {
-      case "rest":
-        return env.includes("extREST") ? true : false;
-      case "graphql":
-        return env.includes("extGQL") ? true : false;
-    }
-  } else {
-    switch (apiType) {
-      case "rest":
-        return env.includes("xcdbREST") ? true : false;
-      case "graphql":
-        return env.includes("xcdbGQL") ? true : false;
-    }
-  }
+    const env = Cypress.env("testMode");
+    return env.some(
+        (element) => element.apiType === apiType && element.dbType === dbType
+    );
 };
 
-// expecting different modes to be seperated by a .
-export const getPrimarySuite = () => {
-  const env = Cypress.env("testMode").split(".");
-  switch (env[0]) {
-    case "extREST":
-      return staticProjects.externalREST;
-    case "extGQL":
-      return staticProjects.externalGQL;
-    case "xcdbREST":
-      return staticProjects.sampleREST;
-    case "xcdbGQL":
-      return staticProjects.sampleGQL;
-  }
-};
-
-export const isSecondarySuite = (apiType, dbType) => {
-  if (!isTestSuiteActive(apiType, dbType)) return false;
-
-  const env = Cypress.env("testMode").split(".");
-
-  switch (env[0]) {
-    case "extREST":
-      return apiType == "rest" && !dbType ? false : true;
-    case "extGQL":
-      return apiType == "graphql" && !dbType ? false : true;
-    case "xcdbREST":
-      return apiType == "rest" && dbType ? false : true;
-    case "xcdbGQL":
-      return apiType == "graphql" && dbType ? false : true;
-  }
-};
-
-let currentTestMode = ``;
+let currentTestMode = { apiType: null, dbType: null };
 let xcdbProjectString = ``;
 export function setCurrentMode(apiType, dbType) {
-  if (!dbType) {
-    if (apiType == "rest") currentTestMode = "extREST";
-    else currentTestMode = "extGQL";
-  } else {
-    if (apiType == "rest") currentTestMode = "xcdbREST";
-    else currentTestMode = "xcdbGQL";
-  }
+    currentTestMode = { apiType: apiType, dbType: dbType };
 }
 
 export function getCurrentMode() {
-  return currentTestMode;
+    return currentTestMode;
 }
 
 export function isXcdb() {
-  if (currentTestMode === "xcdbREST" || currentTestMode === "xcdbGQL")
-    return true;
-  return false;
+    return currentTestMode.dbType === "xcdb";
 }
 
 export function setProjectString(projStr) {
-  xcdbProjectString = projStr;
+    xcdbProjectString = projStr;
 }
 
 export function getProjectString() {
-  return xcdbProjectString;
+    return xcdbProjectString;
 }

@@ -40,7 +40,7 @@ const nocoTestSuite = (apiType, dbType) => {
   t3d.genTest(apiType, dbType);
 };
 
-nocoTestSuite("rest", false);
+nocoTestSuite("rest", "mysql");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -58,11 +58,11 @@ export class _loginPage {
   loginAndOpenProject(apiType, dbType) {
     loginPage.signIn(roles.owner.credentials);
 
-    if (!dbType) {
+    if (dbType === "mysql") {
       if ("rest" == apiType)
         projectsPage.openProject(staticProjects.externalREST.basic.name);
       else projectsPage.openProject(staticProjects.externalGQL.basic.name);
-    } else {
+    } else if(dbType === "xcdb") {
       if ("rest" == apiType)
         projectsPage.openProject(staticProjects.sampleREST.basic.name);
       else projectsPage.openProject(staticProjects.sampleGQL.basic.name);

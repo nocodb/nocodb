@@ -165,7 +165,7 @@
                               mdi-plus
                             </x-icon>
                             <x-icon
-                              tooltip="Delete user from NocoDB"
+                              tooltip="Remove user from NocoDB"
                               class="ml-2"
                               color="error"
                               small

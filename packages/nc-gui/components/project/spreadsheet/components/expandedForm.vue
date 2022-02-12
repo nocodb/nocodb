@@ -437,7 +437,7 @@ export default {
         this.$emit('input', this.localState)
         this.$emit('update:isNew', false)
 
-        this.$toast.success(`${this.primaryValue()} updated successfully.`, {
+        this.$toast.success(`${this.primaryValue() || "Row"} updated successfully.`, {
           position: 'bottom-right'
         }).goAway(3000)
       } catch (e) {

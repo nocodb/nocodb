@@ -157,8 +157,8 @@ function prepareSqliteQuery(projId) {
     return sqliteQuery;
 }
 
-export const genTest = (type, xcdb) => {
-    if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+    if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Project pre-configurations`, () => {
         it("Admin SignUp", () => {
             cy.task("log", "This will be output to the terminal");
@@ -182,7 +182,7 @@ export const genTest = (type, xcdb) => {
                         projectsPage.createProject(proj.basic, proj.config);
                     }
 
-                    if (xcdb) {
+                    if (dbType) {
                         // store base URL- to re-visit and delete form view later
                         let projId;
                         cy.url()
@@ -223,14 +223,14 @@ export const genTest = (type, xcdb) => {
         // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
         // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
 
-        if ("rest" == type) {
-            if (true == xcdb) {
+        if ("rest" == apiType) {
+            if (true == dbType) {
                 createProject(staticProjects.sampleREST);
             } else {
                 createProject(staticProjects.externalREST);
             }
-        } else if ("graphql" == type) {
-            if (true == xcdb) {
+        } else if ("graphql" == apiType) {
+            if (true == dbType) {
                 createProject(staticProjects.sampleGQL);
             } else {
                 createProject(staticProjects.externalGQL);

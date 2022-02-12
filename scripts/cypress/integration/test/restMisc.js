@@ -15,25 +15,25 @@ const {
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
-const nocoTestSuite = (type, xcdb) => {
-  setCurrentMode(type, xcdb);
+const nocoTestSuite = (apiType, dbType) => {
+  setCurrentMode(apiType, dbType);
   if (0 == executionMode) {
-    t0.genTest(type, xcdb);
+    t0.genTest(apiType, dbType);
   } else {
-    t01.genTest(type, xcdb);
+    t01.genTest(apiType, dbType);
   }
 
-  t6b.genTest(type, xcdb);
-  t6d.genTest(type, xcdb);
-  t6c.genTest(type, xcdb);
-  t6f.genTest(type, xcdb);
-  t6g.genTest(type, xcdb);
+  t6b.genTest(apiType, dbType);
+  t6d.genTest(apiType, dbType);
+  t6c.genTest(apiType, dbType);
+  t6f.genTest(apiType, dbType);
+  t6g.genTest(apiType, dbType);
   // **deletes created project, hence place it @ end
-  t6e.genTest(type, xcdb);
+  t6e.genTest(apiType, dbType);
 
   // intended to keep this after earlier project deletion
   // creates project using excel & deletes it
-  t7a.genTest(type, xcdb);
+  t7a.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", false);

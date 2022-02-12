@@ -3,12 +3,12 @@ import { mainPage } from "../../support/page_objects/mainPage";
 import { roles } from "../../support/page_objects/projectConstants";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} : API List - Test preparation`, () => {
+  describe(`${apiType.toUpperCase()} : API List - Test preparation`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(type, xcdb);
+      loginPage.loginAndOpenProject(apiType, dbType);
     });
 
     it("Open project & record swagger URL, AuthToken", () => {
@@ -20,7 +20,7 @@ export const genTest = (type, xcdb) => {
         // [GQL] http://localhost:8080/nc/externalgql_dgwx/v1/graphql
         const projectName = url.split("/")[5].split("?")[0];
         let swaggerURL = ``;
-        if ("rest" == type) {
+        if ("rest" == apiType) {
           swaggerURL = `http://localhost:8080/nc/${projectName}/db/swagger`;
         } else {
           swaggerURL = `http://localhost:8080/nc/${projectName}/v1/graphql`;
@@ -37,7 +37,7 @@ export const genTest = (type, xcdb) => {
     });
   });
 
-  if ("rest" == type) {
+  if ("rest" == apiType) {
     describe(`Swagger page, base verification`, () => {
       // returns swagger button intended for
       //

@@ -29,10 +29,10 @@ const generateLinkWithPwd = () => {
     });
 };
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Shared VIEWs (GRID)`, () => {
+  describe(`${apiType.toUpperCase()} api - Shared VIEWs (GRID)`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {

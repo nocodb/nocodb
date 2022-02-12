@@ -7,14 +7,14 @@ import {
   isXcdb,
 } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
   let projPrefix = `sakila.`;
   let dbCmd = `queryDb`;
   let tblDisplayPrefix = ``;
 
-  describe(`${type.toUpperCase()} api - Meta Sync`, () => {
+  describe(`${apiType.toUpperCase()} api - Meta Sync`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {

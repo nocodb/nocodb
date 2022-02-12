@@ -1,9 +1,9 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - RollUp column`, () => {
+  describe(`${apiType.toUpperCase()} api - RollUp column`, () => {
     // to retrieve few v-input nodes from their label
     //
     const fetchParentFromLabel = (label) => {

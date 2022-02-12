@@ -4,8 +4,8 @@ import {
   isXcdb,
 } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
   function addNewRow(index, cellValue) {
     cy.get(".nc-add-new-row-btn:visible").should("exist");
@@ -20,7 +20,7 @@ export const genTest = (type, xcdb) => {
     mainPage.getCell("Title", index).contains(cellValue).should("exist");
   }
 
-  describe(`${type.toUpperCase()} api - Table Column`, () => {
+  describe(`${apiType.toUpperCase()} api - Table Column`, () => {
     const name = "tablex";
     const colName = "column_name_a";
     const updatedColName = "updated_column_name";

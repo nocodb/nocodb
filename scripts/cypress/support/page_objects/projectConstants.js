@@ -95,17 +95,17 @@ export const staticProjects = {
 
 // return TRUE if test suite specified is activated from env-variables
 //
-export const isTestSuiteActive = (type, xcdb) => {
+export const isTestSuiteActive = (apiType, dbType) => {
   const env = Cypress.env("testMode");
-  if (!xcdb) {
-    switch (type) {
+  if (!dbType) {
+    switch (apiType) {
       case "rest":
         return env.includes("extREST") ? true : false;
       case "graphql":
         return env.includes("extGQL") ? true : false;
     }
   } else {
-    switch (type) {
+    switch (apiType) {
       case "rest":
         return env.includes("xcdbREST") ? true : false;
       case "graphql":
@@ -129,31 +129,31 @@ export const getPrimarySuite = () => {
   }
 };
 
-export const isSecondarySuite = (proj, xcdb) => {
-  if (!isTestSuiteActive(proj, xcdb)) return false;
+export const isSecondarySuite = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return false;
 
   const env = Cypress.env("testMode").split(".");
 
   switch (env[0]) {
     case "extREST":
-      return proj == "rest" && !xcdb ? false : true;
+      return apiType == "rest" && !dbType ? false : true;
     case "extGQL":
-      return proj == "graphql" && !xcdb ? false : true;
+      return apiType == "graphql" && !dbType ? false : true;
     case "xcdbREST":
-      return proj == "rest" && xcdb ? false : true;
+      return apiType == "rest" && dbType ? false : true;
     case "xcdbGQL":
-      return proj == "graphql" && xcdb ? false : true;
+      return apiType == "graphql" && dbType ? false : true;
   }
 };
 
 let currentTestMode = ``;
 let xcdbProjectString = ``;
-export function setCurrentMode(proj, xcdb) {
-  if (!xcdb) {
-    if (proj == "rest") currentTestMode = "extREST";
+export function setCurrentMode(apiType, dbType) {
+  if (!dbType) {
+    if (apiType == "rest") currentTestMode = "extREST";
     else currentTestMode = "extGQL";
   } else {
-    if (proj == "rest") currentTestMode = "xcdbREST";
+    if (apiType == "rest") currentTestMode = "xcdbREST";
     else currentTestMode = "xcdbGQL";
   }
 }

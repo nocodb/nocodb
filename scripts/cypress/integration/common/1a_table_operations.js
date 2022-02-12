@@ -1,10 +1,10 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import { mainPage } from "../../support/page_objects/mainPage";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${xcdb ? "Meta - " : ""}${type.toUpperCase()} api - Table`, () => {
+  describe(`${dbType ? "Meta - " : ""}${apiType.toUpperCase()} api - Table`, () => {
     before(() => {
       cy.get(".mdi-close").click({ multiple: true });
     });

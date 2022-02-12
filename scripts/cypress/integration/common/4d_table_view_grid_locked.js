@@ -1,10 +1,10 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import { mainPage } from "../../support/page_objects/mainPage";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Lock view`, () => {
+  describe(`${apiType.toUpperCase()} api - Lock view`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {

@@ -1,9 +1,9 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Table: belongs to, link record`, () => {
+  describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
     before(() => {
       cy.openTableTab("Country", 25);
     });

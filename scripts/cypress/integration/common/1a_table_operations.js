@@ -24,7 +24,7 @@ export const genTest = (apiType, dbType) => {
 
         // delete newly created table
         it("Delete Table", () => {
-            cy.deleteTable(name);
+            cy.deleteTable(name, dbType);
         });
 
         const getAuditCell = (row, col) => {

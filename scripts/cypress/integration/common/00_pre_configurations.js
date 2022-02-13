@@ -221,17 +221,21 @@ export const genTest = (apiType, dbType) => {
         // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
         // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
 
-        if ("rest" == apiType) {
+        if ("rest" === apiType) {
             if ("xcdb" === dbType) {
                 createProject(staticProjects.sampleREST);
-            } else {
+            } else if (dbType === "mysql") {
                 createProject(staticProjects.externalREST);
+            } else if (dbType === "postgres") {
+                createProject(staticProjects.pgExternalREST);
             }
-        } else if ("graphql" == apiType) {
+        } else if ("graphql" === apiType) {
             if ("xcdb" === dbType) {
                 createProject(staticProjects.sampleGQL);
-            } else {
+            } else if (dbType === "mysql") {
                 createProject(staticProjects.externalGQL);
+            } else if (dbType === "postgres") {
+                createProject(staticProjects.pgExternalGQL);
             }
         }
     });

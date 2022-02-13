@@ -1,6 +1,7 @@
 import { loginPage, projectsPage } from "../../support/page_objects/navigation";
 import { mainPage } from "../../support/page_objects/mainPage";
 import {
+    isPostgres,
     roles,
     staticProjects,
 } from "../../support/page_objects/projectConstants";
@@ -62,7 +63,9 @@ export const genTest = (apiType, dbType) => {
             cy.get(".nc-ui-acl-tab").click({ force: true });
 
             // validate if it has 19 entries representing tables & views
-            cy.get(".nc-acl-table-row").should("have.length", 19);
+            if (isPostgres())
+                cy.get(".nc-acl-table-row").should("have.length", 24);
+            else cy.get(".nc-acl-table-row").should("have.length", 19);
 
             // disable table & view access
             //
@@ -114,6 +117,15 @@ export const genTest = (apiType, dbType) => {
                         else
                             projectsPage.openProject(
                                 staticProjects.externalGQL.basic.name
+                            );
+                    } else if (dbType === "postgres") {
+                        if ("rest" == apiType)
+                            projectsPage.openProject(
+                                staticProjects.pgExternalREST.basic.name
+                            );
+                        else
+                            projectsPage.openProject(
+                                staticProjects.pgExternalGQL.basic.name
                             );
                     }
 

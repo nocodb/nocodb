@@ -33,7 +33,7 @@ export const genTest = (apiType, dbType) => {
 
     // delete table
     after(() => {
-      cy.deleteTable(name);
+      cy.deleteTable(name, dbType);
     });
 
     it("Create Table Column", () => {

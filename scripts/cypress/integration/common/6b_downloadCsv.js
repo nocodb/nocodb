@@ -3,43 +3,43 @@ import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
-  if (!isTestSuiteActive(apiType, dbType)) return;
+    if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
-    before(() => {
-      // loginPage.loginAndOpenProject(type)
-      cy.openTableTab("Country", 25);
-      cy.screenshot("6b-before");
+    describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
+        before(() => {
+            // loginPage.loginAndOpenProject(type)
+            cy.openTableTab("Country", 25);
+            cy.screenshot("6b-before");
+        });
+
+        after(() => {
+            cy.closeTableTab("Country");
+            cy.screenshot("6b-after");
+        });
+
+        it("Download verification- base view, default columns", () => {
+            mainPage.hideField("LastUpdate");
+            const verifyCsv = (retrievedRecords) => {
+                // expected output, statically configured
+                let storedRecords = [
+                    `Country,Country => City`,
+                    `Afghanistan,Kabul`,
+                    `Algeria,"Batna,Bchar,Skikda"`,
+                    `American Samoa,Tafuna`,
+                    `Angola,"Benguela,Namibe"`,
+                ];
+
+                for (let i = 0; i < storedRecords.length - 1; i++) {
+                    cy.log(retrievedRecords[i]);
+                    expect(retrievedRecords[i]).to.be.equal(storedRecords[i]);
+                }
+            };
+
+            // download & verify
+            mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv);
+            mainPage.unhideField("LastUpdate");
+        });
     });
-
-    after(() => {
-      cy.closeTableTab("Country");
-      cy.screenshot('6b-after')
-    });
-
-    it("Download verification- base view, default columns", () => {
-      mainPage.hideField("LastUpdate");
-      const verifyCsv = (retrievedRecords) => {
-        // expected output, statically configured
-        let storedRecords = [
-          `Country,Country => City`,
-          `Afghanistan,Kabul`,
-          `Algeria,"Batna,Bchar,Skikda"`,
-          `American Samoa,Tafuna`,
-          `Angola,"Benguela,Namibe"`,
-        ];
-
-        for (let i = 0; i < storedRecords.length; i++) {
-          cy.log(retrievedRecords[i]);
-          expect(retrievedRecords[i]).to.be.equal(storedRecords[i]);
-        }
-      };
-
-      // download & verify
-      mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv);
-      mainPage.unhideField("LastUpdate");
-    });
-  });
 };
 
 /**

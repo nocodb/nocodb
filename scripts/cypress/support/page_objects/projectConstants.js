@@ -7,6 +7,15 @@ export const defaultDbParams = {
     databaseName: "sakila",
 };
 
+export const defaultPgDbParams = {
+    databaseType: 1, // Postgres
+    hostAddress: "localhost",
+    portNumber: "5432",
+    username: "postgres",
+    password: "password",
+    databaseName: "postgres",
+};
+
 // database
 //      validation details
 //          advSettings: left navigation bar (audit, metadata, auth, transient view modes)
@@ -103,6 +112,14 @@ export const staticProjects = {
         basic: { dbType: "external", apiType: "GQL", name: "externalGQL" },
         config: defaultDbParams,
     },
+    pgExternalREST: {
+        basic: { dbType: "external", apiType: "REST", name: "pgExternalREST" },
+        config: defaultPgDbParams,
+    },
+    pgExternalGQL: {
+        basic: { dbType: "external", apiType: "GQL", name: "pgExternalGQL" },
+        config: defaultPgDbParams,
+    },
 };
 
 // return TRUE if test suite specified is activated from env-variables
@@ -126,6 +143,10 @@ export function getCurrentMode() {
 
 export function isXcdb() {
     return currentTestMode.dbType === "xcdb";
+}
+
+export function isPostgres() {
+    return currentTestMode.dbType === "postgres";
 }
 
 export function setProjectString(projStr) {

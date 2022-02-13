@@ -74,15 +74,15 @@ export const genTest = (apiType, dbType) => {
     ///////////////////////////////////////////////////
     // Test case
 
-    it("Add Lookup column (Address, District) & Delete", () => {
-      addLookUpColumn("Address", "District");
+    it("Add Lookup column (Address, PostalCode) & Delete", () => {
+      addLookUpColumn("Address", "PostalCode");
 
       // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-      cy.get(`tbody > :nth-child(1) > [data-col="District"]`)
-        .contains("Galicia")
+      cy.get(`tbody > :nth-child(1) > [data-col="PostalCode"]`)
+        .contains("4166")
         .should("exist");
 
-      deleteColumnByName("District");
+      deleteColumnByName("PostalCode");
     });
 
     it.skip("Add Lookup column (Country, CountryId) & Delete", () => {

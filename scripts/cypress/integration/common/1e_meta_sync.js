@@ -157,7 +157,7 @@ export const genTest = (apiType, dbType) => {
       );
 
       cy.openTableTab("Table1", 9);
-      cy.deleteTable("Table1");
+      cy.deleteTable("Table1", dbType);
     });
   });
 };

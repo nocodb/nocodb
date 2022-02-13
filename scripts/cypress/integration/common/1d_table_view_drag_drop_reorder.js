@@ -2,7 +2,6 @@ import {
     isTestSuiteActive,
     isXcdb,
     getProjectString,
-    isPostgres,
 } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
@@ -16,10 +15,10 @@ export const genTest = (apiType, dbType) => {
         }
 
         /*
-      Original order of list items
-      Actor, Address, Category, City, Country, Customer, FIlm, FilmText, Language, Payment, Rental Staff
-      ActorInfo, CustomerList, FilmList, NiceButSlowerFilmList, SalesByFilmCategory, SalesByStore, StaffList
-    */
+            Original order of list items
+            Actor, Address, Category, City, Country, Customer, FIlm, FilmText, Language, Payment, Rental Staff
+            ActorInfo, CustomerList, FilmList, NiceButSlowerFilmList, SalesByFilmCategory, SalesByStore, StaffList
+        */
 
         it(`Table & SQL View list, Drag/drop`, () => {
             // expand tree-view menu
@@ -33,10 +32,10 @@ export const genTest = (apiType, dbType) => {
 
             // move Actor field down, above Staff (drag, drop)
             cy.get(".nc-child-draggable-icon-Actor").drag(
-                ".nc-child-draggable-icon-Film"
+                ".nc-child-draggable-icon-Staff"
             );
 
-            validateTreeField(7, "Actor");
+            validateTreeField(12, "Actor");
 
             // move ActorInfo (View) field up to first place (drag, drop)
             cy.get(".nc-child-draggable-icon-ActorInfo").drag(
@@ -45,11 +44,11 @@ export const genTest = (apiType, dbType) => {
 
             validateTreeField(1, "ActorInfo");
             validateTreeField(2, "Address");
-            validateTreeField(8, "Actor");
+            validateTreeField(13, "Actor");
 
             // restore ActorInfo field (drag, drop)
             cy.get(".nc-child-draggable-icon-ActorInfo").drag(
-                ".nc-child-draggable-icon-Staff"
+                ".nc-child-draggable-icon-Actor"
             );
 
             // restore Actor field (drag, drop)
@@ -59,15 +58,9 @@ export const genTest = (apiType, dbType) => {
 
             validateTreeField(1, "Actor");
             validateTreeField(2, "Address");
-            if (isPostgres()) {
-                validateTreeField(17, "Staff");
-                validateTreeField(18, "ActorInfo");
-                validateTreeField(19, "CustomerList");
-            } else {
-                validateTreeField(12, "Staff");
-                validateTreeField(13, "ActorInfo");
-                validateTreeField(14, "CustomerList");
-            }
+            validateTreeField(12, "Staff");
+            validateTreeField(13, "ActorInfo");
+            validateTreeField(14, "CustomerList");
 
             // undo project-tree expand operation
             cy.get(".nc-project-tree")

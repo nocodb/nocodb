@@ -16,7 +16,7 @@
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
   <boolean-cell v-else-if="isBoolean" :value="value" />
-  <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>
+  <span v-else :class="{'long-text-cell' : isTextArea, 'max-100px' : true}" :title="title">{{ value }}</span>
 </template>
 
 <script>
@@ -46,10 +46,13 @@ export default {
 </script>
 
 <style scoped>
-.long-text-cell {
+.max-100px {
   display: block;
   max-height: 100px !important;
   overflow: auto;
+}
+
+.long-text-cell {
   white-space: break-spaces;
 }
 </style>

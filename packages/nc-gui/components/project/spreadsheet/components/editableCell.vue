@@ -247,6 +247,8 @@ div {
 
 .nc-cell {
   position: relative;
+  max-height: 100px;
+  overflow: auto;
 }
 
 .nc-locked-overlay {

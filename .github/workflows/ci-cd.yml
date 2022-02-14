@@ -50,7 +50,7 @@ jobs:
                   start: |
                       npm run start:api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-pg.yml up -d
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
                   spec: "./scripts/cypress/integration/test/pg-restTableOps.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -93,7 +93,7 @@ jobs:
                   start: |
                       npm run start:api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-pg.yml up -d
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
                   spec: "./scripts/cypress/integration/test/pg-restViews.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -136,7 +136,7 @@ jobs:
                   start: |
                       npm run start:api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-pg.yml up -d
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
                   spec: "./scripts/cypress/integration/test/pg-restRoles.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -179,7 +179,7 @@ jobs:
                   start: |
                       npm run start:api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-pg.yml up -d
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
                   spec: "./scripts/cypress/integration/test/pg-restMisc.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200

@@ -172,7 +172,8 @@ export const genTest = (apiType, dbType) => {
             );
 
             cy.openTableTab("Table1", 9);
-            cy.deleteTable("Table1", dbType);
+            // kludge- delete table triggered post sql backend operations doesnt carry any trigger toast
+            cy.deleteTable("Table1", "mysql");
         });
     });
 };

@@ -68,7 +68,19 @@ export class _loginPage {
         } else if (dbType === "xcdb") {
             if ("rest" == apiType)
                 projectsPage.openProject(staticProjects.sampleREST.basic.name);
-            else projectsPage.openProject(staticProjects.sampleGQL.basic.name);
+            else {
+                projectsPage.openProject(staticProjects.sampleGQL.basic.name);
+            }
+        } else if (dbType === "postgres") {
+            if ("rest" == apiType)
+                projectsPage.openProject(
+                    staticProjects.pgExternalREST.basic.name
+                );
+            else {
+                projectsPage.openProject(
+                    staticProjects.pgExternalGQL.basic.name
+                );
+            }
         }
     }
 }

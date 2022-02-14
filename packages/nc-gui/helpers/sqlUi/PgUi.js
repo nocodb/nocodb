@@ -1341,6 +1341,7 @@ export class PgUi {
       case 'bit':
         return 'integer'
       case 'bigserial':
+      case 'bigint':
         return 'string'
 
       case 'bool':
@@ -1384,7 +1385,6 @@ export class PgUi {
       case 'int4':
       case 'int8':
       case 'integer':
-      case 'bigint':
         return 'integer'
       case 'int4range':
       case 'int8range':

@@ -57,6 +57,9 @@ export default {
     },
     isAttachment() {
       return this.column.uidt === 'Attachment'
+    },
+    isCurrency() {
+      return this.column.uidt == 'Currency'
     }
 
   }

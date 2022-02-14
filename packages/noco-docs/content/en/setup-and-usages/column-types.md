@@ -1,8 +1,8 @@
 ---
 title: 'Column Types'
 description: 'Column Types'
-position: 30
-category: 'Usage'
+position: 520
+category: 'Product'
 menuTitle: 'Column Types'
 ---
 

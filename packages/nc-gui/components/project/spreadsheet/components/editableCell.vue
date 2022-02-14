@@ -182,7 +182,9 @@ export default {
           if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime || this.isDateTime || this.isDate) {
             this.syncData()
           } else {
-            this.syncDataDebounce(this)
+            if (!this.isCurrency) {
+              this.syncDataDebounce(this)
+            }
           }
         }
       }
@@ -245,6 +247,8 @@ div {
 
 .nc-cell {
   position: relative;
+  max-height: 100px;
+  overflow: auto;
 }
 
 .nc-locked-overlay {

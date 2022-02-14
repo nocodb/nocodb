@@ -15,14 +15,19 @@
         <span class="font-weight-bold"> {{ viewName }}</span> <span class="font-weight-regular ml-1" />
       </div>
 
-      <v-toolbar v-if="meta" height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
-        <!--
-      <div class="d-flex xc-border align-center search-box">
+      <v-toolbar 
+        v-if="meta" 
+        height="32"
+        dense
+        class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
+        style="z-index: 7"
+      >
+      <div class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
-            <div v-on="on">
+            <div style="min-width: 56px" v-on="on">
               <v-icon
-                class="pa-1 pr-0 ml-2"
+                class="ml-2"
                 small
                 color="grey"
               >
@@ -56,7 +61,7 @@
         <v-text-field
           v-model="searchQuery"
           autocomplete="off"
-          style="min-width: 300px"
+          style="min-width: 100px ; width: 150px"
           flat
           dense
           solo
@@ -74,16 +79,15 @@
       >{{ refTable }}({{
         relationPrimaryValue
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
--->
 
-        <v-spacer />
+      <div class="d-inline-flex">
 
-        <v-btn outlined small text @click="reload">
+        <!-- <v-btn outlined small text @click="reload">
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
           </v-icon>
           Reload
-        </v-btn>
+        </v-btn> -->
 
         <fields-menu v-model="showFields" :field-list="fieldList" is-public />
 
@@ -92,7 +96,8 @@
         <column-filter-menu v-model="filters" :field-list="realFieldList" />
 
         <csv-export-import :is-view="isView" :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
-
+      </div>
+      <v-spacer class="h-100" @dblclick="debug=true" />
       <!--      <v-menu>
         <template #activator="{ on, attrs }">
           <v-icon
@@ -293,7 +298,7 @@ export default {
     concatenatedXWhere() {
       let where = ''
       if (this.searchField && this.searchQuery.trim()) {
-        if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.meta.columns.find(({ cn }) => cn === this.searchField)))) {
+        if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.meta.columns.find(({ _cn }) => _cn === this.searchField)))) {
           where = `(${this.searchField},like,%${this.searchQuery.trim()}%)`
         } else {
           where = `(${this.searchField},eq,${this.searchQuery.trim()})`
@@ -720,6 +725,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

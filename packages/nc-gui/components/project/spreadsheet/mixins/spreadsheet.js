@@ -167,7 +167,10 @@ export default {
     concatenatedXWhere() {
       let where = ''
       if (this.searchField && this.searchQuery.trim()) {
-        if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.availableColumns.find(({ _cn }) => _cn === this.searchField) || this.availableColumns[0]))) {
+        const col = this.availableColumns.find(({ _cn }) => _cn === this.searchField) || this.availableColumns[0]
+        // bigint values are displayed in string format in UI
+        // when searching bigint values, the operator should be 'eq' instead of 'like'
+        if (['text', 'string'].includes(this.sqlUi.getAbstractType(col)) && col.dt !== 'bigint') {
           where = `(${this.searchField},like,%${this.searchQuery.trim()}%)`
         } else {
           where = `(${this.searchField},eq,${this.searchQuery.trim()})`

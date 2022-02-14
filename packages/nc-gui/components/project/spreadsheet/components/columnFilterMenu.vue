@@ -19,7 +19,8 @@
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-filter-outline
           </v-icon>
-          Filter
+          <!-- Filter -->
+          {{ $t('activity.filter') }}
           <v-icon small color="#777">
             mdi-menu-down
           </v-icon>
@@ -38,7 +39,10 @@
           color="grey"
         >
           <template #label>
-            <span class="grey--text caption">Auto apply</span>
+            <span class="grey--text caption">
+              {{ $t('msg.info.filterAutoApply') }}
+              <!-- Auto apply -->
+              </span>
           </template>
         </v-checkbox>
 

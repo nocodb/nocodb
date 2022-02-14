@@ -3,16 +3,14 @@
 </template>
 
 <script>
+import dayjs from 'dayjs'
+
 export default {
   name: 'DateTimeCell',
   props: ['value'],
   computed: {
     dateTime() {
-      if (/^\d{6,}$/.test(this.value)) {
-        return new Date(+this.value)
-      }
-
-      return /\dT\d/.test(this.value) ? new Date(this.value.replace(/(\d)T(?=\d)/, '$1 ')) : ((this.value && new Date(this.value)))
+      return !this.value ? this.value : (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD HH:mm')
     }
   }
 }

@@ -1,8 +1,8 @@
 ---
 title: 'Metadata'
 description: 'Metadata'
-position: 60
-category: 'Usage'
+position: 600
+category: 'Product'
 menuTitle: 'Metadata'
 ---
 

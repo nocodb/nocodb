@@ -1,247 +1,473 @@
 {
-  "projects": {
-    "my_projects": "私のプロジェクト",
-    "reload_projects_tooltip": "プロジェクトを更新します",
-    "create_new_project_button": {
-      "text": "新たなプロジェクト",
-      "subtext_1": "作成",
-      "subtext_1_tooltip": "新しいプロジェクトを作成します",
-      "subtext_2": "<br>を外部データベースに接続することで作成します",
-      "subtext_2_tooltip": "MySQL、PostgreSQL、SQL Server＆SQLiteをサポートしています"
+  "general": {
+    "home": "家",
+    "load": "ロード",
+    "open": "開ける",
+    "close": "選ぶ",
+    "yes": "はい",
+    "no": "番号",
+    "ok": "わかった",
+    "and": "と",
+    "or": "または",
+    "add": "追加",
+    "edit": "編集",
+    "remove": "削除する",
+    "save": "保存する",
+    "cancel": "キャンセル",
+    "submit": "送信",
+    "create": "作成",
+    "delete": "消去",
+    "update": "アップデート",
+    "rename": "ren ren",
+    "reload": "rel",
+    "reset": "リセットする",
+    "install": "インストール",
+    "show": "見せる",
+    "hide": "隠れる",
+    "showAll": "すべて表示する",
+    "hideAll": "まく隠す",
+    "showMore": "もっと見せる",
+    "showOptions": "オプションを表示",
+    "hideOptions": "オプションを隠す",
+    "showMenu": "表示メニューを表示",
+    "hideMenu": "メニューを隠す",
+    "addAll": "全て追加する",
+    "removeAll": "すべて削除する",
+    "signUp": "サインアップ",
+    "signIn": "ログイン",
+    "signOut": "サインアウト",
+    "required": "必須",
+    "preferred": "優先",
+    "mandatory": "必須",
+    "loading": "ロード中..."
+  },
+  "objects": {
+    "project": "計画",
+    "projects": "プロジェクト",
+    "table": "テーブル",
+    "tables": "テーブル",
+    "field": "分野",
+    "fields": "田畑",
+    "column": "桁",
+    "columns": "列",
+    "page": "ページ",
+    "pages": "pages",
+    "record": "記録",
+    "records": "記録",
+    "webhook": "Webhook.",
+    "webhooks": "Webhooks.",
+    "view": "意見",
+    "views": "ビュー",
+    "viewType": {
+      "grid": "グリッド",
+      "gallery": "ギャラリー",
+      "form": "形",
+      "kanban": "かんばん",
+      "calendar": "カレンダー"
     },
-    "search_project": "プロジェクトの検索",
-    "import_metadata": "メタデータを輸入する",
-    "export_metadata": "輸出メタデータ",
-    "clear_metadata": "明確なメタデータ",
-    "stop_project": "プロジェクトを停止します",
-    "start_project": "プロジェクトを開始します",
-    "restart_project": "プロジェクトを再開します",
-    "delete_project": "プロジェクトを削除します",
-    "project_api_type_tooltip_graphql": "GraphQL APIを介してアクセス可能",
-    "project_api_type_tooltip_rest": "REST APIを介してアクセス可能",
-    "project_empty_message": "新しいプロジェクトを作成することによって始められる",
-    "import_button": {
-      "text": "メタデータzipファイルをアップロードしてNoCoDBプロジェクトをインポートします"
-    },
-    "show_community_star": "星",
-    "show_community_us_on_Github": "Githubの米国",
-    "show_community_book_a_free_demo": "無料のデモを予約する",
-    "show_community_get_your_questions_answered": "あなたの質問に回答しましょう",
-    "show_community_join_discord": "不意に参加してください",
-    "show_community_follow_nocodb": "Nocodbをフォローする",
-    "search": {
-      "your_search_found_no_results": "{検索}の検索結果が見つかりませんでした"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "プロジェクトを編集する",
-        "create": "プロジェクトを作成します"
-      },
-      "project_name": "プロジェクト名を入力してください",
-      "project_type": "によるアクセスプロジェクト",
-      "button": {
-        "save_project": "プロジェクトを保存します",
-        "update_and_restart": "更新と再起動",
-        "cancel": "キャンセル",
-        "cancel_tooltip": "キャンセルして返します"
-      },
-      "credentials": {
-        "title": "データベース認証情報",
-        "db_type": "データベースタイプ",
-        "sqlite_file": "SQLiteファイル",
-        "host_address": "ホストアドレス",
-        "port": "ポート番号",
-        "username": "ユーザー名",
-        "password": "パスワード",
-        "db_create_if_not_exists": "データベース：存在しない場合は作成します",
-        "button": {
-          "test_db_conn": "データベース接続をテストします",
-          "remove_db_from_env": "環境からデータベースを削除します"
-        },
-        "advanced": {
-          "title": "SSL＆高度なパラメータ",
-          "ssl": {
-            "client_key": {
-              "title": "クライアントキー",
-              "toolip": "。キーファイルを選択してください"
-            },
-            "client_cert": {
-              "title": "クライアント証明書",
-              "toolip": ".certファイルを選択してください"
-            },
-            "server_ca": {
-              "title": "サーバーCA.",
-              "toolip": "CAファイルを選択してください"
-            },
-            "preferred": "優先",
-            "usage": {
-              "no": "番号",
-              "preferred": "優先",
-              "required": "必須",
-              "requried_ca": "必須 - C.",
-              "requried_identity": "必須アイデンティティ"
-            }
-          },
-          "inflection": {
-            "table_name": "変化 - テーブル名",
-            "column_name": "変曲率 - 列名"
-          },
-          "button": {
-            "edit_conn_json": "接続JSONを編集"
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "フォルダパスに無効な文字",
-        "invalid_db_credentials": "無効なデータベース認証情報。",
-        "unable_to_connect_to_db": "データベースに接続できない場合は、データベースが起動していることを確認してください。",
-        "user_doesnt_ve_sufficient_permission": "ユーザーが存在しないか、スキーマを作成するのに十分な権限があります。"
-      },
-      "head": {
-        "title": "プロジェクトを作成する野手"
-      },
-      "dialog": {
-        "success": "接続が成功しました",
-        "failure": "接続失敗："
-      }
-    },
-    "notifications": {
-      "no_new": "新しい通知はありません",
-      "clear": "クリア"
+    "user": "ユーザー",
+    "users": "ユーザー",
+    "role": "役割",
+    "roles": "役割",
+    "roleType": {
+      "owner": "オーナー",
+      "creator": "クリエーター",
+      "editor": "編集者",
+      "commenter": "コメンタ",
+      "viewer": "視聴者"
     }
   },
-  "signin": {
-    "title": "ログイン",
-    "enter_your_work_email": "あなたの作品Eメールを入力してください",
-    "enter_your_password": "パスワードを入力してください",
-    "forget_password": "パスワードをお忘れですか ？",
-    "dont_ve_an_account": "アカウントを持っていませんか？",
-    "sign_up": "サインアップ",
-    "form": {
-      "rules": {
-        "email_is_reqd": "電子メールが必要です",
-        "email_must_be_valid": "電子メールは有効でなければなりません",
-        "passwd_required": "パスワードが必要です",
-        "passwd_must_be_8_chars": "あなたのパスワードは少なくとも8文字でなければなりません"
-      }
+  "datatype": {
+    "ID": "id",
+    "ForeignKey": "外部キー",
+    "SingleLineText": "単線テキスト",
+    "LongText": "長いテキスト",
+    "Attachment": "添付",
+    "Checkbox": "チェックボックス",
+    "MultiSelect": "複数選択",
+    "SingleSelect": "シングルセレクト",
+    "Collaborator": "コラボレーター",
+    "Date": "日にち",
+    "Year": "年",
+    "Time": "時間",
+    "PhoneNumber": "電話番号",
+    "Email": "Eメール",
+    "URL": "URL",
+    "Number": "番号",
+    "Decimal": "小数",
+    "Currency": "通貨",
+    "Percent": "パーセント",
+    "Duration": "間隔",
+    "Rating": "評価",
+    "Formula": "方式",
+    "Rollup": "巻き上げる",
+    "Count": "カウント",
+    "Lookup": "見上げる",
+    "DateTime": "日付時刻",
+    "CreateTime": "時間を作成します",
+    "LastModifiedTime": "最終修正時刻",
+    "AutoNumber": "自動番号",
+    "Barcode": "バーコード",
+    "Button": "ボタン",
+    "Password": "パスワード"
+  },
+  "filterOperation": {
+    "isEqual": "等しい",
+    "isNotEqual": "等しくありません",
+    "isLike": "のようなものです",
+    "isNot like": "好きではありません",
+    "isEmpty": "空いている",
+    "isNotEmpty": "空ではありません",
+    "isNull": "無効です",
+    "isNotNull": "nullではありません"
+  },
+  "title": {
+    "newProj": "新たなプロジェクト",
+    "myProject": "私のプロジェクト",
+    "formTitle": "フォームタイトルに",
+    "collabView": "協力的な見方",
+    "lockedView": "ロックビュー",
+    "personalView": "個人的な見方",
+    "appStore": "アプリストア",
+    "team&auth": "チーム＆auth",
+    "rolesUserMgmt": "役割とユーザー管理",
+    "userMgmt": "ユーザー管理",
+    "apiTokenMgmt": "APIトークン管理",
+    "rolesMgmt": "役割管理",
+    "projMeta": "プロジェクトメタデータ",
+    "metaMgmt": "メタ管理",
+    "metadata": "メタデータ",
+    "exportImportMeta": "エクスポート/インポートメタデータ",
+    "metaOperations": "メタデータ操作",
+    "audit": "監査",
+    "auditLogs": "監査ログ",
+    "sqlMigrations": "SQL移行",
+    "dbCredentials": "データベース認証情報",
+    "advancedParameters": "SSL＆高度なパラメータ",
+    "headCreateProject": "プロジェクトを作成する野手",
+    "headLogin": "ログイン|野手",
+    "resetPassword": "あなたのパスワードをリセット"
+  },
+  "labels": {
+    "projName": "プロジェクト名",
+    "viewName": "名前を見る",
+    "viewLink": "リンクを見る",
+    "columnName": "列名",
+    "columnType": "列型",
+    "roleName": "役割名",
+    "roleDescription": "役割の説明",
+    "databaseType": "データベースを入力します",
+    "lengthValue": "長さ/値",
+    "dbType": "データベースタイプ",
+    "sqliteFile": "SQLiteファイル",
+    "hostAddress": "ホストアドレス",
+    "port": "ポート番号",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "action": "アクション",
+    "actions": "行動",
+    "operation": "手術",
+    "operationType": "操作タイプ",
+    "operationSubType": "操作サブタイプ",
+    "description": "説明",
+    "authentication": "認証",
+    "token": "トークン",
+    "where": "どこ",
+    "cache": "キャッシュ",
+    "chat": "チャット",
+    "email": "Eメール",
+    "storage": "ストレージ",
+    "uiAcl": "UI-ACL.",
+    "models": "models models",
+    "syncState": "同期状態",
+    "created": "作成した",
+    "sqlOutput": "SQL出力",
+    "dbCreateIfNotExists": "データベース：存在しない場合は作成します",
+    "clientKey": "クライアントキー",
+    "clientCert": "クライアント証明書",
+    "serverCA": "サーバーCA.",
+    "requriedCa": "必須 - C.",
+    "requriedIdentity": "必須アイデンティティ",
+    "inflection": {
+      "tableName": "変化 - テーブル名",
+      "columnName": "変曲率 - 列名"
     },
-    "head": {
-      "title": "ログイン|野手",
-      "meta": {
-        "hid": "Nocodbにログインします",
-        "name": "Nocodbにログインします",
-        "content": "Nocodbにログインします"
-      }
+    "community": {
+      "starUs1": "星",
+      "starUs2": "Githubの米国",
+      "bookDemo": "無料のデモを予約する",
+      "getAnswered": "あなたの質問に回答しましょう",
+      "joinDiscord": "不意に参加してください",
+      "joinReddit": "/r/NocoDBに参加します",
+      "followNocodb": "NocoDBをフォローする"
+    }
+  },
+  "activity": {
+    "createProject": "プロジェクトを作成します",
+    "importProject": "輸入プロジェクト",
+    "searchProject": "プロジェクトの検索",
+    "editProject": "プロジェクトを編集する",
+    "stopProject": "プロジェクトを停止します",
+    "startProject": "プロジェクトを開始します",
+    "restartProject": "プロジェクトを再開します",
+    "deleteProject": "プロジェクトを削除します",
+    "refreshProject": "プロジェクトを更新します",
+    "saveProject": "プロジェクトを保存します",
+    "createProjectExtended": {
+      "extDB": "<br>を外部データベースに接続することで作成します",
+      "excel": "Excelからプロジェクトを作成します",
+      "template": "テンプレートからプロジェクトを作成します"
     },
+    "OkSaveProject": "OK＆プロジェクトを保存します",
+    "upgrade": {
+      "available": "アップグレード可能",
+      "releaseNote": "リリースノート",
+      "howTo": "アップグレード方法"
+    },
+    "translate": "翻訳を助けます",
+    "account": {
+      "authToken": "auth tokenをコピーする",
+      "swagger": "Swagger API Doc.",
+      "projInfo": "プロジェクト情報をコピーします",
+      "themes": "テーマ"
+    },
+    "sort": "選別",
+    "addSort": "ソートオプションを追加します",
+    "filter": "フィルター",
+    "addFilter": "フィルタを追加します",
+    "share": "シェア",
+    "shareBase": {
+      "disable": "共有基部を無効にします",
+      "enable": "リンクを持つ人なら誰でも",
+      "link": "共有ベースリンク"
+    },
+    "invite": "招待",
+    "inviteMore": "招待します",
+    "inviteTeam": "招待チーム",
+    "inviteToken": "招待トークン",
+    "newUser": "新しいユーザー",
+    "editUser": "ユーザーを編集します",
+    "deleteUser": "プロジェクトからユーザーを削除します",
+    "resendInvite": "招待Eメールを再送信します",
+    "copyInviteURL": "Invite URLをコピーする",
+    "newRole": "新しい役割",
+    "reloadRoles": "ロールをリロードします",
+    "nextPage": "次のページ",
+    "prevPage": "前のページ",
+    "nextRecord": "次の録音",
+    "previousRecord": "前録",
+    "copyApiURL": "API URLをコピーする",
+    "createTable": "テーブル作成",
+    "refreshTable": "テーブルの更新",
+    "renameTable": "テーブルの名前の変更",
+    "addField": "このテーブルに新しいフィールドを追加してください",
+    "setPrimary": "プライマリ値として設定します",
+    "addRow": "新しい行を追加してください",
+    "saveRow": "行を保存します",
+    "insertRow": "新しい行を挿入してください",
+    "deleteRow": "行を削除します",
+    "deleteSelectedRow": "選択した行を削除します",
+    "importExcel": "インポートエクセル",
+    "downloadCSV": "CSVとしてダウンロードしてください",
+    "uploadCSV": "CSVをアップロードします",
+    "import": "輸入",
+    "importMetadata": "メタデータを輸入する",
+    "exportMetadata": "輸出メタデータ",
+    "clearMetadata": "明確なメタデータ",
+    "exportToFile": "ファイルにエクスポートします",
+    "changePwd": "パスワードを変更する",
+    "createView": "ビューを作成します",
+    "shareView": "シェアビュー",
+    "listSharedView": "共有ビューリスト",
+    "ListView": "ビューリスト",
+    "copyView": "コピービュー",
+    "renameView": "ビューの名前を変更します",
+    "deleteView": "ビューを削除します",
+    "createGrid": "グリッドビューを作成します",
+    "createGallery": "ギャラリービューを作成します",
+    "createCalendar": "カレンダービューを作成します",
+    "createKanban": "カンバンビューを作成します",
+    "createForm": "フォームビューを作成します",
+    "showSystemFields": "システムフィールドを表示",
+    "copyUrl": "URLをコピーする",
+    "openTab": "新しいタブを開く",
+    "iFrame": "埋め込み型HTMLコードをコピーする",
+    "addWebhook": "新しいWebHookを追加します",
+    "newToken": "新しいトークンを追加してください",
+    "exportZip": "エクスポートジッパー",
+    "importZip": "郵便番号をインポートします",
+    "metaSync": "今すぐ同期します",
+    "settings": "設定",
+    "previewAs": "ASプレビュー",
+    "resetReview": "リセットプレビュー",
+    "testDbConn": "データベース接続をテストします",
+    "removeDbFromEnv": "環境からデータベースを削除します",
+    "editConnJson": "接続JSONを編集",
+    "sponsorUs": "私たちのスポンサー",
+    "sendEmail": "メールを送る"
+  },
+  "tooltip": {
+    "xcDB": "新しいプロジェクトを作成します",
+    "extDB": "MySQL、PostgreSQL、SQL Server＆SQLiteをサポートしています",
+    "apiRest": "REST APIを介してアクセス可能",
+    "apiGQL": "GraphQL APIを介してアクセス可能",
+    "theme": {
+      "dark": "それは黒で来ます（^⇧b）",
+      "light": "それは黒に来ますか？ （^⇧b）"
+    },
+    "addTable": "新しいテーブルを追加してください",
+    "inviteMore": "より多くのユーザーを招待します",
+    "toggleNavDraw": "ナビゲーション引き出しを切り替えます",
+    "reloadApiToken": "APIトークンをリロードします",
+    "generateNewApiToken": "新しいAPIトークンを生成します",
+    "addRole": "新しい役割を追加します",
+    "metaReloadList": "リロードリスト",
+    "metaSync": "同期メタデータ",
+    "sqlMigration": "移行をリロードします",
+    "updateRestart": "更新と再起動",
+    "cancelReturn": "キャンセルして返します",
+    "exportMetadata": "メタテーブルからメタディレクトリにすべてのメタデータをエクスポートします。",
+    "importMetadata": "メタデータからメタテーブルへのすべてのメタデータをインポートします。",
+    "clearMetadata": "メタテーブルからすべてのメタデータをクリアします。",
+    "clientKey": "。キーファイルを選択してください",
+    "clientCert": ".certファイルを選択してください",
+    "clientCA": "CAファイルを選択してください"
+  },
+  "placeholder": {
+    "projName": "プロジェクト名を入力してください",
     "password": {
-      "recovery": {
-        "title": "あなたのパスワードをリセット",
+      "enter": "パスワードを入力してください",
+      "current": "現在のパスワード",
+      "new": "新しいパスワード",
+      "save": "パスワードを保存する",
+      "confirm": "新しいパスワードを確認"
+    },
+    "searchProjectTree": "検索テーブル",
+    "searchFields": "検索フィールド",
+    "searchColumn": "{検索}列の検索",
+    "searchApps": "検索アプリを検索",
+    "searchModels": "検索モデルを検索します",
+    "noItemsFound": "項目は見つかりませんでした",
+    "defaultValue": "デフォルト値",
+    "filterByEmail": "電子メールでフィルタリングします"
+  },
+  "msg": {
+    "info": {
+      "footerInfo": "1ページあたりの行",
+      "upload": "アップロードするファイルを選択してください",
+      "upload_sub": "またはファイルをドラッグアンドドロップします",
+      "excelSupport": "サポートされている：.xls、.xlsx、.xlsm、.ods、.ots",
+      "excelURL": "ExcelファイルのURLを入力してください",
+      "footMsg": "データ型を推測するために解析する行数",
+      "excelImport": "シートは輸入可能です",
+      "exportMetadata": "メタデータからメタデータをエクスポートしますか？",
+      "importMetadata": "メタテーブルからメタデータをインポートしますか？",
+      "clearMetadata": "メタテーブルからメタデータを消去しますか？",
+      "projectEmptyMessage": "新しいプロジェクトを作成することによって始められる",
+      "stopProject": "あなたはプロジェクトを止めたいですか？",
+      "startProject": "プロジェクトを開始しますか？",
+      "restartProject": "プロジェクトを再開しますか？",
+      "deleteProject": "プロジェクトを削除しますか？",
+      "shareBasePrivate": "公開されているReadonly Baseを生成します",
+      "shareBasePublic": "このリンクを使ってインターネット上の誰でも見ることができます",
+      "userInviteNoSMTP": "あなたがまだメーラーを設定していないように見えます！ \\ n上記の招待リンクをコピーして送信してください",
+      "dragDropHide": "ここにフィールドを非表示にします",
+      "formInput": "フォーム入力ラベルを入力してください",
+      "formHelpText": "ヘルプテキストを追加してください",
+      "onlyCreator": "クリエイターには見えます",
+      "formDesc": "フォームの説明を追加します",
+      "beforeEnablePwd": "パスワードによるアクセスを制限します",
+      "afterEnablePwd": "アクセスはパスワード制限です",
+      "privateLink": "このビューはプライベートリンクを介して共有されています",
+      "privateLinkAdditionalInfo": "プライベートリンクを持つ人々は、このビューで表示されているセルのみを見ることができます",
+      "afterFormSubmitted": "フォームが送信された後",
+      "apiOptions": "によるアクセスプロジェクト",
+      "submitAnotherForm": "「別のフォームを送信」ボタンを表示します",
+      "showBlankForm": "5秒後に空白のフォームを表示します",
+      "emailForm": "Eメールで私にメールを送ってください",
+      "showSysFields": "システムフィールドを表示",
+      "filterAutoApply": "自動適用",
+      "showMessage": "このメッセージを表示します",
+      "viewNotShared": "現在のビューは共有されていません！",
+      "showAllViews": "このテーブルのすべての共有ビューを表示します",
+      "collabView": "編集権限を持つコラボレータは、ビュー構成を変更できます。",
+      "lockedView": "ロック解除されるまでビュー構成を編集できません。",
+      "personalView": "ビュー構成を編集できます。他の共同編集者の個人ビューはデフォルトで隠されています。",
+      "ownerDesc": "クリエーターを追加/削除できます。データベース構造とフィールドを完全に編集します。",
+      "creatorDesc": "データベース構造と値を完全に編集できます。",
+      "editorDesc": "レコードを編集できますが、データベース/フィールドの構造を変更することはできません。",
+      "commenterDesc": "レコードを表示およびコメントすることはできますが、何も編集できません",
+      "viewerDesc": "レコードを見ることができますが、何も編集できません",
+      "addUser": "新しいユーザーを追加します",
+      "staticRoleInfo": "システム定義の役割を編集できません",
+      "exportZip": "プロジェクトメタをZipファイルにエクスポートしてダウンロードします。",
+      "importZip": "プロジェクトメタzipファイルをインポートして再起動します。",
+      "importText": "メタデータzipファイルをアップロードしてNoCoDBプロジェクトをインポートします",
+      "metaNoChange": "変更は識別されません",
+      "sqlMigration": "スキーマの移行は自動的に作成されます。テーブルを作成してこのページを更新します。",
+      "dbConnectionStatus": "環境検証",
+      "dbConnected": "接続が成功しました",
+      "notifications": {
+        "no_new": "新しい通知はありません",
+        "clear": "クリア"
+      },
+      "sponsor": {
+        "header": "あなたは私たちを助けることができます！",
+        "message": "私たちはNocodbのオープンソースを作るためにフルタイムで働いている小さなチームです。 Nocodbのようなツールは、インターネット上のすべての問題ソルバーに自由に利用できるようになると信じています。"
+      },
+      "loginMsg": "Nocodbにログインします",
+      "passwordRecovery": {
         "message_1": "サインアップしたときに使用したメールアドレスを入力してください。",
         "message_2": "パスワードをリセットするためのリンク付きの電子メールを送信します。",
-        "success": "パスワードをリセットするには、Eメールを確認してください",
-        "button": "メールを送る"
-      }
-    }
-  },
-  "signup": {
-    "title": "サインアップ",
-    "you_will_be_the_super_admin": "あなたは「スーパーアドミン」になります",
-    "already_ve_an_account": "すでにアカウントをお持ちですか ？"
-  },
-  "treeview": {
-    "settings": {
-      "title": "設定",
-      "tooltip": "クリエイターには見えます"
-    },
-    "app_store": "アプリストア",
-    "team_n_auth": {
-      "title": "チーム＆auth",
-      "tooltip": "役割とユーザー管理"
-    },
-    "project_metadata": {
-      "title": "プロジェクトメタデータ",
-      "tooltip": "メタ管理"
-    },
-    "preview_as": "ASプレビュー",
-    "reset_review": "リセットプレビュー"
-  },
-  "nav_drawer": {
-    "title": "ビュー",
-    "virtual_views": {
-      "action": {
-        "copy": "コピービュー",
-        "rename": "ビューの名前を変更します",
-        "delete": "ビューを削除します"
+        "success": "パスワードをリセットするには、Eメールを確認してください"
       },
-      "title": "ビューを作成します",
-      "caption": "クリエイターには見えます",
-      "grid": {
-        "title": "グリッド",
-        "create": "グリッドビューを追加します"
+      "signUp": {
+        "superAdmin": "あなたは「スーパーアドミン」になります",
+        "alreadyHaveAccount": "すでにアカウントをお持ちですか ？",
+        "workEmail": "あなたの作品Eメールを入力してください",
+        "enterPassword": "パスワードを入力してください",
+        "forgotPassword": "パスワードをお忘れですか ？",
+        "dontHaveAccount": "アカウントを持っていませんか？"
       },
-      "gallery": {
-        "title": "ギャラリー",
-        "create": "ギャラリービューを追加します"
-      },
-      "calendar": {
-        "title": "カレンダー",
-        "create": "カレンダービューを追加します"
-      },
-      "kanban": {
-        "title": "かんばん",
-        "create": "かんばんビューを追加してください"
-      },
-      "form": {
-        "title": "形",
-        "create": "フォームビューを追加します"
+      "addView": {
+        "grid": "グリッドビューを追加します",
+        "gallery": "ギャラリービューを追加します",
+        "form": "フォームビューを追加します",
+        "kanban": "かんばんビューを追加してください",
+        "calendar": "カレンダービューを追加します"
       }
     },
-    "advanced": {
-      "title1": "シェアビュー",
-      "views_list": "ビューリスト",
-      "copy_api_url": "API URLをコピーする"
-    },
-    "share_view": {
-      "title": "このビューはプライベートリンクを介して共有されています",
-      "body": "プライベートリンクを持つ人々は、このビューで表示されているセルのみを見ることができます",
-      "toggle": {
-        "option1": "パスワードによるアクセスを制限します",
-        "option2": "アクセスはパスワード制限です"
-      },
-      "password": {
-        "caption": "パスワードを入力してください",
-        "button": "パスワードを保存する"
+    "error": {
+      "searchProject": "{検索}の検索結果が見つかりませんでした",
+      "invalidChar": "フォルダパスに無効な文字",
+      "invalidDbCredentials": "無効なデータベース認証情報。",
+      "unableToConnectToDb": "データベースに接続できない場合は、データベースが起動していることを確認してください。",
+      "userDoesntHaveSufficientPermission": "ユーザーが存在しないか、スキーマを作成するのに十分な権限があります。",
+      "dbConnectionStatus": "無効なデータベースパラメータ",
+      "dbConnectionFailed": "接続失敗：",
+      "signUpRules": {
+        "emailReqd": "電子メールが必要です",
+        "emailInvalid": "電子メールは有効でなければなりません",
+        "passwdRequired": "パスワードが必要です",
+        "passwdLength": "あなたのパスワードは少なくとも8文字でなければなりません"
       }
-    }
-  },
-  "management": {
-    "tabs": {
-      "user": "ユーザー管理",
-      "api": "APIトークン管理",
-      "roles": "役割管理"
     },
-    "meta": {
-      "title": "メタデータ操作",
-      "export_to_file": {
-        "title": "ファイルにエクスポートします",
-        "desc": "メタテーブルからメタディレクトリにすべてのメタデータをエクスポートします。"
-      },
-      "import": {
-        "title": "輸入",
-        "desc": "メタデータからメタテーブルへのすべてのメタデータをインポートします。"
-      },
-      "export_to_zip": {
-        "title": "エクスポートジッパー",
-        "desc": "プロジェクトメタをZipファイルにエクスポートしてダウンロードします。"
-      },
-      "import_zip": {
-        "title": "郵便番号をインポートします",
-        "desc": "プロジェクトメタzipファイルをインポートして再起動します。"
-      },
-      "reset": {
-        "title": "リセットする",
-        "desc": "メタテーブルからすべてのメタデータをクリアします。"
-      }
+    "toast": {
+      "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
+      "importMetadata": "プロジェクトメタデータが正常にインポートされました",
+      "clearMetadata": "プロジェクトメタデータは正常にクリアされました",
+      "stopProject": "プロジェクトは正常に停止しました",
+      "startProject": "プロジェクトは成功しました",
+      "restartProject": "プロジェクトは正常に再開されました",
+      "deleteProject": "プロジェクトは正常に削除されました",
+      "authToken": "Auth Tokenがクリップボードにコピーされました",
+      "projInfo": "コピーされたプロジェクト情報をクリップボードにコピーしました",
+      "inviteUrlCopy": "コピーされたURLへのINVITE URLをクリップボードにコピーしました",
+      "createView": "正常に作成されたビュー",
+      "formEmailSMTP": "電子メール通知を有効にするために、App StoreでSMTPプラグインを有効にしてください。",
+      "collabView": "共同ビューに正常に切り替わりました",
+      "lockedView": "ロックビューに正常に切り替わりました",
+      "futureRelease": "近日公開！"
     }
   }
 }

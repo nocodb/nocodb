@@ -1,8 +1,8 @@
 ---
 title: "Lookup"
 description: "Lookup"
-position: 41
-category: "Usage"
+position: 550
+category: "Product"
 menuTitle: "Lookup"
 ---
 

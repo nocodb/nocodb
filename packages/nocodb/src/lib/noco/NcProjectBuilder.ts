@@ -304,6 +304,7 @@ export default class NcProjectBuilder {
         break;
 
       case 'tableXcHooksSet':
+      case 'tableXcHooksDelete':
         await curBuilder.onHooksUpdate(data.req.args.tn);
         console.log(`Updated validations for table : ${data.req.args.tn}`);
         break;

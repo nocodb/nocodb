@@ -42,7 +42,7 @@
             </v-tooltip>
           </td>
         </tr>-->
-          <tr>
+          <!--          <tr>
             <td>Show Screensaver</td>
             <td>
               <v-tooltip bottom>
@@ -59,7 +59,7 @@
                 Show/hide metatables
               </v-tooltip>
             </td>
-          </tr>
+          </tr>-->
           <tr>
             <td>Show M2M Tables</td>
             <td>

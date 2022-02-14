@@ -12,7 +12,7 @@ Tournez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb dans une 
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
 [![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
 
@@ -28,7 +28,9 @@ Tournez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb dans une 
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-<a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<p align="center">
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
 
 
 # Essayer rapidement
@@ -49,6 +51,14 @@ Tournez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb dans une 
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
+- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
+
+  Example:
+
+  ```
+  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  ```
 > To persist data you can mount volume at `/usr/app/data/`.
 
 ### En utilisant npm
@@ -110,27 +120,25 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
 ![11](https://user-images.githubusercontent.com/86527202/136067593-dcf7d768-4f4e-4841-8384-629a35daa356.png)
 <br>
 
-
-
 # Caractéristiques
 ### Interface de feuille de calcul riche
 
 - ⚡ Recherche, trier, filtrer, masquer les colonnes avec Uber Facile
-- ⚡ Créer des vues: grille, galerie, kanban, gantt, forme
+- ⚡ Créer des vues: grille, galerie, kanban, forme
 - ⚡ Partager des vues: Public & Mot de passe protégé
 - ⚡ Vues personnelles et verrouillées 
 - ⚡ Télécharger des images sur les cellules (fonctionne avec S3, Minio, GCP, Azure, DigitalOcean, Linode, Ovh, Backblaze) !!
 - ⚡ Rôles: propriétaire, créateur, éditeur, commentateur, spectateur, commentateur, rôles personnalisés.
 - ⚡ Contrôle d'accès: contrôle d'accès à grain fin, même à la base de données, au niveau de la table et de la colonne.
 
-### App Store for Workflow Automation:
+### App Store for Workflow Automation
 - ⚡ Chat: équipes de Microsoft, relais, discorde, la plus grande
 - ⚡ Email: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
 - ⚡ WhatsApp
 - ⚡ Toute API tierce
 
-### Accès d'API programmatique via:
+### Accès d'API programmatique via
 - ⚡ Apis de repos (Swagger)
 - ⚡ API GraphQL.
 - ⚡ inclut l'authentification JWT et l'authentification sociale
@@ -172,76 +180,23 @@ git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
 cd mysql or pg or mssql
-docker-compose up
+docker-compose up -d
 ```
-
 
 ## Variables d'environnement
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
+
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # Paramétrage du développement
-```
-git clone https://github.com/nocodb/nocodb
-cd nocodb
 
-# run backend
-cd packages/nocodb
-npm install
-npm run watch:run
-
-# open localhost:8080/dashboard in browser
-
-# run frontend 
-cd packages/nc-gui
-npm install
-npm run dev
-
-# open localhost:3000/dashboard in browser
-```
-
-Changes made to code automatically restart.
-
-
-## Exécuter des tests Cypress localement
-
-```shell
-# install dependencies(cypress)
-npm install
-
-# run mysql database with required database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# Run backend api using following command
-npm run start:api
-
-# Run frontend web UI using following command
-npm run start:web
-
-# wait until both 3000 and 8080 ports are available
-# and run cypress test using following command
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-```
+Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # Contribuant
-- S'il vous plaît jeter un oeil à ./scripts/contribute/HowToApplyLicense.md 
-- Ignorer l'ajout d'en-têtes pour .json or .md or .yml   
 
-# 🎯  Pourquoi construisons-nous cela ?
+Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+
+# Pourquoi construisons-nous cela?
 La plupart des entreprises Internet s'équipent d'un tableur ou d'une base de données pour répondre à leurs besoins commerciaux. Les feuilles de calcul sont utilisées par plus d'un milliard d'humains en collaboration chaque jour. Cependant, nous sommes loin de travailler à des vitesses similaires sur des bases de données qui sont des outils beaucoup plus puissants en matière de calcul. Les tentatives pour résoudre ce problème avec les offres SaaS ont entraîné des contrôles d'accès horribles, le verrouillage des fournisseurs, le verrouillage des données, des changements de prix brusques et, surtout, un plafond de verre sur ce qui est possible à l'avenir.
 
-# ❤ Notre mission :  
+# Notre mission
 Notre mission est de fournir l'interface sans code la plus puissante pour les bases de données qui soit open source pour chaque entreprise Internet dans le monde. Cela démocratiserait non seulement l'accès à un outil informatique puissant, mais ferait également émerger plus d'un milliard de personnes qui auront des capacités radicales de bricolage et de construction sur Internet. 
-

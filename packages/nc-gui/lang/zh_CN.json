@@ -1,247 +1,473 @@
 {
-  "projects": {
-    "my_projects": "我的项目",
-    "reload_projects_tooltip": "刷新项目",
-    "create_new_project_button": {
-      "text": "创建新项目",
-      "subtext_1": "新建",
-      "subtext_1_tooltip": "新建一个项目",
-      "subtext_2": "通过连接新建 <br>连接到外部数据库",
-      "subtext_2_tooltip": "支持 MySQL、PostgreSQL、SQL Server 和 SQLite"
+  "general": {
+    "home": "家",
+    "load": "加载",
+    "open": "打开",
+    "close": "关闭",
+    "yes": "是的",
+    "no": "No",
+    "ok": "行",
+    "and": "和",
+    "or": "或者",
+    "add": "添加",
+    "edit": "编辑",
+    "remove": "消除",
+    "save": "保存",
+    "cancel": "取消",
+    "submit": "提交",
+    "create": "新建",
+    "delete": "删除",
+    "update": "更新",
+    "rename": "改名",
+    "reload": "重新加载",
+    "reset": "重置",
+    "install": "安装",
+    "show": "展示",
+    "hide": "隐藏",
+    "showAll": "显示所有",
+    "hideAll": "全部藏起来",
+    "showMore": "显示更多",
+    "showOptions": "显示选项",
+    "hideOptions": "隐藏选项",
+    "showMenu": "显示菜单",
+    "hideMenu": "隐藏菜单",
+    "addAll": "全部添加",
+    "removeAll": "移除所有",
+    "signUp": "注册",
+    "signIn": "登录",
+    "signOut": "登出",
+    "required": "必填项",
+    "preferred": "Preferred",
+    "mandatory": "强制的",
+    "loading": "loading ..."
+  },
+  "objects": {
+    "project": "项目",
+    "projects": "项目",
+    "table": "桌子",
+    "tables": "桌子",
+    "field": "场地",
+    "fields": "领域",
+    "column": "柱子",
+    "columns": "列",
+    "page": "页",
+    "pages": "页面",
+    "record": "记录",
+    "records": "记录",
+    "webhook": "Webhook.",
+    "webhooks": "Webhooks.",
+    "view": "看法",
+    "views": "视图",
+    "viewType": {
+      "grid": "表格",
+      "gallery": "画廊",
+      "form": "表单",
+      "kanban": "看板",
+      "calendar": "日历"
     },
-    "search_project": "搜索项目",
-    "import_metadata": "导入元数据",
-    "export_metadata": "导出元数据",
-    "clear_metadata": "清除元数据",
-    "stop_project": "停止项目",
-    "start_project": "开启项目",
-    "restart_project": "重启项目",
-    "delete_project": "删除项目",
-    "project_api_type_tooltip_graphql": "通过 GraphQL APIs 访问",
-    "project_api_type_tooltip_rest": "通过 REST APIs 访问",
-    "project_empty_message": "创建新项目开始使用",
-    "import_button": {
-      "text": "通过上传元数据 zip 文件导入 NocoDB 项目"
-    },
-    "show_community_star": "点赞",
-    "show_community_us_on_Github": "我们在 Github",
-    "show_community_book_a_free_demo": "查看免费演示",
-    "show_community_get_your_questions_answered": "通过这里让你的问题得到解答",
-    "show_community_join_discord": "加入 Discord",
-    "show_community_follow_nocodb": "关注 NocoDB",
-    "search": {
-      "your_search_found_no_results": "你的搜索： {search} 没有发现匹配的结果"
-    },
-    "ext_db": {
-      "title": {
-        "edit": "编辑项目",
-        "create": "创建项目"
-      },
-      "project_name": "输入项目名称",
-      "project_type": "访问项目通过",
-      "button": {
-        "save_project": "保存项目",
-        "update_and_restart": "更新 & 重启",
-        "cancel": "取消",
-        "cancel_tooltip": "取消并返回"
-      },
-      "credentials": {
-        "title": "数据库链接凭证",
-        "db_type": "数据库类型",
-        "sqlite_file": "SQLite 文件",
-        "host_address": "服务器地址",
-        "port": "端口号",
-        "username": "用户名",
-        "password": "密码",
-        "db_create_if_not_exists": "数据库 : 如果不存在则创建",
-        "button": {
-          "test_db_conn": "测试数据库链接",
-          "remove_db_from_env": "从环境中删除数据库"
-        },
-        "advanced": {
-          "title": "SSL 和高级参数",
-          "ssl": {
-            "client_key": {
-              "title": "客户端 Key",
-              "toolip": "选择 .key 文件"
-            },
-            "client_cert": {
-              "title": "客户端 Cert",
-              "toolip": "选择 .cert 文件"
-            },
-            "server_ca": {
-              "title": "服务器 CA",
-              "toolip": "选择 CA 文件"
-            },
-            "preferred": "Preferred",
-            "usage": {
-              "no": "No",
-              "preferred": "Preferred",
-              "required": "必填项",
-              "requried_ca": "必填项-CA",
-              "requried_identity": "必填项-IDENTITY"
-            }
-          },
-          "inflection": {
-            "table_name": "修改 - 表名",
-            "column_name": "修改 - 列名"
-          },
-          "button": {
-            "edit_conn_json": "编辑链接JSON"
-          }
-        }
-      },
-      "error": {
-        "invalid_char_in_folder_path": "文件夹路径中的字符无效。",
-        "invalid_db_credentials": "无效的数据库凭据。",
-        "unable_to_connect_to_db": "无法连接到数据库，请检查您的数据库是否已启动。",
-        "user_doesnt_ve_sufficient_permission": "用户不存在或具有创建架构的足够权限。"
-      },
-      "head": {
-        "title": "新建项目 | NocoDB"
-      },
-      "dialog": {
-        "success": "连接成功",
-        "failure": "连接失败:"
-      }
-    },
-    "notifications": {
-      "no_new": "没有新通知",
-      "clear": "清空"
+    "user": "用户",
+    "users": "用户",
+    "role": "角色",
+    "roles": "角色",
+    "roleType": {
+      "owner": "所有者",
+      "creator": "创造者",
+      "editor": "编辑",
+      "commenter": "评论者",
+      "viewer": "观众"
     }
   },
-  "signin": {
-    "title": "登录",
-    "enter_your_work_email": "请输入您的工作邮箱",
-    "enter_your_password": "请输入你的密码",
-    "forget_password": "忘记密码？",
-    "dont_ve_an_account": "还没有注册账号？",
-    "sign_up": "注册",
-    "form": {
-      "rules": {
-        "email_is_reqd": "邮箱必填",
-        "email_must_be_valid": "邮箱格式无效",
-        "passwd_required": "密码必填",
-        "passwd_must_be_8_chars": "您的密码必须至少为8个字符"
-      }
+  "datatype": {
+    "ID": "ID",
+    "ForeignKey": "外钥匙",
+    "SingleLineText": "单行文本",
+    "LongText": "长篇文章",
+    "Attachment": "依恋",
+    "Checkbox": "复选框",
+    "MultiSelect": "多选",
+    "SingleSelect": "单个选择",
+    "Collaborator": "合作者",
+    "Date": "日期",
+    "Year": "年",
+    "Time": "时间",
+    "PhoneNumber": "电话号码",
+    "Email": "电子邮件",
+    "URL": "URL.",
+    "Number": "数字",
+    "Decimal": "十进制",
+    "Currency": "货币",
+    "Percent": "百分",
+    "Duration": "期间",
+    "Rating": "评分",
+    "Formula": "公式",
+    "Rollup": "卷起",
+    "Count": "数数",
+    "Lookup": "抬头",
+    "DateTime": "约会时间",
+    "CreateTime": "创建时间",
+    "LastModifiedTime": "最后修改时间",
+    "AutoNumber": "自动编号",
+    "Barcode": "条码",
+    "Button": "按钮",
+    "Password": "密码"
+  },
+  "filterOperation": {
+    "isEqual": "是平等的",
+    "isNotEqual": "不平等",
+    "isLike": "就好像",
+    "isNot like": "不喜欢",
+    "isEmpty": "是空的",
+    "isNotEmpty": "不是空的",
+    "isNull": "一片空白",
+    "isNotNull": "不是空虚"
+  },
+  "title": {
+    "newProj": "创建新项目",
+    "myProject": "我的项目",
+    "formTitle": "表格标题",
+    "collabView": "合作视图",
+    "lockedView": "锁定视图",
+    "personalView": "个人观",
+    "appStore": "软件商店",
+    "team&auth": "团队和认证",
+    "rolesUserMgmt": "角色和用户管理",
+    "userMgmt": "用户账号管理",
+    "apiTokenMgmt": "API 令牌管理",
+    "rolesMgmt": "角色管理",
+    "projMeta": "项目基础信息",
+    "metaMgmt": "项目基础信息管理",
+    "metadata": "元数据",
+    "exportImportMeta": "导出/导入元数据",
+    "metaOperations": "元数据操作",
+    "audit": "审计",
+    "auditLogs": "审计日志",
+    "sqlMigrations": "SQL迁移",
+    "dbCredentials": "数据库链接凭证",
+    "advancedParameters": "SSL 和高级参数",
+    "headCreateProject": "新建项目 | NocoDB",
+    "headLogin": "登录 | NocoDB",
+    "resetPassword": "重置密码"
+  },
+  "labels": {
+    "projName": "项目名",
+    "viewName": "查看名称",
+    "viewLink": "查看链接",
+    "columnName": "列名称",
+    "columnType": "列类型",
+    "roleName": "角色名称",
+    "roleDescription": "角色描述",
+    "databaseType": "键入数据库",
+    "lengthValue": "长度/值",
+    "dbType": "数据库类型",
+    "sqliteFile": "SQLite 文件",
+    "hostAddress": "服务器地址",
+    "port": "端口号",
+    "username": "用户名",
+    "password": "密码",
+    "action": "行动",
+    "actions": "行动",
+    "operation": "手术",
+    "operationType": "操作类型",
+    "operationSubType": "操作子类型",
+    "description": "描述",
+    "authentication": "验证",
+    "token": "令牌",
+    "where": "在哪里",
+    "cache": "缓存",
+    "chat": "聊天",
+    "email": "电子邮件",
+    "storage": "贮存",
+    "uiAcl": "UI-ACL",
+    "models": "楷模",
+    "syncState": "同步状态",
+    "created": "创造了",
+    "sqlOutput": "SQL输出",
+    "dbCreateIfNotExists": "数据库 : 如果不存在则创建",
+    "clientKey": "客户端 Key",
+    "clientCert": "客户端 Cert",
+    "serverCA": "服务器 CA",
+    "requriedCa": "必填项-CA",
+    "requriedIdentity": "必填项-IDENTITY",
+    "inflection": {
+      "tableName": "修改 - 表名",
+      "columnName": "修改 - 列名"
     },
-    "head": {
-      "title": "登录 | NocoDB",
-      "meta": {
-        "hid": "登录到 NocoDB",
-        "name": "登录到 NocoDB",
-        "content": "登录到 NocoDB"
-      }
+    "community": {
+      "starUs1": "点赞",
+      "starUs2": "我们在 Github",
+      "bookDemo": "查看免费演示",
+      "getAnswered": "通过这里让你的问题得到解答",
+      "joinDiscord": "加入 Discord",
+      "joinReddit": "加入/r/NocoDB",
+      "followNocodb": "关注 NocoDB"
+    }
+  },
+  "activity": {
+    "createProject": "创建项目",
+    "importProject": "进口项目",
+    "searchProject": "搜索项目",
+    "editProject": "编辑项目",
+    "stopProject": "停止项目",
+    "startProject": "开启项目",
+    "restartProject": "重启项目",
+    "deleteProject": "删除项目",
+    "refreshProject": "刷新项目",
+    "saveProject": "保存项目",
+    "createProjectExtended": {
+      "extDB": "通过连接新建 <br>连接到外部数据库",
+      "excel": "从Excel创建项目",
+      "template": "从模板创建项目"
     },
+    "OkSaveProject": "好的和保存项目",
+    "upgrade": {
+      "available": "升级可用",
+      "releaseNote": "发行说明",
+      "howTo": "如何升级？"
+    },
+    "translate": "帮助翻译",
+    "account": {
+      "authToken": "复制auth令牌",
+      "swagger": "Swagger Apis Doc.",
+      "projInfo": "复制项目信息",
+      "themes": "主题"
+    },
+    "sort": "种类",
+    "addSort": "添加排序选项",
+    "filter": "筛选",
+    "addFilter": "添加过滤器",
+    "share": "分享",
+    "shareBase": {
+      "disable": "禁用共享基础",
+      "enable": "任何有链接的人",
+      "link": "共享基本链接"
+    },
+    "invite": "邀请",
+    "inviteMore": "邀请更多",
+    "inviteTeam": "邀请团队",
+    "inviteToken": "邀请令牌",
+    "newUser": "新用户",
+    "editUser": "编辑用户",
+    "deleteUser": "从项目中删除用户",
+    "resendInvite": "重新发送邀请电子邮件",
+    "copyInviteURL": "复制邀请URL.",
+    "newRole": "新角色",
+    "reloadRoles": "重新加载角色",
+    "nextPage": "下一页",
+    "prevPage": "上一页",
+    "nextRecord": "下一步记录",
+    "previousRecord": "之前的纪录",
+    "copyApiURL": "复制 API 链接",
+    "createTable": "表创造",
+    "refreshTable": "表刷新",
+    "renameTable": "表重命名",
+    "addField": "将新字段添加到此表",
+    "setPrimary": "设置为主要值",
+    "addRow": "添加新行",
+    "saveRow": "保存行",
+    "insertRow": "插入新行",
+    "deleteRow": "删除行",
+    "deleteSelectedRow": "删除所选行",
+    "importExcel": "导入Excel.",
+    "downloadCSV": "下载为CSV.",
+    "uploadCSV": "上传CSV.",
+    "import": "导入",
+    "importMetadata": "导入元数据",
+    "exportMetadata": "导出元数据",
+    "clearMetadata": "清除元数据",
+    "exportToFile": "导出到文件",
+    "changePwd": "更改密码",
+    "createView": "创建视图",
+    "shareView": "分享视图",
+    "listSharedView": "共享视图列表",
+    "ListView": "视图列表",
+    "copyView": "复制视图",
+    "renameView": "重命名视图",
+    "deleteView": "删除视图",
+    "createGrid": "创建网格视图",
+    "createGallery": "创建画廊视图",
+    "createCalendar": "创建日历视图",
+    "createKanban": "创建寻呼视图",
+    "createForm": "创建表单视图",
+    "showSystemFields": "显示系统字段",
+    "copyUrl": "复制URL.",
+    "openTab": "打开新标签",
+    "iFrame": "复制嵌入式HTML代码",
+    "addWebhook": "添加新的webhook.",
+    "newToken": "添加新令牌",
+    "exportZip": "导出为zip格式",
+    "importZip": "zip格式导入",
+    "metaSync": "立即同步",
+    "settings": "设置",
+    "previewAs": "预览",
+    "resetReview": "重置预览",
+    "testDbConn": "测试数据库链接",
+    "removeDbFromEnv": "从环境中删除数据库",
+    "editConnJson": "编辑链接JSON",
+    "sponsorUs": "赞助美国",
+    "sendEmail": "发送邮件"
+  },
+  "tooltip": {
+    "xcDB": "新建一个项目",
+    "extDB": "支持 MySQL、PostgreSQL、SQL Server 和 SQLite",
+    "apiRest": "通过 REST APIs 访问",
+    "apiGQL": "通过 GraphQL APIs 访问",
+    "theme": {
+      "dark": "它确实有黑色（^⇧b）",
+      "light": "它是黑色吗？ （^⇧b）"
+    },
+    "addTable": "添加新表",
+    "inviteMore": "邀请更多用户",
+    "toggleNavDraw": "切换导航抽屉",
+    "reloadApiToken": "重新加载API令牌",
+    "generateNewApiToken": "生成新的API令牌",
+    "addRole": "添加新角色",
+    "metaReloadList": "重新加载列表",
+    "metaSync": "同步元数据",
+    "sqlMigration": "重新加载迁移",
+    "updateRestart": "更新 & 重启",
+    "cancelReturn": "取消并返回",
+    "exportMetadata": "从元数据表格导出所有元数据到元数据目录",
+    "importMetadata": "从元数据目录导入所有的元数据到元数据表格",
+    "clearMetadata": "在元数据表格中清楚所有元数据",
+    "clientKey": "选择 .key 文件",
+    "clientCert": "选择 .cert 文件",
+    "clientCA": "选择 CA 文件"
+  },
+  "placeholder": {
+    "projName": "输入项目名称",
     "password": {
-      "recovery": {
-        "title": "重置密码",
+      "enter": "输入密码",
+      "current": "当前密码",
+      "new": "新密码",
+      "save": "保存密码",
+      "confirm": "确认新密码"
+    },
+    "searchProjectTree": "搜索表",
+    "searchFields": "搜索字段",
+    "searchColumn": "搜索{search}列",
+    "searchApps": "搜索应用程序",
+    "searchModels": "搜索模型",
+    "noItemsFound": "未找到任何项目",
+    "defaultValue": "默认值",
+    "filterByEmail": "通过电子邮件过滤"
+  },
+  "msg": {
+    "info": {
+      "footerInfo": "每页行驶",
+      "upload": "选择文件以上传",
+      "upload_sub": "或拖放文件",
+      "excelSupport": "支持：.xls，.xlsx，.xlsm，.ods，.ots",
+      "excelURL": "输入Excel文件URL",
+      "footMsg": "要解析为推断数据类型的行数",
+      "excelImport": "板材可用于进口",
+      "exportMetadata": "您想从元表导出元数据吗？",
+      "importMetadata": "您想从元表导入元数据吗？",
+      "clearMetadata": "你想清除元表中的元数据吗？",
+      "projectEmptyMessage": "创建新项目开始使用",
+      "stopProject": "你想停止这个项目吗？",
+      "startProject": "你想启动这个项目吗？",
+      "restartProject": "你想重新启动项目吗？",
+      "deleteProject": "你想删除这个项目吗？",
+      "shareBasePrivate": "产生公开可享的Readonly Base",
+      "shareBasePublic": "互联网上的任何人都可以查看",
+      "userInviteNoSMTP": "看起来你还没有配置邮件！请复制上面的邀请链接并将其发送给",
+      "dragDropHide": "在此处拖放字段以隐藏",
+      "formInput": "输入表单输入标签",
+      "formHelpText": "添加一些帮助文本",
+      "onlyCreator": "仅创建人可见",
+      "formDesc": "添加表单描述",
+      "beforeEnablePwd": "使用密码限制访问",
+      "afterEnablePwd": "访问受密码限制",
+      "privateLink": "此视图是通过私人链接共享的",
+      "privateLinkAdditionalInfo": "拥有私人链接的人只能看到此视图中可见的单元格",
+      "afterFormSubmitted": "表格提交后",
+      "apiOptions": "访问项目通过",
+      "submitAnotherForm": "显示“提交另一个表单”按钮",
+      "showBlankForm": "5秒后显示空白表格",
+      "emailForm": "发电子邮件给我",
+      "showSysFields": "显示系统字段",
+      "filterAutoApply": "自动申请",
+      "showMessage": "显示此消息",
+      "viewNotShared": "当前视图不共享！",
+      "showAllViews": "显示此表的所有共享视图",
+      "collabView": "具有编辑权限或更高的合作者可以更改视图配置。",
+      "lockedView": "没有人可以编辑视图配置，直到它被解锁。",
+      "personalView": "只有您可以编辑视图配置。默认情况下，其他合作者的个人视图隐藏。",
+      "ownerDesc": "可以添加/删除创建者。和完整编辑数据库结构和字段。",
+      "creatorDesc": "可以完全编辑数据库结构和值。",
+      "editorDesc": "可以编辑记录但无法更改数据库/字段的结构。",
+      "commenterDesc": "可以查看和评论记录，但无法编辑任何内容",
+      "viewerDesc": "可以查看记录但无法编辑任何内容",
+      "addUser": "添加新用户",
+      "staticRoleInfo": "无法编辑系统定义的角色",
+      "exportZip": "导出项目数据为 zip 格式并下载。",
+      "importZip": "导入项目 zip 格式的元数据并重新启动。",
+      "importText": "通过上传元数据 zip 文件导入 NocoDB 项目",
+      "metaNoChange": "没有确定更改",
+      "sqlMigration": "将自动创建架构迁移。创建一个表并刷新此页面。",
+      "dbConnectionStatus": "环境验证",
+      "dbConnected": "连接成功",
+      "notifications": {
+        "no_new": "没有新通知",
+        "clear": "清空"
+      },
+      "sponsor": {
+        "header": "你可以帮助我们！",
+        "message": "我们是一支小型团队，全职工作，使Nocodb开放来源。我们相信一个像Nocodb这样的工具应该在互联网上的每个问题求解器上自由提供。"
+      },
+      "loginMsg": "登录到 NocoDB",
+      "passwordRecovery": {
         "message_1": "请提供你注册时使用的电子邮件地址。",
         "message_2": "我们将向你发送一封电子邮件，邮件中包含重置密码的链接。",
-        "success": "请检查你的邮箱以重置密码",
-        "button": "发送邮件"
-      }
-    }
-  },
-  "signup": {
-    "title": "注册",
-    "you_will_be_the_super_admin": "你将成为 '超级管理员'",
-    "already_ve_an_account": "已有账号？"
-  },
-  "treeview": {
-    "settings": {
-      "title": "设置",
-      "tooltip": "仅创建人可见"
-    },
-    "app_store": "软件商店",
-    "team_n_auth": {
-      "title": "团队和认证",
-      "tooltip": "角色和用户管理"
-    },
-    "project_metadata": {
-      "title": "项目基础信息",
-      "tooltip": "项目基础信息管理"
-    },
-    "preview_as": "预览",
-    "reset_review": "重置预览"
-  },
-  "nav_drawer": {
-    "title": "视图",
-    "virtual_views": {
-      "action": {
-        "copy": "复制视图",
-        "rename": "重命名视图",
-        "delete": "删除视图"
+        "success": "请检查你的邮箱以重置密码"
       },
-      "title": "创建视图",
-      "caption": "仅创建人可见",
-      "grid": {
-        "title": "表格",
-        "create": "添加表格视图"
+      "signUp": {
+        "superAdmin": "你将成为 '超级管理员'",
+        "alreadyHaveAccount": "已有账号？",
+        "workEmail": "请输入您的工作邮箱",
+        "enterPassword": "请输入你的密码",
+        "forgotPassword": "忘记密码？",
+        "dontHaveAccount": "还没有注册账号？"
       },
-      "gallery": {
-        "title": "画廊",
-        "create": "添加画廊视图"
-      },
-      "calendar": {
-        "title": "日历",
-        "create": "添加日历视图"
-      },
-      "kanban": {
-        "title": "看板",
-        "create": "添加看板视图"
-      },
-      "form": {
-        "title": "表单",
-        "create": "添加表单视图"
+      "addView": {
+        "grid": "添加表格视图",
+        "gallery": "添加画廊视图",
+        "form": "添加表单视图",
+        "kanban": "添加看板视图",
+        "calendar": "添加日历视图"
       }
     },
-    "advanced": {
-      "title1": "分享视图",
-      "views_list": "视图列表",
-      "copy_api_url": "复制 API 链接"
-    },
-    "share_view": {
-      "title": "此视图是通过私人链接共享的",
-      "body": "拥有私人链接的人只能看到此视图中可见的单元格",
-      "toggle": {
-        "option1": "使用密码限制访问",
-        "option2": "访问受密码限制"
-      },
-      "password": {
-        "caption": "输入密码",
-        "button": "保存密码"
+    "error": {
+      "searchProject": "你的搜索： {search} 没有发现匹配的结果",
+      "invalidChar": "文件夹路径中的字符无效。",
+      "invalidDbCredentials": "无效的数据库凭据。",
+      "unableToConnectToDb": "无法连接到数据库，请检查您的数据库是否已启动。",
+      "userDoesntHaveSufficientPermission": "用户不存在或具有创建架构的足够权限。",
+      "dbConnectionStatus": "数据库参数无效",
+      "dbConnectionFailed": "连接失败:",
+      "signUpRules": {
+        "emailReqd": "邮箱必填",
+        "emailInvalid": "邮箱格式无效",
+        "passwdRequired": "密码必填",
+        "passwdLength": "您的密码必须至少为8个字符"
       }
-    }
-  },
-  "management": {
-    "tabs": {
-      "user": "用户账号管理",
-      "api": "API 令牌管理",
-      "roles": "角色管理"
     },
-    "meta": {
-      "title": "元数据操作",
-      "export_to_file": {
-        "title": "导出到文件",
-        "desc": "从元数据表格导出所有元数据到元数据目录"
-      },
-      "import": {
-        "title": "导入",
-        "desc": "从元数据目录导入所有的元数据到元数据表格"
-      },
-      "export_to_zip": {
-        "title": "导出为zip格式",
-        "desc": "导出项目数据为 zip 格式并下载。"
-      },
-      "import_zip": {
-        "title": "zip格式导入",
-        "desc": "导入项目 zip 格式的元数据并重新启动。"
-      },
-      "reset": {
-        "title": "重置",
-        "desc": "在元数据表格中清楚所有元数据"
-      }
+    "toast": {
+      "exportMetadata": "项目元数据成功导出",
+      "importMetadata": "项目元数据成功导入",
+      "clearMetadata": "项目元数据已成功清除",
+      "stopProject": "项目成功停止了",
+      "startProject": "项目成功开始",
+      "restartProject": "项目成功重新启动",
+      "deleteProject": "项目已成功删除",
+      "authToken": "验证令牌复制到剪贴板",
+      "projInfo": "将项目信息复制到剪贴板",
+      "inviteUrlCopy": "复制邀请URL到剪贴板",
+      "createView": "查看成功创建",
+      "formEmailSMTP": "请激活App Store中的SMTP插件以启用电子邮件通知",
+      "collabView": "成功转换为协作视图",
+      "lockedView": "成功转换为锁定视图",
+      "futureRelease": "即将推出！"
     }
   }
 }

@@ -397,7 +397,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restTableOps.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -441,7 +440,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restViews.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -485,7 +483,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restRoles.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -529,7 +526,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restMisc.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -749,7 +745,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlTableOps.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -793,7 +788,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlViews.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -837,7 +831,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlRoles.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -881,7 +874,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlMisc.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200

@@ -1340,8 +1340,8 @@ export class PgUi {
 
       case 'bit':
         return 'integer'
-      case 'bigint':
       case 'bigserial':
+      case 'bigint':
         return 'string'
 
       case 'bool':

@@ -189,6 +189,8 @@ export default {
 
 .nc-virtual-cell {
   position: relative;
+  max-height: 100px !important;
+  overflow: auto;
 }
 
 .nc-locked-overlay {

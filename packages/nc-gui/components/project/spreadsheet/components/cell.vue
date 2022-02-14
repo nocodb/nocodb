@@ -47,6 +47,9 @@ export default {
 
 <style scoped>
 .long-text-cell {
+  display: block;
+  max-height: 100px !important;
+  overflow: auto;
   white-space: break-spaces;
 }
 </style>

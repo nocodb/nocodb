@@ -133,40 +133,6 @@
                   </template>
                   <v-list dense>
                     <v-list-item
-                      class="create-xc-db-project nc-create-xc-db-project"
-                      @click="onCreateProject('xcdb')"
-                    >
-                      <v-list-item-icon class="mr-2">
-                        <v-icon small>
-                          mdi-plus
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        <!-- Create -->
-                        <span class="caption font-weight-regular ">{{
-                          $t('general.create')
-                        }}</span>
-                      </v-list-item-title>
-                      <v-spacer />
-                      <v-tooltip right>
-                        <template #activator="{ on }">
-                          <v-icon
-                            x-small
-                            color="grey"
-                            class="ml-4"
-                            v-on="on"
-                          >
-                            mdi-information-outline
-                          </v-icon>
-                        </template>
-                        <!-- Create a new project -->
-                        <span class="caption">{{
-                          $t('tooltip.xcDB')
-                        }}</span>
-                      </v-tooltip>
-                    </v-list-item>
-                    <v-divider />
-                    <v-list-item
                       title
                       class="pt-2 create-external-db-project nc-create-external-db-project"
                       @click="onCreateProject()"
@@ -223,27 +189,7 @@
                           "
                         />
                       </v-list-item-title>
-                    </v-list-item>-->
-                    <v-divider />
-                    <v-list-item
-                      title
-                      class="pt-2 nc-create-project-from-excel"
-                      @click="onCreateProjectFromExcel()"
-                    >
-                      <v-list-item-icon class="mr-2">
-                        <v-icon small class="">
-                          mdi-file-excel-outline
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        <span
-                          class="caption font-weight-regular"
-                          v-html="
-                            $t('activity.createProjectExtended.excel')
-                          "
-                        />
-                      </v-list-item-title>
-                    </v-list-item>
+                    </v-list-item>--->
                   </v-list>
                 </v-menu>
               </template>

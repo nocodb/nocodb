@@ -189,6 +189,13 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
         .send({ email: EMAIL_ID, password: 'wrongPassword' })
         .expect(400, done);
     });
+    
+    it('Signup with no credentials', done => {
+      request(app)
+        .post('/auth/signin')
+        .send({})
+        .expect(400, done)
+    })
 
     it('Forgot password with a non-existing email id', function(done) {
       request(app)

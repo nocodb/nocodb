@@ -20,10 +20,11 @@
       </v-text-field>
       <v-spacer />
 
+      <!-- tooltip="Reload roles" -->
       <x-btn
         v-ge="['roles','reload']"
         outlined
-        tooltip="Reload roles"
+        :tooltip="$t('activity.reloadRoles')"
         color="primary"
         small
         :disabled="loading"
@@ -33,13 +34,15 @@
         <v-icon small left>
           refresh
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload')}}
       </x-btn>
+      <!-- tooltip="Add new role" -->
       <x-btn
         v-if="_isUIAllowed('newUser')"
         v-ge="['roles','add new']"
         outlined
-        tooltip="Add new role"
+        :tooltip="$t('tooltip.addRole')"
         color="primary"
         small
         :disabled="loading"
@@ -48,7 +51,8 @@
         <v-icon small left>
           mdi-plus
         </v-icon>
-        New User
+        <!-- New User -->
+        {{ $t('activity.newUser')}}
       </x-btn>
     </v-toolbar>
 
@@ -91,17 +95,20 @@
                             <v-icon small>
                               mdi-email-outline
                             </v-icon>
-                            Email
+                            <!-- Email -->
+                            {{ $t('labels.email')}}
                           </th>
                           <th class="font-weight-regular caption">
                             <v-icon small>
                               mdi-drama-masks
                             </v-icon>
-                            Roles
+                            <!-- Roles -->
+                            {{ $t('objects.roles')}}
                           </th>
                           <th class="font-weight-regular caption">
                             <!--                          <v-icon small class="mt-n1">mdi-cursor-default-outline</v-icon>-->
-                            Actions
+                            <!-- Actions -->
+                            {{ $t('labels.actions')}}
                           </th>
                         </tr>
                       </thead>
@@ -145,9 +152,10 @@
                           <!--                    </v-edit-dialog>-->
                         </td>
                         <td>
+                          <!-- tooltip="Edit User" -->
                           <x-icon
                             v-if="item.project_id"
-                            tooltip="Edit User"
+                            :tooltip="$t('activity.editUser')"
                             icon-class=""
                             color="primary"
                             small
@@ -174,9 +182,10 @@
                               mdi-delete-forever-outline
                             </x-icon> -->
                           </span>
+                          <!-- tooltip="Remove user from project" -->
                           <x-icon
                             v-else
-                            tooltip="Remove user from project"
+                            :tooltip="$t('activity.deleteUser')"
                             class="ml-2"
                             color="error"
                             small
@@ -184,10 +193,11 @@
                           >
                             mdi-delete-outline
                           </x-icon>
-
+                          
+                          <!-- tooltip="Resend invite email" -->
                           <x-icon
                             v-if="item.invite_token"
-                            tooltip="Resend invite email"
+                            :tooltip="$t('activity.resendInvite')"
                             icon-class="mt-n1"
                             color="primary"
                             small
@@ -196,9 +206,10 @@
                             mdi-email-send-outline
                           </x-icon>
 
+                          <!-- tooltip="Copy invite url" -->
                           <x-icon
                             v-if="item.invite_token"
-                            tooltip="Copy invite url"
+                            :tooltip="$t('activity.copyInviteURL')"
                             icon-class=""
                             color="primary"
                             small
@@ -210,12 +221,13 @@
                       </tr>
                     </template>
                   </v-data-table>
+                  <!-- tooltip="Add new user" -->
                   <div class="mt-10 text-center">
                     <x-btn
                       v-if="_isUIAllowed('newUser')"
                       v-ge="['roles','add new']"
                       outlined
-                      tooltip="Add new user"
+                      :tooltip="$t('msg.info.addUser')"
                       color="primary"
                       small
                       :disabled="loading"
@@ -224,7 +236,8 @@
                       <v-icon small left>
                         mdi-plus
                       </v-icon>
-                      New User
+                      <!-- New User -->
+                      {{ $t('activity.newUser') }}
                     </x-btn>
                   </div>
 
@@ -313,7 +326,7 @@
     <v-dialog v-model="userEditDialog" :width="invite_token ? 700 :700" @close="invite_token = null">
       <v-card v-if="selectedUser" style="min-height: 100%">
         <v-card-title>
-          Share : {{ $store.getters['project/GtrProjectName'] }}
+          {{ $t('activity.share') }} : {{ $store.getters['project/GtrProjectName'] }}
           <!--
           <h4 class="text-center text-capitalize mt-2 d-100 display-1">
             <template v-if="invite_token">
@@ -342,7 +355,8 @@
               Edit User
             </template>
             <template v-else>
-              Invite Team
+              <!-- Invite Team -->
+              {{ $t('activity.inviteTeam') }}
             </template>
           </div>
           <div class="pa-4 nc-invite-container">
@@ -366,9 +380,10 @@
               </v-alert>
 
               <p class="caption grey--text mt-3">
-                Looks like you have not configured mailer yet! <br>Please copy above
-                invite
-                link and send it to
+                {{ $t('msg.info.userInviteNoSMTP') }}
+                <!-- Looks like you have not configured mailer yet! <br>Please copy above -->
+                <!-- invite -->
+                <!-- link and send it to -->
                 {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.
               </p>
 
@@ -407,7 +422,10 @@
                       @input="edited=true"
                     >
                       <template #label>
-                        <span class="caption">Email</span>
+                        <span class="caption">
+                          <!-- Email -->
+                          {{ $t('labels.email') }}
+                        </span>
                       </template>
                     </v-text-field>
                   </v-col>
@@ -442,6 +460,8 @@
               </v-form>
               <!--        </v-card-text>
         <v-card-actions class="justify-center">-->
+
+              <!-- tooltip="Save Changes" -->
               <div class="text-center mt-0">
                 <x-btn
                   v-ge="['rows','save']"
@@ -454,7 +474,7 @@
                   <v-icon small left>
                     {{ selectedUser.id ? 'save' : 'mdi-send' }}
                   </v-icon>
-                  {{ selectedUser.id ? 'Save' : 'Invite' }}
+                  {{ selectedUser.id ? $t('general.save') : $t('activity.invite') }}
                 </x-btn>
               </div>
             </template>

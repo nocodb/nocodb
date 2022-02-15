@@ -89,7 +89,7 @@ export class _mainPage {
 
         // click on New User button, feed details
         cy.get('button:contains("New User")').first().click();
-        cy.get('label:contains("Email")')
+        cy.get('label:contains("E-mail")')
             .next("input")
             .type(userCred.username)
             .trigger("input");

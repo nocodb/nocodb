@@ -635,7 +635,13 @@ export default class RestAuthCtrl {
         try {
           if (!user || !user.email) {
             if (err) {
-              return res.status(400).send(err);
+              // This exception was thrown directly before.
+              // In order to avoid breaking change, both "msg" and "message" are returned.
+              const message = err.message ?? ''
+              return res.status(400).send({
+                msg: message,
+                message
+              });
             }
             if (info) {
               return res.status(400).send(info);
@@ -694,7 +700,13 @@ export default class RestAuthCtrl {
         try {
           if (!user || !user.email) {
             if (err) {
-              return res.status(400).send(err);
+              // This exception was thrown directly before.
+              // In order to avoid breaking change, both "msg" and "message" are returned.
+              const message = err.message ?? ''
+              return res.status(400).send({
+                msg: message,
+                message
+              });
             }
             if (info) {
               return res.status(400).send(info);
@@ -753,7 +765,13 @@ export default class RestAuthCtrl {
         try {
           if (!user || !user.email) {
             if (err) {
-              return res.status(400).send(err);
+              // This exception was thrown directly before.
+              // In order to avoid breaking change, both "msg" and "message" are returned.
+              const message = err.message ?? ''
+              return res.status(400).send({
+                msg: message,
+                message
+              });
             }
             if (info) {
               return res.status(400).send(info);

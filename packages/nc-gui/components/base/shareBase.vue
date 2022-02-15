@@ -3,23 +3,46 @@
     <v-icon color="grey" small>
       mdi-open-in-new
     </v-icon>
-    <span class="grey--text caption">Shared base link</span>
+    <span class="grey--text caption">
+      <!-- Shared base link -->
+      {{ $t('activity.shareBase.link') }}
+    </span>
     <div class="nc-container">
       <v-chip v-if="base.enabled" :color="colors[4]" style="" class="rounded pl-1 pr-0 d-100 nc-url-chip pr-3">
         <div class="nc-url-wrapper d-flex mx-1 align-center d-100">
           <span class="nc-url flex-grow-1 caption ">{{ url }}</span>
           <v-spacer />
           <v-divider vertical />
-          <x-icon tooltip="reload" @click="recreate">
+
+          <!-- tooltip="reload" -->
+          <x-icon 
+            :tooltip="$t('general.reload')"
+            @click="recreate"
+          >
             mdi-reload
           </x-icon>
-          <x-icon tooltip="copy URL" @click="copyUrl">
+
+          <!-- tooltip="copy URL"  -->
+          <x-icon 
+            :tooltip="$t('activity.copyUrl')"
+            @click="copyUrl"
+          >
             mdi-content-copy
           </x-icon>
-          <x-icon tooltip="open new tab" @click="navigateToSharedBase">
+
+          <!-- tooltip="open new tab" -->
+          <x-icon 
+            :tooltip="$t('activity.openTab')"
+            @click="navigateToSharedBase"
+          >
             mdi-open-in-new
           </x-icon>
-          <x-icon tooltip="copy embeddable HTML code" @click="generateEmbeddableIframe">
+
+          <!-- tooltip="copy embeddable HTML code" -->
+          <x-icon 
+            :tooltip="$t('activity.iFrame')"
+            @click="generateEmbeddableIframe"
+          >
             mdi-xml
           </x-icon>
         </div>
@@ -31,8 +54,14 @@
             <template #activator="{on}">
               <div class="my-2" v-on="on">
                 <div class="font-weight-bold nc-disable-shared-base">
-                  <span v-if="base.enabled">Anyone with the link</span>
-                  <span v-else>Disabled shared base</span>
+                  <span v-if="base.enabled">
+                    <!-- Anyone with the link -->
+                    {{ $t('activity.shareBase.enable') }}
+                  </span>
+                  <span v-else>
+                    <!-- Disable shared base -->
+                    {{ $t('activity.shareBase.disable') }}
+                  </span>
                   <v-icon small>
                     mdi-menu-down-outline
                   </v-icon>
@@ -45,7 +74,10 @@
                   <v-icon small class="mr-1">
                     mdi-link-variant
                   </v-icon>
-                  <span class="caption">Anyone with the link</span>
+                  <span class="caption">
+                    <!-- Anyone with the link -->
+                    {{ $t('activity.shareBase.enable') }}
+                  </span>
                 </v-list-item-title>
               </v-list-item>
               <v-list-item dense @click="disableSharedBase">
@@ -53,18 +85,28 @@
                   <v-icon small class="mr-1">
                     mdi-link-variant-off
                   </v-icon>
-                  <span class="caption">Disable shared base</span>
+                  <span class="caption">
+                    <!-- Disable shared base -->
+                    {{ $t('activity.shareBase.link') }}
+                  </span>
                 </v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
           <div class=" caption">
             <template v-if="base.enabled">
-              <span v-if="base.roles === 'editor'">Anyone on the internet with this link can edit</span>
-              <span v-else-if="base.roles === 'viewer'">Anyone on the internet with this link can view</span>
+              <span v-if="base.roles === 'editor'">
+                Anyone on the internet with this link can edit
+                <!-- {{ $t('msg.info.shareBasePrivate') }} -->
+              </span>
+              <span v-else-if="base.roles === 'viewer'">
+                <!-- Anyone on the internet with this link can view -->
+                {{ $t('msg.info.shareBasePublic') }}
+              </span>
             </template>
             <template v-else>
-              Generate publicly shareable readonly base
+              <!-- Generate publicly shareable readonly base -->
+              {{ $t('msg.info.shareBasePrivate') }}
             </template>
           </div>
         </div>
@@ -84,12 +126,14 @@
             <v-list dense>
               <v-list-item @click="createSharedBase('editor')">
                 <v-list-item-title>
-                  Editor
+                  <!-- Editor -->
+                  {{ $t('objects.roleType.editor') }}
                 </v-list-item-title>
               </v-list-item>
               <v-list-item @click="createSharedBase('viewer')">
                 <v-list-item-title>
-                  Viewer
+                  <!-- Viewer -->
+                  {{ $t('objects.roleType.viewer') }}
                 </v-list-item-title>
               </v-list-item>
             </v-list>

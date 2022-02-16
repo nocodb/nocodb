@@ -1,11 +1,19 @@
 name: "Release : Docker"
 
 on:
+  # Triggered manually
   workflow_dispatch:
     inputs:
       tag:
         description: "Docker image tag"
         required: true
+  # Triggered by release-nocodb.yml
+  workflow_call:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+        type: string
 
 jobs:
   buildx:
@@ -59,13 +67,13 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ${{ env.working-directory }}
-          build-args: NC_VERSION=${{ github.event.inputs.tag }}
+          build-args: NC_VERSION=${{ github.event.inputs.tag || inputs.tag }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
           tags: |
-            nocodb/nocodb:${{ github.event.inputs.tag }}
+            nocodb/nocodb:${{ github.event.inputs.tag || inputs.tag }}
             nocodb/nocodb:latest
 
         # Temp fix

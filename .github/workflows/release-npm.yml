@@ -51,10 +51,14 @@ jobs:
           branch: 'release/${{ github.event.inputs.tag || inputs.tag }}'
           delete-branch: true
           title: 'Release ${{ github.event.inputs.tag || inputs.tag }}'
-          reviewers: o1lab,pranavcx,dstala,wingkwong
           labels: |
             Bot: Automated PR
       - name: Check outputs
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+     - name: automerge
+       uses: "pascalgn/automerge-action@v0.14.3"
+       env:
+         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+         PULL_REQUEST: "${{ steps.cpr.outputs.pull-request-number }}"

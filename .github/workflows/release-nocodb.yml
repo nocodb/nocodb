@@ -32,6 +32,9 @@ jobs:
   release-draft-note:
     needs: close-issues
     users: ./.github/workflows/release-draft.yml
+    with:
+      tag: tag
+      prev_tag: prev_tag
   # Build docker image and push to docker hub
   release-docker:
     needs: release-draft-note

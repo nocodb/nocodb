@@ -1,0 +1,20 @@
+name: 'Sync changes back to develop branch'
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+  # Triggered by release-nocodb.yml
+  workflow_call:
+jobs:
+  close-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge master -> develop
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: master
+          target_branch: develop
+          github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -11,11 +11,6 @@ on:
         description: "Previous Tag"
         required: true
 jobs:
-  # Build, install, publish frontend and backend to npm
-  release-npm:
-    uses: ./.github/workflows/release-npm.yml
-    with:
-      tag: tag
   # Close all issues with target tags 'Fixed' & 'Resolved'
   # TODO: add 'Fixed in vX.Y.Z' comment after closing.
   close-fixed-issues:
@@ -28,16 +23,29 @@ jobs:
     uses: ./.github/workflows/release-close-issue.yml
     with:
       issue_label: 'Resolved'
+
+  # Build, install, publish frontend and backend to npm
+  release-npm:
+    uses: ./.github/workflows/release-npm.yml
+    with:
+      tag: tag
+
   # Draft Release Note
   release-draft-note:
     needs: close-issues
-    users: ./.github/workflows/release-draft.yml
+    uses: ./.github/workflows/release-draft.yml
     with:
       tag: tag
       prev_tag: prev_tag
+
   # Build docker image and push to docker hub
   release-docker:
     needs: release-draft-note
-    users: ./.gitjib/workflows/release-docker.yml
+    uses: ./.github/workflows/release-docker.yml
     with:
       tag: tag
+
+  # Sync changes to develop
+  sync-to-develop:
+    needs: release-docker
+    uses: ./.github/workflows/sync-to-develop.yml

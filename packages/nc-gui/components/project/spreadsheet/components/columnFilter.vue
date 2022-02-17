@@ -209,4 +209,9 @@ export default {
   column-gap: 6px;
   row-gap: 6px
 }
+
+.v-input {
+  min-width: 100%;
+}
+
 </style>

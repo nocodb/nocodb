@@ -13,7 +13,6 @@ on:
 jobs:
   # Close all issues with target tags 'Fixed' & 'Resolved'
   close-fixed-issues:
-    needs: release-npm
     uses: ./.github/workflows/release-close-issue.yml
     with:
       issue_label: 'Fixed'
@@ -27,13 +26,14 @@ jobs:
 
   # Build, install, publish frontend and backend to npm
   release-npm:
+    needs: close-resolved-issues
     uses: ./.github/workflows/release-npm.yml
     with:
       tag: ${{ github.event.inputs.tag }}
 
   # Draft Release Note
   release-draft-note:
-    needs: close-issues
+    needs: release-npm
     uses: ./.github/workflows/release-draft.yml
     with:
       tag: ${{ github.event.inputs.tag }}

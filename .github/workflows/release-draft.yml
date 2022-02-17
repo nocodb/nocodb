@@ -34,7 +34,7 @@ jobs:
             github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/${{ github.event.inputs.tag || inputs.tag }} ",
+              ref: "refs/tags/${{ github.event.inputs.tag || inputs.tag }}",
               sha: context.sha
             })
 
@@ -45,4 +45,4 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
-      - run: "npx github-release-notes@0.17.2  release --token ${{ secrets.GH_TOKEN }}  --draft --tags ${{ github.event.inputs.tag || inputs.tag }}..${{ github.event.inputs.prev_tag || inputs.prev_tag }} "
+      - run: "npx github-release-notes@0.17.2  release --token ${{ secrets.GH_TOKEN }}  --draft --tags ${{ github.event.inputs.tag || inputs.tag }}..${{ github.event.inputs.prev_tag || inputs.prev_tag }}"

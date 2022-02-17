@@ -635,16 +635,18 @@ export default class RestAuthCtrl {
         try {
           if (!user || !user.email) {
             if (err) {
-              // This exception was thrown directly before.
+              // err: { msg: string }
+              return res.status(400).send(err);
+            }
+            if (info) {
+              // info: { message: string }
+              // Info was thrown directly before.
               // In order to avoid breaking change, both "msg" and "message" are returned.
-              const message = err.message ?? ''
+              const message = info.message ?? '';
               return res.status(400).send({
                 msg: message,
                 message
               });
-            }
-            if (info) {
-              return res.status(400).send(info);
             }
             return res.status(400).send({ msg: 'Your signin has failed' });
           }
@@ -700,13 +702,7 @@ export default class RestAuthCtrl {
         try {
           if (!user || !user.email) {
             if (err) {
-              // This exception was thrown directly before.
-              // In order to avoid breaking change, both "msg" and "message" are returned.
-              const message = err.message ?? ''
-              return res.status(400).send({
-                msg: message,
-                message
-              });
+              return res.status(400).send(err);
             }
             if (info) {
               return res.status(400).send(info);
@@ -765,13 +761,7 @@ export default class RestAuthCtrl {
         try {
           if (!user || !user.email) {
             if (err) {
-              // This exception was thrown directly before.
-              // In order to avoid breaking change, both "msg" and "message" are returned.
-              const message = err.message ?? ''
-              return res.status(400).send({
-                msg: message,
-                message
-              });
+              return res.status(400).send(err);
             }
             if (info) {
               return res.status(400).send(info);

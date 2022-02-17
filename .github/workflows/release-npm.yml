@@ -7,13 +7,13 @@ on:
       tag:
         description: "Tag"
         required: true
-        type: string
   # Triggered by release-nocodb.yml
   workflow_call:
     inputs:
       tag:
         description: "Tag"
         required: true
+        type: string
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -57,8 +57,8 @@ jobs:
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-     - name: automerge
-       uses: "pascalgn/automerge-action@v0.14.3"
-       env:
-         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-         PULL_REQUEST: "${{ steps.cpr.outputs.pull-request-number }}"
+      - name: automerge
+        uses: "pascalgn/automerge-action@v0.14.3"
+        env:
+           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+           PULL_REQUEST: "${{ steps.cpr.outputs.pull-request-number }}"

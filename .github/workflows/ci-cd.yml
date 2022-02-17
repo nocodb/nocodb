@@ -4,13 +4,15 @@
 name: "CI/CD"
 on:
     push:
+        branches-ignore:
+            - master
         paths:
             - "packages/nc-gui/**"
             - "scripts/cypress/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
     pull_request:
-        branches: [master, develop]
+        branches: [develop]
         paths:
             - "packages/nc-gui/**"
             - "scripts/cypress/**"
@@ -18,6 +20,178 @@ on:
             - ".github/workflows/ci-cd.yml"
 
 jobs:
+    cypress-pg-restTableOps-run:
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14
+            - name: Checkout
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - name: Cache node modules
+              uses: actions/cache@v2
+              env:
+                  cache-name: cache-node-modules
+
+              with:
+                  # npm cache files are stored in `~/.npm` on Linux/macOS
+                  path: ~/.npm
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
+            - name: Set env
+              run: echo "NODE_ENV=test" >> $GITHUB_ENV
+            - name: Cypress run
+              uses: cypress-io/github-action@v2
+              with:
+                  start: |
+                      npm run start:api
+                      npm run start:web
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+                  spec: "./scripts/cypress/integration/test/pg-restTableOps.js"
+                  wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
+                  wait-on-timeout: 1200
+                  config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
+    cypress-pg-restViews-run:
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14
+            - name: Checkout
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - name: Cache node modules
+              uses: actions/cache@v2
+              env:
+                  cache-name: cache-node-modules
+
+              with:
+                  # npm cache files are stored in `~/.npm` on Linux/macOS
+                  path: ~/.npm
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
+            - name: Set env
+              run: echo "NODE_ENV=test" >> $GITHUB_ENV
+            - name: Cypress run
+              uses: cypress-io/github-action@v2
+              with:
+                  start: |
+                      npm run start:api
+                      npm run start:web
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+                  spec: "./scripts/cypress/integration/test/pg-restViews.js"
+                  wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
+                  wait-on-timeout: 1200
+                  config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
+    cypress-pg-restRoles-run:
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14
+            - name: Checkout
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - name: Cache node modules
+              uses: actions/cache@v2
+              env:
+                  cache-name: cache-node-modules
+
+              with:
+                  # npm cache files are stored in `~/.npm` on Linux/macOS
+                  path: ~/.npm
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
+            - name: Set env
+              run: echo "NODE_ENV=test" >> $GITHUB_ENV
+            - name: Cypress run
+              uses: cypress-io/github-action@v2
+              with:
+                  start: |
+                      npm run start:api
+                      npm run start:web
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+                  spec: "./scripts/cypress/integration/test/pg-restRoles.js"
+                  wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
+                  wait-on-timeout: 1200
+                  config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
+    cypress-pg-restMisc-run:
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14
+            - name: Checkout
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - name: Cache node modules
+              uses: actions/cache@v2
+              env:
+                  cache-name: cache-node-modules
+
+              with:
+                  # npm cache files are stored in `~/.npm` on Linux/macOS
+                  path: ~/.npm
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
+            - name: Set env
+              run: echo "NODE_ENV=test" >> $GITHUB_ENV
+            - name: Cypress run
+              uses: cypress-io/github-action@v2
+              with:
+                  start: |
+                      npm run start:api
+                      npm run start:web
+                      docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+                  spec: "./scripts/cypress/integration/test/pg-restMisc.js"
+                  wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
+                  wait-on-timeout: 1200
+                  config-file: scripts/cypress/cypress.json
+            - name: Upload screenshots
+              uses: actions/upload-artifact@v2
+              with:
+                  name: restTableOps-snapshots
+                  path: scripts/cypress/screenshots
+                  retention-days: 2
     cypress-restTableOps-run:
         runs-on: ubuntu-20.04
         steps:
@@ -225,7 +399,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restTableOps.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -269,7 +442,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restViews.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -313,7 +485,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restRoles.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -357,7 +528,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-restMisc.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -577,7 +747,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlTableOps.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -621,7 +790,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlViews.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -665,7 +833,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlRoles.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200
@@ -709,7 +876,6 @@ jobs:
                   start: |
                       npm run start:xcdb-api
                       npm run start:web
-                      docker-compose -f ./scripts/docker-compose-cypress.yml up -d
                   spec: "./scripts/cypress/integration/test/xcdb-gqlMisc.js"
                   wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
                   wait-on-timeout: 1200

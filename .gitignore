@@ -83,3 +83,4 @@ mongod
 # Cypress
 #=========
 shared.json
+/scripts/Cypress/screenshots

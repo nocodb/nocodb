@@ -1,0 +1,23 @@
+name: 'Sync changes back to develop branch from master'
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+  # Triggered by release-nocodb.yml
+  workflow_call:
+jobs:
+  close-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Merge from master to develop
+        uses: robotology/gh-action-nightly-merge@v1.3.1
+        with:
+          stable_branch: 'master'
+          development_branch: 'develop'
+          allow_ff: true
+          allow_forks: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,8 +7,6 @@ import {
     staticProjects,
     roles,
     isTestSuiteActive,
-    getPrimarySuite,
-    isSecondarySuite,
     getCurrentMode,
     isXcdb,
     setProjectString,
@@ -157,8 +155,8 @@ function prepareSqliteQuery(projId) {
     return sqliteQuery;
 }
 
-export const genTest = (type, xcdb) => {
-    if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+    if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Project pre-configurations`, () => {
         it("Admin SignUp", () => {
             cy.task("log", "This will be output to the terminal");
@@ -168,6 +166,7 @@ export const genTest = (type, xcdb) => {
 
         const createProject = (proj) => {
             it(`Create ${proj.basic.name} project`, () => {
+                cy.snip("ProjectPage");
                 // click home button
                 cy.get(".nc-noco-brand-icon").click();
 
@@ -182,7 +181,7 @@ export const genTest = (type, xcdb) => {
                         projectsPage.createProject(proj.basic, proj.config);
                     }
 
-                    if (xcdb) {
+                    if (dbType === "xcdb") {
                         // store base URL- to re-visit and delete form view later
                         let projId;
                         cy.url()
@@ -223,59 +222,24 @@ export const genTest = (type, xcdb) => {
         // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
         // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
 
-        if ("rest" == type) {
-            if (true == xcdb) {
+        if ("rest" === apiType) {
+            if ("xcdb" === dbType) {
                 createProject(staticProjects.sampleREST);
-            } else {
+            } else if (dbType === "mysql") {
                 createProject(staticProjects.externalREST);
+            } else if (dbType === "postgres") {
+                createProject(staticProjects.pgExternalREST);
             }
-        } else if ("graphql" == type) {
-            if (true == xcdb) {
+        } else if ("graphql" === apiType) {
+            if ("xcdb" === dbType) {
                 createProject(staticProjects.sampleGQL);
-            } else {
+            } else if (dbType === "mysql") {
                 createProject(staticProjects.externalGQL);
+            } else if (dbType === "postgres") {
+                createProject(staticProjects.pgExternalGQL);
             }
         }
     });
-
-    // describe('Static user creations (different roles)', () => {
-
-    //     beforeEach(() => {
-    //         loginPage.signIn(roles.owner.credentials)
-    //         projectsPage.openProject(getPrimarySuite().basic.name)
-    //     })
-
-    //     const addUser = (user) => {
-    //         it(`RoleType: ${user.name}`, () => {
-    //             mainPage.addNewUserToProject(user.credentials, user.name)
-    //         })
-    //     }
-
-    //     addUser(roles.creator)
-    //     addUser(roles.editor)
-    //     addUser(roles.commenter)
-    //     addUser(roles.viewer)
-    // })
-
-    // describe('Static users- add to other static projects', () => {
-
-    //     const addUserToProject = (proj) => {
-    //         it(`Add users to ${proj.basic.name}`, () => {
-    //             loginPage.signIn(roles.owner.credentials)
-    //             projectsPage.openProject(proj.basic.name)
-
-    //             mainPage.addExistingUserToProject(roles.creator.credentials.username, roles.creator.name)
-    //             mainPage.addExistingUserToProject(roles.editor.credentials.username, roles.editor.name)
-    //             mainPage.addExistingUserToProject(roles.commenter.credentials.username, roles.commenter.name)
-    //             mainPage.addExistingUserToProject(roles.viewer.credentials.username, roles.viewer.name)
-    //         })
-    //     }
-
-    //     if (isSecondarySuite('rest', true)) addUserToProject(staticProjects.sampleREST)
-    //     if (isSecondarySuite('graphql', true)) addUserToProject(staticProjects.sampleGQL)
-    //     if (isSecondarySuite('rest', false)) addUserToProject(staticProjects.externalREST)
-    //     if (isSecondarySuite('graphql', false)) addUserToProject(staticProjects.externalGQL)
-    // })
 };
 
 /**

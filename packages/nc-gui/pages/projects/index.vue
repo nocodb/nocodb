@@ -624,7 +624,7 @@
           v-if="!_isZh"
           dense
           target="_blank"
-          href="https://calendly.com/nocodb"
+          href="https://calendly.com/nocodb-meeting"
         >
           <v-list-item-icon>
             <v-icon

@@ -1,32 +1,32 @@
 const validations = {
   AVG: {
     validation: {
-      args: { min: 1 }
-    }
+      args: { min: 1 },
+    },
   },
   ADD: {
     validation: {
-      args: { min: 1 }
-    }
+      args: { min: 1 },
+    },
   },
   AND: {
     validation: {
-      args: { min: 1 }
-    }
+      args: { min: 1 },
+    },
   },
   OR: {
     validation: {
-      args: { min: 1 }
-    }
+      args: { min: 1 },
+    },
   },
   CONCAT: {
-    validation: { args: { min: 1 } }
+    validation: { args: { min: 1 } },
   },
   TRIM: {
-    validation: { args: { min: 1 } }
+    validation: { args: { min: 1 } },
   },
   UPPER: {
-    validation: { args: { rqd: 1 } }
+    validation: { args: { rqd: 1 } },
   },
   LOWER: { validation: { args: { rqd: 1 } } },
   LEN: { validation: { args: { rqd: 1 } } },
@@ -43,18 +43,18 @@ const validations = {
   SQRT: { validation: { args: { rqd: 1 } } },
   ABS: { validation: { args: { rqd: 1 } } },
   NOW: { validation: { args: { rqd: 0 } } },
-  REPLACE: { validation: { args: { rqd: 2 } } },
+  REPLACE: { validation: { args: { rqd: 3 } } },
   SEARCH: { validation: { args: { rqd: 2 } } },
   INT: { validation: { args: { rqd: 1 } } },
   RIGHT: { validation: { args: { rqd: 2 } } },
   LEFT: {
-    validation: { args: { rqd: 1 } }
+    validation: { args: { rqd: 1 } },
   },
   SUBSTR: { validation: { args: { min: 2, max: 3 } } },
   MID: { validation: { args: { rqd: 1 } } },
   IF: { validation: { args: { min: 2, max: 3 } } },
-  SWITCH: { validation: { args: { min: 3 } } }
-}
+  SWITCH: { validation: { args: { min: 3 } } },
+};
 
-export default Object.keys(validations)
-export { validations }
+export default Object.keys(validations);
+export { validations };

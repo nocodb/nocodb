@@ -2,12 +2,12 @@ import { mainPage } from "../../support/page_objects/mainPage";
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} Columns of type attachment`, () => {
+  describe(`${apiType.toUpperCase()} Columns of type attachment`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(type, xcdb);
+      loginPage.loginAndOpenProject(apiType, dbType);
       cy.openTableTab("Country", 25);
     });
 
@@ -91,7 +91,7 @@ export const genTest = (type, xcdb) => {
 
     it(`Filter column which contain only attachments, download CSV`, () => {
       // come back to main window
-      loginPage.loginAndOpenProject(type, xcdb);
+      loginPage.loginAndOpenProject(apiType, dbType);
       cy.openTableTab("Country", 25);
 
       mainPage.filterField("testAttach", "is not null", null);

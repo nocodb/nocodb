@@ -3,75 +3,78 @@ import { projectsPage } from "../../support/page_objects/navigation";
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import {
-  _advSettings,
-  _editSchema,
-  _editData,
-  _editComment,
-  _viewMenu,
-  _topRightMenu,
+    _advSettings,
+    _editSchema,
+    _editData,
+    _editComment,
+    _viewMenu,
+    _topRightMenu,
 } from "../spec/roleValidation.spec";
 
 let linkText = "";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+    if (!isTestSuiteActive(apiType, dbType)) return;
 
-  const permissionValidation = (roleType) => {
-    it(`${roleType}: Visit base shared URL`, () => {
-      cy.log(linkText);
+    const permissionValidation = (roleType) => {
+        it(`${roleType}: Visit base shared URL`, () => {
+            cy.log(linkText);
 
-      // visit URL & wait for page load to complete
-      cy.visit(linkText, {
-        baseUrl: null,
-      });
-      projectsPage.waitHomePageLoad();
+            // visit URL & wait for page load to complete
+            cy.visit(linkText, {
+                baseUrl: null,
+            });
+            projectsPage.waitHomePageLoad();
 
-      cy.closeTableTab("Actor");
-    });
+            cy.closeTableTab("Actor");
+        });
 
-    it(`${roleType}: Validate access permissions: advance menu`, () => {
-      _advSettings(roleType, false);
-    });
+        it(`${roleType}: Validate access permissions: advance menu`, () => {
+            _advSettings(roleType, false);
+        });
 
-    it(`${roleType}: Validate access permissions: edit schema`, () => {
-      _editSchema(roleType, false);
-    });
+        it(`${roleType}: Validate access permissions: edit schema`, () => {
+            _editSchema(roleType, false);
+        });
 
-    it(`${roleType}: Validate access permissions: edit data`, () => {
-      _editData(roleType, false);
-    });
+        it(`${roleType}: Validate access permissions: edit data`, () => {
+            _editData(roleType, false);
+        });
 
-    it(`${roleType}: Validate access permissions: edit comments`, () => {
-      _editComment(roleType, false);
-    });
+        it(`${roleType}: Validate access permissions: edit comments`, () => {
+            _editComment(roleType, false);
+        });
 
-    it(`${roleType}: Validate access permissions: view's menu`, () => {
-      _viewMenu(roleType, false);
-    });
-  };
+        it(`${roleType}: Validate access permissions: view's menu`, () => {
+            _viewMenu(roleType, false);
+        });
+    };
 
-  describe(`${type.toUpperCase()} Base VIEW share`, () => {
-    it(`Generate base share URL`, () => {
-      // click SHARE
-      cy.get(".nc-topright-menu").find(".nc-menu-share").click();
+    describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
+        it(`Generate base share URL`, () => {
+            // click SHARE
+            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
 
-      // Click on readonly base text
-      cy.getActiveModal().find(".nc-disable-shared-base").click();
+            cy.snipActiveModal("Modal_BaseShare");
 
-      // Select 'Readonly link'
-      cy.getActiveMenu()
-        .find(".caption")
-        .contains("Anyone with the link")
-        .click();
+            // Click on readonly base text
+            cy.getActiveModal().find(".nc-disable-shared-base").click();
 
-      // Copy URL
-      cy.getActiveModal()
-        .find(".nc-url")
-        .then(($obj) => {
-          cy.log($obj[0]);
-          linkText = $obj[0].innerText.trim();
+            // Select 'Readonly link'
+            cy.snipActiveMenu("Menu_ShareLink");
+            cy.getActiveMenu()
+                .find(".caption")
+                .contains("Anyone with the link")
+                .click();
 
-          const htmlFile = `
+            // Copy URL
+            cy.getActiveModal()
+                .find(".nc-url")
+                .then(($obj) => {
+                    cy.log($obj[0]);
+                    linkText = $obj[0].innerText.trim();
+
+                    const htmlFile = `
 <!DOCTYPE html>
 <html>
 <body>
@@ -87,55 +90,63 @@ style="background: transparent; "></iframe>
 </body>
 </html>
             `;
-          cy.writeFile(
-            "scripts/cypress/fixtures/sampleFiles/iFrame.html",
-            htmlFile
-          );
+                    cy.writeFile(
+                        "scripts/cypress/fixtures/sampleFiles/iFrame.html",
+                        htmlFile
+                    );
+                });
+        });
+
+        permissionValidation("viewer");
+
+        it("Update to EDITOR base share link", () => {
+            loginPage.loginAndOpenProject(apiType, dbType);
+
+            // click SHARE
+            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
+
+            cy.getActiveModal().find(".nc-shared-base-role").click();
+
+            cy.getActiveMenu()
+                .find('[role="menuitem"]')
+                .contains("Editor")
+                .click();
+        });
+
+        permissionValidation("editor");
+
+        it("Generate & verify embed HTML IFrame", { baseUrl: null }, () => {
+            // open iFrame html
+            cy.visit("scripts/cypress/fixtures/sampleFiles/iFrame.html");
+
+            // wait for iFrame to load
+            cy.frameLoaded(".nc-embed");
+
+            // for GQL- additionally close GQL Client window
+            if (apiType === "graphql") {
+                cy.iframe()
+                    .find(`[title="Graphql Client"] > button.mdi-close`)
+                    .click();
+            }
+
+            // validation for base menu opitons
+            cy.iframe().find(".nc-project-tree").should("exist");
+            cy.iframe().find(".nc-fields-menu-btn").should("exist");
+            cy.iframe().find(".nc-sort-menu-btn").should("exist");
+            cy.iframe().find(".nc-filter-menu-btn").should("exist");
+            cy.iframe().find(".nc-actions-menu-btn").should("exist");
+
+            // validate data (row-1)
+            mainPage
+                .getIFrameCell("FirstName", 1)
+                .contains("PENELOPE")
+                .should("exist");
+            mainPage
+                .getIFrameCell("LastName", 1)
+                .contains("GUINESS")
+                .should("exist");
         });
     });
-
-    permissionValidation("viewer");
-
-    it("Update to EDITOR base share link", () => {
-      loginPage.loginAndOpenProject(type, xcdb);
-
-      // click SHARE
-      cy.get(".nc-topright-menu").find(".nc-menu-share").click();
-
-      cy.getActiveModal().find(".nc-shared-base-role").click();
-
-      cy.getActiveMenu().find('[role="menuitem"]').contains("Editor").click();
-    });
-
-    permissionValidation("editor");
-
-    it("Generate & verify embed HTML IFrame", { baseUrl: null }, () => {
-      // open iFrame html
-      cy.visit("scripts/cypress/fixtures/sampleFiles/iFrame.html");
-
-      // wait for iFrame to load
-      cy.frameLoaded(".nc-embed");
-
-      // for GQL- additionally close GQL Client window
-      if (type === "graphql") {
-        cy.iframe().find(`[title="Graphql Client"] > button.mdi-close`).click();
-      }
-
-      // validation for base menu opitons
-      cy.iframe().find(".nc-project-tree").should("exist");
-      cy.iframe().find(".nc-fields-menu-btn").should("exist");
-      cy.iframe().find(".nc-sort-menu-btn").should("exist");
-      cy.iframe().find(".nc-filter-menu-btn").should("exist");
-      cy.iframe().find(".nc-actions-menu-btn").should("exist");
-
-      // validate data (row-1)
-      mainPage
-        .getIFrameCell("FirstName", 1)
-        .contains("PENELOPE")
-        .should("exist");
-      mainPage.getIFrameCell("LastName", 1).contains("GUINESS").should("exist");
-    });
-  });
 };
 
 /**

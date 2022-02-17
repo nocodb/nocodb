@@ -26,39 +26,39 @@ let t6e = require("../common/6e_project_operations");
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
-const nocoTestSuite = (type, xcdb) => {
+const nocoTestSuite = (apiType, dbType) => {
   if (0 == executionMode) {
-    t0.genTest(type, xcdb);
+    t0.genTest(apiType, dbType);
   } else {
-    t00.genTest(type, xcdb);
+    t00.genTest(apiType, dbType);
   }
 
-  t1a.genTest(type, xcdb);
-  t1b.genTest(type, xcdb);
-  // merged with t1b: t1c.genTest(type, xcdb)
-  t2a.genTest(type, xcdb);
-  t2b.genTest(type, xcdb);
-  t3a.genTest(type, xcdb);
-  t3b.genTest(type, xcdb);
-  t3c.genTest(type, xcdb);
-  t3d.genTest(type, xcdb);
-  t4a.genTest(type, xcdb);
-  t4b.genTest(type, xcdb);
-  t4c.genTest(type, xcdb);
-  t4d.genTest(type, xcdb);
-  t4e.genTest(type, xcdb);
-  t4f.genTest(type, xcdb);
-  t5a.genTest(type, xcdb);
-  t5b.genTest(type, xcdb);
-  // merged with t1a: t6a.genTest(type, xcdb)
-  t6c.genTest(type, xcdb);
-  t6d.genTest(type, xcdb);
+  t1a.genTest(apiType, dbType);
+  t1b.genTest(apiType, dbType);
+  // merged with t1b: t1c.genTest(apiType, dbType)
+  t2a.genTest(apiType, dbType);
+  t2b.genTest(apiType, dbType);
+  t3a.genTest(apiType, dbType);
+  t3b.genTest(apiType, dbType);
+  t3c.genTest(apiType, dbType);
+  t3d.genTest(apiType, dbType);
+  t4a.genTest(apiType, dbType);
+  t4b.genTest(apiType, dbType);
+  t4c.genTest(apiType, dbType);
+  t4d.genTest(apiType, dbType);
+  t4e.genTest(apiType, dbType);
+  t4f.genTest(apiType, dbType);
+  t5a.genTest(apiType, dbType);
+  t5b.genTest(apiType, dbType);
+  // merged with t1a: t6a.genTest(apiType, dbType)
+  t6c.genTest(apiType, dbType);
+  t6d.genTest(apiType, dbType);
   // **deletes created project, hence place it @ end
-  t6e.genTest(type, xcdb);
+  t6e.genTest(apiType, dbType);
 };
 
-nocoTestSuite("rest", false);
-// nocoTestSuite('graphql', false)
+nocoTestSuite("rest", "mysql");
+// nocoTestSuite('graphql', "mysql")
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

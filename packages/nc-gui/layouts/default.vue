@@ -47,7 +47,7 @@
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 
-                <a class="align-self-center" style="" target="_blank" href="https://calendly.com/nocodb">
+                <a class="align-self-center" style="" target="_blank" href="https://calendly.com/nocodb-meeting">
 
                   <x-icon size="20" tooltip="Book a free demo" color="white" icon.class="mr-3">mdi-calendar-month</x-icon>
 

@@ -76,7 +76,7 @@
           <v-list-item
             dense
             target="_blank"
-            href="https://calendly.com/nocodb"
+            href="https://calendly.com/nocodb-meeting"
           >
             <!-- Book a Free DEMO -->
             <v-list-item-title>

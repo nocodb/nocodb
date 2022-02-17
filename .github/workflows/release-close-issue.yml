@@ -1,0 +1,34 @@
+name: 'Close Issues with Labels'
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      issue_label:
+        description: "All issues with such label will be closed"
+        required: true
+      version:
+        description: "Which version is this issue fixed in"
+        required: true
+  # Triggered by release-nocodb.yml
+  workflow_call:
+    inputs:
+      issue_label:
+        description: "All issues with such label will be closed"
+        required: true
+        type: string
+      version:
+        description: "Which version is this issue fixed in"
+        required: true
+        type: string
+jobs:
+  close-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: close-resolved-issues
+        uses: wingkwong/close-issues-based-on-label@master
+        env:
+          LABEL: ${{ github.event.inputs.issue_label || inputs.issue_label }}
+          VERSION: ${{ github.event.inputs.version || inputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

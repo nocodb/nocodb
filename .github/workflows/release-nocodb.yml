@@ -1,0 +1,52 @@
+name: 'NocoDB Release'
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Target Tag"
+        required: true
+      prev_tag:
+        description: "Previous Tag"
+        required: true
+jobs:
+  # Close all issues with target tags 'Fixed' & 'Resolved'
+  close-fixed-issues:
+    needs: release-npm
+    uses: ./.github/workflows/release-close-issue.yml
+    with:
+      issue_label: 'Fixed'
+      version: ${{ github.event.inputs.tag }}
+  close-resolved-issues:
+    needs: close-fixed-issues
+    uses: ./.github/workflows/release-close-issue.yml
+    with:
+      issue_label: 'Resolved'
+      version: ${{ github.event.inputs.tag }}
+
+  # Build, install, publish frontend and backend to npm
+  release-npm:
+    uses: ./.github/workflows/release-npm.yml
+    with:
+      tag: ${{ github.event.inputs.tag }}
+
+  # Draft Release Note
+  release-draft-note:
+    needs: close-issues
+    uses: ./.github/workflows/release-draft.yml
+    with:
+      tag: ${{ github.event.inputs.tag }}
+      prev_tag: ${{ github.event.inputs.prev_tag }}
+
+  # Build docker image and push to docker hub
+  release-docker:
+    needs: release-draft-note
+    uses: ./.github/workflows/release-docker.yml
+    with:
+      tag: ${{ github.event.inputs.tag }}
+
+  # Sync changes to develop
+  sync-to-develop:
+    needs: release-docker
+    uses: ./.github/workflows/sync-to-develop.yml

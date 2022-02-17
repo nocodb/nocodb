@@ -1,4 +1,4 @@
-name: 'Sync changes back to develop branch'
+name: 'Sync changes back to develop branch from master'
 
 on:
   # Triggered manually
@@ -9,12 +9,15 @@ jobs:
   close-issues:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout
+        uses: actions/checkout@v1
 
-      - name: Merge master -> develop
-        uses: devmasx/merge-branch@master
+      - name: Merge from master to develop
+        uses: robotology/gh-action-nightly-merge@v1.3.1
         with:
-          type: now
-          from_branch: master
-          target_branch: develop
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          stable_branch: 'master'
+          development_branch: 'develop'
+          allow_ff: true
+          allow_forks: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

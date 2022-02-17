@@ -15,13 +15,13 @@ jobs:
   close-fixed-issues:
     uses: ./.github/workflows/release-close-issue.yml
     with:
-      issue_label: 'Fixed'
+      issue_label: 'Status: Fixed'
       version: ${{ github.event.inputs.tag }}
   close-resolved-issues:
     needs: close-fixed-issues
     uses: ./.github/workflows/release-close-issue.yml
     with:
-      issue_label: 'Resolved'
+      issue_label: 'Status: Resolved'
       version: ${{ github.event.inputs.tag }}
 
   # Build, install, publish frontend and backend to npm

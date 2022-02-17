@@ -9,7 +9,7 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             //loginPage.signIn(roles.owner.credentials)
             mainPage.toolBarTopLeft(mainPage.HOME).click();
-            cy.screenshot("6d-1");
+            cy.screenshot("Debug 6d-1", { overwrite: true });
         });
 
         const langVerification = (idx, lang) => {
@@ -19,9 +19,12 @@ export const genTest = (apiType, dbType) => {
 
                 // toggle menu as per index
                 cy.get(".nc-menu-translate").click();
+
+                cy.snipActiveMenu("Menu_Translation");
+
                 cy.getActiveMenu().find(".v-list-item").eq(idx).click();
 
-                cy.screenshot("6d-2");
+                cy.screenshot("Debug 6d-2", { overwrite: true });
 
                 // basic validations
                 // 1. Page title: "My Projects"

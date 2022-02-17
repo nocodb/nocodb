@@ -89,6 +89,9 @@ export class _mainPage {
 
         // click on New User button, feed details
         cy.get('button:contains("New User")').first().click();
+
+        cy.snip("NewUser");
+
         cy.get('label:contains("Email")')
             .next("input")
             .type(userCred.username)
@@ -96,12 +99,14 @@ export class _mainPage {
         cy.get('label:contains("Select User roles")').click();
 
         // opt-in requested role & submit
+        cy.snipActiveMenu("Menu_RoleType");
         cy.getActiveMenu().contains(roleType).click();
         cy.get(".nc-invite-or-save-btn").click();
 
         cy.toastWait("Successfully updated the user details");
 
         // get URL, invoke
+        cy.snipActiveModal("Modal_NewUserURL");
         cy.getActiveModal()
             .find(".v-alert")
             .then(($obj) => {
@@ -257,6 +262,9 @@ export class _mainPage {
     hideField = (field) => {
         cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
         cy.get(".nc-fields-menu-btn").click();
+
+        cy.snipActiveMenu("Menu_HideField");
+
         cy.get(
             `.menuable__content__active .v-list-item label:contains(${field})`
         ).click();
@@ -277,11 +285,16 @@ export class _mainPage {
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
         cy.contains("Add Sort Option").click();
+
+        cy.snipActiveMenu("Menu_SortField");
+
         cy.get(".nc-sort-field-select div").first().click();
+        cy.snipActiveMenu("Menu_SortField_fieldSelection");
         cy.get(`.menuable__content__active .v-list-item:contains(${field})`)
             .first()
             .click();
         cy.get(".nc-sort-dir-select div").first().click();
+        cy.snipActiveMenu("Menu_SortField_criteriaSelection");
         cy.get(
             `.menuable__content__active .v-list-item:contains(${criteria})`
         ).click();
@@ -297,13 +310,18 @@ export class _mainPage {
     filterField = (field, operation, value) => {
         cy.get(".nc-filter-menu-btn").click();
         cy.contains("Add Filter").click();
+        cy.snipActiveMenu("Menu_FilterField");
 
         cy.get(".nc-filter-field-select").last().click();
+        cy.snipActiveMenu("Menu_FilterField-fieldSelect");
+
         cy.getActiveMenu()
             .find(`.v-list-item:contains(${field})`)
             .first()
             .click();
         cy.get(".nc-filter-operation-select").last().click();
+        cy.snipActiveMenu("Menu_FilterField-operationSelect");
+
         cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click();
         if (operation != "is null" && operation != "is not null") {
             cy.get(".nc-filter-value-select input:text")
@@ -343,6 +361,8 @@ export class _mainPage {
         // cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
         this.shareViewList().click();
 
+        cy.snipActiveModal("Modal_ShareViewList");
+
         cy.wait(1000);
 
         // cy.get('.container').find('button.mdi-delete-outline')
@@ -379,6 +399,7 @@ export class _mainPage {
     //
     downloadAndVerifyCsv = (filename, verifyCsv) => {
         cy.get(".nc-actions-menu-btn").click();
+        cy.snipActiveMenu("Menu_ActionsMenu");
         cy.get(
             `.menuable__content__active .v-list-item span:contains("Download as CSV")`
         ).click();
@@ -422,6 +443,9 @@ export class _mainPage {
         // open Project metadata tab
         //
         this.navigationDraw(this.PROJ_METADATA).click();
+
+        cy.snip("Meta_Tab0");
+
         cy.get(".nc-meta-mgmt-metadata-tab")
             .should("exist")
             .click({ force: true });
@@ -429,6 +453,8 @@ export class _mainPage {
         cy.get(".nc-meta-mgmt-metadata-tab")
             .should("exist")
             .click({ force: true });
+
+        cy.snip("Meta_Tab1");
     }
 
     closeMetaTab() {

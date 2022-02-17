@@ -34,6 +34,8 @@ export const genTest = (apiType, dbType) => {
         it("Open Audit tab", () => {
             mainPage.navigationDraw(mainPage.AUDIT).click();
 
+            cy.snip("AuditPage");
+
             // wait for column headers to appear
             //
             cy.get("thead > tr > th.caption").should("have.length", 5);

@@ -87,6 +87,8 @@ export const genTest = (apiType, dbType) => {
             // click on 'Grid/Gallery' button on Views bar
             cy.get(`.nc-create-${viewType}-view`).click();
 
+            cy.snipActiveModal(`Modal_createView_${viewType}`);
+
             // Pop up window, click Submit (accepting default name for view)
             cy.getActiveModal().find("button:contains(Submit)").click();
 

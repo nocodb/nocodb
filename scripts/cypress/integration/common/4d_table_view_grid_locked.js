@@ -25,6 +25,7 @@ export const genTest = (apiType, dbType) => {
         // on menu, collaboration view appears first (at index 0)
         // followed by Locked view (at index 1)
         cy.get(".xc-toolbar").find(".nc-view-lock-menu:enabled").click();
+        cy.snipActiveMenu("Menu_Collaboration")
         cy.getActiveMenu().find('[role="menuitem"]').eq(menuOption).click();
 
         // expected toolbar for Lock view: Only lock-view menu, reload, toggle-nav-drawer to be enabled

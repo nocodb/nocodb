@@ -166,6 +166,7 @@ export const genTest = (apiType, dbType) => {
 
         const createProject = (proj) => {
             it(`Create ${proj.basic.name} project`, () => {
+                cy.snip("ProjectPage");
                 // click home button
                 cy.get(".nc-noco-brand-icon").click();
 

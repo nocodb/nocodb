@@ -10,12 +10,17 @@ const generateLinkWithPwd = () => {
   //   .contains("Share View")
   //   .click();
   mainPage.shareView().click();
+
+  cy.snipActiveModal("Modal_ShareView")
   
   // enable checkbox & feed pwd, save
   cy.getActiveModal()
     .find('[role="switch"][type="checkbox"]')
     .click({ force: true });
   cy.getActiveModal().find('input[type="password"]').type("1");
+
+  cy.snipActiveModal("Modal_ShareView_Password");
+
   cy.getActiveModal().find('button:contains("Save password")').click();
 
   cy.toastWait("Successfully updated");

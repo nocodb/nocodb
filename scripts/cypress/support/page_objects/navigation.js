@@ -141,6 +141,8 @@ export class _projectsPage {
                 cy.contains("GRAPHQL APIs").closest("label").click();
             }
 
+            cy.snip("XcdbCreate");
+
             // Submit
             cy.contains("button", "Create", { timeout: 20000 }).click();
 
@@ -211,14 +213,20 @@ export class _projectsPage {
                     .clear()
                     .type(cred.databaseName);
 
+            cy.snip("ExtDbCreate");
+
             // Test database connection
             cy.contains("Test Database Connection", { timeout: 20000 }).click();
+
+            cy.snipActiveModal("Modal_OK_SaveProject");
 
             // Create project
             cy.contains("Ok & Save Project", { timeout: 20000 }).click();
 
             // takes a while to load project
             this.waitHomePageLoad();
+
+            cy.snip("Team&Auth_UserMgmt");
 
             return projectName;
         }

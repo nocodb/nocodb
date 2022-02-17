@@ -56,11 +56,13 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
                 if ($body.find(".welcome-page").length > 0) {
                     cy.wait(8000);
                     cy.get("body").trigger("mousemove");
+                    cy.snip("LetsBegin");
                     cy.contains("Let's Begin").click();
                     cy.get('input[type="text"]', { timeout: 12000 }).type(
                         args.username
                     );
                     cy.get('input[type="password"]').type(args.password);
+                    cy.snip("SignUp");
                     cy.get('button:contains("SIGN UP")').click();
 
                     // handle signin
@@ -69,6 +71,7 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
                         args.username
                     );
                     cy.get('input[type="password"]').type(args.password);
+                    cy.snip("SignIn");
                     cy.get('button:contains("SIGN IN")').click();
                 }
             }
@@ -86,6 +89,7 @@ Cypress.Commands.add("openOrCreateRestProject", (_args) => {
     // signin/signup
     cy.signinOrSignup();
     cy.get(".nc-new-project-menu").should("exist");
+    cy.snip("ProjectPage");
     cy.get("body").then(($body) => {
         const filter = args.meta
             ? ".nc-meta-project-row"
@@ -164,6 +168,8 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
     if (rc != 0) {
         cy.get(".nc-grid-row").should("have.length", rc);
     }
+
+    cy.snip(`GridView_${tn}`);
 });
 
 Cypress.Commands.add("closeTableTab", (tn) => {
@@ -254,6 +260,9 @@ Cypress.Commands.add("createTable", (name) => {
     //     .should("have.value", name.toLowerCase());
     // }
 
+    cy.snip("CreateTable");
+    cy.snipActiveModal("Modal_CreateTable");
+
     cy.get(".nc-create-table-card .nc-create-table-submit").first().click();
     cy.toastWait(`Create table successful`);
     cy.get(`.project-tab:contains(${name})`).should("exist");
@@ -271,6 +280,7 @@ Cypress.Commands.add("deleteTable", (name, dbType) => {
         .click({ force: true });
     cy.get(`.project-tab:contains(${name}):visible`).should("exist");
     cy.get(".nc-table-delete-btn:visible").click();
+    cy.snipActiveModal("Modal_DeleteTable");
     cy.get("button:contains(Submit)").click();
 
     // only for postgre project
@@ -301,6 +311,7 @@ Cypress.Commands.add("renameTable", (oldName, newName) => {
     // feed new name
     cy.getActiveContentModal().find("input").clear().type(newName);
 
+    cy.snipActiveModal("Modal_RenameTable");
     // submit
     cy.getActiveContentModal().find("button").contains("Submit").click();
 
@@ -327,6 +338,7 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
         force: true,
     });
     cy.get(".nc-column-name-input input").clear().type(columnName);
+    cy.getActiveMenu("Menu_CreateColumn");
     cy.get(".nc-col-create-or-edit-card").contains("Save").click();
     cy.get("th:contains(new_column)").should("exist");
 });
@@ -373,6 +385,58 @@ Cypress.Commands.add("closeViewsTab", (vn) => {
     cy.get(`[href="#view||db||${vn}"]`)
         .find("button.mdi-close")
         .click({ force: true });
+});
+
+// Support for screen-shots
+//
+
+let screenShotDb = [];
+
+// snip entire screen
+Cypress.Commands.add("snip", (filename) => {
+    if (
+        true === Cypress.env("screenshot") &&
+        false === screenShotDb.includes(filename)
+    ) {
+        let storeName = `${screenShotDb.length}_${filename}`;
+        screenShotDb.push(filename);
+        cy.wait(1000);
+        cy.screenshot(storeName, { overwrite: true });
+    }
+});
+
+// snip current modal
+Cypress.Commands.add("snipActiveModal", (filename) => {
+    if (
+        true === Cypress.env("screenshot") &&
+        false === screenShotDb.includes(filename)
+    ) {
+        let storeName = `${screenShotDb.length}_${filename}`;
+        screenShotDb.push(filename);
+        cy.wait(1000);
+        // cy.getActiveModal().screenshot(filename, {
+        //     padding: 0,
+        //     overwrite: true,
+        // });
+        cy.screenshot(storeName, { overwrite: true });
+    }
+});
+
+// snip current menu
+Cypress.Commands.add("snipActiveMenu", (filename) => {
+    if (
+        true === Cypress.env("screenshot") &&
+        false === screenShotDb.includes(filename)
+    ) {
+        let storeName = `${screenShotDb.length}_${filename}`;
+        screenShotDb.push(filename);
+        cy.wait(1000);
+        // cy.getActiveMenu().screenshot(filename, {
+        //     padding: 0,
+        //     overwrite: true,
+        // });
+        cy.screenshot(storeName, { overwrite: true });
+    }
 });
 
 // Drag n Drop

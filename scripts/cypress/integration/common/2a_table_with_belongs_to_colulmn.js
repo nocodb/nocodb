@@ -1,60 +1,72 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
-  if (!isTestSuiteActive(apiType, dbType)) return;
+    if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
-    before(() => {
-      cy.openTableTab("Country", 25);
-    });
+    describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
+        before(() => {
+            cy.openTableTab("Country", 25);
+        });
 
-    after(() => {
-      cy.closeTableTab("Country");
-    });
+        after(() => {
+            cy.closeTableTab("Country");
+        });
 
-    it("Table column header, URL validation", () => {
-      // column name validation
-      cy.get(`.project-tab:contains(Country):visible`).should("exist");
-      // URL validation
-      cy.url().should("contain", `name=Country`);
-    });
+        it("Table column header, URL validation", () => {
+            // column name validation
+            cy.get(`.project-tab:contains(Country):visible`).should("exist");
+            // URL validation
+            cy.url().should("contain", `name=Country`);
+        });
 
-    it("Expand belongs-to column", () => {
-      // expand first row
-      cy.get('td[data-col="Country => City"] div:visible', { timeout: 12000 })
-        .first()
-        .click();
-      cy.get('td[data-col="Country => City"] div .mdi-arrow-expand:visible')
-        .first()
-        .click();
-    });
+        it("Expand belongs-to column", () => {
+            // expand first row
+            cy.get('td[data-col="Country => City"] div:visible', {
+                timeout: 12000,
+            })
+                .first()
+                .click();
+            cy.get(
+                'td[data-col="Country => City"] div .mdi-arrow-expand:visible'
+            )
+                .first()
+                .click();
 
-    it("Expand Link record, validate", () => {
-      cy.getActiveModal()
-        .find("button:contains(Link to 'City')")
-        .click()
-        .then(() => {
-          // Link record form validation
-          cy.getActiveModal().contains("Link Record").should("exist");
-          cy.getActiveModal().find("button.mdi-reload").should("exist");
-          cy.getActiveModal()
-            .find('button:contains("New Record")')
-            .should("exist");
-          cy.getActiveModal()
-            .find(".child-card")
-            .eq(0)
-            .contains("A Corua (La Corua)")
-            .should("exist");
+            cy.snipActiveModal("Modal_BelongsTo");
+        });
 
-          cy.getActiveModal()
-            .find("button.mdi-close")
-            .click()
-            .then(() => {
-              cy.getActiveModal().find("button.mdi-close").click();
-            });
+        it("Expand Link record, validate", () => {
+            cy.getActiveModal()
+                .find("button:contains(Link to 'City')")
+                .click()
+                .then(() => {
+                    cy.snipActiveModal("Modal_BT_LinkRecord");
+
+                    // Link record form validation
+                    cy.getActiveModal().contains("Link Record").should("exist");
+                    cy.getActiveModal()
+                        .find("button.mdi-reload")
+                        .should("exist");
+                    cy.getActiveModal()
+                        .find('button:contains("New Record")')
+                        .should("exist");
+                    cy.getActiveModal()
+                        .find(".child-card")
+                        .eq(0)
+                        .contains("A Corua (La Corua)")
+                        .should("exist");
+
+                    cy.getActiveModal()
+                        .find("button.mdi-close")
+                        .click()
+                        .then(() => {
+                            cy.getActiveModal()
+                                .find("button.mdi-close")
+                                .click();
+                        });
+                });
         });
     });
-  });
 };
 
 /**

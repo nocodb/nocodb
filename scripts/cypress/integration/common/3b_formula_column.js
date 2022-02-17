@@ -49,6 +49,9 @@ export const genTest = (apiType, dbType) => {
 
             // Column data type: to be set to formula in this context
             cy.get(".nc-ui-dt-dropdown").click().type("Formula");
+
+            cy.snipActiveMenu("Formula");
+
             cy.getActiveMenu().contains("Formula").click({ force: true });
 
             // Configure formula

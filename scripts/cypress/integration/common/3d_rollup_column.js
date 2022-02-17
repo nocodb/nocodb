@@ -55,6 +55,8 @@ export const genTest = (apiType, dbType) => {
       fetchParentFromLabel("Aggregate function");
       cy.getActiveMenu().contains(aggregateFunc).click();
 
+      cy.snipActiveMenu("RollUp");
+
       // click on Save
       cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 

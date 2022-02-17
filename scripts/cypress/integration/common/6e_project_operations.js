@@ -3,69 +3,78 @@ import { isXcdb, roles } from "../../support/page_objects/projectConstants";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
-  describe(`${apiType.toUpperCase()} Project operations`, () => {
-    if (!isTestSuiteActive(apiType, dbType)) return;
+    describe(`${apiType.toUpperCase()} Project operations`, () => {
+        if (!isTestSuiteActive(apiType, dbType)) return;
 
-    before(() => {
-      loginPage.signIn(roles.owner.credentials);
+        before(() => {
+            loginPage.signIn(roles.owner.credentials);
+        });
+
+        it("Stop Project", () => {
+            //cy.visit('./#/projects')
+            cy.get(`.nc-${apiType}-project-row .mdi-stop-circle-outline`, {
+                timeout: 10000,
+            })
+                .should("exist")
+                .last()
+                .invoke("show")
+                .click();
+            cy.snipActiveModal("Modal_StopProject");
+            cy.contains("Submit").closest("button").click();
+
+            cy.toastWait("stopped successfully");
+        });
+
+        it("Start Project", () => {
+            //cy.visit('./#/projects')
+            cy.get(`.nc-${apiType}-project-row .mdi-play-circle-outline`, {
+                timeout: 10000,
+            })
+                .should("exist")
+                .last()
+                .invoke("show")
+                .click();
+            cy.snipActiveModal("Modal_StartProject");
+
+            cy.contains("Submit").closest("button").click();
+
+            cy.toastWait("started successfully");
+        });
+
+        it("Restart Project", () => {
+            if (!isXcdb()) {
+                //cy.visit('./#/projects')
+                cy.get(`.nc-${apiType}-project-row .mdi-restart`, {
+                    timeout: 10000,
+                })
+                    .should("exist")
+                    .last()
+                    .invoke("show")
+                    .click();
+                cy.snipActiveModal("Modal_RestartProject");
+
+                cy.contains("Submit").closest("button").click();
+
+                cy.toastWait("restarted successfully");
+            }
+        });
+
+        it("Delete Project", () => {
+            //cy.visit('./#/projects')
+            cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
+                timeout: 10000,
+            })
+                .should("exist")
+                .last()
+                .invoke("show")
+                .click();
+            cy.snipActiveModal("Modal_DeleteProject");
+
+            cy.contains("Submit").closest("button").click();
+
+            cy.toastWait("deleted successfully");
+        });
     });
-
-    it("Stop Project", () => {
-      //cy.visit('./#/projects')
-      cy.get(`.nc-${apiType}-project-row .mdi-stop-circle-outline`, {
-        timeout: 10000,
-      })
-        .should("exist")
-        .last()
-        .invoke("show")
-        .click();
-      cy.contains("Submit").closest("button").click();
-
-      cy.toastWait("stopped successfully");
-    });
-
-    it("Start Project", () => {
-      //cy.visit('./#/projects')
-      cy.get(`.nc-${apiType}-project-row .mdi-play-circle-outline`, {
-        timeout: 10000,
-      })
-        .should("exist")
-        .last()
-        .invoke("show")
-        .click();
-      cy.contains("Submit").closest("button").click();
-
-      cy.toastWait("started successfully");
-    });
-
-    it("Restart Project", () => {
-      if (!isXcdb()) {
-        //cy.visit('./#/projects')
-        cy.get(`.nc-${apiType}-project-row .mdi-restart`, { timeout: 10000 })
-          .should("exist")
-          .last()
-          .invoke("show")
-          .click();
-        cy.contains("Submit").closest("button").click();
-
-        cy.toastWait("restarted successfully");
-      }
-    });
-
-    it("Delete Project", () => {
-      //cy.visit('./#/projects')
-      cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
-        timeout: 10000,
-      })
-        .should("exist")
-        .last()
-        .invoke("show")
-        .click();
-      cy.contains("Submit").closest("button").click();
-
-      cy.toastWait("deleted successfully");
-    });
-  });
 };
 
 /**

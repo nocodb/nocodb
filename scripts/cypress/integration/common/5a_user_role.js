@@ -62,6 +62,8 @@ export const genTest = (apiType, dbType) => {
             cy.get(".nc-exp-imp-metadata").dblclick({ force: true });
             cy.get(".nc-ui-acl-tab").click({ force: true });
 
+            cy.snip("Meta_Tab3");
+
             // validate if it has 19 entries representing tables & views
             if (isPostgres())
                 cy.get(".nc-acl-table-row").should("have.length", 24);

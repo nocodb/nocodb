@@ -9,12 +9,10 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             // loginPage.loginAndOpenProject(type)
             cy.openTableTab("Country", 25);
-            cy.screenshot("6b-before");
         });
 
         after(() => {
             cy.closeTableTab("Country");
-            cy.screenshot("6b-after");
         });
 
         it("Download verification- base view, default columns", () => {

@@ -122,7 +122,7 @@ export default {
     validateColumnName(v) {
       if (this.column.hm || this.column.mm || this.column.bt || this.column.lk) { return true }
 
-      return validateColumnName(v)
+      return validateColumnName(v, this.$store.getters['project/GtrProjectIsGraphql'])
     }
   }
 }

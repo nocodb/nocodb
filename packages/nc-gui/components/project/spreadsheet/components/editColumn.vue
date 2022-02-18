@@ -455,7 +455,6 @@ export default {
     value: Boolean
   },
   data: () => ({
-    validateColumnName,
     valid: false,
     relationDeleteDlg: false,
     newColumn: {},
@@ -516,6 +515,9 @@ export default {
     this.focusInput()
   },
   methods: {
+    validateColumnName(v) {
+      return validateColumnName(v, this.$store.getters['project/GtrProjectIsGraphql'])
+    },
     onRelColumnSelect(colMeta) {
       Object.assign(this.newColumn, {
         dt: colMeta.dt,

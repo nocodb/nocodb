@@ -751,7 +751,6 @@ export default {
       disabled: false,
       ghostClass: "ghost"
     },
-    validateTableName,
     roleIcon: {
       owner: 'mdi-account-star',
       creator: 'mdi-account-hard-hat',
@@ -1767,6 +1766,9 @@ export default {
           heading: null,
         };
       }
+    },
+    validateTableName(v) {
+      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
     },
   },
   async created() {

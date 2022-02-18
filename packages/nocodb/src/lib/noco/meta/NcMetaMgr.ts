@@ -441,7 +441,9 @@ export default class NcMetaMgr {
       for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
         if (fs.existsSync(path.join(metaFolder, `${tn}.json`))) {
           const data = JSON.parse(
-            fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8')
+            fs
+              .readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8')
+              .replace(new RegExp(args.sourceProjectId, 'g'), args.project_id)
           );
           for (const row of data) {
             delete row.id;
@@ -584,6 +586,7 @@ export default class NcMetaMgr {
       // }
 
       args.project_id = projectId;
+      args.sourceProjectId = projectDetails.id;
 
       await this.xcMetaTablesImportLocalFsToDb(args, req);
       this.xcMeta.audit(projectId, null, 'nc_audit', {

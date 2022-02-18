@@ -341,6 +341,8 @@
 
                     </span>
                   </v-tooltip>
+                  <br>
+                  <a href="https://docs.nocodb.com/developer-resources/webhooks/">Document Reference</a>                  
                 </span>
               </v-card-text>
             </v-card>

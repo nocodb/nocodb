@@ -24,7 +24,8 @@ const nocoTestSuite = (apiType, dbType) => {
     }
 
     t6b.genTest(apiType, dbType);
-    t6d.genTest(apiType, dbType);
+    // language validation kept common under REST MISC Suite
+    // t6d.genTest(apiType, dbType);
     t6c.genTest(apiType, dbType);
     t6f.genTest(apiType, dbType);
     t6g.genTest(apiType, dbType);

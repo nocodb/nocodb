@@ -38,19 +38,19 @@ export const genTest = (apiType, dbType) => {
 
             validateTreeField(7, "Actor");
 
-            // move ActorInfo (View) field up to first place (drag, drop)
-            cy.get(".nc-child-draggable-icon-ActorInfo").drag(
-                ".nc-child-draggable-icon-Address"
-            );
+            // // move ActorInfo (View) field up to first place (drag, drop)
+            // cy.get(".nc-child-draggable-icon-ActorInfo").drag(
+            //     ".nc-child-draggable-icon-Address"
+            // );
 
-            validateTreeField(1, "ActorInfo");
-            validateTreeField(2, "Address");
-            validateTreeField(8, "Actor");
+            // validateTreeField(1, "ActorInfo");
+            // validateTreeField(2, "Address");
+            // validateTreeField(8, "Actor");
 
-            // restore ActorInfo field (drag, drop)
-            cy.get(".nc-child-draggable-icon-ActorInfo").drag(
-                ".nc-child-draggable-icon-Staff"
-            );
+            // // restore ActorInfo field (drag, drop)
+            // cy.get(".nc-child-draggable-icon-ActorInfo").drag(
+            //     ".nc-child-draggable-icon-Staff"
+            // );
 
             // restore Actor field (drag, drop)
             cy.get(".nc-child-draggable-icon-Actor").drag(
@@ -59,15 +59,6 @@ export const genTest = (apiType, dbType) => {
 
             validateTreeField(1, "Actor");
             validateTreeField(2, "Address");
-            if (isPostgres()) {
-                validateTreeField(17, "Staff");
-                validateTreeField(18, "ActorInfo");
-                validateTreeField(19, "CustomerList");
-            } else {
-                validateTreeField(12, "Staff");
-                validateTreeField(13, "ActorInfo");
-                validateTreeField(14, "CustomerList");
-            }
 
             // undo project-tree expand operation
             cy.get(".nc-project-tree")

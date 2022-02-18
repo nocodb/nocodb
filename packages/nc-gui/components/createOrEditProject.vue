@@ -1098,15 +1098,15 @@ export default {
                   user: 'postgres',
                   password: 'password',
                   database: '_dev',
-                  connectTimeout: 180000,
-                  requestTimeout: 180000,
+                  connectTimeout: 60000,
+                  requestTimeout: 60000,
                   ssl: {
                     ca: '',
                     key: '',
                     cert: ''
                   }
                 },
-                acquireConnectionTimeout: 180000,
+                acquireConnectionTimeout: 60000,
                 meta: {
                   tn: 'nc_evolutions',
                   dbAlias: 'db',
@@ -1169,8 +1169,8 @@ export default {
           user: 'postgres',
           password: 'password',
           database: '_test',
-          connectTimeout: 180000,
-          requestTimeout: 180000,          
+          connectTimeout: 60000,
+          requestTimeout: 60000,
           ssl: {
             ca: '',
             key: '',
@@ -1183,8 +1183,8 @@ export default {
           user: 'root',
           password: 'password',
           database: '_test',
-          connectTimeout: 180000,
-          requestTimeout: 180000,          
+          connectTimeout: 60000,
+          requestTimeout: 60000,
           ssl: {
             ca: '',
             key: '',
@@ -1196,7 +1196,7 @@ export default {
           port: '15306',
           user: 'root',
           password: 'password',
-          database: '_test',       
+          database: '_test',
           ssl: {
             ca: '',
             key: '',
@@ -1208,7 +1208,7 @@ export default {
           port: '4000',
           user: 'root',
           password: '',
-          database: '_test',       
+          database: '_test',
           ssl: {
             ca: '',
             key: '',
@@ -1269,8 +1269,8 @@ export default {
           user: 'sa',
           password: 'Password123.',
           database: '_test',
-          connectTimeout: 180000,
-          requestTimeout: 180000,          
+          connectTimeout: 60000,
+          requestTimeout: 60000,
           ssl: {
             ca: '',
             key: '',

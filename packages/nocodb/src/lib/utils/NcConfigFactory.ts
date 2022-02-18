@@ -164,13 +164,15 @@ export default class NcConfigFactory implements NcConfig {
           password:
             url.searchParams.get('p') || url.searchParams.get('password'),
           port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user')
+          user: url.searchParams.get('u') || url.searchParams.get('user'),
+          connectTimeout: url.searchParams.get('connectTimeout') || 60000,
+          requestTimeout: url.searchParams.get('requestTimeout') || 60000
         },
         // pool: {
         //   min: 1,
         //   max: 1
         // },
-        acquireConnectionTimeout: 600000
+        acquireConnectionTimeout: 60000
       } as any;
 
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
@@ -268,9 +270,11 @@ export default class NcConfigFactory implements NcConfig {
           password:
             url.searchParams.get('p') || url.searchParams.get('password'),
           port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user')
+          user: url.searchParams.get('u') || url.searchParams.get('user'),
+          connectTimeout: url.searchParams.get('connectTimeout') || 60000,
+          requestTimeout: url.searchParams.get('requestTimeout') || 60000
         },
-        acquireConnectionTimeout: 600000,
+        acquireConnectionTimeout: 60000,
         ...(url.searchParams.has('search_path')
           ? {
               searchPath: url.searchParams.get('search_path').split(',')

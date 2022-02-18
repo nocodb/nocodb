@@ -19,7 +19,7 @@ describe('Config Factory Tests', () => {
     ssl: {
       rejectUnauthorized: false
     },
-    acquireConnectionTimeout: 600000
+    acquireConnectionTimeout: 60000
   };
 
   before(function(done) {

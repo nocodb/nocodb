@@ -1,24 +1,24 @@
 ---
-title: "Shared base"
-description: "Procedure for working with shared base & generating embedded IFRAMEs"
-position: 1050
-category: "Developer Resources"
+title: "Share Base"
+description: "Procedure to share a base & generating embedded iframe"
+position: 615
+category: "Product"
 menuTitle: "Share Base"
 ---
 
 ## Generate 'Share base'
 
--   Open Project base
--   Click on 'Share' button on top right tool bar
+- Open Project 
+- Click on 'Share' button on top right tool bar
 
 ![Screenshot 2022-02-19 at 11 11 39 AM](https://user-images.githubusercontent.com/86527202/154789342-11546764-11ac-4ad1-a830-84cb603156b7.png)
 
--   Under 'Shared base link' tab
-    -   Toggle from 'Disabled Share base' to 'Anyone with the link'
+- Under 'Shared base link' tab
+  - Toggle from 'Disabled Share base' to 'Anyone with the link'
 
 ![Screenshot 2022-02-19 at 11 16 02 AM](https://user-images.githubusercontent.com/86527202/154789352-87e65fcc-fbe5-48f0-a1e1-e54dce91a1f3.png)
 
--   Share base link generated is displayed over & can be used to share this project to others in the team [Selection (2) in the image below]
+- Share base link generated is displayed over & can be used to share this project to others in the team [Selection (2) in the image below]
 
 ![Screenshot 2022-02-19 at 12 01 58 PM](https://user-images.githubusercontent.com/86527202/154789725-a1194e30-3101-423a-bd5c-25009c361b96.png)
 

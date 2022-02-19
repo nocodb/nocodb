@@ -27,16 +27,22 @@ jobs:
           CURRENT_DATE=$(date +"%Y%m%d")
           CURRENT_TIME=$(date +"%H%M")
           TAG_NAME=${CURRENT_DATE}
+          IS_DAILY='Y'
           # Set the tag
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
             TAG_NAME=${TAG_NAME}-${CURRENT_TIME}
+            IS_DAILY='N'
           fi
           echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
+          echo "::set-output name=IS_DAILY::${IS_DAILY}"
           # Verify the tag
       - name: verify-tag
-        run: echo ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
+        run: |
+          echo ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
+          echo ${{ steps.tag-step.outputs.IS_DAILY }}
     outputs:
       nightly_build_tag: ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
+      is_daily: ${{ steps.tag-step.outputs.IS_DAILY }}
   # Build frontend and backend and publish to npm
   release-npm:
     needs: set-tag
@@ -54,6 +60,7 @@ jobs:
     with:
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+      isDaily: ${{ needs.set-tag.outputs.is_daily }}
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"

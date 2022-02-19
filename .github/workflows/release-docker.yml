@@ -25,6 +25,10 @@ on:
         description: "Target Environment"
         required: true
         type: string
+      isDaily:
+        description: "Is it triggered by daily schedule"
+        required: true
+        type: string
     secrets:
       DOCKERHUB_USERNAME:
         required: true
@@ -45,11 +49,15 @@ jobs:
         run: |
           DOCKER_REPOSITORY=nocodb
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
-            DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
+            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
+              DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
+            else
+              DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
+            fi
           fi
           echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
           echo ${DOCKER_REPOSITORY}
-      #       - name: Verifiy
+      #       - name: Verify
       #         run : |
       #           echo ${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}
       - name: Checkout

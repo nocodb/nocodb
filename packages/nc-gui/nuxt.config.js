@@ -179,7 +179,7 @@ export default {
           // nightly build
           // e.g. 0.84.2-20220220-1250
           packageJson.version = `${packageJson.version}-${process.env.targetVersion}`
-          packageJson.name += '-dev'
+          packageJson.name += '-daily'
         } else {
           packageJson.version = version
         }

@@ -45,7 +45,7 @@ jobs:
         run: |
           DOCKER_REPOSITORY=nocodb
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
-            DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-dev
+            DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
           fi
           echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
           echo ${DOCKER_REPOSITORY}

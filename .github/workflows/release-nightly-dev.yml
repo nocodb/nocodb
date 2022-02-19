@@ -1,0 +1,59 @@
+name: 'NocoDB Nightly Dev Release'
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      targetEnv:
+        description: "Target Environment"
+        required: true
+        type: choice
+        options:
+          - DEV
+          # - PROD
+  schedule:
+    # at the end of every day
+    - cron: '0 0 * * *'
+
+jobs:
+  # enrich tag for nightly auto release
+  set-tag:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: set-tag
+        id: tag-step
+        run: |
+          # Get current date
+          CURRENT_DATE=$(date +"%Y%m%d")
+          CURRENT_TIME=$(date +"%H%M")
+          TAG_NAME=${CURRENT_DATE}
+          # Set the tag
+          if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
+            TAG_NAME=${TAG_NAME}-${CURRENT_TIME}
+          fi
+          echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
+          # Verify the tag
+      - name: verify-tag
+        run: echo ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
+    outputs:
+      nightly_build_tag: ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
+  # Build frontend and backend and publish to npm
+  release-npm:
+    needs: set-tag
+    uses: ./.github/workflows/release-npm.yml
+    with:
+      tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
+      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+    secrets:
+      NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
+
+  # Build docker image and push to docker hub
+  release-docker:
+    needs: [set-tag, release-npm]
+    uses: ./.github/workflows/release-docker.yml
+    with:
+      tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
+      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+    secrets:
+      DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
+      DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"

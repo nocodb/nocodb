@@ -30,6 +30,9 @@ jobs:
     uses: ./.github/workflows/release-npm.yml
     with:
       tag: ${{ github.event.inputs.tag }}
+      targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
+    secrets:
+      NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
   # Draft Release Note
   release-draft-note:
@@ -45,6 +48,10 @@ jobs:
     uses: ./.github/workflows/release-docker.yml
     with:
       tag: ${{ github.event.inputs.tag }}
+      targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
+    secrets:
+      DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
+      DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
 
   # Sync changes to develop
   sync-to-develop:

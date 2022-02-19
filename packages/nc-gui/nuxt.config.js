@@ -175,7 +175,14 @@ export default {
         //   // if (v === '99') throw new Error('Package version reached 99')
         //   return `.${++v}`
         // });
-        packageJson.version = version
+        if (process.env.targetEnv === 'DEV') {
+          // nightly build
+          // e.g. 0.84.2-20220220-1250
+          packageJson.version = `${packageJson.version}-${process.env.targetVersion}`
+          packageJson.name += '-dev'
+        } else {
+          packageJson.version = version
+        }
         fs.writeFileSync('../nc-lib-gui/package.json', JSON.stringify(packageJson, 0, 2))
 
         // config.output.publicPath = `https://cdn.jsdelivr.net/npm/nc-lib-gui@${version}/lib/dist/`;

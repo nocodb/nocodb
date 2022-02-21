@@ -40,6 +40,19 @@ export default class S3 implements IStorageAdapter {
     });
   }
 
+  async upload(uploadParams): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.s3Client.upload(uploadParams, (err, data) => {
+        if (err) {
+          console.log('Error', err);
+          reject(err);
+        } else {
+          resolve(data.Location);
+        }
+      });
+    });
+  }
+
   public async fileDelete(_path: string): Promise<any> {
     return Promise.resolve(undefined);
   }

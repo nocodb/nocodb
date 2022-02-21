@@ -32,6 +32,10 @@ import { RestCtrlCustom } from './RestCtrlCustom';
 import { RestCtrlHasMany } from './RestCtrlHasMany';
 import { RestCtrlProcedure } from './RestCtrlProcedure';
 import { BaseModelSql } from '../../dataMapper';
+import S3PluginConfig from '../../../plugins/s3';
+import { XcStoragePlugin } from 'nc-plugin';
+import S3 from '../../../plugins/s3/S3';
+import slash from 'slash';
 
 const log = debug('nc:api:rest');
 const NC_CUSTOM_ROUTE_KEY = '__xc_custom';
@@ -49,6 +53,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   private routers: { [key: string]: Router };
   private apiCount = 0;
   private customRoutes: any;
+  private S3Plugin: XcStoragePlugin;
+  pluginConfig: any;
 
   constructor(
     app: Noco,
@@ -67,6 +73,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
   public async init(): Promise<void> {
     await super.init();
+    await this.initS3Plugin();
     return await this.loadRoutes(null);
   }
 
@@ -330,7 +337,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     });
 
     if (tables?.length) {
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         addApis: swaggerDoc
       });
     } else {
@@ -877,7 +884,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     }
 
     if (args.tableNames && args.tableNames.length) {
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         addApis: swaggerDoc
       });
     } else {
@@ -940,7 +947,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       await this.xcTablesRowDelete(tn, extras);
 
       delete this.routers[tn];
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         deleteTags: [tn]
       });
     } catch (e) {
@@ -963,7 +970,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       delete this.routers[viewName];
 
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         deleteTags: [viewName]
       });
     } catch (e) {
@@ -2308,7 +2315,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log(`onFunctionCreate : Update function and procedure routes`);
     this.procedureCtrl.functionsSet(functions);
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: { paths: this.procedureCtrl.getSwaggerObj().paths }
     });
   }
@@ -2328,7 +2335,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       this.routers.___procedure.stack.length
     );
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: this.procedureCtrl.getSwaggerObj(),
       deleteTags: ['Procedures', 'Functions']
     });
@@ -2363,7 +2370,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log(`onProcedureCreate : Update function and procedure routes`);
     this.procedureCtrl.proceduresSet(procedures);
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: { paths: this.procedureCtrl.getSwaggerObj().paths }
     });
   }
@@ -2383,7 +2390,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       this.routers.___procedure.stack.length
     );
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: this.procedureCtrl.getSwaggerObj(),
       deleteTags: ['Procedures', 'Functions']
     });
@@ -2581,21 +2588,75 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     }
   }
 
+  /**
+   * write Swagger Json to S3
+   * @param swaggerDoc swagger document
+   */
+  async writeSwaggerJsonS3(swaggerDoc) {
+    const buf = Buffer.from(JSON.stringify(swaggerDoc));
+    const s3Adapter = await this.getS3Adapter();
+    await s3Adapter.upload({
+      Key: slash(path.join(this.swaggerFilePath())),
+      Body: buf,
+      ContentEncoding: 'base64',
+      ContentType: 'application/json',
+      ACL: 'public-read'
+    });
+  }
+
+  /**
+   * @return swagger file path
+   */
+  swaggerFilePath() {
+    return path.join(
+      'nc',
+      this.projectId,
+      this.getDbAlias(),
+      'swagger',
+      'swagger.json'
+    );
+  }
+
+  /**
+   * initializes s3 plugin
+   */
+  private async initS3Plugin() {
+    this.pluginConfig = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
+      title: S3PluginConfig.title
+    });
+    this.S3Plugin = new S3PluginConfig.builder(this.app, S3PluginConfig);
+    await this.S3Plugin.init(JSON.parse(this.pluginConfig.input));
+  }
+
+  /**
+   * get s3 adapter
+   * @returns {Promise<S3>}
+   */
+  private async getS3Adapter(): Promise<S3> {
+    if (!this.S3Plugin) await this.initS3Plugin();
+
+    return this.S3Plugin.getAdapter() as S3;
+  }
+
   private async generateSwaggerJson(swaggerDoc) {
     if (!this.config.try) {
       this.log('generateSwaggerJson : Generating swagger.json');
-      const swaggerFilePath = path.join(
-        this.app.getToolDir(),
-        'nc',
-        this.projectId,
-        this.getDbAlias(),
-        'swagger'
-      );
-      mkdirp.sync(swaggerFilePath);
-      fs.writeFileSync(
-        path.join(swaggerFilePath, 'swagger.json'),
-        JSON.stringify(swaggerDoc)
-      );
+      if (this.pluginConfig.active) {
+        await this.writeSwaggerJsonS3(swaggerDoc);
+      } else {
+        const swaggerFilePath = path.join(
+          this.app.getToolDir(),
+          'nc',
+          this.projectId,
+          this.getDbAlias(),
+          'swagger'
+        );
+        mkdirp.sync(swaggerFilePath);
+        fs.writeFileSync(
+          path.join(swaggerFilePath, 'swagger.json'),
+          JSON.stringify(swaggerDoc)
+        );
+      }
     }
 
     this.router.get(`/${this.getDbAlias()}/swagger`, async (_req, res) => {
@@ -2637,28 +2698,46 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         scheme,
         scheme === 'http' ? 'https' : 'http'
       ];
-      glob
-        .sync(
-          path.join(
-            this.app.getToolDir(),
-            'nc',
-            this.projectId,
-            this.getDbAlias(),
-            'swagger',
-            'swagger.json'
+      if (this.pluginConfig.active) {
+        const swaggerJson = await this.readSwaggerJsonS3();
+        swaggerBaseDocument.tags.push(...swaggerJson.tags);
+        Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
+        Object.assign(swaggerBaseDocument.definitions, swaggerJson.definitions);
+      } else {
+        glob
+          .sync(
+            path.join(
+              this.app.getToolDir(),
+              'nc',
+              this.projectId,
+              this.getDbAlias(),
+              'swagger',
+              'swagger.json'
+            )
           )
-        )
-        .forEach(jsonFile => {
-          const swaggerJson = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
-          swaggerBaseDocument.tags.push(...swaggerJson.tags);
-          Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
-          Object.assign(
-            swaggerBaseDocument.definitions,
-            swaggerJson.definitions
-          );
-        });
+          .forEach(jsonFile => {
+            const swaggerJson = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+            swaggerBaseDocument.tags.push(...swaggerJson.tags);
+            Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
+            Object.assign(
+              swaggerBaseDocument.definitions,
+              swaggerJson.definitions
+            );
+          });
+      }
       res.json(swaggerBaseDocument);
     });
+  }
+
+  /**
+   * readSwaggerJsonS3
+   * @returns swagger json {Promise<object>}
+   */
+  private async readSwaggerJsonS3() {
+    const s3Adapter = await this.getS3Adapter();
+    return JSON.parse(
+      (await s3Adapter.fileRead(this.swaggerFilePath())).toString('utf8')
+    );
   }
 
   private deleteTagFromSwaggerObj(
@@ -2698,7 +2777,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   // @ts-ignore
-  private swaggerUpdate(args: {
+  private async swaggerUpdate(args: {
     deleteApis?: any;
     addApis?: any;
     deleteTags?: string[];
@@ -2710,17 +2789,22 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     }
 
     /* load swagger JSON */
-    const swaggerFilePath = path.join(
-      this.app.getToolDir(),
-      'nc',
-      this.projectId,
-      this.getDbAlias(),
-      'swagger'
-    );
-    const swaggerJson = JSON.parse(
-      fs.readFileSync(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
-    );
-
+    let swaggerJson;
+    let swaggerFilePath;
+    if (this.pluginConfig.active) {
+      swaggerJson = await this.readSwaggerJsonS3();
+    } else {
+      swaggerFilePath = path.join(
+        this.app.getToolDir(),
+        'nc',
+        this.projectId,
+        this.getDbAlias(),
+        'swagger'
+      );
+      swaggerJson = JSON.parse(
+        fs.readFileSync(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
+      );
+    }
     /* remove tags, paths and keys */
     if (args.deleteApis) {
       this.log(`swaggerUpdate : deleting swagger apis`);
@@ -2784,10 +2868,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
     }
 
-    fs.writeFileSync(
-      path.join(swaggerFilePath, 'swagger.json'),
-      JSON.stringify(swaggerJson)
-    );
+    if (this.pluginConfig.active) {
+      await this.writeSwaggerJsonS3(swaggerJson);
+    } else {
+      fs.writeFileSync(
+        path.join(swaggerFilePath, 'swagger.json'),
+        JSON.stringify(swaggerJson)
+      );
+    }
   }
 
   private log(str, ...args) {

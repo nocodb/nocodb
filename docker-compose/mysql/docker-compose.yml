@@ -6,6 +6,9 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - nc_data:/usr/app/data
+#    below line shows how to change charset and collation
+#    uncomment it if necessary
+#    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password

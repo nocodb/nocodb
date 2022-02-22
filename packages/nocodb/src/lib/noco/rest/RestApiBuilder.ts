@@ -32,10 +32,8 @@ import { RestCtrlCustom } from './RestCtrlCustom';
 import { RestCtrlHasMany } from './RestCtrlHasMany';
 import { RestCtrlProcedure } from './RestCtrlProcedure';
 import { BaseModelSql } from '../../dataMapper';
-import S3PluginConfig from '../../../plugins/s3';
-import { XcStoragePlugin } from 'nc-plugin';
-import S3 from '../../../plugins/s3/S3';
 import slash from 'slash';
+import { getS3Adapter, initS3Plugin } from '../../../lib/helpers/S3Helper';
 
 const log = debug('nc:api:rest');
 const NC_CUSTOM_ROUTE_KEY = '__xc_custom';
@@ -53,7 +51,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   private routers: { [key: string]: Router };
   private apiCount = 0;
   private customRoutes: any;
-  private S3Plugin: XcStoragePlugin;
   pluginConfig: any;
 
   constructor(
@@ -73,7 +70,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
   public async init(): Promise<void> {
     await super.init();
-    await this.initS3Plugin();
+    await initS3Plugin.call(this);
     return await this.loadRoutes(null);
   }
 
@@ -2594,13 +2591,12 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
    */
   async writeSwaggerJsonS3(swaggerDoc) {
     const buf = Buffer.from(JSON.stringify(swaggerDoc));
-    const s3Adapter = await this.getS3Adapter();
+    const s3Adapter = await getS3Adapter.call(this);
     await s3Adapter.upload({
       Key: slash(path.join(this.swaggerFilePath())),
       Body: buf,
       ContentEncoding: 'base64',
-      ContentType: 'application/json',
-      ACL: 'public-read'
+      ContentType: 'application/json'
     });
   }
 
@@ -2615,27 +2611,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       'swagger',
       'swagger.json'
     );
-  }
-
-  /**
-   * initializes s3 plugin
-   */
-  private async initS3Plugin() {
-    this.pluginConfig = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-      title: S3PluginConfig.title
-    });
-    this.S3Plugin = new S3PluginConfig.builder(this.app, S3PluginConfig);
-    await this.S3Plugin.init(JSON.parse(this.pluginConfig.input));
-  }
-
-  /**
-   * get s3 adapter
-   * @returns {Promise<S3>}
-   */
-  private async getS3Adapter(): Promise<S3> {
-    if (!this.S3Plugin) await this.initS3Plugin();
-
-    return this.S3Plugin.getAdapter() as S3;
   }
 
   private async generateSwaggerJson(swaggerDoc) {
@@ -2734,7 +2709,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
    * @returns swagger json {Promise<object>}
    */
   private async readSwaggerJsonS3() {
-    const s3Adapter = await this.getS3Adapter();
+    const s3Adapter = await getS3Adapter.call(this);
     return JSON.parse(
       (await s3Adapter.fileRead(this.swaggerFilePath())).toString('utf8')
     );

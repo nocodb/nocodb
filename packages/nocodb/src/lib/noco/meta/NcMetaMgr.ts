@@ -40,6 +40,7 @@ import NcTemplateParser from '../../templateParser/NcTemplateParser';
 import UITypes from '../../sqlUi/UITypes';
 import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
+import S3 from '../../../plugins/s3/S3';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -1295,10 +1296,8 @@ export default class NcMetaMgr {
     } else {
       destPath = path.join('nc', projectId, dbAlias, 'uploads', ...appendPath);
     }
-    let url = await this.storageAdapter.fileCreate(
-      slash(path.join(destPath, fileName)),
-      file
-    );
+    const relativePath = slash(path.join(destPath, fileName));
+    let url = await this.storageAdapter.fileCreate(relativePath, file);
     if (!url) {
       if (storeInPublicFolder) {
         url = `${req.ncSiteUrl}/dl/public/files/${
@@ -1311,11 +1310,27 @@ export default class NcMetaMgr {
       }
     }
     return {
-      url,
-      title: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-      icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+      ...{
+        url,
+        title: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+      },
+      ...this.s3KeyObject(relativePath)
+    };
+  }
+
+  /**
+   * A class that represents an S3 key object.
+   * @param {string} key - the key of the object in S3.
+   * @return {object} - an object that has S3Key.
+   */
+  private s3KeyObject(key: string) {
+    if (!(this.storageAdapter instanceof S3)) return {};
+
+    return {
+      S3Key: key
     };
   }
 

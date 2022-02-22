@@ -6,6 +6,7 @@ import BaseModel, { XcFilter, XcFilterWithAlias } from '../BaseModel';
 import formulaQueryBuilder from './formulaQueryBuilderFromString';
 import genRollupSelect from './genRollupSelect';
 import Papaparse from 'papaparse';
+import { generateS3SignedUrls } from './decorators/GenerateS3SignedUrls';
 
 /**
  * Base class for models
@@ -25,6 +26,7 @@ class BaseModelSql extends BaseModel {
   private _nestedProps: { [prop: string]: any };
   private _nestedPropsModels: { [prop: string]: BaseModelSql } = {};
   private readonly _primaryColRef: any;
+  app: any;
 
   /**
    *
@@ -49,7 +51,8 @@ class BaseModelSql extends BaseModel {
     manyToMany = [],
     v,
     type,
-    dbModels
+    dbModels,
+    app
   }: {
     [key: string]: any;
     dbModels?: {
@@ -92,6 +95,7 @@ class BaseModelSql extends BaseModel {
     this.clientType = this.dbDriver.clientType();
     this.dbModels = dbModels;
     this._tn = _tn;
+    this.app = app;
     autoBind(this);
   }
 
@@ -2208,6 +2212,7 @@ class BaseModelSql extends BaseModel {
    * @returns {Promise<*>}
    * @private
    */
+  @generateS3SignedUrls()
   async _run(query) {
     try {
       if (this.config.log) {

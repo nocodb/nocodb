@@ -13,9 +13,7 @@ export default class S3 implements IStorageAdapter {
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
-    const uploadParams: any = {
-      ACL: 'public-read'
-    };
+    const uploadParams: any = {};
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
       const fileStream = fs.createReadStream(file.path);
@@ -51,6 +49,19 @@ export default class S3 implements IStorageAdapter {
         }
       });
     });
+  }
+
+  /**
+   * Generates a signed S3 URL for the given file.
+   * @param {string} file - the file to generate a signed URL for.
+   * @returns {string} The signed S3 URL.
+   */
+  public getSignedUrl(key, expires = 900) {
+    const signedUrl = this.s3Client.getSignedUrl('getObject', {
+      Key: key,
+      Expires: expires
+    });
+    return signedUrl;
   }
 
   public async fileDelete(_path: string): Promise<any> {

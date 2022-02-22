@@ -1966,7 +1966,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         dbDriver: this.dbDriver,
         ...meta,
-        dbModels: this.models
+        dbModels: this.models,
+        app: this.app
       },
       this
     );

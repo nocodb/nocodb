@@ -22,13 +22,13 @@
         <v-btn
           @click="show = false;"
         >
-          {{ cancelLabel || 'Cancel' }}
+          {{ cancelLabel || $t('general.cancel') }}
         </v-btn>
         <v-btn
           :color="type"
           @click="$emit('ok');show = false;"
         >
-          {{ okLabel || 'Ok' }}
+          {{ okLabel || $t('general.ok') }}
         </v-btn>
       </v-card-actions>
     </v-card>

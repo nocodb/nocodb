@@ -6,10 +6,11 @@
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', table)"
   >
+          <!-- Create A New Table -->
     <v-card class="elevation-1 backgroundColor nc-create-table-card">
       <v-form ref="form" v-model="valid">
         <v-card-title class="primary subheading white--text py-2">
-          Create A New Table
+          {{ $t('activity.createTable') }}
         </v-card-title>
 
         <v-card-text class=" py-6 px-10 ">
@@ -103,7 +104,7 @@
         <v-card-actions class="py-4 px-10">
           <v-spacer />
           <v-btn class="" @click="dialogShow = false">
-            Cancel
+            {{ $t('general.cancel') }}
           </v-btn>
           <v-btn
             :disabled="!(table.name && table.name.length) || !(table.alias && table.alias.length) || !valid"
@@ -111,7 +112,7 @@
             class="nc-create-table-submit"
             @click="$emit('create',table)"
           >
-            Submit
+            {{ $t('general.submit') }}
           </v-btn>
         </v-card-actions>
       </v-form>

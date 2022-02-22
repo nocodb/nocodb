@@ -4,13 +4,14 @@
       <v-card-title class="grey darken-2 subheading" style="height:30px" />
       <v-card-text class="pt-4 pl-4">
         <p class="headline">
-          Create <span class="text-capitalize">{{ show_as }}</span> View
+          {{ $t('general.create') }} <span class="text-capitalize">{{ show_as }}</span> {{ $t('objects.view') }}
         </p>
         <v-form ref="form" v-model="valid" @submit.prevent="createView">
+          <!-- label="View Name" -->
           <v-text-field
             ref="name"
             v-model="view_name"
-            label="View Name"
+            :label="$t('labels.viewName')"
             :rules="[v=>!!v || 'View name required', v => viewsList.every((v1) => (v1.alias || v1.title) !== v) || 'View name should be unique']"
             autofocus
           />
@@ -19,7 +20,7 @@
       <v-card-actions class="pa-4">
         <v-spacer />
         <v-btn class="" small @click="$emit('input',false)">
-          Cancel
+          {{ $t('general.cancel') }}
         </v-btn>
         <v-btn
           small
@@ -28,7 +29,7 @@
           :disabled="!valid"
           @click="createView"
         >
-          Submit
+          {{ $t('general.submit') }}
         </v-btn>
       </v-card-actions>
     </v-card>

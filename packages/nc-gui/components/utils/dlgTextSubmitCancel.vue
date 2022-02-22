@@ -35,14 +35,14 @@
         <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn small class="" @click="mtdDialogCancel()">
-            Cancel
+            {{ $t('general.cancel') }}
           </v-btn>
           <v-btn
             small
             class="primary"
             @click="submitForm"
           >
-            {{ submitText || 'Submit' }}
+            {{ submitText || $t('general.submit') }}
           </v-btn>
         </v-card-actions>
       </v-card>

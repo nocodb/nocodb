@@ -21,7 +21,7 @@
         <v-card-actions class="pa-1">
           <v-spacer />
           <v-btn small class="" @click="errorDialogCancel">
-            Cancel
+            {{ $t('general.cancel') }}
           </v-btn>
           <v-btn
             small

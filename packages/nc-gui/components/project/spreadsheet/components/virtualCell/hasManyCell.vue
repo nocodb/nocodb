@@ -2,7 +2,7 @@
   <div class="d-flex d-100 chips-wrapper" :class="{active}">
     <template v-if="!isForm">
       <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
-        <template v-if="value||localState">
+        <template v-if="value|| localState">
           <item-chip
             v-for="(ch,i) in (value|| localState)"
             :key="i"
@@ -54,7 +54,7 @@
       :parent-meta="meta"
       :query-params="{
         ...childQueryParams,
-        where: isNew ? null :`~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
+        where: isNew ? null :`~not(${childForeignKey},eq,${childForeignKeyVal != '' ? childForeignKeyVal : parentId})~or(${childForeignKey},is,null)`,
       }"
       :is-public="isPublic"
       :password="password"
@@ -80,7 +80,7 @@
       :column="column"
       :query-params="{
         ...childQueryParams,
-        where: `(${childForeignKey},eq,${parentId})`
+        where: `(${childForeignKey},eq,${childForeignKeyVal != '' ? childForeignKeyVal : parentId})`
       }"
       :is-public="isPublic"
       :row-id="parentId"
@@ -252,6 +252,9 @@ export default {
     },
     parentId() {
       return this.meta && this.meta.columns ? this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___') : ''
+    },
+    childForeignKeyVal() {
+      return this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn]) : ''
     }
   },
   watch: {
@@ -347,7 +350,10 @@ export default {
       this.newRecordModal = true
     },
     async addChildToParent(child) {
+      console.log("invoking addChildToParent ...")
+      console.log(child)
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
+        console.log(child)
         this.localState.push(child)
         this.$emit('update:localState', [...this.localState])
         this.$emit('saveRow')
@@ -359,15 +365,26 @@ export default {
       const _cn = this.childForeignKey
       this.newRecordModal = false
 
+      // wingkwong
+
+      console.log(_cn) // CustomerEmail
+      console.log(parseIfInteger(this.parentId)) // 1
+      console.log(child[this.childForeignKey]) // user1@test.com
+      console.log(this.hm)
+      // console.log(child[`${this.hm._rtn}Read`][this.hm && this.parentMeta && this.parentMeta.columns.find(v => v.pv)._cn])
+      // console.log((this.hm && child[`${this.hm._rtn}Read`] && child[`${this.hm._rtn}Read`][this.hm && _cn]) || parseIfInteger(this.parentId))
+      console.log(child[this.childPrimaryCol])
       await this.childApi.update(id, {
-        [_cn]: parseIfInteger(this.parentId)
+        [_cn]: child[this.childForeignKey]
+        // [_cn]:
+        // (this.hm && child[`${this.hm._rtn}Read`] && child[`${this.hm._rtn}Read`][this.hm && _cn]) || parseIfInteger(this.parentId)
       }, {
         [_cn]: child[this.childForeignKey]
       })
 
       this.$emit('loadTableData')
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
-        this.$refs.childList.loadData()
+        await this.$refs.childList.loadData()
       }
     },
     async editChild(child) {
@@ -394,6 +411,7 @@ export default {
       }
     },
     getCellValue(cellObj) {
+      console.log(cellObj)
       if (cellObj) {
         if (this.childMeta && this.childPrimaryCol) {
           return cellObj[this.childPrimaryCol]

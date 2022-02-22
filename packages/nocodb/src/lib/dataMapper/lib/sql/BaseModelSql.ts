@@ -1279,6 +1279,7 @@ class BaseModelSql extends BaseModel {
       driver.union(
         parent.map(p => {
           const id =
+            p[_cn] ||
             p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] ||
             p[this.pks[0].cn];
           const query = driver(this.dbModels[child].tnPath)
@@ -1296,7 +1297,7 @@ class BaseModelSql extends BaseModel {
     const gs = _.groupBy(childs, _cn);
     parent.forEach(row => {
       row[`${this.dbModels?.[child]?._tn || child}List`] =
-        gs[row[this.pks[0]._cn]] || [];
+        gs[row[_cn] || row[this.pks[0]._cn]] || [];
     });
   }
 

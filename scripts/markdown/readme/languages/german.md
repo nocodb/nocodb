@@ -103,14 +103,12 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 ![6](https://user-images.githubusercontent.com/86527202/136068618-f6443b58-0458-4e87-a358-f1bffcc44936.png)
 <br>
 
-![7](https://user-images.githubusercontent.com/86527202/136068620-1f6f7aec-79e5-43a7-9ad5-65e1fc48d297.png)
-<br>
+![7](https://user-images.githubusercontent.com/86527202/155155502-2502d026-3f35-4ceb-9d49-6d65b26037ba.png)
 
 ![8](https://user-images.githubusercontent.com/86527202/136068624-7d37104a-87ce-442c-a038-e23fb40966e3.png)
 <br>
 
-![9](https://user-images.githubusercontent.com/86527202/136068627-938f9bc9-194e-44e4-a040-bd33649aca35.png)
-<br>
+![9](https://user-images.githubusercontent.com/86527202/155155524-20d541ee-e7ab-455c-b718-120ea4d86fd6.png)
 
 ![9a](https://user-images.githubusercontent.com/86527202/136068629-7d341076-a73a-4964-bec8-68e4dd91828e.png)
 <br>

@@ -139,7 +139,8 @@ Detailed procedure for discord webhook described [here](https://support.discord.
 
 -   Open 'App Store' (under Settings), hover over 'Microsoft Teams' tile. Click 'Install'.
 
-![Screenshot 2022-02-22 at 11 30 36 AM](https://user-images.githubusercontent.com/86527202/155085257-5bdde1d9-d7b5-471d-bf44-3c3920e7b853.png)
+![Screenshot 2022-02-22 at 7 32 52 PM](https://user-images.githubusercontent.com/86527202/155148122-60844b42-7d2a-4c0f-9778-a5bc4f9c0107.png)
+
 
 -   Provide a name of your choice (not to be confused with Teams Channel name).
 -   Paste MS Teams Webhook URL copied from Step (1.) above.
@@ -165,7 +166,7 @@ Detailed procedure for discord webhook described [here](https://support.discord.
         -   After Delete: Trigger event for ROW deletion
     -   **On Condition**: [Optional] Enable if you wish to associate additional condition/constraint with the trigger configured above.
     -   **Notification**: Select 'Microsoft Teams'.
-    -   **Select Discord Channels**: Select from the drop down list, channel name configured in Step (2). Please click on 'Reload' if drop down list is empty.
+    -   **Select Teams Channels**: Select from the drop down list, channel name configured in Step (2). Please click on 'Reload' if drop down list is empty.
     -   **Body**: Message to be posted over Teams channel, via webhooks on trigger of configured event.
         -   Body can contain plain text &
         -   Handlebars {{ }}

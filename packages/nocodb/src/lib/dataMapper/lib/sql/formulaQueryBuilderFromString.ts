@@ -64,6 +64,32 @@ export default function formulaQueryBuilder(
             }
           }
           break;
+        case 'URL':
+          return fn(
+            {
+              type: 'CallExpression',
+              arguments: [
+                {
+                  type: 'Literal',
+                  value: 'URI::(',
+                  raw: '"URI::("'
+                },
+                pt.arguments[0],
+                {
+                  type: 'Literal',
+                  value: ')',
+                  raw: '")"'
+                }
+              ],
+              callee: {
+                type: 'Identifier',
+                name: 'CONCAT'
+              }
+            },
+            a,
+            prevBinaryOp
+          );
+          break;
         default:
           {
             const res = mapFunctionName({

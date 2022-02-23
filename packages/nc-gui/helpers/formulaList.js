@@ -54,6 +54,7 @@ const validations = {
   MID: { validation: { args: { rqd: 1 } } },
   IF: { validation: { args: { min: 2, max: 3 } } },
   SWITCH: { validation: { args: { min: 3 } } },
+  URL: { validation: { args: { rqd: 1 } } },
 };
 
 export default Object.keys(validations);

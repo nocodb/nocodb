@@ -14,7 +14,7 @@ export default function formulaQueryBuilder(
   aliasToColumn = {}
 ) {
   const fn = (pt, a?, prevBinaryOp?) => {
-    const colAlias = a ? ` as ${a}` : '';
+    const colAlias = a ? ` as "${a}"` : '';
     if (pt.type === 'CallExpression') {
       switch (pt.callee.name) {
         case 'ADD':

@@ -54,7 +54,16 @@
       :parent-meta="meta"
       :query-params="{
         ...childQueryParams,
-        where: isNew ? null :`~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
+        // return empty set if childForeignKeyVal is empty
+        // to avoid foreign key constraint violation in real relation
+        isByPass: !isVirtualRelation && childForeignKeyVal === '',
+        where:
+          // show all for new record
+          isNew ? null :
+          // filter out those selected items
+          `~not(${childForeignKey},eq,${parentId})` +
+          // allow the child with empty key
+          '~or(' + childForeignKey + ',is,null)'
       }"
       :is-public="isPublic"
       :password="password"
@@ -221,6 +230,12 @@ export default {
     childForeignKey() {
       return this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn
     },
+    childForeignKeyVal() {
+      return this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') : ''
+    },
+    isVirtualRelation() {
+      return (this.childMeta && (!!this.childMeta.columns.find(c => c.cn === this.hm.cn && this.hm.type === 'virtual'))) || false
+    },
     disabledChildColumns() {
       return { [this.childForeignKey]: true }
     },
@@ -252,7 +267,7 @@ export default {
     },
     parentId() {
       return (this.meta && this.meta.columns &&
-        (this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn]).join('___') ||
+        (this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') ||
         this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___'))) || ''
     }
   },
@@ -360,7 +375,6 @@ export default {
       const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
       const _cn = this.childForeignKey
       this.newRecordModal = false
-
       await this.childApi.update(id, {
         [_cn]: parseIfInteger(this.parentId)
       }, {

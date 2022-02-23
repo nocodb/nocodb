@@ -150,7 +150,10 @@ export default {
         if (!this.api) {
           return
         }
-
+        const isByPass = this.queryParams.isByPass || false
+        if (isByPass) {
+          return
+        }
         let where = this.queryParams.where || ''
         if (this.query) {
           where += (where ? '~and' : '') + `(${this.primaryCol},like,%${this.query}%)`

@@ -142,7 +142,7 @@ import Pagination from '@/components/project/spreadsheet/components/pagination'
 import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
 import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
 import listChildItemsModal
-  from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
+from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
 import { parseIfInteger } from '@/helpers'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/itemChip'
 
@@ -254,7 +254,7 @@ export default {
       return (this.meta && this.meta.columns &&
         (this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn]).join('___') ||
         this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___'))) || ''
-    },
+    }
   },
   watch: {
     isNew(n, o) {
@@ -349,10 +349,7 @@ export default {
       this.newRecordModal = true
     },
     async addChildToParent(child) {
-      console.log("invoking addChildToParent ...")
-      console.log(child)
       if (this.isNew && this.localState.every(it => it[this.childForeignKey] !== child[this.childPrimaryKey])) {
-        console.log(child)
         this.localState.push(child)
         this.$emit('update:localState', [...this.localState])
         this.$emit('saveRow')
@@ -364,19 +361,9 @@ export default {
       const _cn = this.childForeignKey
       this.newRecordModal = false
 
-      // wingkwong
-
-      console.log(_cn) // CustomerEmail
-      console.log(parseIfInteger(this.parentId)) // 1
-      console.log(child[this.childForeignKey]) // user1@test.com
-      console.log(this.hm)
-      // console.log(child[`${this.hm._rtn}Read`][this.hm && this.parentMeta && this.parentMeta.columns.find(v => v.pv)._cn])
-      // console.log((this.hm && child[`${this.hm._rtn}Read`] && child[`${this.hm._rtn}Read`][this.hm && _cn]) || parseIfInteger(this.parentId))
-      console.log(child[this.childPrimaryCol])
       await this.childApi.update(id, {
-        [_cn]: child[this.childForeignKey]
-        // [_cn]:
-        // (this.hm && child[`${this.hm._rtn}Read`] && child[`${this.hm._rtn}Read`][this.hm && _cn]) || parseIfInteger(this.parentId)
+        [_cn]:
+        (this.hm && child[`${this.hm._rtn}Read`] && child[`${this.hm._rtn}Read`][this.hm && _cn]) || parseIfInteger(this.parentId)
       }, {
         [_cn]: child[this.childForeignKey]
       })
@@ -410,7 +397,6 @@ export default {
       }
     },
     getCellValue(cellObj) {
-      console.log(cellObj)
       if (cellObj) {
         if (this.childMeta && this.childPrimaryCol) {
           return cellObj[this.childPrimaryCol]

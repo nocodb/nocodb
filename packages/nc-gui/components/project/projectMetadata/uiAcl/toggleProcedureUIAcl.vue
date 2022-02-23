@@ -29,7 +29,8 @@
             icon="refresh"
             @click="loadFunctionList()"
           >
-            Reload
+            <!-- Reload -->
+            {{ $t('general.reload') }}
           </x-btn>
           <x-btn
             outlined
@@ -41,7 +42,8 @@
             icon="save"
             @click="save()"
           >
-            Save
+            <!-- Save -->
+            {{ $t('general.save') }}
           </x-btn>
         </v-toolbar>
 

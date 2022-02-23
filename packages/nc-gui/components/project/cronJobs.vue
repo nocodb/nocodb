@@ -52,7 +52,8 @@
                           icon="refresh"
                           @click="loadCrons()"
                         >
-                          Reload
+                        <!-- Reload -->
+                        {{ $t('general.reload') }}
                         </x-btn>
                         <x-btn
                           outlined
@@ -154,7 +155,8 @@
                             icon="save"
                             @click="saveCron()"
                           >
-                            Save
+                            <!-- Save -->
+                            {{ $t('general.save') }}
                           </x-btn>
                         </div>
                         <v-switch

@@ -8,7 +8,8 @@
       <v-icon left>
         refresh
       </v-icon>
-      Reload
+      <!-- Reload -->
+      {{ $t('general.reload') }}
     </v-btn>
     <v-btn
       small

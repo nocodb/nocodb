@@ -553,7 +553,8 @@
         Update & Restart
       </v-btn>
       <v-btn @click.native="releaseDownloadedSnackbar = false">
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </v-btn>
     </v-snackbar>
 
@@ -563,7 +564,8 @@
         Upgrade
       </v-btn>
       <v-btn @click.native="downloadAvailSnackbar = false">
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </v-btn>
     </v-snackbar>
     <change-env v-model="showChangeEnv" />

@@ -55,7 +55,8 @@
         :disabled="!edited && !newTable"
         @click="applyChanges"
       >
-        Save &nbsp;
+        <!-- Save &nbsp; -->
+        {{ $t('general.save') }}
         <v-progress-circular
           v-if="progress.save"
           :indeterminate="progress.save"

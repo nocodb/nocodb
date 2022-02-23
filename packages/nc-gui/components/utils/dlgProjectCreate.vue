@@ -47,6 +47,7 @@
 
                         </v-select>-->
 
+            <!-- Create Project -->
             <div class="text-center">
               <v-btn
                 :loading="loading"
@@ -54,7 +55,7 @@
                 color="primary"
                 @click="createProject"
               >
-                Create Project
+                {{ $t('activity.createProject') }}
               </v-btn>
             </div>
           </div>

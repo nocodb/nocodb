@@ -23,7 +23,8 @@
         </div>
         <div class="control">
           <button class="button is-text">
-            Cancel
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
           </button>
         </div>
       </div>

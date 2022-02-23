@@ -6,7 +6,8 @@
     <div class="d-flex flex-column justify-center" @click.stop>
       <v-time-picker v-model="localState" v-on="parentListeners" />
       <v-btn small color="primary" @click="$emit('update')">
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </v-btn>
     </div>
   </v-menu>

@@ -11,7 +11,8 @@
         <v-icon small class="mr-1" color="primary">
           mdi-reload
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </v-btn>
       <v-btn
         color="primary"
@@ -22,7 +23,8 @@
         <v-icon small class="mr-1" color="primary">
           save
         </v-icon>
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </v-btn>
     </v-toolbar>
     <v-container fluid>

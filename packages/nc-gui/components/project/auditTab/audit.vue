@@ -6,7 +6,8 @@
         <v-icon small class="mr-2">
           refresh
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </v-btn>
     </v-toolbar>
     <v-container class="h-100 d-flex flex-column">

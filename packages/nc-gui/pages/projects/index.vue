@@ -1162,9 +1162,11 @@ export default {
             link.setAttribute('download', 'meta.zip') // or any other extension
             document.body.appendChild(link)
             link.click()
-            this.$toast
-              .success('Successfully exported metadata')
-              .goAway(3000)
+            // this.$toast
+            //   .success('Successfully exported metadata')
+            //   .goAway(3000)
+            this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000)
+
           } catch (e) {
             this.$toast.error(e.message).goAway(3000)
           }
@@ -1190,7 +1192,8 @@ export default {
               },
               'xcMetaTablesReset'
             ])
-            this.$toast.success('Metadata cleared successfully').goAway(3000)
+            // this.$toast.success('Metadata cleared successfully').goAway(3000)
+            this.$toast.success(`${this.$t('msg.toast.clearMetadata')}`).goAway(3000)
           } catch (e) {
             this.$toast.error(e.message).goAway(3000)
           }
@@ -1220,7 +1223,8 @@ export default {
             {},
             zipFile
           ])
-          this.$toast.success('Successfully imported metadata').goAway(3000)
+          // this.$toast.success('Successfully imported metadata').goAway(3000)
+          this.$toast.success(`${this.$t('msg.toast.importMetadata')}`).goAway(3000)
           await this.projectsLoad()
         } catch (e) {
           this.$toast.error(e.message).goAway(3000)

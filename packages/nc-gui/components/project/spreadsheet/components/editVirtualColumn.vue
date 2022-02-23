@@ -42,10 +42,12 @@
           <v-col cols="12" class="d-flex pt-0">
             <v-spacer />
             <v-btn x-small outlined @click="close">
-              Cancel
+              <!-- Cancel -->
+              {{ $t('general.cancel') }}
             </v-btn>
             <v-btn x-small color="primary" :disabled="!valid" @click="save">
-              Save
+              <!-- Save -->
+              {{ $t('general.save') }}
             </v-btn>
           </v-col>
         </v-row>

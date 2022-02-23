@@ -527,10 +527,12 @@
         <v-card-actions>
           <v-spacer />
           <v-btn outlined small @click="createTablesDialog=false">
-            Cancel
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
           </v-btn>
           <v-btn outlined color="primary" small @click="addTables">
-            Save
+            <!-- Save -->
+            {{ $t('general.save') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -552,10 +554,12 @@
         <v-card-actions>
           <v-spacer />
           <v-btn outlined small @click="createTableColumnsDialog=false">
-            Cancel
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
           </v-btn>
           <v-btn outlined color="primary" small @click="addColumns">
-            Save
+            <!-- Save -->
+            {{ $t('general.save') }}
           </v-btn>
         </v-card-actions>
       </v-card>

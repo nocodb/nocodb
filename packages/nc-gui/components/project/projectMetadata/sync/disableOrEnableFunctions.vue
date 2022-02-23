@@ -41,7 +41,8 @@
                 icon="save"
                 @click="saveModels()"
               >
-                Save
+                <!-- Save -->
+                {{ $t('general.save') }}
               </x-btn>
             </v-toolbar>
 

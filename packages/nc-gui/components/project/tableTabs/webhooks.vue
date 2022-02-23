@@ -38,7 +38,8 @@
         <v-icon small left>
           mdi-close-circle-outline
         </v-icon>
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </x-btn>
       <x-btn
         v-ge="['hooks','reload']"
@@ -51,7 +52,8 @@
         <v-icon small left>
           mdi-reload
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </x-btn>
 
       <x-btn
@@ -76,7 +78,7 @@
                    v-ge="['hooks','save']"
                    @click.prevent="saveHooks">
               <v-icon small left>save</v-icon>
-              Save
+              {{ $t('general.save') }}
             </x-btn>-->
     </v-toolbar>
 
@@ -169,7 +171,8 @@
                   <v-icon small left>
                     save
                   </v-icon>
-                  Save
+                  <!-- Save -->
+                  {{ $t('general.save') }}
                 </x-btn>
               </v-card-title>
               <v-card-text>

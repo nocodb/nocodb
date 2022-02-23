@@ -43,7 +43,8 @@
         </x-icon>
 
         <v-btn small @click="$emit('cancel')">
-          Cancel
+          <!-- Cancel -->
+          {{ $t('general.cancel') }}
         </v-btn>
         <v-btn :disabled="!_isUIAllowed('tableRowUpdate')" small color="primary" @click="save">
           Save Row

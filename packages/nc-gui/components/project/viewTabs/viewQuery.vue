@@ -36,7 +36,8 @@
         icon="refresh"
         @click="loadEnv()"
       >
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </x-btn>
       <x-btn
         outlined
@@ -47,7 +48,8 @@
         icon="save"
         @click="applyChanges()"
       >
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </x-btn>
       <x-btn
         outlined

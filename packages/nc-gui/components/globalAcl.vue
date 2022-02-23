@@ -36,7 +36,8 @@
         <v-icon small left>
           refresh
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </x-btn>
 
       <x-btn
@@ -51,7 +52,8 @@
         <v-icon small left>
           save
         </v-icon>
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </x-btn>
     </v-toolbar>
 

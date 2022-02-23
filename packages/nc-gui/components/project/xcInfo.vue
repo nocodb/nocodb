@@ -13,7 +13,8 @@
         <v-icon small left>
           refresh
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </x-btn>
     </v-toolbar>
 
@@ -339,7 +340,8 @@ export default {
         link.setAttribute('download', 'proto.zip') // or any other extension
         document.body.appendChild(link)
         link.click()
-        this.$toast.success('Successfully exported metadata').goAway(3000)
+        // this.$toast.success('Successfully exported metadata').goAway(3000)
+        this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000)
       } catch (e) {
         this.$toast.error('Some internal error occurred').goAway(3000)
       }

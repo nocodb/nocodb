@@ -362,8 +362,7 @@ export default {
       this.newRecordModal = false
 
       await this.childApi.update(id, {
-        [_cn]:
-        (this.hm && child[`${this.hm._rtn}Read`] && child[`${this.hm._rtn}Read`][this.hm && _cn]) || parseIfInteger(this.parentId)
+        [_cn]: parseIfInteger(this.parentId)
       }, {
         [_cn]: child[this.childForeignKey]
       })

@@ -34,7 +34,10 @@
       :primary-col="parentPrimaryCol"
       :primary-key="parentPrimaryKey"
       :api="parentApi"
-      :query-params="parentQueryParams"
+      :query-params="{
+        ...parentQueryParams,
+        where: isNew ? null :`~not(${parentPrimaryKey},eq,${parentId})~or(${parentPrimaryKey},is,null)`,
+      }"
       :is-public="isPublic"
       :tn="bt && bt.rtn"
       :password="password"
@@ -165,13 +168,24 @@ export default {
       //   : null
     },
     parentId() {
-      return this.pid ?? (this.value && this.parentMeta && this.parentMeta.columns.filter(c => c.pk).map(c => this.value[c._cn]).join('___'))
+      return this.pid ??
+        ((this.parentMeta.columns
+          .filter(c => c._cn === (this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn))
+          .map(c => this.value[c._cn]).join('___')) ||
+        (this.value && this.parentMeta && this.parentMeta.columns.filter(c => c.pk).map(c => this.value[c._cn]).join('___')))
     },
     parentPrimaryCol() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
     },
     parentPrimaryKey() {
-      return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
+      // ((this.parentMeta.columns
+      //   .filter(c => c._cn === (this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn))
+      //   .map(c => this.value[c._cn]).join('___'))
+
+      console.log((this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn) ||
+        (this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn))
+      return (this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn) ||
+        (this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn)
     },
     parentQueryParams() {
       if (!this.parentMeta) {

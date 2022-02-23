@@ -54,7 +54,7 @@
       :parent-meta="meta"
       :query-params="{
         ...childQueryParams,
-        where: isNew ? null :`~not(${childForeignKey},eq,${childForeignKeyVal != '' ? childForeignKeyVal : parentId})~or(${childForeignKey},is,null)`,
+        where: isNew ? null :`~not(${childForeignKey},eq,${parentId})~or(${childForeignKey},is,null)`,
       }"
       :is-public="isPublic"
       :password="password"
@@ -80,7 +80,7 @@
       :column="column"
       :query-params="{
         ...childQueryParams,
-        where: `(${childForeignKey},eq,${childForeignKeyVal != '' ? childForeignKeyVal : parentId})`
+        where: `(${childForeignKey},eq,${parentId})`
       }"
       :is-public="isPublic"
       :row-id="parentId"
@@ -251,11 +251,10 @@ export default {
       }
     },
     parentId() {
-      return this.meta && this.meta.columns ? this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___') : ''
+      return (this.meta && this.meta.columns &&
+        (this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn]).join('___') ||
+        this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___'))) || ''
     },
-    childForeignKeyVal() {
-      return this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn]) : ''
-    }
   },
   watch: {
     isNew(n, o) {

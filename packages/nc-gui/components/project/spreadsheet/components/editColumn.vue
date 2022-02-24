@@ -10,6 +10,7 @@
       <v-container fluid @click.stop.prevent>
         <v-row>
           <v-col cols="12" class="mt-2">
+            <!--label: Column Name-->
             <v-text-field
               ref="column"
               v-model="newColumn.cn"
@@ -21,7 +22,7 @@
                 validateColumnName
               ]"
               class="caption nc-column-name-input"
-              label="Column name"
+              :label="$t('labels.columnName')"
               dense
               outlined
               @input="newColumn.altered = newColumn.altered || 8"
@@ -59,6 +60,7 @@
               </v-col>
               <template v-else>
                 <v-col cols="12">
+                  <!--label: Column Type-->
                   <v-autocomplete
                     v-model="newColumn.uidt"
                     hide-details
@@ -66,7 +68,7 @@
                     item-text="name"
                     class="caption ui-type nc-ui-dt-dropdown"
                     :class="{'primary lighten-5' : newColumn.uidt }"
-                    label="Column type"
+                    :label="$t('labels.columnType')"
                     dense
                     outlined
                     :items="uiTypes"
@@ -118,7 +120,7 @@
                     class="pointer grey--text text-right caption nc-more-options"
                     @click="advanceOptions = !advanceOptions"
                   >
-                    {{ advanceOptions ? 'Hide' : 'Show more' }} options
+                    {{ advanceOptions ? $t('general.hideAll') : $t('general.showMore') }}
                     <v-icon x-small color="grey">
                       mdi-{{ advanceOptions ? 'minus' : 'plus' }}-circle-outline
                     </v-icon>
@@ -301,11 +303,12 @@
                                 </div>
                               </v-col>
                               <v-col cols="12">
+                                <!--label="Type in Database"-->
                                 <v-autocomplete
                                   v-model="newColumn.dt"
                                   hide-details
                                   class="caption data-type"
-                                  label="Type in Database"
+                                  :label="$t('labels.databaseType')"
                                   dense
                                   outlined
                                   :items="dataTypes"
@@ -314,13 +317,14 @@
                               </v-col>
 
                               <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
+                                <!--label="Length / Values"-->
                                 <v-text-field
                                   v-if="!isSelect"
                                   v-model="newColumn.dtxp"
                                   dense
                                   :disabled="sqlUi.getDefaultLengthIsDisabled(newColumn.dt) || !sqlUi.columnEditable(newColumn)"
                                   class="caption"
-                                  label="Length / Values"
+                                  :label="$t('labels.lengthValue')"
                                   outlined
                                   hide-details
                                   @input="newColumn.altered = newColumn.altered || 2"
@@ -342,7 +346,7 @@
                               <v-col cols="12">
                                 <v-textarea
                                   v-model="newColumn.cdf"
-                                  label="Default value"
+                                  :label="$t('placeholder.defaultValue')"
                                   :hint="sqlUi.getDefaultValueForDatatype(newColumn.dt)"
                                   persistent-hint
                                   rows="3"

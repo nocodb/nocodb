@@ -942,7 +942,7 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         console.log('add app store tab');
-        let item = {name: 'App Store', key: `appStore`};
+        let item = {name: `${this.$t('title.appStore')} `, key: `appStore`};
         item._nodes = {env: '_noco'};
         item._nodes.type = 'appStore';
         this.$store.dispatch('tabs/ActAddTab', item);
@@ -978,7 +978,7 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         console.log('add roles tab');
-        let item = {name: 'Team & Auth ', key: `roles`};
+        let item = {name: `${this.$t('title.team&auth')} `, key: `roles`};
         item._nodes = {env: '_noco'};
         item._nodes.type = 'roles';
         this.$store.dispatch('tabs/ActAddTab', item);
@@ -990,7 +990,7 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         console.log('add acl tab');
-        let item = {name: 'Meta Management', key: `disableOrEnableModel`};
+        let item = {name: `${this.$t('title.metaMgmt')}`, key: `disableOrEnableModel`};
         item._nodes = {env: '_noco'};
         item._nodes.type = 'disableOrEnableModel';
         this.$store.dispatch('tabs/ActAddTab', item);
@@ -1001,7 +1001,7 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         console.log('add audit tab');
-        let item = {name: 'Audit', key: `migrationsDir`};
+        let item = {name: `${this.$t('title.audit')}`, key: `migrationsDir`};
         item._nodes = {
           env: '_noco',
           dbAlias: 'db'

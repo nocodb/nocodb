@@ -27,7 +27,7 @@ on:
         type: string
       isDaily:
         description: "Is it triggered by daily schedule"
-        required: true
+        required: false
         type: string
     secrets:
       DOCKERHUB_USERNAME:

@@ -14,7 +14,7 @@
                 dense
                 hide-details
                 class="my-2 mx-auto caption"
-                :placeholder="`Search models`"
+                :placeholder="$t('placeholder.searchModels')"
                 prepend-inner-icon="search"
                 style="max-width:500px"
                 outlined
@@ -24,7 +24,7 @@
               <x-btn
                 btn.class="nc-btn-metasync-reload"
                 outlined
-                tooltip="Reload list"
+                :tooltip="$t('tooltip.reloadList')"
                 small
                 color="primary"
                 icon="refresh"
@@ -35,7 +35,7 @@
               </x-btn>
               <!--              <x-btn
                 outlined
-                tooltip="Reload list"
+                :tooltip="$t('tooltip.reloadList')"
                 small
                 color="primary"
                 icon="refresh"
@@ -62,11 +62,13 @@
                 <thead>
                   <tr>
                     <th class="grey--text">
-                      Models
+                      <!--Models-->
+                      {{ $t('labels.models') }}
                     </th>
                     <!--                    <th>APIs</th>-->
                     <th class="grey--text">
-                      Sync state
+                      <!--Sync state-->
+                      {{ $t('labels.syncState') }}
                     </th>
                     <th />
                   </tr>
@@ -118,7 +120,8 @@
                         v-else
                         class="caption grey--text"
                       >
-                        {{ 'No change identified' }}
+                        <!--{{ 'No change identified' }}-->
+                        {{ $t('msg.info.metaNoChange') }}
                       </span>
                     <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
                     </td>

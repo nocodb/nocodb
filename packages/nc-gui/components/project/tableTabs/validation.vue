@@ -76,7 +76,7 @@
                   <template #input>
                     <v-text-field
                       v-model="item._cn"
-                      label="Edit"
+                      :label="$t('general.edit')"
                       single-line
                       @input="edited=true"
                     />
@@ -269,7 +269,7 @@
                     <template #input>
                       <v-text-field
                         v-model="clickedItem.validate.msg[i]"
-                        label="Edit"
+                        :label="$t('general.edit')"
                         single-line
                         @input="edited=true"
                       />

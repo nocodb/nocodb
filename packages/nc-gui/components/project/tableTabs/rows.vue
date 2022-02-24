@@ -114,7 +114,7 @@
                     <v-text-field
                       v-model="item.data[text]"
                       class="mt-0 caption"
-                      label="Edit"
+                      :label="$t('general.edit')"
                       :type="getType(type)"
                       single-line
                       hide-details
@@ -144,7 +144,7 @@
                   v-ge="['rows','save']"
                   dense
                   hide-details
-                  label="Edit"
+                  :label="$t('general.edit')"
                   :type="getType(type)"
                   :placeholder="text"
                   :disabled="ai"

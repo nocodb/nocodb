@@ -63,7 +63,8 @@
           </template>
 
           <div v-else-if="data" class="text-center py-15 textLight--text">
-            No items found
+            <!--No items found-->
+            {{ $t('placeholder.noItemsFound') }}
           </div>
         </div>
       </v-card-text>

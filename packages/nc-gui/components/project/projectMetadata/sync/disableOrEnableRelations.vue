@@ -14,7 +14,7 @@
       <v-spacer />
       <x-btn
         outlined
-        tooltip="Reload list"
+        :tooltip="$t('tooltip.reloadList')"
         small
         color="primary"
         icon="refresh"

@@ -8,10 +8,10 @@
               {{ u.username }}
             </router-link>
             <v-btn color="info">
-              Edit
+              {{ $t('general.edit') }}
             </v-btn>
             <v-btn color="error">
-              Delete
+              {{ $t('general.delete') }}
             </v-btn>
           </v-card-title>
           <hr>

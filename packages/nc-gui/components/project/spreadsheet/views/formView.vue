@@ -22,20 +22,29 @@
         <v-col v-if="isEditable" class="h-100 col-md-4 col-lg-3">
           <v-card class="h-100 overflow-auto pa-4 pa-md-6 backgroundColor elevation-0 nc-form-left-nav">
             <div class="d-flex grey--text">
-              <span class="">Fields</span>
+              <span class="">
+                <!--Fields-->
+                {{ $t('objects.fields') }}
+              </span>
               <v-spacer />
               <span
                 v-if="hiddenColumns.length"
                 class="pointer caption mr-2"
                 style="border-bottom: 2px solid rgb(218,218,218)"
                 @click="addAllColumns()"
-              >add all</span>
+              >
+                <!--add all-->
+                {{ $t('general.addAll') }}
+              </span>
               <span
                 v-if="columns.length"
                 class="pointer caption"
                 style="border-bottom: 2px solid rgb(218,218,218)"
                 @click="columns=[]"
-              >remove all</span>
+              >
+                <!--remove all-->
+                {{ $t('general.removeAll') }}
+              </span>
             </div>
             <draggable
               v-if="showFields "
@@ -79,7 +88,8 @@
                 </div>
               </v-card>
               <div class="mt-4 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
-                Drag and drop fields here to hide
+                <!--Drag and drop fields here to hide-->
+                {{ $t('msg.info.dragDropHide') }}
               </div>
             </draggable>
 
@@ -94,7 +104,8 @@
                   <v-icon size="20" color="grey">
                     mdi-plus
                   </v-icon>
-                  Add new field to this table
+                  <!--Add new field to this table-->
+                  {{ $t('activity.addField') }}
                 </div>
               </template>
               <edit-column
@@ -141,13 +152,13 @@
               >
                 {{ localParams.name }}
               </editable>
-
+              <!--placeholder="Add form description"-->
               <editable
                 :is="isEditable ? 'editable' : 'div'"
                 v-model.lazy="localParams.description"
                 :class="{'nc-meta-inputs': isEditable}"
                 class="body-1  text-left mx-4 py-2 px-1 text--text text--lighten-2"
-                placeholder="Add form description"
+                :placeholder="$t('msg.info.formDesc')"
               >
                 {{ localParams.description }}
               </editable>
@@ -193,7 +204,10 @@
                           <label
                             class="grey--text caption ml-2"
                             @click="localParams.fields[col.alias].required= !localParams.fields[col.alias].required"
-                          >Required</label>
+                          >
+                            <!--Required-->
+                            {{ $t('general.required') }}
+                          </label>
                           <v-switch
                             v-model="localParams.fields[col.alias].required"
                             class="nc-required-switch ml-1 mt-0"
@@ -204,16 +218,18 @@
                             inset
                           />
                         </div>
+                        <!--placeholder=" Enter form input label"-->
                         <editable
                           v-model="localParams.fields[col.alias].label"
                           style="width:300px;white-space: pre-wrap"
-                          placeholder=" Enter form input label"
+                          :placeholder="$t('msg.info.formInput')"
                           class="caption pa-1 backgroundColor darken-1 mb-2 "
                         />
+                        <!--placeholder=" Add some help text"-->
                         <editable
                           v-model="localParams.fields[col.alias].description"
                           style="width:300px;white-space: pre-wrap"
-                          placeholder=" Add some help text"
+                          :placeholder="$t('msg.info.formHelpText')"
                           class="caption pa-1 backgroundColor darken-1 mb-2"
                           @keydown.enter.prevent
                         />
@@ -336,7 +352,8 @@
               </draggable>
               <div class="my-10 text-center">
                 <v-btn color="primary" :loading="loading" :disabled="loading" @click="save">
-                  Submit
+                  <!--Submit-->
+                  {{ $t('general.submit') }}
                 </v-btn>
                 <!--            <span class="caption grey&#45;&#45;text pointer">Edit label</span>-->
               </div>
@@ -353,9 +370,13 @@
               </v-switch>-->
 
                 <div class="caption grey--text  mt-10 mb-2">
-                  After form is submitted:
+                  <!--After form is submitted:-->
+                  {{ $t('msg.info.afterFormSubmitted') }}
                 </div>
-                <label class="caption grey--text font-weight-bold">Show this message:</label>
+                <label class="caption grey--text font-weight-bold">
+                  <!--Show this message:-->
+                  {{ $t('msg.info.showMessage') }}:
+                </label>
                 <v-textarea
                   v-model="localParams.submit.message"
                   rows="3"
@@ -367,12 +388,18 @@
 
                 <v-switch v-model="localParams.submit.showAnotherSubmit" dense inset hide-details class="nc-switch">
                   <template #label>
-                    <span class="font-weight-bold grey--text caption">Show "Submit Another Form" button</span>
+                    <span class="font-weight-bold grey--text caption">
+                      <!--Show "Submit Another Form" button-->
+                      {{ $t('msg.info.submitAnotherForm') }}
+                    </span>
                   </template>
                 </v-switch>
                 <v-switch v-model="localParams.submit.showBlankForm" dense inset hide-details class="nc-switch">
                   <template #label>
-                    <span class="font-weight-bold grey--text caption">Show a blank form after 5 seconds</span>
+                    <span class="font-weight-bold grey--text caption">
+                      <!--Show a blank form after 5 seconds-->
+                      {{ $t('msg.info.showBlankForm') }}
+                    </span>
                   </template>
                 </v-switch>
                 <v-switch
@@ -385,9 +412,11 @@
                   @change="checkSMTPStatus"
                 >
                   <template #label>
-                    <span class="caption font-weight-bold grey--text ">Email me at <span class="font-eright-bold">{{
-                      $store.state.users.user.email
-                    }}</span></span>
+                    <span class="caption font-weight-bold grey--text ">
+                      {{ $t('msg.info.emailForm') }} <span class="font-eright-bold">{{
+                        $store.state.users.user.email
+                      }}</span>
+                    </span>
                   </template>
                 </v-switch>
               </div>

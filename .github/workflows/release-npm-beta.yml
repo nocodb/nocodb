@@ -5,6 +5,10 @@ on:
     branches:
       - 'FINNoco-20*'
 
+env:
+  TERRAFORM_CLOUD_TOKENS: |
+    app.terraform.io=${{ secrets.TF_API_TOKEN }}
+
 jobs:
   # JOB to run change detection
   changes:
@@ -13,13 +17,13 @@ jobs:
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
     steps:
-    # For pull requests it's not necessary to checkout the code
-    - uses: dorny/paths-filter@v2
-      id: filter
-      with:
-        filters: |
-          frontend:
-            - 'packages/nc-gui/**'
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'packages/nc-gui/**'
   release:
     needs: changes
     if: ${{ needs.changes.outputs.frontend == 'true' }}
@@ -144,5 +148,14 @@ jobs:
           echo "ref brnch ${{ steps.branch-name.outputs.ref_branch }}"
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+  plan:
+    runs-on: ubuntu-latest
+    name: Create terraform plan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-
+      - name: terraform plan
+        uses: dflook/terraform-plan@v1
+        with:
+          workspace: engineering-nocodb-development

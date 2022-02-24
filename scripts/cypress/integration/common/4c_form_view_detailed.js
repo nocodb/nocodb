@@ -87,7 +87,7 @@ export const genTest = (apiType, dbType) => {
       it(`Validate ${viewType} view: Inverted order field member addition from menu`, () => {
         cy.get(".col-md-4")
           .find(".pointer.caption")
-          .contains("remove all")
+          .contains("Remove all")
           .click();
 
         // click fields in inverted order: LastUpdate, Country => City
@@ -138,17 +138,17 @@ export const genTest = (apiType, dbType) => {
         // ensure buttons exist on left hand menu
         cy.get(".col-md-4")
           .find(".pointer.caption")
-          .contains("add all")
+          .contains("Add all")
           .should("not.exist");
         cy.get(".col-md-4")
           .find(".pointer.caption")
-          .contains("remove all")
+          .contains("Remove all")
           .should("exist");
 
         // click: remove-all
         cy.get(".col-md-4")
           .find(".pointer.caption")
-          .contains("remove all")
+          .contains("Remove all")
           .click();
         // form should not contain any "field remove icons" -- except for mandatory field (Country)
         cy.get(".nc-form")
@@ -158,15 +158,15 @@ export const genTest = (apiType, dbType) => {
         // menu bar should contain 3 .pointer.item (LastUpdate, County->City)
         cy.get(".col-md-4").find(".pointer.item").its("length").should("eq", 2);
 
-        // click: add all
-        // cy.get('.col-md-4').find('.pointer.caption').contains('remove all').should('not.exist')
+        // click: Add all
+        // cy.get('.col-md-4').find('.pointer.caption').contains('Remove all').should('not.exist')
         cy.get(".col-md-4")
           .find(".pointer.caption")
-          .contains("add all")
+          .contains("Add all")
           .click();
         cy.get(".col-md-4")
           .find(".pointer.caption")
-          .contains("remove all")
+          .contains("Remove all")
           .should("exist");
         // form should contain "field remove icons"
         cy.get(".nc-form").find(".nc-field-remove-icon").should("exist");

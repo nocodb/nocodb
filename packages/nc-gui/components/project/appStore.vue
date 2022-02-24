@@ -56,7 +56,7 @@
                 <v-icon x-small class="mr-1">
                   mdi-pencil
                 </v-icon>
-                Edit
+                {{ $t('general.edit') }}
               </v-btn>
               <v-btn
                 v-if="app.parsedInput"

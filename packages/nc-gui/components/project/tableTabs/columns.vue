@@ -368,7 +368,7 @@
                       v-model="props.item.cn"
                       :disabled="props.item.rcn || !sqlUi.columnEditable(props.item)"
                       :rules="form.validation.required"
-                      label="Edit"
+                      :label="$t('general.edit')"
                       single-line
                     />
                   </template>
@@ -419,7 +419,7 @@
                     v-ge="['columns','precision']"
                     :disabled="sqlUi.getDefaultLengthIsDisabled(props.item.dt) || !sqlUi.columnEditable(props.item)"
                     :rules="[max25chars]"
-                    label="Edit"
+                    :label="$t('general.edit')"
                     single-line
                   />
                 </template>
@@ -441,7 +441,7 @@
                       v-ge="['columns','scale']"
                       :disabled="!sqlUi.columnEditable(props.item)"
                       :rules="[max25chars]"
-                      label="Edit"
+                      :label="$t('general.edit')"
                       single-line
                     />
                   </template>
@@ -641,7 +641,7 @@
                     v-model="props.item.cdf"
                     v-ge="['columns','default']"
                     :disabled="!sqlUi.columnEditable(props.item)"
-                    label="Edit"
+                    :label="$t('general.edit')"
                     counter
                     class="caption"
                     :placeholder="`${sqlUi.getDefaultValueForDatatype(props.item.dt)}`"

@@ -322,7 +322,7 @@
     "reloadApiToken": "Reload API tokens",
     "generateNewApiToken": "Generate new API token",
     "addRole": "Add new role",
-    "metaReloadList": "Reload list",
+    "reloadList": "Reload list",
     "metaSync": "Sync metadata",
     "sqlMigration": "Reload migrations",
     "updateRestart": "Update & Restart",

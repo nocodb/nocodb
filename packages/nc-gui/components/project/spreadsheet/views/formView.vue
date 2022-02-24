@@ -33,7 +33,7 @@
                 style="border-bottom: 2px solid rgb(218,218,218)"
                 @click="addAllColumns()"
               >
-                <!--add all-->
+                <!--Add all-->
                 {{ $t('general.addAll') }}
               </span>
               <span
@@ -42,7 +42,7 @@
                 style="border-bottom: 2px solid rgb(218,218,218)"
                 @click="columns=[]"
               >
-                <!--remove all-->
+                <!--Remove all-->
                 {{ $t('general.removeAll') }}
               </span>
             </div>

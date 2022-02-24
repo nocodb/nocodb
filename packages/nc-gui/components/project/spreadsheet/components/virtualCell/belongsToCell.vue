@@ -36,7 +36,8 @@
       :api="parentApi"
       :query-params="{
         ...parentQueryParams,
-        where: isNew ? null :`~not(${parentPrimaryKey},eq,${parentId})~or(${parentPrimaryKey},is,null)`,
+        isByPass,
+        where: isNew ? null :`~not(${parentReferenceKey},eq,${parentReferenceVal})~or(${parentReferenceKey},is,null)`,
       }"
       :is-public="isPublic"
       :tn="bt && bt.rtn"
@@ -109,6 +110,7 @@
 import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
 import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/itemChip'
+import { parseIfInteger } from '@/helpers'
 
 export default {
   name: 'BelongsToCell',
@@ -168,24 +170,22 @@ export default {
       //   : null
     },
     parentId() {
-      return this.pid ??
-        ((this.parentMeta.columns
-          .filter(c => c._cn === (this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn))
-          .map(c => this.value[c._cn]).join('___')) ||
-        (this.value && this.parentMeta && this.parentMeta.columns.filter(c => c.pk).map(c => this.value[c._cn]).join('___')))
+      return this.pid ?? (this.value && this.parentMeta && this.parentMeta.columns.filter(c => c.pk).map(c => this.value[c._cn]).join('___'))
     },
     parentPrimaryCol() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
     },
     parentPrimaryKey() {
-      // ((this.parentMeta.columns
-      //   .filter(c => c._cn === (this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn))
-      //   .map(c => this.value[c._cn]).join('___'))
-
-      console.log((this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn) ||
-        (this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn))
-      return (this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.cn) || {})._cn) ||
-        (this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn)
+      return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
+    },
+    parentReferenceKey() {
+      console.log(this.parentMeta.columns.find(c => c.cn === this.bt.rcn))
+      return this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.rcn) || {})._cn
+    },
+    parentReferenceVal() {
+      console.log(this.row)
+      console.log(this.row[this.parentReferenceKey])
+      return (this.row && this.row[this.parentReferenceKey]) || -1
     },
     parentQueryParams() {
       if (!this.parentMeta) {
@@ -225,6 +225,9 @@ export default {
         return Object.values(this.value || this.localState)[1]
       }
       return null
+    },
+    isByPass() {
+      return false
     }
   },
   watch: {
@@ -333,11 +336,11 @@ export default {
       const pid = pkColumns.map(c => parent[c._cn]).join('___')
       const id = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
       const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn
-      let isNum = false
+      // let isNum = false
 
-      if (pkColumns.length === 1) {
-        isNum = ['float', 'integer'].includes(this.sqlUi.getAbstractType(pkColumns[0]))
-      }
+      // if (pkColumns.length === 1) {
+      //   isNum = ['float', 'integer'].includes(this.sqlUi.getAbstractType(pkColumns[0]))
+      // }
 
       if (this.isNew) {
         this.localState = parent
@@ -346,9 +349,8 @@ export default {
         this.newRecordModal = false
         return
       }
-
       await this.api.update(id, {
-        [_cn]: isNum ? +pid : pid
+        [_cn]: parseIfInteger(parent[this.parentReferenceKey])
       }, {
         [_cn]: this.value && this.value[this.parentPrimaryKey]
       })
@@ -427,6 +429,7 @@ export default {
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Md Ishtiaque Zafar <ishtiaque.zafar92@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

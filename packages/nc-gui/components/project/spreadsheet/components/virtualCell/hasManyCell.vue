@@ -54,9 +54,9 @@
       :parent-meta="meta"
       :query-params="{
         ...childQueryParams,
-        // return empty set if childForeignKeyVal is empty
-        // to avoid foreign key constraint violation in real relation
-        isByPass: !isVirtualRelation && childForeignKeyVal === '',
+        // check if it needs to bypass to
+        // avoid foreign key constraint violation in real relation
+        isByPass,
         where:
           // show all for new record
           isNew ? null :
@@ -225,16 +225,30 @@ export default {
       return this.meta && (this.meta.columns.find(c => c.pv) || {})._cn
     },
     childPrimaryKey() {
+      console.log('childPrimaryKey= ' + (this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn))
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
     },
     childForeignKey() {
+      console.log('childForeignKey= ' + (this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn))
       return this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn
     },
     childForeignKeyVal() {
+      console.log('childForeignKeyVal: ' + (this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') : ''))
       return this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') : ''
     },
     isVirtualRelation() {
       return (this.childMeta && (!!this.childMeta.columns.find(c => c.cn === this.hm.cn && this.hm.type === 'virtual'))) || false
+    },
+    isByPass() {
+      if (this.isVirtualRelation) {
+        return false
+      }
+      // if child fk references a column in parent which is not pk,
+      // then this column has to be filled
+      if (((this.meta && this.meta.columns.find(c => !c.pk && c.cn === this.hm.rcn)) || false)) {
+        return this.childForeignKeyVal === ''
+      }
+      return false
     },
     disabledChildColumns() {
       return { [this.childForeignKey]: true }
@@ -512,6 +526,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

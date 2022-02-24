@@ -35,14 +35,17 @@
                   mdi-file-plus-outline
                 </x-icon>
                 <p class="title  mb-1 mt-2">
-                  Select File to Upload
+                  <!-- Select File to Upload-->
+                  {{ $t('msg.info.upload') }}
                 </p>
                 <p class="grey--text mb-1">
-                  or drag and drop file
+                  <!-- or drag and drop file-->
+                  {{ $t('msg.info.upload_sub') }}
                 </p>
 
                 <p class="caption grey--text">
-                  Supported: .xls, .xlsx, .xlsm, .ods, .ots
+                  <!-- Supported: .xls, .xlsx, .xlsm, .ods, .ots-->
+                  {{ $t('msg.info.excelSupport') }}
                 </p>
               </div>
             </div>
@@ -52,18 +55,20 @@
               <div class="pa-4 d-100 h-100">
                 <v-form ref="form" v-model="valid">
                   <div class="d-flex">
+                    <!--label="Enter excel file url"-->
                     <v-text-field
                       v-model="url"
                       hide-details="auto"
                       type="url"
-                      label="Enter excel file url"
+                      :label="$t('msg.info.excelURL')"
                       class="caption"
                       outlined
                       dense
-                      :rules="[v => !!v || 'Required']"
+                      :rules="[v => !!v || $t('general.required') ]"
                     />
                     <v-btn class="ml-3" color="primary" @click="loadUrl">
-                      Load
+                      <!--Load-->
+                      {{ $t('general.load') }}
                     </v-btn>
                   </div>
                 </v-form>
@@ -75,20 +80,21 @@
         <div class="px-4 pb-2">
           <div class="d-flex">
             <v-spacer />
-            <span class="caption pointer grey--text" @click="showMore = !showMore">{{ showMore ? 'Hide' : 'Show' }} more
+            <span class="caption pointer grey--text" @click="showMore = !showMore">
+              {{ showMore ? $t('general.hideAll') : $t('general.showMore') }}
               <v-icon small color="grey lighten-1">mdi-menu-{{ showMore ? 'up' : 'down' }}</v-icon>
             </span>
           </div>
           <div class="mb-2 pt-2 nc-excel-import-options" :style="{ maxHeight: showMore ? '100px' : '0'}">
             <p />
-
+            <!--hint="# of rows to parse to infer data type"-->
             <v-text-field
               v-model="parserConfig.maxRowsToParse"
               style="max-width: 250px"
               class="caption mx-auto"
               dense
               persistent-hint
-              hint="# of rows to parse to infer data type"
+              :hint="$t('msg.info.footMsg')"
               outlined
               type="number"
             />
@@ -118,7 +124,8 @@
           <v-icon small class="mr-1">
             mdi-file-excel-outline
           </v-icon>
-          Import
+          <!--Import-->
+          {{ $t('activity.import') }}
         </v-btn>
       </template>
       <span class="caption">Create template from Excel</span>
@@ -128,8 +135,9 @@
       <v-card class="pa-6" min-width="500">
         <template-editor :project-template.sync="templateData" excel-import>
           <template #toolbar="{valid}">
+            <!--Importing-->
             <h3 class="mt-2 grey--text">
-              Importing : {{ filename }}
+              {{ $t('activity.importExcel') }} : {{ filename }}
             </h3>
             <!--            <span class="grey&#45;&#45;text">Importing 2 sheets</span>-->
 
@@ -145,7 +153,8 @@
               create-rest-text="Import as REST Project"
               @success="$emit('success'),templateEditorModal = false"
             >
-              Import Excel
+              <!--Import Excel-->
+              {{ $t('activity.importExcel') }}
             </create-project-from-template-btn>
           </template>
         </template-editor>

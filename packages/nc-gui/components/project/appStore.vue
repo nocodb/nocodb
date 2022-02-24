@@ -133,7 +133,7 @@
         v-model="query"
         dense
         hide-details
-        placeholder="Search apps"
+        :placeholder="$t('placeholder.searchApps')"
         color="primary"
         class="search-field caption"
       >

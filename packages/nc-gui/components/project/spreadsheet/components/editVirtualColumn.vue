@@ -16,7 +16,7 @@
               hide-details="auto"
               color="primary"
               class="caption nc-column-name-input"
-              label="Column name"
+              :label="$t('labels.columnName')"
               :rules="[
                 v => !!v || 'Required',
                 v => !meta || !meta.columns || !column ||meta.columns.every(c => v !== c.cn ) && meta.v.every(c => column && c._cn === column._cn || v !== c._cn ) || 'Duplicate column name',

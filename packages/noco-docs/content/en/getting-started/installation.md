@@ -109,6 +109,10 @@ And connection params for this database can be specified in `NC_DB` environment 
   </code-block> 
 </code-group> 
 
+<alert>
+If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for <a href="https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043" target="_blank">MySQL Docker</a> and <a href="https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974" target="_blank">MySQL Docker Compose</a>.
+</alert>
+
 ### Environment variables
 
 | Variable                | Mandatory | Comments                                                                         | If absent                                  |

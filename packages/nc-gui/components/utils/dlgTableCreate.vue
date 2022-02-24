@@ -137,8 +137,12 @@ export default {
           'created_at',
           'updated_at']
       },
-      validateTableName,
       valid: false
+    }
+  },
+  methods: {
+    validateTableName(v) {
+      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
     }
   },
   computed: {

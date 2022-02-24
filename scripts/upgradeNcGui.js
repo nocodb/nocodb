@@ -9,7 +9,7 @@ const ncLibPackage = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'pack
 // upgrade nc-lib-gui version in nocodb
 execSync(`cd packages/nocodb && npm install --save --save-exact nc-lib-gui@${ncLibPackage.version}`, {});
 
-const nocodbPackageFilePath = path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
-const nocoLibPackage = JSON.parse(fs.readFileSync(nocodbPackageFilePath))
-nocoLibPackage.version = process.env.VERSION;
-fs.writeFileSync(nocodbPackageFilePath, JSON.stringify(nocoLibPackage, null, 2));
+// const nocodbPackageFilePath = path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
+// const nocoLibPackage = JSON.parse(fs.readFileSync(nocodbPackageFilePath))
+// nocoLibPackage.version = process.env.VERSION;
+// fs.writeFileSync(nocodbPackageFilePath, JSON.stringify(nocoLibPackage, null, 2));

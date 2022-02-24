@@ -39,7 +39,8 @@
         icon="save"
         @click="applyChanges()"
       >
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </x-btn>
       <x-btn
         outlined

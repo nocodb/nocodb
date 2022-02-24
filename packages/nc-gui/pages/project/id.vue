@@ -27,9 +27,10 @@
               :src="require('~/assets/img/icons/512x512-trans.png')"
             />
           </div>
+          <!-- Create Project -->
           <v-toolbar flat color="" class="mb-3" style="width: 100%; border-bottom: 1px solid grey">
             <v-toolbar-title class="display-1 ">
-              Create Project
+              {{ $t('activity.createProject') }}
             </v-toolbar-title>
             <v-spacer />
             <x-btn
@@ -38,7 +39,8 @@
               to="/"
               class="elevation-20"
             >
-              Cancel
+              <!-- Cancel -->
+              {{ $t('general.cancel') }}
             </x-btn>
             <x-btn
               v-ge="['project','save']"

@@ -39,14 +39,14 @@
       <v-card-actions class="py-4 px-10">
         <v-spacer />
         <v-btn class="" @click="dialogShow = false">
-          Cancel
+          {{ $t('general.cancel') }}
         </v-btn>
         <v-btn
           :disabled="!(view.name && view.name.length) || !(view.alias && view.alias.length)"
           color="primary"
           @click="$emit('create',view)"
         >
-          Submit
+          {{ $t('general.submit') }}
         </v-btn>
       </v-card-actions>
     </v-card>

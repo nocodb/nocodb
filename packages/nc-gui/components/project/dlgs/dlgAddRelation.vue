@@ -97,7 +97,8 @@
           <v-card-actions class="pa-4">
             <v-spacer />
             <v-btn class="" @click="mtdDialogCancel()">
-              Cancel
+              <!-- Cancel -->
+              {{ $t('general.cancel') }}
             </v-btn>
             <v-btn
               class="primary "

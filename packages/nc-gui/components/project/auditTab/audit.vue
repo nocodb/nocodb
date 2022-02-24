@@ -6,7 +6,8 @@
         <v-icon small class="mr-2">
           refresh
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </v-btn>
     </v-toolbar>
     <v-container class="h-100 d-flex flex-column">
@@ -19,20 +20,25 @@
         <thead>
           <tr>
             <th class="caption">
-              Operation Type
+              <!--Operation Type-->
+              {{ $t('labels.operationType') }}
             </th>
             <th class="caption">
-              Operation Sub Type
+              <!---->
+              {{ $t('labels.operationSubType') }}
             </th>
             <th class="caption">
-              Description
+              <!--Description-->
+              {{ $t('labels.description') }}
             </th>
             <th class="caption">
-              User
+              <!--User-->
+              {{ $t('objects.user') }}
             </th>
             <!--          <th class="caption">Ip</th>-->
             <th class="caption">
-              Created
+              <!--Created-->
+              {{ $t('labels.created') }}
             </th>
           </tr>
         </thead>

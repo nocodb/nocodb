@@ -941,10 +941,12 @@
       :type="dialog.type"
     />
 
+<!-- heading="Connection was successful" -->
+<!-- ok-label="Ok & Save Project" -->
     <dlg-ok-new
       v-model="testSuccess"
-      heading="Connection was successful"
-      ok-label="Ok & Save Project"
+      :heading="$t('msg.info.dbConnected')"
+      :ok-label="$t('activity.OkSaveProject')"
       type="success"
       :btn-attr="{ small: false }"
       @ok="createOrUpdateProject"
@@ -2141,7 +2143,8 @@ export default {
               switch (res) {
                 case -1:
                   msg.color = 'red'
-                  msg.msg = ' ( Invalid database parameters )'
+                  // msg.msg = ' ( Invalid database parameters )'
+                  msg.msg = `( ${this.$t('msg.error.dbConnectionStatus')} )`
                   break
                 case 0:
                   msg.color = 'warning'
@@ -2149,7 +2152,8 @@ export default {
                   break
                 case 1:
                   msg.color = 'green'
-                  msg.msg = ' ( Environment Validated )'
+                  // msg.msg = ' ( Environment Validated )'
+                  msg.msg = `( ${this.$t('msg.info.dbConnectionStatus')} )`
                   break
               }
               Vue.set(this.project.ui, key, msg)

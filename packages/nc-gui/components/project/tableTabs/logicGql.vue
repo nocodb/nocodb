@@ -46,7 +46,8 @@
         <v-icon small left>
           refresh
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </x-btn>
     </v-toolbar>
 
@@ -84,7 +85,8 @@
               <v-icon small left>
                 save
               </v-icon>
-              Save
+              <!-- Save -->
+              {{ $t('general.save') }}
             </x-btn>
           </div>
           <monaco-editor

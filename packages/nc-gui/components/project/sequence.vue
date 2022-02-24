@@ -37,7 +37,8 @@
         :disabled="newSequence"
         @click="loadSequences()"
       >
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </x-btn>
       <x-btn
         outlined
@@ -48,7 +49,8 @@
         :disabled="!(newSequence || edited)"
         @click="applyChanges()"
       >
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </x-btn>
       <x-btn
         outlined

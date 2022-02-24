@@ -36,7 +36,7 @@
         <v-icon small left>
           refresh
         </v-icon>
-        {{ $t('general.reload')}}
+        {{ $t('general.reload') }}
       </x-btn>
       <x-btn
         v-ge="['roles','add new']"
@@ -51,7 +51,8 @@
         <v-icon small left>
           mdi-plus
         </v-icon>
-        New Role
+        <!--New Role-->
+        {{ $t('activity.newRole') }}
       </x-btn>
       <x-btn
         v-ge="['rows','save']"
@@ -67,7 +68,8 @@
         <v-icon small left>
           save
         </v-icon>
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </x-btn>
     </v-toolbar>
     <div class="" style="width: 100%">

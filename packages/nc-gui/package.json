@@ -8,7 +8,7 @@
     "start": "EE=true nuxt start",
     "generate": "nuxt generate",
     "build:copy": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
-    "build:copy:jsdeliver": "npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh  ./dist/ ../nc-lib-gui/lib/dist/ ; npm publish ../nc-lib-gui"
+    "build:copy:jsdeliver": "npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/ ; npm publish ../nc-lib-gui"
   },
   "dependencies": {
     "@mdi/font": "^5.9.55",

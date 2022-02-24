@@ -16,7 +16,7 @@
               hide-details="auto"
               color="primary"
               class="caption nc-column-name-input"
-              label="Column name"
+              :label="$t('labels.columnName')"
               :rules="[
                 v => !!v || 'Required',
                 v => !meta || !meta.columns || !column ||meta.columns.every(c => v !== c.cn ) && meta.v.every(c => column && c._cn === column._cn || v !== c._cn ) || 'Duplicate column name',
@@ -42,10 +42,12 @@
           <v-col cols="12" class="d-flex pt-0">
             <v-spacer />
             <v-btn x-small outlined @click="close">
-              Cancel
+              <!-- Cancel -->
+              {{ $t('general.cancel') }}
             </v-btn>
             <v-btn x-small color="primary" :disabled="!valid" @click="save">
-              Save
+              <!-- Save -->
+              {{ $t('general.save') }}
             </v-btn>
           </v-col>
         </v-row>
@@ -122,7 +124,7 @@ export default {
     validateColumnName(v) {
       if (this.column.hm || this.column.mm || this.column.bt || this.column.lk) { return true }
 
-      return validateColumnName(v)
+      return validateColumnName(v, this.$store.getters['project/GtrProjectIsGraphql'])
     }
   }
 }

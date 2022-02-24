@@ -138,7 +138,7 @@ export const genTest = (apiType, dbType) => {
                                 for (let j = 1; j < row.length; j++) {
                                     // column name to match input in excel
                                     cy.wrap(row[j])
-                                        .find('[placeholder="Column name"]')
+                                        .find('[placeholder="Column Name"]')
                                         .then((obj) => {
                                             cy.log(obj[0].value);
                                             expect(obj[0].value).to.equal(
@@ -269,7 +269,7 @@ export const genTest = (apiType, dbType) => {
                                     ) {
                                         // column name to match input in excel
                                         cy.wrap(row[j])
-                                            .find('[placeholder="Column name"]')
+                                            .find('[placeholder="Column Name"]')
                                             .then((obj) => {
                                                 cy.log(obj[0].value);
                                                 expect(obj[0].value).to.equal(

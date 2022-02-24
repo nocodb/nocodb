@@ -390,6 +390,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/bitbytejoy"><img src="https://avatars.githubusercontent.com/u/11807034?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bitbytejoy</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=bitbytejoy" title="Code">💻</a></td>
     <td align="center"><a href="http://blog.pan93.com"><img src="https://avatars.githubusercontent.com/u/28441561?v=4?s=100" width="100px;" alt=""/><br /><sub><b>pan93412</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=pan93412" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/LancerComet"><img src="https://avatars.githubusercontent.com/u/10321350?v=4?s=100" width="100px;" alt=""/><br /><sub><b>LancerComet</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=LancerComet" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/mertmit"><img src="https://avatars.githubusercontent.com/u/59797957?v=4?s=100" width="100px;" alt=""/><br /><sub><b>mertmit</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mertmit" title="Code">💻</a></td>
   </tr>
 </table>
 

@@ -25,7 +25,9 @@ const bumbVersionAndSave = () => {
     execSync(`cd packages/nocodb && npm install --save --save-exact ${ncLibPackage.name}@${ncLibPackage.version}`, {});
     const nocodbPackageFilePath = path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
     const nocoLibPackage = JSON.parse(fs.readFileSync(nocodbPackageFilePath))
-    nocoLibPackage.name = `${nocoLibPackage.name}-daily`
+    if (process.env.targetEnv === 'DEV') {
+        nocoLibPackage.name = `${nocoLibPackage.name}-daily`
+    }
     nocoLibPackage.version = ncLibPackage.version
     fs.writeFileSync(nocodbPackageFilePath, JSON.stringify(nocoLibPackage, null, 2));
 }

@@ -76,8 +76,8 @@ export default {
 
       formRules: {
         email: [
-          v => !!v || this.$t('signin.form.rules.email_1'),
-          v => isEmail(v) || this.$t('signin.form.rules.email_2')
+          v => !!v || this.$t('msg.error.signUpRules.emailReqd'),
+          v => isEmail(v) || this.$t('msg.error.signUpRules.emailInvalid')
         ]
       },
       formUtil: {

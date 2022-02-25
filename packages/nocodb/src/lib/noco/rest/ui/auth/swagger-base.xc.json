@@ -13,26 +13,17 @@
       "name": "common"
     }
   ],
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/auth/signin": {
       "post": {
-        "security": [
-        ],
-        "tags": [
-          "Authentication"
-        ],
+        "security": [],
+        "tags": ["Authentication"],
         "summary": "User login",
         "description": "",
         "operationId": "login",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -56,18 +47,12 @@
     },
     "/auth/signup": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "User signup",
         "description": "",
         "operationId": "signup",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -94,18 +79,12 @@
     },
     "/auth/password/forgot": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Password Forgot",
         "description": "",
         "operationId": "passwordForgot",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -136,15 +115,11 @@
     },
     "/auth/email/validate/{tokenId}": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Email validate link",
         "description": "",
         "operationId": "emailValidate",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "tokenId",
@@ -164,15 +139,11 @@
     },
     "/auth/token/validate/{tokenId}": {
       "get": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Validate password reset token",
         "description": "",
         "operationId": "passwordResetTokenValidate",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "tokenId",
@@ -192,18 +163,12 @@
     },
     "/auth/password/reset/": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Password reset",
         "description": "",
         "operationId": "passwordReset",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "tokenId",
@@ -240,15 +205,11 @@
     },
     "/user/me": {
       "get": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "User details",
         "description": "",
         "operationId": "userDetails",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "User details"
@@ -258,18 +219,12 @@
     },
     "/user": {
       "put": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Update user details",
         "description": "",
         "operationId": "updateUserDetails",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "User details"
@@ -290,18 +245,12 @@
     },
     "/user/password/change": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Update user details",
         "description": "",
         "operationId": "passwordChange",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "User details"
@@ -419,7 +368,7 @@
     "xcAuth": {
       "type": "apiKey",
       "in": "header",
-      "name": "xc-auth"
+      "name": "xc-token"
     }
   }
 }

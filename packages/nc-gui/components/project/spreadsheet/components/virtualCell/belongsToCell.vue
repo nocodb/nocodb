@@ -179,12 +179,9 @@ export default {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
     },
     parentReferenceKey() {
-      console.log(this.parentMeta.columns.find(c => c.cn === this.bt.rcn))
       return this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.rcn) || {})._cn
     },
     parentReferenceVal() {
-      console.log(this.row)
-      console.log(this.row[this.parentReferenceKey])
       return (this.row && this.row[this.parentReferenceKey]) || -1
     },
     parentQueryParams() {

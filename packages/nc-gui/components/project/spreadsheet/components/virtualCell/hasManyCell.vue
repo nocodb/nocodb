@@ -225,15 +225,12 @@ export default {
       return this.meta && (this.meta.columns.find(c => c.pv) || {})._cn
     },
     childPrimaryKey() {
-      console.log('childPrimaryKey= ' + (this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn))
       return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
     },
     childForeignKey() {
-      console.log('childForeignKey= ' + (this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn))
       return this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn
     },
     childForeignKeyVal() {
-      console.log('childForeignKeyVal: ' + (this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') : ''))
       return this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') : ''
     },
     isVirtualRelation() {

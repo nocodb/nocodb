@@ -6,7 +6,6 @@ services:
     restart: always
     volumes:
       - db_data:/var/opt/mssql
-      - nc_data:/usr/app/data
     environment:
       SA_PASSWORD: Password123.
       ACCEPT_EULA: Y
@@ -25,6 +24,8 @@ services:
     ports:
       - "8080:8080"
     restart: always
+    volumes:
+      - nc_data:/usr/app/data
     environment:
       NC_DB: "mssql://root_db:1433?u=sa&p=Password123.&d=root_db"
 volumes:

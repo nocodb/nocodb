@@ -47,7 +47,8 @@
           {{ $t('general.cancel') }}
         </v-btn>
         <v-btn :disabled="!_isUIAllowed('tableRowUpdate')" small color="primary" @click="save">
-          Save Row
+          <!--Save Row-->
+          {{ $t('activity.saveRow') }}
         </v-btn>
       </div>
     </v-toolbar>
@@ -438,7 +439,7 @@ export default {
         this.$emit('input', this.localState)
         this.$emit('update:isNew', false)
 
-        this.$toast.success(`${this.primaryValue() || "Row"} updated successfully.`, {
+        this.$toast.success(`${this.primaryValue() || 'Row'} updated successfully.`, {
           position: 'bottom-right'
         }).goAway(3000)
       } catch (e) {
@@ -481,7 +482,7 @@ export default {
       if (this.localState) {
         const value = this.localState[this.primaryValueColumn]
         const col = this.meta.columns.find(c => c._cn == this.primaryValueColumn)
-        if (!col) return
+        if (!col) { return }
         const uidt = col.uidt
         if (uidt == UITypes.Date) {
           return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
@@ -489,9 +490,9 @@ export default {
           return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD HH:mm')
         } else if (uidt == UITypes.Time) {
           let dateTime = dayjs(value)
-          if (!dateTime.isValid()) dateTime = dayjs(value, 'HH:mm:ss')
-          if (!dateTime.isValid()) dateTime = dayjs(`1999-01-01 ${value}`)
-          if (!dateTime.isValid()) return value
+          if (!dateTime.isValid()) { dateTime = dayjs(value, 'HH:mm:ss') }
+          if (!dateTime.isValid()) { dateTime = dayjs(`1999-01-01 ${value}`) }
+          if (!dateTime.isValid()) { return value }
           return dateTime.format('HH:mm:ss')
         }
         return value

@@ -415,7 +415,7 @@ export const genTest = (apiType, dbType) => {
                 .first()
                 .click()
                 .type("a");
-            cy.contains("Save Row").filter("button").click({ force: true });
+            cy.contains("Save row").filter("button").click({ force: true });
             cy.toastWait("updated successfully");
 
             // add column

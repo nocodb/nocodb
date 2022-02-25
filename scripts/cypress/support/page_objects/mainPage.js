@@ -97,7 +97,7 @@ export class _mainPage {
             .type(userCred.username)
             .trigger("input");
 
-        cy.get('label:contains("Select User roles")').click();
+        cy.get('label:contains("Select User Role")').click();
 
         // opt-in requested role & submit
         cy.snipActiveMenu("Menu_RoleType");
@@ -128,7 +128,7 @@ export class _mainPage {
             .find(".mdi-pencil-outline", { timeout: 2000 })
             .click();
 
-        cy.get("label:contains(Select User roles)").click();
+        cy.get("label:contains(Select User Role)").click();
 
         // opt-in requested role & submit
         //

@@ -47,7 +47,7 @@
           v-if="!isView"
           v-ge="['rows','save']"
           outlined
-          tooltip="Save Changes"
+          :tooltip="$t('tooltip.saveChanges')"
           color="primary"
           class="primary"
           small

@@ -96,7 +96,7 @@
         <x-btn
           v-else
           v-ge="['columns','save']"
-          tooltip="Save Changes"
+          :tooltip="$t('tooltip.saveChanges')"
           outlined
           color="primary"
           small

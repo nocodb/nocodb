@@ -37,7 +37,7 @@
             outlined
             :loading="updating"
             :disabled="updating || !edited"
-            tooltip="Save Changes"
+            :tooltip="$t('tooltip.saveChanges')"
             small
             color="primary"
             icon="save"
@@ -54,10 +54,12 @@
             <thead>
               <tr>
                 <th class="caption" bgcolor="#F5F5F5" width="100px">
-                  TableName
+                  <!--TableName-->
+                  {{ $t('labels.tableName') }}
                 </th>
                 <th class="caption" bgcolor="#F5F5F5" width="150px">
-                  ViewName
+                  <!--ViewName-->
+                  {{ $t('labels.viewName') }}
                 </th>
                 <th v-for="role in roles" :key="role" class="caption" bgcolor="#F5F5F5" width="100px">
                   {{ role.charAt(0).toUpperCase() + role.slice(1) }}
@@ -86,7 +88,7 @@
                       {{ viewIcons[table.type === 'vtable' ? table.show_as : table.type].icon }}
                     </v-icon>
                     <span v-if="table.ptn" class="caption">{{ table._tn }}</span>
-                    <span v-else class="caption">{{ 'Default' }}</span>
+                    <span v-else class="caption">{{ $t('general.default') }}</span>
                     <!--                    {{ table.show_as || table.type }}-->
                   </td>
                   <td v-for="role in roles" :key="`${table.tn}-${role}`">

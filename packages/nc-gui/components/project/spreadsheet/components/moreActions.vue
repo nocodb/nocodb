@@ -16,7 +16,8 @@
           <v-icon small color="#777">
             mdi-flash-outline
           </v-icon>
-          More
+          <!--More-->
+          {{ $t('general.more') }}
 
           <v-icon small color="#777">
             mdi-menu-down
@@ -279,14 +280,14 @@ export default {
             // todo: parse data
             if (col.enabled && col.destCn) {
               const v = this.meta && this.meta.columns.find(c => c._cn === col.destCn)
-              var input = row[col.sourceCn]
-              // parse potential boolean values 
+              let input = row[col.sourceCn]
+              // parse potential boolean values
               if (v.uidt == UITypes.Checkbox) {
-                input = input.replace(/["']/g, "").toLowerCase().trim()
-                if (input == "false" || input == "no" || input == "n") {
-                  input = "0"
-                } else if (input == "true" || input == "yes" || input == "y") {
-                  input = "1"
+                input = input.replace(/["']/g, '').toLowerCase().trim()
+                if (input == 'false' || input == 'no' || input == 'n') {
+                  input = '0'
+                } else if (input == 'true' || input == 'yes' || input == 'y') {
+                  input = '1'
                 }
               }
               res[col.destCn] = input

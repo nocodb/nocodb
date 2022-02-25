@@ -4,6 +4,7 @@ export default interface IStorageAdapter {
   fileDelete(filePath: string): Promise<any>;
   fileRead(filePath: string): Promise<any>;
   test(): Promise<boolean>;
+  fileWrite?({ location, fileName, content, contentType }): Promise<any>;
 }
 
 interface XcFile {

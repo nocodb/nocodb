@@ -3,6 +3,7 @@ import path from 'path';
 
 import AWS from 'aws-sdk';
 import { IStorageAdapter, XcFile } from 'nc-plugin';
+import slash from 'slash';
 
 export default class S3 implements IStorageAdapter {
   private s3Client: AWS.S3;
@@ -38,11 +39,10 @@ export default class S3 implements IStorageAdapter {
     });
   }
 
-  async upload(uploadParams): Promise<any> {
+  private async upload(uploadParams): Promise<any> {
     return new Promise((resolve, reject) => {
       this.s3Client.upload(uploadParams, (err, data) => {
         if (err) {
-          console.log('Error', err);
           reject(err);
         } else {
           resolve(data.Location);
@@ -79,6 +79,28 @@ export default class S3 implements IStorageAdapter {
         }
         return resolve(data.Body);
       });
+    });
+  }
+
+  /**
+   * Writes the given data to the given file.
+   * @param {string} location - the file location
+   * @param {string} fileName - file name
+   * @param {string} data - Data to write
+   * @returns None
+   */
+  public async fileWrite({
+    location,
+    fileName,
+    content,
+    contentType
+  }): Promise<any> {
+    const buf = Buffer.from(content);
+    return await this.upload({
+      Key: slash(path.join(location, fileName)),
+      Body: buf,
+      ContentEncoding: 'base64',
+      ContentType: contentType
     });
   }
 

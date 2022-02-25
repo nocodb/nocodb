@@ -7,6 +7,8 @@ import formulaQueryBuilder from './formulaQueryBuilderFromString';
 import genRollupSelect from './genRollupSelect';
 import Papaparse from 'papaparse';
 import { generateS3SignedUrls } from './decorators/GenerateS3SignedUrls';
+import NcPluginMgr from '../../../noco/plugins/NcPluginMgr';
+import IStorageAdapter from '../../../../interface/IStorageAdapter';
 
 /**
  * Base class for models
@@ -26,7 +28,7 @@ class BaseModelSql extends BaseModel {
   private _nestedProps: { [prop: string]: any };
   private _nestedPropsModels: { [prop: string]: BaseModelSql } = {};
   private readonly _primaryColRef: any;
-  app: any;
+  pluginMgr: NcPluginMgr;
 
   /**
    *
@@ -52,7 +54,7 @@ class BaseModelSql extends BaseModel {
     v,
     type,
     dbModels,
-    app
+    pluginMgr
   }: {
     [key: string]: any;
     dbModels?: {
@@ -95,8 +97,12 @@ class BaseModelSql extends BaseModel {
     this.clientType = this.dbDriver.clientType();
     this.dbModels = dbModels;
     this._tn = _tn;
-    this.app = app;
+    this.pluginMgr = pluginMgr;
     autoBind(this);
+  }
+
+  protected get storageAdapter(): IStorageAdapter {
+    return this.pluginMgr?.storageAdapter;
   }
 
   /**

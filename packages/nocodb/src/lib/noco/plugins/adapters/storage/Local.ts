@@ -47,6 +47,23 @@ export default class Local implements IStorageAdapter {
   test(): Promise<boolean> {
     return Promise.resolve(false);
   }
+
+  /**
+   * Writes the given data to the given file.
+   * @param {string} location - the file location
+   * @param {string} fileName - file name
+   * @param {string} data - Data to write
+   * @returns None
+   */
+  public async fileWrite({ location, fileName, content }) {
+    const absouluteLocation = path.join(NcConfigFactory.getToolDir(), location);
+    mkdirp.sync(absouluteLocation);
+    return fs.writeFileSync(
+      path.join(absouluteLocation, fileName),
+      content,
+      'utf-8'
+    );
+  }
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -149,7 +149,7 @@
                             outlined
                             :loading="updating"
                             :disabled="updating || !selectedItem"
-                            tooltip="Save Changes"
+                            :tooltip="$t('tooltip.saveChanges')"
                             small
                             color="primary"
                             icon="save"

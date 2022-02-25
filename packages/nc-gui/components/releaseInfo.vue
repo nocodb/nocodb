@@ -9,7 +9,8 @@
           class="mb-0 mr-2 py-0 "
           v-on="on"
         >
-          Upgrade available
+          <!--Upgrade available-->
+          {{ $t('activity.upgrade.available') }}
           <v-icon small>
             mdi-menu-down
           </v-icon>
@@ -21,20 +22,24 @@
         <v-icon small class="mr-2">
           mdi-script-text-outline
         </v-icon>
-        <span class="caption">{{ releaseVersion }} Release notes</span>
+        <span class="caption">{{ releaseVersion }} {{ $t('activity.upgrade.releaseNote') }}</span>
       </v-list-item>
       <v-list-item dense href="https://docs.nocodb.com/getting-started/upgrading" target="_blank">
         <v-icon small class="mr-2">
           mdi-rocket-launch-outline
         </v-icon>
-        <span class="caption">How to upgrade ?</span>
+        <!--How to upgrade?-->
+        <span class="caption">{{ $t('activity.upgrade.howTo') }}</span>
       </v-list-item>
       <v-list-item @click="releaseAlert = false">
         <v-icon small class="mr-2">
           mdi-close
         </v-icon>
 
-        <span class="caption">Hide menu</span>
+        <span class="caption">
+          <!--Hide menu-->
+          {{ $t('general.hideMenu') }}
+        </span>
       </v-list-item>
     </v-list>
   </v-menu>

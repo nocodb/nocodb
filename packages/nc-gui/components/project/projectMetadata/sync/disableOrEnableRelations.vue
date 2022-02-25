@@ -37,7 +37,7 @@
       </x-btn>-->
       <x-btn
         outlined
-        tooltip="Save Changes"
+        :tooltip="$t('tooltip.saveChanges')"
         small
         :disabled="!edited"
         :loading="updating"

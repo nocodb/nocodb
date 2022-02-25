@@ -99,13 +99,13 @@
                 <v-card-subtitle class="pb-1" v-text="app.description" />
                 <v-card-actions>
                   <div class="d-flex justify-space-between d-100 align-center">
-                    <v-rating
-                      full-icon="mdi-star"
-                      readonly
-                      length="5"
-                      size="15"
-                      :value="5"
-                    />
+                    <!--                    <v-rating-->
+                    <!--                      full-icon="mdi-star"-->
+                    <!--                      readonly-->
+                    <!--                      length="5"-->
+                    <!--                      size="15"-->
+                    <!--                      :value="5"-->
+                    <!--                    />-->
 
                     <!--                    <span class="subtitles" v-if="app.price && app.price !== 'Free'">${{ app.price }} / mo</span>-->
                     <!--                    <span class="subtitles" v-else>Free</span>-->

@@ -29,7 +29,7 @@
             class="caption"
             hide-details="auto"
             :loading="isRefTablesLoading"
-            label="Child Table"
+            :label="$t('labels.childTable')"
             :full-width="false"
             :items="refTables"
             item-text="_tn"
@@ -44,7 +44,7 @@
                 outlined
                 class="caption"
                 hide-details
-                label="Child Column"
+                :label="$t('labels.childColumn')"
                 :full-width="false"
                 v-model="relation.childColumn"
                 required
@@ -63,7 +63,7 @@
               outlined
               class="caption"
               hide-details
-              label="On Update"
+              :label="$t('labels.onUpdate')"
               :full-width="false"
               :items="onUpdateDeleteOptions"
               required
@@ -77,7 +77,7 @@
               outlined
               class="caption"
               hide-details
-              label="On Delete"
+              :label="$t('labels.onDelete')"
               :full-width="false"
               :items="onUpdateDeleteOptions"
               required

@@ -16,6 +16,7 @@
     "cancel": "Annuler",
     "submit": "Soumettre",
     "create": "Créer",
+    "insert": "Insérer",
     "delete": "Supprimer",
     "update": "Mettre à jour",
     "rename": "Renommer",
@@ -39,7 +40,21 @@
     "required": "Requise",
     "preferred": "Préférée",
     "mandatory": "Obligatoire",
-    "loading": "Chargement ..."
+    "loading": "Chargement ...",
+    "title": "Titre",
+    "upload": "Télécharger",
+    "download": "Télécharger",
+    "default": "Défaut",
+    "more": "Suite",
+    "less": "Moins",
+    "event": "Événement",
+    "condition": "État",
+    "after": "Après",
+    "before": "Avant de",
+    "search": "Rechercher",
+    "notification": "Notification",
+    "reference": "Référence",
+    "function": "Une fonction"
   },
   "objects": {
     "project": "Projet",
@@ -109,7 +124,14 @@
     "AutoNumber": "Numéro automatique",
     "Barcode": "code à barre",
     "Button": "Bouton",
-    "Password": "Mot de passe"
+    "Password": "Mot de passe",
+    "relationProperties": {
+      "noAction": "Pas d'action",
+      "cascade": "Cascade",
+      "restrict": "Restreindre",
+      "setNull": "Se mettre de null",
+      "setDefault": "Définir par defaut"
+    }
   },
   "filterOperation": {
     "isEqual": "est égal",
@@ -138,6 +160,7 @@
     "metaMgmt": "Gestion des métadonnées",
     "metadata": "Métadonnées",
     "exportImportMeta": "Metadata d'exportation / importation",
+    "uiACL": "Contrôle d'accès interface utilisateur",
     "metaOperations": "Opérations de métadonnées",
     "audit": "Audit",
     "auditLogs": "Journal d'audit",
@@ -149,7 +172,9 @@
     "resetPassword": "réinitialisez votre mot de passe"
   },
   "labels": {
+    "notifyVia": "Notifier via",
     "projName": "Nom du projet",
+    "tableName": "Nom de la table",
     "viewName": "Vue",
     "viewLink": "Lien de vue",
     "columnName": "Nom de colonne",
@@ -177,11 +202,13 @@
     "chat": "Discuter",
     "email": "E-mail",
     "storage": "Stockage",
-    "uiAcl": "Ui-acl",
+    "uiAcl": "UI-ACL",
     "models": "Des modèles",
     "syncState": "État de synchronisation",
     "created": "Établi",
     "sqlOutput": "Sortie SQL",
+    "addOption": "Ajouter une option",
+    "aggregateFunction": "Fonction globale",
     "dbCreateIfNotExists": "Base de données : la créér si elle n'existe pas",
     "clientKey": "Clé client",
     "clientCert": "Certificat Client",
@@ -200,7 +227,13 @@
       "joinDiscord": "Join Discord",
       "joinReddit": "Join /r/NocoDB",
       "followNocodb": "Suivre NocoDB"
-    }
+    },
+    "docReference": "Référence de document",
+    "selectUserRole": "Sélectionnez le rôle d'utilisateur",
+    "childTable": "Table enfant",
+    "childColumn": "Colonne enfant",
+    "onUpdate": "Sur la mise à jour",
+    "onDelete": "Sur Supprimer"
   },
   "activity": {
     "createProject": "Créer un projet",
@@ -260,6 +293,7 @@
     "createTable": "Créer une table",
     "refreshTable": "Tables rafraîchir",
     "renameTable": "Table Renommer",
+    "deleteTable": "Tableau Supprimer",
     "addField": "Ajouter un nouveau champ à cette table",
     "setPrimary": "Définir comme valeur primaire",
     "addRow": "Ajouter une nouvelle ligne",
@@ -307,6 +341,7 @@
     "sendEmail": "Envoyer un email"
   },
   "tooltip": {
+    "saveChanges": "Sauvegarder les modifications",
     "xcDB": "Créer un nouveau projet",
     "extDB": "Base de données supportées MySQL, PostgreSQL, SQL Server & SQLite",
     "apiRest": "Accessible via l'API REST",
@@ -321,7 +356,7 @@
     "reloadApiToken": "Recharger les jetons API",
     "generateNewApiToken": "Générer de nouveaux jetons d'API",
     "addRole": "Ajouter un nouveau rôle",
-    "metaReloadList": "Liste de rechargement",
+    "reloadList": "Liste de rechargement",
     "metaSync": "Synchroniser des métadonnées",
     "sqlMigration": "Recharger des migrations",
     "updateRestart": "Mettre à jour et redémarrer",
@@ -435,7 +470,12 @@
         "form": "Ajouter une vue Formulaire",
         "kanban": "Ajouter une vue Kanban",
         "calendar": "Ajouter une vue Calendrier"
-      }
+      },
+      "tablesMetadataInSync": "Les métadonnées de tables sont en synchronisation",
+      "addMultipleUsers": "Vous pouvez ajouter plusieurs courriels séparés de virgule (,)",
+      "enterTableName": "Entrez le nom de la table",
+      "addDefaultColumns": "Ajouter des colonnes par défaut",
+      "tableNameInDb": "Nom de la table comme enregistré dans la base de données"
     },
     "error": {
       "searchProject": "Votre recherche pour {search} n'a renvoyée aucun résultat",

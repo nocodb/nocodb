@@ -41,7 +41,7 @@
       </x-btn>
       <x-btn
         outlined
-        tooltip="Save Changes"
+        :tooltip="$t('tooltip.saveChanges')"
         :disabled="nodes.dbConnection.client === 'sqlite3' && !newView "
         small
         color="primary"

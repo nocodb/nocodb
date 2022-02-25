@@ -433,7 +433,7 @@
                     </v-text-field>
                   </v-col>
                   <v-col cols="4" class="py-0">
-                    <!--label="Select User roles"-->
+                    <!--label="Select User Role"-->
                     <v-combobox
                       v-model="selectedRoles"
                       outlined

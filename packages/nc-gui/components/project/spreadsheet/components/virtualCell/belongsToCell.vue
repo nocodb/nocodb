@@ -36,8 +36,7 @@
       :api="parentApi"
       :query-params="{
         ...parentQueryParams,
-        isByPass,
-        where: isNew ? null :`~not(${parentReferenceKey},eq,${parentReferenceVal})~or(${parentReferenceKey},is,null)`,
+        where: isNew ? null :`${btWhereClause}`,
       }"
       :is-public="isPublic"
       :tn="bt && bt.rtn"
@@ -181,8 +180,16 @@ export default {
     parentReferenceKey() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.rcn) || {})._cn
     },
-    parentReferenceVal() {
-      return (this.row && this.row[this.parentReferenceKey]) || -1
+    btWhereClause() {
+      // if parent reference key is pk, then filter out the selected value
+      // else, filter out the selected value + empty values (as we can't set an empty value)
+      const prk = this.parentReferenceKey
+      const isPk = !!(this.parentMeta && (this.parentMeta.columns.find(c => c.pk && c._cn === prk))) || false
+      let selectedValue = this.meta && this.meta.columns ? this.meta.columns.filter(c => c.cn === this.bt.cn).map(c => this.row[c._cn] || '').join('___') : ''
+      if (this.parentMeta && (this.parentMeta.columns.find(c => c._cn === prk)).type !== 'string') {
+        selectedValue = selectedValue || 0
+      }
+      return `(${prk},not,${selectedValue})` + (!isPk ? `~and(${prk},not,)` : '')
     },
     parentQueryParams() {
       if (!this.parentMeta) {
@@ -223,9 +230,6 @@ export default {
       }
       return null
     },
-    isByPass() {
-      return false
-    }
   },
   watch: {
     isNew(n, o) {

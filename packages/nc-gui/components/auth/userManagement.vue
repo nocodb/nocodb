@@ -35,7 +35,7 @@
           refresh
         </v-icon>
         <!-- Reload -->
-        {{ $t('general.reload')}}
+        {{ $t('general.reload') }}
       </x-btn>
       <!-- tooltip="Add new role" -->
       <x-btn
@@ -52,7 +52,7 @@
           mdi-plus
         </v-icon>
         <!-- New User -->
-        {{ $t('activity.newUser')}}
+        {{ $t('activity.newUser') }}
       </x-btn>
     </v-toolbar>
 
@@ -96,19 +96,19 @@
                               mdi-email-outline
                             </v-icon>
                             <!-- Email -->
-                            {{ $t('labels.email')}}
+                            {{ $t('labels.email') }}
                           </th>
                           <th class="font-weight-regular caption">
                             <v-icon small>
                               mdi-drama-masks
                             </v-icon>
                             <!-- Roles -->
-                            {{ $t('objects.roles')}}
+                            {{ $t('objects.roles') }}
                           </th>
                           <th class="font-weight-regular caption">
                             <!--                          <v-icon small class="mt-n1">mdi-cursor-default-outline</v-icon>-->
                             <!-- Actions -->
-                            {{ $t('labels.actions')}}
+                            {{ $t('labels.actions') }}
                           </th>
                         </tr>
                       </thead>
@@ -193,7 +193,7 @@
                           >
                             mdi-delete-outline
                           </x-icon>
-                          
+
                           <!-- tooltip="Resend invite email" -->
                           <x-icon
                             v-if="item.invite_token"
@@ -388,8 +388,9 @@
               </p>
 
               <div class="text-right">
+                <!--tooltip="Invite more users"-->
                 <x-btn
-                  tooltip="Invite more users"
+                  :tooltip="$t('tooltip.inviteMore')"
                   small
                   outlined
                   btn.class="grey--text"
@@ -398,7 +399,8 @@
                   <v-icon small color="grey" class="mr-1">
                     mdi-account-multiple-plus-outline
                   </v-icon>
-                  Invite more
+                  <!--Invite more-->
+                  {{ $t('activity.inviteMore') }}
                 </x-btn>
               </div>
 
@@ -408,6 +410,7 @@
               <v-form ref="form" v-model="valid" @submit.prevent="saveUser">
                 <v-row class="my-0">
                   <v-col cols="8" class="py-0">
+                    <!--hint="You can add multiple comma(,) separated emails"-->
                     <v-text-field
                       ref="email"
                       v-model="selectedUser.email"
@@ -417,7 +420,7 @@
                       outlined
                       :rules="validate && emailRules"
                       class="caption"
-                      hint="You can add multiple comma(,) separated emails"
+                      :hint="$t('msg.info.addMultipleUsers')"
                       label="Email"
                       @input="edited=true"
                     >
@@ -430,13 +433,14 @@
                     </v-text-field>
                   </v-col>
                   <v-col cols="4" class="py-0">
+                    <!--label="Select User roles"-->
                     <v-combobox
                       v-model="selectedRoles"
                       outlined
                       class="role-select caption"
                       hide-details="auto"
                       :items="roles"
-                      label="Select User roles"
+                      :label="$t('labels.selectUserRole')"
                       dense
                       deletable-chips
                       @change="edited = true"
@@ -465,7 +469,7 @@
               <div class="text-center mt-0">
                 <x-btn
                   v-ge="['rows','save']"
-                  tooltip="Save Changes"
+                  :tooltip="$t('tooltip.saveChanges')"
                   color="primary"
 
                   btn.class="nc-invite-or-save-btn"

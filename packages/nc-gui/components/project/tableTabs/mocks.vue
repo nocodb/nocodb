@@ -63,7 +63,7 @@
         <x-btn
           v-ge="['mocks','save']"
           outlined
-          tooltip="Save Changes"
+          :tooltip="$t('tooltip.saveChanges')"
           color="success"
           class="success"
           small

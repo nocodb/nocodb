@@ -301,7 +301,10 @@
                                       </v-icon>
                                     </v-list-item-icon>
                                     <v-list-item-title>
-                                      <span classs="caption">Rename</span>
+                                      <span classs="caption">
+                                        <!--Rename-->
+                                        {{ $t('general.rename') }}
+                                      </span>
                                     </v-list-item-title>
                                   </v-list-item>
                                   <v-list-item v-if="_isUIAllowed('ui-acl')" dense @click="openUIACL">
@@ -311,7 +314,10 @@
                                       </v-icon>
                                     </v-list-item-icon>
                                     <v-list-item-title>
-                                      <span classs="caption">UI ACL</span>
+                                      <span classs="caption">
+                                        <!--UI ACL-->
+                                        {{ $t('labels.uiAcl') }}
+                                      </span>
                                     </v-list-item-title>
                                   </v-list-item>
                                 </v-list>

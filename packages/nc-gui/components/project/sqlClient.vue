@@ -310,7 +310,7 @@
       type="primary"
       :dialog-show="closeFileDlg"
       :actions-mtd="fileClose"
-      heading="Save changes ?"
+      :heading="`$t('tooltip.saveChanges') ?`"
     />
   </v-container>
 </template>

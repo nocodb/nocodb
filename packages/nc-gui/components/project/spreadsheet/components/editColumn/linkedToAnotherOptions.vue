@@ -16,11 +16,6 @@
             <!--            <v-radio disabled value="oo" label="One To One" />-->
           </v-radio-group>
         </v-col>
-      </v-row>
-    </v-container>
-
-    <v-container fluid class="wrapper">
-      <v-row>
         <v-col cols="12">
           <v-autocomplete
             ref="input"
@@ -39,6 +34,26 @@
             :rules="tableRules"
           />
         </v-col>
+      </v-row>
+    </v-container>
+    <v-container fluid class=" mb-3">
+      <v-row>
+        <v-col cols="12" class="pt-0" :class="{'pb-0': advanceOptions}">
+          <div
+            class="pointer grey--text text-right caption nc-more-options"
+            @click="advanceOptions = !advanceOptions"
+          >
+            {{ advanceOptions ? $t('general.hideAll') : $t('general.showMore') }}
+            <v-icon x-small color="grey">
+              mdi-{{ advanceOptions ? 'minus' : 'plus' }}-circle-outline
+            </v-icon>
+          </div>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <v-container v-show="advanceOptions" fluid class="wrapper">
+      <v-row>
         <!--    <v-col cols="6">
               <v-text-field
                 outlined
@@ -86,7 +101,6 @@
             />
           </v-col>
         </v-row>
-
         <v-row>
           <v-col>
             <v-checkbox
@@ -116,7 +130,8 @@ export default {
     refColumns: [],
     relation: {},
     isRefTablesLoading: false,
-    isRefColumnsLoading: false
+    isRefColumnsLoading: false,
+    advanceOptions: false
   }),
   computed: {
     onUpdateDeleteOptions() {

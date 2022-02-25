@@ -6,7 +6,7 @@ on:
   # Triggered by release-nocodb.yml
   workflow_call:
 jobs:
-  close-issues:
+  sync-to-develop:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

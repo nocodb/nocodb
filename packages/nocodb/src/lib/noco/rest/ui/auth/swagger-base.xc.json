@@ -419,7 +419,7 @@
     "xcAuth": {
       "type": "apiKey",
       "in": "header",
-      "name": "xc-auth"
+      "name": "xc-token"
     }
   }
 }

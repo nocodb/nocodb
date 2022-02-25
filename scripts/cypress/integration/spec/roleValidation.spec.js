@@ -95,7 +95,7 @@ export function _editData(roleType, previewMode) {
     //
     //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
     cy.get(".v-input.row-checkbox").eq(4).next().next().click({ force: true });
-    cy.getActiveModal().find("button").contains("Save Row").should("exist");
+    cy.getActiveModal().find("button").contains("Save row").should("exist");
     cy.get("body").type("{esc}");
   } else {
     // update cell contents option using row expander should be disabled
@@ -104,7 +104,7 @@ export function _editData(roleType, previewMode) {
     cy.get(".v-input.row-checkbox").eq(4).next().next().click({ force: true });
     cy.getActiveModal()
       .find("button:disabled")
-      .contains("Save Row")
+      .contains("Save row")
       .should("exist");
     cy.getActiveModal().find("button").contains("Cancel").click();
     cy.get("body").type("{esc}");

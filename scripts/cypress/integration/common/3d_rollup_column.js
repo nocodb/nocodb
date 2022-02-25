@@ -46,7 +46,7 @@ export const genTest = (apiType, dbType) => {
       cy.getActiveMenu().contains("Rollup").click({ force: true });
 
       // Configure Child table & column names
-      fetchParentFromLabel("Child Table");
+      fetchParentFromLabel("Child table");
       cy.getActiveMenu().contains(childTable).click();
 
       fetchParentFromLabel("Child column");

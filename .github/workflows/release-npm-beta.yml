@@ -43,12 +43,13 @@ jobs:
       - run: |
           cd packages/nc-gui
           npm install
-          npm run build:copy:jsdeliver
+          npm run build:copy:jsdeliver || true
           cd ../..
           npm install
           node scripts/upgradeNcGui.js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v3
@@ -145,17 +146,29 @@ jobs:
         # https://github.com/moby/buildkit/issues/1896
       - name: Move cache
         run: |
-          echo "ref brnch ${{ steps.branch-name.outputs.ref_branch }}"
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-  plan:
+  terraform:
     runs-on: ubuntu-latest
-    name: Create terraform plan
+    needs: [buildx]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: terraform plan
-        uses: dflook/terraform-plan@v1
-        with:
-          workspace: engineering-nocodb-development
+    - uses: actions/checkout@v2
+      with: 
+        fetch-depth: 0
+      env: 
+        token: ${{ secrets.GITLAB_ACCESS_TOKEN }}s
+    - name: Get branch name
+      id: branch-name
+      uses: tj-actions/branch-names@v5.1
+    - name: Push To Gitlab
+      run: |
+        echo Starting to push repo to gitlab
+        git clone https://oauth2:${{ secrets.GITLAB_ACCESS_TOKEN }}@gitlab.com/finn.auto/finance/nocodb-infrastructure.git
+        cd nocodb-infrastructure
+        git config user.name "${{ secrets.GITLAB_USER_NAME }}"
+        git config user.email "${{ secrets.GITLAB_EMAIL }}"
+        git pull
+        perl -pi -e 's/(noco_image_version\s*=\s*")(.*")/\1${{ steps.branch-name.outputs.ref_branch }}-beta"/' terraform/development/app.tf
+        git add terraform/development/app.tf
+        git commit -m "[Auto] update image ${{ steps.branch-name.outputs.ref_branch }} for dev"
+        git push

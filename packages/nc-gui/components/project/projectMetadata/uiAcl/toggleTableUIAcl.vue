@@ -78,7 +78,7 @@
                   <td>
                     <v-tooltip bottom>
                       <template #activator="{on}">
-                        <span class="caption ml-2" v-on="on">{{ table.type === 'table' ? table._tn:table.type === 'view' ? table._tn : table.ptn.charAt(0).toUpperCase()+table.ptn.slice(1) }}</span>
+                        <span class="caption ml-2" v-on="on">{{ table.type === 'table' ? table._tn:table.type === 'view' ? table._tn : table.ptn.split("__")[1] }}</span>
                       </template>
                       <span class="caption">{{ table.tn }}</span>
                     </v-tooltip>

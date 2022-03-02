@@ -6,6 +6,9 @@ import BaseModel, { XcFilter, XcFilterWithAlias } from '../BaseModel';
 import formulaQueryBuilder from './formulaQueryBuilderFromString';
 import genRollupSelect from './genRollupSelect';
 import Papaparse from 'papaparse';
+import { generateS3SignedUrls } from './decorators/GenerateS3SignedUrls';
+import NcPluginMgr from '../../../noco/plugins/NcPluginMgr';
+import IStorageAdapter from '../../../../interface/IStorageAdapter';
 
 /**
  * Base class for models
@@ -25,6 +28,7 @@ class BaseModelSql extends BaseModel {
   private _nestedProps: { [prop: string]: any };
   private _nestedPropsModels: { [prop: string]: BaseModelSql } = {};
   private readonly _primaryColRef: any;
+  pluginMgr: NcPluginMgr;
 
   /**
    *
@@ -49,7 +53,8 @@ class BaseModelSql extends BaseModel {
     manyToMany = [],
     v,
     type,
-    dbModels
+    dbModels,
+    pluginMgr
   }: {
     [key: string]: any;
     dbModels?: {
@@ -92,7 +97,12 @@ class BaseModelSql extends BaseModel {
     this.clientType = this.dbDriver.clientType();
     this.dbModels = dbModels;
     this._tn = _tn;
+    this.pluginMgr = pluginMgr;
     autoBind(this);
+  }
+
+  protected get storageAdapter(): IStorageAdapter {
+    return this.pluginMgr?.storageAdapter;
   }
 
   /**
@@ -2208,6 +2218,7 @@ class BaseModelSql extends BaseModel {
    * @returns {Promise<*>}
    * @private
    */
+  @generateS3SignedUrls()
   async _run(query) {
     try {
       if (this.config.log) {

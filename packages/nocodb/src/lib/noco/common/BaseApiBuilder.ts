@@ -155,6 +155,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   protected xcMeta: NcMetaIO;
 
   private apiRouter: Router;
+  protected pluginMgr: any;
 
   constructor(
     app: T,
@@ -1966,7 +1967,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         dbDriver: this.dbDriver,
         ...meta,
-        dbModels: this.models
+        dbModels: this.models,
+        pluginMgr: this.pluginMgr
       },
       this
     );

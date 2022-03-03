@@ -24,24 +24,28 @@
           />
         </div>
 
+        <!-- Create Project -->
         <v-container fluid class="pb-10 px-12" style="padding-top: 43px !important;">
           <h1 class="mt-4 mb-4 text-center">
-            Create Project
+            {{ $t('activity.createProject') }}
           </h1>
           <div class="mx-auto" style="width:350px">
+            <!-- label="Enter Project Name" -->
+            <!-- rule text: Required -->
             <v-text-field
               ref="name"
               v-model="name"
               autofocus
               :full-width="false"
               class="nc-metadb-project-name"
-              label="Enter Project Name"
-              :rules="[v => !!v || 'Project name required']"
+              :label="$t('placeholder.projName')"
+              :rules="[v => !!v || $t('general.required')]"
             />
 
             <div class="wrapper mb-5 mt-5">
               <v-container fluid>
-                <label class="grey--text ml-1 d-block my-2">Access Project Via</label>
+                <!-- Access Project Via -->
+                <label class="grey--text ml-1 d-block my-2">{{ $t('msg.info.apiOptions') }}</label>
 
                 <v-radio-group v-model="projectType" hide-details dense class="mb-0 mt-0">
                   <v-radio
@@ -92,7 +96,8 @@
               <v-icon class="mr-1 mt-n1">
                 mdi-rocket-launch-outline
               </v-icon>
-              <span class="mr-1">Create</span>
+              <!-- Create -->
+              <span class="mr-1">{{ $t('general.create') }}</span>
             </v-btn>
           </div>
         </v-container>

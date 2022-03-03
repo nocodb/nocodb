@@ -7,14 +7,17 @@
       </v-icon>
       <template v-if="!isForm">
         <v-btn outlined x-small class="mr-1" @click="$emit('cancel')">
-          Cancel
+          <!-- Cancel -->
+          {{ $t('general.cancel') }}
         </v-btn>
         <v-btn x-small color="primary" @click="save">
-          Save
+          <!-- Save -->
+          {{ $t('general.save') }}
         </v-btn>
       </template>
       <v-btn v-else-if="expand" x-small @click="expand=false">
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </v-btn>
     </div>
     <monaco-json-object-editor

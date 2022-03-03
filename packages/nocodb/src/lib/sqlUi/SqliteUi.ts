@@ -694,7 +694,6 @@ export class SqliteUi {
       case 'tinyint':
       case 'smallint':
       case 'mediumint':
-      case 'bigint':
       case 'int2':
       case 'int8':
         return 'integer';
@@ -713,6 +712,7 @@ export class SqliteUi {
       case 'blob':
         return 'blob';
 
+      case 'bigint':
       case 'character':
       case 'varchar':
         return 'string';

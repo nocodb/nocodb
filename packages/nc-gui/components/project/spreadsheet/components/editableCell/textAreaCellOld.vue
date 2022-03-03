@@ -3,10 +3,12 @@
     <div v-if="!isForm" class="d-flex ma-1">
       <v-spacer />
       <v-btn v-if="!isForm" outlined x-small class="mr-1" @click="$emit('cancel')">
-        Cancel
+        <!-- Cancel -->
+        {{ $t('general.cancel') }}
       </v-btn>
       <v-btn v-if="!isForm" x-small color="primary" @click="save">
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </v-btn>
     </div>
     <textarea

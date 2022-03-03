@@ -168,10 +168,14 @@ export default abstract class NcMetaIO {
     roles: string
   ): Promise<any>;
 
+  // Remove user in project level
   public abstract projectRemoveUser(
     projectId: string,
     userId: any
   ): Promise<any>;
+
+  // Remove user globally
+  public abstract removeXcUser(userId: any): Promise<any>;
 
   public abstract projectStatusUpdate(
     projectId: string,
@@ -235,6 +239,7 @@ export { META_TABLES };
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

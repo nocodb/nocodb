@@ -1,27 +1,27 @@
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+    // if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Login & Open project`, () => {
-    // Run once before test- create project (rest/graphql)
-    //
-    before(() => {
-      loginPage.loginAndOpenProject(type, xcdb);
+    describe(`${apiType.toUpperCase()} api - Login & Open project`, () => {
+        // Run once before test- create project (rest/graphql)
+        //
+        before(() => {
+            loginPage.loginAndOpenProject(apiType, dbType);
 
-      // open a table to work on views
-      //
-      // cy.openTableTab('City');
+            // open a table to work on views
+            //
+            // cy.openTableTab('City');
+        });
+
+        it(``, () => {
+            cy.log("Test-1");
+        });
     });
-
-    it(``, () => {
-      cy.log("Test-1");
-    });
-  });
 };
 
-// genTest('rest', false)
+// genTest("rest", "mysql");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

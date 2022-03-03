@@ -5,7 +5,10 @@
         <v-icon icon x-small class="mr-2">
           mdi-file-table-box-multiple-outline
         </v-icon>
-        <span class="caption text-capitalize nc-exp-imp-metadata"> Export/Import Metadata</span>
+        <span class="caption text-capitalize nc-exp-imp-metadata"> 
+          <!-- Export/Import Metadata -->
+          {{ $t('title.exportImportMeta') }}
+          </span>
       </v-tab>
       <v-tab-item value="xc-project-meta">
         <div class="d-flex justify-center d-100">
@@ -16,7 +19,8 @@
       <template v-for="(db,i) in dbAliasList">
         <v-tab :key="db.meta.dbAlias + i" :href="'#' + db.meta.dbAlias" class="text-capitalize caption nc-meta-mgmt-metadata-tab">
           <!--          {{ db.connection.database | extractDbName }} {{ db.meta.dbAlias }} -->
-          Metadata
+          <!-- Metadata -->
+          {{ $t('title.metadata') }}
         </v-tab>
         <v-tab-item :key="db.meta.dbAlias + 't' + i" :value=" db.meta.dbAlias">
           <disable-or-enable-tables
@@ -73,7 +77,8 @@
           <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
             <v-tabs color="x-active" height="28">
               <v-tab class="text-capitalize caption">
-                Tables
+                <!-- Tables -->
+                {{ $t('objects.tables') }}
               </v-tab>
               <v-tab-item>
                 <toggle-table-ui-acl

@@ -1,11 +1,21 @@
 <template>
   <v-tabs class="h-100" color="x-active">
-    <v-tab><span class="caption text-capitalize">Audit Logs</span></v-tab>
+    <v-tab>
+      <span class="caption text-capitalize">
+        <!--Audit Logs-->
+        {{ $t('title.auditLogs') }}
+      </span>
+    </v-tab>
     <v-tab-item class="h-100">
       <audit :nodes="nodes" />
     </v-tab-item>
 
-    <v-tab><span class="caption text-capitalize">SQL Migrations</span></v-tab>
+    <v-tab>
+      <span class="caption text-capitalize">
+        <!--SQL Migrations-->
+        {{ $t('title.sqlMigrations') }}
+      </span>
+    </v-tab>
     <v-tab-item>
       <sql-log-and-output>
         <db :nodes="nodes" />

@@ -28,7 +28,7 @@
             :class="type"
             @click="mtdOk()"
           >
-            Ok
+            {{ $t('general.ok') }}
           </v-btn>
         </v-card-actions>
       </v-card>

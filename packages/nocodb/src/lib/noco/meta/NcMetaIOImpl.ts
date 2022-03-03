@@ -573,6 +573,14 @@ export default class NcMetaIOImpl extends NcMetaIO {
       .delete();
   }
 
+  public removeXcUser(userId: any): Promise<any> {
+    return this.knexConnection('xc_users')
+      .where({
+        id: userId
+      })
+      .delete();
+  }
+
   get isRest(): boolean {
     return this.config?.envs?.[this.config.workingEnv]?.db?.some(
       db => db?.meta?.api?.type === 'rest'
@@ -616,6 +624,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

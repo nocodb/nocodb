@@ -3,7 +3,8 @@
     <v-snackbar v-model="show" :top="true" color="info">
       <p ref="message" class="title" v-html="message" />
       <v-btn @click.native="show = false">
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </v-btn>
     </v-snackbar>
   </div>

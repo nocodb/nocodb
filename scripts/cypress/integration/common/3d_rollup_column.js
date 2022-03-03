@@ -1,9 +1,9 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - RollUp column`, () => {
+  describe(`${apiType.toUpperCase()} api - RollUp column`, () => {
     // to retrieve few v-input nodes from their label
     //
     const fetchParentFromLabel = (label) => {
@@ -54,6 +54,8 @@ export const genTest = (type, xcdb) => {
 
       fetchParentFromLabel("Aggregate function");
       cy.getActiveMenu().contains(aggregateFunc).click();
+
+      cy.snipActiveMenu("RollUp");
 
       // click on Save
       cy.get(".nc-col-create-or-edit-card").contains("Save").click();

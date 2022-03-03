@@ -86,7 +86,7 @@
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
           </v-icon>
-          Reload
+          {{ $t('general.reload') }}
         </v-btn> -->
 
         <fields-menu v-model="showFields" :field-list="fieldList" is-public />

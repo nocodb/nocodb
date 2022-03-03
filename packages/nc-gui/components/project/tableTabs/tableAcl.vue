@@ -40,7 +40,8 @@
           <v-icon small left>
             refresh
           </v-icon>
-          Reload
+          <!-- Reload -->
+          {{ $t('general.reload') }}
         </x-btn>
 
         <x-btn
@@ -56,7 +57,8 @@
           <v-icon small left>
             save
           </v-icon>
-          Save
+          <!-- Save -->
+          {{ $t('general.save') }}
         </x-btn>
       </v-toolbar>
 
@@ -88,7 +90,8 @@
                   small
                   @click="showCustomAcl=false"
                 >
-                  Cancel
+                  <!-- Cancel -->
+                  {{ $t('general.cancel') }}
                 </v-btn>
                 <v-btn
                   outlined
@@ -96,7 +99,8 @@
                   small
                   @click="save"
                 >
-                  Save
+                  <!-- Save -->
+                  {{ $t('general.save') }}
                 </v-btn>
               </v-card-actions>
               <v-card-text>

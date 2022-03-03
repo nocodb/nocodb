@@ -92,9 +92,10 @@ const appendWhereCondition = function(
   knexRef,
   isHaving = false
 ) {
+  const clientType = knexRef?.client?.config?.client;
   const opMapping = {
     ...opMappingGen,
-    ...(knexRef?.client?.config?.client === 'pg' ? { like: 'ilike' } : {})
+    ...(clientType === 'pg' ? { like: 'ilike' } : {})
   };
   const camKey = isHaving ? 'Having' : 'Where';
   const key = isHaving ? 'having' : 'where';
@@ -430,11 +431,19 @@ const appendWhereCondition = function(
               );
               break;
             case '':
-              knexRef[`${key}`](
-                columnAliases[matches[2]] || matches[2],
-                opMapping[matches[3]],
-                matches[4]
-              );
+              const column = columnAliases[matches[2]] || matches[2];
+              const operator = opMapping[matches[3]];
+              const target = matches[4];
+              if (matches[3] == 'like' && clientType === 'pg') {
+                // handle uuid case
+                knexRef[`${key}`](
+                  knexRef?.client.raw(`??::TEXT ${operator} '${target}'`, [
+                    column
+                  ])
+                );
+              } else {
+                knexRef[`${key}`](column, operator, target);
+              }
               break;
             default:
               throw new Error(`${matches[1] || ''} Invalid operation.`);
@@ -991,6 +1000,7 @@ export { Knex };
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

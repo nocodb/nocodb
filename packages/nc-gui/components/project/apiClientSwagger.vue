@@ -595,7 +595,8 @@
         </v-card-text>
         <v-card-actions class="justify-center pb-5">
           <v-btn v-ge="['api-client','bookmark']" small @click="bookmarkApiDialog = false">
-            Cancel
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
           </v-btn>
           <v-btn
             small

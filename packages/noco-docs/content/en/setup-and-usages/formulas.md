@@ -29,23 +29,22 @@ menuTitle: "Formulas"
 
 ### Numeric Functions
 
-| Name        | Syntax                                      | Sample                                    | Output                                         |
-| ----------- | ------------------------------------------- | ----------------------------------------- | ---------------------------------------------- |
-| **ABS**     | `ABS(value)`                                | `ABS(Column)`                             | Absolute value of the input parameter                                |
-| **ADD**     | `ADD(value1,[value2,...])`                  | `ADD(Column1, Column1)`                   | Sum of input parameters &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;                                          |
-| **AVG**     | `AVG(value1,[value2,...])`                  | `AVG(Column1, Column1)`                   | Average of input parameters   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;                                       |
-| **CEILING** | `CEILING(value)`                            | `CEILING(Column)`                         | Rounded next largest integer value of input parameter                |
-| **EXP**     | `EXP(value)`                                | `EXP(Column)`                             | Exponential value of input parameter (`e^x`)                         |
-| **FLOOR**   | `FLOOR(value)`                              | `FLOOR(Column)`                           | Rounded largest integer less than or equal to input parameter        |
-| **INT**     | `INT(value)`                                | `INT(Column)`                             | Integer value of input parameter &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;                                   |
-| **LOG**     | `LOG([base], value)`                        | `LOG(10, Column)`                         | Logarithm of input parameter to the base (default = e) specified     |
-| **MAX**     | `MAX(value1,[value2,...])`                  | `MAX(Column1, Column2, Column3)`          | Maximum value amongst input parameters                               |
-| **MIN**     | `MIN(value1,[value2,...])`                  | `MIN(Column1, Column2, Column3)`          | Minimum value amongst input parameters                               |
-| **MOD**     | `MOD(value1, value2)`                       | `MOD(Column, 2)`                          | Remainder after integer division of input parameters                 |
-| **POWER**   | `POWER(base, exponent)`                     | `POWER(Column, 3)`                        | `base` to the `exponent` power, as in `base^exponent`                |
-| **ROUND**   | `ROUND(value)`                              | `ROUND(Column)`                           | Nearest integer to the input parameter                               |
-| **SQRT**    | `SQRT(value)`                               | `SQRT(Column)`                            | Square root of the input parameter   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;                                |
-| &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  |
+| Name        | Syntax                     | Sample                           | Output                                                           |
+|-------------|----------------------------|----------------------------------|------------------------------------------------------------------|
+| **ABS**     | `ABS(value)`               | `ABS(Column)`                    | Absolute value of the input parameter                            |
+| **ADD**     | `ADD(value1,[value2,...])` | `ADD(Column1, Column1)`          | Sum of input parameters                                          |
+| **AVG**     | `AVG(value1,[value2,...])` | `AVG(Column1, Column1)`          | Average of input parameters                                      |
+| **CEILING** | `CEILING(value)`           | `CEILING(Column)`                | Rounded next largest integer value of input parameter            |
+| **EXP**     | `EXP(value)`               | `EXP(Column)`                    | Exponential value of input parameter (`e^x`)                     |
+| **FLOOR**   | `FLOOR(value)`             | `FLOOR(Column)`                  | Rounded largest integer less than or equal to input parameter    |
+| **INT**     | `INT(value)`               | `INT(Column)`                    | Integer value of input parameter                                 |
+| **LOG**     | `LOG([base], value)`       | `LOG(10, Column)`                | Logarithm of input parameter to the base (default = e) specified |
+| **MAX**     | `MAX(value1,[value2,...])` | `MAX(Column1, Column2, Column3)` | Maximum value amongst input parameters                           |
+| **MIN**     | `MIN(value1,[value2,...])` | `MIN(Column1, Column2, Column3)` | Minimum value amongst input parameters                           |
+| **MOD**     | `MOD(value1, value2)`      | `MOD(Column, 2)`                 | Remainder after integer division of input parameters             |
+| **POWER**   | `POWER(base, exponent)`    | `POWER(Column, 3)`               | `base` to the `exponent` power, as in `base^exponent`            |
+| **ROUND**   | `ROUND(value)`             | `ROUND(Column)`                  | Nearest integer to the input parameter                           |
+| **SQRT**    | `SQRT(value)`              | `SQRT(Column)`                   | Square root of the input parameter                               |
 
 
 ### Numeric Operators
@@ -63,21 +62,21 @@ menuTitle: "Formulas"
 
 ### String Functions
 
-| Name    | Syntax                          | Sample                            | Output                                                                    |
-| ------- | --------------------------------| ----------------------------------| ------------------------------------------------------------------------- |
-| **CONCAT**  | `CONCAT(str1, [str2,...])`      | `CONCAT(fName, ' ', lName)`       | Concatenated string of input parameters                                   |
-| **LEFT**    | `LEFT(str1, [str2,...])`        | `LEFT(Column, 3)`                 | `n` characters from the beginning of input parameter                      |
-| **LEN**     | `LEN(str)`                      | `LEN(Title)`                      | Input parameter charachter length &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-| **LOWER**   | `LOWER(str)`                    | `LOWER(Title)`                    | Lower case converted string of input parameter                            |
-| **MID**     | `SUBTR(str, position, [count])` | `MID(Column, 3, 2)`               | Alias for `SUBSTR` &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-| **REPEAT**  | `REPEAT(str, count)`            | `REPEAT(Column, 2)`               | Specified copies of the input parameter string concatenated together      |
-| **REPLACE** | `REPLACE(str, srchStr, rplcStr)`| `REPLACE(Column, 'int', 'num')`   | String, after replacing all occurrences of `srchStr` with `rplcStr` |
-| **RIGHT**   | `RIGHT(str, count)`             | `RIGHT(Column, 3)`                | `n` characters from the end of input parameter                            |
-| **SEARCH**  | `SEARCH(str, srchStr)`          | `SEARCH(Column, 'str')`           | Index of `srchStr` specified if found, 0 otherwise                       |
-| **SUBSTR**  | `SUBTR(str, position, [count])` | `SUBSTR(Column, 3, 2)`            | Substring of length 'count' of input string, from the postition specified |
-| **TRIM**    | `TRIM(str)`                     | `TRIM(Title)`                     | Remove trailing and leading whitespaces from input parameter             |
-| **UPPER**   | `UPPER(str)`                    | `UPPER(Title)`                    | Upper case converted string of input parameter                            |
-| &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  |
+| Name        | Syntax                           | Sample                          | Output                                                                    |
+|-------------|----------------------------------|---------------------------------|---------------------------------------------------------------------------|
+| **CONCAT**  | `CONCAT(str1, [str2,...])`       | `CONCAT(fName, ' ', lName)`     | Concatenated string of input parameters                                   |
+| **LEFT**    | `LEFT(str1, [str2,...])`         | `LEFT(Column, 3)`               | `n` characters from the beginning of input parameter                      |
+| **LEN**     | `LEN(str)`                       | `LEN(Title)`                    | Input parameter character length                                          |
+| **LOWER**   | `LOWER(str)`                     | `LOWER(Title)`                  | Lower case converted string of input parameter                            |
+| **MID**     | `SUBTR(str, position, [count])`  | `MID(Column, 3, 2)`             | Alias for `SUBSTR`                                                        |
+| **REPEAT**  | `REPEAT(str, count)`             | `REPEAT(Column, 2)`             | Specified copies of the input parameter string concatenated together      |
+| **REPLACE** | `REPLACE(str, srchStr, rplcStr)` | `REPLACE(Column, 'int', 'num')` | String, after replacing all occurrences of `srchStr` with `rplcStr`       |
+| **RIGHT**   | `RIGHT(str, count)`              | `RIGHT(Column, 3)`              | `n` characters from the end of input parameter                            |
+| **SEARCH**  | `SEARCH(str, srchStr)`           | `SEARCH(Column, 'str')`         | Index of `srchStr` specified if found, 0 otherwise                        |
+| **SUBSTR**  | `SUBTR(str, position, [count])`  | `SUBSTR(Column, 3, 2)`          | Substring of length 'count' of input string, from the postition specified |
+| **TRIM**    | `TRIM(str)`                      | `TRIM(Title)`                   | Remove trailing and leading whitespaces from input parameter              |
+| **UPPER**   | `UPPER(str)`                     | `UPPER(Title)`                  | Upper case converted string of input parameter                            |
+| **URL**     | `URL(str)`                       | `URL(Column)`                   | Convert to a hyperlink if it is a valid URL                               |
 
 ### Logical Operators
 
@@ -92,23 +91,29 @@ menuTitle: "Formulas"
 
 
 ### Conditional Expressions
-| Name    | Syntax                                         | Sample                                      | Output                                                        |
-| ------- | -----------------------------------------------| --------------------------------------------| ------------------------------------------------------------- |
-| **IF**      | `IF(expr, successCase, [failCase])`            | `IF(Column > 1, Value1, Value2)`            | successCase if `expr` evaluates to TRUE, elseCase otherwise   |
-| **SWITCH**  | `SWITCH(expr, [pattern, value, ..., default])` | `SWITCH(Column1, 1, 'One', 2, 'Two', '--')` | Switch case value based on `expr` output                      |
-| **AND**     | `AND(expr1, [expr2,...])`                       | `AND(Column > 2, Column < 10)`              | TRUE if all `expr` evaluate to TRUE &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;                           |
-| **OR**      | `OR(expr1, [expr2,...])`                       | `OR(Column > 2, Column < 10)`               | TRUE if at least one `expr` evaluates to TRUE                 |
-| &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  |
 
+| Name       | Syntax                                         | Sample                                      | Output                                                      |
+|------------|------------------------------------------------|---------------------------------------------|-------------------------------------------------------------|
+| **IF**     | `IF(expr, successCase, [failCase])`            | `IF(Column > 1, Value1, Value2)`            | successCase if `expr` evaluates to TRUE, elseCase otherwise |
+| **SWITCH** | `SWITCH(expr, [pattern, value, ..., default])` | `SWITCH(Column1, 1, 'One', 2, 'Two', '--')` | Switch case value based on `expr` output                    |
+| **AND**    | `AND(expr1, [expr2,...])`                      | `AND(Column > 2, Column < 10)`              | TRUE if all `expr` evaluate to TRUE                         |
+| **OR**     | `OR(expr1, [expr2,...])`                       | `OR(Column > 2, Column < 10)`               | TRUE if at least one `expr` evaluates to TRUE               |
 
-> Logical operators, along with Numerical operators can be used to build conditional `expressions`.   
->   
-> Example:  
-> **IF** (marksSecured > 80, "GradeA", "GradeB")  
-> **SWITCH** (quarterNumber,  
->     1, 'Jan-Mar',  
->     2, 'Apr-Jun',  
->     3, 'Jul-Sep',  
->     4, 'Oct-Dec',  
->     'INVALID')
+Logical operators, along with Numerical operators can be used to build conditional `expressions`.   
+
+Examples: 
+
+```bash
+IF(marksSecured > 80, "GradeA", "GradeB")  
+```
+
+```bash
+SWITCH(quarterNumber,  
+    1, 'Jan-Mar',
+    2, 'Apr-Jun',
+    3, 'Jul-Sep',
+    4, 'Oct-Dec',
+    'INVALID'
+)
+```
 

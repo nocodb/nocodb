@@ -163,7 +163,7 @@ export default {
             offset: this.size * (this.page - 1),
             ...this.queryParams,
             where
-          }, this.mm.vtn, this.parentId)
+          }, this.mm.vtn, this.parentId || -1)
         } else {
           this.data = await this.api.paginatedList({
             limit: this.size,

@@ -124,7 +124,8 @@
         <v-card-actions class="d-flex pa-4">
           <v-spacer />
           <v-btn small @click="columnDeleteDialog = false">
-            Cancel
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
           </v-btn>
           <v-btn small color="error" @click="deleteColumn">
             Confirm

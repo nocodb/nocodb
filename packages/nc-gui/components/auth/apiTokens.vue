@@ -16,7 +16,8 @@
         <v-icon small left>
           refresh
         </v-icon>
-        Reload
+        <!-- Reload -->
+        {{ $t('general.reload') }}
       </x-btn>
       <x-btn
         v-if="_isUIAllowed('newUser')"
@@ -31,7 +32,8 @@
         <v-icon small left>
           mdi-plus
         </v-icon>
-        New Token
+        <!--New Token-->
+        {{ $t('activity.newToken') }}
       </x-btn>
     </v-toolbar>
 
@@ -40,13 +42,16 @@
         <thead>
           <tr class="">
             <th class="caption text-center">
-              Description
+              <!--Description-->
+              {{ $t('labels.description') }}
             </th>
             <th class="caption text-center">
-              Token
+              <!--Token-->
+              {{ $t('labels.token') }}
             </th>
             <th class="caption text-center">
-              Actions
+              <!--Actions-->
+              {{ $t('labels.action') }}
             </th>
           </tr>
         </thead>
@@ -89,7 +94,8 @@
           <td colspan="3" class="text-center">
             <x-btn tooltip="Generate new api token" outlined x-small color="primary" @click="newTokenDialog = true">
               <v-icon>mdi-plus</v-icon>
-              Add New Token
+              <!--Add New Token-->
+              {{ $t('activity.newToken') }}
             </x-btn>
           </td>
         </tr>
@@ -109,7 +115,7 @@
                 v-model="tokenObj.description"
                 filled
                 dense
-                label="Description"
+                :label="$t('labels.description')"
               />
             </v-col>
           </v-row>

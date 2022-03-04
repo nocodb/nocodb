@@ -30,7 +30,8 @@
                 icon="refresh"
                 @click="loadXcDiff()"
               >
-                Reload
+                <!-- Reload -->
+                {{ $t('general.reload') }}
               </x-btn>
               <!--              <x-btn
                 outlined
@@ -40,7 +41,7 @@
                 icon="refresh"
                 @click="loadModels();loadTableList()"
               >
-                Reload
+                {{ $t('general.reload') }}
               </x-btn>-->
               <!--x-btn
                 outlined

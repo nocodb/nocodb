@@ -23,11 +23,11 @@
 
       <!--      </v-toolbar-title>-->
       <v-spacer />
-
+      <!-- tooltip="Reload roles" -->
       <x-btn
         v-ge="['roles','reload']"
         outlined
-        tooltip="Reload roles"
+        :tooltip="$t('activity.reloadRoles')"
         color="primary"
         small
         :disabled="loading"
@@ -36,7 +36,7 @@
         <v-icon small left>
           refresh
         </v-icon>
-        Reload
+        {{ $t('general.reload') }}
       </x-btn>
       <x-btn
         v-ge="['roles','add new']"
@@ -51,7 +51,8 @@
         <v-icon small left>
           mdi-plus
         </v-icon>
-        New Role
+        <!--New Role-->
+        {{ $t('activity.newRole') }}
       </x-btn>
       <x-btn
         v-ge="['rows','save']"
@@ -67,7 +68,8 @@
         <v-icon small left>
           save
         </v-icon>
-        Save
+        <!-- Save -->
+        {{ $t('general.save') }}
       </x-btn>
     </v-toolbar>
     <div class="" style="width: 100%">

@@ -3,10 +3,10 @@ import { mainPage } from "../../support/page_objects/mainPage";
 
 let formViewURL;
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - FORM view`, () => {
+  describe(`${apiType.toUpperCase()} api - FORM view`, () => {
     const name = "Test" + Date.now();
 
     // Run once before test- create project (rest/graphql)

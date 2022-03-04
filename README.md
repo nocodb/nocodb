@@ -393,6 +393,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/mertmit"><img src="https://avatars.githubusercontent.com/u/59797957?v=4?s=100" width="100px;" alt=""/><br /><sub><b>mertmit</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mertmit" title="Code">💻</a></td>
     <td align="center"><a href="https://blog.atompi.com"><img src="https://avatars.githubusercontent.com/u/6419682?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Atom Pi</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=atompi" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/OskarsPakers"><img src="https://avatars.githubusercontent.com/u/3343347?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Oskars</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=OskarsPakers" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

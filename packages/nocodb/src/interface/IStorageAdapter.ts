@@ -1,6 +1,6 @@
 export default interface IStorageAdapter {
   init(): Promise<any>;
-  fileCreate(destPath: string, file: XcFile): Promise<any>;
+  fileCreate(destPath: string, file: XcFile, isPublic?: boolean): Promise<any>;
   fileDelete(filePath: string): Promise<any>;
   fileRead(filePath: string): Promise<any>;
   test(): Promise<boolean>;

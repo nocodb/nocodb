@@ -13,8 +13,10 @@ export default class S3 implements IStorageAdapter {
     this.input = input;
   }
 
-  async fileCreate(key: string, file: XcFile): Promise<any> {
-    const uploadParams: any = {};
+  async fileCreate(key: string, file: XcFile, isPublic = false): Promise<any> {
+    const uploadParams: any = {
+      ACL: isPublic ? 'public-read' : 'private'
+    };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
       const fileStream = fs.createReadStream(file.path);

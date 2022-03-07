@@ -178,7 +178,7 @@ export default {
       set(val) {
         if (val !== this.value) {
           this.changed = true
-          this.$emit('input', val)
+          this.$emit('input', val === '' ? null : val)
           if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime || this.isDateTime || this.isDate) {
             this.syncData()
           } else {

@@ -1132,6 +1132,13 @@ export default abstract class BaseApiBuilder<T extends Noco>
         newCol = newMeta.columns.find(c => c.cn === column.cn);
         if (newCol && oldCol) {
           newCol.validate = oldCol.validate;
+          if (
+            newCol.uidt === UITypes.Attachment &&
+            'public' in oldCol &&
+            'public' in newCol
+          ) {
+            newCol.public = oldCol.public;
+          }
         }
       }
     }

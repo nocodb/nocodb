@@ -44,7 +44,6 @@ export default {
       de: 'Deutsch',
       en: 'English',
       es: 'Español',
-      fa: 'فارسی',
       fr: 'Français',
       id: 'Bahasa Indonesia',
       it_IT: 'Italiano',

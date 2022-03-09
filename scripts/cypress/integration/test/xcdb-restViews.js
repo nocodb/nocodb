@@ -7,30 +7,30 @@ let t4d = require("../common/4d_table_view_grid_locked");
 let t4e = require("../common/4e_form_view_share");
 let t4f = require("../common/4f_grid_view_share");
 const {
-  setCurrentMode,
+    setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
-const nocoTestSuite = (type, xcdb) => {
-  setCurrentMode(type, xcdb);
-  if (0 == executionMode) {
-    t0.genTest(type, xcdb);
-  } else {
-    t01.genTest(type, xcdb);
-  }
+const nocoTestSuite = (apiType, dbType) => {
+    setCurrentMode(apiType, dbType);
+    if (0 == executionMode) {
+        t0.genTest(apiType, dbType);
+    } else {
+        t01.genTest(apiType, dbType);
+    }
 
-  t4a.genTest(type, xcdb);
-  t4b.genTest(type, xcdb);
-  t4c.genTest(type, xcdb);
-  t4d.genTest(type, xcdb);
-  t4e.genTest(type, xcdb);
-  t4f.genTest(type, xcdb);
+    t4a.genTest(apiType, dbType);
+    t4b.genTest(apiType, dbType);
+    t4c.genTest(apiType, dbType);
+    t4d.genTest(apiType, dbType);
+    t4e.genTest(apiType, dbType);
+    t4f.genTest(apiType, dbType);
 };
 
-nocoTestSuite("rest", true);
+nocoTestSuite("rest", "xcdb");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

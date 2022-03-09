@@ -3,13 +3,13 @@ const { loginPage } = require("../../support/page_objects/navigation");
 const { roles } = require("../../support/page_objects/projectConstants");
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-export const genTest = (type, xcdb) => {
-    if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+    if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Language support`, () => {
         before(() => {
             //loginPage.signIn(roles.owner.credentials)
             mainPage.toolBarTopLeft(mainPage.HOME).click();
-            cy.screenshot("6d-1");
+            cy.screenshot("Debug 6d-1", { overwrite: true });
         });
 
         const langVerification = (idx, lang) => {
@@ -19,9 +19,12 @@ export const genTest = (type, xcdb) => {
 
                 // toggle menu as per index
                 cy.get(".nc-menu-translate").click();
+
+                cy.snipActiveMenu("Menu_Translation");
+
                 cy.getActiveMenu().find(".v-list-item").eq(idx).click();
 
-                cy.screenshot("6d-2");
+                cy.screenshot("Debug 6d-2", { overwrite: true });
 
                 // basic validations
                 // 1. Page title: "My Projects"

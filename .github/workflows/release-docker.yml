@@ -1,10 +1,38 @@
 name: "Release : Docker"
 
 on:
+  # Triggered manually
   workflow_dispatch:
     inputs:
       tag:
         description: "Docker image tag"
+        required: true
+      targetEnv:
+        description: "Target Environment"
+        required: true
+        type: choice
+        options:
+          - DEV
+          - PROD
+  # Triggered by release-nocodb.yml / release-nightly-dev.yml
+  workflow_call:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+        type: string
+      targetEnv:
+        description: "Target Environment"
+        required: true
+        type: string
+      isDaily:
+        description: "Is it triggered by daily schedule"
+        required: false
+        type: string
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
         required: true
 
 jobs:
@@ -16,6 +44,22 @@ jobs:
       matrix:
         node-version: [12]
     steps:
+      - name: Get Docker Repository
+        id: get-docker-repository
+        run: |
+          DOCKER_REPOSITORY=nocodb
+          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
+              DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
+            else
+              DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
+            fi
+          fi
+          echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
+          echo ${DOCKER_REPOSITORY}
+      #       - name: Verify
+      #         run : |
+      #           echo ${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -59,7 +103,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ${{ env.working-directory }}
-          build-args: NC_VERSION=${{ github.event.inputs.tag }}
+          build-args: NC_VERSION=${{ github.event.inputs.tag || inputs.tag }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new

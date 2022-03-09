@@ -106,6 +106,7 @@ import FileSaver from 'file-saver'
 import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
 import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/columnMappingModal'
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
+import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'ExportImport',
@@ -274,9 +275,19 @@ export default {
         for (let i = 0, progress = 0; i < data.length; i += 500) {
           const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
             // todo: parse data
-
             if (col.enabled && col.destCn) {
-              res[col.destCn] = row[col.sourceCn]
+              const v = this.meta && this.meta.columns.find(c => c._cn === col.destCn)
+              var input = row[col.sourceCn]
+              // parse potential boolean values 
+              if (v.uidt == UITypes.Checkbox) {
+                input = input.replace(/["']/g, "").toLowerCase().trim()
+                if (input == "false" || input == "no" || input == "n") {
+                  input = "0"
+                } else if (input == "true" || input == "yes" || input == "y") {
+                  input = "1"
+                }
+              }
+              res[col.destCn] = input
             }
             return res
           }, {}))

@@ -158,8 +158,28 @@ export default {
             return 'Source data contains some invalid numbers'
           }
           break
+        case UITypes.Checkbox:
+          if (
+            this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)
+            .some((r) => {
+              if (r => r[row.sourceCn] !== null && r[row.sourceCn] !== undefined) {
+                var input = r[row.sourceCn]
+                if (typeof input === 'string') {
+                  input = input.replace(/["']/g, "").toLowerCase().trim()
+                  return (
+                    input == "false" || input == "no" || input == "n" || input == "0" ||
+                    input == "true" || input == "yes" || input == "y" || input == "1"
+                  ) ? false : true
+                }
+                return input != 1 && input != 0 && input != true && input != false
+              }
+              return false
+            })
+          ) {
+            return 'Source data contains some invalid boolean values'
+          }
+          break
       }
-
       return true
     },
     mapDefaultColumns() {

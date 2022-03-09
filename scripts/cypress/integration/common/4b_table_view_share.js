@@ -10,12 +10,17 @@ const generateLinkWithPwd = () => {
   //   .contains("Share View")
   //   .click();
   mainPage.shareView().click();
+
+  cy.snipActiveModal("Modal_ShareView")
   
   // enable checkbox & feed pwd, save
   cy.getActiveModal()
     .find('[role="switch"][type="checkbox"]')
     .click({ force: true });
   cy.getActiveModal().find('input[type="password"]').type("1");
+
+  cy.snipActiveModal("Modal_ShareView_Password");
+
   cy.getActiveModal().find('button:contains("Save password")').click();
 
   cy.toastWait("Successfully updated");
@@ -29,10 +34,10 @@ const generateLinkWithPwd = () => {
     });
 };
 
-export const genTest = (type, xcdb) => {
-  if (!isTestSuiteActive(type, xcdb)) return;
+export const genTest = (apiType, dbType) => {
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${type.toUpperCase()} api - Shared VIEWs (GRID)`, () => {
+  describe(`${apiType.toUpperCase()} api - Shared VIEWs (GRID)`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {

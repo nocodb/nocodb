@@ -30,7 +30,8 @@
             class="nc-acl-reload"
             @click="loadTableList()"
           >
-            Reload
+            <!-- Reload -->
+            {{ $t('general.reload') }}
           </x-btn>
           <x-btn
             outlined
@@ -43,7 +44,8 @@
             class="nc-acl-save"
             @click="save()"
           >
-            Save
+            <!-- Save -->
+            {{ $t('general.save') }}
           </x-btn>
         </v-toolbar>
 

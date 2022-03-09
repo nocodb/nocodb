@@ -7,31 +7,32 @@ let t6e = require("../common/6e_project_operations");
 let t6f = require("../common/6f_attachments");
 let t6g = require("../common/6g_base_share");
 const {
-  setCurrentMode,
+    setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
-const nocoTestSuite = (type, xcdb) => {
-  setCurrentMode(type, xcdb);
-  if (0 == executionMode) {
-    t0.genTest(type, xcdb);
-  } else {
-    t01.genTest(type, xcdb);
-  }
+const nocoTestSuite = (apiType, dbType) => {
+    setCurrentMode(apiType, dbType);
+    if (0 == executionMode) {
+        t0.genTest(apiType, dbType);
+    } else {
+        t01.genTest(apiType, dbType);
+    }
 
-  t6b.genTest(type, xcdb);
-  t6c.genTest(type, xcdb);
-  t6d.genTest(type, xcdb);
-  t6f.genTest(type, xcdb);
-  t6g.genTest(type, xcdb);
-  // **deletes created project, hence place it @ end
-  t6e.genTest(type, xcdb);
+    t6b.genTest(apiType, dbType);
+    t6c.genTest(apiType, dbType);
+    // language validation kept common under REST MISC Suite
+    // t6d.genTest(apiType, dbType);
+    t6f.genTest(apiType, dbType);
+    t6g.genTest(apiType, dbType);
+    // **deletes created project, hence place it @ end
+    t6e.genTest(apiType, dbType);
 };
 
-nocoTestSuite("graphql", true);
+nocoTestSuite("graphql", "xcdb");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

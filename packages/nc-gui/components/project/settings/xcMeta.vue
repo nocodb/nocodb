@@ -170,7 +170,8 @@ export default {
   methods: {
     async exportMeta() {
       this.dialogShow = true
-      this.confirmMessage = 'Do you want to export metadata from meta tables?'
+      // this.confirmMessage = 'Do you want to export metadata from meta tables?'
+      this.confirmMessage = `${this.$t('msg.info.exportMetadata')}`
       this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
@@ -185,7 +186,8 @@ export default {
               },
               'xcMetaTablesExportDbToLocalFs'
             ])
-            this.$toast.success('Successfully exported metadata').goAway(3000)
+            // this.$toast.success('Successfully exported metadata').goAway(3000)
+            this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000)
           } catch (e) {
             this.$toast.error(e.message).goAway(3000)
           }
@@ -196,7 +198,8 @@ export default {
     },
     async exportMetaZip() {
       this.dialogShow = true
-      this.confirmMessage = 'Do you want to export metadata from meta tables?'
+      // this.confirmMessage = 'Do you want to export metadata from meta tables?'
+      this.confirmMessage = `${this.$t('msg.info.exportMetadata')}`
       this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
@@ -222,7 +225,8 @@ export default {
             link.setAttribute('download', 'meta.zip') // or any other extension
             document.body.appendChild(link)
             link.click()
-            this.$toast.success('Successfully exported metadata').goAway(3000)
+            // this.$toast.success('Successfully exported metadata').goAway(3000)
+            this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000)
           } catch (e) {
             this.$toast.error(e.message).goAway(3000)
           }
@@ -233,7 +237,8 @@ export default {
     },
     async resetMeta() {
       this.dialogShow = true
-      this.confirmMessage = 'Do you want to clear metadata from meta tables?'
+      // this.confirmMessage = 'Do you want to clear metadata from meta tables?'
+      this.confirmMessage = `${this.$t('msg.info.clearMetadata')}`
       this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
@@ -247,7 +252,8 @@ export default {
               },
               'xcMetaTablesReset'
             ])
-            this.$toast.success('Metadata cleared successfully').goAway(3000)
+            // this.$toast.success('Metadata cleared successfully').goAway(3000)
+            this.$toast.success(`${this.$t('msg.toast.clearMetadata')}`).goAway(3000)
           } catch (e) {
             this.$toast.error(e.message).goAway(3000)
           }
@@ -259,7 +265,8 @@ export default {
 
     async importMeta() {
       this.dialogShow = true
-      this.confirmMessage = 'Do you want to import metadata from meta directory?'
+      // this.confirmMessage = 'Do you want to import metadata from meta directory?'
+      this.confirmMessage = `${this.$t('msg.info.importMetadata')}`
       this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
@@ -273,7 +280,8 @@ export default {
               'xcMetaTablesImportLocalFsToDb'
             ])
 
-            this.$toast.success('Metadata imported successfully').goAway(3000)
+            // this.$toast.success('Metadata imported successfully').goAway(3000)
+            this.$toast.success(`${this.$t('msg.toast.importMetadata')}`).goAway(3000)
           } catch (e) {
             this.$toast.error(e.message).goAway(3000)
           }
@@ -298,7 +306,8 @@ export default {
             },
             zipFile
           ])
-          this.$toast.success('Successfully imported metadata').goAway(3000)
+          // this.$toast.success('Successfully imported metadata').goAway(3000)
+            this.$toast.success(`${this.$t('msg.toast.importMetadata')}`).goAway(3000)
         } catch (e) {
           this.$toast.error(e.message).goAway(3000)
         }

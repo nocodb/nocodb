@@ -14,23 +14,23 @@ const {
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
 const executionMode = 1;
 
-const nocoTestSuite = (type, xcdb) => {
-  setCurrentMode(type, xcdb);
+const nocoTestSuite = (apiType, dbType) => {
+  setCurrentMode(apiType, dbType);
   if (0 == executionMode) {
-    t0.genTest(type, xcdb);
+    t0.genTest(apiType, dbType);
   } else {
-    t01.genTest(type, xcdb);
+    t01.genTest(apiType, dbType);
   }
 
-  t4a.genTest(type, xcdb);
-  t4b.genTest(type, xcdb);
-  t4c.genTest(type, xcdb);
-  t4d.genTest(type, xcdb);
-  t4e.genTest(type, xcdb);
-  t4f.genTest(type, xcdb);
+  t4a.genTest(apiType, dbType);
+  t4b.genTest(apiType, dbType);
+  t4c.genTest(apiType, dbType);
+  t4d.genTest(apiType, dbType);
+  t4e.genTest(apiType, dbType);
+  t4f.genTest(apiType, dbType);
 };
 
-nocoTestSuite("graphql", true);
+nocoTestSuite("graphql", "xcdb");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

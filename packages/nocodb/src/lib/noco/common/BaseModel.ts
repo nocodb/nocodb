@@ -235,7 +235,8 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
                 'svg',
                 'bmp',
                 'ico',
-                'jpg'
+                'jpg',
+                'webp'
               ].includes(attachment.title.split('.').pop())
             ) {
               return `<a href="${attachment.url}" target="_blank"><img height="50px" src="${attachment.url}"/></a>`;

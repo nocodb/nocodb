@@ -18,7 +18,8 @@
                 Upload
               </button>
               <button class="btn btn-default btn-raised" @click="cancelUpload()">
-                Cancel
+                <!-- Cancel -->
+                {{ $t('general.cancel') }}
               </button>
             </div>
             <!--<div ng-show="success" class="text-center text-success">-->

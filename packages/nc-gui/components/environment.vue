@@ -147,7 +147,8 @@
             text
             @click="addNewEnvDialog = false"
           >
-            Cancel
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
           </v-btn>
 
           <v-btn

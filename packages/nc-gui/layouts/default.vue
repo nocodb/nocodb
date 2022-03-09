@@ -47,7 +47,7 @@
       </v-toolbar-items>
       <!-- <template v-if="!isThisMobile ">
 
-                <a class="align-self-center" style="" target="_blank" href="https://calendly.com/nocodb">
+                <a class="align-self-center" style="" target="_blank" href="https://calendly.com/nocodb-meeting">
 
                   <x-icon size="20" tooltip="Book a free demo" color="white" icon.class="mr-3">mdi-calendar-month</x-icon>
 
@@ -553,7 +553,8 @@
         Update & Restart
       </v-btn>
       <v-btn @click.native="releaseDownloadedSnackbar = false">
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </v-btn>
     </v-snackbar>
 
@@ -563,7 +564,8 @@
         Upgrade
       </v-btn>
       <v-btn @click.native="downloadAvailSnackbar = false">
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </v-btn>
     </v-snackbar>
     <change-env v-model="showChangeEnv" />

@@ -43,7 +43,8 @@
         </x-icon>
 
         <v-btn small @click="$emit('cancel')">
-          Cancel
+          <!-- Cancel -->
+          {{ $t('general.cancel') }}
         </v-btn>
         <v-btn :disabled="!_isUIAllowed('tableRowUpdate')" small color="primary" @click="save">
           Save Row
@@ -437,7 +438,7 @@ export default {
         this.$emit('input', this.localState)
         this.$emit('update:isNew', false)
 
-        this.$toast.success(`${this.primaryValue()} updated successfully.`, {
+        this.$toast.success(`${this.primaryValue() || "Row"} updated successfully.`, {
           position: 'bottom-right'
         }).goAway(3000)
       } catch (e) {

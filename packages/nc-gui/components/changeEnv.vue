@@ -25,7 +25,8 @@
         <v-card-actions>
           <v-spacer />
           <v-btn small :disabled="progressbar" @click="dialogShow = false">
-            Close
+            <!-- Close -->
+            {{ $t('general.close') }}
           </v-btn>
           <v-btn color="primary" small :disabled="progressbar" @click="changeEnv">
             Change

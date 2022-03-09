@@ -23,7 +23,8 @@
     <div class="mt-4 d-flex d-100">
       <v-spacer />
       <v-btn small :disabled="progressbar" @click="dialogShow = false">
-        Close
+        <!-- Close -->
+        {{ $t('general.close') }}
       </v-btn>
       <v-btn color="primary" small :disabled="progressbar" @click="changeEnv">
         Change

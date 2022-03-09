@@ -107,7 +107,8 @@ export default class NcMetaMgr {
               .slice(1)
           ] || 'text/plain';
         // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
-        const img = await this.storageAdapter.fileRead(
+        // Read local files always from the local storage (s3 urls are directly read from the s3 bucket)
+        const img = await this.pluginMgr?.localStorage.fileRead(
           slash(
             path.join(
               'nc',
@@ -1263,7 +1264,8 @@ export default class NcMetaMgr {
         appendPath,
         req,
         dbAlias: this.getDbAlias(args),
-        projectId: this.getProjectId(args)
+        projectId: this.getProjectId(args),
+        isPublic: await this.isPublicAttachment(args)
       });
     } catch (e) {
       throw e;
@@ -1279,7 +1281,8 @@ export default class NcMetaMgr {
     appendPath = [],
     req,
     projectId,
-    dbAlias
+    dbAlias,
+    isPublic = false
   }: {
     prependName?: string;
     file: any;
@@ -1288,6 +1291,7 @@ export default class NcMetaMgr {
     req: express.Request & any;
     projectId?: string;
     dbAlias?: string;
+    isPublic?: boolean;
   }) {
     const fileName = `${prependName}${nanoid(6)}_${file.originalname}`;
     let destPath;
@@ -1297,7 +1301,11 @@ export default class NcMetaMgr {
       destPath = path.join('nc', projectId, dbAlias, 'uploads', ...appendPath);
     }
     const relativePath = slash(path.join(destPath, fileName));
-    let url = await this.storageAdapter.fileCreate(relativePath, file);
+    let url = await this.storageAdapter.fileCreate(
+      relativePath,
+      file,
+      isPublic
+    );
     if (!url) {
       if (storeInPublicFolder) {
         url = `${req.ncSiteUrl}/dl/public/files/${
@@ -1317,8 +1325,31 @@ export default class NcMetaMgr {
         size: file.size,
         icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
       },
-      ...this.s3KeyObject(relativePath)
+      ...(!isPublic ? this.s3KeyObject(relativePath) : {})
     };
+  }
+
+  private async isPublicAttachment(args) {
+    const [tableName] = args.args?.appendPath || [];
+    const [columnName] = args.args?.prependName || [];
+    if (!tableName || !columnName) false;
+
+    const columnMeta = await this.getColumnMeta({
+      tableName,
+      columnName,
+      projectId: this.getProjectId(args),
+      dbAlias: this.getDbAlias(args)
+    });
+
+    return columnMeta?.public;
+  }
+
+  private async getColumnMeta({ tableName, columnName, projectId, dbAlias }) {
+    const model = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+      title: tableName,
+      type: 'table'
+    });
+    return JSON.parse(model.meta).columns.find(c => c.cn === columnName);
   }
 
   /**
@@ -5068,7 +5099,7 @@ export default class NcMetaMgr {
       // await this.initStorage(true)
       // await this.initEmail(true)
       // await this.initTwilio(true)
-      this.pluginMgr?.reInit();
+      await this.pluginMgr?.reInit();
       await this.initCache(true);
       this.eeVerify();
       try {

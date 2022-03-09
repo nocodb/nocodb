@@ -14,7 +14,7 @@ export default function formulaQueryBuilder(
   aliasToColumn = {}
 ) {
   const fn = (pt, a?, prevBinaryOp?) => {
-    const colAlias = a ? ` as ${a}` : '';
+    const colAlias = a ? ` as "${a}"` : '';
     if (pt.type === 'CallExpression') {
       switch (pt.callee.name) {
         case 'ADD':
@@ -63,6 +63,32 @@ export default function formulaQueryBuilder(
               return fn(pt.arguments[0], a, prevBinaryOp);
             }
           }
+          break;
+        case 'URL':
+          return fn(
+            {
+              type: 'CallExpression',
+              arguments: [
+                {
+                  type: 'Literal',
+                  value: 'URI::(',
+                  raw: '"URI::("'
+                },
+                pt.arguments[0],
+                {
+                  type: 'Literal',
+                  value: ')',
+                  raw: '")"'
+                }
+              ],
+              callee: {
+                type: 'Identifier',
+                name: 'CONCAT'
+              }
+            },
+            a,
+            prevBinaryOp
+          );
           break;
         default:
           {

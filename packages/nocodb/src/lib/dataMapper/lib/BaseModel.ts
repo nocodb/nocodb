@@ -924,10 +924,18 @@ abstract class BaseModel {
    * @memberof BaseModel
    * @throws {Error}
    */
-  async distinct({ cn, fields = '', where, limit, offset, sort, condition }) {
+  async distinct({
+    column_name,
+    fields = '',
+    where,
+    limit,
+    offset,
+    sort,
+    condition
+  }) {
     try {
       const query = this.$db;
-      query.distinct(cn, ...fields.split(',').filter(Boolean));
+      query.distinct(column_name, ...fields.split(',').filter(Boolean));
       query.xwhere(where).condition(condition);
       this._paginateAndSort(query, { limit, offset, sort });
       return await this._run(query);

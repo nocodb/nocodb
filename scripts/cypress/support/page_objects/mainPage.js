@@ -89,9 +89,9 @@ export class _mainPage {
 
         // click on New User button, feed details
         cy.get('button:contains("New User")').first().click();
-      
+
         cy.snip("NewUser");
-      
+
         cy.get('label:contains("E-mail")')
             .next("input")
             .type(userCred.username)
@@ -102,7 +102,7 @@ export class _mainPage {
         // opt-in requested role & submit
         cy.snipActiveMenu("Menu_RoleType");
         cy.getActiveMenu().contains(roleType).click();
-        cy.get(".nc-invite-or-save-btn").click();
+        cy.get(".nc-invite-or-save-btn").click({ force: true });
 
         cy.toastWait("Successfully updated the user details");
 
@@ -181,8 +181,8 @@ export class _mainPage {
             .type(colName);
 
         // Column data type: to be set to lookup in this context
-        cy.get(".nc-ui-dt-dropdown").click();
-        cy.getActiveMenu().contains(colType).click();
+        cy.get(".nc-ui-dt-dropdown").click().clear().type(colType);
+        cy.getActiveMenu().contains(` ${colType} `).first().click();
 
         cy.get(".nc-col-create-or-edit-card").contains("Save").click();
         cy.toastWait(`Update table successful`);
@@ -323,7 +323,10 @@ export class _mainPage {
         cy.get(".nc-filter-operation-select").last().click();
         cy.snipActiveMenu("Menu_FilterField-operationSelect");
 
-        cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click();
+        cy.getActiveMenu()
+            .find(`.v-list-item:contains(${operation})`)
+            .first()
+            .click();
         if (operation != "is null" && operation != "is not null") {
             cy.get(".nc-filter-value-select input:text")
                 .last()

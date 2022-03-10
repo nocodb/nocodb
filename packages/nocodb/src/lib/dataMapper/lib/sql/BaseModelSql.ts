@@ -1205,7 +1205,7 @@ class BaseModelSql extends BaseModel {
    * @throws {Error}
    */
   async distinct({
-    cn,
+    column_name,
     fields = '',
     where,
     limit,
@@ -1216,7 +1216,9 @@ class BaseModelSql extends BaseModel {
     try {
       const query = this.$db;
       query.distinct(
-        this.selectQuery([cn, ...fields.split(',').filter(Boolean)].join(','))
+        this.selectQuery(
+          [column_name, ...fields.split(',').filter(Boolean)].join(',')
+        )
       );
       query.xwhere(where, this.selectQuery('')).conditionGraph(conditionGraph);
       this._paginateAndSort(query, { limit, offset, sort });

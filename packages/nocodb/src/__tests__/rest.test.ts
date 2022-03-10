@@ -189,13 +189,13 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
         .send({ email: EMAIL_ID, password: 'wrongPassword' })
         .expect(400, done);
     });
-    
+
     it('Signup with no credentials', done => {
       request(app)
         .post('/auth/signin')
         .send({})
-        .expect(400, done)
-    })
+        .expect(400, done);
+    });
 
     it('Forgot password with a non-existing email id', function(done) {
       request(app)
@@ -572,7 +572,9 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
 
         it('distinct - GET - /api/v1/country/distinct', function(done) {
           request(app)
-            .get(`/nc/${projectId}/api/v1/country/distinct?cn=country&limit=5`)
+            .get(
+              `/nc/${projectId}/api/v1/country/distinct?column_name=country&limit=5`
+            )
             .set('xc-auth', token)
             .expect(200, (err, res) => {
               if (err) done(err);
@@ -586,10 +588,10 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
             });
         });
 
-        it('distinct multiple - GET - /api/v1/country/distinct/:cn', function(done) {
+        it('distinct multiple - GET - /api/v1/country/distinct/:column_name', function(done) {
           request(app)
             .get(
-              `/nc/${projectId}/api/v1/country/distinct?cn=country&fields=country_id&limit=5`
+              `/nc/${projectId}/api/v1/country/distinct?column_name=country&fields=country_id&limit=5`
             )
             .set('xc-auth', token)
             .expect(200, (err, res) => {

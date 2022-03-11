@@ -147,7 +147,7 @@
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
-    "nc-help": "^0.2.31",
+    "nc-help": "^0.2.34",
     "nc-lib-gui": "npm:finn-nc-lib-gui@0.84.13-finn.4",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",

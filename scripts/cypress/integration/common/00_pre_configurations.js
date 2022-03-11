@@ -179,36 +179,36 @@ export const genTest = (apiType, dbType) => {
                         projectsPage.openProject(proj.basic.name);
                     } else {
                         projectsPage.createProject(proj.basic, proj.config);
-                    }
 
-                    if (dbType === "xcdb") {
-                        // store base URL- to re-visit and delete form view later
-                        let projId;
-                        cy.url()
-                            .then((url) => {
-                                // project prefix code can include "_"
-                                // projId = url.split("_")[1].split("?")[0];
-                                let startIdx = url.indexOf("_");
-                                let endIdx = url.indexOf("?");
-                                projId = url.slice(startIdx + 1, endIdx);
-                                cy.log(url, projId);
-                                setProjectString(projId);
+                        if (dbType === "xcdb") {
+                            // store base URL- to re-visit and delete form view later
+                            let projId;
+                            cy.url()
+                                .then((url) => {
+                                    // project prefix code can include "_"
+                                    // projId = url.split("_")[1].split("?")[0];
+                                    let startIdx = url.indexOf("_");
+                                    let endIdx = url.indexOf("?");
+                                    projId = url.slice(startIdx + 1, endIdx);
+                                    cy.log(url, projId);
+                                    setProjectString(projId);
 
-                                let query = prepareSqliteQuery(projId);
-                                for (let i = 0; i < query.length; i++) {
-                                    cy.task("sqliteExec", query[i]);
-                                    cy.wait(1000);
-                                }
-                            })
-                            .then(() => {
-                                cy.log(projId);
-                                mainPage.openMetaTab();
-                                mainPage.metaSyncValidate(
-                                    `nc_${projId}__actor`,
-                                    `New table, New relation added`
-                                );
-                                mainPage.closeMetaTab();
-                            });
+                                    let query = prepareSqliteQuery(projId);
+                                    for (let i = 0; i < query.length; i++) {
+                                        cy.task("sqliteExec", query[i]);
+                                        cy.wait(1000);
+                                    }
+                                })
+                                .then(() => {
+                                    cy.log(projId);
+                                    mainPage.openMetaTab();
+                                    mainPage.metaSyncValidate(
+                                        `nc_${projId}__actor`,
+                                        `New table, New relation added`
+                                    );
+                                    mainPage.closeMetaTab();
+                                });
+                        }
                     }
 
                     // create requested project

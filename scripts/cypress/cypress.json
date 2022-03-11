@@ -1,6 +1,6 @@
 {
     "baseUrl": "http://localhost:3000/",
-    "testFiles": ["test/ncv2_verification.js", "test/explicitLogin.js"],
+    "testFiles": ["test/ncv2_verification.js", "test/ncv2_generator.js"],
     "defaultCommandTimeout": 13000,
     "pageLoadTimeout": 600000,
     "viewportWidth": 1980,

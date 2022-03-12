@@ -70,6 +70,7 @@ jobs:
           title: 'Release ${{ github.event.inputs.tag || inputs.tag }}'
           labels: |
             Bot: Automated PR
+            Bot: Automerge
       - name: Check outputs
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         run: |
@@ -80,3 +81,4 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           PULL_REQUEST: "${{ steps.cpr.outputs.pull-request-number }}"
+          MERGE_LABELS: "Bot: Automerge"

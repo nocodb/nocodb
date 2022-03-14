@@ -514,7 +514,10 @@
 
     <v-dialog v-model="createTablesDialog" max-width="500">
       <v-card>
-        <v-card-title>Enter table name</v-card-title>
+        <v-card-title>
+          <!--Enter table name-->
+          {{ $t('msg.info.enterTableName') }}
+        </v-card-title>
         <v-card-text>
           <v-text-field
             v-model="tableNamesInput"

@@ -88,6 +88,30 @@ const mssql = {
     return args.knex
       .raw(`CAST(${args.fn(args.pt.arguments[0])} as FLOAT)${args.colAlias}`)
       .wrap('(', ')');
+  },
+  DATE_ADD: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `CASE
+      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN
+        FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
+        +${args.fn(args.pt.arguments[1])}, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
+      ELSE
+       FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
+        +${args.fn(args.pt.arguments[1])}, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd')
+      END${args.colAlias}`
+    );
+  },
+  DATE_SUB: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `CASE
+      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN
+        FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
+        -${args.fn(args.pt.arguments[1])}.argument.value, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
+      ELSE
+       FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
+        -${args.fn(args.pt.arguments[1])}.argument.value, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd')
+      END${args.colAlias}`
+    );
   }
 };
 

@@ -6,7 +6,7 @@
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', table)"
   >
-          <!-- Create A New Table -->
+    <!-- Create A New Table -->
     <v-card class="elevation-1 backgroundColor nc-create-table-card">
       <v-form ref="form" v-model="valid">
         <v-card-title class="primary subheading white--text py-2">
@@ -14,6 +14,7 @@
         </v-card-title>
 
         <v-card-text class=" py-6 px-10 ">
+          <!--hint="Enter table name"-->
           <v-text-field
             ref="input"
             v-model="table.alias"
@@ -23,10 +24,11 @@
             dense
             hide-details1
             :rules="[validateTableName]"
-            hint="Enter table name"
+            :hint="$t('msg.info.enterTableName')"
             class="mt-4 caption nc-table-name"
           />
 
+          <!--hint="Table name as saved in database"-->
           <v-text-field
             v-if="!projectPrefix"
             v-model="table.name"
@@ -34,12 +36,15 @@
             flat
             dense
             persistent-hint
-            hint="Table name as saved in database"
+            :hint="$t('msg.info.tableNameInDb')"
             class="mt-4 caption nc-table-name-alias"
           />
 
           <div class=" mt-5">
-            <label class="add-default-title grey--text">Add Default Columns</label>
+            <label class="add-default-title grey--text">
+              <!--Add Default Columns-->
+              {{ $t('msg.info.addDefaultColumns') }}
+            </label>
 
             <div class=" d-flex caption justify-space-between">
               <v-checkbox

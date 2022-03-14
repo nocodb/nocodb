@@ -1205,8 +1205,7 @@ class BaseModelSql extends BaseModel {
    * @throws {Error}
    */
   async distinct({
-    cn,
-    fields = '',
+    column_name,
     where,
     limit,
     offset,
@@ -1214,9 +1213,8 @@ class BaseModelSql extends BaseModel {
     conditionGraph = null
   }) {
     try {
-      const query = this.$db;
-      query.distinct(
-        this.selectQuery([cn, ...fields.split(',').filter(Boolean)].join(','))
+      const query = this._buildDistinctQuery(
+        column_name ? column_name.split(',') : []
       );
       query.xwhere(where, this.selectQuery('')).conditionGraph(conditionGraph);
       this._paginateAndSort(query, { limit, offset, sort });
@@ -1225,6 +1223,64 @@ class BaseModelSql extends BaseModel {
       console.log(e);
       throw e;
     }
+  }
+
+  /**
+   * Builds a query string that will return distinct values for the given column
+   * @param {string[]} columns - the column to query for distinct values
+   * @returns {object} the query.
+   */
+  private _buildDistinctQuery(columns: string[]) {
+    const query = this.$db;
+    const formulaColumns = this.filterFormulaColumns(columns);
+    const otherColumns = _.difference(columns, formulaColumns);
+    if (!otherColumns.length && !formulaColumns.length) {
+      query.distinct(this.selectQuery('')).distinct(...this.selectFormulas);
+    }
+    if (otherColumns.length) {
+      query.distinct(this.selectQuery(otherColumns.join(',')));
+    }
+    if (formulaColumns.length) {
+      query.distinct(...this.selectFormulasForColumns(formulaColumns));
+    }
+    return query;
+  }
+
+  /**
+   * Selects the formulas for the give columns.
+   * @param {Array} sheet - The colums to select formulas for.
+   * @returns Array of formulas.
+   */
+  private selectFormulasForColumns(columns: string[]) {
+    return (this.virtualColumns || [])?.reduce((arr, v) => {
+      if (
+        v.formula?.value &&
+        !v.formula?.error?.length &&
+        columns.includes(v._cn)
+      ) {
+        arr.push(
+          formulaQueryBuilder(
+            v.formula?.tree,
+            v._cn,
+            this.dbDriver,
+            this.aliasToColumn
+          )
+        );
+      }
+      return arr;
+    }, []);
+  }
+
+  /**
+   * Returns an array of the columns that are of formula type.
+   * @returns {Array<string>} - an array of the formula columns.
+   */
+  private filterFormulaColumns(columns: string[]) {
+    return columns.filter(column => {
+      return this.virtualColumns.find(
+        col => col._cn === column && col?.formula
+      );
+    });
   }
 
   /**
@@ -1279,6 +1335,7 @@ class BaseModelSql extends BaseModel {
       driver.union(
         parent.map(p => {
           const id =
+            p[_cn] ||
             p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] ||
             p[this.pks[0].cn];
           const query = driver(this.dbModels[child].tnPath)
@@ -1296,7 +1353,7 @@ class BaseModelSql extends BaseModel {
     const gs = _.groupBy(childs, _cn);
     parent.forEach(row => {
       row[`${this.dbModels?.[child]?._tn || child}List`] =
-        gs[row[this.pks[0]._cn]] || [];
+        gs[row[_cn] || row[this.pks[0]._cn]] || [];
     });
   }
 

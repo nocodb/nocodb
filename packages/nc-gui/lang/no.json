@@ -16,6 +16,7 @@
     "cancel": "Avbryt",
     "submit": "Sende inn",
     "create": "Opprett",
+    "insert": "Sett inn",
     "delete": "Slett",
     "update": "Oppdater",
     "rename": "Gi nytt navn til",
@@ -39,7 +40,21 @@
     "required": "Kreves",
     "preferred": "Foretrukket",
     "mandatory": "Påbudt, bindende",
-    "loading": "Laster ..."
+    "loading": "Laster ...",
+    "title": "Tittel",
+    "upload": "Laste opp",
+    "download": "nedlasting",
+    "default": "Misligholde",
+    "more": "Mer",
+    "less": "Mindre",
+    "event": "Begivenhet",
+    "condition": "Betingelse",
+    "after": "Etter",
+    "before": "Før",
+    "search": "Søk",
+    "notification": "Melding",
+    "reference": "Referanse",
+    "function": "Funksjon"
   },
   "objects": {
     "project": "Prosjekt",
@@ -109,7 +124,14 @@
     "AutoNumber": "Auto nummer",
     "Barcode": "Strekkode",
     "Button": "Knapp",
-    "Password": "Passord"
+    "Password": "Passord",
+    "relationProperties": {
+      "noAction": "Ingen handling",
+      "cascade": "Cascade.",
+      "restrict": "Begrense",
+      "setNull": "Sett null",
+      "setDefault": "Sett standard"
+    }
   },
   "filterOperation": {
     "isEqual": "er lik",
@@ -138,6 +160,7 @@
     "metaMgmt": "Organiser prosjektmetadata",
     "metadata": "Metadata.",
     "exportImportMeta": "Eksporter / Import Metadata",
+    "uiACL": "UI Access Control.",
     "metaOperations": "Metadataoperasjoner",
     "audit": "Revidere",
     "auditLogs": "Revisjonslogg",
@@ -149,7 +172,9 @@
     "resetPassword": "Tilbakestill passordet ditt"
   },
   "labels": {
+    "notifyVia": "Varsle Via.",
     "projName": "Prosjektnavn",
+    "tableName": "Tabellnavn",
     "viewName": "Se navn",
     "viewLink": "Vis lenke",
     "columnName": "Kolonne navn",
@@ -177,11 +202,13 @@
     "chat": "Chat",
     "email": "E-post",
     "storage": "Oppbevaring",
-    "uiAcl": "UI-ACL.",
+    "uiAcl": "UI-ACL",
     "models": "Modeller",
     "syncState": "Synkroniser staten",
     "created": "Opprettet",
     "sqlOutput": "SQL-utgang",
+    "addOption": "Legg til alternativ",
+    "aggregateFunction": "Samlet funksjon",
     "dbCreateIfNotExists": "Database: Opprett hvis ikke eksisterer",
     "clientKey": "Klientnøkkel",
     "clientCert": "Klientsertifikat",
@@ -200,7 +227,13 @@
       "joinDiscord": "Bli med på Discord",
       "joinReddit": "Bli med /r/NocoDB",
       "followNocodb": "Følg NocoDB"
-    }
+    },
+    "docReference": "Dokumentreferanse",
+    "selectUserRole": "Velg Brukerrolle",
+    "childTable": "Barnbord",
+    "childColumn": "Barn kolonne",
+    "onUpdate": "På oppdatering",
+    "onDelete": "På slette"
   },
   "activity": {
     "createProject": "Opprett prosjekt",
@@ -260,6 +293,7 @@
     "createTable": "Tabellen CREATE.",
     "refreshTable": "Tabeller oppdatering",
     "renameTable": "Tabell omdøpe",
+    "deleteTable": "Bordet slett",
     "addField": "Legg til nytt felt i denne tabellen",
     "setPrimary": "Sett som primærverdi",
     "addRow": "Legg til ny rad",
@@ -307,6 +341,7 @@
     "sendEmail": "SEND E-POST"
   },
   "tooltip": {
+    "saveChanges": "Lagre endringer",
     "xcDB": "Opprett et nytt prosjekt",
     "extDB": "Støtter MySQL, PostgreSQL, SQL Server & Sqlite",
     "apiRest": "Tilgjengelig via REST-API-er",
@@ -321,7 +356,7 @@
     "reloadApiToken": "Reload Api Tokens",
     "generateNewApiToken": "Generere nye API-token",
     "addRole": "Legg til ny rolle",
-    "metaReloadList": "Last inn listen",
+    "reloadList": "Last inn listen",
     "metaSync": "Synkroniser metadata.",
     "sqlMigration": "Oppdater migreringer",
     "updateRestart": "Oppdatering og omstart",
@@ -435,7 +470,12 @@
         "form": "Legg til skjemavisning",
         "kanban": "Legg til Kanban View",
         "calendar": "Legg til kalendervisning"
-      }
+      },
+      "tablesMetadataInSync": "Tabeller Metadata er synkronisert",
+      "addMultipleUsers": "Du kan legge til flere komma (,) separerte e-poster",
+      "enterTableName": "Skriv inn tabellnavn",
+      "addDefaultColumns": "Legg til standard kolonner",
+      "tableNameInDb": "Tabellnavn som lagret i databasen"
     },
     "error": {
       "searchProject": "Søket ditt etter {søk} fant ingen resultater",

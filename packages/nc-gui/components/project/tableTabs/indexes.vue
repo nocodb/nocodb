@@ -130,7 +130,7 @@
                           :disabled="props.index !== selected"
                           class="body-2"
                           :rules="[max25chars]"
-                          label="Edit"
+                          :label="$t('general.edit')"
                           single-line
                           counter
                         />

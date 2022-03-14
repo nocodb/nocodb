@@ -63,7 +63,10 @@
           <x-icon small class="mr-1" color="primary">
             mdi-pencil
           </x-icon>
-          <span class="caption">Edit</span>
+          <span class="caption">
+            <!--Edit-->
+            {{ $t('general.edit') }}
+          </span>
         </v-list-item>
         <v-list-item dense @click="setAsPrimaryValue">
           <x-icon small class="mr-1" color="primary">
@@ -71,7 +74,10 @@
           </x-icon>
           <v-tooltip bottom>
             <template #activator="{on}">
-              <span class="caption" v-on="on">Set as Primary value</span>
+              <span class="caption" v-on="on">
+                <!--Set as Primary value-->
+                {{ $t('activity.setPrimary') }}
+              </span>
             </template>
             <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
           </v-tooltip>
@@ -80,7 +86,10 @@
           <x-icon small class="mr-1" color="error">
             mdi-delete-outline
           </x-icon>
-          <span class="caption">Delete</span>
+          <span class="caption">
+            <!--Delete-->
+            {{ $t('general.delete') }}
+          </span>
         </v-list-item>
       </v-list>
     </v-menu>

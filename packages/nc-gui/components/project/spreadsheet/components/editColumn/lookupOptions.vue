@@ -9,7 +9,7 @@
             outlined
             class="caption"
             hide-details="auto"
-            label="Child Table"
+            :label="$t('labels.childTable')"
             :full-width="false"
             :items="refTables"
             item-text="_ltn"
@@ -32,7 +32,7 @@
             outlined
             class="caption"
             hide-details="auto"
-            label="Child column"
+            :label="$t('labels.childColumn')"
             :full-width="false"
             :items="columnList"
             item-text="_lcn"

@@ -29,6 +29,7 @@ export default ({ app, store }) => {
       id: require("~/lang/id.json"),
       it_IT: require("~/lang/it_IT.json"),
       ko: require("~/lang/ko.json"),
+      lv: require('~/lang/lv.json'),
       nl: require("~/lang/nl.json"),
       ru: require("~/lang/ru.json"),
       sv: require("~/lang/sv.json"),

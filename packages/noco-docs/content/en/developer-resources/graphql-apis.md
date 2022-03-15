@@ -5,6 +5,8 @@ category: 'Developer Resources'
 menuTitle: 'GraphQL APIs'
 ---
 
+> NocoDB & APIs are considered to be in beta as of now.
+
 ## Features
 
 * Generates GraphQL APIs for **ANY** MySql, Postgres, MSSQL, Sqlite database :fire:

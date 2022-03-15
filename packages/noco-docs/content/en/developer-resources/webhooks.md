@@ -6,6 +6,8 @@ category: "Developer Resources"
 menuTitle: "Webhooks"
 ---
 
+> NocoDB & APIs are considered to be in beta as of now.
+
 ## Triggers
 
 Webhooks allows user to trigger on certain operations on following database operations

@@ -6,6 +6,7 @@ category: 'Developer Resources'
 menuTitle: 'API Tokens'
 ---
 
+> NocoDB & APIs are considered to be in beta as of now.
 
 ## API Tokens
 NocoDB allows creating API tokens which allow it to be integrated seamlessly with 3rd party apps. 

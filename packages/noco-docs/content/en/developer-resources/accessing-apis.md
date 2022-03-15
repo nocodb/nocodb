@@ -6,6 +6,8 @@ category: 'Developer Resources'
 menuTitle: 'Accessing APIs'
 ---
 
+> NocoDB & APIs are considered to be in beta as of now.
+
 ## REST APIs
 
 - Go to NocoDB Project, click the rightmost button and click ``Copy auth token``.

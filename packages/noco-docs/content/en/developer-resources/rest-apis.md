@@ -5,6 +5,8 @@ category: 'Developer Resources'
 menuTitle: 'REST APIs'
 ---
 
+> NocoDB & APIs are considered to be in beta as of now.  
+
 ## Features
 
 * **Automatic REST APIs for any SQL database** 

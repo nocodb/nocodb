@@ -26,34 +26,84 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('after.insert', data, req);
-    if (req?.headers?.['xc-gui']) {
-      const id = this._extractPksValues(data);
-      this.builder
-        .getXcMeta()
-        .audit(
-          this.builder?.getProjectId(),
-          this.builder?.getDbAlias(),
-          'nc_audit',
-          {
-            model_name: this._tn,
-            model_id: id,
-            op_type: 'DATA',
-            op_sub_type: 'INSERT',
-            description: `${id} inserted into ${this._tn}`,
-            // details: JSON.stringify(data),
-            ip: req?.clientIp,
-            user: req?.user?.email
-          }
-        );
-    }
+    const id = this._extractPksValues(data);
+    this.builder
+      .getXcMeta()
+      .audit(
+        this.builder?.getProjectId(),
+        this.builder?.getDbAlias(),
+        'nc_audit',
+        {
+          model_name: this._tn,
+          model_id: id,
+          op_type: 'DATA',
+          op_sub_type: 'INSERT',
+          description: `${id} inserted into ${this._tn}`,
+          // details: JSON.stringify(data),
+          ip: req?.clientIp,
+          user: req?.user?.email
+        }
+      );
   }
 
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
+    req = req || {};
+    req['oldData'] = await this.readByPk(req['params'].id);
     await this.handleHooks('before.update', data, req);
   }
 
   public async afterUpdate(data: any, _trx: any, req): Promise<void> {
+    this.builder
+      .getXcMeta()
+      .audit(
+        this.builder?.getProjectId(),
+        this.builder?.getDbAlias(),
+        'nc_audit',
+        {
+          model_name: this._tn,
+          model_id: req['params'].id,
+          op_type: 'DATA',
+          op_sub_type: 'UPDATE',
+          description: this._updateAuditDescription(
+            req['oldData'],
+            req['body']
+          ),
+          details: this._updateAuditDetails(req['oldData'], req['body']),
+          ip: req.clientIp,
+          user: req.user?.email
+        }
+      );
     await this.handleHooks('after.update', data, req);
+  }
+
+  private _updateAuditDescription(oldData: any, data: any) {
+    return `Table ${this._tn} : ${(() => {
+      const keys = Object.keys(data);
+      const result = [];
+      keys.forEach(key => {
+        if (oldData[key] !== data[key]) {
+          result.push(
+            `field ${key} got changed from ${oldData[key]} to ${data[key]}`
+          );
+        }
+      });
+      return result.join(',\n');
+    })()}`;
+  }
+
+  private _updateAuditDetails(oldData: any, data: any) {
+    return (() => {
+      const keys = Object.keys(data);
+      const result = [];
+      keys.forEach(key => {
+        if (oldData[key] !== data[key]) {
+          result.push(`<span class="">${key}</span>
+          : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${oldData[key]}</span>
+          <span class="black--text green lighten-4 px-2">${data[key]}</span>`);
+        }
+      });
+      return result.join(',<br/>');
+    })();
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
@@ -61,24 +111,22 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    if (req?.headers?.['xc-gui']) {
-      this.builder
-        .getXcMeta()
-        .audit(
-          this.builder?.getProjectId(),
-          this.builder?.getDbAlias(),
-          'nc_audit',
-          {
-            model_name: this._tn,
-            model_id: req?.params?.id,
-            op_type: 'DATA',
-            op_sub_type: 'DELETE',
-            description: `${req?.params.id} deleted from ${this._tn}`,
-            ip: req?.clientIp,
-            user: req?.user?.email
-          }
-        );
-    }
+    this.builder
+      .getXcMeta()
+      .audit(
+        this.builder?.getProjectId(),
+        this.builder?.getDbAlias(),
+        'nc_audit',
+        {
+          model_name: this._tn,
+          model_id: req?.params?.id,
+          op_type: 'DATA',
+          op_sub_type: 'DELETE',
+          description: `${req?.params.id} deleted from ${this._tn}`,
+          ip: req?.clientIp,
+          user: req?.user?.email
+        }
+      );
     await this.handleHooks('after.delete', data, req);
   }
 

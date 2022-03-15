@@ -65,6 +65,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           op_type: 'DATA',
           op_sub_type: 'UPDATE',
           description: this._updateAuditDescription(
+            req['params'].id,
             req['oldData'],
             req['body']
           ),
@@ -76,8 +77,8 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     await this.handleHooks('after.update', data, req);
   }
 
-  private _updateAuditDescription(oldData: any, data: any) {
-    return `Table ${this._tn} : ${(() => {
+  private _updateAuditDescription(id, oldData: any, data: any) {
+    return `Table ${this._tn} : ${id} ${(() => {
       const keys = Object.keys(data);
       const result = [];
       keys.forEach(key => {

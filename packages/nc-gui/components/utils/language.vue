@@ -49,6 +49,7 @@ export default {
       it_IT: 'Italiano',
       ja: '日本語',
       ko: '한국인',
+      lv: 'Latviešu',
       nl: 'Nederlandse',
       ru: 'Pусский',
       zh_CN: '大陆简体',

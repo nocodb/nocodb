@@ -33,6 +33,7 @@
             <option value="nl">Nederlandse</option>
             <option value="ja">日本語</option>
             <option value="ko">한국인</option>
+            <option value="lv">Latviešu</option>
             <option value="ru">Pусский</option>
             <option value="id">Bahasa Indonesia</option>
             <option value="zh_CN">大陆简体</option>

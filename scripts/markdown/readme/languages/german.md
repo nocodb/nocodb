@@ -62,10 +62,16 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
   ```
 
-### Verwenden von NPM
+### Verwenden von NPM 
 
 ```
 npm install create-nocodb-app
+```
+
+### Verwenden von NPX 
+
+```
+npx install create-nocodb-app
 ```
 
 ### Verwenden von Git

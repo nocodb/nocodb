@@ -314,6 +314,16 @@
                                       <span classs="caption">UI ACL</span>
                                     </v-list-item-title>
                                   </v-list-item>
+                                  <v-list-item v-if="_isUIAllowed('table-delete')" dense @click="checkAndDeleteTable(child)">
+                                    <v-list-item-icon>
+                                      <v-icon x-small>
+                                        mdi-delete-outline
+                                      </v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-title>
+                                      <span classs="caption">Delete</span>
+                                    </v-list-item-title>
+                                  </v-list-item>
                                 </v-list>
                               </v-menu>
 
@@ -702,6 +712,13 @@
       :heading="selectedNodeForDelete.heading"
       type="error"
     />
+    <dlgLabelSubmitCancel
+      v-if="dialogDeleteTable.dialogShow"
+      type="error"
+      :actions-mtd="deleteTable"
+      :dialog-show="dialogDeleteTable.dialogShow"
+      :heading="dialogDeleteTable.heading + ' ' + dialogDeleteTable.nodes.tn"
+    />
     <excel-import
       ref="excelImport"
       v-model="excelImportDialog"
@@ -821,6 +838,11 @@ export default {
       field: 'Table Name',
       cookie: null,
       defaultValue: null,
+    },
+    dialogDeleteTable: {
+      dialogShow: false,
+      heading: 'Click Submit to Delete the Table:',
+      nodes: {}
     },
     rolesList: null,
     selectedNodeForDelete: {dialog: false, item: null, heading: null},
@@ -957,7 +979,102 @@ export default {
     openLink(link) {
       window.open(link, '_blank');
     },
+    async checkAndDeleteTable(table) {
+      const meta = this.$store.state.meta.metas[table.tn] || await this.loadTableSchema(table);
+      if (
+        !meta || (
+          (meta.hasMany && meta.hasMany.length) ||
+          (meta.manyToMany && meta.manyToMany.length) ||
+          (meta.belongsTo && meta.belongsTo.length))
+      ) {
+        return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
+      }
+      await this.deleteTable('showDialog', table._nodes)
+    },
+    async loadTableSchema(table) {
+      return await this.$store.dispatch('meta/ActLoadMeta', {
+        env: table._nodes.env,
+        dbAlias: table._nodes.dbAlias,
+        tn: table.tn
+      })
+    },
+    async deleteTable(action = '', nodes=null) {
+      if(nodes) this.dialogDeleteTable.nodes = nodes;
 
+      if (action === 'showDialog') {
+        this.dialogDeleteTable.dialogShow = true
+      } else if (action === 'hideDialog') {
+        this.dialogDeleteTable.dialogShow = false
+      } else {
+        nodes = this.dialogDeleteTable.nodes;
+        let relationListAll = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: nodes.env,
+          dbAlias: nodes.dbAlias
+        }, 'relationListAll'])
+
+        relationListAll = relationListAll.data.list.filter(rel => rel.rtn === nodes.tn).map(({ tn }) => tn)
+
+        if (relationListAll.length) {
+          this.$toast.info('Table can\'t be  deleted  since Table is being referred in following tables : ' + relationListAll.join(', ')).goAway(10000)
+          this.dialogDeleteTable.dialogShow = false
+          return
+        }
+
+        const triggerList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: nodes.env,
+          dbAlias: nodes.dbAlias
+        }, 'triggerList', {
+          tn: nodes.tn
+        }])
+
+        for (const trigger of triggerList.data.list) {
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+            {
+              env: nodes.env,
+              dbAlias: nodes.dbAlias
+            },
+            'triggerDelete',
+            {
+              ...trigger,
+              tn: nodes.tn,
+              oldStatement: trigger.statement
+            }])
+
+          console.log('triggerDelete result ', result)
+
+          this.$toast.success('Trigger deleted successfully').goAway(1000)
+        }
+
+        let columns = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          env: nodes.env,
+          dbAlias: nodes.dbAlias
+        }, 'columnList', {
+          tn: nodes.tn
+        }])
+
+        columns = columns.data.list
+
+        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
+          env: nodes.env,
+          dbAlias: nodes.dbAlias
+        },
+        'tableDelete',
+        { tn: nodes.tn, columns }])
+
+        this.removeTableTab({
+          env: nodes.env,
+          dbAlias: nodes.dbAlias,
+          tn: nodes.tn
+        })
+
+        await this.loadTablesFromParentTreeNode({
+          _nodes: {
+            ...nodes
+          }
+        })
+        this.dialogDeleteTable.dialogShow = false
+      }
+    },
     /*    settingsTabAdd() {
           const tabIndex = this.tabs.findIndex(el => el.key === `projectSettings`);
           if (tabIndex !== -1) {
@@ -1053,6 +1170,7 @@ export default {
       changeActiveTab: 'tabs/changeActiveTab',
       // instantiateSqlMgr: "sqlMgr/instantiateSqlMgr",
       loadDefaultTabs: 'tabs/loadDefaultTabs',
+      removeTableTab: 'tabs/removeTableTab',
       loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode',
       loadViewsFromParentTreeNode: 'project/loadViewsFromParentTreeNode',
       loadFunctionsFromParentTreeNode: 'project/loadFunctionsFromParentTreeNode',

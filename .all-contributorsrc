@@ -648,6 +648,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dolibit-ut",
+      "name": "UT from dolibit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/45215329?v=4",
+      "profile": "http://dolibit.de",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

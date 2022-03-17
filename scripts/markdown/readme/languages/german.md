@@ -71,7 +71,7 @@ npm install create-nocodb-app
 ### Verwenden von NPX 
 
 ```
-npx install create-nocodb-app
+npx create-nocodb-app
 ```
 
 ### Verwenden von Git

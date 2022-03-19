@@ -49,9 +49,17 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
 
     // signin/signup
     cy.get("body").then(($body) => {
-        // cy.wait(1000)
+        cy.wait(2000);
+
         cy.url().then((url) => {
-            if (!url.includes("/projects")) {
+            if (url.includes("signin")) {
+                cy.get('input[type="text"]', { timeout: 12000 }).type(
+                    args.username
+                );
+                cy.get('input[type="password"]').type(args.password);
+                cy.snip("SignIn");
+                cy.get('button:contains("SIGN IN")').click();
+            } else if (!url.includes("/projects")) {
                 // handle initial load
                 if ($body.find(".welcome-page").length > 0) {
                     cy.wait(8000);
@@ -175,7 +183,7 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
 Cypress.Commands.add("closeTableTab", (tn) => {
     cy.task("log", `[closeTableTab] ${tn}`);
     cy.get(`.project-tab`).contains(tn, { timeout: 10000 }).should("exist");
-    cy.get(`[href="#table||db||${tn}"]`).find("button.mdi-close").click();
+    cy.get(`[href="#table||||${tn}"]`).find("button.mdi-close").click();
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
@@ -382,7 +390,7 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
 Cypress.Commands.add("closeViewsTab", (vn) => {
     cy.task("log", `[closeViewsTab] ${vn}`);
     cy.get(`.project-tab`).contains(vn, { timeout: 10000 }).should("exist");
-    cy.get(`[href="#view||db||${vn}"]`)
+    cy.get(`[href="#view||||${vn}"]`)
         .find("button.mdi-close")
         .click({ force: true });
 });

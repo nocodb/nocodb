@@ -246,9 +246,16 @@ function addSingleSelect(key) {
     cy.get(".nc-column-name-input input", { timeout: 3000 })
         .clear()
         .type(colName);
+
     // Column data type: to be set to lookup in this context
     cy.get(".nc-ui-dt-dropdown").click().clear().type(colType);
     cy.getActiveMenu().contains(` ${colType} `).first().click();
+
+    cy.getActiveMenu().find(".mdi-close").eq(0).click();
+    cy.wait(2000);
+    cy.getActiveMenu().find(".mdi-close").eq(0).click();
+    cy.wait(2000);
+
     cy.getActiveMenu()
         .find(`.d-flex.py-1 input[type="text"]`)
         .last()
@@ -290,6 +297,12 @@ function addMultiSelect(key) {
     // Column data type: to be set to lookup in this context
     cy.get(".nc-ui-dt-dropdown").click().clear().type(colType);
     cy.getActiveMenu().contains(` ${colType} `).first().click();
+
+    cy.getActiveMenu().find(".mdi-close").eq(0).click();
+    cy.wait(2000);
+    cy.getActiveMenu().find(".mdi-close").eq(0).click();
+    cy.wait(2000);
+
     cy.getActiveMenu()
         .find(`.d-flex.py-1 input[type="text"]`)
         .last()

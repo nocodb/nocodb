@@ -203,9 +203,6 @@ export default {
         $listeners.cancel = this.$listeners.cancel
       }
 
-      if (this.$listeners.update) {
-        $listeners.update = this.$listeners.update
-      }
 
       return $listeners
     }

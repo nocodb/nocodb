@@ -209,25 +209,6 @@
               v-on="on"
               @click="checkAndDeleteTable"
             >-->
-        <v-icon
-          v-if="_isUIAllowed('table-delete')"
-          small
-          class="mx-n1"
-          color="grey lighten-1"
-        >
-          mdi-circle-small
-        </v-icon>
-        <x-icon
-          v-if="_isUIAllowed('table-delete')"
-          icon.class="nc-table-delete-btn mx-1 mr-1"
-          :disabled="isLocked"
-          small
-          :color="['red',''] "
-          :tooltip="$t('activity.deleteTable')"
-          @click="checkAndDeleteTable"
-        >
-          mdi-delete-outline
-        </x-icon>
 
         <v-icon small class="ml-n2" color="grey lighten-1">
           mdi-circle-small

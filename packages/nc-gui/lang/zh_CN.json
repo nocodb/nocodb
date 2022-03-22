@@ -1,6 +1,6 @@
 {
   "general": {
-    "home": "家",
+    "home": "首页",
     "load": "加载",
     "open": "打开",
     "close": "关闭",
@@ -48,7 +48,7 @@
     "more": "更多的",
     "less": "较少的",
     "event": "事件",
-    "condition": "健康）状况",
+    "condition": "条件",
     "after": "后",
     "before": "前",
     "search": "搜索",
@@ -59,11 +59,11 @@
   "objects": {
     "project": "项目",
     "projects": "项目",
-    "table": "桌子",
-    "tables": "桌子",
+    "table": "数据表",
+    "tables": "数据表",
     "field": "场地",
     "fields": "领域",
-    "column": "柱子",
+    "column": "列",
     "columns": "列",
     "page": "页",
     "pages": "页面",
@@ -71,7 +71,7 @@
     "records": "记录",
     "webhook": "Webhook.",
     "webhooks": "Webhooks.",
-    "view": "看法",
+    "view": "视图",
     "views": "视图",
     "viewType": {
       "grid": "表格",

@@ -24,7 +24,7 @@ Sample simple Organization structure:
 - Average
 - Sum
 - Count Distinct
-- Sum Distrinct
+- Sum Distinct
 - Average Distinct
 
 Now, we can explore how to extract employee count information per vertical using **"ROLLUP"** columns

@@ -1,7 +1,10 @@
 import LRU from 'lru-cache';
 
 export default class XcCache {
+  private static disabled: boolean = process.env.NC_NO_CACHE === '1';
   public static init(config: any, overwrite = false) {
+    if (this.disabled) return;
+
     if (overwrite && this.instance) {
       this.instance.reset();
       this.instance = null;

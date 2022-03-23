@@ -70,14 +70,6 @@ export default class RestApi {
       url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`,
       data
     })
-    const colName = Object.keys(data)[0]
-    this.$ctx.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.$ctx.dbAlias }, 'xcAuditCreate', {
-      tn: this.table,
-      cn: colName,
-      pk: id,
-      value: data[colName],
-      prevValue: oldData[colName]
-    }])
 
     return res.data
   }

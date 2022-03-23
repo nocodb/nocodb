@@ -151,6 +151,7 @@
                       :meta="meta"
                       :sql-ui="sqlUi"
                       :is-form="true"
+                      :is-locked="isLocked"
                       @focus="active = col._cn"
                       @blur="active = ''"
                       @input="$set(changedColumns,col._cn, true)"
@@ -305,7 +306,8 @@ export default {
     availableColumns: [Object, Array],
     queryParams: Object,
     meta: Object,
-    presetValues: Object
+    presetValues: Object,
+    isLocked: Boolean,
   },
   data: () => ({
     showborder: false,

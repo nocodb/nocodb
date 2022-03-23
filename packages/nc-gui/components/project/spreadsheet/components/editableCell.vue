@@ -18,6 +18,7 @@
       :column="column"
       :is-public-grid="isPublic && !isForm"
       :is-public-form="isPublic && isForm"
+      :is-locked="isLocked"
       v-on="$listeners"
     />
 

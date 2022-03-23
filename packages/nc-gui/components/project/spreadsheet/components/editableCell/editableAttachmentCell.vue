@@ -63,7 +63,7 @@
         </v-tooltip>
         </div>
       </div>
-      <div v-if="isForm || active && !isPublicGrid" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
+      <div v-if="isForm || active && !isPublicGrid && !isLocked" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
         <v-icon v-if="uploading" small color="primary" class="nc-attachment-add-spinner">
           mdi-loading mdi-spin
         </v-icon>
@@ -100,7 +100,7 @@
         <v-card-text class="h-100 backgroundColor">
           <div class="d-flex mx-2">
             <v-btn
-              v-if="(isForm || _isUIAllowed('tableAttachment')) && !isPublicGrid"
+              v-if="(isForm || _isUIAllowed('tableAttachment')) && !isPublicGrid && !isLocked"
               small
               class="my-4 "
               :loading="uploading"
@@ -127,7 +127,7 @@
                     style="position: relative"
                   >
                     <v-icon
-                      v-if="_isUIAllowed('tableAttachment') && !isPublicGrid"
+                      v-if="_isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked"
                       small
                       class="remove-icon"
                       @click="removeItem(i)"

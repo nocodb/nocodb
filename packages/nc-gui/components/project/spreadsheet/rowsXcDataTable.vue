@@ -340,6 +340,7 @@
               :sql-ui="sqlUi"
               :primary-value-column="primaryValueColumn"
               :cover-image-field="coverImageField"
+              :is-locked="isLocked"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
@@ -606,6 +607,7 @@
         :query-params="queryParams"
         :show-next-prev="false"
         :preset-values="presetValues"
+        :is-locked="isLocked"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData(false)"
         @commented="reloadComments"
@@ -632,6 +634,7 @@
         :query-params="queryParams"
         :show-next-prev="true"
         :preset-values="presetValues"
+        :is-locked="isLocked"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"

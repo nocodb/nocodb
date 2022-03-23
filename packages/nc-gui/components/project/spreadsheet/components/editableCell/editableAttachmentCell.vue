@@ -389,6 +389,9 @@ export default {
         // eslint-disable-next-line eqeqeq
       } else if (e.keyCode == '39') {
         this.carousel = ++this.carousel % this.localState.length
+        // eslint-disable-next-line eqeqeq
+      } else if (e.keyCode == '27') {
+        this.hideIfVisible()
       }
     },
     async onFileDrop(e) {

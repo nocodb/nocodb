@@ -16,6 +16,7 @@
     "cancel": "取消",
     "submit": "提交",
     "create": "新建",
+    "insert": "插入",
     "delete": "删除",
     "update": "更新",
     "rename": "改名",
@@ -39,7 +40,21 @@
     "required": "必填项",
     "preferred": "Preferred",
     "mandatory": "强制的",
-    "loading": "loading ..."
+    "loading": "loading ...",
+    "title": "标题",
+    "upload": "上传",
+    "download": "下载",
+    "default": "默认",
+    "more": "更多的",
+    "less": "较少的",
+    "event": "事件",
+    "condition": "健康）状况",
+    "after": "后",
+    "before": "前",
+    "search": "搜索",
+    "notification": "通知",
+    "reference": "参考",
+    "function": "功能"
   },
   "objects": {
     "project": "项目",
@@ -109,7 +124,14 @@
     "AutoNumber": "自动编号",
     "Barcode": "条码",
     "Button": "按钮",
-    "Password": "密码"
+    "Password": "密码",
+    "relationProperties": {
+      "noAction": "没有任何行动",
+      "cascade": "级联",
+      "restrict": "严格",
+      "setNull": "设置null.",
+      "setDefault": "默认设置"
+    }
   },
   "filterOperation": {
     "isEqual": "是平等的",
@@ -138,6 +160,7 @@
     "metaMgmt": "项目基础信息管理",
     "metadata": "元数据",
     "exportImportMeta": "导出/导入元数据",
+    "uiACL": "UI访问控制",
     "metaOperations": "元数据操作",
     "audit": "审计",
     "auditLogs": "审计日志",
@@ -149,7 +172,9 @@
     "resetPassword": "重置密码"
   },
   "labels": {
+    "notifyVia": "通知Via",
     "projName": "项目名",
+    "tableName": "表名称",
     "viewName": "查看名称",
     "viewLink": "查看链接",
     "columnName": "列名称",
@@ -182,6 +207,8 @@
     "syncState": "同步状态",
     "created": "创造了",
     "sqlOutput": "SQL输出",
+    "addOption": "添加选项",
+    "aggregateFunction": "汇总功能",
     "dbCreateIfNotExists": "数据库 : 如果不存在则创建",
     "clientKey": "客户端 Key",
     "clientCert": "客户端 Cert",
@@ -200,7 +227,13 @@
       "joinDiscord": "加入 Discord",
       "joinReddit": "加入/r/NocoDB",
       "followNocodb": "关注 NocoDB"
-    }
+    },
+    "docReference": "文件参考文献",
+    "selectUserRole": "选择用户角色",
+    "childTable": "儿童表",
+    "childColumn": "儿童专栏",
+    "onUpdate": "更新",
+    "onDelete": "在删除"
   },
   "activity": {
     "createProject": "创建项目",
@@ -260,6 +293,7 @@
     "createTable": "表创造",
     "refreshTable": "表刷新",
     "renameTable": "表重命名",
+    "deleteTable": "表删除",
     "addField": "将新字段添加到此表",
     "setPrimary": "设置为主要值",
     "addRow": "添加新行",
@@ -307,6 +341,7 @@
     "sendEmail": "发送邮件"
   },
   "tooltip": {
+    "saveChanges": "保存更改",
     "xcDB": "新建一个项目",
     "extDB": "支持 MySQL、PostgreSQL、SQL Server 和 SQLite",
     "apiRest": "通过 REST APIs 访问",
@@ -321,7 +356,7 @@
     "reloadApiToken": "重新加载API令牌",
     "generateNewApiToken": "生成新的API令牌",
     "addRole": "添加新角色",
-    "metaReloadList": "重新加载列表",
+    "reloadList": "重新加载列表",
     "metaSync": "同步元数据",
     "sqlMigration": "重新加载迁移",
     "updateRestart": "更新 & 重启",
@@ -435,7 +470,12 @@
         "form": "添加表单视图",
         "kanban": "添加看板视图",
         "calendar": "添加日历视图"
-      }
+      },
+      "tablesMetadataInSync": "表元数据同步",
+      "addMultipleUsers": "您可以添加多个逗号（，）分隔的电子邮件",
+      "enterTableName": "输入表名",
+      "addDefaultColumns": "添加默认列",
+      "tableNameInDb": "数据库中保存的表名"
     },
     "error": {
       "searchProject": "你的搜索： {search} 没有发现匹配的结果",

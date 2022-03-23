@@ -14,7 +14,7 @@
       <v-spacer />
       <x-btn
         outlined
-        tooltip="Reload list"
+        :tooltip="$t('tooltip.reloadList')"
         small
         color="primary"
         icon="refresh"
@@ -37,7 +37,7 @@
       </x-btn>-->
       <x-btn
         outlined
-        tooltip="Save Changes"
+        :tooltip="$t('tooltip.saveChanges')"
         small
         :disabled="!edited"
         :loading="updating"

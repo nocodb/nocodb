@@ -29,9 +29,9 @@
       </v-toolbar-title>
       <v-spacer />
 
+      <!--tooltip="Close webhooks modal"-->
       <x-btn
         outlined
-        tooltip="Close webhooks modal"
         small
         @click.prevent="$emit('close')"
       >
@@ -41,10 +41,11 @@
         <!-- Close -->
         {{ $t('general.close') }}
       </x-btn>
+
+      <!--tooltip="Reload hooks"-->
       <x-btn
         v-ge="['hooks','reload']"
         outlined
-        tooltip="Reload hooks"
         color="primary"
         small
         @click.prevent="loadHooksList"
@@ -56,10 +57,10 @@
         {{ $t('general.reload') }}
       </x-btn>
 
+      <!--:tooltip="$t('tooltip.saveChanges')"-->
       <x-btn
         v-ge="['hooks','add new']"
         outlined
-        tooltip="Save Changes"
         color="primary"
         small
         @click.prevent="addNewHook"
@@ -67,7 +68,8 @@
         <v-icon small left>
           mdi-plus
         </v-icon>
-        Add New
+        <!--Add New-->
+        {{ $t('activity.addWebhook') }}
       </x-btn>
 
       <!--      <x-btn outlined tooltip="Save Changes"
@@ -98,11 +100,26 @@
                     <thead>
                       <tr>
                         <th />
-                        <th>Title</th>
-                        <th>Event</th>
-                        <th>Condition</th>
-                        <th>Notify Via</th>
-                        <th>Action</th>
+                        <th>
+                          <!--Title-->
+                          {{ $t('general.title') }}
+                        </th>
+                        <th>
+                          <!--Event-->
+                          {{ $t('general.event') }}
+                        </th>
+                        <th>
+                          <!--Condition-->
+                          {{ $t('general.condition') }}
+                        </th>
+                        <th>
+                          <!--Notify Via-->
+                          {{ $t('labels.notifyVia') }}
+                        </th>
+                        <th>
+                          <!--Action-->
+                          {{ $t('labels.action') }}
+                        </th>
                       </tr>
                     </thead>
 
@@ -132,10 +149,10 @@
                       </template>
                       <tr v-else>
                         <td colspan="6" class="text-center py-5">
+                          <!--:tooltip="$t('tooltip.saveChanges')"-->
                           <x-btn
                             v-ge="['hooks','add new']"
                             outlined
-                            tooltip="Save Changes"
                             color="primary"
                             small
                             @click.prevent="addNewHook"
@@ -143,7 +160,8 @@
                             <v-icon small left>
                               mdi-plus
                             </v-icon>
-                            Add New Webhook
+                            <!--Add New Webhook-->
+                            {{ $t('activity.addWebhook') }}
                           </x-btn>
                         </td>
                       </tr>
@@ -181,9 +199,9 @@
                   class="caption"
                   outlined
                   dense
-                  label="Title"
+                  :label="$t('general.title')"
                   required
-                  :rules="[v => !!v || 'Title Required']"
+                  :rules="[v => !!v || `${$t('general.required')}`]"
                 />
 
                 <webhook-event
@@ -217,10 +235,10 @@
                   v-model="hook.notification.type"
                   outlined
                   dense
-                  label="Notification"
+                  :label="$t('general.notification')"
                   required
                   :items="notificationList"
-                  :rules="[v => !!v || 'Title Required']"
+                  :rules="[v => !!v || `${$t('general.required')}`]"
                   class="caption"
                   :prepend-inner-icon="notificationIcon[hook.notification.type]"
                   @change="onNotTypeChange"
@@ -245,7 +263,7 @@
                   <v-combobox
                     v-if="slackChannels"
                     v-model="notification.channels"
-                    :rules="[v => !!v || 'Required']"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="slackChannels"
                     item-text="channel"
                     label="Select Slack channels"
@@ -259,7 +277,7 @@
                   <v-combobox
                     v-if="teamsChannels"
                     v-model="notification.channels"
-                    :rules="[v => !!v || 'Required']"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="teamsChannels"
                     item-text="channel"
                     label="Select Teams channels"
@@ -273,7 +291,7 @@
                   <v-combobox
                     v-if="discordChannels"
                     v-model="notification.channels"
-                    :rules="[v => !!v || 'Required']"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="discordChannels"
                     item-text="channel"
                     label="Select Discord channels"
@@ -287,7 +305,7 @@
                   <v-combobox
                     v-if="mattermostChannels"
                     v-model="notification.channels"
-                    :rules="[v => !!v || 'Required']"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="mattermostChannels"
                     item-text="channel"
                     label="Select Mattermost channels"
@@ -308,7 +326,7 @@
                       dense
                       outlined
                       :label="input.label"
-                      :rules="[v => !input.required || !!v || 'Required']"
+                      :rules="[v => !input.required || !!v || `${$t('general.required')}`]"
                     />
                     <v-text-field
                       v-else
@@ -318,7 +336,7 @@
                       dense
                       outlined
                       :label="input.label"
-                      :rules="[v => !input.required || !!v || 'Required']"
+                      :rules="[v => !input.required || !!v || `${$t('general.required')}`]"
                     />
                   </template>
                 </template>
@@ -326,7 +344,7 @@
 
               <v-card-text>
                 <span class="caption grey--text">
-                  <em>Available context variables are <strong>data, user, payload and env</strong></em>
+                  <em>Available context variables are <strong>data and user</strong></em>
                   <v-tooltip top>
                     <template #activator="{on}">
                       <v-icon
@@ -339,13 +357,13 @@
                     <span class="caption">
                       <strong>data</strong> : Row data <br>
                       <strong>user</strong> : User information<br>
-                      <strong>payload</strong> : Plugin settings payload<br>
-                      <strong>env</strong> : Environment values (process.env)
-
                     </span>
                   </v-tooltip>
                   <br>
-                  <a href="https://docs.nocodb.com/developer-resources/webhooks/">Document Reference</a>                  
+                  <a href="https://docs.nocodb.com/developer-resources/webhooks/">
+                    <!--Document Reference-->
+                    {{ $t('labels.docReference') }}
+                  </a>
                 </span>
               </v-card-text>
             </v-card>

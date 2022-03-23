@@ -1082,18 +1082,6 @@ class BaseModelSql extends BaseModel {
   }
 
   /**
-   * Returns an array of the columns that are of formula type.
-   * @returns {Array<string>} - an array of the formula columns.
-   */
-  private filterFormulaColumns(columns: string[]) {
-    return columns.filter(column => {
-      return this.virtualColumns.find(
-        col => col._cn === column && col?.formula
-      );
-    });
-  }
-
-  /**
    * Get the rows by aggregation by an aggregation function(s)
    *
    * @param {object} args
@@ -1241,7 +1229,7 @@ class BaseModelSql extends BaseModel {
    * @throws {Error}
    */
   async distinct({
-    column_name = '',
+    column_name,
     where,
     limit,
     offset,
@@ -1280,6 +1268,18 @@ class BaseModelSql extends BaseModel {
       query.distinct(...this.selectFormulasForColumns(formulaColumns));
     }
     return query;
+  }
+
+  /**
+   * Returns an array of the columns that are of formula type.
+   * @returns {Array<string>} - an array of the formula columns.
+   */
+  private filterFormulaColumns(columns: string[]) {
+    return columns.filter(column => {
+      return this.virtualColumns.find(
+        col => col._cn === column && col?.formula
+      );
+    });
   }
 
   /**
@@ -1348,6 +1348,7 @@ class BaseModelSql extends BaseModel {
         driver.union(
           parent.map(p => {
             const id =
+              p[_cn] ||
               p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] ||
               p[this.pks[0].cn];
             const query = driver(this.dbModels[child].tnPath)

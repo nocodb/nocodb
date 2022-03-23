@@ -90,6 +90,15 @@ export default function formulaQueryBuilder(
             prevBinaryOp
           );
           break;
+        case 'DATEADD':
+          if(pt.arguments[1].value) {
+            pt.callee.name = "DATE_ADD";
+            return fn(pt, a, prevBinaryOp);
+          } else if(pt.arguments[1].operator == '-') {
+            pt.callee.name = "DATE_SUB";
+            return fn(pt, a, prevBinaryOp);
+          }
+          break;
         default:
           {
             const res = mapFunctionName({

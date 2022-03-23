@@ -34,7 +34,10 @@
       :primary-col="parentPrimaryCol"
       :primary-key="parentPrimaryKey"
       :api="parentApi"
-      :query-params="parentQueryParams"
+      :query-params="{
+        ...parentQueryParams,
+        where: isNew ? null :`${btWhereClause}`,
+      }"
       :is-public="isPublic"
       :tn="bt && bt.rtn"
       :password="password"
@@ -106,6 +109,7 @@
 import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
 import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/itemChip'
+import { parseIfInteger } from '@/helpers'
 
 export default {
   name: 'BelongsToCell',
@@ -173,6 +177,20 @@ export default {
     parentPrimaryKey() {
       return this.parentMeta && (this.parentMeta.columns.find(c => c.pk) || {})._cn
     },
+    parentReferenceKey() {
+      return this.parentMeta && (this.parentMeta.columns.find(c => c.cn === this.bt.rcn) || {})._cn
+    },
+    btWhereClause() {
+      // if parent reference key is pk, then filter out the selected value
+      // else, filter out the selected value + empty values (as we can't set an empty value)
+      const prk = this.parentReferenceKey
+      const isPk = !!(this.parentMeta && (this.parentMeta.columns.find(c => c.pk && c._cn === prk))) || false
+      let selectedValue = this.meta && this.meta.columns ? this.meta.columns.filter(c => c.cn === this.bt.cn).map(c => this.row[c._cn] || '').join('___') : ''
+      if (this.parentMeta && (this.parentMeta.columns.find(c => c._cn === prk)).type !== 'string') {
+        selectedValue = selectedValue || 0
+      }
+      return `(${prk},not,${selectedValue})` + (!isPk ? `~and(${prk},not,)` : '')
+    },
     parentQueryParams() {
       if (!this.parentMeta) {
         return {}
@@ -211,7 +229,7 @@ export default {
         return Object.values(this.value || this.localState)[1]
       }
       return null
-    }
+    },
   },
   watch: {
     isNew(n, o) {
@@ -319,11 +337,11 @@ export default {
       const pid = pkColumns.map(c => parent[c._cn]).join('___')
       const id = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
       const _cn = this.meta.columns.find(c => c.cn === this.bt.cn)._cn
-      let isNum = false
+      // let isNum = false
 
-      if (pkColumns.length === 1) {
-        isNum = ['float', 'integer'].includes(this.sqlUi.getAbstractType(pkColumns[0]))
-      }
+      // if (pkColumns.length === 1) {
+      //   isNum = ['float', 'integer'].includes(this.sqlUi.getAbstractType(pkColumns[0]))
+      // }
 
       if (this.isNew) {
         this.localState = parent
@@ -334,7 +352,7 @@ export default {
       }
 
       const data = {
-        [_cn]: isNum ? +pid : pid
+        [_cn]: parseIfInteger(parent[this.parentReferenceKey])
       }
 
       const oldData = {
@@ -417,6 +435,7 @@ export default {
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Md Ishtiaque Zafar <ishtiaque.zafar92@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

@@ -7,16 +7,20 @@
           <thead>
             <tr class="">
               <th class="caption grey--text">
-                View name
+                <!--View name-->
+                {{ $t('labels.viewName') }}
               </th>
               <th class="caption grey--text">
-                View Link
+                <!--View Link-->
+                {{ $t('labels.viewLink') }}
               </th>
               <th class="caption grey--text">
-                Password
+                <!--Password-->
+                {{ $t('labels.password') }}
               </th>
               <th class="caption grey--text">
-                Actions
+                <!--Actions-->
+                {{ $t('labels.actions') }}
               </th>
             </tr>
           </thead>
@@ -54,7 +58,8 @@
 
             <tr v-else>
               <td colspan="4" class="text-center caption info--text">
-                Current view is not shared!
+                <!--Current view is not shared!-->
+                {{ $t('msg.info.viewNotShared') }}
               </td>
             </tr>
             <template v-if="allSharedLinks">
@@ -98,7 +103,10 @@
             hide-details
           >
             <template #label>
-              <span class="caption"> Show all shared views of this table</span>
+              <span class="caption">
+                <!--Show all shared views of this table-->
+                {{ $t('msg.info.showAllViews') }}
+              </span>
             </template>
           </v-switch>
         </div>

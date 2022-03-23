@@ -78,6 +78,15 @@ menuTitle: "Formulas"
 | **UPPER**   | `UPPER(str)`                     | `UPPER(Title)`                  | Upper case converted string of input parameter                            |
 | **URL**     | `URL(str)`                       | `URL(Column)`                   | Convert to a hyperlink if it is a valid URL                               |
 
+### Date Functions
+
+| Name        | Syntax                                                    | Sample                                                | Output                                                                                                |
+|-------------|-----------------------------------------------------------|-------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| **DATEADD** | `DATEADD(DATE_COL, 1, 'day')`                             | `DATEADD(date, 1, 'day')`                             | Supposing the DATE_COL is 2022-03-14. The result is 2022-03-15.                                       |
+|             | `DATEADD(DATE_TIME_COL, 2, 'month')`                      | `DATEADD(datetime, 2, 'month')`                       | Supposing the DATE_COL is 2022-03-14 03:14. The result is 2022-05-14 03:14.                           |
+|             | `IF(NOW() < DATE_COL, "true", "false")`                   | `IF(NOW() < date, "true", "false")`                   | If current date is less than DATE_COL, it returns true. Otherwise, it returns false.                  |
+|             | `IF(NOW() < DATEADD(DATE_COL,10,'day'), "true", "false")` | `IF(NOW() < DATEADD(date,10,'day'), "true", "false")` | If the current date is less than DATE_COL plus 10 days, it returns true. Otherwise, it returns false. |
+
 ### Logical Operators
 
 | Operator | Sample               | Description              |

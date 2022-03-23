@@ -6,7 +6,6 @@ services:
     restart: always
     volumes:
       - db_data:/var/lib/postgresql/data
-      - nc_data:/usr/app/data
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
@@ -24,6 +23,8 @@ services:
     ports:
       - "8080:8080"
     restart: always
+    volumes:
+      - nc_data:/usr/app/data
     environment:
       NC_DB: "pg://root_db:5432?u=postgres&p=password&d=root_db"
 volumes:

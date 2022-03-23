@@ -36,6 +36,30 @@ const pg = {
         }`
       )
       .wrap('(', ')');
+  },
+  DATE_ADD: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `CASE
+      WHEN CAST(${args.fn(args.pt.arguments[0])} AS text) LIKE '%:%' THEN
+        to_char(${args.fn(args.pt.arguments[0])} + INTERVAL '${args.fn(args.pt.arguments[1])} 
+        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD HH24:MI')
+      ELSE
+        to_char(${args.fn(args.pt.arguments[0])} + INTERVAL '${args.fn(args.pt.arguments[1])} 
+        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD')
+      END${args.colAlias}`
+    );
+  },
+  DATE_SUB: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `CASE
+      WHEN CAST(${args.fn(args.pt.arguments[0])} AS text) LIKE '%:%' THEN
+        to_char(${args.fn(args.pt.arguments[0])} - INTERVAL '${args.fn(args.pt.arguments[1]).argument.value} 
+        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD HH24:MI')
+      ELSE
+        to_char(${args.fn(args.pt.arguments[0])} - INTERVAL '${args.fn(args.pt.arguments[1]).argument.value} 
+        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD')
+      END${args.colAlias}`
+    );
   }
 };
 

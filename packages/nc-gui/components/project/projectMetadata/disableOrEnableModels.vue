@@ -5,10 +5,10 @@
         <v-icon icon x-small class="mr-2">
           mdi-file-table-box-multiple-outline
         </v-icon>
-        <span class="caption text-capitalize nc-exp-imp-metadata"> 
+        <span class="caption text-capitalize nc-exp-imp-metadata">
           <!-- Export/Import Metadata -->
           {{ $t('title.exportImportMeta') }}
-          </span>
+        </span>
       </v-tab>
       <v-tab-item value="xc-project-meta">
         <div class="d-flex justify-center d-100">
@@ -72,7 +72,8 @@
         <template v-if="uiacl">
           <v-tab :key="db.meta.dbAlias + 'acl'" :href="'#' + db.meta.dbAlias + 'acl'" class="text-capitalize caption nc-ui-acl-tab">
             <!--          {{ db.connection.database | extractDbName }}-->
-            UI Access Control
+            <!--UI Access Control-->
+            {{ $t('title.uiACL') }}
           </v-tab>
           <v-tab-item :key="db.meta.dbAlias + 'aclt'" :value=" db.meta.dbAlias + 'acl'">
             <v-tabs color="x-active" height="28">

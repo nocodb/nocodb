@@ -16,6 +16,7 @@
     "cancel": "Avbryt",
     "submit": "Skicka in",
     "create": "Skapa",
+    "insert": "Föra in",
     "delete": "Radera",
     "update": "Uppdatering",
     "rename": "Döp om",
@@ -39,7 +40,21 @@
     "required": "Nödvändig",
     "preferred": "Föredraget",
     "mandatory": "Obligatorisk",
-    "loading": "Läser in ..."
+    "loading": "Läser in ...",
+    "title": "Titel",
+    "upload": "Ladda upp",
+    "download": "Ladda ner",
+    "default": "Standard",
+    "more": "Mer",
+    "less": "Mindre",
+    "event": "Händelse",
+    "condition": "Skick",
+    "after": "Efter",
+    "before": "Innan",
+    "search": "Sök",
+    "notification": "Underrättelse",
+    "reference": "Referens",
+    "function": "Fungera"
   },
   "objects": {
     "project": "Projekt",
@@ -109,7 +124,14 @@
     "AutoNumber": "Automatisk nummer",
     "Barcode": "Streckkod",
     "Button": "Knapp",
-    "Password": "Lösenord"
+    "Password": "Lösenord",
+    "relationProperties": {
+      "noAction": "Ingen action",
+      "cascade": "Kaskad",
+      "restrict": "Begränsa",
+      "setNull": "Noll",
+      "setDefault": "Sätta som normalt"
+    }
   },
   "filterOperation": {
     "isEqual": "är jämställd",
@@ -138,6 +160,7 @@
     "metaMgmt": "Metahantering",
     "metadata": "Metadata",
     "exportImportMeta": "Exportera / Importera metadata",
+    "uiACL": "UI-åtkomstkontroll",
     "metaOperations": "Metadataoperationer",
     "audit": "Granska",
     "auditLogs": "Revisionslogg",
@@ -149,7 +172,9 @@
     "resetPassword": "Återställ ditt lösenord"
   },
   "labels": {
+    "notifyVia": "Meddela via",
     "projName": "Projektnamn",
+    "tableName": "Tabellnamn",
     "viewName": "Visa namn",
     "viewLink": "Visa länk",
     "columnName": "Kolumnnamn",
@@ -177,11 +202,13 @@
     "chat": "Chatt",
     "email": "E-post",
     "storage": "Lagring",
-    "uiAcl": "Ui-acl",
+    "uiAcl": "UI-ACL",
     "models": "Modeller",
     "syncState": "Synkronisera",
     "created": "Skapad",
     "sqlOutput": "SQL-utgång",
+    "addOption": "Lägg till alternativ",
+    "aggregateFunction": "Aggregatfunktion",
     "dbCreateIfNotExists": "Databas: Skapa om det inte finns",
     "clientKey": "Klientnyckel",
     "clientCert": "Klientcert",
@@ -200,7 +227,13 @@
       "joinDiscord": "Gå med i Discord",
       "joinReddit": "Gå med /r/NocoDB",
       "followNocodb": "Följ NocoDB"
-    }
+    },
+    "docReference": "Dokumentreferens",
+    "selectUserRole": "Välj användarroll",
+    "childTable": "Barnbord",
+    "childColumn": "Barnkolonn",
+    "onUpdate": "Vid uppdatering",
+    "onDelete": "På radera"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -260,6 +293,7 @@
     "createTable": "Bord skapar",
     "refreshTable": "Tabeller uppdateras",
     "renameTable": "Bordsbyte",
+    "deleteTable": "Bord radera",
     "addField": "Lägg till nytt fält till den här tabellen",
     "setPrimary": "Ange som primärt värde",
     "addRow": "Lägg till ny rad",
@@ -307,6 +341,7 @@
     "sendEmail": "SKICKA EPOST"
   },
   "tooltip": {
+    "saveChanges": "Spara ändringar",
     "xcDB": "Skapa ett nytt projekt",
     "extDB": "Stödjer MySQL, PostgreSQL, SQL Server & SQLite",
     "apiRest": "Tillgänglig via REST API",
@@ -321,7 +356,7 @@
     "reloadApiToken": "Ladda om api tokens",
     "generateNewApiToken": "Generera ny API-token",
     "addRole": "Lägg till ny roll",
-    "metaReloadList": "Ladda om listan",
+    "reloadList": "Ladda om listan",
     "metaSync": "Synkronisera metadata",
     "sqlMigration": "Ladda om migreringar",
     "updateRestart": "Uppdatering och omstart",
@@ -435,7 +470,12 @@
         "form": "Lägg till formulärvy",
         "kanban": "Lägg till Kanban View",
         "calendar": "Lägg till kalendervisning"
-      }
+      },
+      "tablesMetadataInSync": "Tabeller Metadata är synkroniserad",
+      "addMultipleUsers": "Du kan lägga till flera kommatecken (,) separerade e-postmeddelanden",
+      "enterTableName": "Ange tabellnamn",
+      "addDefaultColumns": "Lägg till standardkolumner",
+      "tableNameInDb": "Tabellnamn som sparats i databasen"
     },
     "error": {
       "searchProject": "Din sökning efter {Sök} har inga resultat",

@@ -58,7 +58,7 @@
         <x-btn
           v-ge="['acl','save']"
           outlined
-          tooltip="Save Changes"
+          :tooltip="$t('tooltip.saveChanges')"
           color="primary"
           class="primary"
           small

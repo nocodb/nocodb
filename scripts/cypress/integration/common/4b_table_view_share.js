@@ -5,100 +5,105 @@ let storedURL = "";
 let linkText = "";
 
 const generateLinkWithPwd = () => {
-  // cy.get(".v-navigation-drawer__content > .container")
-  //   .find(".v-list > .v-list-item")
-  //   .contains("Share View")
-  //   .click();
-  mainPage.shareView().click();
+    // cy.get(".v-navigation-drawer__content > .container")
+    //   .find(".v-list > .v-list-item")
+    //   .contains("Share View")
+    //   .click();
+    mainPage.shareView().click();
 
-  cy.snipActiveModal("Modal_ShareView")
-  
-  // enable checkbox & feed pwd, save
-  cy.getActiveModal()
-    .find('[role="switch"][type="checkbox"]')
-    .click({ force: true });
-  cy.getActiveModal().find('input[type="password"]').type("1");
+    cy.snipActiveModal("Modal_ShareView");
 
-  cy.snipActiveModal("Modal_ShareView_Password");
+    // enable checkbox & feed pwd, save
+    cy.getActiveModal()
+        .find('[role="switch"][type="checkbox"]')
+        .click({ force: true });
+    cy.getActiveModal().find('input[type="password"]').type("1");
 
-  cy.getActiveModal().find('button:contains("Save password")').click();
+    cy.snipActiveModal("Modal_ShareView_Password");
 
-  cy.toastWait("Successfully updated");
+    cy.getActiveModal().find('button:contains("Save password")').click();
 
-  // copy link text, visit URL
-  cy.getActiveModal()
-    .find(".share-link-box")
-    .then(($obj) => {
-      linkText = $obj.text().trim();
-      cy.log(linkText);
-    });
+    cy.toastWait("Successfully updated");
+
+    // copy link text, visit URL
+    cy.getActiveModal()
+        .find(".share-link-box")
+        .then(($obj) => {
+            linkText = $obj.text().trim();
+            cy.log(linkText);
+        });
 };
 
 export const genTest = (apiType, dbType) => {
-  if (!isTestSuiteActive(apiType, dbType)) return;
+    if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${apiType.toUpperCase()} api - Shared VIEWs (GRID)`, () => {
-    // Run once before test- create project (rest/graphql)
-    //
-    before(() => {
-      cy.openTableTab("City", 25);
+    describe(`${apiType.toUpperCase()} api - Shared VIEWs (GRID)`, () => {
+        // Run once before test- create project (rest/graphql)
+        //
+        before(() => {
+            cy.openTableTab("City", 25);
 
-      // store base URL- to re-visit and delete form view later
-      cy.url().then((url) => {
-        storedURL = url;
-      });
+            // store base URL- to re-visit and delete form view later
+            cy.url().then((url) => {
+                storedURL = url;
+            });
 
-      generateLinkWithPwd();
+            generateLinkWithPwd();
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        });
+
+        it("Share view with incorrect password", () => {
+            cy.visit(linkText, {
+                baseUrl: null,
+            });
+
+            cy.getActiveModal().should("exist");
+
+            // feed password
+            cy.getActiveModal().find('input[type="password"]').type("a");
+            cy.getActiveModal().find('button:contains("Unlock")').click();
+
+            // if pwd is incorrect, active modal requesting to feed in password again will persist
+            cy.get("body").find(".v-dialog.v-dialog--active").should("exist");
+        });
+
+        // fallover test- use previously opened view & continue verification instead of opening again
+        it("Share view with correct password", () => {
+            // cy.visit(linkText, {
+            //     baseUrl: null
+            // })
+
+            // feed password
+            cy.getActiveModal()
+                .find('input[type="password"]')
+                .clear()
+                .type("1");
+            cy.getActiveModal().find('button:contains("Unlock")').click();
+
+            // if pwd is incorrect, active modal requesting to feed in password again will persist
+            cy.get("body")
+                .find(".v-dialog.v-dialog--active")
+                .should("not.exist");
+        });
+
+        it("Delete view", () => {
+            cy.visit(storedURL, {
+                baseUrl: null,
+            });
+            mainPage.deleteCreatedViews();
+        });
+
+        after(() => {
+            cy.closeTableTab("City");
+        });
     });
-
-    beforeEach(() => {
-      cy.restoreLocalStorage();
-    });
-
-    afterEach(() => {
-      cy.saveLocalStorage();
-    });
-
-    it("Share view with incorrect password", () => {
-      cy.visit(linkText, {
-        baseUrl: null,
-      });
-
-      cy.getActiveModal().should("exist");
-
-      // feed password
-      cy.getActiveModal().find('input[type="password"]').type("a");
-      cy.getActiveModal().find('button:contains("Unlock")').click();
-
-      // if pwd is incorrect, active modal requesting to feed in password again will persist
-      cy.get("body").find(".v-dialog.v-dialog--active").should("exist");
-    });
-
-    // fallover test- use previously opened view & continue verification instead of opening again
-    it("Share view with correct password", () => {
-      // cy.visit(linkText, {
-      //     baseUrl: null
-      // })
-
-      // feed password
-      cy.getActiveModal().find('input[type="password"]').clear().type("1");
-      cy.getActiveModal().find('button:contains("Unlock")').click();
-
-      // if pwd is incorrect, active modal requesting to feed in password again will persist
-      cy.get("body").find(".v-dialog.v-dialog--active").should("not.exist");
-    });
-
-    it("Delete view", () => {
-      cy.visit(storedURL, {
-        baseUrl: null,
-      });
-      mainPage.deleteCreatedViews();
-    });
-
-    after(() => {
-      cy.closeTableTab("City");
-    });
-  });
 };
 
 // genTest('rest', false)

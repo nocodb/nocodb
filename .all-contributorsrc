@@ -630,6 +630,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "atompi",
+      "name": "Atom Pi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6419682?v=4",
+      "profile": "https://blog.atompi.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "OskarsPakers",
+      "name": "Oskars",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3343347?v=4",
+      "profile": "https://github.com/OskarsPakers",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

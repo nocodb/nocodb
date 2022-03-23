@@ -118,6 +118,17 @@ Detailed procedure for discord webhook described [here](https://support.discord.
         -   Handlebars {{ }}
 
 
+## Slack
+### 1. Create WebHook
+-   Details to create slack webhook are captured [here](https://api.slack.com/messaging/webhooks)
+
+### 2. Install Plugin
+- Procedure remain same as listed for DISCORD channel configuration above
+
+### 3. Configure Webhook
+- Procedure remain same as listed for DISCORD channel configuration above
+  
+  
 ## Microsoft Teams
 ### 1. Create WebHook
 

@@ -30,7 +30,7 @@
       <v-spacer />
       <x-btn
         outlined
-        tooltip="Save Changes"
+        :tooltip="$t('tooltip.saveChanges')"
         small
         color="primary"
         icon="save"

@@ -119,7 +119,8 @@
               </template>
             </v-checkbox>
             <v-spacer />
-            <v-icon small color="grey" class="align-self-center drag-icon">
+            <v-icon small color="grey" 
+              :class="`align-self-center drag-icon nc-child-draggable-icon-${field}`">
               mdi-drag
             </v-icon>
           </v-list-item>

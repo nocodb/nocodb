@@ -77,7 +77,7 @@
               <x-btn
                 v-ge="['rows','save']"
                 outlined
-                tooltip="Save Changes"
+                :tooltip="$t('tooltip.saveChanges')"
                 color="primary"
                 x-small
                 :disabled="loading"

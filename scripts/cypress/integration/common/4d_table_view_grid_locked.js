@@ -2,92 +2,104 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import { mainPage } from "../../support/page_objects/mainPage";
 
 export const genTest = (apiType, dbType) => {
-  if (!isTestSuiteActive(apiType, dbType)) return;
+    if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${apiType.toUpperCase()} api - Lock view`, () => {
-    // Run once before test- create project (rest/graphql)
-    //
-    before(() => {
-      // open a table to work on views
-      //
-      cy.openTableTab("Country", 25);
-    });
-
-    after(() => {
-      cy.closeTableTab("Country");
-    });
-
-    const lockViewTest = (enabled) => {
-      it(`Grid: lock view set to ${enabled}: validation`, () => {
-        let vString = enabled ? "not." : "";
-        let menuOption = enabled ? 1 : 0;
-
-        // on menu, collaboration view appears first (at index 0)
-        // followed by Locked view (at index 1)
-        cy.get(".xc-toolbar").find(".nc-view-lock-menu:enabled").click();
-        cy.snipActiveMenu("Menu_Collaboration")
-        cy.getActiveMenu().find('[role="menuitem"]').eq(menuOption).click();
-
-        // expected toolbar for Lock view: Only lock-view menu, reload, toggle-nav-drawer to be enabled
+    describe(`${apiType.toUpperCase()} api - Lock view`, () => {
+        // Run once before test- create project (rest/graphql)
         //
-        cy.get(".xc-toolbar")
-          .find(".nc-view-lock-menu:enabled")
-          .should("exist");
-        cy.get(".xc-toolbar")
-          .find(".nc-table-reload-btn:enabled")
-          .should("exist");
-        cy.get(".xc-toolbar")
-          .find(".nc-add-new-row-btn:enabled")
-          .should(`${vString}exist`);
-        // cy.get('.xc-toolbar').find('.nc-save-new-row-btn:disabled') .should('exist')
-        cy.get(".xc-toolbar")
-          .find(".nc-fields-menu-btn:enabled")
-          .should(`${vString}exist`);
-        cy.get(".xc-toolbar")
-          .find(".nc-sort-menu-btn:enabled")
-          .should(`${vString}exist`);
-        cy.get(".xc-toolbar")
-          .find(".nc-filter-menu-btn:enabled")
-          .should(`${vString}exist`);
-        cy.get(".xc-toolbar")
-          .find(".nc-table-delete-btn:enabled")
-          .should(`${vString}exist`);
-        cy.get(".xc-toolbar")
-          .find(".nc-toggle-nav-drawer:enabled")
-          .should("exist");
+        before(() => {
+            // open a table to work on views
+            //
+            cy.openTableTab("Country", 25);
+        });
 
-        // dblClick on a cell & see if we can edit
-        mainPage.getCell("Country", 1).dblclick();
-        mainPage.getCell("Country", 1).find("input").should(`${vString}exist`);
+        after(() => {
+            cy.closeTableTab("Country");
+        });
 
-        // check if expand row option is available?
-        cy.get("td").find(".nc-row-expand-icon").should(`${vString}exist`);
-        // alt validation: mainPage.getRow(1).find('.nc-row-expand-icon').should(`${vString}exist`)
+        const lockViewTest = (enabled) => {
+            it(`Grid: lock view set to ${enabled}: validation`, () => {
+                let vString = enabled ? "not." : "";
+                let menuOption = enabled ? 1 : 0;
 
-        // check if add/ expand options available for 'has many' column type
-        mainPage
-          .getCell("Country => City", 1)
-          .click()
-          .find("button.mdi-plus")
-          .should(`${vString}exist`);
-        mainPage
-          .getCell("Country => City", 1)
-          .click()
-          .find("button.mdi-arrow-expand")
-          .should(`${vString}exist`);
+                // on menu, collaboration view appears first (at index 0)
+                // followed by Locked view (at index 1)
+                cy.get(".xc-toolbar")
+                    .find(".nc-view-lock-menu:enabled")
+                    .click();
+                cy.snipActiveMenu("Menu_Collaboration");
+                cy.getActiveMenu()
+                    .find('[role="menuitem"]')
+                    .eq(menuOption)
+                    .click();
 
-        // update row option (right click) - should not be available for Lock view
-        mainPage.getCell("Country => City", 1).rightclick();
-        cy.get(".menuable__content__active").should(`${vString}be.visible`);
-      });
-    };
+                // expected toolbar for Lock view: Only lock-view menu, reload, toggle-nav-drawer to be enabled
+                //
+                cy.get(".xc-toolbar")
+                    .find(".nc-view-lock-menu:enabled")
+                    .should("exist");
+                cy.get(".xc-toolbar")
+                    .find(".nc-table-reload-btn:enabled")
+                    .should("exist");
+                cy.get(".xc-toolbar")
+                    .find(".nc-add-new-row-btn:enabled")
+                    .should(`${vString}exist`);
+                // cy.get('.xc-toolbar').find('.nc-save-new-row-btn:disabled') .should('exist')
+                cy.get(".xc-toolbar")
+                    .find(".nc-fields-menu-btn:enabled")
+                    .should(`${vString}exist`);
+                cy.get(".xc-toolbar")
+                    .find(".nc-sort-menu-btn:enabled")
+                    .should(`${vString}exist`);
+                cy.get(".xc-toolbar")
+                    .find(".nc-filter-menu-btn:enabled")
+                    .should(`${vString}exist`);
+                cy.get(".xc-toolbar")
+                    .find(".nc-table-delete-btn:enabled")
+                    .should(`${vString}exist`);
+                cy.get(".xc-toolbar")
+                    .find(".nc-toggle-nav-drawer:enabled")
+                    .should("exist");
 
-    // Locked view
-    lockViewTest(true);
+                // dblClick on a cell & see if we can edit
+                mainPage.getCell("Country", 1).dblclick();
+                mainPage
+                    .getCell("Country", 1)
+                    .find("input")
+                    .should(`${vString}exist`);
 
-    // collaboration view
-    lockViewTest(false);
-  });
+                // check if expand row option is available?
+                cy.get("td")
+                    .find(".nc-row-expand-icon")
+                    .should(`${vString}exist`);
+                // alt validation: mainPage.getRow(1).find('.nc-row-expand-icon').should(`${vString}exist`)
+
+                // check if add/ expand options available for 'has many' column type
+                mainPage
+                    .getCell("Country => City", 1)
+                    .click()
+                    .find("button.mdi-plus")
+                    .should(`${vString}exist`);
+                mainPage
+                    .getCell("Country => City", 1)
+                    .click()
+                    .find("button.mdi-arrow-expand")
+                    .should(`${vString}exist`);
+
+                // update row option (right click) - should not be available for Lock view
+                mainPage.getCell("Country => City", 1).rightclick();
+                cy.get(".menuable__content__active").should(
+                    `${vString}be.visible`
+                );
+            });
+        };
+
+        // Locked view
+        lockViewTest(true);
+
+        // collaboration view
+        lockViewTest(false);
+    });
 };
 
 /**

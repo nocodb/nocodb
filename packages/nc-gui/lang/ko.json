@@ -16,6 +16,7 @@
     "cancel": "취소",
     "submit": "제출하다",
     "create": "생성",
+    "insert": "끼워 넣다",
     "delete": "삭제",
     "update": "업데이트",
     "rename": "이름 바꾸기",
@@ -39,7 +40,21 @@
     "required": "필수의",
     "preferred": "우선의",
     "mandatory": "필수적인",
-    "loading": "...에 적재 ..."
+    "loading": "...에 적재 ...",
+    "title": "제목",
+    "upload": "업로드",
+    "download": "... 다운로드하기",
+    "default": "기본",
+    "more": "더",
+    "less": "더 적은",
+    "event": "이벤트",
+    "condition": "상태",
+    "after": "후에",
+    "before": "전에",
+    "search": "검색",
+    "notification": "공고",
+    "reference": "참조",
+    "function": "함수"
   },
   "objects": {
     "project": "프로젝트",
@@ -109,7 +124,14 @@
     "AutoNumber": "자동 번호",
     "Barcode": "바코드",
     "Button": "단추",
-    "Password": "비밀번호"
+    "Password": "비밀번호",
+    "relationProperties": {
+      "noAction": "조치 없음",
+      "cascade": "종속",
+      "restrict": "얽매다",
+      "setNull": "null.",
+      "setDefault": "기본값으로 설정"
+    }
   },
   "filterOperation": {
     "isEqual": "~는 같다",
@@ -138,6 +160,7 @@
     "metaMgmt": "메타 관리",
     "metadata": "메타 데이터",
     "exportImportMeta": "내보내기 / 가져 오기 메타 데이터",
+    "uiACL": "UI 액세스 제어",
     "metaOperations": "메타 데이터 작업",
     "audit": "심사",
     "auditLogs": "감사 로그",
@@ -149,7 +172,9 @@
     "resetPassword": "비밀번호를 재설정"
   },
   "labels": {
+    "notifyVia": "통지를 통지합니다",
     "projName": "프로젝트 이름",
+    "tableName": "표 이름",
     "viewName": "이름을 봅니다",
     "viewLink": "링크보기",
     "columnName": "열 이름",
@@ -177,11 +202,13 @@
     "chat": "채팅",
     "email": "이메일",
     "storage": "저장",
-    "uiAcl": "ui-acl.",
+    "uiAcl": "UI-ACL",
     "models": "모델",
     "syncState": "동기화 상태",
     "created": "만들어진",
     "sqlOutput": "SQL 출력",
+    "addOption": "옵션 추가",
+    "aggregateFunction": "집계 기능",
     "dbCreateIfNotExists": "데이터베이스 : 존재하지 않는 경우 생성",
     "clientKey": "클라이언트 키",
     "clientCert": "클라이언트 Cert.",
@@ -200,7 +227,13 @@
       "joinDiscord": "디스코드 참가",
       "joinReddit": "가입 /r/NocoDB",
       "followNocodb": "NocoDB를 팔로우 하세요"
-    }
+    },
+    "docReference": "문서 참조",
+    "selectUserRole": "사용자 역할을 선택하십시오",
+    "childTable": "하위 테이블",
+    "childColumn": "아이 칼럼",
+    "onUpdate": "업데이트시",
+    "onDelete": "삭제에"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -260,6 +293,7 @@
     "createTable": "테이블 작성",
     "refreshTable": "테이블 새로 고침",
     "renameTable": "테이블 이름 바꾸기",
+    "deleteTable": "테이블 삭제",
     "addField": "이 표에 새 필드를 추가하십시오",
     "setPrimary": "기본값으로 설정하십시오",
     "addRow": "새 행을 추가하십시오",
@@ -307,6 +341,7 @@
     "sendEmail": "이메일 보내기"
   },
   "tooltip": {
+    "saveChanges": "변경 사항을 저장하다",
     "xcDB": "새 프로젝트를 만듭니다",
     "extDB": "MySQL, PostgreSQL, SQL Server 및 SQLite를 지원합니다",
     "apiRest": "REST API를 통해 액세스 가능",
@@ -321,7 +356,7 @@
     "reloadApiToken": "API 토큰을 다시로드하십시오",
     "generateNewApiToken": "새 API 토큰 생성",
     "addRole": "새로운 역할을 추가하십시오",
-    "metaReloadList": "Reload List.",
+    "reloadList": "Reload List.",
     "metaSync": "동기화 메타 데이터",
     "sqlMigration": "다시로드 이전",
     "updateRestart": "업데이트 및 다시 시작",
@@ -435,7 +470,12 @@
         "form": "양식 보기를 추가하십시오",
         "kanban": "Kanban 보기를 추가하십시오",
         "calendar": "달력 보기를 추가하십시오"
-      }
+      },
+      "tablesMetadataInSync": "테이블 메타 데이터가 동기화되어 있습니다",
+      "addMultipleUsers": "여러 쉼표 (,) 분리 된 이메일을 추가 할 수 있습니다.",
+      "enterTableName": "테이블 이름을 입력하십시오",
+      "addDefaultColumns": "기본 열을 추가하십시오",
+      "tableNameInDb": "테이블 이름은 데이터베이스에 저장된 것입니다"
     },
     "error": {
       "searchProject": "{검색} 검색 결과가 없습니다",

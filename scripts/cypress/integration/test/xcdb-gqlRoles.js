@@ -3,7 +3,7 @@ let t01 = require("../common/00_pre_configurations");
 let t5a = require("../common/5a_user_role");
 let t5b = require("../common/5b_preview_role");
 const {
-  setCurrentMode,
+    setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
@@ -11,15 +11,15 @@ const {
 const executionMode = 1;
 
 const nocoTestSuite = (apiType, dbType) => {
-  setCurrentMode(apiType, dbType);
-  if (0 == executionMode) {
-    t0.genTest(apiType, dbType);
-  } else {
-    t01.genTest(apiType, dbType);
-  }
+    setCurrentMode(apiType, dbType);
+    if (0 == executionMode) {
+        t0.genTest(apiType, dbType);
+    } else {
+        t01.genTest(apiType, dbType);
+    }
 
-  t5a.genTest(apiType, dbType);
-  t5b.genTest(apiType, dbType);
+    t5a.genTest(apiType, dbType);
+    t5b.genTest(apiType, dbType);
 };
 
 nocoTestSuite("graphql", "xcdb");

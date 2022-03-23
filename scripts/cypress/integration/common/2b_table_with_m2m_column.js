@@ -79,7 +79,7 @@ export const genTest = (apiType, dbType) => {
                         .contains("ACADEMY DINOSAUR")
                         .should("exist");
                     cy.getActiveModal()
-                        .find('button:contains("Save Row")')
+                        .find('button:contains("Save row")')
                         .should("exist");
                     cy.getActiveModal()
                         .find('button:contains("Cancel")')

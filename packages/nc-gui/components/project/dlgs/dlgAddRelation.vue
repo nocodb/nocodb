@@ -56,7 +56,7 @@
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
                   v-model="relation.onUpdate"
-                  label="On Update"
+                  :label="$t('labels.onUpdate')"
                   :full-width="false"
                   :items="onUpdateDeleteOptions"
                   required
@@ -67,7 +67,7 @@
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
                   v-model="relation.onDelete"
-                  label="On Delete"
+                  :label="$t('labels.onDelete')"
                   :full-width="false"
                   :items="onUpdateDeleteOptions"
                   required

@@ -35,11 +35,11 @@
             />
 
             <v-btn color="primary" @click="editUser">
-              Edit
+              {{ $t('general.edit') }}
             </v-btn>
 
             <v-btn color="red" @click="removeUser">
-              Delete
+              {{ $t('general.delete') }}
             </v-btn>
           </v-form>
         </v-card>

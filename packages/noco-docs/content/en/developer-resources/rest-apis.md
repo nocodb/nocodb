@@ -422,7 +422,7 @@ PUT  /api/v1/country/1
   <code-block label="Request" active> 
   
 ```
-DELETE  /api/v1/country/1/exists
+GET  /api/v1/country/1/exists
 ```
 
 </code-block>

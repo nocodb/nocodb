@@ -122,7 +122,7 @@
                     v-model="props.item.cn"
                     :disabled="props.item.rcn"
                     :rules="[max25chars]"
-                    label="Edit"
+                    :label="$t('general.edit')"
                     single-line
                   />
                 </template>
@@ -180,7 +180,7 @@
                   <v-text-field
                     v-model="props.item.dtxp"
                     :rules="[max25chars]"
-                    label="Edit"
+                    :label="$t('general.edit')"
                     single-line
                   />
                 </template>
@@ -201,7 +201,7 @@
                   <v-text-field
                     v-model="props.item.dtxs"
                     :rules="[max25chars]"
-                    label="Edit"
+                    :label="$t('general.edit')"
                     single-line
                   />
                 </template>
@@ -304,7 +304,7 @@
                 <template #input>
                   <v-text-field
                     v-model="props.item.cdf"
-                    label="Edit"
+                    :label="$t('general.edit')"
                     single-line
                     counter
                     autofocus

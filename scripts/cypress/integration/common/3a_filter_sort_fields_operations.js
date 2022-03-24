@@ -42,7 +42,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get("#data-table-form-Country > input")
                     .first()
                     .type("Test Country");
-                cy.contains("Save Row").filter("button").click();
+                cy.contains("Save row").filter("button").click();
 
                 cy.toastWait("updated successfully");
 

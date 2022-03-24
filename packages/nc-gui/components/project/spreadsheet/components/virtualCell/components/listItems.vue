@@ -63,7 +63,8 @@
           </template>
 
           <div v-else-if="data" class="text-center py-15 textLight--text">
-            No items found
+            <!--No items found-->
+            {{ $t('placeholder.noItemsFound') }}
           </div>
         </div>
       </v-card-text>
@@ -151,7 +152,10 @@ export default {
         if (!this.api) {
           return
         }
-
+        const isByPass = this.queryParams.isByPass || false
+        if (isByPass) {
+          return
+        }
         let where = this.queryParams.where || ''
         if (this.query) {
           where += (where ? '~and' : '') + `(${this.primaryCol},like,%${this.query}%)`

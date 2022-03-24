@@ -89,15 +89,15 @@ export class _mainPage {
 
         // click on New User button, feed details
         cy.get('button:contains("New User")').first().click();
-      
+
         cy.snip("NewUser");
-      
+
         cy.get('label:contains("E-mail")')
             .next("input")
             .type(userCred.username)
             .trigger("input");
 
-        cy.get('label:contains("Select User roles")').click();
+        cy.get('label:contains("Select User Role")').click();
 
         // opt-in requested role & submit
         cy.snipActiveMenu("Menu_RoleType");
@@ -128,7 +128,7 @@ export class _mainPage {
             .find(".mdi-pencil-outline", { timeout: 2000 })
             .click();
 
-        cy.get("label:contains(Select User roles)").click();
+        cy.get("label:contains(Select User Role)").click();
 
         // opt-in requested role & submit
         //

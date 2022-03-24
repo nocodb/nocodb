@@ -6,7 +6,7 @@
 
 </h1>
 <p align="center">
-Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-Tabelle. 
+Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & MariaDB in eine Smart-Tabelle. 
 </p>
 <div align="center">
  
@@ -17,11 +17,11 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
 </div>
 
 <p align="center">
-    <a href="http://www.nocodb.com"><b>Website</b></a> •
+    <a href="http://www.nocodb.com"><b>Webseite</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
-    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
+    <a href="https://docs.nocodb.com/"><b>Dokumentation</b></a>
 </p>
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
@@ -32,9 +32,9 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
   <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
-# Schneller Try
+# Schneller Versuch
 
-### 1-Click Deploy
+### 1-Klick-Bereitstellung
 
 #### Heroku
 
@@ -53,10 +53,10 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in eine Smart-T
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
+- NocoDB benötigt eine Datenbank zur Eingabe: Siehe [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- Fehlt diese Eingabe, wird aus SQLite zurückgegriffen. Um SQLite dauerhaft zu machen, kann `/usr/app/data/` gemountet werden. 
 
-  Example:
+  Beispiel:
 
   ```
   docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
@@ -65,10 +65,10 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ### Verwenden von NPM
 
 ```
-npx create-nocodb-app
+npm create-nocodb-app
 ```
 
-### Mit git
+### Verwenden von Git
 
 ```
 git clone https://github.com/nocodb/nocodb-seed
@@ -128,32 +128,32 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 
 ### Rich-Tabellenschnittstelle
 
-- ⚡ Suchen, sortieren, filtern, Spalten mit Uber-Leichtigkeit ausblenden
-- ⚡ Ansichten erstellen: Gitter, Galerie, Kanban, Form
-- ⚡ Teilen von Ansichten: Öffentliche und Passwort geschützt
+- ⚡ Einfaches Suchen, Sortieren, Filtern und Ausblenden von Spalten
+- ⚡ Ansichten erstellen: Gitter, Galerie, Kanban, Formular
+- ⚡ Teilen von Ansichten: Öffentlich und passwortgeschützt
 - ⚡ Persönliche und gesperrte Ansichten
-- ⚡ Laden Sie Bilder in Zellen hoch (funktioniert mit S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backraze) !!
-- ⚡ Rollen: Besitzer, Ersteller, Herausgeber, Kommentator, Viewer, Kommentator, benutzerdefinierte Rollen.
-- ⚡ Zugriffskontrolle: Granulare Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
+- ⚡ Bilder in Zellen hochladen (funktioniert mit S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backraze) !!
+- ⚡ Rollen: Eigentümer, Ersteller, Bearbeiter, Betrachter, Kommentator, Benutzerdefinierte Rollen.
+- ⚡ Zugriffskontrolle: Feingliedrige Zugangskontrolle auch bei Datenbank-, Tabellen- und Spaltenebene.
 
-### App Store für Workflow-Automationen
+### App-Store für Workflow-Automationen
 
-- ⚡ Chat: Microsoft-Teams, Slack, Discord, Materie
+- ⚡ Chat: Microsoft Teams, Slack, Discord, Mattermost
 - ⚡ E-Mail: SMTP, SES, MailChimp
-- ⚡ SMS: TWILIO
-- ⚡ WhatsApp.
+- ⚡ SMS: Twilio
+- ⚡ WhatsApp
 - ⚡ Jede 3rd-Party-APIs
 
 ### Programmatischer API-Zugriff über
 
 - ⚡ Rest APIs (Swagger)
-- ⚡ Graphql-APIs.
-- ⚡ Enthält die JWT-Authentifizierung & Social Auth
-- ⚡ API-Token, um mit Zapier, Integromat zu integrieren.
+- ⚡ Graphql-APIs
+- ⚡ Enthält JWT-Authentifizierung & Social Auth
+- ⚡ API-Tokens für die Integration mit Zapier, Integromat.
 
-# Produktionseinrichtung
+# Produktivaufbau
 
-NOCODB erfordert eine Datenbank zum Speichern von Metadaten, Tabellenkalkulationen und externen Datenbanken. Verbindungsparameter für diese Datenbank können in der Umgebungsvariablen der NC_DB angegeben werden.
+NocoDB erfordert eine Datenbank, um Metadaten von Tabellenansichten und externen Datenbanken zu speichern. Verbindungsparameter für diese Datenbank können in der Umgebungsvariablen `NC_DB` spezifiziert werden.
 
 ## Docker
 
@@ -196,20 +196,71 @@ docker-compose up -d
 
 ## Umgebungsvariablen
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Siehe [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # Entwicklungsaufbau
 
-Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
+## Projekt kopieren
 
-# Beitragen
+```shell
+git clone https://github.com/nocodb/nocodb
+cd nocodb
+```
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+## Backend lokal ausführen
+
+```shell
+cd packages/nocodb
+npm install
+npm run watch:run
+# localhost:8080/dashboard im Browser aufrufen
+```
+
+## Frontend lokal ausführen
+
+```shell
+cd packages/nc-gui
+npm install
+npm run dev
+# localhost:3000/dashboard iM Browser aufrufen
+```
+
+Änderungen am Code starten automatisch neu.
+
+> nocodb/packages/nocodb enthält nc-lib-gui, die entwickelte Version von nc-gui, die in der npm-Registry gehostet wird. Sie können localhost:8000/dashboard im Browser aufrufen, nachdem Sie das Backend lokal gestartet haben, wenn Sie nur das Backend ändern möchten.
+
+
+## Cypress-Tests lokal ausführen
+
+```shell
+# install dependencies (cypress)
+npm install
+
+# MySQL-Datenbank mit der benötigten Datenbank mit Docker Compose ausführen
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# Backend API mit folgendem Befehl ausführen
+npm run start:api
+
+# Frontend Web-UI mit folgendem Befehl ausführen
+npm run start:web
+
+# Warten, bis die beiden Ports 3000 und 8000 verfügbar sind,
+# dann Cypress Test mit diesem Befehl ausführen
+npm run cypress:run
+
+# Oder diesen Befehl ausführen, um die GUI auszuführen
+npm run cypress:open
+```
+
+# Beiträge
+
+Siehe [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Warum bauen wir das auf?
 
-Die meisten Internet-Unternehmen rüsten sich mit einer Tabelle oder einer Datenbank aus, um ihre Geschäftsanforderungen zu lösen. Die Tabellenkalkulationen werden von einer Milliarde + Menschen mit einem jeden Tag kollaborativ verwendet. Wir arbeiten jedoch mit ähnlichen Geschwindigkeiten in Datenbanken, die in Bezug auf das Berechnen viel stärkere Werkzeuge sind. Versuche, dies mit SaaS-Angeboten zu lösen, bedeutete schreckliche Zugangskontrollen, Anbieter-Lockin, Daten-Lockin, abrupte Preisänderungen und vor allem eine Glaskugel, was in Zukunft möglich ist.
+Die meisten Internet-Unternehmen verwenden entweder eine Tabellenkalkulation oder eine Datenbank, um ihre Geschäftsanforderungen zu erfüllen. Tabellenkalkulationen werden jeden Tag von mehr als einer Milliarde Menschen für die Zusammenarbeit genutzt. Wir sind jedoch weit davon entfernt, mit einer ähnlichen Geschwindigkeit an Datenbanken zu arbeiten, die weitaus leistungsfähigere Werkzeuge für die Datenverarbeitung sind. Versuche, dieses Problem mit SaaS-Angeboten zu lösen, bedeutete schreckliche Zugangskontrollen, Anbieterbindungen, Datenbindungen, plötzliche Preisänderungen und vor allem einen Blick in die Glaskugel, was in Zukunft möglich sein wird.
 
 # Unsere Aufgabe
 
-Unsere Mission ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken bereitzustellen, die für jedes einzelne Internetgeschäft der Welt nutzbar ist. Dies würde nicht nur den Zugang zu einem leistungsstarken Computing-Tool demokratisieren, sondern auch eine Milliarde + Menschen hervorbringen, die im Internet radikale Bastel- und Baufähigkeiten haben werden.
+Unser Ziel ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken, welche Open Source ist, für jedes einzelne Internet-Unternehmen in der Welt bereitzustellen. Dies würde nicht nur den Zugang zu einem leistungsstarken Computerwerkzeug demokratisieren, sondern auch mehr als eine Milliarde Menschen hervorbringen, die über radikale Bastel- und Konstruktionsfähigkeiten im Internet verfügen werden.

@@ -42,7 +42,11 @@ export default {
           .format('YYYY-MM-DD HH:mm')
       },
       set(val) {
-        this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm:ssZ'))
+        if(this.$parent.sqlUi.name == 'MysqlUi') {
+          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm:ss'))
+        } else {
+          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm:ssZ'))
+        }
       }
     },
     parentListeners() {

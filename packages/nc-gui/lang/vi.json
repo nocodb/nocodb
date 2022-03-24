@@ -16,6 +16,7 @@
     "cancel": "Hủy bỏ",
     "submit": "Nộp",
     "create": "Tạo ra",
+    "insert": "Chèn",
     "delete": "Xóa bỏ",
     "update": "Cập nhật",
     "rename": "Đổi tên",
@@ -39,7 +40,21 @@
     "required": "Yêu cầu",
     "preferred": "Ưu tiên",
     "mandatory": "Bắt buộc",
-    "loading": "Đang tải ..."
+    "loading": "Đang tải ...",
+    "title": "Chức vụ",
+    "upload": "Tải lên",
+    "download": "Tải xuống",
+    "default": "Mặc định",
+    "more": "Hơn",
+    "less": "Ít hơn",
+    "event": "Biến cố",
+    "condition": "Điều kiện",
+    "after": "Sau",
+    "before": "Trước",
+    "search": "Tìm kiếm",
+    "notification": "Thông báo",
+    "reference": "Thẩm quyền giải quyết",
+    "function": "Chức năng"
   },
   "objects": {
     "project": "Dự định",
@@ -109,7 +124,14 @@
     "AutoNumber": "Số tự động",
     "Barcode": "Mã vạch.",
     "Button": "Cái nút",
-    "Password": "Mật khẩu"
+    "Password": "Mật khẩu",
+    "relationProperties": {
+      "noAction": "Không có hành động",
+      "cascade": "Cascade.",
+      "restrict": "Hạn chế",
+      "setNull": "Đặt null.",
+      "setDefault": "Đặt mặc định"
+    }
   },
   "filterOperation": {
     "isEqual": "bằng nhau",
@@ -138,6 +160,7 @@
     "metaMgmt": "Quản lý Meta",
     "metadata": "metadata",
     "exportImportMeta": "XUẤT KHẨU / NHẬP KHẨU",
+    "uiACL": "Kiểm soát truy cập UI",
     "metaOperations": "Hoạt động siêu dữ liệu",
     "audit": "Kiểm toán",
     "auditLogs": "Sổ ghi chép đánh giá",
@@ -149,7 +172,9 @@
     "resetPassword": "Đặt lại mật khẩu của bạn"
   },
   "labels": {
+    "notifyVia": "Thông báo qua",
     "projName": "Tên dự án",
+    "tableName": "Tên bảng.",
     "viewName": "Xem tên.",
     "viewLink": "Xem liên kết",
     "columnName": "Tên cột dọc",
@@ -177,11 +202,13 @@
     "chat": "Trò chuyện",
     "email": "E-mail",
     "storage": "Kho",
-    "uiAcl": "UI-ACL.",
+    "uiAcl": "UI-ACL",
     "models": "Mô hình",
     "syncState": "State State.",
     "created": "Tạo",
     "sqlOutput": "Đầu ra SQL.",
+    "addOption": "Thêm tùy chọn",
+    "aggregateFunction": "Chức năng tổng hợp",
     "dbCreateIfNotExists": "Cơ sở dữ liệu: Tạo nếu không tồn tại",
     "clientKey": "Khóa khách",
     "clientCert": "Chứng chỉ khách hàng.",
@@ -200,7 +227,13 @@
       "joinDiscord": "Tham gia thông minh",
       "joinReddit": "Tham gia /r/NocoDB",
       "followNocodb": "Theo dõi NocoDB"
-    }
+    },
+    "docReference": "Tài liệu tham khảo",
+    "selectUserRole": "Chọn vai trò người dùng",
+    "childTable": "Bảng con",
+    "childColumn": "Cột trẻ con.",
+    "onUpdate": "Trên bản cập nhật",
+    "onDelete": "Trên xóa"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -260,6 +293,7 @@
     "createTable": "Bảng tạo",
     "refreshTable": "Bàn làm mới",
     "renameTable": "Đổi tên bảng.",
+    "deleteTable": "Bảng xóa",
     "addField": "Thêm trường mới vào bảng này",
     "setPrimary": "Đặt dưới dạng giá trị chính",
     "addRow": "Thêm hàng mới",
@@ -307,6 +341,7 @@
     "sendEmail": "GỬI EMAIL"
   },
   "tooltip": {
+    "saveChanges": "Lưu thay đổi",
     "xcDB": "Tạo một dự án mới",
     "extDB": "Hỗ trợ MySQL, PostgreSQL, SQL Server & SQLite",
     "apiRest": "Có thể truy cập thông qua API REST",
@@ -321,7 +356,7 @@
     "reloadApiToken": "Tải lại api tokens.",
     "generateNewApiToken": "Tạo mã thông báo API mới",
     "addRole": "Thêm vai trò mới",
-    "metaReloadList": "Tải lại danh sách",
+    "reloadList": "Tải lại danh sách",
     "metaSync": "Sync siêu dữ liệu",
     "sqlMigration": "Tải lại di chuyển.",
     "updateRestart": "Cập nhật & khởi động lại",
@@ -435,7 +470,12 @@
         "form": "Thêm hình thức xem",
         "kanban": "Thêm tầm nhìn Kanban",
         "calendar": "Thêm chế độ xem lịch"
-      }
+      },
+      "tablesMetadataInSync": "Bảng siêu dữ liệu được đồng bộ hóa",
+      "addMultipleUsers": "Bạn có thể thêm nhiều email được phân tách bằng dấu phẩy (,)",
+      "enterTableName": "Nhập tên bảng",
+      "addDefaultColumns": "Thêm cột mặc định",
+      "tableNameInDb": "Tên bảng như đã lưu trong cơ sở dữ liệu"
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",

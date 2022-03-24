@@ -36,6 +36,32 @@ const mysql2 = {
     return args.knex
       .raw(`CAST(${args.fn(args.pt.arguments[0])} as DOUBLE)${args.colAlias}`)
       .wrap('(', ')');
+  },
+  DATE_ADD: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `CASE
+      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN
+        DATE_FORMAT(DATE_ADD(${args.fn(args.pt.arguments[0])}, INTERVAL 
+        ${args.fn(args.pt.arguments[1])} ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}), '%Y-%m-%d %H:%i')
+      ELSE
+        DATE(DATE_ADD(${args.fn(args.pt.arguments[0])}, INTERVAL 
+        ${args.fn(args.pt.arguments[1])} ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}))
+      END${args.colAlias}`
+    );
+  },
+  DATE_SUB: (args: MapFnArgs) => {
+    return args.knex.raw(
+       `CASE
+      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN
+        DATE_FORMAT(DATE_ADD(${args.fn(args.pt.arguments[0])}, INTERVAL 
+        ${args.fn(args.pt.arguments[1])}.argument.value 
+        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}), '%Y-%m-%d %H:%i')
+      ELSE
+        DATE(DATE_ADD(${args.fn(args.pt.arguments[0])}, INTERVAL 
+        ${args.fn(args.pt.arguments[1])}.argument.value 
+        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}))
+      END${args.colAlias}`
+    );
   }
 };
 

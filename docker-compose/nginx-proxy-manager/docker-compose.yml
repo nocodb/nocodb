@@ -5,7 +5,6 @@ services:
     image: mysql:5.7
     volumes:
       - db_data:/var/lib/mysql
-      - nc_data:/usr/app/data
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
@@ -25,12 +24,14 @@ services:
         condition: service_healthy
     image: nocodb/nocodb:latest
     restart: always
+    volumes:
+      - nc_data:/usr/app/data
     environment:
       NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
     networks:
       - default
       - nginxproxy
-      
+
   nginx-proxy-manager:
     image: jlesage/nginx-proxy-manager
     restart: always

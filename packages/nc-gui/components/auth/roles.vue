@@ -57,7 +57,7 @@
       <x-btn
         v-ge="['rows','save']"
         outlined
-        tooltip="Save Changes"
+        :tooltip="$t('tooltip.saveChanges')"
         color="primary"
         small
         :disabled="loading || !edited"
@@ -105,7 +105,7 @@
                         v-model="role.title"
                         v-ge="['roles','title']"
                         :disabled="role.type === 'SYSTEM'"
-                        label="Edit"
+                        :label="$t('general.edit')"
                         single-line
                         @input="edited = true"
                       />
@@ -122,7 +122,7 @@
                         v-model="role.description"
                         v-ge="['roles','title']"
                         :disabled="role.type === 'SYSTEM'"
-                        label="Edit"
+                        :label="$t('general.edit')"
                         single-line
                         @input="edited = true"
                       />

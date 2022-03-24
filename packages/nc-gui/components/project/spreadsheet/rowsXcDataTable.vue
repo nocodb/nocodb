@@ -141,7 +141,7 @@
         </v-icon>
         <!-- tooltip="Reload view data" -->
         <x-icon
-          tooltip="Reload view data"
+          :tooltip="$t('general.reload')"
           icon.class="nc-table-reload-btn mx-1"
           small
           @click="reload"
@@ -245,8 +245,9 @@
               </v-list>
             </v-menu>-->
 
+      <!--tooltip="Toggle navigation drawer"-->
       <x-btn
-        tooltip="Toggle navigation drawer"
+        :tooltip="$t('tooltip.toggleNavDraw')"
         outlined
         small
         text

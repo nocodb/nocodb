@@ -219,16 +219,36 @@ export default {
       valid: true,
       formRules: {
         email: [
-          v => !!v || 'E-mail is required',
-          v => isEmail(v) || 'E-mail must be valid'
+          // E-mail is required
+          v => !!v || this.$t('msg.error.signUpRules.emailReqd'),
+          // E-mail must be valid
+          v => isEmail(v) ||
+            this.$t('msg.error.signUpRules.emailInvalid')
         ],
         password: [
-          [v => !!v || 'Password is required'],
-          [v => !!v || 'New Password is required'],
-          [v => v === this.passwordDetails.newPassword || 'Confirm password should match']
+          // Current Password
+          [
+            // Password is required
+            v => !!v || this.$t('msg.error.signUpRules.passwdRequired')
+          ],
+          // New Password
+          [
+            // Password is required
+            v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
+            // You password must be atleast 8 characters
+            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
+          ],
+          // Confirm Password
+          [
+            // Password is required
+            v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
+            // TODO: i18n
+            v => v === this.passwordDetails.newPassword || 'Confirm password should match',
+            // You password must be atleast 8 characters
+            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
+          ]
         ]
       }
-
     }
   },
   head() {

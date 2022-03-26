@@ -87,9 +87,24 @@
             </span>
           </v-list-item-title>
         </v-list-item>
+        <v-list-item
+          dense
+          @click="downloadAttachmentsModal = true"
+        >
+          <v-list-item-title>
+            <v-icon small class="mr-1">
+              mdi-folder-download-outline
+            </v-icon>
+            <span class="caption">
+              <!-- Download Attachments -->
+              {{ $t('activity.downloadAttachments') }}
+            </span>
+          </v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-menu>
     <drop-or-select-file-modal v-model="importModal" accept=".csv" text="CSV" @file="onCsvFileSelection" />
+    <download-attachments-modal v-model="downloadAttachmentsModal"/>
     <column-mapping-modal
       v-if="columnMappingModal && meta"
       v-model="columnMappingModal"
@@ -105,13 +120,14 @@
 
 import FileSaver from 'file-saver'
 import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
+import DownloadAttachmentsModal from './downloadAttachmentsModal'
 import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/columnMappingModal'
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'ExportImport',
-  components: { ColumnMappingModal, DropOrSelectFileModal },
+  components: { ColumnMappingModal, DropOrSelectFileModal, DownloadAttachmentsModal },
   props: {
     meta: Object,
     nodes: Object,
@@ -123,6 +139,7 @@ export default {
   data() {
     return {
       importModal: false,
+      downloadAttachmentsModal: false,
       columnMappingModal: false,
       parsedCsv: {}
     }

@@ -43,33 +43,39 @@ export const genTest = (apiType, dbType) => {
             });
         };
 
+        let langMenu = [
+            "da.json",
+            "de.json",
+            "en.json",
+            "es.json",
+            "fa.json",
+            "fi.json",
+            "fr.json",
+            "hr.json",
+            "id.json",
+            "it_IT.json",
+            "iw.json",
+            "ja.json",
+            "ko.json",
+            "lv.json",
+            "nl.json",
+            "no.json",
+            "pt_BR.json",
+            "ru.json",
+            "sl.json",
+            "sv.json",
+            "tr.json",
+            "th.json",
+            "uk.json",
+            "vi.json",
+            "zh_CN.json",
+            "zh_HK.json",
+            "zh_TW.json",
+        ];
+
         // Index is the order in which menu options appear
-        langVerification(0, "da.json");
-        langVerification(1, "de.json");
-        langVerification(2, "en.json");
-        langVerification(3, "es.json");
-        langVerification(4, "fa.json");
-        langVerification(5, "fi.json");
-        langVerification(6, "fr.json");
-        langVerification(7, "hr.json");
-        langVerification(8, "id.json");
-        langVerification(9, "it_IT.json");
-        langVerification(10, "iw.json");
-        langVerification(11, "ja.json");
-        langVerification(12, "ko.json");
-        langVerification(13, "lv.json");
-        langVerification(14, "nl.json");
-        langVerification(15, "no.json");
-        langVerification(16, "pt_BR.json");
-        langVerification(17, "ru.json");
-        langVerification(18, "sl.json");
-        langVerification(19, "sv.json");
-        langVerification(20, "th.json");
-        langVerification(21, "uk.json");
-        langVerification(22, "vi.json");
-        langVerification(23, "zh_CN.json");
-        langVerification(24, "zh_HK.json");
-        langVerification(25, "zh_TW.json");
+        for (let i = 0; i < langMenu.length; i++)
+            langVerification(i, langMenu[i]);
     });
 };
 

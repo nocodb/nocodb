@@ -57,6 +57,7 @@ export default {
       zh_HK: '香港繁體',
       zh_TW: '臺灣正體',
       sv: 'Svenska',
+      tr: 'Turkish',
       da: 'Dansk',
       vi: 'Tiếng Việt',
       no: 'Norsk',

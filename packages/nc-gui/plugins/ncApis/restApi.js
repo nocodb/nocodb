@@ -64,7 +64,8 @@ export default class RestApi {
     return { list, count }
   }
 
-  async update(id, data, oldData) {
+  async update(id, data, oldData, cellSaved = false) {
+    data._cellSaved = cellSaved
     const res = await this.$axios({
       method: 'put',
       url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`,

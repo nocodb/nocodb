@@ -196,7 +196,7 @@
               :is-new="rowMeta.new"
               v-on="$listeners"
               @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.cn === columnObj.bt.cn), col, row)"
-              @saveRow="onCellValueChange(col, row, columnObj)"
+              @saveRow="onCellValueChange(col, row, columnObj, true)"
             />
 
             <editable-cell
@@ -215,10 +215,10 @@
               :db-alias="nodes.dbAlias"
               :is-locked="isLocked"
               :is-public="isPublicView"
-              @save="editEnabled = {}"
-              @cancel="editEnabled = {}"
-              @update="onCellValueChange(col, row, columnObj)"
-              @change="onCellValueChange(col, row, columnObj)"
+              @save="editEnabled = {}; onCellValueChange(col, row, columnObj, true);"
+              @cancel="editEnabled = {}; onCellValueChange(col, row, columnObj, true);"
+              @update="onCellValueChange(col, row, columnObj, false)"
+              @blur="onCellValueChange(col, row, columnObj, true)"
               @navigateToNext="navigateToNext"
               @navigateToPrev="navigateToPrev"
             />
@@ -413,7 +413,7 @@ export default {
     },
     updateCol(row, column, value, columnObj, colIndex, rowIndex) {
       this.$set(row, column, value)
-      this.onCellValueChange(colIndex, rowIndex, columnObj)
+      this.onCellValueChange(colIndex, rowIndex, columnObj, true)
     },
     calculateColumnWidth() {
       // setTimeout(() => {
@@ -501,7 +501,7 @@ export default {
 
           this.$set(rowObj, columnObj._cn, null)
           // update/save cell value
-          this.onCellValueChange(this.selected.col, this.selected.row, columnObj)
+          this.onCellValueChange(this.selected.col, this.selected.row, columnObj, true)
         }
           break
         // left
@@ -597,8 +597,8 @@ export default {
     showRowContextMenu($event, rowObj, rowMeta, row, ...rest) {
       this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row, ...rest)
     },
-    onCellValueChange(col, row, column, ev) {
-      this.$emit('onCellValueChange', col, row, column, ev)
+    onCellValueChange(col, row, column, saved) {
+      this.$emit('onCellValueChange', col, row, column, saved)
     },
     navigateToNext() {
       if (this.selected.row < this.rowLength - 1) {

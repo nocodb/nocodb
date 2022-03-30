@@ -110,6 +110,8 @@
           {{ ghStarText }}
         </gh-btns-star>
 
+        <important-announcement />
+
         <release-info />
 
         <template v-if="isDashboard">
@@ -581,6 +583,7 @@
 
 <script>
 import ReleaseInfo from '@/components/releaseInfo'
+import ImportantAnnouncement from '../components/importantAnnouncement.vue'
 import { mapGetters, mapActions, mapMutations } from 'vuex'
 import 'splitpanes/dist/splitpanes.css'
 import ChangeEnv from '../components/changeEnv'
@@ -602,6 +605,7 @@ export default {
     TemplatesModal,
     Loader,
     ReleaseInfo,
+    ImportantAnnouncement,
     Language,
     ChangeEnv,
     XBtn,
@@ -609,7 +613,7 @@ export default {
     dlgUnexpectedError,
     notification,
     settings,
-    xTerm
+    xTerm,
   },
   data: () => ({
     clickCount: true,

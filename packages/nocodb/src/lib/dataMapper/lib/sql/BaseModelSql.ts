@@ -345,7 +345,6 @@ class BaseModelSql extends BaseModel {
    */
   async updateByPk(id, data, trx = null, cookie?: any) {
     try {
-      data._cellSaved = (data._cellSaved === undefined)?true:data._cellSaved;
       const mappedData = this.mapAliasToColumn(data);
 
       await this.validate(data);
@@ -362,7 +361,6 @@ class BaseModelSql extends BaseModel {
       );
 
       let response = await this.nestedRead(id, this.defaultNestedQueryParams);
-      response._cellSaved = data._cellSaved;
       await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {

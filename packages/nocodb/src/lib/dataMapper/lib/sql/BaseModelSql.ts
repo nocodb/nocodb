@@ -360,7 +360,7 @@ class BaseModelSql extends BaseModel {
           .where(this._wherePk(id))
       );
 
-      const response = await this.nestedRead(id, this.defaultNestedQueryParams);
+      let response = await this.nestedRead(id, this.defaultNestedQueryParams);
       await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {

@@ -1079,11 +1079,12 @@ export default {
     // onCellValueChange(col, row, column) {
     //   this.onCellValueChangeFn(col, row, column)
     // },
-    async onCellValueChange(col, row, column) {
+    async onCellValueChange(col, row, column, saved = true) {
       if (!this.data[row]) {
         return
       }
-      const { row: rowObj, rowMeta, oldRow, saving } = this.data[row]
+      const { row: rowObj, rowMeta, oldRow, saving, lastSave } = this.data[row]
+      if(!lastSave) this.$set(this.data[row], 'lastSave', rowObj[column._cn]);
       if (rowMeta.new) {
         // return if there is no change
         if (oldRow[column._cn] === rowObj[column._cn] || saving) {
@@ -1096,9 +1097,10 @@ export default {
             return
           }
           // return if there is no change
-          if (oldRow[column._cn] === rowObj[column._cn]) {
+          if (oldRow[column._cn] === rowObj[column._cn] && ((lastSave || null) === rowObj[column._cn])) {
             return
           }
+          if(saved) this.$set(this.data[row], 'lastSave', oldRow[column._cn]);
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
 
           if (!id) {
@@ -1109,7 +1111,7 @@ export default {
           // eslint-disable-next-line promise/param-names
           const newData = await this.api.update(id, {
             [column._cn]: rowObj[column._cn]
-          }, { [column._cn]: oldRow[column._cn] })
+          }, { [column._cn]: oldRow[column._cn] }, saved)
           this.$set(this.data[row], 'row', { ...rowObj, ...newData })
 
           this.$set(oldRow, column._cn, rowObj[column._cn])
@@ -1178,7 +1180,7 @@ export default {
         return
       }
       this.$set(this.data[index].row, col._cn, null)
-      await this.onCellValueChange(colIndex, index, col)
+      await this.onCellValueChange(colIndex, index, col, true)
     },
     async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       const isKanban = this.selectedView && this.selectedView.show_as === 'kanban'

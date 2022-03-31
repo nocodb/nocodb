@@ -9,7 +9,7 @@
           class="mb-0 mr-2 py-0 "
           v-on="on"
         >
-          🚨 Important Announcement
+          Announcement
           <v-icon small>
             mdi-menu-down
           </v-icon>
@@ -19,7 +19,9 @@
     <v-list dense>
       <v-list-item dense>
         <span class="message">
-          Starting from v0.90.0, our API design will be changed <br/> and we are discontinuing GraphQL.
+          Starting from v0.90, <br/>
+          our API will undergo changes <br/>
+          and we are discontinuing GraphQL
         </span>
       </v-list-item>
       <!-- TODO: update link -->

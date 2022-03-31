@@ -65,7 +65,7 @@ export default class RestApi {
   }
 
   async update(id, data, oldData, cellSaved = false) {
-    data._cellSaved = cellSaved
+    data._ignoreWebhook = !cellSaved
     const res = await this.$axios({
       method: 'put',
       url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`,

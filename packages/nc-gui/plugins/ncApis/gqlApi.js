@@ -184,7 +184,7 @@ export default class GqlApi {
       variables: {
         id, data
       },
-      _cellSaved: cellSaved
+      _ignoreWebhook: !cellSaved
     })
 
     const colName = Object.keys(data)[0]

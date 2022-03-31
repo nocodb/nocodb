@@ -24,8 +24,7 @@
           and we are discontinuing GraphQL
         </span>
       </v-list-item>
-      <!-- TODO: update link -->
-      <v-list-item dense href="#" target="_blank">
+      <v-list-item dense href="https://github.com/nocodb/nocodb/issues/1564" target="_blank">
         <v-icon small class="mr-2">
           mdi-script-text-outline
         </v-icon>
@@ -33,15 +32,14 @@
           API Changes in v0.90.0
         </span>
       </v-list-item>
-      <!-- TODO: update link -->
-      <v-list-item dense href="#" target="_blank">
+      <!-- <v-list-item dense href="#" target="_blank">
         <v-icon small class="mr-2">
           mdi-rocket-launch-outline
         </v-icon>
         <span class="caption">
           Migration Guide
         </span>
-      </v-list-item>
+      </v-list-item> -->
       <v-list-item @click="announcementAlert = false">
         <v-icon small class="mr-2">
           mdi-close

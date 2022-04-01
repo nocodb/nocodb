@@ -5,7 +5,10 @@ import Knex from 'knex';
 
 import { SqlClientFactory } from 'nc-help';
 import NcMetaIO from '../meta/NcMetaIO';
-import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
+import {
+  defaultConnectionConfig,
+  defaultConnectionOptions
+} from '../../utils/NcConfigFactory';
 
 export default class NcConnectionMgr {
   private static connectionRefs: {
@@ -105,6 +108,7 @@ export default class NcConnectionMgr {
         isSqlite
           ? (connectionConfig.connection as Knex.Config)
           : ({
+              ...defaultConnectionOptions,
               ...connectionConfig,
               connection: {
                 ...defaultConnectionConfig,

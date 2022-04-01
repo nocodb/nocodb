@@ -49,7 +49,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
     req = req || {};
     req['oldData'] = await this.readByPk(req['params'].id);
-    if(!req.body?._ignoreWebhook) await this.handleHooks('before.update', data, req);
+    if(req.query?.ignoreWebhook === undefined || req.query?.ignoreWebhook == 'false') await this.handleHooks('before.update', data, req);
   }
 
   public async afterUpdate(data: any, _trx: any, req): Promise<void> {
@@ -74,7 +74,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           user: req.user?.email
         }
       )
-      if(!req.body?._ignoreWebhook) await this.handleHooks('after.update', data, req);
+      if(req.query?.ignoreWebhook === undefined || req.query?.ignoreWebhook == 'false') await this.handleHooks('after.update', data, req);
   }
 
   private _updateAuditDescription(id, oldData: any, data: any) {

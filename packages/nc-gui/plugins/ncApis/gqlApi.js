@@ -176,7 +176,7 @@ export default class GqlApi {
     return { list, count }
   }
 
-  async update(id, data, oldData, cellSaved = false, params = {}) {
+  async update(id, data, oldData, cellSaved = true, params = {}) {
     const data1 = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
       query: `mutation update($id:String!, $data:${this.tableCamelized}Input){
          ${this.gqlMutationUpdateName}(id: $id, data: $data){${this.gqlReqBody}${await this.gqlRelationReqBody(params)}}

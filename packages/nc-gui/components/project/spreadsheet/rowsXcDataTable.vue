@@ -1097,7 +1097,7 @@ export default {
             return
           }
           // return if there is no change
-          if (oldRow[column._cn] === rowObj[column._cn] && ((lastSave || rowObj[column._cn]) == rowObj[column._cn])) {
+          if (oldRow[column._cn] === rowObj[column._cn] && ((lastSave || rowObj[column._cn]) === rowObj[column._cn])) {
             return
           }
           if(saved) this.$set(this.data[row], 'lastSave', oldRow[column._cn]);

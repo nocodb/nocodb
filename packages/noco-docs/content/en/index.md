@@ -6,6 +6,11 @@ category: 'Welcome'
 menuTitle: 'Introduction'
 ---
 
+<alert type="warning">
+    This documentation is only for version 0.90 onwards. If you are looking for the previous versions, please check out 
+     <a href="https://docs-prev.nocodb.com/" target="_blank">here</a>. 
+</alert>
+
 ## Welcome!
 
 NocoDB is an open source Airtable alternative.
@@ -19,8 +24,9 @@ Also NocoDB's app store allows you to build business workflows on views with com
 ## Features
 
 ### Rich Spreadsheet Interface
+
 - ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
-- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Form
+- ⚡ &nbsp;Create Views : Grid, Gallery, Form
 - ⚡ &nbsp;Share Views : public & password protected
 - ⚡ &nbsp;Personal & locked Views 
 - ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)!!
@@ -35,15 +41,14 @@ Also NocoDB's app store allows you to build business workflows on views with com
 - ⚡ &nbsp;Any 3rd Party APIs
 
 ### Programmatic API access via
-- ⚡ &nbsp;REST APIs (Swagger) 
-- ⚡ &nbsp;GraphQL APIs.
+- ⚡ &nbsp;REST APIs
 - ⚡ &nbsp;Includes JWT Authentication & Social Auth
 - ⚡ &nbsp;API tokens to integrate with Zapier, Integromat.
 
-##  Why are we building this ? 🎯 
+##  Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
-## Our Mission :  ❤ 
+## Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
 ## Architecture - Simple Overview
@@ -77,6 +82,8 @@ We use ``Lerna`` to manage multi-packages. We have the following [packages](http
 - ``packages/noco-book``: NocoDB Handbook which will be auto-released to [nocodb/noco-book](https://github.com/nocodb/noco-book).
 
 - ``packages/noco-docs``: NocoDB Documentation which will be auto-released to [nocodb/noco-docs](https://github.com/nocodb/noco-docs).
+
+- ``packages/noco-docs-prev``: NocoDB Documentation for previous versions which will be auto-released to [nocodb/noco-docs-prev](https://github.com/nocodb/noco-docs-prev) and will be completely removed on 30 Jun 2022.
 
 - ``packages/nocodb``: NocoDB Backend, hosted in [NPM](https://www.npmjs.com/package/nocodb).
 

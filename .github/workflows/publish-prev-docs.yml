@@ -36,6 +36,6 @@ jobs:
           clear_folder: 'docs/dist'
           destination_repo: 'nocodb/noco-docs-prev'
           destination_folder: 'docs'
-          user_email: 'wingkwong,code@gmail.com'
+          user_email: 'wingkwong.code@gmail.com'
           user_name: 'wingkwong'
           commit_message: 'Autorelease from github.com/nocodb/nocodb/packages/noco-docs-prev'

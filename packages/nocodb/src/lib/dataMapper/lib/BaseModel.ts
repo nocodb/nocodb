@@ -99,7 +99,7 @@ abstract class BaseModel {
       limitMax: 500,
       limitMin: 5,
       limitDefault: 10,
-      log: false,
+      log: true,
       explain: false,
       hasManyMax: 5,
       bulkLengthMax: 1000,

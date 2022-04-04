@@ -14,7 +14,7 @@
       <!--          href: '#'-->
       <!--        },-->
       <!--        {-->
-      <!--          text: this.nodes.tn + ' (ACL)',-->
+      <!--          text: this.nodes.table_name + ' (ACL)',-->
       <!--          disabled: true,-->
       <!--          href: '#'-->
       <!--        }]" divider=">" small>-->
@@ -56,7 +56,7 @@
 
       <!--      </v-toolbar>-->
 
-      <!--      <v-text-field dense hide-details class="ma-2" :placeholder="`Search ${nodes.tn} routes`"-->
+      <!--      <v-text-field dense hide-details class="ma-2" :placeholder="`Search ${nodes.table_name} routes`"-->
       <!--                    prepend-inner-icon="search" v-model="search"-->
       <!--                    outlined></v-text-field>-->
       <v-simple-table v-if="data1" dense>
@@ -74,7 +74,7 @@
                       v-on="on"
                     />
                   </template>
-                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.tn }} routes for all roles</span>
+                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.table_name }} routes for all roles</span>
                 </v-tooltip>
                 <span class="title">{{ routesName }} Routes</span>
               </div>
@@ -240,7 +240,6 @@ export default {
       this.disableSaveButton = true
 
       try {
-        console.log(this.policyPath, this.data1)
         // this.data1 = JSON.parse(JSON.stringify(await this.sqlMgr.importFresh({path: this.policyPath})));
         this.data1 = JSON.parse(JSON.stringify(await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'importFresh', { path: this.policyPath }])))
         this.groupRoutes()
@@ -318,11 +317,6 @@ export default {
     },
     async save() {
       try {
-        // await this.sqlMgr.writeFile({
-        //   path: this.policyPath,
-        //   data: `module.exports = ${JSON.stringify(this.data1, null, 2)}`
-        // })
-
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'writeFile', {
           path: this.policyPath,
           data: `module.exports = ${JSON.stringify(this.data1, null, 2)}`

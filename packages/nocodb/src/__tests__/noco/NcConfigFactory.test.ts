@@ -3,21 +3,21 @@ import 'mocha';
 import { NcConfigFactory } from '../../lib';
 
 describe('Config Factory Tests', () => {
-  const expectedObject = {
+  const storedDbConfig = {
     client: 'pg',
     connection: {
-      host: 'localhost',
-      port: 5432,
+      database: 'abcde',
       user: 'postgres',
       password: 'xgene',
-      database: 'abcde'
+      host: 'localhost',
+      port: 5432,
+    },
+    ssl: {
+      rejectUnauthorized: false
     },
     pool: {
       min: 1,
       max: 2
-    },
-    ssl: {
-      rejectUnauthorized: false
     },
     acquireConnectionTimeout: 600000
   };
@@ -31,41 +31,45 @@ describe('Config Factory Tests', () => {
   });
 
   it('Generate config from string', function(done) {
-    const config = NcConfigFactory.metaUrlToDbConfig(
+    const dbConfig = NcConfigFactory.metaUrlToDbConfig(
       `pg://localhost:5432?u=postgres&p=xgene&d=abcde`
     );
-    const { pool, ssl, ...rest } = expectedObject;
-    expect(config).to.deep.equal(rest);
+    const { pool, ssl, ...rest } = storedDbConfig;
+    expect(dbConfig).to.deep.equal(rest);
     done();
   });
   it('Connection string with nested property', function(done) {
-    const config = NcConfigFactory.metaUrlToDbConfig(
+    const dbConfig = NcConfigFactory.metaUrlToDbConfig(
       `pg://localhost:5432?u=postgres&p=xgene&d=abcde&pool.min=1&pool.max=2&ssl.rejectUnauthorized=false`
     );
-    expect(config).to.deep.equal(expectedObject);
+    expect(dbConfig).to.deep.equal(storedDbConfig);
     done();
   });
+
   it('Allow creating config from JSON string', function(done) {
     try {
-      process.env.NC_DB_JSON = JSON.stringify(expectedObject);
+      process.env.NC_DB_JSON = JSON.stringify(storedDbConfig);
 
       const {
-        meta: { db: config }
+        meta: { db: dbConfig }
       } = NcConfigFactory.make();
-      expect(config).to.deep.equal(expectedObject);
+
+      expect(dbConfig).to.deep.equal(storedDbConfig);
       done();
     } finally {
       delete process.env.NC_DB_JSON;
     }
   });
+
   it('Allow creating config from JSON file', function(done) {
     try {
       process.env.NC_DB_JSON_FILE = `${__dirname}/dbConfig.json`;
 
       const {
-        meta: { db: config }
+        meta: { db: dbConfig }
       } = NcConfigFactory.make();
-      expect(config).to.deep.equal(expectedObject);
+      
+      expect(dbConfig).to.deep.equal(storedDbConfig);
       done();
     } finally {
       delete process.env.NC_DB_JSON_FILE;

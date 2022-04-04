@@ -29,6 +29,7 @@
     "monaco-editor": "^0.19.3",
     "monaco-themes": "^0.2.5",
     "nano-assign": "^1.0.1",
+    "nocodb-sdk": "0.0.9",
     "nuxt": "^2.14.0",
     "odometer": "^0.4.8",
     "papaparse": "^5.3.1",

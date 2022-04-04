@@ -75,6 +75,7 @@ export const genTest = (apiType, dbType) => {
                     cy.visit(linkText, {
                         baseUrl: null,
                     });
+                    cy.wait(5000);
 
                     // wait for share view page to load!
 
@@ -109,15 +110,15 @@ export const genTest = (apiType, dbType) => {
 
             const verifyCsv = (retrievedRecords) => {
                 let storedRecords = [
-                    `Country,Country => City,testAttach`,
-                    `Afghanistan,Kabul,1.json(http://localhost:8080/dl/externalrest_5agd/db/country/testAttach_VWk3fz_1.json)`,
+                    `Country,CityList,testAttach`,
+                    `Afghanistan,Kabul,1.json(http://localhost:8080/download/p_h0wxjx5kgoq3w4/vw_skyvc7hsp9i34a/2HvU8R.json)`,
                 ];
 
                 expect(retrievedRecords[0]).to.be.equal(storedRecords[0]);
                 for (let i = 1; i < storedRecords.length; i++) {
                     const columns = retrievedRecords[i].split(",");
                     expect(columns[2]).to.contain(
-                        ".json(http://localhost:8080/dl/"
+                        ".json(http://localhost:8080/download/"
                     );
                 }
 

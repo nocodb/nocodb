@@ -2116,7 +2116,7 @@ class BaseModelSql extends BaseModel {
   }
 
   isMssql() {
-    return this.clientType === 'mssql';
+    return this.dbDriver.clientType() === 'mssql';
   }
 
   /**

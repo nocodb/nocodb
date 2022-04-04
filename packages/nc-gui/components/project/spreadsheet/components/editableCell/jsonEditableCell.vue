@@ -98,8 +98,6 @@ export default {
 
 <style scoped>
 .cell-container {
-  /*margin: 0 -5px;*/
-  /*position: relative;*/
   width: 100%
 }
 </style>

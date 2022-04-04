@@ -42,10 +42,10 @@
               :rules="[v => !!v || $t('general.required')]"
             />
 
-            <div class="wrapper mb-5 mt-5">
+            <!--            <div class="wrapper mb-5 mt-5">
               <v-container fluid>
-                <!-- Access Project Via -->
-                <label class="grey--text ml-1 d-block my-2">{{ $t('msg.info.apiOptions') }}</label>
+                &lt;!&ndash; Access Project Via &ndash;&gt;
+                <label class="grey&#45;&#45;text ml-1 d-block my-2">{{ $t('msg.info.apiOptions') }}</label>
 
                 <v-radio-group v-model="projectType" hide-details dense class="mb-0 mt-0">
                   <v-radio
@@ -65,28 +65,11 @@
                   </v-radio>
                 </v-radio-group>
               </v-container>
-            </div>
+            </div>-->
           </div>
-          <!--  <v-select
-              outlined
-              label="API type"
-              v-model="projectType" persistent-hint dense
-              class="caption mt-3"
-              :items="projectTypes">
-              <template v-slot:prepend-inner>
-                <img v-if="typeIcon.type === 'img'" :src="typeIcon.icon" style="width: 25px">
-                <v-icon v-else :color="typeIcon.iconColor" size="25">{{ typeIcon.icon }}</v-icon>
-              </template>
-              <template v-slot:item="{item}">
-                        <span class="caption d-flex align-center">
-                        <img v-if="item.type === 'img'" :src="item.icon" style="width: 30px">
-                          <v-icon v-else :color="item.iconColor">{{ item.icon }}</v-icon> &nbsp; {{ item.text }}</span>
-              </template>
-
-            </v-select>-->
-
           <div class="text-center">
             <v-btn
+              v-t="['project:create:xcdb:submit']"
               class="mt-3"
               large
               :loading="loading"
@@ -147,10 +130,14 @@ export default {
       if (this.$refs.form.validate()) {
         this.loading = true
         try {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
-            title: this.name,
-            projectType: this.projectType
-          }])
+          // const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
+          //   title: this.name,
+          //   projectType: this.projectType
+          // }])
+
+          const result = (await this.$api.project.create({
+            title: this.name
+          }))
 
           await this.$store.dispatch('project/ActLoadProjectInfo')
 

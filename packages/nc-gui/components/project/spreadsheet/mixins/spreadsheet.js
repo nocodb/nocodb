@@ -1,7 +1,9 @@
+import { isVirtualCol, filterOutSystemColumns } from 'nocodb-sdk'
+
 export default {
   data: () => ({
+    showSystemFieldsLoc: false,
     viewStatus: {},
-    showSystemFields: false,
     fieldFilter: '',
     filtersKey: 0,
     filters: [],
@@ -16,7 +18,7 @@ export default {
   }),
   methods: {
     mapFieldsAndShowFields() {
-      // this.fieldList = this.availableColumns.map(c => c._cn);
+      // this.fieldList = this.availableColumns.map(c => c.title);
       this.showFields = this.fieldList.reduce((obj, k) => {
         obj[k] = k in this.showFields ? this.showFields[k] : true
         return obj
@@ -59,6 +61,14 @@ export default {
     }
   },
   computed: {
+    showSystemFields: {
+      get() {
+        return this.showSystemFieldsLoc
+      },
+      set(v) {
+        this.showSystemFieldsLoc = v
+      }
+    },
     isLocked() {
       return this.viewStatus && this.viewStatus.type === 'locked'
     },
@@ -69,19 +79,19 @@ export default {
     },
     realFieldList() {
       return this.availableRealColumns.map((c) => {
-        return c._cn
+        return c.title
       })
     },
     formulaFieldList() {
       return this.availableColumns.reduce((arr, c) => {
         if (c.formula) {
-          arr.push(c._cn)
+          arr.push(c.title)
         }
         return arr
       }, [])
     },
     availableRealColumns() {
-      return this.availableColumns && this.availableColumns.filter(c => !c.virtual)
+      return this.availableColumns && this.availableColumns.filter(c => !isVirtualCol(c))
     },
 
     allColumns() {
@@ -91,7 +101,10 @@ export default {
 
       let columns = this.meta.columns
       if (this.meta && this.meta.v) {
-        columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
+        columns = [...columns, ...this.meta.v.map(v => ({
+          ...v,
+          virtual: 1
+        }))]
       }
 
       {
@@ -100,7 +113,7 @@ export default {
           // if (c.virtual && c.lk) {
           //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
           // } else {
-          c.alias = c._cn
+          c.alias = c.title
           // }
           if (c.alias in _ref) {
             c.alias += _ref[c.alias]++
@@ -112,7 +125,7 @@ export default {
       return columns
     },
     // allColumnsNames() {
-    //   return this.allColumns && this.allColumns.length ? this.allColumns.reduce((a, c) => [...a, c.cn, c._cn], []) : []
+    //   return this.allColumns && this.allColumns.length ? this.allColumns.reduce((a, c) => [...a, c.column_name, c.title], []) : []
     // },
     availableColumns() {
       let columns = []
@@ -121,18 +134,17 @@ export default {
         return []
       }
       // todo: generate hideCols based on default values
-      const hideCols = ['created_at', 'updated_at']
-
       if (this.showSystemFields) {
         columns = this.meta.columns || []
       } else {
-        columns = (this.meta.columns.filter(c => !(c.pk && c.ai) &&
-          !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn)) &&
-          !hideCols.includes(c.cn))) || []
+        columns = filterOutSystemColumns(this.meta.columns)
       }
 
       if (this.meta && this.meta.v) {
-        columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
+        columns = [...columns, ...this.meta.v.map(v => ({
+          ...v,
+          virtual: 1
+        }))]
       }
 
       {
@@ -141,7 +153,7 @@ export default {
           // if (c.virtual && c.lk) {
           //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
           // } else {
-          c.alias = c._cn
+          c.alias = c.title
           // }
           if (c.alias in _ref) {
             c.alias += _ref[c.alias]++
@@ -183,14 +195,18 @@ export default {
       // generate params for nested columns
       const nestedFields = ((this.meta && this.meta.v && this.meta.v) || []).reduce((obj, vc) => {
         if (vc.hm) {
-          obj.hm.push(vc.hm.tn)
+          obj.hm.push(vc.hm.table_name)
         } else if (vc.bt) {
           obj.bt.push(vc.bt.rtn)
         } else if (vc.mm) {
           obj.mm.push(vc.mm.rtn)
         }
         return obj
-      }, { hm: [], bt: [], mm: [] })
+      }, {
+        hm: [],
+        bt: [],
+        mm: []
+      })
 
       // todo: handle if virtual column missing
       // construct fields args based on lookup columns
@@ -228,7 +244,10 @@ export default {
         return obj
       }, {})
       return {
-        ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({ ...ro, [k]: a.join(',') }), {}),
+        ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({
+          ...ro,
+          [k]: a.join(',')
+        }), {}),
         ...fieldsObj
       }
     },
@@ -237,9 +256,9 @@ export default {
         limit: this.size,
         offset: this.size * (this.page - 1),
         // condition: this.condition,
-        where: this.concatenatedXWhere,
-        sort: this.sort,
-        ...this.nestedAndRollupColumnParams
+        where: this.concatenatedXWhere
+        // sort: this.sort,
+        // ...this.nestedAndRollupColumnParams
         // ...Object.entries(nestedFields).reduce((ro, [k, a]) => ({ ...ro, [k]: a.join(',') })),
         // ...fieldsObj
       }
@@ -260,7 +279,7 @@ export default {
       // todo: use cn alias
       return this.meta && this.meta.hasMany
         ? this.meta.hasMany.reduce((hm, o) => {
-          const _rcn = this.meta.columns.find(c => c.cn === o.rcn)._cn
+          const _rcn = this.meta.columns.find(c => c.column_name === o.rcn).title
           hm[_rcn] = hm[_rcn] || []
           hm[_rcn].push(o)
           return hm
@@ -273,7 +292,7 @@ export default {
     belongsTo() {
       return this.meta && this.meta.belongsTo
         ? this.meta.belongsTo.reduce((bt, o) => {
-          const _cn = (this.meta.columns.find(c => c.cn === o.cn) || {})._cn
+          const _cn = (this.meta.columns.find(c => c.column_name === o.column_name) || {}).title
           bt[_cn] = o
           return bt
         }, {})
@@ -281,18 +300,18 @@ export default {
     },
     table() {
       if (this.relationType === 'hm') {
-        return this.relation.tn
+        return this.relation.table_name
       } else if (this.relationType === 'bt') {
         return this.relation.rtn
       }
 
-      return this.nodes.tn || this.nodes.view_name
+      return this.nodes.table_name || this.nodes.view_name
     },
     primaryValueColumn() {
       if (!this.meta || !this.availableColumns || !this.availableColumns.length) {
         return ''
       }
-      return (this.availableColumns.find(col => col.pv) || { _cn: '' })._cn
+      return (this.availableColumns.find(col => col.pv) || { _cn: '' }).title
     }
   },
   watch: {
@@ -407,17 +426,17 @@ export default {
     },
     sortList: {
       async handler(sortList) {
-        const sort = sortList.map((sort) => {
-          // && this.allColumnsNames.includes(sort.field)
-          return sort.field ? `${sort.order}${sort.field}` : ''
-        }).filter(Boolean).join(',')
-        this.sort = sort
-        // if (!this.progress) {
-        //   await this.loadTableData();
+        // const sort = sortList.map((sort) => {
+        //   // && this.allColumnsNames.includes(sort.field)
+        //   return sort.field ? `${sort.order}${sort.field}` : ''
+        // }).filter(Boolean).join(',')
+        // this.sort = sort
+        // // if (!this.progress) {
+        // //   await this.loadTableData();
+        // // }
+        // if (!this.loadingMeta || !this.loadingData) {
+        //   this.syncDataDebounce(this)
         // }
-        if (!this.loadingMeta || !this.loadingData) {
-          this.syncDataDebounce(this)
-        }
       },
       deep: true
     },

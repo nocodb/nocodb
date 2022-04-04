@@ -29,24 +29,6 @@
               </v-radio-group>
             </div>
 
-            <!--            <v-select
-                          outlined
-                          label="API type"
-                          v-model="projectType" persistent-hint dense
-                          class="caption mt-3"
-                          :items="projectTypes">
-                          <template v-slot:prepend-inner>
-                            <img v-if="typeIcon.type === 'img'" :src="typeIcon.icon" style="width: 25px">
-                            <v-icon v-else :color="typeIcon.iconColor" size="25">{{ typeIcon.icon }}</v-icon>
-                          </template>
-                          <template v-slot:item="{item}">
-                                  <span class="caption d-flex align-center">
-                                  <img v-if="item.type === 'img'" :src="item.icon" style="width: 30px">
-                                    <v-icon v-else :color="item.iconColor">{{ item.icon }}</v-icon> &nbsp; {{ item.text }}</span>
-                          </template>
-
-                        </v-select>-->
-
             <!-- Create Project -->
             <div class="text-center">
               <v-btn

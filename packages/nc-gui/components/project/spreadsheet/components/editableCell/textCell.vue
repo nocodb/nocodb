@@ -6,7 +6,7 @@
 export default {
   name: 'TextCell',
   props: {
-    value: String
+    value: [String, Object, Number, Boolean, Array]
   },
   computed: {
     localState: {

@@ -8,7 +8,6 @@
       <p class="hidden" v-on="on" />
     </template>
     <v-card class="elevation-20">
-      <!-- <v-toolbar dense height="30">{{ this.heading }}</v-toolbar> -->
       <v-card-title class="grey darken-1 subheading" style="height:30px">
         {{ title || '' }}
       </v-card-title>

@@ -12,7 +12,7 @@
       <!--          href: '#'-->
       <!--        },-->
       <!--        {-->
-      <!--          text: nodes.tn + ' (Logic)',-->
+      <!--          text: nodes.table_name + ' (Logic)',-->
       <!--          disabled: true,-->
       <!--          href: '#'-->
       <!--        }]" divider=">" small>-->

@@ -13,7 +13,7 @@
                      href: '#'
                    },
                    {
-                     text: nodes.tn + ' (Webhooks)',
+                     text: nodes.table_name + ' (Webhooks)',
                      disabled: true,
                      href: '#'
                    }]"
@@ -179,7 +179,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'tableXcHooksGet', {
-          tn: this.nodes.tn,
+          table_name: this.nodes.table_name,
           data: {
             event: this.hook.event[0],
             operation: this.hook.event[1]
@@ -207,7 +207,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'tableXcHooksSet', {
-          tn: this.nodes.tn,
+          table_name: this.nodes.table_name,
           data: {
             ...this.hook,
             event: this.hook.event[0],

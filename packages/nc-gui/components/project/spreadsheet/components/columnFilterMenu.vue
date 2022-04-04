@@ -1,5 +1,5 @@
 <template>
-  <v-menu offset-y>
+  <v-menu offset-y eager>
     <template #activator="{ on, }">
       <v-badge
         :value="filters.length"
@@ -8,6 +8,7 @@
         overlap
       >
         <v-btn
+          v-t="['filter:trigger']"
           class="nc-filter-menu-btn px-2 nc-remove-border"
           :disabled="isLocked"
           outlined
@@ -27,7 +28,15 @@
         </v-btn>
       </v-badge>
     </template>
-    <column-filter v-model="filters" :field-list="fieldList" :meta="meta">
+    <column-filter
+      ref="filter"
+      v-model="filters"
+      :shared="shared"
+      :view-id="viewId"
+      :field-list="fieldList"
+      :meta="meta"
+      v-on="$listeners"
+    >
       <div class="d-flex align-center mx-2" @click.stop>
         <v-checkbox
           id="col-filter-checkbox"
@@ -42,12 +51,12 @@
             <span class="grey--text caption">
               {{ $t('msg.info.filterAutoApply') }}
               <!-- Auto apply -->
-              </span>
+            </span>
           </template>
         </v-checkbox>
 
         <v-spacer />
-        <v-btn v-show="!autosave" color="primary" small class="caption ml-2" @click="$emit('input', filters)">
+        <v-btn v-show="!autosave" color="primary" small class="caption ml-2" @click="applyChanges">
           Apply
           changes
         </v-btn>
@@ -62,7 +71,7 @@ import ColumnFilter from '@/components/project/spreadsheet/components/columnFilt
 export default {
   name: 'ColumnFilterMenu',
   components: { ColumnFilter },
-  props: ['fieldList', 'isLocked', 'value', 'meta'],
+  props: ['fieldList', 'isLocked', 'value', 'meta', 'viewId', 'shared'],
   data: () => ({
     filters: []
   }),
@@ -70,6 +79,7 @@ export default {
     autosave: {
       set(v) {
         this.$store.commit('windows/MutAutoApplyFilter', v)
+        this.$tele.emit(`filter:auto-apply:${v}`)
       },
       get() {
         return this.$store.state.windows.autoApplyFilter
@@ -97,7 +107,13 @@ export default {
   created() {
     this.filters = this.autosave ? this.value || [] : JSON.parse(JSON.stringify(this.value || []))
   },
-  methods: {}
+  methods: {
+    applyChanges() {
+      this.$emit('input', this.filters)
+      if (this.$refs.filter) { this.$refs.filter.applyChanges() }
+      this.$tele.emit('filter:apply-explicit')
+    }
+  }
 }
 </script>
 

@@ -96,7 +96,7 @@ import FormInput from '@/components/project/appStore/FormInput'
 export default {
   name: 'AppInstall',
   components: { FormInput },
-  props: ['title', 'defaultConfig'],
+  props: ['id', 'defaultConfig'],
   data: () => ({
     plugin: null,
     formDetails: null,
@@ -153,34 +153,41 @@ export default {
     },
     async saveSettings() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginSet', {
-          input: this.settings,
-          id: this.pluginId,
-          title: this.plugin.title
-        }])
+        await this.$api.plugin.update(this.id, {
+          input: JSON.stringify(this.settings),
+          active: 1
+        })
 
         this.$emit('saved')
         this.$toast.success(this.formDetails.msgOnInstall || 'Plugin settings saved successfully').goAway(5000)
         this.simpleAnim()
-      } catch (e) {
+      } catch (_e) {
+        const e = await this._extractSdkResponseError(_e)
         this.$toast.error(e.message).goAway(3000)
       }
     },
     async testSettings() {
       this.testing = true
       try {
-        const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginTest', {
+        // const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginTest', {
+        //   input: this.settings,
+        //   id: this.pluginId,
+        //   category: this.plugin.category,
+        //   title: this.plugin.title
+        // }])
+        const res = (await this.$api.plugin.test({
           input: this.settings,
           id: this.pluginId,
           category: this.plugin.category,
           title: this.plugin.title
-        }])
+        }))
         if (res) {
           this.$toast.success('Successfully tested plugin settings').goAway(3000)
         } else {
           this.$toast.info('Invalid credentials').goAway(3000)
         }
-      } catch (e) {
+      } catch (_e) {
+        const e = await this._extractSdkResponseError(_e)
         this.$toast[e.message === 'Not implemented' ? 'info' : 'error'](e.message).goAway(3000)
       }
       this.testing = false
@@ -199,9 +206,10 @@ export default {
     },
     async readPluginDetails() {
       try {
-        this.plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
-          title: this.title
-        }])
+        // this.plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
+        //   title: this.title
+        // }])
+        this.plugin = (await this.$api.plugin.read(this.id))
         this.formDetails = JSON.parse(this.plugin.input_schema)
         this.pluginId = this.plugin.id
         this.settings = JSON.parse(this.plugin.input) || (this.formDetails.array ? [{}] : {})

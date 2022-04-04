@@ -1,10 +1,11 @@
-import Knex from 'knex';
+import Knex, { QueryBuilder } from 'knex';
 
 const types = require('pg').types;
 // override parsing date column to Date()
 types.setTypeParser(1082, val => val);
 
 import { BaseModelSql } from './BaseModelSql';
+import Filter from '../../../noco-models/Filter';
 
 const opMappingGen = {
   eq: '=',
@@ -499,6 +500,14 @@ declare module 'knex' {
       }
     ): Knex.QueryBuilder<TRecord, TResult>;
 
+    conditionv2<TRecord, TResult>(
+      conditionObj: Filter
+    ): Knex.QueryBuilder<TRecord, TResult>;
+
+    concat<TRecord, TResult>(
+      cn: string | any
+    ): Knex.QueryBuilder<TRecord, TResult>;
+
     conditionGraph<TRecord, TResult>(condition: {
       condition: XcXonditionObj;
       models: { [key: string]: BaseModelSql };
@@ -524,6 +533,27 @@ Knex.QueryBuilder.extend('xwhere', function(
 ) {
   const conditions = toArrayOfConditions(conditionString);
   return appendWhereCondition(conditions, columnAliases || {}, this);
+});
+/**
+ * Append concat to knex query builder
+ */
+Knex.QueryBuilder.extend('concat', function(cn: any) {
+  switch (this?.client?.config?.client) {
+    case 'pg':
+      this.select(this.client.raw(`STRING_AGG(?? , ',')`, [cn]));
+      break;
+    case 'mysql':
+    case 'mysql2':
+      this.select(this.client.raw(`GROUP_CONCAT(?? SEPARATOR ',')`, [cn]));
+      break;
+    case 'mssql':
+      this.select(this.client.raw(`STRING_AGG(??, ',')`, [cn]));
+      break;
+    case 'sqlite3':
+      this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
+      break;
+  }
+  return this;
 });
 
 /**
@@ -578,7 +608,7 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
         });
         break;
       default:
-        if (typeof val === 'object' && !Array.isArray(val)) {
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
           qb = parseCondition(val, columnAliases, qb, key);
         } else {
           const fieldName = columnAliases[pKey] || pKey;
@@ -645,7 +675,7 @@ Knex.QueryBuilder.extend('conditionGraph', function(args: {
 
 // @ts-ignore
 function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
-  this.alias = this.alias || {};
+  this._tn = this._tn || {};
   const self = this;
   let conditions = Object.entries(obj);
   let tn = table || qb._single.table;
@@ -672,18 +702,18 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
           //   console.log(model)
           // }
           if (relation) {
-            this.alias[relation.tn] = (this.alias[relation.tn] || 0) + 1;
+            this._tn[relation.tn] = (this._tn[relation.tn] || 0) + 1;
 
             obj.relationType = {
               alias: `${
-                this.alias[relation.tn] ? this.alias[relation.tn] + '___' : ''
+                this._tn[relation.tn] ? this._tn[relation.tn] + '___' : ''
               }${relation.tn}`,
               type: obj.relationType
             };
 
             qb = qb.join(
-              `${relation.tn} as ${obj.relationType.alias}`,
-              `${obj.relationType.alias}.${relation.cn}`,
+              `${relation.tn} as ${obj.relationType._tn}`,
+              `${obj.relationType._tn}.${relation.cn}`,
               '=',
               `${tableAlias}.${relation.rcn}`
             );
@@ -692,7 +722,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
             tn = relation.tn;
             conditions = conditions.filter(c => c[0] !== 'relationType');
 
-            tableAlias = obj.relationType.alias;
+            tableAlias = obj.relationType._tn;
           }
         }
         break;
@@ -709,22 +739,22 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
           //   console.log(model)
           // }
           if (relation) {
-            this.alias[relation.rtn] = (this.alias[relation.rtn] || 0) + 1;
+            this._tn[relation.rtn] = (this._tn[relation.rtn] || 0) + 1;
             obj.relationType = {
-              alias: `${this.alias[relation.rtn]}___${relation.rtn}`,
+              alias: `${this._tn[relation.rtn]}___${relation.rtn}`,
               type: obj.relationType
             };
             qb = qb.join(
-              `${relation.rtn} as ${obj.relationType.alias}`,
+              `${relation.rtn} as ${obj.relationType._tn}`,
               `${tableAlias}.${relation.cn}`,
               '=',
-              `${obj.relationType.alias}.${relation.rcn}`
+              `${obj.relationType._tn}.${relation.rcn}`
             );
             // delete obj.relationType;
             // return parseNestedConditionAndJoin.call(self, Object.entries(obj).find(([k]) => k !== 'relationType')?.[1], qb, Object.keys(obj).find(k => k !== 'relationType'), relation.rtn)
             tn = relation.rtn;
             conditions = conditions.filter(c => c[0] !== 'relationType');
-            tableAlias = obj.relationType.alias;
+            tableAlias = obj.relationType._tn;
           }
         }
         break;
@@ -811,7 +841,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
             // delete obj.relationType;
             // return parseNestedCondition.call(this, Object.values(obj)[0], qb, Object.keys(obj)[0],
             tn = relation.tn;
-            tableAlias = obj.relationType.alias;
+            tableAlias = obj.relationType._tn;
           }
         }
         break;
@@ -833,7 +863,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
             // delete obj.relationType;
             // return parseNestedCondition.call(self, Object.values(obj)[0], qb, Object.keys(obj)[0],
             tn = relation.rtn;
-            tableAlias = obj.relationType.alias;
+            tableAlias = obj.relationType._tn;
           }
         }
         break;
@@ -992,6 +1022,264 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
 
   return knex;
 }
+
+// todo: optimize
+Knex.QueryBuilder.extend('conditionGraphv2', function(args: {
+  condition;
+  models;
+}) {
+  if (!args) {
+    return this;
+  }
+  const { condition, models } = args;
+  if (!condition || typeof condition !== 'object') {
+    return this;
+  }
+
+  const conditionCopy = JSON.parse(JSON.stringify(condition));
+
+  // parse and do all the joins
+  // const qb = parseNestedConditionAndJoin.call({ models }, conditionCopy, this);
+  // parse and define all where conditions
+  return parseNestedConditionv2.call({ models }, conditionCopy);
+});
+
+function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
+  // this.alias = {...(this.alias || {})};
+  // this.globalAlias = this.globalAlias || {};
+  const self = this;
+  let tn = table || qb._single.table;
+  tableAlias = tableAlias || tn;
+  // let alias;
+
+  // check for relation and update t
+  if ('relationType' in obj) {
+    // alias = {...self.alias};
+    switch (obj.relationType.type) {
+      case 'hm':
+        {
+          // const model = Object.entries(models).find(([name]) => {
+          //   // todo: name comparison
+          //   return pKey.toLowerCase().startsWith(name.toLowerCase());
+          // })?.[1];
+
+          // todo: get tablename from model
+          const relation = this?.models?.[
+            table || qb._single.table
+          ]?.hasManyRelations?.find(
+            ({ tn }) => pKey.toLowerCase() === tn.toLowerCase()
+          );
+
+          // if (model) {
+          //   console.log(model)
+          // }
+
+          if (relation) {
+            // alias[relation.tn] = this.globalAlias[relation.tn] = (this.globalAlias[relation.tn] || 0) + 1;
+            // qb = qb.join(relation.tn, `${relation.tn}.${relation.cn}`, '=', `${relation.rtn}.${relation.rcn}`)
+            // delete obj.relationType;
+            // return parseNestedCondition.call(this, Object.values(obj)[0], qb, Object.keys(obj)[0],
+            tn = relation.tn;
+            tableAlias = obj.relationType._tn;
+          }
+        }
+        break;
+      case 'bt':
+        {
+          // todo: get tablename from model
+          const relation = this?.models?.[
+            table || qb._single.table
+          ]?.belongsToRelations?.find(
+            ({ rtn }) => pKey.toLowerCase() === rtn.toLowerCase()
+          );
+
+          // if (model) {
+          //   console.log(model)
+          // }
+          if (relation) {
+            // alias[relation.rtn] = this.globalAlias[relation.rtn] = (this.globalAlias[relation.rtn] || 0) + 1;
+            // qb = qb.join(relation.rtn, `${relation.tn}.${relation.cn}`, '=', `${relation.rtn}.${relation.rcn}`)
+            // delete obj.relationType;
+            // return parseNestedCondition.call(self, Object.values(obj)[0], qb, Object.keys(obj)[0],
+            tn = relation.rtn;
+            tableAlias = obj.relationType._tn;
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  } else {
+    // alias = self.alias;
+  }
+
+  const conditions = Object.entries(obj).filter(c => c[0] !== 'relationType');
+  // const colPrefix = `${alias[tn] ? alias[tn] + '___' : ''}${tn}.`;
+  const colPrefix = `${tableAlias}.`;
+
+  for (const [key, val] of conditions) {
+    // handle logical operators recursively
+    switch (key) {
+      case '_or':
+        qb = qb.where(function() {
+          for (const condition of val as any[]) {
+            this.orWhere(function() {
+              return parseNestedCondition.call(
+                self,
+                condition,
+                this,
+                null,
+                tn,
+                tableAlias
+              );
+            });
+          }
+        });
+        break;
+      case '_and':
+        qb = qb.where(function() {
+          for (const condition of val as any[]) {
+            this.andWhere(function() {
+              parseNestedCondition.call(
+                self,
+                condition,
+                this,
+                null,
+                tn,
+                tableAlias
+              );
+            });
+          }
+        });
+        break;
+      case '_not':
+        qb = qb.whereNot(function() {
+          return parseNestedCondition.call(
+            self,
+            val,
+            this,
+            null,
+            tn,
+            tableAlias
+          );
+        });
+        break;
+      default:
+        // if object handle recursively
+        if (typeof val === 'object' && !Array.isArray(val)) {
+          qb = parseNestedCondition.call(self, val, qb, key, tn, tableAlias);
+        } else {
+          // handle based on operator
+          switch (key) {
+            case 'eq':
+              qb = qb.where(colPrefix + pKey, val);
+              break;
+            case 'neq':
+              qb = qb.whereNot(colPrefix + pKey, val);
+              break;
+            case 'like':
+              qb = qb.where(colPrefix + pKey, 'like', val);
+              break;
+            case 'nlike':
+              qb = qb.whereNot(colPrefix + pKey, 'like', val);
+              break;
+            case 'gt':
+              qb = qb.where(colPrefix + pKey, '>', val);
+              break;
+            case 'ge':
+              qb = qb.where(pKey, '>=', val);
+              break;
+            case 'lt':
+              qb = qb.where(pKey, '<', val);
+              break;
+            case 'le':
+              qb = qb.where(pKey, '<=', val);
+              break;
+            case 'in':
+              qb = qb.whereIn(pKey, val);
+              break;
+            case 'nin':
+              qb = qb.whereNotIn(pKey, val);
+              break;
+          }
+        }
+        break;
+    }
+  }
+
+  return qb;
+}
+
+// Conditionv2
+
+/**
+ * Append custom where condition(nested object) to knex query builder
+ */
+Knex.QueryBuilder.extend('conditionv2', function(conditionObj: Filter) {
+  if (!conditionObj || typeof conditionObj !== 'object') {
+    return this;
+  }
+  return parseConditionv2(conditionObj, this);
+} as any);
+
+const parseConditionv2 = (obj: Filter, qb: QueryBuilder) => {
+  if (obj.is_group) {
+    qb = qb.where(function() {
+      const children = obj.children;
+      if (obj.logical_op?.toLowerCase() === 'or') {
+        for (const filter of children || []) {
+          this.orWhere(function() {
+            return parseConditionv2(filter, this);
+          });
+        }
+      } else {
+        for (const filter of children || []) {
+          this.andWhere(function() {
+            return parseConditionv2(filter, this);
+          });
+        }
+      }
+    });
+  } else {
+    const col = obj.column;
+    const fieldName = col.column_name;
+    const val = obj.value;
+    switch (obj.comparison_op) {
+      case 'eq':
+        qb = qb.where(fieldName, val);
+        break;
+      case 'neq':
+        qb = qb.whereNot(fieldName, val);
+        break;
+      case 'like':
+        qb = qb.where(fieldName, 'like', val);
+        break;
+      case 'nlike':
+        qb = qb.whereNot(fieldName, 'like', val);
+        break;
+      case 'gt':
+        qb = qb.where(fieldName, '>', val);
+        break;
+      case 'ge':
+        qb = qb.where(fieldName, '>=', val);
+        break;
+      case 'lt':
+        qb = qb.where(fieldName, '<', val);
+        break;
+      case 'le':
+        qb = qb.where(fieldName, '<=', val);
+        break;
+      // case 'in':
+      //   qb = qb.whereIn(fieldName, val);
+      //   break;
+      // case 'nin':
+      //   qb = qb.whereNotIn(fieldName, val);
+      //   break;
+    }
+  }
+
+  return qb;
+};
 
 export default CustomKnex;
 export { Knex };

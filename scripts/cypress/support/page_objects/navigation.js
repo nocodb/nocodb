@@ -123,7 +123,8 @@ export class _projectsPage {
         if (projectData.name == "") projectName = "test_proj" + Date.now();
 
         // click on "New Project"
-        cy.get(":nth-child(5) > .v-btn", { timeout: 20000 }).click();
+        // cy.get(":nth-child(5) > .v-btn", { timeout: 20000 }).click();
+        cy.get(".nc-new-project-menu").should("exist").click();
 
         if ("none" == projectData.dbType) {
             // Subsequent form, select (+ Create) option

@@ -78,7 +78,7 @@
               <v-spacer />
               <x-btn
                 outlined
-                :tooltip="`Compare GQL schema history of ${nodes.tn}`"
+                :tooltip="`Compare GQL schema history of ${nodes.table_name}`"
                 color="primary"
                 x-small
                 :disabled="loading || !swaggerDocHistory.length"
@@ -282,7 +282,7 @@ export default {
         .filter(([path]) => !this.search || path.toLowerCase().includes(this.search.toLowerCase()))
     },
     name() {
-      return this.nodes.tn || this.nodes.view_name
+      return this.nodes.table_name || this.nodes.view_name
     }
   },
   async created() {
@@ -321,7 +321,7 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
-        tn: this.nodes.tn || this.nodes.view_name
+        table_name: this.nodes.table_name || this.nodes.view_name
       }])
       this.swaggerDoc = JSON.stringify(JSON.parse(tableMeta.schema), 0, 2)
       // if (tableMeta.schema_previous) {
@@ -337,7 +337,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcModelSwaggerDocSet', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          tn: this.nodes.table_name || this.nodes.view_name,
           swaggerDoc: JSON.parse(this.swaggerDoc)
         }])
         this.$toast.success('Successfully updated swagger doc').goAway(3000)

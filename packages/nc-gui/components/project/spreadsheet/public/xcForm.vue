@@ -7,14 +7,14 @@
     <v-row v-else :class="{'d-flex justify-center': submitted}">
       <template v-if="submitted">
         <v-col class="d-flex justify-center">
-          <div v-if="localParams && localParams.submit" style="min-width: 350px">
+          <div v-if="view" style="min-width: 350px">
             <v-alert type="success" outlined>
-              <span class="title">{{ localParams.submit.message || 'Successfully submitted form data' }}</span>
+              <span class="title">{{ view.success_msg || 'Successfully submitted form data' }}</span>
             </v-alert>
-            <p v-if="localParams.submit.showBlankForm" class="caption grey--text text-center">
+            <p v-if="view.show_blank_form" class="caption grey--text text-center">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
-            <div v-if="localParams.submit.showAnotherSubmit" class=" text-center">
+            <div v-if="view.submit_another_form" class=" text-center">
               <v-btn color="primary" @click="submitted = false">
                 Submit Another Form
               </v-btn>
@@ -51,13 +51,13 @@
               <h2
                 class="mt-4 display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text  text--lighten-1"
               >
-                {{ localParams.name }}
+                {{ view.heading }}
               </h2>
 
               <div
                 class="body-1  text-left mx-4 py-2 px-1 text--text text--lighten-2"
               >
-                {{ localParams.description }}
+                {{ view.subheading }}
               </div>
               <div class="h-100">
                 <div
@@ -68,39 +68,38 @@
                 >
                   <div>
                     <div
-                      v-if="localParams.fields && localParams.fields[col.alias]"
                       :class="{
-                        'active-row' : active === col._cn,
-                        required: isRequired(col, localState, localParams.fields[col.alias].required)
+                        'active-row' : active === col.title,
+                        required: isRequired(col, localState, col.required)
                       }"
                     >
                       <div class="nc-field-editables">
                         <label
-                          :for="`data-table-form-${col._cn}`"
+                          :for="`data-table-form-${col.title}`"
                           class="body-2 text-capitalize nc-field-labels"
                         >
                           <virtual-header-cell
-                            v-if="col.virtual"
+                            v-if="isVirtualCol(col)"
                             class="caption"
-                            :column="{...col, _cn: localParams.fields[col.alias].label || col._cn}"
+                            :column="{...col, _cn: col.label || col.title}"
                             :nodes="{}"
                             :is-form="true"
                             :meta="meta"
-                            :required="isRequired(col, localState, localParams.fields[col.alias].required)"
+                            :required="isRequired(col, localState, col.required)"
                           />
                           <header-cell
                             v-else
                             class="caption"
                             :is-form="true"
-                            :value="localParams.fields[col.alias].label || col._cn"
+                            :value="col.label || col.title"
                             :column="col"
                             :sql-ui="sqlUiLoc"
-                            :required="isRequired(col, localState, localParams.fields[col.alias].required)"
+                            :required="isRequired(col, localState,col.required)"
                           />
 
                         </label>
                         <div
-                          v-if="col.virtual"
+                          v-if="isVirtualCol(col)"
                           @click.stop
                         >
                           <virtual-cell
@@ -116,15 +115,15 @@
                             :is-new="true"
                             is-form
                             is-public
-                            :hint="localParams.fields[col.alias].description"
-                            :required="localParams.fields[col.alias].description"
+                            :hint="col.description"
+                            :required="col.description"
                             :metas="metas"
                             :password="password"
-                            @update:localState="state => $set(virtual,col._cn, state)"
+                            @update:localState="state => $set(virtual,col.title, state)"
                             @updateCol="updateCol"
                           />
                           <div
-                            v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.alias] && (!$v.virtual[col.alias].required || !$v.virtual[col.alias].minLength)"
+                            v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.title] && (!$v.virtual[col.title].required || !$v.virtual[col.title].minLength)"
                             class="error--text caption"
                           >
                             Field is required.
@@ -132,10 +131,10 @@
 
                           <!-- todo: optimize -->
                           <template
-                            v-if="col.bt && $v.localState && $v.localState.$dirty && $v.localState[meta.columns.find(c => c.cn === col.bt.cn)._cn]"
+                            v-if="col.bt && $v.localState && $v.localState.$dirty && $v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title]"
                           >
                             <div
-                              v-if="!$v.localState[meta.columns.find(c => c.cn === col.bt.cn)._cn].required"
+                              v-if="!$v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title].required"
                               class="error--text caption"
                             >
                               Field is required.
@@ -144,7 +143,7 @@
                         </div>
                         <template v-else>
                           <div
-                            v-if="col.ai || disabledColumns[col._cn]"
+                            v-if="col.ai || disabledColumns[col.title]"
                             style="height:100%; width:100%"
                             class="caption xc-input"
                             @click.stop
@@ -154,7 +153,7 @@
                               style="height:100%; width: 100%"
                               readonly
                               disabled
-                              :value="localState[col._cn]"
+                              :value="localState[col.title]"
                             >
                           </div>
 
@@ -163,8 +162,8 @@
                             @click.stop
                           >
                             <editable-cell
-                              :id="`data-table-form-${col._cn}`"
-                              v-model="localState[col._cn]"
+                              :id="`data-table-form-${col.title}`"
+                              v-model="localState[col.title]"
                               :db-alias="dbAlias"
                               :column="col"
                               class="xc-input body-2"
@@ -172,13 +171,13 @@
                               :sql-ui="sqlUiLoc"
                               is-form
                               is-public
-                              :hint="localParams.fields[col.alias].description"
-                              @focus="active = col._cn"
+                              :hint="col.description"
+                              @focus="active = col.title"
                               @blur="active = ''"
                             />
                           </div>
-                          <template v-if="$v.localState&& $v.localState.$dirty && $v.localState[col._cn] ">
-                            <div v-if="!$v.localState[col._cn].required" class="error--text caption">
+                          <template v-if="$v.localState&& $v.localState.$dirty && $v.localState[col.title] ">
+                            <div v-if="!$v.localState[col.title].required" class="error--text caption">
                               Field is required.
                             </div>
                           </template>
@@ -230,6 +229,7 @@
 
 import { validationMixin } from 'vuelidate'
 import { required, minLength } from 'vuelidate/lib/validators'
+import { ErrorMessages, isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
 import form from '../mixins/form'
 import VirtualHeaderCell from '../components/virtualHeaderCell'
 import HeaderCell from '../components/headerCell'
@@ -239,10 +239,17 @@ import { SqlUI } from '../../../../helpers/sqlUi'
 
 export default {
   name: 'XcForm',
-  components: { EditableCell, VirtualCell, HeaderCell, VirtualHeaderCell },
+  components: {
+    EditableCell,
+    VirtualCell,
+    HeaderCell,
+    VirtualHeaderCell
+  },
   mixins: [form, validationMixin],
   data() {
     return {
+      viewMeta: null,
+      view: {},
       active: null,
       loading: false,
       showPasswordModal: false,
@@ -271,7 +278,7 @@ export default {
   },
   watch: {
     submitted(val) {
-      if (val && this.localParams.submit.showBlankForm) {
+      if (val && this.view.show_blank_form) {
         this.secondsRemain = 5
         const intvl = setInterval(() => {
           if (--this.secondsRemain < 0) {
@@ -286,72 +293,83 @@ export default {
     await this.loadMetaData()
   },
   methods: {
+    isVirtualCol,
     async loadMetaData() {
       this.loading = true
       try {
-        // eslint-disable-next-line camelcase
-        const {
-          meta,
-          // model_name,
-          client,
-          query_params: qp,
-          db_alias: dbAlias,
-          relatedTableMetas
-        } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewGet', {
-          view_id: this.$route.params.id,
+        this.viewMeta = (await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
           password: this.password
-        }])
-        this.client = client
-        this.meta = meta
-        this.query_params = qp
-        this.dbAlias = dbAlias
-        this.metas = relatedTableMetas
+        }))
 
-        const showFields = this.query_params.showFields || {}
-        let fields = this.query_params.fieldsOrder || []
-        if (!fields.length) {
-          fields = Object.keys(showFields)
-        }
-        // eslint-disable-next-line camelcase
-
-        let columns = this.meta.columns
-        if (this.meta && this.meta.v) {
-          columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
-        }
-
-        {
-          const _ref = {}
-          columns.forEach((c) => {
-            if (c.virtual && c.bt) {
-              c.prop = `${c.bt.rtn}Read`
-            }
-            if (c.virtual && c.mm) {
-              c.prop = `${c.mm.rtn}MMList`
-            }
-            if (c.virtual && c.hm) {
-              c.prop = `${c.hm.tn}List`
-            }
-
-            // if (c.virtual && c.lk) {
-            //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-            // } else {
-            c.alias = c._cn
-            // }
-            if (c.alias in _ref) {
-              c.alias += _ref[c.alias]++
-            } else {
-              _ref[c.alias] = 1
-            }
-          })
-        }
-        // this.modelName = model_name
-        this.columns = columns.filter(c => showFields[c.alias]).sort((a, b) => fields.indexOf(a.alias) - fields.indexOf(b.alias))
-
-        this.localParams = (this.query_params.extraViewParams && this.query_params.extraViewParams.formParams) || {}
+        this.view = this.viewMeta.view
+        this.meta = this.viewMeta.model
+        this.metas = this.viewMeta.relatedMetas
+        this.columns = this.meta.columns.filter(c => c.show)
+        this.client = this.viewMeta.client
+      // try {
+      //   // eslint-disable-next-line camelcase
+      //   const {
+      //     meta,
+      //     // model_name,
+      //     client,
+      //     query_params: qp,
+      //     db_alias: dbAlias,
+      //     relatedTableMetas
+      //   } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewGet', {
+      //     view_id: this.$route.params.id,
+      //     password: this.password
+      //   }])
+      //   this.client = client
+      //   this.meta = meta
+      //   this.query_params = qp
+      //   this.dbAlias = dbAlias
+      //   this.metas = relatedTableMetas
+      //
+      //   const showFields = this.query_params.showFields || {}
+      //   let fields = this.query_params.fieldsOrder || []
+      //   if (!fields.length) {
+      //     fields = Object.keys(showFields)
+      //   }
+      //   // eslint-disable-next-line camelcase
+      //
+      //   let columns = this.meta.columns
+      //   if (this.meta && this.meta.v) {
+      //     columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
+      //   }
+      //
+      //   {
+      //     const _ref = {}
+      //     columns.forEach((c) => {
+      //       if (c.virtual && c.bt) {
+      //         c.prop = `${c.bt.rtn}Read`
+      //       }
+      //       if (c.virtual && c.mm) {
+      //         c.prop = `${c.mm.rtn}MMList`
+      //       }
+      //       if (c.virtual && c.hm) {
+      //         c.prop = `${c.hm.table_name}List`
+      //       }
+      //
+      //       // if (c.virtual && c.lk) {
+      //       //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
+      //       // } else {
+      //       c.alias = c.title
+      //       // }
+      //       if (c.alias in _ref) {
+      //         c.alias += _ref[c.alias]++
+      //       } else {
+      //         _ref[c.alias] = 1
+      //       }
+      //     })
+      //   }
+      //   // this.modelName = model_name
+      //   this.columns = columns.filter(c => showFields[c.alias]).sort((a, b) => fields.indexOf(a.alias) - fields.indexOf(b.alias))
+      //
+      //   this.localParams = (this.query_params.extraViewParams && this.query_params.extraViewParams.formParams) || {}
       } catch (e) {
-        if (e.message === 'Not found' || e.message === 'Meta not found') {
+        if (e.response && e.response.status === 404) {
           this.notFound = true
-        } else if (e.message === 'Invalid password') {
+        } else if (await this._extractSdkResponseErrorMsg(e) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
           this.showPasswordModal = true
         }
       }
@@ -361,13 +379,13 @@ export default {
     async save() {
       try {
         this.$v.$touch()
-        if (this.$v.localState.$invalid) {
+        if (this.$v.localState.$invalid || this.$v.virtual.$invalid) {
           this.$toast.error('Provide values of all required field').goAway(3000)
           return
         }
 
         this.submitting = true
-        // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
+        // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
 
         // const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
         //   obj[col] = this.localState[col]
@@ -376,28 +394,21 @@ export default {
 
         // if (this.isNew) {
 
-        const formData = new FormData()
-        const data = { ...this.localState }
+        // const formData = new FormData()
+        const data = { ...this.localState, ...this.virtual }
+        const attachment = {}
 
         for (const col of this.meta.columns) {
-          if (col.uidt === 'Attachment') {
-            const files = data[col._cn]
-            delete data[col._cn]
-            for (const file of (files || [])) {
-              formData.append(`${col._cn}`, file)
-            }
+          if (col.uidt === UITypes.Attachment) {
+            attachment[`_${col.title}`] = data[col.title]
+            delete data[col.title]
           }
         }
 
-        await this.$store.dispatch('sqlMgr/ActUpload', {
-          op: 'sharedViewInsert',
-          opArgs: {
-            view_id: this.$route.params.id,
-            password: this.password,
-            data,
-            nested: this.virtual
-          },
-          formData
+        await this.$api.public.dataCreate(this.$route.params.id, {
+          data,
+          password: this.password,
+          ...attachment
         })
 
         this.virtual = {}
@@ -405,7 +416,7 @@ export default {
 
         this.submitted = true
 
-        this.$toast.success(this.localParams.submit.message || 'Saved successfully.', {
+        this.$toast.success(this.view.success_msg || 'Saved successfully.', {
           position: 'bottom-right'
         }).goAway(3000)
       } catch
@@ -421,26 +432,29 @@ export default {
   },
 
   validations() {
-    const obj = { localState: {}, virtual: {} }
+    const obj = {
+      localState: {},
+      virtual: {}
+    }
     for (const column of this.columns) {
-      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
-        continue
-      }
-      if (!column.virtual && (((column.rqd || column.notnull) && !column.default) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.alias].required)) {
-        obj.localState[column._cn] = { required }
-      } else if (column.bt) {
-        const col = this.meta.columns.find(c => c.cn === column.bt.cn)
+      // if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
+      //   continue
+      // }
+      if (!isVirtualCol(column) && (((column.rqd || column.notnull) && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
+        obj.localState[column.title] = { required }
+      } else if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions && column.colOptions.type === RelationTypes.BELONGS_TO) {
+        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
 
-        console.log(col, this.meta.columns, column)
-
-        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
-          obj.localState[col._cn] = { required }
+        if ((col && col.rqd && !col.cdf) || column.required) {
+          obj.localState[col.title] = { required }
         }
-      } else if (column.virtual && this.localParams.fields[column.alias].required && (column.mm || column.hm)) {
-        obj.virtual[column.alias] = { minLength: minLength(1), required }
+      } else if (isVirtualCol(column) && column.required) {
+        obj.virtual[column.title] = {
+          minLength: minLength(1),
+          required
+        }
       }
     }
-
     return obj
   }
 }

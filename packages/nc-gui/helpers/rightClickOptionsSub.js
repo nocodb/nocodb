@@ -59,13 +59,13 @@ export default {
   },
   table: {
     // "Send to SQL Editor": {
-    'Copy To Clipboard': {
-      'Create Statement': 'ENV_DB_TABLES_CREATE_STATEMENT',
-      'Insert Statement': 'ENV_DB_TABLES_INSERT_STATEMENT',
-      'Update Statement': 'ENV_DB_TABLES_UPDATE_STATEMENT',
-      'Select Statement': 'ENV_DB_TABLES_DELETE_STATEMENT',
-      'Delete Statement': 'ENV_DB_TABLES_SELECT_STATEMENT'
-    },
+    // 'Copy To Clipboard': {
+    //   'Create Statement': 'ENV_DB_TABLES_CREATE_STATEMENT',
+    //   'Insert Statement': 'ENV_DB_TABLES_INSERT_STATEMENT',
+    //   'Update Statement': 'ENV_DB_TABLES_UPDATE_STATEMENT',
+    //   'Select Statement': 'ENV_DB_TABLES_DELETE_STATEMENT',
+    //   'Delete Statement': 'ENV_DB_TABLES_SELECT_STATEMENT'
+    // },
     ...(process.env.NODE_ENV === 'dev' ? { 'Show _Nodes Info': 'SHOW_NODES' } : {})
   },
   view: {

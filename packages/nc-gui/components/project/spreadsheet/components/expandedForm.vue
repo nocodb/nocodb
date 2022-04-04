@@ -8,7 +8,7 @@
           </v-icon>
 
           <template v-if="meta">
-            {{ meta._tn }}
+            {{ meta.title }}
           </template>
           <template v-else>
             {{ table }}
@@ -21,15 +21,6 @@
             mdi-reload
           </v-icon>
         </v-btn>
-
-        <x-icon
-          :tooltip="`${showSystemFields ? 'Hide' : 'Show'} system fields`"
-          icon.class="mr-3 mt-n1"
-          small
-          @click="showSystemFields = !showSystemFields"
-        >
-          mdi-table-headers-eye
-        </x-icon>
 
         <x-icon
           v-if="!isNew && _isUIAllowed('rowComments')"
@@ -82,18 +73,18 @@
                 v-for="(col,i) in fields"
               >
                 <div
-                  v-if="!col.lk"
+                  v-if="!col.lk && (!showFields || showFields[col.title])"
                   :key="i"
                   :class="{
-                    'active-row' : active === col._cn,
+                    'active-row' : active === col.title,
                     required: isValid(col, localState)
                   }"
                   class="row-col  my-4"
                 >
                   <div>
-                    <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize">
+                    <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize">
                       <virtual-header-cell
-                        v-if="col.virtual"
+                        v-if="col.colOptions"
                         :column="col"
                         :nodes="nodes"
                         :is-form="true"
@@ -102,15 +93,15 @@
                       <header-cell
                         v-else
                         :is-form="true"
-                        :is-foreign-key="col.cn in belongsTo || col.cn in hasMany"
-                        :value="col._cn"
+                        :is-foreign-key="col.type === UITypes.ForeignKey"
+                        :value="col.title"
                         :column="col"
                         :sql-ui="sqlUi"
                       />
 
                     </label>
                     <virtual-cell
-                      v-if="col.virtual"
+                      v-if="isVirtualCol(col)"
                       ref="virtual"
                       :disabled-columns="disabledColumns"
                       :column="col"
@@ -119,7 +110,6 @@
                       :meta="meta"
                       :api="api"
                       :active="true"
-                      :sql-ui="sqlUi"
                       :is-new="isNew"
                       :is-form="true"
                       :breadcrumbs="localBreadcrumbs"
@@ -128,7 +118,7 @@
                     />
 
                     <div
-                      v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
+                      v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col.title]"
                       style="height:100%; width:100%"
                       class="caption xc-input"
                       @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
@@ -137,14 +127,14 @@
                         style="height:100%; width: 100%"
                         readonly
                         disabled
-                        :value="localState[col._cn]"
+                        :value="localState[col.title]"
                       >
                     </div>
 
                     <editable-cell
                       v-else
-                      :id="`data-table-form-${col._cn}`"
-                      v-model="localState[col._cn]"
+                      :id="`data-table-form-${col.title}`"
+                      v-model="localState[col.title]"
                       :db-alias="dbAlias"
                       :column="col"
                       class="xc-input body-2"
@@ -152,9 +142,9 @@
                       :sql-ui="sqlUi"
                       :is-form="true"
                       :is-locked="isLocked"
-                      @focus="active = col._cn"
+                      @focus="active = col.title"
                       @blur="active = ''"
-                      @input="$set(changedColumns,col._cn, true)"
+                      @input="$set(changedColumns,col.title, true)"
                     />
                   </div>
                 </div>
@@ -182,37 +172,46 @@
                   'darken-4':$vuetify.theme.dark
                 }"
               >
-                <v-list-item v-for="log in logs" :key="log.id" class="d-flex">
-                  <v-list-item-icon class="ma-0 mr-2">
-                    <v-icon :color="isYou(log.user) ? 'pink lighten-2' : 'blue lighten-2'">
-                      mdi-account-circle
-                    </v-icon>
-                  </v-list-item-icon>
-                  <div class="flex-grow-1" style="min-width: 0">
-                    <p class="mb-1 caption edited-text">
-                      {{ isYou(log.user) ? 'You' : log.user==null?'Shared base':log.user }} {{
-                        log.op_type === 'COMMENT' ? 'commented' : (
-                          log.op_sub_type === 'INSERT' ? 'created' : 'edited'
-                        )
-                      }}
-                    </p>
-                    <p v-if="log.op_type === 'COMMENT'" class="caption mb-0 nc-chip" :style="{background :colors[2]}">
-                      {{ log.description }}
-                    </p>
+                <div>
+                  <v-list-item v-for="log in logs" :key="log.id" class="d-flex">
+                    <v-list-item-icon class="ma-0 mr-2">
+                      <v-icon :color="isYou(log.user) ? 'pink lighten-2' : 'blue lighten-2'">
+                        mdi-account-circle
+                      </v-icon>
+                    </v-list-item-icon>
+                    <div class="flex-grow-1" style="min-width: 0">
+                      <p class="mb-1 caption edited-text">
+                        {{ isYou(log.user) ? 'You' : log.user == null ? 'Shared base' : log.user }} {{
+                          log.op_type === 'COMMENT' ? 'commented' : (
+                            log.op_sub_type === 'INSERT' ? 'created' : 'edited'
+                          )
+                        }}
+                      </p>
+                      <p v-if="log.op_type === 'COMMENT'" class="caption mb-0 nc-chip" :style="{background :colors[2]}">
+                        {{ log.description }}
+                      </p>
 
-                    <p v-else class="caption mb-0" style="word-break: break-all;" v-html="log.details" />
+                      <p v-else class="caption mb-0" style="word-break: break-all;" v-html="log.details" />
 
-                    <p class="time text-right mb-0">
-                      {{ calculateDiff(log.created_at) }}
-                    </p>
-                  </div>
-                </v-list-item>
+                      <p class="time text-right mb-0">
+                        {{ calculateDiff(log.created_at) }}
+                      </p>
+                    </div>
+                  </v-list-item>
+                </div>
               </v-list>
 
               <v-spacer />
               <v-divider />
               <div class="d-flex align-center justify-center">
-                <v-switch v-model="commentsOnly" class="mt-1" dense hide-details @change="getAuditsAndComments">
+                <v-switch
+                  v-model="commentsOnly"
+                  v-t="['record:comment:comments-only']"
+                  class="mt-1"
+                  dense
+                  hide-details
+                  @change="getAuditsAndComments"
+                >
                   <template #label>
                     <span class="caption grey--text">Comments only</span>
                   </template>
@@ -251,6 +250,7 @@
     <v-btn
       v-if="_isUIAllowed('rowComments')"
       v-show="!toggleDrawer"
+      v-t="['record:comment-toggle']"
       class="comment-icon"
       color="primary"
       fab
@@ -264,13 +264,13 @@
 <script>
 
 import dayjs from 'dayjs'
+import { AuditOperationSubTypes, AuditOperationTypes, isVirtualCol, UITypes } from 'nocodb-sdk'
 import form from '../mixins/form'
 import HeaderCell from '@/components/project/spreadsheet/components/headerCell'
 import EditableCell from '@/components/project/spreadsheet/components/editableCell'
 import colors from '@/mixins/colors'
 import VirtualCell from '@/components/project/spreadsheet/components/virtualCell'
 import VirtualHeaderCell from '@/components/project/spreadsheet/components/virtualHeaderCell'
-import { UITypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
@@ -278,9 +278,15 @@ dayjs.extend(utc)
 dayjs.extend(relativeTime)
 export default {
   name: 'ExpandedForm',
-  components: { VirtualHeaderCell, VirtualCell, EditableCell, HeaderCell },
+  components: {
+    VirtualHeaderCell,
+    VirtualCell,
+    EditableCell,
+    HeaderCell
+  },
   mixins: [colors, form],
   props: {
+    showFields: Object,
     showNextPrev: {
       type: Boolean,
       default: false
@@ -295,8 +301,8 @@ export default {
     value: Object,
     table: String,
     primaryValueColumn: String,
-    hasMany: [Object, Array],
-    belongsTo: [Object, Array],
+    // hasMany: [Object, Array],
+    // belongsTo: [Object, Array],
     isNew: Boolean,
     oldRow: Object,
     iconColor: {
@@ -307,9 +313,11 @@ export default {
     queryParams: Object,
     meta: Object,
     presetValues: Object,
-    isLocked: Boolean,
+    isLocked: Boolean
   },
   data: () => ({
+    isVirtualCol,
+    UITypes,
     showborder: false,
     loadingLogs: true,
     toggleDrawer: false,
@@ -323,7 +331,7 @@ export default {
   }),
   computed: {
     primaryKey() {
-      return this.isNew ? '' : this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
+      return this.isNew ? '' : this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
     },
     edited() {
       return !!Object.keys(this.changedColumns).length
@@ -338,8 +346,8 @@ export default {
       if (this.showSystemFields) {
         return this.meta.columns || []
       } else {
-        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
-          !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) &&
+          !((this.meta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))
         ) || []
       }
     },
@@ -347,7 +355,7 @@ export default {
       return Object.values(this.changedColumns).some(Boolean)
     },
     localBreadcrumbs() {
-      return [...this.breadcrumbs, `${this.meta ? this.meta._tn : this.table} (${this.primaryValue()})`]
+      return [...this.breadcrumbs, `${this.meta ? this.meta.title : this.table} ${this.primaryValue() ? `(${this.primaryValue()})` : ''}`]
     }
   },
   watch: {
@@ -389,17 +397,25 @@ export default {
     },
     async getAuditsAndComments() {
       this.loadingLogs = true
-      const data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.dbAlias }, 'xcModelRowAuditAndCommentList', {
-        model_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___'),
-        model_name: this.meta._tn,
-        comments: this.commentsOnly
-      }])
-      this.logs = data.list
+
+      const data = (await this.$api.utils.commentList({
+        row_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___'),
+        fk_model_id: this.meta.id,
+        comments_only: this.commentsOnly
+      }))
+
+      this.logs = data.reverse()
       this.loadingLogs = false
+
+      this.$nextTick(() => {
+        if (this.$refs.commentsList && this.$refs.commentsList.$el && this.$refs.commentsList.$el.firstElementChild) {
+          this.$refs.commentsList.$el.scrollTop = this.$refs.commentsList.$el.firstElementChild.offsetHeight
+        }
+      })
     },
     async save() {
       try {
-        const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
+        const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
 
         if (this.presetValues) {
           // cater presetValues
@@ -414,7 +430,7 @@ export default {
         }, {})
 
         if (this.isNew) {
-          const data = await this.api.insert(updatedObj)
+          const data = (await this.$api.data.create(this.viewId || this.meta.id, updatedObj))
           this.localState = { ...this.localState, ...data }
 
           // save hasmany and manytomany relations from local state
@@ -431,7 +447,18 @@ export default {
           if (!id) {
             return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
-          await this.api.update(id, updatedObj, this.oldRow)
+          await this.$api.data.update(this.viewId || this.meta.id, id, updatedObj)
+          for (const key of Object.keys(updatedObj)) {
+            // audit
+            this.$api.utils.auditRowUpdate({
+              fk_model_id: this.meta.id,
+              column_name: key,
+              row_id: id,
+              value: updatedObj[key],
+              prev_value: this.oldRow[key]
+            }).then(() => {
+            })
+          }
         } else {
           return this.$toast.info('No columns to update').goAway(3000)
         }
@@ -447,31 +474,25 @@ export default {
       } catch (e) {
         this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
       }
+      this.$tele.emit('record:add:submit')
     },
     async reload() {
-      const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
-      // const where = this.meta.columns.filter(c => c.pk).map(c => `(${c._cn},eq,${this.localState[c._cn]})`).join('~and')
+      const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
       this.$set(this, 'changedColumns', {})
-      this.localState = await this.api.read(id, this.queryParams || {})
-      // const data = await this.api.list({ ...(this.queryParams || {}), where }) || [{}]
-      // this.localState = data[0] || this.localState
-      if (!this.isNew && this.toggleDrawer) {
-        this.getAuditsAndComments()
-      }
+      this.localState = (await this.$api.data.read(this.viewId || this.meta.id, id, { query: this.queryParams || {} }))
     },
     calculateDiff(date) {
       return dayjs.utc(date).fromNow()
     },
     async saveComment() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [
-          { dbAlias: this.dbAlias },
-          'xcAuditCommentInsert', {
-            model_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___'),
-            model_name: this.meta._tn,
-            description: this.comment
-          }
-        ])
+
+        await this.$api.utils.commentRow({
+          fk_model_id: this.meta.id,
+          row_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___'),
+          description: this.comment
+        })
+
         this.comment = ''
         this.$toast.success('Comment added successfully').goAway(3000)
         this.$emit('commented')
@@ -479,22 +500,32 @@ export default {
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
+
+      this.$tele.emit('record:comment:insert')
     },
     primaryValue() {
       if (this.localState) {
         const value = this.localState[this.primaryValueColumn]
-        const col = this.meta.columns.find(c => c._cn == this.primaryValueColumn)
-        if (!col) { return }
+        const col = this.meta.columns.find(c => c.title == this.primaryValueColumn)
+        if (!col) {
+          return
+        }
         const uidt = col.uidt
         if (uidt == UITypes.Date) {
           return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
         } else if (uidt == UITypes.DateTime) {
-          return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD HH:mm')
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm')
         } else if (uidt == UITypes.Time) {
           let dateTime = dayjs(value)
-          if (!dateTime.isValid()) { dateTime = dayjs(value, 'HH:mm:ss') }
-          if (!dateTime.isValid()) { dateTime = dayjs(`1999-01-01 ${value}`) }
-          if (!dateTime.isValid()) { return value }
+          if (!dateTime.isValid()) {
+            dateTime = dayjs(value, 'HH:mm:ss')
+          }
+          if (!dateTime.isValid()) {
+            dateTime = dayjs(`1999-01-01 ${value}`)
+          }
+          if (!dateTime.isValid()) {
+            return value
+          }
           return dateTime.format('HH:mm:ss')
         }
         return value
@@ -635,8 +666,8 @@ h5 {
   background: var(--v-backgroundColorDefault-base);
 }
 
-.nc-chip{
-  padding:8px;
+.nc-chip {
+  padding: 8px;
   border-radius: 8px;
 }
 </style>

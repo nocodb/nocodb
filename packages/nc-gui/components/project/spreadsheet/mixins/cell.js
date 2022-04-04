@@ -1,3 +1,4 @@
+import { UITypes } from 'nocodb-sdk'
 import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
@@ -14,7 +15,7 @@ export default {
       return ui && ui.icon
     },
     abstractType() {
-      return this.sqlUi && this.sqlUi.getAbstractType(this.column)
+      return this.sqlUi && this.column && this.column.dt && this.sqlUi.getAbstractType(this.column)
     },
     dataTypeLow() {
       return this.column && this.column.dt && this.column.dt.toLowerCase()
@@ -26,7 +27,7 @@ export default {
       return this.abstractType === 'string'
     },
     isTextArea() {
-      return this.column.uidt === 'LongText'
+      return this.uiDatatype === UITypes.LongText
     },
     isInt() {
       return this.abstractType === 'integer'
@@ -35,28 +36,28 @@ export default {
       return this.abstractType === 'float'
     },
     isDate() {
-      return this.abstractType === 'date' || this.column.uidt === 'Date'
+      return this.abstractType === 'date' || this.uiDatatype === 'Date'
     },
     isTime() {
-      return this.abstractType === 'time' || this.column.uidt === 'Time'
+      return this.abstractType === 'time' || this.uiDatatype === 'Time'
     },
     isDateTime() {
-      return this.abstractType === 'datetime' || this.column.uidt === 'DateTime'
+      return this.abstractType === 'datetime' || this.uiDatatype === 'DateTime'
     },
     isJSON() {
-      return this.abstractType === 'json' || this.column.uidt === 'JSON'
+      return this.abstractType === 'json' || this.uiDatatype === 'JSON'
     },
     isEnum() {
-      return this.column.uidt === 'SingleSelect'
+      return this.uiDatatype === 'SingleSelect'
     },
     isSet() {
-      return this.column.uidt === 'MultiSelect'
+      return this.uiDatatype === 'MultiSelect'
     },
     isURL() {
-      return this.column.uidt === 'URL'
+      return this.uiDatatype === 'URL'
     },
     isAttachment() {
-      return this.column.uidt === 'Attachment'
+      return this.uiDatatype === 'Attachment'
     },
     isCurrency() {
       return this.column.uidt == 'Currency'

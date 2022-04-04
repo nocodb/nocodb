@@ -18,20 +18,11 @@ export default {
       },
       set(val) {
         this.$emit('input', val)
-        // this.$emit('update');
       }
     },
 
     parentListeners() {
       const $listeners = {}
-
-      // if (this.$listeners.blur) {
-      //   $listeners.blur = this.$listeners.blur
-      // }
-      // if (this.$listeners.focus) {
-      //   $listeners.focus = this.$listeners.focus
-      // }
-
       return $listeners
     }
   },

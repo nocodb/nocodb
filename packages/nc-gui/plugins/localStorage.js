@@ -43,8 +43,6 @@ export default async({ store, $vuetify: { theme }, route }) => {
       fetchBeforeUse: true,
       async rehydrated(store) {
         window.rehydrated = true
-        console.log(store.state.windows)
-        console.log('Date difference ', await store.dispatch('windows/ActGetExpiryDate'))
       },
       paths: ['users', 'sqlClient', 'apiClient', 'panelSize', 'windows', 'graphqlClient', 'apiClientSwagger', 'app'],
       ...(

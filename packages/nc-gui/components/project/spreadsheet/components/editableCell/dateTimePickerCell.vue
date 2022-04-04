@@ -41,11 +41,11 @@ export default {
         return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
           .format('YYYY-MM-DD HH:mm')
       },
-      set(val) {
-        if(this.$parent.sqlUi.name == 'MysqlUi') {
-          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm:ss'))
+      set(value) {
+        if (this.$parent.sqlUi.name === 'MysqlUi') {
+          this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ss'))
         } else {
-          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD HH:mm:ssZ'))
+          this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ssZ'))
         }
       }
     },

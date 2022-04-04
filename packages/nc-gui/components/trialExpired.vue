@@ -14,14 +14,11 @@
 
 <script>
 
-// const {shell} = require("electron").remote.require(
-//   "./libs"
-// );
+
 export default {
   name: 'TrialExpired',
   methods: {
     openPricingPage() {
-      // shell.openExternal('https://nocodb.com/pricing');
     }
   }
 }

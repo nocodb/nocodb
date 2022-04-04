@@ -1,27 +1,31 @@
 import BaseRender from '../../BaseRender';
 import UITypes from '../../../../sqlUi/UITypes';
+import mapDefaultPrimaryValue from '../../../../noco/meta/helpers/mapDefaultPrimaryValue';
 
 abstract class BaseModelXcMeta extends BaseRender {
   protected abstract _getAbstractType(column: any): any;
 
-  protected abstract _getUIDataType(column: any): any;
+  public abstract getUIDataType(column: any): any;
 
   public getXcColumnsObject(args) {
     const columnsArr = [];
 
     for (const column of args.columns) {
+      if (this.ctx?.belongsTo?.find(c => c.cn === column.cn))
+        column.uidt = UITypes.ForeignKey;
+
       const columnObj = {
         validate: {
           func: [],
           args: [],
           msg: []
         },
-        cn: column.cn,
-        _cn: column._cn || column.cn,
+        column_name: column.cn || column.column_name,
+        title: column._cn || column.cn || column.column_name || column.title,
         type: this._getAbstractType(column),
         dt: column.dt,
 
-        uidt: column.uidt || this._getUIDataType(column),
+        uidt: column.uidt || this.getUIDataType(column),
         uip: column.uip,
         uicn: column.uicn,
         ...column
@@ -95,14 +99,21 @@ abstract class BaseModelXcMeta extends BaseRender {
   }
 
   public getVitualColumns(): any[] {
+    // todo: handle duplicate relation
     const virtualColumns = [
-      ...(this.ctx.hasMany || []).map(hm => ({
-        hm,
-        _cn: `${hm._rtn} => ${hm._tn}`
-      })),
+      ...(this.ctx.hasMany || []).map(hm => {
+        return {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: 'hm',
+          hm,
+          _cn: `${hm._tn}List`
+        };
+      }),
       ...(this.ctx.belongsTo || []).map(bt => ({
+        uidt: UITypes.LinkToAnotherRecord,
+        type: 'bt',
         bt,
-        _cn: `${bt._rtn} <= ${bt._tn}`
+        _cn: `${bt._rtn}Read`
       }))
     ];
 
@@ -117,52 +128,7 @@ abstract class BaseModelXcMeta extends BaseRender {
   }
 
   public mapDefaultPrimaryValue(columnsArr: any[]): void {
-    // pk can be at the end
-
-    //
-
-    /*
-
-      if PK is at the end of table
-         if (there is a column for PV)
-              make that PV
-         else
-              lets think
-      else if (pk is not at the end of table)
-         if (there is a column for PV)
-              make that PV
-         else
-              lets think
-      else if ( no pk at all)
-          let's think
-        */
-
-    if (!columnsArr.some(column => column.pv)) {
-      let len = columnsArr.length;
-      let pkIndex = -1;
-
-      while (len--) {
-        if (columnsArr[len].pk) {
-          pkIndex = len;
-          break;
-        }
-      }
-
-      // if PK is at the end of table
-      if (pkIndex === columnsArr.length - 1) {
-        if (pkIndex > 0) {
-          columnsArr[pkIndex - 1].pv = true;
-        }
-      }
-      // pk is not at the end of table
-      else if (pkIndex > -1) {
-        columnsArr[pkIndex + 1].pv = true;
-      }
-      //  no pk at all
-      else {
-        // todo:
-      }
-    }
+    mapDefaultPrimaryValue(columnsArr);
   }
 }
 

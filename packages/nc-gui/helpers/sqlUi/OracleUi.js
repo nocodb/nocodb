@@ -2,7 +2,7 @@ export class OracleUi {
   static getNewTableColumns() {
     return [
       {
-        cn: 'id',
+        column_name: 'id',
         dt: 'integer',
         dtx: 'integer',
         ct: 'int(11)',
@@ -24,7 +24,7 @@ export class OracleUi {
         uicn: ''
       },
       {
-        cn: 'title',
+        column_name: 'title',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -45,48 +45,12 @@ export class OracleUi {
         uip: '',
         uicn: ''
       }
-      // {
-      //   cn: "created_at",
-      //   dt: "timestamp",
-      //   dtx: "specificType",
-      //   ct: "varchar(45)",
-      //   nrqd: true,
-      //   rqd: false,
-      //   ck: false,
-      //   pk: false,
-      //   un: false,
-      //   ai: false,
-      //   cdf: 'CURRENT_TIMESTAMP',
-      //   clen: 45,
-      //   np: null,
-      //   ns: null,
-      //   dtxp: '',
-      //   dtxs: ''
-      // },
-      // {
-      //   cn: "updated_at",
-      //   dt: "timestamp",
-      //   dtx: "specificType",
-      //   ct: "varchar(45)",
-      //   nrqd: true,
-      //   rqd: false,
-      //   ck: false,
-      //   pk: false,
-      //   un: false,
-      //   ai: false,
-      //   cdf: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
-      //   clen: 45,
-      //   np: null,
-      //   ns: null,
-      //   dtxp: '',
-      //   dtxs: ''
-      // }
     ]
   }
 
   static getNewColumn(suffix) {
     return {
-      cn: 'title' + suffix,
+      column_name: 'title' + suffix,
       dt: 'integer',
       dtx: 'specificType',
       ct: 'integer(11)',
@@ -110,121 +74,7 @@ export class OracleUi {
     }
   }
 
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
+
 
   static getDefaultLengthForDatatype(type) {
     switch (type) {
@@ -362,7 +212,7 @@ export class OracleUi {
       col.dt === 'bigint' ||
       col.dt === 'smallint') {
       for (let i = 0; i < columns.length; ++i) {
-        if (columns[i].cn !== col.cn && columns[i].ai) {
+        if (columns[i].column_name !== col.column_name && columns[i].ai) {
           return true
         }
       }
@@ -373,17 +223,7 @@ export class OracleUi {
   }
 
   static colPropUNDisabled(col) {
-    // console.log(col);
     return true
-    // if (col.dt === 'int' ||
-    //   col.dt === 'tinyint' ||
-    //   col.dt === 'smallint' ||
-    //   col.dt === 'mediumint' ||
-    //   col.dt === 'bigint') {
-    //   return false;
-    // } else {
-    //   return true;
-    // }
   }
 
   static onCheckboxChangeAI(col) {
@@ -391,12 +231,6 @@ export class OracleUi {
     if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
       col.altered = col.altered || 2
     }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
   }
 
   static showScale(columnObj) {
@@ -411,14 +245,14 @@ export class OracleUi {
         columns[i].dt === 'smallint' ||
         columns[i].dt === 'mediumint'))) {
         columns[i].un = false
-        console.log('>> resetting unsigned value', columns[i].cn)
+        console.log('>> resetting unsigned value', columns[i].column_name)
       }
-      console.log(columns[i].cn)
+      console.log(columns[i].column_name)
     }
   }
 
   static columnEditable(colObj) {
-    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
+    return colObj.table_name !== '_evolutions' || colObj.table_name !== 'nc_evolutions'
   }
 
   static extractFunctionName(query) {
@@ -443,15 +277,7 @@ export class OracleUi {
 
   static onCheckboxChangeAU(col) {
     console.log(col)
-    // if (1) {
     col.altered = col.altered || 2
-    // }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
   }
 
   /**
@@ -489,7 +315,7 @@ export class OracleUi {
                 columns.push({
                   dp: null,
                   tn,
-                  cn: keys[i],
+                  column_name: keys[i],
                   cno: keys[i],
                   dt: 'int',
                   np: 10,
@@ -515,7 +341,7 @@ export class OracleUi {
                 columns.push({
                   dp: null,
                   tn,
-                  cn: keys[i],
+                  column_name: keys[i],
                   cno: keys[i],
                   dt: 'float',
                   np: 10,
@@ -547,7 +373,7 @@ export class OracleUi {
                 columns.push({
                   dp: null,
                   tn,
-                  cn: keys[i],
+                  column_name: keys[i],
                   cno: keys[i],
                   dt: 'varchar',
                   np: 45,
@@ -573,7 +399,7 @@ export class OracleUi {
                 columns.push({
                   dp: null,
                   tn,
-                  cn: keys[i],
+                  column_name: keys[i],
                   cno: keys[i],
                   dt: 'text',
                   np: null,
@@ -603,7 +429,7 @@ export class OracleUi {
               columns.push({
                 dp: null,
                 tn,
-                cn: keys[i],
+                column_name: keys[i],
                 cno: keys[i],
                 dt: 'boolean',
                 np: 3,
@@ -631,7 +457,7 @@ export class OracleUi {
               columns.push({
                 dp: null,
                 tn,
-                cn: keys[i],
+                column_name: keys[i],
                 cno: keys[i],
                 dt: 'json',
                 np: 3,

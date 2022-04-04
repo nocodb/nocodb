@@ -229,10 +229,10 @@ export default {
               c.prop = `${c.mm.rtn}MMList`
             }
             if (c.virtual && c.hm) {
-              c.prop = `${c.hm.tn}List`
+              c.prop = `${c.hm.table_name}List`
             }
 
-            c.alias = c._cn
+            c.alias = c.title
             if (c.alias in _ref) {
               c.alias += _ref[c.alias]++
             } else {

@@ -12,315 +12,24 @@
         color="pink"
         @change="onTabChange"
       >
-        <template v-if="_isUIAllowed('model')">
-          <v-tab v-show="false" class="">
-            <v-icon small>
-              mdi-table-eye
-            </v-icon>&nbsp;
-            <span class="caption text-capitalize font-weight-bold"> Model</span>
-          </v-tab>
-          <v-tab-item
-            style="height:100%"
-          >
-            <v-tabs
-              color="pink"
-              height="38"
-              class="table-tabs"
-              ma-0
-              pa-0
-              style="height:100%"
-            >
-              <v-tab ripple class="">
-                <v-icon small>
-                  mdi-view-column
-                </v-icon>&nbsp;
-                <span class="caption font-weight-bold text-capitalize">Columns</span>
-              </v-tab>
-
-              <v-tab-item
-                style="height:100%"
-              >
-                <columnList
-                  ref="tabs0"
-                  :nodes="nodes"
-                  :new-table="newTableCopy"
-                  :mtd-new-table-update="mtdNewTableUpdate"
-                  :delete-table="deleteTable"
-                  :is-meta-table="isMetaTable"
-                />
-              </v-tab-item>
-
-              <v-tab ripple class="" @click="loadIndexList = true">
-                <v-icon small>
-                  mdi-blur
-                </v-icon>&nbsp;
-                <span class="caption font-weight-bold text-capitalize">Indexes</span>
-              </v-tab>
-              <v-tab-item
-                :transition="false"
-                style="height:100%"
-                :reverse-transition="false"
-              >
-                <indexList
-                  v-if="loadIndexList"
-                  ref="tabs1"
-                  :nodes="nodes"
-                  :new-table="newTableCopy"
-                  :mtd-new-table-update="mtdNewTableUpdate"
-                  :delete-table="deleteTable"
-                  :is-meta-table="isMetaTable"
-                />
-              </v-tab-item>
-
-              <v-tab ripple class="" @click="loadTriggerList = true">
-                <v-icon small>
-                  mdi-clock-in
-                </v-icon>&nbsp;
-                <span class="caption font-weight-bold text-capitalize"> Triggers</span>
-              </v-tab>
-              <v-tab-item
-                style="height:100%"
-              >
-                <triggerList
-                  v-if="loadTriggerList"
-                  ref="tabs2"
-                  :nodes="nodes"
-                  :new-table="newTableCopy"
-                  :mtd-new-table-update="mtdNewTableUpdate"
-                  :delete-table="deleteTable"
-                  :is-meta-table="isMetaTable"
-                />
-              </v-tab-item>
-
-              <!--      <v-tab ripple class="divider v-tab-border-right" @click="loadConstraintList = true">-->
-              <!--        <v-icon small>mdi-view-column</v-icon>-->
-              <!--        Constraints-->
-              <!--      </v-tab>-->
-              <!--      <v-tab-item :transition="false" >-->
-              <!--        <constraintList-->
-              <!--          v-if="loadConstraintList"-->
-              <!--          :nodes="this.nodes"-->
-              <!--          :newTable="this.newTableCopy"-->
-              <!--          :mtdNewTableUpdate="this.mtdNewTableUpdate"-->
-              <!--          :deleteTable="this.deleteTable"-->
-              <!--        />-->
-              <!--      </v-tab-item>-->
-
-              <!--            </v-tabs>-->
-
-              <!--          </v-tab-item>
-                      </template>
-                      <template v-if="_isUIAllowed('api')">
-                        <v-tab class="">
-                          <v-icon small>mdi-code-braces</v-icon>&nbsp;
-                          <span class="caption text-capitalize  font-weight-bold"> APIs</span></v-tab>
-                        <v-tab-item>-->
-              <!--            <v-tabs-->
-              <!--              height="38"-->
-              <!--              class="table-tabs"-->
-              <!--              ma-0-->
-              <!--              pa-0-->
-              <!--              style="height:100%">-->
-
-              <template v-if="!isMvc && !isMetaTable">
-                <template v-if="isRest">
-                  <v-tab ripple class="">
-                    <v-icon small>
-                      mdi-nodejs
-                    </v-icon>&nbsp;
-                    <span class="caption font-weight-bold text-capitalize">Routes</span>
-                  </v-tab>
-
-                  <v-tab-item :transition="false">
-                    <logic-rest
-                      ref="tabs0"
-                      :nodes="nodes"
-                      :new-table="newTableCopy"
-                      :mtd-new-table-update="mtdNewTableUpdate"
-                      :delete-table="deleteTable"
-                      :is-meta-table="isMetaTable"
-                    />
-                  </v-tab-item>
-                </template>
-                <template v-if="isGraphql">
-                  <v-tab ripple class="">
-                    <v-icon small>
-                      mdi-graphql
-                    </v-icon>&nbsp;
-                    <span class="caption font-weight-bold text-capitalize">Schema & Resolvers</span>
-                  </v-tab>
-
-                  <v-tab-item :transition="false">
-                    <logic-gql
-                      ref="tabs0"
-                      :nodes="nodes"
-                      :new-table="newTableCopy"
-                      :mtd-new-table-update="mtdNewTableUpdate"
-                      :delete-table="deleteTable"
-                      :is-meta-table="isMetaTable"
-                    />
-                  </v-tab-item>
-                </template>
-                <template v-if="isGrpc">
-                  <v-tab ripple class="">
-                    <v-icon small>
-                      mdi-nodejs
-                    </v-icon>&nbsp;
-                    <span class="caption font-weight-bold text-capitalize">gRPC Services</span>
-                  </v-tab>
-
-                  <v-tab-item :transition="false">
-                    <logic-grpc
-                      ref="tabs0"
-                      :nodes="nodes"
-                      :new-table="newTableCopy"
-                      :mtd-new-table-update="mtdNewTableUpdate"
-                      :delete-table="deleteTable"
-                      :is-meta-table="isMetaTable"
-                    />
-                  </v-tab-item>
-                </template>
-              </template>
-
-              <template v-if="!isMetaTable">
-                <v-tab ripple class="">
-                  <v-icon small>
-                    mdi-shield-edit-outline
-                  </v-icon>&nbsp;
-                  <span class="caption font-weight-bold text-capitalize"> ACL</span>
-                </v-tab>
-                <v-tab-item :transition="false">
-                  <table-acl
-                    :nodes="nodes"
-                    :new-table="newTableCopy"
-                    :mtd-new-table-update="mtdNewTableUpdate"
-                    :delete-table="deleteTable"
-                    :is-meta-table="isMetaTable"
-                  />
-                </v-tab-item>
-                <!-- <template v-if="!isNoApis">
-                   <v-tab ripple class="divider v-tab-border-right" >
-                     <v-icon small>mdi-shield-edit-outline</v-icon>&nbsp;
-                     <span class="caption font-weight-bold text-capitalize"> ACL</span>
-                   </v-tab>
-                   <v-tab-item :transition="false" >
-                     <template v-if="isRest">
-                       <acl-typeorm-db v-if="isPackage || isDocker" :nodes="nodes"></acl-typeorm-db>
-                       <template v-else-if="isTs">
-                         <acl-typeorm
-                           v-if="isMvc"
-                           ref="tabs4"
-                           :nodes="this.nodes"
-                         />
-                       </template>
-                       <template v-else>
-                         <acl-js
-                           ref="tabs4"
-                           :nodes="this.nodes"
-                         />
-                       </template>
-                     </template>
-
-                     <template v-else-if="isGraphql">
-
-                       <acl-ts-file-db-gql v-if="isPackage || isDocker" :nodes="nodes"></acl-ts-file-db-gql>
-
-                       <template v-else-if="isTs">
-                         <acl-ts-file-gql v-if="isMvc"
-                                          ref="tabs4"
-                                          :nodes="this.nodes"></acl-ts-file-gql>
-                       </template>
-                       <template v-else>
-                         <acl-gql
-                           ref="tabs4"
-                           :nodes="this.nodes"></acl-gql>
-                       </template>
-
-                     </template>
-
-                     <template v-else-if="isGrpc">
-
-                       <acl-grpc-db v-if="isPackage" :nodes="nodes"></acl-grpc-db>
-
-                     </template>
-
-                   </v-tab-item>
-
-                 </template>-->
-                <!--        <v-tab ripple class="divider v-tab-border-right" @click="loadColumnsMock = true" >-->
-                <!--          <v-icon small>mdi-seed</v-icon>&nbsp;-->
-                <!--          <span class="caption font-weight-bold text-capitalize">  Mock</span>-->
-                <!--        </v-tab>-->
-                <!--        <v-tab-item :transition="false" >-->
-                <!--          <mocks-->
-                <!--            ref="tabs4"-->
-                <!--            v-if="loadColumnsMock"-->
-                <!--            :nodes="this.nodes"-->
-                <!--            :newTable="this.newTableCopy"-->
-                <!--            :mtdNewTableUpdate="this.mtdNewTableUpdate"-->
-                <!--            :deleteTable="this.deleteTable"-->
-                <!--          />-->
-                <!--        </v-tab-item>-->
-
-                <template v-if="!isMetaTable">
-                  <v-tab ripple class="">
-                    <v-icon small>
-                      mdi-sticker-check-outline
-                    </v-icon>&nbsp;
-                    <span class="caption font-weight-bold text-capitalize">Validators</span>
-                  </v-tab>
-
-                  <v-tab-item :transition="false">
-                    <validation
-                      :nodes="nodes"
-                      :new-table="newTableCopy"
-                      :mtd-new-table-update="mtdNewTableUpdate"
-                      :delete-table="deleteTable"
-                      :is-meta-table="isMetaTable"
-                    />
-                  </v-tab-item>
-                </template>
-                <template v-if="!isMvc && !isMetaTable">
-                  <v-tab ripple class="">
-                    <v-icon small>
-                      mdi-hook
-                    </v-icon>&nbsp;
-                    <span class="caption font-weight-bold text-capitalize">Webhooks</span>
-                  </v-tab>
-
-                  <v-tab-item :transition="false">
-                    <webhooks
-                      ref="tabs0"
-                      :nodes="nodes"
-                      :new-table="newTableCopy"
-                      :mtd-new-table-update="mtdNewTableUpdate"
-                      :delete-table="deleteTable"
-                      :is-meta-table="isMetaTable"
-                    />
-                  </v-tab-item>
-                </template>
-              </template>
-            </v-tabs>
-          </v-tab-item>
-        </template>
-
-        <template v-if="_isUIAllowed('airTable')">
+        <template v-if="_isUIAllowed('smartSheet')">
           <v-tab v-show="relationTabs && relationTabs.length" class="">
             <v-icon small>
               mdi-table-edit
             </v-icon>&nbsp;<span
               class="caption text-capitalize  font-weight-bold"
-            > {{ nodes._tn }}</span>
+            > {{ nodes.title }}</span>
           </v-tab>
           <v-tab-item
             style="height:100%"
           >
             <rows-xc-data-table
               ref="tabs7"
+              :is-view="isView"
               :is-active="isActive"
               :tab-id="tabId"
               :show-tabs="relationTabs && relationTabs.length"
-              :table="nodes.tn"
+              :table="nodes.table_name"
               :nodes="nodes"
               :new-table="newTableCopy"
               :mtd-new-table-update="mtdNewTableUpdate"
@@ -330,81 +39,6 @@
             />
           </v-tab-item>
         </template>
-        <!-- Closable tabs : START -->
-        <template
-          v-for="({
-            relation,
-            // table,
-            relationType,
-            relationIdValue,
-            relationRow,
-            primaryValue,
-            refTable,
-            refTableAlias,
-            tableAlias
-          },i) in relationTabs"
-        >
-          <v-tab
-            :key="i"
-            ripple
-            class=""
-            :href="`#relRow${i}`"
-            style="position: relative;"
-            @click="loadRows = true"
-          >
-            <v-tooltip bottom nudge-bottom="">
-              <template #activator="{on}">
-                <div v-on="on">
-                  <!--                  <span class="rel-row-parent"> {{ refTable }} - {{ primaryValue }} </span>-->
-                  <v-icon small>
-                    mdi-table-arrow-{{ relationType === 'hm' ? 'right' : 'left' }}
-                  </v-icon>&nbsp;
-                  <span
-                    class="caption font-weight-bold text-capitalize"
-                  >
-                    {{ refTableAlias }} ({{ ((primaryValue || '') + '').slice(0, 13) }}) ->
-                    {{ tableAlias }}
-                  </span>
-                  <v-icon icon x-small class="ml-2" @click="removeRelationTab(i)">
-                    mdi-close
-                  </v-icon>
-                </div>
-              </template>
-              <span class="caption">{{
-                refTableAlias
-              }}({{ primaryValue }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{
-                tableAlias
-              }}</span>
-            </v-tooltip>
-          </v-tab>
-          <v-tab-item
-            :key="i"
-            :value="`relRow${i}`"
-            style="height:100%"
-          >
-            <template>
-              <rows-xc-data-table
-                ref="tabs7"
-                :is-active="isActive"
-                :show-tabs="relationTabs && relationTabs.length"
-                :table="nodes.tn"
-                :nodes="nodes"
-                :relation="relation"
-                :relation-type="relationType"
-                :new-table="newTableCopy"
-                :relation-id-value="relationIdValue"
-                :mtd-new-table-update="mtdNewTableUpdate"
-                :delete-table="deleteTable"
-                :is-meta-table="isMetaTable"
-                :relation-row="relationRow"
-                :relation-primary-value="primaryValue"
-                :ref-table="refTable"
-                :add-new-relation-tab="addNewRelationTab"
-              />
-            </template>
-          </v-tab-item>
-        </template>
-        <!-- Closable tabs : END -->
       </v-tabs>
     </template>
     <dlgLabelSubmitCancel
@@ -418,59 +52,20 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapActions } from 'vuex'
 import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel'
-import columnList from './tableTabs/columns'
-import indexList from './tableTabs/indexes'
-import triggerList from './tableTabs/triggers'
 import { isMetaTable } from '@/helpers/xutils'
-import Webhooks from '@/components/project/tableTabs/webhooks'
-import LogicRest from '@/components/project/tableTabs/logicRest'
-import LogicGql from '@/components/project/tableTabs/logicGql'
-import LogicGrpc from '@/components/project/tableTabs/logicGrpc'
-import Validation from '@/components/project/tableTabs/validation'
-import TableAcl from '@/components/project/tableTabs/tableAcl'
 import RowsXcDataTable from '@/components/project/spreadsheet/rowsXcDataTable'
-// import TrialExpired from '../trialExpired'
-// import rows from './tableTabs/rows'
-
-// import AclGql from './tableTabs/aclGql'
-// import AclTypeorm from './tableTabs/aclTsFile'
-// import AclTsFileGql from './tableTabs/aclTsFileGql'
-// import AclJs from './tableTabs/aclJs'
-// import AclTypeormDb from './tableTabs/aclTsFileDb'
-// import AclGrpcDb from './tableTabs/aclGrpcDb'
-// import AclTsFileDbGql from './tableTabs/aclTsFileDbGql'
 
 export default {
   components: {
     RowsXcDataTable,
-    TableAcl,
-    Validation,
-    LogicGrpc,
-    LogicGql,
-    LogicRest,
-    Webhooks,
-    // AclTsFileDbGql,
-    // AclTypeormDb,
-    // TrialExpired,
-    // AclJs,
-    // AclTsFileGql,
-    // AclTypeorm,
-    // AclGql,
-    // AclGrpcDb,
-    columnList,
-    indexList,
-    // constraintList,
-    triggerList,
     dlgLabelSubmitCancel
-    // rows
-    // mocks
   },
   data() {
     return {
       error: false,
-      active: 1, // this.nodes.newTable ? 0 : 1,
+      active: 1,
       newTableCopy: !!this.nodes.newTable,
       dialogShow: false,
       loadIndexList: false,
@@ -479,28 +74,11 @@ export default {
       loadConstraintList: false,
       loadRows: false,
       loadColumnsMock: false,
-      relationTabs: []
+      relationTabs: [],
+      deleteId: null
     }
   },
   methods: {
-    addNewRelationTab(relation, refTable, refTableAlias, table, tableAlias, relationIdValue, relationType, relationRow, primaryValue) {
-      this.relationTabs.push({
-        relation,
-        refTable,
-        table,
-        relationIdValue,
-        relationType,
-        relationRow,
-        primaryValue,
-        refTableAlias,
-        tableAlias
-      })
-      this.active = 'relRow' + (this.relationTabs.length - 1)
-    },
-    removeRelationTab(i) {
-      this.relationTabs.splice(i, 1)
-    },
-
     async handleKeyDown(event) {
       const activeTabEleKey = `tabs${this.active}`
       if (this.$refs[activeTabEleKey] &&
@@ -516,78 +94,45 @@ export default {
     mtdNewTableUpdate(value) {
       this.newTableCopy = value
     },
-    async deleteTable(action = '') {
+    async deleteTable(action = '', id) {
+      if (id) {
+        this.deleteId = id
+      }
       if (action === 'showDialog') {
         this.dialogShow = true
       } else if (action === 'hideDialog') {
         this.dialogShow = false
       } else {
-        let relationListAll = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'relationListAll'])
+        // todo : check relations and triggers
+        try {
+          await this.$api.dbTable.delete(this.deleteId)
 
-        relationListAll = relationListAll.data.list.filter(rel => rel.rtn === this.nodes.tn).map(({ tn }) => tn)
+          this.removeTableTab({
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+            table_name: this.nodes.table_name
+          })
 
-        if (relationListAll.length) {
-          this.$toast.info('Table can\'t be  deleted  since Table is being referred in following tables : ' + relationListAll.join(', ')).goAway(10000)
-          this.dialogShow = false
-          return
+          await this.loadTablesFromParentTreeNode({
+            _nodes: {
+              ...this.nodes
+            }
+          })
+
+          this.$store.commit('meta/MutMeta', {
+            key: this.nodes.table_name,
+            value: null
+          })
+          this.$store.commit('meta/MutMeta', {
+            key: this.deleteId,
+            value: null
+          })
+        } catch (e) {
+          const msg = await this._extractSdkResponseErrorMsg(e)
+          this.$toast.error(msg).goAway(3000)
         }
-
-        const triggerList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'triggerList', {
-          tn: this.nodes.tn
-        }])
-
-        for (const trigger of triggerList.data.list) {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
-            {
-              env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
-            },
-            'triggerDelete',
-            {
-              ...trigger,
-              tn: this.nodes.tn,
-              oldStatement: trigger.statement
-            }])
-
-          console.log('triggerDelete result ', result)
-
-          this.$toast.success('Trigger deleted successfully').goAway(1000)
-        }
-
-        let columns = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'columnList', {
-          tn: this.nodes.tn
-        }])
-
-        columns = columns.data.list
-
-        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        },
-        'tableDelete',
-        { tn: this.nodes.tn, columns }])
-
-        this.removeTableTab({
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
-          tn: this.nodes.tn
-        })
-
-        await this.loadTablesFromParentTreeNode({
-          _nodes: {
-            ...this.nodes
-          }
-        })
         this.dialogShow = false
+        this.$tele.emit('table:delete:submit')
       }
     },
     onTabChange() {
@@ -595,53 +140,20 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({
-      isGraphql: 'project/GtrProjectIsGraphql',
-      isNoApis: 'project/GtrProjectIsNoApis',
-      isMvc: 'project/GtrProjectIsMvc',
-      isDocker: 'project/GtrProjectIsDocker',
-      isPackage: 'project/GtrProjectIsPackage',
-      isTs: 'project/GtrProjectIsTs',
-      isRest: 'project/GtrProjectIsRest',
-      isGrpc: 'project/GtrProjectIsGrpc'
-    }),
-
-    scaffoldOnSave: {
-      get() {
-        return this.$store.state.windows.scaffoldOnSave
-      },
-      set(status) {
-        this.$store.commit('windows/MutToggleScaffoldOnSave', status)
-        this.$toast.success(`Scaffolding of source code ${status ? 'ENABLED' : 'DISABLED'} successfully`).goAway(4000)
-      }
-    },
-    isTsEnabled() {
-      return process.env.TS_ENABLED
-    },
     isMetaTable() {
-      return isMetaTable(this.nodes.tn)
+      return isMetaTable(this.nodes.table_name)
     }
-  },
-  beforeCreated() {
-  },
-  watch: {},
-  created() {
   },
   mounted() {
     this.onTabChange()
   },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
-  directives: {},
-  validate({ params }) {
-    return true
-  },
-  head() {
-    return {}
-  },
-  props: ['nodes', 'hideLogWindows', 'tabId', 'isActive']
+  props: {
+    nodes: Object,
+    hideLogWindows: Boolean,
+    tabId: String,
+    isActive: Boolean,
+    isView: Boolean
+  }
 }
 </script>
 

@@ -124,54 +124,6 @@ export default {
         this.$router.push('/')
       }
     },
-    /*    PasswordValidate(p) {
-      if (!p) {
-        this.passwordProgress = 0
-        this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
-        return false
-      }
-
-      let msg = ''
-      let validation = true
-      let progress = 0
-
-      if (!(p.length >= 8)) {
-        msg += 'Atleast 8 letters. '
-        validation = validation && false
-      } else {
-        progress = Math.min(100, progress + 25)
-      }
-
-      if (!(p.match(/.*[A-Z].*!/))) {
-        msg += 'One Uppercase Letter. '
-        validation = validation && false
-      } else {
-        progress = Math.min(100, progress + 25)
-      }
-
-      if (!(p.match(/.*[0-9].*!/))) {
-        msg += 'One Number. '
-        validation = validation && false
-      } else {
-        progress = Math.min(100, progress + 25)
-      }
-
-      if (!(p.match(/[$&+,:;=?@#|'<>.^*()%!-]/))) {
-        msg += 'One special letter. '
-        validation = validation && false
-      } else {
-        progress = Math.min(100, progress + 25)
-      }
-
-      this.passwordProgress = progress
-      // console.log('progress', progress);
-
-      this.passwordValidateMsg = msg
-
-      // console.log('msg', msg, validation);
-
-      return validation
-    }, */
     PasswordValidate1(confirmPassword) {
       if (confirmPassword) {
         return this.passwordDetails.newPassword.startsWith(confirmPassword)

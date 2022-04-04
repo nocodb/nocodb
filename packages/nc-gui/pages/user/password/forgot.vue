@@ -31,11 +31,6 @@
               required
             />
 
-            <!--            <vue-recaptcha @verify="onNormalVerify" sitekey="6LfbcqMUAAAAAAb_2319UdF8m68JHSYVy_m4wPBx"-->
-            <!--                           style="transform:scale(0.7);-webkit-transform:scale(0.7);transform-origin:0 0;-webkit-transform-origin:0 0;">-->
-
-            <!--            </vue-recaptcha>-->
-
             <v-btn
               color="primary"
               large

@@ -13,8 +13,11 @@
     "xlsx": "^0.17.4"
   },
   "scripts": {
-    "start:api": "cd ./packages/nocodb; npm install; npm run watch:run",
-    "start:xcdb-api": "cd ./packages/nocodb; npm install; NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run",
+    "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
+        "start:api": "cd ./packages/nocodb; npm install; NC_DISABLE_CACHE=true NC_DISABLE_TELE=true npm run watch:run:cypress",
+    "start:xcdb-api": "cd ./packages/nocodb; npm install; NC_DISABLE_CACHE=true NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
+        "start:api:cache": "cd ./packages/nocodb; npm install; NC_DISABLE_TELE=true npm run watch:run:cypress",
+    "start:xcdb-api:cache": "cd ./packages/nocodb; npm install; NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
     "start:web": "cd ./packages/nc-gui; npm install; npm run dev",
     "cypress:run": "cypress run --config-file ./scripts/cypress/cypress.json",
     "cypress:open": "cypress open --config-file ./scripts/cypress/cypress.json",

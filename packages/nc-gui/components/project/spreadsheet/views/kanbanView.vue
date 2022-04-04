@@ -21,11 +21,11 @@
                 <v-row class="">
                   <v-col
                     v-for="(col) in fields"
-                    v-show="showFields[col.alias|| col._cn]"
-                    :key="col.alias || col._cn"
+                    v-show="showFields[col.alias|| col.title]"
+                    :key="col.alias || col.title"
                     class="kanban-col col-12"
                   >
-                    <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
+                    <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize caption grey--text">
                       <virtual-header-cell
                         v-if="col.virtual"
                         :column="col"
@@ -36,7 +36,7 @@
                       <header-cell
                         v-else
                         :is-form="true"
-                        :value="col._cn"
+                        :value="col.title"
                         :column="col"
                       />
                     </label>
@@ -50,7 +50,7 @@
                     />
                     <table-cell
                       v-else
-                      :value="block[col._cn]"
+                      :value="block[col.title]"
                       :column="col"
                       :sql-ui="sqlUi"
                       class="xc-input body-2"
@@ -132,8 +132,8 @@ export default {
         return this.meta.columns || []
       }
       const hideCols = ['created_at', 'updated_at']
-      return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
-        !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+      return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) &&
+        !((this.meta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))
       ) || []
     },
     groupingFieldColumn() {

@@ -15,14 +15,15 @@
         <span class="font-weight-bold"> {{ viewName }}</span> <span class="font-weight-regular ml-1" />
       </div>
 
-      <v-toolbar 
-        v-if="meta" 
-        height="32"
+      <v-toolbar
+        v-if="meta"
+        height="40"
         dense
-        class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
-        style="z-index: 7"
+        class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom"
+        style="z-index: 7;border-radius: 4px"
       >
-      <div class="d-flex xc-border align-center search-box" style="min-width:156px">
+        <!--
+      <div class="d-flex xc-border align-center search-box"  style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
             <div style="min-width: 56px" v-on="on">
@@ -46,10 +47,10 @@
           <v-list dense>
             <v-list-item
               v-for="col in meta.columns"
-              :key="col._cn"
-              @click="searchField = col._cn"
+              :key="col.title"
+              @click="searchField = col.title"
             >
-              <span class="caption">{{ col._cn }}</span>
+              <span class="caption">{{ col.title }}</span>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -79,52 +80,77 @@
       >{{ refTable }}({{
         relationPrimaryValue
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
+-->
 
-      <div class="d-inline-flex">
-
-        <!-- <v-btn outlined small text @click="reload">
+        <div class="d-inline-flex">
+          <!--        <v-btn outlined small text @click="reload">
           <v-icon small class="mr-1" color="grey  darken-3">
             mdi-reload
           </v-icon>
-          {{ $t('general.reload') }}
-        </v-btn> -->
+          Reload
+        </v-btn>-->
 
-        <fields-menu v-model="showFields" :field-list="fieldList" is-public />
+          <fields-menu
+            v-model="showFields"
+            :field-list="fieldList"
+            :fields-order.sync="fieldsOrder"
+            is-public
+            :meta="meta"
+          />
 
-        <sort-list-menu v-model="sortList" :field-list="realFieldList" />
+          <sort-list-menu
+            v-model="sorts"
+            :meta="meta"
+            :shared="true"
+            :field-list="realFieldList"
+            @input="loadTableData"
+          />
 
-        <column-filter-menu v-model="filters" :field-list="realFieldList" />
+          <column-filter-menu
+            v-model="filters"
+            :meta="meta"
+            :field-list="realFieldList"
+            :shared="true"
+            @input="loadTableData"
+          />
 
-        <csv-export-import :is-view="isView" :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
-      </div>
-      <v-spacer class="h-100" @dblclick="debug=true" />
-      <!--      <v-menu>
-        <template #activator="{ on, attrs }">
-          <v-icon
-            v-bind="attrs"
-            small
-            class="mx-2"
-            color="grey  darken-3"
-            v-on="on"
-          >
-            mdi-arrow-collapse-vertical
-          </v-icon>
-        </template>
+          <csv-export-import
+            :is-view="isView"
+            :query-params="{...queryParams, showFields}"
+            :public-view-id="$route.params.id"
+            :meta="meta"
+            :req-payload="{filters, sorts, password}"
+          />
+        </div>
+        <v-spacer class="h-100" @dblclick="debug=true" />
+        <!--      <v-menu>
+          <template #activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              small
+              class="mx-2"
+              color="grey  darken-3"
+              v-on="on"
+            >
+              mdi-arrow-collapse-vertical
+            </v-icon>
+          </template>
 
-        <v-list dense class="caption">
-          <v-list-item v-for="h in cellHeights" :key="h.size" dense @click.stop="cellHeight = h.size">
-            <v-list-item-icon class="mr-1">
-              <v-icon small :color="cellHeight === h.size && 'primary'">
-                {{ h.icon }}
-              </v-icon>
-            </v-list-item-icon>
-            <v-list-item-title :class="{'primary&#45;&#45;text' : cellHeight === h.size}" style="text-transform: capitalize">
-              {{ h.size }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>-->
+          <v-list dense class="caption">
+            <v-list-item v-for="h in cellHeights" :key="h.size" dense @click.stop="cellHeight = h.size">
+              <v-list-item-icon class="mr-1">
+                <v-icon small :color="cellHeight === h.size && 'primary'">
+                  {{ h.icon }}
+                </v-icon>
+              </v-list-item-icon>
+              <v-list-item-title :class="{'primary&#45;&#45;text' : cellHeight === h.size}" style="text-transform: capitalize">
+                {{ h.size }}
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>-->
       </v-toolbar>
+
       <div
         v-if="meta"
         class="nc-grid-wrapper d-flex"
@@ -143,8 +169,6 @@
               :data="data"
               :available-columns="availableColumns"
               :show-fields="showFields"
-              :belongs-to="belongsTo"
-              :has-many="hasMany"
               :nodes="{dbAlias:''}"
               :sql-ui="sqlUi"
               :columns-width="columnsWidth"
@@ -161,9 +185,9 @@
             color="primary lighten-2"
             @input="loadTableData"
           />
-        <!--      <div v-else class="d-flex justify-center py-4">-->
-        <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
-        <!--      </div>-->
+          <!--      <div v-else class="d-flex justify-center py-4">-->
+          <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
+          <!--      </div>-->
         </div>
       </div>
     </template>
@@ -196,6 +220,7 @@
 <script>
 /* eslint-disable camelcase */
 
+import { ErrorMessages } from 'nocodb-sdk'
 import spreadsheet from '../mixins/spreadsheet'
 import ApiFactory from '../apis/apiFactory'
 // import EditableCell from "../editableCell";
@@ -209,7 +234,13 @@ import CsvExportImport from '~/components/project/spreadsheet/components/moreAct
 
 export default {
   name: 'XcTable',
-  components: { CsvExportImport, XcGridView, ColumnFilterMenu, SortListMenu, FieldsMenu },
+  components: {
+    CsvExportImport,
+    XcGridView,
+    ColumnFilterMenu,
+    SortListMenu,
+    FieldsMenu
+  },
   mixins: [spreadsheet],
   props: {
     env: String,
@@ -266,7 +297,7 @@ export default {
     fieldFilter: '',
 
     filters: [],
-    sortList: [],
+    sorts: [],
 
     data: [],
     spreadsheet: null,
@@ -338,43 +369,49 @@ export default {
     edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },
-    hasMany() {
-      return this.meta && this.meta.hasMany
-        ? this.meta.hasMany.reduce((hm, o) => {
-          hm[o.rcn] = hm[o.rcn] || []
-          hm[o.rcn].push(o)
-          return hm
-        }, {})
-        : {}
-    },
-    belongsTo() {
-      return this.meta && this.meta.belongsTo
-        ? this.meta.belongsTo.reduce((bt, o) => {
-          bt[o._cn] = o
-          return bt
-        }, {})
-        : {}
-    },
+    // hasMany() {
+    //   return this.meta && this.meta.hasMany
+    //     ? this.meta.hasMany.reduce((hm, o) => {
+    //       hm[o.rcn] = hm[o.rcn] || []
+    //       hm[o.rcn].push(o)
+    //       return hm
+    //     }, {})
+    //     : {}
+    // },
+    // belongsTo() {
+    //   return this.meta && this.meta.belongsTo
+    //     ? this.meta.belongsTo.reduce((bt, o) => {
+    //       bt[o.title] = o
+    //       return bt
+    //     }, {})
+    //     : {}
+    // },
     table() {
       if (this.relationType === 'hm') {
-        return this.relation.tn
+        return this.relation.table_name
       } else if (this.relationType === 'bt') {
         return this.relation.rtn
       }
 
-      return this.nodes.tn || this.nodes.view_name
+      return this.nodes.table_name || this.nodes.view_name
     },
     primaryValueColumn() {
       if (!this.meta || !this.meta.columns) {
         return ''
       }
 
-      const pkIndex = this.meta.columns.findIndex(c => c.pk)
+      const pvIndex = this.meta.columns.findIndex(c => c.pv)
 
-      if (pkIndex > -1 && pkIndex <= this.colLength - 1) {
-        return this.meta.columns[pkIndex + 1]._cn
+      if (pvIndex > -1 && pvIndex <= this.colLength - 1) {
+        return this.meta.columns[pvIndex].title
       }
-      return this.meta.columns[0]._cn
+
+      const pkIndex = this.meta.columns.findIndex(c => c.pv)
+
+      if (pkIndex > -1 && pkIndex < this.colLength - 1) {
+        return this.meta.columns[pkIndex + 1].title
+      }
+      return this.meta.columns[0].title
     }
   },
   async mounted() {
@@ -391,7 +428,7 @@ export default {
   created() {
     /*    if (this.relationType === 'hm') {
       this.filters.push({
-        field: this.relation.cn,
+        field: this.relation.column_name,
         op: 'is equal',
         value: this.relationIdValue,
         readOnly: true
@@ -415,7 +452,10 @@ export default {
     },
     makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
-        this.selected = { col, row }
+        this.selected = {
+          col,
+          row
+        }
         this.editEnabled = {}
       }
     },
@@ -427,12 +467,20 @@ export default {
         return this.$toast.info('Editing primary key not supported').goAway(3000)
       }
       if (this.editEnabled.col !== col || this.editEnabled.row !== row) {
-        this.editEnabled = { col, row }
+        this.editEnabled = {
+          col,
+          row
+        }
       }
     },
 
-    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
+    async handleKeyDown({
+      metaKey,
+      key,
+      altKey,
+      shiftKey,
+      ctrlKey
+    }) {
       // ctrl + s -> save
       // ctrl + l -> reload
       // ctrl + n -> new
@@ -461,7 +509,7 @@ export default {
       this.filters = this.filters.slice()
     },
     addSort() {
-      this.sortList.push({
+      this.sorts.push({
         field: '',
         order: ''
       })
@@ -470,76 +518,18 @@ export default {
     async loadMetaData() {
       this.loading = true
       try {
-        // eslint-disable-next-line camelcase
-        const {
-          meta,
-          // model_name,
-          view_name,
-          view_type,
-          client,
-          query_params: qp = {},
-          db_alias: dbAlias = '_noco',
-          relatedTableMetas = {}
-        } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewGet', {
-          view_id: this.$route.params.id,
+        this.viewMeta = (await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
           password: this.password
-        }])
+        }))
+        this.meta = this.viewMeta.model
+        this.metas = this.viewMeta.relatedMetas
 
-        this.fieldsOrder = qp.fieldsOrder || []
-        this.viewName = view_name
-        this.viewType = view_type
-
-        this.columnsWidth = qp.columnsWidth || {}
-
-        this.client = client
-        this.meta = meta
-        this.query_params = qp
-        this.dbAlias = dbAlias
-        this.metas = relatedTableMetas
-        this.sortList = qp.sortList || []
-
-        this.showFields = this.query_params.showFields || {}
-
-        // this.fieldList = Object.keys(this.showFields)
-
-        let fields = this.query_params.fieldsOrder || []
-        if (!fields.length) { fields = Object.keys(this.showFields) }
-        // eslint-disable-next-line camelcase
-
-        let columns = this.meta.columns
-        if (this.meta && this.meta.v) {
-          columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
-        }
-
-        {
-          const _ref = {}
-          columns.forEach((c) => {
-            if (c.virtual && c.bt) {
-              c.prop = `${c.bt.rtn}Read`
-            }
-            if (c.virtual && c.mm) {
-              c.prop = `${c.mm.rtn}MMList`
-            }
-            if (c.virtual && c.hm) {
-              c.prop = `${c.hm.tn}List`
-            }
-
-            // if (c.virtual && c.lk) {
-            //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-            // } else {
-            c.alias = c._cn
-            // }
-            if (c.alias in _ref) {
-              c.alias += _ref[c.alias]++
-            } else {
-              _ref[c.alias] = 1
-            }
-          })
-        }
+        this.sorts = this.viewMeta.sorts
+        this.viewName = this.viewMeta.title
       } catch (e) {
-        if (e.message === 'Not found' || e.message === 'Meta not found') {
+        if (e.response && e.response.status === 404) {
           this.notFound = true
-        } else if (e.message === 'Invalid password') {
+        } else if (await this._extractSdkResponseErrorMsg(e) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
           this.showPasswordModal = true
         } else {
           console.log(e)
@@ -552,20 +542,30 @@ export default {
     async loadTableData() {
       this.loadingData = true
       try {
-        // eslint-disable-next-line camelcase
-        const { data: list, count, model_name, client } = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          query: this.queryParams
-        }, 'getSharedViewData', {
-          view_id: this.$route.params.id,
-          password: this.password
-        }])
+        const {
+          data: {
+            list,
+            pageInfo: { totalRows: count }
+          }
+        } = (await this.$api.public.dataList(this.$route.params.id, {
+          password: this.password,
+          sorts: this.sorts && this.sorts.map(({
+            fk_column_id,
+            direction
+          }) => ({
+            direction,
+            fk_column_id
+          })),
+          filters: this.filters
+        }, this.queryParams
+        ))
 
-        this.client = client
+        // this.client = client
 
         // this.showFields = queryParams && queryParams.showFields
         // this.meta = meta
         // eslint-disable-next-line camelcase
-        this.modelName = model_name
+        // this.modelName = model_name
 
         this.count = count
         this.data = list.map(row => ({
@@ -574,9 +574,9 @@ export default {
           rowMeta: {}
         }))
       } catch (e) {
-        if (e.message === 'Not found' || e.message === 'Meta not found') {
+        if (e.response && e.response.status === 404) {
           this.notFound = true
-        } else if (e.message === 'Invalid password') {
+        } else if (await this._extractSdkResponseErrorMsg(e) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
           this.showPasswordModal = true
         } else {
           console.log(e)
@@ -709,11 +709,11 @@ export default {
   justify-content: center;
 }
 
-.nc-grid-wrapper{
-  height:calc(100vh - 120px)
+.nc-grid-wrapper {
+  height: calc(100vh - 120px)
 }
 
-.nc-grid{
+.nc-grid {
   height: calc(100% - 34px)
 }
 
@@ -725,7 +725,6 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

@@ -19,7 +19,7 @@
             :rules="[v => !!v || 'Project name required']"
             @keyup.enter="createProject"
           />
-
+          <!--
           <v-select
             v-model="projectType"
             outlined
@@ -40,7 +40,7 @@
                 <img v-if="item.type === 'img'" :src="item.icon" style="width: 30px">
                 <v-icon v-else :color="item.iconColor">{{ item.icon }}</v-icon> &nbsp; {{ item.text }}</span>
             </template>
-          </v-select>
+          </v-select>-->
 
           <!-- Create Project -->
           <div class="text-center">

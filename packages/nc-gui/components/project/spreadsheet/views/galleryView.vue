@@ -10,6 +10,7 @@
           <v-card
             class="h-100"
             :elevation="hover ? 4 : 1"
+            :ripple="!isLocked"
             @click="!isLocked && $emit('expandForm', {row,rowIndex,rowMeta})"
           >
             <v-carousel
@@ -42,13 +43,13 @@
                 <v-row class="">
                   <v-col
                     v-for="(col) in fields"
-                    v-show="showFields[col.alias|| col._cn]"
-                    :key="col.alias || col._cn"
+                    v-show="showFields[col.alias|| col.title]"
+                    :key="col.alias || col.title"
                     class="col-12 mt-1 mb-2 "
                   >
-                    <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize caption grey--text">
+                    <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize caption grey--text">
                       <virtual-header-cell
-                        v-if="col.virtual"
+                        v-if="isVirtualCol(col)"
                         :column="col"
                         :nodes="nodes"
                         :is-form="true"
@@ -57,14 +58,14 @@
                       <header-cell
                         v-else
                         :is-form="true"
-                        :value="col._cn"
+                        :value="col.title"
                         :column="col"
                       />
 
                     </label>
 
                     <virtual-cell
-                      v-if="col.virtual"
+                      v-if="isVirtualCol(col)"
                       ref="virtual"
                       :column="col"
                       :row="row"
@@ -73,7 +74,7 @@
                     />
                     <table-cell
                       v-else
-                      :value="row[col._cn]"
+                      :value="row[col.title]"
                       :column="col"
                       :sql-ui="sqlUi"
                       :is-locked="isLocked"
@@ -92,13 +93,19 @@
 </template>
 
 <script>
+import { isVirtualCol } from 'nocodb-sdk'
 import VirtualHeaderCell from '../components/virtualHeaderCell'
 import HeaderCell from '../components/headerCell'
 import VirtualCell from '../components/virtualCell'
 import TableCell from '../components/cell'
 export default {
   name: 'GalleryView',
-  components: { TableCell, VirtualCell, HeaderCell, VirtualHeaderCell },
+  components: {
+    TableCell,
+    VirtualCell,
+    HeaderCell,
+    VirtualHeaderCell
+  },
   props: [
     'nodes',
     'table',
@@ -110,11 +117,17 @@ export default {
     'showSystemFields',
     'sqlUi',
     'coverImageField',
+    'viewId',
     'isLocked'
   ],
+  data() {
+    return {
+      galleryView: {}
+    }
+  },
   computed: {
     attachmentColumn() {
-      return this.coverImageField && this.meta && this.meta.columns && this.meta.columns.find(c => c._cn === this.coverImageField)
+      return this.coverImageField && this.meta && this.meta.columns && this.meta.columns.find(c => c.id === this.coverImageField)
     },
     fields() {
       if (this.availableColumns) {
@@ -126,19 +139,37 @@ export default {
       if (this.showSystemFields) {
         return this.meta.columns || []
       } else {
-        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) &&
-          !((this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) &&
+          !((this.meta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))
         ) || []
       }
     }
   },
+  watch: {
+    async coverImageField(v) {
+      if (this.galleryView && v !== this.galleryView.fk_cover_image_col_id) {
+        (await this.$api.dbView.galleryUpdate(this.viewId, {
+          ...this.galleryView,
+          fk_cover_image_col_id: v
+        }))
+      }
+    }
+  },
+  created() {
+    this.loadView()
+  },
   methods: {
+    isVirtualCol,
+    async loadView() {
+      this.galleryView = (await this.$api.dbView.galleryRead(this.viewId))
+      this.$emit('update:coverImageField', this.galleryView.fk_cover_image_col_id)
+    },
     getCovers(row) {
       if (this.attachmentColumn &&
-        row[this.attachmentColumn.cn] && row[this.attachmentColumn.cn][0] &&
-        row[this.attachmentColumn.cn]) {
+        row[this.attachmentColumn.column_name] && row[this.attachmentColumn.column_name][0] &&
+        row[this.attachmentColumn.column_name]) {
         try {
-          return JSON.parse(row[this.attachmentColumn.cn])
+          return JSON.parse(row[this.attachmentColumn.column_name])
         } catch (e) {
 
         }

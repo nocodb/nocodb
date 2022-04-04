@@ -83,6 +83,9 @@ export default {
   //   }
   // },
   methods: {
+    _extractRowId(row, meta) {
+      return meta.columns.filter(c => c.pk).map(c => row[c.title]).join('___')
+    },
     upgradeToEE() {
       this.$toast.info('Upgrade to Enterprise Edition').goAway(3000)
     },
@@ -91,6 +94,36 @@ export default {
     },
     async sqlOp(args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams) {
       return this.$store.dispatch('sqlMgr/ActSqlOp', [args, op, opArgs, cusHeaders, cusAxiosOptions, queryParams])
+    },
+    async _extractSdkResponseError(e) {
+      if (!e || !e.response) { return e }
+      let msg
+      if (e.response.data instanceof Blob) {
+        try {
+          msg = JSON.parse(await e.response.data.text()).msg
+        } catch {
+          msg = 'Some internal error occurred'
+        }
+      } else {
+        msg = e.response.data.msg || 'Some internal error occurred'
+      }
+      const err = new Error(msg)
+      err.response = e.response
+      return err
+    },
+    async _extractSdkResponseErrorMsg(e) {
+      if (!e || !e.response) { return e.message }
+      let msg
+      if (e.response.data instanceof Blob) {
+        try {
+          msg = JSON.parse(await e.response.data.text()).msg
+        } catch {
+          msg = 'Some internal error occurred'
+        }
+      } else {
+        msg = e.response.data.msg || 'Some internal error occurred'
+      }
+      return msg || 'Some error occurred'
     }
   }
 }

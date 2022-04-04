@@ -282,7 +282,6 @@ export default {
 
     dropHandler(ev) {
       this.dragOver = false
-      console.log('File(s) dropped')
       let file
       if (ev.dataTransfer.items) {
         // Use DataTransferItemList interface to access the file(s)
@@ -303,8 +302,6 @@ export default {
       this._file(file)
     },
     dragOverHandler(ev) {
-      console.log('File(s) in drop zone')
-
       // Prevent default behavior (Prevent file from being opened)
       ev.preventDefault()
     },

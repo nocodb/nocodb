@@ -1,59 +1,77 @@
 <template>
-  <div class="chips-wrapper">
-    <div class="chips d-flex align-center  lookup-items">
-      <template v-if="localValue">
-        <item-chip
-          v-for="(value,i) in localValue"
-          :key="i"
-          :active="active"
-          :value="value"
-          :readonly="true"
+  <div class="d-flex flex-wrap wrapper">
+    <template v-if="lookupColumnMeta">
+      <template
+        v-if="isVirtualCol(lookupColumnMeta)"
+      >
+        <template
+          :is="virtualCell"
+          v-if="lookupColumnMeta.uidt === UITypes.LinkToAnotherRecord &&lookupColumnMeta.colOptions.type === RelationTypes.BELONGS_TO && Array.isArray(value) "
         >
-          <table-cell
-            :column="lookUpColumn"
-            :meta="lookUpMeta"
-            :db-alias="nodes.dbAlias"
-            :value="value"
+          <div
+            :is="virtualCell"
+            v-for="(v,i) in value"
+            :key="i"
+            :is-public="true"
+            :metas="metas"
+            :is-locked="true"
+            :column="lookupColumnMeta"
+            :row="{[lookupColumnMeta.title]:v}"
+            :nodes="nodes"
+            :meta="lookupTableMeta"
             :sql-ui="sqlUi"
           />
-        </item-chip>
+        </template>
+        <div
+          :is="virtualCell"
+          v-else
+          :is-public="true"
+          :metas="metas"
+          :is-locked="true"
+          :column="lookupColumnMeta"
+          :row="{[lookupColumnMeta.title]:value}"
+          :nodes="nodes"
+          :meta="lookupTableMeta"
+          :sql-ui="sqlUi"
+        />
       </template>
-      <span
-        v-if="localValue && localValue.length === 10"
-        class="caption pointer ml-1 grey--text"
-        @click="showLookupListModal"
-      >more...
-      </span>
-    </div>
-    <list-child-items-modal
-      v-if="lookUpMeta && lookupListModal"
-      ref="childList"
-      v-model="lookupListModal"
-      :is-form="isForm"
-      :is-new="isNew"
-      :size="10"
-      :meta="lookUpMeta"
-      :parent-meta="meta"
-      :primary-col="lookUpColumnAlias"
-      :api="lookupApi"
-      :password="password"
-      :read-only="true"
-      :query-params="queryParams"
-      :metas="metas"
-    />
+      <template v-else>
+        <template v-if="localValue">
+          <item-chip
+            v-for="(value,i) in localValue"
+            :key="i"
+            style="margin: 1.5px"
+            :active="active"
+            :value="value"
+            :readonly="true"
+          >
+            <table-cell
+
+              :is-locked="true"
+              :column="lookupColumnMeta"
+              :meta="lookupTableMeta"
+              :db-alias="nodes.dbAlias"
+              :value="value"
+              :sql-ui="sqlUi"
+            />
+          </item-chip>
+        </template>
+      </template>
+    </template>
   </div>
 </template>
 
 <script>
-// import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
 import TableCell from '../cell'
 import ItemChip from '@/components/project/spreadsheet/components/virtualCell/components/itemChip'
-import ListChildItemsModal
-  from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
-
 export default {
   name: 'LookupCell',
-  components: { TableCell, ListChildItemsModal, ItemChip },
+  components: {
+    TableCell,
+    // ListChildItemsModal,
+    ItemChip
+  },
   props: {
     meta: [Object],
     metas: [Object],
@@ -64,105 +82,69 @@ export default {
     sqlUi: [Object, Function],
     active: Boolean,
     isNew: Boolean,
-    isForm: Boolean
+    isForm: Boolean,
+    value: [Object, Array, String, Number]
   },
   data: () => ({
-    lookupListModal: false
+    UITypes,
+    lookupListModal: false,
+    lookupTableMeta: null,
+    lookupColumnMeta: null,
+    isVirtualCol,
+    RelationTypes
   }),
   computed: {
+    virtualCell() {
+      return this.lookupColumnMeta && isVirtualCol(this.lookupColumnMeta) ? () => import('@/components/project/spreadsheet/components/virtualCell') : 'div'
+    },
     // todo : optimize
     lookupApi() {
-      return this.column && this.$ncApis.get({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        table: this.column.lk.ltn
-      })
+      // return this.column && this.$ncApis.get({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias,
+      //   table: this.column.lk.ltn
+      // })
     },
     lookUpMeta() {
-      return this.metas ? this.metas[this.column.lk.ltn] : this.$store.state.meta.metas[this.column.lk.ltn]
+      // return this.metas ? this.metas[this.column.lk.ltn] : this.$store.state.meta.metas[this.column.lk.ltn]
     },
+
     assocMeta() {
-      return this.column.lk.type === 'mm' && (this.metas ? this.metas[this.column.lk.vtn] : this.$store.state.meta.metas[this.column.lk.vtn])
+      // return this.column.lk.type === 'mm' && (this.metas ? this.metas[this.column.lk.vtn] : this.$store.state.meta.metas[this.column.lk.vtn])
     },
     lookUpColumnAlias() {
       if (!this.lookUpMeta || !this.column.lk.lcn) {
         return
       }
-      return (this.lookUpMeta.columns.find(cl => cl.cn === this.column.lk.lcn) || {})._cn
+      return (this.lookUpMeta.columns.find(cl => cl.column_name === this.column.lk.lcn) || {}).title
     },
     lookUpColumn() {
       if (!this.lookUpMeta || !this.column.lk.lcn) {
         return
       }
-      return (this.lookUpMeta.columns.find(cl => cl.cn === this.column.lk.lcn) || {})
+      return (this.lookUpMeta.columns.find(cl => cl.column_name === this.column.lk.lcn) || {})
     },
     localValueObj() {
-      if (!this.column || !this.row) {
-        return null
-      }
-      switch (this.column.lk.type) {
-        case 'mm':
-          return this.row[`${this.column.lk._ltn}MMList`]
-        case 'hm':
-          return this.row[`${this.column.lk._ltn}List`]
-        case 'bt':
-          return this.row[`${this.column.lk._ltn}Read`]
-        default:
-          return null
-      }
     },
     localValue() {
-      if (!this.localValueObj || !this.lookUpColumnAlias) {
-        return null
-      }
-      if (Array.isArray(this.localValueObj)) {
-        return this.localValueObj.map(o => o[this.lookUpColumnAlias])
-      }
-      return [this.localValueObj[this.lookUpColumnAlias]]
+      return this.value && (Array.isArray(this.value) ? this.value : [this.value])
     },
     queryParams() {
-      switch (this.column.lk.type) {
-        case 'bt':
-          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.lk.rcn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.lk.cn)._cn]})` }
-        case 'hm':
-          return { where: `(${this.lookUpMeta.columns.find(c => c.cn === this.column.lk.cn)._cn},eq,${this.row[this.meta.columns.find(c => c.cn === this.column.lk.rcn)._cn]})` }
-        case 'mm':
-          return this.assocMeta
-            ? {
-                conditionGraph: {
-                  [this.assocMeta.tn]: {
-                    relationType: 'hm',
-                    [this.assocMeta.columns.find(c => c.cn === this.column.lk.vcn).cn]: {
-                      eq: this.row[this.meta.columns.find(c => c.cn === this.column.lk.cn)._cn]
-                    }
-                  }
-                }
-              }
-            : {}
-        default:
-          return {}
-      }
     }
   },
   created() {
     this.loadLookupMeta()
+    this.loadLookupColumnMeta()
   },
   methods: {
+
+    async loadLookupColumnMeta() {
+      const relationColumn = this.meta.columns.find(c => c.id === this.column.colOptions.fk_relation_column_id)
+      this.lookupTableMeta = await this.$store.dispatch('meta/ActLoadMeta', { id: relationColumn.colOptions.fk_related_model_id })
+      this.lookupColumnMeta = this.lookupTableMeta.columns.find(c => c.id === this.column.colOptions.fk_lookup_column_id)
+    },
+
     async loadLookupMeta() {
-      if (!this.metas && !this.lookUpMeta) {
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
-          tn: this.column.lk.ltn
-        })
-      }
-      if (!this.metas && this.column.lk.type === 'mm' && !this.assocMeta) {
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
-          tn: this.column.lk.vtn
-        })
-      }
     },
     showLookupListModal() {
       this.lookupListModal = true
@@ -172,24 +154,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.chips-wrapper {
-  .chips {
-    max-width: 100%;
-
-    &.lookup-items {
+.wrapper{
       flex-wrap: wrap;
-      row-gap: 3px;
-      gap: 3px;
-      margin: 3px 0;
-    }
   }
-
-  &.active {
-    .chips {
-      max-width: calc(100% - 44px);
-    }
-  }
-}
 </style>
 <!--
 /**

@@ -14,7 +14,7 @@
                      href: '#'
                    },
                    {
-                     text: nodes.tn || nodes.view_name + ' (APIs)',
+                     text: nodes.table_name || nodes.view_name + ' (APIs)',
                      disabled: true,
                      href: '#'
                    }]"
@@ -63,7 +63,7 @@
               <v-spacer />
               <x-btn
                 outlined
-                :tooltip="`Compare GQL schema history of ${nodes.tn}`"
+                :tooltip="`Compare GQL schema history of ${nodes.table_name}`"
                 color="primary"
                 x-small
                 :disabled="loading || !schemaHistory.length"
@@ -116,7 +116,7 @@
               dense
               hide-details
               class="ma-2 mt-2"
-              :placeholder="`Search ${nodes.tn || nodes.view_name} rpc services`"
+              :placeholder="`Search ${nodes.table_name || nodes.view_name} rpc services`"
               prepend-inner-icon="search"
               outlined
             />
@@ -254,7 +254,7 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
-        tn: this.nodes.tn || this.nodes.view_name
+        table_name: this.nodes.table_name || this.nodes.view_name
       }])
       this.messages = tableMeta.messages
       this.services = tableMeta.services
@@ -269,7 +269,7 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'xcRpcPolicyGet', {
-        tn: this.nodes.tn || this.nodes.view_name
+        table_name: this.nodes.table_name || this.nodes.view_name
       }])).data.list
     },
     async saveMessageAndRpc() {
@@ -279,7 +279,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcModelMessagesAndServicesSet', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          table_name: this.nodes.table_name || this.nodes.view_name,
           messages: this.messages,
           services: this.services
         }])

@@ -11,7 +11,7 @@ export default class GrpcApi {
       env: this.ctx.nodes.env,
       dbAlias: this.ctx.nodes.dbAlias
     }, 'list', {
-      tn: this.table,
+      table_name: this.table,
       size: params.limit,
       page: ((params.offset || 0) / (params.limit || 20)) + 1
       // orderBy:

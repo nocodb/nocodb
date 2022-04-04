@@ -20,47 +20,46 @@
     <div class="d-flex align-center img-container">
       <div class="d-flex no-overflow">
         <div
-        v-for="(item,i) in (isPublicForm ? localFilesState : localState)"
-        :key="item.url || item.title"
-        class="thumbnail align-center justify-center d-flex"
-      >
-        <v-tooltip bottom>
-          <template #activator="{on}">
-            <!--            <img alt="#" v-if="isImage(item.title)" :src="item.url" v-on="on" @click="selectImage(item.url,i)">-->
-            <v-img
-              v-if="isImage(item.title)"
-              lazy-src="https://via.placeholder.com/60.png?text=Loading..."
-              alt="#"
-              max-height="33px"
-              contain
-              :src="item.url || item.data"
-              v-on="on"
-              @click="selectImage(item.url || item.data, i)"
-            >
-              <template #placeholder>
-                <v-skeleton-loader
-                  type="image"
-                  :height="active ? 33 : 22"
-                  :width="active ? 33 : 22"
-                />
-              </template>
-            </v-img>
-            <v-icon
-              v-else-if="item.icon"
-              :size="active ? 33 : 22"
-              v-on="on"
-              @click="openUrl(item.url || item.data,'_blank')"
-            >
-              {{
-                item.icon
-              }}
-            </v-icon>
-            <v-icon v-else :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url|| item.data,'_blank')">
-              mdi-file
-            </v-icon>
-          </template>
-          <span>{{ item.title }}</span>
-        </v-tooltip>
+          v-for="(item,i) in (isPublicForm ? localFilesState : localState)"
+          :key="item.url || item.title"
+          class="thumbnail align-center justify-center d-flex"
+        >
+          <v-tooltip bottom>
+            <template #activator="{on}">
+              <v-img
+                v-if="isImage(item.title)"
+                lazy-src="https://via.placeholder.com/60.png?text=Loading..."
+                alt="#"
+                max-height="33px"
+                contain
+                :src="item.url || item.data"
+                v-on="on"
+                @click="selectImage(item.url || item.data, i)"
+              >
+                <template #placeholder>
+                  <v-skeleton-loader
+                    type="image"
+                    :height="active ? 33 : 22"
+                    :width="active ? 33 : 22"
+                  />
+                </template>
+              </v-img>
+              <v-icon
+                v-else-if="item.icon"
+                :size="active ? 33 : 22"
+                v-on="on"
+                @click="openUrl(item.url || item.data,'_blank')"
+              >
+                {{
+                  item.icon
+                }}
+              </v-icon>
+              <v-icon v-else :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url|| item.data,'_blank')">
+                mdi-file
+              </v-icon>
+            </template>
+            <span>{{ item.title }}</span>
+          </v-tooltip>
         </div>
       </div>
       <div v-if="isForm || active && !isPublicGrid && !isLocked" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
@@ -214,7 +213,6 @@
               v-for="(item,i) in (isPublicForm ? localFilesState : localState)"
               :key="i"
             >
-              <!--            <div class="d-flex justify-center" style="height:80px">-->
               <v-card
                 :key="i"
                 class="ma-2 pa-2 d-flex align-center justify-center overlay-thumbnail"
@@ -235,12 +233,9 @@
                   mdi-file
                 </v-icon>
               </v-card>
-              <!--            </div>-->
             </v-slide-item>
           </v-slide-group>
         </v-sheet>
-        <!--        <v-img v-if="showImage && selectedImage" max-width="90vh" max-height="95vh"-->
-        <!--               :src="selectedImage"></v-img>-->
         <v-icon x-large class="close-icon" @click="showImage=false">
           mdi-close-circle
         </v-icon>
@@ -257,7 +252,7 @@ import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
 export default {
   name: 'EditableAttachmentCell',
   components: { draggable },
-  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column', 'isPublicGrid', 'isForm', 'isPublicForm'],
+  props: ['dbAlias', 'value', 'active', 'isLocked', 'meta', 'column', 'isPublicGrid', 'isForm', 'isPublicForm', 'viewId'],
   data: () => ({
     carousel: null,
     uploading: false,
@@ -271,20 +266,15 @@ export default {
   watch: {
     value(val, prev) {
       try {
-        this.localState = (typeof val === 'string' && val !== prev ? JSON.parse(val) : val) || []
+        this.localState = ((typeof val === 'string' && val !== prev ? JSON.parse(val) : val) || []).filter(Boolean)
       } catch (e) {
         this.localState = []
       }
     }
-    // localState(val) {
-    //   if (this.isForm) {
-    //     this.$emit('input', JSON.stringify(val))
-    //   }
-    // }
   },
   created() {
     try {
-      this.localState = (typeof this.value === 'string' ? JSON.parse(this.value) : this.value) || []
+      this.localState = ((typeof this.value === 'string' ? JSON.parse(this.value) : this.value) || []).filter(Boolean)
     } catch (e) {
       this.localState = []
     }
@@ -343,13 +333,13 @@ export default {
       this.uploading = true
       for (const file of this.$refs.file.files) {
         try {
-          const item = await this.$store.dispatch('sqlMgr/ActUploadOld', [{
-            dbAlias: this.dbAlias
-          }, 'xcAttachmentUpload', {
-            appendPath: [this.meta.tn],
-            prependName: [this.column.cn]
-          }, file])
-          this.localState.push(item)
+
+          const data = await this.$api.dbView.upload(this.$store.state.project.projectId, this.viewId, {
+            files: file,
+            json: '{}'
+          })
+
+          this.localState.push(...data)
         } catch (e) {
           this.$toast.error((e.message) || 'Some internal error occurred').goAway(3000)
           this.uploading = false

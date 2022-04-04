@@ -11,7 +11,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            // void
+            mainPage.tabReset();
         });
 
         it(`XCDB: SQL View Column operations`, () => {

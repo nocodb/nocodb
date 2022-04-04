@@ -20,10 +20,11 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             if (isXcdb()) {
                 cy.log(getProjectString());
-                projPrefix = `nc_${getProjectString()}__`;
+                projPrefix = `${getProjectString()}`;
                 dbCmd = `sqliteExec`;
-                tblDisplayPrefix = `nc_${getProjectString()}__`;
+                tblDisplayPrefix = `${getProjectString()}`;
             }
+            mainPage.tabReset();
             mainPage.openMetaTab();
         });
 
@@ -164,6 +165,7 @@ export const genTest = (apiType, dbType) => {
                 `${tblDisplayPrefix}table1`,
                 "New column(newCol), Column removed(col1)"
             );
+            mainPage.closeMetaTab();
 
             cy.openTableTab("Table1", 9);
             cy.deleteTable("Table1", dbType);

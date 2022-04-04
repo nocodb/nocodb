@@ -110,7 +110,7 @@ export default {
       triggerTimingOptions: ['BEFORE', 'AFTER'],
       triggerEventOptions: ['INSERT', 'UPDATE', 'DELETE'],
       trigger: {
-        tn: this.nodes.tn,
+        table_name: this.nodes.table_name,
         trigger_name: this.triggerObject.trigger || '',
         timing: this.triggerObject.timing || 'BEFORE',
         event: this.triggerObject.event || 'INSERT',

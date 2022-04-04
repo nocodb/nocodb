@@ -14,7 +14,7 @@
                      href: '#'
                    },
                    {
-                     text: nodes.tn + ' (table)',
+                     text: nodes.table_name + ' (table)',
                      disabled: true,
                      href: '#'
                    }]"
@@ -107,19 +107,19 @@
         </template>
 
         <template #item="props">
-          <tr :disabled="nodes.tn==='_evolutions' || nodes.tn==='nc_evolutions'">
+          <tr :disabled="nodes.table_name==='_evolutions' || nodes.table_name==='nc_evolutions'">
             <td>
               <v-edit-dialog
-                :return-value.sync="props.item.cn"
+                :return-value.sync="props.item.column_name"
                 @save="saveColumnName(props.item)"
                 @cancel="cancel"
                 @open="open"
                 @close="close"
               >
-                {{ props.item.cn }}
+                {{ props.item.column_name }}
                 <template #input>
                   <v-text-field
-                    v-model="props.item.cn"
+                    v-model="props.item.column_name"
                     :disabled="props.item.rcn"
                     :rules="[max25chars]"
                     :label="$t('general.edit')"
@@ -420,12 +420,11 @@ export default {
       col.rqd = true
     },
     colPropAIDisabled(col) {
-      // console.log(col);
       if (col.dtx === 'integer' ||
           col.dtx === 'bigInteger' ||
           col.dtx === 'specificType') {
         for (let i = 0; i < this.columns.length; ++i) {
-          if (this.columns[i].cn !== col.cn && this.columns[i].ai) {
+          if (this.columns[i].column_name !== col.column_name && this.columns[i].ai) {
             return true
           }
         }
@@ -436,7 +435,6 @@ export default {
     },
 
     colPropUNDisabled(col) {
-      // console.log(col);
       if (col.dtx === 'integer' ||
           col.dtx === 'bigInteger' ||
           col.dt.includes('int')) {
@@ -538,28 +536,28 @@ export default {
       //     dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.columnList({
-      //     tn: this.nodes.tn
+      //     tn: this.nodes.table_name
       // });
 
       const result = await this.sqlMgr.sqlOp({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'columnList', {
-        tn: this.nodes.tn
+        tn: this.nodes.table_name
       })
 
       console.log('table ', result.data.list)
       const columns = result.data.list
 
       // const relationsResult = await client.relationList({
-      //     tn: this.nodes.tn
+      //     tn: this.nodes.table_name
       // });
 
       const relationsResult = await this.sqlMgr.sqlOp({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'relationList', {
-        tn: this.nodes.tn
+        tn: this.nodes.table_name
       })
 
       const relations = relationsResult.data.list
@@ -570,7 +568,7 @@ export default {
         for (let i = 0; i < columns.length; i++) {
           const column = columns[i]
 
-          if (column.cn === relation.cn) {
+          if (column.column_name === relation.column_name) {
             // column.rcn = relation.rcn;
             // column.rtn = relation.rtn;
             columns[i] = { ...column, ...relation }
@@ -679,9 +677,9 @@ export default {
       for (let i = 0; i < columns.length; ++i) {
         if (columns[i].altered === 1 && (!(columns[i].dt === 'int' || columns[i].dt === 'bigint'))) {
           columns[i].un = false
-          console.log('>> resetting unsigned value', columns[i].cn)
+          console.log('>> resetting unsigned value', columns[i].column_name)
         }
-        console.log(columns[i].cn)
+        console.log(columns[i].column_name)
       }
     },
     addColumn() {
@@ -727,7 +725,7 @@ export default {
             },
             'tableUpdate',
             {
-              tn: this.nodes.tn,
+              tn: this.nodes.table_name,
               originalColumns: this.originalColumns,
               columns
             }
@@ -753,7 +751,7 @@ export default {
         //   },
         //   "tableCreate",
         //   {
-        //     tn: this.nodes.tn,
+        //     tn: this.nodes.table_name,
         //     columns: this.columns
         //   }
         // );
@@ -763,11 +761,11 @@ export default {
           dbAlias: this.nodes.dbAlias
         }, 'tableCreate',
         {
-          tn: this.nodes.tn,
+          tn: this.nodes.table_name,
           columns: this.columns
         }])
         // const result = await client.tableCreate({
-        //   tn: this.nodes.tn,
+        //   tn: this.nodes.table_name,
         //   columns: this.columns
         // });
         this.mtdNewTableUpdate(false)
@@ -780,7 +778,7 @@ export default {
       } else {
         console.log('this.columns[index].altered before', this.columns)
         // const result = await client.tableUpdate({
-        //   tn: this.nodes.tn,
+        //   tn: this.nodes.table_name,
         //   originalColumns: this.originalColumns,
         //   columns: this.columns
         // });
@@ -792,7 +790,7 @@ export default {
         //     },
         //     "tableUpdate",
         //     {
-        //         tn: this.nodes.tn,
+        //         tn: this.nodes.table_name,
         //         originalColumns: this.originalColumns,
         //         columns: this.columns
         //     }
@@ -805,7 +803,7 @@ export default {
           },
           'tableUpdate',
           {
-            tn: this.nodes.tn,
+            tn: this.nodes.table_name,
             originalColumns: this.originalColumns,
             columns: this.columns
           }])
@@ -868,8 +866,8 @@ export default {
         })
 
         // const result = await client.relationDelete({
-        //   childColumn: column.cn,
-        //   childTable: this.nodes.tn,
+        //   childColumn: column.column_name,
+        //   childTable: this.nodes.table_name,
         //   parentTable: column.rtn,
         //   parentColumn: column.rcn,
         //   foreignKeyName: column.cstn
@@ -881,8 +879,8 @@ export default {
           },
           'relationDelete',
           {
-            childColumn: this.selectedColForRelationDelete.cn,
-            childTable: this.nodes.tn,
+            childColumn: this.selectedColForRelationDelete.column_name,
+            childTable: this.nodes.table_name,
             parentTable: this.selectedColForRelationDelete
               .rtn,
             parentColumn: this.selectedColForRelationDelete

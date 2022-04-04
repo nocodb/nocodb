@@ -31,21 +31,6 @@
               <v-card-text class="align-self-end" v-text="item.description" />
             </v-card>
           </v-col>
-          <!--          <v-col cols="3">-->
-          <!--            <v-card>-->
-          <!--              <v-img-->
-
-          <!--                class="white&#45;&#45;text align-end"-->
-          <!--                gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"-->
-          <!--                height="200px"-->
-          <!--              >-->
-          <!--                <v-card-title>Push Notification</v-card-title>-->
-          <!--              </v-img>-->
-          <!--              <v-card-text>-->
-          <!--                Google Firebase based cloud messaging service-->
-          <!--              </v-card-text>-->
-          <!--            </v-card>-->
-          <!--          </v-col>-->
         </v-row>
       </v-expansion-panel-content>
     </v-expansion-panel>

@@ -196,9 +196,9 @@ export default {
             tn: this.table
           }])
           const metaObj = JSON.parse(meta.meta)
-          this.columns = metaObj.columns.map(v => v.cn)
+          this.columns = metaObj.columns.map(v => v.column_name)
           console.log(metaObj)
-          this.hmList = metaObj.hasMany.map(v => v.tn)
+          this.hmList = metaObj.hasMany.map(v => v.table_name)
           this.btList = metaObj.belongsTo.map(v => v.rtn)
         } catch (e) {
           console.log('load meta', this.table, e)

@@ -40,15 +40,15 @@
             class="grey-border caption font-wight-regular  nc-grid-header-cell"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
             :data-col="col.alias"
-            @xcresize="onresize(col.alias,$event), log('xcresize')"
+            @xcresize="onresize(col.id,$event), log('xcresize')"
             @xcresizing="onXcResizing(col.alias,$event)"
             @xcresized="resizingCol = null"
           >
-            <!--            :style="columnsWidth[col._cn]  ? `min-width:${columnsWidth[col._cn]}; max-width:${columnsWidth[col._cn]}` : ''"
+            <!--            :style="columnsWidth[col.title]  ? `min-width:${columnsWidth[col.title]}; max-width:${columnsWidth[col.title]}` : ''"
 -->
 
             <virtual-header-cell
-              v-if="col.virtual"
+              v-if="isVirtualCol(col)"
               :column="col"
               :nodes="nodes"
               :meta="meta"
@@ -63,36 +63,40 @@
               v-else
               :is-public-view="isPublicView"
               :nodes="nodes"
-              :value="col._cn"
+              :value="col.title"
               :sql-ui="sqlUi"
               :meta="meta"
               :column-index="meta && meta.columns && meta.columns.indexOf(col)"
-              :is-foreign-key="col._cn in belongsTo || col._cn in hasMany"
               :column="col"
               :is-virtual="isVirtual"
               :is-locked="isLocked"
               @onRelationDelete="$emit('onRelationDelete')"
+              @colDelete="$emit('colDelete')"
               @saved="onNewColCreation"
             />
           </th>
 
           <th
             v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')"
+            v-t="['column:add']"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
             class="grey-border new-column-header pointer  nc-grid-header-cell"
             @click="addNewColMenu = true"
           >
+            <v-icon
+              small
+              @click="addNewColMenu = true"
+            >
+              mdi-plus
+            </v-icon>
             <v-menu
               v-model="addNewColMenu"
               offset-y
-              z-index="99"
-              left
               content-class=""
+              left
             >
               <template #activator="{on}">
-                <v-icon small v-on="on">
-                  mdi-plus
-                </v-icon>
+                <span v-on="on" />
               </template>
               <edit-column
                 v-if="addNewColMenu"
@@ -171,7 +175,7 @@
             class="cell pointer nc-grid-cell"
             :class="{
               'active' :!isPublicView && selected.col === col && selected.row === row && isEditable ,
-              'primary-column' : primaryValueColumn === columnObj._cn,
+              'primary-column' : primaryValueColumn === columnObj.title,
               'text-center': isCentrallyAligned(columnObj),
               'required': isRequired(columnObj,rowObj)
             }"
@@ -181,7 +185,7 @@
             @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row,col, columnObj)"
           >
             <virtual-cell
-              v-if="columnObj.virtual"
+              v-if="isVirtualCol(columnObj)"
               :password="password"
               :is-public="isPublicView"
               :metas="metas"
@@ -195,19 +199,20 @@
               :sql-ui="sqlUi"
               :is-new="rowMeta.new"
               v-on="$listeners"
-              @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.cn === columnObj.bt.cn), col, row)"
+              @updateCol="(...args) => updateCol(...args, columnObj.bt && meta.columns.find( c => c.column_name === columnObj.bt.column_name), col, row)"
               @saveRow="onCellValueChange(col, row, columnObj, true)"
             />
 
             <editable-cell
               v-else-if="
                 (isPkAvail ||rowMeta.new) &&
+                  !isView &&
                   !isLocked
                   && !isPublicView
                   && (editEnabled.col === col && editEnabled.row === row)
                   || enableEditable(columnObj)
               "
-              v-model="rowObj[columnObj._cn]"
+              v-model="rowObj[columnObj.title]"
               :column="columnObj"
               :meta="meta"
               :active="selected.col === col && selected.row === row"
@@ -215,6 +220,7 @@
               :db-alias="nodes.dbAlias"
               :is-locked="isLocked"
               :is-public="isPublicView"
+              :view-id="viewId"
               @save="editEnabled = {};"
               @cancel="editEnabled = {};"
               @update="onCellValueChange(col, row, columnObj, false)"
@@ -225,20 +231,20 @@
 
             <table-cell
               v-else
-              :class="{'primary--text' : primaryValueColumn === columnObj._cn}"
+              :class="{'primary--text' : primaryValueColumn === columnObj.title}"
               :selected="selected.col === col && selected.row === row"
               :is-locked="isLocked"
               :column="columnObj"
               :meta="meta"
               :db-alias="nodes.dbAlias"
-              :value="rowObj[columnObj._cn]"
+              :value="rowObj[columnObj.title]"
               :sql-ui="sqlUi"
               @enableedit="makeSelected(col,row);makeEditable(col,row,columnObj.ai, rowMeta)"
             />
           </td>
         </tr>
-        <tr v-if="!isLocked && !isPublicView && isEditable && relationType !== 'bt'">
-          <td :colspan="visibleColLength + 1" class="text-left pointer nc-grid-add-new-cell" @click="insertNewRow(true)">
+        <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
+          <td v-t="['record:add:trigger']" :colspan="visibleColLength + 1" class="text-left pointer nc-grid-add-new-cell" @click="insertNewRow(true)">
             <v-tooltip top>
               <template #activator="{on}">
                 <v-icon small color="pink" v-on="on">
@@ -268,10 +274,11 @@
 </template>
 
 <script>
+import { isVirtualCol } from 'nocodb-sdk'
 import HeaderCell from '../components/headerCell'
 import EditableCell from '../components/editableCell'
 import EditColumn from '../components/editColumn'
-import columnStyling from '../helpers/columnStyling'
+// import columnStyling from '../helpers/columnStyling'
 import VirtualCell from '../components/virtualCell'
 import VirtualHeaderCell from '../components/virtualHeaderCell'
 import colors from '@/mixins/colors'
@@ -293,7 +300,9 @@ export default {
   },
   mixins: [colors],
   props: {
+    loading: Boolean,
     droppable: Boolean,
+    isView: Boolean,
     metas: Object,
     relationType: String,
     availableColumns: [Object, Array],
@@ -303,8 +312,8 @@ export default {
     isEditable: Boolean,
     nodes: Object,
     primaryValueColumn: String,
-    belongsTo: [Object, Array],
-    hasMany: [Object, Array],
+    // belongsTo: [Object, Array],
+    // hasMany: [Object, Array],
     data: [Array, Object],
     meta: Object,
     visibleColLength: [Number, String],
@@ -312,12 +321,14 @@ export default {
     table: String,
     isVirtual: Boolean,
     isLocked: Boolean,
-    columnsWidth: { type: Object },
+    // columnsWidth: { type: Object },
     isPkAvail: Boolean,
-    password: String
+    password: String,
+    viewId: String
   },
   data: () => ({
     resizingCol: null,
+    isVirtualCol,
     resizingColWidth: null,
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
@@ -331,7 +342,8 @@ export default {
       col: null
     },
     aggCount: [],
-    dragOver: false
+    dragOver: false,
+    gridViewCols: {}
   }),
   computed: {
     selectAll: {
@@ -345,7 +357,10 @@ export default {
       }
     },
     ids() {
-      return this.data.map(({ oldRow }) => this.meta.columns.filter(c => c.pk).map(c => oldRow[c._cn]).join('___'))
+      return (this.meta &&
+        this.meta.columns &&
+        this.data &&
+        this.data.map(({ oldRow }) => this.meta.columns.filter(c => c.pk).map(c => oldRow[c.title]).join('___'))) || []
     },
     haveHasManyrelation() {
       return !!Object.keys(this.hasMany).length
@@ -357,16 +372,25 @@ export default {
       return (this.data && this.data.length) || 0
     },
     availColNames() {
-      return (this.availableColumns && this.availableColumns.map(c => c._cn)) || []
+      return (this.availableColumns && this.availableColumns.map(c => c.title)) || []
     },
     groupedAggCount() {
       // eslint-disable-next-line camelcase
-      return this.aggCount ? this.aggCount.reduce((o, { model_id, count }) => ({ ...o, [model_id]: count }), {}) : {}
+      return this.aggCount
+        ? this.aggCount.reduce((o, {
+          row_id,
+          count
+        }) => ({
+          ...o,
+          [row_id]: count
+        }), {})
+        : {}
     },
     style() {
       let style = ''
       for (const c of this.availableColumns) {
-        const val = (this.columnsWidth && this.columnsWidth[c.alias]) || (c.virtual ? '200px' : ((columnStyling[c.uidt] && columnStyling[c.uidt].w) || '150px'))
+        const val = (this.gridViewCols && this.gridViewCols[c.id] && this.gridViewCols[c.id].width) || '200px'
+
         if (val && c.key !== this.resizingCol) {
           style += `[data-col="${c.alias}"]{min-width:${val};max-width:${val};width: ${val};}`
         }
@@ -381,34 +405,50 @@ export default {
   watch: {
     data() {
       this.xcAuditModelCommentsCount()
+    },
+    viewId(v, o) {
+      if (v !== o) {
+        this.loadGridViewCols()
+      }
     }
   },
   mounted() {
-    this.calculateColumnWidth()
+    // this.calculateColumnWidth()
   },
   created() {
     document.addEventListener('keydown', this.onKeyDown)
+    this.loadGridViewCols()
     this.xcAuditModelCommentsCount()
   },
   beforeDestroy() {
     document.removeEventListener('keydown', this.onKeyDown)
   },
   methods: {
+    async loadGridViewCols() {
+      if (!this.viewId) {
+        return
+      }
+      const colsData = (await this.$api.dbView.gridColumnsList(this.viewId))
+      this.gridViewCols = colsData.reduce((o, col) => ({
+        ...o,
+        [col.fk_column_id]: col
+      }), {})
+    },
     onFileDrop(event) {
       this.$emit('drop', event)
     },
     isRequired(_columnObj, rowObj, ignoreCurrentValue = false) {
-      if (this.isPublicView) {
+      if (this.isPublicView || this.loading) {
         return false
       }
 
       let columnObj = _columnObj
       if (columnObj.bt) {
-        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
+        columnObj = this.meta.columns.find(c => c.column_name === columnObj.bt.column_name)
       }
 
       return columnObj && (columnObj.rqd &&
-        (ignoreCurrentValue || rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
+        (ignoreCurrentValue || rowObj[columnObj.title] === undefined || rowObj[columnObj.title] === null) &&
         !columnObj.default)
     },
     updateCol(row, column, value, columnObj, colIndex, rowIndex) {
@@ -419,10 +459,10 @@ export default {
       // setTimeout(() => {
       //   const obj = {}
       //   this.meta && this.meta.columns && this.meta.columns.forEach((c) => {
-      //     obj[c._cn] = (columnStyling[c.uidt] && columnStyling[c.uidt].w) || undefined
+      //     obj[c.title] = (columnStyling[c.uidt] && columnStyling[c.uidt].w) || undefined
       //   })
       //   this.meta && this.meta.v && this.meta.v.forEach((v) => {
-      //     obj[v._cn] = v.bt ? '100px' : '200px'
+      //     obj[v.title] = v.bt ? '100px' : '200px'
       //   })
       //   Array.from(this.$el.querySelectorAll('th')).forEach((el) => {
       //     const width = el.getBoundingClientRect().width
@@ -447,20 +487,26 @@ export default {
       if (this.isPublicView || !this.data || !this.data.length) {
         return
       }
-      const aggCount = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.nodes.dbAlias
-      }, 'xcAuditModelCommentsCount', {
-        model_name: this.meta._tn,
-        ids: this.data.map(({ row: r }) => {
-          return this.meta.columns.filter(c => c.pk).map(c => r[c._cn]).join('___')
-        })
-      }])
+      // const aggCount = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      //   dbAlias: this.nodes.dbAlias
+      // }, 'xcAuditModelCommentsCount', {
+      //   model_name: this.meta.title,
+      //   ids: this.data.map(({ row: r }) => {
+      //     return this.meta.columns.filter(c => c.pk).map(c => r[c.title]).join('___')
+      //   })
+      // }])
+      //
 
-      this.aggCount = aggCount
+      this.aggCount = (await this.$api.utils.commentCount({
+        ids: this.data.map(({ row: r }) => {
+          return this.meta.columns.filter(c => c.pk).map(c => r[c.title]).join('___')
+        }),
+        fk_model_id: this.meta.id
+      }))
     },
 
     async onKeyDown(e) {
-      if (this.selected.col === null || this.selected.row === null) {
+      if (this.selected.col === null || this.selected.row === null || this.isLocked) {
         return
       }
 
@@ -468,7 +514,10 @@ export default {
         // tab
         case 9:
           e.preventDefault()
-          this.editEnabled = { col: null, row: null }
+          this.editEnabled = {
+            col: null,
+            row: null
+          }
           if (e.shiftKey) {
             if (this.selected.col > 0) {
               this.selected.col--
@@ -499,7 +548,7 @@ export default {
             return
           }
 
-          this.$set(rowObj, columnObj._cn, null)
+          this.$set(rowObj, columnObj.title, null)
           // update/save cell value
           this.onCellValueChange(this.selected.col, this.selected.row, columnObj, true)
         }
@@ -544,20 +593,19 @@ export default {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                copyTextToClipboard(rowObj[columnObj._cn] || '')
+                copyTextToClipboard(rowObj[columnObj.title] || '')
                 break
-                // // paste ctrl/cmd + v
-                // case 86: {
-                //   const text = await navigator.clipboard.readText()
-                //   this.$set(rowObj, columnObj._cn, text)
-                // }
-                // break
+              // // paste ctrl/cmd + v
+              // case 86: {
+              //   const text = await navigator.clipboard.readText()
+              //   this.$set(rowObj, columnObj.title, text)
+              // }
+              // break
             }
           }
 
           if (e.ctrlKey ||
             e.altKey ||
-            e.shiftKey ||
             e.metaKey) {
             return
           }
@@ -567,7 +615,7 @@ export default {
               return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
             }
 
-            this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col]._cn, '')
+            this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col].title, '')
             this.editEnabled = { ...this.selected }
           }
         }
@@ -593,6 +641,7 @@ export default {
     },
     expandRow(...args) {
       this.$emit('expandRow', ...args)
+      this.$tele.emit('record:expand-row')
     },
     showRowContextMenu($event, rowObj, rowMeta, row, ...rest) {
       this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row, ...rest)
@@ -615,12 +664,15 @@ export default {
     },
     makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
-        this.selected = { col, row }
+        this.selected = {
+          col,
+          row
+        }
         this.editEnabled = {}
       }
     },
     makeEditable(col, row, _, rowMeta) {
-      if (this.isPublicView || !this.isEditable) {
+      if (this.isPublicView || !this.isEditable || this.isView) {
         return
       }
 
@@ -634,7 +686,10 @@ export default {
         return this.$toast.info('Editing primary key not supported').goAway(3000)
       }
       if (this.editEnabled.col !== col || this.editEnabled.row !== row) {
-        this.editEnabled = { col, row }
+        this.editEnabled = {
+          col,
+          row
+        }
       }
     },
     enableEditable(column) {
@@ -644,14 +699,24 @@ export default {
         (column && column.uidt === UITypes.DateTime) ||
         (column && column.uidt === UITypes.Date) ||
         (column && column.uidt === UITypes.Time) ||
-        (this.sqlUi && this.sqlUi.getAbstractType(column) === 'boolean')
+        (this.sqlUi && column.dt && this.sqlUi.getAbstractType((column)) === 'boolean')
       )
     },
     insertNewRow(atEnd = false, expand = false) {
       this.$emit('insertNewRow', atEnd, expand)
     },
-    onresize(col, size) {
-      this.$emit('update:columnsWidth', { ...this.columnsWidth, [col]: size })
+    async onresize(colId, size) {
+      const gridColId = this.gridViewCols && this.gridViewCols[colId] && this.gridViewCols[colId].id
+      if (!gridColId) {
+        return
+      }
+      this.$set(this.gridViewCols[colId], 'width', size)
+      if (this._isUIAllowed('gridColUpdate')) {
+        await this.$api.dbView.gridColumnUpdate(gridColId, {
+          width: size
+        })
+      }
+      // this.$emit('update:columnsWidth', { ...this.columnsWidth, [col]: size })
     },
     onXcResizing(_cn, width) {
       this.resizingCol = _cn

@@ -8,8 +8,6 @@
     <div>
       <v-card dark style="width: 100%; max-height:100%;overflow: auto">
         <v-container v-if="databaseCount" fluid style="min-height:200px;">
-          <!--                    <v-row class="text-center">-->
-          <!--                      <v-col cols="12">-->
           <v-card class="pa-2 text-center elevation-10" dark>
             <h3 class="title mb-3 mt-4">
               APIs Generated
@@ -19,8 +17,6 @@
               <span class="subtitle grey--text text--lighten-1">within {{ timeTaken }} seconds</span>
             </p>
           </v-card>
-          <!--                      </v-col>-->
-          <!--                    </v-row>-->
           <v-row>
             <v-col>
               <v-card dark class=" elevation-10">

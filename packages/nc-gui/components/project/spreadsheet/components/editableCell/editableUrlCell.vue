@@ -16,7 +16,6 @@ export default {
         return this.value
       },
       set(val) {
-        console.log(isValidURL(val))
         if (isValidURL(val)) { this.$emit('input', val) }
       }
     },

@@ -1,6 +1,7 @@
 import { SqlClientFactory } from 'nc-help';
 import fs from 'fs';
 import parseDbUrl from 'parse-database-url';
+import { URL } from 'url';
 
 import {
   AuthConfig,
@@ -42,30 +43,32 @@ export default class NcConfigFactory implements NcConfig {
   public static make(): NcConfig {
     this.jdbcToXcUrl();
 
-    const config = new NcConfigFactory();
+    const ncConfig = new NcConfigFactory();
 
-    config.auth = {
+    ncConfig.auth = {
       jwt: {
         secret: process.env.NC_AUTH_JWT_SECRET
       }
     };
 
-    config.port = +(process?.env?.PORT ?? 8080);
-    config.env = '_noco'; // process.env?.NODE_ENV || 'dev';
-    config.workingEnv = '_noco'; // process.env?.NODE_ENV || 'dev';
-    // config.toolDir = this.getToolDir();
-    config.projectType =
-      config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
+    ncConfig.port = +(process?.env?.PORT ?? 8080);
+    ncConfig.env = '_noco'; // process.env?.NODE_ENV || 'dev';
+    ncConfig.workingEnv = '_noco'; // process.env?.NODE_ENV || 'dev';
+    // ncConfig.toolDir = this.getToolDir();
+    ncConfig.projectType =
+      ncConfig?.envs?.[ncConfig.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
 
-    if (config.meta?.db?.connection?.filename) {
-      config.meta.db.connection.filename = path.join(
+    if (ncConfig.meta?.db?.connection?.filename) {
+      ncConfig.meta.db.connection.filename = path.join(
         this.getToolDir(),
-        config.meta.db.connection.filename
+        ncConfig.meta.db.connection.filename
       );
     }
 
-    if (process.env.NC_DB_JSON) {
-      config.meta.db = JSON.parse(process.env.NC_DB_JSON);
+    if (process.env.NC_DB) {
+      ncConfig.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+    } else if (process.env.NC_DB_JSON) {
+      ncConfig.meta.db = JSON.parse(process.env.NC_DB_JSON);
     } else if (process.env.NC_DB_JSON_FILE) {
       const filePath = process.env.NC_DB_JSON_FILE;
 
@@ -74,14 +77,12 @@ export default class NcConfigFactory implements NcConfig {
       }
 
       const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
-      config.meta.db = JSON.parse(fileContent);
-    } else if (process.env.NC_DB) {
-      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+      ncConfig.meta.db = JSON.parse(fileContent);
     }
 
     if (process.env.NC_TRY) {
-      config.try = true;
-      config.meta.db = {
+      ncConfig.try = true;
+      ncConfig.meta.db = {
         client: 'sqlite3',
         connection: ':memory:',
         pool: {
@@ -94,16 +95,16 @@ export default class NcConfigFactory implements NcConfig {
     }
 
     if (process.env.NC_PUBLIC_URL) {
-      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
-      // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
-      config.publicUrl = process.env.NC_PUBLIC_URL;
+      ncConfig.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
+      // ncConfig.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
+      ncConfig.publicUrl = process.env.NC_PUBLIC_URL;
     }
 
     if (process.env.NC_DASHBOARD_URL) {
-      config.dashboardPath = process.env.NC_DASHBOARD_URL;
+      ncConfig.dashboardPath = process.env.NC_DASHBOARD_URL;
     }
 
-    return config;
+    return ncConfig;
   }
 
   public static getToolDir() {
@@ -131,7 +132,7 @@ export default class NcConfigFactory implements NcConfig {
 
   public static urlToDbConfig(
     urlString: string,
-    key?: string,
+    key = '',
     config?: NcConfigFactory,
     type?: string
   ): DbConfig {

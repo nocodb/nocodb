@@ -49,7 +49,7 @@
               @click="$emit('add',ch)"
             >
               <v-card-text class="primary-value textColor--text text--lighten-2 d-flex">
-                <span class="font-weight-bold"> {{ ch[primaryCol] }}&nbsp;</span>
+                <span class="font-weight-bold"> {{ ch[primaryCol] || (ch &&Object.values(ch).slice(0,1).join()) }}&nbsp;</span>
                 <span
                   v-if="primaryKey"
                   class="grey--text caption primary-key "
@@ -73,7 +73,7 @@
           v-if="data && data.list && data.list.length"
           v-model="page"
           :size="size"
-          :count="data.count"
+          :count="data && data.pageInfo&& data.pageInfo.totalRows"
           class="mb-3"
           @input="loadData"
         />
@@ -111,7 +111,9 @@ export default {
     parentId: [String, Number],
     parentMeta: [Object],
     isPublic: Boolean,
-    password: String
+    password: String,
+    column: Object,
+    rowId: [Number, String]
   },
   data: () => ({
     data: null,
@@ -130,7 +132,7 @@ export default {
     hmParentPrimaryValCol() {
       return this.hm &&
         this.parentMeta &&
-        this.parentMeta.columns.find(v => v.pv)._cn
+        this.parentMeta.columns.find(v => v.pv).title
     }
   },
   mounted() {
@@ -139,41 +141,43 @@ export default {
   methods: {
     async loadData() {
       if (this.isPublic) {
-        this.data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewNestedDataGet', {
-          password: this.password,
-          limit: this.size,
-          tn: this.tn,
-          view_id: this.$route.params.id,
-          offset: this.size * (this.page - 1),
-          query: this.query
-        }])
+        this.data = (await this.$api.public.dataRelationList(
+          this.$route.params.id,
+          this.column.id,
+          { password: this.password }, {
+            query: {
+              limit: this.size,
+              offset: this.size * (this.page - 1),
+              ...this.queryParams
+            }
+          }))
       } else {
-        if (!this.api) {
-          return
-        }
-        const isByPass = this.queryParams.isByPass || false
-        if (isByPass) {
-          return
-        }
-        let where = this.queryParams.where || ''
-        if (this.query) {
-          where += (where ? '~and' : '') + `(${this.primaryCol},like,%${this.query}%)`
-        }
+        const where = `(${this.primaryCol},like,%${this.query}%)`
 
-        if (this.mm) {
-          this.data = await this.api.paginatedM2mNotChildrenList({
-            limit: this.size,
-            offset: this.size * (this.page - 1),
-            ...this.queryParams,
-            where
-          }, this.mm.vtn, this.parentId || -1)
+        // eslint-disable-next-line no-lonely-if
+        if (this.column && this.column.colOptions && this.rowId) {
+          this.data = (await this.$api.data.nestedExcludedList(
+            this.column.fk_model_id,
+            this.rowId,
+            this.column.id,
+            this.column.colOptions.type,
+            {
+              query: {
+                limit: this.size,
+                offset: this.size * (this.page - 1),
+                where: this.query && `(${this.primaryCol},like,${this.query})`
+              }
+            }))
         } else {
-          this.data = await this.api.paginatedList({
-            limit: this.size,
-            offset: this.size * (this.page - 1),
-            ...this.queryParams,
-            where
-          })
+          this.data = (await this.$api.data.list(
+            this.meta.id, {
+              query: {
+                limit: this.size,
+                offset: this.size * (this.page - 1),
+                ...this.queryParams,
+                where
+              }
+            }))
         }
       }
     }

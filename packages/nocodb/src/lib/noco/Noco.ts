@@ -33,6 +33,13 @@ import RestAuthCtrlEE from './rest/RestAuthCtrlEE';
 import mkdirp from 'mkdirp';
 import MetaAPILogger from './meta/MetaAPILogger';
 import NcUpgrader from './upgrader/NcUpgrader';
+import NcMetaMgrv2 from './meta/NcMetaMgrv2';
+import NocoCache from '../noco-cache/NocoCache';
+import registerMetaApis from './meta/api';
+import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
+import User from '../noco-models/User';
+import { Tele } from 'nc-help';
+import * as http from 'http';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -56,24 +63,30 @@ export default class Noco {
     return `${siteUrl}${Noco._this?.config?.dashboardPath}`;
   }
 
-  public static async init(args?: {
-    progressCallback?: Function;
-    registerRoutes?: Function;
-    registerGql?: Function;
-    registerContext?: Function;
-    afterMetaMigrationInit?: Function;
-  }): Promise<Router> {
+  public static async init(
+    args?: {
+      progressCallback?: Function;
+      registerRoutes?: Function;
+      registerGql?: Function;
+      registerContext?: Function;
+      afterMetaMigrationInit?: Function;
+    },
+    server?: http.Server,
+    app?: express.Express
+  ): Promise<Router> {
     if (Noco._this) {
       return Noco._this.router;
     }
     Noco._this = new Noco();
-    return Noco._this.init(args);
+    return Noco._this.init(args, server, app);
   }
 
+  private static config: NcConfig;
   public readonly router: express.Router;
   public readonly projectRouter: express.Router;
-  public readonly ncMeta: NcMetaIO;
+  public static _ncMeta: NcMetaIO;
   public readonly metaMgr: NcMetaMgrEE | NcMetaMgrCE;
+  public readonly metaMgrv2: NcMetaMgrv2;
   public env: string;
 
   public projectBuilders: Array<NcProjectBuilderCE | NcProjectBuilderEE> = [];
@@ -89,13 +102,13 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0084002';
+    process.env.NC_VERSION = '0090000';
 
     this.router = express.Router();
     this.projectRouter = express.Router();
 
     /* prepare config */
-    this.config = NcConfigFactory.make();
+    Noco.config = this.config = NcConfigFactory.make();
 
     /******************* setup : start *******************/
     this.env = '_noco'; //process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
@@ -112,10 +125,11 @@ export default class Noco {
     // }
 
     const NcMetaImpl = process.env.EE ? NcMetaImplEE : NcMetaImplCE;
-    const NcMetaMgr = process.env.EE ? NcMetaMgrEE : NcMetaMgrCE;
+    // const NcMetaMgr = process.env.EE ? NcMetaMgrEE : NcMetaMgrCE;
 
-    this.ncMeta = new NcMetaImpl(this, this.config);
-    this.metaMgr = new NcMetaMgr(this, this.config, this.ncMeta);
+    Noco._ncMeta = new NcMetaImpl(this, this.config);
+    // this.metaMgr = new NcMetaMgr(this, this.config, Noco._ncMeta);
+    // this.metaMgrv2 = new NcMetaMgrv2(this, this.config, Noco._ncMeta);
 
     /******************* setup : end *******************/
 
@@ -137,13 +151,18 @@ export default class Noco {
     /******************* prints : end *******************/
   }
 
-  public async init(args?: {
-    progressCallback?: Function;
-    registerRoutes?: Function;
-    registerGql?: Function;
-    registerContext?: Function;
-    afterMetaMigrationInit?: Function;
-  }) {
+  public async init(
+    args?: {
+      progressCallback?: Function;
+      registerRoutes?: Function;
+      registerGql?: Function;
+      registerContext?: Function;
+      afterMetaMigrationInit?: Function;
+    },
+    server?: http.Server,
+    _app?: express.Express
+  ) {
+    // @ts-ignore
     const {
       progressCallback
       // registerRoutes,
@@ -157,6 +176,7 @@ export default class Noco {
     mkdirp.sync(this.config.toolDir);
 
     this.initSentry();
+    NocoCache.init();
 
     this.initWebSocket();
 
@@ -169,11 +189,11 @@ export default class Noco {
       await this.syncMigration();
     }
 
-    await this.ncMeta.metaInit();
+    await Noco._ncMeta.metaInit();
 
     await this.readOrGenJwtSecret();
 
-    await NcUpgrader.upgrade({ ncMeta: this.ncMeta });
+    await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
 
     if (args?.afterMetaMigrationInit) {
       await args.afterMetaMigrationInit();
@@ -218,13 +238,19 @@ export default class Noco {
 
     /******************* Middlewares : end *******************/
 
-    await this.initProjectBuilders();
+    // await this.initProjectBuilders();
 
-    const runTimeHandler = this.handleRuntimeChanges(progressCallback);
+    // const runTimeHandler = this.handleRuntimeChanges(progressCallback);
 
-    this.ncToolApi.addListener(runTimeHandler);
-    this.metaMgr.setListener(runTimeHandler);
-    await this.metaMgr.initHandler(this.router);
+    // this.ncToolApi.addListener(runTimeHandler);
+    // this.metaMgr.setListener(runTimeHandler);
+    // this.metaMgrv2.setListener(runTimeHandler);
+    // await this.metaMgr.initHandler(this.router);
+    // await this.metaMgrv2.initHandler(this.router);
+
+    await NcPluginMgrv2.init(Noco.ncMeta);
+    registerMetaApis(this.router, server);
+
     this.router.use(
       this.config.dashboardPath,
       await this.ncToolApi.expressMiddleware()
@@ -242,7 +268,7 @@ export default class Noco {
       }
       next();
     });
-
+    Tele.emit('evt_app_started', await User.count());
     return this.router;
   }
 
@@ -279,7 +305,7 @@ export default class Noco {
     this.requestContext = context;
   }
 
-  private handleRuntimeChanges(_progressCallback: Function) {
+  protected handleRuntimeChanges(_progressCallback: Function) {
     return async (data): Promise<any> => {
       switch (data?.req?.api) {
         case 'projectCreateByWeb':
@@ -287,7 +313,7 @@ export default class Noco {
         case 'projectCreateByWebWithXCDB':
           {
             //  || data?.req?.args?.project?.title || data?.req?.args?.title
-            const project = await this.ncMeta.projectGetById(data?.res?.id);
+            const project = await Noco.ncMeta.projectGetById(data?.res?.id);
             const builder = new NcProjectBuilder(this, this.config, project);
             this.projectBuilders.push(builder);
             await builder.init(true);
@@ -298,7 +324,7 @@ export default class Noco {
         case 'xcMetaTablesImportZipToLocalFsAndDb':
           {
             if (data.req?.freshImport) {
-              const project = await this.ncMeta.projectGetById(
+              const project = await Noco.ncMeta.projectGetById(
                 data?.req?.project_id
               );
               const builder = new NcProjectBuilder(this, this.config, project);
@@ -316,7 +342,7 @@ export default class Noco {
         case 'projectUpdateByWeb':
           {
             const projectId = data.req?.project_id;
-            const project = await this.ncMeta.projectGetById(
+            const project = await Noco._ncMeta.projectGetById(
               data?.req?.project_id
             );
             const projectBuilder = this.projectBuilders.find(
@@ -335,7 +361,7 @@ export default class Noco {
               path.join(process.cwd(), 'config.xc.json')
             ) as NcConfig;
             this.config.toolDir = this.config.toolDir || process.cwd();
-            this.ncMeta.setConfig(this.config);
+            Noco._ncMeta.setConfig(this.config);
             this.metaMgr.setConfig(this.config);
             Object.assign(process.env, {
               NODE_ENV: this.env = this.config.workingEnv
@@ -360,21 +386,22 @@ export default class Noco {
     };
   }
 
-  private async initProjectBuilders() {
+  protected async initProjectBuilders() {
+    // @ts-ignore
     const RestAuthCtrl = process.env.EE ? RestAuthCtrlEE : RestAuthCtrlCE;
 
     this.projectBuilders.splice(0, this.projectBuilders.length);
 
-    await new RestAuthCtrl(
-      this as any,
-      this.ncMeta?.knex,
-      this.config?.meta?.db,
-      this.config,
-      this.ncMeta
-    ).init();
+    // await new RestAuthCtrl(
+    //   this as any,
+    //   Noco._ncMeta?.knex,
+    //   this.config?.meta?.db,
+    //   this.config,
+    //   Noco._ncMeta
+    // ).init();
 
     this.router.use(this.projectRouter);
-    const projects = await this.ncMeta.projectList();
+    const projects = await Noco._ncMeta.projectList();
 
     for (const project of projects) {
       const projectBuilder = new NcProjectBuilder(this, this.config, project);
@@ -467,7 +494,7 @@ export default class Noco {
     // todo: Auth
 
     this.router.get(`${this.config.dashboardPath}/demo`, (_req, res) => {
-      (this.ncMeta as any).updateKnex({
+      (Noco._ncMeta as any).updateKnex({
         client: 'sqlite3',
         connection: {
           filename: 'xcDemo.db'
@@ -532,18 +559,28 @@ export default class Noco {
   private async readOrGenJwtSecret(): Promise<any> {
     if (this.config?.auth?.jwt && !this.config.auth.jwt.secret) {
       let secret = (
-        await this.ncMeta.metaGet('', '', 'nc_store', {
+        await Noco._ncMeta.metaGet('', '', 'nc_store', {
           key: 'nc_auth_jwt_secret'
         })
       )?.value;
       if (!secret) {
-        await this.ncMeta.metaInsert('', '', 'nc_store', {
+        await Noco._ncMeta.metaInsert('', '', 'nc_store', {
           key: 'nc_auth_jwt_secret',
           value: secret = uuidv4()
         });
       }
       this.config.auth.jwt.secret = secret;
     }
+  }
+
+  public static get ncMeta(): NcMetaIO {
+    return this._ncMeta;
+  }
+  public get ncMeta(): NcMetaIO {
+    return Noco._ncMeta;
+  }
+  public static getConfig(): NcConfig {
+    return Noco.config;
   }
 }
 

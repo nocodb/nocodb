@@ -11,12 +11,12 @@ Simple installation - takes about three minutes!
 
 ## Prerequisites
 
-- __Must haves__
-    * [node.js >= 12](https://nodejs.org/en/download) / [Docker](https://www.docker.com/get-started)
-    * [MySql](https://dev.mysql.com/downloads/mysql/) / [Postgres](https://www.postgresql.org/download/) / [SQLserver](https://www.microsoft.com/en-gb/sql-server/sql-server-downloads) / SQLite Database
+- Must haves
+    - [Node.js with version >= 12](https://nodejs.org/en/download) / [Docker](https://www.docker.com/get-started)
 - Nice to haves
+    - [MySQL](https://dev.mysql.com/downloads/mysql/) / [Postgres](https://www.postgresql.org/download/) / [SQL Server](https://www.microsoft.com/en-gb/sql-server/sql-server-downloads) / SQLite Database
     - Existing schemas can help to create APIs quickly.
-    - An example database schema can be found <a class="grey--text" href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources"> <u>here</u></a>.
+      - An example database schema can be found <a class="grey--text" href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources"> <u>here</u></a>.
     
 ## Quick try
 

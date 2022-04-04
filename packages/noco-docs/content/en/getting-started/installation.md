@@ -23,6 +23,8 @@ Simple installation - takes about three minutes!
 
 ### 1-Click Deploy to Heroku
 
+Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
+
 <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -31,51 +33,44 @@ Simple installation - takes about three minutes!
     />
 </a>
 
-### Node app / Docker 
+### NPX
 
+You can run below command if you need an interactive configuration.
+
+```bash
+npx create-nocodb-app
+```
+
+#### Preview: 
+
+<img width="587" alt="image" src="https://user-images.githubusercontent.com/35857179/161526235-5ee0d592-0105-4a57-aa53-b1048dca6aad.png">
+
+
+### Node Application
+
+We provide a simple NodeJS Application for getting started.
+
+```bash
+git clone https://github.com/nocodb/nocodb-seed
+cd nocodb-seed
+npm install
+npm start
+```
+
+### Docker 
+
+If you are a Docker user, you may try this way!
 
 <code-group>
-  <code-block label="NPX" active> 
-
-  ```bash
-  npx create-nocodb-app
-  ```
-
-  </code-block>
-
-  <code-block label="Docker" >
+  <code-block label="SQLite" active>
 
   ```bash
   docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   ```
+    
+  </code-block> 
 
-  </code-block>
-
-  <code-block label="Using Git" >
-
-  ```bash
-  git clone https://github.com/nocodb/nocodb-seed
-  cd nocodb-seed
-  npm install
-  npm start
-  ```
-
-  </code-block>
-</code-group>  
-
-> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
-        
-
-
-## Production Setup 
-
-NocoDB requires a database to store metadata of spreadsheets views and external databases. 
-And connection params for this database can be specified in `NC_DB` environment variable. 
-
-### Docker 
-
-<code-group>
-  <code-block label="MySQL" active>
+  <code-block label="MySQL">
 
   ```bash
   docker run -d -p 8080:8080 \
@@ -90,7 +85,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 
   ```bash
   docker run -d -p 8080:8080 \
-      -e NC_DB="pg://host:port?u=user&p=password&d=database" \
+      -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
       -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
       nocodb/nocodb:latest
   ```
@@ -101,7 +96,7 @@ And connection params for this database can be specified in `NC_DB` environment 
 
   ```bash
   docker run -d -p 8080:8080 \
-      -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
+      -e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
       -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
       nocodb/nocodb:latest
   ```
@@ -109,9 +104,62 @@ And connection params for this database can be specified in `NC_DB` environment 
   </code-block> 
 </code-group> 
 
-<alert>
-If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for <a href="https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043" target="_blank">MySQL Docker</a> and <a href="https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974" target="_blank">MySQL Docker Compose</a>.
+<alert type="success">
+Tip 1: To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
 </alert>
+
+<alert type="success">
+Tip 2: If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for <a href="https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043" target="_blank">MySQL Docker</a>.
+</alert>
+
+### Docker Compose
+
+We provide different docker-compose.yml files under <a href="https://github.com/nocodb/nocodb/tree/master/docker-compose" target="_blank">this directory</a>. Here are some examples.
+
+<code-group>
+  <code-block label="MySQL" active> 
+  
+  ```bash
+  git clone https://github.com/nocodb/nocodb
+  cd nocodb/docker-compose/mysql
+  docker-compose up -d
+  ```
+
+  </code-block>
+
+  <code-block label="Postgres"> 
+
+  ```bash
+  git clone https://github.com/nocodb/nocodb
+  cd nocodb/docker-compose/pg
+  docker-compose up -d
+  ```
+
+  </code-block>
+  
+  <code-block label="SQL Server"> 
+
+  ```bash
+  git clone https://github.com/nocodb/nocodb
+  cd nocodb/docker-compose/mssql
+  docker-compose up -d
+  ```
+
+  </code-block> 
+</code-group> 
+
+<alert type="success">
+Tip 1: To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
+</alert>
+
+<alert type="success">
+Tip 2: If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for <a href="https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974" target="_blank">MySQL Docker Compose</a>.
+</alert>
+
+## Production Setup
+
+By default, sqlite is used for storing meta data. However, you can specify your own database. The connection params for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
+
 
 ### Environment variables
 
@@ -148,46 +196,6 @@ If you plan to input some special characters, you may need to change the charact
 | AWS_SECRET_ACCESS_KEY | No | For Litestream - S3 secret access key         | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
 | AWS_BUCKET | No | For Litestream - S3 bucket                              | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
 | AWS_BUCKET_PATH | No | For Litestream - S3 bucket path (like folder within S3 bucket) | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-
-### Docker Compose
-
-<code-group>
-  <code-block label="MySQL" active> 
-  
-  ```bash
-  git clone https://github.com/nocodb/nocodb
-  cd nocodb
-  cd docker-compose
-  cd mysql
-  docker-compose up -d
-  ```
-
-  </code-block>
-
-  <code-block label="Postgres"> 
-
-  ```bash
-  git clone https://github.com/nocodb/nocodb
-  cd nocodb
-  cd docker-compose
-  cd pg
-  docker-compose up -d
-  ```
-
-  </code-block>
-  
-  <code-block label="SQL Server"> 
-
-  ```bash
-  git clone https://github.com/nocodb/nocodb
-  cd nocodb
-  cd docker-compose
-  cd mssql
-  docker-compose up -d
-  ```
-
-  </code-block> 
-</code-group> 
 
 ### AWS ECS (Fargate)
 

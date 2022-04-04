@@ -693,6 +693,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "tympaniplayer",
+      "name": "Nate",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1745731?v=4",
+      "profile": "https://github.com/tympaniplayer",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

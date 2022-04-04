@@ -1,12 +1,13 @@
 name: "Publish : Docs with < v0.90"
 
 on:
-  push:
-    branches: [ master ]
-    paths:
-      - "packages/noco-docs-prev/**"
-  release:
-    types: [ published ]
+  workflow_dispatch:
+  # push:
+  #   branches: [ master ]
+  #   paths:
+  #     - "packages/noco-docs-prev/**"
+  # release:
+  #   types: [ published ]
 
 jobs:
   copy-file:

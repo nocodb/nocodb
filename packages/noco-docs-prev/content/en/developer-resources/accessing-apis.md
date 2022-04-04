@@ -6,6 +6,8 @@ category: 'Developer Resources'
 menuTitle: 'Accessing APIs'
 ---
 
+<announcement></announcement>
+
 ## REST APIs
 
 - Go to NocoDB Project, click the rightmost button and click ``Copy auth token``.

@@ -6,6 +6,8 @@ category: 'Product'
 menuTitle: 'Metadata'
 ---
 
+<announcement></announcement>
+
 To go to the Meta Management Portal, click ``Project Metadata`` under ``Settings`` on the leftmost menu.
 
 ![image](https://user-images.githubusercontent.com/35857179/126929430-1ad086a8-0611-4f39-8c7f-580637574056.png)

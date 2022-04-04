@@ -5,6 +5,8 @@ category: 'Developer Resources'
 menuTitle: 'GraphQL APIs'
 ---
 
+<announcement></announcement>
+
 ## Features
 
 * Generates GraphQL APIs for **ANY** MySql, Postgres, MSSQL, Sqlite database :fire:

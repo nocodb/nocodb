@@ -5,6 +5,9 @@ position: 530
 category: "Product"
 menuTitle: "Column Operations"
 ---
+
+<announcement></announcement>
+
 ## Fields
 <img src="https://user-images.githubusercontent.com/86527202/144435795-7156799c-04de-474d-9125-1b15e07acc3d.png" width="60%"/>
 

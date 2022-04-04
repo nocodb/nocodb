@@ -6,6 +6,7 @@ category: 'Developer Resources'
 menuTitle: 'API Tokens'
 ---
 
+<announcement></announcement>
 
 ## API Tokens
 NocoDB allows creating API tokens which allow it to be integrated seamlessly with 3rd party apps. 

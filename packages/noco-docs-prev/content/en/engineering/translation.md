@@ -6,6 +6,8 @@ category: "Engineering"
 menuTitle: "i18n"
 ---
 
+<announcement></announcement>
+
 NocoDB supports many foreign languages & we welcome community contributions via an easy to use [google-spreadsheet](https://docs.google.com/spreadsheets/d/1kGp92yLwhs1l7lwwgeor3oN1dFl7JZWuQOa4WSeZ0TE/edit#gid=2076107172).
 Your help in fixing i18n goes a long way supporting NocoDB. Please follow below simple procedure to request corrections to existing translation errors.
 

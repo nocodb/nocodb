@@ -7,6 +7,8 @@ fullscreen: true
 menuTitle: 'FAQs'
 ---
 
+<announcement></announcement>
+
 ## How to upgrade NocoDB ?
 - Please see [here](https://docs.nocodb.com/getting-started/upgrading) 
 

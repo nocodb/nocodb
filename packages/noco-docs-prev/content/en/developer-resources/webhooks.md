@@ -6,6 +6,8 @@ category: "Developer Resources"
 menuTitle: "Webhooks"
 ---
 
+<announcement></announcement>
+
 ## Triggers
 
 Webhooks allows user to trigger on certain operations on following database operations

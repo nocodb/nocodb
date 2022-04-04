@@ -6,6 +6,8 @@ category: 'Product'
 menuTitle: 'Dashboard'
 ---
 
+<announcement></announcement>
+
 ## Setup your first super admin
 
 Once you have started NocoDB, you can visit the dashboard via `example.com/dashboard`.

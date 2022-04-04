@@ -6,6 +6,8 @@ category: 'Product'
 menuTitle: 'Audit'
 ---
 
+<announcement></announcement>
+
 We are keeping all the user operation logs under audits, user can access the audits logs by clicking the `Audit` icon from the left navigation drawer.
 
 

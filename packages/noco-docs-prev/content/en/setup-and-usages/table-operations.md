@@ -6,6 +6,8 @@ category: "Product"
 menuTitle: "Table Operations"
 ---
 
+<announcement></announcement>
+
 Once you have created a new NocoDB project you can open it, In the browser, the URL would be like `example.com/dashboard/#/nc/project_id`.
 
 ## Table

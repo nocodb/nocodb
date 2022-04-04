@@ -6,6 +6,8 @@ category: "Product"
 menuTitle: "Formulas"
 ---
 
+<announcement></announcement>
+
 ## Adding formula column
 
 ![Formula](https://user-images.githubusercontent.com/86527202/144246227-42c44df6-7e3e-4b2c-9bb9-a3c213bcad20.png)

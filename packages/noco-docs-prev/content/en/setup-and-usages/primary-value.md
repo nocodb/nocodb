@@ -6,6 +6,8 @@ category: "Product"
 menuTitle: "Primary value"
 ---
 
+<announcement></announcement>
+
 ## What is a 'Primary value' ?
 - Primary value as the name stands is the primary or main value within a row of a table that you generally associate that row with.
 - It should be usually associated with a column which is uniquely identifiable. However, this uniqueness is not enforced at the database level.

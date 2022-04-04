@@ -6,6 +6,8 @@ category: "Product"
 menuTitle: "Share Base"
 ---
 
+<announcement></announcement>
+
 ## Generate 'Share base'
 
 - Open Project 

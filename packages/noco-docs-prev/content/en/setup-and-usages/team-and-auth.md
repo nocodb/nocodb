@@ -6,6 +6,7 @@ category: 'Product'
 menuTitle: 'Team & Auth'
 ---
 
+<announcement></announcement>
 
 ## How to Add a User
 1. On the left panel, click on "Team & Auth":

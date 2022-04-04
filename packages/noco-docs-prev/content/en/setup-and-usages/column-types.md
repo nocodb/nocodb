@@ -6,6 +6,8 @@ category: 'Product'
 menuTitle: 'Column Types'
 ---
 
+<announcement></announcement>
+
 ## Available Column Types
 
 | Type | Description |

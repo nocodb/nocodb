@@ -5,6 +5,8 @@ category: 'Developer Resources'
 menuTitle: 'REST APIs'
 ---
 
+<announcement></announcement>
+
 ## Features
 
 * **Automatic REST APIs for any SQL database** 

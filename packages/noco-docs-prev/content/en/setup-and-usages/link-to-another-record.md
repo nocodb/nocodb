@@ -6,6 +6,8 @@ category: "Product"
 menuTitle: "Link To Another Record"
 ---
 
+<announcement></announcement>
+
 ### Relationship types:
 
 - One to one

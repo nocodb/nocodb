@@ -6,6 +6,8 @@ category: 'Product'
 menuTitle: 'Sync Schema'
 ---
 
+<announcement></announcement>
+
 ## How to sync schema changes to NocoDB.
 NocoDB allows you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own
 schema migrations for moving from environment to other.

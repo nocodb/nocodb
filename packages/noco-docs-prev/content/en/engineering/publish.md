@@ -6,6 +6,8 @@ category: "Engineering"
 menuTitle: "Making a release"
 ---
 
+<announcement></announcement>
+
 <alert>
    This is exclusive to NocoDB team members only.
 </alert>

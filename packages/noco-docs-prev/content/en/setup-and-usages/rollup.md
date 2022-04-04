@@ -6,6 +6,8 @@ category: "Product"
 menuTitle: "Rollup"
 ---
 
+<announcement></announcement>
+
 ## Rollup
 
 Sample simple Organization structure:

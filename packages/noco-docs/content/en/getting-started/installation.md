@@ -105,7 +105,7 @@ If you are a Docker user, you may try this way!
 </code-group> 
 
 <alert type="success">
-Tip 1: To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
+Tip 1: To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`. Otherwise your data will be lost after recreating the container.
 </alert>
 
 <alert type="success">
@@ -158,7 +158,7 @@ Tip 2: If you plan to input some special characters, you may need to change the 
 
 ## Production Setup
 
-By default, sqlite is used for storing meta data. However, you can specify your own database. The connection params for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
+By default, SQLite is used for storing meta data. However, you can specify your own database. The connection params for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
 
 
 ### Environment variables

@@ -15,7 +15,7 @@ Column positions can be re-ordered. Open `Fields` menu, and re-order fields as n
 
 #### Demo
 
-<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnReorder.gif" width="100%"/>
+<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnReorder.gif?raw=true" width="100%"/>
 <!-- img src="https://media0.giphy.com/media/z5mYR1XoO85Umd5abh/giphy.gif?cid=790b7611f53d7e966bf9de3ae6b1cd5a7d6380b0ab8a4337&rid=giphy.gif&ct=g" width="60%"/ -->
 
 ### Hide/ Unhide Columns  
@@ -25,14 +25,13 @@ To hide/Unhide columns, open `Fields` menu, tick checkbox to keep column visible
 
 #### Demo
 
-<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnHide.gif" width="100%"/>
+<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnHide.gif?raw=true" width="100%"/>
 <!-- img src="https://media2.giphy.com/media/8NXvWfHDoul72dwLhk/giphy.gif?cid=790b76116fa008b45c79bb91bfe611e324fa38cde21a255a&rid=giphy.gif&ct=g" width="60%"/ -->
 
 ## Sort 
 
-Sorting allows you to order contents alphabetically (A->Z) / (Z->A)  
-(OR) in ascending/ descending order
-NocoDB allows nested sorting. You can choose column fields & order in which to apply nested sorting  
+Sorting allows you to order contents alphabetically (A->Z) / (Z->A)  (OR) in ascending/ descending order
+NocoDB allows nested sorting. You can choose column fields & order in which to apply nested sorting.
   
   
 <img src="https://user-images.githubusercontent.com/86527202/144435903-84ed8e81-64ec-45e5-a045-9a993238c78c.png" width="60%"/>  
@@ -42,7 +41,7 @@ NocoDB allows nested sorting. You can choose column fields & order in which to a
 
 #### Demo
 
-<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnSort-2.gif" width="100%"/>
+<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnSort-2.gif?raw=true" width="100%"/>
 <!-- img src="https://media4.giphy.com/media/ThQ8d42U2zdFyZGeZe/giphy.gif?cid=790b761183da2eb690295c5c25f83ace7acf5212c82569a1&rid=giphy.gif&ct=g" width="60%"/ -->
 
 ## Filter  
@@ -70,5 +69,5 @@ Each filter can be of type as described below
 | <= |
 
 #### Demo
-<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnFilter.gif" width="100%"/>
+<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnFilter.gif?raw=true" width="100%"/>
 <!-- img src="https://media4.giphy.com/media/eap5WSJfa05Qk7F3gm/giphy.gif?cid=790b761142dbc95c4f86b23a57fb0a9cb261292a88908e06&rid=giphy.gif&ct=g" width="60%"/ -->

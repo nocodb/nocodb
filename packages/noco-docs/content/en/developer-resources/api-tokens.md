@@ -6,14 +6,20 @@ category: 'Developer Resources'
 menuTitle: 'API Tokens'
 ---
 
-
 ## API Tokens
 NocoDB allows creating API tokens which allow it to be integrated seamlessly with 3rd party apps. 
 
+<alert>
+API Token is a Nano ID with a length of 40. If you are passing API Token, make sure that the header is called xc-token.
+</alert>
+
 ### Which HTTP Header to use ?
+
 - ```xc-token``` header should be set when invoking the NocoDB APIs with the token.
 
 ### How to create a token ?
+
+<!-- TODO: update screenshot -->
 
 - ![1](https://user-images.githubusercontent.com/5435402/133734223-49bb1567-6cd2-43e5-bdda-aaccda741070.png)
 - ![2](https://user-images.githubusercontent.com/5435402/133734234-5ca542b1-5843-46f7-b97b-9e686c6bf7ac.png)

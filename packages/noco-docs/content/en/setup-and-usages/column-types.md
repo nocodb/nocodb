@@ -56,31 +56,29 @@ menuTitle: 'Column Types'
 |**SQL Server**|_All types are available_|int|
 |**SQLite**|_All types are available_|integer|
 
-
-
 ### LinkToAnotherRecord
 
-
-
+N/A
 
 ### ForeignKey
-
-
-
+#### Available Database Types
+|Database| Types|
+|-----|----------|
+|**MySQL**|_All types are available_|
+|**PostgreSQL**|_All types are available_|
+|**SQL Server**|_All types are available_|
+|**SQLite**|_All types are available_|
 
 
 ### SingleLineText
-
 #### Available Database Types
 
 |Database| Types| Default Type|
 |-----|----------|----------|
-|**MySQL**|||
-|**PostgreSQL**|||
-|**SQL Server**|||
-|**SQLite**|||
-
-
+|**MySQL**|char, varchar, nchar, text, tinytext, mediumtext, longtext|varchar|
+|**PostgreSQL**|char, character, character varying, text|character varying|
+|**SQL Server**|char, ntext, text, varchar, nvarchar|varchar|
+|**SQLite**|character, text, varchar|varchar|
 
 ### LongText
 
@@ -93,8 +91,6 @@ menuTitle: 'Column Types'
 |**SQL Server**|char, ntext, text, varchar, nvarchar|text|
 |**SQLite**|character, text, varchar|text|
 
-
-
 ### Attachment
 
 #### Available Database Types
@@ -104,10 +100,6 @@ menuTitle: 'Column Types'
 |**PostgreSQL**|json, char, character, character varying, text| text |
 |**SQL Server**|char, ntext, text, varchar, nvarchar| text |
 |**SQLite**|character, text, varchar|text|
-
-
-
-
 
 ### Checkbox
 
@@ -120,10 +112,6 @@ menuTitle: 'Column Types'
 |**SQL Server**|bigint, bit, int, tinyint|tinyint|
 |**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8, boolean||
 
-
-
-
-
 ### MultiSelect
 
 #### Available Database Types
@@ -134,10 +122,6 @@ menuTitle: 'Column Types'
 |**SQL Server**|text, ntext|text|
 |**SQLite**|text, varchar|text|
 
-
-
-
-
 ### SingleSelect
 
 #### Available Database Types
@@ -145,12 +129,9 @@ menuTitle: 'Column Types'
 |Database| Types| Default Type|
 |-----|----------|----------|
 |**MySQL**|enum, text, tinytext, mediumtext, longtext|enum|
-|**PostgreSQL**|text|
+|**PostgreSQL**|text|text|
 |**SQL Server**|text, ntext|text|
 |**SQLite**|text, varchar|text|
-
-
-
 
 ### Date
 
@@ -159,12 +140,9 @@ menuTitle: 'Column Types'
 |Database| Types| Default Type|
 |-----|----------|----------|
 |**MySQL**|date, datetime, timestamp, varchar|varchar|
-|**PostgreSQL**||character varying|
-|**SQL Server**|||
-|**SQLite**|date|varchar|
-
-
-
+|**PostgreSQL**||date, timestamp, timestamp without time zone, timestamptz, timestamp with time zone | date
+|**SQL Server**|date|date|
+|**SQLite**|date, varchar|varchar|
 
 ### Year
 
@@ -174,25 +152,17 @@ menuTitle: 'Column Types'
 |**MySQL**|year|year|
 |**PostgreSQL**|int|int|
 |**SQL Server**|int|int|
-|**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8||
-
-
-
-
+|**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8|year|
 
 ### Time
 
 #### Available Database Types
-
 |Database| Types| Default Type|
 |-----|----------|----------|
 |**MySQL**|time|time|
 |**PostgreSQL**|time, time without time zone, timestamp, timestamp without time zone, timestamptz, timestamp with time zone, timetz, time with time zone|time|
 |**SQL Server**|time|time|
 |**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8|time|
-
-
-
 
 ### PhoneNumber
 
@@ -205,9 +175,6 @@ menuTitle: 'Column Types'
 |**SQL Server**|varchar|varchar|
 |**SQLite**|varchar, text|varchar|
 
-
-
-
 ### Email
 
 #### Available Database Types
@@ -216,11 +183,8 @@ menuTitle: 'Column Types'
 |-----|----------|----------|
 |**MySQL**|varchar|varchar|
 |**PostgreSQL**|character varying|character varying|
-|**SQL Server**|varchar||
+|**SQL Server**|varchar|varchar|
 |**SQLite**|varchar, text|varchar|
-
-
-
 
 ### URL
 
@@ -233,9 +197,6 @@ menuTitle: 'Column Types'
 |**SQL Server**|varchar, text|varchar|
 |**SQLite**|varchar, text|varchar|
 
-
-
-
 ### Number
 
 #### Available Database Types
@@ -246,9 +207,6 @@ menuTitle: 'Column Types'
 |**PostgreSQL**|int, integer, bigint, bigserial, int2, int4, int8, serial, serial2, serial8, double precision, float4, float8, smallint, smallserial|int8|
 |**SQL Server**|int, bigint, bit, decimal, float, numeric, real, smallint, tinyint|int|
 |**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8, numeric, real, double, double precision, float|integer|
-
-
-
 
 ### Decimal
 
@@ -261,9 +219,6 @@ menuTitle: 'Column Types'
 |**SQL Server**|decimal, float|decimal|
 |**SQLite**|real, double, double precision, float, numericdecimal|
 
-
-
-
 ### Currency
 
 #### Available Database Types
@@ -274,9 +229,6 @@ menuTitle: 'Column Types'
 |**PostgreSQL**|int, integer, bigint, bigserial, int2, int4, int8, serial, serial2, serial8, double precision, money', 'float4, float8|decimal|
 |**SQL Server**|int, bigint, bit, decimal, float, numeric, real, smallint, tinyint|decimal|
 |**SQLite**|real, double, double precision, float, int, integer, tinyint, smallint, mediumint, bigint, int2, int8, numeric|double precision|
-
-
-
 
 ### Percent
 
@@ -289,14 +241,9 @@ menuTitle: 'Column Types'
 |**SQL Server**|int, bigint, bit, decimal, float, numeric, real, smallint, tinyint|double|
 |**SQLite**|real, double, double precision, float, int, integer, tinyint, smallint, mediumint, bigint, int2, int8, numeric|double|
 
-
-
-
-
 ### Duration
 
 #### Available Database Types
-
 
 |Database| Types| Default Type|
 |-----|----------|----------|
@@ -305,14 +252,9 @@ menuTitle: 'Column Types'
 |**SQL Server**|int, bigint, bit, decimal, float, numeric, real, smallint, tinyint|int|
 |**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8|integer|
 
-
-
-
-
 ### Rating
 
 #### Available Database Types
-
 
 |Database| Types| Default Type|
 |-----|----------|----------|
@@ -321,21 +263,13 @@ menuTitle: 'Column Types'
 |**SQL Server**|int, bigint, bit, decimal, float, numeric, real, smallint, tinyint|float|
 |**SQLite**|real, double, double precision, float, int, integer, tinyint, smallint, mediumint, bigint, int2, int8, numeric|float|
 
-
-
-
-
 ### Formula
 
-
-For more about formula visit [here](./formula)
-
+For more about formula, please visit [here](./formulas).
 
 ### Count
 
 #### Available Database Types
-
-
 
 |Database| Types| Default Type|
 |-----|----------|----------|
@@ -344,14 +278,9 @@ For more about formula visit [here](./formula)
 |**SQL Server**|int, bigint, smallint, tinyint|int|
 |**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8|integer|
 
-
-
-
-
 ### DateTime
 
 #### Available Database Types
-
 
 |Database| Types| Default Type|
 |-----|----------|----------|
@@ -360,15 +289,9 @@ For more about formula visit [here](./formula)
 |**SQL Server**|datetime, datetime2, datetimeoffset|datetime|
 |**SQLite**|datetime, timestamp|datetime|
 
-
-
-
-
 ### CreateTime
 
 #### Available Database Types
-
-
 
 |Database| Types| Default Type|
 |-----|----------|----------|
@@ -382,7 +305,6 @@ For more about formula visit [here](./formula)
 
 #### Available Database Types
 
-
 |Database| Types|
 |-----|----------|
 |**MySQL**|geometry, point, linestring, polygon, multipoint, multilinestring, multipolygon|
@@ -390,15 +312,9 @@ For more about formula visit [here](./formula)
 |**SQL Server**|geometry|
 |**SQLite**|text|
 
-
-
-
-
 ### SpecificDBType
 
 #### Available Database Types
-
-
 |Database| Types|
 |-----|----------|
 |**MySQL**|_All types are available_|

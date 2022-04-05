@@ -163,39 +163,41 @@ By default, sqlite is used for storing meta data. However, you can specify your 
 
 ### Environment variables
 
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| NC_DB_JSON              | Yes       | Can be used instead of `NC_DB` and value should be valid knex connection JSON |  |
-| NC_DB_JSON_FILE              | Yes       | Can be used instead of `NC_DB` and value should be a valid path to knex connection JSON |  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_DASHBOARD_URL | No | Custom dashboard url path | `/dashboard` |
-| NC_TOOL_DIR | No | App directory to keep metadata and app related files | Defaults to current working directory. In docker maps to `/usr/app/data/` for mounting volume. |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_JWT_EXPIRES_IN | No | JWT token expiry time | `10h` |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_INVITE_ONLY_SIGNUP | No | Allow users to signup only via invite url, value should be any non-empty string. |  |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
-| NC_REQUEST_BODY_SIZE | No | Request body size [limit](https://expressjs.com/en/resources/middleware/body-parser.html#limit) | `1048576` |
-| NC_EXPORT_MAX_TIMEOUT | No | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches | Default value 5000(in millisecond) will be used  |
-| DB_QUERY_LIMIT_DEFAULT | No | Default pagination limit | 25 |
-| DB_QUERY_LIMIT_MAX | No | Maximum allowed pagination limit | 100 |
-| DB_QUERY_LIMIT_MIN | No | Minimum allowed pagination limit | 1 |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_GOOGLE_CLIENT_ID | No | Google client id to enable google authentication |  |
-| NC_GOOGLE_CLIENT_SECRET | No | Google client secret to enable google authentication |  |
-| NC_MIGRATIONS_DISABLED | No | Disable NocoDB migration |  |
-| NC_ONE_CLICK | No | Used for Heroku one-click deployment |  |
-| NC_MIN | No | If set to any non-empty string the default splash screen(initial welcome animation) and matrix screensaver will disable |  |
-| PORT | No | For setting app running port | `8080` |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_DISABLE_ERR_REPORT | No | Disable error reporting  |  |
-| AWS_ACCESS_KEY_ID | No | For Litestream - S3 access key id               | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_SECRET_ACCESS_KEY | No | For Litestream - S3 secret access key         | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_BUCKET | No | For Litestream - S3 bucket                              | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_BUCKET_PATH | No | For Litestream - S3 bucket path (like folder within S3 bucket) | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
+| Variable                           | Mandatory | Comments                                                                                                                | If absent                                                                                      |   |
+|------------------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|---|
+| AWS_ACCESS_KEY_ID                  | No        | For Litestream - S3 access key id                                                                                       | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| AWS_SECRET_ACCESS_KEY              | No        | For Litestream - S3 secret access key                                                                                   | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| AWS_BUCKET                         | No        | For Litestream - S3 bucket                                                                                              | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| AWS_BUCKET_PATH                    | No        | For Litestream - S3 bucket path (like folder within S3 bucket)                                                          | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| DB_QUERY_LIMIT_DEFAULT             | No        | Default pagination limit                                                                                                | 25                                                                                             |   |
+| DB_QUERY_LIMIT_MAX                 | No        | Maximum allowed pagination limit                                                                                        | 100                                                                                            |   |
+| DB_QUERY_LIMIT_MIN                 | No        | Minimum allowed pagination limit                                                                                        | 1                                                                                              |   |
+| DATABASE_URL                       | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                                        |                                                                                                |   |
+| DATABASE_URL_FILE                  | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                |                                                                                                |   |
+| PORT                               | No        | For setting app running port                                                                                            | `8080`                                                                                         |   |
+| NC_DB                              | Yes       | See our database URLs                                                                                                   | A local SQLite will be created in root folder                                                  |   |
+| NC_DB_JSON                         | Yes       | Can be used instead of `NC_DB` and value should be valid knex connection JSON                                           |                                                                                                |   |
+| NC_DB_JSON_FILE                    | Yes       | Can be used instead of `NC_DB` and value should be a valid path to knex connection JSON                                 |                                                                                                |   |
+| NC_DASHBOARD_URL                   | No        | Custom dashboard url path                                                                                               | `/dashboard`                                                                                   |   |
+| NC_TOOL_DIR                        | No        | App directory to keep metadata and app related files                                                                    | Defaults to current working directory. In docker maps to `/usr/app/data/` for mounting volume. |   |
+| NC_PUBLIC_URL                      | Yes       | Used for sending Email invitations                                                                                      | Best guess from http request params                                                            |   |
+| NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                                      | A Random secret will be generated                                                              |   |
+| NC_JWT_EXPIRES_IN                  | No        | JWT token expiry time                                                                                                   | `10h`                                                                                          |   |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                                         |                                                                                                |   |
+| NC_INVITE_ONLY_SIGNUP              | No        | Allow users to signup only via invite url, value should be any non-empty string.                                        |                                                                                                |   |
+| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                                      | ``http://localhost:8080`` will be used                                                         |   |
+| NC_REQUEST_BODY_SIZE               | No        | Request body size [limit](https://expressjs.com/en/resources/middleware/body-parser.html#limit)                         | `1048576`                                                                                      |   |
+| NC_EXPORT_MAX_TIMEOUT              | No        | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches                                                              | Default value 5000(in millisecond) will be used                                                |   |
+| NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                                       |                                                                                                |   |
+| NC_GOOGLE_CLIENT_ID                | No        | Google client id to enable google authentication                                                                        |                                                                                                |   |
+| NC_GOOGLE_CLIENT_SECRET            | No        | Google client secret to enable google authentication                                                                    |                                                                                                |   |
+| NC_MIGRATIONS_DISABLED             | No        | Disable NocoDB migration                                                                                                |                                                                                                |   |
+| NC_ONE_CLICK                       | No        | Used for Heroku one-click deployment                                                                                    |                                                                                                |   |
+| NC_MIN                             | No        | If set to any non-empty string the default splash screen(initial welcome animation) and matrix screensaver will disable |                                                                                                |   |
+| NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                                   |                                                                                                |   |
+| NC_DISABLE_ERR_REPORT              | No        | Disable error reporting                                                                                                 |                                                                                                |   |
+| NC_REDIS_URL                       | No        | Custom Redis URL. Example: `redis://:authpassword@127.0.0.1:6380/4`                                                     | Meta data will be stored in memory                                                             |   |
+| NC_DISABLE_CACHE                   | No        | If it is set to `true`, then meta data will not be cached.                                                              | `false`                                                                                        |   |
 
 ### AWS ECS (Fargate)
 

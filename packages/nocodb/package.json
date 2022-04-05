@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.84.14-finn.4",
+  "version": "0.84.14-finn.5",
   "description": "NocoDB",
   "main": "dist/bundle.js",
   "repository": "https://github.com/finn-auto/nocodb",

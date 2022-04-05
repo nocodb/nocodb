@@ -10,7 +10,7 @@
       </v-icon>
       <v-text-field
         :autofocus="true"
-        :value="localState[i]"
+        v-model="localState[i]"
         @input="listenForComma(i, $event)"
         class="caption"
         dense

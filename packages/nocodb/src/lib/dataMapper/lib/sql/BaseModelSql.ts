@@ -1336,9 +1336,9 @@ class BaseModelSql extends BaseModel {
       driver.union(
         parent.map(p => {
           const id =
-            p[_cn] ||
             p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn] ||
-            p[this.pks[0].cn];
+            p[this.pks[0].cn] ||
+            p[_cn];
           const query = driver(this.dbModels[child].tnPath)
             .where(cn, id)
             .xwhere(where, this.dbModels[child].selectQuery(''))

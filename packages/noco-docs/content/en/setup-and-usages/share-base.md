@@ -6,15 +6,16 @@ category: "Product"
 menuTitle: "Share Base"
 ---
 
-## Generate 'Share base'
+## Generate `Share base`
 
 - Open Project 
-- Click on 'Share' button on top right tool bar
+- Click on `Share` button on top right tool bar
+
+<!-- TODO: update screenshot -->
 
 ![Screenshot 2022-02-19 at 11 11 39 AM](https://user-images.githubusercontent.com/86527202/154789342-11546764-11ac-4ad1-a830-84cb603156b7.png)
 
-- Under 'Shared base link' tab
-  - Toggle from 'Disabled Share base' to 'Anyone with the link'
+- Under `Shared base link` tab and toggle from `Disabled Share base` to `Anyone with the link`
 
 ![Screenshot 2022-02-19 at 11 16 02 AM](https://user-images.githubusercontent.com/86527202/154789352-87e65fcc-fbe5-48f0-a1e1-e54dce91a1f3.png)
 
@@ -22,30 +23,28 @@ menuTitle: "Share Base"
 
 ![Screenshot 2022-02-19 at 12 01 58 PM](https://user-images.githubusercontent.com/86527202/154789725-a1194e30-3101-423a-bd5c-25009c361b96.png)
 
-## Modify 'Share base'
+## Modify `Share base`
 
-Modify 'Share base' will invalidate earlier generated 'Share base' link & generate a new link.
-
--   Open Project base
--   Click on 'Share' button on top right tool bar
--   Under 'Shared base link' tab
-    -   Click on 'Reload' button
-
-## Disable 'Share base'
-
-Disable 'Share base' will invalidate generated 'Share base' link
+Modifying `Share base` will invalidate the `Share base` link generated previously and will generate a new link.
 
 -   Open Project base
 -   Click on 'Share' button on top right tool bar
--   Under 'Shared base link' tab
-    -   Toggle from 'Anyone with the link' to 'Disable Share base'
+-   Click on 'Reload' button on Quick menu (next to Shared base link)
 
-## 'Share base' access permissions
+## Disable `Share base`
+
+Disabling `Share base` will invalidate the generated `Share base` link
+
+-   Open Project base
+-   Click on 'Share' button on top right tool bar
+-   Under `Shared base link` and toggle from `Anyone with the link` to `Disable Share base`
+
+## `Share base` Access Permissions
 
 Shared base can be configured as
 
--   Viewer: User with the link will get READ ONLY access to the project data
--   Editor: User with the link will get READ WRITE access to the project data
+-   Viewer - User with the link will get **READ ONLY** access to the project data.
+-   Editor - User with the link will get **READ & WRITE** access to the project data.
 
 ## Embeddable Frame
 

@@ -58,7 +58,7 @@ NocoDB interface can be embedded into existing applications easily by making use
 -   Under 'Shared base link' tab
     -   Click on </> button to copy 'Embeddable HTML code'
 
-Sample
+Example:
 
 ```html
 <iframe
@@ -67,9 +67,9 @@ Sample
     frameborder="0"
     width="100%"
     height="700"
+    style="background: transparent; border: 1px solid #ddd"
 >
-    style="background: transparent; border: 1px solid #ddd"></iframe
->
+</iframe>
 ```
 
 ### Embed into application's HTML Body

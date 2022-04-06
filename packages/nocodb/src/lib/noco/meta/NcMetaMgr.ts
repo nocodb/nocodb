@@ -307,7 +307,8 @@ export default class NcMetaMgr {
                   +process.env.DB_QUERY_LIMIT_MIN || 1
                 ),
                 timezone: defaultConnectionConfig.timezone,
-                ncMin: !!process.env.NC_MIN
+                ncMin: !!process.env.NC_MIN,
+                noSignUp: process.env.NC_NO_SIGN_UP === '1'
               };
               return res.json(result);
             }

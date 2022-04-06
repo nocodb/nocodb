@@ -28,10 +28,10 @@ Also NocoDB's app store allows you to build business workflows on views with com
 - ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
 - ⚡ &nbsp;Create Views : Grid, Gallery, Form
 - ⚡ &nbsp;Share Views : public & password protected
-- ⚡ &nbsp;Personal & locked Views 
-- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)!!
-- ⚡ &nbsp;Roles : Owner, Creator, Editor, Commenter, Viewer, Commenter, Custom Roles.
-- ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level.
+- ⚡ &nbsp;Collaborative & locked Views 
+- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)
+- ⚡ &nbsp;Roles : Owner, Creator, Editor, Commenter, Viewer
+- ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level
 
 ### App Store for workflow automations
 - ⚡ &nbsp;Chat : Microsoft Teams, Slack, Discord, Mattermost
@@ -43,7 +43,7 @@ Also NocoDB's app store allows you to build business workflows on views with com
 ### Programmatic API access via
 - ⚡ &nbsp;REST APIs
 - ⚡ &nbsp;Includes JWT Authentication & Social Auth
-- ⚡ &nbsp;API tokens to integrate with Zapier, Integromat.
+- ⚡ &nbsp;API tokens to integrate with Zapier, Integromat
 
 ##  Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.

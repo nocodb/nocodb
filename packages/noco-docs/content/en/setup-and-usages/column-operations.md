@@ -60,9 +60,4 @@ Filters allow you to restrict/organize your data on the view as per your needs. 
 
 ### Supported filters
 
-Currently we support filter types - `is equal`, `is not equal`, `is like`, `is not like`, `is null`, `is not null` for string fields. We also support filter types - `>`, `<`, `>=`, and `<=` for numeric fields.
-
-#### Demo
-
-<img src="https://github.com/dstala/nocodb-files/blob/2c4ca2ff31460ee5636262e88ba303e2d436ba54/ColumnFilter.gif?raw=true" width="100%"/>
-<!-- img src="https://media4.giphy.com/media/eap5WSJfa05Qk7F3gm/giphy.gif?cid=790b761142dbc95c4f86b23a57fb0a9cb261292a88908e06&rid=giphy.gif&ct=g" width="60%"/ -->
+Currently we support filter types - `is equal`, `is not equal`, `is like`, `is not like`, `is null`, `is not null` for string fields. We also support filter types - `>`, `<`, `>=`, and `<=` for numeric fields. Also we provide `is empty` and `is not empty` for checking if the column is empty or not.

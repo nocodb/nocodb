@@ -6,16 +6,17 @@ category: 'Product'
 menuTitle: 'Metadata'
 ---
 
-Project Metadata can be found by clicking `Team & Settings` from the left navigation drawer and clicking `Project Metadata`.
+Project Metadata can be found by clicking `Team & Settings` from the left navigation drawer
 
+![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)
 
-<!-- TODO: update screenshot -->
+and clicking `Project Metadata`.
 
-![image](https://user-images.githubusercontent.com/35857179/126929430-1ad086a8-0611-4f39-8c7f-580637574056.png)
+![image](https://user-images.githubusercontent.com/35857179/161905030-6c5deef7-3a3d-4e71-8763-88e57586e5b4.png)
 
 ## Project Metadata
 
-The metadata is stored in meta directory in project level, database level, and API level. 
+The metadata is stored in meta directory in project level, database level, and API level.
 
 Under ``Project Metadata``, you can perform the following operations.
 
@@ -38,37 +39,25 @@ Under ``Project Metadata``, you can perform the following operations.
 
 ### Export Metadata
 
-Source project : Under ``Export / Import Metadata`` tab, select ``Export zip``, click ``Submit``.
+From the source project, go to `Project Metadata`. Under ``Export / Import Metadata`` tab, select ``Export zip``, click ``Submit``. This step extracts project metadata and stores it in compressed (zip) format.
 
-This step extracts project metadata and stores it in compressed (zip) format.
-
-<!-- TODO: update screenshot -->
-
-![meta-dev](https://user-images.githubusercontent.com/86527202/130780497-89578bd0-a417-468a-92d8-88c5c07a72b0.png "Step-Export")
+![image](https://user-images.githubusercontent.com/35857179/161904400-b926494a-4533-41e4-85c3-5c6ca9ea0803.png)
 
 ### Import Metadata
 
-Destination project : Under ``Export / Import Metadata`` tab, select ``Import zip``, select ``meta.zip`` file stored in previous step. 
+From the destination project, go to `Project Metadata`. Under ``Export / Import Metadata`` tab, select ``Import zip``, select ``meta.zip`` file stored in previous step. This step imports project metadata from compressed file (zip) selected and restarts the project.
 
-This step imports project metadata from compressed file (zip) selected and restarts project.
-
-<!-- TODO: update screenshot -->
-
-![meta-prod](https://user-images.githubusercontent.com/86527202/130781015-3477e596-b1bc-4189-9853-bfd850157ba8.png)
+![image](https://user-images.githubusercontent.com/35857179/161904452-da0ac683-1715-438a-9c9c-91b34f8f45ba.png)
 
 ## Database Metadata
 
-Under ``Metadata``, you can see your metadata sync status. If it is out of sync, you can sync the schema. See <a href="./sync-schema">Sync Schema</a> for more.
+Go to `Project Metadata`, under ``Metadata``, you can see your metadata sync status. If it is out of sync, you can sync the schema. See <a href="./sync-schema">Sync Schema</a> for more.
 
-<!-- TODO: update screenshot -->
+![image](https://user-images.githubusercontent.com/35857179/161904869-e6c8fe74-3156-49bc-be66-09f8d676aa83.png)
 
-![image](https://user-images.githubusercontent.com/35857179/127611038-a10ccee5-72ca-42cf-a55b-c8268c9fbe5c.png)
 
 ## UI Access Control
 
-Under ``UI Access Control``, you can control the access to each table by roles. 
+Go to `Project Metadata`, under ``UI Access Control``, you can control the access to each table by roles. 
 
-<!-- TODO: update screenshot -->
-
-![image](https://user-images.githubusercontent.com/35857179/127611188-339de6ca-e648-47c0-a358-eee0d03ae9d0.png)
-
+![image](https://user-images.githubusercontent.com/35857179/161904939-6869e36d-0612-4ae5-a123-fee371472ede.png)

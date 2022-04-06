@@ -23,17 +23,13 @@ menuTitle: 'FAQs'
 
 - You can hover the NocoDB icon on the top left corner or check ``PackageVersion`` in Project info.
 
-<!-- TODO: update screenshot -->
-
-![image](https://user-images.githubusercontent.com/35857179/127765903-3ae876ad-6b46-4520-9d11-679b80eb7b08.png)
+![image](https://user-images.githubusercontent.com/35857179/161957765-922058dc-dba1-44c5-95f4-2924c875e1c6.png)
 
 ## How to check my Project info ?
 
 - You can click on top right icon and click ``Copy Project Info``.
 
-<!-- TODO: update screenshot -->
-
-![image](https://user-images.githubusercontent.com/35857179/127765860-968b0c64-f08d-4674-9ecc-4d5c5a00428b.png)
+![image](https://user-images.githubusercontent.com/35857179/161957820-e0ac8b04-aafd-40c3-8fa8-2fdaa7dc157f.png)
 
 You should see the similar result as below.
 

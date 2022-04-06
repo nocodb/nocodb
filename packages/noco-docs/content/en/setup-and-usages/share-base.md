@@ -11,9 +11,7 @@ menuTitle: "Share Base"
 - Open Project 
 - Click on `Share` button on top right tool bar
 
-<!-- TODO: update screenshot -->
-
-![Screenshot 2022-02-19 at 11 11 39 AM](https://user-images.githubusercontent.com/86527202/154789342-11546764-11ac-4ad1-a830-84cb603156b7.png)
+![image](https://user-images.githubusercontent.com/35857179/161957411-ee9ec53d-4745-43c3-99f2-600cb20923e7.png)
 
 - Under `Shared base link` tab and toggle from `Disabled Share base` to `Anyone with the link`
 

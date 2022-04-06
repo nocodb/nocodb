@@ -6,12 +6,10 @@ category: 'Product'
 menuTitle: 'Audit'
 ---
 
-We are keeping all the user operation logs under Audit. Audits logs can be accessed by clicking `Team & Settings` from the left navigation drawer and clicking `Audit`.
+We are keeping all the user operation logs under Audit. Audits logs can be accessed by clicking `Team & Settings` from the left navigation drawer.
 
-<!-- TODO: update screenshot -->
+![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)
 
-![Screenshot_2021-07-23_at_7_08_22_PM](https://user-images.githubusercontent.com/61551451/126790439-14f4f60e-f125-48f8-a8a5-28f20fab71aa.png)
+Then, under SETTINGS, click `Audit`.
 
-<!-- TODO: update screenshot -->
-
-![Pasted_Image_23_07_21__7_13_PM](https://user-images.githubusercontent.com/61551451/126790664-024f4803-c343-46ca-9b47-c3dfa0b1ad6c.png)
+![image](https://user-images.githubusercontent.com/35857179/161956444-d1a28568-2adb-4e4e-9aca-4032b4a2f7c2.png)

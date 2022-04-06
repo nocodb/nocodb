@@ -14,9 +14,7 @@ menuTitle: 'Accessing APIs'
 Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN. If you are passing Auth Token, make sure that the header is called xc-auth.
 </alert>
 
-<!-- TODO: update screenshot -->
-
-![image](https://user-images.githubusercontent.com/35857179/126187328-745943f2-c780-4109-b967-1b3f1c4a1dcd.png)
+![image](https://user-images.githubusercontent.com/35857179/161957971-e4888983-25e1-46a4-8419-7b9fae6cb6fa.png)
 
 - Click the same button and click ``Swagger APIs Doc``.
 

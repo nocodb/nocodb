@@ -14,23 +14,23 @@ Below are the steps to sync schema changes.
 
 ### 1. From the menu bar, click `Team & Settings`
 
-<!-- TODO: add screenshot -->
+![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)
 
 ### 2. Click `Project Metadata` under SETTINGS
 
-<!-- TODO: add screenshot -->
+![image](https://user-images.githubusercontent.com/35857179/161905030-6c5deef7-3a3d-4e71-8763-88e57586e5b4.png)
 
 ### 3. Under `Metadata` tab, click on `Metadata` sub tab
 
-<!-- TODO: add screenshot -->
+![image](https://user-images.githubusercontent.com/35857179/161956928-95d3646c-5ae4-4562-8a65-5e36a63e3c2a.png)
 
 ### 4. Changes carried outside GUI, identified by NocoDB are listed under `Sync state`
 
-<!-- TODO: add screenshot -->
+![image](https://user-images.githubusercontent.com/35857179/161957119-f66f22ad-9d37-45ed-84ca-35c99726078c.png)
 
 ### 5. Click `Sync Now` to complete Schema sync procedure
 
-<!-- TODO: add screenshot -->
+![image](https://user-images.githubusercontent.com/35857179/161957228-de6b0a50-0a0f-4d3d-8624-585a28851ad7.png)
 
 #### Notes
 

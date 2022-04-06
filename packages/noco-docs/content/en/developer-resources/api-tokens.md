@@ -19,13 +19,18 @@ API Token is a Nano ID with a length of 40. If you are passing API Token, make s
 
 ### How to create a token ?
 
-<!-- TODO: update screenshot -->
 
-- ![1](https://user-images.githubusercontent.com/5435402/133734223-49bb1567-6cd2-43e5-bdda-aaccda741070.png)
-- ![2](https://user-images.githubusercontent.com/5435402/133734234-5ca542b1-5843-46f7-b97b-9e686c6bf7ac.png)
-- ![3](https://user-images.githubusercontent.com/5435402/133734238-33d5bdd0-5c97-4dbe-8e49-744193c3ac20.png)
-- ![4](https://user-images.githubusercontent.com/5435402/133734239-7b530235-3352-497b-b23c-3a701290a569.png)
-- ![5](https://user-images.githubusercontent.com/5435402/133734241-0f25bbd0-ab92-430a-9987-cc745d5b1b47.png)
-- ![6](https://user-images.githubusercontent.com/5435402/133734243-6dc8527e-573d-45e2-8cd8-13a8beea0dfa.png)
+1. Go to `Team & Settings` from the left navigation drawer
+    ![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)
 
+2. Click `API Tokens Management`
+    ![image](https://user-images.githubusercontent.com/35857179/161958345-83cb60bf-80f1-4d11-9e9c-52d0b05c7677.png)
 
+3. Click Add New Token
+    ![image](https://user-images.githubusercontent.com/35857179/161958563-dc5d380a-26c5-4b78-9d4b-e40188bef05a.png)
+
+4. Type an recognizable name for your token and click `Generate`
+    ![image](https://user-images.githubusercontent.com/35857179/161958676-e4faa321-13ca-4b11-8d22-1332c522dde7.png)
+
+5. Copy API token to your clipboard
+    ![image](https://user-images.githubusercontent.com/35857179/161958822-b0689a6a-a864-429f-8bb2-71eb92808339.png)

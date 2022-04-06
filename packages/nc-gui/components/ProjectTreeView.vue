@@ -1430,6 +1430,7 @@ export default {
           type: 'table',
           dbKey: this.menuItem._nodes.dbKey,
           key: this.menuItem._nodes.key,
+          tableDirKey: this.menuItem._nodes.tableDirKey,
         },
         name: _tn,
       });

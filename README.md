@@ -395,6 +395,12 @@ Our mission is to provide the most powerful no-code interface for databases whic
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/OskarsPakers"><img src="https://avatars.githubusercontent.com/u/3343347?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Oskars</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=OskarsPakers" title="Code">💻</a></td>
+    <td align="center"><a href="http://dolibit.de"><img src="https://avatars.githubusercontent.com/u/45215329?v=4?s=100" width="100px;" alt=""/><br /><sub><b>UT from dolibit</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dolibit-ut" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/blucky"><img src="https://avatars.githubusercontent.com/u/42397?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Blucky</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=blucky" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/TsjipTsjip"><img src="https://avatars.githubusercontent.com/u/19798667?v=4?s=100" width="100px;" alt=""/><br /><sub><b>TsjipTsjip</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=TsjipTsjip" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/dhrrgn"><img src="https://avatars.githubusercontent.com/u/149921?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Horrigan</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dhrrgn" title="Code">💻</a></td>
+    <td align="center"><a href="https://amitjoki.github.io"><img src="https://avatars.githubusercontent.com/u/5158554?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amit Joki</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=AmitJoki" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/tympaniplayer"><img src="https://avatars.githubusercontent.com/u/1745731?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nate</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=tympaniplayer" title="Code">💻</a></td>
   </tr>
 </table>
 

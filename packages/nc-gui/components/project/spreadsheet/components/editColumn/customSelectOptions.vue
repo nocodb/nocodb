@@ -8,7 +8,14 @@
       >
         mdi-arrow-down-drop-circle
       </v-icon>
-      <v-text-field v-model="localState[i]" class="caption" outlined dense />
+      <v-text-field
+        :autofocus="true"
+        v-model="localState[i]"
+        @input="listenForComma(i, $event)"
+        class="caption"
+        dense
+        outlined
+      />
       <v-icon class="ml-2" color="error lighten-2" size="13" @click="localState.splice(i,1)">
         mdi-close
       </v-icon>
@@ -60,6 +67,14 @@ export default {
   methods: {
     syncState() {
       this.localState = (this.value || '').split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+    },
+    listenForComma(index, value) {
+      const normalisedValue = value.trim()
+      if (normalisedValue.endsWith(',')) {
+        this.localState.push('')
+        return
+      }
+      this.localState[index] = normalisedValue
     }
   }
 }

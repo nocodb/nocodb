@@ -151,6 +151,14 @@ export default {
 
       if ((this.mappings || []).filter(v => v.destCn === _cn).length > 1) { return 'Duplicate mapping found, please remove one of the mapping' }
 
+      // check if the input contains null value for a required column
+      if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
+        if (this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)
+        .some(r => r[row.sourceCn] === null || r[row.sourceCn] === undefined || r[row.sourceCn] === "" )) {
+          return `null value violates not-null constraint`
+        }
+      }
+
       switch (v.uidt) {
         case UITypes.Number:
           if (this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)

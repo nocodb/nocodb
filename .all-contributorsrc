@@ -648,6 +648,60 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dolibit-ut",
+      "name": "UT from dolibit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/45215329?v=4",
+      "profile": "http://dolibit.de",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "blucky",
+      "name": "Blucky",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42397?v=4",
+      "profile": "https://github.com/blucky",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "TsjipTsjip",
+      "name": "TsjipTsjip",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19798667?v=4",
+      "profile": "https://github.com/TsjipTsjip",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "dhrrgn",
+      "name": "Dan Horrigan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/149921?v=4",
+      "profile": "https://github.com/dhrrgn",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "AmitJoki",
+      "name": "Amit Joki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5158554?v=4",
+      "profile": "https://amitjoki.github.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "tympaniplayer",
+      "name": "Nate",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1745731?v=4",
+      "profile": "https://github.com/tympaniplayer",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

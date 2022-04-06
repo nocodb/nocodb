@@ -309,12 +309,13 @@ class BaseModelSql extends BaseModel {
           response = data;
         }
       } else if (ai) {
-        response = await this.nestedRead(
+        const nestedResponse = await this.nestedRead(
           Array.isArray(response)
             ? response?.[0]?.[ai._cn]
             : response?.[ai._cn],
           this.defaultNestedBtQueryParams
         );
+        response = !_.isEmpty(nestedResponse) ? nestedResponse : response;
       }
 
       if (Array.isArray(response)) {
@@ -359,7 +360,7 @@ class BaseModelSql extends BaseModel {
           .where(this._wherePk(id))
       );
 
-      const response = await this.nestedRead(id, this.defaultNestedQueryParams);
+      let response = await this.nestedRead(id, this.defaultNestedQueryParams);
       await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {

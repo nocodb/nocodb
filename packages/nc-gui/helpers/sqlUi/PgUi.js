@@ -1715,7 +1715,6 @@ export class PgUi {
 
       case 'SingleSelect':
         return [
-          'anyenum',
           'text'
         ]
 

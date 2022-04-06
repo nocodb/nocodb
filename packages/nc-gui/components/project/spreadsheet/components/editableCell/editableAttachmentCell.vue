@@ -18,7 +18,8 @@
     </div>
 
     <div class="d-flex align-center img-container">
-      <div
+      <div class="d-flex no-overflow">
+        <div
         v-for="(item,i) in (isPublicForm ? localFilesState : localState)"
         :key="item.url || item.title"
         class="thumbnail align-center justify-center d-flex"
@@ -60,9 +61,9 @@
           </template>
           <span>{{ item.title }}</span>
         </v-tooltip>
+        </div>
       </div>
-
-      <div v-if="isForm || active && !isPublicGrid" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
+      <div v-if="isForm || active && !isPublicGrid && !isLocked" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
         <v-icon v-if="uploading" small color="primary" class="nc-attachment-add-spinner">
           mdi-loading mdi-spin
         </v-icon>
@@ -90,7 +91,6 @@
       </v-icon>
       <input ref="file" type="file" multiple class="d-none" @change="onFileSelection">
     </div>
-
     <v-dialog
       v-if="dialog"
       v-model="dialog"
@@ -100,7 +100,7 @@
         <v-card-text class="h-100 backgroundColor">
           <div class="d-flex mx-2">
             <v-btn
-              v-if="(isForm || _isUIAllowed('tableAttachment')) && !isPublicGrid"
+              v-if="(isForm || _isUIAllowed('tableAttachment')) && !isPublicGrid && !isLocked"
               small
               class="my-4 "
               :loading="uploading"
@@ -127,7 +127,7 @@
                     style="position: relative"
                   >
                     <v-icon
-                      v-if="_isUIAllowed('tableAttachment') && !isPublicGrid"
+                      v-if="_isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked"
                       small
                       class="remove-icon"
                       @click="removeItem(i)"
@@ -389,6 +389,9 @@ export default {
         // eslint-disable-next-line eqeqeq
       } else if (e.keyCode == '39') {
         this.carousel = ++this.carousel % this.localState.length
+        // eslint-disable-next-line eqeqeq
+      } else if (e.keyCode == '27') {
+        this.hideIfVisible()
       }
     },
     async onFileDrop(e) {
@@ -403,6 +406,10 @@ export default {
 <style scoped lang="scss">
 .img-container {
   margin: 0 -2px;
+}
+
+.no-overflow {
+  overflow: hidden;
 }
 
 .add {
@@ -436,6 +443,7 @@ export default {
 }
 
 .expand-icon {
+  margin-left: 8px;
   border-radius: 2px;
   /*opacity: 0;*/
   transition: .3s background-color;
@@ -552,6 +560,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

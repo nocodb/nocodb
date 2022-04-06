@@ -64,21 +64,13 @@ export default class RestApi {
     return { list, count }
   }
 
-  async update(id, data, oldData) {
+  async update(id, data, oldData, cellSaved = true) {
     const res = await this.$axios({
       method: 'put',
       url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`,
-      data
+      data,
+      params: { ignoreWebhook: !cellSaved }
     })
-    const colName = Object.keys(data)[0]
-    this.$ctx.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.$ctx.dbAlias }, 'xcAuditCreate', {
-      tn: this.table,
-      cn: colName,
-      pk: id,
-      value: data[colName],
-      prevValue: oldData[colName]
-    }])
-
     return res.data
   }
 

@@ -145,7 +145,7 @@ menuTitle: 'Column Types'
 |Database| Types| Default Type|
 |-----|----------|----------|
 |**MySQL**|enum, text, tinytext, mediumtext, longtext|enum|
-|**PostgreSQL**|anyenum, text|text|
+|**PostgreSQL**|text|
 |**SQL Server**|text, ntext|text|
 |**SQLite**|text, varchar|text|
 

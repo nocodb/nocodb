@@ -10,7 +10,7 @@
           <v-card
             class="h-100"
             :elevation="hover ? 4 : 1"
-            @click="$emit('expandForm', {row,rowIndex,rowMeta})"
+            @click="!isLocked && $emit('expandForm', {row,rowIndex,rowMeta})"
           >
             <v-carousel
               v-if="attachmentColumn"
@@ -76,6 +76,7 @@
                       :value="row[col._cn]"
                       :column="col"
                       :sql-ui="sqlUi"
+                      :is-locked="isLocked"
                       class="xc-input body-2"
                       :meta="meta"
                     />
@@ -108,7 +109,8 @@ export default {
     'primaryValueColumn',
     'showSystemFields',
     'sqlUi',
-    'coverImageField'
+    'coverImageField',
+    'isLocked'
   ],
   computed: {
     attachmentColumn() {

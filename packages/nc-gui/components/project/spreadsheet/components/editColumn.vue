@@ -353,7 +353,7 @@
                                   outlined
                                   dense
                                   class="caption"
-                                  @input="newColumn.altered = newColumn.altered || 2"
+                                  @input="(newColumn.altered = newColumn.altered || 2); (newColumn.cdf = newColumn.cdf || null);"
                                 />
                               </v-col>
                             </v-row>

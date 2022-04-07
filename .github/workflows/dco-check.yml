@@ -5,11 +5,11 @@ name: Check DCO
 on:
   pull_request:
     paths:
-      - "packages/nc-common/**"
+      - "packages/nocodb-sdk/**"
       - "packages/nc-gui/**"
-      - "packages/nc-lib-gui/**"      
-      - "packages/nc-plugin/**"            
-      - "packages/nocodb/**"      
+      - "packages/nc-lib-gui/**"
+      - "packages/nc-plugin/**"
+      - "packages/nocodb/**"
       - "scripts/cypress/**"
 
 jobs:

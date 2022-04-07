@@ -124,12 +124,25 @@ export default class RestAuthCtrl {
     return this.dbDriver('xc_users');
   }
 
-  get signUpNotAllowed(): boolean {
-    return process.env.NC_NO_SIGN_UP === '1';
-  }
-
   async isFirstUser(): Promise<boolean> {
     return _.isEmpty(await this.users.first());
+  }
+
+  async isInvalidToken(token, email): Promise<boolean> {
+    if (!token) return true;
+
+    const user = await this.users.where({ email }).first();
+    if (!user) return true;
+
+    return token !== user.invite_token;
+  }
+
+  async signUpNotAllowed(token, email): Promise<boolean> {
+    return (
+      process.env.NC_NO_SIGN_UP === '1' &&
+      !(await this.isFirstUser()) &&
+      (await this.isInvalidToken(token, email))
+    );
   }
 
   async init() {
@@ -866,7 +879,7 @@ export default class RestAuthCtrl {
         token,
         ignore_subscribe
       } = req.body;
-      if (!(await this.isFirstUser()) && this.signUpNotAllowed) {
+      if (await this.signUpNotAllowed(token, _email)) {
         return next(new Error('Sign Up is not allowed!'));
       }
 

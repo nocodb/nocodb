@@ -14,6 +14,27 @@ export async function dataList(req: Request, res: Response) {
   res.json(await getDataList(model, view, req));
 }
 
+async function dataCount(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequest(req);
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  const countArgs: any = { ...req.query };
+  try {
+    countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
+  } catch (e) {}
+
+  const count = await baseModel.count(countArgs);
+
+  res.json({ count });
+}
+
 async function dataInsert(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
 
@@ -129,6 +150,10 @@ router.get('/data/:orgs/:projectName/:tableName', ncMetaAclMw(dataList));
 router.get(
   '/data/:orgs/:projectName/:tableName/views/:viewName',
   ncMetaAclMw(dataList)
+);
+router.get(
+  '/data/:orgs/:projectName/:tableName/views/:viewName/count',
+  ncMetaAclMw(dataCount)
 );
 
 router.post(

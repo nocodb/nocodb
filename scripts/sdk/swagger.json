@@ -3017,6 +3017,75 @@
         }
       }
     },
+    "/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableAlias",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "db-view-row-count",
+        "description": "",
+        "tags": [
+          "DB View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/data/{tableId}/export/{type}": {
       "parameters": [
         {

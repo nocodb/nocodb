@@ -9,10 +9,14 @@ export default function({
 }, inject) {
   let socket
 
-  const init = () => {
-    if (socket) { return }
+  const init = (token) => {
+    if (socket) {
+      socket.disconnect()
+    }
 
-    socket = io($axios.defaults.baseURL)
+    socket = io($axios.defaults.baseURL, {
+      extraHeaders: { 'xc-auth': token }
+    })
 
     app.router.onReady(() => {
       app.router.afterEach(function(to, from) {
@@ -29,10 +33,6 @@ export default function({
         path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : '')
       })
     })
-
-    // socket.on('connect_error', () => {
-    //   socket.disconnect()
-    // })
   }
   const tele = {
     emit(evt, data) {
@@ -75,10 +75,15 @@ export default function({
     }
   })
 
-  store.watch(state => state.project.projectInfo && state.project.projectInfo.teleEnabled, (value) => {
-    if (value) { init() }
+  store.watch(state => state.project.projectInfo && state.project.projectInfo.teleEnabled && state.users.token, (token) => {
+    if (token) { init(token) } else if (socket) {
+      socket.disconnect()
+      socket = null
+    }
   })
-  if (store.state.project.projectInfo && store.state.project.projectInfo.teleEnabled) { init() }
+  if (store.state.project.projectInfo && store.state.project.projectInfo.teleEnabled && store.state.users.token) {
+    init(store.state.users.token)
+  }
 }
 
 function gatPath(app) {

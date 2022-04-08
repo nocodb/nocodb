@@ -9,12 +9,14 @@ import { ExtractJwt } from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
+
 // todo: read from database
 const jwtOptions = {
   secretOrKey: 'dkjfkdjfkjdfjdfjdkfjdkfjkdfkjdkfjdkjfkdk',
   expiresIn: process.env.NC_JWT_EXPIRES_IN ?? '10h',
   jwtFromRequest: ExtractJwt.fromHeader('xc-auth')
 };
+
 import bcrypt from 'bcryptjs';
 import Project from '../../../../noco-models/Project';
 import NocoCache from '../../../../noco-cache/NocoCache';

@@ -34,7 +34,7 @@
     "odometer": "^0.4.8",
     "papaparse": "^5.3.1",
     "secure-ls": "^1.2.6",
-    "socket.io-client": "^2.3.0",
+    "socket.io-client": "^4.4.1",
     "splitpanes": "^2.2.1",
     "sql-formatter": "^2.3.3",
     "unique-names-generator": "^4.3.1",

@@ -33,7 +33,7 @@
             }})</span>
           </v-tooltip>
 
-          <span class="body-1 ml-n2" @click="$router.push('/projects')"> {{ brandName }}</span>
+          <span class="body-1 ml-n1" @click="$router.push('/projects')"> {{ brandName }}</span>
         </v-toolbar-title>
 
         <!--        <v-toolbar-items  />-->

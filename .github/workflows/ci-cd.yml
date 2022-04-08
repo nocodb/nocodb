@@ -61,7 +61,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restViews-run-cache:
         runs-on: ubuntu-20.04
@@ -105,7 +105,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restRoles-run-cache:
         runs-on: ubuntu-20.04
@@ -149,7 +149,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restMisc-run-cache:
         runs-on: ubuntu-20.04
@@ -193,7 +193,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restTableOps-run-cache:
         runs-on: ubuntu-20.04
@@ -237,7 +237,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restViews-run-cache:
         runs-on: ubuntu-20.04
@@ -281,7 +281,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restRoles-run-cache:
         runs-on: ubuntu-20.04
@@ -325,7 +325,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restMisc-run-cache:
         runs-on: ubuntu-20.04
@@ -369,7 +369,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
         runs-on: ubuntu-20.04
@@ -413,7 +413,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restViews-run-cache:
         runs-on: ubuntu-20.04
@@ -457,7 +457,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restRoles-run-cache:
         runs-on: ubuntu-20.04
@@ -501,7 +501,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restMisc-run-cache:
         runs-on: ubuntu-20.04
@@ -545,7 +545,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     docker:
         runs-on: ubuntu-latest

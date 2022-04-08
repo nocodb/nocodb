@@ -43,7 +43,7 @@
             "user": "root",
             "password": "password"
         },
-        "screenshot": false
+        "screenshot": true
     },
     "fixturesFolder": "scripts/cypress/fixtures",
     "integrationFolder": "scripts/cypress/integration",

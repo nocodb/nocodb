@@ -46,10 +46,9 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: |
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
           cd packages/nocodb-sdk
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node ../../scripts/bumpNocodbSdkVersion.js
-          npm install && npm run build
-          npm publish
+          npm install && npm run build && npm publish
           cd ../..
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js
           cd packages/nc-gui

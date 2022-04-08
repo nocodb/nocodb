@@ -58,9 +58,10 @@ const searchAndReplace = (target) => {
             fs.readFile(d, function(err, content) {
                 if (err) reject(err)
                 if (content.indexOf(target) > -1) {
-                    replacePackageName(d)
+                    resolve(replacePackageName(d))
+                } else {
+                    resolve()
                 }
-                resolve()
             })
         })
     }))

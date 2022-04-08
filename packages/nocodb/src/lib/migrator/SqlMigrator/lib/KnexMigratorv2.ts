@@ -767,8 +767,6 @@ export default class KnexMigratorv2 {
                 );
               }
               if (!sqlClient.knex.isTransaction) await trx.commit();
-
-              console.log('========== success ');
             } catch (error) {
               if (!sqlClient.knex.isTransaction) await trx.rollback();
               vm.emitW(
@@ -938,7 +936,6 @@ export default class KnexMigratorv2 {
                 .del();
             }
             if (!sqlClient.knex.isTransaction) await trx.commit();
-            console.log('========== success ');
           } catch (error) {
             if (!sqlClient.knex.isTransaction) await trx.rollback();
             vm.emitW(

@@ -299,7 +299,6 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
         'Warning : `mailSend` failed, Please configure emailClient configuration.'
       );
     }
-    console.log(`Password reset token : ${token}`);
 
     Audit.insert({
       op_type: 'AUTHENTICATION',

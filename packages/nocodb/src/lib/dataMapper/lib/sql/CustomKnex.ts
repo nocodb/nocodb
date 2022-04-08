@@ -457,7 +457,6 @@ const appendWhereCondition = function(
     }
   });
 
-  console.log(knexRef.toQuery());
   return knexRef;
 };
 

@@ -179,8 +179,6 @@ class BaseModelSqlv2 {
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
-    console.log(qb.toQuery());
-
     return (await qb).map(d => {
       d.__proto__ = proto;
       return d;
@@ -247,8 +245,6 @@ class BaseModelSqlv2 {
     qb.count(this.model.primaryKey?.column_name || '*', {
       as: 'count'
     }).first();
-
-    console.log(qb.toQuery());
 
     return ((await qb) as any).count;
   }
@@ -746,8 +742,6 @@ class BaseModelSqlv2 {
             )
         ).orWhereNull(rcn);
       });
-
-    console.log('----', qb.toQuery());
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);

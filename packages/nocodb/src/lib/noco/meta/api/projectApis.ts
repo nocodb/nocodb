@@ -32,7 +32,6 @@ export async function projectGet(
   req: Request<any, any, any>,
   res: Response<Project>
 ) {
-  console.log(req.query.page);
   const project = await Project.getWithInfo(req.params.projectId);
 
   // delete datasource connection details
@@ -49,7 +48,6 @@ export async function projectList(
   next
 ) {
   try {
-    console.log(req.query.page);
     const projects = await Project.list(req.query);
 
     res // todo: pagination

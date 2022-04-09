@@ -610,7 +610,6 @@
       @create="mtdViewCreate($event)"
     />
 
-
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
       :rules="[validateTableName, validateUniqueAlias]"
@@ -1905,7 +1904,7 @@ export default {
 }
 
 .nc-project-title:not(.shared) {
-  padding-left: 30px;
+  padding-left: 20px;
 }
 
 .nc-project-title.shared > h3 {

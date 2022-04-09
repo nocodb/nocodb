@@ -26,6 +26,13 @@
                       "type": "string"
                     }
                   }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "token": "string"
+                    }
+                  }
                 }
               }
             }
@@ -46,7 +53,7 @@
         "requestBody": {
           "$ref": "#/components/requestBodies/Signup"
         },
-        "description": "Create a new user with provided email and password and first user is marked as super admin. "
+        "description": "Create a new user account with provided email and password. First user to sign-up is marked as `super admin`. Successful login will return a JWT access-token."
       }
     },
     "/auth/user/signin": {
@@ -110,6 +117,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/User"
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "id": 142,
+                      "firstName": "Alice",
+                      "lastName": "Smith",
+                      "email": "alice.smith@gmail.com",
+                      "dateOfBirth": "1997-10-31",
+                      "emailVerified": true,
+                      "signUpDate": "2019-08-24"
+                    }
+                  }
                 }
               }
             }
@@ -130,7 +150,7 @@
             "description": "OK"
           }
         },
-        "description": "Emails user with a reset url.",
+        "description": "Send reset URL to registered Email.",
         "tags": [
           "Auth"
         ],
@@ -160,7 +180,7 @@
             "description": "OK"
           }
         },
-        "description": "Change password of authenticated user with a new one.",
+        "description": "Change password of authenticated user.",
         "tags": [
           "Auth"
         ],
@@ -196,7 +216,7 @@
             "description": "OK"
           }
         },
-        "description": "Validtae password reset url token.",
+        "description": "Validate password reset URL token.",
         "tags": [
           "Auth"
         ]
@@ -221,7 +241,7 @@
             "description": "OK"
           }
         },
-        "description": "Api for verifying email where token need to be passed which is shared to user email.",
+        "description": "API for verifying email. Token sahred over email (to be verified) is required to be passed alongwith.",
         "tags": [
           "Auth"
         ]
@@ -246,7 +266,7 @@
             "description": "OK"
           }
         },
-        "description": "Update user password to new by using reset token.",
+        "description": "Update user password by using reset token.",
         "tags": [
           "Auth"
         ],
@@ -328,8 +348,8 @@
     },
     "/projects/{projectId}/users": {
       "get": {
-        "summary": "Project Users",
-        "operationId": "auth-project-user-list",
+        "summary": "Project User List",
+        "operationId": "project-user-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -366,7 +386,7 @@
         },
         "description": "",
         "tags": [
-          "Auth"
+          "Project"
         ]
       },
       "parameters": [
@@ -381,7 +401,7 @@
       ],
       "post": {
         "summary": "Project User Add",
-        "operationId": "auth-project-user-add",
+        "operationId": "project-user-add",
         "responses": {
           "200": {
             "description": "OK",
@@ -400,7 +420,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Project"
         ]
       }
     },
@@ -451,6 +471,20 @@
                       "type": "string"
                     }
                   }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "Node": "string",
+                      "Arch": "string",
+                      "Platform": "string",
+                      "Docker": true,
+                      "Database": "string",
+                      "ProjectOnRootDB": "string",
+                      "RootDB": "string",
+                      "PackageVersion": "string"
+                    }
+                  }
                 }
               }
             }
@@ -482,7 +516,7 @@
       ],
       "put": {
         "summary": "Project User Update",
-        "operationId": "auth-project-user-update",
+        "operationId": "project-user-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -501,12 +535,12 @@
           }
         },
         "tags": [
-          "Auth"
+          "Project"
         ]
       },
       "delete": {
         "summary": "Project User Remove",
-        "operationId": "auth-project-user-remove",
+        "operationId": "project-user-remove",
         "responses": {
           "200": {
             "description": "OK",
@@ -518,7 +552,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Project"
         ]
       }
     },
@@ -534,6 +568,13 @@
                 "schema": {
                   "type": "array",
                   "items": {}
+                },
+                "examples": {
+                  "example-1": {
+                    "value": [
+                      null
+                    ]
+                  }
                 }
               }
             }
@@ -712,6 +753,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {}
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {}
+                  }
                 }
               }
             }
@@ -729,6 +775,42 @@
         "tags": [
           "Project"
         ]
+      }
+    },
+    "/projects/{projectId}/star": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "project-star",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "starred": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          },
+          "description": ""
+        }
       }
     },
     "/projects/{projectId}/sharedBase": {
@@ -772,6 +854,14 @@
                     },
                     "url": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "uuid": "string",
+                      "url": "string"
                     }
                   }
                 }
@@ -895,6 +985,13 @@
                       "type": "string"
                     }
                   }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "project_id": "string"
+                    }
+                  }
                 }
               }
             }
@@ -904,50 +1001,6 @@
           "Public"
         ]
       }
-    },
-    "/projects/{projectId}/views/{viewId}/upload": {
-      "post": {
-        "summary": "Attachment",
-        "operationId": "db-view-upload",
-        "responses": {},
-        "tags": [
-          "DB View"
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "files": {},
-                  "json": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "description": ""
-        }
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        }
-      ]
     },
     "/projects/{projectId}/{baseId}/tables": {
       "parameters": [
@@ -1046,7 +1099,7 @@
         ]
       }
     },
-    "/projects/{projectId}/metaDiff": {
+    "/projects/{projectId}/{baseId}/tables/{tableId}": {
       "parameters": [
         {
           "schema": {
@@ -1055,46 +1108,15 @@
           "name": "projectId",
           "in": "path",
           "required": true
-        }
-      ],
-      "post": {
-        "summary": "",
-        "operationId": "project-meta-diff-sync",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
         },
-        "tags": [
-          "Project"
-        ]
-      },
-      "get": {
-        "summary": "",
-        "operationId": "project-meta-diff-get",
-        "parameters": [],
-        "tags": [
-          "Project"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tables/{tableId}": {
-      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -1464,13 +1486,131 @@
         ]
       }
     },
-    "/views/{viewId}": {
+    "/projects/{projectId}/views/{viewId}/upload": {
+      "post": {
+        "summary": "Attachment",
+        "operationId": "db-view-upload",
+        "responses": {},
+        "tags": [
+          "DB View"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {},
+                  "json": {
+                    "type": "string"
+                  }
+                }
+              },
+              "examples": {
+                "example-1": {
+                  "value": {
+                    "files": null,
+                    "json": "string"
+                  }
+                }
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/projects/{projectId}/{baseId}/metaDiff": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "project-meta-diff-sync",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Project"
+        ]
+      },
+      "get": {
+        "summary": "",
+        "operationId": "project-meta-diff-get",
+        "parameters": [],
+        "tags": [
+          "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "example-1": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tables/{tableId}/views/{viewId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
           "name": "viewId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
           "in": "path",
           "required": true
         }
@@ -1528,8 +1668,41 @@
         ]
       }
     },
-    "/views/{viewId}/columns": {
+    "/tables/{tableId}/views": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "db-view-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ViewList"
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "description": ""
+      }
+    },
+    "/tables/{tableId}/views/{viewId}/columns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -1542,8 +1715,7 @@
       "get": {
         "summary": "",
         "operationId": "db-view-column-list",
-        "responses": {
-        },
+        "responses": {},
         "tags": [
           "DB View Column"
         ]
@@ -1568,8 +1740,16 @@
         }
       }
     },
-    "/views/{viewId}/showAll": {
+    "/tables/{tableId}/views/{viewId}/showAll": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -1602,8 +1782,16 @@
         ]
       }
     },
-    "/views/{viewId}/hideAll": {
+    "/tables/{tableId}/views/{viewId}/hideAll": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -1636,64 +1824,16 @@
         "description": ""
       }
     },
-    "/views/{viewId}/columns/{columnId}": {
+    "/tables/{tableId}/views/{viewId}/share": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "viewId",
+          "name": "tableId",
           "in": "path",
           "required": true
         },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-view-column-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB View Column"
-        ]
-      },
-      "put": {
-        "summary": "",
-        "operationId": "db-view-column-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View Column"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
-      }
-    },
-    "/views/{viewId}/share": {
-      "parameters": [
         {
           "schema": {
             "type": "string"
@@ -1773,9 +1913,18 @@
         "tags": [
           "DB View Share"
         ]
+      },
+      "get": {
+        "summary": "",
+        "operationId": "db-view-share-list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
-    "/tables/{viewId}/share": {
+    "/views/{viewId}/columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -1784,28 +1933,51 @@
           "name": "viewId",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
         }
       ],
       "get": {
         "summary": "",
-        "operationId": "db-view-share-list",
+        "operationId": "db-view-column-read",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {}
-                }
+                "schema": {}
               }
             }
           }
         },
-        "description": "",
         "tags": [
-          "DB View Share"
+          "DB View Column"
         ]
+      },
+      "put": {
+        "summary": "",
+        "operationId": "db-view-column-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB View Column"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
       }
     },
     "/views/{viewId}/sorts": {
@@ -2141,13 +2313,13 @@
         }
       }
     },
-    "/hooks/{viewId}/filters/{filterId}": {
+    "/hooks/{hookId}/filters/{filterId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "viewId",
+          "name": "hookId",
           "in": "path",
           "required": true
         },
@@ -2213,13 +2385,13 @@
         ]
       }
     },
-    "/hooks/{viewId}/filters/{filterParentId}/children": {
+    "/hooks/{hookId}/filters/{filterParentId}/children": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "viewId",
+          "name": "hookId",
           "in": "path",
           "required": true
         },
@@ -2389,8 +2561,16 @@
         }
       }
     },
-    "/forms/{formId}": {
+    "/tables/{tableId}/forms/{formId}": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -2441,6 +2621,40 @@
         ]
       }
     },
+    "/grid/{gidId}/gridColumns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "gidId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "db-view-grid-columns-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GridColumn"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB View"
+        ]
+      }
+    },
     "/formColumns/{columnId}": {
       "parameters": [
         {
@@ -2481,47 +2695,21 @@
         }
       }
     },
-    "/grid/{gidId}/gridColumns": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "gidId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-view-grid-columns-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GridColumn"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      }
-    },
-    "/gridColumns/{columnId}": {
+    "/grid/{gidId}/gridColumns/{columnId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
           "name": "columnId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "gidId",
           "in": "path",
           "required": true
         }
@@ -2594,8 +2782,16 @@
         }
       }
     },
-    "/galleries/{galleryId}": {
+    "/tables/{tableId}/galleries/{galleryId}": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -2655,7 +2851,8 @@
         },
         "tags": [
           "DB View"
-        ]
+        ],
+        "description": ""
       }
     },
     "/tables/{tableId}/kanbans": {
@@ -2736,31 +2933,6 @@
         "tags": [
           "DB View"
         ]
-      }
-    },
-    "/tables/{tableId}/views": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-view-list",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/ViewList"
-          }
-        },
-        "tags": [
-          "DB View"
-        ],
-        "description": ""
       }
     },
     "/data/{tableId}": {
@@ -4104,7 +4276,7 @@
         ]
       }
     },
-    "project/{projectId}/audits": {
+    "/projects/{projectId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -4289,7 +4461,7 @@
         ]
       }
     },
-    "/tables/{tableId}/hooks/test": {
+    "/tables/{tableId}/hooks/{hookId}": {
       "parameters": [
         {
           "schema": {
@@ -4298,49 +4470,7 @@
           "name": "tableId",
           "in": "path",
           "required": true
-        }
-      ],
-      "post": {
-        "summary": "",
-        "operationId": "db-table-webhook-test",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
         },
-        "tags": [
-          "DB Table Webhook"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "payload": {
-                    "type": "object",
-                    "properties": {
-                      "data": {},
-                      "user": {}
-                    }
-                  },
-                  "hook": {
-                    "$ref": "#/components/schemas/Hook"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/hooks/{hookId}": {
-      "parameters": [
         {
           "schema": {
             "type": "string"
@@ -4389,6 +4519,56 @@
         "tags": [
           "DB Table Webhook"
         ]
+      }
+    },
+    "/tables/{tableId}/hooks/test": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "db-table-webhook-test",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Webhook"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "object",
+                    "properties": {
+                      "data": {},
+                      "user": {}
+                    }
+                  },
+                  "hook": {
+                    "$ref": "#/components/schemas/Hook"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/plugins": {
@@ -7662,43 +7842,44 @@
             "examples": {
               "example-1": {
                 "value": {
-                  "projects": {
-                    "list": [
-                      {
-                        "id": "string",
-                        "title": "string",
-                        "status": "string",
-                        "description": "string",
-                        "meta": "string",
-                        "color": "string",
-                        "deleted": "string",
-                        "order": 0,
-                        "bases": [
-                          {
-                            "id": "string",
-                            "project_id": "string",
-                            "alias": "string",
-                            "type": "string",
-                            "is_meta": true,
-                            "config": null,
-                            "created_at": null,
-                            "updated_at": null
-                          }
-                        ],
-                        "is_meta": true,
-                        "prefix": "string",
-                        "created_at": null,
-                        "updated_at": null
-                      }
-                    ],
-                    "pageInfo": {
-                      "pageSize": 0,
-                      "totalRows": 0,
-                      "sort": "string",
-                      "isFirstPage": true,
-                      "isLastPage": true,
-                      "page": 0
+                  "list": [
+                    {
+                      "id": "string",
+                      "title": "string",
+                      "status": "string",
+                      "description": "string",
+                      "meta": "string",
+                      "color": "string",
+                      "deleted": "string",
+                      "order": 0,
+                      "bases": [
+                        {
+                          "id": "string",
+                          "project_id": "string",
+                          "alias": "string",
+                          "type": "string",
+                          "is_meta": true,
+                          "config": null,
+                          "created_at": null,
+                          "updated_at": null,
+                          "inflection_column": "string",
+                          "inflection_table": "string"
+                        }
+                      ],
+                      "is_meta": true,
+                      "prefix": "string",
+                      "created_at": null,
+                      "updated_at": null,
+                      "slug": "string"
                     }
+                  ],
+                  "pageInfo": {
+                    "pageSize": 0,
+                    "totalRows": 0,
+                    "sort": "string",
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 0
                   }
                 }
               }

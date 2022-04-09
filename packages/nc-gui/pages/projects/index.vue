@@ -874,7 +874,6 @@ export default {
           this.statusUpdatingProjectId = projectId
           this.projectStatusUpdating = true
           try {
-
             await this.$api.project.delete(projectId)
             this.$toast
               .success(`Project '${project.title}' deleted successfully`)
@@ -950,7 +949,6 @@ export default {
       this.loaded = true
     },
     async projectRouteHandler(project, count) {
-
       if (!this.deleteBtnClicked) {
         await this.$router.push({
           path: `/nc/${project.id}`

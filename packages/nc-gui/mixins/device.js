@@ -83,6 +83,9 @@ export default {
   //   }
   // },
   methods: {
+    openLink(link, target = '_blank') {
+      window.open(link)
+    },
     _extractRowId(row, meta) {
       return meta.columns.filter(c => c.pk).map(c => row[c.title]).join('___')
     },

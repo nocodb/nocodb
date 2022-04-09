@@ -1,4 +1,5 @@
 import {Api} from "nocodb-sdk"
+import {Context} from "@nuxt/types";
 
 declare module "vue/types/options" {
 
@@ -6,6 +7,7 @@ declare module "vue/types/options" {
     $tele: {
       emit: (event: string, data?) => void
     },
-    $api: Api<any>
+    $api: Api<any>,
+    $nuxt:Context
   }
 }

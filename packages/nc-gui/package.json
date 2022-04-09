@@ -63,6 +63,7 @@
   },
   "devDependencies": {
     "@intlify/eslint-plugin-vue-i18n": "^0.11.1",
+    "@nuxt/types": "^2.15.8",
     "@nuxtjs/eslint-config": "^6.0.1",
     "@nuxtjs/vuetify": "^1.11.2",
     "babel-eslint": "^10.1.0",

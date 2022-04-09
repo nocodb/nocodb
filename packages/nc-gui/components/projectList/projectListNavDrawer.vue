@@ -16,9 +16,9 @@
         >
           <v-list-item-group v-model="page" color="x-active" mandatory>
             <v-list-item
-              v-for="item in navDrawerOptions"
+              v-for="(item) in navDrawerOptions"
               :key="item.title"
-              :value="item.title"
+              :value="item"
               dense
               class="body-2"
             >
@@ -59,13 +59,16 @@ export default {
       icon: 'mdi-folder-outline'
     }, {
       title: 'Shared With Me',
-      icon: 'mdi-account-group'
+      icon: 'mdi-account-group',
+      queryParam: 'filterShared'
     }, {
       title: 'Recent',
-      icon: 'mdi-clock-outline'
+      icon: 'mdi-clock-outline',
+      queryParam: 'recent'
     }, {
       title: 'Starred',
-      icon: 'mdi-star'
+      icon: 'mdi-star',
+      queryParam: 'filterStarred'
     }]
   }),
   computed: {

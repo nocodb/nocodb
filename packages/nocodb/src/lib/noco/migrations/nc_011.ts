@@ -752,6 +752,7 @@ const up = async knex => {
     table.boolean('starred');
     table.boolean('pinned');
     table.string('group');
+    table.string('color');
     table.float('order');
     table.float('hidden');
 

@@ -9,8 +9,14 @@
     >
       {{ project.title.split(' ').map(w => w[0]).slice(0, 2).join('') }}
 
-      <v-icon class="nc-project-star-icon" small color="white" @click.stop>
-        mdi-star-outline
+      <v-icon
+        class="nc-project-star-icon"
+        small
+        :color="project.starred ? 'yellow' : 'white'"
+        :class="{active: project.starred}"
+        @click.stop="starOrUnstar"
+      >
+        {{ project.starred ? 'mdi-star':'mdi-star-outline' }}
       </v-icon>
 
       <v-menu bottom offset-y>
@@ -64,6 +70,12 @@ export default {
     confirmMessage: ''
   }),
   methods: {
+    async starOrUnstar() {
+      await this.$api.project.update(this.project.id, {
+        starred: !this.project.starred
+      })
+      this.$set(this.project, 'starred', !this.project.starred)
+    },
     async openProject(project) {
       await this.$router.push({
         path: `/nc/${project.id}`
@@ -119,7 +131,9 @@ export default {
   bottom: 5px;
   right: 5px;
 }
-.nc-project-thumbnail:hover .nc-project-option-menu-icon,.nc-project-thumbnail:hover .nc-project-star-icon{
+.nc-project-thumbnail:hover .nc-project-option-menu-icon,
+.nc-project-thumbnail:hover .nc-project-star-icon,
+.nc-project-star-icon.active{
   opacity: 1;
 }
 

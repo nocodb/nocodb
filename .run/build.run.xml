@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Build Nc Common" type="js.build_tools.npm">
+  <configuration default="false" name="Build NocoDB SDK" type="js.build_tools.npm">
     <package-json value="$PROJECT_DIR$/packages/nocodb-sdk/package.json" />
     <command value="run" />
     <scripts>

@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import Project from '../../../noco-models/Project';
-import { ModelTypes, ProjectListType } from 'nocodb-sdk';
+import {
+  ModelTypes,
+  ProjectListType,
+  ProjectUpdateRequestType
+} from 'nocodb-sdk';
 
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';
@@ -43,24 +47,38 @@ export async function projectGet(
 }
 
 export async function projectList(
-  req: Request<any, any, any>,
-  res: Response<ProjectListType>,
-  next
+  req: Request,
+  res: Response<ProjectListType>
 ) {
-  try {
-    const projects = await Project.list(req.query);
+  // const projects = await Project.list(req.query);
+  const projects = await ProjectUser.userProjectList(
+    (req as any).user.id,
+    req.query
+  );
+  const count = await ProjectUser.userProjectCount(
+    (req as any).user.id,
+    req.query
+  );
 
-    res // todo: pagination
-      .json(
-        new PagedResponseImpl(projects, {
-          count: projects.length,
-          limit: projects.length
-        })
-      );
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+  res // todo: pagination
+    .json(
+      new PagedResponseImpl(projects, {
+        count,
+        ...req.query
+      })
+    );
+}
+
+export async function projectUpdate(
+  req: Request<any, any, ProjectUpdateRequestType>,
+  res: Response<boolean>
+) {
+  const updateRes = await ProjectUser.userProjectUpdate(
+    (req as any).user?.id,
+    req.params.projectId,
+    req.body
+  );
+  res.json(updateRes);
 }
 
 export async function projectDelete(
@@ -71,9 +89,6 @@ export async function projectDelete(
   Tele.emit('evt', { evt_type: 'project:deleted' });
   res.json(result);
 }
-
-//
-//
 
 async function projectCreate(req: Request<any, any>, res) {
   const projectBody = req.body;
@@ -391,15 +406,10 @@ export async function projectInfoGet(req, res) {
 }
 
 export default router => {
-  router.get(
-    '/projects/:projectId/info',
-    ncMetaAclMw(projectInfoGet, 'projectInfoGet')
-  );
-  router.get('/projects/:projectId', ncMetaAclMw(projectGet, 'projectGet'));
-  router.delete(
-    '/projects/:projectId',
-    ncMetaAclMw(projectDelete, 'projectDelete')
-  );
-  router.post('/projects', ncMetaAclMw(projectCreate, 'projectCreate'));
-  router.get('/projects', ncMetaAclMw(projectList, 'projectList'));
-};
+  router.get('/projects/:projectId/info', ncMetaAclMw(projectInfoGet, 'projectInfoGet'));
+  router.get('/projects/:projectId', ncMetaAclMw(projectGet,'projectGet'));
+  router.patch('/projects/:projectId', ncMetaAclMw(projectUpdate, 'projectUpdate'));
+  router.delete('/projects/:projectId', ncMetaAclMw(projectDelete, 'projectDelete'));
+  router.post('/projects', ncMetaAclMw(projectCreate,'projectCreate'));
+  router.get('/projects', ncMetaAclMw(projectList,'projectList'));
+  };

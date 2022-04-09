@@ -35,7 +35,7 @@ const createCustomOperationId = (method, route, moduleName) => {
 };
 
 if (operationId)
-  return _.camelCase(operationId.replace(tags.length ? tags[0].toLowerCase().replace(/\W+/g,'-' ) + '-': '', ''));
+  return _.camelCase(operationId.replace(tags && tags.length ? tags[0].toLowerCase().replace(/\W+/g,'-' ) + '-': '', ''));
 if (route === "/")
   return _.camelCase(`${_.lowerCase(method)}Root`);
 

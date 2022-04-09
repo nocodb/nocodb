@@ -669,11 +669,42 @@
             "in": "header",
             "name": "xc-auth",
             "description": "Auth token"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "filterShared"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "filterStarred"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "query"
           }
         ],
         "tags": [
           "Project"
-        ]
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
       },
       "post": {
         "summary": "",
@@ -775,22 +806,10 @@
         "tags": [
           "Project"
         ]
-      }
-    },
-    "/projects/{projectId}/star": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
+      },
+      "patch": {
         "summary": "",
-        "operationId": "project-star",
+        "operationId": "project-update",
         "responses": {
           "200": {
             "description": "OK"
@@ -800,17 +819,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "starred": {
-                    "type": "boolean"
-                  }
-                }
+                "$ref": "#/components/schemas/ProjectUpdateRequest"
               }
             }
-          },
-          "description": ""
-        }
+          }
+        },
+        "tags": [
+          "Project"
+        ]
       }
     },
     "/projects/{projectId}/sharedBase": {
@@ -1919,9 +1935,17 @@
         "operationId": "db-view-share-list",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           }
-        }
+        },
+        "tags": [
+          "DB View share"
+        ]
       }
     },
     "/views/{viewId}/columns/{columnId}": {
@@ -7584,6 +7608,24 @@
         ],
         "description": "",
         "type": "object"
+      },
+      "ProjectUpdateRequest": {
+        "title": "ProjectUpdateRequest",
+        "type": "object",
+        "properties": {
+          "starred": {
+            "type": "boolean"
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "number"
+          }
+        }
       }
     },
     "requestBodies": {

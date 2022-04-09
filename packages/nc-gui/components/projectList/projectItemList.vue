@@ -1,5 +1,5 @@
 <template>
-  <div v-if="projectList &&projectList.length" class="nc-project-item-container d-flex d-100">
+  <div v-if="projectList &&projectList.length" class="nc-project-item-container d-flex d-100 align-start">
     <project-item
       v-for="(project,i) in projectList"
       :key="project.id"
@@ -9,7 +9,7 @@
       @deleted="$emit('deleted', project)"
     />
 
-    <div class="pointer nc-project-item nc-project-item elevation-0 d-flex align-center justify-center flex-column">
+    <div class="pointer nc-project-item nc-project-item elevation-0 d-flex align-center justify-center flex-column py-5">
       <create-new-project-btn>
         <template #default="{on}">
           <div

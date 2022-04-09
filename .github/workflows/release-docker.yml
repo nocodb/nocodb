@@ -76,9 +76,9 @@ jobs:
       - name: upgrade packages for nightly build
         if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
         run: |
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node ../../scripts/upgradeNocodbSdk.js
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node ../../scripts/upgradeNcGui.js
-          
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
+
       - uses: bahmutov/npm-install@v1
         with:
           working-directory: ${{ env.working-directory }}

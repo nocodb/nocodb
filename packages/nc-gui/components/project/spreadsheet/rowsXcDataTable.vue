@@ -1100,7 +1100,7 @@ export default {
           //   return
           // }
           // return if there is no change
-          if (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title])) {
+          if (!column || (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title]))) {
             return
           }
           if (saved) { this.$set(this.data[row], 'lastSave', oldRow[column.title]) }

@@ -37,7 +37,7 @@ const dfs = function(dir) {
             res = res.concat(dfs(file));
         } else {
             const ext = path.extname(file).toLowerCase()
-            if (ext == '.vue' || ext == '.ts') {
+            if (ext == '.vue' || ext == '.ts' || ext == '.js') {
                 res.push(file);
             }
         }

@@ -18,6 +18,7 @@ export default class ProjectUser {
   group?: string;
   order?: number;
   hidden?: boolean;
+  opened_date?: string | number | Date;
 
   constructor(data: ProjectUser) {
     Object.assign(this, data);
@@ -36,7 +37,8 @@ export default class ProjectUser {
         project_id: projectUser.project_id,
         roles: projectUser.roles,
         created_at: projectUser.created_at,
-        updated_at: projectUser.updated_at
+        updated_at: projectUser.updated_at,
+        opened_date: ncMeta.knex?.fn?.now()
       },
       true
     );
@@ -181,7 +183,8 @@ export default class ProjectUser {
       offset = 0,
       query = null,
       filterShared = false,
-      filterStarred = false
+      filterStarred = false,
+      recentlyOpened = false
     } = {},
     ncMeta = Noco.ncMeta
   ) {
@@ -203,6 +206,17 @@ export default class ProjectUser {
         MetaTable.BASES,
         `${MetaTable.BASES}.project_id`,
         `${MetaTable.PROJECT}.id`
+      )
+      // extract owner email
+      .select(
+        ncMeta
+          .knex(`${MetaTable.PROJECT_USERS} as pu`)
+          .select('admin.email')
+          .innerJoin(`${MetaTable.USERS} as admin`, `pu.fk_user_id`, `admin.id`)
+          .where('pu.project_id', ncMeta.knex.raw(`${MetaTable.PROJECT}.id`))
+          .where('pu.roles', 'owner')
+          .first()
+          .as('owner_email')
       )
 
       .select(`${MetaTable.PROJECT}.id`)
@@ -237,6 +251,12 @@ export default class ProjectUser {
     }
     if (filterStarred) {
       qb.where(`${MetaTable.PROJECT_USERS}.starred`, true);
+    }
+    if (recentlyOpened) {
+      qb.orderBy(`${MetaTable.PROJECT_USERS}.opened_date`, 'desc');
+    } else {
+      // todo: sort by order
+      qb.orderBy(`${MetaTable.PROJECT}.created_at`, 'desc');
     }
 
     return await qb;
@@ -305,6 +325,27 @@ export default class ProjectUser {
       fk_user_id: userId,
       project_id: projectId
     });
+
+    return true;
+  }
+
+  static async userProjectUpdateOpenedDate(
+    userId: string,
+    projectId: string,
+    ncMeta = Noco.ncMeta
+  ) {
+    // todo: redis cache update
+
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.PROJECT_USERS,
+      { opened_date: ncMeta.knex?.fn?.now() },
+      {
+        fk_user_id: userId,
+        project_id: projectId
+      }
+    );
 
     return true;
   }

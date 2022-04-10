@@ -755,6 +755,7 @@ const up = async knex => {
     table.string('color');
     table.float('order');
     table.float('hidden');
+    table.timestamp('opened_date');
 
     table.timestamps(true, true);
   });

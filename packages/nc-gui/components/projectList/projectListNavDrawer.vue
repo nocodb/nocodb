@@ -64,7 +64,7 @@ export default {
     }, {
       title: 'Recent',
       icon: 'mdi-clock-outline',
-      queryParam: 'recent'
+      queryParam: 'recentlyOpened'
     }, {
       title: 'Starred',
       icon: 'mdi-star',

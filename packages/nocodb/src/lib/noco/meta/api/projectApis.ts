@@ -43,6 +43,11 @@ export async function projectGet(
     ['config'].forEach(k => delete b[k]);
   });
 
+  await ProjectUser.userProjectUpdateOpenedDate(
+    (req as any).user?.id,
+    project?.id
+  );
+
   res.json(project);
 }
 

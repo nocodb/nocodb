@@ -2817,7 +2817,59 @@
         }
       }
     },
-    "/data/{orgs}/{projectName}/{tableAlias}": {
+    "/data/{tableId}/export/{type}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "excel"
+            ]
+          },
+          "name": "type",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "data-csv-export",
+        "description": "CSV or Excel export",
+        "tags": [
+          "Data"
+        ],
+        "wrapped": true,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {}
+              }
+            },
+            "headers": {
+              "nc-export-offset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+
+    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}": {
       "parameters": [
         {
           "schema": {
@@ -2910,7 +2962,7 @@
         }
       }
     },
-    "/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}": {
       "parameters": [
         {
           "schema": {
@@ -3017,13 +3069,227 @@
         }
       }
     },
-    "/data/{tableId}/export/{type}": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/{rowId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "tableId",
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableAlias",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "db-view-row-read",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "DB View Row"
+        ]
+      },
+      "put": {
+        "summary": "",
+        "operationId": "db-view-row-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB View Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "db-view-row-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB View Row"
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableAlias",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "db-table-row-read",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "DB Table Row"
+        ]
+      },
+      "put": {
+        "summary": "",
+        "operationId": "db-table-row-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "db-table-row-model-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/export/{type}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableAlias",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
           "in": "path",
           "required": true
         },
@@ -3068,6 +3334,83 @@
         "parameters": []
       }
     },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/export/{type}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableAlias",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "excel"
+            ]
+          },
+          "name": "type",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "data-csv-export",
+        "description": "CSV or Excel export",
+        "tags": [
+          "Data"
+        ],
+        "wrapped": true,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {}
+              }
+            },
+            "headers": {
+              "nc-export-offset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+
+
     "/public/data/{uuid}/list": {
       "parameters": [
         {
@@ -3788,196 +4131,6 @@
         },
         "tags": [
           "Data"
-        ],
-        "description": ""
-      }
-    },
-    "/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/{rowId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableAlias",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-view-row-read",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "description": "",
-        "tags": [
-          "DB View Row"
-        ]
-      },
-      "put": {
-        "summary": "",
-        "operationId": "db-view-row-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB View Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-view-row-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View Row"
-        ],
-        "description": ""
-      }
-    },
-    "/data/{orgs}/{projectName}/{tableAlias}/{rowId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableAlias",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-table-row-read",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "description": "",
-        "tags": [
-          "DB Table Row"
-        ]
-      },
-      "put": {
-        "summary": "",
-        "operationId": "db-table-row-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB Table Row"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-table-row-model-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB Table Row"
         ],
         "description": ""
       }

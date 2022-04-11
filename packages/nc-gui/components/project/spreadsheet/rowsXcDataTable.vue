@@ -1074,6 +1074,7 @@ export default {
           }
         }
       }
+      this.syncCount()
     },
     // // todo: move debounce to cell since this will skip few update api call
     // onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
@@ -1248,8 +1249,6 @@ export default {
           this.expandRow(data.length - 1, rowMeta)
         }
       }
-      await this.save()
-      this.syncCount()
     },
 
     async handleKeyDown({

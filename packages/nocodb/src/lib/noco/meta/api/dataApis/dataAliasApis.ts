@@ -153,7 +153,7 @@ router.get(
 );
 router.get(
   '/data/:orgs/:projectName/:tableName/views/:viewName/count',
-  ncMetaAclMw(dataCount)
+  ncMetaAclMw(dataCount, 'dataCount')
 );
 
 router.post(

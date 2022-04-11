@@ -392,14 +392,23 @@ export async function projectInfoGet(req, res) {
 
 export default router => {
   router.get(
-    '/projects/:projectId/info',
+    '/api/v1/db/meta/projects/:projectId/info',
     ncMetaAclMw(projectInfoGet, 'projectInfoGet')
   );
-  router.get('/projects/:projectId', ncMetaAclMw(projectGet, 'projectGet'));
+  router.get(
+    '/api/v1/db/meta/projects/:projectId',
+    ncMetaAclMw(projectGet, 'projectGet')
+  );
   router.delete(
-    '/projects/:projectId',
+    '/api/v1/db/meta/projects/:projectId',
     ncMetaAclMw(projectDelete, 'projectDelete')
   );
-  router.post('/projects', ncMetaAclMw(projectCreate, 'projectCreate'));
-  router.get('/projects', ncMetaAclMw(projectList, 'projectList'));
+  router.post(
+    '/api/v1/db/meta/projects',
+    ncMetaAclMw(projectCreate, 'projectCreate')
+  );
+  router.get(
+    '/api/v1/db/meta/projects',
+    ncMetaAclMw(projectList, 'projectList')
+  );
 };

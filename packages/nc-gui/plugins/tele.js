@@ -22,27 +22,28 @@ export default function({
       extraHeaders: { 'xc-auth': token }
     })
 
-    app.router.onReady(() => {
-      app.router.afterEach(function(to, from) {
-        if (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)) {
-          return
-        }
-        socket.emit('page', {
-          id: store.state.users.user && store.state.users.user.id,
-          path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
-        })
-      })
-      socket.emit('page', {
-        id: store.state.users.user && store.state.users.user.id,
-        path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : '')
-      })
-    })
-
     socket.on('connect_error', () => {
       socket.disconnect()
       socket = null
     })
   }
+
+  app.router.onReady(() => {
+    app.router.afterEach(function(to, from) {
+      if (socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) {
+        return
+      }
+      socket.emit('page', {
+        id: store.state.users.user && store.state.users.user.id,
+        path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
+      })
+    })
+    socket.emit('page', {
+      id: store.state.users.user && store.state.users.user.id,
+      path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : '')
+    })
+  })
+
   const tele = {
     emit(evt, data) {
       if (socket) {

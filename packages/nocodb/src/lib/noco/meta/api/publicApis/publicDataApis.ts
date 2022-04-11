@@ -332,7 +332,7 @@ export async function publicHmList(req: Request, res: Response) {
 const router = Router({ mergeParams: true });
 router.post('/public/data/:publicDataUuid/list', catchError(dataList));
 router.post(
-  '/public/data/:publicDataUuid/relationTable/:columnId',
+  '/public/data/:publicDataUuid/nested/:columnId',
   catchError(relDataList)
 );
 router.post(

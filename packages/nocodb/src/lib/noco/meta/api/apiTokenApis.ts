@@ -18,15 +18,15 @@ export async function apiTokenDelete(req: Request, res: Response) {
 const router = Router({ mergeParams: true });
 
 router.get(
-  '/projects/:projectId/apiTokens',
+  '/api/v1/db/meta/projects/:projectId/apiTokens',
   ncMetaAclMw(apiTokenList, 'apiTokenList')
 );
 router.post(
-  '/projects/:projectId/apiTokens',
+  '/api/v1/db/meta/projects/:projectId/apiTokens',
   ncMetaAclMw(apiTokenCreate, 'apiTokenCreate')
 );
 router.delete(
-  '/projects/:projectId/apiTokens/:token',
+  '/api/v1/db/meta/projects/:projectId/apiTokens/:token',
   ncMetaAclMw(apiTokenDelete, 'apiTokenDelete')
 );
 

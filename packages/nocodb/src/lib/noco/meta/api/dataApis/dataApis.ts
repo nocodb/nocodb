@@ -554,7 +554,7 @@ const router = Router({ mergeParams: true });
 //   '/data/:orgs/:projectName/:tableName/views/:viewName',
 //   ncMetaAclMw(dataInsertNew)
 // );
-// router.put(
+// router.patch(
 //   '/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
 //   ncMetaAclMw(dataUpdateNew)
 // );
@@ -566,7 +566,7 @@ const router = Router({ mergeParams: true });
 router.get('/data/:viewId/', ncMetaAclMw(dataList, 'dataList'));
 router.post('/data/:viewId/', ncMetaAclMw(dataInsert, 'dataInsert'));
 router.get('/data/:viewId/:rowId', ncMetaAclMw(dataRead, 'dataRead'));
-router.put('/data/:viewId/:rowId', ncMetaAclMw(dataUpdate, 'dataUpdate'));
+router.patch('/data/:viewId/:rowId', ncMetaAclMw(dataUpdate, 'dataUpdate'));
 router.delete('/data/:viewId/:rowId', ncMetaAclMw(dataDelete, 'dataDelete'));
 
 router.get('/data/:viewId/:rowId/mm/:colId', ncMetaAclMw(mmList, 'mmList'));

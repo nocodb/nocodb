@@ -52,7 +52,9 @@ export default {
       return zhLan.some(l => browserLan.includes(l))
     },
     ...mapGetters({
-      _isUIAllowed: 'users/GtrIsUIAllowed'
+      _isUIAllowed: 'users/GtrIsUIAllowed',
+      projectName: 'project/GtrProjectName',
+      projectId: 'project/GtrProjectId'
     })
   },
   mounted() {

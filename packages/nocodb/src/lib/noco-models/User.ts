@@ -136,4 +136,11 @@ export default class User implements UserType {
     }
     return user;
   }
+
+  static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
+    const user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+      refresh_token
+    });
+    return user;
+  }
 }

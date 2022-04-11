@@ -138,7 +138,7 @@ router.get(
   '/nc/:projectId/api/v2/:tableName/:rowId',
   ncMetaAclMw(dataRead, 'dataRead')
 );
-router.put(
+router.patch(
   '/nc/:projectId/api/v2/:tableName/:rowId',
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );

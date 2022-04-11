@@ -6,12 +6,13 @@ import UITypes from '../../../../sqlUi/UITypes';
 import { ErrorMessages, LinkToAnotherRecordType } from 'nocodb-sdk';
 import Column from '../../../../noco-models/Column';
 import Base from '../../../../noco-models/Base';
+import Project from '../../../../noco-models/Project';
 
 export async function viewMetaGet(req: Request, res: Response) {
   const view: View & {
     relatedMetas?: { [ket: string]: Model };
     client?: string;
-  } = await View.getByUUID(req.params.publicDataUuid);
+  } = await View.getByUUID(req.params.sharedViewUuids);
 
   if (!view) NcError.notFound('Not found');
 
@@ -66,7 +67,24 @@ export async function viewMetaGet(req: Request, res: Response) {
 
   res.json(view);
 }
+async function publicSharedBaseGet(req, res): Promise<any> {
+  const project = await Project.getByUuid(req.params.sharedBaseUuid);
+
+  if (!project) {
+    NcError.notFound();
+  }
+
+  res.json({ project_id: project.id });
+}
 
 const router = Router({ mergeParams: true });
-router.post('/public/meta/:publicDataUuid/', catchError(viewMetaGet));
+router.post(
+  '/api/v1/db/meta/public/shared-view/:sharedViewUuid/meta',
+  catchError(viewMetaGet)
+);
+
+router.get(
+  '/api/v1/db/meta/public/shared-base/:sharedBaseUuid/meta',
+  catchError(publicSharedBaseGet)
+);
 export default router;

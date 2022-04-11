@@ -6,16 +6,15 @@ import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
-import Project from '../../../../noco-models/Project';
-import { NcError } from '../../helpers/catchError';
+import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 
-export async function dataList(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+async function dataList(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   res.json(await getDataList(model, view, req));
 }
 
 async function dataInsert(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
 
@@ -29,7 +28,7 @@ async function dataInsert(req: Request, res: Response) {
 }
 
 async function dataUpdate(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
 
   const baseModel = await Model.getBaseModelSQL({
@@ -42,7 +41,7 @@ async function dataUpdate(req: Request, res: Response) {
 }
 
 async function dataDelete(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
@@ -85,25 +84,9 @@ async function getDataList(model, view: View, req) {
     count
   });
 }
-async function getViewAndModelFromRequest(req) {
-  const project = await Project.getWithInfoByTitle(req.params.projectName);
-  const model = await Model.getByAliasOrId({
-    project_id: project.id,
-    base_id: project.bases?.[0]?.id,
-    aliasOrId: req.params.tableName
-  });
-  const view =
-    req.params.viewName &&
-    (await View.getByTitleOrId({
-      titleOrId: req.params.viewName,
-      fk_model_id: model.id
-    }));
-  if (!model) NcError.notFound('Table not found');
-  return { model, view };
-}
 
 async function dataRead(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
 
@@ -125,26 +108,53 @@ async function dataRead(req: Request, res: Response) {
 
 const router = Router({ mergeParams: true });
 
-router.get('/data/:orgs/:projectName/:tableName', ncMetaAclMw(dataList, 'dataList'));
+// table data crud apis
 router.get(
-  '/data/:orgs/:projectName/:tableName/views/:viewName',
+  '/api/v1/db/data/:orgs/:projectName/:tableName',
+  ncMetaAclMw(dataList, 'dataList')
+);
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  ncMetaAclMw(dataRead, 'dataRead')
+);
+router.patch(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  ncMetaAclMw(dataUpdate, 'dataUpdate')
+);
+router.patch(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  ncMetaAclMw(dataUpdate, 'dataUpdate')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName',
+  ncMetaAclMw(dataList, 'dataList')
+);
+
+// table view data crud apis
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
   ncMetaAclMw(dataList, 'dataList')
 );
 
 router.post(
-  '/data/:orgs/:projectName/:tableName/views/:viewName',
+  '/api/v1/db/data/:orgs/:projectName/:tableName',
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
-router.put(
-  '/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+router.post(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
+  ncMetaAclMw(dataInsert, 'dataInsert')
+);
+router.patch(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
 router.get(
-  '/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   ncMetaAclMw(dataRead, 'dataRead')
 );
 router.delete(
-  '/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   ncMetaAclMw(dataDelete, 'dataDelete')
 );
 

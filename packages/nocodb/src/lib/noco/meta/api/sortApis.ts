@@ -36,30 +36,34 @@ export async function sortCreate(req: Request<any, any, TableReqType>, res) {
   res.json(sort);
 }
 
-// @ts-ignore
-export async function sortUpdate(req, res, next) {
+export async function sortUpdate(req, res) {
   const sort = await Sort.update(req.params.sortId, req.body);
   Tele.emit('evt', { evt_type: 'sort:updated' });
   res.json(sort);
 }
 
-// @ts-ignore
-export async function sortDelete(req: Request, res: Response, next) {
+export async function sortDelete(req: Request, res: Response) {
   Tele.emit('evt', { evt_type: 'sort:deleted' });
   const sort = await Sort.delete(req.params.sortId);
   res.json(sort);
 }
 
 const router = Router({ mergeParams: true });
-router.get('/views/:viewId/sorts/', ncMetaAclMw(sortList, 'sortList'));
-router.post('/views/:viewId/sorts/', ncMetaAclMw(sortCreate, 'sortCreate'));
-router.get('/views/:viewId/sorts/:sortId', ncMetaAclMw(sortGet, 'sortGet'));
-router.put(
-  '/views/:viewId/sorts/:sortId',
+router.get(
+  '/api/v1/db/meta/views/:viewId/sorts/',
+  ncMetaAclMw(sortList, 'sortList')
+);
+router.post(
+  '/api/v1/db/meta/views/:viewId/sorts/',
+  ncMetaAclMw(sortCreate, 'sortCreate')
+);
+router.get('/api/v1/db/meta/sorts/:sortId', ncMetaAclMw(sortGet, 'sortGet'));
+router.patch(
+  '/api/v1/db/meta/sorts/:sortId',
   ncMetaAclMw(sortUpdate, 'sortUpdate')
 );
 router.delete(
-  '/views/:viewId/sorts/:sortId',
+  '/api/v1/db/meta/sorts/:sortId',
   ncMetaAclMw(sortDelete, 'sortDelete')
 );
 export default router;

@@ -3,7 +3,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { v4 as uuidv4 } from 'uuid';
 import { Tele } from 'nc-help';
 import Project from '../../../noco-models/Project';
-import catchError, { NcError } from '../helpers/catchError';
+import { NcError } from '../helpers/catchError';
 // todo: load from config
 const config = {
   dashboardPath: '/nc'
@@ -88,32 +88,22 @@ async function getSharedBaseLink(req, res): Promise<any> {
 
   res.json(data);
 }
-async function publicSharedBaseGet(req, res): Promise<any> {
-  const project = await Project.getByUuid(req.params.uuid);
-
-  if (!project) {
-    NcError.notFound();
-  }
-
-  res.json({ project_id: project.id });
-}
 
 const router = Router({ mergeParams: true });
 router.get(
-  '/projects/:projectId/sharedBase',
+  '/api/v1/db/meta/projects/:projectId/shared',
   ncMetaAclMw(getSharedBaseLink, 'getSharedBaseLink')
 );
 router.post(
-  '/projects/:projectId/sharedBase',
+  '/api/v1/db/meta/projects/:projectId/shared',
   ncMetaAclMw(createSharedBaseLink, 'createSharedBaseLink')
 );
-router.put(
-  '/projects/:projectId/sharedBase',
+router.patch(
+  '/api/v1/db/meta/projects/:projectId/shared',
   ncMetaAclMw(updateSharedBaseLink, 'updateSharedBaseLink')
 );
 router.delete(
-  '/projects/:projectId/sharedBase',
+  '/api/v1/db/meta/projects/:projectId/shared',
   ncMetaAclMw(disableSharedBaseLink, 'disableSharedBaseLink')
 );
-router.get('/public/sharedBase/:uuid', catchError(publicSharedBaseGet));
 export default router;

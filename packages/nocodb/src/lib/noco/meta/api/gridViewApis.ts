@@ -26,7 +26,7 @@ export async function gridViewCreate(req: Request<any, any>, res) {
 
 const router = Router({ mergeParams: true });
 router.post(
-  '/tables/:tableId/grids/',
+  '/api/v1/db/meta/tables/:tableId/grids/',
   ncMetaAclMw(gridViewCreate, 'gridViewCreate')
 );
 export default router;

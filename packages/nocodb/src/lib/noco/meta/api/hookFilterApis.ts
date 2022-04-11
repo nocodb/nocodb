@@ -117,7 +117,7 @@ router.get(
   '/hooks/:hookId/filters/:filterId',
   ncMetaAclMw(filterGet, 'filterGet')
 );
-router.put(
+router.patch(
   '/hooks/:hookId/filters/:filterId',
   ncMetaAclMw(filterUpdate, 'filterUpdate')
 );

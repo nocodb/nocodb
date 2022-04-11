@@ -1155,12 +1155,14 @@ export class Api<
      * @response `201` `ProjectListType`
      */
     list: (
+      data: object,
       query?: {
         page?: number;
         pageSize?: number;
         sort?: string;
         filterShared?: boolean;
         filterStarred?: boolean;
+        query?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -1168,6 +1170,8 @@ export class Api<
         path: `/projects/`,
         method: 'GET',
         query: query,
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 
@@ -1615,17 +1619,12 @@ export class Api<
      *
      * @tags DB Table
      * @name Read
-     * @request GET:/projects/{projectId}/{baseId}/tables/{tableId}
+     * @request GET:/tables/{tableId}
      * @response `200` `TableInfoType` OK
      */
-    read: (
-      projectId: string,
-      baseId: string,
-      tableId: string,
-      params: RequestParams = {}
-    ) =>
+    read: (tableId: string, params: RequestParams = {}) =>
       this.request<TableInfoType, any>({
-        path: `/projects/${projectId}/${baseId}/tables/${tableId}`,
+        path: `/tables/${tableId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1636,18 +1635,16 @@ export class Api<
      *
      * @tags DB Table
      * @name Update
-     * @request PUT:/projects/{projectId}/{baseId}/tables/{tableId}
+     * @request PUT:/tables/{tableId}
      * @response `200` `any` OK
      */
     update: (
-      projectId: string,
-      baseId: string,
       tableId: string,
       data: { title?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/projects/${projectId}/${baseId}/tables/${tableId}`,
+        path: `/tables/${tableId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -1660,17 +1657,12 @@ export class Api<
      *
      * @tags DB Table
      * @name Delete
-     * @request DELETE:/projects/{projectId}/{baseId}/tables/{tableId}
+     * @request DELETE:/tables/{tableId}
      * @response `200` `void` OK
      */
-    delete: (
-      projectId: string,
-      baseId: string,
-      tableId: string,
-      params: RequestParams = {}
-    ) =>
+    delete: (tableId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/projects/${projectId}/${baseId}/tables/${tableId}`,
+        path: `/tables/${tableId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -1742,12 +1734,12 @@ export class Api<
      * @tags DB Table column
      * @name Read
      * @summary Column Read
-     * @request GET:/tables/{tableId}/columns/{columnId}
+     * @request GET:/columns/{columnId}
      * @response `200` `ColumnType` OK
      */
-    read: (tableId: string, columnId: string, params: RequestParams = {}) =>
+    read: (columnId: string, params: RequestParams = {}) =>
       this.request<ColumnType, any>({
-        path: `/tables/${tableId}/columns/${columnId}`,
+        path: `/columns/${columnId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1759,17 +1751,16 @@ export class Api<
      * @tags DB Table column
      * @name Update
      * @summary Column Update
-     * @request PUT:/tables/{tableId}/columns/{columnId}
+     * @request PUT:/columns/{columnId}
      * @response `200` `ColumnType` OK
      */
     update: (
-      tableId: string,
       columnId: string,
       data: ColumnReqType,
       params: RequestParams = {}
     ) =>
       this.request<ColumnType, any>({
-        path: `/tables/${tableId}/columns/${columnId}`,
+        path: `/columns/${columnId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -1782,12 +1773,12 @@ export class Api<
      *
      * @tags DB Table column
      * @name Delete
-     * @request DELETE:/tables/{tableId}/columns/{columnId}
+     * @request DELETE:/columns/{columnId}
      * @response `200` `void` OK
      */
-    delete: (tableId: string, columnId: string, params: RequestParams = {}) =>
+    delete: (columnId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/columns/${columnId}`,
+        path: `/columns/${columnId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -1797,16 +1788,12 @@ export class Api<
      *
      * @tags DB Table column
      * @name PrimaryColumnSet
-     * @request POST:/tables/{tableId}/columns/{columnId}/primary
+     * @request POST:/columns/{columnId}/primary
      * @response `200` `void` OK
      */
-    primaryColumnSet: (
-      tableId: string,
-      columnId: string,
-      params: RequestParams = {}
-    ) =>
+    primaryColumnSet: (columnId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/columns/${columnId}/primary`,
+        path: `/columns/${columnId}/primary`,
         method: 'POST',
         ...params,
       }),
@@ -1896,17 +1883,16 @@ export class Api<
      *
      * @tags DB View
      * @name ShowAllColumn
-     * @request POST:/tables/{tableId}/views/{viewId}/showAll
+     * @request POST:/views/{viewId}/showAll
      * @response `200` `void` OK
      */
     showAllColumn: (
-      tableId: string,
       viewId: string,
       query?: { ignoreIds?: any[] },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/views/${viewId}/showAll`,
+        path: `/views/${viewId}/showAll`,
         method: 'POST',
         query: query,
         ...params,
@@ -1917,17 +1903,16 @@ export class Api<
      *
      * @tags DB View
      * @name HideAllColumn
-     * @request POST:/tables/{tableId}/views/{viewId}/hideAll
+     * @request POST:/views/{viewId}/hideAll
      * @response `200` `void` OK
      */
     hideAllColumn: (
-      tableId: string,
       viewId: string,
       query?: { ignoreIds?: any[] },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/views/${viewId}/hideAll`,
+        path: `/views/${viewId}/hideAll`,
         method: 'POST',
         query: query,
         ...params,
@@ -1955,51 +1940,6 @@ export class Api<
      * No description
      *
      * @tags DB View
-     * @name GridUpdate
-     * @request PUT:/tables/{tableId}/grids/{gridId}
-     * @response `200` `void` OK
-     */
-    gridUpdate: (tableId: string, gridId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/grids/${gridId}`,
-        method: 'PUT',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name GridDelete
-     * @request DELETE:/tables/{tableId}/grids/{gridId}
-     * @response `200` `void` OK
-     */
-    gridDelete: (tableId: string, gridId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/grids/${gridId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name GridRead
-     * @request GET:/tables/{tableId}/grids/{gridId}
-     * @response `200` `void` OK
-     */
-    gridRead: (tableId: string, gridId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/grids/${gridId}`,
-        method: 'GET',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
      * @name FormCreate
      * @request POST:/tables/{tableId}/forms
      * @response `200` `FormType` OK
@@ -2019,17 +1959,12 @@ export class Api<
      *
      * @tags DB View
      * @name FormUpdate
-     * @request PUT:/tables/{tableId}/forms/{formId}
+     * @request PUT:/forms/{formId}
      * @response `200` `void` OK
      */
-    formUpdate: (
-      tableId: string,
-      formId: string,
-      data: FormType,
-      params: RequestParams = {}
-    ) =>
+    formUpdate: (formId: string, data: FormType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/forms/${formId}`,
+        path: `/forms/${formId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -2041,12 +1976,12 @@ export class Api<
      *
      * @tags DB View
      * @name FormRead
-     * @request GET:/tables/{tableId}/forms/{formId}
+     * @request GET:/forms/{formId}
      * @response `200` `FormType` OK
      */
-    formRead: (tableId: string, formId: string, params: RequestParams = {}) =>
+    formRead: (formId: string, params: RequestParams = {}) =>
       this.request<FormType, any>({
-        path: `/tables/${tableId}/forms/${formId}`,
+        path: `/forms/${formId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -2095,17 +2030,16 @@ export class Api<
      *
      * @tags DB View
      * @name GridColumnUpdate
-     * @request PUT:/grid/{gidId}/gridColumns/{columnId}
+     * @request PUT:/gridColumns/{columnId}
      * @response `200` `any` OK
      */
     gridColumnUpdate: (
       columnId: string,
-      gidId: string,
       data: GridColumnType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/grid/${gidId}/gridColumns/${columnId}`,
+        path: `/gridColumns/${columnId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -2140,17 +2074,16 @@ export class Api<
      *
      * @tags DB View
      * @name GalleryUpdate
-     * @request PUT:/tables/{tableId}/galleries/{galleryId}
+     * @request PUT:/galleries/{galleryId}
      * @response `200` `void` OK
      */
     galleryUpdate: (
-      tableId: string,
       galleryId: string,
       data: GalleryType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/galleries/${galleryId}`,
+        path: `/galleries/${galleryId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -2162,16 +2095,12 @@ export class Api<
      *
      * @tags DB View
      * @name GalleryDelete
-     * @request DELETE:/tables/{tableId}/galleries/{galleryId}
+     * @request DELETE:/galleries/{galleryId}
      * @response `200` `void` OK
      */
-    galleryDelete: (
-      tableId: string,
-      galleryId: string,
-      params: RequestParams = {}
-    ) =>
+    galleryDelete: (galleryId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/galleries/${galleryId}`,
+        path: `/galleries/${galleryId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -2181,90 +2110,14 @@ export class Api<
      *
      * @tags DB View
      * @name GalleryRead
-     * @request GET:/tables/{tableId}/galleries/{galleryId}
+     * @request GET:/galleries/{galleryId}
      * @response `200` `GalleryType` OK
      */
-    galleryRead: (
-      tableId: string,
-      galleryId: string,
-      params: RequestParams = {}
-    ) =>
+    galleryRead: (galleryId: string, params: RequestParams = {}) =>
       this.request<GalleryType, any>({
-        path: `/tables/${tableId}/galleries/${galleryId}`,
+        path: `/galleries/${galleryId}`,
         method: 'GET',
         format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanCreate
-     * @request POST:/tables/{tableId}/kanbans
-     * @response `200` `void` OK
-     */
-    kanbanCreate: (tableId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans`,
-        method: 'POST',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanUpdate
-     * @request PUT:/tables/{tableId}/kanbans/{kanbanId}
-     * @response `200` `void` OK
-     */
-    kanbanUpdate: (
-      tableId: string,
-      kanbanId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans/${kanbanId}`,
-        method: 'PUT',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanDelete
-     * @request DELETE:/tables/{tableId}/kanbans/{kanbanId}
-     * @response `200` `void` OK
-     */
-    kanbanDelete: (
-      tableId: string,
-      kanbanId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans/${kanbanId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanRead
-     * @request GET:/tables/{tableId}/kanbans/{kanbanId}
-     * @response `200` `void` OK
-     */
-    kanbanRead: (
-      tableId: string,
-      kanbanId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans/${kanbanId}`,
-        method: 'GET',
         ...params,
       }),
   };
@@ -2274,11 +2127,11 @@ export class Api<
      *
      * @tags DB View Column
      * @name List
-     * @request GET:/tables/{tableId}/views/{viewId}/columns
+     * @request GET:/views/{viewId}/columns
      */
-    list: (tableId: string, viewId: string, params: RequestParams = {}) =>
+    list: (viewId: string, params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/tables/${tableId}/views/${viewId}/columns`,
+        path: `/views/${viewId}/columns`,
         method: 'GET',
         ...params,
       }),
@@ -2288,17 +2141,12 @@ export class Api<
      *
      * @tags DB View Column
      * @name Create
-     * @request POST:/tables/{tableId}/views/{viewId}/columns
+     * @request POST:/views/{viewId}/columns
      * @response `200` `void` OK
      */
-    create: (
-      tableId: string,
-      viewId: string,
-      data: any,
-      params: RequestParams = {}
-    ) =>
+    create: (viewId: string, data: any, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/views/${viewId}/columns`,
+        path: `/views/${viewId}/columns`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -2349,12 +2197,12 @@ export class Api<
      *
      * @tags DB View Share
      * @name Create
-     * @request POST:/tables/{tableId}/views/{viewId}/share
+     * @request POST:/views/{viewId}/share
      * @response `200` `{ uuid?: string }` OK
      */
-    create: (tableId: string, viewId: string, params: RequestParams = {}) =>
+    create: (viewId: string, params: RequestParams = {}) =>
       this.request<{ uuid?: string }, any>({
-        path: `/tables/${tableId}/views/${viewId}/share`,
+        path: `/views/${viewId}/share`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -2365,17 +2213,16 @@ export class Api<
      *
      * @tags DB View Share
      * @name Update
-     * @request PUT:/tables/{tableId}/views/{viewId}/share
+     * @request PUT:/views/{viewId}/share
      * @response `200` `SharedViewType` OK
      */
     update: (
-      tableId: string,
       viewId: string,
       data: { password?: string },
       params: RequestParams = {}
     ) =>
       this.request<SharedViewType, any>({
-        path: `/tables/${tableId}/views/${viewId}/share`,
+        path: `/views/${viewId}/share`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -2388,12 +2235,12 @@ export class Api<
      *
      * @tags DB View Share
      * @name Delete
-     * @request DELETE:/tables/{tableId}/views/{viewId}/share
+     * @request DELETE:/views/{viewId}/share
      * @response `200` `void` OK
      */
-    delete: (tableId: string, viewId: string, params: RequestParams = {}) =>
+    delete: (viewId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/views/${viewId}/share`,
+        path: `/views/${viewId}/share`,
         method: 'DELETE',
         ...params,
       }),
@@ -2403,12 +2250,12 @@ export class Api<
      *
      * @tags DB View share
      * @name List
-     * @request GET:/tables/{tableId}/views/{viewId}/share
+     * @request GET:/views/{viewId}/share
      * @response `200` `any` OK
      */
-    list: (tableId: string, viewId: string, params: RequestParams = {}) =>
+    list: (viewId: string, params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/tables/${tableId}/views/${viewId}/share`,
+        path: `/views/${viewId}/share`,
         method: 'GET',
         format: 'json',
         ...params,

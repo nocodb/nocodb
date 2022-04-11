@@ -1115,24 +1115,8 @@
         ]
       }
     },
-    "/projects/{projectId}/{baseId}/tables/{tableId}": {
+    "/tables/{tableId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1390,16 +1374,8 @@
         ]
       }
     },
-    "/tables/{tableId}/columns/{columnId}": {
+    "/columns/{columnId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1470,16 +1446,8 @@
         ]
       }
     },
-    "/tables/{tableId}/columns/{columnId}/primary": {
+    "/columns/{columnId}/primary": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1709,16 +1677,8 @@
         "description": ""
       }
     },
-    "/tables/{tableId}/views/{viewId}/columns": {
+    "/views/{viewId}/columns": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1756,16 +1716,8 @@
         }
       }
     },
-    "/tables/{tableId}/views/{viewId}/showAll": {
+    "/views/{viewId}/showAll": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1798,16 +1750,8 @@
         ]
       }
     },
-    "/tables/{tableId}/views/{viewId}/hideAll": {
+    "/views/{viewId}/hideAll": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1840,16 +1784,8 @@
         "description": ""
       }
     },
-    "/tables/{tableId}/views/{viewId}/share": {
+    "/views/{viewId}/share": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -2488,62 +2424,6 @@
         }
       }
     },
-    "/tables/{tableId}/grids/{gridId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "gridId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "put": {
-        "summary": "",
-        "operationId": "db-view-grid-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-view-grid-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "get": {
-        "summary": "",
-        "operationId": "db-view-grid-read",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      }
-    },
     "/tables/{tableId}/forms": {
       "parameters": [
         {
@@ -2585,16 +2465,8 @@
         }
       }
     },
-    "/tables/{tableId}/forms/{formId}": {
+    "/forms/{formId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -2719,21 +2591,13 @@
         }
       }
     },
-    "/grid/{gidId}/gridColumns/{columnId}": {
+    "/gridColumns/{columnId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
           "name": "columnId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "gidId",
           "in": "path",
           "required": true
         }
@@ -2806,16 +2670,8 @@
         }
       }
     },
-    "/tables/{tableId}/galleries/{galleryId}": {
+    "/galleries/{galleryId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -2877,86 +2733,6 @@
           "DB View"
         ],
         "description": ""
-      }
-    },
-    "/tables/{tableId}/kanbans": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "",
-        "operationId": "db-view-kanban-create",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      }
-    },
-    "/tables/{tableId}/kanbans/{kanbanId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "kanbanId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "put": {
-        "summary": "",
-        "operationId": "db-view-kanban-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-view-kanban-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "get": {
-        "summary": "",
-        "operationId": "db-view-kanban-read",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
       }
     },
     "/data/{tableId}": {

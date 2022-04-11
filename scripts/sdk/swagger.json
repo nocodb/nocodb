@@ -1374,8 +1374,16 @@
         ]
       }
     },
-    "/columns/{columnId}": {
+    "/tables/:tableId/columns/{columnId}": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -1446,8 +1454,16 @@
         ]
       }
     },
-    "/columns/{columnId}/primary": {
+    "/tables/:tableId/columns/{columnId}/primary": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
         {
           "schema": {
             "type": "string"
@@ -1580,21 +1596,13 @@
         }
       }
     },
-    "/tables/{tableId}/views/{viewId}": {
+    "/views/{viewId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
           "name": "viewId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
           "in": "path",
           "required": true
         }
@@ -4261,16 +4269,8 @@
         ]
       }
     },
-    "/tables/{tableId}/hooks/{hookId}": {
+    "/hooks/{hookId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"

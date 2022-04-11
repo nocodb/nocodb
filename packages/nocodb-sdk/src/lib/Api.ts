@@ -1734,12 +1734,12 @@ export class Api<
      * @tags DB Table column
      * @name Read
      * @summary Column Read
-     * @request GET:/columns/{columnId}
+     * @request GET:/tables/:tableId/columns/{columnId}
      * @response `200` `ColumnType` OK
      */
-    read: (columnId: string, params: RequestParams = {}) =>
+    read: (tableId: string, columnId: string, params: RequestParams = {}) =>
       this.request<ColumnType, any>({
-        path: `/columns/${columnId}`,
+        path: `/tables/${tableId}/columns/${columnId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1751,16 +1751,17 @@ export class Api<
      * @tags DB Table column
      * @name Update
      * @summary Column Update
-     * @request PUT:/columns/{columnId}
+     * @request PUT:/tables/:tableId/columns/{columnId}
      * @response `200` `ColumnType` OK
      */
     update: (
+      tableId: string,
       columnId: string,
       data: ColumnReqType,
       params: RequestParams = {}
     ) =>
       this.request<ColumnType, any>({
-        path: `/columns/${columnId}`,
+        path: `/tables/${tableId}/columns/${columnId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -1773,12 +1774,12 @@ export class Api<
      *
      * @tags DB Table column
      * @name Delete
-     * @request DELETE:/columns/{columnId}
+     * @request DELETE:/tables/:tableId/columns/{columnId}
      * @response `200` `void` OK
      */
-    delete: (columnId: string, params: RequestParams = {}) =>
+    delete: (tableId: string, columnId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/columns/${columnId}`,
+        path: `/tables/${tableId}/columns/${columnId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -1788,12 +1789,16 @@ export class Api<
      *
      * @tags DB Table column
      * @name PrimaryColumnSet
-     * @request POST:/columns/{columnId}/primary
+     * @request POST:/tables/:tableId/columns/{columnId}/primary
      * @response `200` `void` OK
      */
-    primaryColumnSet: (columnId: string, params: RequestParams = {}) =>
+    primaryColumnSet: (
+      tableId: string,
+      columnId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
-        path: `/columns/${columnId}/primary`,
+        path: `/tables/${tableId}/columns/${columnId}/primary`,
         method: 'POST',
         ...params,
       }),
@@ -1826,12 +1831,11 @@ export class Api<
      *
      * @tags DB View
      * @name Update
-     * @request PUT:/tables/{tableId}/views/{viewId}
+     * @request PUT:/views/{viewId}
      * @response `200` `void` OK
      */
     update: (
       viewId: string,
-      tableId: string,
       data: {
         order?: string;
         title?: string;
@@ -1841,7 +1845,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/views/${viewId}`,
+        path: `/views/${viewId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -1853,12 +1857,12 @@ export class Api<
      *
      * @tags DB View
      * @name Delete
-     * @request DELETE:/tables/{tableId}/views/{viewId}
+     * @request DELETE:/views/{viewId}
      * @response `200` `void` OK
      */
-    delete: (viewId: string, tableId: string, params: RequestParams = {}) =>
+    delete: (viewId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/views/${viewId}`,
+        path: `/views/${viewId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -3305,17 +3309,12 @@ export class Api<
      *
      * @tags DB Table Webhook
      * @name Update
-     * @request PUT:/tables/{tableId}/hooks/{hookId}
+     * @request PUT:/hooks/{hookId}
      * @response `200` `HookType` OK
      */
-    update: (
-      tableId: string,
-      hookId: string,
-      data: HookType,
-      params: RequestParams = {}
-    ) =>
+    update: (hookId: string, data: HookType, params: RequestParams = {}) =>
       this.request<HookType, any>({
-        path: `/tables/${tableId}/hooks/${hookId}`,
+        path: `/hooks/${hookId}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -3328,12 +3327,12 @@ export class Api<
      *
      * @tags DB Table Webhook
      * @name Delete
-     * @request DELETE:/tables/{tableId}/hooks/{hookId}
+     * @request DELETE:/hooks/{hookId}
      * @response `200` `void` OK
      */
-    delete: (tableId: string, hookId: string, params: RequestParams = {}) =>
+    delete: (hookId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/hooks/${hookId}`,
+        path: `/hooks/${hookId}`,
         method: 'DELETE',
         ...params,
       }),

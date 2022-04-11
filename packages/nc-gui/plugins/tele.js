@@ -33,6 +33,11 @@ export default function({
         path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : '')
       })
     })
+
+    socket.on('connect_error', () => {
+      socket.disconnect()
+      socket = null
+    })
   }
   const tele = {
     emit(evt, data) {

@@ -101,15 +101,30 @@ async function shareViewList(req: Request<any, any>, res) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/tables/:tableId/views', ncMetaAclMw(viewList));
-router.put('/views/:viewId', ncMetaAclMw(viewUpdate));
-router.delete('/views/:viewId', ncMetaAclMw(viewDelete));
-router.post('/views/:viewId/showAll', ncMetaAclMw(showAllColumns));
-router.post('/views/:viewId/hideAll', ncMetaAclMw(hideAllColumns));
+router.get('/tables/:tableId/views', ncMetaAclMw(viewList, 'viewList'));
+router.put('/views/:viewId', ncMetaAclMw(viewUpdate, 'viewUpdate'));
+router.delete('/views/:viewId', ncMetaAclMw(viewDelete, 'viewDelete'));
+router.post(
+  '/views/:viewId/showAll',
+  ncMetaAclMw(showAllColumns, 'showAllColumns')
+);
+router.post(
+  '/views/:viewId/hideAll',
+  ncMetaAclMw(hideAllColumns, 'hideAllColumns')
+);
 
-router.get('/tables/:tableId/share', ncMetaAclMw(shareViewList));
-router.post('/views/:viewId/share', ncMetaAclMw(shareView));
-router.put('/views/:viewId/share', ncMetaAclMw(shareViewPasswordUpdate));
-router.delete('/views/:viewId/share', ncMetaAclMw(shareViewDelete));
+router.get(
+  '/tables/:tableId/share',
+  ncMetaAclMw(shareViewList, 'shareViewList')
+);
+router.post('/views/:viewId/share', ncMetaAclMw(shareView, 'shareView'));
+router.put(
+  '/views/:viewId/share',
+  ncMetaAclMw(shareViewPasswordUpdate, 'shareViewPasswordUpdate')
+);
+router.delete(
+  '/views/:viewId/share',
+  ncMetaAclMw(shareViewDelete, 'shareViewDelete')
+);
 
 export default router;

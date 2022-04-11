@@ -17,11 +17,17 @@ export async function apiTokenDelete(req: Request, res: Response) {
 
 const router = Router({ mergeParams: true });
 
-router.get('/projects/:projectId/apiTokens', ncMetaAclMw(apiTokenList));
-router.post('/projects/:projectId/apiTokens', ncMetaAclMw(apiTokenCreate));
+router.get(
+  '/projects/:projectId/apiTokens',
+  ncMetaAclMw(apiTokenList, 'apiTokenList')
+);
+router.post(
+  '/projects/:projectId/apiTokens',
+  ncMetaAclMw(apiTokenCreate, 'apiTokenCreate')
+);
 router.delete(
   '/projects/:projectId/apiTokens/:token',
-  ncMetaAclMw(apiTokenDelete)
+  ncMetaAclMw(apiTokenDelete, 'apiTokenDelete')
 );
 
 export default router;

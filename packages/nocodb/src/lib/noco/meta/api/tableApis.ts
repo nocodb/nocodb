@@ -222,10 +222,19 @@ export async function tableDelete(req: Request, res: Response, next) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/projects/:projectId/:baseId/tables', ncMetaAclMw(tableList));
-router.post('/projects/:projectId/:baseId/tables', ncMetaAclMw(tableCreate));
-router.get('/tables/:tableId', ncMetaAclMw(tableGet));
-router.put('/tables/:tableId', ncMetaAclMw(tableUpdate));
-router.delete('/tables/:tableId', ncMetaAclMw(tableDelete));
-router.post('/tables/:tableId/reorder', ncMetaAclMw(tableReorder));
+router.get(
+  '/projects/:projectId/:baseId/tables',
+  ncMetaAclMw(tableList, 'tableList')
+);
+router.post(
+  '/projects/:projectId/:baseId/tables',
+  ncMetaAclMw(tableCreate, 'tableCreate')
+);
+router.get('/tables/:tableId', ncMetaAclMw(tableGet, 'tableGet'));
+router.put('/tables/:tableId', ncMetaAclMw(tableUpdate, 'tableUpdate'));
+router.delete('/tables/:tableId', ncMetaAclMw(tableDelete, 'tableDelete'));
+router.post(
+  '/tables/:tableId/reorder',
+  ncMetaAclMw(tableReorder, 'tableReorder')
+);
 export default router;

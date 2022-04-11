@@ -900,11 +900,17 @@ const deleteHmOrBtRelation = async (
 };
 
 const router = Router({ mergeParams: true });
-router.post('/tables/:tableId/columns/', ncMetaAclMw(columnAdd));
-router.put('/tables/:tableId/columns/:columnId', ncMetaAclMw(columnUpdate));
-router.delete('/tables/:tableId/columns/:columnId', ncMetaAclMw(columnDelete));
+router.post('/tables/:tableId/columns/', ncMetaAclMw(columnAdd, 'columnAdd'));
+router.put(
+  '/tables/:tableId/columns/:columnId',
+  ncMetaAclMw(columnUpdate, 'columnUpdate')
+);
+router.delete(
+  '/tables/:tableId/columns/:columnId',
+  ncMetaAclMw(columnDelete, 'columnDelete')
+);
 router.post(
   '/tables/:tableId/columns/:columnId/primary',
-  ncMetaAclMw(columnSetAsPrimary)
+  ncMetaAclMw(columnSetAsPrimary, 'columnSetAsPrimary')
 );
 export default router;

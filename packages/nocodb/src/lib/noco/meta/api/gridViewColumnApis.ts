@@ -13,6 +13,12 @@ export async function gridColumnUpdate(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/grid/:gridViewId/gridColumns', ncMetaAclMw(columnList));
-router.put('/gridColumns/:gridViewColumnId', ncMetaAclMw(gridColumnUpdate));
+router.get(
+  '/grid/:gridViewId/gridColumns',
+  ncMetaAclMw(columnList, 'columnList')
+);
+router.put(
+  '/gridColumns/:gridViewColumnId',
+  ncMetaAclMw(gridColumnUpdate, 'gridColumnUpdate')
+);
 export default router;

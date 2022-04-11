@@ -99,18 +99,21 @@ async function publicSharedBaseGet(req, res): Promise<any> {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/projects/:projectId/sharedBase', ncMetaAclMw(getSharedBaseLink));
+router.get(
+  '/projects/:projectId/sharedBase',
+  ncMetaAclMw(getSharedBaseLink, 'getSharedBaseLink')
+);
 router.post(
   '/projects/:projectId/sharedBase',
-  ncMetaAclMw(createSharedBaseLink)
+  ncMetaAclMw(createSharedBaseLink, 'createSharedBaseLink')
 );
 router.put(
   '/projects/:projectId/sharedBase',
-  ncMetaAclMw(updateSharedBaseLink)
+  ncMetaAclMw(updateSharedBaseLink, 'updateSharedBaseLink')
 );
 router.delete(
   '/projects/:projectId/sharedBase',
-  ncMetaAclMw(disableSharedBaseLink)
+  ncMetaAclMw(disableSharedBaseLink, 'disableSharedBaseLink')
 );
 router.get('/public/sharedBase/:uuid', catchError(publicSharedBaseGet));
 export default router;

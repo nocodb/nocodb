@@ -826,6 +826,9 @@ export async function extractAndGenerateManyToManyRelations(
 }
 
 const router = Router();
-router.get('/projects/:projectId/metaDiff', ncMetaAclMw(metaDiff));
-router.post('/projects/:projectId/metaDiff', ncMetaAclMw(metaDiffSync));
+router.get('/projects/:projectId/metaDiff', ncMetaAclMw(metaDiff, 'metaDiff'));
+router.post(
+  '/projects/:projectId/metaDiff',
+  ncMetaAclMw(metaDiffSync, 'metaDiffSync')
+);
 export default router;

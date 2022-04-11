@@ -75,11 +75,11 @@ export async function tableSampleData(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/tables/:tableId/hooks', ncMetaAclMw(hookList));
-router.post('/tables/:tableId/hooks/test', ncMetaAclMw(hookTest));
-router.post('/tables/:tableId/hooks', ncMetaAclMw(hookCreate));
-router.delete('/hooks/:hookId', ncMetaAclMw(hookDelete));
-router.put('/hooks/:hookId', ncMetaAclMw(hookUpdate));
+router.get('/tables/:tableId/hooks', ncMetaAclMw(hookList, 'hookList'));
+router.post('/tables/:tableId/hooks/test', ncMetaAclMw(hookTest, 'hookTest'));
+router.post('/tables/:tableId/hooks', ncMetaAclMw(hookCreate, 'hookCreate'));
+router.delete('/hooks/:hookId', ncMetaAclMw(hookDelete, 'hookDelete'));
+router.put('/hooks/:hookId', ncMetaAclMw(hookUpdate, 'hookUpdate'));
 router.get(
   '/tables/:tableId/hooks/samplePayload/:operation',
   catchError(tableSampleData)

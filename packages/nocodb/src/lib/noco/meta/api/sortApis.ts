@@ -51,9 +51,15 @@ export async function sortDelete(req: Request, res: Response, next) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/views/:viewId/sorts/', ncMetaAclMw(sortList));
-router.post('/views/:viewId/sorts/', ncMetaAclMw(sortCreate));
-router.get('/views/:viewId/sorts/:sortId', ncMetaAclMw(sortGet));
-router.put('/views/:viewId/sorts/:sortId', ncMetaAclMw(sortUpdate));
-router.delete('/views/:viewId/sorts/:sortId', ncMetaAclMw(sortDelete));
+router.get('/views/:viewId/sorts/', ncMetaAclMw(sortList, 'sortList'));
+router.post('/views/:viewId/sorts/', ncMetaAclMw(sortCreate, 'sortCreate'));
+router.get('/views/:viewId/sorts/:sortId', ncMetaAclMw(sortGet, 'sortGet'));
+router.put(
+  '/views/:viewId/sorts/:sortId',
+  ncMetaAclMw(sortUpdate, 'sortUpdate')
+);
+router.delete(
+  '/views/:viewId/sorts/:sortId',
+  ncMetaAclMw(sortDelete, 'sortDelete')
+);
 export default router;

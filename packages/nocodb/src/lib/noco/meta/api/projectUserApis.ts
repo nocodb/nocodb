@@ -249,14 +249,17 @@ async function resendInvite(req, res, next): Promise<any> {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/projects/:projectId/users', ncMetaAclMw(userList));
-router.post('/projects/:projectId/users', ncMetaAclMw(userInvite));
+router.get('/projects/:projectId/users', ncMetaAclMw(userList, 'userList'));
+router.post(
+  '/projects/:projectId/users',
+  ncMetaAclMw(userInvite, 'userInvite')
+);
 router.put(
   '/projects/:projectId/users/:userId',
-  ncMetaAclMw(projectUserUpdate)
+  ncMetaAclMw(projectUserUpdate, 'projectUserUpdate')
 );
 router.delete(
   '/projects/:projectId/users/:userId',
-  ncMetaAclMw(projectUserDelete)
+  ncMetaAclMw(projectUserDelete, 'projectUserDelete')
 );
 export default router;

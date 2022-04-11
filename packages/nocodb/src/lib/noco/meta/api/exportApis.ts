@@ -173,5 +173,5 @@ async function serializeCellValue({
 }
 
 const router = Router({ mergeParams: true });
-router.get('/data/:viewId/export/csv', ncMetaAclMw(exportCsv));
+router.get('/data/:viewId/export/csv', ncMetaAclMw(exportCsv, 'exportCsv'));
 export default router;

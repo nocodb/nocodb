@@ -87,7 +87,7 @@ router.post(
   multer({
     storage: multer.diskStorage({})
   }).any(),
-  ncMetaAclMw(upload)
+  ncMetaAclMw(upload, 'upload')
 );
 router.get('/download/:projectId/:viewId/:fileName', catchError(fileRead));
 

@@ -92,23 +92,23 @@ const router = Router({ mergeParams: true });
 
 router.post(
   '/bulkData/:orgs/:projectName/:tableAlias',
-  ncMetaAclMw(bulkDataInsert)
+  ncMetaAclMw(bulkDataInsert, 'bulkDataInsert')
 );
 router.patch(
   '/bulkData/:orgs/:projectName/:tableAlias',
-  ncMetaAclMw(bulkDataUpdate)
+  ncMetaAclMw(bulkDataUpdate, 'bulkDataUpdate')
 );
 router.patch(
   '/bulkData/:orgs/:projectName/:tableAlias/all',
-  ncMetaAclMw(bulkDataUpdateAll)
+  ncMetaAclMw(bulkDataUpdateAll, 'bulkDataUpdateAll')
 );
 router.delete(
   '/bulkData/:orgs/:projectName/:tableAlias',
-  ncMetaAclMw(bulkDataDelete)
+  ncMetaAclMw(bulkDataDelete, 'bulkDataDelete')
 );
 router.delete(
   '/bulkData/:orgs/:projectName/:tableAlias/all',
-  ncMetaAclMw(bulkDataDeleteAll)
+  ncMetaAclMw(bulkDataDeleteAll, 'bulkDataDeleteAll')
 );
 
 export default router;

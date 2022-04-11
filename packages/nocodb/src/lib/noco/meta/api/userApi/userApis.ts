@@ -401,7 +401,9 @@ const mapRoutes = router => {
   router.post('/auth/token/validate/:tokenId', catchError(tokenValidate));
   router.post('/auth/password/reset/:tokenId', catchError(passwordReset));
   router.post('/auth/email/validate/:tokenId', catchError(emailVerification));
-
-  router.post('/user/password/change', ncMetaAclMw(passwordChange));
+  router.post(
+    '/user/password/change',
+    ncMetaAclMw(passwordChange, 'passwordChange')
+  );
 };
 export { mapRoutes as userApis };

@@ -31,8 +31,8 @@ export async function columnUpdate(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/views/:viewId/columns/', ncMetaAclMw(columnList));
-router.post('/views/:viewId/columns/', ncMetaAclMw(columnAdd));
+router.get('/views/:viewId/columns/', ncMetaAclMw(columnList, 'columnList'));
+router.post('/views/:viewId/columns/', ncMetaAclMw(columnAdd, 'columnAdd'));
 router.put(
   '/views/:viewId/columns/:columnId',
   ncMetaAclMw(columnUpdate, 'viewColumnUpdate')

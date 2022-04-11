@@ -563,34 +563,34 @@ const router = Router({ mergeParams: true });
 //   ncMetaAclMw(dataDeleteNew)
 // );
 
-router.get('/data/:viewId/', ncMetaAclMw(dataList));
-router.post('/data/:viewId/', ncMetaAclMw(dataInsert));
-router.get('/data/:viewId/:rowId', ncMetaAclMw(dataRead));
-router.put('/data/:viewId/:rowId', ncMetaAclMw(dataUpdate));
-router.delete('/data/:viewId/:rowId', ncMetaAclMw(dataDelete));
+router.get('/data/:viewId/', ncMetaAclMw(dataList, 'dataList'));
+router.post('/data/:viewId/', ncMetaAclMw(dataInsert, 'dataInsert'));
+router.get('/data/:viewId/:rowId', ncMetaAclMw(dataRead, 'dataRead'));
+router.put('/data/:viewId/:rowId', ncMetaAclMw(dataUpdate, 'dataUpdate'));
+router.delete('/data/:viewId/:rowId', ncMetaAclMw(dataDelete, 'dataDelete'));
 
-router.get('/data/:viewId/:rowId/mm/:colId', ncMetaAclMw(mmList));
-router.get('/data/:viewId/:rowId/hm/:colId', ncMetaAclMw(hmList));
+router.get('/data/:viewId/:rowId/mm/:colId', ncMetaAclMw(mmList, 'mmList'));
+router.get('/data/:viewId/:rowId/hm/:colId', ncMetaAclMw(hmList, 'hmList'));
 
 router.get(
   '/data/:viewId/:rowId/mm/:colId/exclude',
-  ncMetaAclMw(mmExcludedList)
+  ncMetaAclMw(mmExcludedList, 'mmExcludedList')
 );
 router.get(
   '/data/:viewId/:rowId/hm/:colId/exclude',
-  ncMetaAclMw(hmExcludedList)
+  ncMetaAclMw(hmExcludedList, 'hmExcludedList')
 );
 router.get(
   '/data/:viewId/:rowId/bt/:colId/exclude',
-  ncMetaAclMw(btExcludedList)
+  ncMetaAclMw(btExcludedList, 'btExcludedList')
 );
 
 router.post(
   '/data/:viewId/:rowId/:relationType/:colId/:childId',
-  ncMetaAclMw(relationDataAdd)
+  ncMetaAclMw(relationDataAdd, 'relationDataAdd')
 );
 router.delete(
   '/data/:viewId/:rowId/:relationType/:colId/:childId',
-  ncMetaAclMw(relationDataDelete)
+  ncMetaAclMw(relationDataDelete, 'relationDataDelete')
 );
 export default router;

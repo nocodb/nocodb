@@ -58,9 +58,12 @@ export async function commentsCount(req: Request<any, any, any>, res) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/audits/comments', ncMetaAclMw(commentList));
+router.get('/audits/comments', ncMetaAclMw(commentList, 'commentList'));
 router.post('/audits/rowUpdate', ncMetaAclMw(auditRowUpdate, 'auditRowUpdate'));
-router.post('/audits/comments', ncMetaAclMw(commentRow));
-router.get('/audits/comments/count', ncMetaAclMw(commentsCount));
-router.get('/project/:projectId/audits', ncMetaAclMw(auditList));
+router.post('/audits/comments', ncMetaAclMw(commentRow, 'commentRow'));
+router.get(
+  '/audits/comments/count',
+  ncMetaAclMw(commentsCount, 'commentsCount')
+);
+router.get('/project/:projectId/audits', ncMetaAclMw(auditList, 'auditList'));
 export default router;

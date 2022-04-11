@@ -39,8 +39,14 @@ export async function formViewUpdate(req, res) {
 export async function formViewDelete(req: Request, res: Response, next) {}
 
 const router = Router({ mergeParams: true });
-router.post('/tables/:tableId/forms', ncMetaAclMw(formViewCreate));
-router.get('/forms/:formViewId', ncMetaAclMw(formViewGet));
-router.put('/forms/:formViewId', ncMetaAclMw(formViewUpdate));
-router.delete('/forms/:formViewId', ncMetaAclMw(formViewDelete));
+router.post(
+  '/tables/:tableId/forms',
+  ncMetaAclMw(formViewCreate, 'formViewCreate')
+);
+router.get('/forms/:formViewId', ncMetaAclMw(formViewGet, 'formViewGet'));
+router.put('/forms/:formViewId', ncMetaAclMw(formViewUpdate, 'formViewUpdate'));
+router.delete(
+  '/forms/:formViewId',
+  ncMetaAclMw(formViewDelete, 'formViewDelete')
+);
 export default router;

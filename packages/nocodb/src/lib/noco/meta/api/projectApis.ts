@@ -391,9 +391,15 @@ export async function projectInfoGet(req, res) {
 }
 
 export default router => {
-  router.get('/projects/:projectId/info', ncMetaAclMw(projectInfoGet));
-  router.get('/projects/:projectId', ncMetaAclMw(projectGet));
-  router.delete('/projects/:projectId', ncMetaAclMw(projectDelete));
-  router.post('/projects', ncMetaAclMw(projectCreate));
-  router.get('/projects', ncMetaAclMw(projectList));
+  router.get(
+    '/projects/:projectId/info',
+    ncMetaAclMw(projectInfoGet, 'projectInfoGet')
+  );
+  router.get('/projects/:projectId', ncMetaAclMw(projectGet, 'projectGet'));
+  router.delete(
+    '/projects/:projectId',
+    ncMetaAclMw(projectDelete, 'projectDelete')
+  );
+  router.post('/projects', ncMetaAclMw(projectCreate, 'projectCreate'));
+  router.get('/projects', ncMetaAclMw(projectList, 'projectList'));
 };

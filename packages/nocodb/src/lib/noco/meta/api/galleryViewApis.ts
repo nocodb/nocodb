@@ -46,9 +46,18 @@ export async function galleyViewDelete(req: Request, res: Response, next) {}
 
 const router = Router({ mergeParams: true });
 // router.get('/', galleyViewList);
-router.post('/tables/:tableId/galleries', ncMetaAclMw(galleryViewCreate));
+router.post(
+  '/tables/:tableId/galleries',
+  ncMetaAclMw(galleryViewCreate, 'galleryViewCreate')
+);
 // router.get('/:galleryViewId', galleyViewGet);
-router.put('/galleries/:galleryViewId', ncMetaAclMw(galleryViewUpdate));
-router.get('/galleries/:galleryViewId', ncMetaAclMw(galleryViewGet));
+router.put(
+  '/galleries/:galleryViewId',
+  ncMetaAclMw(galleryViewUpdate, 'galleryViewUpdate')
+);
+router.get(
+  '/galleries/:galleryViewId',
+  ncMetaAclMw(galleryViewGet, 'galleryViewGet')
+);
 // router.delete('/:galleryViewId', galleyViewDelete);
 export default router;

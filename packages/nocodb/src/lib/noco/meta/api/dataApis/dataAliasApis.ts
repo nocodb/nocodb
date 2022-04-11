@@ -125,27 +125,27 @@ async function dataRead(req: Request, res: Response) {
 
 const router = Router({ mergeParams: true });
 
-router.get('/data/:orgs/:projectName/:tableName', ncMetaAclMw(dataList));
+router.get('/data/:orgs/:projectName/:tableName', ncMetaAclMw(dataList, 'dataList'));
 router.get(
   '/data/:orgs/:projectName/:tableName/views/:viewName',
-  ncMetaAclMw(dataList)
+  ncMetaAclMw(dataList, 'dataList')
 );
 
 router.post(
   '/data/:orgs/:projectName/:tableName/views/:viewName',
-  ncMetaAclMw(dataInsert)
+  ncMetaAclMw(dataInsert, 'dataInsert')
 );
 router.put(
   '/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
-  ncMetaAclMw(dataUpdate)
+  ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
 router.get(
   '/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
-  ncMetaAclMw(dataRead)
+  ncMetaAclMw(dataRead, 'dataRead')
 );
 router.delete(
   '/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
-  ncMetaAclMw(dataDelete)
+  ncMetaAclMw(dataDelete, 'dataDelete')
 );
 
 export default router;

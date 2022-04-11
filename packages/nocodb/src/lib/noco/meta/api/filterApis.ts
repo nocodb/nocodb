@@ -106,13 +106,25 @@ export async function filterDelete(req: Request, res: Response, next) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/views/:viewId/filters/', ncMetaAclMw(filterList));
-router.post('/views/:viewId/filters/', ncMetaAclMw(filterCreate));
-router.get('/views/:viewId/filters/:filterId', ncMetaAclMw(filterGet));
-router.put('/views/:viewId/filters/:filterId', ncMetaAclMw(filterUpdate));
-router.delete('/views/:viewId/filters/:filterId', ncMetaAclMw(filterDelete));
+router.get('/views/:viewId/filters/', ncMetaAclMw(filterList, 'filterList'));
+router.post(
+  '/views/:viewId/filters/',
+  ncMetaAclMw(filterCreate, 'filterCreate')
+);
+router.get(
+  '/views/:viewId/filters/:filterId',
+  ncMetaAclMw(filterGet, 'filterGet')
+);
+router.put(
+  '/views/:viewId/filters/:filterId',
+  ncMetaAclMw(filterUpdate, 'filterUpdate')
+);
+router.delete(
+  '/views/:viewId/filters/:filterId',
+  ncMetaAclMw(filterDelete, 'filterDelete')
+);
 router.get(
   '/views/:viewId/filters/:filterParentId/children',
-  ncMetaAclMw(filterChildrenRead)
+  ncMetaAclMw(filterChildrenRead, 'filterChildrenRead')
 );
 export default router;

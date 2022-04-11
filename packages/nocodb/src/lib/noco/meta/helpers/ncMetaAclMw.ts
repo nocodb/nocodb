@@ -2,7 +2,7 @@ import projectAcl from '../../../utils/projectAcl';
 import { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';
 import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
-export default function(handlerFn, permissionName = handlerFn.name) {
+export default function(handlerFn, permissionName) {
   return [
     extractProjectIdAndAuthenticate,
     catchError(function authMiddleware(req, _res, next) {

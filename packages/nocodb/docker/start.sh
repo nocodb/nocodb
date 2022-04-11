@@ -7,4 +7,4 @@ then
   tar -xzf /usr/src/appEntry/app.tar.gz -C /usr/src/app/
 fi
 
-node docker/main.js
+node --require dd-trace/init docker/main.js

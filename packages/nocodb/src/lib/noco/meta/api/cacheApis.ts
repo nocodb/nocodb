@@ -16,6 +16,6 @@ export async function cacheDelete(_, res) {
 }
 
 const router = Router();
-router.get('/cache', catchError(cacheGet));
-router.delete('/cache', catchError(cacheDelete));
+router.get('/api/v1/db/meta/cache', catchError(cacheGet));
+router.delete('/api/v1/db/meta/cache', catchError(cacheDelete));
 export default router;

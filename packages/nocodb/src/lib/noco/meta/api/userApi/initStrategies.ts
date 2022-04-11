@@ -10,9 +10,7 @@ import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
 
-// todo: read from database
 const jwtOptions = {
-  secretOrKey: 'dkjfkdjfkjdfjdfjdkfjdkfjkdfkjdkfjdkjfkdk',
   expiresIn: process.env.NC_JWT_EXPIRES_IN ?? '10h',
   jwtFromRequest: ExtractJwt.fromHeader('xc-auth')
 };
@@ -22,6 +20,7 @@ import Project from '../../../../noco-models/Project';
 import NocoCache from '../../../../noco-cache/NocoCache';
 import { CacheGetType, CacheScope } from '../../../../utils/globals';
 import ApiToken from '../../../../noco-models/ApiToken';
+import Noco from '../../../Noco';
 
 export function initStrategies(router): void {
   passport.use(
@@ -82,8 +81,10 @@ export function initStrategies(router): void {
   passport.use(
     new Strategy(
       {
+        secretOrKey: Noco.getConfig().auth.jwt.secret,
         ...jwtOptions,
-        passReqToCallback: true
+        passReqToCallback: true,
+        ...Noco.getConfig().auth.jwt.options
       },
       async (req, jwtPayload, done) => {
         const keyVals = [jwtPayload?.email];

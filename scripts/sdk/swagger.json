@@ -276,40 +276,6 @@
         }
       ]
     },
-    "/auth/token/verify": {
-      "post": {
-        "summary": "Password Verify",
-        "operationId": "auth-token-verify",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "token": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "description": ""
-        }
-      },
-      "parameters": []
-    },
     "/auth/token/refresh": {
       "post": {
         "summary": "Refresh Token",
@@ -326,7 +292,8 @@
       },
       "parameters": []
     },
-    "/projects/{projectId}/users": {
+
+    "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
         "summary": "Project Users",
         "operationId": "auth-project-user-list",
@@ -404,7 +371,7 @@
         ]
       }
     },
-    "/projects/{projectId}/info": {
+    "/api/v1/db/meta/projects/{projectId}/info": {
       "parameters": [
         {
           "schema": {
@@ -461,7 +428,7 @@
         ]
       }
     },
-    "/projects/{projectId}/users/{userId}": {
+    "/api/v1/db/meta/projects/{projectId}/users/{userId}": {
       "parameters": [
         {
           "schema": {
@@ -480,7 +447,7 @@
           "required": true
         }
       ],
-      "put": {
+      "patch": {
         "summary": "Project User Update",
         "operationId": "auth-project-user-update",
         "responses": {
@@ -522,7 +489,7 @@
         ]
       }
     },
-    "/projects/{projectId}/modelVisibility": {
+    "/api/v1/db/meta/projects/{projectId}/visibility-rules": {
       "get": {
         "summary": "UI ACL",
         "operationId": "project-model-visibility-list",
@@ -588,7 +555,7 @@
         ]
       }
     },
-    "/projects/": {
+    "/api/v1/db/meta/projects/": {
       "parameters": [],
       "get": {
         "summary": "",
@@ -676,7 +643,7 @@
         ]
       }
     },
-    "/projects/{projectId}": {
+    "/api/v1/db/meta/projects/{projectId}": {
       "parameters": [
         {
           "schema": {
@@ -731,7 +698,7 @@
         ]
       }
     },
-    "/projects/{projectId}/sharedBase": {
+    "/api/v1/db/meta/projects/{projectId}/shared": {
       "parameters": [
         {
           "schema": {
@@ -836,7 +803,7 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "project-shared-base-update",
         "responses": {
@@ -867,103 +834,13 @@
         "description": ""
       }
     },
-    "/public/sharedBase/{sharedBaseUuid}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sharedBaseUuid",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "public-shared-base-get",
-        "description": "Read project details",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "project_id": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Public"
-        ]
-      }
-    },
-    "/projects/{projectId}/views/{viewId}/upload": {
-      "post": {
-        "summary": "Attachment",
-        "operationId": "db-view-upload",
-        "responses": {},
-        "tags": [
-          "DB View"
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "files": {},
-                  "json": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "description": ""
-        }
-      },
+    "/api/v1/db/meta/projects/{projectId}/tables": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
           "name": "projectId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        }
-      ]
-    },
-    "/projects/{projectId}/{baseId}/tables": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseId",
           "in": "path",
           "required": true
         }
@@ -1046,54 +923,7 @@
         ]
       }
     },
-    "/projects/{projectId}/metaDiff": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "",
-        "operationId": "project-meta-diff-sync",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Project"
-        ]
-      },
-      "get": {
-        "summary": "",
-        "operationId": "project-meta-diff-get",
-        "parameters": [],
-        "tags": [
-          "Project"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tables/{tableId}": {
+    "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {
           "schema": {
@@ -1213,7 +1043,7 @@
           "DB Table"
         ]
       },
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-table-update",
         "responses": {
@@ -1258,7 +1088,7 @@
         "description": ""
       }
     },
-    "/tables/{tableId}/reorder": {
+    "/api/v1/db/meta/tables/{tableId}/reorder": {
       "parameters": [
         {
           "schema": {
@@ -1296,7 +1126,7 @@
         ]
       }
     },
-    "/tables/{tableId}/columns": {
+    "/api/v1/db/meta/tables/{tableId}/columns": {
       "parameters": [
         {
           "schema": {
@@ -1352,7 +1182,7 @@
         ]
       }
     },
-    "/tables/{tableId}/columns/{columnId}": {
+    "/api/v1/db/meta/tables/{tableId}/columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -1391,7 +1221,7 @@
           "DB Table column"
         ]
       },
-      "put": {
+      "patch": {
         "summary": "Column Update",
         "operationId": "db-table-column-update",
         "responses": {
@@ -1432,7 +1262,7 @@
         ]
       }
     },
-    "/tables/{tableId}/columns/{columnId}/primary": {
+    "/api/v1/db/meta/tables/{tableId}/columns/{columnId}/primary": {
       "parameters": [
         {
           "schema": {
@@ -1464,7 +1294,32 @@
         ]
       }
     },
-    "/views/{viewId}": {
+    "/api/v1/db/meta/tables/{tableId}/views": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "db-view-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ViewList"
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/db/meta/views/{viewId}": {
       "parameters": [
         {
           "schema": {
@@ -1475,7 +1330,7 @@
           "required": true
         }
       ],
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-view-update",
         "responses": {
@@ -1528,47 +1383,7 @@
         ]
       }
     },
-    "/views/{viewId}/columns": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-view-column-list",
-        "responses": {
-        },
-        "tags": [
-          "DB View Column"
-        ]
-      },
-      "post": {
-        "summary": "",
-        "operationId": "db-view-column-create",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View Column"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
-      }
-    },
-    "/views/{viewId}/showAll": {
+    "/api/v1/db/meta/views/{viewId}/showAll": {
       "parameters": [
         {
           "schema": {
@@ -1602,7 +1417,7 @@
         ]
       }
     },
-    "/views/{viewId}/hideAll": {
+    "/api/v1/db/meta/views/{viewId}/hideAll": {
       "parameters": [
         {
           "schema": {
@@ -1636,63 +1451,40 @@
         "description": ""
       }
     },
-    "/views/{viewId}/columns/{columnId}": {
+    "/api/v1/db/meta/tables/{tableId}/share": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnId",
+          "name": "tableId",
           "in": "path",
           "required": true
         }
       ],
       "get": {
-        "summary": "",
-        "operationId": "db-view-column-read",
+        "summary": "Shared view list",
+        "operationId": "db-view-share-list",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
               }
             }
           }
         },
+        "description": "",
         "tags": [
-          "DB View Column"
+          "DB View Share"
         ]
-      },
-      "put": {
-        "summary": "",
-        "operationId": "db-view-column-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View Column"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
       }
     },
-    "/views/{viewId}/share": {
+    "/api/v1/db/meta/views/{viewId}/share": {
       "parameters": [
         {
           "schema": {
@@ -1727,7 +1519,7 @@
           "DB View Share"
         ]
       },
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-view-share-update",
         "responses": {
@@ -1775,7 +1567,7 @@
         ]
       }
     },
-    "/tables/{viewId}/share": {
+    "/api/v1/db/meta/views/{viewId}/columns": {
       "parameters": [
         {
           "schema": {
@@ -1788,27 +1580,90 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "db-view-share-list",
+        "operationId": "db-view-column-list",
+        "responses": {
+        },
+        "tags": [
+          "DB View Column"
+        ]
+      },
+      "post": {
+        "summary": "",
+        "operationId": "db-view-column-create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB View Column"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/views/{viewId}/columns/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "db-view-column-read",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {}
-                }
+                "schema": {}
               }
             }
           }
         },
-        "description": "",
         "tags": [
-          "DB View Share"
+          "DB View Column"
         ]
+      },
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-column-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB View Column"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
       }
     },
-    "/views/{viewId}/sorts": {
+    "/api/v1/db/meta/views/{viewId}/sorts": {
       "parameters": [
         {
           "schema": {
@@ -1868,16 +1723,8 @@
         }
       }
     },
-    "/views/{viewId}/sorts/{sortId}": {
+    "/api/v1/db/meta/sorts/{sortId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1906,7 +1753,7 @@
           "DB Table Sort"
         ]
       },
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-table-sort-update",
         "responses": {
@@ -1940,7 +1787,7 @@
         ]
       }
     },
-    "/views/{viewId}/filters": {
+    "/api/v1/db/meta/views/{viewId}/filters": {
       "parameters": [
         {
           "schema": {
@@ -1985,118 +1832,7 @@
         }
       }
     },
-    "/views/{viewId}/filters/{filterId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "filterId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-table-filter-get",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Filter"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB Table Filter"
-        ]
-      },
-      "put": {
-        "summary": "",
-        "operationId": "db-table-filter-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB Table Filter"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Filter"
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-table-filter-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB Table Filter"
-        ]
-      }
-    },
-    "/views/{viewId}/filters/{filterParentId}/children": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "filterParentId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-table-filter-children-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Filter"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB Table Filter"
-        ]
-      }
-    },
-    "/hooks/{hookId}/filters": {
+    "/api/v1/db/meta/hooks/{hookId}/filters": {
       "parameters": [
         {
           "schema": {
@@ -2141,16 +1877,8 @@
         }
       }
     },
-    "/hooks/{viewId}/filters/{filterId}": {
+    "/api/v1/db/meta/filters/{filterId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -2162,7 +1890,7 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "db-table-webhook-filter-get",
+        "operationId": "db-table-filter-get",
         "responses": {
           "200": {
             "description": "OK",
@@ -2176,19 +1904,19 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB Table Filter"
         ]
       },
-      "put": {
+      "patch": {
         "summary": "",
-        "operationId": "db-table-webhook-filter-update",
+        "operationId": "db-table-filter-update",
         "responses": {
           "200": {
             "description": "OK"
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB Table Filter"
         ],
         "requestBody": {
           "content": {
@@ -2202,27 +1930,19 @@
       },
       "delete": {
         "summary": "",
-        "operationId": "db-table-webhook-filter-delete",
+        "operationId": "db-table-filter-delete",
         "responses": {
           "200": {
             "description": "OK"
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB Table Filter"
         ]
       }
     },
-    "/hooks/{viewId}/filters/{filterParentId}/children": {
+    "/api/v1/db/meta/filters/{filterParentId}/children": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -2234,7 +1954,7 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "db-table-webhook-filter-children-read",
+        "operationId": "db-table-filter-children-read",
         "responses": {
           "200": {
             "description": "OK",
@@ -2248,11 +1968,11 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB Table Filter"
         ]
       }
     },
-    "/tables/{tableId}/grids": {
+    "/api/v1/db/meta/tables/{tableId}/grids": {
       "parameters": [
         {
           "schema": {
@@ -2292,63 +2012,7 @@
         }
       }
     },
-    "/tables/{tableId}/grids/{gridId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "gridId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "put": {
-        "summary": "",
-        "operationId": "db-view-grid-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-view-grid-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "get": {
-        "summary": "",
-        "operationId": "db-view-grid-read",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      }
-    },
-    "/tables/{tableId}/forms": {
+    "/api/v1/db/meta/tables/{tableId}/forms": {
       "parameters": [
         {
           "schema": {
@@ -2389,7 +2053,7 @@
         }
       }
     },
-    "/forms/{formId}": {
+    "/api/v1/db/meta/forms/{formId}": {
       "parameters": [
         {
           "schema": {
@@ -2400,7 +2064,7 @@
           "required": true
         }
       ],
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-view-form-update",
         "responses": {
@@ -2441,18 +2105,18 @@
         ]
       }
     },
-    "/formColumns/{columnId}": {
+    "/api/v1/db/meta/form/columns/{formViewColumnId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "columnId",
+          "name": "formViewColumnId",
           "in": "path",
           "required": true
         }
       ],
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-view-form-column-update",
         "responses": {
@@ -2481,7 +2145,7 @@
         }
       }
     },
-    "/grid/{gidId}/gridColumns": {
+    "/api/v1/db/meta/grids/{gidId}/grid/columns": {
       "parameters": [
         {
           "schema": {
@@ -2515,7 +2179,7 @@
         ]
       }
     },
-    "/gridColumns/{columnId}": {
+    "/api/v1/db/meta/grid/columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -2526,7 +2190,7 @@
           "required": true
         }
       ],
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-view-grid-column-update",
         "responses": {
@@ -2553,7 +2217,7 @@
         }
       }
     },
-    "/tables/{tableId}/galleries": {
+    "/api/v1/db/meta/tables/{tableId}/galleries": {
       "parameters": [
         {
           "schema": {
@@ -2594,7 +2258,7 @@
         }
       }
     },
-    "/galleries/{galleryId}": {
+    "/api/v1/db/meta/galleries/{galleryId}": {
       "parameters": [
         {
           "schema": {
@@ -2605,7 +2269,7 @@
           "required": true
         }
       ],
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-view-gallery-update",
         "responses": {
@@ -2625,18 +2289,6 @@
             }
           }
         }
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-view-gallery-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
       },
       "get": {
         "summary": "",
@@ -2658,143 +2310,20 @@
         ]
       }
     },
-    "/tables/{tableId}/kanbans": {
+    "/api/v1/db/meta/projects/{projectId}/meta-diff": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "tableId",
+          "name": "projectId",
           "in": "path",
           "required": true
         }
       ],
       "post": {
         "summary": "",
-        "operationId": "db-view-kanban-create",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      }
-    },
-    "/tables/{tableId}/kanbans/{kanbanId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "kanbanId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "put": {
-        "summary": "",
-        "operationId": "db-view-kanban-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-view-kanban-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      },
-      "get": {
-        "summary": "",
-        "operationId": "db-view-kanban-read",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB View"
-        ]
-      }
-    },
-    "/tables/{tableId}/views": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "db-view-list",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/ViewList"
-          }
-        },
-        "tags": [
-          "DB View"
-        ],
-        "description": ""
-      }
-    },
-    "/data/{tableId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "data-list",
-        "description": "",
-        "tags": [
-          "Data"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "",
-        "operationId": "data-create",
+        "operationId": "project-meta-diff-sync",
         "responses": {
           "200": {
             "description": "OK",
@@ -2806,70 +2335,29 @@
           }
         },
         "tags": [
-          "Data"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
-      }
-    },
-    "/data/{tableId}/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ]
-          },
-          "name": "type",
-          "in": "path",
-          "required": true
-        }
-      ],
+          "Project"
+        ]
+      },
       "get": {
         "summary": "",
-        "operationId": "data-csv-export",
-        "description": "CSV or Excel export",
+        "operationId": "project-meta-diff-get",
+        "parameters": [],
         "tags": [
-          "Data"
+          "Project"
         ],
-        "wrapped": true,
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": {
+              "application/json": {
                 "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                }
               }
             }
           }
-        },
-        "parameters": []
+        }
       }
     },
-
-    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}": {
       "parameters": [
         {
           "schema": {
@@ -2891,7 +2379,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "tableAlias",
+          "name": "tableName",
           "in": "path",
           "required": true
         }
@@ -2962,7 +2450,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}": {
       "parameters": [
         {
           "schema": {
@@ -2984,7 +2472,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "tableAlias",
+          "name": "tableName",
           "in": "path",
           "required": true
         },
@@ -3069,7 +2557,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/{rowId}": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -3091,7 +2579,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "tableAlias",
+          "name": "tableName",
           "in": "path",
           "required": true
         },
@@ -3130,7 +2618,7 @@
           "DB View Row"
         ]
       },
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-view-row-update",
         "responses": {
@@ -3168,7 +2656,7 @@
         "description": ""
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/{rowId}": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -3190,7 +2678,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "tableAlias",
+          "name": "tableName",
           "in": "path",
           "required": true
         },
@@ -3221,7 +2709,7 @@
           "DB Table Row"
         ]
       },
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "db-table-row-update",
         "responses": {
@@ -3259,7 +2747,7 @@
         "description": ""
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/export/{type}": {
+    "/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}": {
       "parameters": [
         {
           "schema": {
@@ -3281,148 +2769,635 @@
           "schema": {
             "type": "string"
           },
-          "name": "tableAlias",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ]
-          },
-          "name": "type",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "data-csv-export",
-        "description": "CSV or Excel export",
-        "tags": [
-          "Data"
-        ],
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "parameters": []
-      }
-    },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableAlias}/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableAlias",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ]
-          },
-          "name": "type",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "data-csv-export",
-        "description": "CSV or Excel export",
-        "tags": [
-          "Data"
-        ],
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "parameters": []
-      }
-    },
-
-
-    "/public/data/{uuid}/list": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "uuid",
+          "name": "tableName",
           "in": "path",
           "required": true
         }
       ],
       "post": {
+        "summary": "",
+        "operationId": "db-table-row-bulk-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "",
+        "operationId": "db-table-row-bulk-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "db-table-row-bulk-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-table-row-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "db-table-row-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "excel"
+            ]
+          },
+          "name": "type",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "data-csv-export",
+        "description": "CSV or Excel export",
+        "tags": [
+          "Data"
+        ],
+        "wrapped": true,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {}
+              }
+            },
+            "headers": {
+              "nc-export-offset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "excel"
+            ]
+          },
+          "name": "type",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "data-csv-export",
+        "description": "CSV or Excel export",
+        "tags": [
+          "Data"
+        ],
+        "wrapped": true,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {}
+              }
+            },
+            "headers": {
+              "nc-export-offset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "mm",
+              "hm"
+            ]
+          },
+          "name": "relationType",
+          "in": "path",
+          "required": true
+        },{
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "data-nested-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "mm",
+              "hm"
+            ]
+          },
+          "name": "relationType",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "refRowId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "data-nested-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "mm",
+              "hm"
+            ]
+          },
+          "name": "relationType",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "data-nested-excluded-children-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Data"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+
+    "/projects/{projectId}/views/{viewId}/upload": {
+      "post": {
+        "summary": "Attachment",
+        "operationId": "db-view-upload",
+        "responses": {},
+        "tags": [
+          "DB View"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {},
+                  "json": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+
+
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
         "summary": "",
         "operationId": "public-data-list",
         "responses": {
@@ -3481,168 +3456,10 @@
             "name": "offset"
           }
         ]
-      }
-    },
-    "/public/data/{uuid}/{rowId}/{relationType}/{columnId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "uuid",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "mm",
-              "hm"
-            ]
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "public-data-nested-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Public"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "offset"
-          }
-        ]
-      }
-    },
-    "/public/data/{uuid}/{rowId}/{relationType}/{columnId}/exclude": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "uuid",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "mm",
-              "hm"
-            ]
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "public-data-nested-excluded-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Public"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "offset"
-          }
-        ]
-      }
-    },
-    "/public/data/{uuid}/create": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "uuid",
-          "in": "path",
-          "required": true
-        }
-      ],
+      },
       "post": {
         "summary": "",
-        "operationId": "public-data-create",
+        "operationId": "public-shared-view-create",
         "responses": {
           "200": {
             "description": "OK",
@@ -3682,13 +3499,159 @@
         ]
       }
     },
-    "/public/data/{uuid}/export/{type}": {
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "uuid",
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "mm",
+              "hm"
+            ]
+          },
+          "name": "relationType",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-data-nested-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}/exclude": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "mm",
+              "hm"
+            ]
+          },
+          "name": "relationType",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-data-nested-excluded-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
           "in": "path",
           "required": true
         },
@@ -3758,13 +3721,13 @@
         }
       }
     },
-    "/public/data/{uuid}/relationTable/{relationColumnId}": {
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/nested/{columnName}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "uuid",
+          "name": "sharedViewUuid",
           "in": "path",
           "required": true
         },
@@ -3772,7 +3735,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "relationColumnId",
+          "name": "columnName",
           "in": "path",
           "required": true
         }
@@ -3826,13 +3789,13 @@
         "description": ""
       }
     },
-    "/public/meta/{uuid}": {
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/meta": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "uuid",
+          "name": "sharedViewUuid",
           "in": "path",
           "required": true
         }
@@ -3877,265 +3840,46 @@
         }
       }
     },
-    "/data/{tableId}/{rowId}/{relationType}/{colId}": {
+    "/api/v1/db/public/shared-base/{sharedBaseUuid}/meta": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "colId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "relationType",
+          "name": "sharedBaseUuid",
           "in": "path",
           "required": true
         }
       ],
       "get": {
         "summary": "",
-        "operationId": "data-nested-list",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "description": "",
-        "tags": [
-          "Data"
-        ]
-      }
-    },
-    "/data/{tableId}/{rowId}/{relationType}/{colId}/exclude": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "colId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "data-nested-excluded-list",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "description": "",
-        "tags": [
-          "Data"
-        ]
-      }
-    },
-    "/data/{tableId}/{rowId}/{relationType}/{colId}/{referenceTableRowId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "colId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "referenceTableRowId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "",
-        "operationId": "data-nested-add",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "description": "",
-        "tags": [
-          "Data"
-        ]
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "data-nested-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "description": "",
-        "tags": [
-          "Data"
-        ]
-      }
-    },
-    "/data/{tableId}/{rowId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "data-read",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "description": "",
-        "tags": [
-          "Data"
-        ]
-      },
-      "put": {
-        "summary": "",
-        "operationId": "data-update",
+        "operationId": "public-shared-base-get",
+        "description": "Read project details",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "project_id": {
+                      "type": "string"
+                    }
+                  }
+                }
               }
             }
           }
         },
         "tags": [
-          "Data"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "data-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Data"
-        ],
-        "description": ""
+          "Public"
+        ]
       }
     },
-    "/audits/comments": {
+
+    "/api/v1/db/meta/audits/comments": {
       "parameters": [],
       "get": {
         "summary": "",
@@ -4218,7 +3962,7 @@
         ]
       }
     },
-    "/audits/comments/count": {
+    "/api/v1/db/meta/audits/comments/count": {
       "parameters": [],
       "get": {
         "summary": "",
@@ -4257,7 +4001,7 @@
         ]
       }
     },
-    "project/{projectId}/audits": {
+    "/api/v1/db/meta/project/{projectId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -4322,8 +4066,17 @@
         ]
       }
     },
-    "/audits/rowUpdate": {
-      "parameters": [],
+    "/api/v1/db/meta/audits/rows/{rowId}/update": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        }
+      ],
       "post": {
         "summary": "",
         "operationId": "utils-audit-row-update",
@@ -4363,7 +4116,8 @@
         }
       }
     },
-    "/tables/{tableId}/hooks": {
+
+    "/api/v1/db/meta/tables/{tableId}/hooks": {
       "parameters": [
         {
           "schema": {
@@ -4442,7 +4196,7 @@
         ]
       }
     },
-    "/tables/{tableId}/hooks/test": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/test": {
       "parameters": [
         {
           "schema": {
@@ -4492,129 +4246,7 @@
         }
       }
     },
-    "/hooks/{hookId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "hookId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "put": {
-        "summary": "",
-        "operationId": "db-table-webhook-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Hook"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB Table Webhook"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Hook"
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "",
-        "operationId": "db-table-webhook-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "DB Table Webhook"
-        ]
-      }
-    },
-    "/plugins": {
-      "parameters": [],
-      "get": {
-        "summary": "",
-        "operationId": "plugin-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "uniqueItems": true,
-                      "minItems": 1,
-                      "items": {
-                        "$ref": "#/components/schemas/Plugin"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "",
-        "parameters": [],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/plugins/{pluginTitle}/status": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "pluginTitle",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "plugin-status",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        },
-        "description": "Check plugin is active or not",
-        "parameters": [],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/tables/{tableId}/hooks/samplePayload/{operation}": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}": {
       "parameters": [
         {
           "schema": {
@@ -4682,7 +4314,130 @@
         ]
       }
     },
-    "/plugins/test": {
+    "/api/v1/db/meta/hooks/{hookId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "hookId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-table-webhook-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hook"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Webhook"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Hook"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "db-table-webhook-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB Table Webhook"
+        ]
+      }
+    },
+
+    "/api/v1/db/meta/plugins": {
+      "parameters": [],
+      "get": {
+        "summary": "",
+        "operationId": "plugin-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "minItems": 1,
+                      "items": {
+                        "$ref": "#/components/schemas/Plugin"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "parameters": [],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
+    "/api/v1/db/meta/plugins/{pluginTitle}/status": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "pluginTitle",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "plugin-status",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "description": "Check plugin is active or not",
+        "parameters": [],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
+    "/api/v1/db/meta/plugins/test": {
       "parameters": [],
       "post": {
         "summary": "",
@@ -4731,7 +4486,7 @@
         }
       }
     },
-    "/plugins/{pluginId}": {
+    "/api/v1/db/meta/plugins/{pluginId}": {
       "parameters": [
         {
           "schema": {
@@ -4742,7 +4497,7 @@
           "required": true
         }
       ],
-      "put": {
+      "patch": {
         "summary": "",
         "operationId": "plugin-update",
         "responses": {
@@ -4790,7 +4545,8 @@
         ]
       }
     },
-    "/testConnection": {
+
+    "/api/v1/db/meta/connection/test": {
       "parameters": [],
       "post": {
         "summary": "",
@@ -4828,7 +4584,7 @@
         "description": ""
       }
     },
-    "/appInfo": {
+    "/api/v1/db/meta/nocodb/info": {
       "parameters": [],
       "get": {
         "summary": "",
@@ -4849,7 +4605,7 @@
         "description": ""
       }
     },
-    "/cache": {
+    "/api/v1/db/meta/cache": {
       "get": {
         "summary": "Your GET endpoint",
         "tags": [
@@ -4874,7 +4630,8 @@
       },
       "parameters": []
     },
-    "/projects/{projectId}/apiTokens": {
+
+    "/api/v1/db/meta/projects/{projectId}/apiTokens": {
       "get": {
         "summary": "Your GET endpoint",
         "tags": [
@@ -4944,7 +4701,7 @@
         }
       ]
     },
-    "/projects/{projectId}/apiTokens/{token}": {
+    "/api/v1/db/meta/projects/{projectId}/apiTokens/{token}": {
       "delete": {
         "summary": "",
         "operationId": "api-token-delete",
@@ -4976,7 +4733,8 @@
         }
       ]
     },
-    "/bulkData/{orgs}/{projectName}/{tableAlias}/": {
+
+    "/bulkData/{orgs}/{projectName}/{tableName}/": {
       "parameters": [
         {
           "schema": {
@@ -4998,7 +4756,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "tableAlias",
+          "name": "tableName",
           "in": "path",
           "required": true
         }
@@ -5079,7 +4837,7 @@
         ]
       }
     },
-    "/bulkData/{orgs}/{projectName}/{tableAlias}/all": {
+    "/bulkData/{orgs}/{projectName}/{tableName}/all": {
       "parameters": [
         {
           "schema": {
@@ -5101,7 +4859,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "tableAlias",
+          "name": "tableName",
           "in": "path",
           "required": true
         }
@@ -5217,6 +4975,30 @@
             "type": "string",
             "format": "date",
             "description": "The date that the user was created."
+          }
+        },
+        "required": [
+          "id",
+          "firstname",
+          "lastname",
+          "email",
+          "email_verified"
+        ]
+      },
+      "PageReqQueryParams": {
+        "title": "PageReqQueryParams",
+        "type": "object",
+        "description": "",
+        "x-internal": false,
+        "properties": {
+          "offset": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "query": {
+            "type": "string"
           }
         },
         "required": [

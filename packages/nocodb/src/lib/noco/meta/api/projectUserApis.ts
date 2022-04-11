@@ -254,7 +254,7 @@ router.post(
   '/projects/:projectId/users',
   ncMetaAclMw(userInvite, 'userInvite')
 );
-router.put(
+router.patch(
   '/projects/:projectId/users/:userId',
   ncMetaAclMw(projectUserUpdate, 'projectUserUpdate')
 );

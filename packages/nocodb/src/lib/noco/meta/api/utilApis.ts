@@ -44,6 +44,9 @@ export async function appInfo(_req: Request, res: Response) {
 }
 
 export default router => {
-  router.post('/testConnection', ncMetaAclMw(testConnection, 'testConnection'));
-  router.get('/appInfo', catchError(appInfo));
+  router.post(
+    '/api/v1/db/meta/connection/test',
+    ncMetaAclMw(testConnection, 'testConnection')
+  );
+  router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
 };

@@ -9,8 +9,8 @@ export async function columnUpdate(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
-router.put(
-  '/formColumns/:formViewColumnId',
+router.patch(
+  '/api/v1/db/meta/forms/columns/:formViewColumnId',
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
 export default router;

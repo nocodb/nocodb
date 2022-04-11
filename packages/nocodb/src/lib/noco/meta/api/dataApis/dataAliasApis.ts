@@ -8,7 +8,7 @@ import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 
-export async function dataList(req: Request, res: Response) {
+async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   res.json(await getDataList(model, view, req));
 }
@@ -108,20 +108,44 @@ async function dataRead(req: Request, res: Response) {
 
 const router = Router({ mergeParams: true });
 
+// table data crud apis
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName',
   ncMetaAclMw(dataList, 'dataList')
 );
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  ncMetaAclMw(dataRead, 'dataRead')
+);
+router.patch(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  ncMetaAclMw(dataUpdate, 'dataUpdate')
+);
+router.patch(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  ncMetaAclMw(dataUpdate, 'dataUpdate')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName',
+  ncMetaAclMw(dataList, 'dataList')
+);
+
+// table view data crud apis
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
   ncMetaAclMw(dataList, 'dataList')
 );
 
 router.post(
+  '/api/v1/db/data/:orgs/:projectName/:tableName',
+  ncMetaAclMw(dataInsert, 'dataInsert')
+);
+router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
-router.put(
+router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );

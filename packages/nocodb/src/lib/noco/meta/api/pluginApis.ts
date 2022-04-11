@@ -34,9 +34,21 @@ export async function isPluginActive(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/plugins', ncMetaAclMw(pluginList, 'pluginList'));
-router.post('/plugins/test', ncMetaAclMw(pluginTest, 'pluginTest'));
-router.get('/plugins/:pluginId', ncMetaAclMw(pluginRead, 'pluginRead'));
-router.put('/plugins/:pluginId', ncMetaAclMw(pluginUpdate, 'pluginUpdate'));
-router.get('/plugins/:pluginTitle/status', ncMetaAclMw(isPluginActive, 'isPluginActive'));
+router.get('/api/v1/db/meta/plugins', ncMetaAclMw(pluginList, 'pluginList'));
+router.post(
+  '/api/v1/db/meta/plugins/test',
+  ncMetaAclMw(pluginTest, 'pluginTest')
+);
+router.get(
+  '/api/v1/db/meta/plugins/:pluginId',
+  ncMetaAclMw(pluginRead, 'pluginRead')
+);
+router.patch(
+  '/api/v1/db/meta/plugins/:pluginId',
+  ncMetaAclMw(pluginUpdate, 'pluginUpdate')
+);
+router.get(
+  '/api/v1/db/meta/plugins/:pluginTitle/status',
+  ncMetaAclMw(isPluginActive, 'isPluginActive')
+);
 export default router;

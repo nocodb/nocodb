@@ -119,7 +119,7 @@ router.get(
   }, 'modelVisibilityList')
 );
 router.post(
-  '/projects/:projectId/modelVisibility',
+  '/api/v1/db/meta/projects/:projectId/visibility-rules',
   ncMetaAclMw(xcVisibilityMetaSetAll, 'modelVisibilitySet')
 );
 export default router;

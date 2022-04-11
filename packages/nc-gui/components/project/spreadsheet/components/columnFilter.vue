@@ -321,19 +321,19 @@ export default {
       for (const [i, filter] of Object.entries(this.filters)) {
         if (filter.status === 'delete') {
           if (this.hookId || hookId) {
-            await this.$api.dbTableFilter.delete(this.hookId || hookId, filter.id)
+            await this.$api.dbTableFilter.delete(filter.id)
           } else {
-            await this.$api.dbTableFilter.delete(this.viewId, filter.id)
+            await this.$api.dbTableFilter.delete(filter.id)
           }
         } else if (filter.status === 'update') {
           if (filter.id) {
             if (this.hookId || hookId) {
-              await this.$api.dbTableFilter.update(this.hookId || hookId, filter.id, {
+              await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
                 fk_parent_id: this.parentId
               })
             } else {
-              await this.$api.dbTableFilter.update(this.viewId, filter.id, {
+              await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
                 fk_parent_id: this.parentId
               })
@@ -363,12 +363,12 @@ export default {
       let filters = []
       if (this.viewId && this._isUIAllowed('filterSync')) {
         filters = this.parentId
-          ? (await this.$api.dbTableFilter.childrenRead(this.viewId, this.parentId))
+          ? (await this.$api.dbTableFilter.childrenRead(this.parentId))
           : (await this.$api.dbTableFilter.read(this.viewId))
       }
       if (this.hookId && this._isUIAllowed('filterSync')) {
         filters = this.parentId
-          ? (await this.$api.dbTableWebhookFilter.childrenRead(this.hookId, this.parentId))
+          ? (await this.$api.dbTableFilter.childrenRead(this.parentId))
           : (await this.$api.dbTableWebhookFilter.read(this.hookId))
       }
 
@@ -406,7 +406,7 @@ export default {
       } else if (!this.autoApply) {
         filter.status = 'update'
       } else if (filter.id) {
-        await this.$api.dbTableFilter.update(this.viewId, filter.id, {
+        await this.$api.dbTableFilter.update(filter.id, {
           ...filter,
           fk_parent_id: this.parentId
         })
@@ -430,7 +430,7 @@ export default {
         if (!this.autoApply) {
           this.$set(filter, 'status', 'delete')
         } else {
-          await this.$api.dbTableFilter.delete(this.viewId, filter.id)
+          await this.$api.dbTableFilter.delete(filter.id)
           await this.loadFilter()
           this.$emit('updated')
         }

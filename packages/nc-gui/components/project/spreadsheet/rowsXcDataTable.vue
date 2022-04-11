@@ -973,8 +973,7 @@ export default {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
         const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.column_name))
         await this.$api.dbTable.create(
-          this.$store.state.project.projectId,
-          this.$store.state.project.project.bases[0].id,
+          this.projectId,
           {
             table_name: this.nodes.table_name,
             title: this.nodes.title,
@@ -1050,7 +1049,11 @@ export default {
             }, {})
 
             // const insertedData = await this.api.insert(insertObj)
-            const insertedData = (await this.$api.data.create(this.meta.id, insertObj))
+            const insertedData = (await this.$api.dbTableRow.create(
+              'noco',
+              this.projectName,
+              this.meta.title, insertObj
+            ))
 
             this.data.splice(row, 1, {
               row: insertedData,
@@ -1309,7 +1312,7 @@ export default {
         const {
           list,
           pageInfo
-        } = (await this.$api.dbViewRow.list('noco', this.$store.getters['project/GtrProjectName'], this.meta.title, this.selectedView.title,
+        } = (await this.$api.dbViewRow.list('noco', this.projectName, this.meta.title, this.selectedView.title,
           {
             ...this.queryParams,
             ...(this._isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(this.sortList) }),

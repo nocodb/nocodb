@@ -15,10 +15,6 @@ import Audit from '../../../../noco-models/Audit';
 import crypto from 'crypto';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 
-// todo: read from database
-const secret = 'dkjfkdjfkjdfjdfjdkfjdkfjkdfkjdkfjdkjfkdk';
-const jwtConfig = {};
-
 import passport from 'passport';
 import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAuthenticate';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
@@ -154,7 +150,8 @@ export async function signup(req: Request, res: Response<TableType>) {
         id: user.id,
         roles: user.roles
       },
-      secret
+      Noco.getConfig().auth.jwt.secret,
+      Noco.getConfig().auth.jwt.options
     )
   } as any);
 }
@@ -200,8 +197,9 @@ async function signin(req, res, next) {
               id: user.id,
               roles: user.roles
             },
-            secret,
-            jwtConfig
+
+            Noco.getConfig().auth.jwt.secret,
+            Noco.getConfig().auth.jwt.options
           )
         } as any);
       } catch (e) {
@@ -392,6 +390,44 @@ async function emailVerification(req, res): Promise<any> {
   res.json({ msg: 'Email verified successfully' });
 }
 
+async function refreshToken(req, res): Promise<any> {
+  try {
+    if (!req?.cookies?.refresh_token) {
+      return res.status(400).json({ msg: 'Missing refresh token' });
+    }
+
+    const user = await User.getByRefreshToken(req.cookies.refresh_token);
+
+    if (!user) {
+      return res.status(400).json({ msg: 'Invalid refresh token' });
+    }
+
+    const refreshToken = randomTokenString();
+
+    await User.update(user.id, {
+      refresh_token: refreshToken
+    });
+
+    setTokenCookie(res, refreshToken);
+
+    res.json({
+      token: jwt.sign(
+        {
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          id: user.id,
+          roles: user.roles
+        },
+        Noco.getConfig().auth.jwt.secret,
+        Noco.getConfig().auth.jwt.options
+      )
+    } as any);
+  } catch (e) {
+    return res.status(400).json({ msg: e.message });
+  }
+}
+
 const mapRoutes = router => {
   // todo: old api - /auth/signup?tool=1
   router.post('/auth/user/signup', catchError(signup));
@@ -405,5 +441,6 @@ const mapRoutes = router => {
     '/user/password/change',
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
+  router.post('/auth/token/refresh', ncMetaAclMw(refreshToken, 'refreshToken'));
 };
 export { mapRoutes as userApis };

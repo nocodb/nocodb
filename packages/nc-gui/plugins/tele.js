@@ -13,8 +13,12 @@ export default function({
     if (socket) {
       socket.disconnect()
     }
+    const isUrl = $axios.defaults.baseURL.startsWith('http')
+    const url = isUrl ? $axios.defaults.baseURL : location.origin
+    const path = isUrl ? undefined : $axios.defaults.baseURL
 
-    socket = io($axios.defaults.baseURL, {
+    socket = io(url, {
+      path,
       extraHeaders: { 'xc-auth': token }
     })
 
@@ -81,7 +85,9 @@ export default function({
   })
 
   store.watch(state => state.project.projectInfo && state.project.projectInfo.teleEnabled && state.users.token, (token) => {
-    if (token) { init(token) } else if (socket) {
+    if (token) {
+      init(token)
+    } else if (socket) {
       socket.disconnect()
       socket = null
     }

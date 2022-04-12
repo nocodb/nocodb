@@ -5,6 +5,7 @@ import path from 'path';
 
 import archiver from 'archiver';
 import axios from 'axios';
+import async from 'async';
 import bodyParser from 'body-parser';
 import express, { Handler, Router } from 'express';
 import extract from 'extract-zip';
@@ -1480,7 +1481,9 @@ export default class NcMetaMgr {
         case 'xcExportAsCsv':
           result = await this.xcExportAsCsv(args, req, res);
           break;
-
+        case 'xcDownloadAttachments':
+          result = await this.xcDownloadAttachments(args, req, res);
+          break;
         case 'xcModelsCreateFromTemplate':
           result = await this.xcModelsCreateFromTemplate(args, req);
           break;
@@ -4554,6 +4557,56 @@ export default class NcMetaMgr {
           'Content-Disposition': `attachment; filename="${args.args.model_name}-export.csv"`
         });
         res.send(csvData.data);
+      }
+    };
+  }
+
+  protected async xcDownloadAttachments(args, _req, res: express.Response) {
+    const archive = archiver('zip');
+    const selectedAttachmentField = args.args.selectedAttachmentField
+    archive.pipe(res)
+    const READ_FILES_IN_PARALLEL_NUM = 5;
+
+    // Go through directory and add files
+    const parentDir = path.join(
+      'nc',
+      this.getProjectId(args),
+      this.getDbAlias(args),
+      'uploads',
+      args.args.model_name
+    );
+
+    async.waterfall([
+        function (cb) {
+            fs.readdir(parentDir, cb);
+        },
+        function (files, cb) {
+            // Create file read streams in parallel.
+            async.eachLimit(files, READ_FILES_IN_PARALLEL_NUM, function (filename, done) {
+              console.log('filename', filename)
+              console.log('selectedAttachmentField', selectedAttachmentField)
+                if (filename.startsWith(`${selectedAttachmentField}_`)) {
+                  const filePath = path.join(parentDir, filename)
+
+                  if (fs.statSync(filePath).isFile()) {
+                      const stream = fs.createReadStream(filePath)
+                      archive.append(stream, { name: filename })
+                  }
+                }
+                done()
+            }, cb)
+        }
+    ], function (err) {
+        err && console.error(err)
+        if (!err) {
+            archive.finalize()
+        }
+    })
+
+    return {
+      cb: async () => {
+        res.set('Content-Type','application/zip');
+        res.set('Content-disposition', 'attachment; filename=myFile.zip')
       }
     };
   }

@@ -1,12 +1,24 @@
 <template>
   <v-dialog v-model="showModal" max-width="600">
-    <v-card max-width="600" class="pa-6">
+    <v-card max-width="600" class="pa-6 d-flex flex-column align-center">
       <v-card-title>Download Multiple Attachments</v-card-title>
       <v-select
         label="Attachments Field"
-        :items="items"
+        v-model="selectedAttachmentField"
+        :items="availableAttachmentFields"
+        item-text="cn"
+        class="flex"
       />
-      <v-btn>Download</v-btn>
+      <!--v-select
+        label="Filename Field"
+        v-model="selectedFilenameField"
+        :items="availableColumns"
+        item-text="cn"
+        class="flex"
+      /-->
+      <v-btn
+        @click="onSubmit"
+      >Download</v-btn>
       </v-container>
     </v-card>
   </v-dialog>
@@ -19,12 +31,14 @@ export default {
   components: {},
   props: {
     value: Boolean,
-    accept: String,
-    text: String
+    availableColumns: [Object, Array]
   },
   data() {
     return {
-      items: []
+      attachmentOptions: [],
+      filenameOptions: [],
+      selectedAttachmentField: '',
+      selectedFilenameField: ''
     }
   },
   computed: {
@@ -35,21 +49,24 @@ export default {
       get() {
         return this.value
       }
+    },
+    availableAttachmentFields() {
+      return this.availableColumns && this.availableColumns.filter(col => col.uidt === 'Attachment')
     }
   },
   methods: {
+    onSubmit () {
+      this.$emit('download', {
+        selectedAttachmentField: this.selectedAttachmentField
+        // selectedFilenameField: this.selectedFilenameField
+      })
+    }
   }
 }
 </script>
 
 <style scoped>
 
-/*.nc-droppable {
-  width: 100%;
-  min-height: 200px;
-  border-radius: 4px;
-  border: 2px dashed var(--v-textColor-lighten5);
-}*/
 </style>
 
 <!--

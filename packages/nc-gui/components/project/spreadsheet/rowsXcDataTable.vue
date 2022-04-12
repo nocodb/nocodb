@@ -108,6 +108,7 @@
             showFields
           }"
           :selected-view="selectedView"
+          :available-columns="availableColumns"
           @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
           @webhook="showAdditionalFeatOverlay('webhooks')"
           @reload="reload"

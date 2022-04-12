@@ -88,6 +88,7 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
+          v-if="!publicViewId"
           dense
           @click="downloadAttachmentsModal = true"
         >
@@ -104,7 +105,11 @@
       </v-list>
     </v-menu>
     <drop-or-select-file-modal v-model="importModal" accept=".csv" text="CSV" @file="onCsvFileSelection" />
-    <download-attachments-modal v-model="downloadAttachmentsModal"/>
+    <download-attachments-modal
+      v-model="downloadAttachmentsModal"
+      :available-columns="availableColumns"
+      @download="downloadAttachments"
+    />
     <column-mapping-modal
       v-if="columnMappingModal && meta"
       v-model="columnMappingModal"
@@ -134,7 +139,8 @@ export default {
     selectedView: Object,
     publicViewId: String,
     queryParams: Object,
-    isView: Boolean
+    isView: Boolean,
+    availableColumns: [Object, Array]
   },
   data() {
     return {
@@ -285,6 +291,27 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
+    async downloadAttachments({ selectedAttachmentField }) {
+      const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {dbAlias: this.nodes.dbAlias, env: '_noco'},
+        'xcDownloadAttachments',
+        {
+          localQuery: this.queryParams,
+          view_name: this.selectedView.title,
+          model_name: this.meta.tn,
+          selectedAttachmentField,
+          // selectedFilenameField
+        },
+        null,
+        {
+          responseType: 'blob'
+        },
+        null,
+        true
+      ])
+      const blob = new Blob([res.data], { type: 'octet/stream' })
+      FileSaver.saveAs(blob, `attachments_${selectedAttachmentField}.zip`)
+    },
     async importData(columnMappings) {
       try {
         const api = this.$ncApis.get({
@@ -325,7 +352,6 @@ export default {
       }
     }
   }
-
 }
 </script>
 

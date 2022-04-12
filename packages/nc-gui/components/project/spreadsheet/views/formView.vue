@@ -575,13 +575,15 @@ export default {
       get() {
         return this.fields.filter(f => !f.show && !this.systemFieldsIds.includes(f.fk_column_id))
       },
-      set(v) {}
+      set(v) {
+      }
     },
     columns: {
       get() {
         return this.fields.filter(f => f.show).sort((a, b) => a.order - b.order)
       },
-      set(v) {}
+      set(v) {
+      }
     }
   },
   watch: {
@@ -850,18 +852,16 @@ export default {
         }
 
         this.loading = true
-        // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
-
-        // const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
-        //   obj[col] = this.localState[col]
-        //   return obj
-        // }, {})
-
-        // if (this.isNew) {
 
         // todo: add params option in GraphQL
         // let data = await this.api.insert(this.localState, { params: { form: this.$route.query.view } })
-        let data = await this.$api.data.create(this.meta.id, this.localState, { query: { form: this.$route.query.view } })
+        let data = await this.$api.dbTableRow.create(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.localState,
+          { query: { form: this.$route.query.view } }
+        )
         data = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state

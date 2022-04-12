@@ -430,7 +430,10 @@ export default {
         }, {})
 
         if (this.isNew) {
-          const data = (await this.$api.data.create(this.viewId || this.meta.id, updatedObj))
+          const data = (await this.$api.dbTableRow.create(
+            'noco',
+            this.projectName,
+            this.meta.title, updatedObj))
           this.localState = { ...this.localState, ...data }
 
           // save hasmany and manytomany relations from local state
@@ -447,10 +450,16 @@ export default {
           if (!id) {
             return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
-          await this.$api.data.update(this.viewId || this.meta.id, id, updatedObj)
+          await this.$api.dbTableRow.update(
+            'noco',
+            this.projectName,
+            this.meta.title,
+            id,
+            updatedObj
+          )
           for (const key of Object.keys(updatedObj)) {
             // audit
-            this.$api.utils.auditRowUpdate({
+            this.$api.utils.auditRowUpdate(id, {
               fk_model_id: this.meta.id,
               column_name: key,
               row_id: id,
@@ -479,14 +488,16 @@ export default {
     async reload() {
       const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
       this.$set(this, 'changedColumns', {})
-      this.localState = (await this.$api.data.read(this.viewId || this.meta.id, id, { query: this.queryParams || {} }))
+      this.localState = (await this.$api.dbTableRow.read(
+        'noco',
+        this.projectName,
+        this.meta.title, id, { query: this.queryParams || {} }))
     },
     calculateDiff(date) {
       return dayjs.utc(date).fromNow()
     },
     async saveComment() {
       try {
-
         await this.$api.utils.commentRow({
           fk_model_id: this.meta.id,
           row_id: this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___'),

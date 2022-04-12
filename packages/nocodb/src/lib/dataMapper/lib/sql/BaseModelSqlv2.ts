@@ -2053,9 +2053,8 @@ function extractFilterFromXwhere(
 function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map(str => {
     // eslint-disable-next-line prefer-const
-    let [logicOp, alias, op, value] = str
-      .match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)
-      .slice(1);
+    let [logicOp, alias, op, value] =
+      str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
     if (op === 'is') op = 'is' + value;
     else if (op === 'in') value = value.split(',');
 

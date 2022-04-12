@@ -91,23 +91,23 @@ async function getViewAndModelFromRequest(req) {
 const router = Router({ mergeParams: true });
 
 router.post(
-  '/api/v1/db/bulk-data/:orgs/:projectName/:tableAlias',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
   ncMetaAclMw(bulkDataInsert, 'bulkDataInsert')
 );
 router.patch(
-  '/api/v1/db/bulk-data/:orgs/:projectName/:tableAlias',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
   ncMetaAclMw(bulkDataUpdate, 'bulkDataUpdate')
 );
 router.patch(
-  '/api/v1/db/bulk-data/:orgs/:projectName/:tableAlias/all',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias/all',
   ncMetaAclMw(bulkDataUpdateAll, 'bulkDataUpdateAll')
 );
 router.delete(
-  '/api/v1/db/bulk-data/:orgs/:projectName/:tableAlias',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
   ncMetaAclMw(bulkDataDelete, 'bulkDataDelete')
 );
 router.delete(
-  '/api/v1/db/bulk-data/:orgs/:projectName/:tableAlias/all',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias/all',
   ncMetaAclMw(bulkDataDeleteAll, 'bulkDataDeleteAll')
 );
 

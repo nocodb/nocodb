@@ -1497,13 +1497,13 @@ export default {
     async exportCache() {
       try {
         const data = (await this.$api.utils.cacheGet())
-        if (!data.length) {
+        if (!data) {
           this.$toast.info('Cache is empty').goAway(3000)
           return
         }
         const blob = new Blob([JSON.stringify(data)], { type: 'text/plain;charset=utf-8' })
         FileSaver.saveAs(blob, 'cache_exported.json')
-        this.$toast.info('Copied Cache to clipboard').goAway(3000)
+        this.$toast.info('Exported Cache Successfully').goAway(3000)
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)
@@ -1512,7 +1512,7 @@ export default {
     async deleteCache() {
       try {
         await this.$api.utils.cacheDelete()
-        this.$toast.info('Deleted Cache').goAway(3000)
+        this.$toast.info('Deleted Cache Successfully').goAway(3000)
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)

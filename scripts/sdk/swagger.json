@@ -1865,13 +1865,13 @@
         ]
       }
     },
-    "/api/v1/db/meta/filters/{filterParentId}/children": {
+    "/api/v1/db/meta/filters/{filterGroupId}/children": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "filterParentId",
+          "name": "filterGroupId",
           "in": "path",
           "required": true
         }

@@ -14,7 +14,7 @@ async function dataList(req: Request, res: Response) {
 }
 
 async function dataCount(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
 
@@ -158,7 +158,7 @@ router.get(
   ncMetaAclMw(dataList, 'dataList')
 );
 router.get(
-  '/data/:orgs/:projectName/:tableName/views/:viewName/count',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/count',
   ncMetaAclMw(dataCount, 'dataCount')
 );
 

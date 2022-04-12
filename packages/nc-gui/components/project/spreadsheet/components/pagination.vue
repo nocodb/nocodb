@@ -1,8 +1,8 @@
 <template>
   <div class="d-flex align-center">
-    <!--    <span v-if="count !== null && count !== Infinity" class="caption ml-2">
+    <span v-if="count !== null && count !== Infinity" class="caption ml-2">
       {{ count }} record{{ count !== 1 ? 's' : '' }}
-    </span>-->
+    </span>
     <v-spacer />
     <v-pagination
       v-if="count !== Infinity"
@@ -35,7 +35,7 @@
     </div>
 
     <v-spacer />
-    <!--    <v-spacer />-->
+    <v-spacer />
   </div>
 </template>
 

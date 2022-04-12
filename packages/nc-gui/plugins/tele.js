@@ -14,12 +14,8 @@ export default function({
       if (socket) {
         socket.disconnect()
       }
-      const isUrl = $axios.defaults.baseURL.startsWith('http')
-      const url = isUrl ? $axios.defaults.baseURL : window.location.origin
-      const path = isUrl ? undefined : ($axios.defaults.baseURL === '..' ? window.location.pathname.split('/').slice(0, -1).join('/') : $axios.defaults.baseURL)
-
+      const url = new URL($axios.defaults.baseURL, window.location.href.split(/[?#]/)[0]).href
       socket = io(url, {
-        path,
         extraHeaders: { 'xc-auth': token }
       })
 

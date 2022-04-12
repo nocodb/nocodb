@@ -3695,7 +3695,7 @@
         }
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/nested/{columnName}": {
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}": {
       "parameters": [
         {
           "schema": {
@@ -3722,7 +3722,7 @@
           "description": "Shared view password"
         }
       ],
-      "post": {
+      "get": {
         "summary": "",
         "operationId": "public-data-relation-list",
         "responses": {

@@ -2971,7 +2971,7 @@ export class Api<
      *
      * @tags Public
      * @name DataRelationList
-     * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/nested/{columnName}
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
      * @response `200` `any` OK
      */
     dataRelationList: (
@@ -2981,8 +2981,8 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/nested/${columnName}`,
-        method: 'POST',
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
+        method: 'GET',
         query: query,
         format: 'json',
         ...params,

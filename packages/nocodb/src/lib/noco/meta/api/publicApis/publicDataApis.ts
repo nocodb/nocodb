@@ -319,8 +319,8 @@ router.get(
   '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
   catchError(dataList)
 );
-router.post(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/nested/:columnId',
+router.get(
+  '/api/v1/db/public/shared-view/:sharedViewUuid/nested/:columnId',
   catchError(relDataList)
 );
 router.post(

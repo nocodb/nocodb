@@ -4494,7 +4494,7 @@
       ]
     },
 
-    "/api/v1/db/bulkData/{orgs}/{projectName}/{tableName}/": {
+    "/api/v1/db/bulk-data/{orgs}/{projectName}/{tableName}/": {
       "parameters": [
         {
           "schema": {
@@ -4597,7 +4597,7 @@
         ]
       }
     },
-    "/api/v1/db/bulkData/{orgs}/{projectName}/{tableName}/all": {
+    "/api/v1/db/bulk-data/{orgs}/{projectName}/{tableName}/all": {
       "parameters": [
         {
           "schema": {

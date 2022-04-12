@@ -747,8 +747,16 @@ const up = async knex => {
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
     table.string('fk_user_id', 20);
     table.foreign('fk_user_id').references(`${MetaTable.USERS}.id`);
-    // todo
     table.text('roles');
+
+    table.boolean('starred');
+    table.boolean('pinned');
+    table.string('group');
+    table.string('color');
+    table.float('order');
+    table.float('hidden');
+    table.timestamp('opened_date');
+
     table.timestamps(true, true);
   });
 

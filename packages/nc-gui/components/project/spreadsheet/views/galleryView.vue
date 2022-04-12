@@ -43,8 +43,8 @@
                 <v-row class="">
                   <v-col
                     v-for="(col) in fields"
-                    v-show="showFields[col.alias|| col.title]"
-                    :key="col.alias || col.title"
+                    v-show="showFields[ col.title]"
+                    :key="col.title"
                     class="col-12 mt-1 mb-2 "
                   >
                     <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize caption grey--text">

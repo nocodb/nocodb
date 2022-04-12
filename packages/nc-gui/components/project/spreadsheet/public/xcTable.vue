@@ -29,6 +29,7 @@
             :fields-order.sync="fieldsOrder"
             is-public
             :meta="meta"
+            :show-system-fields="showSystemFields"
           />
 
           <sort-list-menu
@@ -393,7 +394,9 @@ export default {
           }
         }))
         this.meta = this.viewMeta.model
+        this.meta.columns = this.meta.columns.filter(c => c.show)
         this.metas = this.viewMeta.relatedMetas
+        this.showSystemFields = this.viewMeta.show_system_fields
 
         this.sorts = this.viewMeta.sorts
         this.viewName = this.viewMeta.title

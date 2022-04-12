@@ -715,20 +715,6 @@ export default {
       })
       ).sort((a, b) => a.order - b.order)
     },
-    // async loadFormColumns() {
-    //   this.formColumns = (await this.$api.meta.viewColumnList(this.viewId))
-    //   let order = 1
-    //   const fieldById = this.formColumns.reduce((o, f) => ({ ...o, [f.fk_column_id]: f }), {})
-    //   this.fields = this.meta.columns.map(c => ({
-    //     _cn: c.title,
-    //     uidt: c.uidt,
-    //     alias: c.title,
-    //     fk_column_id: c.id,
-    //     ...(fieldById[c.id] ? fieldById[c.id] : {}),
-    //     order: (fieldById[c.id] && fieldById[c.id].order) || order++
-    //   })
-    //   ).sort((a, b) => a.order - b.order)
-    // },
     hideColumn(i) {
       if (this.isDbRequired(this.columns[i])) {
         this.$toast.info('Required field can\'t be removed').goAway(3000)
@@ -854,15 +840,14 @@ export default {
 
         this.loading = true
 
-        // todo: add params option in GraphQL
-        // let data = await this.api.insert(this.localState, { params: { form: this.$route.query.view } })
-        let data = await this.$api.dbTableRow.create(
+        let data = await this.$api.dbViewRow.create(
           'noco',
           this.projectName,
           this.meta.title,
-          this.localState,
-          { query: { form: this.$route.query.view } }
+          this.selectedView.title,
+          this.localState
         )
+
         data = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state

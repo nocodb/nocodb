@@ -1137,29 +1137,6 @@
           "required": true
         }
       ],
-      "get": {
-        "summary": "Column List",
-        "operationId": "db-table-column-list",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/ColumnList"
-          },
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Column"
-                }
-              }
-            }
-          }
-        },
-        "description": "Read project details",
-        "tags": [
-          "DB Table column"
-        ]
-      },
       "post": {
         "summary": "Column create",
         "operationId": "db-table-column-create",
@@ -1193,26 +1170,6 @@
           "required": true
         }
       ],
-      "get": {
-        "summary": "Column Read",
-        "operationId": "db-table-column-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Column"
-                }
-              }
-            }
-          }
-        },
-        "description": "Read project details",
-        "tags": [
-          "DB Table column"
-        ]
-      },
       "patch": {
         "summary": "Column Update",
         "operationId": "db-table-column-update",
@@ -1610,23 +1567,6 @@
           "required": true
         }
       ],
-      "get": {
-        "summary": "",
-        "operationId": "db-view-column-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "DB View Column"
-        ]
-      },
       "patch": {
         "summary": "",
         "operationId": "db-view-column-update",
@@ -3515,79 +3455,6 @@
       "get": {
         "summary": "",
         "operationId": "public-data-nested-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Public"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "offset"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}/exclude": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sharedViewUuid",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "mm",
-              "hm"
-            ]
-          },
-          "name": "relationType",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "public-data-nested-excluded-list",
         "responses": {
           "200": {
             "description": "OK",

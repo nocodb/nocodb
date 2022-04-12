@@ -1013,11 +1013,12 @@ export default {
             }, {})
 
             // const insertedData = await this.api.insert(insertObj)
-            const insertedData = (await this.$api.dbTableRow.create(
+            const insertedData = await this.$api.dbViewRow.create(
               'noco',
               this.projectName,
-              this.meta.title, insertObj
-            ))
+              this.meta.title,
+              this.selectedView.title, insertObj
+            )
 
             this.data.splice(row, 1, {
               row: insertedData,
@@ -1054,7 +1055,9 @@ export default {
         return
       }
       const { row: rowObj, rowMeta, oldRow, saving, lastSave } = this.data[row]
-      if (!lastSave) { this.$set(this.data[row], 'lastSave', rowObj[column.title]) }
+      if (!lastSave) {
+        this.$set(this.data[row], 'lastSave', rowObj[column.title])
+      }
       if (rowMeta.new) {
         // return if there is no change
         if ((column && oldRow[column.title] === rowObj[column.title]) || saving) {
@@ -1070,7 +1073,9 @@ export default {
           if (!column || (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title]))) {
             return
           }
-          if (saved) { this.$set(this.data[row], 'lastSave', oldRow[column.title]) }
+          if (saved) {
+            this.$set(this.data[row], 'lastSave', oldRow[column.title])
+          }
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
 
           if (!id) {
@@ -1079,10 +1084,12 @@ export default {
           this.$set(this.data[row], 'saving', true)
 
           // eslint-disable-next-line promise/param-names
-          const newData = (await this.$api.dbTableRow.update(
+          const newData = (await this.$api.dbViewRow.update(
             'noco',
             this.projectName,
-            this.meta.title, id, {
+            this.meta.title,
+            this.selectedView.title,
+            id, {
               [column.title]: rowObj[column.title]
             }, {
               query: { ignoreWebhook: !saved }
@@ -1279,7 +1286,11 @@ export default {
         const {
           list,
           pageInfo
-        } = (await this.$api.dbViewRow.list('noco', this.projectName, this.meta.title, this.selectedView.title,
+        } = (await this.$api.dbViewRow.list(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.selectedView.title,
           {
             ...this.queryParams,
             ...(this._isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(this.sortList) }),

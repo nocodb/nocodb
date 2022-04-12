@@ -339,7 +339,7 @@ export default {
               })
             }
           } else if (this.hookId || hookId) {
-            this.$set(this.filters, i, (await this.$api.dbTableFilter.create(this.hookId || hookId, {
+            this.$set(this.filters, i, (await this.$api.dbTableWebhookFilter.create(this.hookId || hookId, {
               ...filter,
               fk_parent_id: this.parentId
             })))
@@ -424,7 +424,6 @@ export default {
     async deleteFilter(filter, i) {
       if (this.shared || !this._isUIAllowed('filterSync')) {
         this.filters.splice(i, 1)
-        // this.$emit('input', this.filters.filter(f => f.fk_column_id && f.comparison_op))
         this.$emit('updated')
       } else if (filter.id) {
         if (!this.autoApply) {
@@ -438,7 +437,6 @@ export default {
         this.filters.splice(i, 1)
         this.$emit('updated')
       }
-      // this.$emit('input', this.filters.filter(f => f.fk_column_id && f.comparison_op))
       this.$tele.emit('filter:delete')
     }
   }

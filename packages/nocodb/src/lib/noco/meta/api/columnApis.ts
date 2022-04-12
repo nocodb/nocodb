@@ -514,7 +514,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
     !isVirtualCol(req.body) &&
     !(await Column.checkTitleAvailable({
       column_name: req.body.column_name,
-      fk_model_id: req.params.tableId,
+      fk_model_id: column.fk_model_id,
       exclude_id: req.params.columnId
     }))
   ) {
@@ -523,7 +523,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
   if (
     !(await Column.checkAliasAvailable({
       title: req.body.title,
-      fk_model_id: req.params.tableId,
+      fk_model_id: column.fk_model_id,
       exclude_id: req.params.columnId
     }))
   ) {

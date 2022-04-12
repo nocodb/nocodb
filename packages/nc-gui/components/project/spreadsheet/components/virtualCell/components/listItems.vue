@@ -176,12 +176,10 @@ export default {
             'noco',
             this.projectName,
             this.meta.title, {
-              query: {
-                limit: this.size,
-                offset: this.size * (this.page - 1),
-                ...this.queryParams,
-                where
-              }
+              limit: this.size,
+              offset: this.size * (this.page - 1),
+              ...this.queryParams,
+              where
             }))
         }
       }

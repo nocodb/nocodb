@@ -324,7 +324,7 @@ router.post(
   catchError(relDataList)
 );
 router.post(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/create',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
   multer({
     storage: multer.diskStorage({})
   }).any(),

@@ -3421,33 +3421,6 @@
         "tags": [
           "Public"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "password": {
-                    "type": "string"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Sort"
-                    }
-                  },
-                  "filters": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Filter"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "description": ""
-        },
         "parameters": [
           {
             "schema": {
@@ -3467,7 +3440,7 @@
       },
       "post": {
         "summary": "",
-        "operationId": "public-shared-view-create",
+        "operationId": "public-data-create",
         "responses": {
           "200": {
             "description": "OK",
@@ -3475,6 +3448,13 @@
               "application/json": {
                 "schema": {}
               }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
             }
           }
         },

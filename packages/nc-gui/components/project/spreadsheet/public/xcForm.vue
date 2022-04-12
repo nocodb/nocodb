@@ -298,7 +298,7 @@ export default {
       this.loading = true
       try {
         this.viewMeta = (await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
-          password: this.password
+          headers: { 'xc-password': this.password }
         }))
 
         this.view = this.viewMeta.view
@@ -306,66 +306,6 @@ export default {
         this.metas = this.viewMeta.relatedMetas
         this.columns = this.meta.columns.filter(c => c.show)
         this.client = this.viewMeta.client
-      // try {
-      //   // eslint-disable-next-line camelcase
-      //   const {
-      //     meta,
-      //     // model_name,
-      //     client,
-      //     query_params: qp,
-      //     db_alias: dbAlias,
-      //     relatedTableMetas
-      //   } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewGet', {
-      //     view_id: this.$route.params.id,
-      //     password: this.password
-      //   }])
-      //   this.client = client
-      //   this.meta = meta
-      //   this.query_params = qp
-      //   this.dbAlias = dbAlias
-      //   this.metas = relatedTableMetas
-      //
-      //   const showFields = this.query_params.showFields || {}
-      //   let fields = this.query_params.fieldsOrder || []
-      //   if (!fields.length) {
-      //     fields = Object.keys(showFields)
-      //   }
-      //   // eslint-disable-next-line camelcase
-      //
-      //   let columns = this.meta.columns
-      //   if (this.meta && this.meta.v) {
-      //     columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
-      //   }
-      //
-      //   {
-      //     const _ref = {}
-      //     columns.forEach((c) => {
-      //       if (c.virtual && c.bt) {
-      //         c.prop = `${c.bt.rtn}Read`
-      //       }
-      //       if (c.virtual && c.mm) {
-      //         c.prop = `${c.mm.rtn}MMList`
-      //       }
-      //       if (c.virtual && c.hm) {
-      //         c.prop = `${c.hm.table_name}List`
-      //       }
-      //
-      //       // if (c.virtual && c.lk) {
-      //       //   c.alias = `${c.lk._lcn} (from ${c.lk._ltn})`
-      //       // } else {
-      //       c.alias = c.title
-      //       // }
-      //       if (c.alias in _ref) {
-      //         c.alias += _ref[c.alias]++
-      //       } else {
-      //         _ref[c.alias] = 1
-      //       }
-      //     })
-      //   }
-      //   // this.modelName = model_name
-      //   this.columns = columns.filter(c => showFields[c.alias]).sort((a, b) => fields.indexOf(a.alias) - fields.indexOf(b.alias))
-      //
-      //   this.localParams = (this.query_params.extraViewParams && this.query_params.extraViewParams.formParams) || {}
       } catch (e) {
         if (e.response && e.response.status === 404) {
           this.notFound = true
@@ -385,16 +325,6 @@ export default {
         }
 
         this.submitting = true
-        // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
-
-        // const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
-        //   obj[col] = this.localState[col]
-        //   return obj
-        // }, {})
-
-        // if (this.isNew) {
-
-        // const formData = new FormData()
         const data = { ...this.localState, ...this.virtual }
         const attachment = {}
 
@@ -407,8 +337,9 @@ export default {
 
         await this.$api.public.dataCreate(this.$route.params.id, {
           data,
-          password: this.password,
           ...attachment
+        }, {
+          headers: { 'xc-password': this.password }
         })
 
         this.virtual = {}

@@ -2821,7 +2821,6 @@ export class Api<
      */
     dataList: (
       sharedViewUuid: string,
-      data: { password?: string; sorts?: SortType[]; filters?: FilterType[] },
       query?: { limit?: string; offset?: string },
       params: RequestParams = {}
     ) =>
@@ -2829,8 +2828,6 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'GET',
         query: query,
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -2839,14 +2836,20 @@ export class Api<
      * No description
      *
      * @tags Public
-     * @name SharedViewCreate
+     * @name DataCreate
      * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
      * @response `200` `any` OK
      */
-    sharedViewCreate: (sharedViewUuid: string, params: RequestParams = {}) =>
+    dataCreate: (
+      sharedViewUuid: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
       this.request<any, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

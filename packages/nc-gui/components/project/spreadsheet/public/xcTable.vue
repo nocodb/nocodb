@@ -430,7 +430,7 @@ export default {
           filterArrJson: JSON.stringify(this.filters),
           ...this.queryParams
         }, {
-          headers: { password: this.password }
+          headers: { 'xc-password': this.password }
         }
         ))
 

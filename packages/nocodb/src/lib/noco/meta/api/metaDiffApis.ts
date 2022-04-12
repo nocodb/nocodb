@@ -827,11 +827,11 @@ export async function extractAndGenerateManyToManyRelations(
 
 const router = Router();
 router.get(
-  '/api/v1/db/meta/projects/:projectId/metaDiff',
+  '/api/v1/db/meta/projects/:projectId/meta-diff',
   ncMetaAclMw(metaDiff, 'metaDiff')
 );
 router.post(
-  '/api/v1/db/meta/projects/:projectId/metaDiff',
+  '/api/v1/db/meta/projects/:projectId/meta-diff',
   ncMetaAclMw(metaDiffSync, 'metaDiffSync')
 );
 export default router;

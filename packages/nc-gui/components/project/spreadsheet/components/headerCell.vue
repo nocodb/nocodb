@@ -184,7 +184,7 @@ export default {
         column.altered = 4
         const columns = this.meta.columns.slice()
         columns[this.columnIndex] = column
-        await this.$api.dbTableColumn.delete(this.meta.id, column.id)
+        await this.$api.dbTableColumn.delete(column.id)
 
         this.$emit('colDelete')
         this.$emit('saved')
@@ -196,7 +196,7 @@ export default {
     async setAsPrimaryValue() {
       // todo: pass only updated fields
       try {
-        await this.$api.dbTableColumn.primaryColumnSet(this.meta.id, this.column.id)
+        await this.$api.dbTableColumn.primaryColumnSet(this.column.id)
         this.$toast.success('Successfully updated as primary column').goAway(3000)
       } catch (e) {
         console.log(e)

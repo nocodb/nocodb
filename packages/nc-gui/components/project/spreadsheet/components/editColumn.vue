@@ -565,7 +565,7 @@ export default {
         this.newColumn.title = this.newColumn.column_name
 
         if (this.editColumn) {
-          await this.$api.dbTableColumn.update(this.meta.id, this.column.id, this.newColumn)
+          await this.$api.dbTableColumn.update(this.column.id, this.newColumn)
         } else {
           await this.$api.dbTableColumn.create(this.meta.id, this.newColumn)
         }

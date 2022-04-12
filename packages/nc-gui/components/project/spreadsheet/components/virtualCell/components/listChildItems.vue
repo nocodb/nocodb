@@ -179,13 +179,13 @@ export default {
   methods: {
     async loadData() {
       if ((!this.isForm && this.isPublic) && this.$route.params.id) {
-
         if (this.column && this.column.colOptions && this.rowId) {
           this.data = (await this.$api.public.dataNestedList(
             this.$route.params.id,
             this.rowId,
             this.column.colOptions.type,
-            this.column.fk_column_id || this.column.id, {
+            this.column.fk_column_id || this.column.id,
+            {
               limit: this.size,
               offset: this.size * (this.page - 1)
             }, {}))
@@ -198,26 +198,24 @@ export default {
         return
       }
       if (this.column && this.column.colOptions) {
-        this.data = (await this.$api.data.nestedList(
-          this.column.fk_model_id,
+        this.data = (await this.$api.dbTableRow.nestedList(
+          'noco',
+          this.projectName,
+          this.parentMeta.title,
           this.rowId,
-          this.column.id,
           this.column.colOptions.type,
+          this.column.title,
           {
-            query: {
-              limit: this.size,
-              offset: this.size * (this.page - 1)
-              // ...this.queryParams
-            }
+            limit: this.size,
+            offset: this.size * (this.page - 1)
           }))
       } else {
-        this.data = (await this.$api.data.list(
-          this.meta.id, {
-            query: {
-              limit: this.size,
-              offset: this.size * (this.page - 1),
-              ...this.queryParams
-            }
+        this.data = (await this.$api.dbTableRow.list(
+          'noco',
+          this.projectName, this.meta.title, {
+            limit: this.size,
+            offset: this.size * (this.page - 1),
+            ...this.queryParams
           }))
       }
     }

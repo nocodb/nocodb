@@ -767,22 +767,15 @@ export default {
         return
       }
       try {
-        if (this.selectedViewIdLocal === view.id) {
-          await this.$router.push({
-            query: {
-              ...this.$route.query,
-              view: view.title_temp
-            }
-          })
-        }
+        // if (this.selectedViewIdLocal === view.id) {
+        //   await this.$router.push({
+        //     query: {
+        //       ...this.$route.query,
+        //       view: view.title_temp
+        //     }
+        //   })
+        // }
         this.$set(view, 'title', view.title_temp)
-        // await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
-        //   id: view.id,
-        //   old_title: oldTitle,
-        //   title: view.title_temp,
-        //   alias: view.alias,
-        //   parent_model_title: this.meta.table_name
-        // })
         await this.$api.dbView.update(view.id, {
           title: view.title,
           order: view.order
@@ -804,12 +797,6 @@ export default {
     },
     async deleteView(view) {
       try {
-        // await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableDelete', {
-        //   id: view.id,
-        //   title: view.alias || view.title,
-        //   view_name: view.alias || view.title,
-        //   parent_model_title: this.table
-        // })
         await this.$api.dbView.delete(view.id)
         this.$toast.success('View deleted successfully').goAway(3000)
         await this.loadViews()

@@ -17,7 +17,7 @@ async function exportCsv(req: Request, res: Response) {
   if (!view) NcError.notFound('Not found');
   if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
 
-  if (view.password && view.password !== req.body?.password) {
+  if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
@@ -33,6 +33,15 @@ async function exportCsv(req: Request, res: Response) {
     .filter(column => !isSystemColumn(column) || view.show_system_fields);
 
   if (!model) NcError.notFound('Table not found');
+
+  const fields = req.query.fields;
+  const listArgs: any = { ...req.query };
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+  try {
+    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+  } catch (e) {}
 
   const base = await Base.get(model.base_id);
   const baseModel = await Model.getBaseModelSQL({
@@ -61,7 +70,6 @@ async function exportCsv(req: Request, res: Response) {
       temp = process.hrtime(startTime),
       elapsed = temp[0] * 1000 + temp[1] / 1000000
   ) {
-    console.time('nocoExecute');
     const rows = (
       await nocoExecute(
         requestObj,
@@ -71,14 +79,9 @@ async function exportCsv(req: Request, res: Response) {
           }
         },
         {},
-
         {
           nested: {
-            [key]: {
-              ...req.query,
-              sortArr: req.body?.sorts,
-              filterArr: req.body?.filters
-            }
+            [key]: listArgs
           }
         }
       )
@@ -100,12 +103,21 @@ async function exportCsv(req: Request, res: Response) {
       }
       csvRows.push(csvRow);
     }
-    console.timeEnd('nocoExecute');
   }
 
   const data = papaparse.unparse(
     {
-      fields: model.columns.map(c => c.title),
+      fields: model.columns
+        .sort((c1, c2) =>
+          Array.isArray(fields)
+            ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
+            : 0
+        )
+        .filter(
+          c =>
+            !fields || !Array.isArray(fields) || fields.includes(c.title as any)
+        )
+        .map(c => c.title),
       data: csvRows
     },
     {
@@ -188,5 +200,8 @@ async function serializeCellValue({
 }
 
 const router = Router({ mergeParams: true });
-router.post('/public/data/:publicDataUuid/export/csv', catchError(exportCsv));
+router.get(
+  '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/csv',
+  catchError(exportCsv)
+);
 export default router;

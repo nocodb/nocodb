@@ -21,8 +21,8 @@
                 <v-row class="">
                   <v-col
                     v-for="(col) in fields"
-                    v-show="showFields[col.alias|| col.title]"
-                    :key="col.alias || col.title"
+                    v-show="showFields[col.title]"
+                    :key="col.title"
                     class="kanban-col col-12"
                   >
                     <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize caption grey--text">
@@ -137,7 +137,7 @@ export default {
       ) || []
     },
     groupingFieldColumn() {
-      return this.fields.filter(o => o.alias === this.groupingField)[0]
+      return this.fields.filter(f => f.title === this.groupingField)[0]
     }
   },
   mounted() {

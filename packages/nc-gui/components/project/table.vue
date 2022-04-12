@@ -35,7 +35,6 @@
               :mtd-new-table-update="mtdNewTableUpdate"
               :delete-table="deleteTable"
               :is-meta-table="isMetaTable"
-              :add-new-relation-tab="addNewRelationTab"
             />
           </v-tab-item>
         </template>

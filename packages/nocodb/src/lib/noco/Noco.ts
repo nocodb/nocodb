@@ -351,7 +351,6 @@ export default class Noco {
 
             projectBuilder.updateConfig(project.config);
             await projectBuilder.reInit();
-            console.log(`Project updated: ${projectId}`);
           }
           break;
 
@@ -370,7 +369,6 @@ export default class Noco {
             this.ncToolApi.destroy();
             this.ncToolApi.reInitialize(this.config);
             // await this.init({progressCallback});
-            console.log(`Loaded env : ${data.req.args.env}`);
           } catch (e) {
             console.log(e);
           }
@@ -510,7 +508,6 @@ export default class Noco {
       this.socketClient = client;
 
       client.on('disconnect', () => {
-        console.log('Disconnected');
         this.socketClient = null;
       });
     });

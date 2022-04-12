@@ -42,7 +42,7 @@ jobs:
       working-directory: ./packages/nocodb
     strategy:
       matrix:
-        node-version: [12]
+        node-version: [14]
     steps:
       - name: Get Docker Repository
         id: get-docker-repository
@@ -72,6 +72,20 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: upgrade packages for nightly build
+        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
+        run: |
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
+          cd packages/nocodb-sdk
+          npm install && npm run build
+          cd ../..
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js
+          cd packages/nc-gui
+          npm install
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy
+          cd ../..
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
 
       - uses: bahmutov/npm-install@v1
         with:

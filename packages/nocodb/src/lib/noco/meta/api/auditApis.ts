@@ -20,7 +20,7 @@ export async function auditRowUpdate(req: Request<any, any>, res) {
   res.json(
     await Audit.insert({
       fk_model_id: req.body.fk_model_id,
-      row_id: req.body.row_id,
+      row_id: req.params.rowId,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.UPDATE,
       description: `Table ${model.table_name} : field ${req.body.column_name} got changed from  ${req.body.prev_value} to ${req.body.value}`,
@@ -58,9 +58,24 @@ export async function commentsCount(req: Request<any, any, any>, res) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/audits/comments', ncMetaAclMw(commentList));
-router.post('/audits/rowUpdate', ncMetaAclMw(auditRowUpdate, 'auditRowUpdate'));
-router.post('/audits/comments', ncMetaAclMw(commentRow));
-router.get('/audits/comments/count', ncMetaAclMw(commentsCount));
-router.get('/project/:projectId/audits', ncMetaAclMw(auditList));
+router.get(
+  '/api/v1/db/meta/audits/comments',
+  ncMetaAclMw(commentList, 'commentList')
+);
+router.post(
+  '/api/v1/db/meta/audits/comments',
+  ncMetaAclMw(commentRow, 'commentRow')
+);
+router.post(
+  '/api/v1/db/meta/audits/rows/:rowId/update',
+  ncMetaAclMw(auditRowUpdate, 'auditRowUpdate')
+);
+router.get(
+  '/api/v1/db/meta/audits/comments/count',
+  ncMetaAclMw(commentsCount, 'commentsCount')
+);
+router.get(
+  '/api/v1/db/meta/project/:projectId/audits',
+  ncMetaAclMw(auditList, 'auditList')
+);
 export default router;

@@ -104,8 +104,6 @@ export default class ProjectUser {
       );
     });
 
-    console.log(queryBuilder.toQuery());
-
     return await queryBuilder;
   }
 

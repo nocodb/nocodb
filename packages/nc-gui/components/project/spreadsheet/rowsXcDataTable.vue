@@ -357,7 +357,6 @@
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
               @showRowContextMenu="showRowContextMenu"
-              @addNewRelationTab="addNewRelationTab"
               @expandRow="expandRow"
               @onRelationDelete="loadMeta"
               @loadTableData="loadTableData"
@@ -439,6 +438,7 @@
               :primary-value-column="primaryValueColumn"
               :form-params.sync="extraViewParams.formParams"
               :view.sync="selectedView"
+              :view-title="selectedView.title"
               @onNewColCreation="loadMeta(false)"
             />
           </template>
@@ -602,24 +602,6 @@
             <span class="caption">Set column value to <strong>null</strong></span>
           </v-tooltip>
         </template>
-
-        <!--        <template v-if="meta.hasMany && meta.hasMany.length">
-          <v-divider v-if="isEditable && !isLocked" />
-          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Has Many</span>
-
-          <v-list-item v-for="(hm,i) in meta.hasMany" :key="i" @click="addNewRelationTabCtxMenu(hm,'hm')">
-            <span class="caption text-capitalize">{{ hm.title }}</span>
-          </v-list-item>
-        </template>
-
-        <template v-if="meta.belongsTo && meta.belongsTo.length">
-          <v-divider />
-          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Belongs To</span>
-
-          <v-list-item v-for="(bt,i) in belongsTo" :key="i" @click="addNewRelationTabCtxMenu(bt,'bt')">
-            <span class="caption text-capitalize">{{ bt._rtn }}</span>
-          </v-list-item>
-        </template>-->
       </v-list>
     </v-menu>
     <v-dialog
@@ -752,7 +734,6 @@ export default {
     tabId: String,
     env: String,
     nodes: Object,
-    addNewRelationTab: Function,
     relationType: String,
     relation: Object,
     relationIdValue: [String, Number],
@@ -973,8 +954,7 @@ export default {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
         const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.column_name))
         await this.$api.dbTable.create(
-          this.$store.state.project.projectId,
-          this.$store.state.project.project.bases[0].id,
+          this.projectId,
           {
             table_name: this.nodes.table_name,
             title: this.nodes.title,
@@ -996,22 +976,6 @@ export default {
 
     comingSoon() {
       this.$toast.info('Coming soon!').goAway(3000)
-    },
-    addNewRelationTabCtxMenu(obj, type) {
-      const rowObj = this.rowContextMenu.row
-
-      this.addNewRelationTab(
-        obj,
-        this.table,
-        this.meta.title || this.table,
-        type === 'hm' ? obj.table_name : obj.rtn,
-        type === 'hm' ? obj.title : obj._rtn,
-        // todo: column name alias
-        rowObj[type === 'hm' ? obj.rcn : obj.title],
-        type,
-        rowObj,
-        rowObj[this.primaryValueColumn]
-      )
     },
     changed(col, row) {
       this.$set(this.data[row].rowMeta, 'changed', this.data[row].rowMeta.changed || {})
@@ -1050,7 +1014,12 @@ export default {
             }, {})
 
             // const insertedData = await this.api.insert(insertObj)
-            const insertedData = (await this.$api.data.create(this.meta.id, insertObj))
+            const insertedData = await this.$api.dbViewRow.create(
+              'noco',
+              this.projectName,
+              this.meta.title,
+              this.selectedView.title, insertObj
+            )
 
             this.data.splice(row, 1, {
               row: insertedData,
@@ -1088,7 +1057,9 @@ export default {
         return
       }
       const { row: rowObj, rowMeta, oldRow, saving, lastSave } = this.data[row]
-      if (!lastSave) { this.$set(this.data[row], 'lastSave', rowObj[column.title]) }
+      if (!lastSave) {
+        this.$set(this.data[row], 'lastSave', rowObj[column.title])
+      }
       if (rowMeta.new) {
         // return if there is no change
         if ((column && oldRow[column.title] === rowObj[column.title]) || saving) {
@@ -1101,10 +1072,12 @@ export default {
           //   return
           // }
           // return if there is no change
-          if (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title])) {
+          if (!column || (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title]))) {
             return
           }
-          if (saved) { this.$set(this.data[row], 'lastSave', oldRow[column.title]) }
+          if (saved) {
+            this.$set(this.data[row], 'lastSave', oldRow[column.title])
+          }
           const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
 
           if (!id) {
@@ -1113,14 +1086,19 @@ export default {
           this.$set(this.data[row], 'saving', true)
 
           // eslint-disable-next-line promise/param-names
-          const newData = (await this.$api.data.update(this.meta.id, id, {
-            [column.title]: rowObj[column.title]
-          }, {
-            query: { ignoreWebhook: !saved }
-          }))// { [column.title]: oldRow[column.title] })
+          const newData = (await this.$api.dbViewRow.update(
+            'noco',
+            this.projectName,
+            this.meta.title,
+            this.selectedView.title,
+            id, {
+              [column.title]: rowObj[column.title]
+            }, {
+              query: { ignoreWebhook: !saved }
+            }))
 
           // audit
-          this.$api.utils.auditRowUpdate({
+          this.$api.utils.auditRowUpdate(id, {
             fk_model_id: this.meta.id,
             column_name: column.title,
             row_id: id,
@@ -1155,7 +1133,7 @@ export default {
           if (!id) {
             return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
-          await this.$api.data.delete(this.meta.id, id)
+          await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
         this.syncCount()
@@ -1182,7 +1160,7 @@ export default {
             if (!id) {
               return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
             }
-            await this.$api.data.delete(this.meta.id, id)
+            await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
           }
           this.data.splice(row, 1)
         } catch (e) {
@@ -1312,7 +1290,11 @@ export default {
         const {
           list,
           pageInfo
-        } = (await this.$api.dbViewRow.list('noco', this.$store.getters['project/GtrProjectName'], this.meta.title, this.selectedView.title,
+        } = (await this.$api.dbViewRow.list(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.selectedView.title,
           {
             ...this.queryParams,
             ...(this._isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(this.sortList) }),
@@ -1519,13 +1501,13 @@ export default {
     async exportCache() {
       try {
         const data = (await this.$api.utils.cacheGet())
-        if (!data.length) {
+        if (!data) {
           this.$toast.info('Cache is empty').goAway(3000)
           return
         }
         const blob = new Blob([JSON.stringify(data)], { type: 'text/plain;charset=utf-8' })
         FileSaver.saveAs(blob, 'cache_exported.json')
-        this.$toast.info('Copied Cache to clipboard').goAway(3000)
+        this.$toast.info('Exported Cache Successfully').goAway(3000)
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)
@@ -1534,7 +1516,7 @@ export default {
     async deleteCache() {
       try {
         await this.$api.utils.cacheDelete()
-        this.$toast.info('Deleted Cache').goAway(3000)
+        this.$toast.info('Deleted Cache Successfully').goAway(3000)
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)

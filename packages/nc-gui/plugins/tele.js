@@ -9,31 +9,45 @@ export default function({
 }, inject) {
   let socket
 
-  const init = () => {
-    if (socket) { return }
+  const init = async(token) => {
+    try {
+      if (socket) {
+        socket.disconnect()
+      }
+      const isUrl = $axios.defaults.baseURL.startsWith('http')
+      const url = isUrl ? $axios.defaults.baseURL : window.location.origin
+      const path = isUrl ? undefined : ($axios.defaults.baseURL === '..' ? window.location.pathname.split('/').slice(0, -1).join('/') : $axios.defaults.baseURL)
 
-    socket = io($axios.defaults.baseURL)
-
-    app.router.onReady(() => {
-      app.router.afterEach(function(to, from) {
-        if (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)) {
-          return
-        }
-        socket.emit('page', {
-          id: store.state.users.user && store.state.users.user.id,
-          path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
-        })
+      socket = io(url, {
+        path,
+        extraHeaders: { 'xc-auth': token }
       })
+
+      socket.on('connect_error', () => {
+        socket.disconnect()
+        socket = null
+      })
+    } catch { }
+  }
+
+  app.router.onReady(() => {
+    app.router.afterEach(function(to, from) {
+      if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) {
+        return
+      }
+      socket.emit('page', {
+        id: store.state.users.user && store.state.users.user.id,
+        path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
+      })
+    })
+    if (socket) {
       socket.emit('page', {
         id: store.state.users.user && store.state.users.user.id,
         path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : '')
       })
-    })
+    }
+  })
 
-    // socket.on('connect_error', () => {
-    //   socket.disconnect()
-    // })
-  }
   const tele = {
     emit(evt, data) {
       if (socket) {
@@ -51,11 +65,11 @@ export default function({
 
   function getListener(binding) {
     return function(e) {
+      if (!socket) { return }
       const cat = window.location.hash.replace(/\d+\/(?=dashboard)/, '')
       const event = binding.value && binding.value[0]
       const data = binding.value && binding.value[1]
       const extra = binding.value && binding.value.slice(2)
-
       tele.emit(event,
         {
           cat,
@@ -75,10 +89,17 @@ export default function({
     }
   })
 
-  store.watch(state => state.project.projectInfo && state.project.projectInfo.teleEnabled, (value) => {
-    if (value) { init() }
+  store.watch(state => state.project.projectInfo && state.project.projectInfo.teleEnabled && state.users.token, (token) => {
+    if (token) {
+      init(token).then(() => {})
+    } else if (socket) {
+      socket.disconnect()
+      socket = null
+    }
   })
-  if (store.state.project.projectInfo && store.state.project.projectInfo.teleEnabled) { init() }
+  if (store.state.project.projectInfo && store.state.project.projectInfo.teleEnabled && store.state.users.token) {
+    init(store.state.users.token).then(() => {})
+  }
 }
 
 function gatPath(app) {

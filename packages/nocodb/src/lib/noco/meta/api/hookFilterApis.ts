@@ -108,13 +108,25 @@ export async function filterDelete(req: Request, res: Response, next) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/hooks/:hookId/filters/', ncMetaAclMw(filterList));
-router.post('/hooks/:hookId/filters/', ncMetaAclMw(filterCreate));
-router.get('/hooks/:hookId/filters/:filterId', ncMetaAclMw(filterGet));
-router.put('/hooks/:hookId/filters/:filterId', ncMetaAclMw(filterUpdate));
-router.delete('/hooks/:hookId/filters/:filterId', ncMetaAclMw(filterDelete));
+router.get('/hooks/:hookId/filters/', ncMetaAclMw(filterList, 'filterList'));
+router.post(
+  '/hooks/:hookId/filters/',
+  ncMetaAclMw(filterCreate, 'filterCreate')
+);
+router.get(
+  '/hooks/:hookId/filters/:filterId',
+  ncMetaAclMw(filterGet, 'filterGet')
+);
+router.patch(
+  '/hooks/:hookId/filters/:filterId',
+  ncMetaAclMw(filterUpdate, 'filterUpdate')
+);
+router.delete(
+  '/hooks/:hookId/filters/:filterId',
+  ncMetaAclMw(filterDelete, 'filterDelete')
+);
 router.get(
   '/hooks/:hookId/filters/:filterParentId/children',
-  ncMetaAclMw(filterChildrenRead)
+  ncMetaAclMw(filterChildrenRead, 'filterChildrenRead')
 );
 export default router;

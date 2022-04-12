@@ -388,7 +388,7 @@ export default class Filter {
     await deleteRecursively(filter);
   }
 
-  private static async get(id: string, ncMeta = Noco.ncMeta) {
+  public static async get(id: string, ncMeta = Noco.ncMeta) {
     let filterObj =
       id &&
       (await NocoCache.get(

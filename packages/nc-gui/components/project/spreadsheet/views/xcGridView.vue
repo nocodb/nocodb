@@ -34,14 +34,14 @@
           </th>
           <th
             v-for="(col) in availableColumns"
-            v-show="showFields[col.alias]"
-            :key="col.alias"
+            v-show="showFields[col.title]"
+            :key="col.title"
             v-xc-ver-resize
             class="grey-border caption font-wight-regular  nc-grid-header-cell"
             :class="$store.state.windows.darkTheme ? 'grey darken-3 grey--text text--lighten-1' : 'grey lighten-4  grey--text text--darken-2'"
-            :data-col="col.alias"
+            :data-col="col.title"
             @xcresize="onresize(col.id,$event), log('xcresize')"
-            @xcresizing="onXcResizing(col.alias,$event)"
+            @xcresizing="onXcResizing(col.title,$event)"
             @xcresized="resizingCol = null"
           >
             <!--            :style="columnsWidth[col.title]  ? `min-width:${columnsWidth[col.title]}; max-width:${columnsWidth[col.title]}` : ''"
@@ -170,8 +170,8 @@
           </td>
           <td
             v-for="(columnObj,col) in availableColumns"
-            v-show="showFields[columnObj.alias]"
-            :key="row + columnObj.alias"
+            v-show="showFields[columnObj.title]"
+            :key="row + columnObj.title"
             class="cell pointer nc-grid-cell"
             :class="{
               'active' :!isPublicView && selected.col === col && selected.row === row && isEditable ,
@@ -179,7 +179,7 @@
               'text-center': isCentrallyAligned(columnObj),
               'required': isRequired(columnObj,rowObj)
             }"
-            :data-col="columnObj.alias"
+            :data-col="columnObj.title"
             @dblclick="makeEditable(col,row,columnObj.ai,rowMeta)"
             @click="makeSelected(col,row);"
             @contextmenu="showRowContextMenu($event,rowObj,rowMeta,row,col, columnObj)"
@@ -392,7 +392,7 @@ export default {
         const val = (this.gridViewCols && this.gridViewCols[c.id] && this.gridViewCols[c.id].width) || '200px'
 
         if (val && c.key !== this.resizingCol) {
-          style += `[data-col="${c.alias}"]{min-width:${val};max-width:${val};width: ${val};}`
+          style += `[data-col="${c.title}"]{min-width:${val};max-width:${val};width: ${val};}`
         }
       }
 
@@ -658,9 +658,6 @@ export default {
       if (this.selected.row > 0) {
         this.selected.row--
       }
-    },
-    addNewRelationTab(...args) {
-      this.$emit('addNewRelationTab', ...args)
     },
     makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {

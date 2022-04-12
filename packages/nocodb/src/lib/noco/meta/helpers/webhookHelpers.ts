@@ -185,7 +185,7 @@ export function axiosRequestMake(_apiMeta, apiReq, data) {
 
 export async function invokeWebhook(
   hook: Hook,
-  model: Model,
+  _model: Model,
   data,
   user,
   testFilters = null
@@ -198,9 +198,6 @@ export async function invokeWebhook(
       typeof hook.notification === 'string'
         ? JSON.parse(hook.notification)
         : hook.notification;
-
-    console.log('Hook handler ::::' + model.table_name + ':: Hook ::', hook);
-    console.log('Hook handler ::::' + model.table_name + ':: Data ::', data);
 
     if (hook.condition) {
       if (

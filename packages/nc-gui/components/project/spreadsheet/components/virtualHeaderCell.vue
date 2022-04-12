@@ -235,7 +235,7 @@ export default {
   methods: {
     async deleteColumn() {
       try {
-        await this.$api.dbTableColumn.delete(this.meta.id, this.column.id)
+        await this.$api.dbTableColumn.delete(this.column.id)
         this.$emit('saved')
         this.columnDeleteDialog = false
       } catch (e) {

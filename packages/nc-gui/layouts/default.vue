@@ -33,7 +33,7 @@
             }})</span>
           </v-tooltip>
 
-          <span class="body-1 ml-n2" @click="$router.push('/projects')"> {{ brandName }}</span>
+          <span class="body-1 ml-n1" @click="$router.push('/projects')"> {{ brandName }}</span>
         </v-toolbar-title>
 
         <!--        <v-toolbar-items  />-->
@@ -657,7 +657,7 @@ export default {
     },
     async copyProjectInfo() {
       try {
-        const data = (await this.$api.project.metaGet(this.$store.state.project.projectId))// await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'ncProjectInfo'])
+        const data = (await this.$api.project.metaGet(this.$store.state.project.projectId))
         copyTextToClipboard(Object.entries(data).map(([k, v]) => `${k}: **${v}**`).join('\n'))
         this.$toast.info('Copied project info to clipboard').goAway(3000)
       } catch (e) {

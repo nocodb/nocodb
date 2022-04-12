@@ -34,6 +34,12 @@ export interface UserType {
   createDate?: string;
 }
 
+export interface PageReqQueryParamsType {
+  offset?: number;
+  limit?: number;
+  query?: string;
+}
+
 export interface UserListType {
   users: { list: UserType; pageInfo: PaginatedType };
 }
@@ -948,27 +954,6 @@ export class Api<
      * No description
      *
      * @tags Auth
-     * @name TokenVerify
-     * @summary Password Verify
-     * @request POST:/auth/token/verify
-     * @response `200` `void` OK
-     */
-    tokenVerify: (
-      data: { token?: string; email?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/auth/token/verify`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Auth
      * @name TokenRefresh
      * @summary Refresh Token
      * @request POST:/auth/token/refresh
@@ -987,7 +972,7 @@ export class Api<
      * @tags Auth
      * @name ProjectUserList
      * @summary Project Users
-     * @request GET:/projects/{projectId}/users
+     * @request GET:/api/v1/db/meta/projects/{projectId}/users
      * @response `200` `{ users?: { list: (UserType)[], pageInfo: PaginatedType } }` OK
      */
     projectUserList: (projectId: string, params: RequestParams = {}) =>
@@ -995,7 +980,7 @@ export class Api<
         { users?: { list: UserType[]; pageInfo: PaginatedType } },
         any
       >({
-        path: `/projects/${projectId}/users`,
+        path: `/api/v1/db/meta/projects/${projectId}/users`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1007,7 +992,7 @@ export class Api<
      * @tags Auth
      * @name ProjectUserAdd
      * @summary Project User Add
-     * @request POST:/projects/{projectId}/users
+     * @request POST:/api/v1/db/meta/projects/{projectId}/users
      * @response `200` `any` OK
      */
     projectUserAdd: (
@@ -1016,7 +1001,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/projects/${projectId}/users`,
+        path: `/api/v1/db/meta/projects/${projectId}/users`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1030,7 +1015,7 @@ export class Api<
      * @tags Auth
      * @name ProjectUserUpdate
      * @summary Project User Update
-     * @request PUT:/projects/{projectId}/users/{userId}
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}/users/{userId}
      * @response `200` `any` OK
      */
     projectUserUpdate: (
@@ -1040,8 +1025,8 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/projects/${projectId}/users/${userId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -1054,7 +1039,7 @@ export class Api<
      * @tags Auth
      * @name ProjectUserRemove
      * @summary Project User Remove
-     * @request DELETE:/projects/{projectId}/users/{userId}
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/users/{userId}
      * @response `200` `any` OK
      */
     projectUserRemove: (
@@ -1063,7 +1048,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/projects/${projectId}/users/${userId}`,
+        path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -1076,7 +1061,7 @@ export class Api<
      * @tags Project
      * @name MetaGet
      * @summary Project Info
-     * @request GET:/projects/{projectId}/info
+     * @request GET:/api/v1/db/meta/projects/{projectId}/info
      * @response `200` `{ Node?: string, Arch?: string, Platform?: string, Docker?: boolean, Database?: string, ProjectOnRootDB?: string, RootDB?: string, PackageVersion?: string }` OK
      */
     metaGet: (projectId: string, params: RequestParams = {}) =>
@@ -1093,7 +1078,7 @@ export class Api<
         },
         any
       >({
-        path: `/projects/${projectId}/info`,
+        path: `/api/v1/db/meta/projects/${projectId}/info`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1105,7 +1090,7 @@ export class Api<
      * @tags Project
      * @name ModelVisibilityList
      * @summary UI ACL
-     * @request GET:/projects/{projectId}/modelVisibility
+     * @request GET:/api/v1/db/meta/projects/{projectId}/visibility-rules
      * @response `200` `(any)[]` OK
      */
     modelVisibilityList: (
@@ -1114,7 +1099,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any[], any>({
-        path: `/projects/${projectId}/modelVisibility`,
+        path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -1126,7 +1111,7 @@ export class Api<
      *
      * @tags Project
      * @name ModelVisibilitySet
-     * @request POST:/projects/{projectId}/modelVisibility
+     * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
      * @response `200` `any` OK
      */
     modelVisibilitySet: (
@@ -1135,7 +1120,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/projects/${projectId}/modelVisibility`,
+        path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1148,7 +1133,7 @@ export class Api<
      *
      * @tags Project
      * @name List
-     * @request GET:/projects/
+     * @request GET:/api/v1/db/meta/projects/
      * @response `201` `ProjectListType`
      */
     list: (
@@ -1156,7 +1141,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<ProjectListType, any>({
-        path: `/projects/`,
+        path: `/api/v1/db/meta/projects/`,
         method: 'GET',
         query: query,
         ...params,
@@ -1167,7 +1152,7 @@ export class Api<
      *
      * @tags Project
      * @name Create
-     * @request POST:/projects/
+     * @request POST:/api/v1/db/meta/projects/
      * @response `200` `ProjectType` OK
      */
     create: (
@@ -1175,7 +1160,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<ProjectType, any>({
-        path: `/projects/`,
+        path: `/api/v1/db/meta/projects/`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1188,12 +1173,12 @@ export class Api<
      *
      * @tags Project
      * @name Read
-     * @request GET:/projects/{projectId}
+     * @request GET:/api/v1/db/meta/projects/{projectId}
      * @response `200` `object` OK
      */
     read: (projectId: string, params: RequestParams = {}) =>
       this.request<object, any>({
-        path: `/projects/${projectId}`,
+        path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1204,12 +1189,12 @@ export class Api<
      *
      * @tags Project
      * @name Delete
-     * @request DELETE:/projects/{projectId}
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}
      * @response `200` `void` OK
      */
     delete: (projectId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/projects/${projectId}`,
+        path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -1219,12 +1204,12 @@ export class Api<
      *
      * @tags Project
      * @name SharedBaseGet
-     * @request GET:/projects/{projectId}/sharedBase
+     * @request GET:/api/v1/db/meta/projects/{projectId}/shared
      * @response `200` `{ uuid?: string, url?: string }` OK
      */
     sharedBaseGet: (projectId: string, params: RequestParams = {}) =>
       this.request<{ uuid?: string; url?: string }, any>({
-        path: `/projects/${projectId}/sharedBase`,
+        path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1235,12 +1220,12 @@ export class Api<
      *
      * @tags Project
      * @name SharedBaseDisable
-     * @request DELETE:/projects/{projectId}/sharedBase
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/shared
      * @response `200` `void` OK
      */
     sharedBaseDisable: (projectId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/projects/${projectId}/sharedBase`,
+        path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'DELETE',
         ...params,
       }),
@@ -1250,7 +1235,7 @@ export class Api<
      *
      * @tags Project
      * @name SharedBaseCreate
-     * @request POST:/projects/{projectId}/sharedBase
+     * @request POST:/api/v1/db/meta/projects/{projectId}/shared
      * @response `200` `{ url?: string, uuid?: string }` OK
      */
     sharedBaseCreate: (
@@ -1259,7 +1244,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ url?: string; uuid?: string }, any>({
-        path: `/projects/${projectId}/sharedBase`,
+        path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1272,7 +1257,7 @@ export class Api<
      *
      * @tags Project
      * @name SharedBaseUpdate
-     * @request PUT:/projects/{projectId}/sharedBase
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}/shared
      * @response `200` `void` OK
      */
     sharedBaseUpdate: (
@@ -1281,8 +1266,8 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/projects/${projectId}/sharedBase`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/projects/${projectId}/shared`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         ...params,
@@ -1293,12 +1278,12 @@ export class Api<
      *
      * @tags Project
      * @name MetaDiffSync
-     * @request POST:/projects/{projectId}/metaDiff
+     * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff
      * @response `200` `any` OK
      */
     metaDiffSync: (projectId: string, params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/projects/${projectId}/metaDiff`,
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -1309,12 +1294,12 @@ export class Api<
      *
      * @tags Project
      * @name MetaDiffGet
-     * @request GET:/projects/{projectId}/metaDiff
+     * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff
      * @response `200` `any` OK
      */
     metaDiffGet: (projectId: string, params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/projects/${projectId}/metaDiff`,
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1325,7 +1310,7 @@ export class Api<
      *
      * @tags Project
      * @name AuditList
-     * @request GET:project/{projectId}/audits
+     * @request GET:/api/v1/db/meta/project/{projectId}/audits
      * @response `200` `{ list: (AuditType)[], pageInfo: PaginatedType }` OK
      */
     auditList: (
@@ -1334,48 +1319,30 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ list: AuditType[]; pageInfo: PaginatedType }, any>({
-        path: `project/${projectId}/audits`,
+        path: `/api/v1/db/meta/project/${projectId}/audits`,
         method: 'GET',
         query: query,
         format: 'json',
         ...params,
       }),
   };
-  public = {
-    /**
-     * @description Read project details
-     *
-     * @tags Public
-     * @name SharedBaseGet
-     * @request GET:/public/sharedBase/{sharedBaseUuid}
-     * @response `200` `{ project_id?: string }` OK
-     */
-    sharedBaseGet: (sharedBaseUuid: string, params: RequestParams = {}) =>
-      this.request<{ project_id?: string }, any>({
-        path: `/public/sharedBase/${sharedBaseUuid}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
+  dbTable = {
     /**
      * No description
      *
-     * @tags Public
-     * @name DataList
-     * @request POST:/public/data/{uuid}/list
-     * @response `200` `any` OK
+     * @tags DB Table
+     * @name Create
+     * @request POST:/api/v1/db/meta/projects/{projectId}/tables
+     * @response `200` `TableType` OK
      */
-    dataList: (
-      uuid: string,
-      data: { password?: string; sorts?: SortType[]; filters?: FilterType[] },
-      query?: { limit?: string; offset?: string },
+    create: (
+      projectId: string,
+      data: TableReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
-        path: `/public/data/${uuid}/list`,
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/tables`,
         method: 'POST',
-        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -1385,115 +1352,142 @@ export class Api<
     /**
      * No description
      *
-     * @tags Public
-     * @name DataNestedList
-     * @request GET:/public/data/{uuid}/{rowId}/{relationType}/{columnId}
+     * @tags DB Table
+     * @name List
+     * @request GET:/api/v1/db/meta/projects/{projectId}/tables
+     * @response `200` `TableListType`
+     */
+    list: (
+      projectId: string,
+      query?: {
+        page?: number;
+        pageSize?: number;
+        sort?: string;
+        includeM2M?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableListType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/tables`,
+        method: 'GET',
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table
+     * @name Read
+     * @request GET:/api/v1/db/meta/tables/{tableId}
+     * @response `200` `TableInfoType` OK
+     */
+    read: (tableId: string, params: RequestParams = {}) =>
+      this.request<TableInfoType, any>({
+        path: `/api/v1/db/meta/tables/${tableId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table
+     * @name Update
+     * @request PATCH:/api/v1/db/meta/tables/{tableId}
      * @response `200` `any` OK
      */
-    dataNestedList: (
-      uuid: string,
-      rowId: string,
-      relationType: 'mm' | 'hm',
+    update: (
+      tableId: string,
+      data: { title?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/tables/${tableId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table
+     * @name Delete
+     * @request DELETE:/api/v1/db/meta/tables/{tableId}
+     * @response `200` `void` OK
+     */
+    delete: (tableId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/tables/${tableId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table
+     * @name Reorder
+     * @request POST:/api/v1/db/meta/tables/{tableId}/reorder
+     * @response `200` `void` OK
+     */
+    reorder: (
+      tableId: string,
+      data: { order?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/reorder`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  dbTableColumn = {
+    /**
+     * No description
+     *
+     * @tags DB Table column
+     * @name Create
+     * @summary Column create
+     * @request POST:/api/v1/db/meta/tables/{tableId}/columns
+     * @response `200` `void` OK
+     */
+    create: (
+      tableId: string,
+      data: ColumnReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/columns`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table column
+     * @name Update
+     * @summary Column Update
+     * @request PATCH:/api/v1/db/meta/columns/{columnId}
+     * @response `200` `ColumnType` OK
+     */
+    update: (
       columnId: string,
-      query?: { limit?: string; offset?: string },
+      data: ColumnReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
-        path: `/public/data/${uuid}/${rowId}/${relationType}/${columnId}`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name DataNestedExcludedList
-     * @request GET:/public/data/{uuid}/{rowId}/{relationType}/{columnId}/exclude
-     * @response `200` `any` OK
-     */
-    dataNestedExcludedList: (
-      uuid: string,
-      rowId: string,
-      relationType: 'mm' | 'hm',
-      columnId: string,
-      query?: { limit?: string; offset?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/public/data/${uuid}/${rowId}/${relationType}/${columnId}/exclude`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name DataCreate
-     * @request POST:/public/data/{uuid}/create
-     * @response `200` `any` OK
-     */
-    dataCreate: (
-      uuid: string,
-      data: { data?: any; password?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/public/data/${uuid}/create`,
-        method: 'POST',
-        body: data,
-        type: ContentType.FormData,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name CsvExport
-     * @request POST:/public/data/{uuid}/export/{type}
-     * @response `200` `any` OK
-     */
-    csvExport: (
-      uuid: string,
-      type: 'csv' | 'excel',
-      data: { password?: string; filters?: FilterType[]; sorts?: SortType[] },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/public/data/${uuid}/export/${type}`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name DataRelationList
-     * @request POST:/public/data/{uuid}/relationTable/{relationColumnId}
-     * @response `200` `any` OK
-     */
-    dataRelationList: (
-      uuid: string,
-      relationColumnId: string,
-      data: { password?: string },
-      query?: { limit?: string; offset?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/public/data/${uuid}/relationTable/${relationColumnId}`,
-        method: 'POST',
-        query: query,
+      this.request<ColumnType, any>({
+        path: `/api/v1/db/meta/columns/${columnId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -1503,22 +1497,30 @@ export class Api<
     /**
      * No description
      *
-     * @tags Public
-     * @name SharedViewMetaGet
-     * @request POST:/public/meta/{uuid}
-     * @response `200` `object` OK
+     * @tags DB Table column
+     * @name Delete
+     * @request DELETE:/api/v1/db/meta/columns/{columnId}
+     * @response `200` `void` OK
      */
-    sharedViewMetaGet: (
-      uuid: string,
-      data: { password?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<object, any>({
-        path: `/public/meta/${uuid}`,
+    delete: (columnId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/columns/${columnId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table column
+     * @name PrimaryColumnSet
+     * @request POST:/api/v1/db/meta/columns/{columnId}/primary
+     * @response `200` `void` OK
+     */
+    primaryColumnSet: (columnId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/columns/${columnId}/primary`,
         method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
   };
@@ -1527,21 +1529,14 @@ export class Api<
      * No description
      *
      * @tags DB View
-     * @name Upload
-     * @summary Attachment
-     * @request POST:/projects/{projectId}/views/{viewId}/upload
+     * @name List
+     * @request GET:/api/v1/db/meta/tables/{tableId}/views
+     * @response `200` `ViewListType`
      */
-    upload: (
-      projectId: string,
-      viewId: string,
-      data: { files?: any; json?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/projects/${projectId}/views/${viewId}/upload`,
-        method: 'POST',
-        body: data,
-        type: ContentType.FormData,
+    list: (tableId: string, params: RequestParams = {}) =>
+      this.request<ViewListType, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/views`,
+        method: 'GET',
         ...params,
       }),
 
@@ -1550,7 +1545,7 @@ export class Api<
      *
      * @tags DB View
      * @name Update
-     * @request PUT:/views/{viewId}
+     * @request PATCH:/api/v1/db/meta/views/{viewId}
      * @response `200` `void` OK
      */
     update: (
@@ -1564,8 +1559,8 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/views/${viewId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/views/${viewId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         ...params,
@@ -1576,12 +1571,12 @@ export class Api<
      *
      * @tags DB View
      * @name Delete
-     * @request DELETE:/views/{viewId}
+     * @request DELETE:/api/v1/db/meta/views/{viewId}
      * @response `200` `void` OK
      */
     delete: (viewId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}`,
+        path: `/api/v1/db/meta/views/${viewId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -1591,7 +1586,7 @@ export class Api<
      *
      * @tags DB View
      * @name ShowAllColumn
-     * @request POST:/views/{viewId}/showAll
+     * @request POST:/api/v1/db/meta/views/{viewId}/show-all
      * @response `200` `void` OK
      */
     showAllColumn: (
@@ -1600,7 +1595,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/views/${viewId}/showAll`,
+        path: `/api/v1/db/meta/views/${viewId}/show-all`,
         method: 'POST',
         query: query,
         ...params,
@@ -1611,7 +1606,7 @@ export class Api<
      *
      * @tags DB View
      * @name HideAllColumn
-     * @request POST:/views/{viewId}/hideAll
+     * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
      * @response `200` `void` OK
      */
     hideAllColumn: (
@@ -1620,7 +1615,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/views/${viewId}/hideAll`,
+        path: `/api/v1/db/meta/views/${viewId}/hide-all`,
         method: 'POST',
         query: query,
         ...params,
@@ -1631,12 +1626,12 @@ export class Api<
      *
      * @tags DB View
      * @name GridCreate
-     * @request POST:/tables/{tableId}/grids
+     * @request POST:/api/v1/db/meta/tables/{tableId}/grids
      * @response `200` `GridType` OK
      */
     gridCreate: (tableId: string, data: GridType, params: RequestParams = {}) =>
       this.request<GridType, any>({
-        path: `/tables/${tableId}/grids`,
+        path: `/api/v1/db/meta/tables/${tableId}/grids`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1648,58 +1643,13 @@ export class Api<
      * No description
      *
      * @tags DB View
-     * @name GridUpdate
-     * @request PUT:/tables/{tableId}/grids/{gridId}
-     * @response `200` `void` OK
-     */
-    gridUpdate: (tableId: string, gridId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/grids/${gridId}`,
-        method: 'PUT',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name GridDelete
-     * @request DELETE:/tables/{tableId}/grids/{gridId}
-     * @response `200` `void` OK
-     */
-    gridDelete: (tableId: string, gridId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/grids/${gridId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name GridRead
-     * @request GET:/tables/{tableId}/grids/{gridId}
-     * @response `200` `void` OK
-     */
-    gridRead: (tableId: string, gridId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/grids/${gridId}`,
-        method: 'GET',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
      * @name FormCreate
-     * @request POST:/tables/{tableId}/forms
+     * @request POST:/api/v1/db/meta/tables/{tableId}/forms
      * @response `200` `FormType` OK
      */
     formCreate: (tableId: string, data: FormType, params: RequestParams = {}) =>
       this.request<FormType, any>({
-        path: `/tables/${tableId}/forms`,
+        path: `/api/v1/db/meta/tables/${tableId}/forms`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1712,13 +1662,13 @@ export class Api<
      *
      * @tags DB View
      * @name FormUpdate
-     * @request PUT:/forms/{formId}
+     * @request PATCH:/api/v1/db/meta/forms/{formId}
      * @response `200` `void` OK
      */
     formUpdate: (formId: string, data: FormType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/forms/${formId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/forms/${formId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         ...params,
@@ -1729,12 +1679,12 @@ export class Api<
      *
      * @tags DB View
      * @name FormRead
-     * @request GET:/forms/{formId}
+     * @request GET:/api/v1/db/meta/forms/{formId}
      * @response `200` `FormType` OK
      */
     formRead: (formId: string, params: RequestParams = {}) =>
       this.request<FormType, any>({
-        path: `/forms/${formId}`,
+        path: `/api/v1/db/meta/forms/${formId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1745,17 +1695,17 @@ export class Api<
      *
      * @tags DB View
      * @name FormColumnUpdate
-     * @request PUT:/formColumns/{columnId}
+     * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
      * @response `200` `any` OK
      */
     formColumnUpdate: (
-      columnId: string,
+      formViewColumnId: string,
       data: FormColumnType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/formColumns/${columnId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -1767,12 +1717,12 @@ export class Api<
      *
      * @tags DB View
      * @name GridColumnsList
-     * @request GET:/grid/{gidId}/gridColumns
+     * @request GET:/api/v1/db/meta/grids/{gridId}/grid-columns
      * @response `200` `(GridColumnType)[]` OK
      */
-    gridColumnsList: (gidId: string, params: RequestParams = {}) =>
+    gridColumnsList: (gridId: string, params: RequestParams = {}) =>
       this.request<GridColumnType[], any>({
-        path: `/grid/${gidId}/gridColumns`,
+        path: `/api/v1/db/meta/grids/${gridId}/grid-columns`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1783,7 +1733,7 @@ export class Api<
      *
      * @tags DB View
      * @name GridColumnUpdate
-     * @request PUT:/gridColumns/{columnId}
+     * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
      * @response `200` `any` OK
      */
     gridColumnUpdate: (
@@ -1792,8 +1742,8 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/gridColumns/${columnId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/grid-columns/${columnId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -1805,7 +1755,7 @@ export class Api<
      *
      * @tags DB View
      * @name GalleryCreate
-     * @request POST:/tables/{tableId}/galleries
+     * @request POST:/api/v1/db/meta/tables/{tableId}/galleries
      * @response `200` `object` OK
      */
     galleryCreate: (
@@ -1814,7 +1764,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
-        path: `/tables/${tableId}/galleries`,
+        path: `/api/v1/db/meta/tables/${tableId}/galleries`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1827,7 +1777,7 @@ export class Api<
      *
      * @tags DB View
      * @name GalleryUpdate
-     * @request PUT:/galleries/{galleryId}
+     * @request PATCH:/api/v1/db/meta/galleries/{galleryId}
      * @response `200` `void` OK
      */
     galleryUpdate: (
@@ -1836,25 +1786,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/galleries/${galleryId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/galleries/${galleryId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name GalleryDelete
-     * @request DELETE:/galleries/{galleryId}
-     * @response `200` `void` OK
-     */
-    galleryDelete: (galleryId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/galleries/${galleryId}`,
-        method: 'DELETE',
         ...params,
       }),
 
@@ -1863,280 +1798,30 @@ export class Api<
      *
      * @tags DB View
      * @name GalleryRead
-     * @request GET:/galleries/{galleryId}
+     * @request GET:/api/v1/db/meta/galleries/{galleryId}
      * @response `200` `GalleryType` OK
      */
     galleryRead: (galleryId: string, params: RequestParams = {}) =>
       this.request<GalleryType, any>({
-        path: `/galleries/${galleryId}`,
+        path: `/api/v1/db/meta/galleries/${galleryId}`,
         method: 'GET',
         format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanCreate
-     * @request POST:/tables/{tableId}/kanbans
-     * @response `200` `void` OK
-     */
-    kanbanCreate: (tableId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans`,
-        method: 'POST',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanUpdate
-     * @request PUT:/tables/{tableId}/kanbans/{kanbanId}
-     * @response `200` `void` OK
-     */
-    kanbanUpdate: (
-      tableId: string,
-      kanbanId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans/${kanbanId}`,
-        method: 'PUT',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanDelete
-     * @request DELETE:/tables/{tableId}/kanbans/{kanbanId}
-     * @response `200` `void` OK
-     */
-    kanbanDelete: (
-      tableId: string,
-      kanbanId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans/${kanbanId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name KanbanRead
-     * @request GET:/tables/{tableId}/kanbans/{kanbanId}
-     * @response `200` `void` OK
-     */
-    kanbanRead: (
-      tableId: string,
-      kanbanId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/kanbans/${kanbanId}`,
-        method: 'GET',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name List
-     * @request GET:/tables/{tableId}/views
-     * @response `200` `ViewListType`
-     */
-    list: (tableId: string, params: RequestParams = {}) =>
-      this.request<ViewListType, any>({
-        path: `/tables/${tableId}/views`,
-        method: 'GET',
         ...params,
       }),
   };
-  dbTable = {
+  dbViewShare = {
     /**
      * No description
      *
-     * @tags DB Table
-     * @name Create
-     * @request POST:/projects/{projectId}/{baseId}/tables
-     * @response `200` `TableType` OK
-     */
-    create: (
-      projectId: string,
-      baseId: string,
-      data: TableReqType,
-      params: RequestParams = {}
-    ) =>
-      this.request<TableType, any>({
-        path: `/projects/${projectId}/${baseId}/tables`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table
+     * @tags DB View Share
      * @name List
-     * @request GET:/projects/{projectId}/{baseId}/tables
-     * @response `200` `TableListType`
-     */
-    list: (
-      projectId: string,
-      baseId: string,
-      query?: {
-        page?: number;
-        pageSize?: number;
-        sort?: string;
-        includeM2M?: boolean;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<TableListType, any>({
-        path: `/projects/${projectId}/${baseId}/tables`,
-        method: 'GET',
-        query: query,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table
-     * @name Read
-     * @request GET:/tables/{tableId}
-     * @response `200` `TableInfoType` OK
-     */
-    read: (tableId: string, params: RequestParams = {}) =>
-      this.request<TableInfoType, any>({
-        path: `/tables/${tableId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table
-     * @name Update
-     * @request PUT:/tables/{tableId}
-     * @response `200` `any` OK
-     */
-    update: (
-      tableId: string,
-      data: { title?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/tables/${tableId}`,
-        method: 'PUT',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table
-     * @name Delete
-     * @request DELETE:/tables/{tableId}
-     * @response `200` `void` OK
-     */
-    delete: (tableId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table
-     * @name Reorder
-     * @request POST:/tables/{tableId}/reorder
-     * @response `200` `void` OK
-     */
-    reorder: (
-      tableId: string,
-      data: { order?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/reorder`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
-  dbTableColumn = {
-    /**
-     * @description Read project details
-     *
-     * @tags DB Table column
-     * @name List
-     * @summary Column List
-     * @request GET:/tables/{tableId}/columns
-     * @response `200` `ColumnListType`
-     * @response `201` `ColumnType` Created
+     * @summary Shared view list
+     * @request GET:/api/v1/db/meta/tables/{tableId}/share
+     * @response `200` `(any)[]` OK
      */
     list: (tableId: string, params: RequestParams = {}) =>
-      this.request<ColumnListType, any>({
-        path: `/tables/${tableId}/columns`,
-        method: 'GET',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table column
-     * @name Create
-     * @summary Column create
-     * @request POST:/tables/{tableId}/columns
-     * @response `200` `void` OK
-     */
-    create: (
-      tableId: string,
-      data: ColumnReqType,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/columns`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Read project details
-     *
-     * @tags DB Table column
-     * @name Read
-     * @summary Column Read
-     * @request GET:/tables/{tableId}/columns/{columnId}
-     * @response `200` `ColumnType` OK
-     */
-    read: (tableId: string, columnId: string, params: RequestParams = {}) =>
-      this.request<ColumnType, any>({
-        path: `/tables/${tableId}/columns/${columnId}`,
+      this.request<any[], any>({
+        path: `/api/v1/db/meta/tables/${tableId}/share`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -2145,21 +1830,35 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table column
+     * @tags DB View Share
+     * @name Create
+     * @request POST:/api/v1/db/meta/views/{viewId}/share
+     * @response `200` `{ uuid?: string }` OK
+     */
+    create: (viewId: string, params: RequestParams = {}) =>
+      this.request<{ uuid?: string }, any>({
+        path: `/api/v1/db/meta/views/${viewId}/share`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View Share
      * @name Update
-     * @summary Column Update
-     * @request PUT:/tables/{tableId}/columns/{columnId}
-     * @response `200` `ColumnType` OK
+     * @request PATCH:/api/v1/db/meta/views/{viewId}/share
+     * @response `200` `SharedViewType` OK
      */
     update: (
-      tableId: string,
-      columnId: string,
-      data: ColumnReqType,
+      viewId: string,
+      data: { password?: string },
       params: RequestParams = {}
     ) =>
-      this.request<ColumnType, any>({
-        path: `/tables/${tableId}/columns/${columnId}`,
-        method: 'PUT',
+      this.request<SharedViewType, any>({
+        path: `/api/v1/db/meta/views/${viewId}/share`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2169,34 +1868,15 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table column
+     * @tags DB View Share
      * @name Delete
-     * @request DELETE:/tables/{tableId}/columns/{columnId}
+     * @request DELETE:/api/v1/db/meta/views/{viewId}/share
      * @response `200` `void` OK
      */
-    delete: (tableId: string, columnId: string, params: RequestParams = {}) =>
+    delete: (viewId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/tables/${tableId}/columns/${columnId}`,
+        path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table column
-     * @name PrimaryColumnSet
-     * @request POST:/tables/{tableId}/columns/{columnId}/primary
-     * @response `200` `void` OK
-     */
-    primaryColumnSet: (
-      tableId: string,
-      columnId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/tables/${tableId}/columns/${columnId}/primary`,
-        method: 'POST',
         ...params,
       }),
   };
@@ -2206,11 +1886,11 @@ export class Api<
      *
      * @tags DB View Column
      * @name List
-     * @request GET:/views/{viewId}/columns
+     * @request GET:/api/v1/db/meta/views/{viewId}/columns
      */
     list: (viewId: string, params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/views/${viewId}/columns`,
+        path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'GET',
         ...params,
       }),
@@ -2220,12 +1900,12 @@ export class Api<
      *
      * @tags DB View Column
      * @name Create
-     * @request POST:/views/{viewId}/columns
+     * @request POST:/api/v1/db/meta/views/{viewId}/columns
      * @response `200` `void` OK
      */
     create: (viewId: string, data: any, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}/columns`,
+        path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -2236,24 +1916,8 @@ export class Api<
      * No description
      *
      * @tags DB View Column
-     * @name Read
-     * @request GET:/views/{viewId}/columns/{columnId}
-     * @response `200` `any` OK
-     */
-    read: (viewId: string, columnId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/views/${viewId}/columns/${columnId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View Column
      * @name Update
-     * @request PUT:/views/{viewId}/columns/{columnId}
+     * @request PATCH:/api/v1/db/meta/views/{viewId}/columns/{columnId}
      * @response `200` `void` OK
      */
     update: (
@@ -2263,80 +1927,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/views/${viewId}/columns/${columnId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/views/${viewId}/columns/${columnId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        ...params,
-      }),
-  };
-  dbViewShare = {
-    /**
-     * No description
-     *
-     * @tags DB View Share
-     * @name Create
-     * @request POST:/views/{viewId}/share
-     * @response `200` `{ uuid?: string }` OK
-     */
-    create: (viewId: string, params: RequestParams = {}) =>
-      this.request<{ uuid?: string }, any>({
-        path: `/views/${viewId}/share`,
-        method: 'POST',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View Share
-     * @name Update
-     * @request PUT:/views/{viewId}/share
-     * @response `200` `SharedViewType` OK
-     */
-    update: (
-      viewId: string,
-      data: { password?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<SharedViewType, any>({
-        path: `/views/${viewId}/share`,
-        method: 'PUT',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View Share
-     * @name Delete
-     * @request DELETE:/views/{viewId}/share
-     * @response `200` `void` OK
-     */
-    delete: (viewId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/views/${viewId}/share`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View Share
-     * @name List
-     * @request GET:/tables/{viewId}/share
-     * @response `200` `(any)[]` OK
-     */
-    list: (viewId: string, params: RequestParams = {}) =>
-      this.request<any[], any>({
-        path: `/tables/${viewId}/share`,
-        method: 'GET',
-        format: 'json',
         ...params,
       }),
   };
@@ -2346,12 +1940,12 @@ export class Api<
      *
      * @tags DB Table Sort
      * @name List
-     * @request GET:/views/{viewId}/sorts
+     * @request GET:/api/v1/db/meta/views/{viewId}/sorts
      * @response `200` `{ uuid?: string, url?: string }` OK
      */
     list: (viewId: string, params: RequestParams = {}) =>
       this.request<{ uuid?: string; url?: string }, any>({
-        path: `/views/${viewId}/sorts`,
+        path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -2362,12 +1956,12 @@ export class Api<
      *
      * @tags DB Table Sort
      * @name Create
-     * @request POST:/views/{viewId}/sorts
+     * @request POST:/api/v1/db/meta/views/{viewId}/sorts
      * @response `200` `void` OK
      */
     create: (viewId: string, data: SortType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}/sorts`,
+        path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -2379,12 +1973,12 @@ export class Api<
      *
      * @tags DB Table Sort
      * @name Get
-     * @request GET:/views/{viewId}/sorts/{sortId}
+     * @request GET:/api/v1/db/meta/sorts/{sortId}
      * @response `200` `SortType` OK
      */
-    get: (viewId: string, sortId: string, params: RequestParams = {}) =>
+    get: (sortId: string, params: RequestParams = {}) =>
       this.request<SortType, any>({
-        path: `/views/${viewId}/sorts/${sortId}`,
+        path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -2395,18 +1989,13 @@ export class Api<
      *
      * @tags DB Table Sort
      * @name Update
-     * @request PUT:/views/{viewId}/sorts/{sortId}
+     * @request PATCH:/api/v1/db/meta/sorts/{sortId}
      * @response `200` `void` OK
      */
-    update: (
-      viewId: string,
-      sortId: string,
-      data: SortType,
-      params: RequestParams = {}
-    ) =>
+    update: (sortId: string, data: SortType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}/sorts/${sortId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/sorts/${sortId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         ...params,
@@ -2417,12 +2006,12 @@ export class Api<
      *
      * @tags DB Table Sort
      * @name Delete
-     * @request DELETE:/views/{viewId}/sorts/{sortId}
+     * @request DELETE:/api/v1/db/meta/sorts/{sortId}
      * @response `200` `void` OK
      */
-    delete: (viewId: string, sortId: string, params: RequestParams = {}) =>
+    delete: (sortId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}/sorts/${sortId}`,
+        path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -2433,12 +2022,12 @@ export class Api<
      *
      * @tags DB Table Filter
      * @name Read
-     * @request GET:/views/{viewId}/filters
+     * @request GET:/api/v1/db/meta/views/{viewId}/filters
      * @response `200` `FilterListType`
      */
     read: (viewId: string, params: RequestParams = {}) =>
       this.request<FilterListType, any>({
-        path: `/views/${viewId}/filters`,
+        path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
         ...params,
       }),
@@ -2448,12 +2037,12 @@ export class Api<
      *
      * @tags DB Table Filter
      * @name Create
-     * @request POST:/views/{viewId}/filters
+     * @request POST:/api/v1/db/meta/views/{viewId}/filters
      * @response `200` `void` OK
      */
     create: (viewId: string, data: FilterType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}/filters`,
+        path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -2465,12 +2054,12 @@ export class Api<
      *
      * @tags DB Table Filter
      * @name Get
-     * @request GET:/views/{viewId}/filters/{filterId}
+     * @request GET:/api/v1/db/meta/filters/{filterId}
      * @response `200` `FilterType` OK
      */
-    get: (viewId: string, filterId: string, params: RequestParams = {}) =>
+    get: (filterId: string, params: RequestParams = {}) =>
       this.request<FilterType, any>({
-        path: `/views/${viewId}/filters/${filterId}`,
+        path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -2481,18 +2070,13 @@ export class Api<
      *
      * @tags DB Table Filter
      * @name Update
-     * @request PUT:/views/{viewId}/filters/{filterId}
+     * @request PATCH:/api/v1/db/meta/filters/{filterId}
      * @response `200` `void` OK
      */
-    update: (
-      viewId: string,
-      filterId: string,
-      data: FilterType,
-      params: RequestParams = {}
-    ) =>
+    update: (filterId: string, data: FilterType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}/filters/${filterId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/filters/${filterId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         ...params,
@@ -2503,12 +2087,12 @@ export class Api<
      *
      * @tags DB Table Filter
      * @name Delete
-     * @request DELETE:/views/{viewId}/filters/{filterId}
+     * @request DELETE:/api/v1/db/meta/filters/{filterId}
      * @response `200` `void` OK
      */
-    delete: (viewId: string, filterId: string, params: RequestParams = {}) =>
+    delete: (filterId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/views/${viewId}/filters/${filterId}`,
+        path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -2518,16 +2102,12 @@ export class Api<
      *
      * @tags DB Table Filter
      * @name ChildrenRead
-     * @request GET:/views/{viewId}/filters/{filterParentId}/children
+     * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
      * @response `200` `FilterType` OK
      */
-    childrenRead: (
-      viewId: string,
-      filterParentId: string,
-      params: RequestParams = {}
-    ) =>
+    childrenRead: (filterGroupId: string, params: RequestParams = {}) =>
       this.request<FilterType, any>({
-        path: `/views/${viewId}/filters/${filterParentId}/children`,
+        path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -2539,12 +2119,12 @@ export class Api<
      *
      * @tags DB Table Webhook Filter
      * @name Read
-     * @request GET:/hooks/{hookId}/filters
+     * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `FilterListType`
      */
     read: (hookId: string, params: RequestParams = {}) =>
       this.request<FilterListType, any>({
-        path: `/hooks/${hookId}/filters`,
+        path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'GET',
         ...params,
       }),
@@ -2554,286 +2134,15 @@ export class Api<
      *
      * @tags DB Table Webhook Filter
      * @name Create
-     * @request POST:/hooks/{hookId}/filters
+     * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `void` OK
      */
     create: (hookId: string, data: FilterType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/hooks/${hookId}/filters`,
+        path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Webhook Filter
-     * @name Get
-     * @request GET:/hooks/{viewId}/filters/{filterId}
-     * @response `200` `FilterType` OK
-     */
-    get: (viewId: string, filterId: string, params: RequestParams = {}) =>
-      this.request<FilterType, any>({
-        path: `/hooks/${viewId}/filters/${filterId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Webhook Filter
-     * @name Update
-     * @request PUT:/hooks/{viewId}/filters/{filterId}
-     * @response `200` `void` OK
-     */
-    update: (
-      viewId: string,
-      filterId: string,
-      data: FilterType,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/hooks/${viewId}/filters/${filterId}`,
-        method: 'PUT',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Webhook Filter
-     * @name Delete
-     * @request DELETE:/hooks/{viewId}/filters/{filterId}
-     * @response `200` `void` OK
-     */
-    delete: (viewId: string, filterId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/hooks/${viewId}/filters/${filterId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Webhook Filter
-     * @name ChildrenRead
-     * @request GET:/hooks/{viewId}/filters/{filterParentId}/children
-     * @response `200` `FilterType` OK
-     */
-    childrenRead: (
-      viewId: string,
-      filterParentId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<FilterType, any>({
-        path: `/hooks/${viewId}/filters/${filterParentId}/children`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-  };
-  data = {
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name List
-     * @request GET:/data/{tableId}
-     * @response `200` `any` OK
-     */
-    list: (tableId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/data/${tableId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name Create
-     * @request POST:/data/{tableId}
-     * @response `200` `any` OK
-     */
-    create: (tableId: string, data: any, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/data/${tableId}`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description CSV or Excel export
-     *
-     * @tags Data
-     * @name CsvExport
-     * @request GET:/data/{tableId}/export/{type}
-     * @response `200` `any` OK
-     */
-    csvExport: (
-      tableId: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/data/${tableId}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name NestedList
-     * @request GET:/data/{tableId}/{rowId}/{relationType}/{colId}
-     * @response `201` `any` Created
-     */
-    nestedList: (
-      tableId: string,
-      rowId: string,
-      colId: string,
-      relationType: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/data/${tableId}/${rowId}/${relationType}/${colId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name NestedExcludedList
-     * @request GET:/data/{tableId}/{rowId}/{relationType}/{colId}/exclude
-     * @response `201` `any` Created
-     */
-    nestedExcludedList: (
-      tableId: string,
-      rowId: string,
-      colId: string,
-      relationType: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/data/${tableId}/${rowId}/${relationType}/${colId}/exclude`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name NestedAdd
-     * @request POST:/data/{tableId}/{rowId}/{relationType}/{colId}/{referenceTableRowId}
-     * @response `201` `any` Created
-     */
-    nestedAdd: (
-      tableId: string,
-      rowId: string,
-      colId: string,
-      relationType: string,
-      referenceTableRowId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/data/${tableId}/${rowId}/${relationType}/${colId}/${referenceTableRowId}`,
-        method: 'POST',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name NestedDelete
-     * @request DELETE:/data/{tableId}/{rowId}/{relationType}/{colId}/{referenceTableRowId}
-     * @response `200` `void` OK
-     */
-    nestedDelete: (
-      tableId: string,
-      rowId: string,
-      colId: string,
-      relationType: string,
-      referenceTableRowId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/data/${tableId}/${rowId}/${relationType}/${colId}/${referenceTableRowId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name Read
-     * @request GET:/data/{tableId}/{rowId}
-     * @response `201` `any` Created
-     */
-    read: (tableId: string, rowId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/data/${tableId}/${rowId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name Update
-     * @request PUT:/data/{tableId}/{rowId}
-     * @response `200` `any` OK
-     */
-    update: (
-      tableId: string,
-      rowId: string,
-      data: any,
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/data/${tableId}/${rowId}`,
-        method: 'PUT',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Data
-     * @name Delete
-     * @request DELETE:/data/{tableId}/{rowId}
-     * @response `200` `void` OK
-     */
-    delete: (tableId: string, rowId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/data/${tableId}/${rowId}`,
-        method: 'DELETE',
         ...params,
       }),
   };
@@ -2843,18 +2152,18 @@ export class Api<
      *
      * @tags DB Table Row
      * @name List
-     * @request GET:/data/{orgs}/{projectName}/{tableAlias}
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
      * @response `200` `any` OK
      */
     list: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       query?: { fields?: any[]; sort?: any[]; where?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2866,18 +2175,18 @@ export class Api<
      *
      * @tags DB Table Row
      * @name Create
-     * @request POST:/data/{orgs}/{projectName}/{tableAlias}
+     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}
      * @response `200` `any` OK
      */
     create: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       data: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -2890,18 +2199,18 @@ export class Api<
      *
      * @tags DB Table Row
      * @name Read
-     * @request GET:/data/{orgs}/{projectName}/{tableAlias}/{rowId}
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
      * @response `201` `any` Created
      */
     read: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       rowId: string,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -2912,20 +2221,20 @@ export class Api<
      *
      * @tags DB Table Row
      * @name Update
-     * @request PUT:/data/{orgs}/{projectName}/{tableAlias}/{rowId}
+     * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
      * @response `200` `any` OK
      */
     update: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       rowId: string,
       data: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/${rowId}`,
-        method: 'PUT',
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2937,18 +2246,18 @@ export class Api<
      *
      * @tags DB Table Row
      * @name ModelDelete
-     * @request DELETE:/data/{orgs}/{projectName}/{tableAlias}/{rowId}
+     * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
      * @response `200` `void` OK
      */
     modelDelete: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       rowId: string,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -2957,19 +2266,273 @@ export class Api<
      * No description
      *
      * @tags DB Table Row
+     * @name BulkCreate
+     * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+     * @response `200` `any` OK
+     */
+    bulkCreate: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Row
+     * @name BulkCreate2
+     * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+     * @originalName bulkCreate
+     * @duplicate
+     * @response `200` `any` OK
+     */
+    bulkCreate2: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Row
+     * @name BulkCreate3
+     * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+     * @originalName bulkCreate
+     * @duplicate
+     * @response `200` `any` OK
+     */
+    bulkCreate3: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
+        method: 'DELETE',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Row
+     * @name Create2
+     * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
+     * @originalName create
+     * @duplicate
+     * @response `200` `any` OK
+     */
+    create2: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Row
+     * @name Create3
+     * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
+     * @originalName create
+     * @duplicate
+     * @response `200` `any` OK
+     */
+    create3: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
+        method: 'DELETE',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description CSV or Excel export
+     *
+     * @tags DB table row
+     * @name CsvExport
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
+     * @response `200` `any` OK
+     */
+    csvExport: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      type: 'csv' | 'excel',
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
+        method: 'GET',
+        wrapped: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedList
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
+     * @response `200` `any` OK
+     */
+    nestedList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedAdd
+     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+     * @response `200` `any` OK
+     */
+    nestedAdd: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      refRowId: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        method: 'POST',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedDelete
+     * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+     * @response `200` `any` OK
+     */
+    nestedDelete: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      refRowId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        method: 'DELETE',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedChildrenExcludedList
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
+     * @response `200` `any` OK
+     */
+    nestedChildrenExcludedList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Row
      * @name BulkDelete
-     * @request DELETE:/bulkData/{orgs}/{projectName}/{tableAlias}/
+     * @request DELETE:/bulkData/{orgs}/{projectName}/{tableName}/
      * @response `200` `void` OK
      */
     bulkDelete: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       data: any[],
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableAlias}/`,
+        path: `/bulkData/${orgs}/${projectName}/${tableName}/`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,
@@ -2981,18 +2544,18 @@ export class Api<
      *
      * @tags DB Table Row
      * @name BulkInsert
-     * @request POST:/bulkData/{orgs}/{projectName}/{tableAlias}/
+     * @request POST:/bulkData/{orgs}/{projectName}/{tableName}/
      * @response `200` `void` OK
      */
     bulkInsert: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       data: any[],
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableAlias}/`,
+        path: `/bulkData/${orgs}/${projectName}/${tableName}/`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3004,18 +2567,18 @@ export class Api<
      *
      * @tags DB Table Row
      * @name BulkUpdate
-     * @request PATCH:/bulkData/{orgs}/{projectName}/{tableAlias}/
+     * @request PATCH:/bulkData/{orgs}/{projectName}/{tableName}/
      * @response `200` `any` OK
      */
     bulkUpdate: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       data: object[],
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableAlias}/`,
+        path: `/bulkData/${orgs}/${projectName}/${tableName}/`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3028,19 +2591,19 @@ export class Api<
      *
      * @tags DB Table Row
      * @name BulkUpdateAll
-     * @request PATCH:/bulkData/{orgs}/{projectName}/{tableAlias}/all
+     * @request PATCH:/bulkData/{orgs}/{projectName}/{tableName}/all
      * @response `200` `any` OK
      */
     bulkUpdateAll: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       data: object,
       query?: { where?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableAlias}/all`,
+        path: `/bulkData/${orgs}/${projectName}/${tableName}/all`,
         method: 'PATCH',
         query: query,
         body: data,
@@ -3054,18 +2617,18 @@ export class Api<
      *
      * @tags DB Table Row
      * @name BulkDeleteAll
-     * @request DELETE:/bulkData/{orgs}/{projectName}/{tableAlias}/all
+     * @request DELETE:/bulkData/{orgs}/{projectName}/{tableName}/all
      * @response `200` `any` OK
      */
     bulkDeleteAll: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       query?: { where?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableAlias}/all`,
+        path: `/bulkData/${orgs}/${projectName}/${tableName}/all`,
         method: 'DELETE',
         query: query,
         format: 'json',
@@ -3078,19 +2641,19 @@ export class Api<
      *
      * @tags DB View Row
      * @name List
-     * @request GET:/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
      * @response `200` `any` OK
      */
     list: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       viewName: string,
       query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/views/${viewName}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3102,19 +2665,19 @@ export class Api<
      *
      * @tags DB View Row
      * @name Create
-     * @request POST:/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}
+     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
      * @response `200` `any` OK
      */
     create: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       viewName: string,
       data: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/views/${viewName}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3151,19 +2714,19 @@ export class Api<
      *
      * @tags DB View Row
      * @name Read
-     * @request GET:/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/{rowId}
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
      * @response `201` `any` Created
      */
     read: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       viewName: string,
       rowId: string,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3174,21 +2737,21 @@ export class Api<
      *
      * @tags DB View Row
      * @name Update
-     * @request PUT:/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/{rowId}
+     * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
      * @response `200` `any` OK
      */
     update: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       viewName: string,
       rowId: string,
       data: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/views/${viewName}/${rowId}`,
-        method: 'PUT',
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -3200,20 +2763,185 @@ export class Api<
      *
      * @tags DB View Row
      * @name Delete
-     * @request DELETE:/data/{orgs}/{projectName}/{tableAlias}/views/{viewName}/{rowId}
+     * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
      * @response `200` `void` OK
      */
     delete: (
       orgs: string,
       projectName: string,
-      tableAlias: string,
+      tableName: string,
       viewName: string,
       rowId: string,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/data/${orgs}/${projectName}/${tableAlias}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description CSV or Excel export
+     *
+     * @tags DB view row
+     * @name Export
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
+     * @response `200` `any` OK
+     */
+    export: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      type: 'csv' | 'excel',
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
+        method: 'GET',
+        wrapped: true,
+        ...params,
+      }),
+  };
+  public = {
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name DataList
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
+     * @response `200` `any` OK
+     */
+    dataList: (
+      sharedViewUuid: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name DataCreate
+     * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
+     * @response `200` `any` OK
+     */
+    dataCreate: (
+      sharedViewUuid: string,
+      data: object,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
+        method: 'POST',
+        body: data,
+        type: ContentType.FormData,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name DataNestedList
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
+     * @response `200` `any` OK
+     */
+    dataNestedList: (
+      sharedViewUuid: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/${rowId}/${relationType}/${columnName}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name CsvExport
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
+     * @response `200` `any` OK
+     */
+    csvExport: (
+      sharedViewUuid: string,
+      type: 'csv' | 'excel',
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
+        method: 'GET',
+        wrapped: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name DataRelationList
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
+     * @response `200` `any` OK
+     */
+    dataRelationList: (
+      sharedViewUuid: string,
+      columnName: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name SharedViewMetaGet
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
+     * @response `200` `object` OK
+     */
+    sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Read project details
+     *
+     * @tags Public
+     * @name SharedBaseGet
+     * @request GET:/api/v1/db/public/shared-base/{sharedBaseUuid}/meta
+     * @response `200` `{ project_id?: string }` OK
+     */
+    sharedBaseGet: (sharedBaseUuid: string, params: RequestParams = {}) =>
+      this.request<{ project_id?: string }, any>({
+        path: `/api/v1/db/public/shared-base/${sharedBaseUuid}/meta`,
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };
@@ -3223,7 +2951,7 @@ export class Api<
      *
      * @tags Utils
      * @name CommentList
-     * @request GET:/audits/comments
+     * @request GET:/api/v1/db/meta/audits/comments
      * @response `201` `any` Created
      */
     commentList: (
@@ -3231,7 +2959,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/audits/comments`,
+        path: `/api/v1/db/meta/audits/comments`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3243,7 +2971,7 @@ export class Api<
      *
      * @tags Utils
      * @name CommentRow
-     * @request POST:/audits/comments
+     * @request POST:/api/v1/db/meta/audits/comments
      * @response `200` `void` OK
      */
     commentRow: (
@@ -3251,7 +2979,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/audits/comments`,
+        path: `/api/v1/db/meta/audits/comments`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3263,7 +2991,7 @@ export class Api<
      *
      * @tags Utils
      * @name CommentCount
-     * @request GET:/audits/comments/count
+     * @request GET:/api/v1/db/meta/audits/comments/count
      * @response `201` `any` Created
      */
     commentCount: (
@@ -3271,7 +2999,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/audits/comments/count`,
+        path: `/api/v1/db/meta/audits/comments/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3283,10 +3011,11 @@ export class Api<
      *
      * @tags Utils
      * @name AuditRowUpdate
-     * @request POST:/audits/rowUpdate
+     * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
      * @response `200` `void` OK
      */
     auditRowUpdate: (
+      rowId: string,
       data: {
         fk_model_id?: string;
         column_name?: string;
@@ -3297,7 +3026,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/audits/rowUpdate`,
+        path: `/api/v1/db/meta/audits/rows/${rowId}/update`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3309,12 +3038,12 @@ export class Api<
      *
      * @tags Utils
      * @name TestConnection
-     * @request POST:/testConnection
+     * @request POST:/api/v1/db/meta/connection/test
      * @response `200` `{ code?: number, message?: string }` OK
      */
     testConnection: (data: any, params: RequestParams = {}) =>
       this.request<{ code?: number; message?: string }, any>({
-        path: `/testConnection`,
+        path: `/api/v1/db/meta/connection/test`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3327,12 +3056,12 @@ export class Api<
      *
      * @tags Utils
      * @name AppInfo
-     * @request GET:/appInfo
+     * @request GET:/api/v1/db/meta/nocodb/info
      * @response `200` `any` OK
      */
     appInfo: (params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/appInfo`,
+        path: `/api/v1/db/meta/nocodb/info`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3344,11 +3073,11 @@ export class Api<
      * @tags Utils
      * @name CacheGet
      * @summary Your GET endpoint
-     * @request GET:/cache
+     * @request GET:/api/v1/db/meta/cache
      */
     cacheGet: (params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/cache`,
+        path: `/api/v1/db/meta/cache`,
         method: 'GET',
         ...params,
       }),
@@ -3358,12 +3087,12 @@ export class Api<
      *
      * @tags Utils
      * @name CacheDelete
-     * @request DELETE:/cache
+     * @request DELETE:/api/v1/db/meta/cache
      * @response `200` `void` OK
      */
     cacheDelete: (params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/cache`,
+        path: `/api/v1/db/meta/cache`,
         method: 'DELETE',
         ...params,
       }),
@@ -3374,12 +3103,12 @@ export class Api<
      *
      * @tags DB Table Webhook
      * @name List
-     * @request GET:/tables/{tableId}/hooks
+     * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
      * @response `200` `{ list: (HookType)[], pageInfo: PaginatedType }` OK
      */
     list: (tableId: string, params: RequestParams = {}) =>
       this.request<{ list: HookType[]; pageInfo: PaginatedType }, any>({
-        path: `/tables/${tableId}/hooks`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3390,12 +3119,12 @@ export class Api<
      *
      * @tags DB Table Webhook
      * @name Create
-     * @request POST:/tables/{tableId}/hooks
+     * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
      * @response `200` `AuditType` OK
      */
     create: (tableId: string, data: AuditType, params: RequestParams = {}) =>
       this.request<AuditType, any>({
-        path: `/tables/${tableId}/hooks`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3408,7 +3137,7 @@ export class Api<
      *
      * @tags DB Table Webhook
      * @name Test
-     * @request POST:/tables/{tableId}/hooks/test
+     * @request POST:/api/v1/db/meta/tables/{tableId}/hooks/test
      * @response `200` `any` OK
      */
     test: (
@@ -3417,7 +3146,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/tables/${tableId}/hooks/test`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/test`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3429,41 +3158,8 @@ export class Api<
      * No description
      *
      * @tags DB Table Webhook
-     * @name Update
-     * @request PUT:/hooks/{hookId}
-     * @response `200` `HookType` OK
-     */
-    update: (hookId: string, data: HookType, params: RequestParams = {}) =>
-      this.request<HookType, any>({
-        path: `/hooks/${hookId}`,
-        method: 'PUT',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Webhook
-     * @name Delete
-     * @request DELETE:/hooks/{hookId}
-     * @response `200` `void` OK
-     */
-    delete: (hookId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/hooks/${hookId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Webhook
      * @name SamplePayloadGet
-     * @request GET:/tables/{tableId}/hooks/samplePayload/{operation}
+     * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
      * @response `200` `{ plugins?: { list: (PluginType)[], pageInfo: PaginatedType } }` OK
      */
     samplePayloadGet: (
@@ -3475,9 +3171,42 @@ export class Api<
         { plugins?: { list: PluginType[]; pageInfo: PaginatedType } },
         any
       >({
-        path: `/tables/${tableId}/hooks/samplePayload/${operation}`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}`,
         method: 'GET',
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Webhook
+     * @name Update
+     * @request PATCH:/api/v1/db/meta/hooks/{hookId}
+     * @response `200` `HookType` OK
+     */
+    update: (hookId: string, data: HookType, params: RequestParams = {}) =>
+      this.request<HookType, any>({
+        path: `/api/v1/db/meta/hooks/${hookId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Webhook
+     * @name Delete
+     * @request DELETE:/api/v1/db/meta/hooks/{hookId}
+     * @response `200` `void` OK
+     */
+    delete: (hookId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/hooks/${hookId}`,
+        method: 'DELETE',
         ...params,
       }),
   };
@@ -3487,12 +3216,12 @@ export class Api<
      *
      * @tags Plugin
      * @name List
-     * @request GET:/plugins
+     * @request GET:/api/v1/db/meta/plugins
      * @response `200` `{ list?: (PluginType)[], pageInfo?: PaginatedType }` OK
      */
     list: (params: RequestParams = {}) =>
       this.request<{ list?: PluginType[]; pageInfo?: PaginatedType }, any>({
-        path: `/plugins`,
+        path: `/api/v1/db/meta/plugins`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3503,12 +3232,12 @@ export class Api<
      *
      * @tags Plugin
      * @name Status
-     * @request GET:/plugins/{pluginTitle}/status
+     * @request GET:/api/v1/db/meta/plugins/{pluginTitle}/status
      * @response `200` `boolean` OK
      */
     status: (pluginTitle: string, params: RequestParams = {}) =>
       this.request<boolean, any>({
-        path: `/plugins/${pluginTitle}/status`,
+        path: `/api/v1/db/meta/plugins/${pluginTitle}/status`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3519,7 +3248,7 @@ export class Api<
      *
      * @tags Plugin
      * @name Test
-     * @request POST:/plugins/test
+     * @request POST:/api/v1/db/meta/plugins/test
      * @response `200` `any` OK
      * @response `400` `void` Bad Request
      * @response `401` `void` Unauthorized
@@ -3529,7 +3258,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, void>({
-        path: `/plugins/test`,
+        path: `/api/v1/db/meta/plugins/test`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3542,13 +3271,13 @@ export class Api<
      *
      * @tags Plugin
      * @name Update
-     * @request PUT:/plugins/{pluginId}
+     * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
      * @response `200` `PluginType` OK
      */
     update: (pluginId: string, data: PluginType, params: RequestParams = {}) =>
       this.request<PluginType, any>({
-        path: `/plugins/${pluginId}`,
-        method: 'PUT',
+        path: `/api/v1/db/meta/plugins/${pluginId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -3560,12 +3289,12 @@ export class Api<
      *
      * @tags Plugin
      * @name Read
-     * @request GET:/plugins/{pluginId}
+     * @request GET:/api/v1/db/meta/plugins/{pluginId}
      * @response `200` `PluginType` OK
      */
     read: (pluginId: string, params: RequestParams = {}) =>
       this.request<PluginType, any>({
-        path: `/plugins/${pluginId}`,
+        path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3578,12 +3307,12 @@ export class Api<
      * @tags Api token
      * @name List
      * @summary Your GET endpoint
-     * @request GET:/projects/{projectId}/apiTokens
+     * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `(ApiTokenType)[]` OK
      */
     list: (projectId: string, params: RequestParams = {}) =>
       this.request<ApiTokenType[], any>({
-        path: `/projects/${projectId}/apiTokens`,
+        path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3594,7 +3323,7 @@ export class Api<
      *
      * @tags Api token
      * @name Create
-     * @request POST:/projects/{projectId}/apiTokens
+     * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `void` OK
      * @response `201` `ApiTokenType` Created
      */
@@ -3604,7 +3333,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/projects/${projectId}/apiTokens`,
+        path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3616,13 +3345,36 @@ export class Api<
      *
      * @tags Api token
      * @name Delete
-     * @request DELETE:/projects/{projectId}/apiTokens/{token}
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}
      * @response `200` `void` OK
      */
     delete: (projectId: string, token: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/projects/${projectId}/apiTokens/${token}`,
+        path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,
         method: 'DELETE',
+        ...params,
+      }),
+  };
+  storage = {
+    /**
+     * No description
+     *
+     * @tags Storage
+     * @name Upload
+     * @summary Attachment
+     * @request POST:/api/v1/db/storage/upload
+     */
+    upload: (
+      query: { path: string },
+      data: { files?: any; json?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/storage/upload`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.FormData,
         ...params,
       }),
   };

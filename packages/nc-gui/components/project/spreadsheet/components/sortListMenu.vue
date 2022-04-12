@@ -148,7 +148,7 @@ export default {
     async saveOrUpdate(sort, i) {
       if (!this.shared && this._isUIAllowed('sortSync')) {
         if (sort.id) {
-          await this.$api.dbTableSort.update(this.viewId, sort.id, sort)
+          await this.$api.dbTableSort.update(sort.id, sort)
         } else {
           this.$set(this.sortList, i, (await this.$api.dbTableSort.create(this.viewId, sort)))
         }
@@ -161,7 +161,7 @@ export default {
     },
     async deleteSort(sort, i) {
       if (!this.shared && sort.id && this._isUIAllowed('sortSync')) {
-        await this.$api.dbTableSort.delete(this.viewId, sort.id)
+        await this.$api.dbTableSort.delete(sort.id)
         await this.loadSortList()
       } else {
         this.sortList.splice(i, 1)

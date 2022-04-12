@@ -89,8 +89,6 @@ export default class Audit implements AuditType {
     if ((args.comments_only as any) == 'true')
       query.where('op_type', AuditOperationTypes.COMMENT);
 
-    console.log(query.toQuery());
-
     const audits = await query;
 
     return audits?.map(a => new Audit(a));

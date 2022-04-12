@@ -183,7 +183,6 @@ export async function tableUpdate(req: Request<any, any>, res) {
 
 export async function tableDelete(req: Request, res: Response, next) {
   try {
-    console.log(req.params);
     const table = await Model.getByIdOrName({ id: req.params.tableId });
     await table.getColumns();
 
@@ -223,10 +222,28 @@ export async function tableDelete(req: Request, res: Response, next) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/projects/:projectId/:baseId/tables', ncMetaAclMw(tableList));
-router.post('/projects/:projectId/:baseId/tables', ncMetaAclMw(tableCreate));
-router.get('/tables/:tableId', ncMetaAclMw(tableGet));
-router.put('/tables/:tableId', ncMetaAclMw(tableUpdate));
-router.delete('/tables/:tableId', ncMetaAclMw(tableDelete));
-router.post('/tables/:tableId/reorder', ncMetaAclMw(tableReorder));
+router.get(
+  '/api/v1/db/meta/projects/:projectId/tables',
+  ncMetaAclMw(tableList, 'tableList')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/tables',
+  ncMetaAclMw(tableCreate, 'tableCreate')
+);
+router.get(
+  '/api/v1/db/meta/tables/:tableId',
+  ncMetaAclMw(tableGet, 'tableGet')
+);
+router.patch(
+  '/api/v1/db/meta/tables/:tableId',
+  ncMetaAclMw(tableUpdate, 'tableUpdate')
+);
+router.delete(
+  '/api/v1/db/meta/tables/:tableId',
+  ncMetaAclMw(tableDelete, 'tableDelete')
+);
+router.post(
+  '/api/v1/db/meta/tables/:tableId/reorder',
+  ncMetaAclMw(tableReorder, 'tableReorder')
+);
 export default router;

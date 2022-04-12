@@ -570,16 +570,9 @@ export class MssqlUi {
   }
 
   static onCheckboxChangeAI(col) {
-    console.log(col)
     if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
       col.altered = col.altered || 2
     }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
   }
 
   static showScale(columnObj) {
@@ -596,7 +589,6 @@ export class MssqlUi {
         columns[i].un = false
         console.log('>> resetting unsigned value', columns[i].column_name)
       }
-      console.log(columns[i].column_name)
     }
   }
 
@@ -617,8 +609,6 @@ export class MssqlUi {
   }
 
   static handleRawOutput(result, headers) {
-    console.log(result)
-
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0])
       // set headers before settings result

@@ -12,12 +12,10 @@ import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 
 // const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
-  const destPath = path.join(
-    'nc',
-    'uploads',
-    req.params.projectId,
-    req.params.viewId
+  const filePath = sanitizeUrlPath(
+    req.query?.path?.toString()?.split('/') || ['']
   );
+  const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
   const attachments = await Promise.all(
@@ -30,9 +28,9 @@ export async function upload(req: Request, res: Response) {
       );
 
       if (!url) {
-        url = `${(req as any).ncSiteUrl}/download/${req.params.projectId}/${
-          req.params.viewId
-        }/${fileName}`;
+        url = `${(req as any).ncSiteUrl}/download/${filePath.join(
+          '/'
+        )}/${fileName}`;
       }
 
       return {
@@ -52,11 +50,11 @@ export async function upload(req: Request, res: Response) {
 export async function fileRead(req, res) {
   try {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
-    // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
+    // const type = mimetypes[path.extname(req.s.fileName).slice(1)] || 'text/plain';
     const type =
       mimetypes[
         path
-          .extname(req.params.fileName)
+          .extname(req.params?.[0])
           .split('/')
           .pop()
           .slice(1)
@@ -67,9 +65,10 @@ export async function fileRead(req, res) {
         path.join(
           'nc',
           'uploads',
-          req.params.projectId,
-          req.params.viewId,
-          req.params.fileName
+          req.params?.[0]
+            ?.split('/')
+            .filter(p => p !== '..')
+            .join('/')
         )
       )
     );
@@ -81,15 +80,6 @@ export async function fileRead(req, res) {
   }
 }
 const router = Router({ mergeParams: true });
-
-router.post(
-  '/projects/:projectId/views/:viewId/upload',
-  multer({
-    storage: multer.diskStorage({})
-  }).any(),
-  ncMetaAclMw(upload)
-);
-router.get('/download/:projectId/:viewId/:fileName', catchError(fileRead));
 
 router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
   try {
@@ -122,4 +112,18 @@ router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
     res.status(404).send('Not found');
   }
 });
+
+export function sanitizeUrlPath(paths) {
+  return paths.map(url => url.replace(/[/.?#]+/g, '_'));
+}
+
+router.post(
+  '/api/v1/db/storage/upload',
+  multer({
+    storage: multer.diskStorage({})
+  }).any(),
+  ncMetaAclMw(upload, 'upload')
+);
+router.get(/^\/download\/(.+)$/, catchError(fileRead));
+
 export default router;

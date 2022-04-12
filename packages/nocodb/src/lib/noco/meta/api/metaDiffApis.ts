@@ -17,6 +17,7 @@ import UITypes from '../../../sqlUi/UITypes';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { Tele } from 'nc-help';
 import getColumnUiType from '../helpers/getColumnUiType';
+
 export enum MetaDiffType {
   TABLE_NEW = 'TABLE_NEW',
   TABLE_REMOVE = 'TABLE_REMOVE',
@@ -730,6 +731,7 @@ async function isMMRelationAvailable(
     if (col.uidt === UITypes.LinkToAnotherRecord) {
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
       if (
+        colOpt &&
         colOpt.type === RelationTypes.MANY_TO_MANY &&
         colOpt.fk_mm_model_id === assocModel.id &&
         colOpt.fk_child_column_id === colChildOpt.fk_parent_column_id &&
@@ -761,7 +763,7 @@ export async function extractAndGenerateManyToManyRelations(
       }
     }
 
-    // todo: impl proper way to identify m2m relation
+    // todo: impl better method to identify m2m relation
     if (belongsToCols?.length === 2 && normalColumns.length < 5) {
       const modelA = await belongsToCols[0].colOptions.getRelatedTable();
       const modelB = await belongsToCols[1].colOptions.getRelatedTable();
@@ -819,6 +821,28 @@ export async function extractAndGenerateManyToManyRelations(
       }
 
       await Model.markAsMmTable(assocModel.id, true);
+
+      // mark has many relation associated with mm as system field in both table
+      for (const btCol of [belongsToCols[0], belongsToCols[1]]) {
+        const colOpt = await btCol.colOptions;
+        const model = await colOpt.getRelatedTable();
+
+        for (const col of await model.getColumns()) {
+          if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+
+          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>();
+          if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
+
+          if (
+            colOpt1.fk_child_column_id !== colOpt.fk_child_column_id ||
+            colOpt1.fk_parent_column_id !== colOpt.fk_parent_column_id
+          )
+            continue;
+
+          await Column.markAsSystemField(col.id);
+          break;
+        }
+      }
     } else {
       if (assocModel.mm) await Model.markAsMmTable(assocModel.id, false);
     }
@@ -826,6 +850,12 @@ export async function extractAndGenerateManyToManyRelations(
 }
 
 const router = Router();
-router.get('/projects/:projectId/metaDiff', ncMetaAclMw(metaDiff));
-router.post('/projects/:projectId/metaDiff', ncMetaAclMw(metaDiffSync));
+router.get(
+  '/api/v1/db/meta/projects/:projectId/meta-diff',
+  ncMetaAclMw(metaDiff, 'metaDiff')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/meta-diff',
+  ncMetaAclMw(metaDiffSync, 'metaDiffSync')
+);
 export default router;

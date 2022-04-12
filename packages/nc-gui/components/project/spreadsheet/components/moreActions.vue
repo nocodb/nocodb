@@ -237,19 +237,36 @@ export default {
         while (!isNaN(offset) && offset > -1) {
           let res
           if (this.publicViewId) {
-            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, this.reqPayload, {
+            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, {
               responseType: 'blob',
               query: {
-                offset
+                fields: this.queryParams && this.queryParams.fieldsOrder && this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
+                offset,
+                sortArrJson: JSON.stringify(this.reqPayload && this.reqPayload.sorts && this.reqPayload.sorts.map(({
+                  fk_column_id,
+                  direction
+                }) => ({
+                  direction,
+                  fk_column_id
+                }))),
+                filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters)
+              },
+              headers: {
+                'xc-password': this.reqPayload && this.reqPayload.password
               }
             })
           } else {
-            res = await this.$api.data.csvExport(this.selectedView.id, ExportTypes.CSV, {
-              responseType: 'blob',
-              query: {
-                offset
-              }
-            })
+            res = await this.$api.dbViewRow.export(
+              'noco',
+              this.projectName,
+              this.meta.title,
+              this.selectedView.title,
+              ExportTypes.CSV, {
+                responseType: 'blob',
+                query: {
+                  offset
+                }
+              })
           }
           const { data } = res
 
@@ -289,7 +306,7 @@ export default {
                   input = '1'
                 }
               } else if (v.uidt === UITypes.Number) {
-                if (input == "") input = null
+                if (input == '') { input = null }
               }
               res[col.destCn] = input
             }

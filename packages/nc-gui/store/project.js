@@ -192,10 +192,13 @@ export const getters = {
     return data
   },
   GtrProjectName(state) {
-    return state.project && state.project.title// state.unserializedList && state.unserializedList[0] ? state.unserializedList[0].projectJson.title : "__project__";
+    return state.project && state.project.title
+  },
+  GtrProjectId(state) {
+    return state.project && state.project.id
   },
   GtrProjectPrefix(state) {
-    return state.project && state.project.prefix//state.unserializedList && state.unserializedList[0] ? state.unserializedList[0].projectJson.prefix : null;
+    return state.project && state.project.prefix
   },
 
   GtrApiEnvironment(state) {
@@ -368,7 +371,6 @@ export const actions = {
 
       const tables = (await this.$api.dbTable.list(
         state.projectId,
-        state.project.bases[0].id,
         {
           includeM2M: rootState.windows.includeM2M || ''
         })).list

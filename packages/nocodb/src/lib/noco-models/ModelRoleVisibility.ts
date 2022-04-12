@@ -6,8 +6,8 @@ import {
   CacheScope,
   MetaTable
 } from '../utils/globals';
-import Model from './Model';
 import NocoCache from '../noco-cache/NocoCache';
+import View from './View';
 
 export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   id?: string;
@@ -137,7 +137,6 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     const insertObj = {
       role: body.role,
       disabled: body.disabled,
-      // fk_model_id: body.fk_model_id,
       fk_view_id: body.fk_view_id,
       project_id: body.project_id,
       base_id: body.base_id,
@@ -146,9 +145,9 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     };
 
     if (!(body.project_id && body.base_id)) {
-      const model = await Model.getByIdOrName({ id: body.fk_model_id }, ncMeta);
-      insertObj.project_id = model.project_id;
-      insertObj.base_id = model.base_id;
+      const view = await View.get(body.fk_view_id, ncMeta);
+      insertObj.project_id = view.project_id;
+      insertObj.base_id = view.base_id;
     }
 
     await ncMeta.metaInsert2(

@@ -91,24 +91,24 @@ async function getViewAndModelFromRequest(req) {
 const router = Router({ mergeParams: true });
 
 router.post(
-  '/bulkData/:orgs/:projectName/:tableAlias',
-  ncMetaAclMw(bulkDataInsert)
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
+  ncMetaAclMw(bulkDataInsert, 'bulkDataInsert')
 );
 router.patch(
-  '/bulkData/:orgs/:projectName/:tableAlias',
-  ncMetaAclMw(bulkDataUpdate)
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
+  ncMetaAclMw(bulkDataUpdate, 'bulkDataUpdate')
 );
 router.patch(
-  '/bulkData/:orgs/:projectName/:tableAlias/all',
-  ncMetaAclMw(bulkDataUpdateAll)
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias/all',
+  ncMetaAclMw(bulkDataUpdateAll, 'bulkDataUpdateAll')
 );
 router.delete(
-  '/bulkData/:orgs/:projectName/:tableAlias',
-  ncMetaAclMw(bulkDataDelete)
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
+  ncMetaAclMw(bulkDataDelete, 'bulkDataDelete')
 );
 router.delete(
-  '/bulkData/:orgs/:projectName/:tableAlias/all',
-  ncMetaAclMw(bulkDataDeleteAll)
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias/all',
+  ncMetaAclMw(bulkDataDeleteAll, 'bulkDataDeleteAll')
 );
 
 export default router;

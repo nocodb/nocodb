@@ -58,10 +58,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restViews-run-cache:
         runs-on: ubuntu-20.04
@@ -102,10 +103,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restRoles-run-cache:
         runs-on: ubuntu-20.04
@@ -146,10 +148,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restMisc-run-cache:
         runs-on: ubuntu-20.04
@@ -190,10 +193,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restTableOps-run-cache:
         runs-on: ubuntu-20.04
@@ -225,7 +229,7 @@ jobs:
               uses: cypress-io/github-action@v2
               with:
                   start: |
-                      npm run build:common          
+                      npm run build:common
                       npm run start:api:cache
                       npm run start:web
                       docker-compose -f ./scripts/docker-compose-cypress.yml up -d
@@ -234,10 +238,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restViews-run-cache:
         runs-on: ubuntu-20.04
@@ -278,10 +283,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restRoles-run-cache:
         runs-on: ubuntu-20.04
@@ -322,10 +328,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restMisc-run-cache:
         runs-on: ubuntu-20.04
@@ -366,10 +373,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
         runs-on: ubuntu-20.04
@@ -410,10 +418,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restViews-run-cache:
         runs-on: ubuntu-20.04
@@ -454,10 +463,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restRoles-run-cache:
         runs-on: ubuntu-20.04
@@ -498,10 +508,11 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restMisc-run-cache:
         runs-on: ubuntu-20.04
@@ -542,38 +553,39 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
-                  path: scripts/cypress/videos
+                  path: scripts/cypress/screenshots
                   retention-days: 2
-    docker:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-              with:
-                  fetch-depth: 0
-            - name: Check for update
-              run: |
-                  echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nocodb) = nocodb ]] && echo 'OK')" >> $GITHUB_ENV
-            - name: Test Mysql REST APIs
-              if: ${{ env.CHANGED == 'OK' }}
-              run: cd ./packages/nocodb/  && docker-compose run xc-test-mysql
-            - name: Test Mysql GraphQL APIs
-              if: ${{ env.CHANGED == 'OK' }}
-              run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mysql
-
-            #    - name: Test MSSQL REST APIs
-            #      run: cd ./packages/nocodb/  && docker-compose run xc-test-mssql
-            #    - name: Test MSSQL GraphQL APIs
-            #      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mssql
-            #
-            - name: Test PostgreSQL REST APIs
-              if: ${{ env.CHANGED == 'OK' }}
-              run: cd ./packages/nocodb/  && docker-compose run xc-test-pg
-            - name: Test PostgreSQL GraphQL APIs
-              if: ${{ env.CHANGED == 'OK' }}
-              run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-pg
+#    docker:
+#        runs-on: ubuntu-latest
+#        steps:
+#            - uses: actions/checkout@v2
+#              with:
+#                  fetch-depth: 0
+#            - name: Check for update
+#              run: |
+#                  echo "CHANGED=$([[ $(lerna ls --since ${{github.event.before}} | grep nocodb) = nocodb ]] && echo 'OK')" >> $GITHUB_ENV
+#            - name: Test Mysql REST APIs
+#              if: ${{ env.CHANGED == 'OK' }}
+#              run: cd ./packages/nocodb/  && docker-compose run xc-test-mysql
+#            - name: Test Mysql GraphQL APIs
+#              if: ${{ env.CHANGED == 'OK' }}
+#              run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mysql
+#
+#            #    - name: Test MSSQL REST APIs
+#            #      run: cd ./packages/nocodb/  && docker-compose run xc-test-mssql
+#            #    - name: Test MSSQL GraphQL APIs
+#            #      run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-mssql
+#            #
+#            - name: Test PostgreSQL REST APIs
+#              if: ${{ env.CHANGED == 'OK' }}
+#              run: cd ./packages/nocodb/  && docker-compose run xc-test-pg
+#            - name: Test PostgreSQL GraphQL APIs
+#              if: ${{ env.CHANGED == 'OK' }}
+#              run: cd ./packages/nocodb/  && docker-compose run xc-test-gql-pg
 #
 #    - name: Test SQLite3 REST APIs
 #      run: cd ./packages/nocodb/  && docker-compose run xc-test-sqlite

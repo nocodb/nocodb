@@ -498,14 +498,15 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 }
 
 export async function columnSetAsPrimary(req: Request, res: Response) {
-  res.json(
-    await Model.updatePrimaryColumn(req.params.tableId, req.params.columnId)
-  );
+  const column = await Column.get({ colId: req.params.columnId });
+  res.json(await Model.updatePrimaryColumn(column.fk_model_id, column.id));
 }
 
 export async function columnUpdate(req: Request, res: Response<TableType>) {
+  const column = await Column.get({ colId: req.params.columnId });
+
   const table = await Model.getWithInfo({
-    id: req.params.tableId
+    id: column.fk_model_id
   });
   const base = await Base.get(table.base_id);
 
@@ -513,7 +514,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
     !isVirtualCol(req.body) &&
     !(await Column.checkTitleAvailable({
       column_name: req.body.column_name,
-      fk_model_id: req.params.tableId,
+      fk_model_id: column.fk_model_id,
       exclude_id: req.params.columnId
     }))
   ) {
@@ -522,14 +523,13 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
   if (
     !(await Column.checkAliasAvailable({
       title: req.body.title,
-      fk_model_id: req.params.tableId,
+      fk_model_id: column.fk_model_id,
       exclude_id: req.params.columnId
     }))
   ) {
     NcError.badRequest('Duplicate column alias');
   }
 
-  const column = table.columns.find(c => c.id === req.params.columnId);
   let colBody = req.body;
   if (
     [
@@ -622,8 +622,9 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 }
 
 export async function columnDelete(req: Request, res: Response<TableType>) {
+  const column = await Column.get({ colId: req.params.columnId });
   const table = await Model.getWithInfo({
-    id: req.params.tableId
+    id: column.fk_model_id
   });
   const base = await Base.get(table.base_id);
 
@@ -635,9 +636,6 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
   // );
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
-
-  // try {
-  const column: Column = table.columns.find(c => c.id === req.params.columnId);
 
   switch (column.uidt) {
     case UITypes.Lookup:
@@ -900,11 +898,20 @@ const deleteHmOrBtRelation = async (
 };
 
 const router = Router({ mergeParams: true });
-router.post('/tables/:tableId/columns/', ncMetaAclMw(columnAdd));
-router.put('/tables/:tableId/columns/:columnId', ncMetaAclMw(columnUpdate));
-router.delete('/tables/:tableId/columns/:columnId', ncMetaAclMw(columnDelete));
 router.post(
-  '/tables/:tableId/columns/:columnId/primary',
-  ncMetaAclMw(columnSetAsPrimary)
+  '/api/v1/db/meta/tables/:tableId/columns/',
+  ncMetaAclMw(columnAdd, 'columnAdd')
+);
+router.patch(
+  '/api/v1/db/meta/columns/:columnId',
+  ncMetaAclMw(columnUpdate, 'columnUpdate')
+);
+router.delete(
+  '/api/v1/db/meta/columns/:columnId',
+  ncMetaAclMw(columnDelete, 'columnDelete')
+);
+router.post(
+  '/api/v1/db/meta/columns/:columnId/primary',
+  ncMetaAclMw(columnSetAsPrimary, 'columnSetAsPrimary')
 );
 export default router;

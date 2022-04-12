@@ -56,7 +56,7 @@
             >
               <v-card
                 v-for="(col) in hiddenColumns"
-                :key="col.alias"
+                :key="col.title"
                 class="pa-2 my-2 item pointer elevation-0"
                 @mousedown="moved=false"
                 @mousemove="moved=false"
@@ -178,13 +178,13 @@
               >
                 <div
                   v-for="(col,i) in columns"
-                  :key="col.alias"
+                  :key="col.title"
                   class="nc-field-wrapper item px-4 my-3 pointer"
                   :class="{'nc-editable':isEditable , 'active-row': isActiveRow(col) , 'py-4': !isActiveRow(col) , 'pb-4':isActiveRow(col)}"
                 >
                   <div
                     v-click-outside="() => onClickOutside(col)"
-                    @click="activeRow= col.alias"
+                    @click="activeRow= col.title"
                   >
                     <template
                       v-if="_isUIAllowed('editFormView')"
@@ -195,10 +195,10 @@
                     </template>
 
                     <div
-                      v-if="localParams.fields && localParams.fields[col.alias]"
+                      v-if="localParams.fields && localParams.fields[col.title]"
                       :class="{
                         'active-row' : active === col.title,
-                        required: isRequired(col, localState, localParams.fields[col.alias].required)
+                        required: isRequired(col, localState, localParams.fields[col.title].required)
                       }"
                     >
                       <div class="nc-field-editables" :class="{'nc-show' : isActiveRow(col)}">
@@ -228,7 +228,7 @@
                         </div>
                         <!--placeholder=" Enter form input label"-->
                         <editable
-                          v-model="col.label"
+                          v-model.lazy="col.label"
                           style="width:300px;white-space: pre-wrap"
                           :placeholder="$t('msg.info.formInput')"
                           class="caption pa-1 backgroundColor darken-1 mb-2 "
@@ -236,7 +236,7 @@
                         />
                         <!--placeholder=" Add some help text"-->
                         <editable
-                          v-model="col.description"
+                          v-model.lazy="col.description"
                           style="width:300px;white-space: pre-wrap"
                           :placeholder="$t('msg.info.formHelpText')"
                           class="caption pa-1 backgroundColor darken-1 mb-2"
@@ -256,7 +256,7 @@
                           :nodes="nodes"
                           :is-form="true"
                           :meta="meta"
-                          :required="isRequired(col, localState, localParams.fields[col.alias].required)"
+                          :required="isRequired(col, localState, localParams.fields[col.title].required)"
                         />
                         <header-cell
                           v-else
@@ -265,7 +265,7 @@
                           :value="col.label || col.title"
                           :column="col"
                           :sql-ui="sqlUi"
-                          :required="isRequired(col, localState, localParams.fields[col.alias].required)"
+                          :required="isRequired(col, localState, localParams.fields[col.title].required)"
                         />
 
                       </label>
@@ -287,11 +287,11 @@
                           :is-form="true"
                           :hint="col.description"
                           :required="col.required"
-                          @update:localState="state => $set(virtual,col.alias, state)"
+                          @update:localState="state => $set(virtual,col.title, state)"
                           @updateCol="updateCol"
                         />
                         <div
-                          v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.alias] && (!$v.virtual[col.alias].required || !$v.virtual[col.alias].minLength)"
+                          v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.title] && (!$v.virtual[col.title].required || !$v.virtual[col.alias].minLength)"
                           class="error--text caption"
                         >
                           Field is required.
@@ -486,7 +486,7 @@ export default {
     'meta', 'availableColumns', 'nodes',
     'sqlUi', 'formParams', 'showFields',
     'fieldsOrder', 'allColumns', 'dbAlias',
-    'api', 'id', 'viewId'
+    'api', 'id', 'viewId', 'viewTitle'
   ],
   data: () => ({
     isVirtualCol,
@@ -512,18 +512,18 @@ export default {
       virtual: {}
     }
     for (const column of this.columns) {
-      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
+      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.title]) {
         continue
       }
-      if (!column.virtual && (((column.rqd || column.notnull) && !column.default) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.alias].required)) {
+      if (!column.virtual && (((column.rqd || column.notnull) && !column.cdf) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.title].required)) {
         obj.localState[column.title] = { required }
       } else if (column.bt) {
         const col = this.meta.columns.find(c => c.column_name === column.bt.column_name)
-        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
+        if ((col.rqd && !col.default) || this.localParams.fields[column.title].required) {
           obj.localState[col.title] = { required }
         }
-      } else if (column.virtual && this.localParams.fields[column.alias].required && (column.mm || column.hm)) {
-        obj.virtual[column.alias] = {
+      } else if (column.virtual && this.localParams.fields[column.title].required && (column.mm || column.hm)) {
+        obj.virtual[column.title] = {
           minLength: minLength(1),
           required
         }
@@ -575,19 +575,21 @@ export default {
       get() {
         return this.fields.filter(f => !f.show && !this.systemFieldsIds.includes(f.fk_column_id))
       },
-      set(v) {}
+      set(v) {
+      }
     },
     columns: {
       get() {
         return this.fields.filter(f => f.show).sort((a, b) => a.order - b.order)
       },
-      set(v) {}
+      set(v) {
+      }
     }
   },
   watch: {
     'meta.columns'() {
       this.meta.columns.forEach((c) => {
-        this.localParams.fields[c.alias] = this.localParams.fields[c.alias] || {}
+        this.localParams.fields[c.title] = this.localParams.fields[c.title] || {}
       })
     },
     submitted(val) {
@@ -614,7 +616,7 @@ export default {
       fields: {}
     }, this.localParams)
     this.availableColumns.forEach((c) => {
-      localParams.fields[c.alias] = localParams.fields[c.alias] || {}
+      localParams.fields[c.title] = localParams.fields[c.title] || {}
     })
     this.localParams = localParams
     // this.columns = [...this.availableColumns]
@@ -680,6 +682,7 @@ export default {
       this.$emit('update:fieldsOrder', this.fields.map(c => c.title))
     },
     async updateColMeta(col, i) {
+      // todo: introduce debounce to avoid consecutive api call
       if (col.id) {
         await this.$api.dbView.formColumnUpdate(col.id, col)
       }
@@ -703,7 +706,6 @@ export default {
       const meta = this.$store.state.meta.metas[this.meta.id]
       this.fields = meta.columns.map(c => ({
         ...c,
-        alias: c.title,
         fk_column_id: c.id,
         fk_view_id: this.viewId,
         ...(fieldById[c.id] ? fieldById[c.id] : {}),
@@ -712,20 +714,6 @@ export default {
       })
       ).sort((a, b) => a.order - b.order)
     },
-    // async loadFormColumns() {
-    //   this.formColumns = (await this.$api.meta.viewColumnList(this.viewId))
-    //   let order = 1
-    //   const fieldById = this.formColumns.reduce((o, f) => ({ ...o, [f.fk_column_id]: f }), {})
-    //   this.fields = this.meta.columns.map(c => ({
-    //     _cn: c.title,
-    //     uidt: c.uidt,
-    //     alias: c.title,
-    //     fk_column_id: c.id,
-    //     ...(fieldById[c.id] ? fieldById[c.id] : {}),
-    //     order: (fieldById[c.id] && fieldById[c.id].order) || order++
-    //   })
-    //   ).sort((a, b) => a.order - b.order)
-    // },
     hideColumn(i) {
       if (this.isDbRequired(this.columns[i])) {
         this.$toast.info('Required field can\'t be removed').goAway(3000)
@@ -789,7 +777,7 @@ export default {
         (column.pk && !column.ai && !column.cdf)
       if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions.type === RelationTypes.BELONGS_TO) {
         const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
-        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
+        if ((col.rqd && !col.default) || this.localParams.fields[column.title].required) {
           isRequired = true
         }
       }
@@ -809,10 +797,10 @@ export default {
       this.$set(this.localState, column, id)
     },
     isActiveRow(col) {
-      return this.activeRow === col.alias
+      return this.activeRow === col.title
     },
     onClickOutside(col) {
-      this.activeRow = this.activeRow === col.alias ? null : this.activeRow
+      this.activeRow = this.activeRow === col.title ? null : this.activeRow
     },
     handleMouseUp(col) {
       if (!this.moved) {
@@ -850,18 +838,15 @@ export default {
         }
 
         this.loading = true
-        // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c.title]).join('___')
 
-        // const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
-        //   obj[col] = this.localState[col]
-        //   return obj
-        // }, {})
+        let data = await this.$api.dbViewRow.create(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.viewTitle,
+          this.localState
+        )
 
-        // if (this.isNew) {
-
-        // todo: add params option in GraphQL
-        // let data = await this.api.insert(this.localState, { params: { form: this.$route.query.view } })
-        let data = await this.$api.data.create(this.meta.id, this.localState, { query: { form: this.$route.query.view } })
         data = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state

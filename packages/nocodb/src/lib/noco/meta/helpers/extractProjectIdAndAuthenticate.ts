@@ -8,6 +8,9 @@ import GridViewColumn from '../../../noco-models/GridViewColumn';
 import FormViewColumn from '../../../noco-models/FormViewColumn';
 import GalleryViewColumn from '../../../noco-models/GalleryViewColumn';
 import Project from '../../../noco-models/Project';
+import Column from '../../../noco-models/Column';
+import Filter from '../../../noco-models/Filter';
+import Sort from '../../../noco-models/Sort';
 
 export default async (req, res, next) => {
   try {
@@ -66,6 +69,15 @@ export default async (req, res, next) => {
         params.galleryViewColumnId
       );
       req.ncProjectId = galleryViewColumn?.project_id;
+    } else if (params.columnId) {
+      const column = await Column.get({ colId: params.columnId });
+      req.ncProjectId = column?.project_id;
+    } else if (params.filterId) {
+      const filter = await Filter.get(params.filterId);
+      req.ncProjectId = filter?.project_id;
+    } else if (params.sortId) {
+      const sort = await Sort.get(params.sortId);
+      req.ncProjectId = sort?.project_id;
     }
 
     const user = await new Promise((resolve, _reject) => {

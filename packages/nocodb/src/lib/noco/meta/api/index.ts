@@ -30,6 +30,8 @@ import hookFilterApis from './hookFilterApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
+  dataAliasExportApis,
+  dataAliasNestedApis,
   dataApis,
   oldDataApis
 } from './dataApis';
@@ -39,7 +41,8 @@ import {
   publicMetaApis
 } from './publicApis';
 import { Tele } from 'nc-help';
-import Server from 'socket.io';
+import { Server } from 'socket.io';
+import passport from 'passport';
 
 export default function(router: Router, server) {
   initStrategies(router);
@@ -51,6 +54,8 @@ export default function(router: Router, server) {
   router.use(dataApis);
   router.use(bulkDataAliasApis);
   router.use(dataAliasApis);
+  router.use(dataAliasNestedApis);
+  router.use(dataAliasExportApis);
   router.use(oldDataApis);
   router.use(sortApis);
   router.use(filterApis);
@@ -79,9 +84,33 @@ export default function(router: Router, server) {
 
   userApis(router);
 
-  const io = new Server(server);
-  io.on('connection', socket => {
-    socket.on('page', args => Tele.page(args));
-    socket.on('event', args => Tele.event(args));
+  const io = new Server(server, {
+    cors: {
+      origin: '*',
+      allowedHeaders: ['xc-auth'],
+      credentials: true
+    }
+  });
+
+  io.use(function(socket, next) {
+    passport.authenticate(
+      'jwt',
+      { session: false },
+      (_err, user, _info): any => {
+        if (!user) {
+          socket.disconnect();
+          return next(new Error('Unauthorized'));
+        }
+        (socket.handshake as any).user = user;
+        next();
+      }
+    )(socket.handshake, {}, next);
+  }).on('connection', socket => {
+    socket.on('page', args => {
+      Tele.page(args);
+    });
+    socket.on('event', args => {
+      Tele.event(args);
+    });
   });
 }

@@ -85,7 +85,7 @@ export async function filterUpdate(req, res, next) {
       ...req.body,
       fk_view_id: req.params.viewId
     });
-    Tele.emit('evt', { evt_type: 'table:updated' });
+    Tele.emit('evt', { evt_type: 'filter:updated' });
     res.json(filter);
   } catch (e) {
     console.log(e);
@@ -97,7 +97,7 @@ export async function filterUpdate(req, res, next) {
 export async function filterDelete(req: Request, res: Response, next) {
   try {
     const filter = await Filter.delete(req.params.filterId);
-    Tele.emit('evt', { evt_type: 'table:deleted' });
+    Tele.emit('evt', { evt_type: 'filter:deleted' });
     res.json(filter);
   } catch (e) {
     console.log(e);
@@ -105,14 +105,60 @@ export async function filterDelete(req: Request, res: Response, next) {
   }
 }
 
+export async function hookFilterList(
+  req: Request<any, any, any, TableListParams>,
+  res: Response
+) {
+  const filter = await Filter.rootFilterListByHook({
+    hookId: req.params.hookId
+  });
+
+  res.json(filter);
+}
+
+export async function hookFilterCreate(req: Request<any, any, TableReq>, res) {
+  const filter = await Filter.insert({
+    ...req.body,
+    fk_hook_id: req.params.hookId
+  });
+
+  Tele.emit('evt', { evt_type: 'hookFilter:created' });
+  res.json(filter);
+}
+
 const router = Router({ mergeParams: true });
-router.get('/views/:viewId/filters/', ncMetaAclMw(filterList));
-router.post('/views/:viewId/filters/', ncMetaAclMw(filterCreate));
-router.get('/views/:viewId/filters/:filterId', ncMetaAclMw(filterGet));
-router.put('/views/:viewId/filters/:filterId', ncMetaAclMw(filterUpdate));
-router.delete('/views/:viewId/filters/:filterId', ncMetaAclMw(filterDelete));
 router.get(
-  '/views/:viewId/filters/:filterParentId/children',
-  ncMetaAclMw(filterChildrenRead)
+  '/api/v1/db/meta/views/:viewId/filters',
+  ncMetaAclMw(filterList, 'filterList')
+);
+router.post(
+  '/api/v1/db/meta/views/:viewId/filters',
+  ncMetaAclMw(filterCreate, 'filterCreate')
+);
+
+router.get(
+  '/api/v1/db/meta/hooks/:hookId/filters',
+  ncMetaAclMw(hookFilterList, 'filterList')
+);
+router.post(
+  '/api/v1/db/meta/hooks/:hookId/filters',
+  ncMetaAclMw(hookFilterCreate, 'filterCreate')
+);
+
+router.get(
+  '/api/v1/db/meta/filters/:filterId',
+  ncMetaAclMw(filterGet, 'filterGet')
+);
+router.patch(
+  '/api/v1/db/meta/filters/:filterId',
+  ncMetaAclMw(filterUpdate, 'filterUpdate')
+);
+router.delete(
+  '/api/v1/db/meta/filters/:filterId',
+  ncMetaAclMw(filterDelete, 'filterDelete')
+);
+router.get(
+  '/api/v1/db/meta/filters/:filterParentId/children',
+  ncMetaAclMw(filterChildrenRead, 'filterChildrenRead')
 );
 export default router;

@@ -32,7 +32,6 @@ export async function projectGet(
   req: Request<any, any, any>,
   res: Response<Project>
 ) {
-  console.log(req.query.page);
   const project = await Project.getWithInfo(req.params.projectId);
 
   // delete datasource connection details
@@ -49,7 +48,6 @@ export async function projectList(
   next
 ) {
   try {
-    console.log(req.query.page);
     const projects = await Project.list(req.query);
 
     res // todo: pagination
@@ -393,9 +391,24 @@ export async function projectInfoGet(req, res) {
 }
 
 export default router => {
-  router.get('/projects/:projectId/info', ncMetaAclMw(projectInfoGet));
-  router.get('/projects/:projectId', ncMetaAclMw(projectGet));
-  router.delete('/projects/:projectId', ncMetaAclMw(projectDelete));
-  router.post('/projects', ncMetaAclMw(projectCreate));
-  router.get('/projects', ncMetaAclMw(projectList));
+  router.get(
+    '/api/v1/db/meta/projects/:projectId/info',
+    ncMetaAclMw(projectInfoGet, 'projectInfoGet')
+  );
+  router.get(
+    '/api/v1/db/meta/projects/:projectId',
+    ncMetaAclMw(projectGet, 'projectGet')
+  );
+  router.delete(
+    '/api/v1/db/meta/projects/:projectId',
+    ncMetaAclMw(projectDelete, 'projectDelete')
+  );
+  router.post(
+    '/api/v1/db/meta/projects',
+    ncMetaAclMw(projectCreate, 'projectCreate')
+  );
+  router.get(
+    '/api/v1/db/meta/projects',
+    ncMetaAclMw(projectList, 'projectList')
+  );
 };

@@ -74,7 +74,6 @@ export default {
   props: {
     env: String,
     nodes: Object,
-    addNewRelationTab: Function,
     relationType: String,
     relation: Object,
     relationIdValue: [String, Number],

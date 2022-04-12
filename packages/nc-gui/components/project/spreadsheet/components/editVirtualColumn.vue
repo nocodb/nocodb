@@ -113,7 +113,7 @@ export default {
     async save() {
       // todo: rollup update
       try {
-        await this.$api.dbTableColumn.update(this.meta.id, this.column.id, this.newColumn)
+        await this.$api.dbTableColumn.update(this.column.id, this.newColumn)
       } catch (e) {
         console.log(this._extractSdkResponseErrorMsg(e))
         this.$toast.error('Failed to update column alias').goAway(3000)

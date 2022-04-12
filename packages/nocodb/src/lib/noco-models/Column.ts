@@ -878,4 +878,30 @@ export default class Column<T = any> implements ColumnType {
       exclude_id && { id: { neq: exclude_id } }
     ));
   }
+
+  static async markAsSystemField(
+    colId: string,
+    system = true,
+    ncMeta = Noco.ncMeta
+  ) {
+    // get existing cache
+    const key = `${CacheScope.COLUMN}:${colId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      o.system = system;
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // update system field in meta db
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.COLUMNS,
+      {
+        system
+      },
+      colId
+    );
+  }
 }

@@ -213,15 +213,8 @@ export default {
   },
   async created() {
     await this.loadPluginList()
-    this.readPluginDefaults()
   },
   methods: {
-    async readPluginDefaults() {
-      try {
-        this.defaultConfig = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginDemoDefaults'])
-      } catch (e) {
-      }
-    },
     async confirmResetPlugin() {
       try {
         await this.$api.plugin.update(this.resetPluginRef.id, {

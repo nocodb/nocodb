@@ -179,8 +179,6 @@ class BaseModelSqlv2 {
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
-    console.log(qb.toQuery());
-
     return (await qb).map(d => {
       d.__proto__ = proto;
       return d;
@@ -248,8 +246,6 @@ class BaseModelSqlv2 {
       as: 'count'
     }).first();
 
-    console.log(qb.toQuery());
-
     return ((await qb) as any).count;
   }
 
@@ -294,7 +290,7 @@ class BaseModelSqlv2 {
               allowedCols && (!includePkByDefault || !col.pk)
                 ? allowedCols[col.id] &&
                   (!isSystemColumn(col) || view.show_system_fields) &&
-                  (!fields?.length || fields.include(col.title))
+                  (!fields?.length || fields.includes(col.title))
                 : 1
           }),
           {}
@@ -746,8 +742,6 @@ class BaseModelSqlv2 {
             )
         ).orWhereNull(rcn);
       });
-
-    console.log('----', qb.toQuery());
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
@@ -2059,9 +2053,8 @@ function extractFilterFromXwhere(
 function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map(str => {
     // eslint-disable-next-line prefer-const
-    let [logicOp, alias, op, value] = str
-      .match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)
-      .slice(1);
+    let [logicOp, alias, op, value] =
+      str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
     if (op === 'is') op = 'is' + value;
     else if (op === 'in') value = value.split(',');
 

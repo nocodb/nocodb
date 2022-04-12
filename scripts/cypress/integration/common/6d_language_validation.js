@@ -7,8 +7,8 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Language support`, () => {
         before(() => {
-            //loginPage.signIn(roles.owner.credentials)
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
+            loginPage.signIn(roles.owner.credentials)
+            // mainPage.toolBarTopLeft(mainPage.HOME).click();
             cy.screenshot("Debug 6d-1", { overwrite: true });
         });
 

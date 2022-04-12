@@ -25,12 +25,13 @@ export default {
 
       const rawText = this.row[this.column.title].toString()
       let found = false
-      const out = rawText.match(/URI::\((.*?)\)/g, (_, url) => {
+      const out = rawText.replace(/URI::\((.*?)\)/g, (_, url) => {
         found = true
         const a = document.createElement('a')
         a.textContent = url
         a.setAttribute('href', url)
-        return a.innerHTML
+        a.setAttribute('target', '_blank')
+        return a.outerHTML
       })
 
       return found && out

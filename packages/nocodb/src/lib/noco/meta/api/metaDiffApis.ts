@@ -834,7 +834,7 @@ export async function extractAndGenerateManyToManyRelations(
           if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
 
           if (
-            colOpt1.fk_child_column_id !== colOpt.fk_child_column_id &&
+            colOpt1.fk_child_column_id !== colOpt.fk_child_column_id ||
             colOpt1.fk_parent_column_id !== colOpt.fk_parent_column_id
           )
             continue;

@@ -10,7 +10,7 @@
     }
   ],
   "paths": {
-    "/auth/user/signup": {
+    "/api/v1/db/auth/user/signup": {
       "post": {
         "summary": "Signup",
         "operationId": "auth-signup",
@@ -49,7 +49,7 @@
         "description": "Create a new user with provided email and password and first user is marked as super admin. "
       }
     },
-    "/auth/user/signin": {
+    "/api/v1/db/auth/user/signin": {
       "post": {
         "summary": "Signin",
         "operationId": "auth-signin",
@@ -98,7 +98,7 @@
       },
       "parameters": []
     },
-    "/auth/user/me": {
+    "/api/v1/db/auth/user/me": {
       "parameters": [],
       "get": {
         "summary": "User Info",
@@ -121,7 +121,7 @@
         "description": "Returns authenticated user info"
       }
     },
-    "/auth/password/forgot": {
+    "/api/v1/db/auth/password/forgot": {
       "post": {
         "summary": "Password Forgot",
         "operationId": "auth-password-forgot",
@@ -151,7 +151,7 @@
       },
       "parameters": []
     },
-    "/auth/password/change": {
+    "/api/v1/db/auth/password/change": {
       "post": {
         "summary": "Password Change",
         "operationId": "auth-password-change",
@@ -187,7 +187,7 @@
       },
       "parameters": []
     },
-    "/auth/token/validate/{token}": {
+    "/api/v1/db/auth/token/validate/{token}": {
       "post": {
         "summary": "Reset Token Verify",
         "operationId": "auth-password-reset-token-validate",
@@ -212,7 +212,7 @@
         }
       ]
     },
-    "/auth/email/validate/{token}": {
+    "/api/v1/db/auth/email/validate/{token}": {
       "post": {
         "summary": "Verify Email",
         "operationId": "auth-email-validate",
@@ -237,7 +237,7 @@
         }
       ]
     },
-    "/auth/password/reset/{token}": {
+    "/api/v1/db/auth/password/reset/{token}": {
       "post": {
         "summary": "Password Reset",
         "operationId": "auth-password-reset",
@@ -276,7 +276,7 @@
         }
       ]
     },
-    "/auth/token/refresh": {
+    "/api/v1/db/auth/token/refresh": {
       "post": {
         "summary": "Refresh Token",
         "operationId": "auth-token-refresh",

@@ -442,5 +442,34 @@ const mapRoutes = router => {
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
   router.post('/auth/token/refresh', ncMetaAclMw(refreshToken, 'refreshToken'));
+
+  router.post('/api/v1/db/auth/user/signup', catchError(signup));
+  router.post('/api/v1/db/auth/user/signin', catchError(signin));
+  router.get(
+    '/api/v1/db/auth/user/me',
+    extractProjectIdAndAuthenticate,
+    catchError(me)
+  );
+  router.post('/api/v1/db/auth/password/forgot', catchError(passwordForgot));
+  router.post(
+    '/api/v1/db/auth/token/validate/:tokenId',
+    catchError(tokenValidate)
+  );
+  router.post(
+    '/api/v1/db/auth/password/reset/:tokenId',
+    catchError(passwordReset)
+  );
+  router.post(
+    '/api/v1/db/auth/email/validate/:tokenId',
+    catchError(emailVerification)
+  );
+  router.post(
+    '/user/password/change',
+    ncMetaAclMw(passwordChange, 'passwordChange')
+  );
+  router.post(
+    '/api/v1/db/auth/token/refresh',
+    ncMetaAclMw(refreshToken, 'refreshToken')
+  );
 };
 export { mapRoutes as userApis };

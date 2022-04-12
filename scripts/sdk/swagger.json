@@ -1182,16 +1182,8 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/columns/{columnId}": {
+    "/api/v1/db/meta/columns/{columnId}": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -1262,16 +1254,8 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/columns/{columnId}/primary": {
+    "/api/v1/db/meta/columns/{columnId}/primary": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"

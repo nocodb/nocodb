@@ -8,6 +8,7 @@ import GridViewColumn from '../../../noco-models/GridViewColumn';
 import FormViewColumn from '../../../noco-models/FormViewColumn';
 import GalleryViewColumn from '../../../noco-models/GalleryViewColumn';
 import Project from '../../../noco-models/Project';
+import Column from '../../../noco-models/Column';
 
 export default async (req, res, next) => {
   try {
@@ -66,6 +67,9 @@ export default async (req, res, next) => {
         params.galleryViewColumnId
       );
       req.ncProjectId = galleryViewColumn?.project_id;
+    } else if (params.columnId) {
+      const column = await Column.get({ colId: params.columnId });
+      req.ncProjectId = column?.project_id;
     }
 
     const user = await new Promise((resolve, _reject) => {

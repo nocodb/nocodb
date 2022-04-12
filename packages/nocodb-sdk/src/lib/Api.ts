@@ -1494,12 +1494,12 @@ export class Api<
      * @tags DB Table column
      * @name Read
      * @summary Column Read
-     * @request GET:/api/v1/db/meta/tables/{tableId}/columns/{columnId}
+     * @request GET:/api/v1/db/meta/columns/{columnId}
      * @response `200` `ColumnType` OK
      */
-    read: (tableId: string, columnId: string, params: RequestParams = {}) =>
+    read: (columnId: string, params: RequestParams = {}) =>
       this.request<ColumnType, any>({
-        path: `/api/v1/db/meta/tables/${tableId}/columns/${columnId}`,
+        path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1511,17 +1511,16 @@ export class Api<
      * @tags DB Table column
      * @name Update
      * @summary Column Update
-     * @request PATCH:/api/v1/db/meta/tables/{tableId}/columns/{columnId}
+     * @request PATCH:/api/v1/db/meta/columns/{columnId}
      * @response `200` `ColumnType` OK
      */
     update: (
-      tableId: string,
       columnId: string,
       data: ColumnReqType,
       params: RequestParams = {}
     ) =>
       this.request<ColumnType, any>({
-        path: `/api/v1/db/meta/tables/${tableId}/columns/${columnId}`,
+        path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -1534,12 +1533,12 @@ export class Api<
      *
      * @tags DB Table column
      * @name Delete
-     * @request DELETE:/api/v1/db/meta/tables/{tableId}/columns/{columnId}
+     * @request DELETE:/api/v1/db/meta/columns/{columnId}
      * @response `200` `void` OK
      */
-    delete: (tableId: string, columnId: string, params: RequestParams = {}) =>
+    delete: (columnId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/tables/${tableId}/columns/${columnId}`,
+        path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -1549,16 +1548,12 @@ export class Api<
      *
      * @tags DB Table column
      * @name PrimaryColumnSet
-     * @request POST:/api/v1/db/meta/tables/{tableId}/columns/{columnId}/primary
+     * @request POST:/api/v1/db/meta/columns/{columnId}/primary
      * @response `200` `void` OK
      */
-    primaryColumnSet: (
-      tableId: string,
-      columnId: string,
-      params: RequestParams = {}
-    ) =>
+    primaryColumnSet: (columnId: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/tables/${tableId}/columns/${columnId}/primary`,
+        path: `/api/v1/db/meta/columns/${columnId}/primary`,
         method: 'POST',
         ...params,
       }),

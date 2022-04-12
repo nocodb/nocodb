@@ -184,7 +184,7 @@ export default {
         column.altered = 4
         const columns = this.meta.columns.slice()
         columns[this.columnIndex] = column
-        await this.$api.dbTableColumn.delete(this.meta.id, column.id)
+        await this.$api.dbTableColumn.delete(column.id)
 
         this.$emit('colDelete')
         this.$emit('saved')

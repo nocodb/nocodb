@@ -1160,7 +1160,7 @@ export default {
           if (!id) {
             return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
-          await this.$api.data.delete(this.meta.id, id)
+          await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
         // this.$toast.success('Deleted row successfully').goAway(3000)
@@ -1186,7 +1186,7 @@ export default {
             if (!id) {
               return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
             }
-            await this.$api.data.delete(this.meta.id, id)
+            await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
           }
           this.data.splice(row, 1)
         } catch (e) {

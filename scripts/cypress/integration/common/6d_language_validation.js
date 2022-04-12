@@ -8,7 +8,7 @@ export const genTest = (apiType, dbType) => {
     describe(`Language support`, () => {
         before(() => {
             loginPage.signIn(roles.owner.credentials)
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
+            // mainPage.toolBarTopLeft(mainPage.HOME).click();
             cy.screenshot("Debug 6d-1", { overwrite: true });
         });
 

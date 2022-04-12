@@ -23,11 +23,11 @@ const router = Router({ mergeParams: true });
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/export/csv',
-  ncMetaAclMw(csvDataExport, 'csvDataExport')
+  ncMetaAclMw(csvDataExport, 'exportCsv')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/export/csv',
-  ncMetaAclMw(csvDataExport, 'csvDataExport')
+  ncMetaAclMw(csvDataExport, 'exportCsv')
 );
 
 export default router;

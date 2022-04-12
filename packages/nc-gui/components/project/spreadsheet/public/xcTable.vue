@@ -22,74 +22,7 @@
         class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom"
         style="z-index: 7;border-radius: 4px"
       >
-        <!--
-      <div class="d-flex xc-border align-center search-box"  style="min-width:156px">
-        <v-menu bottom offset-y>
-          <template #activator="{on}">
-            <div style="min-width: 56px" v-on="on">
-              <v-icon
-                class="ml-2"
-                small
-                color="grey"
-              >
-                mdi-magnify
-              </v-icon>
-
-              <v-icon
-                color="grey"
-                class="pl-0 pa-1"
-                small
-              >
-                mdi-menu-down
-              </v-icon>
-            </div>
-          </template>
-          <v-list dense>
-            <v-list-item
-              v-for="col in meta.columns"
-              :key="col.title"
-              @click="searchField = col.title"
-            >
-              <span class="caption">{{ col.title }}</span>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-
-        <v-divider
-          vertical
-        />
-
-        <v-text-field
-          v-model="searchQuery"
-          autocomplete="off"
-          style="min-width: 100px ; width: 150px"
-          flat
-          dense
-          solo
-          hide-details
-          :placeholder="searchField ? `Search '${searchField}' column` : 'Search all columns'"
-          class="elevation-0 pa-0 flex-grow-1 caption search-field"
-          @keyup.enter="loadTableData"
-          @blur="loadTableData"
-        />
-      </div>
-
-      <span
-        v-if="relationType && false"
-        class="caption grey&#45;&#45;text"
-      >{{ refTable }}({{
-        relationPrimaryValue
-      }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
--->
-
         <div class="d-inline-flex">
-          <!--        <v-btn outlined small text @click="reload">
-          <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-reload
-          </v-icon>
-          Reload
-        </v-btn>-->
-
           <fields-menu
             v-model="showFields"
             :field-list="fieldList"
@@ -123,32 +56,6 @@
           />
         </div>
         <v-spacer class="h-100" @dblclick="debug=true" />
-        <!--      <v-menu>
-          <template #activator="{ on, attrs }">
-            <v-icon
-              v-bind="attrs"
-              small
-              class="mx-2"
-              color="grey  darken-3"
-              v-on="on"
-            >
-              mdi-arrow-collapse-vertical
-            </v-icon>
-          </template>
-
-          <v-list dense class="caption">
-            <v-list-item v-for="h in cellHeights" :key="h.size" dense @click.stop="cellHeight = h.size">
-              <v-list-item-icon class="mr-1">
-                <v-icon small :color="cellHeight === h.size && 'primary'">
-                  {{ h.icon }}
-                </v-icon>
-              </v-list-item-icon>
-              <v-list-item-title :class="{'primary&#45;&#45;text' : cellHeight === h.size}" style="text-transform: capitalize">
-                {{ h.size }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>-->
       </v-toolbar>
 
       <div
@@ -185,9 +92,6 @@
             color="primary lighten-2"
             @input="loadTableData"
           />
-          <!--      <div v-else class="d-flex justify-center py-4">-->
-          <!--        <v-alert type="info" dense class="ma-1 flex-shrink-1">Table is empty</v-alert>-->
-          <!--      </div>-->
         </div>
       </div>
     </template>
@@ -223,14 +127,12 @@
 import { ErrorMessages } from 'nocodb-sdk'
 import spreadsheet from '../mixins/spreadsheet'
 import ApiFactory from '../apis/apiFactory'
-// import EditableCell from "../editableCell";
 import FieldsMenu from '../components/fieldsMenu'
 import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
 import XcGridView from '../views/xcGridView'
 import { SqlUI } from '@/helpers/sqlUi'
 import CsvExportImport from '~/components/project/spreadsheet/components/moreActions'
-// import ExpandedForm from "../expandedForm";
 
 export default {
   name: 'XcTable',
@@ -369,23 +271,6 @@ export default {
     edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },
-    // hasMany() {
-    //   return this.meta && this.meta.hasMany
-    //     ? this.meta.hasMany.reduce((hm, o) => {
-    //       hm[o.rcn] = hm[o.rcn] || []
-    //       hm[o.rcn].push(o)
-    //       return hm
-    //     }, {})
-    //     : {}
-    // },
-    // belongsTo() {
-    //   return this.meta && this.meta.belongsTo
-    //     ? this.meta.belongsTo.reduce((bt, o) => {
-    //       bt[o.title] = o
-    //       return bt
-    //     }, {})
-    //     : {}
-    // },
     table() {
       if (this.relationType === 'hm') {
         return this.relation.table_name
@@ -426,21 +311,6 @@ export default {
     this.searchField = this.primaryValueColumn
   },
   created() {
-    /*    if (this.relationType === 'hm') {
-      this.filters.push({
-        field: this.relation.column_name,
-        op: 'is equal',
-        value: this.relationIdValue,
-        readOnly: true
-      })
-    } else if (this.relationType === 'bt') {
-      this.filters.push({
-        field: this.relation.rcn,
-        op: 'is equal',
-        value: this.relationIdValue,
-        readOnly: true
-      })
-    } */
     document.addEventListener('keydown', this.onKeyDown)
   },
   beforeDestroy() {
@@ -519,7 +389,9 @@ export default {
       this.loading = true
       try {
         this.viewMeta = (await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
-          password: this.password
+          headers: {
+            'xc-password': this.password
+          }
         }))
         this.meta = this.viewMeta.model
         this.metas = this.viewMeta.relatedMetas
@@ -547,25 +419,20 @@ export default {
             list,
             pageInfo: { totalRows: count }
           }
-        } = (await this.$api.public.dataList(this.$route.params.id, {
-          password: this.password,
-          sorts: this.sorts && this.sorts.map(({
+        } = (await this.$api.public.dataList(this.$route.params.id, {}, {
+          sortArrJson: JSON.stringify(this.sorts && this.sorts.map(({
             fk_column_id,
             direction
           }) => ({
             direction,
             fk_column_id
-          })),
-          filters: this.filters
-        }, this.queryParams
+          }))),
+          filterArrJson: JSON.stringify(this.filters),
+          ...this.queryParams
+        }, {
+          headers: { password: this.password }
+        }
         ))
-
-        // this.client = client
-
-        // this.showFields = queryParams && queryParams.showFields
-        // this.meta = meta
-        // eslint-disable-next-line camelcase
-        // this.modelName = model_name
 
         this.count = count
         this.data = list.map(row => ({

@@ -12,11 +12,11 @@ export async function viewMetaGet(req: Request, res: Response) {
   const view: View & {
     relatedMetas?: { [ket: string]: Model };
     client?: string;
-  } = await View.getByUUID(req.params.sharedViewUuids);
+  } = await View.getByUUID(req.params.sharedViewUuid);
 
   if (!view) NcError.notFound('Not found');
 
-  if (view.password && view.password !== req.body?.password) {
+  if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
@@ -78,13 +78,13 @@ async function publicSharedBaseGet(req, res): Promise<any> {
 }
 
 const router = Router({ mergeParams: true });
-router.post(
-  '/api/v1/db/meta/public/shared-view/:sharedViewUuid/meta',
+router.get(
+  '/api/v1/db/public/shared-view/:sharedViewUuid/meta',
   catchError(viewMetaGet)
 );
 
 router.get(
-  '/api/v1/db/meta/public/shared-base/:sharedBaseUuid/meta',
+  '/api/v1/db/public/shared-base/:sharedBaseUuid/meta',
   catchError(publicSharedBaseGet)
 );
 export default router;

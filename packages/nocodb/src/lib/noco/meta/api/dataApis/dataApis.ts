@@ -20,11 +20,6 @@ export async function dataList(req: Request, res: Response, next) {
   res.json(await getDataList(model, view, req));
 }
 
-// async function dataListNew(req: Request, res: Response) {
-//   const { model, view } = await getViewAndModelFromRequest(req);
-//   res.json(await getDataList(model, view, req));
-// }
-
 export async function mmList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
 

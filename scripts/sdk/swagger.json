@@ -3395,6 +3395,14 @@
           "name": "sharedViewUuid",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
         }
       ],
       "get": {
@@ -3473,22 +3481,6 @@
         "tags": [
           "Public"
         ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "data": {},
-                  "password": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "description": ""
-        },
         "parameters": [
           {
             "schema": {
@@ -3738,6 +3730,14 @@
           "name": "columnName",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
         }
       ],
       "post": {
@@ -3769,20 +3769,6 @@
             "name": "offset"
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "password": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
         "tags": [
           "Public"
         ],
@@ -3798,9 +3784,17 @@
           "name": "sharedViewUuid",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
         }
       ],
-      "post": {
+      "get": {
         "summary": "",
         "operationId": "public-shared-view-meta-get",
         "responses": {
@@ -3823,21 +3817,7 @@
           "Public"
         ],
         "description": "",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "password": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
+        "parameters": []
       }
     },
     "/api/v1/db/public/shared-base/{sharedBaseUuid}/meta": {

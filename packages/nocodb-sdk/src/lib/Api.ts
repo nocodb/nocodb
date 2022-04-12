@@ -2843,16 +2843,10 @@ export class Api<
      * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
      * @response `200` `any` OK
      */
-    sharedViewCreate: (
-      sharedViewUuid: string,
-      data: { data?: any; password?: string },
-      params: RequestParams = {}
-    ) =>
+    sharedViewCreate: (sharedViewUuid: string, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
-        body: data,
-        type: ContentType.FormData,
         format: 'json',
         ...params,
       }),
@@ -2941,7 +2935,6 @@ export class Api<
     dataRelationList: (
       sharedViewUuid: string,
       columnName: string,
-      data: { password?: string },
       query?: { limit?: string; offset?: string },
       params: RequestParams = {}
     ) =>
@@ -2949,8 +2942,6 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/nested/${columnName}`,
         method: 'POST',
         query: query,
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -2960,19 +2951,13 @@ export class Api<
      *
      * @tags Public
      * @name SharedViewMetaGet
-     * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
      * @response `200` `object` OK
      */
-    sharedViewMetaGet: (
-      sharedViewUuid: string,
-      data: { password?: string },
-      params: RequestParams = {}
-    ) =>
+    sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
+        method: 'GET',
         format: 'json',
         ...params,
       }),
@@ -3066,7 +3051,7 @@ export class Api<
      *
      * @tags Utils
      * @name CommentCount
-     * @request GET:/api/v1/db/meta/meta/audits/comments/count
+     * @request GET:/api/v1/db/meta/audits/comments/count
      * @response `201` `any` Created
      */
     commentCount: (
@@ -3074,7 +3059,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/db/meta/meta/audits/comments/count`,
+        path: `/api/v1/db/meta/audits/comments/count`,
         method: 'GET',
         query: query,
         format: 'json',

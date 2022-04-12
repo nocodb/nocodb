@@ -17,7 +17,7 @@ async function exportCsv(req: Request, res: Response) {
   if (!view) NcError.notFound('Not found');
   if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
 
-  if (view.password && view.password !== req.body?.password) {
+  if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 

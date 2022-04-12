@@ -18,12 +18,12 @@ import slash from 'slash';
 
 export async function dataList(req: Request, res: Response) {
   try {
-    const view = await View.getByUUID(req.params.publicDataUuid);
+    const view = await View.getByUUID(req.params.sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
     if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
 
-    if (view.password && view.password !== req.body?.password) {
+    if (view.password && view.password !== req.headers?.['xc-password']) {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
     }
 
@@ -39,37 +39,22 @@ export async function dataList(req: Request, res: Response) {
       dbDriver: NcConnectionMgrv2.get(base)
     });
 
-    const key = `${model.title}List`;
-    const requestObj = {
-      [key]: await baseModel.defaultResolverReq(req.query)
-    };
+    const listArgs: any = { ...req.query };
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
 
-    const data = (
-      await nocoExecute(
-        requestObj,
-        {
-          [key]: async args => {
-            return await baseModel.list(args);
-          }
-        },
-        {},
+    const data = await nocoExecute(
+      await baseModel.defaultResolverReq(req.query),
+      await baseModel.list(listArgs),
+      {},
+      listArgs
+    );
 
-        {
-          nested: {
-            [key]: {
-              ...req.query,
-              sortArr: req.body?.sorts,
-              filterArr: req.body?.filters
-            }
-          }
-        }
-      )
-    )?.[key];
-
-    const count = await baseModel.count({
-      ...req.query,
-      filterArr: req.body?.filters
-    });
+    const count = await baseModel.count(listArgs);
 
     res.json({
       data: new PagedResponseImpl(data, { ...req.query, count })
@@ -85,12 +70,12 @@ async function dataInsert(
   res: Response,
   next
 ) {
-  const view = await View.getByUUID(req.params.publicDataUuid);
+  const view = await View.getByUUID(req.params.sharedViewUuid);
 
   if (!view) return next(new Error('Not found'));
   if (view.type !== ViewTypes.FORM) return next(new Error('Not found'));
 
-  if (view.password && view.password !== req.body?.password) {
+  if (view.password && view.password !== req.headers?.['xc-password']) {
     return res.status(403).json(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
@@ -169,12 +154,12 @@ async function dataInsert(
 }
 
 async function relDataList(req, res) {
-  const view = await View.getByUUID(req.params.publicDataUuid);
+  const view = await View.getByUUID(req.params.sharedViewUuid);
 
   if (!view) NcError.notFound('Not found');
   if (view.type !== ViewTypes.FORM) NcError.notFound('Not found');
 
-  if (view.password && view.password !== req.body?.password) {
+  if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
@@ -215,12 +200,12 @@ async function relDataList(req, res) {
 }
 
 export async function publicMmList(req: Request, res: Response) {
-  const view = await View.getByUUID(req.params.publicDataUuid);
+  const view = await View.getByUUID(req.params.sharedViewUuid);
 
   if (!view) NcError.notFound('Not found');
   if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
 
-  if (view.password && view.password !== req.body?.password) {
+  if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
@@ -271,12 +256,12 @@ export async function publicMmList(req: Request, res: Response) {
 }
 
 export async function publicHmList(req: Request, res: Response) {
-  const view = await View.getByUUID(req.params.publicDataUuid);
+  const view = await View.getByUUID(req.params.sharedViewUuid);
 
   if (!view) NcError.notFound('Not found');
   if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
 
-  if (view.password && view.password !== req.body?.password) {
+  if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
@@ -330,13 +315,16 @@ export async function publicHmList(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
-router.post('/public/data/:publicDataUuid/list', catchError(dataList));
+router.get(
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
+  catchError(dataList)
+);
 router.post(
-  '/public/data/:publicDataUuid/nested/:columnId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/nested/:columnId',
   catchError(relDataList)
 );
 router.post(
-  '/public/data/:publicDataUuid/create',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/create',
   multer({
     storage: multer.diskStorage({})
   }).any(),
@@ -344,11 +332,11 @@ router.post(
 );
 
 router.get(
-  '/public/data/:publicDataUuid/:rowId/mm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/:rowId/mm/:colId',
   catchError(publicMmList)
 );
 router.get(
-  '/public/data/:publicDataUuid/:rowId/hm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/:rowId/hm/:colId',
   catchError(publicHmList)
 );
 

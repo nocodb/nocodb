@@ -419,19 +419,21 @@ export default {
             list,
             pageInfo: { totalRows: count }
           }
-        } = (await this.$api.public.dataList(this.$route.params.id, {}, {
-          sortArrJson: JSON.stringify(this.sorts && this.sorts.map(({
-            fk_column_id,
-            direction
-          }) => ({
-            direction,
-            fk_column_id
-          }))),
-          filterArrJson: JSON.stringify(this.filters),
-          ...this.queryParams
-        }, {
-          headers: { 'xc-password': this.password }
-        }
+        } = (await this.$api.public.dataList(
+          this.$route.params.id,
+          {
+            sortArrJson: JSON.stringify(this.sorts && this.sorts.map(({
+              fk_column_id,
+              direction
+            }) => ({
+              direction,
+              fk_column_id
+            }))),
+            filterArrJson: JSON.stringify(this.filters),
+            ...this.queryParams
+          }, {
+            headers: { 'xc-password': this.password }
+          }
         ))
 
         this.count = count

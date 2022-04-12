@@ -486,7 +486,7 @@ export default {
     'meta', 'availableColumns', 'nodes',
     'sqlUi', 'formParams', 'showFields',
     'fieldsOrder', 'allColumns', 'dbAlias',
-    'api', 'id', 'viewId'
+    'api', 'id', 'viewId', 'viewTitle'
   ],
   data: () => ({
     isVirtualCol,
@@ -515,7 +515,7 @@ export default {
       if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
         continue
       }
-      if (!column.virtual && (((column.rqd || column.notnull) && !column.default) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.alias].required)) {
+      if (!column.virtual && (((column.rqd || column.notnull) && !column.cdf) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.alias].required)) {
         obj.localState[column.title] = { required }
       } else if (column.bt) {
         const col = this.meta.columns.find(c => c.column_name === column.bt.column_name)
@@ -844,7 +844,7 @@ export default {
           'noco',
           this.projectName,
           this.meta.title,
-          this.selectedView.title,
+          this.viewTitle,
           this.localState
         )
 

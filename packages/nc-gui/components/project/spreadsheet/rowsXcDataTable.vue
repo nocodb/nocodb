@@ -438,6 +438,7 @@
               :primary-value-column="primaryValueColumn"
               :form-params.sync="extraViewParams.formParams"
               :view.sync="selectedView"
+              :view-title="selectedView.title"
               @onNewColCreation="loadMeta(false)"
             />
           </template>

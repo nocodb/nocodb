@@ -10,22 +10,24 @@ export default function({
   let socket
 
   const init = async(token) => {
-    if (socket) {
-      socket.disconnect()
-    }
-    const isUrl = $axios.defaults.baseURL.startsWith('http')
-    const url = isUrl ? $axios.defaults.baseURL : window.location.origin
-    const path = isUrl ? undefined : ($axios.defaults.baseURL === '..' ? window.location.path.split('/').slice(0, -1).join('/') : $axios.defaults.baseURL)
+    try {
+      if (socket) {
+        socket.disconnect()
+      }
+      const isUrl = $axios.defaults.baseURL.startsWith('http')
+      const url = isUrl ? $axios.defaults.baseURL : window.location.origin
+      const path = isUrl ? undefined : ($axios.defaults.baseURL === '..' ? window.location.pathname.split('/').slice(0, -1).join('/') : $axios.defaults.baseURL)
 
-    socket = io(url, {
-      path,
-      extraHeaders: { 'xc-auth': token }
-    })
+      socket = io(url, {
+        path,
+        extraHeaders: { 'xc-auth': token }
+      })
 
-    socket.on('connect_error', () => {
-      socket.disconnect()
-      socket = null
-    })
+      socket.on('connect_error', () => {
+        socket.disconnect()
+        socket = null
+      })
+    } catch { }
   }
 
   app.router.onReady(() => {

@@ -357,7 +357,6 @@
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
               @showRowContextMenu="showRowContextMenu"
-              @addNewRelationTab="addNewRelationTab"
               @expandRow="expandRow"
               @onRelationDelete="loadMeta"
               @loadTableData="loadTableData"
@@ -602,24 +601,6 @@
             <span class="caption">Set column value to <strong>null</strong></span>
           </v-tooltip>
         </template>
-
-        <!--        <template v-if="meta.hasMany && meta.hasMany.length">
-          <v-divider v-if="isEditable && !isLocked" />
-          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Has Many</span>
-
-          <v-list-item v-for="(hm,i) in meta.hasMany" :key="i" @click="addNewRelationTabCtxMenu(hm,'hm')">
-            <span class="caption text-capitalize">{{ hm.title }}</span>
-          </v-list-item>
-        </template>
-
-        <template v-if="meta.belongsTo && meta.belongsTo.length">
-          <v-divider />
-          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Belongs To</span>
-
-          <v-list-item v-for="(bt,i) in belongsTo" :key="i" @click="addNewRelationTabCtxMenu(bt,'bt')">
-            <span class="caption text-capitalize">{{ bt._rtn }}</span>
-          </v-list-item>
-        </template>-->
       </v-list>
     </v-menu>
     <v-dialog
@@ -752,7 +733,6 @@ export default {
     tabId: String,
     env: String,
     nodes: Object,
-    addNewRelationTab: Function,
     relationType: String,
     relation: Object,
     relationIdValue: [String, Number],
@@ -995,22 +975,6 @@ export default {
 
     comingSoon() {
       this.$toast.info('Coming soon!').goAway(3000)
-    },
-    addNewRelationTabCtxMenu(obj, type) {
-      const rowObj = this.rowContextMenu.row
-
-      this.addNewRelationTab(
-        obj,
-        this.table,
-        this.meta.title || this.table,
-        type === 'hm' ? obj.table_name : obj.rtn,
-        type === 'hm' ? obj.title : obj._rtn,
-        // todo: column name alias
-        rowObj[type === 'hm' ? obj.rcn : obj.title],
-        type,
-        rowObj,
-        rowObj[this.primaryValueColumn]
-      )
     },
     changed(col, row) {
       this.$set(this.data[row].rowMeta, 'changed', this.data[row].rowMeta.changed || {})

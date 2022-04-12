@@ -228,7 +228,7 @@
                         </div>
                         <!--placeholder=" Enter form input label"-->
                         <editable
-                          v-model="col.label"
+                          v-model.lazy="col.label"
                           style="width:300px;white-space: pre-wrap"
                           :placeholder="$t('msg.info.formInput')"
                           class="caption pa-1 backgroundColor darken-1 mb-2 "
@@ -236,7 +236,7 @@
                         />
                         <!--placeholder=" Add some help text"-->
                         <editable
-                          v-model="col.description"
+                          v-model.lazy="col.description"
                           style="width:300px;white-space: pre-wrap"
                           :placeholder="$t('msg.info.formHelpText')"
                           class="caption pa-1 backgroundColor darken-1 mb-2"
@@ -682,6 +682,7 @@ export default {
       this.$emit('update:fieldsOrder', this.fields.map(c => c.title))
     },
     async updateColMeta(col, i) {
+      // todo: introduce debounce to avoid consecutive api call
       if (col.id) {
         await this.$api.dbView.formColumnUpdate(col.id, col)
       }

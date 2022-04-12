@@ -659,9 +659,6 @@ export default {
         this.selected.row--
       }
     },
-    addNewRelationTab(...args) {
-      this.$emit('addNewRelationTab', ...args)
-    },
     makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
         this.selected = {

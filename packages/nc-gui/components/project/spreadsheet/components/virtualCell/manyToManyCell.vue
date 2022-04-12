@@ -44,6 +44,7 @@
       :meta="childMeta"
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
+      :parent-meta="meta"
       :api="api"
       :mm="mm"
       :tn="mm && mm.rtn"
@@ -316,13 +317,17 @@ export default {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
       const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
       const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c.title]).join('___')
-      await this.$api.data.nestedDelete(
-        this.meta.id,
+
+      await this.$api.dbTableRow.nestedDelete(
+        'noco',
+        this.projectName,
+        this.meta.title,
         pid,
-        this.column.id,
         'mm',
+        this.column.title,
         cid
       )
+
       this.$emit('loadTableData')
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
         this.$refs.childList.loadData()
@@ -400,20 +405,17 @@ export default {
       // const vcidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_parent_column_id).title
       // const vpidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_child_column_id).title
 
-      await this.$api.data.nestedAdd(
-        this.meta.id,
+      await this.$api.dbTableRow.nestedAdd(
+        'noco',
+        this.projectName,
+        this.meta.title,
         pid,
-        this.column.id,
         'mm',
+        this.column.title,
         cid
       )
 
       try {
-        // await this.$api.data.create(this.assocMeta.id, {
-        //   [vcidCol]: parseIfInteger(cid),
-        //   [vpidCol]: parseIfInteger(pid)
-        // })
-
         this.$emit('loadTableData')
       } catch (e) {
         // todo: handle

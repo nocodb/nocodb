@@ -2357,6 +2357,7 @@
         }
       }
     },
+
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}": {
       "parameters": [
         {
@@ -2972,10 +2973,10 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "data-csv-export",
+        "operationId": "db-table-row-csv-export",
         "description": "CSV or Excel export",
         "tags": [
-          "Data"
+          "DB table row"
         ],
         "wrapped": true,
         "responses": {
@@ -3039,10 +3040,10 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "data-csv-export",
+        "operationId": "db-table-row-csv-export",
         "description": "CSV or Excel export",
         "tags": [
-          "Data"
+          "DB table row"
         ],
         "wrapped": true,
         "responses": {
@@ -3121,7 +3122,7 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "data-nested-list",
+        "operationId": "db-table-row-nested-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -3133,7 +3134,7 @@
           }
         },
         "tags": [
-          "Public"
+          "DB table row"
         ],
         "parameters": [
           {
@@ -3218,7 +3219,7 @@
       ],
       "post": {
         "summary": "",
-        "operationId": "data-nested-list",
+        "operationId": "db-table-row-nested-add",
         "responses": {
           "200": {
             "description": "OK",
@@ -3230,7 +3231,7 @@
           }
         },
         "tags": [
-          "Public"
+          "DB table row"
         ],
         "parameters": [
           {
@@ -3247,6 +3248,23 @@
             "in": "query",
             "name": "offset"
           }
+        ]
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "db-table-row-nested-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB table row"
         ]
       }
     },
@@ -3307,7 +3325,7 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "data-nested-excluded-children-list",
+        "operationId": "db-table-row-nested-children-excluded-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -3319,7 +3337,7 @@
           }
         },
         "tags": [
-          "DB Data"
+          "DB table row"
         ],
         "parameters": [
           {

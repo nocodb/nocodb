@@ -2468,6 +2468,157 @@ export class Api<
       }),
 
     /**
+     * @description CSV or Excel export
+     *
+     * @tags DB table row
+     * @name CsvExport
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
+     * @response `200` `any` OK
+     */
+    csvExport: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      type: 'csv' | 'excel',
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
+        method: 'GET',
+        wrapped: true,
+        ...params,
+      }),
+
+    /**
+     * @description CSV or Excel export
+     *
+     * @tags DB table row
+     * @name CsvExport2
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
+     * @originalName csvExport
+     * @duplicate
+     * @response `200` `any` OK
+     */
+    csvExport2: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      type: 'csv' | 'excel',
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
+        method: 'GET',
+        wrapped: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedList
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
+     * @response `200` `any` OK
+     */
+    nestedList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedAdd
+     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+     * @response `200` `any` OK
+     */
+    nestedAdd: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      refRowId: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        method: 'POST',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedDelete
+     * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+     * @response `200` `any` OK
+     */
+    nestedDelete: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      refRowId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        method: 'DELETE',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name NestedChildrenExcludedList
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
+     * @response `200` `any` OK
+     */
+    nestedChildrenExcludedList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      relationType: 'mm' | 'hm',
+      columnName: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags DB Table Row
@@ -2707,110 +2858,7 @@ export class Api<
         ...params,
       }),
   };
-  data = {
-    /**
-     * @description CSV or Excel export
-     *
-     * @tags Data
-     * @name CsvExport
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
-     * @response `200` `any` OK
-     */
-    csvExport: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      viewName: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
-     * @description CSV or Excel export
-     *
-     * @tags Data
-     * @name CsvExport2
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
-     * @originalName csvExport
-     * @duplicate
-     * @response `200` `any` OK
-     */
-    csvExport2: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-  };
   public = {
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name DataNestedList
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
-     * @response `200` `any` OK
-     */
-    dataNestedList: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      rowId: string,
-      relationType: 'mm' | 'hm',
-      columnName: string,
-      query?: { limit?: string; offset?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name DataNestedList2
-     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
-     * @originalName dataNestedList
-     * @duplicate
-     * @response `200` `any` OK
-     */
-    dataNestedList2: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      rowId: string,
-      relationType: 'mm' | 'hm',
-      columnName: string,
-      refRowId: string,
-      query?: { limit?: string; offset?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
-        method: 'POST',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
     /**
      * No description
      *
@@ -2858,13 +2906,11 @@ export class Api<
      * No description
      *
      * @tags Public
-     * @name DataNestedList3
+     * @name DataNestedList
      * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
-     * @originalName dataNestedList
-     * @duplicate
      * @response `200` `any` OK
      */
-    dataNestedList3: (
+    dataNestedList: (
       sharedViewUuid: string,
       rowId: string,
       relationType: 'mm' | 'hm',
@@ -2977,33 +3023,6 @@ export class Api<
       this.request<{ project_id?: string }, any>({
         path: `/api/v1/db/public/shared-base/${sharedBaseUuid}/meta`,
         method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-  };
-  dbData = {
-    /**
-     * No description
-     *
-     * @tags DB Data
-     * @name DataNestedExcludedChildrenList
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
-     * @response `200` `any` OK
-     */
-    dataNestedExcludedChildrenList: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      rowId: string,
-      relationType: 'mm' | 'hm',
-      columnName: string,
-      query?: { limit?: string; offset?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
-        method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),

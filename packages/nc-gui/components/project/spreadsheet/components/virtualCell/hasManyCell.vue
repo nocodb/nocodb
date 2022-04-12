@@ -382,11 +382,13 @@ export default {
 
       const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
       this.newRecordModal = false
-      await this.$api.data.nestedAdd(
-        this.meta.id,
+      await this.$api.dbTableRow.nestedAdd(
+        'noco',
+        this.projectName,
+        this.meta.title,
         this.parentId,
-        this.column.id,
         'hm',
+        this.column.title,
         id
       )
 

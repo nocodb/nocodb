@@ -3,7 +3,6 @@ import Model from '../../../../noco-models/Model';
 import Base from '../../../../noco-models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import { NcError } from '../../helpers/catchError';
@@ -44,12 +43,7 @@ export async function mmList(req: Request, res: Response, next) {
 }
 
 export async function mmExcludedList(req: Request, res: Response, next) {
-  const view = await View.get(req.params.viewId);
-
-  const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
-  });
-
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));
 
   const base = await Base.get(model.base_id);
@@ -86,11 +80,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
 }
 
 export async function hmExcludedList(req: Request, res: Response, next) {
-  const view = await View.get(req.params.viewId);
-
-  const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
-  });
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   if (!model) return next(new Error('Table not found'));
 
@@ -129,12 +119,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
 }
 
 export async function btExcludedList(req: Request, res: Response, next) {
-  const view = await View.get(req.params.viewId);
-
-  const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
-  });
-
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));
 
   const base = await Base.get(model.base_id);
@@ -172,12 +157,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
 }
 
 export async function hmList(req: Request, res: Response, next) {
-  const view = await View.get(req.params.viewId);
-
-  const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
-  });
-
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));
 
   const base = await Base.get(model.base_id);
@@ -212,11 +192,7 @@ export async function hmList(req: Request, res: Response, next) {
 
 //@ts-ignore
 async function relationDataDelete(req, res) {
-  const view = await View.get(req.params.viewId);
-
-  const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
-  });
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   if (!model) NcError.notFound('Table not found');
 
@@ -232,7 +208,7 @@ async function relationDataDelete(req, res) {
 
   await baseModel.removeChild({
     colId: column.id,
-    childId: req.params.childId,
+    childId: req.params.refRowId,
     rowId: req.params.rowId
   });
 
@@ -241,12 +217,7 @@ async function relationDataDelete(req, res) {
 
 //@ts-ignore
 async function relationDataAdd(req, res) {
-  const view = await View.get(req.params.viewId);
-
-  const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
-  });
-
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) NcError.notFound('Table not found');
 
   const base = await Base.get(model.base_id);
@@ -260,7 +231,7 @@ async function relationDataAdd(req, res) {
   const column = await getColumnByIdOrName(req.params.columnName, model);
   await baseModel.addChild({
     colId: column.id,
-    childId: req.params.childId,
+    childId: req.params.refRowId,
     rowId: req.params.rowId
   });
 
@@ -270,9 +241,9 @@ async function relationDataAdd(req, res) {
 async function getColumnByIdOrName(columnNameOrId: string, model: Model) {
   const column = (await model.getColumns()).find(
     c =>
-      column.title === columnNameOrId ||
+      c.title === columnNameOrId ||
       c.id === columnNameOrId ||
-      column.column_name === columnNameOrId
+      c.column_name === columnNameOrId
   );
 
   if (!column)
@@ -284,25 +255,34 @@ async function getColumnByIdOrName(columnNameOrId: string, model: Model) {
 const router = Router({ mergeParams: true });
 
 router.get(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/mm/:columnName/exclude',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/mm/:columnName/exclude',
   ncMetaAclMw(mmExcludedList, 'mmExcludedList')
 );
 router.get(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/hm/:columnName/exclude',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/hm/:columnName/exclude',
   ncMetaAclMw(hmExcludedList, 'hmExcludedList')
 );
 router.get(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/bt/:columnName/exclude',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/bt/:columnName/exclude',
   ncMetaAclMw(btExcludedList, 'btExcludedList')
 );
 
 router.post(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/:relationType/:columnName/:refRowId',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/:relationType/:columnName/:refRowId',
   ncMetaAclMw(relationDataAdd, 'relationDataAdd')
 );
 router.delete(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/:relationType/:columnName/:refRowId',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/:relationType/:columnName/:refRowId',
   ncMetaAclMw(relationDataDelete, 'relationDataDelete')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/mm/:columnName',
+  ncMetaAclMw(mmList, 'mmList')
+);
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/hm/:columnName',
+  ncMetaAclMw(hmList, 'hmList')
 );
 
 export default router;

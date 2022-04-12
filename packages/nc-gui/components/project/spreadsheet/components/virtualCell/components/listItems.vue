@@ -144,7 +144,10 @@ export default {
         this.data = (await this.$api.public.dataRelationList(
           this.$route.params.id,
           this.column.id,
-          { password: this.password }, {
+          {}, {
+            headers: {
+              'xc-password': this.password
+            },
             query: {
               limit: this.size,
               offset: this.size * (this.page - 1),
@@ -156,21 +159,23 @@ export default {
 
         // eslint-disable-next-line no-lonely-if
         if (this.column && this.column.colOptions && this.rowId) {
-          this.data = (await this.$api.data.nestedExcludedList(
-            this.column.fk_model_id,
+          this.data = (await this.$api.dbTableRow.nestedChildrenExcludedList(
+            'noco',
+            this.projectName,
+            this.parentMeta.title,
             this.rowId,
-            this.column.id,
             this.column.colOptions.type,
+            this.column.title,
             {
-              query: {
-                limit: this.size,
-                offset: this.size * (this.page - 1),
-                where: this.query && `(${this.primaryCol},like,${this.query})`
-              }
+              limit: this.size,
+              offset: this.size * (this.page - 1),
+              where: this.query && `(${this.primaryCol},like,${this.query})`
             }))
         } else {
-          this.data = (await this.$api.data.list(
-            this.meta.id, {
+          this.data = (await this.$api.dbTableRow.list(
+            'noco',
+            this.projectName,
+            this.meta.title, {
               query: {
                 limit: this.size,
                 offset: this.size * (this.page - 1),

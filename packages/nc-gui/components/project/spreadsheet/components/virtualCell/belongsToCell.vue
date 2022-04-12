@@ -34,6 +34,7 @@
       :column="column"
       :primary-col="parentPrimaryCol"
       :primary-key="parentPrimaryKey"
+      :parent-meta="meta"
       :api="parentApi"
       :query-params="{
         ...parentQueryParams,
@@ -278,14 +279,18 @@ export default {
         return
       }
       const id = this.meta.columns.filter(c => c.pk).map(c => this.row[c.title]).join('___')
+
       // todo: audit
-      await this.$api.data.nestedDelete(
-        this.meta.id,
+      await this.$api.dbTableRow.nestedDelete(
+        'noco',
+        this.projectName,
+        this.meta.title,
         id,
-        this.column.id,
         'bt',
+        this.column.title,
         parent[this.parentPrimaryKey]
       )
+
       this.$emit('loadTableData')
       if (this.isForm && this.$refs.childList) {
         this.$refs.childList.loadData()
@@ -346,12 +351,13 @@ export default {
         this.newRecordModal = false
         return
       }
-
-      await this.$api.data.nestedAdd(
-        this.meta.id,
+      await this.$api.dbTableRow.nestedAdd(
+        'noco',
+        this.projectName,
+        this.meta.title,
         id,
-        this.column.id,
         'bt',
+        this.column.title,
         pid
       )
 

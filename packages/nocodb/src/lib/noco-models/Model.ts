@@ -130,7 +130,7 @@ export default class Model implements TableType {
 
     await NocoCache.appendToList(
       CacheScope.MODEL,
-      [projectId, baseId],
+      [projectId],
       `${CacheScope.MODEL}:${id}`
     );
 
@@ -163,10 +163,7 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<Model[]> {
-    let modelList = await NocoCache.getList(CacheScope.MODEL, [
-      project_id,
-      base_id
-    ]);
+    let modelList = await NocoCache.getList(CacheScope.MODEL, [project_id]);
     if (!modelList.length) {
       modelList = await ncMeta.metaList2(
         project_id,
@@ -179,11 +176,7 @@ export default class Model implements TableType {
         }
       );
 
-      await NocoCache.setList(
-        CacheScope.MODEL,
-        [project_id, base_id],
-        modelList
-      );
+      await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
     }
     modelList.sort(
       (a, b) =>
@@ -214,11 +207,7 @@ export default class Model implements TableType {
         MetaTable.MODELS
       );
 
-      await NocoCache.setList(
-        CacheScope.MODEL,
-        [project_id, db_alias],
-        modelList
-      );
+      await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
     }
 
     return modelList.map(m => new Model(m));
@@ -437,10 +426,10 @@ export default class Model implements TableType {
     await ncMeta.metaDelete(null, null, MetaTable.MODELS, this.id);
 
     await NocoCache.del(
-      `${CacheScope.MODEL}:${this.project_id}:${this.base_id}:${this.id}`
+      `${CacheScope.MODEL}:${this.project_id}:${this.id}`
     );
     await NocoCache.del(
-      `${CacheScope.MODEL}:${this.project_id}:${this.base_id}:${this.title}`
+      `${CacheScope.MODEL}:${this.project_id}:${this.title}`
     );
     return true;
   }
@@ -632,10 +621,9 @@ export default class Model implements TableType {
   ) {
     const modelId =
       project_id &&
-      base_id &&
       aliasOrId &&
       (await NocoCache.get(
-        `${CacheScope.MODEL}:${project_id}:${base_id}:${aliasOrId}`,
+        `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelId) {
@@ -661,7 +649,7 @@ export default class Model implements TableType {
         }
       );
       await NocoCache.set(
-        `${CacheScope.MODEL}:${project_id}:${base_id}:${aliasOrId}`,
+        `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
         model.id
       );
       await NocoCache.set(`${CacheScope.MODEL}:${model.id}`, model);

@@ -26,11 +26,11 @@ jobs:
           # Get current date
           CURRENT_DATE=$(date +"%Y%m%d")
           CURRENT_TIME=$(date +"%H%M")
-          TAG_NAME=${CURRENT_DATE}
+          TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
           IS_DAILY='Y'
           # Set the tag
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
-            TAG_NAME=${TAG_NAME}-${CURRENT_TIME}
+            TAG_NAME=${TAG_NAME}
             IS_DAILY='N'
           fi
           echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"

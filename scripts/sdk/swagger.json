@@ -1367,7 +1367,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/showAll": {
+    "/api/v1/db/meta/views/{viewId}/show-all": {
       "parameters": [
         {
           "schema": {
@@ -1401,7 +1401,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/views/{viewId}/hideAll": {
+    "/api/v1/db/meta/views/{viewId}/hide-all": {
       "parameters": [
         {
           "schema": {

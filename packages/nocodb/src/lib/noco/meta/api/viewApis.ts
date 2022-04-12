@@ -114,11 +114,11 @@ router.delete(
   ncMetaAclMw(viewDelete, 'viewDelete')
 );
 router.post(
-  '/api/v1/db/meta/views/:viewId/showAll',
+  '/api/v1/db/meta/views/:viewId/show-all',
   ncMetaAclMw(showAllColumns, 'showAllColumns')
 );
 router.post(
-  '/api/v1/db/meta/views/:viewId/hideAll',
+  '/api/v1/db/meta/views/:viewId/hide-all',
   ncMetaAclMw(hideAllColumns, 'hideAllColumns')
 );
 

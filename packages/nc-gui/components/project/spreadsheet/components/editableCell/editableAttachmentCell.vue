@@ -333,14 +333,14 @@ export default {
       this.uploading = true
       for (const file of this.$refs.file.files) {
         try {
-          const data = await this.$api.dbViewRow.upload(
-            'noco',
-            this.projectName,
-            this.meta.title,
-            this.column.title, {
+          const data = await this.$api.storage.upload(
+            {
+              path: ['noco', this.projectName, this.meta.title, this.column.title].join('/')
+            }, {
               files: file,
               json: '{}'
-            })
+            }
+          )
 
           this.localState.push(...data)
         } catch (e) {

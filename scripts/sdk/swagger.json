@@ -3282,68 +3282,6 @@
       }
     },
 
-    "/api/v1/db/data-attachment/{orgs}/{projectName}/{tableName}/{columnName}": {
-      "post": {
-        "summary": "Attachment",
-        "operationId": "db-view-row-upload",
-        "responses": {},
-        "tags": [
-          "DB View row"
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "files": {},
-                  "json": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "description": ""
-        }
-      },
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "columnName",
-          "in": "path",
-          "required": true
-        }
-      ]
-    },
-
-
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
         {
@@ -4747,6 +4685,43 @@
         ],
         "tags": [
           "DB Table Row"
+        ]
+      }
+    },
+
+    "/api/v1/db/storage/upload": {
+      "post": {
+        "summary": "Attachment",
+        "operationId": "storage-upload",
+        "responses": {},
+        "tags": [
+          "Storage"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {},
+                  "json": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "description": ""
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "path",
+            "in": "query",
+            "required": true
+          }
         ]
       }
     }

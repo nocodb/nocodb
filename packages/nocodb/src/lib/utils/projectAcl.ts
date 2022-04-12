@@ -208,7 +208,9 @@ export default {
     passwordChange: true,
     projectList: true
   },
+  super: '*',
   user: {
+    upload: true,
     passwordChange: true,
     pluginList: true,
     pluginRead: true,

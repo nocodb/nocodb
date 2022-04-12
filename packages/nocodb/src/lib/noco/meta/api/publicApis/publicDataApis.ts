@@ -141,9 +141,9 @@ async function dataInsert(
       );
 
       if (!url) {
-        url = `${
-          (req as any).ncSiteUrl
-        }/api/v1/db/data-attachment/${filePath.join('/')}/${fileName}`;
+        url = `${(req as any).ncSiteUrl}/download/${filePath.join(
+          '/'
+        )}/${fileName}`;
       }
 
       attachments[fieldName].push({

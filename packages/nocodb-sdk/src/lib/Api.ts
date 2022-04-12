@@ -2778,30 +2778,6 @@ export class Api<
         wrapped: true,
         ...params,
       }),
-
-    /**
-     * No description
-     *
-     * @tags DB View row
-     * @name Upload
-     * @summary Attachment
-     * @request POST:/api/v1/db/data-attachment/{orgs}/{projectName}/{tableName}/{columnName}
-     */
-    upload: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      columnName: string,
-      data: { files?: any; json?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data-attachment/${orgs}/${projectName}/${tableName}/${columnName}`,
-        method: 'POST',
-        body: data,
-        type: ContentType.FormData,
-        ...params,
-      }),
   };
   public = {
     /**
@@ -3352,6 +3328,29 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,
         method: 'DELETE',
+        ...params,
+      }),
+  };
+  storage = {
+    /**
+     * No description
+     *
+     * @tags Storage
+     * @name Upload
+     * @summary Attachment
+     * @request POST:/api/v1/db/storage/upload
+     */
+    upload: (
+      query: { path: string },
+      data: { files?: any; json?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/storage/upload`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.FormData,
         ...params,
       }),
   };

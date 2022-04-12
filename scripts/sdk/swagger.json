@@ -4006,7 +4006,7 @@
         }
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}"0: {
       "parameters": [
         {
           "schema": {

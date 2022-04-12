@@ -72,7 +72,7 @@
             <xc-grid-view
               v-else
               is-public-view
-              :meta="meta"
+              :meta="tableMeta"
               :metas="metas"
               :data="data"
               :available-columns="availableColumns"
@@ -225,7 +225,8 @@ export default {
       icon: 'mdi-card'
     }],
     rowContextMenu: null,
-    modelName: null
+    modelName: null,
+    tableMeta: null
   }),
   computed: {
     concatenatedXWhere() {
@@ -393,7 +394,8 @@ export default {
             'xc-password': this.password
           }
         }))
-        this.meta = this.viewMeta.model
+        this.tableMeta = this.viewMeta.model
+        this.meta = { ...this.viewMeta.model }
         this.meta.columns = this.meta.columns.filter(c => c.show)
         this.metas = this.viewMeta.relatedMetas
         this.showSystemFields = this.viewMeta.show_system_fields

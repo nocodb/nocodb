@@ -107,7 +107,7 @@ export async function xcVisibilityMetaGet(
 
 const router = Router({ mergeParams: true });
 router.get(
-  '/projects/:projectId/modelVisibility',
+  '/api/v1/db/meta/projects/:projectId/visibility-rules',
   ncMetaAclMw(async (req, res) => {
     res.json(
       await xcVisibilityMetaGet(

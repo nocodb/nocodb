@@ -11,7 +11,7 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & MariaDB in eine Smart-T
 <div align="center">
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
-[![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2014.18.0-brightgreen)](http://nodejs.org/download/)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
 
 </div>

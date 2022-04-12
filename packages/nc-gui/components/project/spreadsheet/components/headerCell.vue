@@ -196,7 +196,7 @@ export default {
     async setAsPrimaryValue() {
       // todo: pass only updated fields
       try {
-        await this.$api.dbTableColumn.primaryColumnSet(this.meta.id, this.column.id)
+        await this.$api.dbTableColumn.primaryColumnSet(this.column.id)
         this.$toast.success('Successfully updated as primary column').goAway(3000)
       } catch (e) {
         console.log(e)

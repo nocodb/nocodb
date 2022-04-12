@@ -58,6 +58,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -102,6 +103,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -146,6 +148,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -190,6 +193,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -225,7 +229,7 @@ jobs:
               uses: cypress-io/github-action@v2
               with:
                   start: |
-                      npm run build:common          
+                      npm run build:common
                       npm run start:api:cache
                       npm run start:web
                       docker-compose -f ./scripts/docker-compose-cypress.yml up -d
@@ -234,6 +238,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -278,6 +283,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -322,6 +328,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -366,6 +373,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -410,6 +418,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -454,6 +463,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -498,6 +508,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots
@@ -542,6 +553,7 @@ jobs:
                   wait-on-timeout: 1200
                   config-file: scripts/cypress/cypress.json
             - name: Upload screenshots
+              if: always()
               uses: actions/upload-artifact@v2
               with:
                   name: restTableOps-snapshots

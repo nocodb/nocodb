@@ -15,6 +15,7 @@ import path from 'path';
 import { nanoid } from 'nanoid';
 import { mimeIcons } from '../../../../utils/mimeTypes';
 import slash from 'slash';
+import { sanitizeUrlPath } from '../attachmentApis';
 
 export async function dataList(req: Request, res: Response) {
   try {
@@ -83,6 +84,7 @@ async function dataInsert(
     id: view?.fk_model_id
   });
   const base = await Base.get(model.base_id);
+  const project = await base.getProject();
 
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
@@ -122,18 +124,26 @@ async function dataInsert(
   for (const file of req.files || []) {
     // remove `_` prefix and `[]` suffix
     const fieldName = file?.fieldname?.replace(/^_|\[\d*]$/g, '');
+
+    const filePath = sanitizeUrlPath([
+      'noco',
+      project.title,
+      model.title,
+      fieldName
+    ]);
+
     if (fieldName in fields && fields[fieldName].uidt === UITypes.Attachment) {
       attachments[fieldName] = attachments[fieldName] || [];
       const fileName = `${nanoid(6)}_${file.originalname}`;
       let url = await storageAdapter.fileCreate(
-        slash(path.join('nc', 'uploads', base.project_id, view.id, fileName)),
+        slash(path.join('nc', 'uploads', ...filePath, fileName)),
         file
       );
 
       if (!url) {
-        url = `${(req as any).ncSiteUrl}/download/${base.project_id}/${
-          view.id
-        }/${fileName}`;
+        url = `${
+          (req as any).ncSiteUrl
+        }/api/v1/db/data-attachment/${filePath.join('/')}/${fileName}`;
       }
 
       attachments[fieldName].push({

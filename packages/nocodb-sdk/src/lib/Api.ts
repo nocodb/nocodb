@@ -1450,23 +1450,6 @@ export class Api<
   };
   dbTableColumn = {
     /**
-     * @description Read project details
-     *
-     * @tags DB Table column
-     * @name List
-     * @summary Column List
-     * @request GET:/api/v1/db/meta/tables/{tableId}/columns
-     * @response `200` `ColumnListType`
-     * @response `201` `ColumnType` Created
-     */
-    list: (tableId: string, params: RequestParams = {}) =>
-      this.request<ColumnListType, any>({
-        path: `/api/v1/db/meta/tables/${tableId}/columns`,
-        method: 'GET',
-        ...params,
-      }),
-
-    /**
      * No description
      *
      * @tags DB Table column
@@ -1485,23 +1468,6 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Read project details
-     *
-     * @tags DB Table column
-     * @name Read
-     * @summary Column Read
-     * @request GET:/api/v1/db/meta/columns/{columnId}
-     * @response `200` `ColumnType` OK
-     */
-    read: (columnId: string, params: RequestParams = {}) =>
-      this.request<ColumnType, any>({
-        path: `/api/v1/db/meta/columns/${columnId}`,
-        method: 'GET',
-        format: 'json',
         ...params,
       }),
 
@@ -1620,7 +1586,7 @@ export class Api<
      *
      * @tags DB View
      * @name ShowAllColumn
-     * @request POST:/api/v1/db/meta/views/{viewId}/showAll
+     * @request POST:/api/v1/db/meta/views/{viewId}/show-all
      * @response `200` `void` OK
      */
     showAllColumn: (
@@ -1629,7 +1595,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/views/${viewId}/showAll`,
+        path: `/api/v1/db/meta/views/${viewId}/show-all`,
         method: 'POST',
         query: query,
         ...params,
@@ -1640,7 +1606,7 @@ export class Api<
      *
      * @tags DB View
      * @name HideAllColumn
-     * @request POST:/api/v1/db/meta/views/{viewId}/hideAll
+     * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
      * @response `200` `void` OK
      */
     hideAllColumn: (
@@ -1649,7 +1615,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/views/${viewId}/hideAll`,
+        path: `/api/v1/db/meta/views/${viewId}/hide-all`,
         method: 'POST',
         query: query,
         ...params,
@@ -1842,28 +1808,6 @@ export class Api<
         format: 'json',
         ...params,
       }),
-
-    /**
-     * No description
-     *
-     * @tags DB View
-     * @name Upload
-     * @summary Attachment
-     * @request POST:/projects/{projectId}/views/{viewId}/upload
-     */
-    upload: (
-      projectId: string,
-      viewId: string,
-      data: { files?: any; json?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/projects/${projectId}/views/${viewId}/upload`,
-        method: 'POST',
-        body: data,
-        type: ContentType.FormData,
-        ...params,
-      }),
   };
   dbViewShare = {
     /**
@@ -1965,22 +1909,6 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB View Column
-     * @name Read
-     * @request GET:/api/v1/db/meta/views/{viewId}/columns/{columnId}
-     * @response `200` `any` OK
-     */
-    read: (viewId: string, columnId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/api/v1/db/meta/views/${viewId}/columns/${columnId}`,
-        method: 'GET',
-        format: 'json',
         ...params,
       }),
 
@@ -2850,6 +2778,30 @@ export class Api<
         wrapped: true,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags DB View row
+     * @name Upload
+     * @summary Attachment
+     * @request POST:/api/v1/db/data-attachment/{orgs}/{projectName}/{tableName}/{columnName}
+     */
+    upload: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      columnName: string,
+      data: { files?: any; json?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data-attachment/${orgs}/${projectName}/${tableName}/${columnName}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.FormData,
+        ...params,
+      }),
   };
   public = {
     /**
@@ -2883,14 +2835,14 @@ export class Api<
      */
     dataCreate: (
       sharedViewUuid: string,
-      data: any,
+      data: object,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
         body: data,
-        type: ContentType.Json,
+        type: ContentType.FormData,
         format: 'json',
         ...params,
       }),
@@ -2913,30 +2865,6 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/${rowId}/${relationType}/${columnName}`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name DataNestedExcludedList
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}/exclude
-     * @response `200` `any` OK
-     */
-    dataNestedExcludedList: (
-      sharedViewUuid: string,
-      rowId: string,
-      relationType: 'mm' | 'hm',
-      columnName: string,
-      query?: { limit?: string; offset?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/${rowId}/${relationType}/${columnName}/exclude`,
         method: 'GET',
         query: query,
         format: 'json',

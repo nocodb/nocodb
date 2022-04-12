@@ -14,8 +14,8 @@ export default function({
       socket.disconnect()
     }
     const isUrl = $axios.defaults.baseURL.startsWith('http')
-    const url = isUrl ? $axios.defaults.baseURL : window.location.href.split(/[?#]/)[0]
-    const path = isUrl ? undefined : $axios.defaults.baseURL
+    const url = isUrl ? $axios.defaults.baseURL : window.location.origin
+    const path = isUrl ? undefined : ($axios.defaults.baseURL === '..' ? window.location.path.split('/').slice(0, -1).join('/') : $axios.defaults.baseURL)
 
     socket = io(url, {
       path,

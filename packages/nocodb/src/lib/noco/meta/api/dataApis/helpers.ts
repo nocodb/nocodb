@@ -12,6 +12,7 @@ import Column from '../../../../noco-models/Column';
 import LookupColumn from '../../../../noco-models/LookupColumn';
 import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
 
+import papaparse from 'papaparse';
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
     | Request<{ projectName: string; tableName: string; viewName?: string }>
@@ -38,10 +39,22 @@ export async function getViewAndModelFromRequestByAliasOrId(
   return { model, view };
 }
 
-export async function extractCsvData(model: Model, view: View, req: Request) {
-  const base = await Base.get(model.base_id);
+export async function extractCsvData(view: View, req: Request) {
+  const base = await Base.get(view.base_id);
+
+  await view.getModelWithInfo();
+  await view.getColumns();
+
+  view.model.columns = view.columns
+    .filter(c => c.show)
+    .map(
+      c =>
+        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any)
+    )
+    .filter(column => !isSystemColumn(column) || view.show_system_fields);
+
   const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
+    id: view.model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base)
   });
@@ -86,7 +99,18 @@ export async function extractCsvData(model: Model, view: View, req: Request) {
       csvRows.push(csvRow);
     }
   }
-  return { offset, csvRows, elapsed };
+
+  const data = papaparse.unparse(
+    {
+      fields: view.model.columns.map(c => c.title),
+      data: csvRows
+    },
+    {
+      escapeFormulae: true
+    }
+  );
+
+  return { offset, csvRows, elapsed, data };
 }
 
 export async function serializeCellValue({

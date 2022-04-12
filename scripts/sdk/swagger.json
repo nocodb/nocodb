@@ -2957,10 +2957,10 @@
       ],
       "get": {
         "summary": "",
-        "operationId": "db-table-row-csv-export",
+        "operationId": "db-view-row-export",
         "description": "CSV or Excel export",
         "tags": [
-          "DB table row"
+          "DB view row"
         ],
         "wrapped": true,
         "responses": {

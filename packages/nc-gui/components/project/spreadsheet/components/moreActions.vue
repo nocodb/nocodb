@@ -244,12 +244,17 @@ export default {
               }
             })
           } else {
-            res = await this.$api.data.csvExport(this.selectedView.id, ExportTypes.CSV, {
-              responseType: 'blob',
-              query: {
-                offset
-              }
-            })
+            res = await this.$api.dbViewRow.export(
+              'noco',
+              this.projectName,
+              this.meta.title,
+              this.selectedView.title,
+              ExportTypes.CSV, {
+                responseType: 'blob',
+                query: {
+                  offset
+                }
+              })
           }
           const { data } = res
 
@@ -289,7 +294,7 @@ export default {
                   input = '1'
                 }
               } else if (v.uidt === UITypes.Number) {
-                if (input == "") input = null
+                if (input == '') { input = null }
               }
               res[col.destCn] = input
             }

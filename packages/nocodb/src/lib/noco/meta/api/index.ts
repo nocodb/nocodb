@@ -30,6 +30,7 @@ import hookFilterApis from './hookFilterApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
+  dataAliasExportApis,
   dataAliasNestedApis,
   dataApis,
   oldDataApis
@@ -54,6 +55,7 @@ export default function(router: Router, server) {
   router.use(bulkDataAliasApis);
   router.use(dataAliasApis);
   router.use(dataAliasNestedApis);
+  router.use(dataAliasExportApis);
   router.use(oldDataApis);
   router.use(sortApis);
   router.use(filterApis);

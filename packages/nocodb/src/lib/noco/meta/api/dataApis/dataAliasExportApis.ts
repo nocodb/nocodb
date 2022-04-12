@@ -4,22 +4,11 @@ import {
   extractCsvData,
   getViewAndModelFromRequestByAliasOrId
 } from './helpers';
-import papaparse from 'papaparse';
 
 async function csvDataExport(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  const { view } = await getViewAndModelFromRequestByAliasOrId(req);
 
-  const { offset, csvRows, elapsed } = await extractCsvData(model, view, req);
-
-  const data = papaparse.unparse(
-    {
-      fields: model.columns.map(c => c.title),
-      data: csvRows
-    },
-    {
-      escapeFormulae: true
-    }
-  );
+  const { offset, elapsed, data } = await extractCsvData(view, req);
 
   res.set({
     'Access-Control-Expose-Headers': 'nc-export-offset',

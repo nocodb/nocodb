@@ -2467,35 +2467,10 @@ export class Api<
      *
      * @tags DB table row
      * @name CsvExport
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
      * @response `200` `any` OK
      */
     csvExport: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      viewName: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
-     * @description CSV or Excel export
-     *
-     * @tags DB table row
-     * @name CsvExport2
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
-     * @originalName csvExport
-     * @duplicate
-     * @response `200` `any` OK
-     */
-    csvExport2: (
       orgs: string,
       projectName: string,
       tableName: string,
@@ -2850,6 +2825,29 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description CSV or Excel export
+     *
+     * @tags DB view row
+     * @name Export
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
+     * @response `200` `any` OK
+     */
+    export: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      type: 'csv' | 'excel',
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
+        method: 'GET',
+        wrapped: true,
         ...params,
       }),
   };

@@ -1115,14 +1115,17 @@ export default {
           this.$set(this.data[row], 'saving', true)
 
           // eslint-disable-next-line promise/param-names
-          const newData = (await this.$api.data.update(this.meta.id, id, {
-            [column.title]: rowObj[column.title]
-          }, {
-            query: { ignoreWebhook: !saved }
-          }))// { [column.title]: oldRow[column.title] })
+          const newData = (await this.$api.dbTableRow.update(
+            'noco',
+            this.projectName,
+            this.meta.title, id, {
+              [column.title]: rowObj[column.title]
+            }, {
+              query: { ignoreWebhook: !saved }
+            }))
 
           // audit
-          this.$api.utils.auditRowUpdate({
+          this.$api.utils.auditRowUpdate(id, {
             fk_model_id: this.meta.id,
             column_name: column.title,
             row_id: id,

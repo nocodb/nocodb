@@ -33,7 +33,7 @@ async function dataUpdate(req: Request, res: Response) {
 
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
-    viewId: view.id,
+    viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
@@ -45,7 +45,7 @@ async function dataDelete(req: Request, res: Response) {
   const base = await Base.get(model.base_id);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
-    viewId: view.id,
+    viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base)
   });
 

@@ -2948,20 +2948,17 @@ export class Api<
      *
      * @tags Public
      * @name CsvExport
-     * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
      * @response `200` `any` OK
      */
     csvExport: (
       sharedViewUuid: string,
       type: 'csv' | 'excel',
-      data: { password?: string; filters?: FilterType[]; sorts?: SortType[] },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
+        method: 'GET',
         wrapped: true,
         ...params,
       }),

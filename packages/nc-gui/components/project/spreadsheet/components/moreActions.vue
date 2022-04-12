@@ -237,10 +237,13 @@ export default {
         while (!isNaN(offset) && offset > -1) {
           let res
           if (this.publicViewId) {
-            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, this.reqPayload, {
+            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, {
               responseType: 'blob',
               query: {
                 offset
+              },
+              headers: {
+                'xc-password': this.reqPayload && this.reqPayload.password
               }
             })
           } else {

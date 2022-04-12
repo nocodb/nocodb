@@ -3642,7 +3642,7 @@
           "required": true
         }
       ],
-      "post": {
+      "get": {
         "summary": "",
         "operationId": "public-csv-export",
         "description": "",
@@ -3666,33 +3666,7 @@
         },
         "tags": [
           "Public"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "password": {
-                    "type": "string"
-                  },
-                  "filters": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Filter"
-                    }
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Sort"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}": {

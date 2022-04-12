@@ -12,12 +12,13 @@ import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 
 // const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
-  const destPath = path.join(
-    'nc',
-    'uploads',
-    req.params.projectId,
-    req.params.viewId
-  );
+  const filePath = sanitizeUrlPath([
+    req.params.orgs,
+    req.params.projectName,
+    req.params.tableName,
+    req.params.columnName
+  ]);
+  const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
   const attachments = await Promise.all(
@@ -30,9 +31,9 @@ export async function upload(req: Request, res: Response) {
       );
 
       if (!url) {
-        url = `${(req as any).ncSiteUrl}/download/${req.params.projectId}/${
-          req.params.viewId
-        }/${fileName}`;
+        url = `${
+          (req as any).ncSiteUrl
+        }/api/v1/db/data-attachment/${filePath.join('/')}/${fileName}`;
       }
 
       return {
@@ -67,8 +68,10 @@ export async function fileRead(req, res) {
         path.join(
           'nc',
           'uploads',
-          req.params.projectId,
-          req.params.viewId,
+          req.params.orgs,
+          req.params.projectName,
+          req.params.tableName,
+          req.params.columnName,
           req.params.fileName
         )
       )
@@ -81,15 +84,6 @@ export async function fileRead(req, res) {
   }
 }
 const router = Router({ mergeParams: true });
-
-router.post(
-  '/projects/:projectId/views/:viewId/upload',
-  multer({
-    storage: multer.diskStorage({})
-  }).any(),
-  ncMetaAclMw(upload, 'upload')
-);
-router.get('/download/:projectId/:viewId/:fileName', catchError(fileRead));
 
 router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
   try {
@@ -122,4 +116,21 @@ router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
     res.status(404).send('Not found');
   }
 });
+
+export function sanitizeUrlPath(paths) {
+  return paths.map(url => url.replace(/[/.?#]+/g, '_'));
+}
+
+router.post(
+  '/api/v1/db/data-attachment/:orgs/:projectName/:tableName/:columnName',
+  multer({
+    storage: multer.diskStorage({})
+  }).any(),
+  ncMetaAclMw(upload, 'upload')
+);
+router.get(
+  '/api/v1/db/data-attachment/:orgs/:projectName/:tableName/:columnName/:fileName',
+  catchError(fileRead)
+);
+
 export default router;

@@ -3282,13 +3282,13 @@
       }
     },
 
-    "/projects/{projectId}/views/{viewId}/upload": {
+    "/api/v1/db/data-attachment/{orgs}/{projectName}/{tableName}/{columnName}": {
       "post": {
         "summary": "Attachment",
-        "operationId": "db-view-upload",
+        "operationId": "db-view-row-upload",
         "responses": {},
         "tags": [
-          "DB View"
+          "DB View row"
         ],
         "requestBody": {
           "content": {
@@ -3312,7 +3312,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectId",
+          "name": "orgs",
           "in": "path",
           "required": true
         },
@@ -3320,7 +3320,23 @@
           "schema": {
             "type": "string"
           },
-          "name": "viewId",
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
           "in": "path",
           "required": true
         }
@@ -3395,8 +3411,11 @@
         },
         "requestBody": {
           "content": {
-            "application/json": {
-              "schema": {}
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": { }
+              }
             }
           }
         },

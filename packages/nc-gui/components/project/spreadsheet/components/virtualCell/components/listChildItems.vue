@@ -184,7 +184,8 @@ export default {
             this.$route.params.id,
             this.rowId,
             this.column.colOptions.type,
-            this.column.fk_column_id || this.column.id, {
+            this.column.fk_column_id || this.column.id,
+            {
               limit: this.size,
               offset: this.size * (this.page - 1)
             }, {}))

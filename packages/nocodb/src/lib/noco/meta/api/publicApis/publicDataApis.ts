@@ -320,7 +320,7 @@ router.get(
   catchError(dataList)
 );
 router.post(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/nested/:columnId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/nested/:columnId',
   catchError(relDataList)
 );
 router.post(
@@ -332,11 +332,11 @@ router.post(
 );
 
 router.get(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/:rowId/mm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:colId',
   catchError(publicMmList)
 );
 router.get(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/:rowId/hm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:colId',
   catchError(publicHmList)
 );
 

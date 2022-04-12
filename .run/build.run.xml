@@ -7,7 +7,7 @@
     </scripts>
     <node-interpreter value="project" />
     <envs>
-      <env name="NC_CACHE_DISABLED" value="true" />
+      <env name="NC_DISABLE_CACHE" value="true" />
     </envs>
     <method v="2" />
   </configuration>

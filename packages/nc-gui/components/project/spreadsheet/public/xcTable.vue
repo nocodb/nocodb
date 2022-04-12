@@ -49,7 +49,7 @@
 
           <csv-export-import
             :is-view="isView"
-            :query-params="{...queryParams, showFields}"
+            :query-params="{...queryParams, showFields, fieldsOrder}"
             :public-view-id="$route.params.id"
             :meta="meta"
             :req-payload="{filters, sorts, password}"

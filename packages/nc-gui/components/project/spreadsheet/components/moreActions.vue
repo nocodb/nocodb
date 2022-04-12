@@ -240,7 +240,16 @@ export default {
             res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, {
               responseType: 'blob',
               query: {
-                offset
+                fields: this.queryParams && this.queryParams.fieldsOrder && this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
+                offset,
+                sortArrJson: JSON.stringify(this.reqPayload && this.reqPayload.sorts && this.reqPayload.sorts.map(({
+                  fk_column_id,
+                  direction
+                }) => ({
+                  direction,
+                  fk_column_id
+                }))),
+                filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters)
               },
               headers: {
                 'xc-password': this.reqPayload && this.reqPayload.password

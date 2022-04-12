@@ -290,7 +290,7 @@ class BaseModelSqlv2 {
               allowedCols && (!includePkByDefault || !col.pk)
                 ? allowedCols[col.id] &&
                   (!isSystemColumn(col) || view.show_system_fields) &&
-                  (!fields?.length || fields.include(col.title))
+                  (!fields?.length || fields.includes(col.title))
                 : 1
           }),
           {}

@@ -1695,7 +1695,7 @@ export class Api<
      *
      * @tags DB View
      * @name FormColumnUpdate
-     * @request PATCH:/api/v1/db/meta/form/columns/{formViewColumnId}
+     * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
      * @response `200` `any` OK
      */
     formColumnUpdate: (
@@ -1704,7 +1704,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/db/meta/form/columns/${formViewColumnId}`,
+        path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -1717,12 +1717,12 @@ export class Api<
      *
      * @tags DB View
      * @name GridColumnsList
-     * @request GET:/api/v1/db/meta/grids/{gidId}/grid/columns
+     * @request GET:/api/v1/db/meta/grids/{gridId}/grid-columns
      * @response `200` `(GridColumnType)[]` OK
      */
-    gridColumnsList: (gidId: string, params: RequestParams = {}) =>
+    gridColumnsList: (gridId: string, params: RequestParams = {}) =>
       this.request<GridColumnType[], any>({
-        path: `/api/v1/db/meta/grids/${gidId}/grid/columns`,
+        path: `/api/v1/db/meta/grids/${gridId}/grid-columns`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1733,7 +1733,7 @@ export class Api<
      *
      * @tags DB View
      * @name GridColumnUpdate
-     * @request PATCH:/api/v1/db/meta/grid/columns/{columnId}
+     * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
      * @response `200` `any` OK
      */
     gridColumnUpdate: (
@@ -1742,7 +1742,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/db/meta/grid/columns/${columnId}`,
+        path: `/api/v1/db/meta/grid-columns/${columnId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -2102,12 +2102,12 @@ export class Api<
      *
      * @tags DB Table Filter
      * @name ChildrenRead
-     * @request GET:/api/v1/db/meta/filters/{filterParentId}/children
+     * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
      * @response `200` `FilterType` OK
      */
-    childrenRead: (filterParentId: string, params: RequestParams = {}) =>
+    childrenRead: (filterGroupId: string, params: RequestParams = {}) =>
       this.request<FilterType, any>({
-        path: `/api/v1/db/meta/filters/${filterParentId}/children`,
+        path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
         format: 'json',
         ...params,

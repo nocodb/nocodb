@@ -2029,7 +2029,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/form/columns/{formViewColumnId}": {
+    "/api/v1/db/meta/form-columns/{formViewColumnId}": {
       "parameters": [
         {
           "schema": {
@@ -2069,13 +2069,13 @@
         }
       }
     },
-    "/api/v1/db/meta/grids/{gidId}/grid/columns": {
+    "/api/v1/db/meta/grids/{gridId}/grid-columns": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "gidId",
+          "name": "gridId",
           "in": "path",
           "required": true
         }
@@ -2103,7 +2103,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/grid/columns/{columnId}": {
+    "/api/v1/db/meta/grid-columns/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -4494,7 +4494,7 @@
       ]
     },
 
-    "/bulkData/{orgs}/{projectName}/{tableName}/": {
+    "/api/v1/db/bulkData/{orgs}/{projectName}/{tableName}/": {
       "parameters": [
         {
           "schema": {
@@ -4597,7 +4597,7 @@
         ]
       }
     },
-    "/bulkData/{orgs}/{projectName}/{tableName}/all": {
+    "/api/v1/db/bulkData/{orgs}/{projectName}/{tableName}/all": {
       "parameters": [
         {
           "schema": {

@@ -14,11 +14,11 @@ export async function gridColumnUpdate(req: Request, res: Response) {
 
 const router = Router({ mergeParams: true });
 router.get(
-  '/api/v1/db/meta/grids/:gridViewId/grid/columns',
+  '/api/v1/db/meta/grids/:gridViewId/grid-columns',
   ncMetaAclMw(columnList, 'columnList')
 );
 router.patch(
-  '/api/v1/db/meta/grid/columns/:gridViewColumnId',
+  '/api/v1/db/meta/grid-columns/:gridViewColumnId',
   ncMetaAclMw(gridColumnUpdate, 'gridColumnUpdate')
 );
 export default router;

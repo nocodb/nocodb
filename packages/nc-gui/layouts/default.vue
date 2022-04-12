@@ -657,7 +657,7 @@ export default {
     },
     async copyProjectInfo() {
       try {
-        const data = (await this.$api.project.metaGet(this.$store.state.project.projectId))// await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'ncProjectInfo'])
+        const data = (await this.$api.project.metaGet(this.$store.state.project.projectId))
         copyTextToClipboard(Object.entries(data).map(([k, v]) => `${k}: **${v}**`).join('\n'))
         this.$toast.info('Copied project info to clipboard').goAway(3000)
       } catch (e) {

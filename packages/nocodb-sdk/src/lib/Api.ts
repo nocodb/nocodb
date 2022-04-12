@@ -3382,12 +3382,12 @@ export class Api<
      * @tags Api token
      * @name List
      * @summary Your GET endpoint
-     * @request GET:/api/v1/db/meta/projects/{projectId}/apiTokens
+     * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `(ApiTokenType)[]` OK
      */
     list: (projectId: string, params: RequestParams = {}) =>
       this.request<ApiTokenType[], any>({
-        path: `/api/v1/db/meta/projects/${projectId}/apiTokens`,
+        path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3398,7 +3398,7 @@ export class Api<
      *
      * @tags Api token
      * @name Create
-     * @request POST:/api/v1/db/meta/projects/{projectId}/apiTokens
+     * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `void` OK
      * @response `201` `ApiTokenType` Created
      */
@@ -3408,7 +3408,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/apiTokens`,
+        path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3420,12 +3420,12 @@ export class Api<
      *
      * @tags Api token
      * @name Delete
-     * @request DELETE:/api/v1/db/meta/projects/{projectId}/apiTokens/{token}
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}
      * @response `200` `void` OK
      */
     delete: (projectId: string, token: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/apiTokens/${token}`,
+        path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,
         method: 'DELETE',
         ...params,
       }),

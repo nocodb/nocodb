@@ -4593,7 +4593,7 @@
       "parameters": []
     },
 
-    "/api/v1/db/meta/projects/{projectId}/apiTokens": {
+    "/api/v1/db/meta/projects/{projectId}/api-tokens": {
       "get": {
         "summary": "Your GET endpoint",
         "tags": [
@@ -4663,7 +4663,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/projects/{projectId}/apiTokens/{token}": {
+    "/api/v1/db/meta/projects/{projectId}/api-tokens/{token}": {
       "delete": {
         "summary": "",
         "operationId": "api-token-delete",

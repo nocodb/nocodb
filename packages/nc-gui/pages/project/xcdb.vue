@@ -156,7 +156,7 @@ export default {
             }
           })
         } catch (e) {
-          this.$toast.error(e.message).goAway(3000)
+          this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
         }
         this.loading = false
       } else {

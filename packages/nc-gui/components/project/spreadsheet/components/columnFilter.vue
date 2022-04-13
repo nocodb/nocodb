@@ -1,7 +1,7 @@
 <template>
   <div
     class="backgroundColor pa-2"
-    style="width:530px"
+    style="width:530px; max-height: 500px; overflow-y:scroll;"
   >
     <div class="grid" @click.stop>
       <template v-for="(filter,i) in filters" dense>

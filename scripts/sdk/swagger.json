@@ -2794,7 +2794,7 @@
       },
       "patch": {
         "summary": "",
-        "operationId": "db-table-row-bulk-create",
+        "operationId": "db-table-row-bulk-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -2818,7 +2818,7 @@
       },
       "delete": {
         "summary": "",
-        "operationId": "db-table-row-bulk-create",
+        "operationId": "db-table-row-bulk-delete",
         "responses": {
           "200": {
             "description": "OK",

@@ -225,6 +225,7 @@
               @cancel="editEnabled = {};"
               @update="onCellValueChange(col, row, columnObj, false)"
               @blur="onCellValueChange(col, row, columnObj, true)"
+              @input="unsaved = true"
               @navigateToNext="navigateToNext"
               @navigateToPrev="navigateToPrev"
             />
@@ -343,7 +344,8 @@ export default {
     },
     aggCount: [],
     dragOver: false,
-    gridViewCols: {}
+    gridViewCols: {},
+    unsaved: false
   }),
   computed: {
     selectAll: {
@@ -419,6 +421,15 @@ export default {
     document.addEventListener('keydown', this.onKeyDown)
     this.loadGridViewCols()
     this.xcAuditModelCommentsCount()
+    const self = this
+    window.addEventListener('beforeunload', function() {
+      if (self.unsaved) {
+        if (self.editEnabled.row != null && self.editEnabled.row != null) {
+          const columnObj = self.availableColumns[self.editEnabled.col]
+          self.onCellValueChange(self.editEnabled.col, self.editEnabled.row, columnObj, true)
+        }
+      }
+    })
   },
   beforeDestroy() {
     document.removeEventListener('keydown', this.onKeyDown)
@@ -648,6 +659,9 @@ export default {
     },
     onCellValueChange(col, row, column, saved) {
       this.$emit('onCellValueChange', col, row, column, saved)
+      if (saved) {
+        this.unsaved = false
+      }
     },
     navigateToNext() {
       if (this.selected.row < this.rowLength - 1) {

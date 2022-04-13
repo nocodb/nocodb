@@ -2,13 +2,11 @@ import { Request, Response, Router } from 'express';
 import Model from '../../../../noco-models/Model';
 import Base from '../../../../noco-models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
-import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
-import Project from '../../../../noco-models/Project';
-import { NcError } from '../../helpers/catchError';
+import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 
 async function bulkDataInsert(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
 
@@ -22,7 +20,7 @@ async function bulkDataInsert(req: Request, res: Response) {
 }
 
 async function bulkDataUpdate(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
 
   const baseModel = await Model.getBaseModelSQL({
@@ -35,7 +33,7 @@ async function bulkDataUpdate(req: Request, res: Response) {
 }
 
 async function bulkDataUpdateAll(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
 
   const baseModel = await Model.getBaseModelSQL({
@@ -48,7 +46,7 @@ async function bulkDataUpdateAll(req: Request, res: Response) {
 }
 
 async function bulkDataDelete(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
@@ -60,7 +58,7 @@ async function bulkDataDelete(req: Request, res: Response) {
 }
 
 async function bulkDataDeleteAll(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequest(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
@@ -68,46 +66,28 @@ async function bulkDataDeleteAll(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  res.json(await baseModel.bulkDeleteAll(req.body));
+  res.json(await baseModel.bulkDeleteAll(req.query));
 }
-
-async function getViewAndModelFromRequest(req) {
-  const project = await Project.getWithInfoByTitle(req.params.projectName);
-  const model = await Model.getByAliasOrId({
-    project_id: project.id,
-    base_id: project.bases?.[0]?.id,
-    aliasOrId: req.params.tableAlias
-  });
-  const view =
-    req.params.viewName &&
-    (await View.getByTitleOrId({
-      titleOrId: req.params.viewName,
-      fk_model_id: model.id
-    }));
-  if (!model) NcError.notFound('Table not found');
-  return { model, view };
-}
-
 const router = Router({ mergeParams: true });
 
 router.post(
-  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableName',
   ncMetaAclMw(bulkDataInsert, 'bulkDataInsert')
 );
 router.patch(
-  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableName',
   ncMetaAclMw(bulkDataUpdate, 'bulkDataUpdate')
 );
 router.patch(
-  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias/all',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableName/all',
   ncMetaAclMw(bulkDataUpdateAll, 'bulkDataUpdateAll')
 );
 router.delete(
-  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableName',
   ncMetaAclMw(bulkDataDelete, 'bulkDataDelete')
 );
 router.delete(
-  '/api/v1/db/data/bulk/:orgs/:projectName/:tableAlias/all',
+  '/api/v1/db/data/bulk/:orgs/:projectName/:tableName/all',
   ncMetaAclMw(bulkDataDeleteAll, 'bulkDataDeleteAll')
 );
 

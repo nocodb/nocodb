@@ -2769,7 +2769,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Bulk insert table rows",
         "operationId": "db-table-row-bulk-create",
         "responses": {
           "200": {
@@ -2793,7 +2793,7 @@
         }
       },
       "patch": {
-        "summary": "",
+        "summary": "Bulk update all table rows by IDs",
         "operationId": "db-table-row-bulk-update",
         "responses": {
           "200": {
@@ -2817,7 +2817,7 @@
         }
       },
       "delete": {
-        "summary": "",
+        "summary": "Bulk delete all table rows by IDs",
         "operationId": "db-table-row-bulk-delete",
         "responses": {
           "200": {
@@ -2869,8 +2869,8 @@
         }
       ],
       "patch": {
-        "summary": "",
-        "operationId": "db-table-row-create",
+        "summary": "Bulk update all table rows with conditions",
+        "operationId": "db-table-row-bulk-update-all",
         "responses": {
           "200": {
             "description": "OK",
@@ -2893,8 +2893,8 @@
         }
       },
       "delete": {
-        "summary": "",
-        "operationId": "db-table-row-create",
+        "summary": "Bulk delete all table rows with conditions",
+        "operationId": "db-table-row-bulk-delete-all",
         "responses": {
           "200": {
             "description": "OK",

@@ -2267,6 +2267,7 @@ export class Api<
      *
      * @tags DB Table Row
      * @name BulkCreate
+     * @summary Bulk insert table rows
      * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
      * @response `200` `any` OK
      */
@@ -2291,6 +2292,7 @@ export class Api<
      *
      * @tags DB Table Row
      * @name BulkUpdate
+     * @summary Bulk update all table rows by IDs
      * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
      * @response `200` `any` OK
      */
@@ -2315,6 +2317,7 @@ export class Api<
      *
      * @tags DB Table Row
      * @name BulkDelete
+     * @summary Bulk delete all table rows by IDs
      * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
      * @response `200` `any` OK
      */
@@ -2338,13 +2341,12 @@ export class Api<
      * No description
      *
      * @tags DB Table Row
-     * @name Create2
+     * @name BulkUpdateAll
+     * @summary Bulk update all table rows with conditions
      * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
-     * @originalName create
-     * @duplicate
      * @response `200` `any` OK
      */
-    create2: (
+    bulkUpdateAll: (
       orgs: string,
       projectName: string,
       tableName: string,
@@ -2364,13 +2366,12 @@ export class Api<
      * No description
      *
      * @tags DB Table Row
-     * @name Create3
+     * @name BulkDeleteAll
+     * @summary Bulk delete all table rows with conditions
      * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
-     * @originalName create
-     * @duplicate
      * @response `200` `any` OK
      */
-    create3: (
+    bulkDeleteAll: (
       orgs: string,
       projectName: string,
       tableName: string,

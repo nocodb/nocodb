@@ -12,6 +12,12 @@ body {
   }
 }
 
+/* table css */
+
+.text-aligned-top {
+  vertical-align: top;
+}
+
 table.v-table tbody td,
 table.v-table tbody th,
 table.v-table tbody tr {

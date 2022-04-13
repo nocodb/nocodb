@@ -168,7 +168,7 @@
             v-for="(columnObj,col) in availableColumns"
             v-show="showFields[columnObj.alias]"
             :key="row + columnObj.alias"
-            class="cell pointer nc-grid-cell"
+            class="cell pointer nc-grid-cell text-aligned-top"
             :class="{
               'active' :!isPublicView && selected.col === col && selected.row === row && isEditable ,
               'primary-column' : primaryValueColumn === columnObj._cn,

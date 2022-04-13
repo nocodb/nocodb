@@ -2689,6 +2689,30 @@ export class Api<
      * No description
      *
      * @tags DB View Row
+     * @name Count
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count
+     * @response `200` `any` OK
+     */
+    count: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      query?: { where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View Row
      * @name Read
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
      * @response `201` `any` Created

@@ -1043,6 +1043,7 @@ export default {
           }
         }
       }
+      this.syncCount()
     },
     // // todo: move debounce to cell since this will skip few update api call
     // onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
@@ -1135,6 +1136,7 @@ export default {
           await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
+        this.syncCount()
         // this.$toast.success('Deleted row successfully').goAway(3000)
       } catch (e) {
         this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
@@ -1165,6 +1167,7 @@ export default {
           return this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
         }
       }
+      this.syncCount()
     },
 
     async clearCellValue() {
@@ -1518,6 +1521,10 @@ export default {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)
       }
+    },
+    async syncCount() {
+      const { count } = await this.$api.dbViewRow.count('noco', this.$store.getters['project/GtrProjectName'], this.meta.title, this.selectedView.title)
+      this.count = count
     }
   },
   computed: {

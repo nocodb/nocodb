@@ -11,8 +11,8 @@ menuTitle: 'Dashboard'
 Once you have started NocoDB, you can visit the dashboard via `example.com/dashboard`.
 
 Click `Let's Begin` button to sign up.
-<img src="https://user-images.githubusercontent.com/35857179/126597128-f88df6e5-7625-4208-9817-68e9303410ff.png" width="75%"/>
 
+![image](https://user-images.githubusercontent.com/35857179/163138119-be4314f9-22eb-4df6-b0af-b6990c563795.png)
 
 Enter your work email and your password.
 
@@ -20,19 +20,17 @@ Enter your work email and your password.
   Your password has at least 8 letters with one uppercase, one number and one special letter
 </alert>
 
-<img src="https://user-images.githubusercontent.com/35857179/126597144-0343b5ca-c7ca-47a4-926d-4e8df2f8c161.png" width="60%"/>
+![image](https://user-images.githubusercontent.com/35857179/163138460-59ddd93f-a8ef-4c02-8b7b-037a53cefd77.png)
 
 ## Initialize Your First Project
 
 Once you have logged into NocoDB, you should see `My Projects`.
 
-![image](https://user-images.githubusercontent.com/35857179/126597182-b74cadb4-e165-417e-9e95-9a3cb7dce8e5.png)
+![image](https://user-images.githubusercontent.com/35857179/163135335-652470ee-f69e-4b12-8884-63e8056bfce3.png)
 
 To create a project, you can click `New Project`.  
-  
-  
-<img src="https://user-images.githubusercontent.com/86527202/144373314-9146e855-0791-4815-a03f-303e5ffb2a63.png" width="60%"/>
-
+    
+![image](https://user-images.githubusercontent.com/35857179/163135493-2afcc8c9-153b-4c82-9f41-397facd10b1a.png)
 
 ### Creating Empty Project
 
@@ -42,14 +40,17 @@ Click `Create`, you need to specify the project name and API type.
 A local SQLite will be used.
 </alert>
 
-<img src="https://user-images.githubusercontent.com/35857179/126597259-b9552c71-d13b-463c-abc2-0f3be31627b2.png" width="60%"/>
-
+![image](https://user-images.githubusercontent.com/35857179/163135608-5e135a73-afcd-40bb-9d26-f2970dab7143.png)
 
 ### Connecting to External Database
 
 Click `Create By Connecting To An External Database`, you need to specify the project name, API type, and other database parameters.
 
-![image](https://user-images.githubusercontent.com/35857179/126597279-c1722d8b-c885-4e9e-9e94-44711102af20.png)
+<alert type="success">
+Tip 1: If you are running NocoDB on Docker and your local DB is running on your host machine, your Host Address would be host.docker.internal instead of localhost.
+</alert>
+
+![image](https://user-images.githubusercontent.com/35857179/163135736-d209061e-893d-4441-aaaa-ff22a1c82ceb.png)
 
 Currently it supports MySQL, Postgres, MSSQL and SQLite.
 
@@ -57,10 +58,10 @@ Currently it supports MySQL, Postgres, MSSQL and SQLite.
 
 You can also configure associated SSL & advanced parameters.
 
-![image](https://user-images.githubusercontent.com/35857179/126597342-0c61ab15-a112-4269-8f30-78455fa09081.png)
+![image](https://user-images.githubusercontent.com/35857179/163135911-04e01016-0ffd-4f38-83a8-c667bd268759.png)
 
 <alert type="success">
-Tip 1: You can click Edit Connection JSON and modify SSL settings in "ssl".
+Tip 2: You can click Edit Connection JSON and modify SSL settings in "ssl".
 </alert>
 
 ```json
@@ -82,7 +83,7 @@ Tip 1: You can click Edit Connection JSON and modify SSL settings in "ssl".
 ```
 
 <alert type="success">
-Tip 2: You can click Edit Connection JSON and specify the schema you want to use in "searchPath".
+Tip 3: You can click Edit Connection JSON and specify the schema you want to use in "searchPath".
 </alert>
 
 ```json
@@ -97,7 +98,9 @@ Tip 2: You can click Edit Connection JSON and specify the schema you want to use
 
 Click `Test Database Connection` to see if the connection can be established or not. NocoDB create's a new **empty database** with specified parameters, if the database doesn't exist.
 
-### Creating Project from Excel
+![image](https://user-images.githubusercontent.com/35857179/163136039-ad521d74-6996-4173-84ba-cfc55392c3b7.png)
+
+<!-- ### Creating Project from Excel
 
 Click `Create Project from Excel`, you can either upload / drag and drop Excel file (OR) specify Excel file URL.
 
@@ -114,4 +117,4 @@ Supported file formats
 - Xlsm
 - Ods
 - Ots
-
+ -->

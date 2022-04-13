@@ -4564,9 +4564,12 @@ export default class NcMetaMgr {
   protected async xcDownloadAttachments(args, _req, res: express.Response) {
     const archive = archiver('zip');
     const selectedAttachmentField = args.args.selectedAttachmentField
+
+    if (!selectedAttachmentField) {
+      throw new Error("No selectedAttachmentField specified")
+    }
     archive.pipe(res)
     const READ_FILES_IN_PARALLEL_NUM = 5;
-
     // Go through directory and add files
     const parentDir = path.join(
       'nc',
@@ -4583,8 +4586,6 @@ export default class NcMetaMgr {
         function (files, cb) {
             // Create file read streams in parallel.
             async.eachLimit(files, READ_FILES_IN_PARALLEL_NUM, function (filename, done) {
-              console.log('filename', filename)
-              console.log('selectedAttachmentField', selectedAttachmentField)
                 if (filename.startsWith(`${selectedAttachmentField}_`)) {
                   const filePath = path.join(parentDir, filename)
 
@@ -4597,10 +4598,11 @@ export default class NcMetaMgr {
             }, cb)
         }
     ], function (err) {
-        err && console.error(err)
-        if (!err) {
-            archive.finalize()
+        if (err) {
+          console.log(err)
+          throw err
         }
+        archive.finalize()
     })
 
     return {

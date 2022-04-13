@@ -35,10 +35,16 @@ export default {
   },
   data() {
     return {
-      attachmentOptions: [],
-      filenameOptions: [],
       selectedAttachmentField: '',
       selectedFilenameField: ''
+    }
+  },
+  watch: {
+    availableAttachmentFields (newVal) {
+      // default to select the first item
+      if (newVal && newVal[0]) {
+        this.selectedAttachmentField = newVal[0]
+      }
     }
   },
   computed: {
@@ -56,6 +62,9 @@ export default {
   },
   methods: {
     onSubmit () {
+      if (this.selectedAttachmentField === '') {
+        return
+      }
       this.$emit('download', {
         selectedAttachmentField: this.selectedAttachmentField
         // selectedFilenameField: this.selectedFilenameField

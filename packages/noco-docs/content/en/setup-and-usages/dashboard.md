@@ -6,7 +6,7 @@ category: 'Product'
 menuTitle: 'Dashboard'
 ---
 
-## Setup your first super admin
+## Setup Your First Super Admin
 
 Once you have started NocoDB, you can visit the dashboard via `example.com/dashboard`.
 
@@ -22,17 +22,7 @@ Enter your work email and your password.
 
 <img src="https://user-images.githubusercontent.com/35857179/126597144-0343b5ca-c7ca-47a4-926d-4e8df2f8c161.png" width="60%"/>
 
-If you start your application without specifying `NC_DB`. A local SQLite will be created in root folder. Your data will be stored there.
-
-If you are using Docker, it is recommended to mount `/usr/app/data/` for persistent volume (since `v0.10.6`), otherwise your data will be lost after recreating the container.
-
-Example:
-
-```
-docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
-```
-
-## Initialize your first project
+## Initialize Your First Project
 
 Once you have logged into NocoDB, you should see `My Projects`.
 
@@ -44,15 +34,20 @@ To create a project, you can click `New Project`.
 <img src="https://user-images.githubusercontent.com/86527202/144373314-9146e855-0791-4815-a03f-303e5ffb2a63.png" width="60%"/>
 
 
-### Creating empty project
+### Creating Empty Project
 
-Click `Create`, you need to specify the project name and API type. A local SQLite will be used.
+Click `Create`, you need to specify the project name and API type. 
+
+<alert>
+A local SQLite will be used.
+</alert>
+
 <img src="https://user-images.githubusercontent.com/35857179/126597259-b9552c71-d13b-463c-abc2-0f3be31627b2.png" width="60%"/>
 
 
-### Connecting to external database
+### Connecting to External Database
 
-Click `Create By Connecting To An external Datbase`, you need to specify the project name, API type, and other database parameters.
+Click `Create By Connecting To An External Database`, you need to specify the project name, API type, and other database parameters.
 
 ![image](https://user-images.githubusercontent.com/35857179/126597279-c1722d8b-c885-4e9e-9e94-44711102af20.png)
 
@@ -64,17 +59,53 @@ You can also configure associated SSL & advanced parameters.
 
 ![image](https://user-images.githubusercontent.com/35857179/126597342-0c61ab15-a112-4269-8f30-78455fa09081.png)
 
-Click `Test Database Connection` to see if the connection can be established or not.
+<alert type="success">
+Tip 1: You can click Edit Connection JSON and modify SSL settings in "ssl".
+</alert>
 
-> NocoDB create's a new **empty database** with specified parameters, if the database doesn't exist.
+```json
+{
+  "client": "pg",
+  "connection": {
+    "host": "<YOUR_HOST>",
+    "port": "5432",
+    "user": "<YOUR_DB_USER>",
+    "password": "<YOUR_DB_PASSWORD>",
+    "database": "<YOUR_DB_NAME>",
+    "ssl": {
+      "require": true,
+      "rejectUnauthorized": false,
+      "sslMode": "no-verify"
+    }
+  }
+}
+```
 
-### Creating project from Excel
+<alert type="success">
+Tip 2: You can click Edit Connection JSON and specify the schema you want to use in "searchPath".
+</alert>
 
-Click `Create Project from Excel`, you can either upload/ drag and drop Excel file (OR) specify Excel file URL  
-  
-  
+```json
+{
+  "client": "pg",
+  "connection": {
+    ...
+  },
+  "searchPath": [ "<YOUR_TARGET_SCHEMA>" ]
+}
+```
+
+Click `Test Database Connection` to see if the connection can be established or not. NocoDB create's a new **empty database** with specified parameters, if the database doesn't exist.
+
+### Creating Project from Excel
+
+Click `Create Project from Excel`, you can either upload / drag and drop Excel file (OR) specify Excel file URL.
+
+<alert>
+A local SQLite will be used.
+</alert>
+    
 <img src="https://user-images.githubusercontent.com/86527202/144373863-7ced9315-a70b-4746-9295-325e463dc110.png" width="60%"/>  
-
 
 Supported file formats
 
@@ -83,6 +114,4 @@ Supported file formats
 - Xlsm
 - Ods
 - Ots
-
-A local SQLite will be used.
 

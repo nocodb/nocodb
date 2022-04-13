@@ -796,7 +796,7 @@ export class Api<
      * @tags Auth
      * @name Signup
      * @summary Signup
-     * @request POST:/auth/user/signup
+     * @request POST:/api/v1/db/auth/user/signup
      * @response `200` `{ token?: string }` OK
      * @response `400` `void` Bad Request
      * @response `401` `void` Unauthorized
@@ -807,7 +807,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ token?: string }, void>({
-        path: `/auth/user/signup`,
+        path: `/api/v1/db/auth/user/signup`,
         method: 'POST',
         body: data,
         format: 'json',
@@ -820,7 +820,7 @@ export class Api<
      * @tags Auth
      * @name Signin
      * @summary Signin
-     * @request POST:/auth/user/signin
+     * @request POST:/api/v1/db/auth/user/signin
      * @response `200` `{ token?: string }` OK
      */
     signin: (
@@ -828,7 +828,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ token?: string }, any>({
-        path: `/auth/user/signin`,
+        path: `/api/v1/db/auth/user/signin`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -842,12 +842,12 @@ export class Api<
      * @tags Auth
      * @name Me
      * @summary User Info
-     * @request GET:/auth/user/me
+     * @request GET:/api/v1/db/auth/user/me
      * @response `200` `UserType` OK
      */
     me: (params: RequestParams = {}) =>
       this.request<UserType, any>({
-        path: `/auth/user/me`,
+        path: `/api/v1/db/auth/user/me`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -859,12 +859,12 @@ export class Api<
      * @tags Auth
      * @name PasswordForgot
      * @summary Password Forgot
-     * @request POST:/auth/password/forgot
+     * @request POST:/api/v1/db/auth/password/forgot
      * @response `200` `void` OK
      */
     passwordForgot: (data: { email?: string }, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/auth/password/forgot`,
+        path: `/api/v1/db/auth/password/forgot`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -877,7 +877,7 @@ export class Api<
      * @tags Auth
      * @name PasswordChange
      * @summary Password Change
-     * @request POST:/auth/password/change
+     * @request POST:/api/v1/db/auth/password/change
      * @response `200` `void` OK
      */
     passwordChange: (
@@ -889,7 +889,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/auth/password/change`,
+        path: `/api/v1/db/auth/password/change`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -902,12 +902,12 @@ export class Api<
      * @tags Auth
      * @name PasswordResetTokenValidate
      * @summary Reset Token Verify
-     * @request POST:/auth/token/validate/{token}
+     * @request POST:/api/v1/db/auth/token/validate/{token}
      * @response `200` `void` OK
      */
     passwordResetTokenValidate: (token: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/auth/token/validate/${token}`,
+        path: `/api/v1/db/auth/token/validate/${token}`,
         method: 'POST',
         ...params,
       }),
@@ -918,12 +918,12 @@ export class Api<
      * @tags Auth
      * @name EmailValidate
      * @summary Verify Email
-     * @request POST:/auth/email/validate/{token}
+     * @request POST:/api/v1/db/auth/email/validate/{token}
      * @response `200` `void` OK
      */
     emailValidate: (token: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/auth/email/validate/${token}`,
+        path: `/api/v1/db/auth/email/validate/${token}`,
         method: 'POST',
         ...params,
       }),
@@ -934,7 +934,7 @@ export class Api<
      * @tags Auth
      * @name PasswordReset
      * @summary Password Reset
-     * @request POST:/auth/password/reset/{token}
+     * @request POST:/api/v1/db/auth/password/reset/{token}
      * @response `200` `void` OK
      */
     passwordReset: (
@@ -943,7 +943,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/auth/password/reset/${token}`,
+        path: `/api/v1/db/auth/password/reset/${token}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -956,12 +956,12 @@ export class Api<
      * @tags Auth
      * @name TokenRefresh
      * @summary Refresh Token
-     * @request POST:/auth/token/refresh
+     * @request POST:/api/v1/db/auth/token/refresh
      * @response `200` `void` OK
      */
     tokenRefresh: (params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/auth/token/refresh`,
+        path: `/api/v1/db/auth/token/refresh`,
         method: 'POST',
         ...params,
       }),
@@ -2290,13 +2290,11 @@ export class Api<
      * No description
      *
      * @tags DB Table Row
-     * @name BulkCreate2
+     * @name BulkUpdate
      * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
-     * @originalName bulkCreate
-     * @duplicate
      * @response `200` `any` OK
      */
-    bulkCreate2: (
+    bulkUpdate: (
       orgs: string,
       projectName: string,
       tableName: string,
@@ -2316,13 +2314,11 @@ export class Api<
      * No description
      *
      * @tags DB Table Row
-     * @name BulkCreate3
+     * @name BulkDelete
      * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
-     * @originalName bulkCreate
-     * @duplicate
      * @response `200` `any` OK
      */
-    bulkCreate3: (
+    bulkDelete: (
       orgs: string,
       projectName: string,
       tableName: string,
@@ -2511,125 +2507,6 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
         method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Row
-     * @name BulkDelete
-     * @request DELETE:/bulkData/{orgs}/{projectName}/{tableName}/
-     * @response `200` `void` OK
-     */
-    bulkDelete: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      data: any[],
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableName}/`,
-        method: 'DELETE',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Row
-     * @name BulkInsert
-     * @request POST:/bulkData/{orgs}/{projectName}/{tableName}/
-     * @response `200` `void` OK
-     */
-    bulkInsert: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      data: any[],
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableName}/`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Row
-     * @name BulkUpdate
-     * @request PATCH:/bulkData/{orgs}/{projectName}/{tableName}/
-     * @response `200` `any` OK
-     */
-    bulkUpdate: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      data: object[],
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableName}/`,
-        method: 'PATCH',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Row
-     * @name BulkUpdateAll
-     * @request PATCH:/bulkData/{orgs}/{projectName}/{tableName}/all
-     * @response `200` `any` OK
-     */
-    bulkUpdateAll: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      data: object,
-      query?: { where?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableName}/all`,
-        method: 'PATCH',
-        query: query,
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB Table Row
-     * @name BulkDeleteAll
-     * @request DELETE:/bulkData/{orgs}/{projectName}/{tableName}/all
-     * @response `200` `any` OK
-     */
-    bulkDeleteAll: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      query?: { where?: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/bulkData/${orgs}/${projectName}/${tableName}/all`,
-        method: 'DELETE',
         query: query,
         format: 'json',
         ...params,

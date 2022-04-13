@@ -1,7 +1,7 @@
 <template>
   <div
-    class="backgroundColor pa-2"
-    style="width:530px; max-height: 500px; overflow-y:scroll;"
+    class="backgroundColor pa-2 menu-filter-dropdown"
+    style="width:530px;"
   >
     <div class="grid" @click.stop>
       <template v-for="(filter,i) in filters" dense>

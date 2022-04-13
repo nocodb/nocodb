@@ -402,6 +402,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://amitjoki.github.io"><img src="https://avatars.githubusercontent.com/u/5158554?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amit Joki</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=AmitJoki" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/tympaniplayer"><img src="https://avatars.githubusercontent.com/u/1745731?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nate</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=tympaniplayer" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/RobinFrcd"><img src="https://avatars.githubusercontent.com/u/29704178?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robin Fourcade</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=RobinFrcd" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

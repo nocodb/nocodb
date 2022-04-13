@@ -184,6 +184,10 @@ export default class Project implements ProjectType {
     }
     if (o) await NocoCache.del(`${CacheScope.PROJECT}:${projectId}`);
 
+    if (o?.title) {
+      await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
+    }
+
     // remove item in cache list
     await NocoCache.deepDel(
       CacheScope.PROJECT,

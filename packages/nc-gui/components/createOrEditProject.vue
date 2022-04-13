@@ -87,12 +87,8 @@
                       :height="20"
                       :label="$t('placeholder.projName')"
                       autofocus
-                    >
-                    </v-text-field>
-
-
+                    />
                   </div>
-
                 </v-col>
 
                 <v-col
@@ -631,11 +627,8 @@
                         </v-col>
                       </v-expansion-panel-content>
                     </v-expansion-panel>
-
-
                   </v-expansion-panels>
                 </v-col>
-
               </v-row>
             </v-container>
           </div>
@@ -1154,7 +1147,6 @@ export default {
     },
     selectFile(db, obj, key, index) {
       this.$refs[key][index].click()
-
     },
     onPanelToggle(panelIndex, envKey) {
       this.$nextTick(() => {
@@ -1289,7 +1281,6 @@ export default {
     },
 
     constructProjectJsonFromProject(project) {
-
       const p = project // JSON.parse(JSON.stringify(project.projectJson));
 
       p.ui = {
@@ -1403,6 +1394,7 @@ export default {
         this.projectCreated = true
       } catch (e) {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+        toast.goAway(0)
       }
 
       this.projectReloading = false
@@ -1882,7 +1874,6 @@ export default {
           }
         }
       }
-
     }
   },
   beforeMount() {

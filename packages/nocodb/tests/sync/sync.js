@@ -14,7 +14,7 @@ const api = new Api({
   baseURL: 'http://localhost:8080',
   headers: {
     'xc-auth':
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfejFidzZ4MG9ibzI2bW8iLCJyb2xlcyI6InVzZXIiLCJpYXQiOjE2NDkyMjM4NDV9.1M9pr4TCZTGRzWjf54TRonKFG67PuDTMN6PZPA_dp9Y'
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfODd1eXhkcngxbm03dHAiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NDk4MzUwNDJ9.6jMNG4Mjio6HxWrVKIzRopnAbBC2KEn1vHif3a0BTrc'
   }
 });
 
@@ -250,8 +250,8 @@ let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
 async function nocoReadData(tableName) {
   base(tableName)
     .select({
-      pageSize: 10,
-      maxRecords:20,
+      pageSize: 1,
+      maxRecords:2,
       view: 'Grid view'
     })
     .eachPage(
@@ -270,7 +270,7 @@ async function nocoReadData(tableName) {
               }
             });
             console.log(rec)
-            let returnValue = await api.dbTableRow.bulkInsert('nc', 'sample-3', 'Finance', [rec])
+            let returnValue = await api.dbTableRow.bulkCreate('nc', 'sample-4', 'Finance', [rec])
             console.log('>>', returnValue)
           })().catch(e => {
             console.log(e);
@@ -303,7 +303,7 @@ async function nocoReadData(tableName) {
 
   // create empty project (XC-DB)
   let project = await api.project.create({
-    title: 'sample-3'
+    title: 'sample-4'
   });
 
   // console.log(project)
@@ -331,119 +331,3 @@ async function nocoReadData(tableName) {
 })().catch(e => {
   console.log(e);
 });
-
-//
-// let aTblNcTypeMap = {
-//   "Link to another record": {
-//     atType: "foreignKey",
-//     ncType: UITypes.LinkToAnotherRecord
-//   },
-//   "Single line text": {
-//     atType: "text",
-//     ncType: UITypes.SingleLineText
-//   },
-//   "Long text": {
-//     atType: "multilineText",
-//     ncType: UITypes.LongText
-//   },
-//   "Attachment": {
-//     atType: "multipleAttachment",
-//     ncType: UITypes.Attachment
-//   },
-//   "Checkbox": {
-//     atType: "checkbox",
-//     ncType: UITypes.Checkbox
-//   },
-//   "Multiple select": {
-//     atType: "multiSelect",
-//     ncType: UITypes.MultiSelect
-//   },
-//   "Single select": {
-//     atType: "select",
-//     ncType: UITypes.SingleSelect
-//   },
-//   "Collaborator": {
-//     atType: "collaborator",
-//     ncType: UITypes.Collaborator
-//   },
-//   "Date": {
-//     atType: "date",
-//     ncType: UITypes.Date
-//   },
-//   "Phone number": {
-//     atType: "phone",
-//     ncType: UITypes.PhoneNumber
-//   },
-//   "Email": {
-//     atType: "text",
-//     ncType: UITypes.Email
-//   },
-//   "URL": {
-//     atType: "text",
-//     ncType: UITypes.URL
-//   },
-//   "Number": {
-//     atType: "number",
-//     ncType: UITypes.Number
-//   },
-//   "Currency": {
-//     atType: "number",
-//     ncType: UITypes.Currency
-//   },
-//   "Percent": {
-//     atType: "number",
-//     ncType: UITypes.Percent
-//   },
-//   "Duration": {
-//     atType: "number",
-//     ncType: UITypes.Duration
-//   },
-//   "Rating": {
-//     atType: "rating",
-//     ncType: UITypes.Rating
-//   },
-//   "Formula": {
-//     atType: "formula",
-//     ncType: UITypes.Formula
-//   },
-//   "Rollup": {
-//     atType: "rollup",
-//     ncType: UITypes.Rollup
-//   },
-//   "Count": {
-//     atType: "count",
-//     ncType: UITypes.Count
-//   },
-//   "Lookup": {
-//     atType: "lookup",
-//     ncType: UITypes.Lookup
-//   },
-//   "Create time": {
-//     atType: "formula",
-//     ncType: UITypes.CreateTime
-//   },
-//   "Last modified time": {
-//     atType: "formula",
-//     ncType: UITypes.LastModifiedTime
-//   },
-//   "Created by": {
-//     atType: "computation",
-//     ncType: ""
-//   },
-//   "Last modified by": {
-//     atType: "computation",
-//     ncType: ""
-//   },
-//   "Autonumber": {
-//     atType: "autoNumber",
-//     ncType: UITypes.AutoNumber
-//   },
-//   "Barcode": {
-//     atType: "barcode",
-//     ncType: UITypes.Barcode
-//   },
-//   "Button": {
-//     atType: "button",
-//     ncType: UITypes.Button
-//   },
-// }

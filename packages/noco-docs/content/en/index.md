@@ -63,43 +63,6 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 ## Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
-## Architecture - Simple Overview
-
-<img src="architecture.png" style="background: white;border-radius:4px;padding :10px">
-
-| Project Type | Metadata stored in | Data stored in |
-|---------|-----------|--------|
-| Create new project | NC_DB | NC_DB |
-| Create new project with External Database | NC_DB | External Database |
-| Create new project from Excel | NC_DB | NC_DB |
-
-## NocoDB repository structure
-
-We use ``Lerna`` to manage multi-packages. We have the following [packages](https://github.com/nocodb/nocodb/tree/master/packages).
-
-- ``packages/nc-cli`` : A CLI to create NocoDB app.
-
-- ``packages/nc-common``: A common library package used internally.
-
-- ``packages/nc-gui``: NocoDB Frontend.
-
-- ``packages/nc-lib-gui``: The build version of ``nc-gui`` which will be used in ``packages/nocodb``.
-
-- ``packages/nc-migrator-archived``: SQL based schema migrations or evolutions.
-
-- ``packages/nc-plugin``: Plugin template.
-
-- ``packages/noco-blog``: NocoDB Blog which will be auto-released to [nocodb/noco-blog](https://github.com/nocodb/noco-blog).
-
-- ``packages/noco-book``: NocoDB Handbook which will be auto-released to [nocodb/noco-book](https://github.com/nocodb/noco-book).
-
-- ``packages/noco-docs``: NocoDB Documentation which will be auto-released to [nocodb/noco-docs](https://github.com/nocodb/noco-docs).
-
-- ``packages/noco-docs-prev``: NocoDB Documentation for previous versions which will be auto-released to [nocodb/noco-docs-prev](https://github.com/nocodb/noco-docs-prev) and will be completely removed on 30 Jun 2022.
-
-- ``packages/nocodb``: NocoDB Backend, hosted in [NPM](https://www.npmjs.com/package/nocodb).
-
-
 ## Contributions
 
 All contributions are welcome. NocoDB projects can be found in the [NocoDB](https://github.com/nocodb) Github organization. Our core uses [The AGPL V3 license](https://github.com/nocodb/nocodb/blob/master/LICENSE) and all contributors should read the [contribution guides](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md) before making your first contribution. 

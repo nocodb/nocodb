@@ -2946,6 +2946,22 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Utils
+     * @name AppVersion
+     * @request GET:/api/v1/db/meta/nocodb/version
+     * @response `200` `any` OK
+     */
+    appVersion: (params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/nocodb/version`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Get All K/V pairs in NocoCache
      *
      * @tags Utils

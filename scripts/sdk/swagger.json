@@ -4434,6 +4434,27 @@
         "description": ""
       }
     },
+    "/api/v1/db/meta/nocodb/version": {
+      "parameters": [],
+      "get": {
+        "summary": "",
+        "operationId": "utils-app-version",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": ""
+      }
+    },
     "/api/v1/db/meta/cache": {
       "get": {
         "summary": "Your GET endpoint",

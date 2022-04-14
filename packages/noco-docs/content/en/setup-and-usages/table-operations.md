@@ -20,7 +20,9 @@ On click, in modal popup, enter the table name, enable/disable default columns a
 
 ![table_create_modal](https://user-images.githubusercontent.com/61551451/126772859-5a301c45-d830-4df2-a05a-43b15dd77728.png)
 
-> You can't disable the `id` column since NocoDB need's a primary column for every table.
+<alert>
+You can't disable the `id` column since NocoDB needs a primary column for every table.
+</alert>
 
 After the successful submission, the table will be created and open as a new tab.  
   

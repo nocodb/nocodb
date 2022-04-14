@@ -688,6 +688,10 @@ export default {
       }
     },
     async updateView() {
+      if (this.view.subheading.length > 255) {
+        this.$toast.error('Data too long for Form Description').goAway(3000)
+        return
+      }
       await this.$api.dbView.formUpdate(this.viewId, this.view)
     },
     async loadView() {

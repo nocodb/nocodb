@@ -14,7 +14,6 @@ To navigate different views, we can select the target one in the view sidebar. B
 
 ![image](https://user-images.githubusercontent.com/35857179/163340916-d1101709-2051-4d0e-9d86-dd14eced49e9.png)
 
-
 ## View Types
 
 ### Grid View
@@ -25,8 +24,19 @@ Grid View, as a default type of view, allows you to display your data in a sprea
 
 ### Form View
 
+Form View allows you to arrange fields in a form to input data.
+
+![image](https://user-images.githubusercontent.com/35857179/163355269-73d2a9d4-bafb-47c0-8c0d-d0e66503b47a.png)
+
+You can show and hide some fields using drag-and-drop fashion.
+
+![image](https://user-images.githubusercontent.com/35857179/163355377-6b365472-efae-4f73-a103-5dde7c1f8ea7.png)
+
 ### Gallery View
 
+Gallery View allows you to display images as thumbnails with other fields just like a gallery.
+
+<!-- TODO: add screenshots -->
 
 ## View Permission Types
 
@@ -45,3 +55,23 @@ Collaborative View allows you to work with your collaborators with edit permissi
 Locked View allows you to lock the current View so that no one can edit the View including applying operations such as Sorting or Filtering.
 
 ![image](https://user-images.githubusercontent.com/35857179/163343845-b07f9d3f-5a83-4dfd-8d45-9cc59b3512c3.png)
+
+## View Operations
+
+### Create a View
+
+Click '+' in View sidebar.
+
+![image](https://user-images.githubusercontent.com/35857179/163353610-ae85967c-91ac-404f-b3b3-bd122e09f492.png)
+
+### Rename a View
+
+Hover the target View, click the icon and enter the new name.
+
+![image](https://user-images.githubusercontent.com/35857179/163353802-1da52cec-ae17-4ced-8679-62d7180683ec.png)
+
+### Duplicate a View
+
+Hover the target View and click the icon and enter the new name.
+
+![image](https://user-images.githubusercontent.com/35857179/163353865-7275499e-c685-44f4-906c-ba08f0ee419e.png)

@@ -9,7 +9,7 @@ menuTitle: 'NocoDB SDK'
 We provide SDK for users to integrate with their applications. Currently only SDK for Javascript is supported.
 
 <alert>
-Note: The NocoDB SDK requires API token for authorization. If you haven't created an API token, please check out <a href="./api-tokens" target="_blank">API Tokens</a> and create one first.
+Note: The NocoDB SDK requires API token for authorization. If you haven't created an API token, please check out <a href="./accessing-apis#api-token" target="_blank">API Tokens</a> and create one first.
 </alert>
 
 ### SDK For Javascript

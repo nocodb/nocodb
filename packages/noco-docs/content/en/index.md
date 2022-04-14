@@ -27,9 +27,9 @@ Also NocoDB's app store allows you to build business workflows on views with com
 
 - ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete on Tables, Columns, and Rows
 - ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
-- ⚡ &nbsp;Multiple Views: Grid (By default), Gallery and Form View
+- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery and Form View
+- ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views 
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
-- ⚡ &nbsp;View Types: Collaborative Views, & Locked Views 
 - ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachement, Currency, Formula and etc
 - ⚡ &nbsp;Access Control with Roles : Fine-grained Access Control at different levels
 - ⚡ &nbsp;and more ...

@@ -70,8 +70,24 @@ Hover the target View, click the icon and enter the new name.
 
 ![image](https://user-images.githubusercontent.com/35857179/163353802-1da52cec-ae17-4ced-8679-62d7180683ec.png)
 
+### Delete a View
+
+Hover the target View and click the delete icon.
+
+<alert>
+You cannot delete the very first Grid View.
+</alert>
+
+![image](https://user-images.githubusercontent.com/35857179/163359795-f4420402-b2a6-41d8-b48c-f0dea8b9abbe.png)
+
 ### Duplicate a View
 
 Hover the target View and click the icon and enter the new name.
 
 ![image](https://user-images.githubusercontent.com/35857179/163353865-7275499e-c685-44f4-906c-ba08f0ee419e.png)
+
+### Reorder a View
+
+Hover the target View and re-order it as needed by dragging and dropping the drag icon.
+
+![image](https://user-images.githubusercontent.com/35857179/163359674-c4aeff74-1cb4-498d-b79c-c6ddf84ad352.png)

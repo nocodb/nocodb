@@ -736,12 +736,14 @@ export default {
 
         if (this.newColumn.uidt === 'Currency' && this.column) {
           await this.$refs.currency.update()
-          return this.$emit('saved')
+          this.$emit('saved')
+          return this.$emit('close')
         }
 
         if (this.newColumn.uidt === 'Currency' && !this.column) {
           await this.$refs.currency.save()
-          return this.$emit('saved')
+          this.$emit('saved')
+          return this.$emit('close')
         }
 
         if (this.isLinkToAnotherRecord && this.$refs.relation) {
@@ -818,6 +820,16 @@ export default {
         this.newColumn.dtxp = this.column.dtxp
       }
 
+      if (this.newColumn.uidt === 'Currency' && this.column?.uidt !== 'Currency') {
+        if (this.column?.uidt === 'Currency') {
+          this.newColumn.dtxp = this.column.dtxp
+          this.newColumn.dtxs = this.column.dtxs
+        } else {
+          this.newColumn.dtxp = 19
+          this.newColumn.dtxs = 2
+        }
+      }
+
       // this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
 
       this.newColumn.altered = this.newColumn.altered || 2
@@ -855,6 +867,16 @@ export default {
       if (columnToValidate.includes(this.newColumn.uidt)) {
         this.newColumn.meta = {
           validate: this.newColumn.meta && this.newColumn.meta.validate
+        }
+      }
+
+      if (this.newColumn.uidt === 'Currency' && this.column?.uidt !== 'Currency') {
+        if (this.column?.uidt === 'Currency') {
+          this.newColumn.dtxp = this.column.dtxp
+          this.newColumn.dtxs = this.column.dtxs
+        } else {
+          this.newColumn.dtxp = 19
+          this.newColumn.dtxs = 2
         }
       }
 

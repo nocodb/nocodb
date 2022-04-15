@@ -7,6 +7,7 @@ import SqlMgrv2 from '../../../sqlMgr/v2/SqlMgrv2';
 import { defaultConnectionConfig } from '../../../utils/NcConfigFactory';
 import User from '../../../noco-models/User';
 import catchError from '../helpers/catchError';
+import axios from 'axios';
 
 export async function testConnection(req: Request, res: Response) {
   res.json(await SqlMgrv2.testConnection(req.body));
@@ -43,10 +44,20 @@ export async function appInfo(_req: Request, res: Response) {
   res.json(result);
 }
 
+export async function releaseVersion(_req: Request, res: Response) {
+  const result = await axios.get('https://github.com/nocodb/nocodb/releases/latest')
+    .then((response) => {
+      return { releaseVersion: response.request.res.responseUrl.replace('https://github.com/nocodb/nocodb/releases/tag/', '') }
+    })
+
+  res.json(result);
+}
+
 export default router => {
   router.post(
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
+  router.get('/api/v1/db/meta/nocodb/version', catchError(releaseVersion));
 };

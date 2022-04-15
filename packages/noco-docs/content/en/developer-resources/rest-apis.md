@@ -9,6 +9,21 @@ Once you've created the schemas, you can manipulate the data or invoke actions u
 
 ## API Overview
 
+### Auth APIs
+
+| Category | Method | Operation | Path |
+|---|---|---|---|
+| Auth | Post | SignIn | /api/v1/db/auth/user/signup |
+| Auth | Post | SignUp | /api/v1/db/auth/user/signin |
+| Auth | Get | ReadUserInfo | /api/v1/db/auth/user/me |
+| Auth | Post | PasswordForgot | /api/v1/db/auth/user/password/forgot |
+| Auth | Post | PasswordChange | /api/v1/db/auth/user/password/change |
+| Auth | Post | PasswordReset | /api/v1/db/auth/user/password/reset/{token} |
+| Auth | Post | TokenVerify | /api/v1/db/auth/user/token/verify |
+| Auth | Post | TokenRefresh | /api/v1/db/auth/user/token/refresh |
+| Auth | Post | TokenValidate | /api/v1/db/auth/user/token/validate/{token} |
+| Auth | Post | EmailValidate | /api/v1/db/auth/user/email/validate/{email} |
+
 ### Public APIs
 
 | Category | Method | Operation | Path |
@@ -16,7 +31,6 @@ Once you've created the schemas, you can manipulate the data or invoke actions u
 | Public | Get |  | /api/v1/db/public/sharedBase/{sharedBaseUuid} |
 | Public | Post |  | /api/v1/db/public/data/{uuid}/list |
 | Public | Get |  | /api/v1/db/public/data/{uuid}/{rowId}/{relationType}/{columnId} |
-| Public | Get |  | /api/v1/db/public/data/{uuid}/{rowId}/{relationType}/{columnId}/exclude |
 | Public | Post |  | /api/v1/db/public/data/{uuid}/create |
 | Public | Post |  | /api/v1/db/public/data/{uuid}/export/{type} |
 | Public | Post |  | /api/v1/db/public/data/{uuid}/relationTable/{relationColumnId} |
@@ -41,6 +55,7 @@ Once you've created the schemas, you can manipulate the data or invoke actions u
 | Data | Get | TableViewDataRead | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{viewName}/{rowId} |
 | Data | Put | TableViewDataUpdate | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{viewName}/{rowId} |
 | Data | Del | TableViewDataDelete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{viewName}/{rowId} |
+| Data | Get | TableViewDataCount | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
 
 ### Meta APIs
 
@@ -100,30 +115,22 @@ Once you've created the schemas, you can manipulate the data or invoke actions u
 | Meta | Put | TablesUpdate | /api/v1/db/meta/tables/{tableId} |
 | Meta | Del | TablesDelete | /api/v1/db/meta/tables/{tableId} |
 | Meta | Post | TablesReorder | /api/v1/db/meta/tables/{tableId}/reorder |
-| Meta | Get | TableColumnsList | /api/v1/db/meta/tables/{tableId}/columns |
 | Meta | Post | TableColumnsCreate | /api/v1/db/meta/tables/{tableId}/columns |
-| Meta | Get | TableColumnsRead | /api/v1/db/meta/tables/{tableId}/columns/{columnId} |
 | Meta | Put | TableColumnsUpdate | /api/v1/db/meta/tables/{tableId}/columns/{columnId} |
 | Meta | Del | TableColumnsDelete | /api/v1/db/meta/tables/{tableId}/columns/{columnId} |
 | Meta | Post | TableColumnsSetPrimary | /api/v1/db/meta/tables/{tableId}/columns/{columnId}/primary |
 | Meta | Post | TablesFormViewCreate | /api/v1/db/meta/forms |
 | Meta | Put | TablesFormViewUpdate | /api/v1/db/meta/forms/{formId} |
-| Meta | Del | TablesFormViewDelete | /api/v1/db/meta/forms/{formId} |
 | Meta | Get | TablesFormViewRead | /api/v1/db/meta/forms/{formId} |
 | Meta | Put | TablesFormViewColumnUpdate | /api/v1/db/meta/forms/columns/{columnId} |
 | Meta | Post | TablesGalleryViewCreate | /api/v1/db/meta/galleries |
 | Meta | Put | TablesGalleryViewUpdate | /api/v1/db/meta/galleries/{galleriesId} |
-| Meta | Del | TablesGalleryViewDelete | /api/v1/db/meta/galleries/{galleriesId} |
 | Meta | Get | TablesGalleryViewRead | /api/v1/db/meta/galleries/{galleriesId} |
 | Meta | Post | TablesGridViewCreate | /api/v1/db/meta/grids |
-| Meta | Put | TablesGridViewUpdate | /api/v1/db/meta/grids/{gridId} |
-| Meta | Del | TablesGridViewDelete | /api/v1/db/meta/grids/{gridId} |
-| Meta | Get | TablesGridViewRead | /api/v1/db/meta/grids/{gridId} |
 | Meta | Get | TablesGridViewColumnread | /api/v1/db/meta/grids/{gridId}/columns |
 | Meta | Put | TablesGridViewColumnUpdate | /api/v1/db/meta/grid/columns/{gridcolumnId} |
 | Meta | Get | ViewColumnsList | /api/v1/db/meta/views/{viewId}/columns |
 | Meta | Post | ViewColumnsCreate | /api/v1/db/meta/views/{viewId}/columns |
-| Meta | Get | ViewColumnsRead | /api/v1/db/meta/views/{viewId}/columns/{columnId} |
 | Meta | Put | ViewColumnsUpdate | /api/v1/db/meta/views/{viewId}/columns/{columnId} |
 | Meta | Get | ViewFiltersList | /api/v1/db/meta/views/{viewId}/filters |
 | Meta | Post | ViewFiltersCreate | /api/v1/db/meta/views/{viewId}/filters |
@@ -144,21 +151,7 @@ Once you've created the schemas, you can manipulate the data or invoke actions u
 | Meta | Get | ViewSortsRead | /api/v1/db/meta/views/{viewId}/sorts/{sortId} |
 | Meta | Put | ViewSortsUpdate | /api/v1/db/meta/views/{viewId}/sorts/{sortId} |
 | Meta | Del | ViewSortsDelete | /api/v1/db/meta/views/{viewId}/sorts/{sortId}/api/v1/db |
-
-### Auth APIs
-
-| Category | Method | Operation | Path |
-|---|---|---|---|
-| Auth | Post | SignIn | /api/v1/db/auth/user/signup |
-| Auth | Post | SignUp | /api/v1/db/auth/user/signin |
-| Auth | Get | ReadUserInfo | /api/v1/db/auth/user/me |
-| Auth | Post | PasswordForgot | /api/v1/db/auth/user/password/forgot |
-| Auth | Post | PasswordChange | /api/v1/db/auth/user/password/change |
-| Auth | Post | PasswordReset | /api/v1/db/auth/user/password/reset/{token} |
-| Auth | Post | TokenVerify | /api/v1/db/auth/user/token/verify |
-| Auth | Post | TokenRefresh | /api/v1/db/auth/user/token/refresh |
-| Auth | Post | TokenValidate | /api/v1/db/auth/user/token/validate/{token} |
-| Auth | Post | EmailValidate | /api/v1/db/auth/user/email/validate/{email} |
+| Meta | Get | ReleaseVersionGet | /api/v1/db/meta/nocodb/version |
 
 <!-- TODO: verify -->
 

@@ -116,7 +116,13 @@ export default {
     xcModelRowAuditAndCommentList: true,
     xcAuditCommentInsert: true,
     xcAuditModelCommentsCount: true,
-    xcExportAsCsv: true
+    xcExportAsCsv: true,
+
+    bulkDataInsert: true,
+    bulkDataUpdate: true,
+    bulkDataUpdateAll: true,
+    bulkDataDelete: true,
+    bulkDataDeleteAll: true
   },
   commenter: {
     formViewGet: true,

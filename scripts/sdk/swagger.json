@@ -26,12 +26,58 @@
                       "type": "string"
                     }
                   }
+                },
+                "examples": {
+                  "Successful registration response": {
+                    "value": {
+                      "token": "string"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "Invalid email": {
+                    "value": {
+                      "msg": "Invalid email"
+                    }
+                  },
+                  "Invalid invite url": {
+                    "value": {
+                      "msg": "Invalid invite url"
+                    }
+                  },
+                  "Expired invite url": {
+                    "value": {
+                      "msg": "Expired invite url, Please contact super admin to get a new invite url"
+                    }
+                  },
+                  "User already exist": {
+                    "value": {
+                      "msg": "User already exist"
+                    }
+                  },
+                  "Invite only signup": {
+                    "value": {
+                      "msg": "Not allowed to signup, contact super admin"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -68,6 +114,21 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -90,6 +151,14 @@
                   "email",
                   "password"
                 ]
+              },
+              "examples": {
+                "example-1": {
+                  "value": {
+                    "email": "user@nocodb.com",
+                    "password": "Password"
+                  }
+                }
               }
             }
           }
@@ -109,7 +178,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserInfo"
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "id": "string",
+                      "email": "string",
+                      "email_verified": "string",
+                      "firstname": "string",
+                      "lastname": "string",
+                      "roles": {
+                        "editor": true
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -118,7 +201,17 @@
         "tags": [
           "Auth"
         ],
-        "description": "Returns authenticated user info"
+        "description": "Returns authenticated user info",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "project_id",
+            "description": "Pass project id to get project specific roles along with user info"
+          }
+        ]
       }
     },
     "/api/v1/db/auth/password/forgot": {
@@ -128,6 +221,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         },
         "description": "Emails user with a reset url.",
@@ -146,7 +242,8 @@
                 }
               }
             }
-          }
+          },
+          "description": "Pass registered user email id in request body"
         }
       },
       "parameters": []
@@ -157,7 +254,53 @@
         "operationId": "auth-password-change",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "Success response": {
+                    "value": {
+                      "msg": "Password updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "Missing params": {
+                    "value": {
+                      "msg": "Missing new/old password"
+                    }
+                  },
+                  "Wrong password": {
+                    "value": {
+                      "msg": "Current password is wrong"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "description": "Change password of authenticated user with a new one.",
@@ -175,14 +318,20 @@
                   },
                   "newPassword": {
                     "type": "string"
-                  },
-                  "verifyPassword": {
-                    "type": "string"
+                  }
+                }
+              },
+              "examples": {
+                "example-1": {
+                  "value": {
+                    "currentPassword": "string",
+                    "newPassword": "string"
                   }
                 }
               }
             }
-          }
+          },
+          "description": "Old password need to be passed along with new password for changing password."
         }
       },
       "parameters": []
@@ -292,7 +441,6 @@
       },
       "parameters": []
     },
-
     "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
         "summary": "Project Users",
@@ -1522,8 +1670,7 @@
       "get": {
         "summary": "",
         "operationId": "db-view-column-list",
-        "responses": {
-        },
+        "responses": {},
         "tags": [
           "DB View Column"
         ]
@@ -2281,7 +2428,6 @@
         }
       }
     },
-
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}": {
       "parameters": [
         {
@@ -3104,7 +3250,8 @@
           "name": "relationType",
           "in": "path",
           "required": true
-        },{
+        },
+        {
           "schema": {
             "type": "string"
           },
@@ -3245,7 +3392,7 @@
       },
       "delete": {
         "summary": "",
-        "operationId": "db-table-row-nested-delete",
+        "operationId": "db-table-row-nested-remove",
         "responses": {
           "200": {
             "description": "OK",
@@ -3350,7 +3497,6 @@
         ]
       }
     },
-
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
         {
@@ -3421,7 +3567,7 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "properties": { }
+                "properties": {}
               }
             }
           }
@@ -3707,7 +3853,6 @@
         ]
       }
     },
-
     "/api/v1/db/meta/audits/comments": {
       "parameters": [],
       "get": {
@@ -3945,7 +4090,6 @@
         }
       }
     },
-
     "/api/v1/db/meta/tables/{tableId}/hooks": {
       "parameters": [
         {
@@ -4195,7 +4339,6 @@
         ]
       }
     },
-
     "/api/v1/db/meta/plugins": {
       "parameters": [],
       "get": {
@@ -4374,7 +4517,6 @@
         ]
       }
     },
-
     "/api/v1/db/meta/connection/test": {
       "parameters": [],
       "post": {
@@ -4480,7 +4622,6 @@
       },
       "parameters": []
     },
-
     "/api/v1/db/meta/projects/{projectId}/api-tokens": {
       "get": {
         "summary": "Your GET endpoint",
@@ -4583,7 +4724,6 @@
         }
       ]
     },
-
     "/api/v1/db/storage/upload": {
       "post": {
         "summary": "Attachment",
@@ -7031,6 +7171,28 @@
         ],
         "description": "",
         "type": "object"
+      },
+      "UserInfo": {
+        "title": "UserInfo",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "email_verified": {
+            "type": "string"
+          },
+          "firstname": {
+            "type": "string"
+          },
+          "lastname": {
+            "type": "string"
+          },
+          "roles": {}
+        }
       }
     },
     "requestBodies": {

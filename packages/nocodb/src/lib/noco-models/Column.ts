@@ -207,7 +207,9 @@ export default class Column<T = any> implements ColumnType {
             dr: column.dr,
 
             fk_index_name: column.fk_index_name,
-            fk_related_model_id: column.fk_related_model_id
+            fk_related_model_id: column.fk_related_model_id,
+
+            virtual: column.virtual
           },
           ncMeta
         );

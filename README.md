@@ -92,28 +92,37 @@ npm start
 
 ```bash
 # for SQLite
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
+docker run -d --name nocodb \
+-v /local/path:/usr/app/data/ \ 
+-p 8080:8080 \
+nocodb/nocodb:latest
 
 # for MySQL
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
+docker run -d --name nocodb-mysql \
+-v /local/path:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
 
 # for PostgreSQL
-docker run -d -p 8080:8080 \
-    -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
+docker run -d --name nocodb-postgres \
+-v /local/path:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
 
 # for MSSQL
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
+docker run -d --name nocodb-mssql \
+-v /local/path:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
 ```
 
-> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`. Otherwise your data will be lost after recreating the container.
+> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
 
@@ -133,7 +142,7 @@ cd nocodb/docker-compose/mssql
 docker-compose up -d
 ```
 
-> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`. Otherwise your data will be lost after recreating the container.
+> To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
 

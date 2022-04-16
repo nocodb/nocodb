@@ -93,10 +93,10 @@
         <template #item="{item,index}">
           <tr class="caption">
             <td>{{ index + 1 }}</td>
-            <td>{{ item.relationType === 'hm' ? item.rtn : item.tn }}</td>
+            <td>{{ item.relationType === 'hm' ? item.rtn : item.table_name }}</td>
             <td>{{ item.relationType === 'hm' ? 'HasMany' : 'BelongsTo' }}</td>
             <td>{{ item.rtn }}</td>
-            <td>{{ item.tn }}</td>
+            <td>{{ item.table_name }}</td>
             <!--            <td>
               <v-checkbox
                 v-model="item.enabled"

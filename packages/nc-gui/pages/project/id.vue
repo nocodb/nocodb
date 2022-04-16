@@ -384,7 +384,7 @@
                                                     <v-row>
                                                       <v-col>
                                                         <v-select
-                                                          v-model="db.meta.inflection.tn"
+                                                          v-model="db.meta.inflection.table_name"
                                                           label="Inflection - Table name"
                                                           multiple
                                                           :items="['camelize','pluralize']"
@@ -392,7 +392,7 @@
                                                       </v-col>
                                                       <v-col>
                                                         <v-select
-                                                          v-model="db.meta.inflection.cn"
+                                                          v-model="db.meta.inflection.column_name"
                                                           label="Inflection - Column name"
                                                           multiple
                                                           :items="['camelize']"
@@ -948,20 +948,15 @@ export default {
       Vue.set(this.databases, panelIndex, tabIndex)
     },
     getProjectJson () {
-      console.log('Project json before creating', this.project)
-
       /**
        * remove UI keys within project
        */
       const xcConfig = JSON.parse(JSON.stringify(this.project))
-      console.log(JSON.stringify(this.project))
-      console.log('Project json after parsing', xcConfig)
       delete xcConfig.ui
 
       for (const env in xcConfig.envs) {
         for (let i = 0; i < xcConfig.envs[env].db.length; ++i) {
           xcConfig.envs[env].db[i].meta.api.type = this.project.projectType
-          console.log('getProjectJson:', env, i, xcConfig.envs[env].db[i])
           if (xcConfig.envs[env].db[i].client === 'mysql' || xcConfig.envs[env].db[i].client === 'mysql2') {
             xcConfig.envs[env].db[i].connection.multipleStatements = true
           }
@@ -981,15 +976,15 @@ export default {
           const inflectionObj = xcConfig.envs[env].db[i].meta.inflection
 
           if (inflectionObj) {
-            if (Array.isArray(inflectionObj.tn)) {
-              inflectionObj.tn = inflectionObj.tn.join(',')
+            if (Array.isArray(inflectionObj.table_name)) {
+              inflectionObj.table_name = inflectionObj.table_name.join(',')
             }
-            if (Array.isArray(inflectionObj.cn)) {
-              inflectionObj.cn = inflectionObj.cn.join(',')
+            if (Array.isArray(inflectionObj.column_name)) {
+              inflectionObj.column_name = inflectionObj.column_name.join(',')
             }
 
-            inflectionObj.tn = inflectionObj.tn || 'none'
-            inflectionObj.cn = inflectionObj.cn || 'none'
+            inflectionObj.table_name = inflectionObj.table_name || 'none'
+            inflectionObj.column_name = inflectionObj.column_name || 'none'
           }
         }
       }
@@ -1019,8 +1014,6 @@ export default {
       }
 
       xcConfig.type = this.$store.state.project.projectInfo ? this.$store.state.project.projectInfo.type : 'docker'
-
-      console.log('Project json : after', xcConfig)
 
       return xcConfig
     },
@@ -1121,13 +1114,6 @@ export default {
           projectJson
         }])
 
-      console.log(
-        'project created redirect to project page',
-        projectJson,
-        result
-        // result.data.object.id
-      )
-      // await new Audio("/new-project.mp3").play();
 
       this.projectReloading = true
 
@@ -1166,10 +1152,8 @@ export default {
     },
 
     mtdDialogGetEnvNameSubmit (envName, cookie) {
-      console.log(envName)
       this.dialogGetEnvName.dialogShow = false
       if (envName in this.project.envs) {
-        console.log('Environment exists')
       } else {
         Vue.set(this.project.envs, envName,
           {
@@ -1206,7 +1190,6 @@ export default {
       }
     },
     mtdDialogGetEnvNameCancel () {
-      console.log('mtdDialogGetTableNameCancel cancelled')
       this.dialogGetEnvName.dialogShow = false
     },
 
@@ -1305,7 +1288,6 @@ export default {
       }
     },
     async newTestConnection (db, env, panelIndex) {
-      console.log(this.project.envs[env][0])
       if (db.connection.host === 'localhost' &&
         !this.edit &&
         env === '_noco' &&
@@ -1326,7 +1308,6 @@ export default {
               skipProjectHasDb: 1
             }
           }, 'testConnection', c1])
-          console.log('test connection result', result)
 
           if (result.code === 0) {
             db.ui.setup = 1
@@ -1341,8 +1322,6 @@ export default {
               if (e === env) {
 
               } else {
-                console.log(this.project.envs[e])
-
                 const c2 = {
                   connection: { ...this.project.envs[e].db[0].connection, database: undefined },
                   client: this.project.envs[e].db[0].client
@@ -1387,17 +1366,14 @@ export default {
       if (!connection.ssl) { return false }
       let sendAdvancedConfig = false
       const sslOptions = Object.values(connection.ssl).filter(el => !!el)
-      console.log('sslOptions:', sslOptions)
       if (sslOptions[0]) {
         sendAdvancedConfig = true
       } else {
-        console.log('no ssl options')
       }
       return sendAdvancedConfig
     },
 
     handleSSL (db, creating = true) {
-      console.log('handleSSL', db)
       const sendAdvancedConfig = this.sendAdvancedConfig(db.connection)
       if (!sendAdvancedConfig) {
         // args.ssl = undefined;
@@ -1427,7 +1403,6 @@ export default {
 
           this.handleSSL(db)
 
-          console.log('testconnection params', db)
           if (db.client === 'sqlite3') {
             db.ui.setup = 1
           } else {
@@ -1443,7 +1418,6 @@ export default {
               }
             }, 'testConnection', c1])
 
-            console.log('test connection result', result)
 
             if (result.code === 0) {
               db.ui.setup = 1
@@ -1458,7 +1432,6 @@ export default {
               this.dialog.show = true
             }
 
-            console.log('testconnection params : after', db)
           }
         }
       } catch (e) {
@@ -1519,8 +1492,6 @@ export default {
       db.ui.setup = status
     },
     removeDBFromEnv (db, env, panelIndex, dbIndex) {
-      console.log(db, env, panelIndex, dbIndex)
-
       for (const env in this.project.envs) {
         if (this.project.envs[env].db.length > dbIndex) {
           this.project.envs[env].db.splice(dbIndex, 1)
@@ -1597,7 +1568,6 @@ export default {
       // await this.$store.dispatch('sqlMgr/instantiateSqlMgr');
       let data = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ id: this.$route.query.projectId }, 'PROJECT_READ_BY_WEB'])
       data = data.data.list[0]
-      console.log('created:', data)
       this.constructProjectJsonFromProject(data)
       this.$set(this.project, 'folder', data.folder)
     } else {

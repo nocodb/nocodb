@@ -12,9 +12,6 @@
 
 <script>
 
-// const {shell} = require("electron").remote.require(
-//   "./libs"
-// );
 export default {
   data() {
     return {
@@ -41,7 +38,6 @@ export default {
   },
   computed: {
     notification1() {
-      console.log('')
       return this.$store.state.notification.snackbar
     }
   },

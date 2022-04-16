@@ -463,7 +463,7 @@ export default {
     // });
     // const result = await client.tableList();
     // console.log(result)
-    this.tableList = [] // result.data.list.map(table => table.tn)
+    this.tableList = [] // result.data.list.map(table => table.table_name)
 
     this.expandedPanel = 0
   },
@@ -509,7 +509,7 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.columnList({tn});
-      // const columns = result.data.list.map(table => table.cn)
+      // const columns = result.data.list.map(table => table.column_name)
       // this.$set(this.tableColumnList, tn, columns);
       // return columns;
       return []

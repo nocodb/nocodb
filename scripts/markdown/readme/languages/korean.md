@@ -12,7 +12,7 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 <div align="center">
 
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB)
-[![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2014.18.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 </div>
 

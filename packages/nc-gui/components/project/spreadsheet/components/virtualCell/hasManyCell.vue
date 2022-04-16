@@ -2,7 +2,7 @@
   <div class="d-flex d-100 chips-wrapper" :class="{active}">
     <template v-if="!isForm">
       <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
-        <template v-if="value|| localState">
+        <template v-if="value||localState">
           <item-chip
             v-for="(ch,i) in (value|| localState)"
             :key="i"
@@ -22,6 +22,7 @@
           </span>
         </template>
       </div>
+
       <div
         v-if="!isLocked"
         class="actions align-center justify-center px-1 flex-shrink-1"
@@ -44,14 +45,13 @@
     <list-items
       v-if="newRecordModal"
       v-model="newRecordModal"
-      :hm="hm"
-      :tn="hm && hm.tn"
       :size="10"
       :meta="childMeta"
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
       :api="childApi"
       :parent-meta="meta"
+      :column="column"
       :query-params="{
         ...childQueryParams,
         // check if it needs to bypass to
@@ -67,6 +67,7 @@
       }"
       :is-public="isPublic"
       :password="password"
+      :row-id="parentId"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
     />
@@ -109,7 +110,6 @@
     />
 
     <v-dialog
-      v-if="selectedChild && !isPublic"
       v-model="expandFormModal"
       :overlay-opacity="0.8"
       width="1000px"
@@ -124,10 +124,9 @@
         :db-alias="nodes.dbAlias"
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
-        :table="childMeta.tn"
+        :table="childMeta.table_name"
         :old-row="{...selectedChild}"
         :meta="childMeta"
-        :sql-ui="sqlUi"
         :primary-value-column="childPrimaryCol"
         :api="childApi"
         :available-columns="childAvailableColumns"
@@ -137,7 +136,7 @@
         :is-new.sync="isNewChild"
         :disabled-columns="disabledChildColumns"
         :breadcrumbs="breadcrumbs"
-        @cancel="selectedChild = null"
+        @cancel="selectedChild = null; expandFormModal =false"
         @input="onChildSave"
       />
     </v-dialog>
@@ -146,6 +145,7 @@
 
 <script>
 // import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
 import Pagination from '@/components/project/spreadsheet/components/pagination'
 import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
@@ -177,10 +177,8 @@ export default {
     },
     value: [Object, Array],
     meta: [Object],
-    hm: Object,
     nodes: [Object],
     row: [Object],
-    sqlUi: [Object, Function],
     active: Boolean,
     isNew: Boolean,
     isForm: Boolean,
@@ -204,37 +202,30 @@ export default {
   }),
   computed: {
     childMeta() {
-      return this.metas ? this.metas[this.hm.tn] : this.$store.state.meta.metas[this.hm.tn]
+      return this.metas
+        ? this.metas[this.column.colOptions.fk_related_model_id]
+        : this.$store.state.meta.metas[this.column.colOptions.fk_related_model_id]
     },
     // todo : optimize
     childApi() {
-      return this.childMeta && this.$ncApis.get({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        table: this.childMeta.tn
-      })
-      // return this.childMeta && this.childMeta._tn
-      //   ? ApiFactory.create(this.$store.getters['project/GtrProjectType'],
-      //     this.childMeta && this.childMeta._tn, this.childMeta && this.childMeta.columns, this, this.childMeta)
-      //   : null
     },
     childPrimaryCol() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
+      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {}).title
     },
     primaryCol() {
-      return this.meta && (this.meta.columns.find(c => c.pv) || {})._cn
+      return this.meta && (this.meta.columns.find(c => c.pv) || {}).title
     },
     childPrimaryKey() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
+      return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {}).title
     },
     childForeignKey() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.cn === this.hm.cn) || {})._cn
+      return this.childMeta && (this.childMeta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id) || {}).title
     },
     childForeignKeyVal() {
-      return this.meta && this.meta.columns ? this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') : ''
+      return this.meta && this.meta.columns ? this.meta.columns.filter(c => c.title === this.childForeignKey).map(c => this.row[c.title] || '').join('___') : ''
     },
     isVirtualRelation() {
-      return (this.childMeta && (!!this.childMeta.columns.find(c => c.cn === this.hm.cn && this.hm.type === 'virtual'))) || false
+      return this.column && this.column.colOptions.virtual// (this.childMeta && (!!this.childMeta.columns.find(c => c.column_name === this.hm.column_name && this.hm.type === 'virtual'))) || false
     },
     isByPass() {
       if (this.isVirtualRelation) {
@@ -242,7 +233,10 @@ export default {
       }
       // if child fk references a column in parent which is not pk,
       // then this column has to be filled
-      if (((this.meta && this.meta.columns.find(c => !c.pk && c.cn === this.hm.rcn)) || false)) {
+      // if (((this.meta && this.meta.columns.find(c => !c.pk && c.id === this.hm.rcn)) || false)) {
+      //   return this.childForeignKeyVal === ''
+      // }
+      if (((this.meta && this.meta.columns.find(c => !c.pk && c.id === this.column.fk_parent_column_id)) || false)) {
         return this.childForeignKeyVal === ''
       }
       return false
@@ -255,12 +249,12 @@ export default {
       return this.selectedChild && !this.isPublic ? () => import('@/components/project/spreadsheet/components/expandedForm') : 'span'
     },
     childAvailableColumns() {
-      const hideCols = ['created_at', 'updated_at']
+      // const hideCols = ['created_at', 'updated_at']
       if (!this.childMeta) { return [] }
 
       const columns = []
       if (this.childMeta.columns) {
-        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.childMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
+        columns.push(...this.childMeta.columns.filter(c => !isSystemColumn(c)))
       }
       if (this.childMeta.v) {
         columns.push(...this.childMeta.v.map(v => ({ ...v, virtual: 1 })))
@@ -271,15 +265,15 @@ export default {
       if (!this.childMeta) { return {} }
       // todo: use reduce
       return {
-        hm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({ hm }) => hm.tn).join()) || '',
+        hm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({ hm }) => hm.table_name).join()) || '',
         bt: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({ bt }) => bt.rtn).join()) || '',
         mm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
       }
     },
     parentId() {
       return (this.meta && this.meta.columns &&
-        (this.meta.columns.filter(c => c._cn === this.childForeignKey).map(c => this.row[c._cn] || '').join('___') ||
-        this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___'))) || ''
+        (this.meta.columns.filter(c => c.title === this.childForeignKey).map(c => this.row[c.title] || '').join('___') ||
+        this.meta.columns.filter(c => c.pk).map(c => this.row[c.title]).join('___'))) || ''
     }
   },
   watch: {
@@ -291,6 +285,10 @@ export default {
   },
   async mounted() {
     await this.loadChildMeta()
+
+    if (this.isNew && this.value) {
+      this.localState = [...this.value]
+    }
   },
   created() {
     this.loadChildMeta()
@@ -315,16 +313,16 @@ export default {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
-          const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
+          const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
           try {
-            await this.childApi.delete(id)
+            await this.$api.data.delete(this.childMeta.id, id)
             this.dialogShow = false
             this.$emit('loadTableData')
             if ((this.childListModal || this.isForm) && this.$refs.childList) {
               this.$refs.childList.loadData()
             }
           } catch (e) {
-            this.$toast.error(e.message)
+            this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
           }
         }
       }
@@ -337,14 +335,21 @@ export default {
       }
 
       await this.loadChildMeta()
-      const column = this.childMeta.columns.find(c => c.cn === this.hm.cn)
+      const column = this.childMeta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id)
+
       if (column.rqd) {
         this.$toast.info('Unlink is not possible, instead add to another record.').goAway(3000)
         return
       }
-      const _cn = column._cn
-      const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
-      await this.childApi.update(id, { [_cn]: null }, child)
+      const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
+      await this.$api.data.nestedDelete(
+        this.meta.id,
+        this.parentId,
+        this.column.id,
+        'hm',
+        id
+      )
+
       this.$emit('loadTableData')
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
         this.$refs.childList.loadData()
@@ -358,16 +363,8 @@ export default {
         await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
-          tn: this.hm.tn
+          id: this.column.colOptions.fk_related_model_id
         })
-        // const childTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias
-        // }, 'tableXcModelGet', {
-        //   tn: this.hm.tn
-        // }]);
-        // this.childMeta = JSON.parse(childTableData.meta);
-        // this.childQueryParams = JSON.parse(childTableData.query_params);
       }
     },
     async showNewRecordModal() {
@@ -383,14 +380,17 @@ export default {
         return
       }
 
-      const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
-      const _cn = this.childForeignKey
+      const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
       this.newRecordModal = false
-      await this.childApi.update(id, {
-        [_cn]: parseIfInteger(this.parentId)
-      }, {
-        [_cn]: child[this.childForeignKey]
-      })
+      await this.$api.dbTableRow.nestedAdd(
+        'noco',
+        this.projectName,
+        this.meta.title,
+        this.parentId,
+        'hm',
+        this.column.title,
+        id
+      )
 
       this.$emit('loadTableData')
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
@@ -400,8 +400,8 @@ export default {
     async editChild(child) {
       await this.loadChildMeta()
       this.isNewChild = false
-      this.selectedChild = child
       this.expandFormModal = true
+      this.selectedChild = child
       setTimeout(() => {
         this.$refs.expandedForm && this.$refs.expandedForm.reload()
       }, 500)
@@ -411,7 +411,14 @@ export default {
       await this.loadChildMeta()
       this.isNewChild = true
       this.selectedChild = {
-        [this.childForeignKey]: parseIfInteger(this.parentId)
+        [this.childForeignKey]: parseIfInteger(this.parentId),
+        [(this.childMeta.columns.find(c => c.uidt === UITypes.LinkToAnotherRecord &&
+            c.colOptions &&
+            this.column.colOptions &&
+      c.colOptions.fk_child_column_id === this.column.colOptions.fk_child_column_id &&
+      c.colOptions.fk_parent_column_id === this.column.colOptions.fk_parent_column_id &&
+      c.colOptions.type === RelationTypes.BELONGS_TO
+        ) || {}).title]: this.row
       }
       this.expandFormModal = true
       if (!this.isNew) {
@@ -434,13 +441,13 @@ export default {
       while (child = this.localState.pop()) {
         if (row) {
           // todo: use common method
-          const pid = this.meta.columns.filter(c => c.pk).map(c => row[c._cn]).join('___')
-          const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
-          const _cn = this.childForeignKey
+          const pid = this.meta.columns.filter(c => c.pk).map(c => row[c.title]).join('___')
+          const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
+          const title = this.childForeignKey
           await this.childApi.update(id, {
-            [_cn]: parseIfInteger(pid)
+            [title]: parseIfInteger(pid)
           }, {
-            [_cn]: child[this.childForeignKey]
+            [title]: child[this.childForeignKey]
           })
         } else {
           await this.addChildToParent(child)

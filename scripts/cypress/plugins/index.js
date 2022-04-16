@@ -58,6 +58,9 @@ module.exports = (on, config) => {
             _sqliteExec(query);
             return null;
         },
+        sqliteExecReturnValue: (query) => {
+            return _sqliteExecReturnValue(query);
+        },
         pgExec: (query) => {
             _pgExec(query);
             return null;
@@ -89,6 +92,34 @@ function queryTestDb(query, config) {
 
 // sqlite connection
 const sqlite3 = require("sqlite3").verbose();
+function _sqliteExecReturnValue(query) {
+    // open the database
+    console.log("Current directory: " + process.cwd());
+    let db = new sqlite3.Database(
+        "./scripts/cypress/fixtures/sqlite-sakila/sakila.db",
+        sqlite3.OPEN_READWRITE,
+        (err) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                console.log("Connected to the noco xcdb database.");
+            }
+        }
+    );
+
+    // exec query + disconnect to db as a Promise
+    return new Promise((resolve, reject) => {
+        db.get(query, [], (err, row) => {
+            db.close();
+            if (err) {
+                reject(err);
+            } else {
+                return resolve(row);
+            }
+        });
+    });
+}
+
 function _sqliteExec(query) {
     // open the database
     console.log("Current directory: " + process.cwd());

@@ -42,16 +42,16 @@ export default class NcProjectBuilder {
     }
   }
 
-  public async init(isFirstTime?: boolean) {
+  public async init(_isFirstTime?: boolean) {
     try {
-      await this.addAuthHookToMiddleware();
+      // await this.addAuthHookToMiddleware();
 
       this.startTime = Date.now();
       const allRoutesInfo: any[] = [];
-      await this.app.ncMeta.projectStatusUpdate(this.id, 'starting');
+      // await this.app.ncMeta.projectStatusUpdate(this.id, 'starting');
       await this.syncMigration();
       await this._createApiBuilder();
-      this.initApiInfoRoute();
+      // this.initApiInfoRoute();
 
       /* Create REST APIs / GraphQL Resolvers */
       for (const meta of this.apiBuilders) {
@@ -68,14 +68,15 @@ export default class NcProjectBuilder {
           routeInfo = await (meta as GqlApiBuilder).init();
         }
         allRoutesInfo.push(routeInfo);
-        this.progress(routeInfo, allRoutesInfo, isFirstTime);
+        // this.progress(routeInfo, allRoutesInfo, isFirstTime);
       }
 
-      this.app.projectRouter.use(`/nc/${this.id}`, this.router);
-      await this.app.ncMeta.projectStatusUpdate(this.id, 'started');
+      // this.app.projectRouter.use(`/nc/${this.id}`, this.router);
+      // await this.app.ncMeta.projectStatusUpdate(this.id, 'started');
     } catch (e) {
       console.log(e);
-      await this.app.ncMeta.projectStatusUpdate(this.id, 'stopped');
+      throw e;
+      // await this.app.ncMeta.projectStatusUpdate(this.id, 'stopped');
     }
   }
 

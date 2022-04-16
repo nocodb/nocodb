@@ -58,7 +58,6 @@ export default ({ store, $axios, redirect, $toast, route, app }) => {
       withCredentials: true
     })
       .then((token) => {
-        console.log(token)
         // New request with new token
         const config = error.config
         config.headers['xc-auth'] = token.data.token

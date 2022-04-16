@@ -15,8 +15,8 @@ import LinodePluginConfig from '../../../plugins/linode';
 import MattermostPluginConfig from '../../../plugins/mattermost';
 import MinioPluginConfig from '../../../plugins/mino';
 import OvhCloudPluginConfig from '../../../plugins/ovhCloud';
-import S3PluginConfig from '../../../plugins/s3';
 import ScalewayPluginConfig from '../../../plugins/scaleway';
+import S3PluginConfig from '../../../plugins/s3';
 import SlackPluginConfig from '../../../plugins/slack';
 import SMTPPluginConfig from '../../../plugins/smtp';
 import MailerSendConfig from '../../../plugins/mailerSend';
@@ -49,8 +49,8 @@ const defaultPlugins = [
   LinodePluginConfig,
   UpcloudPluginConfig,
   SMTPPluginConfig,
-  MailerSendConfig,
   ScalewayPluginConfig,
+  MailerSendConfig,
   SESPluginConfig
 ];
 

@@ -1,0 +1,43 @@
+<%
+const { routeInfo, utils } = it;
+const {
+  operationId,
+  method,
+  route,
+  moduleName,
+  responsesTypes,
+  description,
+  tags,
+  summary,
+  pathArgs,
+} = routeInfo;
+const { _, fmtToJSDocLine, require } = utils;
+
+const methodAliases = {
+  get: (pathName, hasPathInserts) =>
+    _.camelCase(`${pathName}_${hasPathInserts ? "detail" : "list"}`),
+  post: (pathName, hasPathInserts) => _.camelCase(`${pathName}_create`),
+  put: (pathName, hasPathInserts) => _.camelCase(`${pathName}_update`),
+  patch: (pathName, hasPathInserts) => _.camelCase(`${pathName}_partial_update`),
+  delete: (pathName, hasPathInserts) => _.camelCase(`${pathName}_delete`),
+};
+
+const createCustomOperationId = (method, route, moduleName) => {
+  const hasPathInserts = /\{(\w){1,}\}/g.test(route);
+  const splitedRouteBySlash = _.compact(_.replace(route, /\{(\w){1,}\}/g, "").split("/"));
+  const routeParts = (splitedRouteBySlash.length > 1
+    ? splitedRouteBySlash.splice(1)
+    : splitedRouteBySlash
+  ).join("_");
+  return routeParts.length > 3 && methodAliases[method]
+    ? methodAliases[method](routeParts, hasPathInserts)
+    : _.camelCase(_.lowerCase(method) + "_" + [moduleName].join("_")) || "index";
+};
+
+if (operationId)
+  return _.camelCase(operationId.replace(tags.length ? tags[0].toLowerCase().replace(/\W+/g,'-' ) + '-': '', ''));
+if (route === "/")
+  return _.camelCase(`${_.lowerCase(method)}Root`);
+
+return createCustomOperationId(method, route, moduleName);
+%>

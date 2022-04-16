@@ -15,16 +15,16 @@ export default {
     isValid(_columnObj, rowObj, required = false) {
       let columnObj = _columnObj
       if (columnObj.bt) {
-        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
+        columnObj = this.meta.columns.find(c => c.column_name === columnObj.bt.column_name)
       }
       return ((required || columnObj.rqd) &&
-        (rowObj[columnObj._cn] === undefined || rowObj[columnObj._cn] === null) &&
+        (rowObj[columnObj.title] === undefined || rowObj[columnObj.title] === null) &&
         !columnObj.default)
     },
     isRequired(_columnObj, rowObj, required = false) {
       let columnObj = _columnObj
       if (columnObj.bt) {
-        columnObj = this.meta.columns.find(c => c.cn === columnObj.bt.cn)
+        columnObj = this.meta.columns.find(c => c.column_name === columnObj.bt.column_name)
       }
       return ((required || columnObj.rqd) &&
         !columnObj.default)

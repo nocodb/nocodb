@@ -14,117 +14,117 @@ import {
 
 function prepareSqliteQuery(projId) {
     let sqliteQuery = [
-        `ALTER TABLE "actor" RENAME TO "nc_${projId}__actor"`,
-        `ALTER TABLE "address" RENAME TO "nc_${projId}__address"`,
-        `ALTER TABLE "category" RENAME TO "nc_${projId}__category"`,
-        `ALTER TABLE "city" RENAME TO "nc_${projId}__city"`,
-        `ALTER TABLE "country" RENAME TO "nc_${projId}__country"`,
-        `ALTER TABLE "customer" RENAME TO "nc_${projId}__customer"`,
-        `ALTER TABLE "film" RENAME TO "nc_${projId}__film"`,
-        `ALTER TABLE "film_actor" RENAME TO "nc_${projId}__film_actor"`,
-        `ALTER TABLE "film_category" RENAME TO "nc_${projId}__film_category"`,
-        `ALTER TABLE "film_text" RENAME TO "nc_${projId}__film_text"`,
-        `ALTER TABLE "inventory" RENAME TO "nc_${projId}__inventory"`,
-        `ALTER TABLE "language" RENAME TO "nc_${projId}__language"`,
-        `ALTER TABLE "payment" RENAME TO "nc_${projId}__payment"`,
-        `ALTER TABLE "rental" RENAME TO "nc_${projId}__rental"`,
-        `ALTER TABLE "staff" RENAME TO "nc_${projId}__staff"`,
-        `ALTER TABLE "store" RENAME TO "nc_${projId}__store"`,
-        `CREATE VIEW nc_${projId}__customer_list
+        `ALTER TABLE "actor" RENAME TO "${projId}actor"`,
+        `ALTER TABLE "address" RENAME TO "${projId}address"`,
+        `ALTER TABLE "category" RENAME TO "${projId}category"`,
+        `ALTER TABLE "city" RENAME TO "${projId}city"`,
+        `ALTER TABLE "country" RENAME TO "${projId}country"`,
+        `ALTER TABLE "customer" RENAME TO "${projId}customer"`,
+        `ALTER TABLE "film" RENAME TO "${projId}film"`,
+        `ALTER TABLE "film_actor" RENAME TO "${projId}film_actor"`,
+        `ALTER TABLE "film_category" RENAME TO "${projId}film_category"`,
+        `ALTER TABLE "film_text" RENAME TO "${projId}film_text"`,
+        `ALTER TABLE "inventory" RENAME TO "${projId}inventory"`,
+        `ALTER TABLE "language" RENAME TO "${projId}language"`,
+        `ALTER TABLE "payment" RENAME TO "${projId}payment"`,
+        `ALTER TABLE "rental" RENAME TO "${projId}rental"`,
+        `ALTER TABLE "staff" RENAME TO "${projId}staff"`,
+        `ALTER TABLE "store" RENAME TO "${projId}store"`,
+        `CREATE VIEW ${projId}customer_list
         AS
         SELECT cu.customer_id AS ID,
             cu.first_name||' '||cu.last_name AS name,
             a.address AS address,
             a.postal_code AS zip_code,
             a.phone AS phone,
-            "nc_${projId}__city".city AS city,
-            "nc_${projId}__country".country AS country,
+            "${projId}city".city AS city,
+            "${projId}country".country AS country,
             case when cu.active=1 then 'active' else '' end AS notes,
             cu.store_id AS SID
-        FROM "nc_${projId}__customer" AS cu JOIN "nc_${projId}__address" AS a ON cu.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
-        JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
-        `CREATE VIEW nc_${projId}__film_list
+        FROM "${projId}customer" AS cu JOIN "${projId}address" AS a ON cu.address_id = a.address_id JOIN "${projId}city" ON a.city_id = "${projId}city".city_id
+        JOIN "${projId}country" ON "${projId}city".country_id = "${projId}country".country_id`,
+        `CREATE VIEW ${projId}film_list
         AS
-        SELECT "nc_${projId}__film".film_id AS FID,
-            "nc_${projId}__film".title AS title,
-            "nc_${projId}__film".description AS description,
-            "nc_${projId}__category".name AS category,
-            "nc_${projId}__film".rental_rate AS price,
-            "nc_${projId}__film".length AS length,
-            "nc_${projId}__film".rating AS rating,
-            "nc_${projId}__actor".first_name||' '||"nc_${projId}__actor".last_name AS actors
-        FROM "nc_${projId}__category" LEFT JOIN "nc_${projId}__film_category" ON "nc_${projId}__category".category_id = "nc_${projId}__film_category".category_id LEFT JOIN "nc_${projId}__film" ON "nc_${projId}__Film_category".film_id = "nc_${projId}__film".film_id
-        JOIN "nc_${projId}__film_actor" ON "nc_${projId}__film".film_id = "nc_${projId}__film_actor".film_id
-        JOIN "nc_${projId}__actor" ON "nc_${projId}__film_actor".actor_id = "nc_${projId}__actor".actor_id`,
-        `CREATE VIEW nc_${projId}__sales_by_film_category
+        SELECT "${projId}film".film_id AS FID,
+            "${projId}film".title AS title,
+            "${projId}film".description AS description,
+            "${projId}category".name AS category,
+            "${projId}film".rental_rate AS price,
+            "${projId}film".length AS length,
+            "${projId}film".rating AS rating,
+            "${projId}actor".first_name||' '||"${projId}actor".last_name AS actors
+        FROM "${projId}category" LEFT JOIN "${projId}film_category" ON "${projId}category".category_id = "${projId}film_category".category_id LEFT JOIN "${projId}film" ON "${projId}Film_category".film_id = "${projId}film".film_id
+        JOIN "${projId}film_actor" ON "${projId}film".film_id = "${projId}film_actor".film_id
+        JOIN "${projId}actor" ON "${projId}film_actor".actor_id = "${projId}actor".actor_id`,
+        `CREATE VIEW ${projId}sales_by_film_category
         AS
         SELECT
             c.name AS category
             , SUM(p.amount) AS total_sales
-        FROM "nc_${projId}__payment" AS p
-        INNER JOIN "nc_${projId}__rental" AS r ON p.rental_id = r.rental_id
-        INNER JOIN "nc_${projId}__inventory" AS i ON r.inventory_id = i.inventory_id
-        INNER JOIN "nc_${projId}__film" AS f ON i.film_id = f.film_id
-        INNER JOIN "nc_${projId}__film_category" AS fc ON f.film_id = fc.film_id
-        INNER JOIN "nc_${projId}__category" AS c ON fc.category_id = c.category_id
+        FROM "${projId}payment" AS p
+        INNER JOIN "${projId}rental" AS r ON p.rental_id = r.rental_id
+        INNER JOIN "${projId}inventory" AS i ON r.inventory_id = i.inventory_id
+        INNER JOIN "${projId}film" AS f ON i.film_id = f.film_id
+        INNER JOIN "${projId}film_category" AS fc ON f.film_id = fc.film_id
+        INNER JOIN "${projId}category" AS c ON fc.category_id = c.category_id
         GROUP BY c.name`,
-        `CREATE VIEW nc_${projId}__sales_by_store
+        `CREATE VIEW ${projId}sales_by_store
         AS
         SELECT
             s.store_id
             ,c.city||','||cy.country AS store
             ,m.first_name||' '||m.last_name AS manager
             ,SUM(p.amount) AS total_sales
-        FROM "nc_${projId}__payment" AS p
-        INNER JOIN "nc_${projId}__rental" AS r ON p.rental_id = r.rental_id
-        INNER JOIN "nc_${projId}__inventory" AS i ON r.inventory_id = i.inventory_id
-        INNER JOIN "nc_${projId}__store" AS s ON i.store_id = s.store_id
-        INNER JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id
-        INNER JOIN "nc_${projId}__city" AS c ON a.city_id = c.city_id
-        INNER JOIN "nc_${projId}__country" AS cy ON c.country_id = cy.country_id
-        INNER JOIN "nc_${projId}__staff" AS m ON s.manager_staff_id = m.staff_id
-        GROUP BY  
+        FROM "${projId}payment" AS p
+        INNER JOIN "${projId}rental" AS r ON p.rental_id = r.rental_id
+        INNER JOIN "${projId}inventory" AS i ON r.inventory_id = i.inventory_id
+        INNER JOIN "${projId}store" AS s ON i.store_id = s.store_id
+        INNER JOIN "${projId}address" AS a ON s.address_id = a.address_id
+        INNER JOIN "${projId}city" AS c ON a.city_id = c.city_id
+        INNER JOIN "${projId}country" AS cy ON c.country_id = cy.country_id
+        INNER JOIN "${projId}staff" AS m ON s.manager_staff_id = m.staff_id
+        GROUP BY
         s.store_id
         , c.city||','||cy.country
         , m.first_name||' '||m.last_name`,
-        `CREATE VIEW nc_${projId}__staff_list
+        `CREATE VIEW ${projId}staff_list
         AS
         SELECT s.staff_id AS ID,
             s.first_name||' '||s.last_name AS name,
             a.address AS address,
             a.postal_code AS zip_code,
             a.phone AS phone,
-            "nc_${projId}__city".city AS city,
-            "nc_${projId}__country".country AS country,
+            "${projId}city".city AS city,
+            "${projId}country".country AS country,
             s.store_id AS SID
-        FROM "nc_${projId}__staff" AS s JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
-            JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
+        FROM "${projId}staff" AS s JOIN "${projId}address" AS a ON s.address_id = a.address_id JOIN "${projId}city" ON a.city_id = "${projId}city".city_id
+            JOIN "${projId}country" ON "${projId}city".country_id = "${projId}country".country_id`,
         // below two are dummy entries to ensure view record exists
-        `CREATE VIEW nc_${projId}__actor_info
+        `CREATE VIEW ${projId}actor_info
         AS
         SELECT s.staff_id AS ID,
             s.first_name||' '||s.last_name AS name,
             a.address AS address,
             a.postal_code AS zip_code,
             a.phone AS phone,
-            "nc_${projId}__city".city AS city,
-            "nc_${projId}__country".country AS country,
+            "${projId}city".city AS city,
+            "${projId}country".country AS country,
             s.store_id AS SID
-        FROM "nc_${projId}__staff" AS s JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
-            JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
-        `CREATE VIEW nc_${projId}__nice_but_slower_film_list
+        FROM "${projId}staff" AS s JOIN "${projId}address" AS a ON s.address_id = a.address_id JOIN "${projId}city" ON a.city_id = "${projId}city".city_id
+            JOIN "${projId}country" ON "${projId}city".country_id = "${projId}country".country_id`,
+        `CREATE VIEW ${projId}nice_but_slower_film_list
         AS
         SELECT s.staff_id AS ID,
             s.first_name||' '||s.last_name AS name,
             a.address AS address,
             a.postal_code AS zip_code,
             a.phone AS phone,
-            "nc_${projId}__city".city AS city,
-            "nc_${projId}__country".country AS country,
+            "${projId}city".city AS city,
+            "${projId}country".country AS country,
             s.store_id AS SID
-        FROM "nc_${projId}__staff" AS s JOIN "nc_${projId}__address" AS a ON s.address_id = a.address_id JOIN "nc_${projId}__city" ON a.city_id = "nc_${projId}__city".city_id
-            JOIN "nc_${projId}__country" ON "nc_${projId}__city".country_id = "nc_${projId}__country".country_id`,
-        // `CREATE VIEW nc_${projId}__actor_info
+        FROM "${projId}staff" AS s JOIN "${projId}address" AS a ON s.address_id = a.address_id JOIN "${projId}city" ON a.city_id = "${projId}city".city_id
+            JOIN "${projId}country" ON "${projId}city".country_id = "${projId}country".country_id`,
+        // `CREATE VIEW ${projId}actor_info
         //     AS
         //     SELECT
         //       a.actor_id AS actor_id,
@@ -137,19 +137,19 @@ function prepareSqliteQuery(projId) {
         //                         ORDER BY f.title ASC
         //                         SEPARATOR ', ')
         //             FROM
-        //                 ((nc_${projId}__film f
-        //                 JOIN nc_${projId}__film_category fc ON ((f.film_id = fc.film_id)))
-        //                 JOIN nc_${projId}__film_actor fa ON ((f.film_id = fa.film_id)))
+        //                 ((${projId}film f
+        //                 JOIN ${projId}film_category fc ON ((f.film_id = fc.film_id)))
+        //                 JOIN ${projId}film_actor fa ON ((f.film_id = fa.film_id)))
         //             WHERE
         //                 ((fc.category_id = c.category_id)
         //                     AND (fa.actor_id = a.actor_id))))
         //         ORDER BY c.name ASC
-        //         SEPARATOR '; ') AS nc_${projId}__film_info
+        //         SEPARATOR '; ') AS ${projId}film_info
         // FROM
         //     (((actor a
-        //     LEFT JOIN nc_${projId}__film_actor fa ON ((a.actor_id = fa.actor_id)))
-        //     LEFT JOIN nc_${projId}__film_category fc ON ((fa.film_id = fc.film_id)))
-        //     LEFT JOIN nc_${projId}__category c ON ((fc.category_id = c.category_id)))
+        //     LEFT JOIN ${projId}film_actor fa ON ((a.actor_id = fa.actor_id)))
+        //     LEFT JOIN ${projId}film_category fc ON ((fa.film_id = fc.film_id)))
+        //     LEFT JOIN ${projId}category c ON ((fc.category_id = c.category_id)))
         // GROUP BY a.actor_id , a.first_name , a.last_name`,
     ];
     return sqliteQuery;
@@ -177,38 +177,62 @@ export const genTest = (apiType, dbType) => {
                     // else, create a new one
                     if (true == obj[0].innerHTML.includes(proj.basic.name)) {
                         projectsPage.openProject(proj.basic.name);
+                        let projId;
+                        if (dbType === "xcdb") {
+                            let query = `SELECT prefix from nc_projects_v2 where title = "sampleREST"; `;
+                            cy.task("sqliteExecReturnValue", query).then(
+                                (resolve) => {
+                                    cy.log(resolve);
+                                    projId = resolve.prefix;
+                                    setProjectString(projId);
+                                    cy.log(projId);
+                                }
+                            );
+                        }
                     } else {
                         projectsPage.createProject(proj.basic, proj.config);
-                    }
+                        if (dbType === "xcdb") {
+                            // store base URL- to re-visit and delete form view later
+                            let projId;
+                            cy.url()
+                                .then((url) => {
+                                    // project prefix code can include "_"
+                                    // projId = url.split("_")[1].split("?")[0];
+                                    let startIdx = url.indexOf("_");
+                                    let endIdx = url.indexOf("?");
+                                    projId = url.slice(startIdx + 1, endIdx);
 
-                    if (dbType === "xcdb") {
-                        // store base URL- to re-visit and delete form view later
-                        let projId;
-                        cy.url()
-                            .then((url) => {
-                                // project prefix code can include "_"
-                                // projId = url.split("_")[1].split("?")[0];
-                                let startIdx = url.indexOf("_");
-                                let endIdx = url.indexOf("?");
-                                projId = url.slice(startIdx + 1, endIdx);
-                                cy.log(url, projId);
-                                setProjectString(projId);
-
-                                let query = prepareSqliteQuery(projId);
-                                for (let i = 0; i < query.length; i++) {
-                                    cy.task("sqliteExec", query[i]);
-                                    cy.wait(1000);
-                                }
-                            })
-                            .then(() => {
-                                cy.log(projId);
-                                mainPage.openMetaTab();
-                                mainPage.metaSyncValidate(
-                                    `nc_${projId}__actor`,
-                                    `New table, New relation added`
-                                );
-                                mainPage.closeMetaTab();
-                            });
+                                    let query = `SELECT prefix from nc_projects_v2 where title = "sampleREST"; `;
+                                    cy.task("sqliteExecReturnValue", query)
+                                        .then((resolve) => {
+                                            cy.log(resolve);
+                                            projId = resolve.prefix;
+                                            cy.log(projId);
+                                            setProjectString(projId);
+                                        })
+                                        .then(() => {
+                                            let query =
+                                                prepareSqliteQuery(projId);
+                                            for (
+                                                let i = 0;
+                                                i < query.length;
+                                                i++
+                                            ) {
+                                                cy.task("sqliteExec", query[i]);
+                                                cy.wait(1000);
+                                            }
+                                        });
+                                })
+                                .then(() => {
+                                    cy.log(projId);
+                                    mainPage.openMetaTab();
+                                    mainPage.metaSyncValidate(
+                                        `${projId}actor`,
+                                        `New table, New relation added`
+                                    );
+                                    mainPage.closeMetaTab();
+                                });
+                        }
                     }
 
                     // create requested project

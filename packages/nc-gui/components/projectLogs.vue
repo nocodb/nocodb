@@ -36,7 +36,6 @@
               mdi-circle
             </v-icon>
           </td>
-          <!--        <td>{{ 100-props.index }}</td>-->
           <td class="caption grey--text py-0">
             {{ props.item.time }}
           </td>
@@ -44,8 +43,6 @@
             {{ props.item.action }}
           </td>
         </tr>
-        <!--        <td>{{ props.item.response }}</td>-->
-        <!--        <td>{{ props.item.duration }}</td>-->
       </template>
     </v-data-table>
     <!-- </v-flex
@@ -69,8 +66,6 @@
 </template>
 
 <script>
-// const {emittery} = require("electron").remote.require("./libs");
-// import { mapGetters, mapActions, mapState } from 'vuex'
 
 export default {
   components: {},
@@ -91,12 +86,6 @@ export default {
           width: '1%',
           class: ''
         },
-        // {
-        //   text: "#",
-        //   sortable: false,
-        //   width: "1%",
-        //   class: "grey darken-2"
-        // },
         {
           text: 'Time',
           sortable: false,
@@ -109,18 +98,6 @@ export default {
           width: '100%',
           class: 'caption'
         }
-        // {
-        //   text: "Response",
-        //   sortable: false,
-        //   width: "1%",
-        //   class: ""
-        // },
-        // {
-        //   text: "Duration",
-        //   sortable: false,
-        //   width: "10%",
-        //   class: ""
-        // }
       ],
       logs: [],
       maxLogs: 100
@@ -134,20 +111,6 @@ export default {
   created() {
   },
   mounted() {
-    // emittery.on("UI", data => {
-    //   //const logs = JSON.parse(JSON.stringify(this.logs));
-    //   if (this.logs.length > this.maxLogs) {
-    //     this.logs.pop();
-    //   }
-    //   this.logs.unshift({
-    //     status: data.status,
-    //     action: data.data,
-    //     time: new Date().toLocaleTimeString()
-    //     // response: "",
-    //     // duration: "123 ms"
-    //   });
-    //   //this.logs = logs;
-    // });
   },
   beforeDestroy() {
   },

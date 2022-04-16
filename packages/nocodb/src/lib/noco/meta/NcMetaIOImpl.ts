@@ -8,8 +8,13 @@ import XcMigrationSource from '../common/XcMigrationSource';
 
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import NcConnectionMgr from '../common/NcConnectionMgr';
+import { MetaTable } from '../../utils/globals';
+import XcMigrationSourcev2 from '../common/XcMigrationSourcev2';
 
+// import { nanoid } from 'nanoid';
+/*import { v4 as uuidv4 } from 'uuid';*/
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
+const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 export default class NcMetaIOImpl extends NcMetaIO {
   public async metaPaginatedList(
@@ -69,7 +74,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   // todo: need to fix
   private trx: Knex.Transaction;
 
-  constructor(app: Noco, config: NcConfig) {
+  constructor(app: Noco, config: NcConfig, trx = null) {
     super(app, config);
 
     if (this.config?.meta?.db?.client === 'sqlite3') {
@@ -77,7 +82,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     }
 
     if (this.config?.meta?.db) {
-      this.connection = XKnex(this.config?.meta?.db);
+      this.connection = trx || XKnex(this.config?.meta?.db);
     } else {
       let dbIndex = this.config.envs?.[this.config.workingEnv]?.db.findIndex(
         c => c.meta.dbAlias === this.config?.auth?.jwt?.dbAlias
@@ -87,6 +92,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         this.config.envs?.[this.config.workingEnv]?.db[dbIndex] as any
       );
     }
+    this.trx = trx;
     NcConnectionMgr.setXcMeta(this);
   }
 
@@ -102,6 +108,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations'
+    });
+    await this.connection.migrate.latest({
+      migrationSource: new XcMigrationSourcev2(),
+      tableName: 'xc_knex_migrationsv2'
     });
     return true;
   }
@@ -175,6 +185,56 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return query.first();
   }
 
+  public async metaGet2(
+    project_id: string,
+    baseId: string,
+    target: string,
+    idOrCondition: string | { [p: string]: any },
+    fields?: string[],
+    xcCondition?
+  ): Promise<any> {
+    const query = this.knexConnection(target);
+
+    if (xcCondition) {
+      query.condition(xcCondition);
+    }
+
+    if (fields?.length) {
+      query.select(...fields);
+    }
+
+    if (project_id !== null && project_id !== undefined) {
+      query.where('project_id', project_id);
+    }
+    if (baseId !== null && baseId !== undefined) {
+      query.where('base_id', baseId);
+    }
+
+    if (!idOrCondition) {
+      return query.first();
+    }
+
+    if (typeof idOrCondition !== 'object') {
+      query.where('id', idOrCondition);
+    } else {
+      query.where(idOrCondition);
+    }
+
+    return query.first();
+  }
+
+  public async metaGetNextOrder(
+    target: string,
+    condition: { [key: string]: any }
+  ): Promise<number> {
+    const query = this.knexConnection(target);
+
+    query.where(condition);
+    query.max('order', { as: 'order' });
+
+    return (+(await query.first())?.order || 0) + 1;
+  }
+
   public async metaInsert(
     project_id: string,
     dbAlias: string,
@@ -190,9 +250,31 @@ export default class NcMetaIOImpl extends NcMetaIO {
     });
   }
 
+  public async metaInsert2(
+    project_id: string,
+    base_id: string,
+    target: string,
+    data: any,
+    ignoreIdGeneration?: boolean
+  ): Promise<any> {
+    const id = data?.id || this.genNanoid(target);
+    const insertObj = {
+      ...data,
+      ...(ignoreIdGeneration ? {} : { id })
+    };
+    if (base_id !== null) insertObj.base_id = base_id;
+    if (project_id !== null) insertObj.project_id = project_id;
+    await this.knexConnection(target).insert({
+      ...insertObj,
+      created_at: insertObj?.created_at || this.knexConnection?.fn?.now(),
+      updated_at: insertObj?.updated_at || this.knexConnection?.fn?.now()
+    });
+    return insertObj;
+  }
+
   public async metaList(
     project_id: string,
-    dbAlias: string,
+    _dbAlias: string,
     target: string,
     args?: {
       condition?: { [p: string]: any };
@@ -208,8 +290,50 @@ export default class NcMetaIOImpl extends NcMetaIO {
     if (project_id !== null && project_id !== undefined) {
       query.where('project_id', project_id);
     }
-    if (dbAlias !== null && dbAlias !== undefined) {
+    /*    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
+    }*/
+
+    if (args?.condition) {
+      query.where(args.condition);
+    }
+    if (args?.limit) {
+      query.limit(args.limit);
+    }
+    if (args?.offset) {
+      query.offset(args.offset);
+    }
+    if (args?.xcCondition) {
+      (query as any).condition(args.xcCondition);
+    }
+
+    if (args?.fields?.length) {
+      query.select(...args.fields);
+    }
+
+    return query;
+  }
+
+  public async metaList2(
+    project_id: string,
+    dbAlias: string,
+    target: string,
+    args?: {
+      condition?: { [p: string]: any };
+      limit?: number;
+      offset?: number;
+      xcCondition?;
+      fields?: string[];
+      orderBy: { [key: string]: 'asc' | 'desc' };
+    }
+  ): Promise<any[]> {
+    const query = this.knexConnection(target);
+
+    if (project_id !== null && project_id !== undefined) {
+      query.where('project_id', project_id);
+    }
+    if (dbAlias !== null && dbAlias !== undefined) {
+      query.where('base_id', dbAlias);
     }
 
     if (args?.condition) {
@@ -233,8 +357,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
     if (args?.fields?.length) {
       query.select(...args.fields);
     }
-
-    console.log(query.toQuery());
 
     return query;
   }
@@ -267,9 +389,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       query.condition(xcCondition);
     }
 
-    // console.log(query.toQuery())
-
-    return query;
+    return await query;
   }
 
   public async metaDeleteAll(
@@ -313,10 +433,9 @@ export default class NcMetaIOImpl extends NcMetaIO {
     this.trx = null;
   }
 
-  async startTransaction() {
-    if (!this.trx) {
-      this.trx = await this.connection.transaction();
-    }
+  async startTransaction(): Promise<NcMetaIO> {
+    const trx = await this.connection.transaction();
+    return new NcMetaIOImpl(this.app, this.config, trx);
   }
 
   async metaReset(
@@ -375,6 +494,12 @@ export default class NcMetaIOImpl extends NcMetaIO {
         ...project,
         created_at: this.knexConnection?.fn?.now(),
         updated_at: this.knexConnection?.fn?.now()
+      });
+
+      // todo
+      await this.knexConnection(MetaTable.PROJECT).insert({
+        id,
+        title: projectName
       });
 
       project.prefix = config.prefix;
@@ -617,6 +742,95 @@ export default class NcMetaIOImpl extends NcMetaIO {
       return Promise.resolve(undefined);
     }
     return this.metaInsert(project_id, dbAlias, target, data);
+  }
+
+  private genNanoid(target: string) {
+    let prefix;
+    switch (target) {
+      case MetaTable.PROJECT:
+        prefix = 'p_';
+        break;
+      case MetaTable.BASES:
+        prefix = 'ds_';
+        break;
+      case MetaTable.MODELS:
+        prefix = 'md_';
+        break;
+      case MetaTable.COLUMNS:
+        prefix = 'cl_';
+        break;
+      case MetaTable.COL_RELATIONS:
+        prefix = 'ln_';
+        break;
+      case MetaTable.COL_SELECT_OPTIONS:
+        prefix = 'sl_';
+        break;
+      case MetaTable.COL_LOOKUP:
+        prefix = 'lk_';
+        break;
+      case MetaTable.COL_ROLLUP:
+        prefix = 'rl_';
+        break;
+      case MetaTable.COL_FORMULA:
+        prefix = 'fm_';
+        break;
+      case MetaTable.FILTER_EXP:
+        prefix = 'fi_';
+        break;
+      case MetaTable.SORT:
+        prefix = 'so_';
+        break;
+      case MetaTable.SHARED_VIEWS:
+        prefix = 'sv_';
+        break;
+      case MetaTable.ACL:
+        prefix = 'ac_';
+        break;
+      case MetaTable.FORM_VIEW:
+        prefix = 'fv_';
+        break;
+      case MetaTable.FORM_VIEW_COLUMNS:
+        prefix = 'fvc_';
+        break;
+      case MetaTable.GALLERY_VIEW:
+        prefix = 'gv_';
+        break;
+      case MetaTable.GALLERY_VIEW_COLUMNS:
+        prefix = 'gvc_';
+        break;
+      case MetaTable.KANBAN_VIEW:
+        prefix = 'kv_';
+        break;
+      case MetaTable.KANBAN_VIEW_COLUMNS:
+        prefix = 'kvc_';
+        break;
+      case MetaTable.USERS:
+        prefix = 'us_';
+        break;
+      case MetaTable.ORGS:
+        prefix = 'org_';
+        break;
+      case MetaTable.TEAMS:
+        prefix = 'tm_';
+        break;
+      case MetaTable.VIEWS:
+        prefix = 'vw_';
+        break;
+      case MetaTable.HOOKS:
+        prefix = 'hk_';
+        break;
+      case MetaTable.AUDIT:
+        prefix = 'adt_';
+        break;
+      case MetaTable.API_TOKENS:
+        prefix = 'tkn_';
+        break;
+      default:
+        prefix = 'nc_';
+        break;
+    }
+
+    return `${prefix}${nanoidv2()}`;
   }
 }
 /**

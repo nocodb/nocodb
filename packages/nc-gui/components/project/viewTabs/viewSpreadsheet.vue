@@ -3,12 +3,12 @@
     <div v-if="modelName" class="model-name text-capitalize">
       <span class="font-weight-bold"> {{ modelName }}</span> <span class="font-weight-regular ml-1">( Main View )</span>
     </div>
-    <v-toolbar 
+    <v-toolbar
       height="32"
       dense
       class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
       style="z-index: 7"
-      >
+    >
       <div class="d-flex xc-border align-center search-box" style="min-width:156px">
         <v-menu bottom offset-y>
           <template #activator="{on}">
@@ -33,10 +33,10 @@
           <v-list v-if="meta" dense>
             <v-list-item
               v-for="col in meta.columns"
-              :key="col.cn"
-              @click="searchField = col.cn"
+              :key="col.column_name"
+              @click="searchField = col.column_name"
             >
-              <span class="caption">{{ col.cn }}</span>
+              <span class="caption">{{ col.column_name }}</span>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -68,7 +68,6 @@
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
 
       <div class="d-inline-flex">
-
         <fields-menu v-model="showFields" :field-list="fieldList" :is-locked="isLocked" />
 
         <sort-list-menu v-model="sortList" :field-list="fieldList" :is-locked="isLocked" />
@@ -78,23 +77,23 @@
         <share-view-menu @share="$refs.drawer && $refs.drawer.genShareLink()" />
 
         <MoreActions
-            ref="csvExportImport"
-            :meta="meta"
-            :nodes="nodes"
-            :query-params="{
-              fieldsOrder,
-              fieldFilter,
-              sortList,
-              showFields
-            }"
-            :selected-view="selectedView"
-            :is-view="true"
-            @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
-            @webhook="showAdditionalFeatOverlay('webhooks')"
-          />
+          ref="csvExportImport"
+          :meta="meta"
+          :nodes="nodes"
+          :query-params="{
+            fieldsOrder,
+            fieldFilter,
+            sortList,
+            showFields
+          }"
+          :selected-view="selectedView"
+          :is-view="true"
+          @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
+          @webhook="showAdditionalFeatOverlay('webhooks')"
+        />
       </div>
       <v-spacer class="h-100" @dblclick="debug=true" />
-    
+
       <template>
         <debug-metas v-if="debug" class="mr-3" />
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
@@ -262,7 +261,6 @@ import MoreActions from '@/components/project/spreadsheet/components/moreActions
 import ShareViewMenu from '@/components/project/spreadsheet/components/shareViewMenu'
 import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 
-
 export default {
   name: 'Spreadsheet',
   components: {
@@ -277,7 +275,7 @@ export default {
     FieldsMenu,
     ShareViewMenu,
     MoreActions,
-    LockMenu,
+    LockMenu
   },
   mixins: [spreadsheet],
   props: {
@@ -357,7 +355,7 @@ export default {
     modelName: null,
     viewStatus: {
       type: null
-    },
+    }
   }),
   computed: {
     meta() {
@@ -371,14 +369,14 @@ export default {
       return this.meta && this.$ncApis.get({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        table: this.meta.tn
+        table: this.meta.table_name
       })
     },
     edited() {
       return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
     },
     table() {
-      return this.nodes.tn || this.nodes.view_name
+      return this.nodes.table_name || this.nodes.view_name
     }
   },
   async mounted() {
@@ -396,8 +394,8 @@ export default {
         columns: [...this.meta.columns.map((col) => {
           return {
             readOnly: col.ai,
-            type: typeof this.data[0][col.cn],
-            title: col.cn,
+            type: typeof this.data[0][col.column_name],
+            title: col.column_name,
             width: '150px'
           }
         }), {
@@ -411,7 +409,7 @@ export default {
   created() {
     if (this.relationType === 'hm') {
       this.filters.push({
-        field: this.relation.cn,
+        field: this.relation.column_name,
         op: 'is equal',
         value: this.relationIdValue,
         readOnly: true
@@ -462,7 +460,7 @@ export default {
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
           query_params: queryParams,
-          tn: this.meta.tn,
+          table_name: this.meta.table_name,
           view_name: this.$route.query.view
         })
       } catch (e) {
@@ -470,7 +468,7 @@ export default {
       }
     },
     mapFieldsAndShowFields() {
-      this.fieldList = this.availableColumns.map(c => c._cn)
+      this.fieldList = this.availableColumns.map(c => c.title)
       this.showFields = this.fieldList.reduce((obj, k) => {
         obj[k] = true
         return obj
@@ -560,7 +558,7 @@ export default {
       await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        tn: this.table,
+        table_name: this.table,
         force: true
       })
 
@@ -568,7 +566,7 @@ export default {
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'tableXcModelGet', {
-      //   tn: this.table
+      //   table_name: this.table
       // }])
       // this.meta = JSON.parse(tableMeta.meta)
       this.loadingMeta = false

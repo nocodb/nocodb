@@ -36,5 +36,8 @@ We do not collect private or sensitive information, such as:
 
 ## Opt-out
 To disable usage information collection please set following environment variable.
-> NC_DISABLE_TELE=true
 
+
+```bash
+NC_DISABLE_TELE=true
+```

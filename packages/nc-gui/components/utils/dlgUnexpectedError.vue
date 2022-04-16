@@ -60,12 +60,6 @@ export default {
   computed: {},
   watch: {},
   created() {
-    // if (this.$store.state.windows.isErrorReportingEnabled && !(process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'dev'))
-    //   this.$sentry.captureException(new Error(JSON.stringify({
-    //     version: this.$store.state.windows.version,
-    //     error: this.error,
-    //     user : this.$store.state.users.user && this.$store.state.users.user.email
-    //   })))
   },
   mounted() {
   },

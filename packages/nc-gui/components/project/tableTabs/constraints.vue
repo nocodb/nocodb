@@ -13,7 +13,7 @@
                      href: '#'
                    },
                    {
-                     text: nodes.tn + ' (table)',
+                     text: nodes.table_name + ' (table)',
                      disabled: true,
                      href: '#'
                    }]"
@@ -64,7 +64,7 @@
       <template #item="props">
         <td>{{ props.item.cstn }}</td>
         <td>{{ props.item.cst }}</td>
-        <td>{{ props.item.cn }}</td>
+        <td>{{ props.item.column_name }}</td>
         <td>{{ props.item.op }}</td>
       </template>
     </v-data-table>
@@ -98,7 +98,7 @@ export default {
         dbAlias: this.nodes.dbAlias
       })
       const result = await client.constraintList({
-        tn: this.nodes.tn
+        tn: this.nodes.table_name
       })
       // console.log("cons", result.data.list);
       this.constraints = result.data.list

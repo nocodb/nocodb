@@ -7,6 +7,7 @@ import { mainPage } from "../../support/page_objects/mainPage";
 import {
     isPostgres,
     isTestSuiteActive,
+    isXcdb,
 } from "../../support/page_objects/projectConstants";
 import {
     _advSettings,
@@ -30,10 +31,16 @@ export const genTest = (apiType, dbType, roleType) => {
         before(() => {
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("City", 25);
+            cy.get(".nc-btn-preview").click();
+            cy.getActiveMenu()
+                .find(".nc-preview-editor")
+                .should("exist")
+                .click();
         });
 
         after(() => {
-            cy.get(".nc-preview-reset").click({ force: true });
+            // cy.get(".nc-preview-reset").click({ force: true });
+            cy.get(".mdi-exit-to-app").click();
             // cy.wait(20000)
 
             // wait for page rendering to complete
@@ -57,6 +64,8 @@ export const genTest = (apiType, dbType, roleType) => {
             // validate if it has 19 entries representing tables & views
             if (isPostgres())
                 cy.get(".nc-acl-table-row").should("have.length", 24);
+            else if (isXcdb())
+                cy.get(".nc-acl-table-row").should("have.length", 19);
             else cy.get(".nc-acl-table-row").should("have.length", 19);
 
             // restore access
@@ -72,7 +81,7 @@ export const genTest = (apiType, dbType, roleType) => {
 
         const genTestSub = (roleType) => {
             it(`Role preview: ${roleType}: Enable preview`, () => {
-                cy.get(`.nc-preview-${roleType}`).click();
+                cy.get(`.nc-floating-preview-${roleType}`).click();
             });
 
             it(`Role preview: ${roleType}: Advance settings`, () => {

@@ -13,8 +13,8 @@ export default function formulaQueryBuilder(
   knex,
   aliasToColumn = {}
 ) {
-  const fn = (pt, a?, prevBinaryOp?) => {
-    const colAlias = a ? ` as "${a}"` : '';
+  const fn = (pt, alias?, prevBinaryOp?) => {
+    const colAlias = alias ? ` as "${alias}"` : '';
     if (pt.type === 'CallExpression') {
       switch (pt.callee.name) {
         case 'ADD':
@@ -27,11 +27,11 @@ export default function formulaQueryBuilder(
                 left: pt.arguments[0],
                 right: { ...pt, arguments: pt.arguments.slice(1) }
               },
-              a,
+              alias,
               prevBinaryOp
             );
           } else {
-            return fn(pt.arguments[0], a, prevBinaryOp);
+            return fn(pt.arguments[0], alias, prevBinaryOp);
           }
           break;
         // case 'AVG':
@@ -56,12 +56,21 @@ export default function formulaQueryBuilder(
                   left: pt.arguments[0],
                   right: { ...pt, arguments: pt.arguments.slice(1) }
                 },
-                a,
+                alias,
                 prevBinaryOp
               );
             } else {
-              return fn(pt.arguments[0], a, prevBinaryOp);
+              return fn(pt.arguments[0], alias, prevBinaryOp);
             }
+          }
+          break;
+        case 'DATEADD':
+          if (pt.arguments[1].value) {
+            pt.callee.name = 'DATE_ADD';
+            return fn(pt, alias, prevBinaryOp);
+          } else if (pt.arguments[1].operator == '-') {
+            pt.callee.name = 'DATE_SUB';
+            return fn(pt, alias, prevBinaryOp);
           }
           break;
         case 'URL':
@@ -86,18 +95,9 @@ export default function formulaQueryBuilder(
                 name: 'CONCAT'
               }
             },
-            a,
+            alias,
             prevBinaryOp
           );
-          break;
-        case 'DATEADD':
-          if(pt.arguments[1].value) {
-            pt.callee.name = "DATE_ADD";
-            return fn(pt, a, prevBinaryOp);
-          } else if(pt.arguments[1].operator == '-') {
-            pt.callee.name = "DATE_SUB";
-            return fn(pt, a, prevBinaryOp);
-          }
           break;
         default:
           {
@@ -105,7 +105,7 @@ export default function formulaQueryBuilder(
               pt,
               knex,
               alias,
-              a,
+              a: alias,
               aliasToCol: aliasToColumn,
               fn,
               colAlias,

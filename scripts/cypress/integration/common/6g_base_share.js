@@ -24,6 +24,8 @@ export const genTest = (apiType, dbType) => {
             cy.visit(linkText, {
                 baseUrl: null,
             });
+            cy.wait(5000);
+
             projectsPage.waitHomePageLoad();
 
             cy.closeTableTab("Actor");
@@ -51,6 +53,10 @@ export const genTest = (apiType, dbType) => {
     };
 
     describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
+        before(() => {
+            mainPage.tabReset();
+        });
+
         it(`Generate base share URL`, () => {
             // click SHARE
             cy.get(".nc-topright-menu").find(".nc-menu-share").click();

@@ -782,7 +782,6 @@ export default {
         await this.loadFileCollection(this.$store.getters['apiClientSwagger/GtrCurrentApiFilePaths'][i])
       }
 
-      // console.log(this.$store.getters['apiClientSwagger/GtrCurrentApiFilePaths']);
     } catch (e) {
       console.log('Failed to load previously opened query collections', e)
     }
@@ -794,7 +793,6 @@ export default {
 
     this.api.meta = {}
 
-    console.log(this.nodes)
     try {
       const info = (await this.$axios.get('/nc/projectApiInfo', {
         headers: {
@@ -818,7 +816,6 @@ export default {
       console.log('Node info : ', api)
     },
     async handleKeyDown ({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
       // cmd + n -> new
@@ -857,7 +854,6 @@ export default {
         })
 
         if (userChosenPath) {
-          console.log(userChosenPath)
           fs.writeFileSync(userChosenPath, '[]', 'utf-8')
           const pathObj = {
             path: userChosenPath,
@@ -1056,7 +1052,6 @@ export default {
     },
 
     async ctxMenuClickHandler (actionEvent, index) {
-      console.log(actionEvent, index)
       switch (actionEvent.value) {
         case 'add-folder':
           this.tvNodeFolderAdd(index)
@@ -1112,8 +1107,6 @@ export default {
     },
 
     async apiSend () {
-      console.log('apiSend')
-
       if (!this.api.path.trim()) {
         this.$toast.info('Please enter http url').goAway(3000)
         return
@@ -1154,7 +1147,6 @@ export default {
 
     async fileCollectionReload () {
       const data = new Tree(await this.apiFileCollection.read())
-      console.log(data)
 
       this.apiTv = data
       // this.$set(this, 'apiCollections', data);
@@ -1167,12 +1159,10 @@ export default {
     },
 
     async tvNodeRename (params) {
-      console.log(params)
       await this.savefileCollections(this.curApiCollectionPanel)
     },
 
     async onAddNode (params) {
-      console.log(params)
       await this.savefileCollections(this.curApiCollectionPanel)
     },
 
@@ -1180,7 +1170,6 @@ export default {
       const { parent, children, ...params } = node
       this.currentNode = node
 
-      console.log(params)
       this.apiClickedOnList(params)
       // if (params.query) ;
       // this.selectQuery(params)

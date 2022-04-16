@@ -21,7 +21,7 @@
                          href: '#'
                        },
                        {
-                         text: nodes._tn + ' (table)',
+                         text: nodes.title + ' (table)',
                          disabled: true,
                          href: '#'
                        }]"
@@ -199,7 +199,7 @@ export default {
         //   dbAlias: this.nodes.dbAlias
         // });
         // const result = await client.triggerList({
-        //   tn: this.nodes.tn
+        //   table_name: this.nodes.table_name
         // });
 
         //
@@ -207,14 +207,14 @@ export default {
         //   env: this.nodes.env,
         //   dbAlias: this.nodes.dbAlias
         // }, 'triggerList', {
-        //   tn: this.nodes.tn
+        //   table_name: this.nodes.table_name
         // })
 
         const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'triggerList', {
-          tn: this.nodes.tn
+          table_name: this.nodes.table_name
         }])
 
         console.log('triggers', result.data.list)
@@ -290,7 +290,7 @@ export default {
           'triggerDelete',
           {
             ...this.selectedTriggerForDelete,
-            tn: this.nodes.tn,
+            table_name: this.nodes.table_name,
             oldStatement: this.selectedTriggerForDelete.statement
           }])
 

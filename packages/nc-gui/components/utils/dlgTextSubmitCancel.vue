@@ -80,7 +80,6 @@ export default {
   watch: {},
   created() {
     if (this.defaultValue) { this.fieldValue = this.defaultValue }
-    console.log('dlgTextSubmitCancel:created ', this.cookie, this.heading)
   },
   mounted() {
     requestAnimationFrame(() => {

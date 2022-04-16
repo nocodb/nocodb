@@ -1,7 +1,7 @@
 module.exports = {
   tn: 'city',
   columns: [{
-      cn: 'city_id',
+     column_name:'city_id',
       type: 'integer',
       dt: 'smallint',
       rqd: true,
@@ -15,7 +15,7 @@ module.exports = {
       },
     },
     {
-      cn: 'city',
+     column_name:'city',
       type: 'string',
       dt: 'varchar',
       rqd: true,
@@ -26,7 +26,7 @@ module.exports = {
       },
     },
     {
-      cn: 'country_id',
+     column_name:'country_id',
       type: 'integer',
       dt: 'smallint',
       rqd: true,
@@ -38,7 +38,7 @@ module.exports = {
       },
     },
     {
-      cn: 'last_update',
+     column_name:'last_update',
       type: 'timestamp',
       dt: 'timestamp',
       rqd: true,

@@ -65,10 +65,10 @@
                 v-for="(relation,i) in relations"
                 :key="i"
               >
-                <td>{{ relation.relationType === 'hm' ? relation.rtn : relation.tn }}</td>
+                <td>{{ relation.relationType === 'hm' ? relation.rtn : relation.table_name }}</td>
                 <td>{{ relation.relationType === 'hm' ? 'HasMany' : 'BelongsTo' }}</td>
                 <td>{{ relation.rtn }}</td>
-                <td>{{ relation.tn }}</td>
+                <td>{{ relation.table_name }}</td>
 
                 <td v-for="role in roles" :key="`${i}-${role}`">
                   <v-tooltip bottom>

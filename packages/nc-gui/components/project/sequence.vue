@@ -184,21 +184,11 @@ export default {
           return
         }
 
-        // // console.log("env: this.env", this.env, this.dbAlias);
-        // const client = await this.sqlMgr.projectGetSqlClient({
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias
-        // });
-        // const result = await client.sequenceList({
-        //   sequence_name: this.originalNodes.sequence_name
-        // });
-
         const result = await this.sqlMgr.sqlOp({
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'sequenceList', { sequence_name: this.originalNodes.sequence_name })
 
-        // console.log("sequence read", result);
         this.sequence = { ...result.data.list.find(seq => seq.sequence_name === this.originalNodes.sequence_name) }
       } catch (e) {
         console.log(e)
@@ -223,7 +213,6 @@ export default {
               ...this.nodes
             }
           })
-          console.log('create sequence result', result)
           this.originalNodes.sequence_name = this.sequence.sequence_name
           this.newSequence = false
           await this.loadSequences()
@@ -238,7 +227,6 @@ export default {
             this.sequence
           ])
 
-          console.log('update sequence result', result)
           this.$toast.success('Sequence updated successfully').goAway(3000)
         }
       } catch (e) {
@@ -282,7 +270,6 @@ export default {
       }
     },
     sequenceNameChanged() {
-      console.log('changed', this.sequence.sequence_name.trim())
       this.edited = this.sequence.sequence_name.trim() !== ''
     }
   },

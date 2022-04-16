@@ -5,7 +5,7 @@
         v-if="hm"
         ref="cell"
         :row="row"
-        :value="row[`${hm._tn}List`]"
+        :value="row[column.title]"
         :meta="meta"
         :hm="hm"
         :nodes="nodes"
@@ -27,9 +27,8 @@
         ref="cell"
         :is-public="isPublic"
         :row="row"
-        :value="row[`${mm._rtn}MMList`]"
+        :value="row[column.title]"
         :meta="meta"
-        :mm="mm"
         :nodes="nodes"
         :sql-ui="sqlUi"
         :active="active"
@@ -51,9 +50,8 @@
         :disabled-columns="disabledColumns"
         :active="active"
         :row="row"
-        :value="row[`${bt._rtn}Read`]"
+        :value="row[column.title]"
         :meta="meta"
-        :bt="bt"
         :nodes="nodes"
         :api="api"
         :sql-ui="sqlUi"
@@ -71,6 +69,7 @@
         :disabled-columns="disabledColumns"
         :active="active"
         :row="row"
+        :value="row[column.title]"
         :meta="meta"
         :metas="metas"
         :nodes="nodes"
@@ -99,6 +98,7 @@
 </template>
 
 <script>
+import { UITypes } from 'nocodb-sdk'
 import RollupCell from './virtualCell/rollupCell'
 import FormulaCell from './virtualCell/formulaCell'
 import hasManyCell from './virtualCell/hasManyCell'
@@ -150,22 +150,22 @@ export default {
   },
   computed: {
     hm() {
-      return this.column && this.column.hm
+      return this.column && this.column.uidt === UITypes.LinkToAnotherRecord && this.column.colOptions.type === 'hm'
     },
     bt() {
-      return this.column && this.column.bt
+      return this.column && (this.column.uidt === UITypes.ForeignKey || this.column.uidt === UITypes.LinkToAnotherRecord) && this.column.colOptions.type === 'bt'
     },
     mm() {
-      return this.column && this.column.mm
+      return this.column && this.column.uidt === UITypes.LinkToAnotherRecord && this.column.colOptions.type === 'mm'
     },
     lookup() {
-      return this.column && this.column.lk
+      return this.column && this.column.uidt === UITypes.Lookup
     },
     formula() {
-      return this.column && this.column.formula
+      return this.column && this.column.uidt === UITypes.Formula
     },
     rollup() {
-      return this.column && this.column.rl
+      return this.column && this.column.uidt === UITypes.Rollup
     }
   },
   methods: {

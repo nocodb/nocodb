@@ -50,7 +50,7 @@ export default async function(
       return t.tn?.startsWith(builder?.prefix);
     }
     return true;
-  });
+  }); // @ts-ignore
 
   const colListRef = {};
   // @ts-ignore
@@ -216,6 +216,7 @@ export default async function(
       }
       return true;
     }); // @ts-ignore
+
   const oldViewMetas = (
     await this.xcMeta.metaList(
       this.getProjectId(args),

@@ -4,16 +4,14 @@ import ScalewayObjectStorage from './ScalewayObjectStorage';
 
 class ScalewayObjectStoragePlugin extends XcStoragePlugin {
   private static storageAdapter: ScalewayObjectStorage;
-
-  public getAdapter(): IStorageAdapter {
-    return ScalewayObjectStoragePlugin.storageAdapter;
-  }
-
   public async init(config: any): Promise<any> {
     ScalewayObjectStoragePlugin.storageAdapter = new ScalewayObjectStorage(
       config
     );
     await ScalewayObjectStoragePlugin.storageAdapter.init();
+  }
+  public getAdapter(): IStorageAdapter {
+    return ScalewayObjectStoragePlugin.storageAdapter;
   }
 }
 

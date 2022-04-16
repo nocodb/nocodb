@@ -41,7 +41,7 @@
           footer-props.items-per-page-options="30"
         >
           <template #items="props">
-            <td>{{ props.item.cn }}</td>
+            <td>{{ props.item.column_name }}</td>
           </template>
         </v-data-table>
       </v-col>
@@ -89,46 +89,46 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.relationList({
-      //   tn: this.nodes.tn
+      //   table_name: this.nodes.table_name
       // });
       //
 
       // const result = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
-      // }, 'relationList', {   tn: this.nodes.tn})
+      // }, 'relationList', {   table_name: this.nodes.table_name})
 
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
-      }, 'relationList', { tn: this.nodes.tn }])
+      }, 'relationList', { table_name: this.nodes.table_name }])
 
       // console.log(result, "relations");
       this.relations = result.data.list
       // this.loadColumnList(result.data.list[0].rtn);
     },
-    async loadColumnList(tn = '') {
+    async loadColumnList(table_name = '') {
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.columnList({
-      //   tn
+      //   table_name
       // });
 
       // const result = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'columnList', {
-      //   tn
+      //   table_name
       // });
 
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'columnList', {
-        tn
+        table_name
       }])
 
       this.columns = result.data.list

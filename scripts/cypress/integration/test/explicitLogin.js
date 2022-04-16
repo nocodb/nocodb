@@ -8,8 +8,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            loginPage.loginAndOpenProject(apiType, dbType);
-
+            // loginPage.loginAndOpenProject(apiType, dbType);
             // open a table to work on views
             //
             // cy.openTableTab('City');
@@ -17,6 +16,20 @@ export const genTest = (apiType, dbType) => {
 
         it(``, () => {
             cy.log("Test-1");
+
+            let projId = "";
+            let query = `SELECT prefix from nc_projects_v2 where title = "sampleREST"; `;
+            cy.task("sqliteExecReturnValue", query)
+                .then((resolve) => {
+                    cy.log(resolve);
+                    projId = resolve.prefix.split("_")[1];
+                    cy.log(projId);
+                })
+                .then(() => {
+                    let query = `ALTER TABLE "actor" RENAME TO "${projId}actor"`;
+                    cy.task("sqliteExec", query);
+                    cy.wait(1000);
+                });
         });
     });
 };

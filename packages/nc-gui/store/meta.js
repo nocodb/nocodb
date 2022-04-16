@@ -16,35 +16,67 @@ export const mutations = {
 }
 
 export const actions = {
-  async ActLoadMeta({ state, commit, dispatch }, { tn, env = '_noco', dbAlias = 'db', force, project_id }) {
-    if (!force && state.loading[tn]) {
+  async ActLoadMeta({ state, commit, dispatch, rootState }, {
+    table_name: tableName,
+    env = '_noco',
+    dbAlias = 'db',
+    force,
+    // eslint-disable-next-line camelcase
+    project_id,
+    id
+  }) {
+    if (!force && state.loading[tableName || id]) {
       return await new Promise((resolve) => {
         const unsubscribe = this.app.store.subscribe((s) => {
-          if (s.type === 'meta/MutLoading' && s.payload.key === tn && !s.payload.value) {
+          if (s.type === 'meta/MutLoading' && s.payload.key === (id || tableName) && !s.payload.value) {
             unsubscribe()
-            resolve(state.metas[tn])
+            resolve(state.metas[tableName || id])
           }
         })
       })
     }
-    if (!force && state.metas[tn]) {
-      return state.metas[tn]
+    if (!force && state.metas[tableName]) {
+      return state.metas[tableName]
     }
+    if (!force && state.metas[id]) {
+      return state.metas[id]
+    }
+
+    const modelId = id ||
+      (rootState
+        .project
+        .unserializedList[0]
+        .projectJson
+        .envs
+        ._noco
+        .db[0]
+        .tables.find(t => t.title === tableName || t.table_name === tableName) || {}).id
+    if (!modelId) {
+      console.warn(`Table '${tableName}' is not found in the table list`)
+      return
+    }
+
     commit('MutLoading', {
-      key: tn,
+      key: tableName || id,
       value: true
     })
-    const model = await dispatch('sqlMgr/ActSqlOp', [{ env, dbAlias, project_id }, 'tableXcModelGet', { tn }], { root: true })
-    const meta = JSON.parse(model.meta)
+
+    const model = await this.$api.dbTable.read(modelId)
+    // const model = await dispatch('sqlMgr/ActSqlOp', [{ env, dbAlias, project_id }, 'tableXcModelGet', { tableName }], { root: true })
+    // const meta = JSON.parse(model.meta)
     commit('MutMeta', {
-      key: tn,
-      value: meta
+      key: model.table_name,
+      value: model
+    })
+    commit('MutMeta', {
+      key: model.id,
+      value: model
     })
     commit('MutLoading', {
-      key: tn,
+      key: tableName || id,
       value: undefined
     })
-    return force ? model : meta
+    return force ? model : model
   }
 }
 

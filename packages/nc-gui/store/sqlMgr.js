@@ -18,7 +18,7 @@ function translateUiToLibCall(args, op, opArgs) {
       break
     case 'tableCreate':
       data.type = 'Create'
-      data.title = opArgs._tn || opArgs.tn
+      data.title = opArgs.title || opArgs.table_name
       data.module = 'table'
       break
     case 'tableList':
@@ -35,23 +35,23 @@ function translateUiToLibCall(args, op, opArgs) {
       break
     case 'tableUpdate':
       data.type = 'Update'
-      data.title = opArgs._tn || opArgs.tn
+      data.title = opArgs.title || opArgs.table_name
       data.module = 'table'
       break
     case 'tableDelete':
       data.type = 'Delete'
-      data.title = opArgs._tn || opArgs.tn
+      data.title = opArgs.title || opArgs.table_name
       data.module = 'table'
       break
 
     case 'viewCreate':
       data.type = 'Create'
-      data.title = opArgs._tn || opArgs.view_name
+      data.title = opArgs.title || opArgs.view_name
       data.module = 'View'
       break
     case 'viewList':
       data.type = 'List'
-      data.title = opArgs._tn || opArgs.view_name
+      data.title = opArgs.title || opArgs.view_name
       data.module = 'View'
       break
     case 'viewUpdate':
@@ -61,7 +61,7 @@ function translateUiToLibCall(args, op, opArgs) {
       break
     case 'viewDelete':
       data.type = 'Delete'
-      data.title = opArgs._tn || opArgs.view_name
+      data.title = opArgs.title || opArgs.view_name
       data.module = 'View'
       break
 
@@ -130,7 +130,7 @@ function translateUiToLibCall(args, op, opArgs) {
 
     case 'triggerCreate':
       data.type = 'Create '
-      data.title = opArgs._tn || opArgs.tn
+      data.title = opArgs.title || opArgs.table_name
       data.module = 'trigger'
       break
     case 'triggerList':
@@ -151,22 +151,22 @@ function translateUiToLibCall(args, op, opArgs) {
 
     case 'indexCreate':
       data.type = 'Create Index on '
-      data.title = opArgs._tn || opArgs.tn
+      data.title = opArgs.title || opArgs.table_name
       data.module = 'table'
       break
     case 'indexList':
       data.type = 'List'
-      // data.title = opArgs.tn;
+      // data.title = opArgs.table_name;
       data.module = 'table'
       break
     case 'indexUpdate':
       data.type = 'Update Index on '
-      data.title = opArgs._tn || opArgs.tn
+      data.title = opArgs.title || opArgs.table_name
       data.module = 'table'
       break
     case 'indexDelete':
       data.type = 'Delete Index on '
-      data.title = opArgs._tn || opArgs.tn
+      data.title = opArgs.title || opArgs.table_name
       data.module = 'table'
       break
 
@@ -320,8 +320,6 @@ export const actions = {
       } else if (data.module === 'Seed' || (data.title || '').toLowerCase() === 'list' || data.type.toLowerCase() === 'list') {
         result = await dispatch('ActSqlOp', [args, op, opArgs])
       } else {
-        console.log(data)
-        // result = await state.sqlMgr.sqlOpPlus(args, op, opArgs);
         result = (await this.$axios({
           url: '?q=sqlOpPlus_' + op,
           baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
@@ -345,10 +343,10 @@ export const actions = {
         'xcRelationColumnDelete'
       ].includes(op)) {
         if (opArgs.parentTable) {
-          dispatch('meta/ActLoadMeta', { ...args, ...params, tn: opArgs.parentTable, force: true }, { root: true })
+          dispatch('meta/ActLoadMeta', { ...args, ...params, table_name: opArgs.parentTable, force: true }, { root: true })
         }
         if (opArgs.childTable) {
-          dispatch('meta/ActLoadMeta', { ...args, ...params, tn: opArgs.childTable, force: true }, { root: true })
+          dispatch('meta/ActLoadMeta', { ...args, ...params, table_name: opArgs.childTable, force: true }, { root: true })
         }
       }
 
@@ -413,10 +411,10 @@ export const actions = {
         'xcRelationColumnDelete'
       ].includes(op)) {
         if (opArgs.parentTable) {
-          dispatch('meta/ActLoadMeta', { ...args, ...params, tn: opArgs.parentTable, force: true }, { root: true })
+          dispatch('meta/ActLoadMeta', { ...args, ...params, table_name: opArgs.parentTable, force: true }, { root: true })
         }
         if (opArgs.childTable) {
-          dispatch('meta/ActLoadMeta', { ...args, ...params, tn: opArgs.childTable, force: true }, { root: true })
+          dispatch('meta/ActLoadMeta', { ...args, ...params, table_name: opArgs.childTable, force: true }, { root: true })
         }
       }
 
@@ -449,6 +447,31 @@ export const actions = {
     dispatch
   }, [args, op, opArgs, file, cusHeaders, cusAxiosOptions, formData]) {
     return await dispatch('ActUpload', { args, op, opArgs, file, cusHeaders, cusAxiosOptions, formData })
+  },
+
+  async ActTable({
+    commit,
+    state,
+    rootState,
+    dispatch
+  }, body) {
+    const params = {}
+    if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
+      params.project_id = this.$router.currentRoute.params.project_id
+    }
+
+    if (this.$router.currentRoute && this.$router.currentRoute.params && this.$router.currentRoute.params.project_id) {
+      params.project_id = this.$router.currentRoute.params.project_id
+    }
+    const headers = { 'xc-auth': rootState.users.token }
+
+    return (await this.$axios({
+      url: `projects/${params.project_id}/tables/${body.id}`,
+      baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
+      data: body, // {api: op, ...args, args: opArgs},
+      headers,
+      method: 'post'
+    })).data
   },
 
   async ActUpload({ commit, state, rootState }, {

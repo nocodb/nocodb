@@ -461,16 +461,18 @@ export default {
       // eslint-disable-next-line no-cond-assign
       while (child = this.localState.pop()) {
         if (row) {
-          // todo: use common method
           const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
           const pid = this.meta.columns.filter(c => c.pk).map(c => row[c.title]).join('___')
 
-          const vcidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_parent_column_id).title
-          const vpidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_child_column_id).title
-          await this.assocApi.insert({
-            [vcidCol]: parseIfInteger(cid),
-            [vpidCol]: parseIfInteger(pid)
-          })
+          await this.$api.dbTableRow.nestedAdd(
+            'noco',
+            this.projectName,
+            this.meta.title,
+            pid,
+            'mm',
+            this.column.title,
+            cid
+          )
         } else {
           await this.addChildToParent(child)
         }

@@ -23,7 +23,8 @@ export default function({
         socket.disconnect()
         socket = null
       })
-    } catch { }
+    } catch {
+    }
   }
 
   app.router.onReady(() => {
@@ -32,13 +33,11 @@ export default function({
         return
       }
       socket.emit('page', {
-        id: store.state.users.user && store.state.users.user.id,
         path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : '')
       })
     })
     if (socket) {
       socket.emit('page', {
-        id: store.state.users.user && store.state.users.user.id,
         path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : '')
       })
     }
@@ -49,9 +48,8 @@ export default function({
       if (socket) {
         socket.emit('event', {
           event: evt,
-          id: store.state.users.user && store.state.users.user.id,
           ...(data || {}),
-          $current_url: gatPath(app)
+          path: gatPath(app)
         })
       }
     }
@@ -61,14 +59,14 @@ export default function({
 
   function getListener(binding) {
     return function(e) {
-      if (!socket) { return }
-      const cat = window.location.hash.replace(/\d+\/(?=dashboard)/, '')
+      if (!socket) {
+        return
+      }
       const event = binding.value && binding.value[0]
       const data = binding.value && binding.value[1]
       const extra = binding.value && binding.value.slice(2)
       tele.emit(event,
         {
-          cat,
           data,
           extra
         })
@@ -87,14 +85,16 @@ export default function({
 
   store.watch(state => state.project.projectInfo && state.project.projectInfo.teleEnabled && state.users.token, (token) => {
     if (token) {
-      init(token).then(() => {})
+      init(token).then(() => {
+      })
     } else if (socket) {
       socket.disconnect()
       socket = null
     }
   })
   if (store.state.project.projectInfo && store.state.project.projectInfo.teleEnabled && store.state.users.token) {
-    init(store.state.users.token).then(() => {})
+    init(store.state.users.token).then(() => {
+    })
   }
 }
 

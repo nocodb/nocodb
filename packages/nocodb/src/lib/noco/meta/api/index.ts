@@ -44,6 +44,8 @@ import { Tele } from 'nc-help';
 import { Server } from 'socket.io';
 import passport from 'passport';
 
+import crypto from 'crypto';
+
 export default function(router: Router, server) {
   initStrategies(router);
   projectApis(router);
@@ -106,11 +108,20 @@ export default function(router: Router, server) {
       }
     )(socket.handshake, {}, next);
   }).on('connection', socket => {
+    const id = getHash(Tele.id + (socket?.handshake as any)?.user?.id);
+
     socket.on('page', args => {
-      Tele.page(args);
+      Tele.page({ ...args, id });
     });
     socket.on('event', args => {
-      Tele.event(args);
+      Tele.event({ ...args, id });
     });
   });
+}
+
+function getHash(str) {
+  return crypto
+    .createHash('md5')
+    .update(str)
+    .digest('hex');
 }

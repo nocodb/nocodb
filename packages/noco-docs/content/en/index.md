@@ -13,7 +13,7 @@ menuTitle: 'Introduction'
 
 ## Welcome!
 
-NocoDB is an open source Airtable alternative.
+NocoDB is a no-code database platform that allows teams to collaborate and build applications with ease of a familiar and intuitive spreadsheet interface. This allows even non-developers or business users to become software creators.
 
 NocoDB works by connecting to any relational database and transforming them into a smart spreadsheet interface! This allows you to build no-code applications collaboratively with teams. NocoDB currently works with MySQL, PostgreSQL, Microsoft SQL Server, SQLite, Amazon Aurora & MariaDB databases.
 
@@ -25,68 +25,43 @@ Also NocoDB's app store allows you to build business workflows on views with com
 
 ### Rich Spreadsheet Interface
 
-- ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
-- ⚡ &nbsp;Create Views : Grid, Gallery, Form
-- ⚡ &nbsp;Share Views : public & password protected
-- ⚡ &nbsp;Collaborative & locked Views 
-- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)
-- ⚡ &nbsp;Roles : Owner, Creator, Editor, Commenter, Viewer
-- ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level
+- ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete on Tables, Columns, and Rows
+- ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
+- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery and Form View
+- ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views 
+- ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
+- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachement, Currency, Formula and etc
+- ⚡ &nbsp;Access Control with Roles : Fine-grained Access Control at different levels
+- ⚡ &nbsp;and more ...
 
-### App Store for workflow automations
-- ⚡ &nbsp;Chat : Microsoft Teams, Slack, Discord, Mattermost
-- ⚡ &nbsp;Email : SMTP, SES, Mailchimp
-- ⚡ &nbsp;SMS : Twilio
-- ⚡ &nbsp;Whatsapp
-- ⚡ &nbsp;Any 3rd Party APIs
+### App Store for Workflow Automations
 
-### Programmatic API access via
+We provide different integrations in three main categories. See <a href="./setup-and-usages/app-store" target="_blank">App Store</a> for details.
+
+- ⚡ &nbsp;Chat : Slack, Discord, Mattermost, and etc
+- ⚡ &nbsp;Email : AWS SES, SMTP, MailerSend, and etc
+- ⚡ &nbsp;Storage : AWS S3, Google Cloud Storage, Minio, and etc
+
+### Programmatic Access
+
+We provide the following ways to let users to invoke actions in a programmatic way. You can use a token (either JWT or Social Auth) to sign your requests for authorization to NocoDB. 
+
 - ⚡ &nbsp;REST APIs
-- ⚡ &nbsp;Includes JWT Authentication & Social Auth
-- ⚡ &nbsp;API tokens to integrate with Zapier, Integromat
+- ⚡ &nbsp;NocoDB SDK
+
+### Sync Schema
+
+We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from environment to others. See <a href="./setup-and-usages/sync-schema" target="_blank">Sync Schema</a> for details.
+
+### Audit 
+
+We are keeping all the user operation logs under one place. See <a href="./setup-and-usages/audit" target="_blank">Audit</a> for details.
 
 ##  Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
 
 ## Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
-
-## Architecture - Simple Overview
-
-<img src="architecture.png" style="background: white;border-radius:4px;padding :10px">
-
-| Project Type | Metadata stored in | Data stored in |
-|---------|-----------|--------|
-| Create new project | NC_DB | NC_DB |
-| Create new project with External Database | NC_DB | External Database |
-| Create new project from Excel | NC_DB | NC_DB |
-
-## NocoDB repository structure
-
-We use ``Lerna`` to manage multi-packages. We have the following [packages](https://github.com/nocodb/nocodb/tree/master/packages).
-
-- ``packages/nc-cli`` : A CLI to create NocoDB app.
-
-- ``packages/nc-common``: A common library package used internally.
-
-- ``packages/nc-gui``: NocoDB Frontend.
-
-- ``packages/nc-lib-gui``: The build version of ``nc-gui`` which will be used in ``packages/nocodb``.
-
-- ``packages/nc-migrator-archived``: SQL based schema migrations or evolutions.
-
-- ``packages/nc-plugin``: Plugin template.
-
-- ``packages/noco-blog``: NocoDB Blog which will be auto-released to [nocodb/noco-blog](https://github.com/nocodb/noco-blog).
-
-- ``packages/noco-book``: NocoDB Handbook which will be auto-released to [nocodb/noco-book](https://github.com/nocodb/noco-book).
-
-- ``packages/noco-docs``: NocoDB Documentation which will be auto-released to [nocodb/noco-docs](https://github.com/nocodb/noco-docs).
-
-- ``packages/noco-docs-prev``: NocoDB Documentation for previous versions which will be auto-released to [nocodb/noco-docs-prev](https://github.com/nocodb/noco-docs-prev) and will be completely removed on 30 Jun 2022.
-
-- ``packages/nocodb``: NocoDB Backend, hosted in [NPM](https://www.npmjs.com/package/nocodb).
-
 
 ## Contributions
 

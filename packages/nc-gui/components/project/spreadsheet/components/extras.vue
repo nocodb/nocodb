@@ -30,7 +30,7 @@
           dense
         >
           <v-list-item dense href="https://discord.gg/5RgZmkW" target="_blank">
-            <!-- Get your questions answered -->
+            <!-- Join Discord -->
             <v-list-item-title>
               <v-icon class="mr-1" small :color="textColors[0]">
                 mdi-discord
@@ -40,7 +40,33 @@
               }}</span>
             </v-list-item-title>
           </v-list-item>
+          <!-- Join Community -->
+          <v-list-item dense href="https://community.nocodb.com/" target="_blank">
+            <v-list-item-title>
+                <v-icon class="mr-1 discourse" small :color="textColors[0]">
+                  mdi-discourse
+                </v-icon>
+                <span class="caption" :title="$t('labels.community.joinCommunity')" v-t="['community:discourse']">{{
+                  $t('labels.community.joinCommunity')
+                }}</span>
+              </v-list-item-title>
+            </v-list-item>
           <v-list-item dense href="https://twitter.com/NocoDB" target="_blank">
+          <!-- Join Reddit -->
+          <v-list-item-title>
+            <v-icon class="mr-1" small color="#ff4600">
+              mdi-reddit
+            </v-icon>
+            <span class="caption" :title="$t('labels.community.joinReddit')" v-t="['community:reddit']">{{
+              $t('labels.community.joinReddit')
+            }}</span>
+          </v-list-item-title>
+        </v-list-item>
+        <v-list-item
+          dense
+          target="_blank"
+          href="https://calendly.com/nocodb-meeting"
+        >
             <!-- Follow NocoDB -->
             <v-list-item-title>
               <v-icon class="mr-1" small :color="textColors[1]">
@@ -52,21 +78,6 @@
             </v-list-item-title>
           </v-list-item>
           <v-list-item dense href="https://www.reddit.com/r/NocoDB/" target="_blank">
-            <!-- Get your questions answered -->
-            <v-list-item-title>
-              <v-icon class="mr-1" small color="#ff4600">
-                mdi-reddit
-              </v-icon>
-              <span class="caption" :title="$t('labels.community.joinReddit')" v-t="['community:reddit']">{{
-                $t('labels.community.joinReddit')
-              }}</span>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
-            dense
-            target="_blank"
-            href="https://calendly.com/nocodb-meeting"
-          >
             <!-- Book a Free DEMO -->
             <v-list-item-title>
               <v-icon class="mr-1" small :color="textColors[3]">
@@ -124,6 +135,19 @@ export default {
       opacity: 1;
     }
   }
+}
+
+.v-icon.discourse {
+  height: 16px;
+  width: 16px;
+  background-image: url('~/assets/img/discourse-icon.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.v-icon.discourse::before {
+  visibility: hidden;
+  content: "";
 }
 
 //

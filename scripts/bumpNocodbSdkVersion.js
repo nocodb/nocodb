@@ -13,6 +13,6 @@ if (process.env.targetEnv === 'DEV') {
     packageJson.version = `${packageJson.version}-${process.env.targetVersion}`
     packageJson.name += '-daily'
 } else {
-    packageJson.version = version
+    packageJson.version = process.env.targetVersion
 }
 fs.writeFileSync(path.join(__dirname, '..', 'packages', 'nocodb-sdk', 'package.json'), JSON.stringify(packageJson, 0, 2))

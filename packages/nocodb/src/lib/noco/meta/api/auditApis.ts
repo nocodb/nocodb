@@ -75,7 +75,7 @@ router.get(
   ncMetaAclMw(commentsCount, 'commentsCount')
 );
 router.get(
-  '/api/v1/db/meta/project/:projectId/audits',
+  '/api/v1/db/meta/projects/:projectId/audits',
   ncMetaAclMw(auditList, 'auditList')
 );
 export default router;

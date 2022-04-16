@@ -3,7 +3,7 @@
     <template #activator="{on}">
       <transition name="announcement">
         <v-btn
-          v-if="!loading"
+          v-show="announcementAlert"
           text
           small
           class="mb-0 mr-2 py-0 "
@@ -29,14 +29,21 @@
           mdi-script-text-outline
         </v-icon>
         <span class="caption">
-          API Changes in v0.90.0
+          v0.90.0 API Changes
+        </span>
+      </v-list-item>
+      <v-list-item dense href="https://github.com/nocodb/nocodb/releases/tag/0.90.0" target="_blank">
+        <v-icon small class="mr-2">
+          mdi-script-text-outline
+        </v-icon>
+        <span class="caption">
+          v0.90.0 Release Note
         </span>
       </v-list-item>
       <v-list-item @click="announcementAlert = false">
         <v-icon small class="mr-2">
           mdi-close
         </v-icon>
-
         <span class="caption">
           <!--Hide menu-->
           {{ $t('general.hideMenu') }}
@@ -53,6 +60,14 @@ export default {
     loading: true
   }),
   computed: {
+    announcementAlert: {
+      get() {
+        return !this.loading && !this.$store.state.app.hiddenAnnouncement
+      },
+      set(val) {
+        return this.$store.commit('app/MutHiddenAnnouncement', val ? null : true)
+      }
+    },
   },
   mounted() {
     setTimeout(() => {

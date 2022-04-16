@@ -6,7 +6,7 @@ category: "Product"
 menuTitle: "Share View"
 ---
 
-## Generate `Share View`
+## Generate Share View
 
 - Open a table or a view
 
@@ -22,7 +22,7 @@ menuTitle: "Share View"
 
 ![image](https://user-images.githubusercontent.com/35857179/161970131-0fa83989-0673-493d-968f-76913a09cc06.png)
 
-## Access `Share View`
+## Access Share View
 
 - Access the link. If it is password-protected, enter the password to unlock.
 

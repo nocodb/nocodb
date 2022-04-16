@@ -11,7 +11,7 @@ export default {
   Default: {
     // "primary": "#0989ff",
     // "primary": "#1082da",
-    primary: '#1972e6',
+    primary: '#1348ba',
     secondary: '#9575CD',
     accent: '#FF4081',
     info: '#2196F3',

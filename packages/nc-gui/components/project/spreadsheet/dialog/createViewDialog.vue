@@ -4,7 +4,7 @@
       <v-card-title class="grey darken-2 subheading" style="height:30px" />
       <v-card-text class="pt-4 pl-4">
         <p class="headline">
-          {{ $t('general.create') }} <span class="text-capitalize">{{ show_as }}</span> {{ $t('objects.view') }}
+          {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
         </p>
         <v-form ref="form" v-model="valid" @submit.prevent="createView">
           <!-- label="View Name" -->

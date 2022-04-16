@@ -20,13 +20,13 @@ On click, in modal popup, enter the table name, enable/disable default columns a
 
 ![table_create_modal](https://user-images.githubusercontent.com/61551451/126772859-5a301c45-d830-4df2-a05a-43b15dd77728.png)
 
-> You can't disable the `id` column since NocoDB need's a primary column for every table.
+<alert>
+You can't disable the `id` column since NocoDB needs a primary column for every table.
+</alert>
 
 After the successful submission, the table will be created and open as a new tab.  
   
-  
 ![TableCreated](https://user-images.githubusercontent.com/86527202/144402089-b5e35564-80d5-4105-9e00-7e3e1c4a5030.png)
-
 
 ### Table Rename
 
@@ -35,12 +35,10 @@ In modal popup, enter new table name and click `Submit` button
   
 <img src="https://user-images.githubusercontent.com/86527202/144403447-1b2e4368-eb2b-40c0-901a-54e8adf9a80c.png" width="60%"/>
 
-
 ### Table Delete
 
 The table can be deleted using the `delete` icon present in the toolbar within the table tab.
 <img src="https://user-images.githubusercontent.com/86527202/144403591-5d3d36eb-64b7-4057-9244-56a95b47b97b.png" width="60%"/>
-
 
 ## Column
 
@@ -109,4 +107,14 @@ Right-click on anywhere in the row and then from the context menu select `Delete
 Bulk delete is also possible by selecting multiple rows by using the checkbox in first column and then `Delete Selected Rows` options from the right click context menu.  
 <img src="https://user-images.githubusercontent.com/86527202/144406191-ccff1382-e808-44e8-babe-bd937faf1b3d.png" width="40%"/>
 
+## Export Data
 
+You can export your data from a table as a CSV file by clicking `More` and `Download as CSV`.
+
+![image](https://user-images.githubusercontent.com/35857179/163556138-2aa0a782-12e9-49c7-aadf-b7778e91557f.png)
+
+## Import Data
+
+You can import your data in CSV format to a table by clicking `More` and `Upload CSV`.
+
+![image](https://user-images.githubusercontent.com/35857179/163556175-116b12c2-ca2e-4b54-a65a-39250541d873.png)

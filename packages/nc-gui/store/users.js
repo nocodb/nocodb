@@ -153,7 +153,7 @@ export const actions = {
     setInterval(async() => {
       if (getters.GtrUser) {
         try {
-          const res = await this.$api.auth.me() // this.$axios.get('/user/me')
+          const res = await this.$api.auth.me()
           if (res === null || !res.email) {
             commit('MutSetUser', null)
           } else {
@@ -239,7 +239,6 @@ export const actions = {
     // console.log('in action signin');
     let err = null
     try {
-
       const userPromise = await this.$api.auth.signin(data)
 
       commit('MutSetToken', userPromise.token)
@@ -272,7 +271,7 @@ export const actions = {
 
   async ActGetUserDetails({ commit, state }) {
     try {
-      const user = await this.$api.auth.me({ // await this.$axios.get('/user/me', {
+      const user = await this.$api.auth.me({}, {
         headers: {
           'xc-auth': state.token
         }
@@ -285,11 +284,10 @@ export const actions = {
 
   async ActGetProjectUserDetails({ commit, state }, projectId) {
     try {
-      const user = await this.$api.auth.me({ // '/user/me?project_id=' + projectId, {
+      const user = await this.$api.auth.me({ project_id: projectId }, {
         headers: {
           'xc-auth': state.token
-        },
-        query: { project_id: projectId }
+        }
       })
       commit('MutProjectRole', user && user.roles)
     } catch (e) {
@@ -299,7 +297,7 @@ export const actions = {
   async ActGetBaseUserDetails({ commit, state }, sharedBaseId) {
     try {
       try {
-        const user = await this.$api.auth.me({ // '/user/me', {
+        const user = await this.$api.auth.me({}, {
           headers: {
             'xc-shared-base-id': sharedBaseId
           }

@@ -1,6 +1,8 @@
 export const state = () => ({
   releaseVersion: null,
-  hiddenRelease: null
+  hiddenRelease: null,
+  latestRelease: null,
+  hiddenAnnouncement: null,
 })
 
 export const mutations = {
@@ -9,7 +11,13 @@ export const mutations = {
   },
   MutHiddenRelease(state, hiddenRelease) {
     state.hiddenRelease = hiddenRelease
-  }
+  },
+  MutLatestRelease(state, latestRelease) {
+    state.latestRelease = latestRelease
+  },
+  MutHiddenAnnouncement(state, hiddenAnnouncement) {
+    state.hiddenAnnouncement = hiddenAnnouncement
+  },
 }
 
 /**

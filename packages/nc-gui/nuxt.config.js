@@ -215,7 +215,7 @@ export default {
           packageJson.version = `${packageJson.version}-${process.env.targetVersion}`
           packageJson.name += '-daily'
         } else {
-          packageJson.version = version
+          packageJson.version = process.env.targetVersion
         }
         fs.writeFileSync('../nc-lib-gui/package.json', JSON.stringify(packageJson, 0, 2))
 

@@ -191,7 +191,7 @@ export async function hmList(req: Request, res: Response, next) {
 }
 
 //@ts-ignore
-async function relationDataDelete(req, res) {
+async function relationDataRemove(req, res) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   if (!model) NcError.notFound('Table not found');
@@ -273,7 +273,7 @@ router.post(
 );
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/:relationType/:columnName/:refRowId',
-  ncMetaAclMw(relationDataDelete, 'relationDataDelete')
+  ncMetaAclMw(relationDataRemove, 'relationDataRemove')
 );
 
 router.get(

@@ -21,6 +21,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://community.nocodb.com/"><b>Community</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
@@ -51,9 +52,11 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 # Quick try
-### 1-Click Deploy
 
-#### Heroku
+## 1-Click Deploy to Heroku
+
+Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
+
 <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -61,42 +64,99 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
     alt="Deploy NocoDB to Heroku with 1-Click" 
     />
 </a>
-<br>
 
-### Using Docker
-```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+<br/>
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
+## NPX
 
-  Example:
+You can run below command if you need an interactive configuration.
 
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
-  ```
-
-### Using Npm
 ```
 npx create-nocodb-app
 ```
 
-### Using Git
-```
+<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
+
+## Node Application
+
+We provide a simple NodeJS Application for getting started.
+
+```bash
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
 npm install
 npm start
 ```
 
-### GUI
+## Docker 
+
+```bash
+# for SQLite
+docker run -d --name nocodb \
+-v /local/path:/usr/app/data/ \ 
+-p 8080:8080 \
+nocodb/nocodb:latest
+
+# for MySQL
+docker run -d --name nocodb-mysql \
+-v /local/path:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
+
+# for PostgreSQL
+docker run -d --name nocodb-postgres \
+-v /local/path:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
+
+# for MSSQL
+docker run -d --name nocodb-mssql \
+-v /local/path:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
+```
+
+> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
+
+> If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
+
+
+## Docker Compose
+
+We provide different docker-compose.yml files under [this directory](https://github.com/nocodb/nocodb/tree/master/docker-compose). Here are some examples.
+
+```bash
+git clone https://github.com/nocodb/nocodb
+# for MySQL
+cd nocodb/docker-compose/mysql
+# for PostgreSQL
+cd nocodb/docker-compose/pg
+# for MSSQL
+cd nocodb/docker-compose/mssql
+docker-compose up -d
+```
+
+> To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
+
+> If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
+
+# GUI
+
 Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Join Our Community
 
-<a href="https://discord.gg/5RgZmkW">
+<a href="https://discord.gg/5RgZmkW" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
+</a>
+<a href="https://community.nocodb.com/" target="_blank">
+<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
 </a>
 
 # Screenshots
@@ -128,7 +188,8 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 ![10](https://user-images.githubusercontent.com/5435402/133759250-ebd75ecf-31db-4a17-b2d7-2c43af78a54e.png)
 <br>
 
-![8](https://user-images.githubusercontent.com/5435402/133759248-3a7141e0-4b7d-4079-a5f9-cf8611d00bc5.png)
+![8](https://user-images.githubusercontent.com/35857179/163675704-54eb644d-3b5e-45e3-aad4-794a0f55c692.png)
+
 <br>
 
 ![9](https://user-images.githubusercontent.com/5435402/133759249-8c1a85c2-a55c-48f6-bd58-aa6b4195cce7.png)
@@ -136,27 +197,25 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 # Table of Contents
 
 - [Quick try](#quick-try)
-    + [1-Click Deploy](#1-click-deploy)
-      - [Heroku](#heroku)
-    + [Using Docker](#using-docker)
-    + [Using Npm](#using-npm)
-    + [Using Git](#using-git)
-    + [GUI](#gui)
+  * [1-Click Deploy to Heroku](#1-click-deploy-to-heroku)
+  * [NPX](#npx)
+  * [Node Application](#node-application)
+  * [Docker](#docker)
+  * [Docker Compose](#docker-compose)
+- [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
+- [Table of Contents](#table-of-contents)
 - [Features](#features)
     + [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    + [App Store for workflow automations](#app-store-for-workflow-automations)
-    + [Programmatic API access via](#programmatic-api-access-via)
+    + [App Store for Workflow Automations](#app-store-for-workflow-automations)
+    + [Programmatic Access](#programmatic-access)
+    + [Sync Schema](#sync-schema)
+    + [Audit](#audit)
 - [Production Setup](#production-setup)
-  * [Docker](#docker)
-      - [Example: MySQL](#example--mysql)
-      - [Example: PostgreSQL](#example--postgresql)
-      - [Example: SQL Server](#example--sql-server)
-  * [Docker Compose](#docker-compose)
   * [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
-  * [Cloning the project](#clone-the-project)
+  * [Cloning the Project](#cloning-the-project)
   * [Running Backend locally](#running-backend-locally)
   * [Running Frontend locally](#running-frontend-locally)
   * [Running Cypress tests locally](#running-cypress-tests-locally)
@@ -166,66 +225,44 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 - [Contributors](#contributors)
 
 # Features
+
 ### Rich Spreadsheet Interface
-- ⚡ &nbsp;Search, sort, filter, hide columns with uber ease
-- ⚡ &nbsp;Create Views : Grid, Gallery, Kanban, Form
-- ⚡ &nbsp;Share Views : public & password protected
-- ⚡ &nbsp;Personal & locked Views 
-- ⚡ &nbsp;Upload images to cells (Works with S3, Minio, GCP, Azure, DigitalOcean, Linode, OVH, BackBlaze)
-- ⚡ &nbsp;Roles : Owner, Creator, Editor, Viewer, Commenter, Custom Roles.
-- ⚡ &nbsp;Access Control : Fine-grained access control even at database, table & column level.
 
-### App Store for workflow automations
-- ⚡ &nbsp;Chat : Microsoft Teams, Slack, Discord, Mattermost
-- ⚡ &nbsp;Email : SMTP, SES, Mailchimp
-- ⚡ &nbsp;SMS : Twilio
-- ⚡ &nbsp;Whatsapp
-- ⚡ &nbsp;Any 3rd Party APIs
+- ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete on Tables, Columns, and Rows
+- ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
+- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery and Form View
+- ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views 
+- ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
+- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachement, Currency, Formula and etc
+- ⚡ &nbsp;Access Control with Roles : Fine-grained Access Control at different levels
+- ⚡ &nbsp;and more ...
 
-### Programmatic API access via
-- ⚡ &nbsp;REST APIs (Swagger) 
-- ⚡ &nbsp;GraphQL APIs.
-- ⚡ &nbsp;Includes JWT Authentication & Social Auth
-- ⚡ &nbsp;API tokens to integrate with Zapier, Integromat.
+### App Store for Workflow Automations
+
+We provide different integrations in three main categories. See <a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a> for details.
+
+- ⚡ &nbsp;Chat : Slack, Discord, Mattermost, and etc
+- ⚡ &nbsp;Email : AWS SES, SMTP, MailerSend, and etc
+- ⚡ &nbsp;Storage : AWS S3, Google Cloud Storage, Minio, and etc
+
+### Programmatic Access
+
+We provide the following ways to let users to invoke actions in a programmatic way. You can use a token (either JWT or Social Auth) to sign your requests for authorization to NocoDB. 
+
+- ⚡ &nbsp;REST APIs
+- ⚡ &nbsp;NocoDB SDK
+
+### Sync Schema
+
+We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from environment to others. See <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">Sync Schema</a> for details.
+
+### Audit 
+
+We are keeping all the user operation logs under one place. See <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">Audit</a> for details.
 
 # Production Setup 
-NocoDB requires a database to store metadata of spreadsheets views and external databases. 
-And connection params for this database can be specified in `NC_DB` environment variable. 
 
-## Docker 
-
-#### Example: MySQL
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
-
-#### Example: PostgreSQL
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="pg://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
-
-#### Example: SQL Server
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
-
-## Docker Compose
-```
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-cd docker-compose
-cd mysql or pg or mssql
-docker-compose up -d
-```
+By default, SQLite is used for storing meta data. However, you can specify your own database. The connection params for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
 
 ## Environment variables 
 
@@ -261,7 +298,6 @@ npm run dev
 Changes made to code automatically restart.
 
 > nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-
 
 ## Running Cypress tests locally
 
@@ -411,8 +447,3 @@ Our mission is to provide the most powerful no-code interface for databases whic
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-
-
-
-
- 

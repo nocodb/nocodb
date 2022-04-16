@@ -227,7 +227,7 @@ interface LinkToAnotherRecordv1 {
 }
 
 interface ModelMetav1 {
-  id: number;
+  id: number | string;
   project_id: string;
   db_alias: string;
   title: string;
@@ -296,6 +296,7 @@ interface MigrateCtxV1 {
   objModelColumnAliasRef: ObjModelColumnAliasRefv1;
   objViewRef: ObjViewRefv1;
   objViewQPRef: ObjViewQPRefv1;
+  metas: ModelMetav1[];
 }
 
 // @ts-ignore
@@ -312,12 +313,36 @@ const filterV1toV2CompOpMap = {
   'is not like': 'nlike'
 };
 
+interface Relationv1 {
+  project_id?: string;
+  db_alias?: string;
+  tn?: string;
+  rtn?: string;
+  _tn?: string;
+  _rtn?: string;
+  cn?: string;
+  rcn?: string;
+  _cn?: string;
+  _rcn?: string;
+  referenced_db_alias?: string;
+  type?: string;
+  db_type?: string;
+  ur?: string;
+  dr?: string;
+}
+
 async function migrateProjectModels(
   ncMeta = Noco.ncMeta
 ): Promise<MigrateCtxV1> {
   // @ts-ignore
 
   const metas: ModelMetav1[] = await ncMeta.metaList(null, null, 'nc_models');
+  // @ts-ignore
+  const relations: Relationv1[] = await ncMeta.metaList(
+    null,
+    null,
+    'nc_relations'
+  );
   const models: Model[] = [];
 
   // variable for keeping all
@@ -443,6 +468,37 @@ async function migrateProjectModels(
               fk_mm_parent_column_id =
                 projectModelColumnRefs[rel.vtn][rel.vrcn].id;
             }
+
+            let virtual = false;
+            if (columnMeta.mm) {
+              const relation = relations.find(
+                r =>
+                  r.rtn === columnMeta.mm.tn &&
+                  r.rcn === columnMeta.mm.cn &&
+                  r.tn === columnMeta.mm.vtn &&
+                  r.cn === columnMeta.mm.vcn
+              );
+              virtual = relation?.type === 'virtual';
+            } else if (columnMeta.hm) {
+              virtual =
+                relations.find(
+                  r =>
+                    r.rtn === columnMeta.hm.rtn &&
+                    r.tn === columnMeta.hm.tn &&
+                    r.rcn === columnMeta.hm.rcn &&
+                    r.cn === columnMeta.hm.cn
+                )?.type === 'virtual';
+            } else if (columnMeta.bt) {
+              virtual =
+                relations.find(
+                  r =>
+                    r.rtn === columnMeta.bt.rtn &&
+                    r.tn === columnMeta.bt.tn &&
+                    r.rcn === columnMeta.bt.rcn &&
+                    r.cn === columnMeta.bt.cn
+                )?.type === 'virtual';
+            }
+
             const column = await Column.insert<LinkToAnotherRecordColumn>(
               {
                 project_id: project.id,
@@ -460,7 +516,8 @@ async function migrateProjectModels(
                 fk_mm_model_id,
                 fk_mm_child_column_id,
                 fk_mm_parent_column_id,
-                fk_related_model_id: columnMeta.hm ? tnId : rtnId
+                fk_related_model_id: columnMeta.hm ? tnId : rtnId,
+                virtual
               },
               ncMeta
             );
@@ -636,6 +693,15 @@ async function migrateProjectModels(
 
           // const rtnId = projectModelRefs?.[rel.rtn]?.id;
 
+          const virtual =
+            relations.find(
+              r =>
+                r.rtn === rel.rtn &&
+                r.tn === rel.tn &&
+                r.rcn === rel.rcn &&
+                r.cn === rel.cn
+            )?.type === 'virtual';
+
           const column = await Column.insert<LinkToAnotherRecordColumn>(
             {
               project_id: project.id,
@@ -651,7 +717,8 @@ async function migrateProjectModels(
               ur: rel.ur,
               dr: rel.dr,
               fk_related_model_id: tnId,
-              system: true
+              system: true,
+              virtual
             },
             ncMeta
           );
@@ -720,6 +787,7 @@ async function migrateProjectModels(
 
   await migrateProjectModelViews(
     {
+      metas,
       views,
       objModelRef,
       objModelColumnAliasRef,
@@ -733,6 +801,7 @@ async function migrateProjectModels(
 
   await migrateViewsParams(
     {
+      metas,
       views,
       objModelRef,
       objModelColumnAliasRef,
@@ -745,6 +814,7 @@ async function migrateProjectModels(
   );
 
   return {
+    metas,
     views,
     objModelRef,
     objModelColumnAliasRef,
@@ -1204,8 +1274,9 @@ async function migrateAutitLog(ctx: MigrateCtxV1, ncMeta: any) {
     if (audit.model_name) {
       insertObj.fk_model_id = (
         ctx.objModelAliasRef?.[audit.project_id]?.[audit.model_name] ||
-        ctx.objModelRef?.[audit.project_id]?.[audit.model_name]
-      ).id;
+        ctx.objModelRef?.[audit.project_id]?.[audit.model_name] ||
+        ctx.metas?.find(m => m.id == audit.model_id)
+      )?.id;
     }
 
     await Audit.insert(insertObj, ncMeta);

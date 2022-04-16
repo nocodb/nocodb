@@ -52,6 +52,7 @@
 
       <div style="flex: 1" class="d-flex justify-end">
         <v-toolbar-items class="hidden-sm-and-down nc-topright-menu">
+          <important-announcement />
           <release-info />
 
           <language class="mr-3" />
@@ -282,6 +283,7 @@ import Language from '~/components/utils/language'
 import Loader from '~/components/loader'
 import PreviewAs from '~/components/previewAs'
 import ShareOrInviteModal from '~/components/auth/shareOrInviteModal'
+import ImportantAnnouncement from '../components/importantAnnouncement.vue'
 
 export default {
   components: {
@@ -293,7 +295,8 @@ export default {
     XBtn,
     Snackbar,
     dlgUnexpectedError,
-    settings
+    settings,
+    ImportantAnnouncement
   },
   data: () => ({
     clickCount: true,

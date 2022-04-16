@@ -1,7 +1,7 @@
 ---
 title: 'Team & Auth'
 description: 'Breakdown of roles & permissions for team user management'
-position: 620
+position: 630
 category: 'Product'
 menuTitle: 'Team & Auth'
 ---

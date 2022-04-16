@@ -116,7 +116,15 @@ export default {
     xcModelRowAuditAndCommentList: true,
     xcAuditCommentInsert: true,
     xcAuditModelCommentsCount: true,
-    xcExportAsCsv: true
+    xcExportAsCsv: true,
+
+    bulkDataInsert: true,
+    bulkDataUpdate: true,
+    bulkDataUpdateAll: true,
+    bulkDataDelete: true,
+    bulkDataDeleteAll: true,
+    relationDataRemove: true,
+    relationDataAdd: true
   },
   commenter: {
     formViewGet: true,
@@ -133,8 +141,10 @@ export default {
     columnList: true,
 
     mmList: true,
+    hmList: true,
     commentList: true,
     commentRow: true,
+    projectInfoGet: true,
 
     // data
     dataList: true,
@@ -178,6 +188,7 @@ export default {
 
     // sort & filter
     sortList: true,
+    projectInfoGet: true,
 
     mmList: true,
     hmList: true,

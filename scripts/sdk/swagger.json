@@ -2935,7 +2935,7 @@
         }
       },
       "delete": {
-        "summary": "",
+        "summary": "Table row delete",
         "operationId": "db-table-row-delete",
         "responses": {
           "200": {

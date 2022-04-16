@@ -20,7 +20,7 @@ export default {
   tableDir: {
     'Table Create': 'ENV_DB_TABLES_CREATE',
     'Tables Refresh': 'ENV_DB_TABLES_REFRESH',
-    'Import Excel': 'IMPORT_EXCEL',
+    // 'Import Excel': 'IMPORT_EXCEL',
     // "Table Create": "ENV_DB_TABLES_CREATE",
     ...(process.env.NODE_ENV === 'dev' ? { 'Show _Nodes Info': 'SHOW_NODES' } : {})
   },

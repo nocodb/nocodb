@@ -168,10 +168,6 @@
 /* eslint-disable */
 
 import draggable from 'vuedraggable'
-//
-// const {promisify, fs, path, config, Handlebars} = require("electron").remote.require(
-//   "./libs"
-// );
 export default {
   name: 'Environment',
   directives: {},
@@ -293,7 +289,6 @@ export default {
         'utf-8')
     },
     async saveEnvironment (env) {
-      console.log(env, this.envValues[env])
       try {
         let projectJsonPath, freshProjectObj
 

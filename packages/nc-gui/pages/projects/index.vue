@@ -10,10 +10,6 @@
     @dragend="dragOver = false"
     @drop.prevent.stop="onFileDrop"
   >
-    <!--    <v-overlay :value="dragOver" />-->
-
-    <!--    <sponsor-overlay v-if="overlayVisible && projects && projects.length"-->
-    <!--                     @close="overlayVisible = false"></sponsor-overlay>-->
     <v-row>
       <v-col v-if="loaded" class="col-lg-6 offset-lg-3 col-12 col-md-12">
         <v-row v-show="projects" class="justify-center">
@@ -31,22 +27,13 @@
             <v-overlay v-if="projectStatusUpdating" />
             <v-row justify="center">
               <h1 class="text-center display-1 pa-2 nc-project-page-title">
-                <!--                <p v-if="screenSize" class="caption">Screen resolution : {{screenSize}}</p>-->
-
-                <!--                <v-icon large>mdi-folder-multiple-outline</v-icon>&nbsp;-->
                 <!-- My Projects -->
                 <b>{{ $t('title.myProject') }}</b>
-
-                <!--                <x-btn-->
-                <!--                  large-->
-                <!--                  text-->
-                <!--                  class="text">-->
-                <!-- Refresh projects -->
                 <x-icon
                   small
                   color="primary grey"
                   :tooltip="$t('activity.refreshProject')"
-                  @click="projectsLoad"
+                  @click="projectsRefresh"
                 >
                   mdi-refresh
                 </x-icon>&nbsp;
@@ -85,30 +72,6 @@
               >
                 <v-icon>mdi-import</v-icon>
               </x-btn>
-              <!--              <x-btn
-                              btn.class="pl-1"
-                              v-if="_isUIAllowed('projectCreate',true)"
-                              outlined
-                              data-v-step="1"
-                              color="primary"
-                              tooltip="Create a new project by entering database credentials"
-                              v-ge="['home','project-new']"
-                              @click="onCreateProject('xcdb')">
-                              <v-icon class="mr-1" small>mdi-plus</v-icon>
-                              Create XCDB
-                            </x-btn>
-                            <x-btn
-                              btn.class="pl-1"
-                              v-if="_isUIAllowed('projectCreate',true)"
-                              outlined
-                              data-v-step="1"
-                              color="primary"
-                              tooltip="Create a new project by entering database credentials"
-                              v-ge="['home','project-new']"
-                              @click="onCreateProject()">
-                              <v-icon class="mr-1" small>mdi-plus</v-icon>
-                              {{ $t('title.newProj') }}
-                            </x-btn>-->
 
               <template v-if="connectToExternalDB">
                 <v-menu offset-y bottom open-on-hover>
@@ -203,47 +166,6 @@
                         }}</span>
                       </v-tooltip>
                     </v-list-item>
-                    <!--                    <v-divider />
-                    <v-list-item
-                      title
-                      class="pt-2 nc-create-project-from-template"
-                      @click="onCreateProjectFromTemplate()"
-                    >
-                      <v-list-item-icon class="mr-2">
-                        <v-icon small class="">
-                          mdi-checkbox-multiple-blank
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        &lt;!&ndash; Create By Connecting <br>To An External Database &ndash;&gt;
-                        <span
-                          class="caption font-weight-regular"
-                          v-html="
-                            $t('activity.createProjectExtended.template')
-                          "
-                        />
-                      </v-list-item-title>
-                    </v-list-item>-->
-                    <v-divider />
-                    <v-list-item
-                      title
-                      class="pt-2 nc-create-project-from-excel"
-                      @click="onCreateProjectFromExcel()"
-                    >
-                      <v-list-item-icon class="mr-2">
-                        <v-icon small class="">
-                          mdi-file-excel-outline
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        <span
-                          class="caption font-weight-regular"
-                          v-html="
-                            $t('activity.createProjectExtended.excel')
-                          "
-                        />
-                      </v-list-item-title>
-                    </v-list-item>
                   </v-list>
                 </v-menu>
               </template>
@@ -282,7 +204,7 @@
                     :class="[`nc-${props.item.projectType}-project-row`,{
                       'nc-meta-project-row': props.item.prefix
                     }]"
-                    @click="projectRouteHandler(props.item)"
+                    @click="projectRouteHandler(props.item, projects.length)"
                   >
                     <td data-v-step="2">
                       <div class="d-flex align-center">
@@ -296,57 +218,36 @@
                           <v-icon
                             x-small
                             class="mr-2"
-                            :color="
-                              !props.item.allowed ? 'blue' :(
-                                props.item.status === 'started'
-                                  ? 'green'
-                                  : props.item.status === 'stopped'
-                                    ? 'orange'
-                                    : 'orange'
-                              )
-                            "
+                            color="green"
                           >
                             mdi-moon-full
                           </v-icon>
                           <!-- Accessible via GraphQL APIs / Accessible via REST APIs -->
-                          <x-icon
-                            small
-                            :tooltip="
-                              props.item.projectType === 'graphql'
-                                ? $t('tooltip.apiGQL')
-                                : $t('tooltip.apiRest')
-                            "
-                            icon.class="mr-2"
-                            :color="
-                              props.item.projectType === 'graphql'
-                                ? 'pink'
-                                : 'green'
-                            "
-                          >
-                            {{
-                              props.item.projectType === 'graphql'
-                                ? 'mdi-graphql'
-                                : 'mdi-code-json'
-                            }}
-                          </x-icon>
                         </template>
-                        <v-tooltip bottom>
-                          <template #activator="{on}">
-                            <div
-                              class="d-inline-block title font-weight-regular"
-                              style="min-width:0; max-width:390px; white-space: nowrap;text-overflow: ellipsis; overflow: hidden"
-                              v-on="on"
-                            >
-                              {{
-                                props.item.title
-                              }}
-                            </div>
-                          </template>
-                          <span class="caption">{{ props.item.title }}</span>
-                        </v-tooltip>
+                        <div
+                          class="d-inline-block title font-weight-regular"
+                          style="min-width:0; max-width:390px; white-space: nowrap;text-overflow: ellipsis; overflow: hidden"
+                        >
+                          {{
+                            props.item.title
+                          }}
+                        </div>
                       </div>
                     </td>
                     <td style="width:150px;min-width:150px;max-width:150px">
+                      <x-icon
+                        :tooltip="
+                          $t('activity.deleteProject')
+                        "
+                        class="pointer mr-2"
+                        icon.class="delete-icon"
+                        small
+                        color="red grey"
+                        @click.stop="deleteProject(props.item)"
+                      >
+                        mdi-delete-outline
+                      </x-icon>
+
                       <div
                         v-if="props.item.allowed && _isUIAllowed('projectActions',true) && props.item.is_creator"
                         :class="{
@@ -491,10 +392,6 @@
                     {{ $t('msg.error.searchProject', {search}) }}
                   </v-alert>
                 </template>
-                <!--                <template v-slot:no-data>-->
-                <!--                  <v-alert :value="true" outlined color="success" icon="mdi-information-outline">Create a new project-->
-                <!--                  </v-alert>-->
-                <!--                </template>-->
               </v-data-table>
               <v-col
                 v-else-if="!loadingProjects"
@@ -571,17 +468,6 @@
         <sponsor-mini />
       </v-col>
     </v-row>
-    <!--        <dlgLabelSubmitCancel-->
-    <!--          type="error"-->
-    <!--          v-if="dialog.show"-->
-    <!--          :dialogShow="dialog.show"-->
-    <!--          :actionsMtd="_projectRemove"-->
-    <!--          heading="Submit will only remove project from tool. Databases & Files will remain."-->
-    <!--        />-->
-
-    <!--    <v-tour name="myTour"></v-tour>-->
-
-    <!--    <dlg-project-create v-model="createProjectDialog"></dlg-project-create>-->
 
     <div v-if="projects && projects.length" class="d-flex justify-end">
       <v-list
@@ -865,39 +751,12 @@ export default {
   async created() {
     this.$store.commit('windows/MutToggleGaEnabled', true)
     this.$store.commit('windows/MutToggleTelemetryEnabled', true)
-
-    // console.log(JSON.stringify(size))
-
     await this.$store.dispatch('users/ActGetUserDetails')
-    // this.$store.commit('windows/MutIsComp', await isComp());
-
-    // new GCP
-    // let user = await this.$axios.get('/api/v1/user/me');
-    // console.log('================ user', user)
-    // if (user.data && user.data.email) {
-    //   this.$store.commit('users/MutSetUser', user.data);
-    //   await this.$store.dispatch('users/ActGetUserUiAbility');
-    // } else {
-    //   this.$store.commit('users/MutSetUser', null);
-    // }
   },
   async mounted() {
     setTimeout(() => (this.showCommunity = true), 2000)
-    // setTimeout(() => {
-    //   if (this.$store.state.windows.showTour.home)
-    //     this.$tours['myTour'].start();
-    // }, 2000)
 
-    // setTimeout(() => this.trialAlert = false, (30 - this.$store.getters['windows/GtrNoOfDaysLeft']) * 15000);
-
-    console.log('=======mounted index')
-    // setTimeout(() => {
-    //   this.$refs.search1.$el.querySelector('input').focus()
-    //   console.log(this.$refs.search1.$el.querySelector('input'))
-    //   console.log('======= within nexttick')
-    // }, 200)
     await this.projectsLoad()
-    // await this.openProjectIfQueryParamFound()
 
     if (this.$route && this.$route.query && this.$route.query.excelUrl) {
       this.excelImportModal = true
@@ -1005,6 +864,7 @@ export default {
       this.dialogShow = true
       this.confirmMessage =
         'Do you want to delete the project?'
+      this.$tele.emit('project:delete:trigger')
       this.confirmAction = async(act) => {
         if (act === 'hideDialog') {
           this.dialogShow = false
@@ -1014,10 +874,8 @@ export default {
           this.statusUpdatingProjectId = projectId
           this.projectStatusUpdating = true
           try {
-            await this.$store.dispatch('sqlMgr/ActSqlOp', [
-              { project_id: projectId },
-              'projectDelete'
-            ])
+
+            await this.$api.project.delete(projectId)
             this.$toast
               .success(`Project '${project.title}' deleted successfully`)
               .goAway(3000)
@@ -1030,22 +888,27 @@ export default {
           this.projectStatusUpdating = false
 
           this.dialogShow = false
+          this.$tele.emit('project:delete:submit')
         }
       }
     },
     onCreateProject(xcdb) {
       if (xcdb === 'xcdb') {
         this.$router.push('/project/xcdb')
+        this.$tele.emit('project:create:xcdb:trigger')
       } else {
         this.$router.push('/project/0')
+        this.$tele.emit('project:create:extdb:trigger')
       }
     },
     onCreateProjectFromTemplate() {
       this.templatesModal = true
+      this.$tele.emit('project:create:template:trigger')
     },
     onCreateProjectFromExcel() {
       // this.$refs.excelImport.selectFile()
       this.excelImportModal = true
+      this.$tele.emit('project:create:excel:trigger')
     },
     async importProjectFromJSON() {
     },
@@ -1055,19 +918,14 @@ export default {
     getDir(filePath) {
       // return path.dirname(filePath);
     },
+    async projectsRefresh() {
+      await this.projectsLoad()
+      this.$tele.emit('project:refresh')
+    },
     async projectsLoad() {
       try {
         this.loadingProjects = true
-        // console.log('projects', projects)
-        // this.projects = projectsData.data.list.reverse();
-        this.projects = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-          {
-            query: {
-              skipProjectHasDb: 1
-            }
-          },
-          'projectList'
-        ])
+        this.projects = (await this.$api.project.list({})).list
 
         // todo: multiplex
         const user = this.$store.state.users.user
@@ -1081,15 +939,8 @@ export default {
             this.$store.state.project.projectInfo &&
             this.$store.state.project.projectInfo.oneClick
           ) {
-            // this.$router.push({
-            //   path: `/project/xcdb`
-            // });
+            //
           }
-          // else {
-          // this.$router.push({
-          //   path: `/project/0`
-          // });
-          // }
         }
 
         this.loadingProjects = false
@@ -1098,36 +949,21 @@ export default {
       }
       this.loaded = true
     },
-    async projectRouteHandler(project) {
-      if (!project.allowed) {
-        this.$toast.info(`Contact following owner email to get project access : ${project.owner}`).goAway(5000)
-        return
-      }
+    async projectRouteHandler(project, count) {
 
-      if (project.status !== 'started') {
-        this.$toast
-          .info(
-            `Project '${project.title}' is not running, please start to open it`
-          )
-          .goAway(5000)
-        return
-      }
-      this.$set(project, 'loading', true)
       if (!this.deleteBtnClicked) {
         await this.$router.push({
           path: `/nc/${project.id}`
         })
-        // this.$set(project, 'loading', false)
       }
+      this.$tele.emit(`project:open:${count}`)
     },
     async projectEdit(project) {
-      console.log('projectEdit')
       this.$router.push({
         path: `project/0?edit=true&projectId=${project.id}`
       })
     },
     async projectOpenFolder(project) {
-      console.log('projectEdit')
     },
 
     async exportMetaZip(projectId) {
@@ -1162,12 +998,9 @@ export default {
             link.setAttribute('download', 'meta.zip') // or any other extension
             document.body.appendChild(link)
             link.click()
-            // this.$toast
-            //   .success('Successfully exported metadata')
-            //   .goAway(3000)
             this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000)
-
           } catch (e) {
+            console.log(e)
             this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
@@ -1195,6 +1028,7 @@ export default {
             // this.$toast.success('Metadata cleared successfully').goAway(3000)
             this.$toast.success(`${this.$t('msg.toast.clearMetadata')}`).goAway(3000)
           } catch (e) {
+            console.log(e)
             this.$toast.error(e.message).goAway(3000)
           }
           this.dialogShow = false
@@ -1227,6 +1061,7 @@ export default {
           this.$toast.success(`${this.$t('msg.toast.importMetadata')}`).goAway(3000)
           await this.projectsLoad()
         } catch (e) {
+          console.log(e)
           this.$toast.error(e.message).goAway(3000)
         }
         this.dialogShow = false
@@ -1268,6 +1103,14 @@ tr:hover .action-icons {
 .nc-container {
   position: relative;
 }
+/deep/ .project-row .delete-icon{
+opacity:0;
+  transition: .2s opacity;
+}
+/deep/ .project-row:hover .delete-icon{
+opacity:1;
+}
+
 </style>
 
 <!--

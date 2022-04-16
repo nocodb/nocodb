@@ -26,7 +26,8 @@ const nocoTestSuite = (apiType, dbType) => {
     t6b.genTest(apiType, dbType);
     // language validation kept common under REST MISC Suite
     // t6d.genTest(apiType, dbType);
-    t6c.genTest(apiType, dbType);
+    // ncv2@fixme: swagger disable
+    // t6c.genTest(apiType, dbType);
     t6f.genTest(apiType, dbType);
     t6g.genTest(apiType, dbType);
     // **deletes created project, hence place it @ end
@@ -34,7 +35,8 @@ const nocoTestSuite = (apiType, dbType) => {
 
     // intended to keep this after earlier project deletion
     // creates project using excel & deletes it
-    t7a.genTest(apiType, dbType);
+    // ncv2@fixme: disable excel import
+    // t7a.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "xcdb");

@@ -100,7 +100,6 @@ export default {
     }),
 
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
       // cmd + n -> new
@@ -172,7 +171,6 @@ export default {
               ...this.nodes
             }
           })
-          console.log('create function result', result)
           this.newFunction = false
           this.oldCreateFunction = `${this.functionData.create_function}` + ''
           this.$toast.success('Function created successfully').goAway(3000)
@@ -197,7 +195,6 @@ export default {
             }])
 
           this.oldCreateFunction = `${this.functionData.create_function}` + ''
-          console.log('update function result', result)
           this.$toast.success('Function updated successfully').goAway(3000)
         }
       } catch (e) {

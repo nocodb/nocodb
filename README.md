@@ -13,7 +13,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 <div align="center">
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
-[![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2014.18.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
@@ -401,6 +401,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/dhrrgn"><img src="https://avatars.githubusercontent.com/u/149921?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Horrigan</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dhrrgn" title="Code">💻</a></td>
     <td align="center"><a href="https://amitjoki.github.io"><img src="https://avatars.githubusercontent.com/u/5158554?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amit Joki</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=AmitJoki" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/tympaniplayer"><img src="https://avatars.githubusercontent.com/u/1745731?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nate</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=tympaniplayer" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/RobinFrcd"><img src="https://avatars.githubusercontent.com/u/29704178?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robin Fourcade</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=RobinFrcd" title="Code">💻</a></td>
   </tr>
 </table>
 

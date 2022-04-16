@@ -1,4 +1,4 @@
-import { XcActionType, XcType } from 'nc-common';
+import { PluginCategory, XcActionType, XcType } from 'nocodb-sdk';
 import { XcPluginConfig } from 'nc-plugin';
 
 import S3Plugin from './S3Plugin';
@@ -62,7 +62,7 @@ const config: XcPluginConfig = {
       'Successfully installed and attachment will be stored in AWS S3',
     msgOnUninstall: ''
   },
-  category: 'Storage',
+  category: PluginCategory.STORAGE,
   tags: 'Storage'
 };
 

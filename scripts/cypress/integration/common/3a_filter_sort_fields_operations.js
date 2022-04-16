@@ -6,6 +6,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Filter, Fields, Sort`, () => {
         before(() => {
+            mainPage.tabReset();
             // open country table
             cy.openTableTab("Country", 25);
         });

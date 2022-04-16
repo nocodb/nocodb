@@ -47,7 +47,6 @@ export default {
   watch: {
     codeLocal(newValue) {
       // INFO: for updating value of prop `code` in parent comp
-      // console.log("update:code Event Emitted", newValue);
       this.$emit('update:code', newValue)
     },
     code(newValue) {
@@ -65,7 +64,6 @@ export default {
       const editor = this.$refs.editor.getMonaco()
       const range = editor.getSelection()
       const selectedText = editor.getModel().getValueInRange(range)
-      // console.log('getValue', editor.getModel())
       this.selection = selectedText
       this.selectionRange = range
     },

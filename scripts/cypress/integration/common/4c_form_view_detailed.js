@@ -12,6 +12,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            mainPage.tabReset();
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
@@ -60,8 +61,8 @@ export const genTest = (apiType, dbType) => {
                     .should("exist");
 
                 // move Country field down (drag, drop)
-                cy.get("#data-table-form-Country").drag(
-                    "#data-table-form-LastUpdate"
+                cy.get("#data-table-form-LastUpdate").drag(
+                    "#data-table-form-Country"
                 );
 
                 // Verify if order is: LastUpdate, Country, Country => City
@@ -118,7 +119,7 @@ export const genTest = (apiType, dbType) => {
                     .should("exist");
                 cy.get(".nc-field-wrapper")
                     .eq(1)
-                    .contains("Country => City")
+                    .contains("CityList")
                     .should("exist");
                 cy.get(".nc-field-wrapper")
                     .eq(2)
@@ -228,7 +229,9 @@ export const genTest = (apiType, dbType) => {
 
             it(`Validate ${viewType}: Submit default, with valid Show message entry`, () => {
                 // clicking again on view name shows blank still. work around- toggling between two views
-                // cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
+                // cy.get(`.nc-view-item.nc-grid-view-item`)
+                //     .contains("Country")
+                //     .click();
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Country1")
                     .click();
@@ -254,7 +257,9 @@ export const genTest = (apiType, dbType) => {
 
             it(`Validate ${viewType}: Submit default, Enable checkbox "Submit another form`, () => {
                 // clicking again on view name shows blank still. work around- toggling between two views
-                // cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
+                // cy.get(`.nc-view-item.nc-grid-view-item`)
+                //     .contains("Country")
+                //     .click();
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Country1")
                     .click();
@@ -295,8 +300,12 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Validate ${viewType}: Submit default, Enable checkbox "blank form after 5 seconds"`, () => {
-                // cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country').click()
-                // cy.get(`.nc-view-item.nc-${viewType}-view-item`).contains('Country1').click()
+                // cy.get(`.nc-view-item.nc-grid-view-item`)
+                //     .contains("Country")
+                //     .click();
+                // cy.get(`.nc-view-item.nc-${viewType}-view-item`)
+                //     .contains("Country1")
+                //    .click();
 
                 cy.get("#data-table-form-Country").type("_abc");
                 cy.get("#data-table-form-LastUpdate").click();
@@ -342,6 +351,20 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Country1")
                     .click();
+
+                // wait for 5 seconds
+                cy.get(".nc-form").should("exist");
+
+                // validate if form has appeared again
+                cy.get(".nc-form")
+                    .find('[placeholder="Form Title"]')
+                    .contains("A B C D")
+                    .should("exist");
+                cy.get(".nc-form")
+                    .find('[placeholder="Add form description"]')
+                    .contains("Some description about form comes here")
+                    .should("exist");
+
                 cy.get(".nc-form > .mx-auto")
                     .find('[type="checkbox"]')
                     .eq(2)
@@ -350,6 +373,8 @@ export const genTest = (apiType, dbType) => {
                 cy.toastWait(
                     "Please activate SMTP plugin in App store for enabling email notification"
                 );
+
+                cy.wait(1000);
             });
 
             it(`Validate ${viewType}: Email me verification, with SMTP configuration`, () => {
@@ -365,9 +390,22 @@ export const genTest = (apiType, dbType) => {
                 // open form view & enable "email me" option
                 cy.openTableTab("Country", 25);
 
+                cy.wait(1000);
+
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Country1")
                     .click();
+
+                // validate if form has appeared again
+                cy.get(".nc-form")
+                    .find('[placeholder="Form Title"]')
+                    .contains("A B C D")
+                    .should("exist");
+                cy.get(".nc-form")
+                    .find('[placeholder="Add form description"]')
+                    .contains("Some description about form comes here")
+                    .should("exist");
+
                 cy.get(".nc-form > .mx-auto")
                     .find('[type="checkbox"]')
                     .eq(2)
@@ -379,6 +417,9 @@ export const genTest = (apiType, dbType) => {
                 // reset SMPT config's
                 mainPage.navigationDraw(mainPage.APPSTORE).click();
                 mainPage.resetSMTP();
+
+                cy.wait(3000);
+
                 cy.openTableTab("Country", 25);
             });
 
@@ -387,10 +428,22 @@ export const genTest = (apiType, dbType) => {
                     .contains("Country1")
                     .click();
 
+                cy.wait(3000);
+
+                // validate if form has appeared again
+                cy.get(".nc-form")
+                    .find('[placeholder="Form Title"]')
+                    .contains("A B C D")
+                    .should("exist");
+                cy.get(".nc-form")
+                    .find('[placeholder="Add form description"]')
+                    .contains("Some description about form comes here")
+                    .should("exist");
+
                 cy.get("#data-table-form-LastUpdate").should("exist");
                 // remove "LastUpdate field"
-                cy.get(".nc-form").find(".nc-field-remove-icon").eq(1).click();
-                cy.get("#data-table-form-lastUpdate").should("not.exist");
+                cy.get(".nc-form").find(".nc-field-remove-icon").eq(2).click();
+                cy.get("#data-table-form-LastUpdate").should("not.exist");
                 cy.get(".col-md-4")
                     .find(".pointer.item")
                     .contains("LastUpdate")
@@ -402,18 +455,33 @@ export const genTest = (apiType, dbType) => {
                     .contains("LastUpdate")
                     .click();
                 cy.get("#data-table-form-LastUpdate").should("exist");
+
+                cy.wait(3000);
             });
 
             it(`Validate ${viewType}: URL verification`, () => {
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Country1")
                     .click();
+
+                // validate if form has appeared again
+                cy.get(".nc-form")
+                    .find('[placeholder="Form Title"]')
+                    .contains("A B C D")
+                    .should("exist");
+                cy.get(".nc-form")
+                    .find('[placeholder="Add form description"]')
+                    .contains("Some description about form comes here")
+                    .should("exist");
+
                 // verify URL & copy it for subsequent test
-                cy.url().should("contain", `&view=Country1`);
+                cy.url().should("contain", `&view=vw_`);
                 cy.url().then((url) => {
                     cy.log(url);
                     formViewURL = url;
                 });
+
+                cy.wait(3000);
             });
 
             it(`Validate ${viewType}: URL validation after re-access`, () => {
@@ -422,6 +490,7 @@ export const genTest = (apiType, dbType) => {
                 cy.visit(formViewURL, {
                     baseUrl: null,
                 });
+                cy.wait(5000);
 
                 // New form appeared? Header & description should exist
                 cy.get(".nc-form", { timeout: 10000 })

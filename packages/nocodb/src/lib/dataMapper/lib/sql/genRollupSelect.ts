@@ -1,4 +1,5 @@
 import Knex from 'knex';
+import { RelationTypes } from 'nocodb-sdk';
 
 export default function({
   knex,
@@ -15,7 +16,7 @@ export default function({
   let rollup = _rollup;
 
   switch (rollup.type) {
-    case 'hm':
+    case RelationTypes.HAS_MANY:
       if (!rollup.tn || !rollup.rtn) {
         rollup = { ...rollup, ...hasMany.find(hm => hm.tn === rollup.rltn) };
       }
@@ -27,7 +28,7 @@ export default function({
           knex.ref(`${rollup.rtn}.${rollup.rcn}`)
         );
       break;
-    case 'mm':
+    case RelationTypes.MANY_TO_MANY:
       if (!rollup.tn || !rollup.rtn || !rollup.vtn) {
         rollup = {
           ...rollup,

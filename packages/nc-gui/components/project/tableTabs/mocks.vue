@@ -14,7 +14,7 @@
                        href: '#'
                      },
                      {
-                       text: nodes.tn + ' (mocks)',
+                       text: nodes.table_name + ' (mocks)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -90,7 +90,7 @@
         <template #item="{item}">
           <tr>
             <td>
-              {{ item.cn }}<span class="font-weight-thin"> - {{ item.dt }}</span>
+              {{ item.column_name }}<span class="font-weight-thin"> - {{ item.dt }}</span>
             </td>
             <td>
               <span v-if="item.pk" class="font-weight-thin"> (Primary Key)</span>
@@ -170,7 +170,7 @@ export default {
     async loadColumnList() {
       this.disableSaveButton = true
       const columnsList = await this.client.fakerColumnsList({
-        tn: this.nodes.tn,
+        table_name: this.nodes.table_name,
         seedsFolder: this.seedsFolder
       })
       console.log(columnsList)
@@ -192,14 +192,14 @@ export default {
           if (nativeType !== 'string' && nativeType !== fakerFn.type) { return }
 
           if (i) {
-            const ls = levenshtein.get(col.cn.toLowerCase(), fakerFn.name.toLowerCase())
+            const ls = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
             if (lScore > ls) {
               lScore = ls
               suggestion = fakerFn
             }
           } else {
             suggestion = fakerFn
-            lScore = levenshtein.get(col.cn.toLowerCase(), fakerFn.name.toLowerCase())
+            lScore = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
           }
         })
 
@@ -212,7 +212,7 @@ export default {
     },
     async saveFakeFunctions() {
       try {
-        await this.client.fakerColumnsCreate({ fakerColumns: this.cols, seedsFolder: this.seedsFolder, tn: this.nodes.tn })
+        await this.client.fakerColumnsCreate({ fakerColumns: this.cols, seedsFolder: this.seedsFolder, table_name: this.nodes.table_name })
       } catch (e) {
         this.$toast.error('Saving changes to faker functions failed').goAway(3000)
         throw e

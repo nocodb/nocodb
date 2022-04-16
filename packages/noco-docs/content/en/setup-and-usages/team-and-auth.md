@@ -7,36 +7,33 @@ menuTitle: 'Team & Auth'
 ---
 
 
+Team & Auth can be found by clicking `Team & Settings` from the left navigation drawer and clicking `Team & Auth`.
+
+![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)
+
+![image](https://user-images.githubusercontent.com/35857179/161902746-aa59b8e5-06d2-4c07-ac60-c82f92b42752.png)
+
 ## How to Add a User
-1. On the left panel, click on "Team & Auth":
-[](https://user-images.githubusercontent.com/55474996/142497814-c52e12e5-5ab5-41e7-ac48-2b6af5f31fdd.png)
 
-2. Make sure you are on the "Users Management" tab. Click on "New User":  
-  
-[](https://user-images.githubusercontent.com/55474996/142498070-60c5a861-0e8e-49e9-8830-42f54aa1fbf1.png)
-| ![1a](https://user-images.githubusercontent.com/86527202/149292053-e6dfef1e-9627-47a7-98ad-8a3b2f61591b.png) |
-| ------ |
+1. Go to `Team & Auth`, click on `New User`.
+    ![image](https://user-images.githubusercontent.com/35857179/161903214-1e0f7ba0-6daf-4073-90c9-9d86a40c9f90.png)
 
-3. Enter the person's `EMAIL` 
-4. Select `ROLE`
-5. Click `Invite`
-> You can add multiple comma (,) seperated emails
-[](https://user-images.githubusercontent.com/55474996/142498163-032187e4-d375-4542-8211-e986880a2bb0.png)
+2. Enter the user's `E-mail`. Select `User Role`, and Click `Invite`.
 
-| ![2 1](https://user-images.githubusercontent.com/86527202/149291166-d28a65b7-195a-4233-97a9-a3c2259c9fc8.png) |
-| ------ |
+    <alert type="success">
+        Tip: You can add multiple comma (,) seperated emails
+    </alert>
 
-If you do not have an SMTP sender configured, make sure to copy the invite link and manually send it to your collaborator:
-[](https://user-images.githubusercontent.com/55474996/142498376-ff52276b-92d8-4aca-8c47-fd7efea50ab6.png)
-  
-| ![3](https://user-images.githubusercontent.com/86527202/149291202-967f164b-8ddc-4240-a470-ce8b4e0c2d41.png) |
-| ------ |
-| ![4](https://user-images.githubusercontent.com/86527202/149291223-dfc9e24b-658d-45fb-a0d5-c9773162bfbe.png) |
+    ![image](https://user-images.githubusercontent.com/35857179/161903296-cd6ea0d5-193f-4e66-aa7a-4cfc468216af.png)
+
+    If you do not have an SMTP sender configured, make sure to copy the invite link and manually send it to your collaborator.
+
+    ![image](https://user-images.githubusercontent.com/35857179/161903764-1c875441-87f4-4b25-a864-441a23c96cea.png)
 
 
-## Explanation of User Role Permissions
+## User Role Permissions
 
-### Advanced options & configurations
+### Advanced Options & Configurations
 | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
 | Audit	                  | ✅ | ✅ | ❌ | ❌	| ❌ |
@@ -52,7 +49,7 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 | Preview mode	          | ✅	| ✅	| ❌	| ❌ | ❌ |
 
 
-### Schema options
+### Schema Options
 | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
 |	Add table	    | ✅ | ✅ | ❌	| ❌	| ❌	|
@@ -63,7 +60,7 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 |	Modify column	| ✅	| ✅	| ❌	| ❌	| ❌	|
 
 
-### Record options
+### Record Options
 | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
 |	Add row	          | ✅	| ✅	| ✅	| ❌	| ❌	|
@@ -85,7 +82,7 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 |	Create new view	| ✅	| ✅	| ❌	| ❌	| ❌	|
 |	Share view	    | ✅	| ✅	| ❌	| ❌	| ❌	|
 
-### Project generals
+### Project Generals
 | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
 |	Created views access	| ✅	| ✅	| ✅	| ✅	| ✅	|
@@ -97,7 +94,9 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 |	Project Info	        | ✅	| ✅	| ✅	| ✅	| ✅	|
 |	Swagger API	          | ✅	| ✅	| ✅	| ✅	| ✅	|
 
-### Automations
+
+<!-- TODO: -->
+<!-- ### Automations
 | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
 
@@ -105,4 +104,4 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|
 |    :--   |    :-:   |    :-:   |    :-:   |    :-:   |    :-:   |
 
-
+ -->

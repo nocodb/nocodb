@@ -337,7 +337,7 @@ describe('xc-data-mapper tests', function () {
     expect(data[0]['avg']).to.not.equal(0);
 
     data = await city.aggregate({
-      cn: 'country_id',
+     column_name:'country_id',
       fields: 'country_id',
       func: 'count,sum,avg',
       having: '(count,gt,50)'

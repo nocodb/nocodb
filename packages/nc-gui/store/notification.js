@@ -14,7 +14,6 @@ export const state = () => ({
 export const mutations = {
 
   MutListAdd(state, args) {
-    console.log(state)
     args.time = Date.now()
     state.list.unshift(args)
   },
@@ -25,7 +24,6 @@ export const mutations = {
       n.type === args.type &&
       n.module === args.module &&
       n.title === args.title)
-    console.log('index', index)
     if (index > -1) {
       state.list[index].status = args.status
     }
@@ -40,7 +38,6 @@ export const mutations = {
   },
 
   MutToggleProgressBar(state, status) {
-    console.log('MutToggleProgressBar', status)
     if (status) { state.showProgressBar.push(1) } else { state.showProgressBar.pop() }
   }
 

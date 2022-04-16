@@ -47,6 +47,8 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
         _args
     );
 
+    cy.wait(1000);
+
     // signin/signup
     cy.get("body").then(($body) => {
         // cy.wait(1000)
@@ -74,6 +76,13 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
                     cy.snip("SignIn");
                     cy.get('button:contains("SIGN IN")').click();
                 }
+            } else if (url.includes("/signin")) {
+                cy.get('input[type="text"]', { timeout: 12000 }).type(
+                    args.username
+                );
+                cy.get('input[type="password"]').type(args.password);
+                cy.snip("SignIn");
+                cy.get('button:contains("SIGN IN")').click();
             }
         });
     });
@@ -175,7 +184,7 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
 Cypress.Commands.add("closeTableTab", (tn) => {
     cy.task("log", `[closeTableTab] ${tn}`);
     cy.get(`.project-tab`).contains(tn, { timeout: 10000 }).should("exist");
-    cy.get(`[href="#table||db||${tn}"]`).find("button.mdi-close").click();
+    cy.get(`[href="#table||||${tn}"]`).find("button.mdi-close").click();
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
@@ -344,10 +353,11 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 });
 
 Cypress.Commands.add("toastWait", (msg) => {
-    cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");
-    cy.get(".toasted:visible", { timout: 12000 })
-        .contains(msg)
-        .should("not.exist");
+    // cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");
+    // cy.get(".toasted:visible", { timout: 12000 })
+    //     .contains(msg)
+    //     .should("not.exist");
+    cy.wait(3000);
 });
 
 // vn: view name
@@ -382,7 +392,7 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
 Cypress.Commands.add("closeViewsTab", (vn) => {
     cy.task("log", `[closeViewsTab] ${vn}`);
     cy.get(`.project-tab`).contains(vn, { timeout: 10000 }).should("exist");
-    cy.get(`[href="#view||db||${vn}"]`)
+    cy.get(`[href="#view||||${vn}"]`)
         .find("button.mdi-close")
         .click({ force: true });
 });
@@ -438,6 +448,7 @@ Cypress.Commands.add("snipActiveMenu", (filename) => {
         cy.screenshot(storeName, { overwrite: true });
     }
 });
+
 
 // Drag n Drop
 // refer: https://stackoverflow.com/a/55409853

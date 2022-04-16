@@ -642,11 +642,7 @@ export default class RestAuthCtrl {
               // info: { message: string }
               // Info was thrown directly before.
               // In order to avoid breaking change, both "msg" and "message" are returned.
-              const message = info.message ?? '';
-              return res.status(400).send({
-                msg: message,
-                message
-              });
+              return res.status(400).send({ msg: info.message ?? '' });
             }
             return res.status(400).send({ msg: 'Your signin has failed' });
           }

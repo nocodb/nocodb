@@ -50,7 +50,8 @@ ENV NC_TOOL_DIR=/usr/app/data/
 
 RUN apk --update --no-cache add \
     nodejs \
-    tar
+    tar \
+    dumb-init
 
 # Copy litestream binary build
 COPY  --from=lt-builder /usr/src/lt /usr/src/appEntry/litestream
@@ -58,6 +59,7 @@ COPY  --from=lt-builder /usr/src/lt /usr/src/appEntry/litestream
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Start Nocodb
-ENTRYPOINT ["sh", "/usr/src/appEntry/start.sh"]
+CMD ["/usr/src/appEntry/start.sh"]

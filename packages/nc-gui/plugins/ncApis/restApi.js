@@ -1,7 +1,7 @@
 export default class RestApi {
   constructor(table, $ctx) {
     this.$ctx = $ctx
-    this.table = $ctx.$store.state.meta.metas[table]._tn
+    this.table = $ctx.$store.state.meta.metas[table].title
   }
 
   // todo:  - get version letter and use table alias

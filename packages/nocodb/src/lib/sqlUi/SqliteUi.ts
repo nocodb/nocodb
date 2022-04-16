@@ -27,7 +27,7 @@ export class SqliteUi {
   static getNewTableColumns() {
     return [
       {
-        cn: 'id',
+        column_name: 'id',
         dt: 'integer',
         dtx: 'integer',
         ct: 'int(11)',
@@ -49,7 +49,7 @@ export class SqliteUi {
         uicn: ''
       },
       {
-        cn: 'title',
+        column_name: 'title',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar',
@@ -71,7 +71,7 @@ export class SqliteUi {
         uicn: ''
       },
       {
-        cn: 'created_at',
+        column_name: 'created_at',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar',
@@ -93,7 +93,7 @@ export class SqliteUi {
         uicn: ''
       },
       {
-        cn: 'updated_at',
+        column_name: 'updated_at',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar',
@@ -119,7 +119,7 @@ export class SqliteUi {
 
   static getNewColumn(suffix) {
     return {
-      cn: 'title' + suffix,
+      column_name: 'title' + suffix,
       dt: 'integer',
       dtx: 'specificType',
       ct: 'integer(11)',
@@ -560,7 +560,7 @@ export class SqliteUi {
           const column = {
             dp: null,
             tn,
-            cn: keys[i],
+            column_name: keys[i],
             cno: keys[i],
             np: null,
             ns: null,

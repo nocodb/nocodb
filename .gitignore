@@ -84,3 +84,4 @@ mongod
 #=========
 shared.json
 /scripts/Cypress/screenshots
+/scripts/exp/

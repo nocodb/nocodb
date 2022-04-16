@@ -10,7 +10,6 @@
     :clearable="!column.rqd"
     v-on="parentListeners"
   >
-    <!--    <option v-for="eVal of enumValues" :key="eVal" :value="eVal">{{ eVal }}</option>-->
     <template #selection="{item}">
       <div
         class="d-100"

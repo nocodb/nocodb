@@ -1,8 +1,8 @@
 <template>
   <div class="h-100" style="overflow: auto">
-    <v-toolbar height="30">
+    <v-toolbar height="30" class="elevation-0">
       <v-spacer />
-      <v-btn x-small outlined @click="loadAudits">
+      <v-btn small outlined @click="loadAudits">
         <v-icon small class="mr-2">
           refresh
         </v-icon>
@@ -101,12 +101,20 @@ export default {
   },
   methods: {
     async loadAudits() {
-      const { list, count } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcAuditList', {
-        limit: this.limit,
-        offset: this.limit * (this.page - 1)
-      }])
+      // const { list, count } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcAuditList', {
+      //   limit: this.limit,
+      //   offset: this.limit * (this.page - 1)
+      // }])
+      const {
+        list, pageInfo
+      } = (await this.$api.project.auditList(
+        this.$store.state.project.projectId, {
+          limit: this.limit,
+          offset: this.limit * (this.page - 1)
+        }))
+
       this.audits = list
-      this.count = count
+      this.count = pageInfo.totalRows
     },
     calculateDiff(date) {
       return dayjs.utc(date).fromNow()

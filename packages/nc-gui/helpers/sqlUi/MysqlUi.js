@@ -44,7 +44,7 @@ export class MysqlUi {
   static getNewTableColumns() {
     return [
       {
-        cn: 'id',
+        column_name: 'id',
         dt: 'int',
         dtx: 'integer',
         ct: 'int(11)',
@@ -66,7 +66,7 @@ export class MysqlUi {
         uicn: ''
       },
       {
-        cn: 'title',
+        column_name: 'title',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -88,7 +88,7 @@ export class MysqlUi {
         uicn: ''
       },
       {
-        cn: 'created_at',
+        column_name: 'created_at',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -110,7 +110,7 @@ export class MysqlUi {
         uicn: ''
       },
       {
-        cn: 'updated_at',
+        column_name: 'updated_at',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -136,7 +136,7 @@ export class MysqlUi {
 
   static getNewColumn(suffix) {
     return {
-      cn: 'title' + suffix,
+      column_name: 'title' + suffix,
       dt: 'int',
       dtx: 'specificType',
       ct: 'integer(11)',
@@ -557,7 +557,7 @@ export class MysqlUi {
       col.dt === 'bigint' ||
       col.dt === 'smallint') {
       for (let i = 0; i < columns.length; ++i) {
-        if (columns[i].cn !== col.cn && columns[i].ai) {
+        if (columns[i].column_name !== col.column_name && columns[i].ai) {
           return true
         }
       }
@@ -585,25 +585,11 @@ export class MysqlUi {
     if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
       col.altered = col.altered || 2
     }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
   }
 
   static onCheckboxChangeAU(col) {
     console.log(col)
-    // if (1) {
     col.altered = col.altered || 2
-    // }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
   }
 
   static showScale(columnObj) {
@@ -621,14 +607,14 @@ export class MysqlUi {
         columns[i].dt === 'smallint' ||
         columns[i].dt === 'mediumint'))) {
         columns[i].un = false
-        console.log('>> resetting unsigned value', columns[i].cn)
+        console.log('>> resetting unsigned value', columns[i].column_name)
       }
-      console.log(columns[i].cn)
+      console.log(columns[i].column_name)
     }
   }
 
   static columnEditable(colObj) {
-    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
+    return colObj.table_name !== '_evolutions' || colObj.table_name !== 'nc_evolutions'
   }
 
   static extractFunctionName(query) {

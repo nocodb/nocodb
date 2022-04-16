@@ -14,7 +14,7 @@
                        href: '#'
                      },
                      {
-                       text: (nodes.tn || nodes.view_name) + ' (rows)',
+                       text: (nodes.table_name || nodes.view_name) + ' (rows)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -237,17 +237,17 @@ export default {
       }
     },
     async loadColumnList() {
-      // const columnsList = await this.client.columnList({tn: this.nodes.tn});
+      // const columnsList = await this.client.columnList({tn: this.nodes.table_name});
 
       // const columnsList = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
-      // }, 'columnList', {tn: this.nodes.tn})
+      // }, 'columnList', {tn: this.nodes.table_name})
 
       const columnsList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
-      }, 'columnList', { tn: this.nodes.tn || this.nodes.view_name }])
+      }, 'columnList', { tn: this.nodes.table_name || this.nodes.view_name }])
 
       this.cols = columnsList.data.list.map(({ cn, dt, ai, pk }) => {
         if (pk) { this.primaryKeys.push(cn) }
@@ -265,7 +265,7 @@ export default {
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'list', {
-      //   tn: this.nodes.tn,
+      //   tn: this.nodes.table_name,
       //   size: itemsPerPage,
       //   page,
       //   orderBy: this.primaryKeys.map(key => ({column: key, order: 'desc'}))
@@ -275,14 +275,14 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'list', {
-        tn: this.nodes.tn || this.nodes.view_name,
+        tn: this.nodes.table_name || this.nodes.view_name,
         size: itemsPerPage,
         page,
         orderBy: this.primaryKeys.map(key => ({ column: key, order: 'desc' }))
       }])
 
       // const result = await this.client.list({
-      //   tn: this.nodes.tn,
+      //   tn: this.nodes.table_name,
       //   size: itemsPerPage,
       //   page,
       //   orderBy: this.primaryKeys.map(key => ({column: key, order: 'desc'}))
@@ -322,24 +322,15 @@ export default {
           if (row.isNewRow) {
             this.rows.splice(index, 1)
           } else {
-            // this.client.delete(this.nodes.tn, row.keys)
+            // this.client.delete(this.nodes.table_name, row.keys)
 
             await this.$store.dispatch('sqlMgr/ActSqlOp', [{
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             }, 'delete', {
-              tn: this.nodes.tn || this.nodes.view_name,
+              tn: this.nodes.table_name || this.nodes.view_name,
               whereConditions: row.keys
             }])
-
-            // await this.sqlMgr.sqlOp({
-            //   env: this.nodes.env,
-            //   dbAlias: this.nodes.dbAlias
-            // }, 'delete', {
-            //   tn: this.nodes.tn,
-            //   whereConditions: row.keys
-            // });
-
             this.rows.splice(index, 1)
           }
           this.$toast.success('Row deleted successfully').goAway(3000)
@@ -363,13 +354,13 @@ export default {
             newRows.push(dataCopy)
           } else if (changed) {
             item.changed = false
-            // const res = await this.client.update(this.nodes.tn, dataCopy, keys);
+            // const res = await this.client.update(this.nodes.table_name, dataCopy, keys);
 
             const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias
             }, 'update', {
-              tn: this.nodes.tn,
+              tn: this.nodes.table_name,
               data: dataCopy,
               whereConditions: keys
             }])
@@ -381,13 +372,13 @@ export default {
         if (newRows.length) {
           console.log(newRows)
           // todo : multiargs to single object
-          // const res = await this.client.insert(this.nodes.tn, newRows)
+          // const res = await this.client.insert(this.nodes.table_name, newRows)
 
           const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias
           }, 'insert', {
-            tn: this.nodes.tn,
+            tn: this.nodes.table_name,
             data: newRows
           }])
 

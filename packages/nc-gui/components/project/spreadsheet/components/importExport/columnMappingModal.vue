@@ -3,14 +3,14 @@
     <v-card>
       <v-card-actions>
         <v-card-title>
-          Table : {{ meta._tn }}
+          Table : {{ meta.title }}
         </v-card-title>
         <v-spacer />
         <v-btn
           :disabled="
-            !valid || 
-            (typeof requiredColumnValidationError === 'string' || requiredColumnValidationError) || 
-            (typeof noSelectedColumnError === 'string' || noSelectedColumnError)
+            !valid ||
+              (typeof requiredColumnValidationError === 'string' || requiredColumnValidationError) ||
+              (typeof noSelectedColumnError === 'string' || noSelectedColumnError)
           "
           color="primary"
           large
@@ -46,7 +46,7 @@
             <tbody>
               <tr v-for="(r,i) in mappings" :key="i">
                 <td>
-                  <v-checkbox v-model="r.enabled" class="mt-0" dense hide-details @change="$refs.form.validate()"/>
+                  <v-checkbox v-model="r.enabled" class="mt-0" dense hide-details @change="$refs.form.validate()" />
                 </td>
                 <td class="caption" style="width:45%">
                   <div :title="r.sourceCn" style="">
@@ -60,8 +60,8 @@
                     dense
                     hide-details="auto"
                     :items="meta.columns"
-                    item-text="_cn"
-                    :item-value="v => v && v._cn"
+                    item-text="title"
+                    :item-value="v => v && v.title"
                     :rules="[
                       v => validateField(v,r)
                     ]"
@@ -71,13 +71,13 @@
                       <v-icon small class="mr-1">
                         {{ getIcon(item.uidt) }}
                       </v-icon>
-                      {{ item._cn }}
+                      {{ item.title }}
                     </template>
                     <template #item="{item}">
                       <v-icon small class="mr-1">
                         {{ getIcon(item.uidt) }}
                       </v-icon>
-                      <span class="caption"> {{ item._cn }}</span>
+                      <span class="caption"> {{ item.title }}</span>
                     </template>
                   </v-select>
                 </td>
@@ -118,16 +118,16 @@ export default {
     },
     requiredColumnValidationError() {
       const missingRequiredColumns = this.meta.columns.filter(c => (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) &&
-        !this.mappings.some(r => r.destCn === c._cn))
+        !this.mappings.some(r => r.destCn === c.title))
 
       if (missingRequiredColumns.length) {
-        return `Following columns are required : ${missingRequiredColumns.map(c => c._cn).join(', ')}`
+        return `Following columns are required : ${missingRequiredColumns.map(c => c.title).join(', ')}`
       }
       return false
     },
     noSelectedColumnError() {
-      if ((this.mappings || []).filter(v => v.enabled === true).length == 0) { 
-        return 'At least one column has to be selected' 
+      if ((this.mappings || []).filter(v => v.enabled === true).length == 0) {
+        return 'At least one column has to be selected'
       }
       return false
     }
@@ -147,7 +147,7 @@ export default {
         return true
       }
 
-      const v = this.meta && this.meta.columns.find(c => c._cn === _cn)
+      const v = this.meta && this.meta.columns.find(c => c.title === _cn)
 
       if ((this.mappings || []).filter(v => v.destCn === _cn).length > 1) { return 'Duplicate mapping found, please remove one of the mapping' }
 
@@ -169,20 +169,20 @@ export default {
         case UITypes.Checkbox:
           if (
             this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)
-            .some((r) => {
-              if (r => r[row.sourceCn] !== null && r[row.sourceCn] !== undefined) {
-                var input = r[row.sourceCn]
-                if (typeof input === 'string') {
-                  input = input.replace(/["']/g, "").toLowerCase().trim()
-                  return (
-                    input == "false" || input == "no" || input == "n" || input == "0" ||
-                    input == "true" || input == "yes" || input == "y" || input == "1"
-                  ) ? false : true
+              .some((r) => {
+                if (r => r[row.sourceCn] !== null && r[row.sourceCn] !== undefined) {
+                  let input = r[row.sourceCn]
+                  if (typeof input === 'string') {
+                    input = input.replace(/["']/g, '').toLowerCase().trim()
+                    return !((
+                      input == 'false' || input == 'no' || input == 'n' || input == '0' ||
+                    input == 'true' || input == 'yes' || input == 'y' || input == '1'
+                    ))
+                  }
+                  return input != 1 && input != 0 && input != true && input != false
                 }
-                return input != 1 && input != 0 && input != true && input != false
-              }
-              return false
-            })
+                return false
+              })
           ) {
             return 'Source data contains some invalid boolean values'
           }
@@ -194,13 +194,13 @@ export default {
       this.mappings = []
       for (const col of this.importDataColumns) {
         const o = { sourceCn: col, enabled: true }
-        const tableColumn = this.meta.columns.find(c => c._cn === col)
+        const tableColumn = this.meta.columns.find(c => c.title === col)
         if (tableColumn) {
-          o.destCn = tableColumn._cn
+          o.destCn = tableColumn.title
         }
         this.mappings.push(o)
       }
-      this.$nextTick(()=> this.$refs.form.validate())
+      this.$nextTick(() => this.$refs.form.validate())
     },
     getIcon(uidt) {
       return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline'

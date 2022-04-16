@@ -245,9 +245,6 @@ export default {
           ...(this.$store.getters['project/GtrProjectJson'].envs ?
             Object.keys(this.$store.getters['project/GtrProjectJson'].envs[this.env].api) : [])];
 
-
-        console.log('============', this.envValues)
-
         this.tokRef = monaco.languages.setMonarchTokensProvider('mySpecialLanguage', {
           tokenizer: {
             root: [

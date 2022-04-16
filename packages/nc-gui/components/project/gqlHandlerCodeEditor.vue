@@ -78,7 +78,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, this.isMiddleware ? 'defaultResolverMiddlewareCode' : 'defaultResolverHandlerCodeGet', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          table_name: this.nodes.table_name || this.nodes.view_name,
           resolver: this.resolver
         }])
         if (functionCode) {
@@ -95,7 +95,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, this.isMiddleware ? 'xcResolverMiddlewareUpdate' : 'xcResolverHandlerUpdate', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          table_name: this.nodes.table_name || this.nodes.view_name,
           resolver: this.resolver,
           functions: [this.code]
         }])

@@ -230,92 +230,26 @@ export default {
   },
   methods: {
     dblClick() {
-      // this.showDelete = true;
-      // this.$set(process.env, 'TS_ENABLED', process.env.TS_ENABLED ? '' : '1')
     },
     async setExecutionPolicy() {
-      // if (!this._isWindows) return
-      // try {
-      //   let {ptyProc} = this.termRef[this.tab];
-      //   ptyProc.write(`${ptyProc.process === 'node' ? '\u0003\n\r' : ''}Set-ExecutionPolicy "Bypass";\n\r`)
-      // } catch (e) {
-      //   console.log(e)
-      // }
     },
     async handleKeyDown(event) {
-      // switch ([this._isMac ? event.metaKey : event.ctrlKey, event.key].join('_')) {
-      //   case 'true_w' :
-      //     event.preventDefault();
-      //     event.stopPropagation();
-      //     if (this.termRef.length > 0) {
-      //       if (!this.isModal)
-      //         this.closeTerminal(this.tab);
-      //       return true;
-      //     }
-      //     break;
-      // }
-      // return false;
     },
 
     async codeGenerateMvc() {
       this.loading = true
-      // try {
-      //   await this.setExecutionPolicy();
-      //   await this.sqlMgr.projectGenerateBackend({
-      //     env: 'dev',
-      //   });
-      //   this.$toast.info('Yay, code generated').goAway(4000);
-      //   this.runNpmInstall()
-      //   this.runScript()
-      // } catch (e) {
-      //   this.$toast.error('Error generating REST APIs code :' + e).goAway(4000);
-      //   throw e;
-      // } finally {
-      //   this.loading = false;
-      // }
     },
     async codeGenerateMvcGql() {
       this.loading = true
-      // try {
-      //   await this.sqlMgr.projectGenerateBackendGql({
-      //     env: 'dev',
-      //   });
-      //   this.$toast.info('Yay, GraphQL with MVC generated').goAway(4000);
-      //   this.runNpmInstall()
-      //   this.runScript()
-      //
-      // } catch (e) {
-      //   this.$toast.error('Error generating GraphQL code :' + e).goAway(4000);
-      //   throw e;
-      // } finally {
-      //   this.loading = false;
-      // }
     },
     async codeClear() {
       this.loading = true
-      // try {
-      //   await this.setExecutionPolicy();
-      //   await this.sqlMgr.projectGeneratedCodeClear({
-      //     env: 'dev',
-      //   });
-      //   this.$toast.info('Yay, code cleared').goAway(4000);
-      // } catch (e) {
-      //   this.$toast.error('Error generating GraphQL code :' + e).goAway(4000);
-      //   throw e;
-      // } finally {
-      //   this.loading = false;
-      // }
     },
 
     runXcGenApisRest() {
-      // this.setExecutionPolicy();
-      // let {ptyProc} = this.termRef[this.tab];
-      // ptyProc.write(`${ptyProc.process === 'node' ? '\u0003\n\r' : ''}cd ${this.currentProjectFolder};\n\rxc gen.apis.rest;\n\r`)
     },
 
     runXcGenApisGql() {
-      // let {ptyProc} = this.termRef[this.tab];
-      // ptyProc.write(`${ptyProc.process === 'node' ? '\u0003\n\r' : ''}cd ${this.currentProjectFolder};\n\rxc gen.apis.graphql;\n\r`)
     },
 
     runNpmInstall() {
@@ -324,20 +258,12 @@ export default {
     },
 
     runScript() {
-      // let {ptyProc} = this.termRef[this.tab];
-      // ptyProc.write(`${ptyProc.process === 'node' ? '\u0003\n\r' : ''}cd ${this.currentProjectFolder};\n\rnpm run ${this.selectedScript || 'dev'};\n\r`)
     },
     stopScript() {
-      // let {ptyProc} = this.termRef[this.tab];
-      // ptyProc.write(`\u0003\n\r`)
     },
     clearScript() {
-      // let {ptyProc} = this.termRef[this.tab];
-      // ptyProc.write(`clear\n\r`)
     },
     installCliTool() {
-      // let {ptyProc} = this.termRef[this.tab];
-      // ptyProc.write(`npm install -g xc-cli\n\r`)
     },
     addTerminal() {
       if (this.terminals.length > 4) {
@@ -365,7 +291,6 @@ export default {
 
         term.loadAddon(new WebLinksAddon((e, url) => {
           e.preventDefault()
-          console.log(url)
         }))
         // //
         // //
@@ -375,33 +300,13 @@ export default {
         term.open($el)
         // //
         fitAddon.fit()
-        //
-        //   const ligaturesAddon = new LigaturesAddon();
-        //   term.loadAddon(ligaturesAddon)
-        //
-        //   fixPath();
-        //
-        //   const ptyProc = pty.spawn(os.platform() === 'win32' ? 'powershell.exe' : process.env.SHELL || '/bin/bash', [], {
-        //     cols: term.cols,
-        //     rows: term.rows,
-        //     cwd: this.currentProjectFolder || process.env.HOME,
-        //     env: process.env
-        //   });
-        //
         term.onData((data) => {
-          console.log(data)
           client.emit('req', data)
-          // term.write(data.replace(/\n/, '\r\n'));
         })
 
         client.on('res', (data) => {
           term.write(`${data}`)
         })
-
-        //   ptyProc.onData(data => {
-        //     term.write(data);
-        //   });
-        //
         term.focus()
         //
         this.termRef[index] = {
@@ -413,7 +318,6 @@ export default {
       }
     },
     closeTerminal(index) {
-      console.log('======= close terminal')
       try {
         const proc = this.termRef.splice(index, 1)[0]
         proc.term.dispose()

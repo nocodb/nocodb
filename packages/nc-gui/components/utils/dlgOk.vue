@@ -11,7 +11,6 @@
         <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
-        <!-- <v-toolbar dense height="30">{{ this.heading }}</v-toolbar> -->
         <v-card-title class="grey darken-1 subheading" style="height:30px">
           {{ title || '' }}
         </v-card-title>
@@ -19,7 +18,6 @@
         <v-card-text class="pt-4 pl-4">
           <span class="headline ">{{ heading }}</span>
         </v-card-text>
-        <!--        <v-divider></v-divider>-->
 
         <v-card-actions class="pa-4">
           <v-spacer />

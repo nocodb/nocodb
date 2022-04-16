@@ -89,28 +89,32 @@ const mssql = {
       .raw(`CAST(${args.fn(args.pt.arguments[0])} as FLOAT)${args.colAlias}`)
       .wrap('(', ')');
   },
-  DATE_ADD: (args: MapFnArgs) => {
-    return args.knex.raw(
+  DATE_ADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return knex.raw(
       `CASE
-      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN
-        FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
-        +${args.fn(args.pt.arguments[1])}, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
+      WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
+        FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
+        +${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
       ELSE
-       FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
-        +${args.fn(args.pt.arguments[1])}, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd')
-      END${args.colAlias}`
+       FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
+        +${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd')
+      END${colAlias}`
     );
   },
-  DATE_SUB: (args: MapFnArgs) => {
-    return args.knex.raw(
+  DATE_SUB: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return knex.raw(
       `CASE
-      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN
-        FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
-        -${args.fn(args.pt.arguments[1])}.argument.value, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
+      WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
+        FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
+        -${fn(pt.arguments[1])}.argument.value, ${fn(
+        pt.arguments[0]
+      )}), 'yyyy-MM-dd HH:mm')
       ELSE
-       FORMAT(DATEADD(${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}, 
-        -${args.fn(args.pt.arguments[1])}.argument.value, ${args.fn(args.pt.arguments[0])}), 'yyyy-MM-dd')
-      END${args.colAlias}`
+       FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
+        -${fn(pt.arguments[1])}.argument.value, ${fn(
+        pt.arguments[0]
+      )}), 'yyyy-MM-dd')
+      END${colAlias}`
     );
   }
 };

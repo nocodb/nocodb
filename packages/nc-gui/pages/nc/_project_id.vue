@@ -1,23 +1,27 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
-    <splitpanes style="height:calc(100vh - 48px); position: relative;" class="xc-theme nc-dashboard">
-      <pane :min-size="showProjectTree? 10 : 1.5" :size="showProjectTree ? paneSize : 1.5" :max-size="showProjectTree? 50 : 1.5" style="position: relative;overflow-x: hidden">
-        <ProjectTreeView v-show="showProjectTree" ref="treeview" />
+    <splitpanes class="xc-theme nc-dashboard">
+      <pane
+        :min-size="treeViewMinSize"
+        :size="treeViewSize"
+        :max-size="treeViewMaxSize"
+        style="position: relative;overflow-x: hidden"
+      >
+        <ProjectTreeView v-show="enableTree" ref="treeview" />
         <v-btn
           x-small
           icon
           color="grey"
           class="pane-toggle"
-          style="transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);right:-8px"
-          :class="{'pane-toggle-active': showProjectTree}"
+          :class="{'pane-toggle-active': enableTree}"
           @click="toggleTreeView"
         >
           <v-icon x-small color="rgba(127,130,139)">
-            {{ showProjectTree ? 'mdi-arrow-left' : 'mdi-arrow-right' }}
+            {{ enableTree ? 'mdi-arrow-left' : 'mdi-arrow-right' }}
           </v-icon>
         </v-btn>
       </pane>
-      <pane :size="showProjectTree ? 100 - paneSize : 100">
+      <pane :size="projectTabsSize">
         <ProjectTabs :key="pid" @tableCreate="tableCreate" />
       </pane>
     </splitpanes>
@@ -40,12 +44,24 @@ export default {
     return {
       paneSize: 18,
       mainPanelSize: 82,
-      showProjectTree: true
+      enableTree: true
     }
   },
   computed: {
     pid() {
       return this.$route.params.project_id
+    },
+    treeViewMinSize() {
+      return this.enableTree ? 10 : 1.5
+    },
+    treeViewMaxSize() {
+      return this.enableTree ? 50 : 1.5
+    },
+    treeViewSize() {
+      return this.enableTree ? this.paneSize : 1.5
+    },
+    projectTabsSize() {
+      return this.enableTree ? 100 - this.paneSize : 100
     }
   },
   async created() {
@@ -54,7 +70,6 @@ export default {
       (newSize) => { this.paneSize = newSize }
     )
   },
-
   mounted() {
     if ('new' in this.$route.query) {
       this.simpleAnim()
@@ -108,12 +123,17 @@ export default {
       })
     },
     toggleTreeView() {
-      this.showProjectTree = !this.showProjectTree
+      this.enableTree = !this.enableTree
     }
   }
 }
 </script>
 <style scoped>
+.xc-theme{
+  height:calc(100vh - 48px);
+  position: relative;
+}
+
 /deep/ .splitpanes__splitter {
   background: #7f828b33 !important;
   border: #7f828b33 !important;
@@ -133,24 +153,20 @@ export default {
 }
 .pane-toggle {
   position: absolute;
-  right: 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+  right:-8px;
   top: 50%;
   bottom: 50%;
   z-index: 2;
-  transition: 0.3s cubic-bezier(0.25, 0.8, 0.5, 1), all 0s;
-}
-
-.pane-toggle-active {
-
 }
 
 .theme--light .pane-toggle {
-  background-color: #FFFFFF;
+  background-color: var(--v-backgroundColor-base);
   border: 2px solid rgba(0, 0, 0, 0.12);
 }
 
 .theme--dark .pane-toggle {
-  background-color: #363636;
+  background-color: var(--v-backgroundColor-base);
 }
 </style>
 <!--

@@ -1,12 +1,16 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { loginPage } from "../../support/page_objects/navigation";
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {
+    isPostgres,
+    isTestSuiteActive,
+} from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
         before(() => {
+            mainPage.tabReset();
             // loginPage.loginAndOpenProject(type)
             cy.openTableTab("Country", 25);
         });
@@ -20,12 +24,23 @@ export const genTest = (apiType, dbType) => {
             const verifyCsv = (retrievedRecords) => {
                 // expected output, statically configured
                 let storedRecords = [
-                    `Country,Country => City`,
+                    `Country,CityList`,
                     `Afghanistan,Kabul`,
-                    `Algeria,"Batna,Bchar,Skikda"`,
+                    `Algeria,"Batna, Bchar, Skikda"`,
                     `American Samoa,Tafuna`,
-                    `Angola,"Benguela,Namibe"`,
+                    `Angola,"Benguela, Namibe"`,
                 ];
+
+                if (isPostgres()) {
+                    // order of second entry is different
+                    storedRecords = [
+                        `Country,CityList`,
+                        `Afghanistan,Kabul`,
+                        `Algeria,"Skikda, Bchar, Batna"`,
+                        `American Samoa,Tafuna`,
+                        `Angola,"Benguela, Namibe"`,
+                    ];
+                }
 
                 for (let i = 0; i < storedRecords.length - 1; i++) {
                     cy.log(retrievedRecords[i]);

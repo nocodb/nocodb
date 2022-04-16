@@ -6,11 +6,11 @@ category: "Product"
 menuTitle: "Primary value"
 ---
 
-## What is a 'Primary value' ?
+## What is a `Primary Value` ?
 - Primary value as the name stands is the primary or main value within a row of a table that you generally associate that row with.
 - It should be usually associated with a column which is uniquely identifiable. However, this uniqueness is not enforced at the database level.
 
-## What is the use of 'Primary value' ?
+## What is the use of `Primary Value` ?
 - Within a spreadsheet, primary value are always highlighted so that it is easier to recognise what row we are in.
 - And when LinkToAnotherRecord is created between two tables - it is the primary value that appears in LinkToAnotheRecord column. 
 

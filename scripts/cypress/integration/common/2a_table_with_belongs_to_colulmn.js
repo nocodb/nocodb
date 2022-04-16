@@ -1,3 +1,4 @@
+import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
@@ -5,6 +6,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
         before(() => {
+            mainPage.tabReset();
             cy.openTableTab("Country", 25);
         });
 
@@ -21,14 +23,12 @@ export const genTest = (apiType, dbType) => {
 
         it("Expand belongs-to column", () => {
             // expand first row
-            cy.get('td[data-col="Country => City"] div:visible', {
+            cy.get('td[data-col="CityList"] div:visible', {
                 timeout: 12000,
             })
                 .first()
                 .click();
-            cy.get(
-                'td[data-col="Country => City"] div .mdi-arrow-expand:visible'
-            )
+            cy.get('td[data-col="CityList"] div .mdi-arrow-expand:visible')
                 .first()
                 .click();
 

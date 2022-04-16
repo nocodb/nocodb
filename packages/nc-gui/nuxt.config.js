@@ -30,11 +30,22 @@ export default {
     title: 'NocoDB',
     meta: [
       { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: process.env.npm_package_description || '' }
+      {
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1'
+      },
+      {
+        hid: 'description',
+        name: 'description',
+        content: process.env.npm_package_description || ''
+      }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: './favicon-32.png' }
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        href: './favicon-32.png'
+      }
     ]
   },
   /*
@@ -45,20 +56,40 @@ export default {
   ** https://nuxtjs.org/guide/plugins
   */
   plugins: [
+    { src: '~plugins/api.js' },
     '~/plugins/xutils.js',
-    { src: '~plugins/localStorage.js', ssr: false },
-    { src: '~plugins/confetti.js', ssr: false },
-    { src: '~plugins/axiosInterceptor.js', ssr: false },
+    {
+      src: '~plugins/localStorage.js',
+      ssr: false
+    },
+    {
+      src: '~plugins/confetti.js',
+      ssr: false
+    },
+    {
+      src: '~plugins/axiosInterceptor.js',
+      ssr: false
+    },
     '@/plugins/veeValidate',
     '@/plugins/vueTour',
-    { src: '@/plugins/vueShortkey', ssr: false },
+    {
+      src: '@/plugins/vueShortkey',
+      ssr: false
+    },
     '@/plugins/vueClipboard',
     '@/plugins/globalComponentLoader',
     '@/plugins/globalMixin',
     '@/plugins/globalEventBus',
     '@/plugins/ncApis',
     '~/plugins/i18n.js',
-    { src: '~plugins/projectLoader.js', ssr: false }
+    {
+      src: '~plugins/projectLoader.js',
+      ssr: false
+    },
+    {
+      src: '~/plugins/tele.js',
+      ssr: false
+    }
   ],
   /*
   ** Auto import components
@@ -127,7 +158,10 @@ export default {
     ],
     // publicPath: process.env.NODE_ENV === 'production' ? `https://cdn.jsdelivr.net/npm/nc-lib-gui@${version}/lib/dist/` : undefined,
     publicPath: process.env.NODE_ENV === 'production' ? './_nuxt/' : undefined,
-    extend(config, { isDev, isClient }) {
+    extend(config, {
+      isDev,
+      isClient
+    }) {
       if (isDev) {
         config.devtool = isClient ? 'source-map' : 'inline-source-map'
       }

@@ -28,37 +28,43 @@ const pg = {
     );
   },
   MID: 'SUBSTR',
-  FLOAT: (args: MapFnArgs) => {
-    return args.knex
-      .raw(
-        `CAST(${args.fn(args.pt.arguments[0])} as DOUBLE PRECISION)${
-          args.colAlias
-        }`
-      )
+  FLOAT: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return knex
+      .raw(`CAST(${fn(pt.arguments[0])} as DOUBLE PRECISION)${colAlias}`)
       .wrap('(', ')');
   },
-  DATE_ADD: (args: MapFnArgs) => {
-    return args.knex.raw(
+  DATE_ADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return knex.raw(
       `CASE
-      WHEN CAST(${args.fn(args.pt.arguments[0])} AS text) LIKE '%:%' THEN
-        to_char(${args.fn(args.pt.arguments[0])} + INTERVAL '${args.fn(args.pt.arguments[1])} 
-        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD HH24:MI')
+      WHEN CAST(${fn(pt.arguments[0])} AS text) LIKE '%:%' THEN
+        to_char(${fn(pt.arguments[0])} + INTERVAL '${fn(pt.arguments[1])} 
+        ${String(fn(pt.arguments[2])).replace(
+          /["']/g,
+          ''
+        )}', 'YYYY-MM-DD HH24:MI')
       ELSE
-        to_char(${args.fn(args.pt.arguments[0])} + INTERVAL '${args.fn(args.pt.arguments[1])} 
-        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD')
-      END${args.colAlias}`
+        to_char(${fn(pt.arguments[0])} + INTERVAL '${fn(pt.arguments[1])} 
+        ${String(fn(pt.arguments[2])).replace(/["']/g, '')}', 'YYYY-MM-DD')
+      END${colAlias}`
     );
   },
-  DATE_SUB: (args: MapFnArgs) => {
-    return args.knex.raw(
+  DATE_SUB: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return knex.raw(
       `CASE
-      WHEN CAST(${args.fn(args.pt.arguments[0])} AS text) LIKE '%:%' THEN
-        to_char(${args.fn(args.pt.arguments[0])} - INTERVAL '${args.fn(args.pt.arguments[1]).argument.value} 
-        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD HH24:MI')
+      WHEN CAST(${fn(pt.arguments[0])} AS text) LIKE '%:%' THEN
+        to_char(${fn(pt.arguments[0])} - INTERVAL '${
+        fn(pt.arguments[1]).argument.value
+      } 
+        ${String(fn(pt.arguments[2])).replace(
+          /["']/g,
+          ''
+        )}', 'YYYY-MM-DD HH24:MI')
       ELSE
-        to_char(${args.fn(args.pt.arguments[0])} - INTERVAL '${args.fn(args.pt.arguments[1]).argument.value} 
-        ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}', 'YYYY-MM-DD')
-      END${args.colAlias}`
+        to_char(${fn(pt.arguments[0])} - INTERVAL '${
+        fn(pt.arguments[1]).argument.value
+      } 
+        ${String(fn(pt.arguments[2])).replace(/["']/g, '')}', 'YYYY-MM-DD')
+      END${colAlias}`
     );
   }
 };

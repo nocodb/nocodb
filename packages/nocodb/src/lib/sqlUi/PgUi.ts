@@ -103,7 +103,7 @@ export class PgUi {
   static getNewTableColumns() {
     return [
       {
-        cn: 'id',
+        column_name: 'id',
         dt: 'int4',
         dtx: 'integer',
         ct: 'int(11)',
@@ -125,7 +125,7 @@ export class PgUi {
         uicn: ''
       },
       {
-        cn: 'title',
+        column_name: 'title',
         dt: 'character varying',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -147,7 +147,7 @@ export class PgUi {
         uicn: ''
       },
       {
-        cn: 'created_at',
+        column_name: 'created_at',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -169,7 +169,7 @@ export class PgUi {
         uicn: ''
       },
       {
-        cn: 'updated_at',
+        column_name: 'updated_at',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -196,7 +196,7 @@ export class PgUi {
 
   static getNewColumn(suffix) {
     return {
-      cn: 'title' + suffix,
+      column_name: 'title' + suffix,
       dt: 'int4',
       dtx: 'specificType',
       ct: 'integer(11)',
@@ -1227,7 +1227,7 @@ export class PgUi {
           const column = {
             dp: null,
             tn,
-            cn: keys[i],
+            column_name: keys[i],
             cno: keys[i],
             np: 10,
             ns: 0,

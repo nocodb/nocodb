@@ -523,7 +523,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
 
   }*/
 
-  protected _getUIDataType(col): any {
+  getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';

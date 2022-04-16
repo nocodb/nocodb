@@ -27,11 +27,11 @@
           <tbody>
             <tr v-if="currentView">
               <td class="font-weight-bold caption text-left">
-                <v-icon v-if="viewIcons[currentView.view_type]" small :color="viewIcons[currentView.view_type].color">
-                  {{ viewIcons[currentView.view_type].icon }}
+                <v-icon v-if="viewIcons[currentView.type]" small :color="viewIcons[currentView.type].color">
+                  {{ viewIcons[currentView.type].icon }}
                 </v-icon>
 
-                {{ currentView.view_name }}
+                {{ currentView.title }}
               </td>
               <td class="caption text-left">
                 <nuxt-link :to="sharedViewUrl(currentView)">
@@ -63,13 +63,13 @@
               </td>
             </tr>
             <template v-if="allSharedLinks">
-              <tr v-for="link of viewsList" :key="link.id">
+              <tr v-for="link of viewList" :key="link.id">
                 <td class="caption text-left">
-                  <v-icon v-if="viewIcons[link.view_type]" small :color="viewIcons[link.view_type].color">
-                    {{ viewIcons[link.view_type].icon }}
+                  <v-icon v-if="viewIcons[link.type]" small :color="viewIcons[link.type].color">
+                    {{ viewIcons[link.type].icon }}
                   </v-icon>
 
-                  {{ link.view_name }}
+                  {{ link.title }}
                 </td>
                 <td class="caption text-left">
                   <nuxt-link :to="sharedViewUrl(link)">
@@ -117,13 +117,15 @@
 </template>
 
 <script>
+import { ViewTypes } from 'nocodb-sdk'
 import viewIcons from '~/helpers/viewIcons'
+import { copyTextToClipboard } from '~/helpers/xutils'
 
 export default {
   name: 'SharedViewsList',
-  props: ['modelName', 'nodes', 'selectedView'],
+  props: ['modelName', 'nodes', 'selectedView', 'meta'],
   data: () => ({
-    viewsList: null,
+    viewList: null,
     currentView: null,
     viewIcons,
     allSharedLinks: false
@@ -138,36 +140,31 @@ export default {
   },
   methods: {
     copyLink(view) {
-      this.$clipboard(`${this.dashboardUrl}#${this.sharedViewUrl(view)}`)
+      copyTextToClipboard(`${this.dashboardUrl}#${this.sharedViewUrl(view)}`)
       this.$toast.info('Copied to clipboard').goAway(1000)
     },
     async loadSharedViewsList() {
-      const viewsList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'listSharedViewLinks', {
-        model_name: this.modelName
-      }])
+      // const viewList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'listSharedViewLinks', {
+      //   model_name: this.modelName
+      // }])
 
-      const index = viewsList.findIndex((v) => {
-        if (this.selectedView) {
-          // if current view is main view compare with model name
-          return (['table', 'view'].includes(this.selectedView.type) ? this.modelName : this.selectedView.title) === v.view_name
-        } else {
-          return (v.view_name || '').toLowerCase() === (this.$route.query.view || '').toLowerCase()
-        }
+      const viewList = (await this.$api.dbViewShare.list(this.meta.id))
+
+      const index = viewList.findIndex((v) => {
+        return this.selectedView && this.selectedView.id === v.id
       })
 
       if (index > -1) {
-        this.currentView = viewsList.splice(index, 1)[0]
+        this.currentView = viewList.splice(index, 1)[0]
       } else {
         this.currentView = null
       }
 
-      this.viewsList = viewsList
+      this.viewList = viewList
     },
     async deleteLink(id) {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: this.nodes.dbAlias }, 'deleteSharedViewLink', {
-          id
-        }])
+        await this.$api.dbViewShare.delete(id)
         this.$toast.success('Deleted shared view successfully').goAway(3000)
         await this.loadSharedViewsList()
       } catch (e) {
@@ -176,17 +173,17 @@ export default {
     },
     sharedViewUrl(view) {
       let viewType
-      switch (view.view_type) {
-        case 'form':
+      switch (view.type) {
+        case ViewTypes.FORM:
           viewType = 'form'
           break
-        case 'kanban':
+        case ViewTypes.KANBAN:
           viewType = 'kanban'
           break
         default:
           viewType = 'view'
       }
-      return `/nc/${viewType}/${view.view_id}`
+      return `/nc/${viewType}/${view.uuid}`
     }
   }
 }

@@ -7,6 +7,7 @@
         dense
         class="caption"
         label="Currency Locale"
+        :rules="[isValidCurrencyLocale]"
         outlined
         hide-details
       />
@@ -18,6 +19,7 @@
         dense
         class="caption"
         label="Currency Code"
+        :rules="[isValidCurrencyCode]"
         outlined
         hide-details
       />
@@ -26,12 +28,24 @@
 </template>
 
 <script>
+import { validateCurrencyCode } from '~/helpers'
+
 export default {
   name: 'CurrencyOptions',
   props: ['nodes', 'column', 'meta', 'isSQLite', 'alias'],
   data: () => ({
     currency_locale: '',
-    currency_code: ''
+    currency_code: '',
+    isValidCurrencyLocale: (value) => {
+      try {
+        return Intl.NumberFormat.supportedLocalesOf(value).length > 0
+      } catch (e) {
+        return 'Invalid locale'
+      }
+    },
+    isValidCurrencyCode: (value) => {
+      return validateCurrencyCode(value) || 'Invalid Currency Code'
+    }
   }),
   watch: {
     currency_locale(v, o) {

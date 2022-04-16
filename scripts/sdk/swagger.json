@@ -170,7 +170,7 @@
     "/api/v1/db/auth/user/me": {
       "parameters": [],
       "get": {
-        "summary": "User Info",
+        "summary": "User info",
         "operationId": "auth-me",
         "responses": {
           "200": {
@@ -216,7 +216,7 @@
     },
     "/api/v1/db/auth/password/forgot": {
       "post": {
-        "summary": "Password Forgot",
+        "summary": "Password forgot",
         "operationId": "auth-password-forgot",
         "responses": {
           "200": {
@@ -250,7 +250,7 @@
     },
     "/api/v1/db/auth/password/change": {
       "post": {
-        "summary": "Password Change",
+        "summary": "Password change",
         "operationId": "auth-password-change",
         "responses": {
           "200": {
@@ -338,7 +338,7 @@
     },
     "/api/v1/db/auth/token/validate/{token}": {
       "post": {
-        "summary": "Reset Token Verify",
+        "summary": "Reset token verify",
         "operationId": "auth-password-reset-token-validate",
         "responses": {
           "200": {
@@ -363,7 +363,7 @@
     },
     "/api/v1/db/auth/email/validate/{token}": {
       "post": {
-        "summary": "Verify Email",
+        "summary": "Verify email",
         "operationId": "auth-email-validate",
         "responses": {
           "200": {
@@ -388,7 +388,7 @@
     },
     "/api/v1/db/auth/password/reset/{token}": {
       "post": {
-        "summary": "Password Reset",
+        "summary": "Password reset",
         "operationId": "auth-password-reset",
         "responses": {
           "200": {
@@ -427,7 +427,7 @@
     },
     "/api/v1/db/auth/token/refresh": {
       "post": {
-        "summary": "Refresh Token",
+        "summary": "Refresh token",
         "operationId": "auth-token-refresh",
         "responses": {
           "200": {
@@ -443,7 +443,7 @@
     },
     "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
-        "summary": "Project Users",
+        "summary": "Project users",
         "operationId": "auth-project-user-list",
         "responses": {
           "200": {
@@ -531,7 +531,7 @@
         }
       ],
       "get": {
-        "summary": "Project Info",
+        "summary": "Project info",
         "operationId": "project-meta-get",
         "responses": {
           "200": {
@@ -596,7 +596,7 @@
         }
       ],
       "patch": {
-        "summary": "Project User Update",
+        "summary": "Project user update",
         "operationId": "auth-project-user-update",
         "responses": {
           "200": {
@@ -620,7 +620,7 @@
         ]
       },
       "delete": {
-        "summary": "Project User Remove",
+        "summary": "Project user remove",
         "operationId": "auth-project-user-remove",
         "responses": {
           "200": {
@@ -706,7 +706,7 @@
     "/api/v1/db/meta/projects/": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "Project list",
         "operationId": "project-list",
         "responses": {
           "201": {
@@ -750,7 +750,7 @@
         ]
       },
       "post": {
-        "summary": "",
+        "summary": "Project create",
         "operationId": "project-create",
         "responses": {
           "200": {
@@ -803,7 +803,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Project read",
         "operationId": "project-read",
         "description": "Read project details",
         "parameters": [
@@ -834,7 +834,7 @@
         }
       },
       "delete": {
-        "summary": "",
+        "summary": "Project delete",
         "operationId": "project-delete",
         "responses": {
           "200": {
@@ -2456,7 +2456,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Table row list",
         "operationId": "db-table-row-list",
         "description": "",
         "tags": [
@@ -2497,7 +2497,7 @@
         }
       },
       "post": {
-        "summary": "",
+        "summary": "Table row create",
         "operationId": "db-table-row-create",
         "responses": {
           "200": {
@@ -2549,7 +2549,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "table rows count",
         "operationId": "db-table-row-count",
         "description": "",
         "tags": [
@@ -2618,7 +2618,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Table view row list",
         "operationId": "db-view-row-list",
         "description": "",
         "tags": [
@@ -2665,7 +2665,7 @@
         }
       },
       "post": {
-        "summary": "",
+        "summary": "Table view row create",
         "operationId": "db-view-row-create",
         "responses": {
           "200": {
@@ -2725,7 +2725,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Table view rows count",
         "operationId": "db-view-row-count",
         "description": "",
         "tags": [
@@ -2802,7 +2802,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Table view row read",
         "operationId": "db-view-row-read",
         "responses": {
           "201": {
@@ -2820,7 +2820,7 @@
         ]
       },
       "patch": {
-        "summary": "",
+        "summary": "Table view row update",
         "operationId": "db-view-row-update",
         "responses": {
           "200": {
@@ -2844,7 +2844,7 @@
         }
       },
       "delete": {
-        "summary": "",
+        "summary": "Table view row delete",
         "operationId": "db-view-row-delete",
         "responses": {
           "200": {
@@ -2893,7 +2893,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Table row read",
         "operationId": "db-table-row-read",
         "responses": {
           "201": {
@@ -2911,7 +2911,7 @@
         ]
       },
       "patch": {
-        "summary": "",
+        "summary": "Table row update",
         "operationId": "db-table-row-update",
         "responses": {
           "200": {
@@ -3172,7 +3172,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Table view rows export",
         "operationId": "db-view-row-export",
         "description": "CSV or Excel export",
         "tags": [
@@ -3239,7 +3239,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Tablerows export",
         "operationId": "db-table-row-csv-export",
         "description": "CSV or Excel export",
         "tags": [
@@ -3322,7 +3322,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Nested relations row list",
         "operationId": "db-table-row-nested-list",
         "responses": {
           "200": {
@@ -3419,7 +3419,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Nested relations row add",
         "operationId": "db-table-row-nested-add",
         "responses": {
           "200": {
@@ -3449,10 +3449,11 @@
             "in": "query",
             "name": "offset"
           }
-        ]
+        ],
+        "description": ""
       },
       "delete": {
-        "summary": "",
+        "summary": "Nested relations row remove",
         "operationId": "db-table-row-nested-remove",
         "responses": {
           "200": {
@@ -3525,7 +3526,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Referenced tables rows excluding current records children/parent",
         "operationId": "db-table-row-nested-children-excluded-list",
         "responses": {
           "200": {

@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="project-container ma-0 pa-0 " style="position: relative">
+  <v-container fluid class="ph-no-capture project-container ma-0 pa-0 " style="position: relative">
     <v-tabs
       ref="projectTabs"
       v-model="activeTab"
@@ -26,13 +26,6 @@
         <v-icon v-if="treeViewIcons[tab._nodes.type]" icon :small="true">
           {{ treeViewIcons[tab._nodes.type].openIcon }}
         </v-icon>
-
-        <!--        <v-progress-circular-->
-        <!--          v-if="operationTab === index"-->
-        <!--          :value="100"-->
-        <!--          :size="20" class="mr-2"-->
-        <!--          indeterminate-->
-        <!--        ></v-progress-circular>-->
         <span
           class="flex-grow-1 caption font-weight-bold text-capitalize mx-2"
           style="
@@ -71,7 +64,15 @@
           </div>
           <div v-else-if="tab._nodes.type === 'view'" style="height:100%">
             <!--            <sqlLogAndOutput>-->
-            <ViewTab :ref="'tabs'+index" :nodes="tab._nodes" />
+            <!--            <ViewTab :ref="'tabs'+index" :nodes="tab._nodes" />-->
+            <TableView
+              :ref="'tabs'+index"
+              :is-active="activeTab === `${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
+              :tab-id="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
+              :hide-log-windows.sync="hideLogWindows"
+              :nodes="tab._nodes"
+              is-view
+            />
             <!--            </sqlLogAndOutput>-->
           </div>
           <div v-else-if="tab._nodes.type === 'function'" style="height:100%">
@@ -95,13 +96,7 @@
               class="backgroundColor"
               :nodes="tab._nodes"
             />
-            <!--            <sqlLogAndOutput>-->
-            <!--              <DbTab :nodes="tab._nodes" :ref="'tabs'+index"/>-->
-            <!--            </sqlLogAndOutput>-->
           </div>
-          <!--        <div v-else-if="tab._nodes.type === 'sqlEditor'">-->
-          <!--          <SqlEditorTab :nodes="tab._nodes" ref=tabs/>-->
-          <!--        </div>-->
           <div v-else-if="tab._nodes.type === 'seedParserDir'" style="height:100%">
             <sqlLogAndOutput>
               <SeedTab :ref="'tabs'+index" :nodes="tab._nodes" />
@@ -113,10 +108,6 @@
               class="backgroundColor"
               :nodes="tab._nodes"
             />
-
-            <!--            <sqlLogAndOutput>-->
-            <!--              <DbTab :nodes="tab._nodes" :ref="'tabs'+index"/>-->
-            <!--            </sqlLogAndOutput>-->
           </div>
           <div v-else-if="tab._nodes.type === 'apisDir'" style="height:100%">
             <ApisTab
@@ -259,31 +250,17 @@
         :tooltip="$t('tooltip.addTable')"
         icon-class="add-btn"
         :color="[ 'white','grey lighten-2']"
-        @click="dialogCreateTableShow = true"
+        @click="dialogCreateTableShowMethod"
       >
         mdi-plus-box
       </x-icon>
       <v-spacer />
-      <!--      <div
-        class="powered-by align-self-center  grey&#45;&#45;text text&#45;&#45;lighten-3 d-flex align-center"
-        style="margin-right: 34px;font-size: .65rem ;"
-      >
-        <span>Powered by <a
-          href="https://nocodb.com"
-          target="_blank"
-          class=" white&#45;&#45;text"
-          style="text-decoration: none"
-        >NocoDB</a></span>
-        <v-icon x-small class="ml-1 powered-by-close" color="grey lighten-1" @click="upgradeToEE">
-          mdi-close-circle
-        </v-icon>
-      </div>-->
     </v-tabs>
 
     <dlg-table-create
       v-if="dialogCreateTableShow"
       v-model="dialogCreateTableShow"
-      @create="$emit('tableCreate',$event); dialogCreateTableShow =false;"
+      @create="$emit('tableCreate',$event); dialogCreateTableShow =false; teleTblCreate()"
     />
 
     <!--    <screensaver v-if="showScreensaver && !($store.state.project.projectInfo && $store.state.project.projectInfo.ncMin)" class="screensaver" />-->
@@ -292,17 +269,12 @@
 
 <script>
 import { mapGetters, mapMutations } from 'vuex'
-// import Roles from '@/components/auth/roles'
-// import CreateOrEditProject from '@/components/createOrEditProject'
 import treeViewIcons from '../helpers/treeViewIcons'
 import TableView from './project/table'
-import ViewTab from './project/view'
 import FunctionTab from './project/function'
 import ProcedureTab from './project/procedure'
 import SequenceTab from './project/sequence'
 import SeedTab from './project/seed'
-// import DbTab from "./project/auditTab/db";
-// import SqlEditorTab from "./project/sqlClient";
 import SqlClientTab from './project/sqlClient'
 import ApisTab from './project/apis'
 import ApiClientTab from './project/apiClientOld'
@@ -314,7 +286,6 @@ import ApiClientSwaggerTab from './project/apiClientSwagger'
 import XcMeta from './project/settings/xcMeta'
 import XcInfo from './project/xcInfo'
 import SwaggerClient from '@/components/project/swaggerClient'
-// import Screensaver from '@/components/screensaver'
 import DlgTableCreate from '@/components/utils/dlgTableCreate'
 import AppStore from '@/components/project/appStore'
 import AuthTab from '@/components/authTab'
@@ -344,11 +315,8 @@ export default {
     XcMeta,
     ApiClientSwaggerTab,
     TableView,
-    ViewTab,
     FunctionTab,
     ProcedureTab,
-    // DbTab,
-    // SqlEditorTab,
     ApisTab,
     SqlClientTab,
     ApiClientTab,
@@ -368,6 +336,13 @@ export default {
     }
   },
   methods: {
+    dialogCreateTableShowMethod() {
+      this.dialogCreateTableShow = true
+      this.$tele.emit('table:create:trigger:mdi-plus-box')
+    },
+    teleTblCreate() {
+      this.$tele.emit('table:create:submit')
+    },
     checkInactiveState() {
       let position = 0
       let idleTime = 0
@@ -411,7 +386,6 @@ export default {
       }
     },
     async handleKeyDown(event) {
-      console.log('======== project tabs key handler')
       const activeTabEleKey = `tabs${this.activeTab}`
       let isHandled = false
 
@@ -436,12 +410,6 @@ export default {
       updateActiveTabx: 'tabs/activeTabCtx'
     }),
     tabActivated(tab) {
-
-      // if (tab._nodes.type === 'apiClientDir' || tab._nodes.type === 'sqlClientDir' || tab._nodes.type === 'sqlEditor') {
-      //   this.$store.commit('windows/MutToggleLogWindowFromTab', {client: true, status: true});
-      // } else {
-      //   this.$store.commit('windows/MutToggleLogWindowFromTab', {client: false, status: false});
-      // }
     }
   },
   computed: {
@@ -450,14 +418,6 @@ export default {
       return this.$route.params.project_id
     },
     activeTab: {
-      // get() {
-      //   console.log('activateTab========== get', this.$store.state.tabs.activeTab)
-      //   return this.$store.state.tabs.activeTab;
-      // },
-      // set(val) {
-      //   console.log('activateTab========== set', val)
-      //   this.setActiveTab(val);
-      // }
       set(tab) {
         if (!tab) {
           return this.$router.push({
@@ -483,36 +443,12 @@ export default {
   beforeCreated() {
   },
   watch: {
-    // tabs() {
-    // if (this.tabs.length > 0) {
-    //   const index = this.tabs.length - 1;
-    //   if (this.activeTab !==0 && this.activeTab === index)
-    //     this.setActiveTab(index - 1)
-    //   setTimeout(() => this.setActiveTab(index));
-    //   // this.$refs.projectTabs.onResize();
-    // }
-    // }
   },
   created() {
     document.addEventListener('keydown', this.handleKeyDown)
     /**
      * Listening for tab change so that we can hide/show projectlogs based on tab
      */
-    // this.$store.watch(
-    //   function (state) {
-    //     return state.tabs.activeTabCtx;
-    //   },
-    //   () => {
-    //     const tab = this.tabs[this.$store.state.tabs.activeTab];
-    //     if (tab)
-    //       this.tabActivated(tab)
-    //   },
-    //   // {
-    //   //   deep: true //add this if u need to watch object properties change etc.
-    //   // }
-    // );
-
-    // this.checkInactiveState()
   },
   mounted() {
   },

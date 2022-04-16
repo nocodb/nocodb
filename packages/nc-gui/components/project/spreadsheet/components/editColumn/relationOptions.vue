@@ -12,8 +12,8 @@
           label="Reference Table"
           :full-width="false"
           :items="refTables"
-          item-text="_tn"
-          item-value="tn"
+          item-text="title"
+          item-value="table_name"
           required
           dense
           @change="loadColumnList"
@@ -31,8 +31,8 @@
           label="Reference Column"
           :full-width="false"
           :items="refColumns"
-          item-text="_cn"
-          item-value="cn"
+          item-text="title"
+          item-value="column_name"
           required
           dense
           @change="onColumnSelect"
@@ -117,7 +117,7 @@ export default {
     }
   },
   watch: {
-    'column.cn'(c) {
+    'column.column_name'(c) {
       this.$set(this.relation, 'childColumn', c)
     },
     isSQLite(v) {
@@ -127,8 +127,8 @@ export default {
   async created() {
     await this.loadTablesList()
     this.relation = {
-      childColumn: this.column.cn,
-      childTable: this.nodes.tn,
+      childColumn: this.column.column_name,
+      childTable: this.nodes.table_name,
       parentTable: this.column.rtn || '',
       parentColumn: this.column.rcn || '',
       onDelete: 'NO ACTION',
@@ -148,7 +148,7 @@ export default {
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
-      }, 'columnList', { tn: this.relation.parentTable }])
+      }, 'columnList', { table_name: this.relation.parentTable }])
 
       const columns = result.data.list
       this.refColumns = JSON.parse(JSON.stringify(columns))
@@ -160,7 +160,7 @@ export default {
       } else {
         // find pk column and assign to parentColumn
         const pkKeyColumns = this.refColumns.filter(el => el.pk)
-        this.relation.parentColumn = (pkKeyColumns[0] || {}).cn || ''
+        this.relation.parentColumn = (pkKeyColumns[0] || {}).column_name || ''
       }
       this.onColumnSelect()
 
@@ -174,7 +174,7 @@ export default {
         dbAlias: this.nodes.dbAlias
       }, 'tableList'])
 
-      this.refTables = result.data.list.map(({ tn, _tn }) => ({ tn, _tn }))
+      this.refTables = result.data.list.map(({ table_name, title }) => ({ table_name, title }))
       this.isRefTablesLoading = false
     },
     async saveRelation() {
@@ -187,12 +187,9 @@ export default {
         this.relation.type === 'real' && !this.isSQLite ? 'relationCreate' : 'xcVirtualRelationCreate',
         { alias: this.alias, ...this.relation }
       ])
-      // } catch (e) {
-      //   throw e
-      // }
     },
     onColumnSelect() {
-      const col = this.refColumns.find(c => this.relation.parentColumn === c.cn)
+      const col = this.refColumns.find(c => this.relation.parentColumn === c.column_name)
       this.$emit('onColumnSelect', col)
     }
   }

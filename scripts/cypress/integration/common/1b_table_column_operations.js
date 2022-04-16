@@ -29,6 +29,7 @@ export const genTest = (apiType, dbType) => {
         const updatedRandVal = "Updated@1234.com";
 
         before(() => {
+            mainPage.tabReset();
             cy.createTable(name);
         });
 

@@ -16,9 +16,7 @@ export default async({ store }) => {
             ga('send', 'event', `${store.state.windows.isComp}\\${cat}`, action, label)
           }
           ga('send', 'event', cat, action, label)
-        } catch (e) {
-          console.log('GA Error')
-        }
+        } catch {}
       }
     }
   }

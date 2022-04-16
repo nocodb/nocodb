@@ -127,7 +127,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
       const viewMeta = await this.xcMeta.metaGet(
         sharedViewMeta.project_id,
-        sharedViewMeta.db_alias,
+        sharedViewMeta.base_id,
         'nc_models',
         {
           title: sharedViewMeta.view_name
@@ -144,7 +144,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
       const apiBuilder = this.app?.projectBuilders
         ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
       const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
 
       let meta = apiBuilder?.getMeta(sharedViewMeta.model_name);
@@ -271,7 +271,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/form/${sharedView.view_id}`;
       } else if (args.args.show_as === 'gallery') {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/gallery/${sharedView.view_id}`;
-      } else if(args.args.show_as === 'kanban') {
+      } else if (args.args.show_as === 'kanban') {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/kanban/${sharedView.view_id}`;
       } else {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${sharedView.view_id}`;

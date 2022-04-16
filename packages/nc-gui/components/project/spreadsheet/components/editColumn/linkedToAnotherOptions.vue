@@ -13,13 +13,12 @@
           >
             <v-radio value="hm" label="Has Many" />
             <v-radio value="mm" label="Many To Many" />
-            <!--            <v-radio disabled value="oo" label="One To One" />-->
           </v-radio-group>
         </v-col>
         <v-col cols="12">
           <v-autocomplete
             ref="input"
-            v-model="relation.childTable"
+            v-model="relation.childId"
             outlined
             class="caption"
             hide-details="auto"
@@ -27,8 +26,8 @@
             :label="$t('labels.childTable')"
             :full-width="false"
             :items="refTables"
-            item-text="_tn"
-            item-value="tn"
+            item-text="title"
+            item-value="id"
             required
             dense
             :rules="tableRules"
@@ -53,23 +52,7 @@
     </v-container>
 
     <v-container v-show="advanceOptions" fluid class="wrapper">
-      <v-row>
-        <!--    <v-col cols="6">
-              <v-text-field
-                outlined
-                class="caption"
-                hide-details
-                :label="$t('labels.childColumn')"
-                :full-width="false"
-                v-model="relation.childColumn"
-                required
-                dense
-                ref="childColumnRef"
-                @change="onColumnSelect"
-              ></v-text-field>
-            </v-col
-            >-->
-      </v-row>
+      <v-row />
       <template v-if="!isSQLite">
         <v-row>
           <v-col cols="6">
@@ -83,7 +66,7 @@
               :items="onUpdateDeleteOptions"
               required
               dense
-              :disabled="relation.type !== 'real'"
+              :disabled="relation.virtual"
             />
           </v-col>
           <v-col cols="6">
@@ -97,30 +80,30 @@
               :items="onUpdateDeleteOptions"
               required
               dense
-              :disabled="relation.type !== 'real'"
-            />
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-checkbox
-              v-model="relation.type"
-              false-value="real"
-              true-value="virtual"
-              label="Virtual Relation"
-              :full-width="false"
-              required
-              class="mt-0"
-              dense
+              :disabled="relation.virtual"
             />
           </v-col>
         </v-row>
       </template>
+      <v-row>
+        <v-col>
+          <v-checkbox
+            v-model="relation.virtual"
+            label="Virtual Relation"
+            :full-width="false"
+            required
+            class="mt-0"
+            dense
+          />
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
 
 <script>
+import { ModelTypes, UITypes } from 'nocodb-sdk'
+
 export default {
   name: 'LinkedToAnotherOptions',
   props: ['nodes', 'column', 'meta', 'isSQLite', 'alias'],
@@ -147,159 +130,47 @@ export default {
       ]
     },
     tableRules() {
-      return [
-        v => !!v || 'Required',
-        (v) => {
-          if (this.type === 'mm') {
-            return !(this.meta.manyToMany || [])
-              .some(mm => (mm.tn === v && mm.rtn === this.meta.tn) || (mm.rtn === v && mm.tn === this.meta.tn)) ||
-              'Duplicate many to many relation is not allowed at the moment'
-          }
-          if (this.type === 'hm') {
-            return !(this.meta.hasMany || [])
-              .some(hm => hm.tn === v) ||
-              'Duplicate has many relation is not allowed at the moment'
-          }
-        }
-      ]
+      return []
     }
   },
   async created() {
     await this.loadTablesList()
     this.relation = {
-      childColumn: `${this.meta.tn}_id`,
-      childTable: this.nodes.tn,
+      parentId: null,
+      childID: null,
+      childColumn: `${this.meta.table_name}_id`,
+      childTable: this.nodes.table_name,
       parentTable: this.column.rtn || '',
       parentColumn: this.column.rcn || '',
       onDelete: 'NO ACTION',
       onUpdate: 'NO ACTION',
       updateRelation: !!this.column.rtn,
-      type: 'real'
+      virtual: this.isSQLite
     }
   },
   methods: {
-    async loadColumnList() {
-      this.isRefColumnsLoading = true
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'columnList', { tn: this.meta.tn }])
-
-      const columns = result.data.list
-      this.refColumns = JSON.parse(JSON.stringify(columns))
-
-      if (this.relation.updateRelation && !this.relationColumnChanged) {
-        // only first time when editing add defaault value to this field
-        this.relation.parentColumn = this.column.rcn
-        this.relationColumnChanged = true
-      } else {
-        // find pk column and assign to parentColumn
-        const pkKeyColumns = this.refColumns.filter(el => el.pk)
-        this.relation.parentColumn = (pkKeyColumns[0] || {}).cn || ''
-      }
-      this.onColumnSelect()
-
-      this.isRefColumnsLoading = false
-    },
     async loadTablesList() {
       this.isRefTablesLoading = true
 
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableList'])
+      const result = (await this.$api.dbTable.list(this.$store.state.project.projectId, this.$store.state.project.project.bases[0].id))
+        .list.filter(t => t.type === ModelTypes.TABLE)
 
-      this.refTables = result.data.list.map(({ tn, _tn }) => ({ tn, _tn }))
+      this.refTables = result // .data.list.map(({ table_name, title }) => ({ table_name, title }))
       this.isRefTablesLoading = false
     },
-    async saveManyToMany() {
-      // try {
-      // todo: toast
-      await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
-        {
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        },
-        'xcM2MRelationCreate',
-        {
-          _cn: this.alias,
-          ...this.relation,
-          type: this.isSQLite || this.relation.type === 'virtual' ? 'virtual' : 'real',
-          parentTable: this.meta.tn,
-          updateRelation: !!this.column.rtn,
-          alias: this.alias
-        }
-      ])
-      // } catch (e) {
-      //   throw e
-      // }
-    },
     async saveRelation() {
-      if (this.type === 'mm') {
-        await this.saveManyToMany()
-        return
-      }
-      // try {
-      const parentPK = this.meta.columns.find(c => c.pk)
-
-      const childTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableXcModelGet', {
-        tn: this.relation.childTable
-      }])
-
-      const childMeta = JSON.parse(childTableData.meta)
-
-      const newChildColumn = {}
-
-      Object.assign(newChildColumn, {
-        cn: this.relation.childColumn,
-        _cn: this.relation.childColumn,
-        rqd: false,
-        pk: false,
-        ai: false,
-        cdf: null,
-        dt: parentPK.dt,
-        dtxp: parentPK.dtxp,
-        dtxs: parentPK.dtxs,
-        un: parentPK.un,
-        altered: 1
+      await this.$api.dbTableColumn.create(this.meta.id, {
+        ...this.relation,
+        parentId: this.meta.id,
+        uidt: UITypes.LinkToAnotherRecord,
+        title: this.alias,
+        type: this.type
       })
 
-      const columns = [...childMeta.columns, newChildColumn]
-
-      await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableUpdate', {
-        tn: childMeta.tn,
-        _tn: childMeta._tn,
-        originalColumns: childMeta.columns,
-        columns
-      }])
-
-      await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
-        {
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        },
-        this.relation.type === 'real' && !this.isSQLite ? 'relationCreate' : 'xcVirtualRelationCreate',
-        {
-          ...this.relation,
-          parentTable: this.meta.tn,
-          parentColumn: parentPK.cn,
-          updateRelation: !!this.column.rtn,
-          type: 'real',
-          alias: this.alias
-        }
-      ])
-      // } catch (e) {
-      //   throw e
-      // }
+      await this.$store.dispatch('meta/ActLoadMeta', { id: this.relation.childId, force: true })
     },
     onColumnSelect() {
-      const col = this.refColumns.find(c => this.relation.parentColumn === c.cn)
+      const col = this.refColumns.find(c => this.relation.parentColumn === c.column_name)
       this.$emit('onColumnSelect', col)
     }
   }

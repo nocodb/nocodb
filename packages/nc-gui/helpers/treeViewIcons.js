@@ -1,3 +1,5 @@
+import { ModelTypes } from 'nocodb-sdk'
+
 export default {
   projectsDir: {
     class: '',
@@ -112,6 +114,20 @@ export default {
     color: 'secondary',
     openColor: '',
     openIcon: 'mdi-eye-circle-outline'
+  },
+  [ModelTypes.VIEW]: {
+    class: '',
+    icon: 'mdi-eye-circle-outline',
+    color: 'secondary',
+    openColor: '',
+    openIcon: 'mdi-eye-circle-outline'
+  },
+  [ModelTypes.TABLE]: {
+    class: '',
+    icon: 'mdi-table-large',
+    color: 'primary',
+    openColor: '',
+    openIcon: 'mdi-table-large'
   },
   functionDir: {
     class: '',

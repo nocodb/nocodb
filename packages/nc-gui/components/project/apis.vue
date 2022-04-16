@@ -204,8 +204,6 @@ export default {
       _nodes.type = 'apiClientDir'
       _nodes.url = url
       const tabIndex = this.tabs.findIndex(el => el.key === _nodes.key)
-      console.log('apis node', this.nodes)
-      console.log('apiClient node', _nodes)
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex)
       } else {

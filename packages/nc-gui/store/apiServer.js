@@ -11,13 +11,9 @@ export const mutations = {
     state.servers[args.key] = args
     state.servers = { ...state.servers }
     // state.servers[args.key].alive = true;
-
-    console.log('MutAddServer', state.servers)
   },
 
   MutRemoveServer(state, args) {
-    console.log('MutRemoveServer', args)
-
     if (args.key in state.servers) {
       const temp = state.servers
       delete temp[args.key]
@@ -30,7 +26,6 @@ export const mutations = {
       const temp = state.servers
       state.servers[args.key].cloudUrl = args.cloudUrl
       state.servers = { ...temp }
-      console.log('MutCloudUrl', args)
     }
   }
 

@@ -14,7 +14,7 @@
                        href: '#'
                      },
                      {
-                       text: nodes.tn + ' (ACL)',
+                       text: nodes.table_name + ' (ACL)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -86,7 +86,7 @@
           dense
           hide-details
           class="ma-2"
-          :placeholder="`Search ${nodes.tn} routes`"
+          :placeholder="`Search ${nodes.table_name} routes`"
           prepend-inner-icon="search"
           outlined
         />
@@ -132,13 +132,13 @@ export default {
       // this.policies = (await this.sqlMgr.xcRoutesPolicyGet({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias,
-      //   tn: this.nodes.tn
+      //   tn: this.nodes.table_name
       // })).data.list;
       // this.disableSaveButton = true;
       this.policies = (await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcRoutesPolicyGet', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        tn: this.nodes.tn
+        tn: this.nodes.table_name
       }])).data.list
     },
     reload() {

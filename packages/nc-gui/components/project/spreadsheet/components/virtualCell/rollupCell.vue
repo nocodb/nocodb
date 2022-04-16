@@ -1,6 +1,6 @@
 <template>
   <span>
-    {{ row[column._cn] }}
+    {{ row[column.title] }}
   </span>
 </template>
 

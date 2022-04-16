@@ -27,7 +27,7 @@ export class SqliteUi {
   static getNewTableColumns() {
     return [
       {
-        cn: 'id',
+        column_name: 'id',
         dt: 'integer',
         dtx: 'integer',
         ct: 'int(11)',
@@ -49,7 +49,7 @@ export class SqliteUi {
         uicn: ''
       },
       {
-        cn: 'title',
+        column_name: 'title',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar',
@@ -71,7 +71,7 @@ export class SqliteUi {
         uicn: ''
       },
       {
-        cn: 'created_at',
+        column_name: 'created_at',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar',
@@ -93,7 +93,7 @@ export class SqliteUi {
         uicn: ''
       },
       {
-        cn: 'updated_at',
+        column_name: 'updated_at',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar',
@@ -119,7 +119,7 @@ export class SqliteUi {
 
   static getNewColumn(suffix) {
     return {
-      cn: 'title' + suffix,
+      column_name: 'title' + suffix,
       dt: 'integer',
       dtx: 'specificType',
       ct: 'integer(11)',
@@ -142,122 +142,6 @@ export class SqliteUi {
       uicn: ''
     }
   }
-
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
 
   static getDefaultLengthForDatatype(type) {
     switch (type) {
@@ -426,7 +310,7 @@ export class SqliteUi {
     // console.log(col);
     if (col.dt === 'integer') {
       for (let i = 0; i < columns.length; ++i) {
-        if (columns[i].cn !== col.cn && columns[i].ai) {
+        if (columns[i].column_name !== col.column_name && columns[i].ai) {
           return true
         }
       }
@@ -475,9 +359,9 @@ export class SqliteUi {
         columns[i].dt === 'smallint' ||
         columns[i].dt === 'mediumint'))) {
         columns[i].un = false
-        console.log('>> resetting unsigned value', columns[i].cn)
+        console.log('>> resetting unsigned value', columns[i].column_name)
       }
-      console.log(columns[i].cn)
+      console.log(columns[i].column_name)
     }
   }
 
@@ -549,7 +433,7 @@ export class SqliteUi {
           const column = {
             dp: null,
             tn,
-            cn: keys[i],
+            column_name: keys[i],
             cno: keys[i],
             np: null,
             ns: null,

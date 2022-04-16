@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-toolbar flat height="38" class="toolbar-border-bottom">
+    <v-toolbar flat height="38" class="mt-5">
       <v-spacer />
 
       <x-btn
@@ -27,7 +27,7 @@
         color="primary"
         small
         :disabled="loading"
-        @click="newTokenDialog = true"
+        @click="showNewTokenDlg"
       >
         <v-icon small left>
           mdi-plus
@@ -55,6 +55,17 @@
             </th>
           </tr>
         </thead>
+
+        <tr v-if="!tokens.length">
+          <td colspan="3">
+            <div
+              class="text-center caption grey--text"
+            >
+              No tokens available
+            </div>
+          </td>
+        </tr>
+
         <tr v-for="(token,i) in tokens" :key="i">
           <td class="caption text-center">
             {{ token.description }}
@@ -90,15 +101,15 @@
             </x-icon>
           </td>
         </tr>
-        <tr>
+        <!--        <tr>
           <td colspan="3" class="text-center">
-            <x-btn tooltip="Generate new api token" outlined x-small color="primary" @click="newTokenDialog = true">
+            <x-btn tooltip="Generate new api token" outlined x-small color="primary" @click="showNewTokenDlg">
               <v-icon>mdi-plus</v-icon>
-              <!--Add New Token-->
+              &lt;!&ndash;Add New Token&ndash;&gt;
               {{ $t('activity.newToken') }}
             </x-btn>
           </td>
-        </tr>
+        </tr>-->
       </v-simple-table>
     </v-container>
 
@@ -138,6 +149,8 @@
 </template>
 
 <script>
+import { copyTextToClipboard } from '~/helpers/xutils'
+
 export default {
   name: 'ApiTokens',
   data: () => ({
@@ -150,32 +163,45 @@ export default {
     this.loadApiTokens()
   },
   methods: {
+    showNewTokenDlg() {
+      this.newTokenDialog = true
+      this.$tele.emit('api-mgmt:token:generate:trigger')
+    },
     copyToken(token) {
-      this.$clipboard(token)
+      copyTextToClipboard(token)
       this.$toast.info('Copied to clipboard').goAway(1000)
+
+      this.$tele.emit('api-mgmt:token:copy')
     },
     async loadApiTokens() {
-      this.tokens = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcApiTokenList'])
+      this.tokens = (await this.$api.apiToken.list(this.$store.state.project.projectId))
     },
     async generateToken() {
       try {
         this.newTokenDialog = false
-        this.tokens = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcApiTokenCreate', this.tokenObj])
+        await this.$api.apiToken.create(this.$store.state.project.projectId, this.tokenObj)
         this.$toast.success('Token generated successfully').goAway(3000)
         this.tokenObj = {}
         await this.loadApiTokens()
       } catch (e) {
+        console.log(e)
         this.$toast.error(e.message).goAway(3000)
       }
+
+      this.$tele.emit('api-mgmt:token:generate:submit')
     },
     async deleteToken(item) {
       try {
-        this.tokens = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcApiTokenDelete', { id: item.id }])
+        await this.$api.apiToken.delete(this.$store.state.project.projectId, item.token)
+        // this.tokens = //await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcApiTokenDelete', { id: item.id }])
         this.$toast.success('Token deleted successfully').goAway(3000)
         await this.loadApiTokens()
       } catch (e) {
+        console.log(e)
         this.$toast.error(e.message).goAway(3000)
       }
+
+      this.$tele.emit('api-mgmt:token:delete')
     }
   }
 }

@@ -12,9 +12,6 @@
         md="12"
         class="text-center "
       >
-        <!--      <p class="text-center">
-                <img src="~/assets/img/icons/256.png" width="70" class="mx-auto">
-              </p>-->
 
         <h1 class="mt-8 mb-4 primary--text  mt-1  white--tex mb-0 text-h2 font-weight-black">
           NocoDB <br><span
@@ -25,16 +22,6 @@
         <template v-if="!loading">
           <p class="grey--text text--darken-1 title normal" v-html="message" />
         </template>
-
-        <!--      <div class="d-flex align-center body-2 justify-center grey&#45;&#45;text text&#45;&#45;darken-1 mt-1">-->
-        <!--        Join-->
-        <!--        <gh-btns-star-->
-        <!--          reverse-->
-        <!--          icon="mark-github" slug="nocodb/nocodb" show-count class="mr-1 align-self-center">-->
-        <!--          Developers-->
-
-        <!--        </gh-btns-star> building NoCode applications.-->
-        <!--      </div>-->
 
         <v-btn
           x-large
@@ -59,37 +46,7 @@
           <img src="db/sqlite.svg">
         </div>
       </v-col>
-      <!--        <v-card class="elevation-12" width="100%">-->
-      <!--          <v-toolbar-->
-      <!--            color="primary"-->
-      <!--            dark-->
-      <!--            flat-->
-      <!--          >-->
-      <!--            <v-toolbar-title>Login form</v-toolbar-title>-->
-      <!--            <v-spacer></v-spacer>-->
-      <!--            <v-tooltip bottom>-->
-      <!--              <template v-slot:activator="{ on }">-->
-      <!--                <v-btn-->
-      <!--                  :href="source"-->
-      <!--                  icon-->
-      <!--                  large-->
-      <!--                  target="_blank"-->
-      <!--                  v-on="on"-->
-      <!--                >-->
-      <!--                  <v-icon>mdi-code-tags</v-icon>-->
-      <!--                </v-btn>-->
-      <!--              </template>-->
-      <!--              <span>Source</span>-->
-      <!--            </v-tooltip>-->
-      <!--          </v-toolbar>-->
-      <!--          <v-card-text>-->
 
-      <!--          </v-card-text>-->
-      <!--          <v-card-actions>-->
-      <!--            <v-spacer></v-spacer>-->
-      <!--            <v-btn color="primary">Login</v-btn>-->
-      <!--          </v-card-actions>-->
-      <!--        </v-card>-->
     </template>
     <div v-else>
       <p class="display-4 text-center font-weight-bold textColor--text text--lighten-1 welcome-msg">

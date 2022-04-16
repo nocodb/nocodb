@@ -1,7 +1,7 @@
 export default class GqlApi {
   constructor(table, $ctx) {
     this.$ctx = $ctx
-    this.table = $ctx.$store.state.meta.metas[table]._tn
+    this.table = $ctx.$store.state.meta.metas[table].title
   }
 
   get meta() {
@@ -79,19 +79,19 @@ export default class GqlApi {
   }
 
   get gqlQueryListName() {
-    return `${this.meta._tn}List`
+    return `${this.meta.title}List`
   }
 
   get gqlQueryReadName() {
-    return `${this.meta._tn}Read`
+    return `${this.meta.title}Read`
   }
 
   get tableCamelized() {
-    return `${this.meta._tn}`
+    return `${this.meta.title}`
   }
 
   get gqlReqBody() {
-    return `\n${this.columns.map(c => c._cn).join('\n')}\n`
+    return `\n${this.columns.map(c => c.title).join('\n')}\n`
   }
 
   // todo: query only visible columns
@@ -102,11 +102,11 @@ export default class GqlApi {
         await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
           dbAlias: this.$ctx.dbAlias,
           env: this.$ctx.env,
-          tn: child
+          table_name: child
         })
         const meta = this.$ctx.$store.state.meta.metas[child]
         if (meta) {
-          str += `\n${meta._tn}List{\n${meta.columns.map(c => c._cn).join('\n')}\n}`
+          str += `\n${meta.title}List{\n${meta.columns.map(c => c.title).join('\n')}\n}`
         }
       }
     }
@@ -115,11 +115,11 @@ export default class GqlApi {
         await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
           dbAlias: this.$ctx.dbAlias,
           env: this.$ctx.env,
-          tn: parent
+          table_name: parent
         })
         const meta = this.$ctx.$store.state.meta.metas[parent]
         if (meta) {
-          str += `\n${meta._tn}Read{\n${meta.columns.map(c => c._cn).join('\n')}\n}`
+          str += `\n${meta.title}Read{\n${meta.columns.map(c => c.title).join('\n')}\n}`
         }
       }
     }
@@ -128,18 +128,18 @@ export default class GqlApi {
         await this.$ctx.$store.dispatch('meta/ActLoadMeta', {
           dbAlias: this.$ctx.dbAlias,
           env: this.$ctx.env,
-          tn: mm
+          table_name: mm
         })
         const meta = this.$ctx.$store.state.meta.metas[mm]
         if (meta) {
-          str += `\n${meta._tn}MMList{\n${meta.columns.map(c => c._cn).join('\n')}\n}`
+          str += `\n${meta.title}MMList{\n${meta.columns.map(c => c.title).join('\n')}\n}`
         }
       }
     }
     // add formula columns to query
     str += this.meta.v.reduce((arr, v) => {
       if (v.formula || v.rl) {
-        arr.push(v._cn)
+        arr.push(v.title)
       }
       return arr
     }, []).join('\n')
@@ -242,7 +242,7 @@ export default class GqlApi {
            m2mNotChildren(pid: $pid,assoc:$assoc,parent:$parent,limit:$limit, offset:$offset)
       }`,
       variables: {
-        parent: this.meta.tn, assoc, pid: pid + '', ...params
+        parent: this.meta.table_name, assoc, pid: pid + '', ...params
       }
     })
     const count = await this.post(`/nc/${this.$ctx.projectId}/v1/graphql`, {
@@ -250,7 +250,7 @@ export default class GqlApi {
            m2mNotChildrenCount(pid: $pid,assoc:$assoc,parent:$parent)
       }`,
       variables: {
-        parent: this.meta.tn, assoc, pid: pid + ''
+        parent: this.meta.table_name, assoc, pid: pid + ''
       }
     })
     return { list: list.data.data.m2mNotChildren, count: count.data.data.m2mNotChildrenCount.count }

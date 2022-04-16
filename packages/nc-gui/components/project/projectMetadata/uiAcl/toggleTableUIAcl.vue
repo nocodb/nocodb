@@ -9,7 +9,7 @@
             dense
             hide-details
             class="my-2 mx-auto search-field"
-            :placeholder="`Search '${db.connection.database}' models`"
+            placeholder="Search models"
             style="max-width:300px"
             outlined
           >
@@ -19,7 +19,6 @@
               </v-icon>
             </template>
           </v-text-field>
-
           <v-spacer />
           <x-btn
             outlined
@@ -30,8 +29,7 @@
             class="nc-acl-reload"
             @click="loadTableList()"
           >
-            <!-- Reload -->
-            {{ $t('general.reload') }}
+            Reload
           </x-btn>
           <x-btn
             outlined
@@ -53,15 +51,15 @@
           <v-simple-table v-if="tables" dense style="min-width: 400px">
             <thead>
               <tr>
-                <th class="caption" bgcolor="#F5F5F5" width="100px">
+                <th class="caption" width="100px">
                   <!--TableName-->
                   {{ $t('labels.tableName') }}
                 </th>
-                <th class="caption" bgcolor="#F5F5F5" width="150px">
+                <th class="caption" width="150px">
                   <!--ViewName-->
                   {{ $t('labels.viewName') }}
                 </th>
-                <th v-for="role in roles" :key="role" class="caption" bgcolor="#F5F5F5" width="100px">
+                <th v-for="role in roles" :key="role" class="caption" width="100px">
                   {{ role.charAt(0).toUpperCase() + role.slice(1) }}
                 </th>
               </tr>
@@ -71,27 +69,30 @@
                 v-for="table in tables"
               >
                 <tr
-                  v-if="table._tn.toLowerCase().indexOf(filter.toLowerCase()) > -1"
-                  :key="table.tn"
-                  :class="`nc-acl-table-row nc-acl-table-row-${table._tn}`"
+                  v-if="table.title.toLowerCase().indexOf(filter.toLowerCase()) > -1"
+                  :key="table.table_name"
+                  :class="`nc-acl-table-row nc-acl-table-row-${table.title}`"
                 >
                   <td>
                     <v-tooltip bottom>
                       <template #activator="{on}">
-                        <span class="caption ml-2" v-on="on">{{ table.type === 'table' ? table._tn:table.type === 'view' ? table._tn : table.ptn.split("__")[1] }}</span>
+                        <span
+                          class="caption ml-2"
+                          v-on="on"
+                        >{{ table.ptype === 'table' ? table._ptn : table.ptype === 'view' ? table._ptn : table._ptn }}</span>
                       </template>
-                      <span class="caption">{{ table.tn }}</span>
+                      <span class="caption">{{ table.ptn || table._ptn }}</span>
                     </v-tooltip>
                   </td>
                   <td>
-                    <v-icon small :color="viewIcons[table.type === 'vtable' ? table.show_as : table.type].color" v-on="on">
-                      {{ viewIcons[table.type === 'vtable' ? table.show_as : table.type].icon }}
+                    <v-icon small :color="viewIcons[table.type].color" v-on="on">
+                      {{ viewIcons[table.type].icon }}
                     </v-icon>
-                    <span v-if="table.ptn" class="caption">{{ table._tn }}</span>
+                    <span v-if="table.ptn" class="caption">{{ table.title }}</span>
                     <span v-else class="caption">{{ $t('general.default') }}</span>
                     <!--                    {{ table.show_as || table.type }}-->
                   </td>
-                  <td v-for="role in roles" :key="`${table.tn}-${role}`">
+                  <td v-for="role in roles" :key="`${table.table_name}-${role}`">
                     <v-tooltip bottom>
                       <template #activator="{on}">
                         <div
@@ -99,7 +100,7 @@
                         >
                           <v-checkbox
                             v-model="table.disabled[role]"
-                            :class="`pt-0 mt-0 nc-acl-${table._tn.toLowerCase().replace('_','')}-${role}-chkbox`"
+                            :class="`pt-0 mt-0 nc-acl-${table.title.toLowerCase().replace('_','')}-${role}-chkbox`"
                             dense
                             hide-details
                             :true-value="false"
@@ -109,10 +110,10 @@
                         </div>
                       </template>
 
-                      <span v-if="table.disabled[role]">Click to make '{{ table.tn }}' visible for Role:{{
+                      <span v-if="table.disabled[role]">Click to make '{{ table.table_name }}' visible for Role:{{
                         role
                       }} in UI dashboard</span>
-                      <span v-else>Click to hide '{{ table.tn }}' for Role:{{ role }} in UI dashboard</span>
+                      <span v-else>Click to hide '{{ table.table_name }}' for Role:{{ role }} in UI dashboard</span>
                     </v-tooltip>
                   </td>
                 </tr>
@@ -147,25 +148,26 @@ export default {
   },
   methods: {
     async loadTableList() {
-      this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.db.meta.dbAlias,
-        env: this.$store.getters['project/GtrEnv']
-      }, 'xcVisibilityMetaGet', {
-        type: 'all'
-      }]))
+      this.tables = (await this.$api.project.modelVisibilityList(
+        this.db.project_id, {
+          includeM2M: this.$store.state.windows.includeM2M || ''
+        }))
+      // this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+      //   dbAlias: this.db.meta.dbAlias,
+      //   env: this.$store.getters['project/GtrEnv']
+      // }, 'xcVisibilityMetaGet', {
+      //   type: 'all'
+      // }]))
     },
     async save() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcVisibilityMetaSetAll', {
-          disableList: this.tables.filter(t => t.edited)
-        }])
+        await this.$api.project.modelVisibilitySet(this.db.project_id, this.tables.filter(t => t.edited))
         this.$toast.success('Updated UI ACL for tables successfully').goAway(3000)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)
       }
+
+      this.$tele.emit('proj-meta:ui-acl:update')
     }
   },
   computed: {
@@ -176,7 +178,7 @@ export default {
       return this.tables && this.tables.length && this.tables.some(t => t.edited)
     },
     roles() {
-      return this.tables && this.tables.length ? Object.keys(this.tables[0].disabled) : []
+      return ['editor', 'commenter', 'viewer']// this.tables && this.tables.length ? Object.keys(this.tables[0].disabled) : []
     }
   }
 }

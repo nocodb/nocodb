@@ -7,7 +7,7 @@
         :max-size="showProjectTree? 50 : 1.5"
         style="position: relative;overflow-x: hidden"
       >
-        <ProjectTreeView v-show="showProjectTree" ref="treeview" />
+        <ProjectTreeView v-show="showProjectTree" ref="treeview" shared-base />
         <v-btn
           x-small
           icon

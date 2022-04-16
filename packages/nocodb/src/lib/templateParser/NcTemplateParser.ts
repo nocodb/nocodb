@@ -150,7 +150,7 @@ export default class NcTemplateParser {
       const childColumnName = `${tableTemplate.tn}_id`;
 
       childTable.columns.push({
-        cn: childColumnName,
+        column_name: childColumnName,
         _cn: childColumnName,
         rqd: false,
         pk: false,

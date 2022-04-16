@@ -3,14 +3,14 @@
     <v-row class="h-100 my-0" :class="{'d-flex justify-center': submitted}">
       <template v-if="submitted">
         <v-col class="d-flex justify-center">
-          <div v-if="localParams && localParams.submit" style="min-width: 350px">
+          <div v-if="view" style="min-width: 350px">
             <v-alert type="success" outlined>
-              <span class="title">{{ localParams.submit.message || 'Successfully submitted form data' }}</span>
+              <span class="title">{{ view.success_msg || 'Successfully submitted form data' }}</span>
             </v-alert>
-            <p v-if="localParams.submit.showBlankForm" class="caption grey--text text-center">
+            <p v-if="view.show_blank_form" class="caption grey--text text-center">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
-            <div v-if="localParams.submit.showAnotherSubmit" class=" text-center">
+            <div v-if="view.submit_another_form" class=" text-center">
               <v-btn color="primary" @click="submitted = false">
                 Submit Another Form
               </v-btn>
@@ -40,7 +40,7 @@
                 v-if="columns.length"
                 class="pointer caption"
                 style="border-bottom: 2px solid rgb(218,218,218)"
-                @click="columns=[]"
+                @click="removeAllColumns"
               >
                 <!--Remove all-->
                 {{ $t('general.removeAll') }}
@@ -56,16 +56,16 @@
             >
               <v-card
                 v-for="(col) in hiddenColumns"
-                :key="col.alias"
+                :key="col.title"
                 class="pa-2 my-2 item pointer elevation-0"
                 @mousedown="moved=false"
                 @mousemove="moved=false"
                 @mouseup="handleMouseUp(col)"
               >
                 <div class="d-flex">
-                  <label :for="`data-table-form-${col._cn}`" class="body-2 text-capitalize flex-grow-1">
+                  <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize flex-grow-1">
                     <virtual-header-cell
-                      v-if="col.virtual"
+                      v-if="isVirtualCol(col)"
                       class="caption"
                       :column="col"
                       :nodes="nodes"
@@ -76,7 +76,7 @@
                       v-else
                       class="caption"
                       :is-form="true"
-                      :value="col._cn"
+                      :value="col.title"
                       :column="col"
                       :sql-ui="sqlUi"
                     />
@@ -124,6 +124,8 @@
           class="h-100 px-sm-1 px-md-10 "
           style="overflow-y: auto"
         >
+          <!--        <pre class="caption">{{ fields }}</pre>-->
+
           <!--        <div class="my-14 d-flex align-center justify-center">-->
           <!--          <v-chip>Add cover image</v-chip>-->
           <!--        </div>-->
@@ -145,22 +147,24 @@
               </div>
               <editable
                 :is="isEditable ? 'editable' : 'h2'"
-                v-model.lazy="localParams.name"
+                v-model="view.heading"
                 class="display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text  text--lighten-1"
                 :class="{'nc-meta-inputs': isEditable}"
                 placeholder="Form Title"
+                @input="updateView"
               >
-                {{ localParams.name }}
+                {{ view.heading }}
               </editable>
               <!--placeholder="Add form description"-->
               <editable
                 :is="isEditable ? 'editable' : 'div'"
-                v-model.lazy="localParams.description"
+                v-model="view.subheading"
                 :class="{'nc-meta-inputs': isEditable}"
                 class="body-1  text-left mx-4 py-2 px-1 text--text text--lighten-2"
                 :placeholder="$t('msg.info.formDesc')"
+                @input="updateView"
               >
-                {{ localParams.description }}
+                {{ view.subheading }}
               </editable>
               <draggable
                 v-model="columns"
@@ -169,16 +173,18 @@
                 class="h-100"
                 @start="drag=true"
                 @end="drag=false"
+
+                @change="onMove($event)"
               >
                 <div
                   v-for="(col,i) in columns"
-                  :key="col.alias"
+                  :key="col.title"
                   class="nc-field-wrapper item px-4 my-3 pointer"
                   :class="{'nc-editable':isEditable , 'active-row': isActiveRow(col) , 'py-4': !isActiveRow(col) , 'pb-4':isActiveRow(col)}"
                 >
                   <div
                     v-click-outside="() => onClickOutside(col)"
-                    @click="activeRow= col.alias"
+                    @click="activeRow= col.title"
                   >
                     <template
                       v-if="_isUIAllowed('editFormView')"
@@ -189,10 +195,10 @@
                     </template>
 
                     <div
-                      v-if="localParams.fields && localParams.fields[col.alias]"
+                      v-if="localParams.fields && localParams.fields[col.title]"
                       :class="{
-                        'active-row' : active === col._cn,
-                        required: isRequired(col, localState, localParams.fields[col.alias].required)
+                        'active-row' : active === col.title,
+                        required: isRequired(col, localState, localParams.fields[col.title].required)
                       }"
                     >
                       <div class="nc-field-editables" :class="{'nc-show' : isActiveRow(col)}">
@@ -203,64 +209,68 @@
 
                           <label
                             class="grey--text caption ml-2"
-                            @click="localParams.fields[col.alias].required= !localParams.fields[col.alias].required"
+                            @click="col.required= !col.required,updateColMeta(col,i)"
                           >
                             <!--Required-->
                             {{ $t('general.required') }}
                           </label>
                           <v-switch
-                            v-model="localParams.fields[col.alias].required"
+                            v-model="col.required"
+                            v-t="['form-view:field:mark-required']"
                             class="nc-required-switch ml-1 mt-0"
                             hide-details
                             flat
                             color="primary"
                             dense
                             inset
+                            @change="updateColMeta(col,i)"
                           />
                         </div>
                         <!--placeholder=" Enter form input label"-->
                         <editable
-                          v-model="localParams.fields[col.alias].label"
+                          v-model.lazy="col.label"
                           style="width:300px;white-space: pre-wrap"
                           :placeholder="$t('msg.info.formInput')"
                           class="caption pa-1 backgroundColor darken-1 mb-2 "
+                          @input="updateColMeta(col,i)"
                         />
                         <!--placeholder=" Add some help text"-->
                         <editable
-                          v-model="localParams.fields[col.alias].description"
+                          v-model.lazy="col.description"
                           style="width:300px;white-space: pre-wrap"
                           :placeholder="$t('msg.info.formHelpText')"
                           class="caption pa-1 backgroundColor darken-1 mb-2"
+                          @input="updateColMeta(col,i)"
                           @keydown.enter.prevent
                         />
                       </div>
                       <label
                         :class="{'nc-show' : !isActiveRow(col)}"
-                        :for="`data-table-form-${col._cn}`"
+                        :for="`data-table-form-${col.title}`"
                         class="body-2 text-capitalize nc-field-labels"
                       >
                         <virtual-header-cell
-                          v-if="col.virtual"
+                          v-if="isVirtualCol(col)"
                           class="caption"
-                          :column="{...col, _cn: localParams.fields[col.alias].label || col._cn}"
+                          :column="{...col, _cn: col.label || col.title}"
                           :nodes="nodes"
                           :is-form="true"
                           :meta="meta"
-                          :required="isRequired(col, localState, localParams.fields[col.alias].required)"
+                          :required="isRequired(col, localState, localParams.fields[col.title].required)"
                         />
                         <header-cell
                           v-else
                           class="caption"
                           :is-form="true"
-                          :value="localParams.fields[col.alias].label || col._cn"
+                          :value="col.label || col.title"
                           :column="col"
                           :sql-ui="sqlUi"
-                          :required="isRequired(col, localState, localParams.fields[col.alias].required)"
+                          :required="isRequired(col, localState, localParams.fields[col.title].required)"
                         />
 
                       </label>
                       <div
-                        v-if="col.virtual"
+                        v-if="isVirtualCol(col)"
                         @click.stop
                       >
                         <virtual-cell
@@ -275,13 +285,13 @@
                           :sql-ui="sqlUi"
                           :is-new="true"
                           :is-form="true"
-                          :hint="localParams.fields[col.alias].description"
-                          :required="localParams.fields[col.alias].description"
-                          @update:localState="state => $set(virtual,col.alias, state)"
+                          :hint="col.description"
+                          :required="col.required"
+                          @update:localState="state => $set(virtual,col.title, state)"
                           @updateCol="updateCol"
                         />
                         <div
-                          v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.alias] && (!$v.virtual[col.alias].required || !$v.virtual[col.alias].minLength)"
+                          v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.title] && (!$v.virtual[col.title].required || !$v.virtual[col.alias].minLength)"
                           class="error--text caption"
                         >
                           Field is required.
@@ -289,10 +299,10 @@
 
                         <!-- todo: optimize -->
                         <template
-                          v-if="col.bt && $v.localState && $v.localState.$dirty && $v.localState[meta.columns.find(c => c.cn === col.bt.cn)._cn]"
+                          v-if="col.bt && $v.localState && $v.localState.$dirty && $v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title]"
                         >
                           <div
-                            v-if="!$v.localState[meta.columns.find(c => c.cn === col.bt.cn)._cn].required"
+                            v-if="!$v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title].required"
                             class="error--text caption"
                           >
                             Field is required.
@@ -301,7 +311,7 @@
                       </div>
                       <template v-else>
                         <div
-                          v-if="col.ai || (col.pk && !isNew) || disabledColumns[col._cn]"
+                          v-if="col.ai || (col.pk && !isNew) || disabledColumns[col.title]"
                           style="height:100%; width:100%"
                           class="caption xc-input"
                           @click.stop
@@ -311,7 +321,7 @@
                             style="height:100%; width: 100%"
                             readonly
                             disabled
-                            :value="localState[col._cn]"
+                            :value="localState[col.title]"
                           >
                         </div>
 
@@ -320,21 +330,21 @@
                           @click.stop
                         >
                           <editable-cell
-                            :id="`data-table-form-${col._cn}`"
-                            v-model="localState[col._cn]"
+                            :id="`data-table-form-${col.title}`"
+                            v-model="localState[col.title]"
                             :db-alias="dbAlias"
                             :column="col"
                             class="xc-input body-2"
                             :meta="meta"
                             :sql-ui="sqlUi"
                             is-form
-                            :hint="localParams.fields[col.alias].description"
-                            @focus="active = col._cn"
+                            :hint="col.description"
+                            @focus="active = col.title"
                             @blur="active = ''"
                           />
                         </div>
-                        <template v-if="$v.localState&& $v.localState.$dirty && $v.localState[col._cn] ">
-                          <div v-if="!$v.localState[col._cn].required" class="error--text caption">
+                        <template v-if="$v.localState&& $v.localState.$dirty && $v.localState[col.title] ">
+                          <div v-if="!$v.localState[col.title].required" class="error--text caption">
                             Field is required.
                           </div>
                         </template>
@@ -378,15 +388,23 @@
                   {{ $t('msg.info.showMessage') }}:
                 </label>
                 <v-textarea
-                  v-model="localParams.submit.message"
+                  v-model="view.success_msg"
                   rows="3"
                   hide-details
                   solo
-
                   class="caption"
+                  @input="updateView"
                 />
 
-                <v-switch v-model="localParams.submit.showAnotherSubmit" dense inset hide-details class="nc-switch">
+                <v-switch
+                  v-model="view.submit_another_form"
+                  v-t="[`form-view:option:submit-another-form`]"
+                  dense
+                  inset
+                  hide-details
+                  class="nc-switch"
+                  @change="updateView"
+                >
                   <template #label>
                     <span class="font-weight-bold grey--text caption">
                       <!--Show "Submit Another Form" button-->
@@ -394,7 +412,15 @@
                     </span>
                   </template>
                 </v-switch>
-                <v-switch v-model="localParams.submit.showBlankForm" dense inset hide-details class="nc-switch">
+                <v-switch
+                  v-model="view.show_blank_form"
+                  v-t="[`form-view:option:show-blank-form`]"
+                  dense
+                  inset
+                  hide-details
+                  class="nc-switch"
+                  @change="updateView"
+                >
                   <template #label>
                     <span class="font-weight-bold grey--text caption">
                       <!--Show a blank form after 5 seconds-->
@@ -403,13 +429,12 @@
                   </template>
                 </v-switch>
                 <v-switch
-                  v-if="localParams.emailMe"
-                  v-model="localParams.emailMe[$store.state.users.user.email]"
+                  v-model="emailMe"
+                  v-t="[`form-view:option:email-me`]"
                   dense
                   inset
                   hide-details
                   class="nc-switch"
-                  @change="checkSMTPStatus"
                 >
                   <template #label>
                     <span class="caption font-weight-bold grey--text ">
@@ -433,6 +458,7 @@
 import draggable from 'vuedraggable'
 import { validationMixin } from 'vuelidate'
 import { required, minLength } from 'vuelidate/lib/validators'
+import { UITypes, isVirtualCol, RelationTypes, getSystemColumns } from 'nocodb-sdk'
 import VirtualHeaderCell from '../components/virtualHeaderCell'
 import HeaderCell from '../components/headerCell'
 import VirtualCell from '../components/virtualCell'
@@ -446,10 +472,24 @@ const hiddenCols = ['created_at', 'updated_at']
 
 export default {
   name: 'FormView',
-  components: { EditColumn, Editable, EditableCell, VirtualCell, HeaderCell, VirtualHeaderCell, draggable },
+  components: {
+    EditColumn,
+    Editable,
+    EditableCell,
+    VirtualCell,
+    HeaderCell,
+    VirtualHeaderCell,
+    draggable
+  },
   mixins: [form, validationMixin],
-  props: ['meta', 'availableColumns', 'nodes', 'sqlUi', 'formParams', 'showFields', 'fieldsOrder', 'allColumns', 'dbAlias', 'api', 'id'],
+  props: [
+    'meta', 'availableColumns', 'nodes',
+    'sqlUi', 'formParams', 'showFields',
+    'fieldsOrder', 'allColumns', 'dbAlias',
+    'api', 'id', 'viewId', 'viewTitle'
+  ],
   data: () => ({
+    isVirtualCol,
     localState: {},
     moved: false,
     addNewColMenu: false,
@@ -460,32 +500,65 @@ export default {
     submitted: false,
     secondsRemain: null,
     loading: false,
-    virtual: {}
+    virtual: {},
+    formColumns: [],
+    fields: [],
+    view: {}
     // hiddenColumns: []
   }),
   validations() {
-    const obj = { localState: {}, virtual: {} }
+    const obj = {
+      localState: {},
+      virtual: {}
+    }
     for (const column of this.columns) {
-      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
+      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.title]) {
         continue
       }
-      if (!column.virtual && (((column.rqd || column.notnull) && !column.default) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.alias].required)) {
-        obj.localState[column._cn] = { required }
+      if (!column.virtual && (((column.rqd || column.notnull) && !column.cdf) || (column.pk && !(column.ai || column.default)) || this.localParams.fields[column.title].required)) {
+        obj.localState[column.title] = { required }
       } else if (column.bt) {
-        const col = this.meta.columns.find(c => c.cn === column.bt.cn)
-        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
-          obj.localState[col._cn] = { required }
+        const col = this.meta.columns.find(c => c.column_name === column.bt.column_name)
+        if ((col.rqd && !col.default) || this.localParams.fields[column.title].required) {
+          obj.localState[col.title] = { required }
         }
-      } else if (column.virtual && this.localParams.fields[column.alias].required && (column.mm || column.hm)) {
-        obj.virtual[column.alias] = { minLength: minLength(1), required }
+      } else if (column.virtual && this.localParams.fields[column.title].required && (column.mm || column.hm)) {
+        obj.virtual[column.title] = {
+          minLength: minLength(1),
+          required
+        }
       }
     }
 
     return obj
   },
   computed: {
+    systemFieldsIds() {
+      return getSystemColumns(this.fields).map(c => c.fk_column_id)
+    },
+    emailMe: {
+      get() {
+        try {
+          const data = JSON.parse(this.view.email)
+          return data[this.$store.state.users.user.email]
+        } catch (e) {
+        }
+        return false
+      },
+      set(v) {
+        let data = {}
+        try {
+          data = JSON.parse(this.view.email) || {}
+        } catch (e) {
+        }
+        data[this.$store.state.users.user.email] = v
+        this.view.email = JSON.stringify(data)
+        this.updateView()
+        this.checkSMTPStatus()
+      }
+    },
     allColumnsLoc() {
-      return this.allColumns.filter(c => !hiddenCols.includes(c.cn) && !(c.pk && c.ai) && this.meta.belongsTo.every(bt => c.cn !== bt.cn))
+      return this.fields// this.mets.columns.filter(c => !hiddenCols.includes(c.column_name) && !(c.pk && c.ai) && this.meta.belongsTo.every(bt => c.column_name !== bt.column_name))
     },
     isEditable() {
       return this._isUIAllowed('editFormView')
@@ -500,35 +573,27 @@ export default {
     },
     hiddenColumns: {
       get() {
-        return this.allColumns.filter(c => !this.showFields[c.alias] && !hiddenCols.includes(c.cn) && !(c.pk && c.ai) && !(this.meta.v || []).some(v => v.bt && v.bt.cn === c.cn))
+        return this.fields.filter(f => !f.show && !this.systemFieldsIds.includes(f.fk_column_id))
+      },
+      set(v) {
       }
     },
     columns: {
       get() {
-        return this.allColumnsLoc.filter(c => this.showFields[c.alias] && !hiddenCols.includes(c.cn)).sort((a, b) => ((this.fieldsOrder.indexOf(a.alias) + 1) || Infinity) - ((this.fieldsOrder.indexOf(b.alias) + 1) || Infinity))
+        return this.fields.filter(f => f.show).sort((a, b) => a.order - b.order)
       },
-      set(val) {
-        const showFields = val.reduce((o, v) => {
-          o[v.alias] = true
-          return o
-        }, this.allColumnsLoc.reduce((o, v) => {
-          o[v.alias] = this.isDbRequired(v)
-          return o
-        }, {}))
-        const fieldsOrder = val.map(v => v.alias)
-        this.$emit('update:showFields', showFields)
-        this.$emit('update:fieldsOrder', fieldsOrder)
+      set(v) {
       }
     }
   },
   watch: {
     'meta.columns'() {
       this.meta.columns.forEach((c) => {
-        this.localParams.fields[c.alias] = this.localParams.fields[c.alias] || {}
+        this.localParams.fields[c.title] = this.localParams.fields[c.title] || {}
       })
     },
     submitted(val) {
-      if (val && this.localParams.submit.showBlankForm) {
+      if (val && this.view.show_blank_form) {
         this.secondsRemain = 5
         const intvl = setInterval(() => {
           if (--this.secondsRemain < 0) {
@@ -539,42 +604,184 @@ export default {
       }
     }
   },
+  created() {
+    this.loadView()
+  },
   mounted() {
     const localParams = Object.assign({
-      name: this.meta._tn,
+      name: this.meta.title,
       description: 'Form view description',
       submit: {},
       emailMe: {},
       fields: {}
     }, this.localParams)
     this.availableColumns.forEach((c) => {
-      localParams.fields[c.alias] = localParams.fields[c.alias] || {}
+      localParams.fields[c.title] = localParams.fields[c.title] || {}
     })
     this.localParams = localParams
     // this.columns = [...this.availableColumns]
-    // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.cn === c1.cn && c._cn === c1._cn))
+    // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.column_name === c1.column_name && c.title === c1.title))
   },
   methods: {
+    onMove(event) {
+      const {
+        newIndex,
+        element,
+        oldIndex
+      } = (event.added || event.moved || event.removed)
+
+      if (event.added) {
+        this.$set(element, 'show', true)
+      }
+
+      if (event.removed) {
+        this.$set(element, 'show', false)
+        this.saveOrUpdateOrderOrVisibility(element, oldIndex)
+      } else {
+        if (!this.columns.length || this.columns.length === 1) {
+          this.$set(element, 'order', 1)
+        } else if (this.columns.length - 1 === newIndex) {
+          this.$set(element, 'order', this.columns[newIndex - 1].order + 1)
+        } else if (newIndex === 0) {
+          this.$set(element, 'order', this.columns[1].order / 2)
+        } else {
+          this.$set(element, 'order', (
+            this.columns[newIndex - 1].order + this.columns[newIndex + 1].order) / 2
+          )
+        }
+        this.saveOrUpdateOrderOrVisibility(element, newIndex)
+      }
+
+      this.$tele.emit('form-view:drag')
+    },
+
+    async saveOrUpdateOrderOrVisibility(field, i) {
+      const {
+        fk_view_id,
+        fk_column_id,
+        order,
+        show,
+        id
+      } = field
+
+      if (id) {
+        await this.$api.dbViewColumn.update(this.viewId, field.id, {
+          fk_view_id,
+          fk_column_id,
+          order,
+          show
+        })
+      } else {
+        field.id = (await this.$api.dbViewColumn.create(this.viewId, {
+          fk_view_id,
+          fk_column_id,
+          order,
+          show
+        })).id
+      }
+      this.$emit('update:fieldsOrder', this.fields.map(c => c.title))
+    },
+    async updateColMeta(col, i) {
+      // todo: introduce debounce to avoid consecutive api call
+      if (col.id) {
+        await this.$api.dbView.formColumnUpdate(col.id, col)
+      }
+    },
+    async updateView() {
+      if (this.view.subheading?.length > 255) {
+        this.$toast.error('Data too long for Form Description').goAway(3000)
+        return
+      }
+      await this.$api.dbView.formUpdate(this.viewId, this.view)
+    },
+    async loadView() {
+      const {
+        columns,
+        ...view
+      } = (await this.$api.dbView.formRead(this.viewId))
+      this.view = view
+      this.formColumns = columns
+      let order = 1
+      const fieldById = this.formColumns.reduce((o, f) => ({
+        ...o,
+        [f.fk_column_id]: f
+      }), {})
+
+      const meta = this.$store.state.meta.metas[this.meta.id]
+      this.fields = meta.columns.map(c => ({
+        ...c,
+        fk_column_id: c.id,
+        fk_view_id: this.viewId,
+        ...(fieldById[c.id] ? fieldById[c.id] : {}),
+        order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+        id: (fieldById[c.id] && fieldById[c.id].id)
+      })
+      ).sort((a, b) => a.order - b.order)
+    },
     hideColumn(i) {
       if (this.isDbRequired(this.columns[i])) {
         this.$toast.info('Required field can\'t be removed').goAway(3000)
         return
       }
-      this.columns = this.columns.filter((_, j) => i !== j)
+
+      this.saveOrUpdateOrderOrVisibility({
+        ...this
+          .columns[i],
+        show: false
+      }, i)
+      this.$set(this.columns[i], 'show', false)
+
+      this.$tele.emit('form-view:hide-columns')
+      // this.columns = this.columns.filter((_, j) => i !== j)
     },
-    addAllColumns() {
-      this.columns = [...this.allColumnsLoc]
+    async addAllColumns() {
+      for (const col of this.fields) {
+        if (!this.systemFieldsIds.includes(col.fk_column_id)) {
+          this.$set(col, 'show', true)
+        }
+      }
+      await this.$api.dbView.showAllColumn(this.viewId, {
+        ignoreIds: this.systemFieldsIds
+      })
+      // this.columns = [...this.allColumnsLoc]
+      this.$tele.emit('form-view:add-all')
+    },
+    async removeAllColumns() {
+      for (const col of this.fields) {
+        if (this.isDbRequired(col)) {
+          continue
+        }
+        this.$set(col, 'show', false)
+      }
+      await this.$api.dbView.hideAllColumn(this.viewId, {
+        ignoreIds: this.fields.filter(this.isDbRequired).map(f => f.fk_column_id)
+      })
+      this.$tele.emit('form-view:remove-all')
     },
     isDbRequired(column) {
-      if (hiddenCols.includes(column.cn)) {
-        return true
+      if (hiddenCols.includes(column.fk_column_id)) {
+        return false
       }
-      let isRequired = (!column.virtual && column.rqd && !column.default && this.meta.belongsTo.every(bt => column.cn !== bt.cn)) ||
-        (column.pk && !(column.ai || column.default))
 
-      if (column.bt) {
-        const col = this.meta.columns.find(c => c.cn === column.bt.cn)
-        if ((col.rqd && !col.default) || this.localParams.fields[column.alias].required) {
+      let isRequired =
+        (
+          // confirm column is not virtual
+          !isVirtualCol(column) &&
+          // column required / not null
+          column.rqd &&
+          // column default value
+          !column.cdf &&
+          // confirm it's not foreign key
+          !this.meta.columns.some(
+            c => c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions.type === RelationTypes.BELONGS_TO &&
+              column.fk_column_id === c.colOptions.fk_child_column_id
+          )) ||
+        // primary column
+        (column.pk && !column.ai && !column.cdf)
+      if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions.type === RelationTypes.BELONGS_TO) {
+        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+        if ((col.rqd && !col.default) || this.localParams.fields[column.title].required) {
           isRequired = true
         }
       }
@@ -582,10 +789,10 @@ export default {
       return isRequired
     },
     async checkSMTPStatus() {
-      if (this.localParams.emailMe[this.$store.state.users.user.email]) {
-        const emailPlugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', { title: 'SMTP' }])
-        if (!emailPlugin.active) {
-          this.$set(this.localParams.emailMe, this.$store.state.users.user.email, false)
+      if (this.emailMe) {
+        const emailPluginActive = (await this.$api.plugin.status('SMTP'))
+        if (!emailPluginActive) {
+          this.emailMe = false
           this.$toast.info('Please activate SMTP plugin in App store for enabling email notification').goAway(5000)
         }
       }
@@ -594,20 +801,36 @@ export default {
       this.$set(this.localState, column, id)
     },
     isActiveRow(col) {
-      return this.activeRow === col.alias
+      return this.activeRow === col.title
     },
     onClickOutside(col) {
-      this.activeRow = this.activeRow === col.alias ? null : this.activeRow
+      this.activeRow = this.activeRow === col.title ? null : this.activeRow
     },
     handleMouseUp(col) {
       if (!this.moved) {
-        this.columns = [...this.columns, col]
+        const index = this.columns.length
+        // this.columns = [...this.columns, col]
+        col.order = (index ? this.columns[index - 1].order : 0) + 1
+        this.$set(col, 'show', true)
+        this.$nextTick(() => {
+          this.saveOrUpdateOrderOrVisibility(col, index)
+        })
       }
     },
-    onNewColCreation(col) {
+    async onNewColCreation(col) {
       this.addNewColMenu = false
       this.addNewColModal = false
       this.$emit('onNewColCreation', col)
+      await this.$store.dispatch('meta/ActLoadMeta', {
+        env: this.nodes.env,
+        dbAlias: this.nodes.dbAlias,
+        id: this.meta.id,
+        force: true
+      })
+
+      await this.loadView()
+
+      this.$tele.emit('form-view:add-new-field')
     },
     async save() {
       try {
@@ -619,17 +842,15 @@ export default {
         }
 
         this.loading = true
-        // const id = this.meta.columns.filter(c => c.pk).map(c => this.localState[c._cn]).join('___')
 
-        // const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
-        //   obj[col] = this.localState[col]
-        //   return obj
-        // }, {})
+        let data = await this.$api.dbViewRow.create(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.viewTitle,
+          this.localState
+        )
 
-        // if (this.isNew) {
-
-        // todo: add params option in GraphQL
-        let data = await this.api.insert(this.localState, { params: { form: this.$route.query.view } })
         data = { ...this.localState, ...data }
 
         // save hasmany and manytomany relations from local state

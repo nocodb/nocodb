@@ -1,64 +1,12 @@
 <template>
-  <div>
-    <h3 class="text-center mb-5 grey--text text--darken-2">
-      <!-- Metadata Operations -->
+  <div class="mt-5">
+    <!--    <h3 class="text-center mb-5 grey&#45;&#45;text text&#45;&#45;darken-2">
+      &lt;!&ndash; Metadata Operations &ndash;&gt;
       {{ $t('title.metaOperations') }}
-    </h3>
+    </h3>-->
 
     <v-simple-table class="ma-2 meta-table text-center mx-auto">
-      <!--      <thead>-->
-      <!--      <tr>-->
-      <!--        <th colspan="2" class="text-center title pa-2">Metadata Operations</th>-->
-      <!--      </tr>-->
-      <!--      </thead>-->
       <tbody>
-        <!--        <tr>-->
-        <!--          <td>-->
-        <!--            &lt;!&ndash; Export all metadata from the meta tables to meta directory. &ndash;&gt;-->
-        <!--            {{ $t('tooltip.exportMetadata') }}-->
-        <!--          </td>-->
-        <!--          <td>-->
-        <!--            <v-btn-->
-        <!--              min-width="150"-->
-        <!--              color="primary"-->
-        <!--              small-->
-        <!--              outlined-->
-        <!--              :loading="loading === 'export-file'"-->
-        <!--              @click="exportMeta"-->
-        <!--            >-->
-        <!--              <v-icon small>-->
-        <!--                mdi-export-->
-        <!--              </v-icon>&nbsp;-->
-        <!--              &lt;!&ndash; Export to file &ndash;&gt;-->
-        <!--              {{ $t('activity.exportToFile') }}-->
-        <!--            </v-btn>-->
-        <!--          </td>-->
-        <!--        </tr>-->
-
-        <!--        <tr>-->
-        <!--          <td>-->
-        <!--            &lt;!&ndash; Import all metadata from the meta directory to meta tables. &ndash;&gt;-->
-        <!--            {{ $t('tooltip.importMetadata') }}-->
-        <!--          </td>-->
-        <!--          <td>-->
-        <!--            <v-btn-->
-        <!--              :loading="loading === 'import-file'"-->
-        <!--              min-width="150"-->
-        <!--              color="info"-->
-        <!--              small-->
-        <!--              outlined-->
-        <!--              @click="importMeta"-->
-        <!--            >-->
-        <!--              <v-icon small>-->
-        <!--                mdi-import-->
-        <!--              </v-icon>&nbsp;-->
-
-        <!--              &lt;!&ndash; Import &ndash;&gt;-->
-        <!--              {{ $t('activity.import') }}-->
-        <!--            </v-btn>-->
-        <!--          </td>-->
-        <!--        </tr>-->
-
         <tr>
           <td>
             <!-- Export project meta to zip file and download. -->
@@ -66,6 +14,7 @@
           </td>
           <td>
             <v-btn
+              v-t="['proj-meta:export-zip:trigger']"
               min-width="150"
               color="primary"
               small
@@ -88,6 +37,7 @@
           </td>
           <td>
             <v-btn
+              v-t="['proj-meta:import-zip']"
               min-width="150"
               :loading="loading === 'import-zip'"
               color="info"
@@ -232,6 +182,7 @@ export default {
           }
           this.dialogShow = false
           this.loading = null
+          this.$tele.emit('proj-meta:export-zip:submit')
         }
       }
     },
@@ -307,7 +258,7 @@ export default {
             zipFile
           ])
           // this.$toast.success('Successfully imported metadata').goAway(3000)
-            this.$toast.success(`${this.$t('msg.toast.importMetadata')}`).goAway(3000)
+          this.$toast.success(`${this.$t('msg.toast.importMetadata')}`).goAway(3000)
         } catch (e) {
           this.$toast.error(e.message).goAway(3000)
         }

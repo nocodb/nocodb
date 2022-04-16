@@ -10,9 +10,9 @@
       <audit :nodes="nodes" />
     </v-tab-item>
 
-    <v-tab>
+    <!--    <v-tab>
       <span class="caption text-capitalize">
-        <!--SQL Migrations-->
+        &lt;!&ndash;SQL Migrations&ndash;&gt;
         {{ $t('title.sqlMigrations') }}
       </span>
     </v-tab>
@@ -20,7 +20,7 @@
       <sql-log-and-output>
         <db :nodes="nodes" />
       </sql-log-and-output>
-    </v-tab-item>
+    </v-tab-item>-->
   </v-tabs>
 </template>
 

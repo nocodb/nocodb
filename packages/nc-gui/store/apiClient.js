@@ -126,7 +126,6 @@ export const actions = {
           : {},
         withCredentials: true
       }
-      console.log(req)
 
       if (Object.values(api.perf).every(v => !v)) {
         const data = await axios(req)
@@ -137,7 +136,6 @@ export const actions = {
         a.response.status = data.status
         a.response.headers = data.headers
         a.response.data = data.data
-        console.log(data)
       } else {
         this.$toast.info('Starting performance test').goAway(3000)
         try {
@@ -163,7 +161,6 @@ export const actions = {
       t1 = process.hrtime(t)
       t2 = (t1[0] + t1[1] / 1000000000).toFixed(2)
 
-      console.log(Object.keys(e), Object.entries(e))
       a.response = e.response
       // throw e;
     } finally {

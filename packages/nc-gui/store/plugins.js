@@ -30,7 +30,6 @@ export const actions = {
         title
       }])
       const settings = JSON.parse(this.plugin.input) || {}
-      console.log(settings)
       commit('mutPluginDetails', {
         title,
         settings

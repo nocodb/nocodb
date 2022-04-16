@@ -41,6 +41,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            mainPage.tabReset();
             cy.openTableTab("City", 25);
 
             // store base URL- to re-visit and delete form view later
@@ -63,6 +64,7 @@ export const genTest = (apiType, dbType) => {
             cy.visit(linkText, {
                 baseUrl: null,
             });
+            cy.wait(5000);
 
             cy.getActiveModal().should("exist");
 
@@ -97,6 +99,7 @@ export const genTest = (apiType, dbType) => {
             cy.visit(storedURL, {
                 baseUrl: null,
             });
+            cy.wait(5000);
             mainPage.deleteCreatedViews();
         });
 

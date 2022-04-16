@@ -12,12 +12,12 @@
       </template>
       <v-card class="elevation-20">
         <v-card-title class="grey darken-2 subheading" style="height:30px">
-          <!-- {{ this.heading }} for {{ this.column.cn }} -->
+          <!-- {{ this.heading }} for {{ this.column.column_name }} -->
         </v-card-title>
         <v-form v-model="valid">
           <v-card-text class="pt-4 pl-4">
             <p class="headline">
-              {{ heading }} for {{ column.cn }}
+              {{ heading }} for {{ column.column_name }}
             </p>
             <v-row
               justify="space-between"
@@ -30,7 +30,7 @@
                   label="Select Reference Table"
                   :full-width="false"
                   :items="refTables"
-                  item-text="tn"
+                  item-text="table_name"
                   required
                   dense
                 />
@@ -43,7 +43,7 @@
                   label="Select Reference Column"
                   :full-width="false"
                   :items="refColumns"
-                  item-text="cn"
+                  item-text="column_name"
                   required
                   dense
                 />
@@ -129,8 +129,8 @@ export default {
         'SET DEFAULT'
       ],
       relation: {
-        childColumn: this.column.cn,
-        childTable: this.nodes.tn,
+        childColumn: this.column.column_name,
+        childTable: this.nodes.table_name,
         parentTable: this.column.rtn || '',
         parentColumn: this.column.rcn || '',
         onDelete: 'CASCADE',
@@ -154,18 +154,18 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.columnList({
-      //   tn: this.relation.parentTable
+      //   table_name: this.relation.parentTable
       // });
 
       // const result = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
-      // }, 'columnList', {   tn: this.relation.parentTable})
+      // }, 'columnList', {   table_name: this.relation.parentTable})
 
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
-      }, 'columnList', { tn: this.relation.parentTable }])
+      }, 'columnList', { table_name: this.relation.parentTable }])
 
       const columns = result.data.list
       this.refColumns = JSON.parse(JSON.stringify(columns))
@@ -177,7 +177,7 @@ export default {
       } else {
         // find pk column and assign to parentColumn
         const pkKeyColumns = this.refColumns.filter(el => el.pk)
-        this.relation.parentColumn = (pkKeyColumns[0] || {}).cn || ''
+        this.relation.parentColumn = (pkKeyColumns[0] || {}).column_name || ''
       }
 
       this.isRefColumnsLoading = false
@@ -219,11 +219,11 @@ export default {
     await this.loadTablesList()
 
     if (!this.relation.parentTable) {
-      let tn = (this.refTables[0] || {}).tn || ''
-      if (tn === 'nc_evolutions' || tn === '_evolutions') {
-        tn = (this.refTables[1] || {}).tn || ''
+      let table_name = (this.refTables[0] || {}).table_name || ''
+      if (table_name === 'nc_evolutions' || table_name === '_evolutions') {
+        table_name = (this.refTables[1] || {}).table_name || ''
       }
-      this.relation.parentTable = tn
+      this.relation.parentTable = table_name
     }
     if (this.column.rtn) {
       this.relation.parentTable = this.column.rtn

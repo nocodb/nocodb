@@ -12,7 +12,6 @@
     </v-icon>
 
     <span v-else-if="isInt" class="font-weight-bold mr-1" style="font-size: 15px">#</span>
-    <!--    <v-icon color="grey" class="mr-1" v-if="isInt">mdi-numeric</v-icon>-->
     <v-icon v-else-if="isFloat" color="grey" class="mr-1 mt-n1">
       mdi-decimal
     </v-icon>

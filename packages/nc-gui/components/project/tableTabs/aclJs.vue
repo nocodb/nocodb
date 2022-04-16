@@ -15,7 +15,7 @@
                        href: '#'
                      },
                      {
-                       text: nodes.tn + ' (ACL)',
+                       text: nodes.table_name + ' (ACL)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -78,7 +78,7 @@
         dense
         hide-details
         class="ma-2"
-        :placeholder="`Search ${nodes.tn} routes`"
+        :placeholder="`Search ${nodes.table_name} routes`"
         prepend-inner-icon="search"
         outlined
       />
@@ -98,9 +98,9 @@
                       v-on="on"
                     />
                   </template>
-                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.tn }} routes for all roles</span>
+                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.table_name }} routes for all roles</span>
                 </v-tooltip>
-                <span class="title">{{ nodes.tn }} Routes</span>
+                <span class="title">{{ nodes.table_name }} Routes</span>
               </div>
             </th>
             <th
@@ -320,10 +320,9 @@ export default {
       this.policyPath = await this.sqlMgr.projectGetPolicyPath({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        tn: this.nodes.tn
+        table_name: this.nodes.table_name
       })
       try {
-        console.log(this.policyPath, this.data1)
         // this.data1 = JSON.parse(JSON.stringify((await this.sqlMgr.importFresh({path: this.policyPath})).permissions));
         this.data1 = JSON.parse(JSON.stringify((await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'importFresh', { path: this.policyPath }])).permissions))
         this.initColumnCheckBox()
@@ -334,11 +333,6 @@ export default {
     },
     async save() {
       try {
-        // await this.sqlMgr.writeFile({
-        //   path: this.policyPath,
-        //   data: `module.exports.permissions = ${JSON.stringify(this.data1, 0, 2)}`
-        // });
-
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'writeFile', {
           path: this.policyPath,
           data: `module.exports.permissions = ${JSON.stringify(this.data1, 0, 2)}`

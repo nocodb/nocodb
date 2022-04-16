@@ -173,7 +173,7 @@ export default {
             'viewCreate',
             {
               view_name: this.nodes.view_name,
-              _tn: this.nodes._tn,
+              title: this.nodes.title,
               view_definition: this.view.view_definition
             }]
           )

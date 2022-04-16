@@ -52,8 +52,7 @@
     </v-container>
 
     <v-container v-show="advanceOptions" fluid class="wrapper">
-      <v-row>
-      </v-row>
+      <v-row />
       <template v-if="!isSQLite">
         <v-row>
           <v-col cols="6">
@@ -67,7 +66,7 @@
               :items="onUpdateDeleteOptions"
               required
               dense
-              :disabled="relation.type !== 'real'"
+              :disabled="relation.virtual"
             />
           </v-col>
           <v-col cols="6">
@@ -81,25 +80,23 @@
               :items="onUpdateDeleteOptions"
               required
               dense
-              :disabled="relation.type !== 'real'"
-            />
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-checkbox
-              v-model="relation.type"
-              false-value="real"
-              true-value="virtual"
-              label="Virtual Relation"
-              :full-width="false"
-              required
-              class="mt-0"
-              dense
+              :disabled="relation.virtual"
             />
           </v-col>
         </v-row>
       </template>
+      <v-row>
+        <v-col>
+          <v-checkbox
+            v-model="relation.virtual"
+            label="Virtual Relation"
+            :full-width="false"
+            required
+            class="mt-0"
+            dense
+          />
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -148,7 +145,7 @@ export default {
       onDelete: 'NO ACTION',
       onUpdate: 'NO ACTION',
       updateRelation: !!this.column.rtn,
-      relationType: 'real'
+      virtual: this.isSQLite
     }
   },
   methods: {

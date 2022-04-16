@@ -19,6 +19,7 @@ import Sort from './Sort';
 import Filter from './Filter';
 import addFormulaErrorIfMissingColumn from '../noco/meta/helpers/addFormulaErrorIfMissingColumn';
 import { NcError } from '../noco/meta/helpers/catchError';
+import CurrencyColumn from './CurrencyColumn';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -255,6 +256,17 @@ export default class Column<T = any> implements ColumnType {
         }
         break;
       }
+      case UITypes.Currency: {
+        await CurrencyColumn.insert(
+          {
+            fk_column_id: colId,
+            currency_locale: column.currency_locale,
+            currency_code: column.currency_code
+          },
+          ncMeta
+        );
+        break;
+      }
 
       /*  default:
         {
@@ -329,6 +341,9 @@ export default class Column<T = any> implements ColumnType {
         break;
       case UITypes.Formula:
         res = await FormulaColumn.read(this.id, ncMeta);
+        break;
+      case UITypes.Currency:
+        res = await CurrencyColumn.read(this.id, ncMeta);
         break;
       // default:
       //   res = await DbColumn.read(this.id);
@@ -513,6 +528,18 @@ export default class Column<T = any> implements ColumnType {
       }
       for (const rollup of rollups) {
         await Column.delete(rollup.fk_column_id, ncMeta);
+      }
+    }
+
+    {
+      let currs = await NocoCache.getList(CacheScope.COL_CURRENCY, [id]);
+      if (!currs.length) {
+        currs = await ncMeta.metaList2(null, null, MetaTable.COL_CURRENCY, {
+          condition: { fk_column_id: id }
+        });
+      }
+      for (const curr of currs) {
+        await Column.delete(curr.fk_column_id, ncMeta);
       }
     }
 
@@ -775,6 +802,18 @@ export default class Column<T = any> implements ColumnType {
         await NocoCache.deepDel(
           CacheScope.COL_SELECT_OPTION,
           `${CacheScope.COL_SELECT_OPTION}:${colId}`,
+          CacheDelDirection.CHILD_TO_PARENT
+        );
+        break;
+      }
+      case UITypes.Currency: {
+        await ncMeta.metaDelete(null, null, MetaTable.COL_CURRENCY, {
+          fk_column_id: colId
+        });
+
+        await NocoCache.deepDel(
+          CacheScope.COL_CURRENCY,
+          `${CacheScope.COL_CURRENCY}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT
         );
         break;

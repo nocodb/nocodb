@@ -782,7 +782,8 @@ export default {
         'URL',
         'DateTime',
         'CreateTime',
-        'LastModifiedTime'
+        'LastModifiedTime',
+        'Currency'
       ].includes(col.uidt)
     },
     onPasswordProtectChange() {

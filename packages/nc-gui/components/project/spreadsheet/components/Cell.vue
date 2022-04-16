@@ -18,6 +18,7 @@
   <time-cell v-else-if="isTime" :value="value" />
   <boolean-cell v-else-if="isBoolean" :value="value" read-only />
   <rating-cell v-else-if="isRating" :value="value" read-only />
+  <currency-cell v-else-if="isCurrency" :value="value" :column="column" />
 
   <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>
 </template>
@@ -35,10 +36,11 @@ import EditableAttachmentCell from '~/components/project/spreadsheet/components/
 import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell'
 import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
+import CurrencyCell from '@/components/project/spreadsheet/components/cell/currencyCell'
 
 export default {
   name: 'TableCell',
-  components: { RatingCell, EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell },
+  components: { RatingCell, EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell, CurrencyCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected', 'column'],
   computed: {

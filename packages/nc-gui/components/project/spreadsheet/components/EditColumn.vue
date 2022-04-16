@@ -428,14 +428,17 @@
                                   @change="onDataTypeChange"
                                 />
                               </v-col>
-
-                              <v-col
-                                :cols="
-                                  sqlUi.showScale(newColumn) && !isSelect
-                                    ? 6
-                                    : 12
-                                "
-                              >
+                              <currency-options
+                                v-if="newColumn.uidt == 'Currency'"
+                                ref="currency"
+                                :column="newColumn"
+                                :nodes="nodes"
+                                :meta="meta"
+                                :is-s-q-lite="isSQLite"
+                                :alias="newColumn.column_name"
+                                v-on="$listeners"
+                              />
+                              <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
                                 <!--label="Length / Values"-->
                                 <v-text-field
                                   v-if="!isSelect"
@@ -572,6 +575,7 @@ import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/
 import { validateColumnName } from '~/helpers'
 import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
 import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/CheckboxOptions'
+import CurrencyOptions from "@/components/project/spreadsheet/components/editColumn/currencyOptions";
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -586,7 +590,8 @@ export default {
     LinkedToAnotherOptions,
     DlgLabelSubmitCancel,
     RelationOptions,
-    CustomSelectOptions
+    CustomSelectOptions,
+    CurrencyOptions
   },
   props: {
     nodes: Object,
@@ -727,6 +732,16 @@ export default {
           await this.$refs.formula.save()
           return this.$emit('saved')
           // return this.$toast.info('Coming Soon...').goAway(3000)
+        }
+
+        if (this.newColumn.uidt === 'Currency' && this.column) {
+          await this.$refs.currency.update()
+          return this.$emit('saved')
+        }
+
+        if (this.newColumn.uidt === 'Currency' && !this.column) {
+          await this.$refs.currency.save()
+          return this.$emit('saved')
         }
 
         if (this.isLinkToAnotherRecord && this.$refs.relation) {

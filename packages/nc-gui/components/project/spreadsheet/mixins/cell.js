@@ -66,7 +66,7 @@ export default {
       return this.uiDatatype === UITypes.Rating
     },
     isCurrency() {
-      return this.column.uidt == 'Currency'
+      return this.uiDatatype === 'Currency'
     }
 
   }

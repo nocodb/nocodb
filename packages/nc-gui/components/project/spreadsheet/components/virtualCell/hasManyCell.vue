@@ -342,7 +342,7 @@ export default {
         return
       }
       const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
-      await this.$api.dbTableRow.nestedDelete(
+      await this.$api.dbTableRow.nestedRemove(
         'noco',
         this.projectName,
         this.meta.title,

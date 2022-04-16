@@ -620,6 +620,15 @@ export type ColumnReqType =
     }
   | { uidt?: string; formula_raw?: string; formula?: string; title?: string };
 
+export interface UserInfoType {
+  id?: string;
+  email?: string;
+  email_verified?: string;
+  firstname?: string;
+  lastname?: string;
+  roles?: any;
+}
+
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
@@ -798,7 +807,7 @@ export class Api<
      * @summary Signup
      * @request POST:/api/v1/db/auth/user/signup
      * @response `200` `{ token?: string }` OK
-     * @response `400` `void` Bad Request
+     * @response `400` `{ msg?: string }` Bad Request
      * @response `401` `void` Unauthorized
      * @response `403` `void` Forbidden
      */
@@ -806,7 +815,7 @@ export class Api<
       data: { email?: string; password?: string },
       params: RequestParams = {}
     ) =>
-      this.request<{ token?: string }, void>({
+      this.request<{ token?: string }, { msg?: string } | void>({
         path: `/api/v1/db/auth/user/signup`,
         method: 'POST',
         body: data,
@@ -822,12 +831,13 @@ export class Api<
      * @summary Signin
      * @request POST:/api/v1/db/auth/user/signin
      * @response `200` `{ token?: string }` OK
+     * @response `400` `{ msg?: string }` Bad Request
      */
     signin: (
       data: { email: string; password: string },
       params: RequestParams = {}
     ) =>
-      this.request<{ token?: string }, any>({
+      this.request<{ token?: string }, { msg?: string }>({
         path: `/api/v1/db/auth/user/signin`,
         method: 'POST',
         body: data,
@@ -843,12 +853,13 @@ export class Api<
      * @name Me
      * @summary User Info
      * @request GET:/api/v1/db/auth/user/me
-     * @response `200` `UserType` OK
+     * @response `200` `UserInfoType` OK
      */
-    me: (params: RequestParams = {}) =>
-      this.request<UserType, any>({
+    me: (query?: { project_id?: string }, params: RequestParams = {}) =>
+      this.request<UserInfoType, any>({
         path: `/api/v1/db/auth/user/me`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -861,9 +872,10 @@ export class Api<
      * @summary Password Forgot
      * @request POST:/api/v1/db/auth/password/forgot
      * @response `200` `void` OK
+     * @response `401` `void` Unauthorized
      */
     passwordForgot: (data: { email?: string }, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<void, void>({
         path: `/api/v1/db/auth/password/forgot`,
         method: 'POST',
         body: data,
@@ -878,21 +890,19 @@ export class Api<
      * @name PasswordChange
      * @summary Password Change
      * @request POST:/api/v1/db/auth/password/change
-     * @response `200` `void` OK
+     * @response `200` `{ msg?: string }` OK
+     * @response `400` `{ msg?: string }` Bad request
      */
     passwordChange: (
-      data: {
-        currentPassword?: string;
-        newPassword?: string;
-        verifyPassword?: string;
-      },
+      data: { currentPassword?: string; newPassword?: string },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<{ msg?: string }, { msg?: string }>({
         path: `/api/v1/db/auth/password/change`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -2466,11 +2476,11 @@ export class Api<
      * No description
      *
      * @tags DB table row
-     * @name NestedDelete
+     * @name NestedRemove
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
      * @response `200` `any` OK
      */
-    nestedDelete: (
+    nestedRemove: (
       orgs: string,
       projectName: string,
       tableName: string,

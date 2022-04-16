@@ -318,7 +318,7 @@ export default {
       const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
       const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c.title]).join('___')
 
-      await this.$api.dbTableRow.nestedDelete(
+      await this.$api.dbTableRow.nestedRemove(
         'noco',
         this.projectName,
         this.meta.title,

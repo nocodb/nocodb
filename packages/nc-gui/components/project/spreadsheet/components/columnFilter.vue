@@ -1,6 +1,6 @@
 <template>
   <div
-    class="backgroundColor pa-2"
+    class="backgroundColor pa-2 menu-filter-dropdown"
     :style="{ width: nested ? '100%' : '530px' }"
   >
     <div class="grid" @click.stop>

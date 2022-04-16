@@ -178,7 +178,7 @@
             v-for="(columnObj, col) in availableColumns"
             v-show="showFields[columnObj.title]"
             :key="row + columnObj.title"
-            class="cell pointer nc-grid-cell"
+            class="cell pointer nc-grid-cell text-aligned-top"
             :class="{
               active:
                 !isPublicView &&

@@ -1018,7 +1018,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB table"
         ]
       },
       "get": {
@@ -1067,7 +1067,7 @@
           }
         ],
         "tags": [
-          "DB Table"
+          "DB table"
         ]
       }
     },
@@ -1188,7 +1188,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB table"
         ]
       },
       "patch": {
@@ -1205,7 +1205,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB table"
         ],
         "requestBody": {
           "content": {
@@ -1231,7 +1231,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB table"
         ],
         "description": ""
       }
@@ -1270,7 +1270,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB table"
         ]
       }
     },
@@ -1303,7 +1303,7 @@
           }
         },
         "tags": [
-          "DB Table column"
+          "DB table column"
         ]
       }
     },
@@ -1343,7 +1343,7 @@
           }
         },
         "tags": [
-          "DB Table column"
+          "DB table column"
         ]
       },
       "delete": {
@@ -1355,7 +1355,7 @@
           }
         },
         "tags": [
-          "DB Table column"
+          "DB table column"
         ]
       }
     },
@@ -1379,7 +1379,7 @@
           }
         },
         "tags": [
-          "DB Table column"
+          "DB table column"
         ]
       }
     },
@@ -1403,7 +1403,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "description": ""
       }
@@ -1456,7 +1456,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ]
       },
       "delete": {
@@ -1468,7 +1468,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ]
       }
     },
@@ -1492,7 +1492,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "description": "",
         "parameters": [
@@ -1526,7 +1526,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "parameters": [
           {
@@ -1569,7 +1569,7 @@
         },
         "description": "",
         "tags": [
-          "DB View Share"
+          "DB view share"
         ]
       }
     },
@@ -1605,7 +1605,7 @@
           }
         },
         "tags": [
-          "DB View Share"
+          "DB view share"
         ]
       },
       "patch": {
@@ -1639,7 +1639,7 @@
           "description": ""
         },
         "tags": [
-          "DB View Share"
+          "DB view share"
         ]
       },
       "delete": {
@@ -1652,7 +1652,7 @@
         },
         "description": "",
         "tags": [
-          "DB View Share"
+          "DB view share"
         ]
       }
     },
@@ -1672,7 +1672,7 @@
         "operationId": "db-view-column-list",
         "responses": {},
         "tags": [
-          "DB View Column"
+          "DB view column"
         ]
       },
       "post": {
@@ -1684,7 +1684,7 @@
           }
         },
         "tags": [
-          "DB View Column"
+          "DB view column"
         ],
         "requestBody": {
           "content": {
@@ -1723,7 +1723,7 @@
           }
         },
         "tags": [
-          "DB View Column"
+          "DB view column"
         ],
         "requestBody": {
           "content": {
@@ -1769,7 +1769,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB table sort"
         ]
       },
       "post": {
@@ -1781,7 +1781,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB table sort"
         ],
         "requestBody": {
           "content": {
@@ -1821,7 +1821,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB table sort"
         ]
       },
       "patch": {
@@ -1833,7 +1833,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB table sort"
         ],
         "requestBody": {
           "content": {
@@ -1854,7 +1854,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB table sort"
         ]
       }
     },
@@ -1878,7 +1878,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB table filter"
         ]
       },
       "post": {
@@ -1890,7 +1890,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB table filter"
         ],
         "requestBody": {
           "content": {
@@ -1923,7 +1923,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB table webhook filter"
         ]
       },
       "post": {
@@ -1935,7 +1935,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB table webhook filter"
         ],
         "requestBody": {
           "content": {
@@ -1975,7 +1975,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB table filter"
         ]
       },
       "patch": {
@@ -1987,7 +1987,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB table filter"
         ],
         "requestBody": {
           "content": {
@@ -2008,7 +2008,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB table filter"
         ]
       }
     },
@@ -2039,7 +2039,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB table filter"
         ]
       }
     },
@@ -2070,7 +2070,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "requestBody": {
           "content": {
@@ -2111,7 +2111,7 @@
         },
         "description": "",
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "requestBody": {
           "content": {
@@ -2144,7 +2144,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "requestBody": {
           "content": {
@@ -2172,7 +2172,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ]
       }
     },
@@ -2203,7 +2203,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "requestBody": {
           "content": {
@@ -2246,7 +2246,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ]
       }
     },
@@ -2275,7 +2275,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "requestBody": {
           "content": {
@@ -2316,7 +2316,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "requestBody": {
           "content": {
@@ -2349,7 +2349,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ],
         "requestBody": {
           "content": {
@@ -2377,7 +2377,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB view"
         ]
       }
     },
@@ -2460,7 +2460,7 @@
         "operationId": "db-table-row-list",
         "description": "",
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "parameters": [
           {
@@ -2510,7 +2510,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "requestBody": {
           "content": {
@@ -2561,7 +2561,7 @@
         "operationId": "db-view-row-list",
         "description": "",
         "tags": [
-          "DB View Row"
+          "DB view row"
         ],
         "parameters": [
           {
@@ -2617,7 +2617,7 @@
           }
         },
         "tags": [
-          "DB View Row"
+          "DB view row"
         ],
         "requestBody": {
           "content": {
@@ -2668,7 +2668,7 @@
         "operationId": "db-view-row-count",
         "description": "",
         "tags": [
-          "DB View Row"
+          "DB view row"
         ],
         "parameters": [
           {
@@ -2755,7 +2755,7 @@
         },
         "description": "",
         "tags": [
-          "DB View Row"
+          "DB view row"
         ]
       },
       "patch": {
@@ -2772,7 +2772,7 @@
           }
         },
         "tags": [
-          "DB View Row"
+          "DB view row"
         ],
         "requestBody": {
           "content": {
@@ -2791,7 +2791,7 @@
           }
         },
         "tags": [
-          "DB View Row"
+          "DB view row"
         ],
         "description": ""
       }
@@ -2846,7 +2846,7 @@
         },
         "description": "",
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ]
       },
       "patch": {
@@ -2863,7 +2863,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "requestBody": {
           "content": {
@@ -2882,7 +2882,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "description": ""
       }
@@ -2928,7 +2928,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "requestBody": {
           "content": {
@@ -2952,7 +2952,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "requestBody": {
           "content": {
@@ -2976,7 +2976,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "requestBody": {
           "content": {
@@ -3028,7 +3028,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "requestBody": {
           "content": {
@@ -3052,7 +3052,7 @@
           }
         },
         "tags": [
-          "DB Table Row"
+          "DB table row"
         ],
         "requestBody": {
           "content": {
@@ -4136,7 +4136,7 @@
         "description": "",
         "parameters": [],
         "tags": [
-          "DB Table Webhook"
+          "DB table webhook"
         ]
       },
       "post": {
@@ -4165,7 +4165,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB table webhook"
         ]
       }
     },
@@ -4194,7 +4194,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB table webhook"
         ],
         "requestBody": {
           "content": {
@@ -4283,7 +4283,7 @@
         "description": "",
         "parameters": [],
         "tags": [
-          "DB Table Webhook"
+          "DB table webhook"
         ]
       }
     },
@@ -4314,7 +4314,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB table webhook"
         ],
         "requestBody": {
           "content": {
@@ -4335,7 +4335,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB table webhook"
         ]
       }
     },

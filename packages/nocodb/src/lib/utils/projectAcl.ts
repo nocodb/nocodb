@@ -142,6 +142,7 @@ export default {
     hmList: true,
     commentList: true,
     commentRow: true,
+    projectInfoGet: true,
 
     // data
     dataList: true,
@@ -185,6 +186,7 @@ export default {
 
     // sort & filter
     sortList: true,
+    projectInfoGet: true,
 
     mmList: true,
     hmList: true,

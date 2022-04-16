@@ -227,7 +227,7 @@ interface LinkToAnotherRecordv1 {
 }
 
 interface ModelMetav1 {
-  id: number;
+  id: number | string;
   project_id: string;
   db_alias: string;
   title: string;
@@ -296,6 +296,7 @@ interface MigrateCtxV1 {
   objModelColumnAliasRef: ObjModelColumnAliasRefv1;
   objViewRef: ObjViewRefv1;
   objViewQPRef: ObjViewQPRefv1;
+  metas: ModelMetav1[];
 }
 
 // @ts-ignore
@@ -786,6 +787,7 @@ async function migrateProjectModels(
 
   await migrateProjectModelViews(
     {
+      metas,
       views,
       objModelRef,
       objModelColumnAliasRef,
@@ -799,6 +801,7 @@ async function migrateProjectModels(
 
   await migrateViewsParams(
     {
+      metas,
       views,
       objModelRef,
       objModelColumnAliasRef,
@@ -811,6 +814,7 @@ async function migrateProjectModels(
   );
 
   return {
+    metas,
     views,
     objModelRef,
     objModelColumnAliasRef,
@@ -1270,8 +1274,9 @@ async function migrateAutitLog(ctx: MigrateCtxV1, ncMeta: any) {
     if (audit.model_name) {
       insertObj.fk_model_id = (
         ctx.objModelAliasRef?.[audit.project_id]?.[audit.model_name] ||
-        ctx.objModelRef?.[audit.project_id]?.[audit.model_name]
-      ).id;
+        ctx.objModelRef?.[audit.project_id]?.[audit.model_name] ||
+        ctx.metas?.find(m => m.id == audit.model_id)
+      )?.id;
     }
 
     await Audit.insert(insertObj, ncMeta);

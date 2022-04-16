@@ -139,6 +139,7 @@ export default {
     columnList: true,
 
     mmList: true,
+    hmList: true,
     commentList: true,
     commentRow: true,
 

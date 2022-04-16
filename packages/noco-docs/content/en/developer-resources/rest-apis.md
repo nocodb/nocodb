@@ -153,8 +153,6 @@ Here's the overview of all APIs. For the details, please check out <a href="http
 | Meta | Get | utils | appInfo | /api/v1/db/meta/nocodb/info |
 | Meta | Get | utils | appVersion | /api/v1/db/meta/nocodb/version |
 
-<!-- TODO: verify -->
-
 ## Query params
 
 |  **Name**    | **Alias** | **Use case** | **Default value**  |**Example value**  |
@@ -164,6 +162,8 @@ Here's the overview of all APIs. For the details, please check out <a href="http
 |  offset  | o |  Offset for pagination(SQL offset value)  | 0  | 20 |
 |  sort  | s |  Sort by column name, Use `-` as prefix for descending sort  |   | column_name |
 |  fields  | f |  Required column names in result  |  * | column_name1,column_name2 |
+
+<!-- 
 |  fields1  | f1 |  Required column names in child result  |  * | column_name1,column_name2 |
 |  bt  |  |  Comma-separated belongs to tables  | `All belongs to tables` | [click here for example](#nested-parentbelongs-to) |
 |  bfields`<p>`  | bf`<p>`  |  Required belongs to table column names in result. Where `<p>` refers to position of table name in `bt` parameter(starts from `1`)  | primary key and primary value | [click here for example](#nested-parentbelongs-to) |
@@ -171,32 +171,29 @@ Here's the overview of all APIs. For the details, please check out <a href="http
 |  hfields`<p>`  | hf`<p>`  |  Required has many table column names in result. Where `<p>` refers to position of table name in `hm` parameter(starts from `1`) | primary key and primary value | [click here for example](#nested-childrenhas-many) |
 |  mm  |  |  Comma-separated many to many tables  | `All many to many tables` | [click here for example](#nested-childrenmany-to-many) |
 |  mfields`<p>`  | mf`<p>`  |  Required many to many table column names in result. Where `<p>` refers to position of table name in `mm` parameter(starts from `1`) | primary key and primary value | [click here for example](#nested-childrenmany-to-many) |
+ -->
 
-## Comparison operators
+## Comparison Operators
 
-```
-eq      -   '='         -  (colName,eq,colValue)
-not     -   '!='        -  (colName,not,colValue)
-gt      -   '>'         -  (colName,gt,colValue)
-ge      -   '>='        -  (colName,ge,colValue)
-lt      -   '<'         -  (colName,lt,colValue)
-le      -   '<='        -  (colName,le,colValue)
-is      -   'is'        -  (colName,is,true/false/null)
-isnot   -   'is not'    -  (colName,isnot,true/false/null)
-in      -   'in'        -  (colName,in,val1,val2,val3,val4)
-btw     -   'between'   -  (colName,btw,val1,val2) 
-nbtw    -  'not between'-  (colName,nbtw,val1,val2) 
-like    -   'like'      -  (colName,like,%name)
-```
+| Operation | Meaning | Example |
+|---|---|---|
+| eq | equal | (colName,eq,colValue) |
+| not | not equal | (colName,not,colValue) |
+| gt | greater than | (colName,gt,colValue) |
+| ge | greater or equal | (colName,ge,colValue) |
+| lt | less than | (colName,lt,colValue) |
+| le | less or equal | (colName,le,colValue) |
+| is | is | (colName,is,true/false/null) |
+| isnot | is not | (colName,isnot,true/false/null) |
+| in | in | (colName,in,val1,val2,val3,val4) |
+| btw | between | (colName,btw,val1,val2) |
+| nbtw | not between | (colName,nbtw,val1,val2) |
+| like | like | (colName,like,%name) |
 
-#### Example use of comparison operators - complex example
-```
-<API_PATH>?where=(checkNumber,eq,JM555205)~or((amount,gt,200)~and(amount,lt,2000))
-```
+## Logical Operators
 
-#### Logical operators
-```
-~or     -   'or'
-~and    -   'and'
-~not    -   'not'
-```
+| Operation | Example |
+|---|---|
+| ~or | (checkNumber,eq,JM555205)~or((amount, gt, 200)~and(amount, lt, 2000)) |
+| ~and | (checkNumber,eq,JM555205)~and((amount, gt, 200)~and(amount, lt, 2000)) |
+| ~not | ~not(checkNumber,eq,JM555205) |

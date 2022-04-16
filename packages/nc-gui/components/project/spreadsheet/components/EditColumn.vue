@@ -683,6 +683,9 @@ export default {
     },
     isVirtual() {
       return this.isLinkToAnotherRecord || this.isLookup || this.isRollup
+    },
+    isCurrency() {
+      return this.newColumn && this.newColumn.uidt === UITypes.Currency
     }
   },
   watch: {
@@ -734,13 +737,13 @@ export default {
           // return this.$toast.info('Coming Soon...').goAway(3000)
         }
 
-        if (this.newColumn.uidt === 'Currency' && this.column) {
+        if (this.isCurrency && this.column) {
           await this.$refs.currency.update()
           this.$emit('saved')
           return this.$emit('close')
         }
 
-        if (this.newColumn.uidt === 'Currency' && !this.column) {
+        if (this.isCurrency && !this.column) {
           await this.$refs.currency.save()
           this.$emit('saved')
           return this.$emit('close')
@@ -820,8 +823,8 @@ export default {
         this.newColumn.dtxp = this.column.dtxp
       }
 
-      if (this.newColumn.uidt === 'Currency' && this.column?.uidt !== 'Currency') {
-        if (this.column?.uidt === 'Currency') {
+      if (this.isCurrency) {
+        if (this.column?.uidt === UITypes.Currency) {
           this.newColumn.dtxp = this.column.dtxp
           this.newColumn.dtxs = this.column.dtxs
         } else {
@@ -870,8 +873,8 @@ export default {
         }
       }
 
-      if (this.newColumn.uidt === 'Currency' && this.column?.uidt !== 'Currency') {
-        if (this.column?.uidt === 'Currency') {
+      if (this.isCurrency) {
+        if (this.column?.uidt === UITypes.Currency) {
           this.newColumn.dtxp = this.column.dtxp
           this.newColumn.dtxs = this.column.dtxs
         } else {

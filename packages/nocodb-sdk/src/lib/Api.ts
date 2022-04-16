@@ -1310,7 +1310,7 @@ export class Api<
      *
      * @tags Project
      * @name AuditList
-     * @request GET:/api/v1/db/meta/project/{projectId}/audits
+     * @request GET:/api/v1/db/meta/projects/{projectId}/audits
      * @response `200` `{ list: (AuditType)[], pageInfo: PaginatedType }` OK
      */
     auditList: (
@@ -1319,7 +1319,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ list: AuditType[]; pageInfo: PaginatedType }, any>({
-        path: `/api/v1/db/meta/project/${projectId}/audits`,
+        path: `/api/v1/db/meta/projects/${projectId}/audits`,
         method: 'GET',
         query: query,
         format: 'json',

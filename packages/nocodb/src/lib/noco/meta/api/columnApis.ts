@@ -45,6 +45,7 @@ async function createHmAndBtColumn(
   childColumn: Column,
   type?: RelationTypes,
   alias?: string,
+  virtual = false,
   isSystemCol = false
 ) {
   // save bt column
@@ -65,6 +66,7 @@ async function createHmAndBtColumn(
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: parent.id,
+      virtual,
       system: isSystemCol
     });
   }
@@ -82,6 +84,7 @@ async function createHmAndBtColumn(
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: child.id,
+      virtual,
       system: isSystemCol
     });
   }
@@ -275,23 +278,27 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 
             childColumn = await Column.get({ colId: id });
 
-            // create relation
-            await sqlMgr.sqlOpPlus(base, 'relationCreate', {
-              childColumn: fkColName,
-              childTable: child.table_name,
-              parentTable: parent.table_name,
-              onDelete: 'NO ACTION',
-              onUpdate: 'NO ACTION',
-              type: 'real',
-              parentColumn: parent.primaryKey.column_name
-            });
+            // ignore relation creation if virtual
+            if (!req.body.virtual) {
+              // create relation
+              await sqlMgr.sqlOpPlus(base, 'relationCreate', {
+                childColumn: fkColName,
+                childTable: child.table_name,
+                parentTable: parent.table_name,
+                onDelete: 'NO ACTION',
+                onUpdate: 'NO ACTION',
+                type: 'real',
+                parentColumn: parent.primaryKey.column_name
+              });
+            }
           }
           await createHmAndBtColumn(
             child,
             parent,
             childColumn,
             req.body.type,
-            req.body.title
+            req.body.title,
+            req.body.virtual
           );
         } else if (req.body.type === 'mm') {
           const aTn = `${project?.prefix ?? ''}_nc_m2m_${randomID()}`;
@@ -352,26 +359,27 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             columns: associateTableCols
           });
 
-          const rel1Args = {
-            ...req.body,
-            childTable: aTn,
-            childColumn: parentCn,
-            parentTable: parent.table_name,
-            parentColumn: parentPK.column_name,
-            type: 'real'
-          };
-          const rel2Args = {
-            ...req.body,
-            childTable: aTn,
-            childColumn: childCn,
-            parentTable: child.table_name,
-            parentColumn: childPK.column_name,
-            type: 'real'
-          };
+          if (!req.body.virtual) {
+            const rel1Args = {
+              ...req.body,
+              childTable: aTn,
+              childColumn: parentCn,
+              parentTable: parent.table_name,
+              parentColumn: parentPK.column_name,
+              type: 'real'
+            };
+            const rel2Args = {
+              ...req.body,
+              childTable: aTn,
+              childColumn: childCn,
+              parentTable: child.table_name,
+              parentColumn: childPK.column_name,
+              type: 'real'
+            };
 
-          await sqlMgr.sqlOpPlus(base, 'relationCreate', rel1Args);
-          await sqlMgr.sqlOpPlus(base, 'relationCreate', rel2Args);
-
+            await sqlMgr.sqlOpPlus(base, 'relationCreate', rel1Args);
+            await sqlMgr.sqlOpPlus(base, 'relationCreate', rel2Args);
+          }
           const parentCol = (await assocModel.getColumns())?.find(
             c => c.column_name === parentCn
           );
@@ -385,6 +393,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             childCol,
             null,
             null,
+            req.body.virtual,
             true
           );
           await createHmAndBtColumn(
@@ -393,6 +402,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             parentCol,
             null,
             null,
+            req.body.virtual,
             true
           );
 

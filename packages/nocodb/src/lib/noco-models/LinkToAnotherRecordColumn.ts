@@ -107,7 +107,8 @@ export default class LinkToAnotherRecordColumn {
       dr: data.dr,
 
       fk_index_name: data.fk_index_name,
-      fk_related_model_id: data.fk_related_model_id
+      fk_related_model_id: data.fk_related_model_id,
+      virtual: data.virtual
     });
     return this.read(data.fk_column_id, ncMeta);
   }

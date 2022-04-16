@@ -31,8 +31,6 @@ export enum MetaDiffType {
   VIEW_COLUMN_REMOVE = 'VIEW_COLUMN_REMOVE',
   TABLE_RELATION_ADD = 'TABLE_RELATION_ADD',
   TABLE_RELATION_REMOVE = 'TABLE_RELATION_REMOVE',
-  // TABLE_VIRTUAL_RELATION_ADD = 'TABLE_VIRTUAL_RELATION_ADD',
-  // TABLE_VIRTUAL_RELATION_REMOVE = 'TABLE_VIRTUAL_RELATION_REMOVE',
   TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE'
 }
 
@@ -718,12 +716,12 @@ export async function metaDiffSync(req, res) {
   res.json({ msg: 'success' });
 }
 
-async function isMMRelationAvailable(
+async function isMMRelationExist(
   model: Model,
   assocModel: Model,
   belongsToCol: Column<LinkToAnotherRecordColumn>
 ) {
-  let isAvail = false;
+  let isExist = false;
   const colChildOpt = await belongsToCol.getColOptions<
     LinkToAnotherRecordColumn
   >();
@@ -737,12 +735,12 @@ async function isMMRelationAvailable(
         colOpt.fk_child_column_id === colChildOpt.fk_parent_column_id &&
         colOpt.fk_mm_child_column_id === colChildOpt.fk_child_column_id
       ) {
-        isAvail = true;
+        isExist = true;
         break;
       }
     }
   }
-  return isAvail;
+  return isExist;
 }
 
 // @ts-ignore
@@ -772,12 +770,12 @@ export async function extractAndGenerateManyToManyRelations(
       await modelB.getColumns();
 
       // check tableA already have the relation or not
-      const isRelationAvailInA = await isMMRelationAvailable(
+      const isRelationAvailInA = await isMMRelationExist(
         modelA,
         assocModel,
         belongsToCols[0]
       );
-      const isRelationAvailInB = await isMMRelationAvailable(
+      const isRelationAvailInB = await isMMRelationExist(
         modelB,
         assocModel,
         belongsToCols[1]

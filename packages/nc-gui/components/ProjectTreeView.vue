@@ -580,7 +580,7 @@
         <template v-if="_isUIAllowed('settings')">
           <v-divider />
 
-          <div class="py-3 pl-5 pr-3 d-flex align-center">
+          <div class="pt-3 pl-5 pr-3 d-flex align-center pb-2">
             <settings-modal>
               <template #default="{click}">
                 <div v-t="['project-settings']" class="caption pointer nc-team-settings" @click="click">
@@ -593,6 +593,17 @@
             </settings-modal>
           </div>
         </template>
+
+        <div
+          v-t="['api-docs']"
+          class="caption pointer nc-team-settings pb-3 pl-5 pr-3 pt-2 d-flex align-center"
+          @click="openLink('https://apis.nocodb.com')"
+        >
+          <v-icon small class="mr-2">
+            mdi-api
+          </v-icon>
+          API Docs
+        </div>
         <v-divider />
         <extras class="pl-1 " />
       </div>
@@ -609,7 +620,6 @@
       v-model="dialogGetViewName.dialogShow"
       @create="mtdViewCreate($event)"
     />
-
 
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
@@ -663,7 +673,7 @@
 <script>
 /* eslint-disable */
 
-import { mapMutations, mapGetters, mapActions } from 'vuex'
+import {mapMutations, mapGetters, mapActions} from 'vuex'
 
 import rightClickOptions from '../helpers/rightClickOptions'
 import rightClickOptionsSub from '../helpers/rightClickOptionsSub'
@@ -671,11 +681,11 @@ import icons from '../helpers/treeViewIcons'
 
 import textDlgSubmitCancel from './utils/dlgTextSubmitCancel'
 import dlgLabelSubmitCancel from './utils/dlgLabelSubmitCancel'
-import { copyTextToClipboard } from '../helpers/xutils'
+import {copyTextToClipboard} from '../helpers/xutils'
 import DlgTableCreate from '@/components/utils/dlgTableCreate'
 import DlgViewCreate from '@/components/utils/dlgViewCreate'
 import SponsorMini from '@/components/sponsorMini'
-import { validateTableName } from '~/helpers'
+import {validateTableName} from '~/helpers'
 import ExcelImport from '~/components/import/excelImport'
 
 import draggable from 'vuedraggable'
@@ -717,7 +727,7 @@ export default {
       viewer: 'mdi-eye-outline',
       commenter: 'mdi-comment-account-outline',
     },
-    rolesList: [{ title: 'editor' }, { title: 'commenter' }, { title: 'viewer' }],
+    rolesList: [{title: 'editor'}, {title: 'commenter'}, {title: 'viewer'}],
     showSqlClient: false,
     nestedMenu: {},
     overShieldIcon: false,
@@ -745,7 +755,7 @@ export default {
     x: 0,
     y: 0,
     menuItem: null,
-    menu: [{ title: 'Execute' }],
+    menu: [{title: 'Execute'}],
     icons,
     tree: [],
     active: [],
@@ -912,7 +922,7 @@ export default {
           name: 'App Store',
           key: `appStore`
         }
-        item._nodes = { env: '_noco' }
+        item._nodes = {env: '_noco'}
         item._nodes.type = 'appStore'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -950,7 +960,7 @@ export default {
           name: `${this.$t('title.team&auth')} `,
           key: `roles`
         }
-        item._nodes = { env: '_noco' }
+        item._nodes = {env: '_noco'}
         item._nodes.type = 'roles'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -964,7 +974,7 @@ export default {
           name: `${this.$t('title.metaMgmt')}`,
           key: `disableOrEnableModel`
         }
-        item._nodes = { env: '_noco' }
+        item._nodes = {env: '_noco'}
         item._nodes.type = 'disableOrEnableModel'
         this.$store.dispatch('tabs/ActAddTab', item)
       }
@@ -1101,7 +1111,7 @@ export default {
             }
             if (item._nodes.type === 'table') {
               let tableIndex = +item._nodes.key.split('.').pop()
-              if (!(await this.$store.dispatch('windows/ActCheckMaxTable', { tableIndex }))) {
+              if (!(await this.$store.dispatch('windows/ActCheckMaxTable', {tableIndex}))) {
                 return
               }
             }
@@ -1175,9 +1185,9 @@ export default {
         if (!this.isTreeView) {
           if (this.$route.query.type) {
             const node = this.listViewArr.find(n => n.type === `${this.$route.query.type}Dir`)
-            await this.addTab({ ...(node || this.listViewArr[0]) }, false, true)
+            await this.addTab({...(node || this.listViewArr[0])}, false, true)
           } else {
-            await this.addTab({ ...this.listViewArr[0] }, false, true)
+            await this.addTab({...this.listViewArr[0]}, false, true)
           }
         }
       } catch (error) {
@@ -1344,7 +1354,7 @@ export default {
             dbAlias: item._nodes.dbAlias,
           },
           func,
-          { tn: item.name },
+          {tn: item.name},
         ])
         if (result && result.data) {
           copyTextToClipboard(result.data, 'selection')
@@ -1352,7 +1362,7 @@ export default {
           copyTextToClipboard('Example String', 'selection')
         }
 
-        let sqlClientNode = { ...item._nodes }
+        let sqlClientNode = {...item._nodes}
         let newItem = {
           _nodes: sqlClientNode,
         }
@@ -1652,7 +1662,7 @@ export default {
               dbAlias: item._nodes.dbAlias,
             },
             'viewRead',
-            { view_name: item._nodes.view_name },
+            {view_name: item._nodes.view_name},
           ])
 
           await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [

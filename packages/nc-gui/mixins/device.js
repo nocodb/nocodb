@@ -126,6 +126,9 @@ export default {
         msg = e.response.data.msg || 'Some internal error occurred'
       }
       return msg || 'Some error occurred'
+    },
+    open(url, target = '_blank') {
+      window.open(url, target)
     }
   }
 }

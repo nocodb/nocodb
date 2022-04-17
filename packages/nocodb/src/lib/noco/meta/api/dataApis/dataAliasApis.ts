@@ -152,9 +152,9 @@ router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
-router.patch(
+router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
-  ncMetaAclMw(dataUpdate, 'dataUpdate')
+  ncMetaAclMw(dataDelete, 'dataDelete')
 );
 
 router.get(

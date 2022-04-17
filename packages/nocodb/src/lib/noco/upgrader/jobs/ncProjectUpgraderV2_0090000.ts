@@ -45,7 +45,7 @@ export default async function(ctx: NcUpgraderCtx) {
   }
 
   await migrateUsers(ncMeta);
-  await migrateProjects(ncMeta);
+  const projectsObj = await migrateProjects(ncMeta);
   await migrateProjectUsers(ncMeta);
   const migrationCtx = await migrateProjectModels(ncMeta);
 
@@ -54,7 +54,7 @@ export default async function(ctx: NcUpgraderCtx) {
   await migrateSharedBase(ncMeta);
   await migratePlugins(ncMeta);
   await migrateWebhooks(migrationCtx, ncMeta);
-  await migrateAutitLog(migrationCtx, ncMeta);
+  await migrateAutitLog(migrationCtx, projectsObj, ncMeta);
 }
 
 async function migrateUsers(ncMeta = Noco.ncMeta) {
@@ -67,9 +67,11 @@ async function migrateUsers(ncMeta = Noco.ncMeta) {
   return userList;
 }
 
-async function migrateProjects(ncMeta = Noco.ncMeta) {
+async function migrateProjects(
+  ncMeta = Noco.ncMeta
+): Promise<{ [projectId: string]: Project }> {
   const projects = await ncMeta.projectList();
-  const projectList: Project[] = [];
+  const projectsObj: { [projectId: string]: Project } = {};
 
   for (const project of projects) {
     const projectConfig = JSON.parse(project.config);
@@ -94,9 +96,10 @@ async function migrateProjects(ncMeta = Noco.ncMeta) {
       created_at: project.created_at,
       updated_at: project.updated_at
     };
-
-    projectList.push(await Project.createProject(projectBody, ncMeta));
+    const p = await Project.createProject(projectBody, ncMeta);
+    projectsObj[p.id] = p;
   }
+  return projectsObj;
 }
 
 async function migrateProjectUsers(ncMeta = Noco.ncMeta) {
@@ -1239,7 +1242,11 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
   }
 }
 
-async function migrateAutitLog(ctx: MigrateCtxV1, ncMeta: any) {
+async function migrateAutitLog(
+  ctx: MigrateCtxV1,
+  projectsObj: { [projectId: string]: Project },
+  ncMeta: any
+) {
   const audits: Array<{
     user: string;
     ip: string;
@@ -1257,6 +1264,9 @@ async function migrateAutitLog(ctx: MigrateCtxV1, ncMeta: any) {
   }> = await ncMeta.metaList(null, null, 'nc_audit');
 
   for (const audit of audits) {
+    // skip deleted projects audit
+    if (!(audit.project_id in projectsObj)) continue;
+
     const insertObj: any = {
       user: audit.user,
       ip: audit.ip,

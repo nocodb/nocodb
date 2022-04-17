@@ -66,7 +66,7 @@ If you are a Docker user, you may try this way!
 
   ```bash
   docker run -d --name nocodb \
-  -v /local/path:/usr/app/data/ \ 
+  -v "$(pwd)"/nocodb:/usr/app/data/ \ 
   -p 8080:8080 \
   nocodb/nocodb:latest
   ```
@@ -77,7 +77,7 @@ If you are a Docker user, you may try this way!
 
   ```bash
   docker run -d --name nocodb-mysql \
-  -v /local/path:/usr/app/data/ \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
   -p 8080:8080 \
   -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
   -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
@@ -90,7 +90,7 @@ If you are a Docker user, you may try this way!
 
   ```bash
   docker run -d --name nocodb-postgres \
-  -v /local/path:/usr/app/data/ \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
   -p 8080:8080 \
   -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
   -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
@@ -103,7 +103,7 @@ If you are a Docker user, you may try this way!
 
   ```bash
   docker run -d --name nocodb-mssql \
-  -v /local/path:/usr/app/data/ \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
   -p 8080:8080 \
   -e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
   -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \

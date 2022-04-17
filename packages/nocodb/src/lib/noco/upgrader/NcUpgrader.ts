@@ -8,6 +8,8 @@ import ncProjectUpgraderV2_0090000 from './jobs/ncProjectUpgraderV2_0090000';
 
 const log = debug('nc:upgrader');
 import { Tele } from 'nc-help';
+import boxen from 'boxen';
+
 export interface NcUpgraderCtx {
   ncMeta: NcMetaIO;
 }
@@ -100,19 +102,40 @@ export default class NcUpgrader {
       });
     } catch (e) {
       await ctx.ncMeta.rollback(e);
-      console.log('Error', e);
       Tele.emit('evt', {
         evt_type: 'appMigration:failed',
         from: oldVersion,
         to: process.env.NC_VERSION,
-        msg: e.message
+        msg: e.message,
+        err: e?.stack
+          ?.split?.('\n')
+          .slice(0, 2)
+          .join('\n')
       });
+      console.log(getUpgradeErrorLog(e, oldVersion, process.env.NC_VERSION));
+      throw e;
     }
   }
 
   private static log(str, ...args): void {
     log(`${str}`, ...args);
   }
+}
 
-  private;
+function getUpgradeErrorLog(e: Error, oldVersion: string, newVersion: string) {
+  const errorTitle = `Migration from ${oldVersion} to ${newVersion} failed`;
+
+  return boxen(
+    `Error
+-----
+${e.stack}
+
+
+Please raise an issue in our github by using following link : 
+https://github.com/nocodb/nocodb/issues/new?labels=Type%3A%20Bug&template=bug_report.md
+
+Or contact us in our Discord community by following link :
+https://discord.gg/5RgZmkW ( message @o1lab, @pranavxc or @wingkwong )`,
+    { title: errorTitle, padding: 1, borderColor: 'yellow' }
+  );
 }

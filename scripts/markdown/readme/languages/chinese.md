@@ -55,7 +55,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   示例:
 
   ```
-  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
   ```
 
 ### 使用NPM

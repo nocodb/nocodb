@@ -66,7 +66,7 @@ If you are a Docker user, you may try this way!
 
   ```bash
   docker run -d --name nocodb \
-  -v "$(pwd)"/nocodb:/usr/app/data/ \ 
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
   -p 8080:8080 \
   nocodb/nocodb:latest
   ```

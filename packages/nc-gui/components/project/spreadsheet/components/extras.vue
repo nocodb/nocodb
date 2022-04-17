@@ -44,7 +44,7 @@
               <v-icon v-t="['community:twitter']" class="mr-1" size="22" :color="textColors[1]" @click="open('https://twitter.com/NocoDB')">
                 mdi-twitter
               </v-icon>
-              <v-icon v-t="['community:book-demo']" class="mr-1" size="22" :color="textColors[3]" @click="open('https://calendly.com/nocodb-meeting','_blank')">
+              <v-icon v-t="['community:book-demo']" class="mr-1" size="22" :color="textColors[3]" @click="open('https://calendly.com/nocodb-meeting')">
                 mdi-calendar-month
               </v-icon>
             </div>

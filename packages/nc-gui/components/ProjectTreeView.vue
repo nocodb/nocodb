@@ -596,7 +596,7 @@
 
         <div
           v-t="['api-docs']"
-          class="caption pointer nc-team-settings pb-3 pl-5 pr-3 pt-2 d-flex align-center"
+          class="caption pointer nc-docs pb-3 pl-5 pr-3 pt-2 d-flex align-center"
           @click="openLink('https://apis.nocodb.com')"
         >
           <v-icon small class="mr-2">

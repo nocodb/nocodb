@@ -432,18 +432,20 @@ const appendWhereCondition = function(
               );
               break;
             case '':
-              const column = columnAliases[matches[2]] || matches[2];
-              const operator = opMapping[matches[3]];
-              const target = matches[4];
-              if (matches[3] == 'like' && clientType === 'pg') {
-                // handle uuid case
-                knexRef[`${key}`](
-                  knexRef?.client.raw(`??::TEXT ${operator} '${target}'`, [
-                    column
-                  ])
-                );
-              } else {
-                knexRef[`${key}`](column, operator, target);
+              {
+                const column = columnAliases[matches[2]] || matches[2];
+                const operator = opMapping[matches[3]];
+                const target = matches[4];
+                if (matches[3] == 'like' && clientType === 'pg') {
+                  // handle uuid case
+                  knexRef[`${key}`](
+                    knexRef?.client.raw(`??::TEXT ${operator} '${target}'`, [
+                      column
+                    ])
+                  );
+                } else {
+                  knexRef[`${key}`](column, operator, target);
+                }
               }
               break;
             default:

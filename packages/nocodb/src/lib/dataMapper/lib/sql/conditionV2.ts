@@ -251,9 +251,19 @@ const parseConditionV2 = async (
             else if (filter.value === 'notnull')
               qb = qb.whereNotNull(customWhereClause || field);
             else if (filter.value === 'empty')
-              qb = qb.where(customWhereClause || field);
+              qb = qb.where(customWhereClause || field, '');
             else if (filter.value === 'notempty')
-              qb = qb.whereNot(customWhereClause || field);
+              qb = qb.whereNot(customWhereClause || field, '');
+            break;
+          case 'isnot':
+            if (filter.value === 'null')
+              qb = qb.whereNotNull(customWhereClause || field);
+            else if (filter.value === 'notnull')
+              qb = qb.whereNull(customWhereClause || field);
+            else if (filter.value === 'empty')
+              qb = qb.whereNot(customWhereClause || field, '');
+            else if (filter.value === 'notempty')
+              qb = qb.where(customWhereClause || field, '');
             break;
           case 'lt':
             qb = qb.where(field, customWhereClause ? '>' : '<', val);

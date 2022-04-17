@@ -37,6 +37,7 @@ export default class Filter {
     | 'ge'
     | 'le'
     | 'in'
+    | 'isnot'
     | 'is';
   value?: string;
 

@@ -153,7 +153,7 @@ export default {
       this.isRefTablesLoading = true
 
       const result = (await this.$api.dbTable.list(this.$store.state.project.projectId, this.$store.state.project.project.bases[0].id))
-        .list.filter(t => t.type === ModelTypes.TABLE)
+        .list.filter(t => this.checkTableMetaData(t))
 
       this.refTables = result // .data.list.map(({ table_name, title }) => ({ table_name, title }))
       this.isRefTablesLoading = false
@@ -172,6 +172,15 @@ export default {
     onColumnSelect() {
       const col = this.refColumns.find(c => this.relation.parentColumn === c.column_name)
       this.$emit('onColumnSelect', col)
+    },
+    checkTableMetaData(tableMetaData) {
+      if (tableMetaData.type !== ModelTypes.TABLE) {
+        return false
+      }
+      if (tableMetaData.title === this.$route.query.name) {
+        return false
+      }
+      return true
     }
   }
 

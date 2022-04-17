@@ -51,12 +51,13 @@ Here's the overview of all APIs. For the details, please check out <a href="http
 | Data | Get | dbTableRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Delete| dbTableRow | modelDelete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
+| Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
 | Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
 | Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
 | Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
 | Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
 | Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
-| Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
+| Data | Get | dbViewRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
 
 ### Meta APIs
 

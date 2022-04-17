@@ -134,6 +134,16 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName',
   ncMetaAclMw(dataList, 'dataList')
 );
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/count',
+  ncMetaAclMw(dataCount, 'dataCount')
+);
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/count',
+  ncMetaAclMw(dataCount, 'dataCount')
+);
+
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
   ncMetaAclMw(dataRead, 'dataRead')
@@ -156,10 +166,6 @@ router.get(
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
   ncMetaAclMw(dataList, 'dataList')
-);
-router.get(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/count',
-  ncMetaAclMw(dataCount, 'dataCount')
 );
 
 router.post(

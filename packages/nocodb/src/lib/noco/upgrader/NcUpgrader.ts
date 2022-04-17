@@ -105,7 +105,7 @@ export default class NcUpgrader {
         evt_type: 'appMigration:failed',
         from: oldVersion,
         to: process.env.NC_VERSION,
-        msg: e.msg
+        msg: e.message
       });
     }
   }

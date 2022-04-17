@@ -114,17 +114,22 @@ html {
   overflow: hidden;
 }
 
+
 [v-cloak] {
   display: none !important;
 }
+
 
 .v-btn {
   margin: 0 2px;
 }
 
+
+
 html {
   overflow-y: auto !important;
 }
+
 
 /* nested expansion panel bug  */
 
@@ -136,6 +141,7 @@ html {
   min-height: 64px !important;
 }
 
+
 /* Table validation message */
 /*table .v-input__control {*/
 /*  position: relative;*/
@@ -146,10 +152,12 @@ html {
 /*  bottom: -4px;*/
 /*}*/
 
+
 /*table edit dialog buttons*/
 .v-small-dialog__actions button span {
   font-weight: bolder;
 }
+
 
 /*resizer*/
 
@@ -211,24 +219,14 @@ html {
   background: linear-gradient(180deg, black, rgb(55, 55, 55));
 }
 
+
 .yellow-orange-gradient {
-  background: -moz-linear-gradient(
-    left,
-    rgba(241, 231, 103, 1) 0%,
-    rgba(254, 182, 69, 1) 100%
-  );
-  background: -webkit-linear-gradient(
-    left,
-    rgba(241, 231, 103, 1) 0%,
-    rgba(254, 182, 69, 1) 100%
-  );
-  background: linear-gradient(
-    to right,
-    rgba(241, 231, 103, 1) 0%,
-    rgba(254, 182, 69, 1) 100%
-  );
+  background: -moz-linear-gradient(left, rgba(241, 231, 103, 1) 0%, rgba(254, 182, 69, 1) 100%);
+  background: -webkit-linear-gradient(left, rgba(241, 231, 103, 1) 0%, rgba(254, 182, 69, 1) 100%);
+  background: linear-gradient(to right, rgba(241, 231, 103, 1) 0%, rgba(254, 182, 69, 1) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f1e767', endColorstr='#feb645', GradientType=1);
 }
+
 
 .white-gradient {
   background: linear-gradient(45deg, white, lightskyblue);
@@ -250,6 +248,7 @@ html {
   background: linear-gradient(70deg, #fcbb07, #fcbb07);
 }
 
+
 .img-animation {
   animation-name: vibrate;
   animation-duration: 1.5s;
@@ -263,6 +262,7 @@ html {
 
 @keyframes vibrate {
   0% {
+
     transform: translateY(10px);
   }
   100% {
@@ -270,10 +270,13 @@ html {
   }
 }
 
+
 .search-overlay .v-overlay__content {
   height: 100%;
   width: 100%;
+
 }
+
 
 /* Draggable tree hover color */
 
@@ -281,9 +284,11 @@ html {
   background-color: rgb(94, 94, 94) !important;
 }
 
+
 .theme--light .vtl-tree-node:hover {
   background-color: rgb(240, 240, 240) !important;
 }
+
 
 /*vue tree list icon font */
 
@@ -304,55 +309,57 @@ html {
 
 /*}*/
 
-.sql-query-treeview .vtl-tree-node .vtl-caret {
-  width: 1rem;
+.sql-query-treeview .vtl-tree-node .vtl-caret{
+  width:1rem;
 }
-.sql-query-treeview .vtl-tree-node {
+.sql-query-treeview .vtl-tree-node{
   padding-top: 5px !important;
   padding-bottom: 5px !important;
 }
-.sql-query-treeview .custom-run-icon {
-}
+.sql-query-treeview .custom-run-icon{}
+
 
 .sql-editor .v-expansion-panel-header {
   min-height: 36px !important;
-  padding: 0 0 0 10px;
+  padding:  0 0 0  10px;
 }
 .sql-editor .v-expansion-panel-header--active {
   min-height: 40px !important;
 }
 
+
 .api-client .v-expansion-panel-header {
   min-height: 36px !important;
-  padding: 0 0 0 10px;
+  padding:  0 0 0  10px;
 }
 .api-client .v-expansion-panel-header--active {
   min-height: 40px !important;
 }
-.api-treeview .vtl-node-content {
+.api-treeview .vtl-node-content{
   max-width: calc(100% - 44px);
 }
 /* for expansion panel content wrapper */
-.expansion-wrap-0 .v-expansion-panel-content__wrap {
+.expansion-wrap-0 .v-expansion-panel-content__wrap{
   padding: 0;
 }
 
-.sql-query-treeview .vtl-operation {
-  margin-left: 2px !important;
+.sql-query-treeview .vtl-operation{
+  margin-left: 2px !important;;
 }
-.sql-query-treeview .vtl-tree-node {
+.sql-query-treeview .vtl-tree-node{
   display: flex;
 }
 
-.sql-query-treeview .vtl-node-content {
+.sql-query-treeview .vtl-node-content{
   flex-grow: 1;
 }
+
 
 .ignore-height-style table .v-input__control {
   height: auto !important;
 }
 
-.cursor-pointer {
+.cursor-pointer{
   cursor: pointer;
 }
 

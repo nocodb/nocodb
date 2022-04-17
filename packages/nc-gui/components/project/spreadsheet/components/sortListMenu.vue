@@ -28,7 +28,7 @@
         </v-btn>
       </v-badge>
     </template>
-    <div class="backgroundColor pa-2 menu-filter-dropdown" style="min-width: 330px;">
+    <div class="backgroundColor pa-2 menu-filter-dropdown" style="min-width: 330px">
       <div class="sort-grid" @click.stop>
         <template v-for="(sort,i) in sortList||[]" dense>
           <v-icon :key="i + 'icon'" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)">

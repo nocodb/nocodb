@@ -3,6 +3,8 @@ export default {
   creator: '*',
   guest: {},
   editor: {
+    hideAllColumns: true,
+    showAllColumns: true,
     auditRowUpdate: true,
     passwordChange: true,
     // new permissions

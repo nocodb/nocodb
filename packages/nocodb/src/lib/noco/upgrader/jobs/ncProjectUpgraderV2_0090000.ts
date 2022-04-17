@@ -1282,11 +1282,21 @@ async function migrateAutitLog(
     };
 
     if (audit.model_name) {
-      insertObj.fk_model_id = (
+      const model =
         ctx.objModelAliasRef?.[audit.project_id]?.[audit.model_name] ||
         ctx.objModelRef?.[audit.project_id]?.[audit.model_name] ||
-        ctx.metas?.find(m => m.id == audit.model_id)
-      )?.id;
+        // extract model by using model_id property from audit
+        ctx.objModelRef?.[audit.project_id]?.[
+          ctx.metas?.find(m => m.id == audit.model_id)?.title
+        ] ||
+        ctx.objModelAliasRef?.[audit.project_id]?.[
+          ctx.metas?.find(m => m.id == audit.model_id)?.alias
+        ];
+
+      // if model is not found skip audit insertion
+      if (!model) continue;
+
+      insertObj.fk_model_id = model.id;
     }
 
     await Audit.insert(insertObj, ncMeta);

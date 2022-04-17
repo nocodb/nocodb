@@ -50,7 +50,7 @@ Here's the overview of all APIs. For the details, please check out <a href="http
 | Data | Post | dbTableRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
 | Data | Get | dbTableRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
-| Data | Delete| dbTableRow | modelDelete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
+| Data | Delete| dbTableRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
 | Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
 | Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |

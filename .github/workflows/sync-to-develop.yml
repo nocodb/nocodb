@@ -9,6 +9,11 @@ jobs:
   sync-to-develop:
     runs-on: ubuntu-latest
     steps:
+      # See https://github.com/actions/checkout/issues/766
+      - name: Workaround for unsafe repository issue
+        run: |
+          git config --global --add safe.directory ${GITHUB_WORKSPACE}
+ 
       - name: Checkout
         uses: actions/checkout@v1
 

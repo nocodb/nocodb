@@ -93,7 +93,7 @@ npm start
 ```bash
 # for SQLite
 docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \ 
+-v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
 nocodb/nocodb:latest
 

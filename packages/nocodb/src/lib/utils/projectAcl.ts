@@ -124,7 +124,8 @@ export default {
     bulkDataDelete: true,
     bulkDataDeleteAll: true,
     relationDataRemove: true,
-    relationDataAdd: true
+    relationDataAdd: true,
+    dataCount: true
   },
   commenter: {
     formViewGet: true,
@@ -171,7 +172,8 @@ export default {
     xcModelRowAuditAndCommentList: true,
     xcAuditCommentInsert: true,
     xcAuditModelCommentsCount: true,
-    xcExportAsCsv: true
+    xcExportAsCsv: true,
+    dataCount: true
   },
   viewer: {
     formViewGet: true,
@@ -213,7 +215,8 @@ export default {
     relationListAll: true,
     indexList: true,
     list: true,
-    xcExportAsCsv: true
+    xcExportAsCsv: true,
+    dataCount: true
   },
   user_new: {
     passwordChange: true,

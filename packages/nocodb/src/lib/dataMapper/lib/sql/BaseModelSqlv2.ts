@@ -2055,8 +2055,7 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
-    if (op === 'is') op = 'is' + value;
-    else if (op === 'in') value = value.split(',');
+    if (op === 'in') value = value.split(',');
 
     return new Filter({
       comparison_op: op,

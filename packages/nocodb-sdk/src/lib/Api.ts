@@ -851,7 +851,7 @@ export class Api<
      *
      * @tags Auth
      * @name Me
-     * @summary User Info
+     * @summary User info
      * @request GET:/api/v1/db/auth/user/me
      * @response `200` `UserInfoType` OK
      */
@@ -869,7 +869,7 @@ export class Api<
      *
      * @tags Auth
      * @name PasswordForgot
-     * @summary Password Forgot
+     * @summary Password forgot
      * @request POST:/api/v1/db/auth/password/forgot
      * @response `200` `void` OK
      * @response `401` `void` Unauthorized
@@ -888,7 +888,7 @@ export class Api<
      *
      * @tags Auth
      * @name PasswordChange
-     * @summary Password Change
+     * @summary Password change
      * @request POST:/api/v1/db/auth/password/change
      * @response `200` `{ msg?: string }` OK
      * @response `400` `{ msg?: string }` Bad request
@@ -911,7 +911,7 @@ export class Api<
      *
      * @tags Auth
      * @name PasswordResetTokenValidate
-     * @summary Reset Token Verify
+     * @summary Reset token verify
      * @request POST:/api/v1/db/auth/token/validate/{token}
      * @response `200` `void` OK
      */
@@ -927,7 +927,7 @@ export class Api<
      *
      * @tags Auth
      * @name EmailValidate
-     * @summary Verify Email
+     * @summary Verify email
      * @request POST:/api/v1/db/auth/email/validate/{token}
      * @response `200` `void` OK
      */
@@ -943,7 +943,7 @@ export class Api<
      *
      * @tags Auth
      * @name PasswordReset
-     * @summary Password Reset
+     * @summary Password reset
      * @request POST:/api/v1/db/auth/password/reset/{token}
      * @response `200` `void` OK
      */
@@ -965,7 +965,7 @@ export class Api<
      *
      * @tags Auth
      * @name TokenRefresh
-     * @summary Refresh Token
+     * @summary Refresh token
      * @request POST:/api/v1/db/auth/token/refresh
      * @response `200` `void` OK
      */
@@ -981,7 +981,7 @@ export class Api<
      *
      * @tags Auth
      * @name ProjectUserList
-     * @summary Project Users
+     * @summary Project users
      * @request GET:/api/v1/db/meta/projects/{projectId}/users
      * @response `200` `{ users?: { list: (UserType)[], pageInfo: PaginatedType } }` OK
      */
@@ -1024,7 +1024,7 @@ export class Api<
      *
      * @tags Auth
      * @name ProjectUserUpdate
-     * @summary Project User Update
+     * @summary Project user update
      * @request PATCH:/api/v1/db/meta/projects/{projectId}/users/{userId}
      * @response `200` `any` OK
      */
@@ -1048,7 +1048,7 @@ export class Api<
      *
      * @tags Auth
      * @name ProjectUserRemove
-     * @summary Project User Remove
+     * @summary Project user remove
      * @request DELETE:/api/v1/db/meta/projects/{projectId}/users/{userId}
      * @response `200` `any` OK
      */
@@ -1070,7 +1070,7 @@ export class Api<
      *
      * @tags Project
      * @name MetaGet
-     * @summary Project Info
+     * @summary Project info
      * @request GET:/api/v1/db/meta/projects/{projectId}/info
      * @response `200` `{ Node?: string, Arch?: string, Platform?: string, Docker?: boolean, Database?: string, ProjectOnRootDB?: string, RootDB?: string, PackageVersion?: string }` OK
      */
@@ -1143,6 +1143,7 @@ export class Api<
      *
      * @tags Project
      * @name List
+     * @summary Project list
      * @request GET:/api/v1/db/meta/projects/
      * @response `201` `ProjectListType`
      */
@@ -1162,6 +1163,7 @@ export class Api<
      *
      * @tags Project
      * @name Create
+     * @summary Project create
      * @request POST:/api/v1/db/meta/projects/
      * @response `200` `ProjectType` OK
      */
@@ -1183,6 +1185,7 @@ export class Api<
      *
      * @tags Project
      * @name Read
+     * @summary Project read
      * @request GET:/api/v1/db/meta/projects/{projectId}
      * @response `200` `object` OK
      */
@@ -1199,6 +1202,7 @@ export class Api<
      *
      * @tags Project
      * @name Delete
+     * @summary Project delete
      * @request DELETE:/api/v1/db/meta/projects/{projectId}
      * @response `200` `void` OK
      */
@@ -1340,7 +1344,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table
+     * @tags DB table
      * @name Create
      * @request POST:/api/v1/db/meta/projects/{projectId}/tables
      * @response `200` `TableType` OK
@@ -1362,7 +1366,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table
+     * @tags DB table
      * @name List
      * @request GET:/api/v1/db/meta/projects/{projectId}/tables
      * @response `200` `TableListType`
@@ -1387,7 +1391,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table
+     * @tags DB table
      * @name Read
      * @request GET:/api/v1/db/meta/tables/{tableId}
      * @response `200` `TableInfoType` OK
@@ -1403,7 +1407,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table
+     * @tags DB table
      * @name Update
      * @request PATCH:/api/v1/db/meta/tables/{tableId}
      * @response `200` `any` OK
@@ -1425,7 +1429,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table
+     * @tags DB table
      * @name Delete
      * @request DELETE:/api/v1/db/meta/tables/{tableId}
      * @response `200` `void` OK
@@ -1440,7 +1444,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table
+     * @tags DB table
      * @name Reorder
      * @request POST:/api/v1/db/meta/tables/{tableId}/reorder
      * @response `200` `void` OK
@@ -1462,7 +1466,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table column
+     * @tags DB table column
      * @name Create
      * @summary Column create
      * @request POST:/api/v1/db/meta/tables/{tableId}/columns
@@ -1484,7 +1488,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table column
+     * @tags DB table column
      * @name Update
      * @summary Column Update
      * @request PATCH:/api/v1/db/meta/columns/{columnId}
@@ -1507,7 +1511,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table column
+     * @tags DB table column
      * @name Delete
      * @request DELETE:/api/v1/db/meta/columns/{columnId}
      * @response `200` `void` OK
@@ -1522,7 +1526,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table column
+     * @tags DB table column
      * @name PrimaryColumnSet
      * @request POST:/api/v1/db/meta/columns/{columnId}/primary
      * @response `200` `void` OK
@@ -1538,7 +1542,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name List
      * @request GET:/api/v1/db/meta/tables/{tableId}/views
      * @response `200` `ViewListType`
@@ -1553,7 +1557,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name Update
      * @request PATCH:/api/v1/db/meta/views/{viewId}
      * @response `200` `void` OK
@@ -1579,7 +1583,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name Delete
      * @request DELETE:/api/v1/db/meta/views/{viewId}
      * @response `200` `void` OK
@@ -1594,7 +1598,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name ShowAllColumn
      * @request POST:/api/v1/db/meta/views/{viewId}/show-all
      * @response `200` `void` OK
@@ -1614,7 +1618,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name HideAllColumn
      * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
      * @response `200` `void` OK
@@ -1634,7 +1638,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name GridCreate
      * @request POST:/api/v1/db/meta/tables/{tableId}/grids
      * @response `200` `GridType` OK
@@ -1652,7 +1656,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name FormCreate
      * @request POST:/api/v1/db/meta/tables/{tableId}/forms
      * @response `200` `FormType` OK
@@ -1670,7 +1674,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name FormUpdate
      * @request PATCH:/api/v1/db/meta/forms/{formId}
      * @response `200` `void` OK
@@ -1687,7 +1691,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name FormRead
      * @request GET:/api/v1/db/meta/forms/{formId}
      * @response `200` `FormType` OK
@@ -1703,7 +1707,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name FormColumnUpdate
      * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
      * @response `200` `any` OK
@@ -1725,7 +1729,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name GridColumnsList
      * @request GET:/api/v1/db/meta/grids/{gridId}/grid-columns
      * @response `200` `(GridColumnType)[]` OK
@@ -1741,7 +1745,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name GridColumnUpdate
      * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
      * @response `200` `any` OK
@@ -1763,7 +1767,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name GalleryCreate
      * @request POST:/api/v1/db/meta/tables/{tableId}/galleries
      * @response `200` `object` OK
@@ -1785,7 +1789,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name GalleryUpdate
      * @request PATCH:/api/v1/db/meta/galleries/{galleryId}
      * @response `200` `void` OK
@@ -1806,7 +1810,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View
+     * @tags DB view
      * @name GalleryRead
      * @request GET:/api/v1/db/meta/galleries/{galleryId}
      * @response `200` `GalleryType` OK
@@ -1823,7 +1827,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Share
+     * @tags DB view share
      * @name List
      * @summary Shared view list
      * @request GET:/api/v1/db/meta/tables/{tableId}/share
@@ -1840,7 +1844,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Share
+     * @tags DB view share
      * @name Create
      * @request POST:/api/v1/db/meta/views/{viewId}/share
      * @response `200` `{ uuid?: string }` OK
@@ -1856,7 +1860,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Share
+     * @tags DB view share
      * @name Update
      * @request PATCH:/api/v1/db/meta/views/{viewId}/share
      * @response `200` `SharedViewType` OK
@@ -1878,7 +1882,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Share
+     * @tags DB view share
      * @name Delete
      * @request DELETE:/api/v1/db/meta/views/{viewId}/share
      * @response `200` `void` OK
@@ -1894,7 +1898,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Column
+     * @tags DB view column
      * @name List
      * @request GET:/api/v1/db/meta/views/{viewId}/columns
      */
@@ -1908,7 +1912,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Column
+     * @tags DB view column
      * @name Create
      * @request POST:/api/v1/db/meta/views/{viewId}/columns
      * @response `200` `void` OK
@@ -1925,7 +1929,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Column
+     * @tags DB view column
      * @name Update
      * @request PATCH:/api/v1/db/meta/views/{viewId}/columns/{columnId}
      * @response `200` `void` OK
@@ -1948,7 +1952,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Sort
+     * @tags DB table sort
      * @name List
      * @request GET:/api/v1/db/meta/views/{viewId}/sorts
      * @response `200` `{ uuid?: string, url?: string }` OK
@@ -1964,7 +1968,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Sort
+     * @tags DB table sort
      * @name Create
      * @request POST:/api/v1/db/meta/views/{viewId}/sorts
      * @response `200` `void` OK
@@ -1981,7 +1985,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Sort
+     * @tags DB table sort
      * @name Get
      * @request GET:/api/v1/db/meta/sorts/{sortId}
      * @response `200` `SortType` OK
@@ -1997,7 +2001,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Sort
+     * @tags DB table sort
      * @name Update
      * @request PATCH:/api/v1/db/meta/sorts/{sortId}
      * @response `200` `void` OK
@@ -2014,7 +2018,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Sort
+     * @tags DB table sort
      * @name Delete
      * @request DELETE:/api/v1/db/meta/sorts/{sortId}
      * @response `200` `void` OK
@@ -2030,7 +2034,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Filter
+     * @tags DB table filter
      * @name Read
      * @request GET:/api/v1/db/meta/views/{viewId}/filters
      * @response `200` `FilterListType`
@@ -2045,7 +2049,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Filter
+     * @tags DB table filter
      * @name Create
      * @request POST:/api/v1/db/meta/views/{viewId}/filters
      * @response `200` `void` OK
@@ -2062,7 +2066,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Filter
+     * @tags DB table filter
      * @name Get
      * @request GET:/api/v1/db/meta/filters/{filterId}
      * @response `200` `FilterType` OK
@@ -2078,7 +2082,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Filter
+     * @tags DB table filter
      * @name Update
      * @request PATCH:/api/v1/db/meta/filters/{filterId}
      * @response `200` `void` OK
@@ -2095,7 +2099,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Filter
+     * @tags DB table filter
      * @name Delete
      * @request DELETE:/api/v1/db/meta/filters/{filterId}
      * @response `200` `void` OK
@@ -2110,7 +2114,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Filter
+     * @tags DB table filter
      * @name ChildrenRead
      * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
      * @response `200` `FilterType` OK
@@ -2127,7 +2131,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook Filter
+     * @tags DB table webhook filter
      * @name Read
      * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `FilterListType`
@@ -2142,7 +2146,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook Filter
+     * @tags DB table webhook filter
      * @name Create
      * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `void` OK
@@ -2160,8 +2164,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name List
+     * @summary Table row list
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
      * @response `200` `any` OK
      */
@@ -2183,8 +2188,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name Create
+     * @summary Table row create
      * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}
      * @response `200` `any` OK
      */
@@ -2207,8 +2213,33 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
+     * @name Count
+     * @summary table rows count
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/count
+     * @response `200` `any` OK
+     */
+    count: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      query?: { where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
      * @name Read
+     * @summary Table row read
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
      * @response `201` `any` Created
      */
@@ -2229,8 +2260,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name Update
+     * @summary Table row update
      * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
      * @response `200` `any` OK
      */
@@ -2254,12 +2286,13 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
-     * @name ModelDelete
+     * @tags DB table row
+     * @name Delete
+     * @summary Table row delete
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
      * @response `200` `void` OK
      */
-    modelDelete: (
+    delete: (
       orgs: string,
       projectName: string,
       tableName: string,
@@ -2275,7 +2308,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name BulkCreate
      * @summary Bulk insert table rows
      * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
@@ -2300,7 +2333,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name BulkUpdate
      * @summary Bulk update all table rows by IDs
      * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
@@ -2325,7 +2358,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name BulkDelete
      * @summary Bulk delete all table rows by IDs
      * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
@@ -2350,7 +2383,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name BulkUpdateAll
      * @summary Bulk update all table rows with conditions
      * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
@@ -2375,7 +2408,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Row
+     * @tags DB table row
      * @name BulkDeleteAll
      * @summary Bulk delete all table rows with conditions
      * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
@@ -2402,6 +2435,7 @@ export class Api<
      *
      * @tags DB table row
      * @name CsvExport
+     * @summary Tablerows export
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
      * @response `200` `any` OK
      */
@@ -2424,6 +2458,7 @@ export class Api<
      *
      * @tags DB table row
      * @name NestedList
+     * @summary Nested relations row list
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
      * @response `200` `any` OK
      */
@@ -2450,6 +2485,7 @@ export class Api<
      *
      * @tags DB table row
      * @name NestedAdd
+     * @summary Nested relations row add
      * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
      * @response `200` `any` OK
      */
@@ -2477,6 +2513,7 @@ export class Api<
      *
      * @tags DB table row
      * @name NestedRemove
+     * @summary Nested relations row remove
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
      * @response `200` `any` OK
      */
@@ -2502,6 +2539,7 @@ export class Api<
      *
      * @tags DB table row
      * @name NestedChildrenExcludedList
+     * @summary Referenced tables rows excluding current records children/parent
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
      * @response `200` `any` OK
      */
@@ -2527,8 +2565,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Row
+     * @tags DB view row
      * @name List
+     * @summary Table view row list
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
      * @response `200` `any` OK
      */
@@ -2551,8 +2590,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Row
+     * @tags DB view row
      * @name Create
+     * @summary Table view row create
      * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
      * @response `200` `any` OK
      */
@@ -2576,8 +2616,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Row
+     * @tags DB view row
      * @name Count
+     * @summary Table view rows count
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count
      * @response `200` `any` OK
      */
@@ -2600,8 +2641,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Row
+     * @tags DB view row
      * @name Read
+     * @summary Table view row read
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
      * @response `201` `any` Created
      */
@@ -2623,8 +2665,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Row
+     * @tags DB view row
      * @name Update
+     * @summary Table view row update
      * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
      * @response `200` `any` OK
      */
@@ -2649,8 +2692,9 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB View Row
+     * @tags DB view row
      * @name Delete
+     * @summary Table view row delete
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
      * @response `200` `void` OK
      */
@@ -2673,6 +2717,7 @@ export class Api<
      *
      * @tags DB view row
      * @name Export
+     * @summary Table view rows export
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
      * @response `200` `any` OK
      */
@@ -3005,7 +3050,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook
+     * @tags DB table webhook
      * @name List
      * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
      * @response `200` `{ list: (HookType)[], pageInfo: PaginatedType }` OK
@@ -3021,7 +3066,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook
+     * @tags DB table webhook
      * @name Create
      * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
      * @response `200` `AuditType` OK
@@ -3039,7 +3084,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook
+     * @tags DB table webhook
      * @name Test
      * @request POST:/api/v1/db/meta/tables/{tableId}/hooks/test
      * @response `200` `any` OK
@@ -3061,7 +3106,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook
+     * @tags DB table webhook
      * @name SamplePayloadGet
      * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
      * @response `200` `{ plugins?: { list: (PluginType)[], pageInfo: PaginatedType } }` OK
@@ -3084,7 +3129,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook
+     * @tags DB table webhook
      * @name Update
      * @request PATCH:/api/v1/db/meta/hooks/{hookId}
      * @response `200` `HookType` OK
@@ -3102,7 +3147,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB Table Webhook
+     * @tags DB table webhook
      * @name Delete
      * @request DELETE:/api/v1/db/meta/hooks/{hookId}
      * @response `200` `void` OK

@@ -286,10 +286,6 @@ export default {
     },
     async importData(columnMappings) {
       try {
-        const api = this.$ncApis.get({
-          table: this.meta.table_name
-        })
-
         const data = this.parsedCsv.data
         for (let i = 0, progress = 0; i < data.length; i += 500) {
           const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
@@ -312,7 +308,12 @@ export default {
             }
             return res
           }, {}))
-          await api.insertBulk(batchData)
+          await this.$api.dbTableRow.bulkCreate(
+              'noco', 
+              this.projectName,
+              this.meta.title,
+              batchData
+          )
           progress += batchData.length
           this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`)
           this.$store.commit('loader/MutProgress', Math.round((100 * progress / data.length)))

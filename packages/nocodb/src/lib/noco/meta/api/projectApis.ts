@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Project from '../../../noco-models/Project';
-import { ModelTypes, ProjectListType } from 'nocodb-sdk';
+import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';
@@ -11,7 +11,6 @@ import NcHelp from '../../../utils/NcHelp';
 import Base from '../../../noco-models/Base';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import UITypes from '../../../sqlUi/UITypes';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import ProjectUser from '../../../noco-models/ProjectUser';

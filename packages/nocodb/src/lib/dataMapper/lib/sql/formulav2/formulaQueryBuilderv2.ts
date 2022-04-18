@@ -1,13 +1,13 @@
 import jsep from 'jsep';
 import mapFunctionName from '../mapFunctionName';
 import Model from '../../../../noco-models/Model';
-import UITypes from '../../../../sqlUi/UITypes';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import RollupColumn from '../../../../noco-models/RollupColumn';
 import FormulaColumn from '../../../../noco-models/FormulaColumn';
 import { XKnex } from '../../..';
 import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../noco-models/LookupColumn';
+import { UITypes } from 'nocodb-sdk';
 
 // todo: switch function based on database
 

@@ -325,11 +325,11 @@ import { VueTreeList, Tree, TreeNode } from 'vue-tree-list'
 import { Splitpanes, Pane } from 'splitpanes'
 import sqlRightClickOptions from '../../helpers/sqlRightClickOptions'
 import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel.vue'
-import { SqlUI } from '../../helpers/sqlUi/SqlUiFactory'
 
 import Utils from '../../helpers/Utils'
 
 import MonacoSqlEditor from '../monaco/MonacoSqlEditor'
+import {SqlUiFactory} from "nocodb-sdk";
 
 export default {
   components: {
@@ -447,7 +447,7 @@ export default {
       console.log('Failed to load previously opened query collections', e)
     }
 
-    this.sqlUi = SqlUI.create(this.nodes.dbConnection)
+    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection)
     console.log('------------', this.nodes)
     this.editors = this.$store.state.sqlClient.editors.map(editor => ({ ...editor }))
     this.checkClipboardForQuery(this.$store.state.sqlClient.clipboardQuery)

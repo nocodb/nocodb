@@ -9,7 +9,6 @@ import * as nc_008_add_nc_shared_bases from '../migrations/nc_008_add_nc_shared_
 import * as nc_009_add_model_order from '../migrations/nc_009_add_model_order';
 import * as nc_010_add_parent_title_column from '../migrations/nc_010_add_parent_title_column';
 import * as nc_011_remove_old_ses_plugin from '../migrations/nc_011_remove_old_ses_plugin';
-import * as nc_012_add_currency_column from '../migrations/nc_012_add_currency_column';
 
 // Create a custom migration source class
 export default class XcMigrationSource {
@@ -29,8 +28,7 @@ export default class XcMigrationSource {
       'nc_008_add_nc_shared_bases',
       'nc_009_add_model_order',
       'nc_010_add_parent_title_column',
-      'nc_011_remove_old_ses_plugin',
-      'nc_012_add_currency_column'
+      'nc_011_remove_old_ses_plugin'
     ]);
   }
 
@@ -62,8 +60,6 @@ export default class XcMigrationSource {
         return nc_010_add_parent_title_column;
       case 'nc_011_remove_old_ses_plugin':
         return nc_011_remove_old_ses_plugin;
-      case 'nc_012_add_currency_column':
-        return nc_012_add_currency_column;
     }
   }
 }

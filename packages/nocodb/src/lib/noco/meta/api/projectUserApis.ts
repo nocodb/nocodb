@@ -216,8 +216,7 @@ async function projectUserDelete(req, res): Promise<any> {
 }
 
 // todo: map api
-// @ts-ignore
-async function resendInvite(req, res, next): Promise<any> {
+async function projectUserInviteResend(req, res): Promise<any> {
   const user = await User.get(req.params.userId);
 
   if (!user) {
@@ -296,5 +295,9 @@ router.patch(
 router.delete(
   '/api/v1/db/meta/projects/:projectId/users/:userId',
   ncMetaAclMw(projectUserDelete, 'projectUserDelete')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/users/:userId/resend-invite',
+  ncMetaAclMw(projectUserInviteResend, 'projectUserInviteResend')
 );
 export default router;

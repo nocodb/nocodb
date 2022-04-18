@@ -2,24 +2,26 @@
   <v-row class="currency-wrapper">
     <v-col cols="6">
       <!--label="Format Locale"-->
-      <v-text-field
+      <v-autocomplete
         v-model="currency_locale"
         dense
         class="caption"
         label="Currency Locale"
         :rules="[isValidCurrencyLocale]"
+        :items="currencyLocaleList"
         outlined
         hide-details
       />
     </v-col>
     <v-col cols="6">
       <!--label="Currency Code"-->
-      <v-text-field
+      <v-autocomplete
         v-model="currency_code"
         dense
         class="caption"
         label="Currency Code"
         :rules="[isValidCurrencyCode]"
+        :items="currencyList"
         outlined
         hide-details
       />
@@ -28,7 +30,7 @@
 </template>
 
 <script>
-import { validateCurrencyCode } from '~/helpers'
+import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '~/helpers/currencyHelper'
 
 export default {
   name: 'CurrencyOptions',
@@ -36,12 +38,10 @@ export default {
   data: () => ({
     currency_locale: '',
     currency_code: '',
+    currencyList: currencyCodes,
+    currencyLocaleList: currencyLocales(),
     isValidCurrencyLocale: (value) => {
-      try {
-        return Intl.NumberFormat.supportedLocalesOf(value).length > 0
-      } catch (e) {
-        return 'Invalid locale'
-      }
+      return validateCurrencyLocale(value) || 'Invalid locale'
     },
     isValidCurrencyCode: (value) => {
       return validateCurrencyCode(value) || 'Invalid Currency Code'

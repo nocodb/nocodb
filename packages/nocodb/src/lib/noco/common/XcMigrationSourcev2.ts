@@ -1,4 +1,5 @@
-import * as nc_011 from '../migrations/nc_011';
+import * as nc_011 from '../migrationsv2/nc_011';
+import * as nc_012_alter_column_data_types from '../migrationsv2/nc_012_alter_column_data_types';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -7,7 +8,7 @@ export default class XcMigrationSourcev2 {
   // arguments to getMigrationName and getMigration
   public getMigrations(): Promise<any> {
     // In this example we are just returning migration names
-    return Promise.resolve(['nc_011']);
+    return Promise.resolve(['nc_011', 'nc_012_alter_column_data_types']);
   }
 
   public getMigrationName(migration): string {
@@ -18,6 +19,8 @@ export default class XcMigrationSourcev2 {
     switch (migration) {
       case 'nc_011':
         return nc_011;
+      case 'nc_012_alter_column_data_types':
+        return nc_012_alter_column_data_types;
     }
   }
 }

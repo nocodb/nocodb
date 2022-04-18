@@ -1,19 +1,28 @@
 import Knex from 'knex';
+import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
-    await knex.schema.alterTable('nc_columns_v2', table => {
-        table.text('cdf').alter();
-        table.text('cc').alter();
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.COLUMNS, table => {
+      table.text('cdf').alter();
+      table.text('dtxp').alter();
+      table.text('cc').alter();
+      table.text('ct').alter();
     });
-  };
-  
-const down = async knex => {
-    await knex.schema.alterTable('nc_columns_v2', table => {
-        table.string('cdf').alter();
-        table.string('cc').alter();
-    });
+  }
 };
-  
+
+const down = async knex => {
+  await knex.schema.alterTable(MetaTable.COLUMNS, table => {
+    if (knex.client.config.client !== 'sqlite3') {
+      table.string('cdf').alter();
+      table.string('dtxp').alter();
+      table.string('cc').alter();
+      table.string('ct').alter();
+    }
+  });
+};
+
 export { up, down };
 
 /**

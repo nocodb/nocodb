@@ -8,7 +8,7 @@ export default function(
       // todo: error log
       console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
 
-      if (e instanceof BasRequest) {
+      if (e instanceof BadRequest) {
         return res.status(400).json({ msg: e.message });
       } else if (e instanceof Unauthorized) {
         return res.status(401).json({ msg: e.message });
@@ -26,7 +26,7 @@ export default function(
   };
 }
 
-class BasRequest extends Error {}
+class BadRequest extends Error {}
 class Unauthorized extends Error {}
 class Forbidden extends Error {}
 class NotFound extends Error {}
@@ -38,7 +38,7 @@ export class NcError {
     throw new NotFound(message);
   }
   static badRequest(message) {
-    throw new BasRequest(message);
+    throw new BadRequest(message);
   }
   static unauthorized(message) {
     throw new Unauthorized(message);

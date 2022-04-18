@@ -10,6 +10,9 @@ import { Tele } from 'nc-help';
 import Audit from '../../../noco-models/Audit';
 import NocoCache from '../../../noco-cache/NocoCache';
 import { CacheGetType, CacheScope } from '../../../utils/globals';
+import * as ejs from 'ejs';
+import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import Noco from '../../Noco';
 
 async function userList(req, res) {
   res.json({
@@ -112,15 +115,12 @@ async function userInvite(req, res, next): Promise<any> {
         // in case of single user check for smtp failure
         // and send back token if failed
         if (
-          emails.length === 1
-          // todo: email
-          // &&
-          // !(await sendInviteEmail(email, invite_token, req))
+          emails.length === 1 &&
+          !(await sendInviteEmail(email, invite_token, req))
         ) {
           return res.json({ invite_token, email });
         } else {
-          // todo: email
-          // sendInviteEmail(email, invite_token, req);
+          sendInviteEmail(email, invite_token, req);
         }
       } catch (e) {
         console.log(e);
@@ -209,7 +209,6 @@ async function projectUserDelete(req, res): Promise<any> {
       NcError.forbidden('Insufficient privilege to delete a owner user.');
   }
 
-  // await this.users.where('id', req.params.id).del();
   await ProjectUser.delete(project_id, req.params.userId);
   res.json({
     msg: 'success'
@@ -233,8 +232,7 @@ async function resendInvite(req, res, next): Promise<any> {
     invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
   });
 
-  // todo:
-  // await sendInviteEmail(user.email, invite_token, req);
+  await sendInviteEmail(user.email, invite_token, req);
 
   Audit.insert({
     op_type: 'AUTHENTICATION',
@@ -246,6 +244,40 @@ async function resendInvite(req, res, next): Promise<any> {
   });
 
   res.json({ msg: 'success' });
+}
+
+async function sendInviteEmail(email, token, req): Promise<any> {
+  try {
+    const template = (await import('./userApi/ui/emailTemplates/invite'))
+      .default;
+
+    const emailAdapter = await NcPluginMgrv2.emailAdapter();
+
+    if (emailAdapter) {
+      await emailAdapter.mailSend({
+        to: email,
+        subject: 'Verify email',
+        html: ejs.render(template, {
+          signupLink: `${req.ncSiteUrl}${
+            Noco.getConfig()?.dashboardPath
+          }#/user/authentication/signup/${token}`,
+          projectName: req.body?.projectName,
+          roles: (req.body?.roles || '')
+            .split(',')
+            .map(r => r.replace(/^./, m => m.toUpperCase()))
+            .join(', '),
+          adminEmail: req.session?.passport?.user?.email
+        })
+      });
+      return true;
+    }
+  } catch (e) {
+    console.log(
+      'Warning : `mailSend` failed, Please configure emailClient configuration.',
+      e.message
+    );
+    throw e;
+  }
 }
 
 const router = Router({ mergeParams: true });

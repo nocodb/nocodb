@@ -1,42 +1,32 @@
-<template>
-  <v-checkbox
-    v-model="localState"
-    color="primary lighten-1"
-    hide-details
-    dense
-    v-on="parentListeners"
-  />
-</template>
+import Knex from 'knex';
+import { MetaTable } from '../../utils/globals';
 
-<script>
-export default {
-  name: 'CheckBoxField',
-  props: {
-    value: String,
-    inputDetails: Object
-  },
-  computed: {
-    localState: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        this.$emit('input', val)
-      }
-    },
-    parentListeners() {
-      const $listeners = {}
-      return $listeners
+const up = async (knex: Knex) => {
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.COLUMNS, table => {
+      table.text('cdf').alter();
+      table.text('dtxp').alter();
+      table.text('cc').alter();
+      table.text('ct').alter();
+    });
+  }
+};
+
+const down = async knex => {
+  await knex.schema.alterTable(MetaTable.COLUMNS, table => {
+    if (knex.client.config.client !== 'sqlite3') {
+      table.string('cdf').alter();
+      table.string('dtxp').alter();
+      table.string('cc').alter();
+      table.string('ct').alter();
     }
-  },
-}
-</script>
+  });
+};
 
-<style scoped>
-</style>
-<!--
+export { up, down };
+
 /**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ * @copyright Copyright (c) 2022, Xgene Cloud Ltd
  *
  * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
@@ -56,4 +46,3 @@ export default {
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
--->

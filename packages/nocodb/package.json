@@ -67,7 +67,7 @@
     "help:c": "ts-node ./help/a",
     "watch:build": "nodemon -e ts,js -w ./src -x npm run build",
     "watch:serve": "nodemon -e ts -w ./build -x npm run debug-local ",
-    "watch:run": "cross-env  NC_DISABLE_TELE1=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/example/docker --log-error --project tsconfig.json\"",
+    "watch:run": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/example/docker --log-error --project tsconfig.json\"",
     "watch:run:cypress": "cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/example/docker --log-error --project tsconfig.json\"",
     "watch:run:mysql": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/example/dockerRunMysql --log-error --project tsconfig.json\"",
     "run": "ts-node src/example/docker",
